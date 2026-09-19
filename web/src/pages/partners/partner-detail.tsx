@@ -1,10 +1,6 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  PageContainer,
-  ProForm,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { PageContainer, ProForm } from '@ant-design/pro-components';
 import {
   history,
   useAccess,
@@ -15,11 +11,7 @@ import {
 import { App, Button, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  FormAnchorNav,
-  focusFieldInput,
   PageHeaderShell,
-  pulseHighlightElement,
-  SectionCard,
   StickyFooterBar,
   scrollToFirstFormError,
 } from '@/components/ui';
@@ -42,18 +34,19 @@ import {
 import { unwrapList } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { getCurrencyOptions } from '@/utils/options';
-import AuditLogSection from './components/AuditLogSection';
+import AccountsSection from './components/AccountsSection';
 import BasicInfoSection from './components/BasicInfoSection';
-import ContactCardList, {
-  type ContactItem,
-} from './components/ContactCardList';
-import ContractCardList from './components/ContractCardList';
+import type { ContactItem } from './components/ContactCardList';
+import ContactsSection from './components/ContactsSection';
+import ContractsSection from './components/ContractsSection';
 import InterestRuleModal, {
   type InterestRuleValues,
 } from './components/InterestRuleModal';
+import LogsSection from './components/LogsSection';
+import PartnerAnchorNav from './components/PartnerAnchorNav';
+import PresetsSection from './components/PresetsSection';
+import RemarkSection from './components/RemarkSection';
 import SettlementSection from './components/SettlementSection';
-import ShippingPresetSection from './components/ShippingPresetSection';
-import AccountsPanel from './components/secondary/AccountsPanel';
 
 const { Text } = Typography;
 
@@ -783,129 +776,91 @@ export default function PartnerDetailPage() {
 
           {/* Section 3: 账户信息（依赖已保存档案与读权限，新建模式不展示） */}
           {partnerId && canReadAccounts && (
-            <SectionCard
+            <AccountsSection
               key="accounts"
-              id="section-accounts"
-              sectionKey="accounts"
-              title="账户信息"
-              collapsible
               collapsed={!activeCollapseKeys.includes('accounts')}
               onCollapseChange={(collapsed) =>
                 toggleSection('accounts', collapsed)
               }
-            >
-              <AccountsPanel
-                partner={partner}
-                canRead={canReadAccounts}
-                canCreate={
-                  access.canCreatePartnerAccounts || access.canManagePartners
-                }
-                canUpdate={
-                  access.canUpdatePartnerAccounts || access.canManagePartners
-                }
-              />
-            </SectionCard>
+              partner={partner}
+              canRead={canReadAccounts}
+              canCreate={
+                access.canCreatePartnerAccounts || access.canManagePartners
+              }
+              canUpdate={
+                access.canUpdatePartnerAccounts || access.canManagePartners
+              }
+            />
           )}
 
           {/* Section 4: 联系方式 */}
-          <SectionCard
+          <ContactsSection
             key="contacts"
-            id="section-contacts"
-            sectionKey="contacts"
-            title="联系方式"
-            collapsible
             collapsed={!activeCollapseKeys.includes('contacts')}
             onCollapseChange={(collapsed) =>
               toggleSection('contacts', collapsed)
             }
-          >
-            <ContactCardList contacts={contacts} onChange={setContacts} />
-          </SectionCard>
+            contacts={contacts}
+            onChange={setContacts}
+          />
 
           {/* Section 5: 常用信息 (Shipping Presets，依赖已保存档案与读权限，新建模式不展示) */}
           {partnerId && canReadShippingPresets && (
-            <SectionCard
+            <PresetsSection
               key="presets"
-              id="section-presets"
-              sectionKey="presets"
-              title="常用信息"
-              collapsible
               collapsed={!activeCollapseKeys.includes('presets')}
               onCollapseChange={(collapsed) =>
                 toggleSection('presets', collapsed)
               }
-            >
-              <ShippingPresetSection
-                partnerId={partnerId}
-                roleLabel={roleLabel}
-                canCreate={
-                  access.canCreatePartnerShippingPresets ||
-                  access.canManagePartners
-                }
-                canUpdate={
-                  access.canUpdatePartnerShippingPresets ||
-                  access.canManagePartners
-                }
-              />
-            </SectionCard>
+              partnerId={partnerId}
+              roleLabel={roleLabel}
+              canCreate={
+                access.canCreatePartnerShippingPresets ||
+                access.canManagePartners
+              }
+              canUpdate={
+                access.canUpdatePartnerShippingPresets ||
+                access.canManagePartners
+              }
+            />
           )}
 
           {/* Section 6: 合同管理（依赖已保存档案与读权限，新建模式不展示） */}
           {partnerId && canReadContracts && (
-            <SectionCard
+            <ContractsSection
               key="contracts"
-              id="section-contracts"
-              sectionKey="contracts"
-              title="合同管理"
-              collapsible
               collapsed={!activeCollapseKeys.includes('contracts')}
               onCollapseChange={(collapsed) =>
                 toggleSection('contracts', collapsed)
               }
-            >
-              <ContractCardList
-                partnerId={partnerId}
-                roleLabel={roleLabel}
-                canCreate={
-                  access.canCreatePartnerContracts || access.canManagePartners
-                }
-                canUpdate={
-                  access.canUpdatePartnerContracts || access.canManagePartners
-                }
-              />
-            </SectionCard>
+              partnerId={partnerId}
+              roleLabel={roleLabel}
+              canCreate={
+                access.canCreatePartnerContracts || access.canManagePartners
+              }
+              canUpdate={
+                access.canUpdatePartnerContracts || access.canManagePartners
+              }
+            />
           )}
 
           {/* Section 7: 备注 */}
-          <SectionCard
+          <RemarkSection
             key="remark"
-            id="section-remark"
-            sectionKey="remark"
-            title={`${roleLabel}备注`}
-            collapsible
             collapsed={!activeCollapseKeys.includes('remark')}
             onCollapseChange={(collapsed) => toggleSection('remark', collapsed)}
-          >
-            <ProFormTextArea
-              name="remark"
-              placeholder={`可以添加${roleLabel}信息录入时的备注信息`}
-              fieldProps={{ rows: 3 }}
-            />
-          </SectionCard>
+            roleLabel={roleLabel}
+          />
 
           {/* Section 8: 操作记录（依赖已保存档案与读权限） */}
           {partnerId && canReadAudit && (
-            <SectionCard
+            <LogsSection
               key="logs"
-              id="section-logs"
-              sectionKey="logs"
-              title="操作记录"
-              collapsible
               collapsed={!activeCollapseKeys.includes('logs')}
               onCollapseChange={(collapsed) => toggleSection('logs', collapsed)}
-            >
-              <AuditLogSection partnerId={partnerId} roleLabel={roleLabel} />
-            </SectionCard>
+              partnerId={partnerId}
+              roleLabel={roleLabel}
+            />
           )}
         </ProForm>
       </Spin>
@@ -953,63 +908,18 @@ export default function PartnerDetailPage() {
 
       {/* 4. 楼层大纲与错误定位导航 */}
       {!loading && (
-        <FormAnchorNav
+        <PartnerAnchorNav
           sectionErrors={sectionErrors}
-          defaultCollapsed={true}
+          isCreate={isCreate}
+          partnerId={partnerId}
+          canReadSettlementRules={canReadSettlementRules}
+          canReadAccounts={canReadAccounts}
+          canReadShippingPresets={canReadShippingPresets}
+          canReadContracts={canReadContracts}
+          canReadAudit={canReadAudit}
+          roleLabel={roleLabel}
+          onActiveCollapseKeysChange={setActiveCollapseKeys}
           onCollapsedChange={setNavCollapsed}
-          items={[
-            { key: 'basic', title: '基础信息' },
-            ...(isCreate || canReadSettlementRules
-              ? [{ key: 'settlement', title: '财务结算' }]
-              : []),
-            ...(partnerId && canReadAccounts
-              ? [{ key: 'accounts', title: '账户信息' }]
-              : []),
-            { key: 'contacts', title: '联系方式' },
-            ...(partnerId && canReadShippingPresets
-              ? [{ key: 'presets', title: '常用信息' }]
-              : []),
-            ...(partnerId && canReadContracts
-              ? [{ key: 'contracts', title: '合同管理' }]
-              : []),
-            { key: 'remark', title: `${roleLabel}备注` },
-            ...(partnerId && canReadAudit
-              ? [{ key: 'logs', title: '操作记录' }]
-              : []),
-          ]}
-          onSelect={(key) => {
-            setActiveCollapseKeys((prev) =>
-              Array.from(new Set([...prev, key])),
-            );
-          }}
-          onErrorClick={(sectionKey) => {
-            setActiveCollapseKeys((prev) =>
-              Array.from(new Set([...prev, sectionKey])),
-            );
-            window.setTimeout(() => {
-              const sectionEl = document.getElementById(
-                `section-${sectionKey}`,
-              );
-              if (sectionEl) {
-                const errorEl = sectionEl.querySelector<HTMLElement>(
-                  '.ant-form-item-has-error',
-                );
-                if (errorEl) {
-                  errorEl.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                  });
-                  pulseHighlightElement(errorEl);
-                  focusFieldInput(errorEl);
-                } else {
-                  sectionEl.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                  });
-                }
-              }
-            }, 100);
-          }}
         />
       )}
     </PageContainer>

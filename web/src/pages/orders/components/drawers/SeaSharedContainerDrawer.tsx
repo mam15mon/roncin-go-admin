@@ -1,38 +1,5 @@
-import {
-  CheckCircleOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
-  PlusOutlined,
-  RollbackOutlined,
-  SaveOutlined,
-  SearchOutlined,
-} from '@ant-design/icons';
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  Divider,
-  Drawer,
-  Empty,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Pagination,
-  Popconfirm,
-  Row,
-  Select,
-  Space,
-  Spin,
-  Table,
-  Tag,
-  Typography,
-} from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import Decimal from 'decimal.js';
+import { PlusOutlined } from '@ant-design/icons';
+import { Alert, App, Button, Drawer, Form, Space, Spin } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -40,7 +7,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { SeaSharedContainerStatus } from '@/enums.generated';
 import {
   seaSharedContainerServiceConfirmSeaSharedContainer,
   seaSharedContainerServiceCreateSeaSharedContainer,
@@ -50,13 +16,20 @@ import {
   seaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft,
   seaSharedContainerServiceWithdrawSeaSharedContainer,
 } from '@/services/roncin/seaSharedContainerService';
-
-const { Text, Title } = Typography;
-
-// 候选订单服务端分页大小（分页单位是订单，不是货物行）；共享箱列表一次取分页上限
-const CANDIDATE_PAGE_SIZE = 20;
-const CONTAINER_PAGE_SIZE = 200;
-const STATUS_CONFIRMED = SeaSharedContainerStatus.SEA_SHARED_CONTAINER_STATUS_CONFIRMED;
+import SeaSharedContainerAllocationTable from './SeaSharedContainerAllocationTable';
+import SeaSharedContainerCardList from './SeaSharedContainerCardList';
+import SeaSharedContainerCreateModal from './SeaSharedContainerCreateModal';
+import SeaSharedContainerDetailCard from './SeaSharedContainerDetailCard';
+import {
+  buildAllocationInputs,
+  buildAllocationSummary,
+  buildFlatCargoList,
+  CANDIDATE_PAGE_SIZE,
+  type CargoAllocationItem,
+  CONTAINER_PAGE_SIZE,
+  type DraftAllocation,
+  STATUS_CONFIRMED,
+} from './seaSharedContainerModels';
 
 export type SeaSharedContainerDrawerProps = {
   open: boolean;
@@ -69,36 +42,6 @@ export type SeaSharedContainerDrawerProps = {
   canDelete?: boolean;
   containerSpecOptions?: { label: string; value: string | number }[];
 };
-
-// 本地草稿分配项：携带完整身份与期望版本，翻页或跨页编辑后仍可正确提交
-type DraftAllocation = {
-  orderId: string;
-  houseBillId: string;
-  cargoItemId: string;
-  expectedOrderVersion: string;
-  expectedLinkVersion: string;
-  expectedHouseBillVersion: string;
-  expectedCargoItemVersion: string;
-  packageCount: number;
-  grossWeightKg: string;
-  volumeCbm: string;
-};
-
-type CargoAllocationItem = {
-  key: string;
-  draft: DraftAllocation;
-  orderNo: string;
-  houseNo: string;
-  cargoName: string;
-  totalPackageCount: number;
-  totalGrossWeightKg: string;
-  totalVolumeCbm: string;
-};
-
-const isZeroQuantity = (pkg: number, weight: string, volume: string) =>
-  pkg <= 0 &&
-  new Decimal(weight || 0).lte(0) &&
-  new Decimal(volume || 0).lte(0);
 
 export default function SeaSharedContainerDrawer({
   open,
@@ -115,7 +58,9 @@ export default function SeaSharedContainerDrawer({
 
   // 业务上下文键：订单 + 运输执行。父组件以该键重新挂载，抽屉内部再以请求序号防迟到覆盖
   const contextKey =
-    orderId && transportExecutionId ? `${orderId}:${transportExecutionId}` : null;
+    orderId && transportExecutionId
+      ? `${orderId}:${transportExecutionId}`
+      : null;
 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -177,8 +122,13 @@ export default function SeaSharedContainerDrawer({
           return containerList[0]?.id || null;
         });
       } catch (err: unknown) {
-        if (seq === containersSeqRef.current && activeContextRef.current === context) {
-          message.error(err instanceof Error ? err.message : '加载共享箱数据失败');
+        if (
+          seq === containersSeqRef.current &&
+          activeContextRef.current === context
+        ) {
+          message.error(
+            err instanceof Error ? err.message : '加载共享箱数据失败',
+          );
         }
       } finally {
         if (seq === containersSeqRef.current) {
@@ -211,7 +161,10 @@ export default function SeaSharedContainerDrawer({
         setCandidates(resp?.data || []);
         setCandidateTotal(Number(resp?.total || 0));
       } catch (err: unknown) {
-        if (seq === candidatesSeqRef.current && activeContextRef.current === context) {
+        if (
+          seq === candidatesSeqRef.current &&
+          activeContextRef.current === context
+        ) {
           message.error(
             err instanceof Error ? err.message : '加载候选订单失败',
           );
@@ -251,7 +204,15 @@ export default function SeaSharedContainerDrawer({
     if (lastCandidateQueryRef.current === queryKey) return;
     lastCandidateQueryRef.current = queryKey;
     void loadCandidates(contextKey, candidateKeyword, candidatePage);
-  }, [open, contextKey, candidateKeyword, candidatePage, loadContainers, loadCandidates, resetContextState]);
+  }, [
+    open,
+    contextKey,
+    candidateKeyword,
+    candidatePage,
+    loadContainers,
+    loadCandidates,
+    resetContextState,
+  ]);
 
   // 当前选中的共享箱
   const selectedContainer = useMemo(() => {
@@ -284,93 +245,16 @@ export default function SeaSharedContainerDrawer({
   }, [selectedContainer]);
 
   // 展开当前候选页订单与货物行；草稿值从 drafts 读取（含不在本页展示的历史编辑）
-  const flatCargoList = useMemo<CargoAllocationItem[]>(() => {
-    const list: CargoAllocationItem[] = [];
-    for (const order of candidates) {
-      if (!order.cargoItems) continue;
-      for (const cargo of order.cargoItems) {
-        if (!order.orderId || !cargo.id || !order.houseBillId) continue;
-        const key = `${order.orderId}:${cargo.id}`;
-        const draft =
-          drafts[key] ||
-          ({
-            orderId: order.orderId,
-            houseBillId: order.houseBillId,
-            cargoItemId: cargo.id,
-            expectedOrderVersion: String(order.orderVersion || 1),
-            expectedLinkVersion: String(order.linkVersion || 1),
-            expectedHouseBillVersion: String(order.houseBillVersion || 1),
-            expectedCargoItemVersion: String(cargo.version || 1),
-            packageCount: 0,
-            grossWeightKg: '0.000',
-            volumeCbm: '0.000000',
-          } satisfies DraftAllocation);
-        list.push({
-          key,
-          draft,
-          orderNo: order.orderNo || '',
-          houseNo: order.houseNo || '',
-          cargoName: cargo.cargoName || '未命名货物',
-          totalPackageCount: cargo.packageCount || 0,
-          totalGrossWeightKg: cargo.grossWeightKg || '0.000',
-          totalVolumeCbm: cargo.volumeCbm || '0.000000',
-        });
-      }
-    }
-    return list;
-  }, [candidates, drafts]);
+  const flatCargoList = useMemo<CargoAllocationItem[]>(
+    () => buildFlatCargoList(candidates, drafts),
+    [candidates, drafts],
+  );
 
   // 本地实时汇总已分配件重尺与剩余
-  const summary = useMemo(() => {
-    if (!selectedContainer) {
-      return {
-        totalPackages: 0,
-        totalWeight: '0.000',
-        totalVolume: '0.000000',
-        allocPackages: 0,
-        allocWeight: '0.000',
-        allocVolume: '0.000000',
-        diffPackages: 0,
-        diffWeight: '0.000',
-        diffVolume: '0.000000',
-        isBalanced: false,
-      };
-    }
-
-    let allocPackages = 0;
-    let allocWeight = new Decimal(0);
-    let allocVolume = new Decimal(0);
-
-    for (const item of Object.values(drafts)) {
-      allocPackages += Number(item.packageCount || 0);
-      allocWeight = allocWeight.plus(new Decimal(item.grossWeightKg || 0));
-      allocVolume = allocVolume.plus(new Decimal(item.volumeCbm || 0));
-    }
-
-    const totalPackages = selectedContainer.packageCount || 0;
-    const totalWeight = new Decimal(selectedContainer.grossWeightKg || 0);
-    const totalVolume = new Decimal(selectedContainer.volumeCbm || 0);
-
-    const diffPackages = totalPackages - allocPackages;
-    const diffWeight = totalWeight.minus(allocWeight);
-    const diffVolume = totalVolume.minus(allocVolume);
-
-    const isBalanced =
-      diffPackages === 0 && diffWeight.isZero() && diffVolume.isZero();
-
-    return {
-      totalPackages,
-      totalWeight: totalWeight.toFixed(3),
-      totalVolume: totalVolume.toFixed(6),
-      allocPackages,
-      allocWeight: allocWeight.toFixed(3),
-      allocVolume: allocVolume.toFixed(6),
-      diffPackages,
-      diffWeight: diffWeight.toFixed(3),
-      diffVolume: diffVolume.toFixed(6),
-      isBalanced,
-    };
-  }, [selectedContainer, drafts]);
+  const summary = useMemo(
+    () => buildAllocationSummary(selectedContainer, drafts),
+    [selectedContainer, drafts],
+  );
 
   // 编辑草稿：以当前行身份+版本为基础合并数量
   const handleUpdateDraft = useCallback(
@@ -412,31 +296,6 @@ export default function SeaSharedContainerDrawer({
     }));
   }, []);
 
-  // 构建提交 payload：以本地全部草稿为准（跨页新录入同样保留），零值项剔除
-  const buildAllocationInputs = ():
-    | API.SeaSharedContainerAllocationInput[]
-    | undefined => {
-    const inputs: API.SeaSharedContainerAllocationInput[] = [];
-    for (const draft of Object.values(drafts)) {
-      if (isZeroQuantity(draft.packageCount, draft.grossWeightKg, draft.volumeCbm)) {
-        continue;
-      }
-      inputs.push({
-        orderId: draft.orderId,
-        houseBillId: draft.houseBillId,
-        cargoItemId: draft.cargoItemId,
-        packageCount: draft.packageCount,
-        grossWeightKg: draft.grossWeightKg,
-        volumeCbm: draft.volumeCbm,
-        expectedOrderVersion: draft.expectedOrderVersion,
-        expectedLinkVersion: draft.expectedLinkVersion,
-        expectedHouseBillVersion: draft.expectedHouseBillVersion,
-        expectedCargoItemVersion: draft.expectedCargoItemVersion,
-      });
-    }
-    return inputs;
-  };
-
   // 提交前校验选中共享箱仍属于当前上下文，通过时返回该共享箱与收窄后的 ID
   const ensureSubmitContext = (): {
     container: API.SeaSharedContainer;
@@ -465,7 +324,13 @@ export default function SeaSharedContainerDrawer({
     if (!contextKey) return;
     void loadContainers(contextKey);
     void loadCandidates(contextKey, candidateKeyword, candidatePage);
-  }, [contextKey, loadContainers, loadCandidates, candidateKeyword, candidatePage]);
+  }, [
+    contextKey,
+    loadContainers,
+    loadCandidates,
+    candidateKeyword,
+    candidatePage,
+  ]);
 
   // 保存草稿
   const handleSaveDraft = async () => {
@@ -481,7 +346,7 @@ export default function SeaSharedContainerDrawer({
           id: containerId,
           orderId: anchorOrderId,
           expectedVersion: String(container.version || 1),
-          allocations: buildAllocationInputs(),
+          allocations: buildAllocationInputs(drafts),
         },
       );
       message.success('共享箱分配草稿已保存');
@@ -512,7 +377,7 @@ export default function SeaSharedContainerDrawer({
           id: containerId,
           orderId: anchorOrderId,
           expectedVersion: String(container.version || 1),
-          allocations: buildAllocationInputs(),
+          allocations: buildAllocationInputs(drafts),
         },
       );
       message.success('共享箱分配已确认生效');
@@ -610,101 +475,7 @@ export default function SeaSharedContainerDrawer({
     }
   };
 
-  const isConfirmed =
-    selectedContainer?.status === STATUS_CONFIRMED;
-
-  const columns: ColumnsType<CargoAllocationItem> = [
-    {
-      title: '所属订单 / 分单',
-      dataIndex: 'orderNo',
-      width: 180,
-      render: (_, record) => (
-        <div>
-          <Text strong>{record.orderNo}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            HBL: {record.houseNo || '直单'}
-          </Text>
-        </div>
-      ),
-    },
-    {
-      title: '货物描述',
-      dataIndex: 'cargoName',
-      width: 160,
-    },
-    {
-      title: '货物基准总量',
-      width: 160,
-      render: (_, record) => (
-        <div style={{ fontSize: 12 }}>
-          <div>件数: {record.totalPackageCount} PCS</div>
-          <div>毛重: {record.totalGrossWeightKg} KG</div>
-          <div>体积: {record.totalVolumeCbm} CBM</div>
-        </div>
-      ),
-    },
-    {
-      title: '分配至本共享箱件数 (PCS)',
-      width: 140,
-      render: (_, record) => (
-        <InputNumber
-          min={0}
-          max={record.totalPackageCount ?? 0}
-          value={record.draft.packageCount}
-          disabled={isConfirmed || !canUpdate}
-          onChange={(val) =>
-            handleUpdateDraft(record.draft, 'packageCount', val)
-          }
-          style={{ width: '100%' }}
-        />
-      ),
-    },
-    {
-      title: '分配毛重 (KG)',
-      width: 150,
-      render: (_, record) => (
-        <Input
-          value={record.draft.grossWeightKg}
-          disabled={isConfirmed || !canUpdate}
-          onChange={(e) =>
-            handleUpdateDraft(record.draft, 'grossWeightKg', e.target.value)
-          }
-          placeholder="0.000"
-        />
-      ),
-    },
-    {
-      title: '分配体积 (CBM)',
-      width: 150,
-      render: (_, record) => (
-        <Input
-          value={record.draft.volumeCbm}
-          disabled={isConfirmed || !canUpdate}
-          onChange={(e) =>
-            handleUpdateDraft(record.draft, 'volumeCbm', e.target.value)
-          }
-          placeholder="0.000000"
-        />
-      ),
-    },
-    {
-      title: '快捷操作',
-      width: 110,
-      render: (_, record) =>
-        !isConfirmed && canUpdate ? (
-          <Button
-            size="small"
-            type="link"
-            onClick={() => handleFillAllCargo(record)}
-          >
-            全部填入
-          </Button>
-        ) : (
-          '-'
-        ),
-    },
-  ];
+  const isConfirmed = selectedContainer?.status === STATUS_CONFIRMED;
 
   return (
     <Drawer
@@ -746,346 +517,60 @@ export default function SeaSharedContainerDrawer({
           </div>
 
           {/* 共享箱卡片选择栏 */}
-          <div style={{ marginBottom: 16 }}>
-            <Title level={5}>本航次共享物理箱 ({containers.length})</Title>
-            {containers.length === 0 ? (
-              <Empty
-                description="当前航次暂无共享物理箱"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              >
-                {canCreate && (
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={() => setCreateModalOpen(true)}
-                  >
-                    立即创建共享箱
-                  </Button>
-                )}
-              </Empty>
-            ) : (
-              <Row gutter={[12, 12]}>
-                {containers.map((cntr) => {
-                  const isSelected = cntr.id === selectedContainerId;
-                  const cntrConfirmed = cntr.status === STATUS_CONFIRMED;
-                  return (
-                    <Col xs={24} sm={12} md={8} key={cntr.id}>
-                      <Card
-                        size="small"
-                        hoverable
-                        onClick={() => setSelectedContainerId(cntr.id || null)}
-                        style={{
-                          borderColor: isSelected ? '#1677ff' : '#f0f0f0',
-                          borderWidth: isSelected ? 2 : 1,
-                          backgroundColor: isSelected ? '#f6ffed' : '#ffffff',
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Text
-                            strong
-                            style={{ fontFamily: 'monospace', fontSize: 15 }}
-                          >
-                            {cntr.containerNo}
-                          </Text>
-                          {cntrConfirmed ? (
-                            <Tag color="success">已确认</Tag>
-                          ) : (
-                            <Tag color="warning">草稿</Tag>
-                          )}
-                        </div>
-                        <div
-                          style={{
-                            marginTop: 4,
-                            fontSize: 12,
-                            color: 'rgba(0,0,0,0.65)',
-                          }}
-                        >
-                          <div>
-                            规格: {cntr.containerSpecName || cntr.containerSpecId}
-                            {cntr.sealNo ? ` | 封号: ${cntr.sealNo}` : ''}
-                          </div>
-                          <div>
-                            容量: {cntr.packageCount} PCS / {cntr.grossWeightKg}{' '}
-                            KG / {cntr.volumeCbm} CBM
-                          </div>
-                        </div>
-                      </Card>
-                    </Col>
-                  );
-                })}
-              </Row>
-            )}
-          </div>
+          <SeaSharedContainerCardList
+            containers={containers}
+            selectedContainerId={selectedContainerId}
+            canCreate={canCreate}
+            onSelect={setSelectedContainerId}
+            onCreate={() => setCreateModalOpen(true)}
+          />
 
           {/* 选定共享箱详情与守恒监控 */}
           {selectedContainer && (
             <>
-              <Divider style={{ margin: '16px 0' }} />
-              <Card
-                title={
-                  <Space>
-                    <span>共享物理箱：</span>
-                    <Text
-                      style={{
-                        fontFamily: 'monospace',
-                        fontWeight: 600,
-                        fontSize: 16,
-                      }}
-                    >
-                      {selectedContainer.containerNo}
-                    </Text>
-                    <Tag color="blue">
-                      {selectedContainer.containerSpecName ||
-                        selectedContainer.containerSpecId}
-                    </Tag>
-                    {isConfirmed ? (
-                      <Tag color="success" icon={<CheckCircleOutlined />}>
-                        已确认生效
-                      </Tag>
-                    ) : (
-                      <Tag color="warning" icon={<ExclamationCircleOutlined />}>
-                        草稿待确认
-                      </Tag>
-                    )}
-                    {summary.isBalanced ? (
-                      <Tag color="cyan">件重尺完全守恒</Tag>
-                    ) : (
-                      <Tag color="red">
-                        差额: {summary.diffPackages} PCS / {summary.diffWeight} KG
-                        / {summary.diffVolume} CBM
-                      </Tag>
-                    )}
-                  </Space>
-                }
-                extra={
-                  <Space>
-                    {!isConfirmed && canUpdate && (
-                      <>
-                        <Button
-                          icon={<SaveOutlined />}
-                          onClick={handleSaveDraft}
-                          loading={submitting}
-                        >
-                          保存草稿
-                        </Button>
-                        <Button
-                          type="primary"
-                          icon={<CheckCircleOutlined />}
-                          onClick={handleConfirm}
-                          loading={submitting}
-                          disabled={!summary.isBalanced}
-                        >
-                          确认分配
-                        </Button>
-                      </>
-                    )}
-                    {isConfirmed && canUpdate && (
-                      <Button
-                        icon={<RollbackOutlined />}
-                        onClick={handleWithdraw}
-                        loading={submitting}
-                      >
-                        撤回至草稿
-                      </Button>
-                    )}
-                    {!isConfirmed && canDelete && (
-                      <Popconfirm
-                        title="确定删除此共享物理箱？"
-                        description="删除后相关草稿分配将一并清理。"
-                        onConfirm={handleDelete}
-                        okText="确定"
-                        cancelText="取消"
-                      >
-                        <Button danger icon={<DeleteOutlined />}>
-                          删除
-                        </Button>
-                      </Popconfirm>
-                    )}
-                  </Space>
-                }
-                style={{ marginBottom: 16 }}
-              >
-                <Descriptions size="small" column={{ xs: 1, sm: 3 }}>
-                  <Descriptions.Item label="箱体总容量">
-                    {summary.totalPackages} PCS / {summary.totalWeight} KG /{' '}
-                    {summary.totalVolume} CBM
-                  </Descriptions.Item>
-                  <Descriptions.Item label="已分配总量">
-                    {summary.allocPackages} PCS / {summary.allocWeight} KG /{' '}
-                    {summary.allocVolume} CBM
-                  </Descriptions.Item>
-                  <Descriptions.Item label="剩余待分配">
-                    <Text
-                      type={
-                        summary.diffPackages === 0 ? 'secondary' : 'danger'
-                      }
-                      strong
-                    >
-                      {summary.diffPackages} PCS / {summary.diffWeight} KG /{' '}
-                      {summary.diffVolume} CBM
-                    </Text>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-
-              {/* 跨订单货物分配：服务端按“订单”分页，本页订单的全部货物行完整展示，
-                  分页由独立的 Pagination 控制订单页，Table 不做本地二次分页 */}
-              <Card
-                title={`同航次待分配 HOUSE 订单货物 (第 ${candidatePage} 页，共 ${candidateTotal} 票订单)`}
-                size="small"
-                extra={
-                  <Input.Search
-                    allowClear
-                    size="small"
-                    style={{ width: 260 }}
-                    placeholder="搜索订单号 / 业务号 / 分单号"
-                    prefix={<SearchOutlined />}
-                    value={candidateSearching}
-                    onChange={(e) => setCandidateSearching(e.target.value)}
-                    onSearch={(value) => {
-                      setCandidateKeyword(value.trim());
-                      setCandidatePage(1);
-                    }}
-                  />
-                }
-              >
-                {candidates.length === 0 ? (
-                  <Empty
-                    description="未找到符合条件的 HOUSE 订单可供拼箱"
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  />
-                ) : (
-                  <>
-                    <Table
-                      columns={columns}
-                      dataSource={flatCargoList}
-                      rowKey={(r) => r.key}
-                      pagination={false}
-                      size="small"
-                      bordered
-                    />
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        marginTop: 12,
-                      }}
-                    >
-                      <Pagination
-                        current={candidatePage}
-                        pageSize={CANDIDATE_PAGE_SIZE}
-                        total={candidateTotal}
-                        showSizeChanger={false}
-                        showTotal={(total) => `共 ${total} 票订单`}
-                        onChange={(page) => setCandidatePage(page)}
-                      />
-                    </div>
-                  </>
-                )}
-              </Card>
+              <SeaSharedContainerDetailCard
+                container={selectedContainer}
+                summary={summary}
+                isConfirmed={isConfirmed}
+                canUpdate={canUpdate}
+                canDelete={canDelete}
+                submitting={submitting}
+                onSaveDraft={handleSaveDraft}
+                onConfirm={handleConfirm}
+                onWithdraw={handleWithdraw}
+                onDelete={handleDelete}
+              />
+              <SeaSharedContainerAllocationTable
+                candidates={candidates}
+                flatCargoList={flatCargoList}
+                candidatePage={candidatePage}
+                candidateTotal={candidateTotal}
+                candidateSearching={candidateSearching}
+                isConfirmed={isConfirmed}
+                canUpdate={canUpdate}
+                onSearchingChange={setCandidateSearching}
+                onSearch={(value) => {
+                  setCandidateKeyword(value.trim());
+                  setCandidatePage(1);
+                }}
+                onPageChange={setCandidatePage}
+                onUpdateDraft={handleUpdateDraft}
+                onFillAllCargo={handleFillAllCargo}
+              />
             </>
           )}
         </Spin>
       )}
 
       {/* 新建共享箱 Modal */}
-      <Modal
-        title="新建跨订单共享物理箱"
+      <SeaSharedContainerCreateModal
         open={createModalOpen}
+        form={createForm}
+        submitting={submitting}
+        containerSpecOptions={containerSpecOptions}
         onCancel={() => setCreateModalOpen(false)}
-        onOk={() => createForm.submit()}
-        confirmLoading={submitting}
-        destroyOnClose
-      >
-        <Form
-          form={createForm}
-          layout="vertical"
-          onFinish={handleCreateSubmit}
-          initialValues={{
-            packageCount: 0,
-            grossWeightKg: '0.000',
-            volumeCbm: '0.000000',
-          }}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="containerNo"
-                label="箱号 (Container No.)"
-                rules={[
-                  { required: true, message: '请输入箱号' },
-                  {
-                    pattern: /^[A-Z0-9]+$/i,
-                    message: '箱号仅允许英文与数字',
-                  },
-                ]}
-              >
-                <Input placeholder="例如 COSU1234567" maxLength={30} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="containerSpecId"
-                label="集装箱规格"
-                rules={[{ required: true, message: '请选择箱型规格' }]}
-              >
-                <Select
-                  placeholder="选择规格"
-                  options={containerSpecOptions}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="sealNo" label="铅封号 (Seal No.)">
-                <Input placeholder="可选填铅封号" maxLength={50} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="packageCount"
-                label="总件数 (PCS)"
-                rules={[{ required: true, message: '请输入总件数' }]}
-              >
-                <InputNumber min={1} style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="grossWeightKg"
-                label="总毛重 (KG)"
-                rules={[{ required: true, message: '请输入总毛重' }]}
-              >
-                <Input placeholder="例如 20000.000" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="volumeCbm"
-                label="总体积 (CBM)"
-                rules={[{ required: true, message: '请输入总体积' }]}
-              >
-                <Input placeholder="例如 65.000000" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item name="note" label="备注说明">
-            <Input.TextArea rows={2} placeholder="拼箱注意事项或客户说明" />
-          </Form.Item>
-        </Form>
-      </Modal>
+        onFinish={handleCreateSubmit}
+      />
     </Drawer>
   );
 }

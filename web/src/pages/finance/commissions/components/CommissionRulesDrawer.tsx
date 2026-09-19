@@ -4,46 +4,21 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDatePicker,
-  ProFormDateRangePicker,
-  ProFormDigit,
-  ProFormSelect,
-  ProFormSwitch,
-  ProFormText,
-  ProFormTextArea,
-  ProTable,
-} from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  DatePicker,
-  Drawer,
-  Form,
-  Modal,
-  Select,
-  Table,
-  Tag,
-} from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
+import { ProTable } from '@ant-design/pro-components';
+import { App, Button, Drawer, Select, Tag } from 'antd';
+import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
-  settlementServiceAssignCommissionRuleEmployees,
   settlementServiceCopyCommissionRule,
   settlementServiceCreateCommissionRule,
   settlementServiceListCommissionEmployees,
   settlementServiceListCommissionRules,
   settlementServiceListFinanceOrganizationOptions,
-  settlementServiceRemoveCommissionRuleEmployees,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapList } from '@/utils/api';
-import { formatDate } from '@/utils/format';
+import { toTableRequest } from '@/utils/api';
 import {
   calculationBasisMeta,
   calculationBasisText,
@@ -53,52 +28,18 @@ import {
   personnelRoleText,
   type RuleValues,
 } from '../types';
+import CommissionRuleCopyModal, {
+  type CopyValues,
+} from './CommissionRuleCopyModal';
+import CommissionRuleFormModal from './CommissionRuleFormModal';
+import CommissionRuleRosterModal from './CommissionRuleRosterModal';
+import { type EmployeeOption, toEmployeeOptions } from './commissionRuleShared';
 
 type CommissionRulesDrawerProps = {
   open: boolean;
   onClose: () => void;
   canManage: boolean;
 };
-
-type EmployeeOption = { label: string; value: string };
-
-/** 名单段状态：按变更日期与分配区间判定，仅用于展示。 */
-const assignmentStatus = (record: API.CommissionRuleAssignmentProjection) => {
-  const today = dayjs().format('YYYY-MM-DD');
-  if (record.effectiveTo && record.effectiveTo < today) {
-    return { text: '已终止', color: 'default' };
-  }
-  if (record.effectiveFrom && record.effectiveFrom > today) {
-    return { text: '未生效', color: 'processing' };
-  }
-  return { text: '生效中', color: 'success' };
-};
-
-/** CopyValues 复制为新方案表单值。 */
-type CopyValues = {
-  name: string;
-  personnelRole: 'SALES' | 'OPERATOR' | 'CUSTOMER_SERVICE';
-  calculationBasis: 'REALIZED_PROFIT' | 'REALIZED_REVENUE';
-  ratePercent: number;
-  effectiveFrom?: string;
-  effectiveTo?: string;
-  employeeIds?: string[];
-  note?: string;
-};
-
-const toEmployeeOptions = (
-  response: API.ListCommissionEmployeesResponse,
-): EmployeeOption[] =>
-  unwrapList(response).flatMap((item) =>
-    item.id
-      ? [
-          {
-            value: item.id,
-            label: item.displayName ?? item.id,
-          },
-        ]
-      : [],
-  );
 
 export default function CommissionRulesDrawer({
   open,
@@ -234,6 +175,96 @@ export default function CommissionRulesDrawer({
       return;
     }
     message.error(error.message || fallback);
+  };
+
+  // 方案核心参数：名单变更只走名单管理入口，不随本表单提交。
+  const handleRuleSubmit = async (values: RuleValues) => {
+    const rule = {
+      name: values.name,
+      personnelRole: values.personnelRole,
+      calculationBasis: values.calculationBasis,
+      ratePercent: String(values.ratePercent),
+      effectiveFrom: values.effectiveRange?.[0]?.format('YYYY-MM-DD'),
+      effectiveTo: values.effectiveRange?.[1]?.format('YYYY-MM-DD'),
+      enabled: values.enabled,
+      note: values.note,
+    };
+    try {
+      if (editingRule?.id && editingRule.version) {
+        await settlementServiceUpdateCommissionRule(
+          { id: editingRule.id },
+          {
+            id: editingRule.id,
+            expectedVersion: editingRule.version,
+            rule,
+          },
+        );
+        message.success('提成方案已更新');
+      } else {
+        const formOrganizationId = ruleFormRef.current?.getFieldValue(
+          'organizationId',
+        ) as string | undefined;
+        if (!formOrganizationId) {
+          message.error('请选择所属公司');
+          return false;
+        }
+        if (values.enabled && !(values.employeeIds ?? []).length) {
+          message.error('启用方案前必须至少分配一名员工');
+          return false;
+        }
+        await settlementServiceCreateCommissionRule({
+          organizationId: formOrganizationId,
+          rule: { ...rule, employeeIds: values.employeeIds ?? [] },
+        });
+        message.success('提成方案已创建');
+      }
+      setRuleFormOpen(false);
+      ruleActionRef.current?.reload();
+      return true;
+    } catch (error: any) {
+      handleRuleError(error, '保存方案失败');
+      return false;
+    }
+  };
+
+  const handleCopySubmit = async (values: CopyValues) => {
+    if (!copySourceRule?.id) return false;
+    const effectiveFrom = values.effectiveFrom
+      ? dayjs(values.effectiveFrom).format('YYYY-MM-DD')
+      : '';
+    if (!effectiveFrom) {
+      message.error('请选择新方案生效起始日（当天或未来）');
+      return false;
+    }
+    if (!(values.employeeIds ?? []).length) {
+      message.error('新方案必须至少分配一名员工');
+      return false;
+    }
+    try {
+      await settlementServiceCopyCommissionRule(
+        { id: copySourceRule.id },
+        {
+          id: copySourceRule.id,
+          name: values.name,
+          personnelRole: values.personnelRole,
+          calculationBasis: values.calculationBasis,
+          ratePercent: String(values.ratePercent),
+          effectiveFrom,
+          effectiveTo: values.effectiveTo
+            ? dayjs(values.effectiveTo).format('YYYY-MM-DD')
+            : undefined,
+          employeeIds: values.employeeIds ?? [],
+          note: values.note,
+        },
+      );
+      message.success('已复制为新方案，原方案终止日已自动衔接');
+      setCopySourceRule(undefined);
+      ruleActionRef.current?.reload();
+      return true;
+    } catch (error: any) {
+      handleRuleError(error, '复制方案失败');
+      return false;
+    }
   };
 
   const ruleColumns: ProColumns<API.FinanceCommissionRule>[] = [
@@ -377,11 +408,6 @@ export default function CommissionRulesDrawer({
     },
   ];
 
-  const editingReached =
-    Boolean(editingRule?.enabled) &&
-    Boolean(editingRule?.effectiveFrom) &&
-    (editingRule?.effectiveFrom ?? '') <= dayjs().format('YYYY-MM-DD');
-
   return (
     <>
       <Drawer title="提成方案" size={1080} open={open} onClose={onClose}>
@@ -458,572 +484,39 @@ export default function CommissionRulesDrawer({
         />
       </Drawer>
 
-      <ModalForm<RuleValues>
-        formRef={ruleFormRef}
-        key={editingRule?.id || 'new-rule'}
-        title={editingRule ? '编辑提成方案' : '新建提成方案'}
+      <CommissionRuleFormModal
         open={ruleFormOpen}
-        width={620}
-        modalProps={{
-          destroyOnHidden: true,
-          onCancel: () => setRuleFormOpen(false),
-        }}
-        initialValues={{
-          name: editingRule?.name,
-          personnelRole: editingRule?.personnelRole || 'SALES',
-          calculationBasis: editingRule?.calculationBasis || 'REALIZED_PROFIT',
-          ratePercent: editingRule
-            ? Number(editingRule.ratePercent)
-            : undefined,
-          effectiveRange:
-            editingRule?.effectiveFrom && editingRule?.effectiveTo
-              ? [
-                  dayjs(editingRule.effectiveFrom),
-                  dayjs(editingRule.effectiveTo),
-                ]
-              : undefined,
-          enabled: editingRule?.enabled ?? true,
-          note: editingRule?.note,
-          organizationId: editingRule?.organizationId,
-        }}
-        onFinish={async (values) => {
-          // 方案核心参数：名单变更只走名单管理入口，不随本表单提交。
-          const rule = {
-            name: values.name,
-            personnelRole: values.personnelRole,
-            calculationBasis: values.calculationBasis,
-            ratePercent: String(values.ratePercent),
-            effectiveFrom: values.effectiveRange?.[0]?.format('YYYY-MM-DD'),
-            effectiveTo: values.effectiveRange?.[1]?.format('YYYY-MM-DD'),
-            enabled: values.enabled,
-            note: values.note,
-          };
-          try {
-            if (editingRule?.id && editingRule.version) {
-              await settlementServiceUpdateCommissionRule(
-                { id: editingRule.id },
-                {
-                  id: editingRule.id,
-                  expectedVersion: editingRule.version,
-                  rule,
-                },
-              );
-              message.success('提成方案已更新');
-            } else {
-              const formOrganizationId = ruleFormRef.current?.getFieldValue(
-                'organizationId',
-              ) as string | undefined;
-              if (!formOrganizationId) {
-                message.error('请选择所属公司');
-                return false;
-              }
-              if (values.enabled && !(values.employeeIds ?? []).length) {
-                message.error('启用方案前必须至少分配一名员工');
-                return false;
-              }
-              await settlementServiceCreateCommissionRule({
-                organizationId: formOrganizationId,
-                rule: { ...rule, employeeIds: values.employeeIds ?? [] },
-              });
-              message.success('提成方案已创建');
-            }
-            setRuleFormOpen(false);
-            ruleActionRef.current?.reload();
-            return true;
-          } catch (error: any) {
-            handleRuleError(error, '保存方案失败');
-            return false;
-          }
-        }}
-      >
-        {editingRule?.legacyReadonly && (
-          <Alert
-            type="warning"
-            showIcon
-            style={{ marginBottom: 16 }}
-            title="迁移前历史旧规则为只读"
-            description="该规则没有任何员工分配且已停用，不能编辑或重新启用；请复制为新方案并重新分配员工。"
-          />
-        )}
-        {!editingRule && (
-          <ProFormSearchableSelect
-            name="organizationId"
-            label="所属公司"
-            rules={[{ required: true, message: '请选择所属公司' }]}
-            options={organizationOptions.map((item) => ({
-              value: item.id ?? '',
-              label: item.name ?? item.code ?? item.id ?? '',
-            }))}
-            fieldProps={{
-              onChange: (value: string) => {
-                // 组织变化后清空员工候选并按新组织重载。
-                setEmployeeOptions([]);
-                if (value) {
-                  void searchEmployees('', value, setEmployeeOptions);
-                }
-              },
-            }}
-          />
-        )}
-        <ProFormText
-          name="name"
-          label="方案名称"
-          disabled={Boolean(editingRule?.legacyReadonly)}
-          rules={[{ required: true, message: '请输入方案名称' }]}
-        />
-        <ProFormSearchableSelect
-          name="personnelRole"
-          label="提成人员身份"
-          disabled={Boolean(editingRule)}
-          rules={[{ required: true, message: '请选择人员身份' }]}
-          options={[
-            { value: 'SALES', label: '业务人员' },
-            { value: 'OPERATOR', label: '操作人员' },
-            { value: 'CUSTOMER_SERVICE', label: '客服人员' },
-          ]}
-          extra="人员身份表示适用员工按哪一种订单提成归属参与计算；方案生效后不可修改。"
-        />
-        <ProFormSearchableSelect
-          name="calculationBasis"
-          label="计提口径"
-          disabled={Boolean(editingRule && editingReached)}
-          rules={[{ required: true, message: '请选择计提口径' }]}
-          options={[
-            {
-              value: 'REALIZED_PROFIT',
-              label: '已实现毛利（推荐，按收入配比分摊成本）',
-            },
-            {
-              value: 'REALIZED_REVENUE',
-              label: '已实现收入（按来源单分摊收入全额）',
-            },
-          ]}
-        />
-        <ProFormDigit
-          name="ratePercent"
-          label="提成比例（%）"
-          min={0.0001}
-          max={100}
-          fieldProps={{ precision: 4 }}
-          disabled={Boolean(editingRule && editingReached)}
-          rules={[{ required: true, message: '请输入提成比例' }]}
-        />
-        <ProFormDateRangePicker
-          name="effectiveRange"
-          label="生效区间"
-          fieldProps={{
-            disabled: [Boolean(editingRule && editingReached), false],
-          }}
-          extra={
-            editingRule && editingReached
-              ? '方案已生效：起始日不可修改，终止日只能选择当天或未来日期。'
-              : '新启用方案的起始日必须是当天或未来日期。'
-          }
-        />
-        <ProFormSwitch
-          name="enabled"
-          label="启用"
-          disabled={Boolean(editingRule && editingReached)}
-        />
-        <ProFormTextArea
-          name="note"
-          label="方案说明"
-          fieldProps={{ maxLength: 500 }}
-          disabled={Boolean(editingRule?.legacyReadonly)}
-        />
-        {!editingRule && (
-          <ProFormSelect
-            name="employeeIds"
-            label="适用员工"
-            extra="同一批员工共享方案的身份、口径、比例与有效期；个别员工比例不同请另建方案。启用方案必须至少分配一名员工。"
-            fieldProps={{
-              mode: 'multiple',
-              filterOption: false,
-              onSearch: (value: string) => {
-                void searchEmployees(
-                  value,
-                  ruleFormRef.current?.getFieldValue('organizationId') as
-                    | string
-                    | undefined,
-                  setEmployeeOptions,
-                );
-              },
-              onDropdownVisibleChange: (visible: boolean) => {
-                if (visible) {
-                  void searchEmployees(
-                    '',
-                    ruleFormRef.current?.getFieldValue('organizationId') as
-                      | string
-                      | undefined,
-                    setEmployeeOptions,
-                  );
-                }
-              },
-            }}
-            options={employeeOptions}
-            placeholder="搜索当前组织员工"
-          />
-        )}
-      </ModalForm>
+        editingRule={editingRule}
+        formRef={ruleFormRef}
+        organizationOptions={organizationOptions}
+        employeeOptions={employeeOptions}
+        searchEmployees={searchEmployees}
+        onEmployeeOptionsChange={setEmployeeOptions}
+        onCancel={() => setRuleFormOpen(false)}
+        onFinish={handleRuleSubmit}
+      />
 
-      <Modal
-        title={`名单管理 - ${rosterRule?.name ?? ''}`}
-        open={Boolean(rosterRule)}
-        width={760}
-        destroyOnHidden
-        footer={null}
+      <CommissionRuleRosterModal
+        rosterRule={rosterRule}
+        employeeOptions={employeeOptions}
+        searchEmployees={searchEmployees}
+        onEmployeeOptionsChange={setEmployeeOptions}
         onCancel={() => setRosterRule(undefined)}
-      >
-        {rosterRule && (
-          <>
-            <Table<API.CommissionRuleAssignmentProjection>
-              size="small"
-              bordered
-              rowKey="id"
-              pagination={false}
-              dataSource={rosterRule.assignments ?? []}
-              columns={[
-                {
-                  title: '员工',
-                  dataIndex: 'employeeName',
-                  render: (_, record) => record.employeeName || '-',
-                },
-                {
-                  title: '有效区间',
-                  key: 'range',
-                  render: (_, record) =>
-                    `${record.effectiveFrom || '-'} ~ ${record.effectiveTo || '长期'}`,
-                },
-                {
-                  title: '状态',
-                  key: 'status',
-                  width: 90,
-                  render: (_, record) => {
-                    const status = assignmentStatus(record);
-                    return <Tag color={status.color}>{status.text}</Tag>;
-                  },
-                },
-                {
-                  title: '记录时间',
-                  key: 'recordedAt',
-                  width: 110,
-                  render: (_, record) => formatDate(record.effectiveFrom),
-                },
-              ]}
-              locale={{ emptyText: '暂无员工分配' }}
-              style={{ marginBottom: 16 }}
-            />
-            <RosterChangeForms
-              rosterRule={rosterRule}
-              employeeOptions={employeeOptions}
-              searchEmployees={(keyword) => {
-                void searchEmployees(
-                  keyword ?? '',
-                  rosterRule.organizationId,
-                  setEmployeeOptions,
-                );
-              }}
-              onChanged={() => {
-                ruleActionRef.current?.reload();
-                setRosterRule(undefined);
-              }}
-              onError={handleRuleError}
-            />
-          </>
-        )}
-      </Modal>
+        onChanged={() => {
+          ruleActionRef.current?.reload();
+          setRosterRule(undefined);
+        }}
+        onError={handleRuleError}
+      />
 
-      <ModalForm<CopyValues>
-        key={copySourceRule?.id || 'copy-rule'}
-        title="复制为新方案"
-        open={Boolean(copySourceRule)}
-        width={620}
-        modalProps={{
-          destroyOnHidden: true,
-          onCancel: () => setCopySourceRule(undefined),
-        }}
-        initialValues={{
-          name: copySourceRule ? `${copySourceRule.name}-新方案` : undefined,
-          personnelRole:
-            (copySourceRule?.personnelRole as CopyValues['personnelRole']) ||
-            'SALES',
-          calculationBasis:
-            (copySourceRule?.calculationBasis as CopyValues['calculationBasis']) ||
-            'REALIZED_PROFIT',
-          ratePercent: copySourceRule
-            ? Number(copySourceRule.ratePercent)
-            : undefined,
-          note: copySourceRule?.note,
-          employeeIds: (copySourceRule?.assignments ?? [])
-            .filter(
-              (item) =>
-                !item.effectiveTo ||
-                item.effectiveTo >= dayjs().format('YYYY-MM-DD'),
-            )
-            .map((item) => item.employeeId ?? ''),
-        }}
-        onFinish={async (values) => {
-          if (!copySourceRule?.id) return false;
-          const effectiveFrom = values.effectiveFrom
-            ? dayjs(values.effectiveFrom).format('YYYY-MM-DD')
-            : '';
-          if (!effectiveFrom) {
-            message.error('请选择新方案生效起始日（当天或未来）');
-            return false;
-          }
-          if (!(values.employeeIds ?? []).length) {
-            message.error('新方案必须至少分配一名员工');
-            return false;
-          }
-          try {
-            await settlementServiceCopyCommissionRule(
-              { id: copySourceRule.id },
-              {
-                id: copySourceRule.id,
-                name: values.name,
-                personnelRole: values.personnelRole,
-                calculationBasis: values.calculationBasis,
-                ratePercent: String(values.ratePercent),
-                effectiveFrom,
-                effectiveTo: values.effectiveTo
-                  ? dayjs(values.effectiveTo).format('YYYY-MM-DD')
-                  : undefined,
-                employeeIds: values.employeeIds ?? [],
-                note: values.note,
-              },
-            );
-            message.success('已复制为新方案，原方案终止日已自动衔接');
-            setCopySourceRule(undefined);
-            ruleActionRef.current?.reload();
-            return true;
-          } catch (error: any) {
-            handleRuleError(error, '复制方案失败');
-            return false;
-          }
-        }}
-      >
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 16 }}
-          title="原方案将在新方案生效日前一日自然结束"
-          description="新方案必须以当天或未来日期生效；原方案的历史计算依据保持不变，来源日期在原方案期间内的提成继续按原方案计算。"
-        />
-        <ProFormText
-          name="name"
-          label="新方案名称"
-          rules={[{ required: true, message: '请输入新方案名称' }]}
-        />
-        <ProFormSearchableSelect
-          name="personnelRole"
-          label="提成人员身份"
-          rules={[{ required: true, message: '请选择人员身份' }]}
-          options={[
-            { value: 'SALES', label: '业务人员' },
-            { value: 'OPERATOR', label: '操作人员' },
-            { value: 'CUSTOMER_SERVICE', label: '客服人员' },
-          ]}
-        />
-        <ProFormSearchableSelect
-          name="calculationBasis"
-          label="计提口径"
-          rules={[{ required: true, message: '请选择计提口径' }]}
-          options={[
-            { value: 'REALIZED_PROFIT', label: '已实现毛利（推荐）' },
-            { value: 'REALIZED_REVENUE', label: '已实现收入' },
-          ]}
-        />
-        <ProFormDigit
-          name="ratePercent"
-          label="提成比例（%）"
-          min={0.0001}
-          max={100}
-          fieldProps={{ precision: 4 }}
-          rules={[{ required: true, message: '请输入提成比例' }]}
-        />
-        <ProFormDatePicker
-          name="effectiveFrom"
-          label="新方案生效起始日"
-          fieldProps={{
-            disabledDate: (current: Dayjs) =>
-              Boolean(current?.isBefore(dayjs().startOf('day'))),
-          }}
-          rules={[{ required: true, message: '请选择生效起始日' }]}
-          extra="必须为当天或未来日期。"
-        />
-        <ProFormDatePicker
-          name="effectiveTo"
-          label="新方案生效终止日（可选）"
-        />
-        <ProFormSelect
-          name="employeeIds"
-          label="适用员工"
-          extra="默认带出原方案当前/未来名单，可调整。"
-          fieldProps={{
-            mode: 'multiple',
-            filterOption: false,
-            onSearch: (value: string) => {
-              void searchEmployees(
-                value,
-                copySourceRule?.organizationId,
-                setEmployeeOptions,
-              );
-            },
-            onDropdownVisibleChange: (visible: boolean) => {
-              if (visible) {
-                void searchEmployees(
-                  '',
-                  copySourceRule?.organizationId,
-                  setEmployeeOptions,
-                );
-              }
-            },
-          }}
-          options={employeeOptions}
-          placeholder="搜索当前组织员工"
-        />
-        <ProFormTextArea
-          name="note"
-          label="方案说明"
-          fieldProps={{ maxLength: 500 }}
-        />
-      </ModalForm>
+      <CommissionRuleCopyModal
+        copySourceRule={copySourceRule}
+        employeeOptions={employeeOptions}
+        searchEmployees={searchEmployees}
+        onEmployeeOptionsChange={setEmployeeOptions}
+        onCancel={() => setCopySourceRule(undefined)}
+        onFinish={handleCopySubmit}
+      />
     </>
-  );
-}
-
-type RosterChangeFormsProps = {
-  rosterRule: API.FinanceCommissionRule;
-  employeeOptions: EmployeeOption[];
-  searchEmployees: (keyword?: string) => void;
-  onChanged: () => void;
-  onError: (error: any, fallback: string) => void;
-};
-
-type RosterChangeValues = {
-  employeeIds?: string[];
-  changeDate?: { format: (format: string) => string };
-};
-
-/** RosterChangeForms 名单批量加入与移除表单：默认按当天生效，禁止回溯日期。 */
-function RosterChangeForms({
-  rosterRule,
-  employeeOptions,
-  searchEmployees,
-  onChanged,
-  onError,
-}: RosterChangeFormsProps) {
-  const { message } = App.useApp();
-  const [addForm] = Form.useForm<RosterChangeValues>();
-  const [removeForm] = Form.useForm<RosterChangeValues>();
-  const today = dayjs().format('YYYY-MM-DD');
-  const currentEmployees = (rosterRule.assignments ?? [])
-    .filter((item) => !item.effectiveTo)
-    .map((item) => ({
-      value: item.employeeId ?? '',
-      label: item.employeeName || item.employeeId || '',
-    }));
-
-  const submit = async (
-    values: RosterChangeValues,
-    action: 'assign' | 'remove',
-  ) => {
-    if (!values.employeeIds?.length) {
-      message.warning(
-        action === 'assign' ? '请选择要加入的员工' : '请选择要移除的员工',
-      );
-      return;
-    }
-    const change = {
-      employeeIds: values.employeeIds,
-      expectedVersion: String(rosterRule.version ?? 0),
-      changeEffectiveDate: values.changeDate?.format('YYYY-MM-DD') ?? today,
-    };
-    try {
-      if (action === 'assign') {
-        await settlementServiceAssignCommissionRuleEmployees(
-          { id: rosterRule.id ?? '' },
-          { id: rosterRule.id ?? '', change },
-        );
-        message.success('员工已加入方案名单');
-      } else {
-        await settlementServiceRemoveCommissionRuleEmployees(
-          { id: rosterRule.id ?? '' },
-          { id: rosterRule.id ?? '', change },
-        );
-        message.success('员工已按变更生效日退出方案名单');
-      }
-      if (action === 'assign') {
-        addForm.resetFields();
-      } else {
-        removeForm.resetFields();
-      }
-      onChanged();
-    } catch (error: any) {
-      onError(error, action === 'assign' ? '加入名单失败' : '移除名单失败');
-    }
-  };
-
-  return (
-    <div style={{ display: 'grid', gap: 16 }}>
-      <Form
-        form={addForm}
-        layout="inline"
-        onFinish={(values) => void submit(values, 'assign')}
-      >
-        <Form.Item name="employeeIds" label="加入员工">
-          <Select
-            mode="multiple"
-            showSearch
-            placeholder="搜索当前组织员工"
-            style={{ minWidth: 260 }}
-            options={employeeOptions}
-            filterOption={false}
-            onSearch={(value) => searchEmployees(value)}
-            onDropdownVisibleChange={(visible) => {
-              if (visible) searchEmployees();
-            }}
-          />
-        </Form.Item>
-        <Form.Item name="changeDate" label="生效日">
-          <DatePicker
-            disabledDate={(current: Dayjs) =>
-              Boolean(current?.isBefore(dayjs().startOf('day')))
-            }
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            加入名单
-          </Button>
-        </Form.Item>
-      </Form>
-      <Form
-        form={removeForm}
-        layout="inline"
-        onFinish={(values) => void submit(values, 'remove')}
-      >
-        <Form.Item name="employeeIds" label="移除员工">
-          <Select
-            mode="multiple"
-            placeholder="选择当前名单内员工"
-            style={{ minWidth: 260 }}
-            options={currentEmployees}
-          />
-        </Form.Item>
-        <Form.Item name="changeDate" label="退出日">
-          <DatePicker
-            disabledDate={(current: Dayjs) =>
-              Boolean(current?.isBefore(dayjs().startOf('day')))
-            }
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button danger htmlType="submit">
-            移出名单
-          </Button>
-        </Form.Item>
-      </Form>
-    </div>
   );
 }
