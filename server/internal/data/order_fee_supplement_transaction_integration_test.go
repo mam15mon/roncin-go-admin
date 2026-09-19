@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	auditent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
@@ -27,7 +29,6 @@ import (
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	roleassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
-	"github.com/shopspring/decimal"
 )
 
 // feeSupplementPostgresFixture 锁后费用补录集成测试夹具：CNY 总部组织 + SI 订单
