@@ -1467,3 +1467,25 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 58: 拆分拆单页 split.tsx 大组件
+<!-- trellis-session: v=2 fp=cf201f186b966ce8 -->
+
+**Date**: 2026-09-19
+**Task**: 拆分拆单页 split.tsx 大组件
+**Branch**: `refactor/order-split-page`
+
+### Summary
+
+split.tsx 2592 行拆为 956 行页面骨架 + splitUtils + 六个区块子组件，DOM 结构不变，测试与类型检查全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d30c052b` | refactor(web): 拆单页 JSX 八大区块抽为职责子组件 |
+
+### Status
+
+[OK] **Completed**
