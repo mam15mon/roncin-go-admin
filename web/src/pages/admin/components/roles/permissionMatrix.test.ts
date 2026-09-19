@@ -86,9 +86,7 @@ const mockPermissions = [
 describe('isReadPermission', () => {
   it('正确识别各类只读权限', () => {
     expect(isReadPermission('system.user.read', '查看用户')).toBe(true);
-    expect(isReadPermission('system.platform.access', '访问工作台')).toBe(
-      true,
-    );
+    expect(isReadPermission('system.platform.access', '访问工作台')).toBe(true);
     expect(
       isReadPermission('business.order.se.cargo_item.read', '查看货物明细'),
     ).toBe(true);
