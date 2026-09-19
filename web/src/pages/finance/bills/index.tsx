@@ -1,7 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Card, Form, Select, Space } from 'antd';
+import { App, Form, Select, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
@@ -366,73 +366,63 @@ export default function FinanceBillsPage() {
 
   return (
     <>
-      <Card
-        size="small"
-        style={{
-          marginBottom: 12,
-          borderRadius: 8,
-          border: '1px solid #f0f0f0',
-          backgroundColor: '#ffffff',
-        }}
-        styles={{ body: { padding: '10px 16px' } }}
-      >
-        <Space size={16} align="center" wrap>
-          <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-              所属公司：
-            </span>
-            <Select
-              allowClear
-              style={{ minWidth: 220 }}
-              placeholder="请选择所属公司"
-              options={organizationOptions.map((item) => ({
-                value: item.id,
-                label: item.name ?? item.code ?? item.id,
-              }))}
-              value={organizationId}
-              onChange={(value) => {
-                // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
-                tagFilterRequestRef.current += 1;
-                setTagOptionsLoading(false);
-                setOrganizationId(value);
-                setTagFilterIds(undefined);
-                setTagOptions([]);
-                actionRef.current?.reload();
-              }}
-            />
-          </Space>
-          <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-              标签筛选：
-            </span>
-            <Select
-              mode="multiple"
-              allowClear
-              showSearch={{
-                filterOption: false,
-                onSearch: (keyword) =>
-                  void loadTagFilterOptions(keyword, tagFilterIds),
-              }}
-              disabled={!organizationId}
-              loading={tagOptionsLoading}
-              style={{ minWidth: 280 }}
-              placeholder={
-                organizationId ? '命中任一标签即返回' : '请先选择所属公司'
-              }
-              options={tagOptions}
-              value={tagFilterIds}
-              onChange={(value) => {
-                setTagFilterIds(value.length ? value : undefined);
-                actionRef.current?.reload();
-              }}
-            />
-          </Space>
-        </Space>
-      </Card>
-
       <FinanceLedgerTemplate<API.FinanceBill>
         pageTitle="账单管理"
         pageSubTitle="集中管理与跟踪海运出口及各业务线收付账单、开票与结算流转状态"
+        topBar={
+          <Space size={16} align="center" wrap>
+            <Space size={8} align="center">
+              <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+                所属公司：
+              </span>
+              <Select
+                allowClear
+                style={{ minWidth: 220 }}
+                placeholder="请选择所属公司"
+                options={organizationOptions.map((item) => ({
+                  value: item.id,
+                  label: item.name ?? item.code ?? item.id,
+                }))}
+                value={organizationId}
+                onChange={(value) => {
+                  // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
+                  tagFilterRequestRef.current += 1;
+                  setTagOptionsLoading(false);
+                  setOrganizationId(value);
+                  setTagFilterIds(undefined);
+                  setTagOptions([]);
+                  actionRef.current?.reload();
+                }}
+              />
+            </Space>
+            <Space size={8} align="center">
+              <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+                标签筛选：
+              </span>
+              <Select
+                mode="multiple"
+                allowClear
+                showSearch={{
+                  filterOption: false,
+                  onSearch: (keyword) =>
+                    void loadTagFilterOptions(keyword, tagFilterIds),
+                }}
+                disabled={!organizationId}
+                loading={tagOptionsLoading}
+                style={{ minWidth: 280 }}
+                placeholder={
+                  organizationId ? '命中任一标签即返回' : '请先选择所属公司'
+                }
+                options={tagOptions}
+                value={tagFilterIds}
+                onChange={(value) => {
+                  setTagFilterIds(value.length ? value : undefined);
+                  actionRef.current?.reload();
+                }}
+              />
+            </Space>
+          </Space>
+        }
         headerTitle="账单列表"
         actionRef={actionRef}
         columns={columns}

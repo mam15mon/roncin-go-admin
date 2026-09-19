@@ -21,7 +21,7 @@
 
 ## Acceptance Criteria
 
-- [ ] 财务 5 个台账页面的最外层统一为 `<FinanceLedgerTemplate>` 包装的 `<PageContainer>`，无外挂裸 Card。
-- [ ] 页面顶部拥有统一规范的标题与副标题，视觉上与订单管理、系统管理保持一致。
-- [ ] 现有财务台账相关单测全量通过。
-- [ ] `pnpm --dir web tsc` 零错误。
+- [x] 财务 5 个台账页面的最外层统一为 `<FinanceLedgerTemplate>` 包装的 `<PageContainer>`，无外挂裸 Card。
+- [x] 页面顶部拥有统一规范的标题与副标题，视觉上与订单管理、系统管理保持一致。
+- [x] 现有财务台账相关单测全量通过。
+- [x] `pnpm --dir web tsc` 零错误。

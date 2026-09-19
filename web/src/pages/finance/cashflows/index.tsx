@@ -11,7 +11,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import { App, Card, Form, Popconfirm, Select, Space, Tag } from 'antd';
+import { App, Form, Popconfirm, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
@@ -410,39 +410,30 @@ export default function FinanceCashflowsPage() {
 
   return (
     <>
-      <Card
-        size="small"
-        style={{
-          marginBottom: 12,
-          borderRadius: 8,
-          border: '1px solid #f0f0f0',
-          backgroundColor: '#ffffff',
-        }}
-        styles={{ body: { padding: '10px 16px' } }}
-      >
-        <Space size={8} align="center">
-          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-            所属公司：
-          </span>
-          <Select
-            allowClear
-            placeholder="请选择所属公司"
-            style={{ minWidth: 220 }}
-            value={organizationId}
-            options={readOrganizationOptions.map((item) => ({
-              value: item.id,
-              label: item.name ?? item.code ?? item.id,
-            }))}
-            onChange={(value) => {
-              setOrganizationId(value);
-              actionRef.current?.reload();
-            }}
-          />
-        </Space>
-      </Card>
       <FinanceLedgerTemplate<API.FinanceCashflow, CashflowLedgerFilterParams>
         pageTitle="收付管理"
         pageSubTitle="银行流水认领、资金收付流水台账及状态跟踪"
+        topBar={
+          <Space size={8} align="center">
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              所属公司：
+            </span>
+            <Select
+              allowClear
+              placeholder="请选择所属公司"
+              style={{ minWidth: 220 }}
+              value={organizationId}
+              options={readOrganizationOptions.map((item) => ({
+                value: item.id,
+                label: item.name ?? item.code ?? item.id,
+              }))}
+              onChange={(value) => {
+                setOrganizationId(value);
+                actionRef.current?.reload();
+              }}
+            />
+          </Space>
+        }
         headerTitle="资金流水列表"
         actionRef={actionRef}
         columns={columns}

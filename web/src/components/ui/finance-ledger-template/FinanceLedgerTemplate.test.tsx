@@ -1,7 +1,11 @@
 import { fireEvent, render } from '@testing-library/react';
+import { App } from 'antd';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ResizableHeaderCell } from './FinanceLedgerTemplate';
+import {
+  FinanceLedgerTemplate,
+  ResizableHeaderCell,
+} from './FinanceLedgerTemplate';
 
 describe('ResizableHeaderCell', () => {
   afterEach(() => {
@@ -95,5 +99,25 @@ describe('ResizableHeaderCell', () => {
     fireEvent.mouseUp(window);
 
     expect(onResize).not.toHaveBeenCalled();
+  });
+});
+
+describe('FinanceLedgerTemplate', () => {
+  it('正确渲染顶层骨架标题、副标题与 topBar 工具栏插槽', () => {
+    const { getByText } = render(
+      <App>
+        <FinanceLedgerTemplate
+          pageTitle="测试账单管理"
+          pageSubTitle="测试副标题描述"
+          topBar={<div>所属公司筛选器</div>}
+          columns={[]}
+          request={async () => ({ data: [], total: 0 })}
+        />
+      </App>,
+    );
+
+    expect(getByText('测试账单管理')).toBeTruthy();
+    expect(getByText('测试副标题描述')).toBeTruthy();
+    expect(getByText('所属公司筛选器')).toBeTruthy();
   });
 });

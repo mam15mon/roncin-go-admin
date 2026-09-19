@@ -235,8 +235,10 @@ export function FinanceLedgerTemplate<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
   TFilter extends Record<string, unknown> = Record<string, unknown>,
 >({
-  pageTitle: _pageTitle,
-  pageSubTitle: _pageSubTitle,
+  pageTitle,
+  pageSubTitle,
+  headerExtra,
+  topBar,
   headerTitle = '财务明细台账',
   columns,
   rowKey = 'id',
@@ -361,7 +363,12 @@ export function FinanceLedgerTemplate<
 
   return (
     <PageContainer
-      header={{ title: undefined, breadcrumb: undefined }}
+      header={{
+        title: pageTitle,
+        subTitle: pageSubTitle,
+        extra: headerExtra,
+        breadcrumb: undefined,
+      }}
       style={{ minHeight: 'calc(100vh - 48px)', backgroundColor: '#f5f7fa' }}
     >
       <div
@@ -373,6 +380,22 @@ export function FinanceLedgerTemplate<
           position: 'relative',
         }}
       >
+        {/* 0. 顶层全局筛选工具栏（如所属公司选择器、全局标签筛选） */}
+        {topBar && (
+          <Card
+            size="small"
+            style={{
+              marginBottom: 12,
+              borderRadius: 8,
+              border: '1px solid #f0f0f0',
+              backgroundColor: '#ffffff',
+            }}
+            styles={{ body: { padding: '10px 16px' } }}
+          >
+            {topBar}
+          </Card>
+        )}
+
         {/* 1. 顶部宏观统计指标卡 */}
         {metricCards && metricCards.length > 0 && (
           <Row gutter={12} style={{ marginBottom: 12 }}>

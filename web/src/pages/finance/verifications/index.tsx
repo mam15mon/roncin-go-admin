@@ -1,16 +1,7 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
-import {
-  App,
-  Card,
-  Descriptions,
-  Drawer,
-  Select,
-  Space,
-  Table,
-  Tag,
-} from 'antd';
+import { App, Descriptions, Drawer, Select, Space, Table, Tag } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import {
   type FinanceLedgerMetricCard,
@@ -284,42 +275,33 @@ export default function FinanceVerificationsPage() {
 
   return (
     <>
-      <Card
-        size="small"
-        style={{
-          marginBottom: 12,
-          borderRadius: 8,
-          border: '1px solid #f0f0f0',
-          backgroundColor: '#ffffff',
-        }}
-        styles={{ body: { padding: '10px 16px' } }}
-      >
-        <Space size={8} align="center">
-          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-            所属公司：
-          </span>
-          <Select
-            allowClear
-            placeholder="请选择所属公司"
-            style={{ minWidth: 220 }}
-            value={organizationId}
-            options={organizationOptions.map((item) => ({
-              value: item.id,
-              label: item.name ?? item.code ?? item.id,
-            }))}
-            onChange={(value) => {
-              setOrganizationId(value);
-              actionRef.current?.reload();
-            }}
-          />
-        </Space>
-      </Card>
       <FinanceLedgerTemplate<
         API.FinanceVerification,
         VerificationLedgerFilterParams
       >
         pageTitle="核销管理"
         pageSubTitle="应收/应付账单对账核销与多币种汇差结算"
+        topBar={
+          <Space size={8} align="center">
+            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
+              所属公司：
+            </span>
+            <Select
+              allowClear
+              placeholder="请选择所属公司"
+              style={{ minWidth: 220 }}
+              value={organizationId}
+              options={organizationOptions.map((item) => ({
+                value: item.id,
+                label: item.name ?? item.code ?? item.id,
+              }))}
+              onChange={(value) => {
+                setOrganizationId(value);
+                actionRef.current?.reload();
+              }}
+            />
+          </Space>
+        }
         headerTitle="核销记录列表"
         actionRef={actionRef}
         columns={columns}

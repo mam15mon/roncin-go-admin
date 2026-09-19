@@ -58,13 +58,17 @@ export interface FinanceLedgerTemplateProps<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
   TFilter extends Record<string, unknown> = Record<string, unknown>,
 > {
-  pageTitle?: string;
-  pageSubTitle?: string;
+  pageTitle?: ReactNode;
+  pageSubTitle?: ReactNode;
+  headerExtra?: ReactNode;
   headerTitle?: string;
   columns: ProColumns<T>[];
   rowKey?: string;
   scrollX?: number | string;
   actionRef?: React.MutableRefObject<ActionType | undefined>;
+
+  // 顶部全局工具栏/筛选插槽（如所属公司选择器、标签筛选等，置于指标卡上方）
+  topBar?: ReactNode;
 
   // 顶部宏观统计指标卡配置
   metricCards?: FinanceLedgerMetricCard[];
