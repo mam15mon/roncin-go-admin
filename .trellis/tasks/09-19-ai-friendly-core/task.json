@@ -1,0 +1,29 @@
+{
+  "id": "ai-friendly-core",
+  "name": "ai-friendly-core",
+  "title": "AI 友好架构核心建设",
+  "description": "领域地图与术语表 + any 回潮防退门禁；让新 AI 会话以最低成本获得货代领域知识并锁住已有治理成果",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-19",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-19-domain-map",
+    "09-19-any-regression-gate"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
