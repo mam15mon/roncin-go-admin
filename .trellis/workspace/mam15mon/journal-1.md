@@ -1511,3 +1511,25 @@ split.tsx 2592 行拆为 956 行页面骨架 + splitUtils + 六个区块子组�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 59: 拆分 SeaDocumentSection 大组件
+<!-- trellis-session: v=2 fp=4aa06e71844b3a19 -->
+
+**Date**: 2026-09-19
+**Task**: 拆分 SeaDocumentSection 大组件
+**Branch**: `refactor/sea-document-section`
+
+### Summary
+
+2587 行拆为枢纽+常量+三个子组件，re-export 保导入路径，16/16 测试全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `094378b8` | refactor(web): 单证分节组件拆为常量与三个职责子组件 |
+
+### Status
+
+[OK] **Completed**
