@@ -1,0 +1,10 @@
+
+{"file":"AGENTS.md","reason":"核验提成申请实现的分层、事务、权限、生成物和最终检查门禁"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"核验月度唯一键、申请明细历史、固定锁序和 PostgreSQL 并发测试"}
+{"file":".trellis/spec/server/backend/finance-commission-lock.md","reason":"核验整批批准/驳回没有绕过现有提成财务锁与状态机"}
+{"file":".trellis/spec/server/backend/commission-scheme-assignment.md","reason":"核验申请候选只命中有效方案员工分配且历史快照不重算"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核验申请批次字段从 Proto 到数据库和前端的完整消费链路"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"核验申请状态枚举、生成客户端和权限键没有手工漂移"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"核验定向测试、Biome、tsc 和最终前端门禁"}
+{"file":".trellis/tasks/09-19-monthly-commission-application/prd.md","reason":"逐项核验 AC1-AC8、自然月门禁、整批审批和非银行边界"}
+{"file":".trellis/tasks/09-19-monthly-commission-application/design.md","reason":"核验申请头/明细历史、重复申请、迟到提成顺延和整批事务回滚"}

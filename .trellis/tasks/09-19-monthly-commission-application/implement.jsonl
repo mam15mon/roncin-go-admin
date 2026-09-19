@@ -1,0 +1,13 @@
+
+{"file":"AGENTS.md","reason":"核验 Proto 先行、Ent 迁移、事务封装、并发锁、权限组织范围、分页和生成物边界"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"申请头/明细迁移、月度唯一键、共享事务、FOR UPDATE 和版本冲突实现依据"}
+{"file":".trellis/spec/server/backend/finance-commission-lock.md","reason":"整批批准不能破坏提成来源、订单财务锁、冲减和提成状态迁移口径"}
+{"file":".trellis/spec/server/backend/commission-scheme-assignment.md","reason":"月度申请候选必须复用方案员工分配、来源日期解析和历史快照契约"}
+{"file":".trellis/spec/server/backend/auth-session-org-switch.md","reason":"员工申请和工作台必须固定当前会话组织，防止跨组织提交"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"申请头、明细、Proto、Service、Biz、Data 与 Web 的跨层字段闭环"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"工作台申请状态、组织切换和提交后请求竞态处理"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"申请状态枚举、生成客户端和 optional 字段的类型真相源"}
+{"file":".trellis/tasks/archive/2026-09/09-18-my-workbench-and-commission/prd.md","reason":"上一任务已完成的提成计算、员工隐私、工作台门禁和后续员工申请边界"}
+{"file":".trellis/tasks/09-19-monthly-commission-application/prd.md","reason":"本任务最终自然月申请、跨月累计、整批审批和非银行范围"}
+{"file":".trellis/tasks/09-19-monthly-commission-application/design.md","reason":"申请实体、候选锁定、整批状态迁移、权限和回退技术设计"}
+{"file":".trellis/tasks/09-19-monthly-commission-application/implement.md","reason":"分阶段实施、迁移、生成物、前端和验证清单"}
