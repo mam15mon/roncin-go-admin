@@ -1776,3 +1776,25 @@ pages 全域 101 处 any 清零（分域表单类型化+unknown 收窄），comp
 ### Status
 
 [OK] **Completed**
+
+
+## Session 71: any 治理父任务收尾
+<!-- trellis-session: v=2 fp=b11848da69f0423a -->
+
+**Date**: 2026-09-19
+**Task**: any 治理父任务收尾
+**Branch**: `main`
+
+### Summary
+
+328 → 3 收官：模板基座 42→3（3 处 antd 缺口留注释）、pages 101→0；合并态 852 测试与 tsc 全绿，全部归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6fde6386` | docs(trellis): any 治理父任务收尾记录（328 → 3） |
+
+### Status
+
+[OK] **Completed**
