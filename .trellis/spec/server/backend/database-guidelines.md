@@ -146,8 +146,8 @@ err := r.transactor.WithinTransaction(ctx, func(txCtx context.Context) error { .
 
 ## 并发修改防护：「悲观锁 + 乐观锁」双层模式
 
-范本：`internal/data/order_write.go` 的 `UpdateDraft`
-（`server/internal/data/order_write.go:164`）：
+范本：`internal/data/order_write_draft.go` 的 `UpdateDraft`
+（`server/internal/data/order_write_draft.go`）：
 
 ```go
 err := r.data.WithTx(ctx, func(tx *ent.Tx) error {

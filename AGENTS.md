@@ -118,7 +118,7 @@ scripts/                  根目录开发与构建辅助脚本
   提交后用普通上下文重读（范本：`internal/biz/finance_bill.go` 的
   `Create`），回调错误必须原样外传，不得吞掉后继续提交。
 - 并发修改防护统一采用「悲观锁 + 乐观锁」双层模式，范本是
-  `internal/data/order_write.go` 的 `UpdateDraft`：
+  `internal/data/order_write_draft.go` 的 `UpdateDraft`：
   1. 事务内 `ForUpdate()` 锁定目标行；
   2. 比对 `existing.Version != expectedVersion`，不匹配立即返回
      `errors.Conflict` 业务错误（HTTP 409，中文提示「已被更新，请刷新后重试」）；
