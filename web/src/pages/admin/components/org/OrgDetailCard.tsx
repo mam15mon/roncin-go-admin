@@ -1,8 +1,4 @@
-import {
-  EditOutlined,
-  PlusOutlined,
-  TeamOutlined,
-} from '@ant-design/icons';
+import { EditOutlined, PlusOutlined, TeamOutlined } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import {
   Button,
@@ -15,10 +11,7 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
-import {
-  getChildOrganizationKind,
-  getOrganizationKindMeta,
-} from './types';
+import { getChildOrganizationKind, getOrganizationKindMeta } from './types';
 
 const { Text, Title } = Typography;
 
@@ -111,11 +104,7 @@ export default function OrgDetailCard({
     >
       {selectedOrg ? (
         <Space vertical size={20} style={{ width: '100%' }}>
-          <Descriptions
-            bordered
-            size="middle"
-            column={{ xs: 1, sm: 2, lg: 3 }}
-          >
+          <Descriptions bordered size="middle" column={{ xs: 1, sm: 2, lg: 3 }}>
             <Descriptions.Item label="组织编码">
               <Text copyable style={{ fontFamily: 'monospace' }}>
                 {selectedOrg.code}
@@ -268,17 +257,16 @@ export default function OrgDetailCard({
                   width: 140,
                   render: (_, record) => (
                     <Space size={8}>
-                      {canCreate &&
-                        getChildOrganizationKind(record.kind) && (
-                          <Button
-                            type="link"
-                            size="small"
-                            style={{ padding: 0 }}
-                            onClick={() => onOpenCreateChild(record)}
-                          >
-                            新增下级
-                          </Button>
-                        )}
+                      {canCreate && getChildOrganizationKind(record.kind) && (
+                        <Button
+                          type="link"
+                          size="small"
+                          style={{ padding: 0 }}
+                          onClick={() => onOpenCreateChild(record)}
+                        >
+                          新增下级
+                        </Button>
+                      )}
                       {canUpdate && (
                         <Button
                           type="link"
