@@ -11,7 +11,9 @@ import type { BaseMasterDataItem, MasterDataListQuery } from './types';
  */
 export interface UseMasterDataCrudOptions<
   TItem extends BaseMasterDataItem,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TApiItem = any,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues = any,
 > {
   entityName: string;
@@ -30,7 +32,9 @@ export interface UseMasterDataCrudOptions<
 
 export function useMasterDataCrud<
   TItem extends BaseMasterDataItem,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TApiItem = any,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues = any,
 >({
   entityName,

@@ -28,6 +28,7 @@ export interface MasterDataFieldConfig {
   // 保留 any：同一份字段配置会分别喂给 ProFormSelect / ProFormRadio.Group /
   // ProFormCheckbox.Group，radio/checkbox 场景存在 boolean 取值（如「全货机」），
   // 而 antd Select 的 option value 类型不含 boolean，收紧会破坏其中一条边界。
+  // biome-ignore lint/suspicious/noExplicitAny: antd Select option value 不含 boolean，radio/checkbox 场景需要（见上方注释）
   options?: { label: string; value: any }[];
   initialValue?: unknown;
   span?: number;
@@ -87,6 +88,7 @@ export interface MasterDataTemplateProps<
     // 保留 any：消费方普遍以具体窄类型注解首参（如 `(icao: string)`、
     // `(level: number)`），在 strictFunctionTypes 逆变约束下改为 unknown /
     // ReactNode 等宽类型都会使这些消费方编译失败。
+    // biome-ignore lint/suspicious/noExplicitAny: strictFunctionTypes 逆变边界，见上方注释
     render?: (value: any, record: T) => ReactNode;
   }>;
 

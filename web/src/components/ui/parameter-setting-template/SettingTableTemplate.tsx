@@ -7,7 +7,11 @@ import { toTableRequest } from '@/utils/api';
 import type { SettingTableTemplateProps } from './types';
 
 export function SettingTableTemplate<
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TRecord extends Record<string, any> = Record<string, any>,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues extends Record<string, any> = Record<string, any>,
 >({
   entityName,

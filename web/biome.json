@@ -37,7 +37,7 @@
     "rules": {
       "preset": "recommended",
       "suspicious": {
-        "noExplicitAny": "off",
+        "noExplicitAny": "error",
         "noUnknownAtRules": "off"
       },
       "correctness": {
@@ -51,6 +51,18 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["**/*.test.*"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "jsxRuntime": "reactClassic",
     "formatter": {
