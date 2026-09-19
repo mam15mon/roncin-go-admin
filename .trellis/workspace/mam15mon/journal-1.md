@@ -1798,3 +1798,25 @@ pages 全域 101 处 any 清零（分域表单类型化+unknown 收窄），comp
 ### Status
 
 [OK] **Completed**
+
+
+## Session 72: AI 友好架构核心建设收尾
+<!-- trellis-session: v=2 fp=1ba7c3e322a91cc9 -->
+
+**Date**: 2026-09-19
+**Task**: AI 友好架构核心建设收尾
+**Branch**: `main`
+
+### Summary
+
+领域地图术语表三件套 + noExplicitAny 防回退门禁（39 处豁免集中在 ui 模板层、探针验证有效）；AGENTS.md 挂领域文档入口。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1acb046b` | docs(trellis): AI 友好核心任务收尾记录 |
+
+### Status
+
+[OK] **Completed**
