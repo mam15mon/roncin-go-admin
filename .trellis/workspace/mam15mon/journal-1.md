@@ -1643,3 +1643,25 @@ biz 1361 行拆 4 文件、data 1669 行拆 5 文件，零丢失，定向集成�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 65: 拆分企业资源与后台大组件
+<!-- trellis-session: v=2 fp=a3ecee70beb4f8f8 -->
+
+**Date**: 2026-09-19
+**Task**: 拆分企业资源与后台大组件
+**Branch**: `main`
+
+### Summary
+
+三个 1300-1600 行前端文件拆为 904/393/413 行骨架+就近子组件，纯移动零行为变更，定向测试与类型检查全绿；子代理执行、主会话复核收尾。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b38f44ac` | refactor(web): 企业资源页与后台大组件按职责拆分 |
+
+### Status
+
+[OK] **Completed**
