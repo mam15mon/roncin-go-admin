@@ -1621,3 +1621,25 @@ biz 1613 行拆 3 文件、data 1378 行拆 5 文件，零丢失，定向测试�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 64: 拆分提成 biz 与月度申请数据层文件
+<!-- trellis-session: v=2 fp=55935980d1dc126c -->
+
+**Date**: 2026-09-19
+**Task**: 拆分提成 biz 与月度申请数据层文件
+**Branch**: `main`
+
+### Summary
+
+biz 1361 行拆 4 文件、data 1669 行拆 5 文件，零丢失，定向集成测试全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `59633883` | refactor(finance): 提成 biz 与月度申请数据层按职责拆为同包文件 |
+
+### Status
+
+[OK] **Completed**
