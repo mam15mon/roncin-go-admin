@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 68
+- **Total Sessions**: 69
 - **Last Active**: 2026-09-19
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1733 | Active |
+| `journal-1.md` | ~1755 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 69 | 2026-09-19 | 模板基座 any 类型收紧 | `1be17232` | `refactor/any-ui-templates` |
 | 68 | 2026-09-19 | 前端代码卫生收敛 | `9191e0c6` | `main` |
 | 67 | 2026-09-19 | 大文件重构父任务收尾 | `dccce2ac` | `main` |
 | 66 | 2026-09-19 | 拆分大抽屉与工作台组件 | `0018d642` | `main` |
