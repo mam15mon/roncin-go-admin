@@ -1820,3 +1820,25 @@ pages 全域 101 处 any 清零（分域表单类型化+unknown 收窄），comp
 ### Status
 
 [OK] **Completed**
+
+
+## Session 73: biz 错误码目录落地
+<!-- trellis-session: v=2 fp=a7c216f3d682ad73 -->
+
+**Date**: 2026-09-19
+**Task**: biz 错误码目录落地
+**Branch**: `main`
+
+### Summary
+
+369 个错误码七域分布目录 + 生成脚本（--check 防漂移），主会话复核合并。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b636bd79` | docs(domain): 新增 biz 错误码目录与生成脚本 |
+
+### Status
+
+[OK] **Completed**
