@@ -6,6 +6,7 @@
 | --- | --- |
 | [glossary.md](./glossary.md) | 海运/财务/往来单位/平台术语表，附代码定位（唯一真相源指引） |
 | [architecture-map.md](./architecture-map.md) | 技术栈结构、业务域→代码地图、核心数据流与链路约束、实体关系图、新会话上手路径 |
+| [error-catalog.md](./error-catalog.md) | biz 层业务错误码全集（HTTP 类别、中文消息、定义位置、关联 proto ErrorReason），由 `scripts/generate-error-catalog.mjs` 自动生成 |
 
 维护约定：
 
