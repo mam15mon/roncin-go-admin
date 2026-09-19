@@ -1687,3 +1687,25 @@ biz 1361 行拆 4 文件、data 1669 行拆 5 文件，零丢失，定向集成�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 67: 大文件重构父任务收尾
+<!-- trellis-session: v=2 fp=2463c7e9e069bf1c -->
+
+**Date**: 2026-09-19
+**Task**: 大文件重构父任务收尾
+**Branch**: `main`
+
+### Summary
+
+11/11 子任务完成：后端 8 个大文件机械拆分零丢失，前端 7 个大组件抽取，P2 观察名单复查结论不拆，全量门禁 pnpm run check 全绿（go 全包零失败、前端 852 用例通过）。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dccce2ac` | docs(trellis): 大文件重构父任务收尾验收记录 |
+
+### Status
+
+[OK] **Completed**
