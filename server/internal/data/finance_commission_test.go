@@ -11,6 +11,8 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -22,7 +24,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	organization "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
-	"github.com/shopspring/decimal"
 )
 
 func setupTestCommissionRepo(t *testing.T) (*commissionRepo, sqlmock.Sqlmock) {

@@ -1479,12 +1479,23 @@
 ### Summary
 
 机械拆分 5185 行 sea_order_change.go 为 7 个同包职责文件，零行丢失零行为变更；本机补装 PostgreSQL 并修正集成库凭据（URL 解码），整包集成验证仅 3 个与基线一致的存量失败。
+## Session 57: 拆分 finance_commission.go 大文件
+<!-- trellis-session: v=2 fp=cf1f4310645080e9 -->
+
+**Date**: 2026-09-19
+**Task**: 拆分 finance_commission.go 大文件
+**Branch**: `refactor/commission-ledger-data`
+
+### Summary
+
+2768 行提成数据层文件按子域纯移动拆为 9 个同包文件，零行丢失；Commission 定向测试含真实库集成全绿。
 
 ### Git Commits
 
 | Hash | Message |
 |------|---------|
 | `f4db24b4` | refactor(data): 拆分 sea_order_change.go 为按变更类型组织的同包文件 |
+| `d9ab0ff6` | refactor(data): 拆分 finance_commission.go 为按子域组织的同包文件 |
 
 ### Status
 
