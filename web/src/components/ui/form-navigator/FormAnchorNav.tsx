@@ -5,6 +5,10 @@ import {
 } from '@ant-design/icons';
 import { Badge, Button, Space, Tooltip, Typography } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
+import {
+  scrollToSectionWithStickyOffset,
+  waitForLayoutStable,
+} from './formErrorUtils';
 import type { FormAnchorNavProps } from './types';
 
 const { Text } = Typography;
@@ -76,15 +80,13 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
     const targetEl =
       document.getElementById(`section-${key}`) ||
       document.querySelector(`[data-section-key="${key}"]`);
-    if (targetEl) {
-      const rect = targetEl.getBoundingClientRect();
-      const scrollTop =
-        window.pageYOffset || document.documentElement.scrollTop;
-      window.scrollTo({
-        top: Math.max(0, scrollTop + rect.top - targetOffset),
-        behavior: 'smooth',
-      });
-    }
+    if (!targetEl) return;
+    // onSelect 可能触发折叠分节展开/数据加载：等布局稳定后再按实测吸顶
+    // 高度落位，避免平滑滚动与布局变化竞态导致落点漂移或被按钮栏遮挡。
+    void waitForLayoutStable(targetEl).then(() => {
+      if (!targetEl.isConnected) return;
+      scrollToSectionWithStickyOffset(targetEl, targetOffset);
+    });
   };
 
   if (!items || items.length === 0) {

@@ -27,8 +27,7 @@ import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
 import {
   collectFormSectionErrors,
   FormAnchorNav,
-  focusFieldInput,
-  pulseHighlightElement,
+  locateSectionError,
   scrollToFirstFormError,
 } from '../form-navigator';
 import { SectionCard } from '../page-shell/SectionCard';
@@ -189,21 +188,7 @@ export function OrderFormTemplate<T>({
 
   // 点击楼层中带错误的分节，精确定位至该分节内的错误字段
   const handleErrorClick = (sectionKey: string) => {
-    const sectionEl =
-      document.getElementById(`section-${sectionKey}`) ||
-      document.querySelector(`[data-section-key="${sectionKey}"]`);
-    if (sectionEl) {
-      const errorEl = sectionEl.querySelector<HTMLElement>(
-        '.ant-form-item-has-error',
-      );
-      if (errorEl) {
-        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        pulseHighlightElement(errorEl);
-        focusFieldInput(errorEl);
-      } else {
-        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
+    void locateSectionError(sectionKey, 84);
   };
 
   const renderSection = (section: OrderFormTemplateSection) => (

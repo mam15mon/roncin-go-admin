@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  FormAnchorNav,
-  focusFieldInput,
-  pulseHighlightElement,
-} from '@/components/ui';
+import { FormAnchorNav, locateSectionError } from '@/components/ui';
 
 type PartnerAnchorNavProps = {
   sectionErrors: Record<string, number>;
@@ -64,30 +60,12 @@ export default function PartnerAnchorNav({
         );
       }}
       onErrorClick={(sectionKey) => {
+        // 先展开折叠分节，再等布局稳定后定位错误项（居中滚动）或分节标题
+        // （按实测吸顶高度落位，避免被吸顶按钮栏遮挡）。
         onActiveCollapseKeysChange((prev) =>
           Array.from(new Set([...prev, sectionKey])),
         );
-        window.setTimeout(() => {
-          const sectionEl = document.getElementById(`section-${sectionKey}`);
-          if (sectionEl) {
-            const errorEl = sectionEl.querySelector<HTMLElement>(
-              '.ant-form-item-has-error',
-            );
-            if (errorEl) {
-              errorEl.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-              });
-              pulseHighlightElement(errorEl);
-              focusFieldInput(errorEl);
-            } else {
-              sectionEl.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-              });
-            }
-          }
-        }, 100);
+        void locateSectionError(sectionKey);
       }}
     />
   );

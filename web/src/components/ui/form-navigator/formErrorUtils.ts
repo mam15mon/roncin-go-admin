@@ -254,3 +254,94 @@ export function scrollToFirstFormError(
     errorsBySection,
   };
 }
+
+/**
+ * 实测吸顶叠层高度（全局 Header + TagsView + 吸顶页头壳）。
+ * 以页头壳底边为准：页头多高避让多高，操作按钮行不会盖住落点标题；
+ * 页面没有吸顶页头壳时回退到 fallback。
+ */
+export function measureStickyTopOffset(fallback = 146): number {
+  const shell = document.querySelector('.roncin-page-header-shell');
+  if (shell) {
+    const bottom = shell.getBoundingClientRect().bottom;
+    if (bottom > 0) return Math.ceil(bottom) + 12;
+  }
+  return fallback;
+}
+
+/**
+ * 等待元素布局稳定：展开动画、数据加载等造成的位移逐帧收敛后返回；
+ * 超时兜底，避免极端情况下挂起。
+ */
+export function waitForLayoutStable(
+  el: HTMLElement,
+  timeoutMs = 800,
+): Promise<void> {
+  return new Promise((resolve) => {
+    let lastTop = el.getBoundingClientRect().top;
+    const startedAt = performance.now();
+    const tick = () => {
+      if (!el.isConnected) {
+        resolve();
+        return;
+      }
+      const top = el.getBoundingClientRect().top;
+      if (
+        Math.abs(top - lastTop) < 0.5 ||
+        performance.now() - startedAt >= timeoutMs
+      ) {
+        resolve();
+        return;
+      }
+      lastTop = top;
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+/**
+ * 滚动到分节：按实测吸顶高度落位，保证分节标题不被吸顶按钮栏遮挡。
+ */
+export function scrollToSectionWithStickyOffset(
+  sectionEl: HTMLElement,
+  fallbackOffset = 146,
+): void {
+  const rect = sectionEl.getBoundingClientRect();
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  window.scrollTo({
+    top: Math.max(
+      0,
+      scrollTop + rect.top - measureStickyTopOffset(fallbackOffset),
+    ),
+    behavior: 'smooth',
+  });
+}
+
+/**
+ * 定位分节内校验错误：等待展开/加载布局稳定后查找错误项。
+ * 找到错误项居中滚动并脉冲动效聚焦；无错误项时按吸顶补偿落到分节标题。
+ * 调用方负责先行展开折叠分节（如通过 onSelect 展开 collapse keys）。
+ */
+export async function locateSectionError(
+  sectionKey: string,
+  fallbackOffset = 146,
+): Promise<void> {
+  const sectionEl =
+    document.getElementById(`section-${sectionKey}`) ||
+    document.querySelector<HTMLElement>(`[data-section-key="${sectionKey}"]`);
+  if (!sectionEl) return;
+
+  await waitForLayoutStable(sectionEl);
+
+  const errorEl = sectionEl.querySelector<HTMLElement>(
+    '.ant-form-item-has-error',
+  );
+  if (errorEl) {
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    pulseHighlightElement(errorEl);
+    focusFieldInput(errorEl);
+  } else {
+    scrollToSectionWithStickyOffset(sectionEl, fallbackOffset);
+  }
+}

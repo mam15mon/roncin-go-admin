@@ -5,7 +5,10 @@ import { DingTalkInvitationKind } from '@/enums.generated';
 
 const messageSuccessMock = vi.fn();
 
-vi.mock('antd', () => ({
+vi.mock('antd', async (importOriginal) => ({
+  // 透传真实 antd：order-list-template 在模块顶层解构 DatePicker，
+  // 局部 mock 缺导出会导致整个测试套件加载失败。
+  ...(await importOriginal<typeof import('antd')>()),
   App: {
     useApp: () => ({
       message: { success: messageSuccessMock, error: vi.fn() },
