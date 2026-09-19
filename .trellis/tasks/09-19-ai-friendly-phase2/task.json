@@ -1,0 +1,30 @@
+{
+  "id": "ai-friendly-phase2",
+  "name": "ai-friendly-phase2",
+  "title": "AI 友好架构二期",
+  "description": "台账模板 TFilter 泛型化、ADR 决策记录目录、biz 错误码目录三项收尾",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-19",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-19-tfilter-generics",
+    "09-19-adr-directory",
+    "09-19-error-catalog"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
