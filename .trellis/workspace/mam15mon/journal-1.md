@@ -1842,3 +1842,25 @@ pages 全域 101 处 any 清零（分域表单类型化+unknown 收窄），comp
 ### Status
 
 [OK] **Completed**
+
+
+## Session 74: ADR 决策记录目录落地
+<!-- trellis-session: v=2 fp=275a5883ccc5e15f -->
+
+**Date**: 2026-09-19
+**Task**: ADR 决策记录目录落地
+**Branch**: `main`
+
+### Summary
+
+15 条 ADR（契约/并发/分页/前端/部署/业务/工作流）四段式成文，git 断代与代码实位核验，链接无断链。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `021bfb4a` | docs(adr): 建立架构决策记录目录 |
+
+### Status
+
+[OK] **Completed**

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 73
+- **Total Sessions**: 74
 - **Last Active**: 2026-09-19
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1844 | Active |
+| `journal-1.md` | ~1866 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 74 | 2026-09-19 | ADR 决策记录目录落地 | `021bfb4a` | `main` |
 | 73 | 2026-09-19 | biz 错误码目录落地 | `b636bd79` | `main` |
 | 72 | 2026-09-19 | AI 友好架构核心建设收尾 | `1acb046b` | `main` |
 | 71 | 2026-09-19 | any 治理父任务收尾 | `6fde6386` | `main` |
