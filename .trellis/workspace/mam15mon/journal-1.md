@@ -1665,3 +1665,25 @@ biz 1361 行拆 4 文件、data 1669 行拆 5 文件，零丢失，定向集成�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 66: 拆分大抽屉与工作台组件
+<!-- trellis-session: v=2 fp=524bab273647257f -->
+
+**Date**: 2026-09-19
+**Task**: 拆分大抽屉与工作台组件
+**Branch**: `main`
+
+### Summary
+
+四个 1000+ 行前端组件拆为 576-927 行骨架+就近子组件与纯函数模块，纯移动零行为变更，定向与连带测试 90/90 全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0018d642` | refactor(web): 大抽屉与工作台组件按职责拆分 |
+
+### Status
+
+[OK] **Completed**
