@@ -1753,3 +1753,26 @@ components/ui 42 处 any 收紧至 3 处（保留项均有 antd 类型缺口理�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 70: 业务页面 any 类型化清零
+<!-- trellis-session: v=2 fp=e3a1f3b25af5e4e3 -->
+
+**Date**: 2026-09-19
+**Task**: 业务页面 any 类型化清零
+**Branch**: `main`
+
+### Summary
+
+pages 全域 101 处 any 清零（分域表单类型化+unknown 收窄），components/ui 42→3；尾部域子任务因与 pages 全量任务重叠由主会话裁撤；两分支合并 main，852 测试基线持平。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ad6c1964` | refactor(web): 业务页面 any 类型化清理 |
+| `1be17232` | refactor(web): 模板基座 any 类型收紧 |
+
+### Status
+
+[OK] **Completed**
