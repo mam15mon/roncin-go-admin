@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 76
+- **Total Sessions**: 77
 - **Last Active**: 2026-09-19
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1910 | Active |
+| `journal-1.md` | ~1932 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 77 | 2026-09-19 | 修复锚点导航吸顶遮挡与展开竞态 | `7a5abe0a` | `main` |
 | 76 | 2026-09-19 | 修正港口机场表单必填契约缺口 | `4a0ffdbd` | `main` |
 | 75 | 2026-09-19 | AI 友好架构二期收尾 | `3aed8905` | `main` |
 | 74 | 2026-09-19 | ADR 决策记录目录落地 | `021bfb4a` | `main` |

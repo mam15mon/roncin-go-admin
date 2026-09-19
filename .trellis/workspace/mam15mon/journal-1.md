@@ -1908,3 +1908,25 @@ TFilter 泛型化（豁免 41→7，发现港口/机场契约缺口）、ADR 15 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 77: 修复锚点导航吸顶遮挡与展开竞态
+<!-- trellis-session: v=2 fp=c0c27a34c8d4ebbf -->
+
+**Date**: 2026-09-19
+**Task**: 修复锚点导航吸顶遮挡与展开竞态
+**Branch**: `main`
+
+### Summary
+
+共享实测吸顶高度+布局稳定滚动工具，导航与错误定位三处路径统一；顺带修复测试 antd mock 缺导出；853 测试全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7a5abe0a` | fix(web): 锚点导航落点按实测吸顶高度对齐并消除展开竞态 |
+
+### Status
+
+[OK] **Completed**
