@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	assignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
-	"github.com/shopspring/decimal"
 )
 
 // 提成方案员工分配集成测试：真实 PostgreSQL 上验证固定锁序（Membership → Rule）、

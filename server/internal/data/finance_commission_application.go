@@ -7,6 +7,8 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	bill "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
@@ -24,7 +26,6 @@ import (
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	user "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
-	"github.com/shopspring/decimal"
 )
 
 // financeCommissionApplicationRepo 月度提成申请仓储：候选解析复用既有计提引擎

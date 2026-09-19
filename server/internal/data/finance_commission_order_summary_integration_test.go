@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
@@ -18,7 +20,6 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	attributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	"github.com/shopspring/decimal"
 )
 
 // 订单列表提成摘要集成夹具：多组织、多订单、多员工与多身份的真实数据矩阵，

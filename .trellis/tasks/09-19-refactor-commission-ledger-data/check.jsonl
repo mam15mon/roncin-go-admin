@@ -1,0 +1,1 @@
+{"file": "server/internal/data/finance_commission_transaction_integration_test.go", "reason": "提成相关集成测试拆分后必须保持全绿"}
