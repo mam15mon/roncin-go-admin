@@ -1,0 +1,29 @@
+{
+  "id": "refactor-any-escape",
+  "name": "refactor-any-escape",
+  "title": "前端 any 类型逃逸治理",
+  "description": "清理 web/src 中 328 处 as any/: any 类型逃逸：模板基座泛型收紧 + 业务页面表单值类型化，行为零变更",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-19",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-19-refactor-any-ui-templates",
+    "09-19-refactor-any-pages"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
