@@ -39,6 +39,10 @@
   `test:`、`chore:`）。
 ## 仓库结构与职责
 
+> **AI 会话领域上手**：业务术语、模块地图、核心数据流与实体关系见
+> `.trellis/spec/domain/`（glossary.md + architecture-map.md）；先读它再定位代码。
+
+
 ```text
 server/                  Go 服务端（Kratos、Ent、PostgreSQL）
   api/                    Protobuf 契约与生成代码
