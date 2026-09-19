@@ -14,10 +14,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	financebillline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	applicationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
 	applicationline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
+	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	rule "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	verification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	numberruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
@@ -677,8 +679,9 @@ func TestCommissionApplicationGatesPostgres(t *testing.T) {
 	}
 }
 
-// TestCommissionApplicationResubmitPostgres 验证驳回后原单重提：沿用原 ID 与
-// 申请月、清空决策审计、版本递增；明细失效时稳定冲突，不产生替代申请。
+// TestCommissionApplicationResubmitPostgres 验证驳回后显式原单重提：按申请 ID
+// 与 expected_version 定位原申请，沿用原 ID 与申请月、保留最近一次决策审计、
+// 版本递增；提成被其他路径处理后重提整体拒绝，不产生替代申请。
 func TestCommissionApplicationResubmitPostgres(t *testing.T) {
 	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
 		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
@@ -700,9 +703,19 @@ func TestCommissionApplicationResubmitPostgres(t *testing.T) {
 	}
 	fixture.rejectApplication(t, application.ID, "明细存疑，整单驳回")
 
-	resubmitted, err := usecase.Submit(ctx, scope)
+	// 空提交不再隐式重提：REJECTED 申请占用月度唯一键，必须显式重提。
+	if _, err := usecase.Submit(ctx, scope); !errors.Is(err, biz.ErrCommissionApplicationConflict) {
+		t.Fatalf("驳回月空提交应稳定冲突并引导显式重提: %v", err)
+	}
+
+	// 期望版本不匹配稳定拒绝，不改变申请头。
+	if _, err := usecase.Resubmit(ctx, scope, application.ID, 99); !errors.Is(err, biz.ErrCommissionApplicationStatusConflict) {
+		t.Fatalf("过期版本的重提应稳定拒绝: %v", err)
+	}
+
+	resubmitted, err := usecase.Resubmit(ctx, scope, application.ID, 2)
 	if err != nil {
-		t.Fatalf("原单重提失败: %v", err)
+		t.Fatalf("显式原单重提失败: %v", err)
 	}
 	if resubmitted.ID != application.ID {
 		t.Fatalf("重提必须沿用原申请 ID: %s vs %s", resubmitted.ID, application.ID)
@@ -710,8 +723,8 @@ func TestCommissionApplicationResubmitPostgres(t *testing.T) {
 	if resubmitted.Status != biz.CommissionApplicationPendingReview || resubmitted.Version != 3 {
 		t.Fatalf("重提后应回到待审且版本递增: %+v", resubmitted)
 	}
-	if resubmitted.DecidedAt != nil || resubmitted.DecisionReason != nil {
-		t.Fatalf("重提应清空上一版决策审计: %+v", resubmitted)
+	if resubmitted.DecisionReason == nil || *resubmitted.DecisionReason != "明细存疑，整单驳回" {
+		t.Fatalf("重提应保留最近一次驳回原因供员工查看: %+v", resubmitted)
 	}
 	headers, err := fixture.data.db.FinanceCommissionApplication.Query().
 		Where(applicationent.OrganizationIDEQ(fixture.organizationID), applicationent.EmployeeIDEQ(employee)).
@@ -737,7 +750,8 @@ func TestCommissionApplicationResubmitPostgres(t *testing.T) {
 		t.Fatalf("重提后重复提交应稳定拒绝: %v", err)
 	}
 
-	// 明细提成被财务单独确认后重提：明细失效，稳定冲突且不改变原明细集合。
+	// 明细提成被财务单独确认后重提：唯一明细被剔除后申请内已无有效明细，
+	// 稳定拒绝且整体回滚（申请保持 REJECTED、明细保留）。
 	line, err := fixture.data.db.FinanceCommissionApplicationLine.Query().
 		Where(applicationline.ApplicationIDEQ(application.ID)).Only(ctx)
 	if err != nil {
@@ -751,8 +765,24 @@ func TestCommissionApplicationResubmitPostgres(t *testing.T) {
 		t.Fatalf("模拟财务确认提成失败: %v", err)
 	}
 	fixture.rejectApplication(t, application.ID, "再次驳回")
-	if _, err := usecase.Submit(ctx, scope); !errors.Is(err, biz.ErrCommissionApplicationSourceConflict) {
-		t.Fatalf("明细提成已确认时重提应返回来源冲突: %v", err)
+	if _, err := usecase.Resubmit(ctx, scope, application.ID, 4); !errors.Is(err, biz.ErrCommissionApplicationNoValidLines) {
+		t.Fatalf("全部明细失效时重提应返回无有效明细: %v", err)
+	}
+	header, err := fixture.data.db.FinanceCommissionApplication.Query().
+		Where(applicationent.IDEQ(application.ID)).Only(ctx)
+	if err != nil {
+		t.Fatalf("查询申请头失败: %v", err)
+	}
+	if header.Status != applicationent.StatusREJECTED || header.Version != 4 {
+		t.Fatalf("失败重提不得改变申请头: %+v", header)
+	}
+	lineCount, err := fixture.data.db.FinanceCommissionApplicationLine.Query().
+		Where(applicationline.ApplicationIDEQ(application.ID)).Count(ctx)
+	if err != nil {
+		t.Fatalf("统计申请明细失败: %v", err)
+	}
+	if lineCount != 1 {
+		t.Fatalf("失败重提不得删除原明细: %d", lineCount)
 	}
 }
 
@@ -889,5 +919,236 @@ func TestCommissionApplicationSourceConflictPostgres(t *testing.T) {
 	}
 	if _, err := cancelledUsecase.Submit(ctx, cancelledScope); !errors.Is(err, biz.ErrCommissionApplicationEmpty) {
 		t.Fatalf("已取消来源不得通过申请重新生成提成: %v", err)
+	}
+}
+
+// scopeForToday 构造指定财务业务日期的本人范围：跨月重提用例以显式日期模拟
+// 「4 月提交、5 月重提」，不依赖真实时钟。
+func (f *commissionApplicationFixture) scopeForToday(employeeID uuid.UUID, today string) biz.WorkbenchScope {
+	return biz.WorkbenchScope{
+		OrganizationID: f.organizationID,
+		UserID:         employeeID,
+		Today:          today,
+		Now:            time.Now(),
+	}
+}
+
+// TestCommissionApplicationResubmitRefreshPostgres 是显式重提刷新语义的跨月
+// 回归（P0）：4 月提交 → 财务驳回 → 修正上游来源费用（指纹与金额变化）→
+// 5 月以显式申请 ID 重提 → 断言明细快照与父单金额已按上游当前事实刷新、
+// 明细集合不变、版本递增回待审、财务可再次批准；另覆盖全部明细失效与
+// 他人/跨组织申请 ID 的稳定拒绝。
+func TestCommissionApplicationResubmitRefreshPostgres(t *testing.T) {
+	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
+		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
+	}
+
+	fixture := newCommissionApplicationFixture(t)
+	ctx := context.Background()
+	usecase := fixture.usecase()
+	orgScope := []uuid.UUID{fixture.organizationID}
+
+	// 员工 A：3 月来源、4 月提交、驳回后修正费用、5 月显式重提。
+	employeeA := fixture.newEmployee("refresh")
+	fixture.addAttribution(employeeA, "SALES")
+	fixture.addSalesScheme(employeeA)
+	fixture.addVerification("2026-03-20")
+	scopeApril := fixture.scopeForToday(employeeA, "2026-04-10")
+	application, err := usecase.Submit(ctx, scopeApril)
+	if err != nil {
+		t.Fatalf("4 月提交失败: %v", err)
+	}
+	if application.ApplicationMonth != "2026-04" || application.CoverageTo != "2026-03-31" {
+		t.Fatalf("申请期间应为 2026-04 / 2026-03-31: %+v", application)
+	}
+	if application.CommissionCount != 1 || application.TotalCommissionAmount.StringFixed(8) != "60.00000000" {
+		t.Fatalf("4 月申请应为 1 笔 60: %+v", application)
+	}
+	rejected, err := usecase.Reject(ctx, orgScope, fixture.actorID, application.ID, 1, "金额与来源不一致，整单驳回")
+	if err != nil {
+		t.Fatalf("财务整单驳回失败: %v", err)
+	}
+	if rejected.Status != biz.CommissionApplicationRejected || rejected.Version != 2 {
+		t.Fatalf("驳回后应为 REJECTED v2: %+v", rejected)
+	}
+
+	// 修正上游来源事实：账单行本位币金额 1000 → 1100（已实现收入分子随账单行
+	// 快照变化，指纹与提成金额同时漂移），提成应按 (1100-400)×10% = 70 刷新。
+	billLine, err := fixture.data.db.FinanceBillLine.Query().
+		Where(financebillline.BillIDEQ(fixture.billID)).Only(ctx)
+	if err != nil {
+		t.Fatalf("定位来源账单行失败: %v", err)
+	}
+	originalLine, err := fixture.data.db.FinanceCommissionApplicationLine.Query().
+		Where(applicationline.ApplicationIDEQ(application.ID)).Only(ctx)
+	if err != nil {
+		t.Fatalf("定位重提前明细失败: %v", err)
+	}
+	originalCommission, err := fixture.data.db.FinanceCommission.Query().
+		Where(commission.IDEQ(originalLine.CommissionID)).Only(ctx)
+	if err != nil {
+		t.Fatalf("定位重提前提成事实失败: %v", err)
+	}
+	if _, err := fixture.data.db.FinanceBillLine.UpdateOneID(billLine.ID).
+		SetBaseCurrencyAmount("1100.00000000").
+		SetTotalAmount("1100.00000000").
+		SetNetAmount("1100.00000000").
+		Save(ctx); err != nil {
+		t.Fatalf("修正上游账单行失败: %v", err)
+	}
+
+	// 5 月以显式申请 ID 重提：金额/指纹刷新、明细集合不变、版本递增回待审。
+	scopeMay := fixture.scopeForToday(employeeA, "2026-05-10")
+	resubmitted, err := usecase.Resubmit(ctx, scopeMay, application.ID, 2)
+	if err != nil {
+		t.Fatalf("5 月显式重提失败: %v", err)
+	}
+	if resubmitted.ID != application.ID || resubmitted.Status != biz.CommissionApplicationPendingReview || resubmitted.Version != 3 {
+		t.Fatalf("重提应沿用原申请并回到待审 v3: %+v", resubmitted)
+	}
+	if resubmitted.ApplicationMonth != "2026-04" || resubmitted.CoverageTo != "2026-03-31" {
+		t.Fatalf("重提不得改变申请期间: %+v", resubmitted)
+	}
+	if resubmitted.CommissionCount != 1 || resubmitted.TotalCommissionAmount.StringFixed(8) != "70.00000000" {
+		t.Fatalf("重提后汇总应刷新为 1 笔 70: count=%d total=%s", resubmitted.CommissionCount, resubmitted.TotalCommissionAmount)
+	}
+	if resubmitted.DecisionReason == nil || *resubmitted.DecisionReason != "金额与来源不一致，整单驳回" {
+		t.Fatalf("重提后员工仍应能看到最近一次驳回原因: %+v", resubmitted)
+	}
+
+	detail, err := usecase.GetMyApplication(ctx, scopeMay, application.ID)
+	if err != nil {
+		t.Fatalf("重读申请详情失败: %v", err)
+	}
+	if len(detail.Lines) != 1 {
+		t.Fatalf("重提不得改变明细集合: %d", len(detail.Lines))
+	}
+	refreshedLine := detail.Lines[0]
+	if refreshedLine.ID != originalLine.ID || refreshedLine.CommissionID != originalLine.CommissionID {
+		t.Fatalf("重提应保持同一明细绑定: %+v vs %+v", refreshedLine, originalLine)
+	}
+	if refreshedLine.CommissionAmount.StringFixed(8) != "70.00000000" || refreshedLine.SourceFingerprint == originalLine.SourceFingerprint {
+		t.Fatalf("明细快照金额/指纹应按上游当前事实刷新: %+v", refreshedLine)
+	}
+	refreshedCommission, err := fixture.data.db.FinanceCommission.Query().
+		Where(commission.IDEQ(originalLine.CommissionID)).Only(ctx)
+	if err != nil {
+		t.Fatalf("重查提成事实失败: %v", err)
+	}
+	if refreshedCommission.Status != commission.StatusDRAFT || refreshedCommission.CommissionAmount != "70.00000000" {
+		t.Fatalf("提成父单金额应刷新且保持 DRAFT: %+v", refreshedCommission)
+	}
+	if refreshedCommission.SourceFingerprint != refreshedLine.SourceFingerprint || refreshedCommission.Version != originalCommission.Version+1 {
+		t.Fatalf("提成父单指纹/版本应随刷新递增: %+v", refreshedCommission)
+	}
+	commissionLines, err := fixture.data.db.FinanceCommissionLine.Query().
+		Where(commissionline.CommissionIDEQ(originalLine.CommissionID)).All(ctx)
+	if err != nil {
+		t.Fatalf("查询提成行失败: %v", err)
+	}
+	if len(commissionLines) != 1 || commissionLines[0].CommissionAmount != "70.00000000" {
+		t.Fatalf("提成行应随重提刷新为当前计算事实: %+v", commissionLines)
+	}
+	refreshAudits, err := fixture.data.db.AuditLog.Query().
+		Where(auditlog.ActionEQ("finance.commission.resubmit_refresh"), auditlog.ResourceIDEQ(originalLine.CommissionID.String())).
+		Count(ctx)
+	if err != nil {
+		t.Fatalf("查询提成刷新审计失败: %v", err)
+	}
+	if refreshAudits != 1 {
+		t.Fatalf("刷新提成应恰好一条刷新审计: %d", refreshAudits)
+	}
+
+	// 财务对刷新后的申请再次整单批准：指纹复核应通过。
+	approved, err := usecase.Approve(ctx, orgScope, fixture.actorID, application.ID, 3)
+	if err != nil {
+		t.Fatalf("重提后财务再次批准失败: %v", err)
+	}
+	if approved.Status != biz.CommissionApplicationApproved || approved.Version != 4 {
+		t.Fatalf("再次批准后应为 APPROVED v4: %+v", approved)
+	}
+	confirmedCommission, err := fixture.data.db.FinanceCommission.Query().
+		Where(commission.IDEQ(originalLine.CommissionID)).Only(ctx)
+	if err != nil {
+		t.Fatalf("重查提成事实失败: %v", err)
+	}
+	if confirmedCommission.Status != commission.StatusCONFIRMED {
+		t.Fatalf("再次批准应确认刷新后的提成: %+v", confirmedCommission)
+	}
+
+	// 员工 B：修正后的费用下提交 → 驳回 → 取消其全部提成 → 重提应因全部明细
+	// 失效拒绝（B 与 A 共享订单归属，两张核销都是 B 的候选，明细为 2 笔）。
+	employeeB := fixture.newEmployee("nolines")
+	fixture.addAttribution(employeeB, "SALES")
+	fixture.addSalesScheme(employeeB)
+	fixture.addVerification("2026-03-25")
+	scopeB := fixture.scopeForToday(employeeB, "2026-04-10")
+	applicationB, err := usecase.Submit(ctx, scopeB)
+	if err != nil {
+		t.Fatalf("员工 B 提交失败: %v", err)
+	}
+	if _, err := usecase.Reject(ctx, orgScope, fixture.actorID, applicationB.ID, 1, "整单驳回"); err != nil {
+		t.Fatalf("员工 B 申请驳回失败: %v", err)
+	}
+	bLines, err := fixture.data.db.FinanceCommissionApplicationLine.Query().
+		Where(applicationline.ApplicationIDEQ(applicationB.ID)).All(ctx)
+	if err != nil {
+		t.Fatalf("定位员工 B 明细失败: %v", err)
+	}
+	if len(bLines) == 0 {
+		t.Fatalf("员工 B 申请应至少有一笔明细")
+	}
+	for _, item := range bLines {
+		if _, err := fixture.data.db.FinanceCommission.UpdateOneID(item.CommissionID).
+			SetStatus(commission.StatusCANCELLED).
+			SetCancelledAt(time.Now()).
+			SetCancelledBy(fixture.actorID).
+			SetCancellationReason("测试取消").
+			Save(ctx); err != nil {
+			t.Fatalf("模拟取消提成失败: %v", err)
+		}
+	}
+	if _, err := usecase.Resubmit(ctx, scopeB, applicationB.ID, 2); !errors.Is(err, biz.ErrCommissionApplicationNoValidLines) {
+		t.Fatalf("全部明细失效时重提应稳定拒绝: %v", err)
+	}
+	headerB, err := fixture.data.db.FinanceCommissionApplication.Query().
+		Where(applicationent.IDEQ(applicationB.ID)).Only(ctx)
+	if err != nil {
+		t.Fatalf("查询员工 B 申请头失败: %v", err)
+	}
+	if headerB.Status != applicationent.StatusREJECTED || headerB.Version != 2 {
+		t.Fatalf("失败重提应整体回滚且申请保持 REJECTED: %+v", headerB)
+	}
+
+	// 他人与跨组织申请 ID 一律按不存在处理，不泄露记录事实。
+	otherEmployee := fixture.newEmployee("outsider")
+	if _, err := usecase.Resubmit(ctx, fixture.scopeForToday(otherEmployee, "2026-05-10"), applicationB.ID, 2); !errors.Is(err, biz.ErrCommissionApplicationNotFound) {
+		t.Fatalf("重提他人申请应按不存在处理: %v", err)
+	}
+	if _, err := usecase.Resubmit(ctx, fixture.scopeForToday(employeeB, "2026-05-10"), applicationB.ID, 99); !errors.Is(err, biz.ErrCommissionApplicationStatusConflict) {
+		t.Fatalf("过期版本重提应稳定拒绝: %v", err)
+	}
+	// 跨组织重提：员工在另一组织有合法成员关系（与服务端会话语义一致），
+	// 目标组织内查无此申请，按不存在处理，不泄露记录事实。
+	foreignOrg, err := fixture.data.db.Organization.Create().
+		SetCode("FCA-FR-" + fixture.suffix).
+		SetName("月度申请外部组织-" + fixture.suffix).
+		SetKind("headquarters").
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建外部组织失败: %v", err)
+	}
+	if _, err := fixture.data.db.Membership.Create().
+		SetOrganizationID(foreignOrg.ID).
+		SetUserID(employeeB).
+		SetEnabled(true).
+		Save(ctx); err != nil {
+		t.Fatalf("创建外部组织成员资格失败: %v", err)
+	}
+	foreignScope := fixture.scopeForToday(employeeB, "2026-05-10")
+	foreignScope.OrganizationID = foreignOrg.ID
+	if _, err := usecase.Resubmit(ctx, foreignScope, applicationB.ID, 2); !errors.Is(err, biz.ErrCommissionApplicationNotFound) {
+		t.Fatalf("跨组织重提应按不存在处理: %v", err)
 	}
 }

@@ -14,12 +14,12 @@ import (
 // FinanceCommissionApplication 保存员工在当前组织内按提交自然月形成的月度提成
 // 汇总申请头：员工一次提交覆盖截至上一自然月末（coverage_to）的全部合格未申请
 // 提成，财务对整张申请执行批准或驳回。
-// 状态机：PENDING_REVIEW（财务待审）→ APPROVED / REJECTED；驳回后只能在本申请
-// 上重新提交，不产生替代申请。唯一索引「组织 + 员工 + 申请月」含被驳回行，
+// 状态机：PENDING_REVIEW（财务待审）→ APPROVED / REJECTED；驳回后只能通过显式
+// 申请 ID 重提本申请，不产生替代申请。唯一索引「组织 + 员工 + 申请月」含被驳回行，
 // 结构上禁止同一组织、同一员工、同一提交月出现第二张申请（含并行或替代申请）。
-// 申请头与明细为提交当时的不可变快照：金额、覆盖月份与明细集合只能随整单重提
-// 重新形成，不做行级修改；提交人是永久审计事实（NO ACTION），决策人是可逆审计
-// 引用（SET NULL）。
+// 汇总字段（笔数/金额）随重提按上游当前事实刷新并递增版本；覆盖月份与提交人是
+// 永久事实不可变，决策人是可逆审计引用（SET NULL），重提不清理最近一次决策
+// 审计（驳回原因对员工持续可见）。
 type FinanceCommissionApplication struct{ ent.Schema }
 
 func (FinanceCommissionApplication) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -54,11 +54,11 @@ func (FinanceCommissionApplication) Fields() []ent.Field {
 		// expected_version 防并发覆盖。
 		field.Uint64("version").Default(1),
 		// 提交时固化的汇总快照：明细笔数与申请头本位币口径合计；CNY 合计与
-		// 提成单导出口径一致，便于财务汇总。
-		field.Int("commission_count").NonNegative().Immutable(),
+		// 提成单导出口径一致，便于财务汇总。重提按刷新后的明细集合重算。
+		field.Int("commission_count").NonNegative(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
-		field.String("total_commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		field.String("total_cny_commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		field.String("total_commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
+		field.String("total_cny_commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		// 提交审计：申请行在提交事务内创建，提交人与时间为永久事实。
 		field.Time("submitted_at").Immutable(),
 		field.UUID("submitted_by", uuid.Nil).Immutable(),

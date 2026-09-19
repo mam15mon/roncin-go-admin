@@ -2438,6 +2438,136 @@ func (x *SubmitMyCommissionApplicationResponse) GetData() *WorkbenchMyCommission
 	return nil
 }
 
+// 重提只接受原申请定位参数：application_id + expected_version；员工与组织固定
+// 取自当前会话，不接受客户端改写。
+type ResubmitMyCommissionApplicationRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ApplicationId   string                 `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ResubmitMyCommissionApplicationRequest) Reset() {
+	*x = ResubmitMyCommissionApplicationRequest{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResubmitMyCommissionApplicationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResubmitMyCommissionApplicationRequest) ProtoMessage() {}
+
+func (x *ResubmitMyCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResubmitMyCommissionApplicationRequest.ProtoReflect.Descriptor instead.
+func (*ResubmitMyCommissionApplicationRequest) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *ResubmitMyCommissionApplicationRequest) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+func (x *ResubmitMyCommissionApplicationRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type ResubmitMyCommissionApplicationResponse struct {
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Success       bool                              `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                             `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                            `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                            `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Data          *WorkbenchMyCommissionApplication `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResubmitMyCommissionApplicationResponse) Reset() {
+	*x = ResubmitMyCommissionApplicationResponse{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResubmitMyCommissionApplicationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResubmitMyCommissionApplicationResponse) ProtoMessage() {}
+
+func (x *ResubmitMyCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResubmitMyCommissionApplicationResponse.ProtoReflect.Descriptor instead.
+func (*ResubmitMyCommissionApplicationResponse) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ResubmitMyCommissionApplicationResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ResubmitMyCommissionApplicationResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ResubmitMyCommissionApplicationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ResubmitMyCommissionApplicationResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ResubmitMyCommissionApplicationResponse) GetData() *WorkbenchMyCommissionApplication {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type ListMyCommissionApplicationsRequest struct {
 	state         protoimpl.MessageState                `protogen:"open.v1"`
 	Page          int32                                 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -2449,7 +2579,7 @@ type ListMyCommissionApplicationsRequest struct {
 
 func (x *ListMyCommissionApplicationsRequest) Reset() {
 	*x = ListMyCommissionApplicationsRequest{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[26]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2461,7 +2591,7 @@ func (x *ListMyCommissionApplicationsRequest) String() string {
 func (*ListMyCommissionApplicationsRequest) ProtoMessage() {}
 
 func (x *ListMyCommissionApplicationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[26]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2474,7 +2604,7 @@ func (x *ListMyCommissionApplicationsRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListMyCommissionApplicationsRequest.ProtoReflect.Descriptor instead.
 func (*ListMyCommissionApplicationsRequest) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{26}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListMyCommissionApplicationsRequest) GetPage() int32 {
@@ -2514,7 +2644,7 @@ type ListMyCommissionApplicationsResponse struct {
 
 func (x *ListMyCommissionApplicationsResponse) Reset() {
 	*x = ListMyCommissionApplicationsResponse{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[27]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2526,7 +2656,7 @@ func (x *ListMyCommissionApplicationsResponse) String() string {
 func (*ListMyCommissionApplicationsResponse) ProtoMessage() {}
 
 func (x *ListMyCommissionApplicationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[27]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2539,7 +2669,7 @@ func (x *ListMyCommissionApplicationsResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ListMyCommissionApplicationsResponse.ProtoReflect.Descriptor instead.
 func (*ListMyCommissionApplicationsResponse) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{27}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListMyCommissionApplicationsResponse) GetSuccess() bool {
@@ -2599,7 +2729,8 @@ func (x *ListMyCommissionApplicationsResponse) GetData() []*WorkbenchMyCommissio
 }
 
 // WorkbenchMyCommissionApplication 是本人单张月度申请投影：金额与明细为提交
-// 时固化的快照；REJECTED 携带驳回原因，原申请重提后 version 递增。
+// 时固化的快照（重提按上游当前事实刷新）；决策审计字段保留最近一次决策，
+// 重提不清理，员工始终能看到最近一次驳回原因。
 type WorkbenchMyCommissionApplication struct {
 	state                    protoimpl.MessageState               `protogen:"open.v1"`
 	Id                       string                               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -2622,7 +2753,7 @@ type WorkbenchMyCommissionApplication struct {
 
 func (x *WorkbenchMyCommissionApplication) Reset() {
 	*x = WorkbenchMyCommissionApplication{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[28]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2634,7 +2765,7 @@ func (x *WorkbenchMyCommissionApplication) String() string {
 func (*WorkbenchMyCommissionApplication) ProtoMessage() {}
 
 func (x *WorkbenchMyCommissionApplication) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[28]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2647,7 +2778,7 @@ func (x *WorkbenchMyCommissionApplication) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchMyCommissionApplication.ProtoReflect.Descriptor instead.
 func (*WorkbenchMyCommissionApplication) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{28}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *WorkbenchMyCommissionApplication) GetId() string {
@@ -2757,7 +2888,7 @@ type GetMyCommissionApplicationRequest struct {
 
 func (x *GetMyCommissionApplicationRequest) Reset() {
 	*x = GetMyCommissionApplicationRequest{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[29]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2769,7 +2900,7 @@ func (x *GetMyCommissionApplicationRequest) String() string {
 func (*GetMyCommissionApplicationRequest) ProtoMessage() {}
 
 func (x *GetMyCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[29]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2782,7 +2913,7 @@ func (x *GetMyCommissionApplicationRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetMyCommissionApplicationRequest.ProtoReflect.Descriptor instead.
 func (*GetMyCommissionApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{29}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetMyCommissionApplicationRequest) GetId() string {
@@ -2805,7 +2936,7 @@ type GetMyCommissionApplicationResponse struct {
 
 func (x *GetMyCommissionApplicationResponse) Reset() {
 	*x = GetMyCommissionApplicationResponse{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[30]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2817,7 +2948,7 @@ func (x *GetMyCommissionApplicationResponse) String() string {
 func (*GetMyCommissionApplicationResponse) ProtoMessage() {}
 
 func (x *GetMyCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[30]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2830,7 +2961,7 @@ func (x *GetMyCommissionApplicationResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetMyCommissionApplicationResponse.ProtoReflect.Descriptor instead.
 func (*GetMyCommissionApplicationResponse) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{30}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetMyCommissionApplicationResponse) GetSuccess() bool {
@@ -2878,7 +3009,7 @@ type WorkbenchMyCommissionApplicationDetail struct {
 
 func (x *WorkbenchMyCommissionApplicationDetail) Reset() {
 	*x = WorkbenchMyCommissionApplicationDetail{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[31]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2890,7 +3021,7 @@ func (x *WorkbenchMyCommissionApplicationDetail) String() string {
 func (*WorkbenchMyCommissionApplicationDetail) ProtoMessage() {}
 
 func (x *WorkbenchMyCommissionApplicationDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[31]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2903,7 +3034,7 @@ func (x *WorkbenchMyCommissionApplicationDetail) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use WorkbenchMyCommissionApplicationDetail.ProtoReflect.Descriptor instead.
 func (*WorkbenchMyCommissionApplicationDetail) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{31}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *WorkbenchMyCommissionApplicationDetail) GetApplication() *WorkbenchMyCommissionApplication {
@@ -2942,7 +3073,7 @@ type WorkbenchMyApplicationLine struct {
 
 func (x *WorkbenchMyApplicationLine) Reset() {
 	*x = WorkbenchMyApplicationLine{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[32]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2954,7 +3085,7 @@ func (x *WorkbenchMyApplicationLine) String() string {
 func (*WorkbenchMyApplicationLine) ProtoMessage() {}
 
 func (x *WorkbenchMyApplicationLine) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[32]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2967,7 +3098,7 @@ func (x *WorkbenchMyApplicationLine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchMyApplicationLine.ProtoReflect.Descriptor instead.
 func (*WorkbenchMyApplicationLine) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{32}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *WorkbenchMyApplicationLine) GetId() string {
@@ -3291,6 +3422,15 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
 	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12B\n" +
+	"\x04data\x18\x05 \x01(\v2..workbench.v1.WorkbenchMyCommissionApplicationR\x04data\"\x84\x01\n" +
+	"&ResubmitMyCommissionApplicationRequest\x12*\n" +
+	"\x0eapplication_id\x18\x01 \x01(\tB\x03\xe0A\x02R\rapplicationId\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xd0\x01\n" +
+	"'ResubmitMyCommissionApplicationResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12B\n" +
 	"\x04data\x18\x05 \x01(\v2..workbench.v1.WorkbenchMyCommissionApplicationR\x04data\"\xb2\x01\n" +
 	"#ListMyCommissionApplicationsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
@@ -3370,14 +3510,15 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"3WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED\x10\x00\x12:\n" +
 	"6WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW\x10\x01\x124\n" +
 	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED\x10\x02\x124\n" +
-	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED\x10\x032\x82\v\n" +
+	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED\x10\x032\xd8\f\n" +
 	"\x10WorkbenchService\x12\x97\x01\n" +
 	"\x14GetWorkbenchOverview\x12).workbench.v1.GetWorkbenchOverviewRequest\x1a*.workbench.v1.GetWorkbenchOverviewResponse\"(\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/workbench/overview\x12\x94\x01\n" +
 	"\x11ListMyCommissions\x12&.workbench.v1.ListMyCommissionsRequest\x1a'.workbench.v1.ListMyCommissionsResponse\".\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/workbench/my-commissions\x12\x94\x01\n" +
 	"\x11ListMyReceivables\x12&.workbench.v1.ListMyReceivablesRequest\x1a'.workbench.v1.ListMyReceivablesResponse\".\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/workbench/my-receivables\x12\x99\x01\n" +
 	"\x12ListMyRecentOrders\x12'.workbench.v1.ListMyRecentOrdersRequest\x1a(.workbench.v1.ListMyRecentOrdersResponse\"0\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/workbench/my-recent-orders\x12\xba\x01\n" +
 	"\x1bListMyApplicationCandidates\x120.workbench.v1.ListMyApplicationCandidatesRequest\x1a1.workbench.v1.ListMyApplicationCandidatesResponse\"6\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/workbench/application-candidates\x12\xcb\x01\n" +
-	"\x1dSubmitMyCommissionApplication\x122.workbench.v1.SubmitMyCommissionApplicationRequest\x1a3.workbench.v1.SubmitMyCommissionApplicationResponse\"A\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/workbench/commission-applications/submit\x12\xbe\x01\n" +
+	"\x1dSubmitMyCommissionApplication\x122.workbench.v1.SubmitMyCommissionApplicationRequest\x1a3.workbench.v1.SubmitMyCommissionApplicationResponse\"A\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/workbench/commission-applications/submit\x12\xd3\x01\n" +
+	"\x1fResubmitMyCommissionApplication\x124.workbench.v1.ResubmitMyCommissionApplicationRequest\x1a5.workbench.v1.ResubmitMyCommissionApplicationResponse\"C\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/workbench/commission-applications/resubmit\x12\xbe\x01\n" +
 	"\x1cListMyCommissionApplications\x121.workbench.v1.ListMyCommissionApplicationsRequest\x1a2.workbench.v1.ListMyCommissionApplicationsResponse\"7\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/workbench/commission-applications\x12\xbd\x01\n" +
 	"\x1aGetMyCommissionApplication\x12/.workbench.v1.GetMyCommissionApplicationRequest\x1a0.workbench.v1.GetMyCommissionApplicationResponse\"<\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x020\x12./api/v1/workbench/commission-applications/{id}B>Z<github.com/roncin/roncin-go-admin/server/api/workbench/v1;v1b\x06proto3"
 
@@ -3394,43 +3535,45 @@ func file_workbench_v1_workbench_proto_rawDescGZIP() []byte {
 }
 
 var file_workbench_v1_workbench_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_workbench_v1_workbench_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_workbench_v1_workbench_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_workbench_v1_workbench_proto_goTypes = []any{
-	(WorkbenchCommissionStatus)(0),                 // 0: workbench.v1.WorkbenchCommissionStatus
-	(WorkbenchCommissionApplicationStatus)(0),      // 1: workbench.v1.WorkbenchCommissionApplicationStatus
-	(*GetWorkbenchOverviewRequest)(nil),            // 2: workbench.v1.GetWorkbenchOverviewRequest
-	(*GetWorkbenchOverviewResponse)(nil),           // 3: workbench.v1.GetWorkbenchOverviewResponse
-	(*GetWorkbenchOverviewData)(nil),               // 4: workbench.v1.GetWorkbenchOverviewData
-	(*WorkbenchApplicationSummary)(nil),            // 5: workbench.v1.WorkbenchApplicationSummary
-	(*WorkbenchApplyMonthGroup)(nil),               // 6: workbench.v1.WorkbenchApplyMonthGroup
-	(*WorkbenchApplicationBrief)(nil),              // 7: workbench.v1.WorkbenchApplicationBrief
-	(*WorkbenchCommissionSummary)(nil),             // 8: workbench.v1.WorkbenchCommissionSummary
-	(*WorkbenchEstimatedOpportunity)(nil),          // 9: workbench.v1.WorkbenchEstimatedOpportunity
-	(*WorkbenchRecentOrder)(nil),                   // 10: workbench.v1.WorkbenchRecentOrder
-	(*WorkbenchTodoSummary)(nil),                   // 11: workbench.v1.WorkbenchTodoSummary
-	(*WorkbenchFinanceSummary)(nil),                // 12: workbench.v1.WorkbenchFinanceSummary
-	(*WorkbenchSupplementApprovalItem)(nil),        // 13: workbench.v1.WorkbenchSupplementApprovalItem
-	(*ListMyCommissionsRequest)(nil),               // 14: workbench.v1.ListMyCommissionsRequest
-	(*ListMyCommissionsResponse)(nil),              // 15: workbench.v1.ListMyCommissionsResponse
-	(*WorkbenchMyCommission)(nil),                  // 16: workbench.v1.WorkbenchMyCommission
-	(*WorkbenchMyCommissionAdjustment)(nil),        // 17: workbench.v1.WorkbenchMyCommissionAdjustment
-	(*ListMyReceivablesRequest)(nil),               // 18: workbench.v1.ListMyReceivablesRequest
-	(*ListMyReceivablesResponse)(nil),              // 19: workbench.v1.ListMyReceivablesResponse
-	(*WorkbenchMyReceivable)(nil),                  // 20: workbench.v1.WorkbenchMyReceivable
-	(*ListMyRecentOrdersRequest)(nil),              // 21: workbench.v1.ListMyRecentOrdersRequest
-	(*ListMyRecentOrdersResponse)(nil),             // 22: workbench.v1.ListMyRecentOrdersResponse
-	(*ListMyApplicationCandidatesRequest)(nil),     // 23: workbench.v1.ListMyApplicationCandidatesRequest
-	(*ListMyApplicationCandidatesResponse)(nil),    // 24: workbench.v1.ListMyApplicationCandidatesResponse
-	(*WorkbenchApplicationCandidate)(nil),          // 25: workbench.v1.WorkbenchApplicationCandidate
-	(*SubmitMyCommissionApplicationRequest)(nil),   // 26: workbench.v1.SubmitMyCommissionApplicationRequest
-	(*SubmitMyCommissionApplicationResponse)(nil),  // 27: workbench.v1.SubmitMyCommissionApplicationResponse
-	(*ListMyCommissionApplicationsRequest)(nil),    // 28: workbench.v1.ListMyCommissionApplicationsRequest
-	(*ListMyCommissionApplicationsResponse)(nil),   // 29: workbench.v1.ListMyCommissionApplicationsResponse
-	(*WorkbenchMyCommissionApplication)(nil),       // 30: workbench.v1.WorkbenchMyCommissionApplication
-	(*GetMyCommissionApplicationRequest)(nil),      // 31: workbench.v1.GetMyCommissionApplicationRequest
-	(*GetMyCommissionApplicationResponse)(nil),     // 32: workbench.v1.GetMyCommissionApplicationResponse
-	(*WorkbenchMyCommissionApplicationDetail)(nil), // 33: workbench.v1.WorkbenchMyCommissionApplicationDetail
-	(*WorkbenchMyApplicationLine)(nil),             // 34: workbench.v1.WorkbenchMyApplicationLine
+	(WorkbenchCommissionStatus)(0),                  // 0: workbench.v1.WorkbenchCommissionStatus
+	(WorkbenchCommissionApplicationStatus)(0),       // 1: workbench.v1.WorkbenchCommissionApplicationStatus
+	(*GetWorkbenchOverviewRequest)(nil),             // 2: workbench.v1.GetWorkbenchOverviewRequest
+	(*GetWorkbenchOverviewResponse)(nil),            // 3: workbench.v1.GetWorkbenchOverviewResponse
+	(*GetWorkbenchOverviewData)(nil),                // 4: workbench.v1.GetWorkbenchOverviewData
+	(*WorkbenchApplicationSummary)(nil),             // 5: workbench.v1.WorkbenchApplicationSummary
+	(*WorkbenchApplyMonthGroup)(nil),                // 6: workbench.v1.WorkbenchApplyMonthGroup
+	(*WorkbenchApplicationBrief)(nil),               // 7: workbench.v1.WorkbenchApplicationBrief
+	(*WorkbenchCommissionSummary)(nil),              // 8: workbench.v1.WorkbenchCommissionSummary
+	(*WorkbenchEstimatedOpportunity)(nil),           // 9: workbench.v1.WorkbenchEstimatedOpportunity
+	(*WorkbenchRecentOrder)(nil),                    // 10: workbench.v1.WorkbenchRecentOrder
+	(*WorkbenchTodoSummary)(nil),                    // 11: workbench.v1.WorkbenchTodoSummary
+	(*WorkbenchFinanceSummary)(nil),                 // 12: workbench.v1.WorkbenchFinanceSummary
+	(*WorkbenchSupplementApprovalItem)(nil),         // 13: workbench.v1.WorkbenchSupplementApprovalItem
+	(*ListMyCommissionsRequest)(nil),                // 14: workbench.v1.ListMyCommissionsRequest
+	(*ListMyCommissionsResponse)(nil),               // 15: workbench.v1.ListMyCommissionsResponse
+	(*WorkbenchMyCommission)(nil),                   // 16: workbench.v1.WorkbenchMyCommission
+	(*WorkbenchMyCommissionAdjustment)(nil),         // 17: workbench.v1.WorkbenchMyCommissionAdjustment
+	(*ListMyReceivablesRequest)(nil),                // 18: workbench.v1.ListMyReceivablesRequest
+	(*ListMyReceivablesResponse)(nil),               // 19: workbench.v1.ListMyReceivablesResponse
+	(*WorkbenchMyReceivable)(nil),                   // 20: workbench.v1.WorkbenchMyReceivable
+	(*ListMyRecentOrdersRequest)(nil),               // 21: workbench.v1.ListMyRecentOrdersRequest
+	(*ListMyRecentOrdersResponse)(nil),              // 22: workbench.v1.ListMyRecentOrdersResponse
+	(*ListMyApplicationCandidatesRequest)(nil),      // 23: workbench.v1.ListMyApplicationCandidatesRequest
+	(*ListMyApplicationCandidatesResponse)(nil),     // 24: workbench.v1.ListMyApplicationCandidatesResponse
+	(*WorkbenchApplicationCandidate)(nil),           // 25: workbench.v1.WorkbenchApplicationCandidate
+	(*SubmitMyCommissionApplicationRequest)(nil),    // 26: workbench.v1.SubmitMyCommissionApplicationRequest
+	(*SubmitMyCommissionApplicationResponse)(nil),   // 27: workbench.v1.SubmitMyCommissionApplicationResponse
+	(*ResubmitMyCommissionApplicationRequest)(nil),  // 28: workbench.v1.ResubmitMyCommissionApplicationRequest
+	(*ResubmitMyCommissionApplicationResponse)(nil), // 29: workbench.v1.ResubmitMyCommissionApplicationResponse
+	(*ListMyCommissionApplicationsRequest)(nil),     // 30: workbench.v1.ListMyCommissionApplicationsRequest
+	(*ListMyCommissionApplicationsResponse)(nil),    // 31: workbench.v1.ListMyCommissionApplicationsResponse
+	(*WorkbenchMyCommissionApplication)(nil),        // 32: workbench.v1.WorkbenchMyCommissionApplication
+	(*GetMyCommissionApplicationRequest)(nil),       // 33: workbench.v1.GetMyCommissionApplicationRequest
+	(*GetMyCommissionApplicationResponse)(nil),      // 34: workbench.v1.GetMyCommissionApplicationResponse
+	(*WorkbenchMyCommissionApplicationDetail)(nil),  // 35: workbench.v1.WorkbenchMyCommissionApplicationDetail
+	(*WorkbenchMyApplicationLine)(nil),              // 36: workbench.v1.WorkbenchMyApplicationLine
 }
 var file_workbench_v1_workbench_proto_depIdxs = []int32{
 	4,  // 0: workbench.v1.GetWorkbenchOverviewResponse.data:type_name -> workbench.v1.GetWorkbenchOverviewData
@@ -3452,34 +3595,37 @@ var file_workbench_v1_workbench_proto_depIdxs = []int32{
 	20, // 16: workbench.v1.ListMyReceivablesResponse.data:type_name -> workbench.v1.WorkbenchMyReceivable
 	10, // 17: workbench.v1.ListMyRecentOrdersResponse.data:type_name -> workbench.v1.WorkbenchRecentOrder
 	25, // 18: workbench.v1.ListMyApplicationCandidatesResponse.data:type_name -> workbench.v1.WorkbenchApplicationCandidate
-	30, // 19: workbench.v1.SubmitMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplication
-	1,  // 20: workbench.v1.ListMyCommissionApplicationsRequest.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
-	30, // 21: workbench.v1.ListMyCommissionApplicationsResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplication
-	1,  // 22: workbench.v1.WorkbenchMyCommissionApplication.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
-	33, // 23: workbench.v1.GetMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplicationDetail
-	30, // 24: workbench.v1.WorkbenchMyCommissionApplicationDetail.application:type_name -> workbench.v1.WorkbenchMyCommissionApplication
-	34, // 25: workbench.v1.WorkbenchMyCommissionApplicationDetail.lines:type_name -> workbench.v1.WorkbenchMyApplicationLine
-	2,  // 26: workbench.v1.WorkbenchService.GetWorkbenchOverview:input_type -> workbench.v1.GetWorkbenchOverviewRequest
-	14, // 27: workbench.v1.WorkbenchService.ListMyCommissions:input_type -> workbench.v1.ListMyCommissionsRequest
-	18, // 28: workbench.v1.WorkbenchService.ListMyReceivables:input_type -> workbench.v1.ListMyReceivablesRequest
-	21, // 29: workbench.v1.WorkbenchService.ListMyRecentOrders:input_type -> workbench.v1.ListMyRecentOrdersRequest
-	23, // 30: workbench.v1.WorkbenchService.ListMyApplicationCandidates:input_type -> workbench.v1.ListMyApplicationCandidatesRequest
-	26, // 31: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:input_type -> workbench.v1.SubmitMyCommissionApplicationRequest
-	28, // 32: workbench.v1.WorkbenchService.ListMyCommissionApplications:input_type -> workbench.v1.ListMyCommissionApplicationsRequest
-	31, // 33: workbench.v1.WorkbenchService.GetMyCommissionApplication:input_type -> workbench.v1.GetMyCommissionApplicationRequest
-	3,  // 34: workbench.v1.WorkbenchService.GetWorkbenchOverview:output_type -> workbench.v1.GetWorkbenchOverviewResponse
-	15, // 35: workbench.v1.WorkbenchService.ListMyCommissions:output_type -> workbench.v1.ListMyCommissionsResponse
-	19, // 36: workbench.v1.WorkbenchService.ListMyReceivables:output_type -> workbench.v1.ListMyReceivablesResponse
-	22, // 37: workbench.v1.WorkbenchService.ListMyRecentOrders:output_type -> workbench.v1.ListMyRecentOrdersResponse
-	24, // 38: workbench.v1.WorkbenchService.ListMyApplicationCandidates:output_type -> workbench.v1.ListMyApplicationCandidatesResponse
-	27, // 39: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:output_type -> workbench.v1.SubmitMyCommissionApplicationResponse
-	29, // 40: workbench.v1.WorkbenchService.ListMyCommissionApplications:output_type -> workbench.v1.ListMyCommissionApplicationsResponse
-	32, // 41: workbench.v1.WorkbenchService.GetMyCommissionApplication:output_type -> workbench.v1.GetMyCommissionApplicationResponse
-	34, // [34:42] is the sub-list for method output_type
-	26, // [26:34] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	32, // 19: workbench.v1.SubmitMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplication
+	32, // 20: workbench.v1.ResubmitMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplication
+	1,  // 21: workbench.v1.ListMyCommissionApplicationsRequest.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
+	32, // 22: workbench.v1.ListMyCommissionApplicationsResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplication
+	1,  // 23: workbench.v1.WorkbenchMyCommissionApplication.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
+	35, // 24: workbench.v1.GetMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplicationDetail
+	32, // 25: workbench.v1.WorkbenchMyCommissionApplicationDetail.application:type_name -> workbench.v1.WorkbenchMyCommissionApplication
+	36, // 26: workbench.v1.WorkbenchMyCommissionApplicationDetail.lines:type_name -> workbench.v1.WorkbenchMyApplicationLine
+	2,  // 27: workbench.v1.WorkbenchService.GetWorkbenchOverview:input_type -> workbench.v1.GetWorkbenchOverviewRequest
+	14, // 28: workbench.v1.WorkbenchService.ListMyCommissions:input_type -> workbench.v1.ListMyCommissionsRequest
+	18, // 29: workbench.v1.WorkbenchService.ListMyReceivables:input_type -> workbench.v1.ListMyReceivablesRequest
+	21, // 30: workbench.v1.WorkbenchService.ListMyRecentOrders:input_type -> workbench.v1.ListMyRecentOrdersRequest
+	23, // 31: workbench.v1.WorkbenchService.ListMyApplicationCandidates:input_type -> workbench.v1.ListMyApplicationCandidatesRequest
+	26, // 32: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:input_type -> workbench.v1.SubmitMyCommissionApplicationRequest
+	28, // 33: workbench.v1.WorkbenchService.ResubmitMyCommissionApplication:input_type -> workbench.v1.ResubmitMyCommissionApplicationRequest
+	30, // 34: workbench.v1.WorkbenchService.ListMyCommissionApplications:input_type -> workbench.v1.ListMyCommissionApplicationsRequest
+	33, // 35: workbench.v1.WorkbenchService.GetMyCommissionApplication:input_type -> workbench.v1.GetMyCommissionApplicationRequest
+	3,  // 36: workbench.v1.WorkbenchService.GetWorkbenchOverview:output_type -> workbench.v1.GetWorkbenchOverviewResponse
+	15, // 37: workbench.v1.WorkbenchService.ListMyCommissions:output_type -> workbench.v1.ListMyCommissionsResponse
+	19, // 38: workbench.v1.WorkbenchService.ListMyReceivables:output_type -> workbench.v1.ListMyReceivablesResponse
+	22, // 39: workbench.v1.WorkbenchService.ListMyRecentOrders:output_type -> workbench.v1.ListMyRecentOrdersResponse
+	24, // 40: workbench.v1.WorkbenchService.ListMyApplicationCandidates:output_type -> workbench.v1.ListMyApplicationCandidatesResponse
+	27, // 41: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:output_type -> workbench.v1.SubmitMyCommissionApplicationResponse
+	29, // 42: workbench.v1.WorkbenchService.ResubmitMyCommissionApplication:output_type -> workbench.v1.ResubmitMyCommissionApplicationResponse
+	31, // 43: workbench.v1.WorkbenchService.ListMyCommissionApplications:output_type -> workbench.v1.ListMyCommissionApplicationsResponse
+	34, // 44: workbench.v1.WorkbenchService.GetMyCommissionApplication:output_type -> workbench.v1.GetMyCommissionApplicationResponse
+	36, // [36:45] is the sub-list for method output_type
+	27, // [27:36] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_workbench_v1_workbench_proto_init() }
@@ -3494,16 +3640,16 @@ func file_workbench_v1_workbench_proto_init() {
 	file_workbench_v1_workbench_proto_msgTypes[18].OneofWrappers = []any{}
 	file_workbench_v1_workbench_proto_msgTypes[21].OneofWrappers = []any{}
 	file_workbench_v1_workbench_proto_msgTypes[23].OneofWrappers = []any{}
-	file_workbench_v1_workbench_proto_msgTypes[26].OneofWrappers = []any{}
 	file_workbench_v1_workbench_proto_msgTypes[28].OneofWrappers = []any{}
-	file_workbench_v1_workbench_proto_msgTypes[32].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[30].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[34].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workbench_v1_workbench_proto_rawDesc), len(file_workbench_v1_workbench_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   33,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

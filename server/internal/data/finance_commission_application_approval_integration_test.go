@@ -303,7 +303,7 @@ func TestCommissionApplicationRejectResubmitApprovePostgres(t *testing.T) {
 	if lines != 1 {
 		t.Fatalf("驳回应保留申请明细: %d", lines)
 	}
-	resubmitted, err := usecase.Submit(ctx, fixture.scopeFor(employee))
+	resubmitted, err := usecase.Resubmit(ctx, fixture.scopeFor(employee), application.ID, 2)
 	if err != nil {
 		t.Fatalf("驳回后原单重提失败: %v", err)
 	}

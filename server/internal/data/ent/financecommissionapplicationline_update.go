@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -31,6 +32,143 @@ func (_u *FinanceCommissionApplicationLineUpdate) Where(ps ...predicate.FinanceC
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceCommissionApplicationLineUpdate) SetUpdatedAt(v time.Time) *FinanceCommissionApplicationLineUpdate {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetCommissionDate(v string) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.SetCommissionDate(v)
+	return _u
+}
+
+// SetNillableCommissionDate sets the "commission_date" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableCommissionDate(v *string) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetCommissionDate(*v)
+	}
+	return _u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetRuleID(v uuid.UUID) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.SetRuleID(v)
+	return _u
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableRuleID(v *uuid.UUID) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetRuleID(*v)
+	}
+	return _u
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (_u *FinanceCommissionApplicationLineUpdate) ClearRuleID() *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.ClearRuleID()
+	return _u
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetRuleVersion(v uint64) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.ResetRuleVersion()
+	_u.mutation.SetRuleVersion(v)
+	return _u
+}
+
+// SetNillableRuleVersion sets the "rule_version" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableRuleVersion(v *uint64) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetRuleVersion(*v)
+	}
+	return _u
+}
+
+// AddRuleVersion adds value to the "rule_version" field.
+func (_u *FinanceCommissionApplicationLineUpdate) AddRuleVersion(v int64) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.AddRuleVersion(v)
+	return _u
+}
+
+// SetRuleName sets the "rule_name" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetRuleName(v string) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.SetRuleName(v)
+	return _u
+}
+
+// SetNillableRuleName sets the "rule_name" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableRuleName(v *string) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetRuleName(*v)
+	}
+	return _u
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (_u *FinanceCommissionApplicationLineUpdate) ClearRuleName() *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.ClearRuleName()
+	return _u
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetCalculationBasis(v string) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.SetCalculationBasis(v)
+	return _u
+}
+
+// SetNillableCalculationBasis sets the "calculation_basis" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableCalculationBasis(v *string) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetCalculationBasis(*v)
+	}
+	return _u
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (_u *FinanceCommissionApplicationLineUpdate) ClearCalculationBasis() *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.ClearCalculationBasis()
+	return _u
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetCommissionAmount(v string) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.SetCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCommissionAmount sets the "commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableCommissionAmount(v *string) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetCnyCommissionAmount(v string) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.SetCnyCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCnyCommissionAmount sets the "cny_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableCnyCommissionAmount(v *string) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetCnyCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (_u *FinanceCommissionApplicationLineUpdate) SetSourceFingerprint(v string) *FinanceCommissionApplicationLineUpdate {
+	_u.mutation.SetSourceFingerprint(v)
+	return _u
+}
+
+// SetNillableSourceFingerprint sets the "source_fingerprint" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdate) SetNillableSourceFingerprint(v *string) *FinanceCommissionApplicationLineUpdate {
+	if v != nil {
+		_u.SetSourceFingerprint(*v)
+	}
 	return _u
 }
 
@@ -77,6 +215,26 @@ func (_u *FinanceCommissionApplicationLineUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinanceCommissionApplicationLineUpdate) check() error {
+	if v, ok := _u.mutation.CommissionDate(); ok {
+		if err := financecommissionapplicationline.CommissionDateValidator(v); err != nil {
+			return &ValidationError{Name: "commission_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.commission_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RuleName(); ok {
+		if err := financecommissionapplicationline.RuleNameValidator(v); err != nil {
+			return &ValidationError{Name: "rule_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.rule_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CalculationBasis(); ok {
+		if err := financecommissionapplicationline.CalculationBasisValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_basis", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.calculation_basis": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceFingerprint(); ok {
+		if err := financecommissionapplicationline.SourceFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "source_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.source_fingerprint": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceCommissionApplicationLine.organization"`)
 	}
@@ -107,6 +265,9 @@ func (_u *FinanceCommissionApplicationLineUpdate) sqlSave(ctx context.Context) (
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommissionapplicationline.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.CommissionDate(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCommissionDate, field.TypeString, value)
+	}
 	if _u.mutation.VerificationIDCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldVerificationID, field.TypeUUID)
 	}
@@ -119,14 +280,38 @@ func (_u *FinanceCommissionApplicationLineUpdate) sqlSave(ctx context.Context) (
 	if _u.mutation.NettingNoCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldNettingNo, field.TypeString)
 	}
+	if value, ok := _u.mutation.RuleID(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldRuleID, field.TypeUUID, value)
+	}
 	if _u.mutation.RuleIDCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldRuleID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.RuleVersion(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedRuleVersion(); ok {
+		_spec.AddField(financecommissionapplicationline.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.RuleName(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldRuleName, field.TypeString, value)
 	}
 	if _u.mutation.RuleNameCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldRuleName, field.TypeString)
 	}
+	if value, ok := _u.mutation.CalculationBasis(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCalculationBasis, field.TypeString, value)
+	}
 	if _u.mutation.CalculationBasisCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldCalculationBasis, field.TypeString)
+	}
+	if value, ok := _u.mutation.CommissionAmount(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyCommissionAmount(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCnyCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceFingerprint(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldSourceFingerprint, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -151,6 +336,143 @@ type FinanceCommissionApplicationLineUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceCommissionApplicationLineUpdateOne) SetUpdatedAt(v time.Time) *FinanceCommissionApplicationLineUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetCommissionDate(v string) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.SetCommissionDate(v)
+	return _u
+}
+
+// SetNillableCommissionDate sets the "commission_date" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableCommissionDate(v *string) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetCommissionDate(*v)
+	}
+	return _u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetRuleID(v uuid.UUID) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.SetRuleID(v)
+	return _u
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableRuleID(v *uuid.UUID) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetRuleID(*v)
+	}
+	return _u
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) ClearRuleID() *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.ClearRuleID()
+	return _u
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetRuleVersion(v uint64) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.ResetRuleVersion()
+	_u.mutation.SetRuleVersion(v)
+	return _u
+}
+
+// SetNillableRuleVersion sets the "rule_version" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableRuleVersion(v *uint64) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetRuleVersion(*v)
+	}
+	return _u
+}
+
+// AddRuleVersion adds value to the "rule_version" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) AddRuleVersion(v int64) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.AddRuleVersion(v)
+	return _u
+}
+
+// SetRuleName sets the "rule_name" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetRuleName(v string) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.SetRuleName(v)
+	return _u
+}
+
+// SetNillableRuleName sets the "rule_name" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableRuleName(v *string) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetRuleName(*v)
+	}
+	return _u
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) ClearRuleName() *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.ClearRuleName()
+	return _u
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetCalculationBasis(v string) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.SetCalculationBasis(v)
+	return _u
+}
+
+// SetNillableCalculationBasis sets the "calculation_basis" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableCalculationBasis(v *string) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetCalculationBasis(*v)
+	}
+	return _u
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) ClearCalculationBasis() *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.ClearCalculationBasis()
+	return _u
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetCommissionAmount(v string) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.SetCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCommissionAmount sets the "commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableCommissionAmount(v *string) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetCnyCommissionAmount(v string) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.SetCnyCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCnyCommissionAmount sets the "cny_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableCnyCommissionAmount(v *string) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetCnyCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetSourceFingerprint(v string) *FinanceCommissionApplicationLineUpdateOne {
+	_u.mutation.SetSourceFingerprint(v)
+	return _u
+}
+
+// SetNillableSourceFingerprint sets the "source_fingerprint" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationLineUpdateOne) SetNillableSourceFingerprint(v *string) *FinanceCommissionApplicationLineUpdateOne {
+	if v != nil {
+		_u.SetSourceFingerprint(*v)
+	}
 	return _u
 }
 
@@ -210,6 +532,26 @@ func (_u *FinanceCommissionApplicationLineUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinanceCommissionApplicationLineUpdateOne) check() error {
+	if v, ok := _u.mutation.CommissionDate(); ok {
+		if err := financecommissionapplicationline.CommissionDateValidator(v); err != nil {
+			return &ValidationError{Name: "commission_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.commission_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RuleName(); ok {
+		if err := financecommissionapplicationline.RuleNameValidator(v); err != nil {
+			return &ValidationError{Name: "rule_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.rule_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CalculationBasis(); ok {
+		if err := financecommissionapplicationline.CalculationBasisValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_basis", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.calculation_basis": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceFingerprint(); ok {
+		if err := financecommissionapplicationline.SourceFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "source_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplicationLine.source_fingerprint": %w`, err)}
+		}
+	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceCommissionApplicationLine.organization"`)
 	}
@@ -257,6 +599,9 @@ func (_u *FinanceCommissionApplicationLineUpdateOne) sqlSave(ctx context.Context
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommissionapplicationline.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.CommissionDate(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCommissionDate, field.TypeString, value)
+	}
 	if _u.mutation.VerificationIDCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldVerificationID, field.TypeUUID)
 	}
@@ -269,14 +614,38 @@ func (_u *FinanceCommissionApplicationLineUpdateOne) sqlSave(ctx context.Context
 	if _u.mutation.NettingNoCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldNettingNo, field.TypeString)
 	}
+	if value, ok := _u.mutation.RuleID(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldRuleID, field.TypeUUID, value)
+	}
 	if _u.mutation.RuleIDCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldRuleID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.RuleVersion(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedRuleVersion(); ok {
+		_spec.AddField(financecommissionapplicationline.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.RuleName(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldRuleName, field.TypeString, value)
 	}
 	if _u.mutation.RuleNameCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldRuleName, field.TypeString)
 	}
+	if value, ok := _u.mutation.CalculationBasis(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCalculationBasis, field.TypeString, value)
+	}
 	if _u.mutation.CalculationBasisCleared() {
 		_spec.ClearField(financecommissionapplicationline.FieldCalculationBasis, field.TypeString)
+	}
+	if value, ok := _u.mutation.CommissionAmount(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyCommissionAmount(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldCnyCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceFingerprint(); ok {
+		_spec.SetField(financecommissionapplicationline.FieldSourceFingerprint, field.TypeString, value)
 	}
 	_node = &FinanceCommissionApplicationLine{config: _u.config}
 	_spec.Assign = _node.assignValues

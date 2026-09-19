@@ -1454,22 +1454,33 @@ func (r *commissionRepo) Create(ctx context.Context, org uuid.UUID, c *biz.Finan
 		if _, err = create.Save(ctx); err != nil {
 			return mapEntError(err, nil, biz.ErrCommissionDuplicate)
 		}
-		lineBuilders := make([]*ent.FinanceCommissionLineCreate, 0, len(calculation.Lines))
-		for _, line := range calculation.Lines {
-			line.ID = uuid.Must(uuid.NewV7())
-			line.OrganizationID = org
-			line.CommissionID = c.ID
-			feeSnapshot, marshalErr := json.Marshal(line.Fees)
-			if marshalErr != nil {
-				return marshalErr
-			}
-			lineBuilders = append(lineBuilders, tx.FinanceCommissionLine.Create().SetID(line.ID).SetOrganizationID(org).SetCommissionID(c.ID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetOrderDate(line.OrderDate).SetCustomerID(line.CustomerID).SetCustomerCode(line.CustomerCode).SetCustomerName(line.CustomerName).SetPersonnelAssignmentID(line.CustomerAssignmentID).SetPersonnelOrganizationID(line.CustomerAssignmentOrganizationID).SetPersonnelAssignedAt(line.CustomerAssignedAt).SetFeeCount(line.FeeCount).SetFeeSnapshot(string(feeSnapshot)).SetEmployeeID(line.EmployeeID).SetEmployeeName(line.EmployeeName).SetPersonnelRole(string(line.PersonnelRole)).SetCalculationBasis(string(line.CalculationBasis)).SetBaseCurrency(line.BaseCurrency).SetRealizedRevenue(line.RealizedRevenue.StringFixed(8)).SetAllocatedCost(line.AllocatedCost.StringFixed(8)).SetRealizedProfit(line.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(line.CommissionBaseAmount.StringFixed(8)).SetRatePercent(line.RatePercent.StringFixed(4)).SetCommissionAmount(line.CommissionAmount.StringFixed(8)).SetTotalReceivableSnapshot(line.TotalReceivableSnapshot.StringFixed(8)).SetTotalPayableSnapshot(line.TotalPayableSnapshot.StringFixed(8)).SetSnapshotStatus(commissionline.SnapshotStatusREADY).SetSnapshotSource(commissionline.SnapshotSourceNATIVE))
+		lineBuilders, builderErr := financeCommissionLineBuildersFromCalculation(tx.FinanceCommissionLine, org, c.ID, calculation)
+		if builderErr != nil {
+			return builderErr
 		}
 		if _, err = tx.FinanceCommissionLine.CreateBulk(lineBuilders...).Save(ctx); err != nil {
 			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
+}
+
+// financeCommissionLineBuildersFromCalculation 按计提引擎结果构造提成行写入器：
+// 提成创建与申请重提快照刷新共用，保证逐订单行快照形状一致。行 ID 就地回填，
+// 组织与提成父单由调用方指定。
+func financeCommissionLineBuildersFromCalculation(lineClient *ent.FinanceCommissionLineClient, org, commissionID uuid.UUID, calculation *biz.CommissionCalculation) ([]*ent.FinanceCommissionLineCreate, error) {
+	lineBuilders := make([]*ent.FinanceCommissionLineCreate, 0, len(calculation.Lines))
+	for _, line := range calculation.Lines {
+		line.ID = uuid.Must(uuid.NewV7())
+		line.OrganizationID = org
+		line.CommissionID = commissionID
+		feeSnapshot, marshalErr := json.Marshal(line.Fees)
+		if marshalErr != nil {
+			return nil, marshalErr
+		}
+		lineBuilders = append(lineBuilders, lineClient.Create().SetID(line.ID).SetOrganizationID(line.OrganizationID).SetCommissionID(line.CommissionID).SetOrderID(line.OrderID).SetOrderNo(line.OrderNo).SetOrderDate(line.OrderDate).SetCustomerID(line.CustomerID).SetCustomerCode(line.CustomerCode).SetCustomerName(line.CustomerName).SetPersonnelAssignmentID(line.CustomerAssignmentID).SetPersonnelOrganizationID(line.CustomerAssignmentOrganizationID).SetPersonnelAssignedAt(line.CustomerAssignedAt).SetFeeCount(line.FeeCount).SetFeeSnapshot(string(feeSnapshot)).SetEmployeeID(line.EmployeeID).SetEmployeeName(line.EmployeeName).SetPersonnelRole(string(line.PersonnelRole)).SetCalculationBasis(string(line.CalculationBasis)).SetBaseCurrency(line.BaseCurrency).SetRealizedRevenue(line.RealizedRevenue.StringFixed(8)).SetAllocatedCost(line.AllocatedCost.StringFixed(8)).SetRealizedProfit(line.RealizedProfit.StringFixed(8)).SetCommissionBaseAmount(line.CommissionBaseAmount.StringFixed(8)).SetRatePercent(line.RatePercent.StringFixed(4)).SetCommissionAmount(line.CommissionAmount.StringFixed(8)).SetTotalReceivableSnapshot(line.TotalReceivableSnapshot.StringFixed(8)).SetTotalPayableSnapshot(line.TotalPayableSnapshot.StringFixed(8)).SetSnapshotStatus(commissionline.SnapshotStatusREADY).SetSnapshotSource(commissionline.SnapshotSourceNATIVE))
+	}
+	return lineBuilders, nil
 }
 
 func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommission, error) {

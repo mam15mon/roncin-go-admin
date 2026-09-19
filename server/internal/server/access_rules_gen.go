@@ -335,5 +335,6 @@ var operationAccessRules = map[string]accessRule{
 	"/workbench.v1.WorkbenchService/ListMyCommissions":                                          {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/ListMyReceivables":                                          {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/ListMyRecentOrders":                                         {mode: accessModeAuthenticated},
+	"/workbench.v1.WorkbenchService/ResubmitMyCommissionApplication":                            {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/SubmitMyCommissionApplication":                              {mode: accessModeAuthenticated},
 }

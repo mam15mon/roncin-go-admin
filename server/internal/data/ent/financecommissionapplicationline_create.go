@@ -652,6 +652,126 @@ func (u *FinanceCommissionApplicationLineUpsert) UpdateUpdatedAt() *FinanceCommi
 	return u
 }
 
+// SetCommissionDate sets the "commission_date" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetCommissionDate(v string) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldCommissionDate, v)
+	return u
+}
+
+// UpdateCommissionDate sets the "commission_date" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateCommissionDate() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldCommissionDate)
+	return u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetRuleID(v uuid.UUID) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldRuleID, v)
+	return u
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateRuleID() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldRuleID)
+	return u
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (u *FinanceCommissionApplicationLineUpsert) ClearRuleID() *FinanceCommissionApplicationLineUpsert {
+	u.SetNull(financecommissionapplicationline.FieldRuleID)
+	return u
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetRuleVersion(v uint64) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldRuleVersion, v)
+	return u
+}
+
+// UpdateRuleVersion sets the "rule_version" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateRuleVersion() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldRuleVersion)
+	return u
+}
+
+// AddRuleVersion adds v to the "rule_version" field.
+func (u *FinanceCommissionApplicationLineUpsert) AddRuleVersion(v uint64) *FinanceCommissionApplicationLineUpsert {
+	u.Add(financecommissionapplicationline.FieldRuleVersion, v)
+	return u
+}
+
+// SetRuleName sets the "rule_name" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetRuleName(v string) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldRuleName, v)
+	return u
+}
+
+// UpdateRuleName sets the "rule_name" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateRuleName() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldRuleName)
+	return u
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (u *FinanceCommissionApplicationLineUpsert) ClearRuleName() *FinanceCommissionApplicationLineUpsert {
+	u.SetNull(financecommissionapplicationline.FieldRuleName)
+	return u
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetCalculationBasis(v string) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldCalculationBasis, v)
+	return u
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateCalculationBasis() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldCalculationBasis)
+	return u
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (u *FinanceCommissionApplicationLineUpsert) ClearCalculationBasis() *FinanceCommissionApplicationLineUpsert {
+	u.SetNull(financecommissionapplicationline.FieldCalculationBasis)
+	return u
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetCommissionAmount(v string) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldCommissionAmount, v)
+	return u
+}
+
+// UpdateCommissionAmount sets the "commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateCommissionAmount() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldCommissionAmount)
+	return u
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetCnyCommissionAmount(v string) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldCnyCommissionAmount, v)
+	return u
+}
+
+// UpdateCnyCommissionAmount sets the "cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateCnyCommissionAmount() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldCnyCommissionAmount)
+	return u
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (u *FinanceCommissionApplicationLineUpsert) SetSourceFingerprint(v string) *FinanceCommissionApplicationLineUpsert {
+	u.Set(financecommissionapplicationline.FieldSourceFingerprint, v)
+	return u
+}
+
+// UpdateSourceFingerprint sets the "source_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsert) UpdateSourceFingerprint() *FinanceCommissionApplicationLineUpsert {
+	u.SetExcluded(financecommissionapplicationline.FieldSourceFingerprint)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -684,9 +804,6 @@ func (u *FinanceCommissionApplicationLineUpsertOne) UpdateNewValues() *FinanceCo
 		if _, exists := u.create.mutation.CommissionID(); exists {
 			s.SetIgnore(financecommissionapplicationline.FieldCommissionID)
 		}
-		if _, exists := u.create.mutation.CommissionDate(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldCommissionDate)
-		}
 		if _, exists := u.create.mutation.VerificationID(); exists {
 			s.SetIgnore(financecommissionapplicationline.FieldVerificationID)
 		}
@@ -702,29 +819,8 @@ func (u *FinanceCommissionApplicationLineUpsertOne) UpdateNewValues() *FinanceCo
 		if _, exists := u.create.mutation.PersonnelRole(); exists {
 			s.SetIgnore(financecommissionapplicationline.FieldPersonnelRole)
 		}
-		if _, exists := u.create.mutation.RuleID(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldRuleID)
-		}
-		if _, exists := u.create.mutation.RuleVersion(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldRuleVersion)
-		}
-		if _, exists := u.create.mutation.RuleName(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldRuleName)
-		}
-		if _, exists := u.create.mutation.CalculationBasis(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldCalculationBasis)
-		}
 		if _, exists := u.create.mutation.BaseCurrency(); exists {
 			s.SetIgnore(financecommissionapplicationline.FieldBaseCurrency)
-		}
-		if _, exists := u.create.mutation.CommissionAmount(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldCommissionAmount)
-		}
-		if _, exists := u.create.mutation.CnyCommissionAmount(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldCnyCommissionAmount)
-		}
-		if _, exists := u.create.mutation.SourceFingerprint(); exists {
-			s.SetIgnore(financecommissionapplicationline.FieldSourceFingerprint)
 		}
 	}))
 	return u
@@ -768,6 +864,146 @@ func (u *FinanceCommissionApplicationLineUpsertOne) SetUpdatedAt(v time.Time) *F
 func (u *FinanceCommissionApplicationLineUpsertOne) UpdateUpdatedAt() *FinanceCommissionApplicationLineUpsertOne {
 	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetCommissionDate(v string) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCommissionDate(v)
+	})
+}
+
+// UpdateCommissionDate sets the "commission_date" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateCommissionDate() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCommissionDate()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetRuleID(v uuid.UUID) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateRuleID() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) ClearRuleID() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.ClearRuleID()
+	})
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetRuleVersion(v uint64) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetRuleVersion(v)
+	})
+}
+
+// AddRuleVersion adds v to the "rule_version" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) AddRuleVersion(v uint64) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.AddRuleVersion(v)
+	})
+}
+
+// UpdateRuleVersion sets the "rule_version" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateRuleVersion() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateRuleVersion()
+	})
+}
+
+// SetRuleName sets the "rule_name" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetRuleName(v string) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetRuleName(v)
+	})
+}
+
+// UpdateRuleName sets the "rule_name" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateRuleName() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateRuleName()
+	})
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) ClearRuleName() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.ClearRuleName()
+	})
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetCalculationBasis(v string) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCalculationBasis(v)
+	})
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateCalculationBasis() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCalculationBasis()
+	})
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) ClearCalculationBasis() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.ClearCalculationBasis()
+	})
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetCommissionAmount(v string) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCommissionAmount(v)
+	})
+}
+
+// UpdateCommissionAmount sets the "commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateCommissionAmount() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCommissionAmount()
+	})
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetCnyCommissionAmount(v string) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCnyCommissionAmount(v)
+	})
+}
+
+// UpdateCnyCommissionAmount sets the "cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateCnyCommissionAmount() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCnyCommissionAmount()
+	})
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (u *FinanceCommissionApplicationLineUpsertOne) SetSourceFingerprint(v string) *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetSourceFingerprint(v)
+	})
+}
+
+// UpdateSourceFingerprint sets the "source_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertOne) UpdateSourceFingerprint() *FinanceCommissionApplicationLineUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateSourceFingerprint()
 	})
 }
 
@@ -969,9 +1205,6 @@ func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateNewValues() *FinanceC
 			if _, exists := b.mutation.CommissionID(); exists {
 				s.SetIgnore(financecommissionapplicationline.FieldCommissionID)
 			}
-			if _, exists := b.mutation.CommissionDate(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldCommissionDate)
-			}
 			if _, exists := b.mutation.VerificationID(); exists {
 				s.SetIgnore(financecommissionapplicationline.FieldVerificationID)
 			}
@@ -987,29 +1220,8 @@ func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateNewValues() *FinanceC
 			if _, exists := b.mutation.PersonnelRole(); exists {
 				s.SetIgnore(financecommissionapplicationline.FieldPersonnelRole)
 			}
-			if _, exists := b.mutation.RuleID(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldRuleID)
-			}
-			if _, exists := b.mutation.RuleVersion(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldRuleVersion)
-			}
-			if _, exists := b.mutation.RuleName(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldRuleName)
-			}
-			if _, exists := b.mutation.CalculationBasis(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldCalculationBasis)
-			}
 			if _, exists := b.mutation.BaseCurrency(); exists {
 				s.SetIgnore(financecommissionapplicationline.FieldBaseCurrency)
-			}
-			if _, exists := b.mutation.CommissionAmount(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldCommissionAmount)
-			}
-			if _, exists := b.mutation.CnyCommissionAmount(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldCnyCommissionAmount)
-			}
-			if _, exists := b.mutation.SourceFingerprint(); exists {
-				s.SetIgnore(financecommissionapplicationline.FieldSourceFingerprint)
 			}
 		}
 	}))
@@ -1054,6 +1266,146 @@ func (u *FinanceCommissionApplicationLineUpsertBulk) SetUpdatedAt(v time.Time) *
 func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateUpdatedAt() *FinanceCommissionApplicationLineUpsertBulk {
 	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetCommissionDate(v string) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCommissionDate(v)
+	})
+}
+
+// UpdateCommissionDate sets the "commission_date" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateCommissionDate() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCommissionDate()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetRuleID(v uuid.UUID) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateRuleID() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) ClearRuleID() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.ClearRuleID()
+	})
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetRuleVersion(v uint64) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetRuleVersion(v)
+	})
+}
+
+// AddRuleVersion adds v to the "rule_version" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) AddRuleVersion(v uint64) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.AddRuleVersion(v)
+	})
+}
+
+// UpdateRuleVersion sets the "rule_version" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateRuleVersion() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateRuleVersion()
+	})
+}
+
+// SetRuleName sets the "rule_name" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetRuleName(v string) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetRuleName(v)
+	})
+}
+
+// UpdateRuleName sets the "rule_name" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateRuleName() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateRuleName()
+	})
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) ClearRuleName() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.ClearRuleName()
+	})
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetCalculationBasis(v string) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCalculationBasis(v)
+	})
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateCalculationBasis() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCalculationBasis()
+	})
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) ClearCalculationBasis() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.ClearCalculationBasis()
+	})
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetCommissionAmount(v string) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCommissionAmount(v)
+	})
+}
+
+// UpdateCommissionAmount sets the "commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateCommissionAmount() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCommissionAmount()
+	})
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetCnyCommissionAmount(v string) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetCnyCommissionAmount(v)
+	})
+}
+
+// UpdateCnyCommissionAmount sets the "cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateCnyCommissionAmount() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateCnyCommissionAmount()
+	})
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (u *FinanceCommissionApplicationLineUpsertBulk) SetSourceFingerprint(v string) *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.SetSourceFingerprint(v)
+	})
+}
+
+// UpdateSourceFingerprint sets the "source_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationLineUpsertBulk) UpdateSourceFingerprint() *FinanceCommissionApplicationLineUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationLineUpsert) {
+		s.UpdateSourceFingerprint()
 	})
 }
 

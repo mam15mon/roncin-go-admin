@@ -660,6 +660,48 @@ func (u *FinanceCommissionApplicationUpsert) AddVersion(v uint64) *FinanceCommis
 	return u
 }
 
+// SetCommissionCount sets the "commission_count" field.
+func (u *FinanceCommissionApplicationUpsert) SetCommissionCount(v int) *FinanceCommissionApplicationUpsert {
+	u.Set(financecommissionapplication.FieldCommissionCount, v)
+	return u
+}
+
+// UpdateCommissionCount sets the "commission_count" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsert) UpdateCommissionCount() *FinanceCommissionApplicationUpsert {
+	u.SetExcluded(financecommissionapplication.FieldCommissionCount)
+	return u
+}
+
+// AddCommissionCount adds v to the "commission_count" field.
+func (u *FinanceCommissionApplicationUpsert) AddCommissionCount(v int) *FinanceCommissionApplicationUpsert {
+	u.Add(financecommissionapplication.FieldCommissionCount, v)
+	return u
+}
+
+// SetTotalCommissionAmount sets the "total_commission_amount" field.
+func (u *FinanceCommissionApplicationUpsert) SetTotalCommissionAmount(v string) *FinanceCommissionApplicationUpsert {
+	u.Set(financecommissionapplication.FieldTotalCommissionAmount, v)
+	return u
+}
+
+// UpdateTotalCommissionAmount sets the "total_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsert) UpdateTotalCommissionAmount() *FinanceCommissionApplicationUpsert {
+	u.SetExcluded(financecommissionapplication.FieldTotalCommissionAmount)
+	return u
+}
+
+// SetTotalCnyCommissionAmount sets the "total_cny_commission_amount" field.
+func (u *FinanceCommissionApplicationUpsert) SetTotalCnyCommissionAmount(v string) *FinanceCommissionApplicationUpsert {
+	u.Set(financecommissionapplication.FieldTotalCnyCommissionAmount, v)
+	return u
+}
+
+// UpdateTotalCnyCommissionAmount sets the "total_cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsert) UpdateTotalCnyCommissionAmount() *FinanceCommissionApplicationUpsert {
+	u.SetExcluded(financecommissionapplication.FieldTotalCnyCommissionAmount)
+	return u
+}
+
 // SetDecidedAt sets the "decided_at" field.
 func (u *FinanceCommissionApplicationUpsert) SetDecidedAt(v time.Time) *FinanceCommissionApplicationUpsert {
 	u.Set(financecommissionapplication.FieldDecidedAt, v)
@@ -746,17 +788,8 @@ func (u *FinanceCommissionApplicationUpsertOne) UpdateNewValues() *FinanceCommis
 		if _, exists := u.create.mutation.CoverageTo(); exists {
 			s.SetIgnore(financecommissionapplication.FieldCoverageTo)
 		}
-		if _, exists := u.create.mutation.CommissionCount(); exists {
-			s.SetIgnore(financecommissionapplication.FieldCommissionCount)
-		}
 		if _, exists := u.create.mutation.BaseCurrency(); exists {
 			s.SetIgnore(financecommissionapplication.FieldBaseCurrency)
-		}
-		if _, exists := u.create.mutation.TotalCommissionAmount(); exists {
-			s.SetIgnore(financecommissionapplication.FieldTotalCommissionAmount)
-		}
-		if _, exists := u.create.mutation.TotalCnyCommissionAmount(); exists {
-			s.SetIgnore(financecommissionapplication.FieldTotalCnyCommissionAmount)
 		}
 		if _, exists := u.create.mutation.SubmittedAt(); exists {
 			s.SetIgnore(financecommissionapplication.FieldSubmittedAt)
@@ -841,6 +874,55 @@ func (u *FinanceCommissionApplicationUpsertOne) AddVersion(v uint64) *FinanceCom
 func (u *FinanceCommissionApplicationUpsertOne) UpdateVersion() *FinanceCommissionApplicationUpsertOne {
 	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetCommissionCount sets the "commission_count" field.
+func (u *FinanceCommissionApplicationUpsertOne) SetCommissionCount(v int) *FinanceCommissionApplicationUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.SetCommissionCount(v)
+	})
+}
+
+// AddCommissionCount adds v to the "commission_count" field.
+func (u *FinanceCommissionApplicationUpsertOne) AddCommissionCount(v int) *FinanceCommissionApplicationUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.AddCommissionCount(v)
+	})
+}
+
+// UpdateCommissionCount sets the "commission_count" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsertOne) UpdateCommissionCount() *FinanceCommissionApplicationUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.UpdateCommissionCount()
+	})
+}
+
+// SetTotalCommissionAmount sets the "total_commission_amount" field.
+func (u *FinanceCommissionApplicationUpsertOne) SetTotalCommissionAmount(v string) *FinanceCommissionApplicationUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.SetTotalCommissionAmount(v)
+	})
+}
+
+// UpdateTotalCommissionAmount sets the "total_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsertOne) UpdateTotalCommissionAmount() *FinanceCommissionApplicationUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.UpdateTotalCommissionAmount()
+	})
+}
+
+// SetTotalCnyCommissionAmount sets the "total_cny_commission_amount" field.
+func (u *FinanceCommissionApplicationUpsertOne) SetTotalCnyCommissionAmount(v string) *FinanceCommissionApplicationUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.SetTotalCnyCommissionAmount(v)
+	})
+}
+
+// UpdateTotalCnyCommissionAmount sets the "total_cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsertOne) UpdateTotalCnyCommissionAmount() *FinanceCommissionApplicationUpsertOne {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.UpdateTotalCnyCommissionAmount()
 	})
 }
 
@@ -1105,17 +1187,8 @@ func (u *FinanceCommissionApplicationUpsertBulk) UpdateNewValues() *FinanceCommi
 			if _, exists := b.mutation.CoverageTo(); exists {
 				s.SetIgnore(financecommissionapplication.FieldCoverageTo)
 			}
-			if _, exists := b.mutation.CommissionCount(); exists {
-				s.SetIgnore(financecommissionapplication.FieldCommissionCount)
-			}
 			if _, exists := b.mutation.BaseCurrency(); exists {
 				s.SetIgnore(financecommissionapplication.FieldBaseCurrency)
-			}
-			if _, exists := b.mutation.TotalCommissionAmount(); exists {
-				s.SetIgnore(financecommissionapplication.FieldTotalCommissionAmount)
-			}
-			if _, exists := b.mutation.TotalCnyCommissionAmount(); exists {
-				s.SetIgnore(financecommissionapplication.FieldTotalCnyCommissionAmount)
 			}
 			if _, exists := b.mutation.SubmittedAt(); exists {
 				s.SetIgnore(financecommissionapplication.FieldSubmittedAt)
@@ -1201,6 +1274,55 @@ func (u *FinanceCommissionApplicationUpsertBulk) AddVersion(v uint64) *FinanceCo
 func (u *FinanceCommissionApplicationUpsertBulk) UpdateVersion() *FinanceCommissionApplicationUpsertBulk {
 	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetCommissionCount sets the "commission_count" field.
+func (u *FinanceCommissionApplicationUpsertBulk) SetCommissionCount(v int) *FinanceCommissionApplicationUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.SetCommissionCount(v)
+	})
+}
+
+// AddCommissionCount adds v to the "commission_count" field.
+func (u *FinanceCommissionApplicationUpsertBulk) AddCommissionCount(v int) *FinanceCommissionApplicationUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.AddCommissionCount(v)
+	})
+}
+
+// UpdateCommissionCount sets the "commission_count" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsertBulk) UpdateCommissionCount() *FinanceCommissionApplicationUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.UpdateCommissionCount()
+	})
+}
+
+// SetTotalCommissionAmount sets the "total_commission_amount" field.
+func (u *FinanceCommissionApplicationUpsertBulk) SetTotalCommissionAmount(v string) *FinanceCommissionApplicationUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.SetTotalCommissionAmount(v)
+	})
+}
+
+// UpdateTotalCommissionAmount sets the "total_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsertBulk) UpdateTotalCommissionAmount() *FinanceCommissionApplicationUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.UpdateTotalCommissionAmount()
+	})
+}
+
+// SetTotalCnyCommissionAmount sets the "total_cny_commission_amount" field.
+func (u *FinanceCommissionApplicationUpsertBulk) SetTotalCnyCommissionAmount(v string) *FinanceCommissionApplicationUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.SetTotalCnyCommissionAmount(v)
+	})
+}
+
+// UpdateTotalCnyCommissionAmount sets the "total_cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionApplicationUpsertBulk) UpdateTotalCnyCommissionAmount() *FinanceCommissionApplicationUpsertBulk {
+	return u.Update(func(s *FinanceCommissionApplicationUpsert) {
+		s.UpdateTotalCnyCommissionAmount()
 	})
 }
 

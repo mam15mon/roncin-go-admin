@@ -41,12 +41,21 @@ service WorkbenchService {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/workbench/application-candidates"};
   }
-  // SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
-  // 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
-  // 空候选与已进入有效申请的提成将被拒绝。
+  // SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+  // 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+  // 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+  // 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。
   rpc SubmitMyCommissionApplication(SubmitMyCommissionApplicationRequest) returns (SubmitMyCommissionApplicationResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {post: "/api/v1/workbench/commission-applications/submit" body: "*"};
+  }
+  // ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+  // expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+  // 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+  // 剔除并留审计），版本递增并回到财务待审。
+  rpc ResubmitMyCommissionApplication(ResubmitMyCommissionApplicationRequest) returns (ResubmitMyCommissionApplicationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/workbench/commission-applications/resubmit" body: "*"};
   }
   // ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。
   rpc ListMyCommissionApplications(ListMyCommissionApplicationsRequest) returns (ListMyCommissionApplicationsResponse) {
@@ -362,6 +371,21 @@ message SubmitMyCommissionApplicationResponse {
   WorkbenchMyCommissionApplication data = 5;
 }
 
+// 重提只接受原申请定位参数：application_id + expected_version；员工与组织固定
+// 取自当前会话，不接受客户端改写。
+message ResubmitMyCommissionApplicationRequest {
+  string application_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ResubmitMyCommissionApplicationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+  WorkbenchMyCommissionApplication data = 5;
+}
+
 message ListMyCommissionApplicationsRequest {
   int32 page = 1;
   int32 page_size = 2;
@@ -380,7 +404,8 @@ message ListMyCommissionApplicationsResponse {
 }
 
 // WorkbenchMyCommissionApplication 是本人单张月度申请投影：金额与明细为提交
-// 时固化的快照；REJECTED 携带驳回原因，原申请重提后 version 递增。
+// 时固化的快照（重提按上游当前事实刷新）；决策审计字段保留最近一次决策，
+// 重提不清理，员工始终能看到最近一次驳回原因。
 message WorkbenchMyCommissionApplication {
   string id = 1;
   string application_month = 2;

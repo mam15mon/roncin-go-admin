@@ -83,6 +83,11 @@ type financeCommissionApplicationFakeRepo struct {
 		expectedVersion uint64
 		reason          string
 	}
+	resubmitArgs struct {
+		id              uuid.UUID
+		expectedVersion uint64
+	}
+	resubmitted *FinanceCommissionApplication
 }
 
 func (r *financeCommissionApplicationFakeRepo) ApplicationSummary(_ context.Context, scope WorkbenchScope, _ string) (*WorkbenchApplicationSummary, error) {
@@ -98,6 +103,13 @@ func (r *financeCommissionApplicationFakeRepo) ListMyCandidates(_ context.Contex
 func (r *financeCommissionApplicationFakeRepo) Submit(_ context.Context, scope WorkbenchScope) (*FinanceCommissionApplication, error) {
 	r.lastScope = scope
 	return r.submitted, nil
+}
+
+func (r *financeCommissionApplicationFakeRepo) Resubmit(_ context.Context, scope WorkbenchScope, id uuid.UUID, expectedVersion uint64) (*FinanceCommissionApplication, error) {
+	r.lastScope = scope
+	r.resubmitArgs.id = id
+	r.resubmitArgs.expectedVersion = expectedVersion
+	return r.resubmitted, nil
 }
 
 func (r *financeCommissionApplicationFakeRepo) ListMyApplications(_ context.Context, scope WorkbenchScope, _ WorkbenchApplicationFilter) (*PagedList[*FinanceCommissionApplication], error) {
@@ -173,6 +185,29 @@ func TestFinanceCommissionApplicationUsecaseValidation(t *testing.T) {
 	}
 	if _, err := usecase.GetMyApplication(context.Background(), scope, uuid.Nil); !errors.Is(err, ErrCommissionApplicationNotFound) {
 		t.Fatalf("空申请 ID 应按不存在处理: %v", err)
+	}
+
+	// 显式重提入参：主体、申请 ID 与 expected_version 均不可缺省；合法请求把
+	// 会话主体原样委托仓储。
+	if _, err := usecase.Resubmit(context.Background(), invalidScope, uuid.Must(uuid.NewV7()), 1); !errors.Is(err, ErrCommissionApplicationInvalid) {
+		t.Fatalf("缺组织主体的 Resubmit 应拒绝: %v", err)
+	}
+	if _, err := usecase.Resubmit(context.Background(), scope, uuid.Nil, 1); !errors.Is(err, ErrCommissionApplicationInvalid) {
+		t.Fatalf("空申请 ID 的 Resubmit 应拒绝: %v", err)
+	}
+	if _, err := usecase.Resubmit(context.Background(), scope, uuid.Must(uuid.NewV7()), 0); !errors.Is(err, ErrCommissionApplicationInvalid) {
+		t.Fatalf("零版本的 Resubmit 应拒绝: %v", err)
+	}
+	resubmitID := uuid.Must(uuid.NewV7())
+	fake.resubmitted = &FinanceCommissionApplication{ID: resubmitID, Status: CommissionApplicationPendingReview, Version: 3}
+	if _, err := usecase.Resubmit(context.Background(), scope, resubmitID, 2); err != nil {
+		t.Fatalf("合法 Resubmit 应委托仓储: %v", err)
+	}
+	if fake.resubmitArgs.id != resubmitID || fake.resubmitArgs.expectedVersion != 2 {
+		t.Fatalf("Resubmit 应透传申请 ID 与期望版本: %+v", fake.resubmitArgs)
+	}
+	if fake.lastScope.UserID != scope.UserID || fake.lastScope.OrganizationID != scope.OrganizationID {
+		t.Fatalf("Resubmit 主体应固定为会话组织与本人: %+v", fake.lastScope)
 	}
 
 	fake.submitted = &FinanceCommissionApplication{ID: uuid.Must(uuid.NewV7()), Status: CommissionApplicationPendingReview}

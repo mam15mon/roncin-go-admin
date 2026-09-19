@@ -1340,6 +1340,204 @@ func (u *FinanceCommissionUpsert) UpdateUpdatedAt() *FinanceCommissionUpsert {
 	return u
 }
 
+// SetVerificationNo sets the "verification_no" field.
+func (u *FinanceCommissionUpsert) SetVerificationNo(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldVerificationNo, v)
+	return u
+}
+
+// UpdateVerificationNo sets the "verification_no" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateVerificationNo() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldVerificationNo)
+	return u
+}
+
+// ClearVerificationNo clears the value of the "verification_no" field.
+func (u *FinanceCommissionUpsert) ClearVerificationNo() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldVerificationNo)
+	return u
+}
+
+// SetNettingNo sets the "netting_no" field.
+func (u *FinanceCommissionUpsert) SetNettingNo(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldNettingNo, v)
+	return u
+}
+
+// UpdateNettingNo sets the "netting_no" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateNettingNo() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldNettingNo)
+	return u
+}
+
+// ClearNettingNo clears the value of the "netting_no" field.
+func (u *FinanceCommissionUpsert) ClearNettingNo() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldNettingNo)
+	return u
+}
+
+// SetEmployeeName sets the "employee_name" field.
+func (u *FinanceCommissionUpsert) SetEmployeeName(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldEmployeeName, v)
+	return u
+}
+
+// UpdateEmployeeName sets the "employee_name" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateEmployeeName() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldEmployeeName)
+	return u
+}
+
+// SetCustomerCount sets the "customer_count" field.
+func (u *FinanceCommissionUpsert) SetCustomerCount(v int) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCustomerCount, v)
+	return u
+}
+
+// UpdateCustomerCount sets the "customer_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCustomerCount() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCustomerCount)
+	return u
+}
+
+// AddCustomerCount adds v to the "customer_count" field.
+func (u *FinanceCommissionUpsert) AddCustomerCount(v int) *FinanceCommissionUpsert {
+	u.Add(financecommission.FieldCustomerCount, v)
+	return u
+}
+
+// SetOrderCount sets the "order_count" field.
+func (u *FinanceCommissionUpsert) SetOrderCount(v int) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldOrderCount, v)
+	return u
+}
+
+// UpdateOrderCount sets the "order_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateOrderCount() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldOrderCount)
+	return u
+}
+
+// AddOrderCount adds v to the "order_count" field.
+func (u *FinanceCommissionUpsert) AddOrderCount(v int) *FinanceCommissionUpsert {
+	u.Add(financecommission.FieldOrderCount, v)
+	return u
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (u *FinanceCommissionUpsert) SetFeeCount(v int) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldFeeCount, v)
+	return u
+}
+
+// UpdateFeeCount sets the "fee_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateFeeCount() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldFeeCount)
+	return u
+}
+
+// AddFeeCount adds v to the "fee_count" field.
+func (u *FinanceCommissionUpsert) AddFeeCount(v int) *FinanceCommissionUpsert {
+	u.Add(financecommission.FieldFeeCount, v)
+	return u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FinanceCommissionUpsert) SetRuleID(v uuid.UUID) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldRuleID, v)
+	return u
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateRuleID() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldRuleID)
+	return u
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (u *FinanceCommissionUpsert) ClearRuleID() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldRuleID)
+	return u
+}
+
+// SetRuleName sets the "rule_name" field.
+func (u *FinanceCommissionUpsert) SetRuleName(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldRuleName, v)
+	return u
+}
+
+// UpdateRuleName sets the "rule_name" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateRuleName() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldRuleName)
+	return u
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (u *FinanceCommissionUpsert) ClearRuleName() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldRuleName)
+	return u
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionUpsert) SetCalculationBasis(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCalculationBasis, v)
+	return u
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCalculationBasis() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCalculationBasis)
+	return u
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (u *FinanceCommissionUpsert) ClearCalculationBasis() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldCalculationBasis)
+	return u
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (u *FinanceCommissionUpsert) SetRuleVersion(v uint64) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldRuleVersion, v)
+	return u
+}
+
+// UpdateRuleVersion sets the "rule_version" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateRuleVersion() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldRuleVersion)
+	return u
+}
+
+// AddRuleVersion adds v to the "rule_version" field.
+func (u *FinanceCommissionUpsert) AddRuleVersion(v uint64) *FinanceCommissionUpsert {
+	u.Add(financecommission.FieldRuleVersion, v)
+	return u
+}
+
+// SetCalculationVersion sets the "calculation_version" field.
+func (u *FinanceCommissionUpsert) SetCalculationVersion(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCalculationVersion, v)
+	return u
+}
+
+// UpdateCalculationVersion sets the "calculation_version" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCalculationVersion() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCalculationVersion)
+	return u
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (u *FinanceCommissionUpsert) SetSourceFingerprint(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldSourceFingerprint, v)
+	return u
+}
+
+// UpdateSourceFingerprint sets the "source_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateSourceFingerprint() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldSourceFingerprint)
+	return u
+}
+
 // SetStatus sets the "status" field.
 func (u *FinanceCommissionUpsert) SetStatus(v financecommission.Status) *FinanceCommissionUpsert {
 	u.Set(financecommission.FieldStatus, v)
@@ -1349,6 +1547,156 @@ func (u *FinanceCommissionUpsert) SetStatus(v financecommission.Status) *Finance
 // UpdateStatus sets the "status" field to the value that was provided on create.
 func (u *FinanceCommissionUpsert) UpdateStatus() *FinanceCommissionUpsert {
 	u.SetExcluded(financecommission.FieldStatus)
+	return u
+}
+
+// SetRealizedRevenue sets the "realized_revenue" field.
+func (u *FinanceCommissionUpsert) SetRealizedRevenue(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldRealizedRevenue, v)
+	return u
+}
+
+// UpdateRealizedRevenue sets the "realized_revenue" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateRealizedRevenue() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldRealizedRevenue)
+	return u
+}
+
+// SetAllocatedCost sets the "allocated_cost" field.
+func (u *FinanceCommissionUpsert) SetAllocatedCost(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldAllocatedCost, v)
+	return u
+}
+
+// UpdateAllocatedCost sets the "allocated_cost" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateAllocatedCost() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldAllocatedCost)
+	return u
+}
+
+// SetRealizedProfit sets the "realized_profit" field.
+func (u *FinanceCommissionUpsert) SetRealizedProfit(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldRealizedProfit, v)
+	return u
+}
+
+// UpdateRealizedProfit sets the "realized_profit" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateRealizedProfit() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldRealizedProfit)
+	return u
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (u *FinanceCommissionUpsert) SetCommissionBaseAmount(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCommissionBaseAmount, v)
+	return u
+}
+
+// UpdateCommissionBaseAmount sets the "commission_base_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCommissionBaseAmount() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCommissionBaseAmount)
+	return u
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (u *FinanceCommissionUpsert) SetRatePercent(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldRatePercent, v)
+	return u
+}
+
+// UpdateRatePercent sets the "rate_percent" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateRatePercent() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldRatePercent)
+	return u
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (u *FinanceCommissionUpsert) SetCommissionAmount(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCommissionAmount, v)
+	return u
+}
+
+// UpdateCommissionAmount sets the "commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCommissionAmount() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCommissionAmount)
+	return u
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (u *FinanceCommissionUpsert) SetCommissionDate(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCommissionDate, v)
+	return u
+}
+
+// UpdateCommissionDate sets the "commission_date" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCommissionDate() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCommissionDate)
+	return u
+}
+
+// SetCnyExchangeRate sets the "cny_exchange_rate" field.
+func (u *FinanceCommissionUpsert) SetCnyExchangeRate(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCnyExchangeRate, v)
+	return u
+}
+
+// UpdateCnyExchangeRate sets the "cny_exchange_rate" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCnyExchangeRate() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCnyExchangeRate)
+	return u
+}
+
+// SetCnyExchangeRateSource sets the "cny_exchange_rate_source" field.
+func (u *FinanceCommissionUpsert) SetCnyExchangeRateSource(v financecommission.CnyExchangeRateSource) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCnyExchangeRateSource, v)
+	return u
+}
+
+// UpdateCnyExchangeRateSource sets the "cny_exchange_rate_source" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCnyExchangeRateSource() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCnyExchangeRateSource)
+	return u
+}
+
+// SetCnyExchangeRateDate sets the "cny_exchange_rate_date" field.
+func (u *FinanceCommissionUpsert) SetCnyExchangeRateDate(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCnyExchangeRateDate, v)
+	return u
+}
+
+// UpdateCnyExchangeRateDate sets the "cny_exchange_rate_date" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCnyExchangeRateDate() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCnyExchangeRateDate)
+	return u
+}
+
+// SetCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field.
+func (u *FinanceCommissionUpsert) SetCnyExchangeRateSettingID(v uuid.UUID) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCnyExchangeRateSettingID, v)
+	return u
+}
+
+// UpdateCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCnyExchangeRateSettingID() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCnyExchangeRateSettingID)
+	return u
+}
+
+// ClearCnyExchangeRateSettingID clears the value of the "cny_exchange_rate_setting_id" field.
+func (u *FinanceCommissionUpsert) ClearCnyExchangeRateSettingID() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldCnyExchangeRateSettingID)
+	return u
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (u *FinanceCommissionUpsert) SetCnyCommissionAmount(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldCnyCommissionAmount, v)
+	return u
+}
+
+// UpdateCnyCommissionAmount sets the "cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateCnyCommissionAmount() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldCnyCommissionAmount)
 	return u
 }
 
@@ -1564,89 +1912,17 @@ func (u *FinanceCommissionUpsertOne) UpdateNewValues() *FinanceCommissionUpsertO
 		if _, exists := u.create.mutation.VerificationID(); exists {
 			s.SetIgnore(financecommission.FieldVerificationID)
 		}
-		if _, exists := u.create.mutation.VerificationNo(); exists {
-			s.SetIgnore(financecommission.FieldVerificationNo)
-		}
 		if _, exists := u.create.mutation.NettingID(); exists {
 			s.SetIgnore(financecommission.FieldNettingID)
-		}
-		if _, exists := u.create.mutation.NettingNo(); exists {
-			s.SetIgnore(financecommission.FieldNettingNo)
 		}
 		if _, exists := u.create.mutation.EmployeeID(); exists {
 			s.SetIgnore(financecommission.FieldEmployeeID)
 		}
-		if _, exists := u.create.mutation.EmployeeName(); exists {
-			s.SetIgnore(financecommission.FieldEmployeeName)
-		}
-		if _, exists := u.create.mutation.CustomerCount(); exists {
-			s.SetIgnore(financecommission.FieldCustomerCount)
-		}
-		if _, exists := u.create.mutation.OrderCount(); exists {
-			s.SetIgnore(financecommission.FieldOrderCount)
-		}
-		if _, exists := u.create.mutation.FeeCount(); exists {
-			s.SetIgnore(financecommission.FieldFeeCount)
-		}
-		if _, exists := u.create.mutation.RuleID(); exists {
-			s.SetIgnore(financecommission.FieldRuleID)
-		}
-		if _, exists := u.create.mutation.RuleName(); exists {
-			s.SetIgnore(financecommission.FieldRuleName)
-		}
 		if _, exists := u.create.mutation.PersonnelRole(); exists {
 			s.SetIgnore(financecommission.FieldPersonnelRole)
 		}
-		if _, exists := u.create.mutation.CalculationBasis(); exists {
-			s.SetIgnore(financecommission.FieldCalculationBasis)
-		}
-		if _, exists := u.create.mutation.RuleVersion(); exists {
-			s.SetIgnore(financecommission.FieldRuleVersion)
-		}
-		if _, exists := u.create.mutation.CalculationVersion(); exists {
-			s.SetIgnore(financecommission.FieldCalculationVersion)
-		}
-		if _, exists := u.create.mutation.SourceFingerprint(); exists {
-			s.SetIgnore(financecommission.FieldSourceFingerprint)
-		}
 		if _, exists := u.create.mutation.BaseCurrency(); exists {
 			s.SetIgnore(financecommission.FieldBaseCurrency)
-		}
-		if _, exists := u.create.mutation.RealizedRevenue(); exists {
-			s.SetIgnore(financecommission.FieldRealizedRevenue)
-		}
-		if _, exists := u.create.mutation.AllocatedCost(); exists {
-			s.SetIgnore(financecommission.FieldAllocatedCost)
-		}
-		if _, exists := u.create.mutation.RealizedProfit(); exists {
-			s.SetIgnore(financecommission.FieldRealizedProfit)
-		}
-		if _, exists := u.create.mutation.CommissionBaseAmount(); exists {
-			s.SetIgnore(financecommission.FieldCommissionBaseAmount)
-		}
-		if _, exists := u.create.mutation.RatePercent(); exists {
-			s.SetIgnore(financecommission.FieldRatePercent)
-		}
-		if _, exists := u.create.mutation.CommissionAmount(); exists {
-			s.SetIgnore(financecommission.FieldCommissionAmount)
-		}
-		if _, exists := u.create.mutation.CommissionDate(); exists {
-			s.SetIgnore(financecommission.FieldCommissionDate)
-		}
-		if _, exists := u.create.mutation.CnyExchangeRate(); exists {
-			s.SetIgnore(financecommission.FieldCnyExchangeRate)
-		}
-		if _, exists := u.create.mutation.CnyExchangeRateSource(); exists {
-			s.SetIgnore(financecommission.FieldCnyExchangeRateSource)
-		}
-		if _, exists := u.create.mutation.CnyExchangeRateDate(); exists {
-			s.SetIgnore(financecommission.FieldCnyExchangeRateDate)
-		}
-		if _, exists := u.create.mutation.CnyExchangeRateSettingID(); exists {
-			s.SetIgnore(financecommission.FieldCnyExchangeRateSettingID)
-		}
-		if _, exists := u.create.mutation.CnyCommissionAmount(); exists {
-			s.SetIgnore(financecommission.FieldCnyCommissionAmount)
 		}
 	}))
 	return u
@@ -1693,6 +1969,237 @@ func (u *FinanceCommissionUpsertOne) UpdateUpdatedAt() *FinanceCommissionUpsertO
 	})
 }
 
+// SetVerificationNo sets the "verification_no" field.
+func (u *FinanceCommissionUpsertOne) SetVerificationNo(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetVerificationNo(v)
+	})
+}
+
+// UpdateVerificationNo sets the "verification_no" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateVerificationNo() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateVerificationNo()
+	})
+}
+
+// ClearVerificationNo clears the value of the "verification_no" field.
+func (u *FinanceCommissionUpsertOne) ClearVerificationNo() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearVerificationNo()
+	})
+}
+
+// SetNettingNo sets the "netting_no" field.
+func (u *FinanceCommissionUpsertOne) SetNettingNo(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetNettingNo(v)
+	})
+}
+
+// UpdateNettingNo sets the "netting_no" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateNettingNo() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateNettingNo()
+	})
+}
+
+// ClearNettingNo clears the value of the "netting_no" field.
+func (u *FinanceCommissionUpsertOne) ClearNettingNo() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearNettingNo()
+	})
+}
+
+// SetEmployeeName sets the "employee_name" field.
+func (u *FinanceCommissionUpsertOne) SetEmployeeName(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetEmployeeName(v)
+	})
+}
+
+// UpdateEmployeeName sets the "employee_name" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateEmployeeName() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateEmployeeName()
+	})
+}
+
+// SetCustomerCount sets the "customer_count" field.
+func (u *FinanceCommissionUpsertOne) SetCustomerCount(v int) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCustomerCount(v)
+	})
+}
+
+// AddCustomerCount adds v to the "customer_count" field.
+func (u *FinanceCommissionUpsertOne) AddCustomerCount(v int) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddCustomerCount(v)
+	})
+}
+
+// UpdateCustomerCount sets the "customer_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCustomerCount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCustomerCount()
+	})
+}
+
+// SetOrderCount sets the "order_count" field.
+func (u *FinanceCommissionUpsertOne) SetOrderCount(v int) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetOrderCount(v)
+	})
+}
+
+// AddOrderCount adds v to the "order_count" field.
+func (u *FinanceCommissionUpsertOne) AddOrderCount(v int) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddOrderCount(v)
+	})
+}
+
+// UpdateOrderCount sets the "order_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateOrderCount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateOrderCount()
+	})
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (u *FinanceCommissionUpsertOne) SetFeeCount(v int) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetFeeCount(v)
+	})
+}
+
+// AddFeeCount adds v to the "fee_count" field.
+func (u *FinanceCommissionUpsertOne) AddFeeCount(v int) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddFeeCount(v)
+	})
+}
+
+// UpdateFeeCount sets the "fee_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateFeeCount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateFeeCount()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FinanceCommissionUpsertOne) SetRuleID(v uuid.UUID) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateRuleID() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (u *FinanceCommissionUpsertOne) ClearRuleID() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearRuleID()
+	})
+}
+
+// SetRuleName sets the "rule_name" field.
+func (u *FinanceCommissionUpsertOne) SetRuleName(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRuleName(v)
+	})
+}
+
+// UpdateRuleName sets the "rule_name" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateRuleName() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRuleName()
+	})
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (u *FinanceCommissionUpsertOne) ClearRuleName() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearRuleName()
+	})
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionUpsertOne) SetCalculationBasis(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCalculationBasis(v)
+	})
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCalculationBasis() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCalculationBasis()
+	})
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (u *FinanceCommissionUpsertOne) ClearCalculationBasis() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearCalculationBasis()
+	})
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (u *FinanceCommissionUpsertOne) SetRuleVersion(v uint64) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRuleVersion(v)
+	})
+}
+
+// AddRuleVersion adds v to the "rule_version" field.
+func (u *FinanceCommissionUpsertOne) AddRuleVersion(v uint64) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddRuleVersion(v)
+	})
+}
+
+// UpdateRuleVersion sets the "rule_version" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateRuleVersion() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRuleVersion()
+	})
+}
+
+// SetCalculationVersion sets the "calculation_version" field.
+func (u *FinanceCommissionUpsertOne) SetCalculationVersion(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCalculationVersion(v)
+	})
+}
+
+// UpdateCalculationVersion sets the "calculation_version" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCalculationVersion() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCalculationVersion()
+	})
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (u *FinanceCommissionUpsertOne) SetSourceFingerprint(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetSourceFingerprint(v)
+	})
+}
+
+// UpdateSourceFingerprint sets the "source_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateSourceFingerprint() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateSourceFingerprint()
+	})
+}
+
 // SetStatus sets the "status" field.
 func (u *FinanceCommissionUpsertOne) SetStatus(v financecommission.Status) *FinanceCommissionUpsertOne {
 	return u.Update(func(s *FinanceCommissionUpsert) {
@@ -1704,6 +2211,181 @@ func (u *FinanceCommissionUpsertOne) SetStatus(v financecommission.Status) *Fina
 func (u *FinanceCommissionUpsertOne) UpdateStatus() *FinanceCommissionUpsertOne {
 	return u.Update(func(s *FinanceCommissionUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetRealizedRevenue sets the "realized_revenue" field.
+func (u *FinanceCommissionUpsertOne) SetRealizedRevenue(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRealizedRevenue(v)
+	})
+}
+
+// UpdateRealizedRevenue sets the "realized_revenue" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateRealizedRevenue() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRealizedRevenue()
+	})
+}
+
+// SetAllocatedCost sets the "allocated_cost" field.
+func (u *FinanceCommissionUpsertOne) SetAllocatedCost(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetAllocatedCost(v)
+	})
+}
+
+// UpdateAllocatedCost sets the "allocated_cost" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateAllocatedCost() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateAllocatedCost()
+	})
+}
+
+// SetRealizedProfit sets the "realized_profit" field.
+func (u *FinanceCommissionUpsertOne) SetRealizedProfit(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRealizedProfit(v)
+	})
+}
+
+// UpdateRealizedProfit sets the "realized_profit" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateRealizedProfit() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRealizedProfit()
+	})
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (u *FinanceCommissionUpsertOne) SetCommissionBaseAmount(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCommissionBaseAmount(v)
+	})
+}
+
+// UpdateCommissionBaseAmount sets the "commission_base_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCommissionBaseAmount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCommissionBaseAmount()
+	})
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (u *FinanceCommissionUpsertOne) SetRatePercent(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRatePercent(v)
+	})
+}
+
+// UpdateRatePercent sets the "rate_percent" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateRatePercent() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRatePercent()
+	})
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (u *FinanceCommissionUpsertOne) SetCommissionAmount(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCommissionAmount(v)
+	})
+}
+
+// UpdateCommissionAmount sets the "commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCommissionAmount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCommissionAmount()
+	})
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (u *FinanceCommissionUpsertOne) SetCommissionDate(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCommissionDate(v)
+	})
+}
+
+// UpdateCommissionDate sets the "commission_date" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCommissionDate() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCommissionDate()
+	})
+}
+
+// SetCnyExchangeRate sets the "cny_exchange_rate" field.
+func (u *FinanceCommissionUpsertOne) SetCnyExchangeRate(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRate(v)
+	})
+}
+
+// UpdateCnyExchangeRate sets the "cny_exchange_rate" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCnyExchangeRate() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRate()
+	})
+}
+
+// SetCnyExchangeRateSource sets the "cny_exchange_rate_source" field.
+func (u *FinanceCommissionUpsertOne) SetCnyExchangeRateSource(v financecommission.CnyExchangeRateSource) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRateSource(v)
+	})
+}
+
+// UpdateCnyExchangeRateSource sets the "cny_exchange_rate_source" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCnyExchangeRateSource() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRateSource()
+	})
+}
+
+// SetCnyExchangeRateDate sets the "cny_exchange_rate_date" field.
+func (u *FinanceCommissionUpsertOne) SetCnyExchangeRateDate(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRateDate(v)
+	})
+}
+
+// UpdateCnyExchangeRateDate sets the "cny_exchange_rate_date" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCnyExchangeRateDate() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRateDate()
+	})
+}
+
+// SetCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field.
+func (u *FinanceCommissionUpsertOne) SetCnyExchangeRateSettingID(v uuid.UUID) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRateSettingID(v)
+	})
+}
+
+// UpdateCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCnyExchangeRateSettingID() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRateSettingID()
+	})
+}
+
+// ClearCnyExchangeRateSettingID clears the value of the "cny_exchange_rate_setting_id" field.
+func (u *FinanceCommissionUpsertOne) ClearCnyExchangeRateSettingID() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearCnyExchangeRateSettingID()
+	})
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (u *FinanceCommissionUpsertOne) SetCnyCommissionAmount(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyCommissionAmount(v)
+	})
+}
+
+// UpdateCnyCommissionAmount sets the "cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateCnyCommissionAmount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyCommissionAmount()
 	})
 }
 
@@ -2115,89 +2797,17 @@ func (u *FinanceCommissionUpsertBulk) UpdateNewValues() *FinanceCommissionUpsert
 			if _, exists := b.mutation.VerificationID(); exists {
 				s.SetIgnore(financecommission.FieldVerificationID)
 			}
-			if _, exists := b.mutation.VerificationNo(); exists {
-				s.SetIgnore(financecommission.FieldVerificationNo)
-			}
 			if _, exists := b.mutation.NettingID(); exists {
 				s.SetIgnore(financecommission.FieldNettingID)
-			}
-			if _, exists := b.mutation.NettingNo(); exists {
-				s.SetIgnore(financecommission.FieldNettingNo)
 			}
 			if _, exists := b.mutation.EmployeeID(); exists {
 				s.SetIgnore(financecommission.FieldEmployeeID)
 			}
-			if _, exists := b.mutation.EmployeeName(); exists {
-				s.SetIgnore(financecommission.FieldEmployeeName)
-			}
-			if _, exists := b.mutation.CustomerCount(); exists {
-				s.SetIgnore(financecommission.FieldCustomerCount)
-			}
-			if _, exists := b.mutation.OrderCount(); exists {
-				s.SetIgnore(financecommission.FieldOrderCount)
-			}
-			if _, exists := b.mutation.FeeCount(); exists {
-				s.SetIgnore(financecommission.FieldFeeCount)
-			}
-			if _, exists := b.mutation.RuleID(); exists {
-				s.SetIgnore(financecommission.FieldRuleID)
-			}
-			if _, exists := b.mutation.RuleName(); exists {
-				s.SetIgnore(financecommission.FieldRuleName)
-			}
 			if _, exists := b.mutation.PersonnelRole(); exists {
 				s.SetIgnore(financecommission.FieldPersonnelRole)
 			}
-			if _, exists := b.mutation.CalculationBasis(); exists {
-				s.SetIgnore(financecommission.FieldCalculationBasis)
-			}
-			if _, exists := b.mutation.RuleVersion(); exists {
-				s.SetIgnore(financecommission.FieldRuleVersion)
-			}
-			if _, exists := b.mutation.CalculationVersion(); exists {
-				s.SetIgnore(financecommission.FieldCalculationVersion)
-			}
-			if _, exists := b.mutation.SourceFingerprint(); exists {
-				s.SetIgnore(financecommission.FieldSourceFingerprint)
-			}
 			if _, exists := b.mutation.BaseCurrency(); exists {
 				s.SetIgnore(financecommission.FieldBaseCurrency)
-			}
-			if _, exists := b.mutation.RealizedRevenue(); exists {
-				s.SetIgnore(financecommission.FieldRealizedRevenue)
-			}
-			if _, exists := b.mutation.AllocatedCost(); exists {
-				s.SetIgnore(financecommission.FieldAllocatedCost)
-			}
-			if _, exists := b.mutation.RealizedProfit(); exists {
-				s.SetIgnore(financecommission.FieldRealizedProfit)
-			}
-			if _, exists := b.mutation.CommissionBaseAmount(); exists {
-				s.SetIgnore(financecommission.FieldCommissionBaseAmount)
-			}
-			if _, exists := b.mutation.RatePercent(); exists {
-				s.SetIgnore(financecommission.FieldRatePercent)
-			}
-			if _, exists := b.mutation.CommissionAmount(); exists {
-				s.SetIgnore(financecommission.FieldCommissionAmount)
-			}
-			if _, exists := b.mutation.CommissionDate(); exists {
-				s.SetIgnore(financecommission.FieldCommissionDate)
-			}
-			if _, exists := b.mutation.CnyExchangeRate(); exists {
-				s.SetIgnore(financecommission.FieldCnyExchangeRate)
-			}
-			if _, exists := b.mutation.CnyExchangeRateSource(); exists {
-				s.SetIgnore(financecommission.FieldCnyExchangeRateSource)
-			}
-			if _, exists := b.mutation.CnyExchangeRateDate(); exists {
-				s.SetIgnore(financecommission.FieldCnyExchangeRateDate)
-			}
-			if _, exists := b.mutation.CnyExchangeRateSettingID(); exists {
-				s.SetIgnore(financecommission.FieldCnyExchangeRateSettingID)
-			}
-			if _, exists := b.mutation.CnyCommissionAmount(); exists {
-				s.SetIgnore(financecommission.FieldCnyCommissionAmount)
 			}
 		}
 	}))
@@ -2245,6 +2855,237 @@ func (u *FinanceCommissionUpsertBulk) UpdateUpdatedAt() *FinanceCommissionUpsert
 	})
 }
 
+// SetVerificationNo sets the "verification_no" field.
+func (u *FinanceCommissionUpsertBulk) SetVerificationNo(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetVerificationNo(v)
+	})
+}
+
+// UpdateVerificationNo sets the "verification_no" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateVerificationNo() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateVerificationNo()
+	})
+}
+
+// ClearVerificationNo clears the value of the "verification_no" field.
+func (u *FinanceCommissionUpsertBulk) ClearVerificationNo() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearVerificationNo()
+	})
+}
+
+// SetNettingNo sets the "netting_no" field.
+func (u *FinanceCommissionUpsertBulk) SetNettingNo(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetNettingNo(v)
+	})
+}
+
+// UpdateNettingNo sets the "netting_no" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateNettingNo() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateNettingNo()
+	})
+}
+
+// ClearNettingNo clears the value of the "netting_no" field.
+func (u *FinanceCommissionUpsertBulk) ClearNettingNo() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearNettingNo()
+	})
+}
+
+// SetEmployeeName sets the "employee_name" field.
+func (u *FinanceCommissionUpsertBulk) SetEmployeeName(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetEmployeeName(v)
+	})
+}
+
+// UpdateEmployeeName sets the "employee_name" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateEmployeeName() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateEmployeeName()
+	})
+}
+
+// SetCustomerCount sets the "customer_count" field.
+func (u *FinanceCommissionUpsertBulk) SetCustomerCount(v int) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCustomerCount(v)
+	})
+}
+
+// AddCustomerCount adds v to the "customer_count" field.
+func (u *FinanceCommissionUpsertBulk) AddCustomerCount(v int) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddCustomerCount(v)
+	})
+}
+
+// UpdateCustomerCount sets the "customer_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCustomerCount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCustomerCount()
+	})
+}
+
+// SetOrderCount sets the "order_count" field.
+func (u *FinanceCommissionUpsertBulk) SetOrderCount(v int) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetOrderCount(v)
+	})
+}
+
+// AddOrderCount adds v to the "order_count" field.
+func (u *FinanceCommissionUpsertBulk) AddOrderCount(v int) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddOrderCount(v)
+	})
+}
+
+// UpdateOrderCount sets the "order_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateOrderCount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateOrderCount()
+	})
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (u *FinanceCommissionUpsertBulk) SetFeeCount(v int) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetFeeCount(v)
+	})
+}
+
+// AddFeeCount adds v to the "fee_count" field.
+func (u *FinanceCommissionUpsertBulk) AddFeeCount(v int) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddFeeCount(v)
+	})
+}
+
+// UpdateFeeCount sets the "fee_count" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateFeeCount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateFeeCount()
+	})
+}
+
+// SetRuleID sets the "rule_id" field.
+func (u *FinanceCommissionUpsertBulk) SetRuleID(v uuid.UUID) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateRuleID() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (u *FinanceCommissionUpsertBulk) ClearRuleID() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearRuleID()
+	})
+}
+
+// SetRuleName sets the "rule_name" field.
+func (u *FinanceCommissionUpsertBulk) SetRuleName(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRuleName(v)
+	})
+}
+
+// UpdateRuleName sets the "rule_name" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateRuleName() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRuleName()
+	})
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (u *FinanceCommissionUpsertBulk) ClearRuleName() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearRuleName()
+	})
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (u *FinanceCommissionUpsertBulk) SetCalculationBasis(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCalculationBasis(v)
+	})
+}
+
+// UpdateCalculationBasis sets the "calculation_basis" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCalculationBasis() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCalculationBasis()
+	})
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (u *FinanceCommissionUpsertBulk) ClearCalculationBasis() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearCalculationBasis()
+	})
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (u *FinanceCommissionUpsertBulk) SetRuleVersion(v uint64) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRuleVersion(v)
+	})
+}
+
+// AddRuleVersion adds v to the "rule_version" field.
+func (u *FinanceCommissionUpsertBulk) AddRuleVersion(v uint64) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.AddRuleVersion(v)
+	})
+}
+
+// UpdateRuleVersion sets the "rule_version" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateRuleVersion() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRuleVersion()
+	})
+}
+
+// SetCalculationVersion sets the "calculation_version" field.
+func (u *FinanceCommissionUpsertBulk) SetCalculationVersion(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCalculationVersion(v)
+	})
+}
+
+// UpdateCalculationVersion sets the "calculation_version" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCalculationVersion() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCalculationVersion()
+	})
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (u *FinanceCommissionUpsertBulk) SetSourceFingerprint(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetSourceFingerprint(v)
+	})
+}
+
+// UpdateSourceFingerprint sets the "source_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateSourceFingerprint() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateSourceFingerprint()
+	})
+}
+
 // SetStatus sets the "status" field.
 func (u *FinanceCommissionUpsertBulk) SetStatus(v financecommission.Status) *FinanceCommissionUpsertBulk {
 	return u.Update(func(s *FinanceCommissionUpsert) {
@@ -2256,6 +3097,181 @@ func (u *FinanceCommissionUpsertBulk) SetStatus(v financecommission.Status) *Fin
 func (u *FinanceCommissionUpsertBulk) UpdateStatus() *FinanceCommissionUpsertBulk {
 	return u.Update(func(s *FinanceCommissionUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetRealizedRevenue sets the "realized_revenue" field.
+func (u *FinanceCommissionUpsertBulk) SetRealizedRevenue(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRealizedRevenue(v)
+	})
+}
+
+// UpdateRealizedRevenue sets the "realized_revenue" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateRealizedRevenue() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRealizedRevenue()
+	})
+}
+
+// SetAllocatedCost sets the "allocated_cost" field.
+func (u *FinanceCommissionUpsertBulk) SetAllocatedCost(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetAllocatedCost(v)
+	})
+}
+
+// UpdateAllocatedCost sets the "allocated_cost" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateAllocatedCost() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateAllocatedCost()
+	})
+}
+
+// SetRealizedProfit sets the "realized_profit" field.
+func (u *FinanceCommissionUpsertBulk) SetRealizedProfit(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRealizedProfit(v)
+	})
+}
+
+// UpdateRealizedProfit sets the "realized_profit" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateRealizedProfit() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRealizedProfit()
+	})
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (u *FinanceCommissionUpsertBulk) SetCommissionBaseAmount(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCommissionBaseAmount(v)
+	})
+}
+
+// UpdateCommissionBaseAmount sets the "commission_base_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCommissionBaseAmount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCommissionBaseAmount()
+	})
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (u *FinanceCommissionUpsertBulk) SetRatePercent(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetRatePercent(v)
+	})
+}
+
+// UpdateRatePercent sets the "rate_percent" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateRatePercent() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateRatePercent()
+	})
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (u *FinanceCommissionUpsertBulk) SetCommissionAmount(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCommissionAmount(v)
+	})
+}
+
+// UpdateCommissionAmount sets the "commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCommissionAmount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCommissionAmount()
+	})
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (u *FinanceCommissionUpsertBulk) SetCommissionDate(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCommissionDate(v)
+	})
+}
+
+// UpdateCommissionDate sets the "commission_date" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCommissionDate() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCommissionDate()
+	})
+}
+
+// SetCnyExchangeRate sets the "cny_exchange_rate" field.
+func (u *FinanceCommissionUpsertBulk) SetCnyExchangeRate(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRate(v)
+	})
+}
+
+// UpdateCnyExchangeRate sets the "cny_exchange_rate" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCnyExchangeRate() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRate()
+	})
+}
+
+// SetCnyExchangeRateSource sets the "cny_exchange_rate_source" field.
+func (u *FinanceCommissionUpsertBulk) SetCnyExchangeRateSource(v financecommission.CnyExchangeRateSource) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRateSource(v)
+	})
+}
+
+// UpdateCnyExchangeRateSource sets the "cny_exchange_rate_source" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCnyExchangeRateSource() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRateSource()
+	})
+}
+
+// SetCnyExchangeRateDate sets the "cny_exchange_rate_date" field.
+func (u *FinanceCommissionUpsertBulk) SetCnyExchangeRateDate(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRateDate(v)
+	})
+}
+
+// UpdateCnyExchangeRateDate sets the "cny_exchange_rate_date" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCnyExchangeRateDate() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRateDate()
+	})
+}
+
+// SetCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field.
+func (u *FinanceCommissionUpsertBulk) SetCnyExchangeRateSettingID(v uuid.UUID) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyExchangeRateSettingID(v)
+	})
+}
+
+// UpdateCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCnyExchangeRateSettingID() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyExchangeRateSettingID()
+	})
+}
+
+// ClearCnyExchangeRateSettingID clears the value of the "cny_exchange_rate_setting_id" field.
+func (u *FinanceCommissionUpsertBulk) ClearCnyExchangeRateSettingID() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearCnyExchangeRateSettingID()
+	})
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (u *FinanceCommissionUpsertBulk) SetCnyCommissionAmount(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetCnyCommissionAmount(v)
+	})
+}
+
+// UpdateCnyCommissionAmount sets the "cny_commission_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateCnyCommissionAmount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateCnyCommissionAmount()
 	})
 }
 

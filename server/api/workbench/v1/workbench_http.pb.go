@@ -24,6 +24,7 @@ const OperationWorkbenchServiceListMyCommissionApplications = "/workbench.v1.Wor
 const OperationWorkbenchServiceListMyCommissions = "/workbench.v1.WorkbenchService/ListMyCommissions"
 const OperationWorkbenchServiceListMyReceivables = "/workbench.v1.WorkbenchService/ListMyReceivables"
 const OperationWorkbenchServiceListMyRecentOrders = "/workbench.v1.WorkbenchService/ListMyRecentOrders"
+const OperationWorkbenchServiceResubmitMyCommissionApplication = "/workbench.v1.WorkbenchService/ResubmitMyCommissionApplication"
 const OperationWorkbenchServiceSubmitMyCommissionApplication = "/workbench.v1.WorkbenchService/SubmitMyCommissionApplication"
 
 type WorkbenchServiceHTTPServer interface {
@@ -45,9 +46,15 @@ type WorkbenchServiceHTTPServer interface {
 	ListMyReceivables(context.Context, *ListMyReceivablesRequest) (*ListMyReceivablesResponse, error)
 	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
 	ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error)
-	// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
-	// 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
-	// 空候选与已进入有效申请的提成将被拒绝。
+	// ResubmitMyCommissionApplication ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+	// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+	// 剔除并留审计），版本递增并回到财务待审。
+	ResubmitMyCommissionApplication(context.Context, *ResubmitMyCommissionApplicationRequest) (*ResubmitMyCommissionApplicationResponse, error)
+	// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+	// 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+	// 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+	// 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。
 	SubmitMyCommissionApplication(context.Context, *SubmitMyCommissionApplicationRequest) (*SubmitMyCommissionApplicationResponse, error)
 }
 
@@ -59,6 +66,7 @@ func RegisterWorkbenchServiceHTTPServer(s *http.Server, srv WorkbenchServiceHTTP
 	r.Handle("GET", "/api/v1/workbench/my-recent-orders", _WorkbenchService_ListMyRecentOrders0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/application-candidates", _WorkbenchService_ListMyApplicationCandidates0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/workbench/commission-applications/submit", _WorkbenchService_SubmitMyCommissionApplication0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/workbench/commission-applications/resubmit", _WorkbenchService_ResubmitMyCommissionApplication0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/commission-applications", _WorkbenchService_ListMyCommissionApplications0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/commission-applications/{id}", _WorkbenchService_GetMyCommissionApplication0_HTTP_Handler(srv))
 }
@@ -177,6 +185,25 @@ func _WorkbenchService_SubmitMyCommissionApplication0_HTTP_Handler(srv Workbench
 	}
 }
 
+func _WorkbenchService_ResubmitMyCommissionApplication0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ResubmitMyCommissionApplicationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkbenchServiceResubmitMyCommissionApplication)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ResubmitMyCommissionApplication(ctx, req.(*ResubmitMyCommissionApplicationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ResubmitMyCommissionApplicationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _WorkbenchService_ListMyCommissionApplications0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListMyCommissionApplicationsRequest
@@ -237,9 +264,15 @@ type WorkbenchServiceHTTPClient interface {
 	ListMyReceivables(ctx context.Context, req *ListMyReceivablesRequest, opts ...http.CallOption) (rsp *ListMyReceivablesResponse, err error)
 	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
 	ListMyRecentOrders(ctx context.Context, req *ListMyRecentOrdersRequest, opts ...http.CallOption) (rsp *ListMyRecentOrdersResponse, err error)
-	// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
-	// 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
-	// 空候选与已进入有效申请的提成将被拒绝。
+	// ResubmitMyCommissionApplication ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+	// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+	// 剔除并留审计），版本递增并回到财务待审。
+	ResubmitMyCommissionApplication(ctx context.Context, req *ResubmitMyCommissionApplicationRequest, opts ...http.CallOption) (rsp *ResubmitMyCommissionApplicationResponse, err error)
+	// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+	// 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+	// 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+	// 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。
 	SubmitMyCommissionApplication(ctx context.Context, req *SubmitMyCommissionApplicationRequest, opts ...http.CallOption) (rsp *SubmitMyCommissionApplicationResponse, err error)
 }
 
@@ -374,9 +407,31 @@ func (c *WorkbenchServiceHTTPClientImpl) ListMyRecentOrders(ctx context.Context,
 	return &out, nil
 }
 
-// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
-// 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
-// 空候选与已进入有效申请的提成将被拒绝。
+// ResubmitMyCommissionApplication ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+// 剔除并留审计），版本递增并回到财务待审。
+func (c *WorkbenchServiceHTTPClientImpl) ResubmitMyCommissionApplication(ctx context.Context, in *ResubmitMyCommissionApplicationRequest, opts ...http.CallOption) (*ResubmitMyCommissionApplicationResponse, error) {
+	var out ResubmitMyCommissionApplicationResponse
+	pattern := "/api/v1/workbench/commission-applications/resubmit"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationWorkbenchServiceResubmitMyCommissionApplication),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+// 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+// 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+// 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。
 func (c *WorkbenchServiceHTTPClientImpl) SubmitMyCommissionApplication(ctx context.Context, in *SubmitMyCommissionApplicationRequest, opts ...http.CallOption) (*SubmitMyCommissionApplicationResponse, error) {
 	var out SubmitMyCommissionApplicationResponse
 	pattern := "/api/v1/workbench/commission-applications/submit"

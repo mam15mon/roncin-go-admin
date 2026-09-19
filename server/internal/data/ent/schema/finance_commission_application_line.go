@@ -12,10 +12,10 @@ import (
 )
 
 // FinanceCommissionApplicationLine 保存月度提成申请明细：申请提交时逐笔固化的
-// 提成事实快照（归属日期、来源核销/对冲、人员身份、方案与金额），全部字段创建
-// 后不可变，申请批准后快照不可修改。
-// 组织与员工冗余列与申请头一致，用于隔离查询与索引；提成归属日期与来源、方案、
-// 金额快照按提交当时的事实固化，迟到或后续变化的历史来源不回填已提交申请。
+// 提成事实快照（归属日期、来源核销/对冲、人员身份、方案与金额）。
+// 身份列（组织、员工、申请、提成、来源与人员身份）创建后不可变——重提不改变
+// 明细集合，一个提成事实至多绑定一条明细；快照列（归属日期、方案与金额、来源
+// 指纹）允许显式重提按上游当前事实整体刷新，历史金额由重提审计留痕。
 // 外键全部 NO ACTION：删除组织、员工、申请头或提成单都不得造成历史申请断链；
 // commission_id 全局唯一——一个提成事实至多进入一张申请，被驳回也不回流公共池。
 type FinanceCommissionApplicationLine struct{ ent.Schema }
@@ -42,25 +42,27 @@ func (FinanceCommissionApplicationLine) Fields() []ent.Field {
 		field.UUID("application_id", uuid.Nil).Immutable(),
 		// 一个提成事实至多进入一张申请：全局唯一索引兜底，被驳回仍占用原申请。
 		field.UUID("commission_id", uuid.Nil).Immutable(),
-		// 提成归属日期 YYYY-MM-DD：核销日期或对冲确认日期，与提成单口径一致。
-		field.String("commission_date").NotEmpty().MinLen(10).MaxLen(10).Immutable(),
+		// 提成归属日期 YYYY-MM-DD：核销日期或对冲确认日期，与提成单口径一致；
+		// 重提随来源事实刷新。
+		field.String("commission_date").NotEmpty().MinLen(10).MaxLen(10),
 		// 来源核销/对冲快照：恰好一个非空由提成单创建路径保证，此处按事实固化。
 		field.UUID("verification_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.String("verification_no").Optional().Nillable().MaxLen(64).Immutable(),
 		field.UUID("netting_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.String("netting_no").Optional().Nillable().MaxLen(64).Immutable(),
-		// 人员身份与方案快照：方案取值随提成单固化，自定义历史提成允许为空。
+		// 人员身份与方案快照：方案取值随提成单固化，自定义历史提成允许为空；
+		// 方案快照列允许重提按当前解析结果刷新。
 		field.String("personnel_role").NotEmpty().MaxLen(20).Immutable(),
-		field.UUID("rule_id", uuid.Nil).Optional().Nillable().Immutable(),
-		field.Uint64("rule_version").Default(1).Immutable(),
-		field.String("rule_name").Optional().Nillable().MaxLen(100).Immutable(),
-		field.String("calculation_basis").Optional().Nillable().MaxLen(30).Immutable(),
-		// 金额快照：组织本位币口径金额与 CNY 折算口径，随提交当时事实固化。
+		field.UUID("rule_id", uuid.Nil).Optional().Nillable(),
+		field.Uint64("rule_version").Default(1),
+		field.String("rule_name").Optional().Nillable().MaxLen(100),
+		field.String("calculation_basis").Optional().Nillable().MaxLen(30),
+		// 金额快照：组织本位币口径金额与 CNY 折算口径；重提按上游当前事实刷新。
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
-		field.String("commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		field.String("cny_commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		// 提交当时来源指纹：批准复核据此确认来源仍为同一员工/身份/方案事实。
-		field.String("source_fingerprint").MaxLen(64).Default("").Immutable(),
+		field.String("commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
+		field.String("cny_commission_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
+		// 来源指纹：批准复核据此确认来源仍为同一员工/身份/方案事实；重提刷新。
+		field.String("source_fingerprint").MaxLen(64).Default(""),
 	}
 }
 

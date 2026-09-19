@@ -72,6 +72,55 @@ func (_u *FinanceCommissionApplicationUpdate) AddVersion(v int64) *FinanceCommis
 	return _u
 }
 
+// SetCommissionCount sets the "commission_count" field.
+func (_u *FinanceCommissionApplicationUpdate) SetCommissionCount(v int) *FinanceCommissionApplicationUpdate {
+	_u.mutation.ResetCommissionCount()
+	_u.mutation.SetCommissionCount(v)
+	return _u
+}
+
+// SetNillableCommissionCount sets the "commission_count" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationUpdate) SetNillableCommissionCount(v *int) *FinanceCommissionApplicationUpdate {
+	if v != nil {
+		_u.SetCommissionCount(*v)
+	}
+	return _u
+}
+
+// AddCommissionCount adds value to the "commission_count" field.
+func (_u *FinanceCommissionApplicationUpdate) AddCommissionCount(v int) *FinanceCommissionApplicationUpdate {
+	_u.mutation.AddCommissionCount(v)
+	return _u
+}
+
+// SetTotalCommissionAmount sets the "total_commission_amount" field.
+func (_u *FinanceCommissionApplicationUpdate) SetTotalCommissionAmount(v string) *FinanceCommissionApplicationUpdate {
+	_u.mutation.SetTotalCommissionAmount(v)
+	return _u
+}
+
+// SetNillableTotalCommissionAmount sets the "total_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationUpdate) SetNillableTotalCommissionAmount(v *string) *FinanceCommissionApplicationUpdate {
+	if v != nil {
+		_u.SetTotalCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetTotalCnyCommissionAmount sets the "total_cny_commission_amount" field.
+func (_u *FinanceCommissionApplicationUpdate) SetTotalCnyCommissionAmount(v string) *FinanceCommissionApplicationUpdate {
+	_u.mutation.SetTotalCnyCommissionAmount(v)
+	return _u
+}
+
+// SetNillableTotalCnyCommissionAmount sets the "total_cny_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationUpdate) SetNillableTotalCnyCommissionAmount(v *string) *FinanceCommissionApplicationUpdate {
+	if v != nil {
+		_u.SetTotalCnyCommissionAmount(*v)
+	}
+	return _u
+}
+
 // SetDecidedAt sets the "decided_at" field.
 func (_u *FinanceCommissionApplicationUpdate) SetDecidedAt(v time.Time) *FinanceCommissionApplicationUpdate {
 	_u.mutation.SetDecidedAt(v)
@@ -241,6 +290,11 @@ func (_u *FinanceCommissionApplicationUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplication.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.CommissionCount(); ok {
+		if err := financecommissionapplication.CommissionCountValidator(v); err != nil {
+			return &ValidationError{Name: "commission_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplication.commission_count": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DecisionReason(); ok {
 		if err := financecommissionapplication.DecisionReasonValidator(v); err != nil {
 			return &ValidationError{Name: "decision_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplication.decision_reason": %w`, err)}
@@ -281,6 +335,18 @@ func (_u *FinanceCommissionApplicationUpdate) sqlSave(ctx context.Context) (_nod
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(financecommissionapplication.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CommissionCount(); ok {
+		_spec.SetField(financecommissionapplication.FieldCommissionCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCommissionCount(); ok {
+		_spec.AddField(financecommissionapplication.FieldCommissionCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.TotalCommissionAmount(); ok {
+		_spec.SetField(financecommissionapplication.FieldTotalCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TotalCnyCommissionAmount(); ok {
+		_spec.SetField(financecommissionapplication.FieldTotalCnyCommissionAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.DecidedAt(); ok {
 		_spec.SetField(financecommissionapplication.FieldDecidedAt, field.TypeTime, value)
@@ -426,6 +492,55 @@ func (_u *FinanceCommissionApplicationUpdateOne) SetNillableVersion(v *uint64) *
 // AddVersion adds value to the "version" field.
 func (_u *FinanceCommissionApplicationUpdateOne) AddVersion(v int64) *FinanceCommissionApplicationUpdateOne {
 	_u.mutation.AddVersion(v)
+	return _u
+}
+
+// SetCommissionCount sets the "commission_count" field.
+func (_u *FinanceCommissionApplicationUpdateOne) SetCommissionCount(v int) *FinanceCommissionApplicationUpdateOne {
+	_u.mutation.ResetCommissionCount()
+	_u.mutation.SetCommissionCount(v)
+	return _u
+}
+
+// SetNillableCommissionCount sets the "commission_count" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationUpdateOne) SetNillableCommissionCount(v *int) *FinanceCommissionApplicationUpdateOne {
+	if v != nil {
+		_u.SetCommissionCount(*v)
+	}
+	return _u
+}
+
+// AddCommissionCount adds value to the "commission_count" field.
+func (_u *FinanceCommissionApplicationUpdateOne) AddCommissionCount(v int) *FinanceCommissionApplicationUpdateOne {
+	_u.mutation.AddCommissionCount(v)
+	return _u
+}
+
+// SetTotalCommissionAmount sets the "total_commission_amount" field.
+func (_u *FinanceCommissionApplicationUpdateOne) SetTotalCommissionAmount(v string) *FinanceCommissionApplicationUpdateOne {
+	_u.mutation.SetTotalCommissionAmount(v)
+	return _u
+}
+
+// SetNillableTotalCommissionAmount sets the "total_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationUpdateOne) SetNillableTotalCommissionAmount(v *string) *FinanceCommissionApplicationUpdateOne {
+	if v != nil {
+		_u.SetTotalCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetTotalCnyCommissionAmount sets the "total_cny_commission_amount" field.
+func (_u *FinanceCommissionApplicationUpdateOne) SetTotalCnyCommissionAmount(v string) *FinanceCommissionApplicationUpdateOne {
+	_u.mutation.SetTotalCnyCommissionAmount(v)
+	return _u
+}
+
+// SetNillableTotalCnyCommissionAmount sets the "total_cny_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionApplicationUpdateOne) SetNillableTotalCnyCommissionAmount(v *string) *FinanceCommissionApplicationUpdateOne {
+	if v != nil {
+		_u.SetTotalCnyCommissionAmount(*v)
+	}
 	return _u
 }
 
@@ -611,6 +726,11 @@ func (_u *FinanceCommissionApplicationUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplication.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.CommissionCount(); ok {
+		if err := financecommissionapplication.CommissionCountValidator(v); err != nil {
+			return &ValidationError{Name: "commission_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplication.commission_count": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.DecisionReason(); ok {
 		if err := financecommissionapplication.DecisionReasonValidator(v); err != nil {
 			return &ValidationError{Name: "decision_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionApplication.decision_reason": %w`, err)}
@@ -668,6 +788,18 @@ func (_u *FinanceCommissionApplicationUpdateOne) sqlSave(ctx context.Context) (_
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(financecommissionapplication.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CommissionCount(); ok {
+		_spec.SetField(financecommissionapplication.FieldCommissionCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCommissionCount(); ok {
+		_spec.AddField(financecommissionapplication.FieldCommissionCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.TotalCommissionAmount(); ok {
+		_spec.SetField(financecommissionapplication.FieldTotalCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TotalCnyCommissionAmount(); ok {
+		_spec.SetField(financecommissionapplication.FieldTotalCnyCommissionAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.DecidedAt(); ok {
 		_spec.SetField(financecommissionapplication.FieldDecidedAt, field.TypeTime, value)

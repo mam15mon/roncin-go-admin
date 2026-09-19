@@ -492,6 +492,24 @@ func (s *WorkbenchService) SubmitMyCommissionApplication(ctx context.Context, _ 
 	return ok(ctx, &workbenchv1.SubmitMyCommissionApplicationResponse{Data: workbenchMyCommissionApplicationToAPI(application)}), nil
 }
 
+// ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：只接收申请 ID
+// 与 expected_version，主体与组织固定取自会话；快照刷新语义由领域层承担。
+func (s *WorkbenchService) ResubmitMyCommissionApplication(ctx context.Context, r *workbenchv1.ResubmitMyCommissionApplicationRequest) (*workbenchv1.ResubmitMyCommissionApplicationResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	id, parseErr := uuid.Parse(r.GetApplicationId())
+	if parseErr != nil {
+		return nil, biz.ErrCommissionApplicationNotFound
+	}
+	application, err := s.applications.Resubmit(ctx, workbenchScopeFromPrincipal(p), id, r.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &workbenchv1.ResubmitMyCommissionApplicationResponse{Data: workbenchMyCommissionApplicationToAPI(application)}), nil
+}
+
 func (s *WorkbenchService) ListMyCommissionApplications(ctx context.Context, r *workbenchv1.ListMyCommissionApplicationsRequest) (*workbenchv1.ListMyCommissionApplicationsResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {

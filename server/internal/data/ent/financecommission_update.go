@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -39,6 +40,232 @@ func (_u *FinanceCommissionUpdate) SetUpdatedAt(v time.Time) *FinanceCommissionU
 	return _u
 }
 
+// SetVerificationNo sets the "verification_no" field.
+func (_u *FinanceCommissionUpdate) SetVerificationNo(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetVerificationNo(v)
+	return _u
+}
+
+// SetNillableVerificationNo sets the "verification_no" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableVerificationNo(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetVerificationNo(*v)
+	}
+	return _u
+}
+
+// ClearVerificationNo clears the value of the "verification_no" field.
+func (_u *FinanceCommissionUpdate) ClearVerificationNo() *FinanceCommissionUpdate {
+	_u.mutation.ClearVerificationNo()
+	return _u
+}
+
+// SetNettingNo sets the "netting_no" field.
+func (_u *FinanceCommissionUpdate) SetNettingNo(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetNettingNo(v)
+	return _u
+}
+
+// SetNillableNettingNo sets the "netting_no" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableNettingNo(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetNettingNo(*v)
+	}
+	return _u
+}
+
+// ClearNettingNo clears the value of the "netting_no" field.
+func (_u *FinanceCommissionUpdate) ClearNettingNo() *FinanceCommissionUpdate {
+	_u.mutation.ClearNettingNo()
+	return _u
+}
+
+// SetEmployeeName sets the "employee_name" field.
+func (_u *FinanceCommissionUpdate) SetEmployeeName(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetEmployeeName(v)
+	return _u
+}
+
+// SetNillableEmployeeName sets the "employee_name" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableEmployeeName(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetEmployeeName(*v)
+	}
+	return _u
+}
+
+// SetCustomerCount sets the "customer_count" field.
+func (_u *FinanceCommissionUpdate) SetCustomerCount(v int) *FinanceCommissionUpdate {
+	_u.mutation.ResetCustomerCount()
+	_u.mutation.SetCustomerCount(v)
+	return _u
+}
+
+// SetNillableCustomerCount sets the "customer_count" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCustomerCount(v *int) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCustomerCount(*v)
+	}
+	return _u
+}
+
+// AddCustomerCount adds value to the "customer_count" field.
+func (_u *FinanceCommissionUpdate) AddCustomerCount(v int) *FinanceCommissionUpdate {
+	_u.mutation.AddCustomerCount(v)
+	return _u
+}
+
+// SetOrderCount sets the "order_count" field.
+func (_u *FinanceCommissionUpdate) SetOrderCount(v int) *FinanceCommissionUpdate {
+	_u.mutation.ResetOrderCount()
+	_u.mutation.SetOrderCount(v)
+	return _u
+}
+
+// SetNillableOrderCount sets the "order_count" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableOrderCount(v *int) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetOrderCount(*v)
+	}
+	return _u
+}
+
+// AddOrderCount adds value to the "order_count" field.
+func (_u *FinanceCommissionUpdate) AddOrderCount(v int) *FinanceCommissionUpdate {
+	_u.mutation.AddOrderCount(v)
+	return _u
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (_u *FinanceCommissionUpdate) SetFeeCount(v int) *FinanceCommissionUpdate {
+	_u.mutation.ResetFeeCount()
+	_u.mutation.SetFeeCount(v)
+	return _u
+}
+
+// SetNillableFeeCount sets the "fee_count" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableFeeCount(v *int) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetFeeCount(*v)
+	}
+	return _u
+}
+
+// AddFeeCount adds value to the "fee_count" field.
+func (_u *FinanceCommissionUpdate) AddFeeCount(v int) *FinanceCommissionUpdate {
+	_u.mutation.AddFeeCount(v)
+	return _u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (_u *FinanceCommissionUpdate) SetRuleID(v uuid.UUID) *FinanceCommissionUpdate {
+	_u.mutation.SetRuleID(v)
+	return _u
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableRuleID(v *uuid.UUID) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetRuleID(*v)
+	}
+	return _u
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (_u *FinanceCommissionUpdate) ClearRuleID() *FinanceCommissionUpdate {
+	_u.mutation.ClearRuleID()
+	return _u
+}
+
+// SetRuleName sets the "rule_name" field.
+func (_u *FinanceCommissionUpdate) SetRuleName(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetRuleName(v)
+	return _u
+}
+
+// SetNillableRuleName sets the "rule_name" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableRuleName(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetRuleName(*v)
+	}
+	return _u
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (_u *FinanceCommissionUpdate) ClearRuleName() *FinanceCommissionUpdate {
+	_u.mutation.ClearRuleName()
+	return _u
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (_u *FinanceCommissionUpdate) SetCalculationBasis(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCalculationBasis(v)
+	return _u
+}
+
+// SetNillableCalculationBasis sets the "calculation_basis" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCalculationBasis(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCalculationBasis(*v)
+	}
+	return _u
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (_u *FinanceCommissionUpdate) ClearCalculationBasis() *FinanceCommissionUpdate {
+	_u.mutation.ClearCalculationBasis()
+	return _u
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (_u *FinanceCommissionUpdate) SetRuleVersion(v uint64) *FinanceCommissionUpdate {
+	_u.mutation.ResetRuleVersion()
+	_u.mutation.SetRuleVersion(v)
+	return _u
+}
+
+// SetNillableRuleVersion sets the "rule_version" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableRuleVersion(v *uint64) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetRuleVersion(*v)
+	}
+	return _u
+}
+
+// AddRuleVersion adds value to the "rule_version" field.
+func (_u *FinanceCommissionUpdate) AddRuleVersion(v int64) *FinanceCommissionUpdate {
+	_u.mutation.AddRuleVersion(v)
+	return _u
+}
+
+// SetCalculationVersion sets the "calculation_version" field.
+func (_u *FinanceCommissionUpdate) SetCalculationVersion(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCalculationVersion(v)
+	return _u
+}
+
+// SetNillableCalculationVersion sets the "calculation_version" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCalculationVersion(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCalculationVersion(*v)
+	}
+	return _u
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (_u *FinanceCommissionUpdate) SetSourceFingerprint(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetSourceFingerprint(v)
+	return _u
+}
+
+// SetNillableSourceFingerprint sets the "source_fingerprint" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableSourceFingerprint(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetSourceFingerprint(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *FinanceCommissionUpdate) SetStatus(v financecommission.Status) *FinanceCommissionUpdate {
 	_u.mutation.SetStatus(v)
@@ -49,6 +276,180 @@ func (_u *FinanceCommissionUpdate) SetStatus(v financecommission.Status) *Financ
 func (_u *FinanceCommissionUpdate) SetNillableStatus(v *financecommission.Status) *FinanceCommissionUpdate {
 	if v != nil {
 		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetRealizedRevenue sets the "realized_revenue" field.
+func (_u *FinanceCommissionUpdate) SetRealizedRevenue(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetRealizedRevenue(v)
+	return _u
+}
+
+// SetNillableRealizedRevenue sets the "realized_revenue" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableRealizedRevenue(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetRealizedRevenue(*v)
+	}
+	return _u
+}
+
+// SetAllocatedCost sets the "allocated_cost" field.
+func (_u *FinanceCommissionUpdate) SetAllocatedCost(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetAllocatedCost(v)
+	return _u
+}
+
+// SetNillableAllocatedCost sets the "allocated_cost" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableAllocatedCost(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetAllocatedCost(*v)
+	}
+	return _u
+}
+
+// SetRealizedProfit sets the "realized_profit" field.
+func (_u *FinanceCommissionUpdate) SetRealizedProfit(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetRealizedProfit(v)
+	return _u
+}
+
+// SetNillableRealizedProfit sets the "realized_profit" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableRealizedProfit(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetRealizedProfit(*v)
+	}
+	return _u
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (_u *FinanceCommissionUpdate) SetCommissionBaseAmount(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCommissionBaseAmount(v)
+	return _u
+}
+
+// SetNillableCommissionBaseAmount sets the "commission_base_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCommissionBaseAmount(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCommissionBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (_u *FinanceCommissionUpdate) SetRatePercent(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetRatePercent(v)
+	return _u
+}
+
+// SetNillableRatePercent sets the "rate_percent" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableRatePercent(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetRatePercent(*v)
+	}
+	return _u
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (_u *FinanceCommissionUpdate) SetCommissionAmount(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCommissionAmount sets the "commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCommissionAmount(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (_u *FinanceCommissionUpdate) SetCommissionDate(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCommissionDate(v)
+	return _u
+}
+
+// SetNillableCommissionDate sets the "commission_date" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCommissionDate(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCommissionDate(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRate sets the "cny_exchange_rate" field.
+func (_u *FinanceCommissionUpdate) SetCnyExchangeRate(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCnyExchangeRate(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRate sets the "cny_exchange_rate" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCnyExchangeRate(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCnyExchangeRate(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRateSource sets the "cny_exchange_rate_source" field.
+func (_u *FinanceCommissionUpdate) SetCnyExchangeRateSource(v financecommission.CnyExchangeRateSource) *FinanceCommissionUpdate {
+	_u.mutation.SetCnyExchangeRateSource(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRateSource sets the "cny_exchange_rate_source" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCnyExchangeRateSource(v *financecommission.CnyExchangeRateSource) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCnyExchangeRateSource(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRateDate sets the "cny_exchange_rate_date" field.
+func (_u *FinanceCommissionUpdate) SetCnyExchangeRateDate(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCnyExchangeRateDate(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRateDate sets the "cny_exchange_rate_date" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCnyExchangeRateDate(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCnyExchangeRateDate(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field.
+func (_u *FinanceCommissionUpdate) SetCnyExchangeRateSettingID(v uuid.UUID) *FinanceCommissionUpdate {
+	_u.mutation.SetCnyExchangeRateSettingID(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCnyExchangeRateSettingID(v *uuid.UUID) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCnyExchangeRateSettingID(*v)
+	}
+	return _u
+}
+
+// ClearCnyExchangeRateSettingID clears the value of the "cny_exchange_rate_setting_id" field.
+func (_u *FinanceCommissionUpdate) ClearCnyExchangeRateSettingID() *FinanceCommissionUpdate {
+	_u.mutation.ClearCnyExchangeRateSettingID()
+	return _u
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (_u *FinanceCommissionUpdate) SetCnyCommissionAmount(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetCnyCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCnyCommissionAmount sets the "cny_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableCnyCommissionAmount(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetCnyCommissionAmount(*v)
 	}
 	return _u
 }
@@ -255,6 +656,11 @@ func (_u *FinanceCommissionUpdate) ClearCancellationReason() *FinanceCommissionU
 	return _u
 }
 
+// SetRule sets the "rule" edge to the FinanceCommissionRule entity.
+func (_u *FinanceCommissionUpdate) SetRule(v *FinanceCommissionRule) *FinanceCommissionUpdate {
+	return _u.SetRuleID(v.ID)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_u *FinanceCommissionUpdate) SetConfirmedByUserID(id uuid.UUID) *FinanceCommissionUpdate {
 	_u.mutation.SetConfirmedByUserID(id)
@@ -360,6 +766,12 @@ func (_u *FinanceCommissionUpdate) AddApplicationLines(v ...*FinanceCommissionAp
 // Mutation returns the FinanceCommissionMutation object of the builder.
 func (_u *FinanceCommissionUpdate) Mutation() *FinanceCommissionMutation {
 	return _u.mutation
+}
+
+// ClearRule clears the "rule" edge to the FinanceCommissionRule entity.
+func (_u *FinanceCommissionUpdate) ClearRule() *FinanceCommissionUpdate {
+	_u.mutation.ClearRule()
+	return _u
 }
 
 // ClearConfirmedByUser clears the "confirmed_by_user" edge to the User entity.
@@ -481,9 +893,74 @@ func (_u *FinanceCommissionUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinanceCommissionUpdate) check() error {
+	if v, ok := _u.mutation.VerificationNo(); ok {
+		if err := financecommission.VerificationNoValidator(v); err != nil {
+			return &ValidationError{Name: "verification_no", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.verification_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.NettingNo(); ok {
+		if err := financecommission.NettingNoValidator(v); err != nil {
+			return &ValidationError{Name: "netting_no", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.netting_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.EmployeeName(); ok {
+		if err := financecommission.EmployeeNameValidator(v); err != nil {
+			return &ValidationError{Name: "employee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.employee_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CustomerCount(); ok {
+		if err := financecommission.CustomerCountValidator(v); err != nil {
+			return &ValidationError{Name: "customer_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.customer_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.OrderCount(); ok {
+		if err := financecommission.OrderCountValidator(v); err != nil {
+			return &ValidationError{Name: "order_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.order_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FeeCount(); ok {
+		if err := financecommission.FeeCountValidator(v); err != nil {
+			return &ValidationError{Name: "fee_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.fee_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RuleName(); ok {
+		if err := financecommission.RuleNameValidator(v); err != nil {
+			return &ValidationError{Name: "rule_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.rule_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CalculationBasis(); ok {
+		if err := financecommission.CalculationBasisValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_basis", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.calculation_basis": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CalculationVersion(); ok {
+		if err := financecommission.CalculationVersionValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_version", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.calculation_version": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceFingerprint(); ok {
+		if err := financecommission.SourceFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "source_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.source_fingerprint": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := financecommission.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CommissionDate(); ok {
+		if err := financecommission.CommissionDateValidator(v); err != nil {
+			return &ValidationError{Name: "commission_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.commission_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CnyExchangeRateSource(); ok {
+		if err := financecommission.CnyExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "cny_exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cny_exchange_rate_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CnyExchangeRateDate(); ok {
+		if err := financecommission.CnyExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "cny_exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cny_exchange_rate_date": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Note(); ok {
@@ -520,11 +997,41 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.VerificationNo(); ok {
+		_spec.SetField(financecommission.FieldVerificationNo, field.TypeString, value)
+	}
 	if _u.mutation.VerificationNoCleared() {
 		_spec.ClearField(financecommission.FieldVerificationNo, field.TypeString)
 	}
+	if value, ok := _u.mutation.NettingNo(); ok {
+		_spec.SetField(financecommission.FieldNettingNo, field.TypeString, value)
+	}
 	if _u.mutation.NettingNoCleared() {
 		_spec.ClearField(financecommission.FieldNettingNo, field.TypeString)
+	}
+	if value, ok := _u.mutation.EmployeeName(); ok {
+		_spec.SetField(financecommission.FieldEmployeeName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CustomerCount(); ok {
+		_spec.SetField(financecommission.FieldCustomerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCustomerCount(); ok {
+		_spec.AddField(financecommission.FieldCustomerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.OrderCount(); ok {
+		_spec.SetField(financecommission.FieldOrderCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOrderCount(); ok {
+		_spec.AddField(financecommission.FieldOrderCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.FeeCount(); ok {
+		_spec.SetField(financecommission.FieldFeeCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFeeCount(); ok {
+		_spec.AddField(financecommission.FieldFeeCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RuleName(); ok {
+		_spec.SetField(financecommission.FieldRuleName, field.TypeString, value)
 	}
 	if _u.mutation.RuleNameCleared() {
 		_spec.ClearField(financecommission.FieldRuleName, field.TypeString)
@@ -532,14 +1039,65 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	if _u.mutation.PersonnelRoleCleared() {
 		_spec.ClearField(financecommission.FieldPersonnelRole, field.TypeString)
 	}
+	if value, ok := _u.mutation.CalculationBasis(); ok {
+		_spec.SetField(financecommission.FieldCalculationBasis, field.TypeString, value)
+	}
 	if _u.mutation.CalculationBasisCleared() {
 		_spec.ClearField(financecommission.FieldCalculationBasis, field.TypeString)
+	}
+	if value, ok := _u.mutation.RuleVersion(); ok {
+		_spec.SetField(financecommission.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedRuleVersion(); ok {
+		_spec.AddField(financecommission.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CalculationVersion(); ok {
+		_spec.SetField(financecommission.FieldCalculationVersion, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceFingerprint(); ok {
+		_spec.SetField(financecommission.FieldSourceFingerprint, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
 	}
+	if value, ok := _u.mutation.RealizedRevenue(); ok {
+		_spec.SetField(financecommission.FieldRealizedRevenue, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AllocatedCost(); ok {
+		_spec.SetField(financecommission.FieldAllocatedCost, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RealizedProfit(); ok {
+		_spec.SetField(financecommission.FieldRealizedProfit, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CommissionBaseAmount(); ok {
+		_spec.SetField(financecommission.FieldCommissionBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RatePercent(); ok {
+		_spec.SetField(financecommission.FieldRatePercent, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CommissionAmount(); ok {
+		_spec.SetField(financecommission.FieldCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CommissionDate(); ok {
+		_spec.SetField(financecommission.FieldCommissionDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRate(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRateSource(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateSource, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRateDate(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRateSettingID(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateSettingID, field.TypeUUID, value)
+	}
 	if _u.mutation.CnyExchangeRateSettingIDCleared() {
 		_spec.ClearField(financecommission.FieldCnyExchangeRateSettingID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.CnyCommissionAmount(); ok {
+		_spec.SetField(financecommission.FieldCnyCommissionAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.AdjustmentSequence(); ok {
 		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
@@ -582,6 +1140,35 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if _u.mutation.CancellationReasonCleared() {
 		_spec.ClearField(financecommission.FieldCancellationReason, field.TypeString)
+	}
+	if _u.mutation.RuleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommission.RuleTable,
+			Columns: []string{financecommission.RuleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionrule.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RuleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommission.RuleTable,
+			Columns: []string{financecommission.RuleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ConfirmedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -831,6 +1418,232 @@ func (_u *FinanceCommissionUpdateOne) SetUpdatedAt(v time.Time) *FinanceCommissi
 	return _u
 }
 
+// SetVerificationNo sets the "verification_no" field.
+func (_u *FinanceCommissionUpdateOne) SetVerificationNo(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetVerificationNo(v)
+	return _u
+}
+
+// SetNillableVerificationNo sets the "verification_no" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableVerificationNo(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetVerificationNo(*v)
+	}
+	return _u
+}
+
+// ClearVerificationNo clears the value of the "verification_no" field.
+func (_u *FinanceCommissionUpdateOne) ClearVerificationNo() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearVerificationNo()
+	return _u
+}
+
+// SetNettingNo sets the "netting_no" field.
+func (_u *FinanceCommissionUpdateOne) SetNettingNo(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetNettingNo(v)
+	return _u
+}
+
+// SetNillableNettingNo sets the "netting_no" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableNettingNo(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetNettingNo(*v)
+	}
+	return _u
+}
+
+// ClearNettingNo clears the value of the "netting_no" field.
+func (_u *FinanceCommissionUpdateOne) ClearNettingNo() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearNettingNo()
+	return _u
+}
+
+// SetEmployeeName sets the "employee_name" field.
+func (_u *FinanceCommissionUpdateOne) SetEmployeeName(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetEmployeeName(v)
+	return _u
+}
+
+// SetNillableEmployeeName sets the "employee_name" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableEmployeeName(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetEmployeeName(*v)
+	}
+	return _u
+}
+
+// SetCustomerCount sets the "customer_count" field.
+func (_u *FinanceCommissionUpdateOne) SetCustomerCount(v int) *FinanceCommissionUpdateOne {
+	_u.mutation.ResetCustomerCount()
+	_u.mutation.SetCustomerCount(v)
+	return _u
+}
+
+// SetNillableCustomerCount sets the "customer_count" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCustomerCount(v *int) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCustomerCount(*v)
+	}
+	return _u
+}
+
+// AddCustomerCount adds value to the "customer_count" field.
+func (_u *FinanceCommissionUpdateOne) AddCustomerCount(v int) *FinanceCommissionUpdateOne {
+	_u.mutation.AddCustomerCount(v)
+	return _u
+}
+
+// SetOrderCount sets the "order_count" field.
+func (_u *FinanceCommissionUpdateOne) SetOrderCount(v int) *FinanceCommissionUpdateOne {
+	_u.mutation.ResetOrderCount()
+	_u.mutation.SetOrderCount(v)
+	return _u
+}
+
+// SetNillableOrderCount sets the "order_count" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableOrderCount(v *int) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetOrderCount(*v)
+	}
+	return _u
+}
+
+// AddOrderCount adds value to the "order_count" field.
+func (_u *FinanceCommissionUpdateOne) AddOrderCount(v int) *FinanceCommissionUpdateOne {
+	_u.mutation.AddOrderCount(v)
+	return _u
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (_u *FinanceCommissionUpdateOne) SetFeeCount(v int) *FinanceCommissionUpdateOne {
+	_u.mutation.ResetFeeCount()
+	_u.mutation.SetFeeCount(v)
+	return _u
+}
+
+// SetNillableFeeCount sets the "fee_count" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableFeeCount(v *int) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetFeeCount(*v)
+	}
+	return _u
+}
+
+// AddFeeCount adds value to the "fee_count" field.
+func (_u *FinanceCommissionUpdateOne) AddFeeCount(v int) *FinanceCommissionUpdateOne {
+	_u.mutation.AddFeeCount(v)
+	return _u
+}
+
+// SetRuleID sets the "rule_id" field.
+func (_u *FinanceCommissionUpdateOne) SetRuleID(v uuid.UUID) *FinanceCommissionUpdateOne {
+	_u.mutation.SetRuleID(v)
+	return _u
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableRuleID(v *uuid.UUID) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetRuleID(*v)
+	}
+	return _u
+}
+
+// ClearRuleID clears the value of the "rule_id" field.
+func (_u *FinanceCommissionUpdateOne) ClearRuleID() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearRuleID()
+	return _u
+}
+
+// SetRuleName sets the "rule_name" field.
+func (_u *FinanceCommissionUpdateOne) SetRuleName(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetRuleName(v)
+	return _u
+}
+
+// SetNillableRuleName sets the "rule_name" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableRuleName(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetRuleName(*v)
+	}
+	return _u
+}
+
+// ClearRuleName clears the value of the "rule_name" field.
+func (_u *FinanceCommissionUpdateOne) ClearRuleName() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearRuleName()
+	return _u
+}
+
+// SetCalculationBasis sets the "calculation_basis" field.
+func (_u *FinanceCommissionUpdateOne) SetCalculationBasis(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCalculationBasis(v)
+	return _u
+}
+
+// SetNillableCalculationBasis sets the "calculation_basis" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCalculationBasis(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCalculationBasis(*v)
+	}
+	return _u
+}
+
+// ClearCalculationBasis clears the value of the "calculation_basis" field.
+func (_u *FinanceCommissionUpdateOne) ClearCalculationBasis() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearCalculationBasis()
+	return _u
+}
+
+// SetRuleVersion sets the "rule_version" field.
+func (_u *FinanceCommissionUpdateOne) SetRuleVersion(v uint64) *FinanceCommissionUpdateOne {
+	_u.mutation.ResetRuleVersion()
+	_u.mutation.SetRuleVersion(v)
+	return _u
+}
+
+// SetNillableRuleVersion sets the "rule_version" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableRuleVersion(v *uint64) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetRuleVersion(*v)
+	}
+	return _u
+}
+
+// AddRuleVersion adds value to the "rule_version" field.
+func (_u *FinanceCommissionUpdateOne) AddRuleVersion(v int64) *FinanceCommissionUpdateOne {
+	_u.mutation.AddRuleVersion(v)
+	return _u
+}
+
+// SetCalculationVersion sets the "calculation_version" field.
+func (_u *FinanceCommissionUpdateOne) SetCalculationVersion(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCalculationVersion(v)
+	return _u
+}
+
+// SetNillableCalculationVersion sets the "calculation_version" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCalculationVersion(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCalculationVersion(*v)
+	}
+	return _u
+}
+
+// SetSourceFingerprint sets the "source_fingerprint" field.
+func (_u *FinanceCommissionUpdateOne) SetSourceFingerprint(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetSourceFingerprint(v)
+	return _u
+}
+
+// SetNillableSourceFingerprint sets the "source_fingerprint" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableSourceFingerprint(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetSourceFingerprint(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *FinanceCommissionUpdateOne) SetStatus(v financecommission.Status) *FinanceCommissionUpdateOne {
 	_u.mutation.SetStatus(v)
@@ -841,6 +1654,180 @@ func (_u *FinanceCommissionUpdateOne) SetStatus(v financecommission.Status) *Fin
 func (_u *FinanceCommissionUpdateOne) SetNillableStatus(v *financecommission.Status) *FinanceCommissionUpdateOne {
 	if v != nil {
 		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetRealizedRevenue sets the "realized_revenue" field.
+func (_u *FinanceCommissionUpdateOne) SetRealizedRevenue(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetRealizedRevenue(v)
+	return _u
+}
+
+// SetNillableRealizedRevenue sets the "realized_revenue" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableRealizedRevenue(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetRealizedRevenue(*v)
+	}
+	return _u
+}
+
+// SetAllocatedCost sets the "allocated_cost" field.
+func (_u *FinanceCommissionUpdateOne) SetAllocatedCost(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetAllocatedCost(v)
+	return _u
+}
+
+// SetNillableAllocatedCost sets the "allocated_cost" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableAllocatedCost(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetAllocatedCost(*v)
+	}
+	return _u
+}
+
+// SetRealizedProfit sets the "realized_profit" field.
+func (_u *FinanceCommissionUpdateOne) SetRealizedProfit(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetRealizedProfit(v)
+	return _u
+}
+
+// SetNillableRealizedProfit sets the "realized_profit" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableRealizedProfit(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetRealizedProfit(*v)
+	}
+	return _u
+}
+
+// SetCommissionBaseAmount sets the "commission_base_amount" field.
+func (_u *FinanceCommissionUpdateOne) SetCommissionBaseAmount(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCommissionBaseAmount(v)
+	return _u
+}
+
+// SetNillableCommissionBaseAmount sets the "commission_base_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCommissionBaseAmount(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCommissionBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetRatePercent sets the "rate_percent" field.
+func (_u *FinanceCommissionUpdateOne) SetRatePercent(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetRatePercent(v)
+	return _u
+}
+
+// SetNillableRatePercent sets the "rate_percent" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableRatePercent(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetRatePercent(*v)
+	}
+	return _u
+}
+
+// SetCommissionAmount sets the "commission_amount" field.
+func (_u *FinanceCommissionUpdateOne) SetCommissionAmount(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCommissionAmount sets the "commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCommissionAmount(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCommissionAmount(*v)
+	}
+	return _u
+}
+
+// SetCommissionDate sets the "commission_date" field.
+func (_u *FinanceCommissionUpdateOne) SetCommissionDate(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCommissionDate(v)
+	return _u
+}
+
+// SetNillableCommissionDate sets the "commission_date" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCommissionDate(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCommissionDate(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRate sets the "cny_exchange_rate" field.
+func (_u *FinanceCommissionUpdateOne) SetCnyExchangeRate(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCnyExchangeRate(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRate sets the "cny_exchange_rate" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCnyExchangeRate(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCnyExchangeRate(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRateSource sets the "cny_exchange_rate_source" field.
+func (_u *FinanceCommissionUpdateOne) SetCnyExchangeRateSource(v financecommission.CnyExchangeRateSource) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCnyExchangeRateSource(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRateSource sets the "cny_exchange_rate_source" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCnyExchangeRateSource(v *financecommission.CnyExchangeRateSource) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCnyExchangeRateSource(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRateDate sets the "cny_exchange_rate_date" field.
+func (_u *FinanceCommissionUpdateOne) SetCnyExchangeRateDate(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCnyExchangeRateDate(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRateDate sets the "cny_exchange_rate_date" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCnyExchangeRateDate(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCnyExchangeRateDate(*v)
+	}
+	return _u
+}
+
+// SetCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field.
+func (_u *FinanceCommissionUpdateOne) SetCnyExchangeRateSettingID(v uuid.UUID) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCnyExchangeRateSettingID(v)
+	return _u
+}
+
+// SetNillableCnyExchangeRateSettingID sets the "cny_exchange_rate_setting_id" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCnyExchangeRateSettingID(v *uuid.UUID) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCnyExchangeRateSettingID(*v)
+	}
+	return _u
+}
+
+// ClearCnyExchangeRateSettingID clears the value of the "cny_exchange_rate_setting_id" field.
+func (_u *FinanceCommissionUpdateOne) ClearCnyExchangeRateSettingID() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearCnyExchangeRateSettingID()
+	return _u
+}
+
+// SetCnyCommissionAmount sets the "cny_commission_amount" field.
+func (_u *FinanceCommissionUpdateOne) SetCnyCommissionAmount(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetCnyCommissionAmount(v)
+	return _u
+}
+
+// SetNillableCnyCommissionAmount sets the "cny_commission_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableCnyCommissionAmount(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetCnyCommissionAmount(*v)
 	}
 	return _u
 }
@@ -1047,6 +2034,11 @@ func (_u *FinanceCommissionUpdateOne) ClearCancellationReason() *FinanceCommissi
 	return _u
 }
 
+// SetRule sets the "rule" edge to the FinanceCommissionRule entity.
+func (_u *FinanceCommissionUpdateOne) SetRule(v *FinanceCommissionRule) *FinanceCommissionUpdateOne {
+	return _u.SetRuleID(v.ID)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_u *FinanceCommissionUpdateOne) SetConfirmedByUserID(id uuid.UUID) *FinanceCommissionUpdateOne {
 	_u.mutation.SetConfirmedByUserID(id)
@@ -1152,6 +2144,12 @@ func (_u *FinanceCommissionUpdateOne) AddApplicationLines(v ...*FinanceCommissio
 // Mutation returns the FinanceCommissionMutation object of the builder.
 func (_u *FinanceCommissionUpdateOne) Mutation() *FinanceCommissionMutation {
 	return _u.mutation
+}
+
+// ClearRule clears the "rule" edge to the FinanceCommissionRule entity.
+func (_u *FinanceCommissionUpdateOne) ClearRule() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearRule()
+	return _u
 }
 
 // ClearConfirmedByUser clears the "confirmed_by_user" edge to the User entity.
@@ -1286,9 +2284,74 @@ func (_u *FinanceCommissionUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *FinanceCommissionUpdateOne) check() error {
+	if v, ok := _u.mutation.VerificationNo(); ok {
+		if err := financecommission.VerificationNoValidator(v); err != nil {
+			return &ValidationError{Name: "verification_no", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.verification_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.NettingNo(); ok {
+		if err := financecommission.NettingNoValidator(v); err != nil {
+			return &ValidationError{Name: "netting_no", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.netting_no": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.EmployeeName(); ok {
+		if err := financecommission.EmployeeNameValidator(v); err != nil {
+			return &ValidationError{Name: "employee_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.employee_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CustomerCount(); ok {
+		if err := financecommission.CustomerCountValidator(v); err != nil {
+			return &ValidationError{Name: "customer_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.customer_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.OrderCount(); ok {
+		if err := financecommission.OrderCountValidator(v); err != nil {
+			return &ValidationError{Name: "order_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.order_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.FeeCount(); ok {
+		if err := financecommission.FeeCountValidator(v); err != nil {
+			return &ValidationError{Name: "fee_count", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.fee_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.RuleName(); ok {
+		if err := financecommission.RuleNameValidator(v); err != nil {
+			return &ValidationError{Name: "rule_name", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.rule_name": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CalculationBasis(); ok {
+		if err := financecommission.CalculationBasisValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_basis", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.calculation_basis": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CalculationVersion(); ok {
+		if err := financecommission.CalculationVersionValidator(v); err != nil {
+			return &ValidationError{Name: "calculation_version", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.calculation_version": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.SourceFingerprint(); ok {
+		if err := financecommission.SourceFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "source_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.source_fingerprint": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := financecommission.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CommissionDate(); ok {
+		if err := financecommission.CommissionDateValidator(v); err != nil {
+			return &ValidationError{Name: "commission_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.commission_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CnyExchangeRateSource(); ok {
+		if err := financecommission.CnyExchangeRateSourceValidator(v); err != nil {
+			return &ValidationError{Name: "cny_exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cny_exchange_rate_source": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CnyExchangeRateDate(); ok {
+		if err := financecommission.CnyExchangeRateDateValidator(v); err != nil {
+			return &ValidationError{Name: "cny_exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cny_exchange_rate_date": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Note(); ok {
@@ -1342,11 +2405,41 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.VerificationNo(); ok {
+		_spec.SetField(financecommission.FieldVerificationNo, field.TypeString, value)
+	}
 	if _u.mutation.VerificationNoCleared() {
 		_spec.ClearField(financecommission.FieldVerificationNo, field.TypeString)
 	}
+	if value, ok := _u.mutation.NettingNo(); ok {
+		_spec.SetField(financecommission.FieldNettingNo, field.TypeString, value)
+	}
 	if _u.mutation.NettingNoCleared() {
 		_spec.ClearField(financecommission.FieldNettingNo, field.TypeString)
+	}
+	if value, ok := _u.mutation.EmployeeName(); ok {
+		_spec.SetField(financecommission.FieldEmployeeName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CustomerCount(); ok {
+		_spec.SetField(financecommission.FieldCustomerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCustomerCount(); ok {
+		_spec.AddField(financecommission.FieldCustomerCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.OrderCount(); ok {
+		_spec.SetField(financecommission.FieldOrderCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedOrderCount(); ok {
+		_spec.AddField(financecommission.FieldOrderCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.FeeCount(); ok {
+		_spec.SetField(financecommission.FieldFeeCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFeeCount(); ok {
+		_spec.AddField(financecommission.FieldFeeCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.RuleName(); ok {
+		_spec.SetField(financecommission.FieldRuleName, field.TypeString, value)
 	}
 	if _u.mutation.RuleNameCleared() {
 		_spec.ClearField(financecommission.FieldRuleName, field.TypeString)
@@ -1354,14 +2447,65 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	if _u.mutation.PersonnelRoleCleared() {
 		_spec.ClearField(financecommission.FieldPersonnelRole, field.TypeString)
 	}
+	if value, ok := _u.mutation.CalculationBasis(); ok {
+		_spec.SetField(financecommission.FieldCalculationBasis, field.TypeString, value)
+	}
 	if _u.mutation.CalculationBasisCleared() {
 		_spec.ClearField(financecommission.FieldCalculationBasis, field.TypeString)
+	}
+	if value, ok := _u.mutation.RuleVersion(); ok {
+		_spec.SetField(financecommission.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedRuleVersion(); ok {
+		_spec.AddField(financecommission.FieldRuleVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CalculationVersion(); ok {
+		_spec.SetField(financecommission.FieldCalculationVersion, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.SourceFingerprint(); ok {
+		_spec.SetField(financecommission.FieldSourceFingerprint, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecommission.FieldStatus, field.TypeEnum, value)
 	}
+	if value, ok := _u.mutation.RealizedRevenue(); ok {
+		_spec.SetField(financecommission.FieldRealizedRevenue, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AllocatedCost(); ok {
+		_spec.SetField(financecommission.FieldAllocatedCost, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RealizedProfit(); ok {
+		_spec.SetField(financecommission.FieldRealizedProfit, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CommissionBaseAmount(); ok {
+		_spec.SetField(financecommission.FieldCommissionBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.RatePercent(); ok {
+		_spec.SetField(financecommission.FieldRatePercent, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CommissionAmount(); ok {
+		_spec.SetField(financecommission.FieldCommissionAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CommissionDate(); ok {
+		_spec.SetField(financecommission.FieldCommissionDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRate(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRateSource(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateSource, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRateDate(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateDate, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CnyExchangeRateSettingID(); ok {
+		_spec.SetField(financecommission.FieldCnyExchangeRateSettingID, field.TypeUUID, value)
+	}
 	if _u.mutation.CnyExchangeRateSettingIDCleared() {
 		_spec.ClearField(financecommission.FieldCnyExchangeRateSettingID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.CnyCommissionAmount(); ok {
+		_spec.SetField(financecommission.FieldCnyCommissionAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.AdjustmentSequence(); ok {
 		_spec.SetField(financecommission.FieldAdjustmentSequence, field.TypeUint64, value)
@@ -1404,6 +2548,35 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	}
 	if _u.mutation.CancellationReasonCleared() {
 		_spec.ClearField(financecommission.FieldCancellationReason, field.TypeString)
+	}
+	if _u.mutation.RuleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommission.RuleTable,
+			Columns: []string{financecommission.RuleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionrule.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RuleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommission.RuleTable,
+			Columns: []string{financecommission.RuleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionrule.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ConfirmedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{

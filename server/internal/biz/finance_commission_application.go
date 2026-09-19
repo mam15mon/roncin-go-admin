@@ -23,9 +23,10 @@ var (
 	// ErrCommissionApplicationEmpty 截止日以前没有任何合格未申请提成：拒绝提交，
 	// 不创建空申请。
 	ErrCommissionApplicationEmpty = errors.Conflict("FINANCE_COMMISSION_APPLICATION_EMPTY", "截至上一自然月末暂无可申请的合格提成")
-	// ErrCommissionApplicationConflict 月度唯一键下的状态门禁：申请已在
-	// PENDING_REVIEW 或 APPROVED 时重复/并发提交稳定拒绝。
-	ErrCommissionApplicationConflict = errors.Conflict("FINANCE_COMMISSION_APPLICATION_CONFLICT", "该月申请已提交或已批准，不能重复提交")
+	// ErrCommissionApplicationConflict 月度唯一键下的状态门禁：当月已存在任何
+	// 状态的申请头时空提交稳定拒绝，重提必须走显式申请 ID 的 Resubmit 路径；
+	// 并发提交唯一索引兜底同样映射到该错误。
+	ErrCommissionApplicationConflict = errors.Conflict("FINANCE_COMMISSION_APPLICATION_CONFLICT", "该月申请已存在，请在申请详情中查看进度或重新提交")
 	// ErrCommissionApplicationSourceConflict 提交事务内的来源变更冲突（design §3.3）：
 	// 已占用提成、指纹失效的 DRAFT、重提时明细失效等任一命中即整体回滚。
 	ErrCommissionApplicationSourceConflict = errors.Conflict("FINANCE_COMMISSION_APPLICATION_SOURCE_CONFLICT", "部分提成事实已变化或已被占用，请刷新后重试")
@@ -33,6 +34,10 @@ var (
 	// expected_version 与 PENDING_REVIEW 双重校验不通过——并发批准/驳回/重提只有
 	// 一个事务成功，后到者按「已被处理」稳定拒绝，不做部分批准。
 	ErrCommissionApplicationStatusConflict = errors.Conflict("FINANCE_COMMISSION_APPLICATION_STATUS_CONFLICT", "该申请已被处理，请刷新后重试")
+	// ErrCommissionApplicationNoValidLines 显式重提门禁：原绑定明细按上游当前
+	// 事实逐笔复核后全部失效（来源失效或提成已被取消/冲销），无有效明细可提交，
+	// 整体回滚且申请保持 REJECTED。
+	ErrCommissionApplicationNoValidLines = errors.Conflict("FINANCE_COMMISSION_APPLICATION_NO_VALID_LINES", "申请内已无有效明细，无法重新提交")
 )
 
 // CommissionApplicationStatus 是月度提成申请头状态，与申请头 CHECK 同源。
@@ -208,9 +213,15 @@ type FinanceCommissionApplicationRepo interface {
 	// ListMyCandidates 全量解析本人截至 coverage_to 的可申请候选并按归属月过滤、
 	// 服务端分页；不套用工作台预计估算的有界上限。
 	ListMyCandidates(ctx context.Context, scope WorkbenchScope, filter WorkbenchApplicationCandidateFilter) (*PagedList[*WorkbenchApplicationCandidate], error)
-	// Submit 提交或重提本人月度申请：会话固定本人与当前组织，服务端以财务业务
-	// 日期推导提交月与覆盖截止日，在共享事务内全量重算候选并固化申请头与明细。
+	// Submit 提交本人月度申请（仅用于新建）：会话固定本人与当前组织，服务端以
+	// 财务业务日期推导提交月与覆盖截止日，在共享事务内全量重算候选并固化申请头
+	// 与明细；当月已存在任何状态的申请头时稳定冲突，不承担重提语义。
 	Submit(ctx context.Context, scope WorkbenchScope) (*FinanceCommissionApplication, error)
+	// Resubmit 显式重提本人被驳回的月度申请（design §5.3）：application_id +
+	// expected_version 定位原申请，会话固定本人与当前组织；事务内按上游当前
+	// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+	// 剔除并留审计），重算笔数/合计，版本递增并回到 PENDING_REVIEW。
+	Resubmit(ctx context.Context, scope WorkbenchScope, id uuid.UUID, expectedVersion uint64) (*FinanceCommissionApplication, error)
 	// ListMyApplications 返回本人申请历史分页。
 	ListMyApplications(ctx context.Context, scope WorkbenchScope, filter WorkbenchApplicationFilter) (*PagedList[*FinanceCommissionApplication], error)
 	// GetMyApplication 返回本人单张申请详情；他人或跨组织申请按不存在处理。
@@ -259,12 +270,23 @@ func (u *FinanceCommissionApplicationUsecase) ListMyCandidates(ctx context.Conte
 	return u.repo.ListMyCandidates(ctx, scope, filter)
 }
 
-// Submit 提交或重提本人月度申请：无业务参数，主体与组织固定取自会话。
+// Submit 提交本人月度申请：无业务参数，主体与组织固定取自会话；仅用于新建，
+// 当月已存在申请头时稳定冲突。
 func (u *FinanceCommissionApplicationUsecase) Submit(ctx context.Context, scope WorkbenchScope) (*FinanceCommissionApplication, error) {
 	if !validWorkbenchScope(scope) {
 		return nil, ErrWorkbenchInvalid
 	}
 	return u.repo.Submit(ctx, scope)
+}
+
+// Resubmit 显式重提本人被驳回的月度申请：application_id + expected_version
+// 定位原申请，主体与组织固定取自会话；刷新快照、剔除失效明细与版本递增由
+// 仓储事务实现承担。
+func (u *FinanceCommissionApplicationUsecase) Resubmit(ctx context.Context, scope WorkbenchScope, id uuid.UUID, expectedVersion uint64) (*FinanceCommissionApplication, error) {
+	if !validWorkbenchScope(scope) || id == uuid.Nil || expectedVersion == 0 {
+		return nil, ErrCommissionApplicationInvalid
+	}
+	return u.repo.Resubmit(ctx, scope, id, expectedVersion)
 }
 
 // ListMyApplications 返回本人申请历史分页。
@@ -341,6 +363,19 @@ func CommissionApplicationSubmitAudit(org, actor, applicationID uuid.UUID, actio
 			"total_amount":      total.StringFixed(8),
 		},
 	}
+}
+
+// CommissionApplicationResubmitAudit 构造显式重提审计：在提交审计形状之上记录
+// 本次重提的快照刷新结果——刷新明细数、剔除明细数与被剔除的提成事实 ID 集合
+// （审计留痕；被剔除明细的提成按既有冲销/调整模型处理）。不记录完整收入明细。
+func CommissionApplicationResubmitAudit(org, actor, applicationID uuid.UUID, month, coverageTo string, count, refreshed, removed int, total decimal.Decimal, removedCommissionIDs []string) *AuditEvent {
+	audit := CommissionApplicationSubmitAudit(org, actor, applicationID, CommissionApplicationSubmitAction(true), month, coverageTo, count, total)
+	audit.Details["refreshed_count"] = strconv.Itoa(refreshed)
+	audit.Details["removed_count"] = strconv.Itoa(removed)
+	if len(removedCommissionIDs) > 0 {
+		audit.Details["removed_commission_ids"] = strings.Join(removedCommissionIDs, ",")
+	}
+	return audit
 }
 
 // CommissionApplicationSubmitAction 返回提交或重提的审计动作名。
