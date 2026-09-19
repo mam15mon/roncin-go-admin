@@ -27,8 +27,8 @@
 
 ## Acceptance Criteria
 
-- [ ] 全站无裸露外挂在 PageContainer 外部的顶层业务 Card。
-- [ ] 财务台账各页面具备规范的 PageHeader 标题与层级展示。
-- [ ] 全站 Modal 与 Drawer 宽度全部引用标准 T-shirt 常量，无任意裸写数字。
-- [ ] 财务与订单全域的 RECEIVABLE / PAYABLE 以及 DRAFT / CONFIRMED / CANCELLED 状态 Tag 色彩完全一致。
-- [ ] 前端测试基线 `pnpm --dir web test` 全部通过，`pnpm --dir web tsc` 零错误，`biome` 校验通过。
+- [x] 全站无裸露外挂在 PageContainer 外部的顶层业务 Card。
+- [x] 财务台账各页面具备规范的 PageHeader 标题与层级展示。
+- [x] 全站 Modal 与 Drawer 宽度全部引用标准 T-shirt 常量，无任意裸写数字。
+- [x] 财务与订单全域的 RECEIVABLE / PAYABLE 以及 DRAFT / CONFIRMED / CANCELLED 状态 Tag 色彩完全一致。
+- [x] 前端测试基线 `pnpm --dir web test` 全部通过，`pnpm --dir web tsc` 零错误，`biome` 校验通过。
