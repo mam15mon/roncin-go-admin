@@ -64,6 +64,50 @@ pnpm --dir web biome:lint
 验收前增加完整检查，但必须说明风险依据。若只是局部页面样式、文案或单组件行为，
 最终验证也应避免无依据地扩大到后端全量门禁。
 
+## antd 6 测试交互惯例（vitest + @testing-library）
+
+项目已升级 antd 6（`@rc-component/picker` 1.x）。以下 antd 5 时代的写法在
+antd 6 下会静默失效，测试表现为「元素找不到」或「回调未触发」：
+
+- **DatePicker / MonthPicker 弹层只在 `click` 时打开**。rc-picker 1.x 的
+  `SinglePicker` 只绑定 `onClick: onSelectorClick`，`fireEvent.mouseDown`
+  不再打开弹层：
+
+  ```tsx
+  // 错误（antd 5 惯例）：弹层不打开，后续 cell 查询超时
+  fireEvent.mouseDown(monthInput);
+  // 正确
+  fireEvent.click(monthInput);
+  ```
+
+- **`htmlType="submit"` 按钮必须点击按钮元素本身**。原生表单提交的激活行为
+  只属于按钮节点；`getByText` 取到的是内层 `<span>`，点击它只触发 React
+  冒泡事件，不会触发 `onFinish`：
+
+  ```tsx
+  // 错误：拿到内层文本 span，onFinish 不触发
+  fireEvent.click(screen.getByText('查询'));
+  // 正确（仓库既有惯例，见 OrderListTemplate.test.tsx）
+  fireEvent.click(screen.getByRole('button', { name: /查询/ }));
+  ```
+
+  普通回调按钮（如 `htmlType="button"` + `onClick`）不受影响，点击内层
+  文本经 React 事件冒泡仍可触发。
+
+- **`modal.confirm` 已移除 `confirmLoading`**（`ModalFuncProps` 不再包含该
+  属性，tsc 直接报错）。加载态改用 `okButtonProps`：
+
+  ```tsx
+  // 错误：TS2353 'confirmLoading' does not exist in type 'ModalFuncProps'
+  modal.confirm({ okText: '重新提交', confirmLoading: resubmitting, ... });
+  // 正确
+  modal.confirm({ okText: '重新提交', okButtonProps: { loading: resubmitting }, ... });
+  ```
+
+  另注：`modal.confirm` 的配置对象是调用时一次性快照，`loading: someState`
+  只反映调用瞬间值；`onOk` 返回 Promise 时 antd 会自动为确认按钮加转圈，
+  优先依赖该内置行为而非手工状态镜像。
+
 ## 禁令
 
 - 页面自行拼接后端主机地址（必须走统一请求配置 / 生成客户端）。
