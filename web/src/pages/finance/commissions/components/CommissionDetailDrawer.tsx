@@ -10,6 +10,7 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
+import { DRAWER_SIZE } from '@/components/ui';
 import { FinanceCommissionStatus } from '@/enums.generated';
 import { formatDate } from '@/utils/format';
 import {
@@ -161,7 +162,7 @@ export default function CommissionDetailDrawer({
   return (
     <Drawer
       title={`提成明细${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
-      size={1120}
+      width={DRAWER_SIZE.LG}
       open={open}
       loading={loading}
       extra={

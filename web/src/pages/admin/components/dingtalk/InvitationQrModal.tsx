@@ -2,6 +2,7 @@ import { CopyOutlined, DownloadOutlined } from '@ant-design/icons';
 import { App, Button, Input, Modal, QRCode, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
+import { MODAL_SIZE } from '@/components/ui';
 import { DingTalkInvitationKind } from '@/enums.generated';
 
 export interface InvitationQrModalProps {
@@ -96,7 +97,7 @@ export default function InvitationQrModal({
           完成
         </Button>,
       ]}
-      width={440}
+      width={MODAL_SIZE.SM}
       destroyOnClose
       centered
     >

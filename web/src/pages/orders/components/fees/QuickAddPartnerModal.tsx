@@ -1,5 +1,6 @@
 import { Checkbox, Col, Form, Input, Row, Select } from 'antd';
 import React from 'react';
+import { MODAL_SIZE } from '@/components/ui';
 import { QuickCreateModal } from '@/components/ui/quick-create-modal';
 import {
   PartnerRoleType,
@@ -43,7 +44,7 @@ export default function QuickAddPartnerModal({
     >
       title="快捷新建往来单位"
       open={open}
-      width={540}
+      width={MODAL_SIZE.SM}
       initialValues={{
         role: defaultRole,
         isCasual: true,

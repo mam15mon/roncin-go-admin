@@ -60,6 +60,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', () => ({
+  MODAL_SIZE: { SM: 520, MD: 680, LG: 960, XL: 1200 },
+  DRAWER_SIZE: { SM: 600, MD: 860, LG: 1080, XL: 1200 },
   ProFormSearchableSelect: () => null,
 }));
 

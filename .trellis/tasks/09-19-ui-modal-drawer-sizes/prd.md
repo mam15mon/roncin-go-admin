@@ -22,7 +22,7 @@
 
 ## Acceptance Criteria
 
-- [ ] `@/components/ui` 提供标准 `MODAL_SIZE` 与 `DRAWER_SIZE` 常量导出及类型支持。
-- [ ] 核心业务模块（orders, finance, admin, partners）的 Modal 与 Drawer 宽度全部收敛到上述标准常量档位。
-- [ ] 弹窗内部表单与布局无溢出或截断，响应式体验良好。
-- [ ] 单测与类型检查全部通过。
+- [x] `@/components/ui` 提供标准 `MODAL_SIZE` 与 `DRAWER_SIZE` 常量导出及类型支持。
+- [x] 核心业务模块（orders, finance, admin, partners）的 Modal 与 Drawer 宽度全部收敛到上述标准常量档位。
+- [x] 弹窗内部表单与布局无溢出或截断，响应式体验良好。
+- [x] 单测与类型检查全部通过。

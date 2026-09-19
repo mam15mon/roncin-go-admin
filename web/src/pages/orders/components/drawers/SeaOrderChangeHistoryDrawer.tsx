@@ -16,6 +16,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
+import { DRAWER_SIZE } from '@/components/ui';
 import {
   seaOrderChangeServiceGetSeaOrderChangeEvent,
   seaOrderChangeServiceListSeaOrderChangeEvents,
@@ -307,7 +308,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
         title="拆票与改配历史事件"
         open={open}
         onClose={onClose}
-        width={850}
+        width={DRAWER_SIZE.MD}
         destroyOnClose
       >
         <Table<API.SeaOrderChangeEventSummary>

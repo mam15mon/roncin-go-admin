@@ -11,7 +11,7 @@ import {
 import { Alert } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
 import type { RuleValues } from '../types';
 import type { EmployeeOption } from './commissionRuleShared';
 
@@ -56,7 +56,7 @@ export default function CommissionRuleFormModal({
       key={editingRule?.id || 'new-rule'}
       title={editingRule ? '编辑提成方案' : '新建提成方案'}
       open={open}
-      width={620}
+      width={MODAL_SIZE.MD}
       modalProps={{
         destroyOnHidden: true,
         onCancel,

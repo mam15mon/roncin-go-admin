@@ -1,6 +1,7 @@
 import type { TableColumnsType } from 'antd';
 import { Button, Descriptions, Drawer, Space, Spin, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { DRAWER_SIZE } from '@/components/ui';
 import { FinanceCommissionApplicationStatus } from '@/enums.generated';
 import { settlementServiceGetCommissionApplication } from '@/services/roncin/settlementService';
 import { formatDate } from '@/utils/format';
@@ -134,7 +135,7 @@ export default function CommissionApplicationDetailDrawer({
       open={open}
       onClose={onClose}
       title="申请批次明细"
-      width={1040}
+      width={DRAWER_SIZE.LG}
       destroyOnHidden
       footer={
         canDecide ? (

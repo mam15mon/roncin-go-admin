@@ -1,6 +1,7 @@
 import { App, Button, DatePicker, Form, Modal, Select, Table, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
+import { MODAL_SIZE } from '@/components/ui';
 import {
   settlementServiceAssignCommissionRuleEmployees,
   settlementServiceRemoveCommissionRuleEmployees,
@@ -50,7 +51,7 @@ export default function CommissionRuleRosterModal({
     <Modal
       title={`名单管理 - ${rosterRule?.name ?? ''}`}
       open={Boolean(rosterRule)}
-      width={760}
+      width={MODAL_SIZE.MD}
       destroyOnHidden
       footer={null}
       onCancel={onCancel}

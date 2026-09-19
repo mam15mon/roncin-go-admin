@@ -6,7 +6,7 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
 import { settlementServiceCreateCommissionAdjustment } from '@/services/roncin/settlementService';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { generateUUID } from '@/utils/uuid';
@@ -34,7 +34,7 @@ export default function CommissionAdjustmentModal({
       formRef={formRef}
       title={`新增提成调整${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
       open={open}
-      width={620}
+      width={MODAL_SIZE.MD}
       initialValues={{ direction: 'INCREASE' }}
       modalProps={{
         destroyOnHidden: true,

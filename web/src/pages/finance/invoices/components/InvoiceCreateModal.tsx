@@ -10,6 +10,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { MODAL_SIZE } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
   settlementServiceListFinanceOrganizationOptions,
@@ -136,7 +137,7 @@ export default function InvoiceCreateModal({
     <Modal
       title="从已确认账单创建开票记录"
       open={open}
-      width={1050}
+      width={MODAL_SIZE.LG}
       confirmLoading={submitting}
       onCancel={onCancel}
       onOk={() => void onOk()}

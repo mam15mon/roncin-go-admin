@@ -14,6 +14,7 @@ import {
 import type { MessageInstance } from 'antd/es/message/interface';
 import type { RcFile } from 'antd/es/upload';
 import type { Dispatch, SetStateAction } from 'react';
+import { MODAL_SIZE } from '@/components/ui';
 import { isRequestTimeoutError } from '@/requestErrorConfig';
 import { enterpriseResourceServicePrepareEnterpriseResourceImageUpload } from '@/services/roncin/enterpriseResourceService';
 import { LONG_REQUEST_TIMEOUT } from '@/utils/requestTimeout';
@@ -80,7 +81,7 @@ export default function ResourceEditorModal({
     <Modal
       title={editing ? `编辑${active.label}` : `新建${active.label}`}
       open={open}
-      width={760}
+      width={MODAL_SIZE.MD}
       confirmLoading={saving}
       onOk={onSave}
       onCancel={() => setOpen(false)}

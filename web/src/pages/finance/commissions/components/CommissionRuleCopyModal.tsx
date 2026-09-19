@@ -9,7 +9,7 @@ import {
 import { Alert } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
 import type { EmployeeOption } from './commissionRuleShared';
 
 /** CopyValues 复制为新方案表单值。 */
@@ -53,7 +53,7 @@ export default function CommissionRuleCopyModal({
       key={copySourceRule?.id || 'copy-rule'}
       title="复制为新方案"
       open={Boolean(copySourceRule)}
-      width={620}
+      width={MODAL_SIZE.MD}
       modalProps={{
         destroyOnHidden: true,
         onCancel,

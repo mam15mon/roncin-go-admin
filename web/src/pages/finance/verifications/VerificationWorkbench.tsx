@@ -22,6 +22,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
+import { MODAL_SIZE } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { useCreditLimitIntervention } from '@/hooks/useCreditLimitIntervention';
 import {
@@ -391,7 +392,7 @@ export default function VerificationWorkbench({
     <Modal
       title="资金与账单核销工作台"
       open={open}
-      width={1240}
+      width={MODAL_SIZE.XL}
       destroyOnHidden
       mask={{ closable: false }}
       onCancel={onClose}

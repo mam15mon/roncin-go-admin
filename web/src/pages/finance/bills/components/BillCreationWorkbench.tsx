@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { DRAWER_SIZE } from '@/components/ui';
 import {
   BillGroupingMode,
   FinanceOrganizationPurpose,
@@ -628,7 +629,7 @@ export default function BillCreationWorkbench({
     <Drawer
       title={mode === 'NETTING' ? '费用批量对冲建账' : '费用批量转账单'}
       open={open}
-      size="min(1280px, 96vw)"
+      width={DRAWER_SIZE.XL}
       destroyOnHidden
       mask={{ closable: false }}
       footer={footer}

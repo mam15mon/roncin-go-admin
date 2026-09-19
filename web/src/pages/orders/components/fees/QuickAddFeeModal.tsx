@@ -1,5 +1,6 @@
 import { Col, Form, Input, Row, Select } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { MODAL_SIZE } from '@/components/ui';
 import { QuickCreateModal } from '@/components/ui/quick-create-modal';
 import { MASTER_DATA_KINDS } from '@/pages/orders/common';
 import { feeCatalogServiceCreateFeeSetting } from '@/services/roncin/feeCatalogService';
@@ -56,7 +57,7 @@ export default function QuickAddFeeModal({
     <QuickCreateModal<API.CreateFeeSettingRequest, API.FeeSetting>
       title="快捷新增费用科目"
       open={open}
-      width={580}
+      width={MODAL_SIZE.SM}
       onCancel={onCancel}
       onSuccess={onSuccess}
       onSubmit={async (values) => {

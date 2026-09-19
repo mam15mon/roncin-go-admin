@@ -18,7 +18,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
   settlementServiceCreateCommission,
@@ -313,7 +313,7 @@ export default function CommissionCreateModal({
       formRef={formRef}
       title="生成提成"
       open={open}
-      width={980}
+      width={MODAL_SIZE.LG}
       submitter={{
         searchConfig: { submitText: '生成草稿' },
         submitButtonProps: { disabled: !preview },

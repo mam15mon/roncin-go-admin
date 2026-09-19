@@ -12,7 +12,11 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import {
+  DRAWER_SIZE,
+  MODAL_SIZE,
+  ProFormSearchableSelect,
+} from '@/components/ui';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
   orderShippingDocumentServiceAddShippingDocument,
@@ -263,7 +267,7 @@ const ShippingDocumentDrawer = forwardRef<
         title="分单管理 (HBL)"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        width={960}
+        width={DRAWER_SIZE.MD}
       >
         {isUnimplementedTransportMode(transportMode) && (
           <Alert
@@ -334,7 +338,7 @@ const ShippingDocumentDrawer = forwardRef<
         }
         modalProps={{
           destroyOnHidden: true,
-          width: 560,
+          width: MODAL_SIZE.SM,
           onCancel: () => setModalOpen(false),
         }}
         onOpenChange={setModalOpen}

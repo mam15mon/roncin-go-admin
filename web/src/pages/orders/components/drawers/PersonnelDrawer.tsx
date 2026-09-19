@@ -2,7 +2,11 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormText } from '@ant-design/pro-components';
 import { Tag, Typography } from 'antd';
 import React, { forwardRef } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import {
+  DRAWER_SIZE,
+  MODAL_SIZE,
+  ProFormSearchableSelect,
+} from '@/components/ui';
 import {
   type SubEntityDrawerRef,
   SubEntityDrawerTemplate,
@@ -80,7 +84,7 @@ const PersonnelDrawer = forwardRef<PersonnelDrawerRef, PersonnelDrawerProps>(
         drawerTitle={(order) =>
           order ? `订单协作团队 - ${order.orderNo || order.id}` : '订单协作团队'
         }
-        drawerWidth={820}
+        drawerWidth={DRAWER_SIZE.MD}
         canCreate={canAssign}
         canUpdate={false}
         canRemove={canRemove}
@@ -106,7 +110,7 @@ const PersonnelDrawer = forwardRef<PersonnelDrawerRef, PersonnelDrawerProps>(
             id: (record.id as string) || (record.userId as string),
           })
         }
-        modalWidth={520}
+        modalWidth={MODAL_SIZE.SM}
         renderFormItems={() => (
           <>
             <ProFormText

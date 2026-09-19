@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { DRAWER_SIZE } from '@/components/ui';
 import {
   seaSharedContainerServiceConfirmSeaSharedContainer,
   seaSharedContainerServiceCreateSeaSharedContainer,
@@ -482,7 +483,7 @@ export default function SeaSharedContainerDrawer({
   return (
     <Drawer
       title="跨订单共享箱 / 客户拼货工作台"
-      width={1100}
+      width={DRAWER_SIZE.LG}
       open={open}
       onClose={onClose}
       destroyOnClose

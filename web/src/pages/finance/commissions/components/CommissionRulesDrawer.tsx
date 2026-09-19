@@ -8,6 +8,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { App, Button, Drawer, Select, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { DRAWER_SIZE } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
@@ -411,7 +412,12 @@ export default function CommissionRulesDrawer({
 
   return (
     <>
-      <Drawer title="提成方案" size={1080} open={open} onClose={onClose}>
+      <Drawer
+        title="提成方案"
+        width={DRAWER_SIZE.LG}
+        open={open}
+        onClose={onClose}
+      >
         <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
           <Select
             allowClear

@@ -1,6 +1,7 @@
 import { RightOutlined } from '@ant-design/icons';
 import { Button, Descriptions, Modal, Space, Tag, Typography } from 'antd';
 import React from 'react';
+import { MODAL_SIZE } from '@/components/ui';
 import { OrderCommissionVisibilityMode } from '@/enums.generated';
 import {
   buildCommissionFacts,
@@ -105,7 +106,7 @@ export function OrderCommissionSummaryModal({
           关闭
         </Button>
       }
-      width={560}
+      width={MODAL_SIZE.SM}
     >
       <Space orientation="vertical" size={12} style={{ width: '100%' }}>
         <div>

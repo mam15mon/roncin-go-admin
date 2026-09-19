@@ -2,7 +2,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { ModalForm, ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, App, Avatar, Space, Typography } from 'antd';
 import React, { useEffect } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
 import { adminServiceTransferDingTalkRegistration } from '@/services/roncin/adminService';
 import { organizationSelectOptions } from './constants';
 
@@ -51,7 +51,7 @@ export default function RegistrationTransferModal({
   return (
     <ModalForm<TransferFormValues>
       title={`转派待审批注册：${registration.displayName || '未提供姓名'}`}
-      width={480}
+      width={MODAL_SIZE.SM}
       open={open}
       formRef={formRef}
       modalProps={{
