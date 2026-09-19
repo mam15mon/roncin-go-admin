@@ -1,9 +1,9 @@
+import type { BaseOptionType } from 'antd/es/select';
 import type { CSSProperties, ReactNode } from 'react';
 
 export interface CurrencyAmountOption {
   label: ReactNode;
   value: string | number;
-  [key: string]: any;
 }
 
 export interface CurrencyAmountInputProps {
@@ -21,7 +21,9 @@ export interface CurrencyAmountInputProps {
   /** 是否开启币种拼音/代码/中文快速搜索，默认 true */
   showSearch?: boolean;
   /** 自定义币种下拉过滤函数，默认复用系统 defaultSelectFilterOption */
-  filterOption?: boolean | ((input: string, option?: any) => boolean);
+  filterOption?:
+    | boolean
+    | ((input: string, option?: BaseOptionType) => boolean);
   /** 币种选择框宽度（像素），默认 80 */
   currencyWidth?: number;
   /** 币种选择框占位提示，默认 '币种' */

@@ -1731,3 +1731,25 @@ biz 1361 行拆 4 文件、data 1669 行拆 5 文件，零丢失，定向集成�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 69: 模板基座 any 类型收紧
+<!-- trellis-session: v=2 fp=ccd48cb8e2a1dfb4 -->
+
+**Date**: 2026-09-19
+**Task**: 模板基座 any 类型收紧
+**Branch**: `refactor/any-ui-templates`
+
+### Summary
+
+components/ui 42 处 any 收紧至 3 处（保留项均有 antd 类型缺口理由），泛型参数化+unknown 收窄，行为零变更，852 测试基线持平；子代理执行、主会话复核合并。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1be17232` | refactor(web): 模板基座 any 类型收紧 |
+
+### Status
+
+[OK] **Completed**

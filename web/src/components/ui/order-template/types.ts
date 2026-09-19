@@ -57,7 +57,7 @@ export interface OrderFormTemplateProps<T> {
   /** 自定义关闭提示文案，默认："修改的信息尚未保存，您确定要离开吗？" */
   closeGuardMessage?: string;
   /** 表单值变动回调 */
-  onValuesChange?: (changedValues: any, allValues: T) => void;
+  onValuesChange?: (changedValues: Partial<T>, allValues: T) => void;
   /** 表单重置回调 */
   onReset?: () => void;
   /** 是否显示右侧楼层导航与错误定位微标，默认为 true */

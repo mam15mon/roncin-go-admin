@@ -1,3 +1,4 @@
+import type { FormRule } from 'antd';
 import type { ReactNode } from 'react';
 
 export interface BaseMasterDataItem {
@@ -7,7 +8,7 @@ export interface BaseMasterDataItem {
   nameEn?: string;
   enabled: boolean;
   updatedAt?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface MasterDataStatItem {
@@ -23,9 +24,12 @@ export interface MasterDataFieldConfig {
   type?: 'text' | 'select' | 'number' | 'textarea' | 'checkboxGroup' | 'radio';
   placeholder?: string;
   required?: boolean;
-  rules?: any[];
+  rules?: FormRule[];
+  // 保留 any：同一份字段配置会分别喂给 ProFormSelect / ProFormRadio.Group /
+  // ProFormCheckbox.Group，radio/checkbox 场景存在 boolean 取值（如「全货机」），
+  // 而 antd Select 的 option value 类型不含 boolean，收紧会破坏其中一条边界。
   options?: { label: string; value: any }[];
-  initialValue?: any;
+  initialValue?: unknown;
   span?: number;
   disabledOnEdit?: boolean;
   extra?: string;
@@ -35,8 +39,8 @@ export interface MasterDataFilterOption {
   key: string;
   label: string;
   placeholder?: string;
-  options: { label: string; value: any }[];
-  defaultValue?: any;
+  options: { label: string; value: string | number }[];
+  defaultValue?: unknown;
   width?: number;
 }
 
@@ -49,6 +53,7 @@ export interface MasterDataListQuery {
 
 export interface MasterDataTemplateProps<
   T extends BaseMasterDataItem = BaseMasterDataItem,
+  TFormValues = Record<string, unknown>,
 > {
   // Page Header
   title: string;
@@ -79,12 +84,15 @@ export interface MasterDataTemplateProps<
     dataIndex?: string;
     key: string;
     width?: number;
+    // 保留 any：消费方普遍以具体窄类型注解首参（如 `(icao: string)`、
+    // `(level: number)`），在 strictFunctionTypes 逆变约束下改为 unknown /
+    // ReactNode 等宽类型都会使这些消费方编译失败。
     render?: (value: any, record: T) => ReactNode;
   }>;
 
   // Actions Callbacks
-  onCreate?: (values: any) => Promise<any>;
-  onUpdate?: (id: string, values: any) => Promise<any>;
+  onCreate?: (values: TFormValues) => Promise<unknown>;
+  onUpdate?: (id: string, values: TFormValues) => Promise<unknown>;
   onToggleActive?: (record: T) => Promise<void> | void;
   onSync?: () => Promise<void> | void;
   onExport?: () => void;

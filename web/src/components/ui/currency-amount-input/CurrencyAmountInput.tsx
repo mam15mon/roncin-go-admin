@@ -71,7 +71,7 @@ const DEFAULT_AMOUNT_PATTERN = /^(0|[1-9]\d{0,17})(\.\d{1,4})?$/;
  * - 保持表单数据契约独立，无需改造后端 DTO。
  */
 function formatSelectedCurrency(
-  props: { label?: React.ReactNode; value?: any },
+  props: { label?: React.ReactNode; value?: string | number },
   customRender?: (opt: {
     label: React.ReactNode;
     value: string | number;

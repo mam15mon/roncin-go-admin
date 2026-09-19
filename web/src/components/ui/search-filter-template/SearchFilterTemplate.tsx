@@ -82,7 +82,7 @@ export function SearchFilterTemplate<
   }, [usedSpan]);
 
   // 提交处理
-  const handleFinish = (values: any) => {
+  const handleFinish = (values: TValues) => {
     onSearch?.(values);
   };
 

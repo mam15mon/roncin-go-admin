@@ -3,19 +3,26 @@ import { useCallback, useEffect, useState } from 'react';
 import { unwrapPage } from '@/utils/api';
 import type { BaseMasterDataItem, MasterDataListQuery } from './types';
 
+/**
+ * TFormValues 默认保留 any 的权衡：各主数据面板的 createItem/updateItem 回调
+ * 直接读取 `values.code.toUpperCase()` 等未声明的表单字段，收紧为
+ * Record<string, unknown> 会迫使每个面板补断言；需要强类型的调用方可显式
+ * 传入 TFormValues。
+ */
 export interface UseMasterDataCrudOptions<
   TItem extends BaseMasterDataItem,
   TApiItem = any,
+  TFormValues = any,
 > {
   entityName: string;
   fetchList: (
     query: MasterDataListQuery,
   ) => Promise<{ data?: TApiItem[]; total?: number }>;
   mapItem: (apiItem: TApiItem) => TItem;
-  createItem: (values: any) => Promise<{ data?: TApiItem }>;
+  createItem: (values: TFormValues) => Promise<{ data?: TApiItem }>;
   updateItem: (
     id: string,
-    values: any,
+    values: TFormValues,
     enabled: boolean,
     currentRecord: TItem,
   ) => Promise<{ data?: TApiItem }>;
@@ -24,6 +31,7 @@ export interface UseMasterDataCrudOptions<
 export function useMasterDataCrud<
   TItem extends BaseMasterDataItem,
   TApiItem = any,
+  TFormValues = any,
 >({
   entityName,
   fetchList,
@@ -49,8 +57,11 @@ export function useMasterDataCrud<
       const page = unwrapPage(response);
       setData(page.data.map(mapItem));
       setTotal(page.total);
-    } catch (error: any) {
-      message.error(error?.message || `${entityName}主数据加载失败`);
+    } catch (error) {
+      message.error(
+        (error as { message?: string })?.message ||
+          `${entityName}主数据加载失败`,
+      );
     } finally {
       setLoading(false);
     }
@@ -64,8 +75,10 @@ export function useMasterDataCrud<
       ]);
       setActiveTotal(activeResponse.total ?? 0);
       setDisabledTotal(disabledResponse.total ?? 0);
-    } catch (error: any) {
-      message.error(error?.message || `${entityName}统计加载失败`);
+    } catch (error) {
+      message.error(
+        (error as { message?: string })?.message || `${entityName}统计加载失败`,
+      );
     }
   }, [entityName, fetchList, message]);
 
@@ -94,7 +107,7 @@ export function useMasterDataCrud<
   );
 
   const handleCreate = useCallback(
-    async (values: any) => {
+    async (values: TFormValues) => {
       const response = await createItem(values);
       saveResponse(response);
       await Promise.all([reload(), reloadStats()]);
@@ -103,7 +116,7 @@ export function useMasterDataCrud<
   );
 
   const handleUpdate = useCallback(
-    async (id: string, values: any) => {
+    async (id: string, values: TFormValues) => {
       const record = data.find((item) => item.id === id);
       if (!record) {
         throw new Error(`待更新${entityName}不存在`);
