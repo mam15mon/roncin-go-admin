@@ -115,3 +115,25 @@ if (
 - **快捷新增弹窗默认勾选「单次合作」**，可取消；提交透传 `isCasual`。
 - **选择器元数据经契约字段渲染，不污染 label**：候选项携带 `isCasual` 时经 `optionRender` 动态渲染 `<Tag>散客</Tag>`；`label` 只拼 `legalName (code)`，禁止拼入散客等业务标注文本（防止单证 / 合同字符串污染，选中值不得出现多余前缀）。
 - **散客交互的软硬边界**：向散客供应商出款时对方账户动态标星必填（服务端刚性）；散客应收账单改大账期只出黄色预警、不阻断提交（刻意弹性，禁止加前端硬拦截）。
+
+## antd6 API 契约（禁用弃用用法，2026-09 清理后口径）
+
+源码侧弃用用法已全部清零（`cd web && antd lint ./src --only deprecated` 保持
+0 issues），新代码禁止再次引入以下旧写法：
+
+- Alert `message` → `title`；Space `direction` → `orientation`；Spin `tip` → `description`。
+- Drawer `width` → `size`（支持 `number | string`）；Drawer/Modal `destroyOnClose` →
+  `destroyOnHidden`（ProForm `modalProps` 透传同样适用）；Modal `maskClosable` →
+  `mask={{ closable }}`。
+- Select 顶层 `filterOption` / `onSearch` / `optionFilterProp` 必须并入
+  `showSearch={{ ... }}` 对象（传对象即开启搜索，布尔 `showSearch` 一并吸收）；
+  `onDropdownVisibleChange` → `onOpenChange`；`filterOption={false}` 表服务端
+  过滤，语义保持。
+- Timeline items 元素 `children` → `content`。
+- Input/InputNumber `addonAfter` → `Space.Compact`（+ `Space.Addon`）；ProForm
+  字段改用字段级 `addonAfter`（pro 自渲染，不透传 InputNumber）。
+- `List` 已整体弃用（下个大版本移除）：一律用 `Listy`（`items` + `rowKey` +
+  `itemRender`，行内容 JSX 原样迁移；`rowKey` 必须显式给出，缺省会触发
+  React key 警告）。
+- antd `message`/`modal` 静态导入改 `App.useApp()`，避免「can not consume
+  context」警告。
