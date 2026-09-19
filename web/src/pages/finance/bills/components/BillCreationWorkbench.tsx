@@ -1,27 +1,5 @@
-import {
-  ArrowLeftOutlined,
-  FileDoneOutlined,
-  ReloadOutlined,
-  SettingOutlined,
-} from '@ant-design/icons';
-import { ProTable } from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Col,
-  Drawer,
-  Form,
-  Row,
-  Select,
-  Space,
-  Steps,
-  Switch,
-  Tag,
-  Typography,
-} from 'antd';
-import dayjs, { type Dayjs } from 'dayjs';
+import { App, Drawer, Form, Steps } from 'antd';
+import dayjs from 'dayjs';
 import React, {
   useCallback,
   useEffect,
@@ -32,55 +10,35 @@ import React, {
 import {
   BillGroupingMode,
   FinanceOrganizationPurpose,
-  OrderFeeStatus,
 } from '@/enums.generated';
-import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceConfirmBillBatch,
   settlementServiceCreateBillBatch,
-  settlementServiceListBillCreationCandidates,
   settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { unwrapList } from '@/utils/api';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import { generateUUID } from '@/utils/uuid';
-import BillBatchSummary from './BillBatchSummary';
+import BillCandidateSelectionStep from './BillCandidateSelectionStep';
 import BillCreationResultTable from './BillCreationResultTable';
-import BillGroupCard from './BillGroupCard';
-import BillGroupNavigator from './BillGroupNavigator';
+import BillGroupConfigurationStep from './BillGroupConfigurationStep';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
+import BillWorkbenchFooter from './BillWorkbenchFooter';
 import {
-  getPreviewFeeColumns,
-  selectionFeeColumns,
-} from './billWorkbenchFeeColumns';
-import NettingPairsCard from './NettingPairsCard';
+  type BillCreationMode,
+  directionText,
+  type GroupFormValue,
+  isGroupComplete,
+  makeGroupConfig,
+  type RequestError,
+  requestMessage,
+  requestReason,
+  type WorkbenchFormValue,
+  type WorkbenchValidationError,
+} from './billWorkbenchHelpers';
 
-const { Text } = Typography;
-
-type GroupFormValue = {
-  statementTitle: string;
-  billDate: Dayjs;
-  paymentTermsDays?: number;
-  note?: string;
-  settlementAccountId?: string;
-  estimatedInvoiceCurrency?: string;
-  estimatedInvoiceRate?: string;
-};
-
-type WorkbenchFormValue = {
-  groups: Record<string, GroupFormValue>;
-};
-type WorkbenchValidationError = {
-  errorFields?: { name?: (string | number)[] }[];
-};
-
-type RequestError = Error & {
-  data?: { reason?: string; message?: string };
-  response?: { data?: { reason?: string; message?: string } };
-};
-
-export type BillCreationMode = 'NORMAL' | 'NETTING';
+export type { BillCreationMode } from './billWorkbenchHelpers';
 
 export type BillCreationWorkbenchProps = {
   open: boolean;
@@ -92,81 +50,6 @@ export type BillCreationWorkbenchProps = {
   onClose: () => void;
   onCreated?: (batch: API.FinanceBillBatch) => void;
 };
-
-function directionText(value?: string) {
-  return value === 'RECEIVABLE' ? '应收' : '应付';
-}
-
-function requestReason(error: RequestError) {
-  return error.data?.reason || error.response?.data?.reason;
-}
-
-function requestMessage(error: RequestError, fallback: string) {
-  const msg =
-    error.response?.data?.message ||
-    error.data?.message ||
-    (error.message && !error.message.toLowerCase().includes('status code')
-      ? error.message
-      : '');
-  if (msg) return msg;
-  const reason = requestReason(error);
-  if (reason === financeErrorReasons.FINANCE_BILL_FEE_INVALID) {
-    return '所选费用必须为已确认状态且尚未进入其他账单';
-  }
-  if (reason === financeErrorReasons.FINANCE_BILL_PREVIEW_STALE) {
-    return '费用已发生变化，请重新预览后再生成账单';
-  }
-  return fallback;
-}
-
-function makeGroupConfig(
-  groupKey: string,
-  value?: GroupFormValue,
-): API.BillBatchPreviewGroupConfigInput {
-  return {
-    groupKey,
-    billDate: value?.billDate?.format('YYYY-MM-DD'),
-    settlementAccountId: value?.settlementAccountId,
-    estimatedInvoiceCurrency: value?.estimatedInvoiceCurrency,
-    estimatedInvoiceRate: value?.estimatedInvoiceRate,
-  };
-}
-
-function isGroupComplete(value?: GroupFormValue, groupCurrency?: string) {
-  if (
-    !value?.statementTitle?.trim() ||
-    !value.billDate ||
-    !value.settlementAccountId
-  ) {
-    return false;
-  }
-  const estimatedCurrency = value.estimatedInvoiceCurrency?.trim();
-  const estimatedRate = value.estimatedInvoiceRate?.trim();
-  if (
-    estimatedCurrency &&
-    groupCurrency &&
-    estimatedCurrency !== groupCurrency
-  ) {
-    if (
-      !estimatedRate ||
-      Number.isNaN(Number(estimatedRate)) ||
-      Number(estimatedRate) <= 0
-    ) {
-      return false;
-    }
-  }
-  if (
-    estimatedCurrency &&
-    groupCurrency &&
-    estimatedCurrency === groupCurrency &&
-    estimatedRate
-  ) {
-    if (Number(estimatedRate) !== 1) {
-      return false;
-    }
-  }
-  return true;
-}
 
 export default function BillCreationWorkbench({
   open,
@@ -522,6 +405,17 @@ export default function BillCreationWorkbench({
     schedulePreview();
   }, [invalidatePreview, schedulePreview]);
 
+  const handleOrganizationChange = (value: string | undefined) => {
+    invalidatePreview();
+    organizationIdRef.current = value;
+    setOrganizationId(value);
+    setSelectedFeeIds([]);
+    setPreview(undefined);
+    previewRef.current = undefined;
+    setResult(undefined);
+    setCurrent(0);
+  };
+
   // 从预览明细中即时剔除误选行
   const handleRemoveFee = async (feeId?: string) => {
     if (!feeId) return;
@@ -714,48 +608,19 @@ export default function BillCreationWorkbench({
       ),
     [formGroups, preview?.data],
   );
-  const activeGroup = preview?.data?.find(
-    (group) => group.groupKey === activeGroupKey,
-  );
 
   const footer = (
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-      <Button onClick={onClose}>{current === 3 ? '关闭' : '取消'}</Button>
-      {current < 3 && (
-        <Space>
-          {current > 0 && (
-            <Button
-              icon={<ArrowLeftOutlined />}
-              disabled={loading}
-              onClick={() => setCurrent((value) => value - 1)}
-            >
-              上一步
-            </Button>
-          )}
-          {current < 2 && (
-            <Button
-              type="primary"
-              loading={loading}
-              onClick={() => void next()}
-            >
-              下一步
-            </Button>
-          )}
-          {current === 2 && (
-            <Button
-              type="primary"
-              icon={<FileDoneOutlined />}
-              loading={loading}
-              onClick={() => void createBatch()}
-            >
-              {mode === 'NETTING'
-                ? `原子生成 ${preview?.data?.length || 0} 张账单与 ${preview?.nettingPairs?.length || 0} 张对冲单`
-                : `原子生成 ${preview?.data?.length || 0} 张账单`}
-            </Button>
-          )}
-        </Space>
-      )}
-    </div>
+    <BillWorkbenchFooter
+      current={current}
+      loading={loading}
+      mode={mode}
+      groupCount={preview?.data?.length || 0}
+      nettingPairCount={preview?.nettingPairs?.length || 0}
+      onClose={onClose}
+      onBack={() => setCurrent((value) => value - 1)}
+      onNext={() => void next()}
+      onCreate={() => void createBatch()}
+    />
   );
 
   return (
@@ -780,95 +645,20 @@ export default function BillCreationWorkbench({
         ]}
       />
 
-      {current === 0 &&
-        (fixedSelection ? (
-          <Card>
-            <Alert
-              type="info"
-              showIcon
-              title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔已确认费用`}
-              description="费用状态、结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
-            />
-            <div style={{ marginTop: 12 }}>
-              来源公司：
-              {initialOrganizationName ||
-                organizationOptions.find(
-                  (item) => item.id === initialOrganizationId,
-                )?.name ||
-                initialOrganizationId ||
-                '-'}
-            </div>
-          </Card>
-        ) : (
-          <>
-            <Select
-              aria-label="所属公司"
-              allowClear
-              placeholder="请先选择可建账所属公司"
-              style={{ width: 260, marginBottom: 12 }}
-              value={organizationId}
-              options={organizationOptions.map((item) => ({
-                value: item.id,
-                label: item.name || item.code || item.id,
-              }))}
-              onChange={(value) => {
-                invalidatePreview();
-                organizationIdRef.current = value;
-                setOrganizationId(value);
-                setSelectedFeeIds([]);
-                setPreview(undefined);
-                previewRef.current = undefined;
-                setResult(undefined);
-                setCurrent(0);
-              }}
-            />
-            <ProTable<API.FeeLedgerItem>
-              key={organizationId || 'no-organization'}
-              rowKey="id"
-              headerTitle="选择待结算费用"
-              columns={selectionFeeColumns}
-              size="small"
-              bordered
-              options={false}
-              pagination={{ defaultPageSize: 15, showSizeChanger: true }}
-              rowSelection={{
-                selectedRowKeys: selectedFeeIds,
-                preserveSelectedRowKeys: true,
-                onChange: setSelectedFeeIds,
-                getCheckboxProps: (record) => {
-                  const isSelectable =
-                    record.status ===
-                      OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED &&
-                    !record.billNo;
-                  return {
-                    disabled: !isSelectable,
-                    title: !isSelectable
-                      ? record.billNo
-                        ? `已进入账单 ${record.billNo}`
-                        : '只有已确认且未入账单的费用方可创建账单'
-                      : undefined,
-                  };
-                },
-              }}
-              tableAlertRender={({ selectedRowKeys }) => (
-                <Text>已选择 {selectedRowKeys.length} 笔已确认费用</Text>
-              )}
-              request={async (params) => {
-                if (!organizationId)
-                  return { data: [], success: true, total: 0 };
-                const response =
-                  await settlementServiceListBillCreationCandidates({
-                    page: params.current,
-                    pageSize: params.pageSize,
-                    keyword: params.keyword,
-                    direction: params.direction,
-                    organizationId,
-                  });
-                return toTableRequest(response);
-              }}
-            />
-          </>
-        ))}
+      {current === 0 && (
+        <BillCandidateSelectionStep
+          fixedSelection={fixedSelection}
+          sourceLabel={sourceLabel}
+          selectedIds={selectedIds}
+          selectedFeeIds={selectedFeeIds}
+          onSelectedFeeIdsChange={setSelectedFeeIds}
+          initialOrganizationId={initialOrganizationId}
+          initialOrganizationName={initialOrganizationName}
+          organizationId={organizationId}
+          organizationOptions={organizationOptions}
+          onOrganizationChange={handleOrganizationChange}
+        />
+      )}
 
       {current === 1 && (
         <BillSplitStrategyCards
@@ -887,130 +677,26 @@ export default function BillCreationWorkbench({
       )}
 
       {current === 2 && preview?.data && (
-        <Form
+        <BillGroupConfigurationStep
+          mode={mode}
           form={form}
-          layout="vertical"
-          onValuesChange={(changedValues) => {
-            if (!changedValues?.groups) return;
-            const shouldRefresh = Object.values(changedValues.groups).some(
-              (groupValue: Partial<GroupFormValue>) => {
-                if (!groupValue || typeof groupValue !== 'object') return false;
-                return (
-                  'billDate' in groupValue ||
-                  'settlementAccountId' in groupValue ||
-                  'estimatedInvoiceCurrency' in groupValue ||
-                  'estimatedInvoiceRate' in groupValue
-                );
-              },
-            );
-            if (shouldRefresh) {
-              handleConfigurationChange();
-            }
-          }}
-        >
-          <Card
-            size="small"
-            style={{
-              marginBottom: 16,
-              background: '#fafafa',
-              border: '1px solid #f0f0f0',
-            }}
-          >
-            <Row justify="space-between" align="middle" gutter={[16, 8]}>
-              <Col xs={24} md={16}>
-                <Space size="large" wrap>
-                  <Space>
-                    <SettingOutlined style={{ color: '#1677ff' }} />
-                    <Text strong>拆单策略微调：</Text>
-                  </Space>
-                  <Space>
-                    <Text type="secondary">按币种拆分：</Text>
-                    <Tag color="blue">固定启用</Tag>
-                  </Space>
-                  <Space>
-                    <Text type="secondary">按订单拆分：</Text>
-                    <Switch
-                      size="small"
-                      checked={splitByOrder}
-                      onChange={async (checked) => {
-                        setSplitByOrder(checked);
-                        invalidatePreview();
-                        await loadPreview(undefined, {
-                          mode: groupingMode,
-                          splitByOrder: checked,
-                          splitByTaxRate,
-                        });
-                      }}
-                    />
-                  </Space>
-                  <Space>
-                    <Text type="secondary">按税率拆分：</Text>
-                    <Switch
-                      size="small"
-                      checked={splitByTaxRate}
-                      onChange={async (checked) => {
-                        setSplitByTaxRate(checked);
-                        invalidatePreview();
-                        await loadPreview(undefined, {
-                          mode: groupingMode,
-                          splitByOrder,
-                          splitByTaxRate: checked,
-                        });
-                      }}
-                    />
-                  </Space>
-                </Space>
-              </Col>
-              <Col xs={24} md={8} style={{ textAlign: 'right' }}>
-                <Space>
-                  <Tag color="blue">共 {preview.data.length} 张拟生成账单</Tag>
-                  <Button
-                    size="small"
-                    icon={<ReloadOutlined />}
-                    loading={loading}
-                    onClick={() => void loadPreview()}
-                  >
-                    刷新快照
-                  </Button>
-                </Space>
-              </Col>
-            </Row>
-          </Card>
-          <BillBatchSummary
-            groups={preview.data}
-            currentGroup={activeGroup}
-            incompleteCount={invalidGroupKeys.size}
-          />
-          {mode === 'NETTING' && (
-            <NettingPairsCard pairs={preview.nettingPairs || []} />
-          )}
-          <BillGroupNavigator
-            groups={preview.data}
-            splitByTaxRate={splitByTaxRate}
-            splitByOrder={splitByOrder}
-            activeGroupKey={activeGroupKey}
-            invalidGroupKeys={invalidGroupKeys}
-            onSelect={setActiveGroupKey}
-          />
-          {preview.data.map((group) => {
-            const isCurrent = group.groupKey === activeGroupKey;
-            return (
-              <div
-                key={group.groupKey}
-                style={{ display: isCurrent ? 'block' : 'none' }}
-              >
-                <BillGroupCard
-                  group={group}
-                  organizationId={organizationId || ''}
-                  sessionIdentity={sessionIdentity}
-                  feeColumns={getPreviewFeeColumns(handleRemoveFee)}
-                  directionText={directionText}
-                  onConfigurationChange={handleConfigurationChange}
-                />
-              </div>
-            );
-          })}
-        </Form>
+          preview={preview}
+          groupingMode={groupingMode}
+          organizationId={organizationId}
+          sessionIdentity={sessionIdentity}
+          loading={loading}
+          splitByOrder={splitByOrder}
+          splitByTaxRate={splitByTaxRate}
+          onSplitByOrderChange={setSplitByOrder}
+          onSplitByTaxRateChange={setSplitByTaxRate}
+          activeGroupKey={activeGroupKey}
+          onActiveGroupKeyChange={setActiveGroupKey}
+          invalidGroupKeys={invalidGroupKeys}
+          invalidatePreview={invalidatePreview}
+          loadPreview={loadPreview}
+          onRemoveFee={handleRemoveFee}
+          onConfigurationChange={handleConfigurationChange}
+        />
       )}
 
       {current === 3 && (
