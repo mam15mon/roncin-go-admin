@@ -1,11 +1,12 @@
+import type { BaseOptionType } from 'antd/es/select';
+
 /**
  * 全局统一智能下拉搜索过滤函数
  * 支持按 label、value、code、name、title、keywords 多维度不区分大小写匹配
  */
 export const defaultSelectFilterOption = (
   input: string,
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  option?: Record<string, any>,
+  option?: BaseOptionType,
 ): boolean => {
   if (!input?.trim()) return true;
   if (!option) return false;

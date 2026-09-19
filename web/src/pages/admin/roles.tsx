@@ -32,6 +32,12 @@ import {
   ROLE_BASE_PERMISSION_KEY,
 } from './components/roles/roleConstants';
 
+/** 快捷搜索栏提交并暂存于页面状态的角色查询参数 */
+type RoleSearchParams = {
+  keyword?: string;
+  dataScope?: number;
+};
+
 export default function RolesPanel() {
   const access = useAccess();
   const { message } = App.useApp();
@@ -50,10 +56,7 @@ export default function RolesPanel() {
   const [autoExpandParent, setAutoExpandParent] = useState(true);
   const canConfigureRoles =
     access.canReadPermissions && access.canReadOrganizations;
-  const [searchParams, setSearchParams] = useState<{
-    keyword?: string;
-    dataScope?: number;
-  }>({});
+  const [searchParams, setSearchParams] = useState<RoleSearchParams>({});
 
   // Load all permissions
   useEffect(() => {
@@ -272,7 +275,7 @@ export default function RolesPanel() {
 
   return (
     <>
-      <SearchFilterTemplate
+      <SearchFilterTemplate<RoleSearchParams>
         layout="bar"
         keywordPlaceholder="搜索角色名称或角色编码..."
         quickFilters={[

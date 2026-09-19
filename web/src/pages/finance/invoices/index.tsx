@@ -47,6 +47,12 @@ import {
   isReceivableInvoice,
 } from './components/invoiceConstants';
 
+/** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
+type InvoiceLedgerFilterParams = {
+  direction?: string;
+  status?: string;
+};
+
 type CreateValues = {
   invoiceProfileId: string;
   invoiceType: string;
@@ -523,7 +529,7 @@ export default function FinanceInvoicesPage() {
           />
         </Space>
       </Card>
-      <FinanceLedgerTemplate<API.FinanceInvoice>
+      <FinanceLedgerTemplate<API.FinanceInvoice, InvoiceLedgerFilterParams>
         pageTitle="开票记录"
         pageSubTitle="开票明细登记、税号发票核对及作废/红冲跟踪"
         headerTitle="发票明细列表"

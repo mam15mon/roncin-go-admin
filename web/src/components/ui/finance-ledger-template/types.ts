@@ -1,7 +1,24 @@
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProTableProps,
+} from '@ant-design/pro-components';
 import type { TableProps } from 'antd';
 import type React from 'react';
 import type { ReactNode } from 'react';
+
+/** ProTable 注入到 request 参数中的分页与关键字字段（与筛选表单字段合并） */
+export interface FinanceLedgerRequestParams {
+  current?: number;
+  pageSize?: number;
+  keyword?: string;
+}
+
+/** ProTable 内置搜索表单配置对象（false 表示关闭内置搜索） */
+export type FinanceLedgerSearchConfig = Exclude<
+  ProTableProps<FinanceLedgerSummaryItem, Record<string, unknown>>['search'],
+  false
+>;
 
 export interface FinanceLedgerMetricCard {
   key: string;
@@ -30,8 +47,7 @@ export interface FinanceLedgerGlobalSummary {
   baseCurrency?: string;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-export interface FinanceBatchActionItem<T = any> {
+export interface FinanceBatchActionItem<T = FinanceLedgerSummaryItem> {
   key: string;
   label: string;
   onClick: (selectedKeys: React.Key[], selectedRows: T[]) => void;
@@ -40,6 +56,7 @@ export interface FinanceBatchActionItem<T = any> {
 
 export interface FinanceLedgerTemplateProps<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
+  TFilter extends Record<string, unknown> = Record<string, unknown>,
 > {
   pageTitle?: string;
   pageSubTitle?: string;
@@ -72,9 +89,8 @@ export interface FinanceLedgerTemplateProps<
   // 自定义额外工具栏插槽
   extraToolBarActions?: ReactNode[];
 
-  // ProTable 数据源请求
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  request: (params: Record<string, any>) => Promise<{
+  // ProTable 数据源请求；params 为分页字段与 TFilter 筛选字段的合并结果
+  request: (params: TFilter & FinanceLedgerRequestParams) => Promise<{
     data: T[];
     total: number;
     success?: boolean;
@@ -97,8 +113,7 @@ export interface FinanceLedgerTemplateProps<
   onRowClick?: (record: T, event: React.MouseEvent) => void;
 
   // ProTable 搜索表单配置覆盖（默认固定 labelWidth: 80 保持对齐）
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  search?: Record<string, any> | false;
+  search?: FinanceLedgerSearchConfig | false;
 
   // 自定义嵌入式搜索筛选栏插槽（置于顶部指标统计卡与表格台账之间）
   customSearch?: ReactNode;

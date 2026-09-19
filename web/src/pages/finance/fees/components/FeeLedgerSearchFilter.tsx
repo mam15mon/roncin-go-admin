@@ -7,7 +7,7 @@ import {
 import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
 import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 
-export interface FeeLedgerFilterParams {
+export type FeeLedgerFilterParams = {
   keyword?: string;
   direction?: string;
   financialProgress?: number;
@@ -51,7 +51,7 @@ export interface FeeLedgerFilterParams {
   serviceType?: string;
   feeTags?: string;
   billTags?: string;
-}
+};
 
 export interface FeeLedgerSearchFilterProps {
   onSearch: (values: FeeLedgerFilterParams) => void;
@@ -325,7 +325,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
   ];
 
   return (
-    <SearchFilterTemplate
+    <SearchFilterTemplate<FeeLedgerFilterParams>
       layout="grid"
       formLayout="horizontal"
       labelWidth={75}

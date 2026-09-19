@@ -37,6 +37,19 @@ import BillEditModal from './components/BillEditModal';
 import { getFinanceBillColumns } from './components/billColumns';
 import type { BillFormValues } from './components/billConstants';
 
+/** 搜索筛选表单提交并暂存于页面状态的账单查询参数 */
+type BillSearchParams = {
+  keyword?: string;
+  direction?: string;
+  status?: number;
+  settlementPartyId?: string;
+  currency?: string;
+  billDateRange?: [Dayjs, Dayjs];
+  dueDateRange?: [Dayjs, Dayjs];
+  onlyUnsettled?: string;
+  onlyOverdue?: string;
+};
+
 export default function FinanceBillsPage() {
   const access = useAccess();
   const [tagModalOpen, setTagModalOpen] = useState(false);
@@ -130,17 +143,7 @@ export default function FinanceBillsPage() {
       .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
       .join(' / ') || '-';
 
-  const [searchParams, setSearchParams] = useState<{
-    keyword?: string;
-    direction?: string;
-    status?: number;
-    settlementPartyId?: string;
-    currency?: string;
-    billDateRange?: [Dayjs, Dayjs];
-    dueDateRange?: [Dayjs, Dayjs];
-    onlyUnsettled?: string;
-    onlyOverdue?: string;
-  }>({});
+  const [searchParams, setSearchParams] = useState<BillSearchParams>({});
 
   const filterItems: SearchFilterFieldItem[] = [
     {
@@ -437,7 +440,7 @@ export default function FinanceBillsPage() {
         scrollX={2000}
         search={false}
         customSearch={
-          <SearchFilterTemplate
+          <SearchFilterTemplate<BillSearchParams>
             layout="grid"
             formLayout="horizontal"
             labelWidth={80}

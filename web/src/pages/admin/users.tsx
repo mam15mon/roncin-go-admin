@@ -30,6 +30,9 @@ type UserListTab = 'active' | 'departed';
 /**
  * 成员账号视图（在职 / 离职账号管理、权限与兼职配置、离职办理）
  */
+/** 快捷搜索栏提交并暂存于页面状态的用户查询参数 */
+type UserSearchParams = { keyword?: string };
+
 function UserMembersView() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
@@ -43,7 +46,7 @@ function UserMembersView() {
   const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
     [],
   );
-  const [searchParams, setSearchParams] = useState<{ keyword?: string }>({});
+  const [searchParams, setSearchParams] = useState<UserSearchParams>({});
   const [listTab, setListTab] = useState<UserListTab>('active');
 
   // ProTable 的 params 变化只按当前页码重新请求，切页签时显式回到第一页，
@@ -102,7 +105,7 @@ function UserMembersView() {
 
   return (
     <>
-      <SearchFilterTemplate
+      <SearchFilterTemplate<UserSearchParams>
         layout="bar"
         keywordPlaceholder="搜索用户名、姓名、拼音或邮箱..."
         onSearch={(values) => {

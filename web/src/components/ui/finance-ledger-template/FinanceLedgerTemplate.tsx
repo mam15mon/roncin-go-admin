@@ -26,6 +26,7 @@ import { toTableRequest, unwrapPage } from '@/utils/api';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
 import type {
   FinanceLedgerGlobalSummary,
+  FinanceLedgerRequestParams,
   FinanceLedgerSummaryItem,
   FinanceLedgerTemplateProps,
 } from './types';
@@ -232,6 +233,7 @@ export const ResizableHeaderCell: React.FC<ResizableHeaderCellProps> = ({
 
 export function FinanceLedgerTemplate<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
+  TFilter extends Record<string, unknown> = Record<string, unknown>,
 >({
   pageTitle: _pageTitle,
   pageSubTitle: _pageSubTitle,
@@ -259,7 +261,7 @@ export function FinanceLedgerTemplate<
   onRowClick,
   search,
   customSearch,
-}: FinanceLedgerTemplateProps<T>) {
+}: FinanceLedgerTemplateProps<T, TFilter>) {
   const { message } = App.useApp();
   const internalActionRef = useRef<ActionType | undefined>(undefined);
   const actionRef = externalActionRef || internalActionRef;
@@ -577,7 +579,10 @@ export function FinanceLedgerTemplate<
                 }
           }
           request={async (params) => {
-            const res = await request(params);
+            // ProTable 以 ParamsType 提供参数，此处断言到 TFilter 边界由消费方契约保证
+            const res = await request(
+              params as TFilter & FinanceLedgerRequestParams,
+            );
             const page = unwrapPage(res);
             setCurrentData(page.data);
             setTotalCount(page.total);

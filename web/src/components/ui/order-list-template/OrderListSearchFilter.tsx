@@ -29,6 +29,36 @@ import type {
 
 const { RangePicker } = DatePicker;
 
+/** 搜索表单的原始提交值（日期区间保持 Dayjs，清洗转换在 handleFinish 内完成） */
+type OrderListFilterRawValues = {
+  numberType?:
+    | 'order'
+    | 'master'
+    | 'consolidated_master'
+    | 'customer_reference'
+    | 'booking';
+  numberKeyword?: string;
+  customerId?: string;
+  shippingLineId?: string;
+  originLocationId?: string;
+  destinationLocationId?: string;
+  consignee?: string;
+  shipper?: string;
+  createdAtRange?: [Dayjs, Dayjs];
+  etaRange?: [Dayjs, Dayjs];
+  etdRange?: [Dayjs, Dayjs];
+  lockedAtRange?: [Dayjs, Dayjs];
+  statusTimeRange?: [Dayjs, Dayjs];
+  operatorId?: string;
+  salesId?: string;
+  customerServiceId?: string;
+  creatorId?: string;
+  stage?: string;
+  shareStatus?: 'all' | 'shared' | 'unshared';
+  isLocked?: 'all' | 'locked' | 'unlocked';
+  tagIds?: string[];
+};
+
 export interface OrderListSearchFilterProps {
   onSearch: (values: OrderListFilterParams) => void;
   onReset: () => void;
@@ -165,8 +195,7 @@ export function OrderListSearchFilter({
       }
     : undefined;
 
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  const handleFinish = (rawValues: Record<string, any>) => {
+  const handleFinish = (rawValues: OrderListFilterRawValues) => {
     const formatRange = (range?: [Dayjs, Dayjs]) =>
       range?.[0] && range[1]
         ? ([range[0].format('YYYY-MM-DD'), range[1].format('YYYY-MM-DD')] as [

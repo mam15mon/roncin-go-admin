@@ -31,8 +31,7 @@ const { RangePicker } = DatePicker;
  * 3. 'custom'：自由 JSX 渲染插槽
  */
 export function SearchFilterTemplate<
-  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
-  TValues extends Record<string, any> = Record<string, any>,
+  TValues extends Record<string, unknown> = Record<string, unknown>,
 >({
   layout = 'grid',
   formLayout = 'horizontal',
