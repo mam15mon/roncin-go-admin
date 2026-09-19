@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
 	"testing"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
@@ -113,11 +115,20 @@ func TestCommissionApplicationServicePermissionGate(t *testing.T) {
 	service := newCommissionApplicationServiceForTest(stub)
 
 	readCtx := commissionApplicationPrincipalContext(access.FinanceCommissionRead, organizationID)
-	if _, err := service.ApproveCommissionApplication(readCtx, &v1.ApproveCommissionApplicationRequest{Id: applicationID.String(), ExpectedVersion: 1}); !errors.Is(err, biz.ErrPermissionDenied) {
-		t.Fatalf("read 权限执行批准应被拒绝: %v", err)
+	_, approveErr := service.ApproveCommissionApplication(readCtx, &v1.ApproveCommissionApplicationRequest{Id: applicationID.String(), ExpectedVersion: 1})
+	if !errors.Is(approveErr, biz.ErrPermissionDenied) {
+		t.Fatalf("read 权限执行批准应被拒绝: %v", approveErr)
 	}
-	if _, err := service.RejectCommissionApplication(readCtx, &v1.RejectCommissionApplicationRequest{Id: applicationID.String(), ExpectedVersion: 1, Reason: "明细存疑"}); !errors.Is(err, biz.ErrPermissionDenied) {
-		t.Fatalf("read 权限执行驳回应被拒绝: %v", err)
+	_, rejectErr := service.RejectCommissionApplication(readCtx, &v1.RejectCommissionApplicationRequest{Id: applicationID.String(), ExpectedVersion: 1, Reason: "明细存疑"})
+	if !errors.Is(rejectErr, biz.ErrPermissionDenied) {
+		t.Fatalf("read 权限执行驳回应被拒绝: %v", rejectErr)
+	}
+	// 403 冒烟断言：权限拒绝必须是 kratos Forbidden（HTTP 403），不得降级为其他状态。
+	if code := kratoserrors.Code(approveErr); code != http.StatusForbidden {
+		t.Fatalf("read 权限批准错误码应为 403: %d", code)
+	}
+	if code := kratoserrors.Code(rejectErr); code != http.StatusForbidden {
+		t.Fatalf("read 权限驳回错误码应为 403: %d", code)
 	}
 	if _, err := service.ListCommissionApplications(readCtx, &v1.ListCommissionApplicationsRequest{
 		Page: 1, PageSize: 20, OrganizationId: &foreignOrg,
