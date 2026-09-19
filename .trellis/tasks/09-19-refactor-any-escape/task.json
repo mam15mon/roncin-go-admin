@@ -20,7 +20,8 @@
   "subtasks": [],
   "children": [
     "09-19-refactor-any-ui-templates",
-    "09-19-refactor-any-pages"
+    "09-19-refactor-any-pages",
+    "09-19-refactor-any-tail-pages"
   ],
   "parent": null,
   "relatedFiles": [],
