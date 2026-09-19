@@ -1489,6 +1489,16 @@
 ### Summary
 
 2768 行提成数据层文件按子域纯移动拆为 9 个同包文件，零行丢失；Commission 定向测试含真实库集成全绿。
+## Session 58: 拆分拆单页 split.tsx 大组件
+<!-- trellis-session: v=2 fp=cf201f186b966ce8 -->
+
+**Date**: 2026-09-19
+**Task**: 拆分拆单页 split.tsx 大组件
+**Branch**: `refactor/order-split-page`
+
+### Summary
+
+split.tsx 2592 行拆为 956 行页面骨架 + splitUtils + 六个区块子组件，DOM 结构不变，测试与类型检查全绿。
 
 ### Git Commits
 
@@ -1496,6 +1506,7 @@
 |------|---------|
 | `f4db24b4` | refactor(data): 拆分 sea_order_change.go 为按变更类型组织的同包文件 |
 | `d9ab0ff6` | refactor(data): 拆分 finance_commission.go 为按子域组织的同包文件 |
+| `d30c052b` | refactor(web): 拆单页 JSX 八大区块抽为职责子组件 |
 
 ### Status
 
