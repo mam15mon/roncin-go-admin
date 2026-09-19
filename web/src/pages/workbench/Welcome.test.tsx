@@ -15,6 +15,10 @@ const serviceMocks = vi.hoisted(() => ({
   listMyCommissions: vi.fn(),
   listMyReceivables: vi.fn(),
   listMyRecentOrders: vi.fn(),
+  submitApplication: vi.fn(),
+  listApplicationCandidates: vi.fn(),
+  listMyApplications: vi.fn(),
+  getMyApplication: vi.fn(),
 }));
 
 const umiState = vi.hoisted(() => ({
@@ -87,6 +91,14 @@ vi.mock('@/services/roncin/workbenchService', () => ({
     serviceMocks.listMyReceivables(...args),
   workbenchServiceListMyRecentOrders: (...args: unknown[]) =>
     serviceMocks.listMyRecentOrders(...args),
+  workbenchServiceSubmitMyCommissionApplication: (...args: unknown[]) =>
+    serviceMocks.submitApplication(...args),
+  workbenchServiceListMyApplicationCandidates: (...args: unknown[]) =>
+    serviceMocks.listApplicationCandidates(...args),
+  workbenchServiceListMyCommissionApplications: (...args: unknown[]) =>
+    serviceMocks.listMyApplications(...args),
+  workbenchServiceGetMyCommissionApplication: (...args: unknown[]) =>
+    serviceMocks.getMyApplication(...args),
 }));
 
 import WelcomePage from '@/pages/Welcome';
@@ -480,7 +492,7 @@ describe('工作台财务卡与组织切换', () => {
     );
     expect(serviceMocks.getOverview).toHaveBeenCalledTimes(2);
 
-    // 旧组织响应迟到：携带提成数据，但必须被丢弃。
+    // 旧组织响应迟到：携带提成与月度申请数据，但必须被丢弃。
     org1.resolve(
       overviewResponse({
         hasCommissionEligibility: true,
@@ -489,6 +501,20 @@ describe('工作台财务卡与组织切换', () => {
           paidAmountThisYear: '99999.00',
           paidCount: 9,
           paidAmount: '99999.00',
+        },
+        applicationSummary: {
+          baseCurrency: 'USD',
+          applyGroups: [
+            {
+              commissionMonth: '2026-07',
+              commissionCount: 9,
+              commissionAmount: '88888.00',
+            },
+          ],
+          accumulatingCount: 1,
+          accumulatingAmount: '10.00',
+          pendingReviewCount: 0,
+          approvedCount: 0,
         },
       }) as never,
     );
@@ -515,5 +541,48 @@ describe('工作台财务卡与组织切换', () => {
     expect(screen.getByText('当前组织：成都公司')).toBeInTheDocument();
     expect(screen.queryByText('我的提成')).not.toBeInTheDocument();
     expect(screen.queryByText('99999.00')).not.toBeInTheDocument();
+    expect(screen.queryByText('月度申请')).not.toBeInTheDocument();
+    expect(screen.queryByText('88888.00')).not.toBeInTheDocument();
+  });
+
+  it('Overview 携带月度申请摘要时展示可申请分组与本月累计', async () => {
+    serviceMocks.getOverview.mockResolvedValue(
+      overviewResponse({
+        hasCommissionEligibility: true,
+        baseCurrency: 'CNY',
+        commissionSummary: {
+          draftCount: 1,
+          draftAmount: '500.00',
+        },
+        applicationSummary: {
+          baseCurrency: 'CNY',
+          applyGroups: [
+            {
+              commissionMonth: '2026-07',
+              commissionCount: 3,
+              commissionAmount: '500.00',
+            },
+          ],
+          accumulatingCount: 2,
+          accumulatingAmount: '300.00',
+          pendingReviewCount: 1,
+          approvedCount: 1,
+        },
+      }),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText('月度申请')).toBeInTheDocument();
+    expect(screen.getByText('2026-07')).toBeInTheDocument();
+    expect(screen.getByText('合计 3 笔 · CNY')).toBeInTheDocument();
+    expect(screen.getByText('本月累计中')).toBeInTheDocument();
+    expect(screen.getByText('审批中 1 张')).toBeInTheDocument();
+    expect(screen.getByText('已批准 1 张')).toBeInTheDocument();
+    // 累计中不提供申请能力：入口只服务可申请分组。
+    expect(screen.queryByRole('button', { name: /去\s*申\s*请/ })).toBeTruthy();
+    expect(screen.getByTestId('apply-submit-button')).not.toHaveAttribute(
+      'disabled',
+    );
   });
 });

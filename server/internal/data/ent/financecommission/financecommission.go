@@ -126,6 +126,8 @@ const (
 	EdgeLines = "lines"
 	// EdgeAdjustments holds the string denoting the adjustments edge name in mutations.
 	EdgeAdjustments = "adjustments"
+	// EdgeApplicationLines holds the string denoting the application_lines edge name in mutations.
+	EdgeApplicationLines = "application_lines"
 	// Table holds the table name of the financecommission in the database.
 	Table = "finance_commissions"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -198,6 +200,13 @@ const (
 	AdjustmentsInverseTable = "finance_commission_adjustments"
 	// AdjustmentsColumn is the table column denoting the adjustments relation/edge.
 	AdjustmentsColumn = "commission_id"
+	// ApplicationLinesTable is the table that holds the application_lines relation/edge.
+	ApplicationLinesTable = "finance_commission_application_lines"
+	// ApplicationLinesInverseTable is the table name for the FinanceCommissionApplicationLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionapplicationline" package.
+	ApplicationLinesInverseTable = "finance_commission_application_lines"
+	// ApplicationLinesColumn is the table column denoting the application_lines relation/edge.
+	ApplicationLinesColumn = "commission_id"
 )
 
 // Columns holds all SQL columns for financecommission fields.
@@ -684,6 +693,20 @@ func ByAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByApplicationLinesCount orders the results by application_lines count.
+func ByApplicationLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newApplicationLinesStep(), opts...)
+	}
+}
+
+// ByApplicationLines orders the results by application_lines terms.
+func ByApplicationLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newApplicationLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -752,5 +775,12 @@ func newAdjustmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AdjustmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AdjustmentsTable, AdjustmentsColumn),
+	)
+}
+func newApplicationLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ApplicationLinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ApplicationLinesTable, ApplicationLinesColumn),
 	)
 }

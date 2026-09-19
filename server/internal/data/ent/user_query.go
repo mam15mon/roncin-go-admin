@@ -23,6 +23,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
@@ -113,6 +115,10 @@ type UserQuery struct {
 	withCreatedFinanceCommissionRuleAssignments    *FinanceCommissionRuleAssignmentQuery
 	withCancelledFinanceCommissionRuleAssignments  *FinanceCommissionRuleAssignmentQuery
 	withTerminatedFinanceCommissionRuleAssignments *FinanceCommissionRuleAssignmentQuery
+	withFinanceCommissionApplications              *FinanceCommissionApplicationQuery
+	withSubmittedFinanceCommissionApplications     *FinanceCommissionApplicationQuery
+	withDecidedFinanceCommissionApplications       *FinanceCommissionApplicationQuery
+	withFinanceCommissionApplicationLines          *FinanceCommissionApplicationLineQuery
 	withCreatedSeaMasterBillVersions               *SeaMasterBillVersionQuery
 	withCreatedSeaHouseBillVersions                *SeaHouseBillVersionQuery
 	withCreatedSeaDocumentVoidEvents               *SeaDocumentVoidEventQuery
@@ -1259,6 +1265,94 @@ func (_q *UserQuery) QueryTerminatedFinanceCommissionRuleAssignments() *FinanceC
 	return query
 }
 
+// QueryFinanceCommissionApplications chains the current query on the "finance_commission_applications" edge.
+func (_q *UserQuery) QueryFinanceCommissionApplications() *FinanceCommissionApplicationQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionapplication.Table, financecommissionapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.FinanceCommissionApplicationsTable, user.FinanceCommissionApplicationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubmittedFinanceCommissionApplications chains the current query on the "submitted_finance_commission_applications" edge.
+func (_q *UserQuery) QuerySubmittedFinanceCommissionApplications() *FinanceCommissionApplicationQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionapplication.Table, financecommissionapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.SubmittedFinanceCommissionApplicationsTable, user.SubmittedFinanceCommissionApplicationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDecidedFinanceCommissionApplications chains the current query on the "decided_finance_commission_applications" edge.
+func (_q *UserQuery) QueryDecidedFinanceCommissionApplications() *FinanceCommissionApplicationQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionapplication.Table, financecommissionapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DecidedFinanceCommissionApplicationsTable, user.DecidedFinanceCommissionApplicationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceCommissionApplicationLines chains the current query on the "finance_commission_application_lines" edge.
+func (_q *UserQuery) QueryFinanceCommissionApplicationLines() *FinanceCommissionApplicationLineQuery {
+	query := (&FinanceCommissionApplicationLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(financecommissionapplicationline.Table, financecommissionapplicationline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.FinanceCommissionApplicationLinesTable, user.FinanceCommissionApplicationLinesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryCreatedSeaMasterBillVersions chains the current query on the "created_sea_master_bill_versions" edge.
 func (_q *UserQuery) QueryCreatedSeaMasterBillVersions() *SeaMasterBillVersionQuery {
 	query := (&SeaMasterBillVersionClient{config: _q.config}).Query()
@@ -1699,6 +1793,10 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withCreatedFinanceCommissionRuleAssignments:    _q.withCreatedFinanceCommissionRuleAssignments.Clone(),
 		withCancelledFinanceCommissionRuleAssignments:  _q.withCancelledFinanceCommissionRuleAssignments.Clone(),
 		withTerminatedFinanceCommissionRuleAssignments: _q.withTerminatedFinanceCommissionRuleAssignments.Clone(),
+		withFinanceCommissionApplications:              _q.withFinanceCommissionApplications.Clone(),
+		withSubmittedFinanceCommissionApplications:     _q.withSubmittedFinanceCommissionApplications.Clone(),
+		withDecidedFinanceCommissionApplications:       _q.withDecidedFinanceCommissionApplications.Clone(),
+		withFinanceCommissionApplicationLines:          _q.withFinanceCommissionApplicationLines.Clone(),
 		withCreatedSeaMasterBillVersions:               _q.withCreatedSeaMasterBillVersions.Clone(),
 		withCreatedSeaHouseBillVersions:                _q.withCreatedSeaHouseBillVersions.Clone(),
 		withCreatedSeaDocumentVoidEvents:               _q.withCreatedSeaDocumentVoidEvents.Clone(),
@@ -2264,6 +2362,50 @@ func (_q *UserQuery) WithTerminatedFinanceCommissionRuleAssignments(opts ...func
 	return _q
 }
 
+// WithFinanceCommissionApplications tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_applications" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithFinanceCommissionApplications(opts ...func(*FinanceCommissionApplicationQuery)) *UserQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionApplications = query
+	return _q
+}
+
+// WithSubmittedFinanceCommissionApplications tells the query-builder to eager-load the nodes that are connected to
+// the "submitted_finance_commission_applications" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithSubmittedFinanceCommissionApplications(opts ...func(*FinanceCommissionApplicationQuery)) *UserQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSubmittedFinanceCommissionApplications = query
+	return _q
+}
+
+// WithDecidedFinanceCommissionApplications tells the query-builder to eager-load the nodes that are connected to
+// the "decided_finance_commission_applications" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithDecidedFinanceCommissionApplications(opts ...func(*FinanceCommissionApplicationQuery)) *UserQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDecidedFinanceCommissionApplications = query
+	return _q
+}
+
+// WithFinanceCommissionApplicationLines tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_application_lines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithFinanceCommissionApplicationLines(opts ...func(*FinanceCommissionApplicationLineQuery)) *UserQuery {
+	query := (&FinanceCommissionApplicationLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionApplicationLines = query
+	return _q
+}
+
 // WithCreatedSeaMasterBillVersions tells the query-builder to eager-load the nodes that are connected to
 // the "created_sea_master_bill_versions" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithCreatedSeaMasterBillVersions(opts ...func(*SeaMasterBillVersionQuery)) *UserQuery {
@@ -2441,7 +2583,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [59]bool{
+		loadedTypes = [63]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2492,6 +2634,10 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withCreatedFinanceCommissionRuleAssignments != nil,
 			_q.withCancelledFinanceCommissionRuleAssignments != nil,
 			_q.withTerminatedFinanceCommissionRuleAssignments != nil,
+			_q.withFinanceCommissionApplications != nil,
+			_q.withSubmittedFinanceCommissionApplications != nil,
+			_q.withDecidedFinanceCommissionApplications != nil,
+			_q.withFinanceCommissionApplicationLines != nil,
 			_q.withCreatedSeaMasterBillVersions != nil,
 			_q.withCreatedSeaHouseBillVersions != nil,
 			_q.withCreatedSeaDocumentVoidEvents != nil,
@@ -2962,6 +3108,42 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			},
 			func(n *User, e *FinanceCommissionRuleAssignment) {
 				n.Edges.TerminatedFinanceCommissionRuleAssignments = append(n.Edges.TerminatedFinanceCommissionRuleAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionApplications; query != nil {
+		if err := _q.loadFinanceCommissionApplications(ctx, query, nodes,
+			func(n *User) { n.Edges.FinanceCommissionApplications = []*FinanceCommissionApplication{} },
+			func(n *User, e *FinanceCommissionApplication) {
+				n.Edges.FinanceCommissionApplications = append(n.Edges.FinanceCommissionApplications, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSubmittedFinanceCommissionApplications; query != nil {
+		if err := _q.loadSubmittedFinanceCommissionApplications(ctx, query, nodes,
+			func(n *User) { n.Edges.SubmittedFinanceCommissionApplications = []*FinanceCommissionApplication{} },
+			func(n *User, e *FinanceCommissionApplication) {
+				n.Edges.SubmittedFinanceCommissionApplications = append(n.Edges.SubmittedFinanceCommissionApplications, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDecidedFinanceCommissionApplications; query != nil {
+		if err := _q.loadDecidedFinanceCommissionApplications(ctx, query, nodes,
+			func(n *User) { n.Edges.DecidedFinanceCommissionApplications = []*FinanceCommissionApplication{} },
+			func(n *User, e *FinanceCommissionApplication) {
+				n.Edges.DecidedFinanceCommissionApplications = append(n.Edges.DecidedFinanceCommissionApplications, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionApplicationLines; query != nil {
+		if err := _q.loadFinanceCommissionApplicationLines(ctx, query, nodes,
+			func(n *User) { n.Edges.FinanceCommissionApplicationLines = []*FinanceCommissionApplicationLine{} },
+			func(n *User, e *FinanceCommissionApplicationLine) {
+				n.Edges.FinanceCommissionApplicationLines = append(n.Edges.FinanceCommissionApplicationLines, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4638,6 +4820,129 @@ func (_q *UserQuery) loadTerminatedFinanceCommissionRuleAssignments(ctx context.
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "terminated_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadFinanceCommissionApplications(ctx context.Context, query *FinanceCommissionApplicationQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionApplication)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionapplication.FieldEmployeeID)
+	}
+	query.Where(predicate.FinanceCommissionApplication(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.FinanceCommissionApplicationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EmployeeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "employee_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadSubmittedFinanceCommissionApplications(ctx context.Context, query *FinanceCommissionApplicationQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionApplication)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionapplication.FieldSubmittedBy)
+	}
+	query.Where(predicate.FinanceCommissionApplication(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.SubmittedFinanceCommissionApplicationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SubmittedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "submitted_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadDecidedFinanceCommissionApplications(ctx context.Context, query *FinanceCommissionApplicationQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionApplication)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionapplication.FieldDecidedBy)
+	}
+	query.Where(predicate.FinanceCommissionApplication(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.DecidedFinanceCommissionApplicationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DecidedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "decided_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "decided_by" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadFinanceCommissionApplicationLines(ctx context.Context, query *FinanceCommissionApplicationLineQuery, nodes []*User, init func(*User), assign func(*User, *FinanceCommissionApplicationLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionapplicationline.FieldEmployeeID)
+	}
+	query.Where(predicate.FinanceCommissionApplicationLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.FinanceCommissionApplicationLinesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EmployeeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "employee_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

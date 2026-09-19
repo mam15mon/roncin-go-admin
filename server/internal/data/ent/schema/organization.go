@@ -65,6 +65,9 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("finance_commission_rules", FinanceCommissionRule.Type),
 		// 提成方案员工分配保留历史审计引用：删除组织不得级联清空分配历史。
 		edge.To("finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		// 月度提成申请与明细保留历史快照引用：删除组织不得级联清空申请历史。
+		edge.To("finance_commission_applications", FinanceCommissionApplication.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("finance_commission_application_lines", FinanceCommissionApplicationLine.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("order_commission_attributions", OrderCommissionAttribution.Type),
 		edge.To("finance_fee_ledger_preferences", FinanceFeeLedgerPreference.Type),
 		edge.To("finance_custom_setting", FinanceCustomSetting.Type),

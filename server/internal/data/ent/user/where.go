@@ -2221,6 +2221,98 @@ func HasTerminatedFinanceCommissionRuleAssignmentsWith(preds ...predicate.Financ
 	})
 }
 
+// HasFinanceCommissionApplications applies the HasEdge predicate on the "finance_commission_applications" edge.
+func HasFinanceCommissionApplications() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionApplicationsTable, FinanceCommissionApplicationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceCommissionApplicationsWith applies the HasEdge predicate on the "finance_commission_applications" edge with a given conditions (other predicates).
+func HasFinanceCommissionApplicationsWith(preds ...predicate.FinanceCommissionApplication) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newFinanceCommissionApplicationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSubmittedFinanceCommissionApplications applies the HasEdge predicate on the "submitted_finance_commission_applications" edge.
+func HasSubmittedFinanceCommissionApplications() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SubmittedFinanceCommissionApplicationsTable, SubmittedFinanceCommissionApplicationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubmittedFinanceCommissionApplicationsWith applies the HasEdge predicate on the "submitted_finance_commission_applications" edge with a given conditions (other predicates).
+func HasSubmittedFinanceCommissionApplicationsWith(preds ...predicate.FinanceCommissionApplication) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newSubmittedFinanceCommissionApplicationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDecidedFinanceCommissionApplications applies the HasEdge predicate on the "decided_finance_commission_applications" edge.
+func HasDecidedFinanceCommissionApplications() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DecidedFinanceCommissionApplicationsTable, DecidedFinanceCommissionApplicationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDecidedFinanceCommissionApplicationsWith applies the HasEdge predicate on the "decided_finance_commission_applications" edge with a given conditions (other predicates).
+func HasDecidedFinanceCommissionApplicationsWith(preds ...predicate.FinanceCommissionApplication) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newDecidedFinanceCommissionApplicationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFinanceCommissionApplicationLines applies the HasEdge predicate on the "finance_commission_application_lines" edge.
+func HasFinanceCommissionApplicationLines() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionApplicationLinesTable, FinanceCommissionApplicationLinesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceCommissionApplicationLinesWith applies the HasEdge predicate on the "finance_commission_application_lines" edge with a given conditions (other predicates).
+func HasFinanceCommissionApplicationLinesWith(preds ...predicate.FinanceCommissionApplicationLine) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newFinanceCommissionApplicationLinesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasCreatedSeaMasterBillVersions applies the HasEdge predicate on the "created_sea_master_bill_versions" edge.
 func HasCreatedSeaMasterBillVersions() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

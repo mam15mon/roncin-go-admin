@@ -27,6 +27,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
@@ -78,72 +80,74 @@ import (
 // OrganizationQuery is the builder for querying Organization entities.
 type OrganizationQuery struct {
 	config
-	ctx                                  *QueryContext
-	order                                []organization.OrderOption
-	inters                               []Interceptor
-	predicates                           []predicate.Organization
-	withParent                           *OrganizationQuery
-	withChildren                         *OrganizationQuery
-	withMemberships                      *MembershipQuery
-	withRoles                            *RoleQuery
-	withSessions                         *SessionQuery
-	withPartners                         *PartnerQuery
-	withPartnerAssignments               *PartnerAssignmentQuery
-	withTaxableServices                  *TaxableServiceQuery
-	withFeeSettings                      *FeeSettingQuery
-	withPorts                            *PortQuery
-	withAirports                         *AirportQuery
-	withNumberRules                      *NumberRuleQuery
-	withOrders                           *OrderQuery
-	withSeaTransportExecutions           *SeaTransportExecutionQuery
-	withSeaMasterBills                   *SeaMasterBillQuery
-	withSeaMasterBillOrderLinks          *SeaMasterBillOrderLinkQuery
-	withSeaHouseBills                    *SeaHouseBillQuery
-	withIssuedSeaHouseBills              *SeaHouseBillQuery
-	withOrderCargoItems                  *OrderCargoItemQuery
-	withOrderContainers                  *OrderContainerQuery
-	withOrderPersonnel                   *OrderPersonnelQuery
-	withBackgroundTasks                  *BackgroundTaskQuery
-	withFinanceBills                     *FinanceBillQuery
-	withFinanceBillBatches               *FinanceBillBatchQuery
-	withPartnerInvoiceProfiles           *PartnerInvoiceProfileQuery
-	withFinanceInvoices                  *FinanceInvoiceQuery
-	withFinanceCashflows                 *FinanceCashflowQuery
-	withFinanceVerifications             *FinanceVerificationQuery
-	withFinanceNettings                  *FinanceNettingQuery
-	withFinanceCommissions               *FinanceCommissionQuery
-	withFinanceCommissionLines           *FinanceCommissionLineQuery
-	withFinanceCommissionAdjustments     *FinanceCommissionAdjustmentQuery
-	withFinanceCommissionRules           *FinanceCommissionRuleQuery
-	withFinanceCommissionRuleAssignments *FinanceCommissionRuleAssignmentQuery
-	withOrderCommissionAttributions      *OrderCommissionAttributionQuery
-	withFinanceFeeLedgerPreferences      *FinanceFeeLedgerPreferenceQuery
-	withFinanceCustomSetting             *FinanceCustomSettingQuery
-	withEnterpriseResources              *EnterpriseResourceQuery
-	withEnterpriseTagGroups              *EnterpriseTagGroupQuery
-	withOrderEnterpriseTags              *OrderEnterpriseTagQuery
-	withOrderFeeEnterpriseTags           *OrderFeeEnterpriseTagQuery
-	withFinanceBillEnterpriseTags        *FinanceBillEnterpriseTagQuery
-	withAttachmentAssets                 *OrderAttachmentAssetQuery
-	withSeaOrderSplitEvents              *SeaOrderSplitEventQuery
-	withSeaOrderSplitResults             *SeaOrderSplitResultQuery
-	withSeaOrderReassignmentEvents       *SeaOrderReassignmentEventQuery
-	withOrderLockRecords                 *OrderLockRecordQuery
-	withOrderFeeSupplementRequests       *OrderFeeSupplementRequestQuery
-	withOrderLockHouseBillSnapshots      *OrderLockHouseBillSnapshotQuery
-	withOrderUnlockRequests              *OrderUnlockRequestQuery
-	withSeaMasterBillVersions            *SeaMasterBillVersionQuery
-	withSeaHouseBillVersions             *SeaHouseBillVersionQuery
-	withIssuedSeaHouseBillVersions       *SeaHouseBillVersionQuery
-	withDingtalkApprovalDispatches       *DingTalkApprovalDispatchQuery
-	withSeaDocumentVoidEvents            *SeaDocumentVoidEventQuery
-	withSeaTransportExecutionVersions    *SeaTransportExecutionVersionQuery
-	withSeaDocumentModeChangeEvents      *SeaDocumentModeChangeEventQuery
-	withSeaSharedContainers              *SeaSharedContainerQuery
-	withSeaSharedContainerAllocations    *SeaSharedContainerAllocationQuery
-	withDingtalkInvitations              *DingTalkInvitationQuery
-	withDingtalkRegistrationRequests     *UserQuery
-	modifiers                            []func(*sql.Selector)
+	ctx                                   *QueryContext
+	order                                 []organization.OrderOption
+	inters                                []Interceptor
+	predicates                            []predicate.Organization
+	withParent                            *OrganizationQuery
+	withChildren                          *OrganizationQuery
+	withMemberships                       *MembershipQuery
+	withRoles                             *RoleQuery
+	withSessions                          *SessionQuery
+	withPartners                          *PartnerQuery
+	withPartnerAssignments                *PartnerAssignmentQuery
+	withTaxableServices                   *TaxableServiceQuery
+	withFeeSettings                       *FeeSettingQuery
+	withPorts                             *PortQuery
+	withAirports                          *AirportQuery
+	withNumberRules                       *NumberRuleQuery
+	withOrders                            *OrderQuery
+	withSeaTransportExecutions            *SeaTransportExecutionQuery
+	withSeaMasterBills                    *SeaMasterBillQuery
+	withSeaMasterBillOrderLinks           *SeaMasterBillOrderLinkQuery
+	withSeaHouseBills                     *SeaHouseBillQuery
+	withIssuedSeaHouseBills               *SeaHouseBillQuery
+	withOrderCargoItems                   *OrderCargoItemQuery
+	withOrderContainers                   *OrderContainerQuery
+	withOrderPersonnel                    *OrderPersonnelQuery
+	withBackgroundTasks                   *BackgroundTaskQuery
+	withFinanceBills                      *FinanceBillQuery
+	withFinanceBillBatches                *FinanceBillBatchQuery
+	withPartnerInvoiceProfiles            *PartnerInvoiceProfileQuery
+	withFinanceInvoices                   *FinanceInvoiceQuery
+	withFinanceCashflows                  *FinanceCashflowQuery
+	withFinanceVerifications              *FinanceVerificationQuery
+	withFinanceNettings                   *FinanceNettingQuery
+	withFinanceCommissions                *FinanceCommissionQuery
+	withFinanceCommissionLines            *FinanceCommissionLineQuery
+	withFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
+	withFinanceCommissionRules            *FinanceCommissionRuleQuery
+	withFinanceCommissionRuleAssignments  *FinanceCommissionRuleAssignmentQuery
+	withFinanceCommissionApplications     *FinanceCommissionApplicationQuery
+	withFinanceCommissionApplicationLines *FinanceCommissionApplicationLineQuery
+	withOrderCommissionAttributions       *OrderCommissionAttributionQuery
+	withFinanceFeeLedgerPreferences       *FinanceFeeLedgerPreferenceQuery
+	withFinanceCustomSetting              *FinanceCustomSettingQuery
+	withEnterpriseResources               *EnterpriseResourceQuery
+	withEnterpriseTagGroups               *EnterpriseTagGroupQuery
+	withOrderEnterpriseTags               *OrderEnterpriseTagQuery
+	withOrderFeeEnterpriseTags            *OrderFeeEnterpriseTagQuery
+	withFinanceBillEnterpriseTags         *FinanceBillEnterpriseTagQuery
+	withAttachmentAssets                  *OrderAttachmentAssetQuery
+	withSeaOrderSplitEvents               *SeaOrderSplitEventQuery
+	withSeaOrderSplitResults              *SeaOrderSplitResultQuery
+	withSeaOrderReassignmentEvents        *SeaOrderReassignmentEventQuery
+	withOrderLockRecords                  *OrderLockRecordQuery
+	withOrderFeeSupplementRequests        *OrderFeeSupplementRequestQuery
+	withOrderLockHouseBillSnapshots       *OrderLockHouseBillSnapshotQuery
+	withOrderUnlockRequests               *OrderUnlockRequestQuery
+	withSeaMasterBillVersions             *SeaMasterBillVersionQuery
+	withSeaHouseBillVersions              *SeaHouseBillVersionQuery
+	withIssuedSeaHouseBillVersions        *SeaHouseBillVersionQuery
+	withDingtalkApprovalDispatches        *DingTalkApprovalDispatchQuery
+	withSeaDocumentVoidEvents             *SeaDocumentVoidEventQuery
+	withSeaTransportExecutionVersions     *SeaTransportExecutionVersionQuery
+	withSeaDocumentModeChangeEvents       *SeaDocumentModeChangeEventQuery
+	withSeaSharedContainers               *SeaSharedContainerQuery
+	withSeaSharedContainerAllocations     *SeaSharedContainerAllocationQuery
+	withDingtalkInvitations               *DingTalkInvitationQuery
+	withDingtalkRegistrationRequests      *UserQuery
+	modifiers                             []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -921,6 +925,50 @@ func (_q *OrganizationQuery) QueryFinanceCommissionRuleAssignments() *FinanceCom
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(financecommissionruleassignment.Table, financecommissionruleassignment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceCommissionRuleAssignmentsTable, organization.FinanceCommissionRuleAssignmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceCommissionApplications chains the current query on the "finance_commission_applications" edge.
+func (_q *OrganizationQuery) QueryFinanceCommissionApplications() *FinanceCommissionApplicationQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(financecommissionapplication.Table, financecommissionapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceCommissionApplicationsTable, organization.FinanceCommissionApplicationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFinanceCommissionApplicationLines chains the current query on the "finance_commission_application_lines" edge.
+func (_q *OrganizationQuery) QueryFinanceCommissionApplicationLines() *FinanceCommissionApplicationLineQuery {
+	query := (&FinanceCommissionApplicationLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(financecommissionapplicationline.Table, financecommissionapplicationline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceCommissionApplicationLinesTable, organization.FinanceCommissionApplicationLinesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1709,72 +1757,74 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		return nil
 	}
 	return &OrganizationQuery{
-		config:                               _q.config,
-		ctx:                                  _q.ctx.Clone(),
-		order:                                append([]organization.OrderOption{}, _q.order...),
-		inters:                               append([]Interceptor{}, _q.inters...),
-		predicates:                           append([]predicate.Organization{}, _q.predicates...),
-		withParent:                           _q.withParent.Clone(),
-		withChildren:                         _q.withChildren.Clone(),
-		withMemberships:                      _q.withMemberships.Clone(),
-		withRoles:                            _q.withRoles.Clone(),
-		withSessions:                         _q.withSessions.Clone(),
-		withPartners:                         _q.withPartners.Clone(),
-		withPartnerAssignments:               _q.withPartnerAssignments.Clone(),
-		withTaxableServices:                  _q.withTaxableServices.Clone(),
-		withFeeSettings:                      _q.withFeeSettings.Clone(),
-		withPorts:                            _q.withPorts.Clone(),
-		withAirports:                         _q.withAirports.Clone(),
-		withNumberRules:                      _q.withNumberRules.Clone(),
-		withOrders:                           _q.withOrders.Clone(),
-		withSeaTransportExecutions:           _q.withSeaTransportExecutions.Clone(),
-		withSeaMasterBills:                   _q.withSeaMasterBills.Clone(),
-		withSeaMasterBillOrderLinks:          _q.withSeaMasterBillOrderLinks.Clone(),
-		withSeaHouseBills:                    _q.withSeaHouseBills.Clone(),
-		withIssuedSeaHouseBills:              _q.withIssuedSeaHouseBills.Clone(),
-		withOrderCargoItems:                  _q.withOrderCargoItems.Clone(),
-		withOrderContainers:                  _q.withOrderContainers.Clone(),
-		withOrderPersonnel:                   _q.withOrderPersonnel.Clone(),
-		withBackgroundTasks:                  _q.withBackgroundTasks.Clone(),
-		withFinanceBills:                     _q.withFinanceBills.Clone(),
-		withFinanceBillBatches:               _q.withFinanceBillBatches.Clone(),
-		withPartnerInvoiceProfiles:           _q.withPartnerInvoiceProfiles.Clone(),
-		withFinanceInvoices:                  _q.withFinanceInvoices.Clone(),
-		withFinanceCashflows:                 _q.withFinanceCashflows.Clone(),
-		withFinanceVerifications:             _q.withFinanceVerifications.Clone(),
-		withFinanceNettings:                  _q.withFinanceNettings.Clone(),
-		withFinanceCommissions:               _q.withFinanceCommissions.Clone(),
-		withFinanceCommissionLines:           _q.withFinanceCommissionLines.Clone(),
-		withFinanceCommissionAdjustments:     _q.withFinanceCommissionAdjustments.Clone(),
-		withFinanceCommissionRules:           _q.withFinanceCommissionRules.Clone(),
-		withFinanceCommissionRuleAssignments: _q.withFinanceCommissionRuleAssignments.Clone(),
-		withOrderCommissionAttributions:      _q.withOrderCommissionAttributions.Clone(),
-		withFinanceFeeLedgerPreferences:      _q.withFinanceFeeLedgerPreferences.Clone(),
-		withFinanceCustomSetting:             _q.withFinanceCustomSetting.Clone(),
-		withEnterpriseResources:              _q.withEnterpriseResources.Clone(),
-		withEnterpriseTagGroups:              _q.withEnterpriseTagGroups.Clone(),
-		withOrderEnterpriseTags:              _q.withOrderEnterpriseTags.Clone(),
-		withOrderFeeEnterpriseTags:           _q.withOrderFeeEnterpriseTags.Clone(),
-		withFinanceBillEnterpriseTags:        _q.withFinanceBillEnterpriseTags.Clone(),
-		withAttachmentAssets:                 _q.withAttachmentAssets.Clone(),
-		withSeaOrderSplitEvents:              _q.withSeaOrderSplitEvents.Clone(),
-		withSeaOrderSplitResults:             _q.withSeaOrderSplitResults.Clone(),
-		withSeaOrderReassignmentEvents:       _q.withSeaOrderReassignmentEvents.Clone(),
-		withOrderLockRecords:                 _q.withOrderLockRecords.Clone(),
-		withOrderFeeSupplementRequests:       _q.withOrderFeeSupplementRequests.Clone(),
-		withOrderLockHouseBillSnapshots:      _q.withOrderLockHouseBillSnapshots.Clone(),
-		withOrderUnlockRequests:              _q.withOrderUnlockRequests.Clone(),
-		withSeaMasterBillVersions:            _q.withSeaMasterBillVersions.Clone(),
-		withSeaHouseBillVersions:             _q.withSeaHouseBillVersions.Clone(),
-		withIssuedSeaHouseBillVersions:       _q.withIssuedSeaHouseBillVersions.Clone(),
-		withDingtalkApprovalDispatches:       _q.withDingtalkApprovalDispatches.Clone(),
-		withSeaDocumentVoidEvents:            _q.withSeaDocumentVoidEvents.Clone(),
-		withSeaTransportExecutionVersions:    _q.withSeaTransportExecutionVersions.Clone(),
-		withSeaDocumentModeChangeEvents:      _q.withSeaDocumentModeChangeEvents.Clone(),
-		withSeaSharedContainers:              _q.withSeaSharedContainers.Clone(),
-		withSeaSharedContainerAllocations:    _q.withSeaSharedContainerAllocations.Clone(),
-		withDingtalkInvitations:              _q.withDingtalkInvitations.Clone(),
-		withDingtalkRegistrationRequests:     _q.withDingtalkRegistrationRequests.Clone(),
+		config:                                _q.config,
+		ctx:                                   _q.ctx.Clone(),
+		order:                                 append([]organization.OrderOption{}, _q.order...),
+		inters:                                append([]Interceptor{}, _q.inters...),
+		predicates:                            append([]predicate.Organization{}, _q.predicates...),
+		withParent:                            _q.withParent.Clone(),
+		withChildren:                          _q.withChildren.Clone(),
+		withMemberships:                       _q.withMemberships.Clone(),
+		withRoles:                             _q.withRoles.Clone(),
+		withSessions:                          _q.withSessions.Clone(),
+		withPartners:                          _q.withPartners.Clone(),
+		withPartnerAssignments:                _q.withPartnerAssignments.Clone(),
+		withTaxableServices:                   _q.withTaxableServices.Clone(),
+		withFeeSettings:                       _q.withFeeSettings.Clone(),
+		withPorts:                             _q.withPorts.Clone(),
+		withAirports:                          _q.withAirports.Clone(),
+		withNumberRules:                       _q.withNumberRules.Clone(),
+		withOrders:                            _q.withOrders.Clone(),
+		withSeaTransportExecutions:            _q.withSeaTransportExecutions.Clone(),
+		withSeaMasterBills:                    _q.withSeaMasterBills.Clone(),
+		withSeaMasterBillOrderLinks:           _q.withSeaMasterBillOrderLinks.Clone(),
+		withSeaHouseBills:                     _q.withSeaHouseBills.Clone(),
+		withIssuedSeaHouseBills:               _q.withIssuedSeaHouseBills.Clone(),
+		withOrderCargoItems:                   _q.withOrderCargoItems.Clone(),
+		withOrderContainers:                   _q.withOrderContainers.Clone(),
+		withOrderPersonnel:                    _q.withOrderPersonnel.Clone(),
+		withBackgroundTasks:                   _q.withBackgroundTasks.Clone(),
+		withFinanceBills:                      _q.withFinanceBills.Clone(),
+		withFinanceBillBatches:                _q.withFinanceBillBatches.Clone(),
+		withPartnerInvoiceProfiles:            _q.withPartnerInvoiceProfiles.Clone(),
+		withFinanceInvoices:                   _q.withFinanceInvoices.Clone(),
+		withFinanceCashflows:                  _q.withFinanceCashflows.Clone(),
+		withFinanceVerifications:              _q.withFinanceVerifications.Clone(),
+		withFinanceNettings:                   _q.withFinanceNettings.Clone(),
+		withFinanceCommissions:                _q.withFinanceCommissions.Clone(),
+		withFinanceCommissionLines:            _q.withFinanceCommissionLines.Clone(),
+		withFinanceCommissionAdjustments:      _q.withFinanceCommissionAdjustments.Clone(),
+		withFinanceCommissionRules:            _q.withFinanceCommissionRules.Clone(),
+		withFinanceCommissionRuleAssignments:  _q.withFinanceCommissionRuleAssignments.Clone(),
+		withFinanceCommissionApplications:     _q.withFinanceCommissionApplications.Clone(),
+		withFinanceCommissionApplicationLines: _q.withFinanceCommissionApplicationLines.Clone(),
+		withOrderCommissionAttributions:       _q.withOrderCommissionAttributions.Clone(),
+		withFinanceFeeLedgerPreferences:       _q.withFinanceFeeLedgerPreferences.Clone(),
+		withFinanceCustomSetting:              _q.withFinanceCustomSetting.Clone(),
+		withEnterpriseResources:               _q.withEnterpriseResources.Clone(),
+		withEnterpriseTagGroups:               _q.withEnterpriseTagGroups.Clone(),
+		withOrderEnterpriseTags:               _q.withOrderEnterpriseTags.Clone(),
+		withOrderFeeEnterpriseTags:            _q.withOrderFeeEnterpriseTags.Clone(),
+		withFinanceBillEnterpriseTags:         _q.withFinanceBillEnterpriseTags.Clone(),
+		withAttachmentAssets:                  _q.withAttachmentAssets.Clone(),
+		withSeaOrderSplitEvents:               _q.withSeaOrderSplitEvents.Clone(),
+		withSeaOrderSplitResults:              _q.withSeaOrderSplitResults.Clone(),
+		withSeaOrderReassignmentEvents:        _q.withSeaOrderReassignmentEvents.Clone(),
+		withOrderLockRecords:                  _q.withOrderLockRecords.Clone(),
+		withOrderFeeSupplementRequests:        _q.withOrderFeeSupplementRequests.Clone(),
+		withOrderLockHouseBillSnapshots:       _q.withOrderLockHouseBillSnapshots.Clone(),
+		withOrderUnlockRequests:               _q.withOrderUnlockRequests.Clone(),
+		withSeaMasterBillVersions:             _q.withSeaMasterBillVersions.Clone(),
+		withSeaHouseBillVersions:              _q.withSeaHouseBillVersions.Clone(),
+		withIssuedSeaHouseBillVersions:        _q.withIssuedSeaHouseBillVersions.Clone(),
+		withDingtalkApprovalDispatches:        _q.withDingtalkApprovalDispatches.Clone(),
+		withSeaDocumentVoidEvents:             _q.withSeaDocumentVoidEvents.Clone(),
+		withSeaTransportExecutionVersions:     _q.withSeaTransportExecutionVersions.Clone(),
+		withSeaDocumentModeChangeEvents:       _q.withSeaDocumentModeChangeEvents.Clone(),
+		withSeaSharedContainers:               _q.withSeaSharedContainers.Clone(),
+		withSeaSharedContainerAllocations:     _q.withSeaSharedContainerAllocations.Clone(),
+		withDingtalkInvitations:               _q.withDingtalkInvitations.Clone(),
+		withDingtalkRegistrationRequests:      _q.withDingtalkRegistrationRequests.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -2155,6 +2205,28 @@ func (_q *OrganizationQuery) WithFinanceCommissionRuleAssignments(opts ...func(*
 	return _q
 }
 
+// WithFinanceCommissionApplications tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_applications" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFinanceCommissionApplications(opts ...func(*FinanceCommissionApplicationQuery)) *OrganizationQuery {
+	query := (&FinanceCommissionApplicationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionApplications = query
+	return _q
+}
+
+// WithFinanceCommissionApplicationLines tells the query-builder to eager-load the nodes that are connected to
+// the "finance_commission_application_lines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFinanceCommissionApplicationLines(opts ...func(*FinanceCommissionApplicationLineQuery)) *OrganizationQuery {
+	query := (&FinanceCommissionApplicationLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFinanceCommissionApplicationLines = query
+	return _q
+}
+
 // WithOrderCommissionAttributions tells the query-builder to eager-load the nodes that are connected to
 // the "order_commission_attributions" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithOrderCommissionAttributions(opts ...func(*OrderCommissionAttributionQuery)) *OrganizationQuery {
@@ -2530,7 +2602,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [61]bool{
+		loadedTypes = [63]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -2565,6 +2637,8 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceCommissionAdjustments != nil,
 			_q.withFinanceCommissionRules != nil,
 			_q.withFinanceCommissionRuleAssignments != nil,
+			_q.withFinanceCommissionApplications != nil,
+			_q.withFinanceCommissionApplicationLines != nil,
 			_q.withOrderCommissionAttributions != nil,
 			_q.withFinanceFeeLedgerPreferences != nil,
 			_q.withFinanceCustomSetting != nil,
@@ -2874,6 +2948,26 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.FinanceCommissionRuleAssignments = []*FinanceCommissionRuleAssignment{} },
 			func(n *Organization, e *FinanceCommissionRuleAssignment) {
 				n.Edges.FinanceCommissionRuleAssignments = append(n.Edges.FinanceCommissionRuleAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionApplications; query != nil {
+		if err := _q.loadFinanceCommissionApplications(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FinanceCommissionApplications = []*FinanceCommissionApplication{} },
+			func(n *Organization, e *FinanceCommissionApplication) {
+				n.Edges.FinanceCommissionApplications = append(n.Edges.FinanceCommissionApplications, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFinanceCommissionApplicationLines; query != nil {
+		if err := _q.loadFinanceCommissionApplicationLines(ctx, query, nodes,
+			func(n *Organization) {
+				n.Edges.FinanceCommissionApplicationLines = []*FinanceCommissionApplicationLine{}
+			},
+			func(n *Organization, e *FinanceCommissionApplicationLine) {
+				n.Edges.FinanceCommissionApplicationLines = append(n.Edges.FinanceCommissionApplicationLines, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4146,6 +4240,66 @@ func (_q *OrganizationQuery) loadFinanceCommissionRuleAssignments(ctx context.Co
 	}
 	query.Where(predicate.FinanceCommissionRuleAssignment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.FinanceCommissionRuleAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFinanceCommissionApplications(ctx context.Context, query *FinanceCommissionApplicationQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceCommissionApplication)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionapplication.FieldOrganizationID)
+	}
+	query.Where(predicate.FinanceCommissionApplication(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FinanceCommissionApplicationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFinanceCommissionApplicationLines(ctx context.Context, query *FinanceCommissionApplicationLineQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceCommissionApplicationLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionapplicationline.FieldOrganizationID)
+	}
+	query.Where(predicate.FinanceCommissionApplicationLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FinanceCommissionApplicationLinesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

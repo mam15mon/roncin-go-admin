@@ -96,6 +96,10 @@ const (
 	SettlementService_MarkCommissionAdjustmentPaid_FullMethodName              = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
 	SettlementService_CancelCommissionAdjustment_FullMethodName                = "/finance.v1.SettlementService/CancelCommissionAdjustment"
 	SettlementService_ListCommissionAdjustments_FullMethodName                 = "/finance.v1.SettlementService/ListCommissionAdjustments"
+	SettlementService_ListCommissionApplications_FullMethodName                = "/finance.v1.SettlementService/ListCommissionApplications"
+	SettlementService_GetCommissionApplication_FullMethodName                  = "/finance.v1.SettlementService/GetCommissionApplication"
+	SettlementService_ApproveCommissionApplication_FullMethodName              = "/finance.v1.SettlementService/ApproveCommissionApplication"
+	SettlementService_RejectCommissionApplication_FullMethodName               = "/finance.v1.SettlementService/RejectCommissionApplication"
 	SettlementService_GetMyFeeSupplementAdjustmentSource_FullMethodName        = "/finance.v1.SettlementService/GetMyFeeSupplementAdjustmentSource"
 )
 
@@ -204,6 +208,18 @@ type SettlementServiceClient interface {
 	// ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
 	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
 	ListCommissionAdjustments(ctx context.Context, in *ListCommissionAdjustmentsRequest, opts ...grpc.CallOption) (*ListCommissionAdjustmentsResponse, error)
+	// 月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+	// commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+	// ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。
+	ListCommissionApplications(ctx context.Context, in *ListCommissionApplicationsRequest, opts ...grpc.CallOption) (*ListCommissionApplicationsResponse, error)
+	// GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。
+	GetCommissionApplication(ctx context.Context, in *GetCommissionApplicationRequest, opts ...grpc.CallOption) (*GetCommissionApplicationResponse, error)
+	// ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+	// 确认申请内提成计算结果，不代表银行付款或工资发放。
+	ApproveCommissionApplication(ctx context.Context, in *ApproveCommissionApplicationRequest, opts ...grpc.CallOption) (*ApproveCommissionApplicationResponse, error)
+	// RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+	// 不产生同月替代申请。
+	RejectCommissionApplication(ctx context.Context, in *RejectCommissionApplicationRequest, opts ...grpc.CallOption) (*RejectCommissionApplicationResponse, error)
 	// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
 	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
 	// 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
@@ -989,6 +1005,46 @@ func (c *settlementServiceClient) ListCommissionAdjustments(ctx context.Context,
 	return out, nil
 }
 
+func (c *settlementServiceClient) ListCommissionApplications(ctx context.Context, in *ListCommissionApplicationsRequest, opts ...grpc.CallOption) (*ListCommissionApplicationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListCommissionApplicationsResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListCommissionApplications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) GetCommissionApplication(ctx context.Context, in *GetCommissionApplicationRequest, opts ...grpc.CallOption) (*GetCommissionApplicationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCommissionApplicationResponse)
+	err := c.cc.Invoke(ctx, SettlementService_GetCommissionApplication_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ApproveCommissionApplication(ctx context.Context, in *ApproveCommissionApplicationRequest, opts ...grpc.CallOption) (*ApproveCommissionApplicationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApproveCommissionApplicationResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ApproveCommissionApplication_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) RejectCommissionApplication(ctx context.Context, in *RejectCommissionApplicationRequest, opts ...grpc.CallOption) (*RejectCommissionApplicationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RejectCommissionApplicationResponse)
+	err := c.cc.Invoke(ctx, SettlementService_RejectCommissionApplication_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) GetMyFeeSupplementAdjustmentSource(ctx context.Context, in *GetMyFeeSupplementAdjustmentSourceRequest, opts ...grpc.CallOption) (*GetMyFeeSupplementAdjustmentSourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetMyFeeSupplementAdjustmentSourceResponse)
@@ -1104,6 +1160,18 @@ type SettlementServiceServer interface {
 	// ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
 	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
 	ListCommissionAdjustments(context.Context, *ListCommissionAdjustmentsRequest) (*ListCommissionAdjustmentsResponse, error)
+	// 月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+	// commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+	// ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。
+	ListCommissionApplications(context.Context, *ListCommissionApplicationsRequest) (*ListCommissionApplicationsResponse, error)
+	// GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。
+	GetCommissionApplication(context.Context, *GetCommissionApplicationRequest) (*GetCommissionApplicationResponse, error)
+	// ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+	// 确认申请内提成计算结果，不代表银行付款或工资发放。
+	ApproveCommissionApplication(context.Context, *ApproveCommissionApplicationRequest) (*ApproveCommissionApplicationResponse, error)
+	// RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+	// 不产生同月替代申请。
+	RejectCommissionApplication(context.Context, *RejectCommissionApplicationRequest) (*RejectCommissionApplicationResponse, error)
 	// GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
 	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
 	// 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
@@ -1349,6 +1417,18 @@ func (UnimplementedSettlementServiceServer) CancelCommissionAdjustment(context.C
 }
 func (UnimplementedSettlementServiceServer) ListCommissionAdjustments(context.Context, *ListCommissionAdjustmentsRequest) (*ListCommissionAdjustmentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCommissionAdjustments not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListCommissionApplications(context.Context, *ListCommissionApplicationsRequest) (*ListCommissionApplicationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCommissionApplications not implemented")
+}
+func (UnimplementedSettlementServiceServer) GetCommissionApplication(context.Context, *GetCommissionApplicationRequest) (*GetCommissionApplicationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCommissionApplication not implemented")
+}
+func (UnimplementedSettlementServiceServer) ApproveCommissionApplication(context.Context, *ApproveCommissionApplicationRequest) (*ApproveCommissionApplicationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApproveCommissionApplication not implemented")
+}
+func (UnimplementedSettlementServiceServer) RejectCommissionApplication(context.Context, *RejectCommissionApplicationRequest) (*RejectCommissionApplicationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RejectCommissionApplication not implemented")
 }
 func (UnimplementedSettlementServiceServer) GetMyFeeSupplementAdjustmentSource(context.Context, *GetMyFeeSupplementAdjustmentSourceRequest) (*GetMyFeeSupplementAdjustmentSourceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMyFeeSupplementAdjustmentSource not implemented")
@@ -2760,6 +2840,78 @@ func _SettlementService_ListCommissionAdjustments_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_ListCommissionApplications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCommissionApplicationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListCommissionApplications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListCommissionApplications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListCommissionApplications(ctx, req.(*ListCommissionApplicationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_GetCommissionApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCommissionApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).GetCommissionApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_GetCommissionApplication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).GetCommissionApplication(ctx, req.(*GetCommissionApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ApproveCommissionApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApproveCommissionApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ApproveCommissionApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ApproveCommissionApplication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ApproveCommissionApplication(ctx, req.(*ApproveCommissionApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_RejectCommissionApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RejectCommissionApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).RejectCommissionApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_RejectCommissionApplication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).RejectCommissionApplication(ctx, req.(*RejectCommissionApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_GetMyFeeSupplementAdjustmentSource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMyFeeSupplementAdjustmentSourceRequest)
 	if err := dec(in); err != nil {
@@ -3092,6 +3244,22 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCommissionAdjustments",
 			Handler:    _SettlementService_ListCommissionAdjustments_Handler,
+		},
+		{
+			MethodName: "ListCommissionApplications",
+			Handler:    _SettlementService_ListCommissionApplications_Handler,
+		},
+		{
+			MethodName: "GetCommissionApplication",
+			Handler:    _SettlementService_GetCommissionApplication_Handler,
+		},
+		{
+			MethodName: "ApproveCommissionApplication",
+			Handler:    _SettlementService_ApproveCommissionApplication_Handler,
+		},
+		{
+			MethodName: "RejectCommissionApplication",
+			Handler:    _SettlementService_RejectCommissionApplication_Handler,
 		},
 		{
 			MethodName: "GetMyFeeSupplementAdjustmentSource",

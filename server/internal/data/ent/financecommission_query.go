@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
@@ -28,21 +29,22 @@ import (
 // FinanceCommissionQuery is the builder for querying FinanceCommission entities.
 type FinanceCommissionQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []financecommission.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.FinanceCommission
-	withOrganization    *OrganizationQuery
-	withVerification    *FinanceVerificationQuery
-	withNetting         *FinanceNettingQuery
-	withEmployee        *UserQuery
-	withRule            *FinanceCommissionRuleQuery
-	withConfirmedByUser *UserQuery
-	withPaidByUser      *UserQuery
-	withCancelledByUser *UserQuery
-	withLines           *FinanceCommissionLineQuery
-	withAdjustments     *FinanceCommissionAdjustmentQuery
-	modifiers           []func(*sql.Selector)
+	ctx                  *QueryContext
+	order                []financecommission.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.FinanceCommission
+	withOrganization     *OrganizationQuery
+	withVerification     *FinanceVerificationQuery
+	withNetting          *FinanceNettingQuery
+	withEmployee         *UserQuery
+	withRule             *FinanceCommissionRuleQuery
+	withConfirmedByUser  *UserQuery
+	withPaidByUser       *UserQuery
+	withCancelledByUser  *UserQuery
+	withLines            *FinanceCommissionLineQuery
+	withAdjustments      *FinanceCommissionAdjustmentQuery
+	withApplicationLines *FinanceCommissionApplicationLineQuery
+	modifiers            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -299,6 +301,28 @@ func (_q *FinanceCommissionQuery) QueryAdjustments() *FinanceCommissionAdjustmen
 	return query
 }
 
+// QueryApplicationLines chains the current query on the "application_lines" edge.
+func (_q *FinanceCommissionQuery) QueryApplicationLines() *FinanceCommissionApplicationLineQuery {
+	query := (&FinanceCommissionApplicationLineClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommission.Table, financecommission.FieldID, selector),
+			sqlgraph.To(financecommissionapplicationline.Table, financecommissionapplicationline.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financecommission.ApplicationLinesTable, financecommission.ApplicationLinesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first FinanceCommission entity from the query.
 // Returns a *NotFoundError when no FinanceCommission was found.
 func (_q *FinanceCommissionQuery) First(ctx context.Context) (*FinanceCommission, error) {
@@ -486,21 +510,22 @@ func (_q *FinanceCommissionQuery) Clone() *FinanceCommissionQuery {
 		return nil
 	}
 	return &FinanceCommissionQuery{
-		config:              _q.config,
-		ctx:                 _q.ctx.Clone(),
-		order:               append([]financecommission.OrderOption{}, _q.order...),
-		inters:              append([]Interceptor{}, _q.inters...),
-		predicates:          append([]predicate.FinanceCommission{}, _q.predicates...),
-		withOrganization:    _q.withOrganization.Clone(),
-		withVerification:    _q.withVerification.Clone(),
-		withNetting:         _q.withNetting.Clone(),
-		withEmployee:        _q.withEmployee.Clone(),
-		withRule:            _q.withRule.Clone(),
-		withConfirmedByUser: _q.withConfirmedByUser.Clone(),
-		withPaidByUser:      _q.withPaidByUser.Clone(),
-		withCancelledByUser: _q.withCancelledByUser.Clone(),
-		withLines:           _q.withLines.Clone(),
-		withAdjustments:     _q.withAdjustments.Clone(),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]financecommission.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.FinanceCommission{}, _q.predicates...),
+		withOrganization:     _q.withOrganization.Clone(),
+		withVerification:     _q.withVerification.Clone(),
+		withNetting:          _q.withNetting.Clone(),
+		withEmployee:         _q.withEmployee.Clone(),
+		withRule:             _q.withRule.Clone(),
+		withConfirmedByUser:  _q.withConfirmedByUser.Clone(),
+		withPaidByUser:       _q.withPaidByUser.Clone(),
+		withCancelledByUser:  _q.withCancelledByUser.Clone(),
+		withLines:            _q.withLines.Clone(),
+		withAdjustments:      _q.withAdjustments.Clone(),
+		withApplicationLines: _q.withApplicationLines.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -617,6 +642,17 @@ func (_q *FinanceCommissionQuery) WithAdjustments(opts ...func(*FinanceCommissio
 	return _q
 }
 
+// WithApplicationLines tells the query-builder to eager-load the nodes that are connected to
+// the "application_lines" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionQuery) WithApplicationLines(opts ...func(*FinanceCommissionApplicationLineQuery)) *FinanceCommissionQuery {
+	query := (&FinanceCommissionApplicationLineClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withApplicationLines = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -695,7 +731,7 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*FinanceCommission{}
 		_spec       = _q.querySpec()
-		loadedTypes = [10]bool{
+		loadedTypes = [11]bool{
 			_q.withOrganization != nil,
 			_q.withVerification != nil,
 			_q.withNetting != nil,
@@ -706,6 +742,7 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 			_q.withCancelledByUser != nil,
 			_q.withLines != nil,
 			_q.withAdjustments != nil,
+			_q.withApplicationLines != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -789,6 +826,15 @@ func (_q *FinanceCommissionQuery) sqlAll(ctx context.Context, hooks ...queryHook
 			func(n *FinanceCommission) { n.Edges.Adjustments = []*FinanceCommissionAdjustment{} },
 			func(n *FinanceCommission, e *FinanceCommissionAdjustment) {
 				n.Edges.Adjustments = append(n.Edges.Adjustments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withApplicationLines; query != nil {
+		if err := _q.loadApplicationLines(ctx, query, nodes,
+			func(n *FinanceCommission) { n.Edges.ApplicationLines = []*FinanceCommissionApplicationLine{} },
+			func(n *FinanceCommission, e *FinanceCommissionApplicationLine) {
+				n.Edges.ApplicationLines = append(n.Edges.ApplicationLines, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1091,6 +1137,36 @@ func (_q *FinanceCommissionQuery) loadAdjustments(ctx context.Context, query *Fi
 	}
 	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(financecommission.AdjustmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CommissionID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "commission_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceCommissionQuery) loadApplicationLines(ctx context.Context, query *FinanceCommissionApplicationLineQuery, nodes []*FinanceCommission, init func(*FinanceCommission), assign func(*FinanceCommission, *FinanceCommissionApplicationLine)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceCommission)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionapplicationline.FieldCommissionID)
+	}
+	query.Where(predicate.FinanceCommissionApplicationLine(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financecommission.ApplicationLinesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	workbenchv1 "github.com/roncin/roncin-go-admin/server/api/workbench/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -13,11 +14,12 @@ import (
 // 不写业务规则；主体与组织一律取自会话，不接收客户端改写参数。
 type WorkbenchService struct {
 	workbenchv1.UnimplementedWorkbenchServiceServer
-	usecase *biz.WorkbenchUsecase
+	usecase      *biz.WorkbenchUsecase
+	applications *biz.FinanceCommissionApplicationUsecase
 }
 
-func NewWorkbenchService(usecase *biz.WorkbenchUsecase) *WorkbenchService {
-	return &WorkbenchService{usecase: usecase}
+func NewWorkbenchService(usecase *biz.WorkbenchUsecase, applications *biz.FinanceCommissionApplicationUsecase) *WorkbenchService {
+	return &WorkbenchService{usecase: usecase, applications: applications}
 }
 
 // workbenchScopeFromPrincipal 把当前登录主体解析为工作台读范围：当前工作区组织、
@@ -85,11 +87,21 @@ func (s *WorkbenchService) GetWorkbenchOverview(ctx context.Context, _ *workbenc
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	overview, err := s.usecase.GetOverview(ctx, workbenchScopeFromPrincipal(p))
+	scope := workbenchScopeFromPrincipal(p)
+	overview, err := s.usecase.GetOverview(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &workbenchv1.GetWorkbenchOverviewResponse{Data: workbenchOverviewToAPI(overview)}), nil
+	data := workbenchOverviewToAPI(overview)
+	// 申请摘要段与提成金额模块共用同一门禁：无资格员工不产生申请候选读取。
+	if overview.Eligible {
+		summary, summaryErr := s.applications.ApplicationSummary(ctx, scope, overview.BaseCurrency)
+		if summaryErr != nil {
+			return nil, summaryErr
+		}
+		data.ApplicationSummary = workbenchApplicationSummaryToAPI(summary)
+	}
+	return ok(ctx, &workbenchv1.GetWorkbenchOverviewResponse{Data: data}), nil
 }
 
 func workbenchOverviewToAPI(overview *biz.WorkbenchOverview) *workbenchv1.GetWorkbenchOverviewData {
@@ -305,4 +317,247 @@ func (s *WorkbenchService) ListMyRecentOrders(ctx context.Context, r *workbenchv
 		PageSize: int32(result.PageSize),
 		Data:     data,
 	}), nil
+}
+
+// ===== 月度提成申请：本人候选、提交/重提与申请历史 =====
+
+func workbenchApplicationStatusToAPI(value biz.CommissionApplicationStatus) workbenchv1.WorkbenchCommissionApplicationStatus {
+	switch value {
+	case biz.CommissionApplicationPendingReview:
+		return workbenchv1.WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW
+	case biz.CommissionApplicationRejected:
+		return workbenchv1.WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED
+	case biz.CommissionApplicationApproved:
+		return workbenchv1.WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED
+	default:
+		return workbenchv1.WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED
+	}
+}
+
+func workbenchApplicationStatusFromAPI(value workbenchv1.WorkbenchCommissionApplicationStatus) biz.CommissionApplicationStatus {
+	switch value {
+	case workbenchv1.WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW:
+		return biz.CommissionApplicationPendingReview
+	case workbenchv1.WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED:
+		return biz.CommissionApplicationRejected
+	case workbenchv1.WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED:
+		return biz.CommissionApplicationApproved
+	default:
+		return ""
+	}
+}
+
+func workbenchApplicationTimePointer(value *time.Time) *string {
+	if value == nil {
+		return nil
+	}
+	formatted := workbenchTime(*value)
+	if formatted == "" {
+		return nil
+	}
+	return &formatted
+}
+
+func workbenchApplicationSummaryToAPI(summary *biz.WorkbenchApplicationSummary) *workbenchv1.WorkbenchApplicationSummary {
+	if summary == nil {
+		return nil
+	}
+	result := &workbenchv1.WorkbenchApplicationSummary{
+		BaseCurrency:       summary.BaseCurrency,
+		ApplyGroups:        make([]*workbenchv1.WorkbenchApplyMonthGroup, 0, len(summary.ApplyGroups)),
+		AccumulatingCount:  int32(summary.AccumulatingCount),
+		AccumulatingAmount: summary.AccumulatingAmount.StringFixed(8),
+		PendingReviewCount: int32(summary.PendingReviewCount),
+		ApprovedCount:      int32(summary.ApprovedCount),
+	}
+	for _, group := range summary.ApplyGroups {
+		result.ApplyGroups = append(result.ApplyGroups, &workbenchv1.WorkbenchApplyMonthGroup{
+			CommissionMonth:  group.CommissionMonth,
+			CommissionCount:  int32(group.CommissionCount),
+			CommissionAmount: group.CommissionAmount.StringFixed(8),
+		})
+	}
+	if summary.LatestApplication != nil {
+		latest := summary.LatestApplication
+		result.LatestApplication = &workbenchv1.WorkbenchApplicationBrief{
+			ApplicationId:         latest.ApplicationID.String(),
+			ApplicationMonth:      latest.ApplicationMonth,
+			Status:                workbenchApplicationStatusToAPI(latest.Status),
+			CommissionCount:       int32(latest.CommissionCount),
+			TotalCommissionAmount: latest.TotalCommissionAmount.StringFixed(8),
+			SubmittedAt:           workbenchTime(latest.SubmittedAt),
+		}
+	}
+	return result
+}
+
+func workbenchApplicationCandidateToAPI(item *biz.WorkbenchApplicationCandidate) *workbenchv1.WorkbenchApplicationCandidate {
+	result := &workbenchv1.WorkbenchApplicationCandidate{
+		VerificationNo:      workbenchOptionalString(item.VerificationNo),
+		NettingNo:           workbenchOptionalString(item.NettingNo),
+		CommissionDate:      item.CommissionDate,
+		PersonnelRole:       string(item.PersonnelRole),
+		RuleName:            workbenchOptionalString(item.RuleName),
+		CalculationBasis:    workbenchOptionalString(string(item.CalculationBasis)),
+		BaseCurrency:        item.BaseCurrency,
+		CommissionAmount:    item.CommissionAmount.StringFixed(8),
+		CnyCommissionAmount: item.CNYCommissionAmount.StringFixed(8),
+	}
+	if item.VerificationID != uuid.Nil {
+		result.VerificationId = workbenchOptionalString(item.VerificationID.String())
+	}
+	if item.NettingID != uuid.Nil {
+		result.NettingId = workbenchOptionalString(item.NettingID.String())
+	}
+	if item.RuleID != uuid.Nil {
+		result.RuleId = workbenchOptionalString(item.RuleID.String())
+	}
+	return result
+}
+
+func workbenchMyCommissionApplicationToAPI(item *biz.FinanceCommissionApplication) *workbenchv1.WorkbenchMyCommissionApplication {
+	return &workbenchv1.WorkbenchMyCommissionApplication{
+		Id:                       item.ID.String(),
+		ApplicationMonth:         item.ApplicationMonth,
+		CoverageTo:               item.CoverageTo,
+		Status:                   workbenchApplicationStatusToAPI(item.Status),
+		Version:                  item.Version,
+		CommissionCount:          int32(item.CommissionCount),
+		BaseCurrency:             item.BaseCurrency,
+		TotalCommissionAmount:    item.TotalCommissionAmount.StringFixed(8),
+		TotalCnyCommissionAmount: item.TotalCNYCommissionAmount.StringFixed(8),
+		SubmittedAt:              workbenchTime(item.SubmittedAt),
+		DecidedAt:                workbenchApplicationTimePointer(item.DecidedAt),
+		DecisionReason:           item.DecisionReason,
+		CreatedAt:                workbenchTime(item.CreatedAt),
+		UpdatedAt:                workbenchTime(item.UpdatedAt),
+	}
+}
+
+func workbenchMyApplicationLineToAPI(item *biz.FinanceCommissionApplicationLine) *workbenchv1.WorkbenchMyApplicationLine {
+	return &workbenchv1.WorkbenchMyApplicationLine{
+		Id:                  item.ID.String(),
+		CommissionId:        item.CommissionID.String(),
+		CommissionDate:      item.CommissionDate,
+		VerificationNo:      item.VerificationNo,
+		NettingNo:           item.NettingNo,
+		PersonnelRole:       string(item.PersonnelRole),
+		RuleName:            item.RuleName,
+		CalculationBasis:    item.CalculationBasis,
+		BaseCurrency:        item.BaseCurrency,
+		CommissionAmount:    item.CommissionAmount.StringFixed(8),
+		CnyCommissionAmount: item.CNYCommissionAmount.StringFixed(8),
+		CreatedAt:           workbenchTime(item.CreatedAt),
+	}
+}
+
+func (s *WorkbenchService) ListMyApplicationCandidates(ctx context.Context, r *workbenchv1.ListMyApplicationCandidatesRequest) (*workbenchv1.ListMyApplicationCandidatesResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrWorkbenchInvalid)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.applications.ListMyCandidates(ctx, workbenchScopeFromPrincipal(p), biz.WorkbenchApplicationCandidateFilter{
+		Page:            page,
+		PageSize:        pageSize,
+		CommissionMonth: financeOptionalString(r.CommissionMonth),
+	})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*workbenchv1.WorkbenchApplicationCandidate, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, workbenchApplicationCandidateToAPI(item))
+	}
+	return okList(ctx, &workbenchv1.ListMyApplicationCandidatesResponse{
+		Total:    int64(result.Total),
+		Page:     int32(result.Page),
+		PageSize: int32(result.PageSize),
+		Data:     data,
+	}), nil
+}
+
+func (s *WorkbenchService) SubmitMyCommissionApplication(ctx context.Context, _ *workbenchv1.SubmitMyCommissionApplicationRequest) (*workbenchv1.SubmitMyCommissionApplicationResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	application, err := s.applications.Submit(ctx, workbenchScopeFromPrincipal(p))
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &workbenchv1.SubmitMyCommissionApplicationResponse{Data: workbenchMyCommissionApplicationToAPI(application)}), nil
+}
+
+// ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：只接收申请 ID
+// 与 expected_version，主体与组织固定取自会话；快照刷新语义由领域层承担。
+func (s *WorkbenchService) ResubmitMyCommissionApplication(ctx context.Context, r *workbenchv1.ResubmitMyCommissionApplicationRequest) (*workbenchv1.ResubmitMyCommissionApplicationResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	id, parseErr := uuid.Parse(r.GetApplicationId())
+	if parseErr != nil {
+		return nil, biz.ErrCommissionApplicationNotFound
+	}
+	application, err := s.applications.Resubmit(ctx, workbenchScopeFromPrincipal(p), id, r.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &workbenchv1.ResubmitMyCommissionApplicationResponse{Data: workbenchMyCommissionApplicationToAPI(application)}), nil
+}
+
+func (s *WorkbenchService) ListMyCommissionApplications(ctx context.Context, r *workbenchv1.ListMyCommissionApplicationsRequest) (*workbenchv1.ListMyCommissionApplicationsResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	page, pageSize, err := listPageValues(r.GetPage(), r.GetPageSize(), biz.ErrWorkbenchInvalid)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.applications.ListMyApplications(ctx, workbenchScopeFromPrincipal(p), biz.WorkbenchApplicationFilter{
+		Page:     page,
+		PageSize: pageSize,
+		Status:   workbenchApplicationStatusFromAPI(r.GetStatus()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*workbenchv1.WorkbenchMyCommissionApplication, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, workbenchMyCommissionApplicationToAPI(item))
+	}
+	return okList(ctx, &workbenchv1.ListMyCommissionApplicationsResponse{
+		Total:    int64(result.Total),
+		Page:     int32(result.Page),
+		PageSize: int32(result.PageSize),
+		Data:     data,
+	}), nil
+}
+
+func (s *WorkbenchService) GetMyCommissionApplication(ctx context.Context, r *workbenchv1.GetMyCommissionApplicationRequest) (*workbenchv1.GetMyCommissionApplicationResponse, error) {
+	p, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	id, parseErr := uuid.Parse(r.GetId())
+	if parseErr != nil {
+		return nil, biz.ErrCommissionApplicationNotFound
+	}
+	detail, err := s.applications.GetMyApplication(ctx, workbenchScopeFromPrincipal(p), id)
+	if err != nil {
+		return nil, err
+	}
+	lines := make([]*workbenchv1.WorkbenchMyApplicationLine, 0, len(detail.Lines))
+	for _, item := range detail.Lines {
+		lines = append(lines, workbenchMyApplicationLineToAPI(item))
+	}
+	return ok(ctx, &workbenchv1.GetMyCommissionApplicationResponse{Data: &workbenchv1.WorkbenchMyCommissionApplicationDetail{
+		Application: workbenchMyCommissionApplicationToAPI(detail.Application),
+		Lines:       lines,
+	}}), nil
 }

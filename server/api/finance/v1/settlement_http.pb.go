@@ -17,6 +17,7 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationSettlementServiceApproveCommissionApplication = "/finance.v1.SettlementService/ApproveCommissionApplication"
 const OperationSettlementServiceAssignCommissionRuleEmployees = "/finance.v1.SettlementService/AssignCommissionRuleEmployees"
 const OperationSettlementServiceBatchAssignFinanceBillTags = "/finance.v1.SettlementService/BatchAssignFinanceBillTags"
 const OperationSettlementServiceBatchAssignFinanceFeeTags = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
@@ -48,6 +49,7 @@ const OperationSettlementServiceExportCommissions = "/finance.v1.SettlementServi
 const OperationSettlementServiceGetBill = "/finance.v1.SettlementService/GetBill"
 const OperationSettlementServiceGetBilledFeeEditPolicy = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
 const OperationSettlementServiceGetCommission = "/finance.v1.SettlementService/GetCommission"
+const OperationSettlementServiceGetCommissionApplication = "/finance.v1.SettlementService/GetCommissionApplication"
 const OperationSettlementServiceGetCreditLimitControlPolicy = "/finance.v1.SettlementService/GetCreditLimitControlPolicy"
 const OperationSettlementServiceGetFeeLedgerOrderDetail = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
 const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.SettlementService/GetFeeLedgerPreference"
@@ -61,6 +63,7 @@ const OperationSettlementServiceListBillSettlementAccountUpdateCandidates = "/fi
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
 const OperationSettlementServiceListCashflows = "/finance.v1.SettlementService/ListCashflows"
 const OperationSettlementServiceListCommissionAdjustments = "/finance.v1.SettlementService/ListCommissionAdjustments"
+const OperationSettlementServiceListCommissionApplications = "/finance.v1.SettlementService/ListCommissionApplications"
 const OperationSettlementServiceListCommissionCandidates = "/finance.v1.SettlementService/ListCommissionCandidates"
 const OperationSettlementServiceListCommissionEmployees = "/finance.v1.SettlementService/ListCommissionEmployees"
 const OperationSettlementServiceListCommissionNettingCandidates = "/finance.v1.SettlementService/ListCommissionNettingCandidates"
@@ -86,6 +89,7 @@ const OperationSettlementServicePreviewBillBatch = "/finance.v1.SettlementServic
 const OperationSettlementServicePreviewCommission = "/finance.v1.SettlementService/PreviewCommission"
 const OperationSettlementServicePreviewNetting = "/finance.v1.SettlementService/PreviewNetting"
 const OperationSettlementServiceRedFlushInvoice = "/finance.v1.SettlementService/RedFlushInvoice"
+const OperationSettlementServiceRejectCommissionApplication = "/finance.v1.SettlementService/RejectCommissionApplication"
 const OperationSettlementServiceRemoveCommissionRuleEmployees = "/finance.v1.SettlementService/RemoveCommissionRuleEmployees"
 const OperationSettlementServiceResetFeeLedgerPreference = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
 const OperationSettlementServiceReverseNetting = "/finance.v1.SettlementService/ReverseNetting"
@@ -97,6 +101,9 @@ const OperationSettlementServiceUpdateCreditLimitControlPolicy = "/finance.v1.Se
 const OperationSettlementServiceUpdateFeeLedgerPreference = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
 
 type SettlementServiceHTTPServer interface {
+	// ApproveCommissionApplication ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+	// 确认申请内提成计算结果，不代表银行付款或工资发放。
+	ApproveCommissionApplication(context.Context, *ApproveCommissionApplicationRequest) (*ApproveCommissionApplicationResponse, error)
 	// AssignCommissionRuleEmployees AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
 	// 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
 	// 不物理删除历史分配。按 commission.manage 可写组织过滤。
@@ -134,6 +141,8 @@ type SettlementServiceHTTPServer interface {
 	// GetBilledFeeEditPolicy GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error)
 	GetCommission(context.Context, *GetCommissionRequest) (*GetCommissionResponse, error)
+	// GetCommissionApplication GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。
+	GetCommissionApplication(context.Context, *GetCommissionApplicationRequest) (*GetCommissionApplicationResponse, error)
 	// GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
 	GetCreditLimitControlPolicy(context.Context, *GetCreditLimitControlPolicyRequest) (*GetCreditLimitControlPolicyResponse, error)
 	GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error)
@@ -155,6 +164,10 @@ type SettlementServiceHTTPServer interface {
 	// ListCommissionAdjustments ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
 	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
 	ListCommissionAdjustments(context.Context, *ListCommissionAdjustmentsRequest) (*ListCommissionAdjustmentsResponse, error)
+	// ListCommissionApplications 月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+	// commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+	// ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。
+	ListCommissionApplications(context.Context, *ListCommissionApplicationsRequest) (*ListCommissionApplicationsResponse, error)
 	// ListCommissionCandidates ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
 	// 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
 	// 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
@@ -188,6 +201,9 @@ type SettlementServiceHTTPServer interface {
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
 	PreviewNetting(context.Context, *PreviewNettingRequest) (*PreviewNettingResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
+	// RejectCommissionApplication RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+	// 不产生同月替代申请。
+	RejectCommissionApplication(context.Context, *RejectCommissionApplicationRequest) (*RejectCommissionApplicationResponse, error)
 	RemoveCommissionRuleEmployees(context.Context, *RemoveCommissionRuleEmployeesRequest) (*RemoveCommissionRuleEmployeesResponse, error)
 	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error)
@@ -282,6 +298,10 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/paid", _SettlementService_MarkCommissionAdjustmentPaid0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commission-adjustments/{id}/cancel", _SettlementService_CancelCommissionAdjustment0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commission-adjustments", _SettlementService_ListCommissionAdjustments0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commission-applications", _SettlementService_ListCommissionApplications0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/commission-applications/{id}", _SettlementService_GetCommissionApplication0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-applications/{id}/approve", _SettlementService_ApproveCommissionApplication0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commission-applications/{id}/reject", _SettlementService_RejectCommissionApplication0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commission-adjustments/{id}/my-supplement-source", _SettlementService_GetMyFeeSupplementAdjustmentSource0_HTTP_Handler(srv))
 }
 
@@ -1835,6 +1855,91 @@ func _SettlementService_ListCommissionAdjustments0_HTTP_Handler(srv SettlementSe
 	}
 }
 
+func _SettlementService_ListCommissionApplications0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListCommissionApplicationsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListCommissionApplications)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListCommissionApplications(ctx, req.(*ListCommissionApplicationsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListCommissionApplicationsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_GetCommissionApplication0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetCommissionApplicationRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceGetCommissionApplication)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetCommissionApplication(ctx, req.(*GetCommissionApplicationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetCommissionApplicationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ApproveCommissionApplication0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ApproveCommissionApplicationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceApproveCommissionApplication)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ApproveCommissionApplication(ctx, req.(*ApproveCommissionApplicationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ApproveCommissionApplicationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_RejectCommissionApplication0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RejectCommissionApplicationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceRejectCommissionApplication)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RejectCommissionApplication(ctx, req.(*RejectCommissionApplicationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RejectCommissionApplicationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_GetMyFeeSupplementAdjustmentSource0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetMyFeeSupplementAdjustmentSourceRequest
@@ -1858,6 +1963,9 @@ func _SettlementService_GetMyFeeSupplementAdjustmentSource0_HTTP_Handler(srv Set
 }
 
 type SettlementServiceHTTPClient interface {
+	// ApproveCommissionApplication ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+	// 确认申请内提成计算结果，不代表银行付款或工资发放。
+	ApproveCommissionApplication(ctx context.Context, req *ApproveCommissionApplicationRequest, opts ...http.CallOption) (rsp *ApproveCommissionApplicationResponse, err error)
 	// AssignCommissionRuleEmployees AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
 	// 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
 	// 不物理删除历史分配。按 commission.manage 可写组织过滤。
@@ -1895,6 +2003,8 @@ type SettlementServiceHTTPClient interface {
 	// GetBilledFeeEditPolicy GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(ctx context.Context, req *GetBilledFeeEditPolicyRequest, opts ...http.CallOption) (rsp *GetBilledFeeEditPolicyResponse, err error)
 	GetCommission(ctx context.Context, req *GetCommissionRequest, opts ...http.CallOption) (rsp *GetCommissionResponse, err error)
+	// GetCommissionApplication GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。
+	GetCommissionApplication(ctx context.Context, req *GetCommissionApplicationRequest, opts ...http.CallOption) (rsp *GetCommissionApplicationResponse, err error)
 	// GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
 	GetCreditLimitControlPolicy(ctx context.Context, req *GetCreditLimitControlPolicyRequest, opts ...http.CallOption) (rsp *GetCreditLimitControlPolicyResponse, err error)
 	GetFeeLedgerOrderDetail(ctx context.Context, req *GetFeeLedgerOrderDetailRequest, opts ...http.CallOption) (rsp *GetFeeLedgerOrderDetailResponse, err error)
@@ -1916,6 +2026,10 @@ type SettlementServiceHTTPClient interface {
 	// ListCommissionAdjustments ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
 	// 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
 	ListCommissionAdjustments(ctx context.Context, req *ListCommissionAdjustmentsRequest, opts ...http.CallOption) (rsp *ListCommissionAdjustmentsResponse, err error)
+	// ListCommissionApplications 月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+	// commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+	// ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。
+	ListCommissionApplications(ctx context.Context, req *ListCommissionApplicationsRequest, opts ...http.CallOption) (rsp *ListCommissionApplicationsResponse, err error)
 	// ListCommissionCandidates ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
 	// 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
 	// 不再接受客户端指定规则。按 commission.manage 可写组织过滤。
@@ -1949,6 +2063,9 @@ type SettlementServiceHTTPClient interface {
 	PreviewCommission(ctx context.Context, req *PreviewCommissionRequest, opts ...http.CallOption) (rsp *PreviewCommissionResponse, err error)
 	PreviewNetting(ctx context.Context, req *PreviewNettingRequest, opts ...http.CallOption) (rsp *PreviewNettingResponse, err error)
 	RedFlushInvoice(ctx context.Context, req *RedFlushInvoiceRequest, opts ...http.CallOption) (rsp *RedFlushInvoiceResponse, err error)
+	// RejectCommissionApplication RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+	// 不产生同月替代申请。
+	RejectCommissionApplication(ctx context.Context, req *RejectCommissionApplicationRequest, opts ...http.CallOption) (rsp *RejectCommissionApplicationResponse, err error)
 	RemoveCommissionRuleEmployees(ctx context.Context, req *RemoveCommissionRuleEmployeesRequest, opts ...http.CallOption) (rsp *RemoveCommissionRuleEmployeesResponse, err error)
 	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
 	ResetFeeLedgerPreference(ctx context.Context, req *ResetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *ResetFeeLedgerPreferenceResponse, err error)
@@ -1970,6 +2087,25 @@ type SettlementServiceHTTPClientImpl struct {
 
 func NewSettlementServiceHTTPClient(client *http.Client) SettlementServiceHTTPClient {
 	return &SettlementServiceHTTPClientImpl{client}
+}
+
+// ApproveCommissionApplication ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+// 确认申请内提成计算结果，不代表银行付款或工资发放。
+func (c *SettlementServiceHTTPClientImpl) ApproveCommissionApplication(ctx context.Context, in *ApproveCommissionApplicationRequest, opts ...http.CallOption) (*ApproveCommissionApplicationResponse, error) {
+	var out ApproveCommissionApplicationResponse
+	pattern := "/api/v1/finance/commission-applications/{id}/approve"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceApproveCommissionApplication),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // AssignCommissionRuleEmployees AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
@@ -2501,6 +2637,23 @@ func (c *SettlementServiceHTTPClientImpl) GetCommission(ctx context.Context, in 
 	return &out, nil
 }
 
+// GetCommissionApplication GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。
+func (c *SettlementServiceHTTPClientImpl) GetCommissionApplication(ctx context.Context, in *GetCommissionApplicationRequest, opts ...http.CallOption) (*GetCommissionApplicationResponse, error) {
+	var out GetCommissionApplicationResponse
+	pattern := "/api/v1/finance/commission-applications/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceGetCommissionApplication),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
 func (c *SettlementServiceHTTPClientImpl) GetCreditLimitControlPolicy(ctx context.Context, in *GetCreditLimitControlPolicyRequest, opts ...http.CallOption) (*GetCreditLimitControlPolicyResponse, error) {
 	var out GetCreditLimitControlPolicyResponse
@@ -2709,6 +2862,25 @@ func (c *SettlementServiceHTTPClientImpl) ListCommissionAdjustments(ctx context.
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListCommissionAdjustments),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListCommissionApplications 月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+// commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+// ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。
+func (c *SettlementServiceHTTPClientImpl) ListCommissionApplications(ctx context.Context, in *ListCommissionApplicationsRequest, opts ...http.CallOption) (*ListCommissionApplicationsResponse, error) {
+	var out ListCommissionApplicationsResponse
+	pattern := "/api/v1/finance/commission-applications"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListCommissionApplications),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -3123,6 +3295,25 @@ func (c *SettlementServiceHTTPClientImpl) RedFlushInvoice(ctx context.Context, i
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceRedFlushInvoice),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// RejectCommissionApplication RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+// 不产生同月替代申请。
+func (c *SettlementServiceHTTPClientImpl) RejectCommissionApplication(ctx context.Context, in *RejectCommissionApplicationRequest, opts ...http.CallOption) (*RejectCommissionApplicationResponse, error) {
+	var out RejectCommissionApplicationResponse
+	pattern := "/api/v1/finance/commission-applications/{id}/reject"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceRejectCommissionApplication),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

@@ -2,6 +2,104 @@
 /* eslint-disable */
 import { request } from "@umijs/max";
 
+/** ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
+ 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
+ 全量解析，不信任客户端传入的员工/组织/金额。 GET /api/v1/workbench/application-candidates */
+export async function workbenchServiceListMyApplicationCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.WorkbenchServiceListMyApplicationCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListMyApplicationCandidatesResponse>(
+    "/api/v1/workbench/application-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。 GET /api/v1/workbench/commission-applications */
+export async function workbenchServiceListMyCommissionApplications(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.WorkbenchServiceListMyCommissionApplicationsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListMyCommissionApplicationsResponse>(
+    "/api/v1/workbench/commission-applications",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计
+ 与明细快照；查询他人申请稳定返回不存在。 GET /api/v1/workbench/commission-applications/${param0} */
+export async function workbenchServiceGetMyCommissionApplication(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.WorkbenchServiceGetMyCommissionApplicationParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.GetMyCommissionApplicationResponse>(
+    `/api/v1/workbench/commission-applications/${param0}`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+ expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+ 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+ 剔除并留审计），版本递增并回到财务待审。 POST /api/v1/workbench/commission-applications/resubmit */
+export async function workbenchServiceResubmitMyCommissionApplication(
+  body: API.ResubmitMyCommissionApplicationRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.ResubmitMyCommissionApplicationResponse>(
+    "/api/v1/workbench/commission-applications/resubmit",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+ 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+ 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+ 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。 POST /api/v1/workbench/commission-applications/submit */
+export async function workbenchServiceSubmitMyCommissionApplication(
+  body: API.SubmitMyCommissionApplicationRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.SubmitMyCommissionApplicationResponse>(
+    "/api/v1/workbench/commission-applications/submit",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListMyCommissions 返回本人提成单与调整明细，服务端分页并支持状态/归属日期过滤。 GET /api/v1/workbench/my-commissions */
 export async function workbenchServiceListMyCommissions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

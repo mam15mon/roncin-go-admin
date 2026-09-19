@@ -22,6 +22,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
@@ -1040,6 +1042,66 @@ func (_c *UserCreate) AddTerminatedFinanceCommissionRuleAssignments(v ...*Financ
 		ids[i] = v[i].ID
 	}
 	return _c.AddTerminatedFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddFinanceCommissionApplicationIDs adds the "finance_commission_applications" edge to the FinanceCommissionApplication entity by IDs.
+func (_c *UserCreate) AddFinanceCommissionApplicationIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddFinanceCommissionApplicationIDs(ids...)
+	return _c
+}
+
+// AddFinanceCommissionApplications adds the "finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_c *UserCreate) AddFinanceCommissionApplications(v ...*FinanceCommissionApplication) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceCommissionApplicationIDs(ids...)
+}
+
+// AddSubmittedFinanceCommissionApplicationIDs adds the "submitted_finance_commission_applications" edge to the FinanceCommissionApplication entity by IDs.
+func (_c *UserCreate) AddSubmittedFinanceCommissionApplicationIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddSubmittedFinanceCommissionApplicationIDs(ids...)
+	return _c
+}
+
+// AddSubmittedFinanceCommissionApplications adds the "submitted_finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_c *UserCreate) AddSubmittedFinanceCommissionApplications(v ...*FinanceCommissionApplication) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddSubmittedFinanceCommissionApplicationIDs(ids...)
+}
+
+// AddDecidedFinanceCommissionApplicationIDs adds the "decided_finance_commission_applications" edge to the FinanceCommissionApplication entity by IDs.
+func (_c *UserCreate) AddDecidedFinanceCommissionApplicationIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddDecidedFinanceCommissionApplicationIDs(ids...)
+	return _c
+}
+
+// AddDecidedFinanceCommissionApplications adds the "decided_finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_c *UserCreate) AddDecidedFinanceCommissionApplications(v ...*FinanceCommissionApplication) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDecidedFinanceCommissionApplicationIDs(ids...)
+}
+
+// AddFinanceCommissionApplicationLineIDs adds the "finance_commission_application_lines" edge to the FinanceCommissionApplicationLine entity by IDs.
+func (_c *UserCreate) AddFinanceCommissionApplicationLineIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddFinanceCommissionApplicationLineIDs(ids...)
+	return _c
+}
+
+// AddFinanceCommissionApplicationLines adds the "finance_commission_application_lines" edges to the FinanceCommissionApplicationLine entity.
+func (_c *UserCreate) AddFinanceCommissionApplicationLines(v ...*FinanceCommissionApplicationLine) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceCommissionApplicationLineIDs(ids...)
 }
 
 // AddCreatedSeaMasterBillVersionIDs adds the "created_sea_master_bill_versions" edge to the SeaMasterBillVersion entity by IDs.
@@ -2194,6 +2256,70 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceCommissionApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionApplicationsTable,
+			Columns: []string{user.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SubmittedFinanceCommissionApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.SubmittedFinanceCommissionApplicationsTable,
+			Columns: []string{user.SubmittedFinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DecidedFinanceCommissionApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedFinanceCommissionApplicationsTable,
+			Columns: []string{user.DecidedFinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceCommissionApplicationLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FinanceCommissionApplicationLinesTable,
+			Columns: []string{user.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

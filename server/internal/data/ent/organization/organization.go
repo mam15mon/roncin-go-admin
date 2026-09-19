@@ -105,6 +105,10 @@ const (
 	EdgeFinanceCommissionRules = "finance_commission_rules"
 	// EdgeFinanceCommissionRuleAssignments holds the string denoting the finance_commission_rule_assignments edge name in mutations.
 	EdgeFinanceCommissionRuleAssignments = "finance_commission_rule_assignments"
+	// EdgeFinanceCommissionApplications holds the string denoting the finance_commission_applications edge name in mutations.
+	EdgeFinanceCommissionApplications = "finance_commission_applications"
+	// EdgeFinanceCommissionApplicationLines holds the string denoting the finance_commission_application_lines edge name in mutations.
+	EdgeFinanceCommissionApplicationLines = "finance_commission_application_lines"
 	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
 	// EdgeFinanceFeeLedgerPreferences holds the string denoting the finance_fee_ledger_preferences edge name in mutations.
@@ -393,6 +397,20 @@ const (
 	FinanceCommissionRuleAssignmentsInverseTable = "finance_commission_rule_assignments"
 	// FinanceCommissionRuleAssignmentsColumn is the table column denoting the finance_commission_rule_assignments relation/edge.
 	FinanceCommissionRuleAssignmentsColumn = "organization_id"
+	// FinanceCommissionApplicationsTable is the table that holds the finance_commission_applications relation/edge.
+	FinanceCommissionApplicationsTable = "finance_commission_applications"
+	// FinanceCommissionApplicationsInverseTable is the table name for the FinanceCommissionApplication entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionapplication" package.
+	FinanceCommissionApplicationsInverseTable = "finance_commission_applications"
+	// FinanceCommissionApplicationsColumn is the table column denoting the finance_commission_applications relation/edge.
+	FinanceCommissionApplicationsColumn = "organization_id"
+	// FinanceCommissionApplicationLinesTable is the table that holds the finance_commission_application_lines relation/edge.
+	FinanceCommissionApplicationLinesTable = "finance_commission_application_lines"
+	// FinanceCommissionApplicationLinesInverseTable is the table name for the FinanceCommissionApplicationLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionapplicationline" package.
+	FinanceCommissionApplicationLinesInverseTable = "finance_commission_application_lines"
+	// FinanceCommissionApplicationLinesColumn is the table column denoting the finance_commission_application_lines relation/edge.
+	FinanceCommissionApplicationLinesColumn = "organization_id"
 	// OrderCommissionAttributionsTable is the table that holds the order_commission_attributions relation/edge.
 	OrderCommissionAttributionsTable = "order_commission_attributions"
 	// OrderCommissionAttributionsInverseTable is the table name for the OrderCommissionAttribution entity.
@@ -1183,6 +1201,34 @@ func ByFinanceCommissionRuleAssignments(term sql.OrderTerm, terms ...sql.OrderTe
 	}
 }
 
+// ByFinanceCommissionApplicationsCount orders the results by finance_commission_applications count.
+func ByFinanceCommissionApplicationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionApplicationsStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionApplications orders the results by finance_commission_applications terms.
+func ByFinanceCommissionApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFinanceCommissionApplicationLinesCount orders the results by finance_commission_application_lines count.
+func ByFinanceCommissionApplicationLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionApplicationLinesStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionApplicationLines orders the results by finance_commission_application_lines terms.
+func ByFinanceCommissionApplicationLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionApplicationLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderCommissionAttributionsCount orders the results by order_commission_attributions count.
 func ByOrderCommissionAttributionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1796,6 +1842,20 @@ func newFinanceCommissionRuleAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceCommissionRuleAssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionRuleAssignmentsTable, FinanceCommissionRuleAssignmentsColumn),
+	)
+}
+func newFinanceCommissionApplicationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionApplicationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionApplicationsTable, FinanceCommissionApplicationsColumn),
+	)
+}
+func newFinanceCommissionApplicationLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionApplicationLinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionApplicationLinesTable, FinanceCommissionApplicationLinesColumn),
 	)
 }
 func newOrderCommissionAttributionsStep() *sqlgraph.Step {

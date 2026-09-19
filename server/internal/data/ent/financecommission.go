@@ -141,9 +141,11 @@ type FinanceCommissionEdges struct {
 	Lines []*FinanceCommissionLine `json:"lines,omitempty"`
 	// Adjustments holds the value of the adjustments edge.
 	Adjustments []*FinanceCommissionAdjustment `json:"adjustments,omitempty"`
+	// ApplicationLines holds the value of the application_lines edge.
+	ApplicationLines []*FinanceCommissionApplicationLine `json:"application_lines,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [11]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -250,6 +252,15 @@ func (e FinanceCommissionEdges) AdjustmentsOrErr() ([]*FinanceCommissionAdjustme
 		return e.Adjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "adjustments"}
+}
+
+// ApplicationLinesOrErr returns the ApplicationLines value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceCommissionEdges) ApplicationLinesOrErr() ([]*FinanceCommissionApplicationLine, error) {
+	if e.loadedTypes[10] {
+		return e.ApplicationLines, nil
+	}
+	return nil, &NotLoadedError{edge: "application_lines"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -636,6 +647,11 @@ func (_m *FinanceCommission) QueryLines() *FinanceCommissionLineQuery {
 // QueryAdjustments queries the "adjustments" edge of the FinanceCommission entity.
 func (_m *FinanceCommission) QueryAdjustments() *FinanceCommissionAdjustmentQuery {
 	return NewFinanceCommissionClient(_m.config).QueryAdjustments(_m)
+}
+
+// QueryApplicationLines queries the "application_lines" edge of the FinanceCommission entity.
+func (_m *FinanceCommission) QueryApplicationLines() *FinanceCommissionApplicationLineQuery {
+	return NewFinanceCommissionClient(_m.config).QueryApplicationLines(_m)
 }
 
 // Update returns a builder for updating this FinanceCommission.

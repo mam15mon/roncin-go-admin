@@ -26,6 +26,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
@@ -701,6 +703,36 @@ func (_c *OrganizationCreate) AddFinanceCommissionRuleAssignments(v ...*FinanceC
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddFinanceCommissionApplicationIDs adds the "finance_commission_applications" edge to the FinanceCommissionApplication entity by IDs.
+func (_c *OrganizationCreate) AddFinanceCommissionApplicationIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceCommissionApplicationIDs(ids...)
+	return _c
+}
+
+// AddFinanceCommissionApplications adds the "finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_c *OrganizationCreate) AddFinanceCommissionApplications(v ...*FinanceCommissionApplication) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceCommissionApplicationIDs(ids...)
+}
+
+// AddFinanceCommissionApplicationLineIDs adds the "finance_commission_application_lines" edge to the FinanceCommissionApplicationLine entity by IDs.
+func (_c *OrganizationCreate) AddFinanceCommissionApplicationLineIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceCommissionApplicationLineIDs(ids...)
+	return _c
+}
+
+// AddFinanceCommissionApplicationLines adds the "finance_commission_application_lines" edges to the FinanceCommissionApplicationLine entity.
+func (_c *OrganizationCreate) AddFinanceCommissionApplicationLines(v ...*FinanceCommissionApplicationLine) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceCommissionApplicationLineIDs(ids...)
 }
 
 // AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
@@ -1830,6 +1862,38 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceCommissionApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationsTable,
+			Columns: []string{organization.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceCommissionApplicationLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationLinesTable,
+			Columns: []string{organization.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -115,6 +115,24 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			},
 		},
 		{
+			tableName: "finance_commission_applications",
+			table:     FinanceCommissionApplicationsTable,
+			expectedChecks: map[string]string{
+				"finance_commission_applications_status_check":                             "status IN ('PENDING_REVIEW', 'REJECTED', 'APPROVED')",
+				"finance_commission_applications_commission_count_non_negative":            "commission_count >= 0",
+				"finance_commission_applications_total_commission_amount_non_negative":     "total_commission_amount >= 0",
+				"finance_commission_applications_total_cny_commission_amount_non_negative": "total_cny_commission_amount >= 0",
+			},
+		},
+		{
+			tableName: "finance_commission_application_lines",
+			table:     FinanceCommissionApplicationLinesTable,
+			expectedChecks: map[string]string{
+				"finance_commission_application_lines_commission_amount_non_negative":   "commission_amount >= 0",
+				"finance_commission_application_lines_cny_commission_amount_non_negative": "cny_commission_amount >= 0",
+			},
+		},
+		{
 			tableName: "order_fee_supplement_requests",
 			table:     OrderFeeSupplementRequestsTable,
 			expectedChecks: map[string]string{

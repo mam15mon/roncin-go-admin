@@ -48,6 +48,7 @@ import {
   serializeCommissionCsv,
 } from './commissionExport';
 import CommissionAdjustmentModal from './components/CommissionAdjustmentModal';
+import CommissionApplicationsPanel from './components/CommissionApplicationsPanel';
 import CommissionCreateModal from './components/CommissionCreateModal';
 import CommissionDetailDrawer from './components/CommissionDetailDrawer';
 import CommissionRulesDrawer from './components/CommissionRulesDrawer';
@@ -66,7 +67,7 @@ import {
 
 const { RangePicker } = DatePicker;
 
-type CommissionView = 'ledger' | 'pending-decrease';
+type CommissionView = 'ledger' | 'pending-decrease' | 'applications';
 
 export default function FinanceCommissionsPage() {
   const access = useAccess();
@@ -582,6 +583,7 @@ export default function FinanceCommissionsPage() {
           onChange={(value) => setView(value as CommissionView)}
           options={[
             { label: '提成台账', value: 'ledger' },
+            { label: '月度申请', value: 'applications' },
             { label: '待处理冲减', value: 'pending-decrease' },
           ]}
         />,
@@ -594,6 +596,8 @@ export default function FinanceCommissionsPage() {
             void openDetailById(commissionId)
           }
         />
+      ) : view === 'applications' ? (
+        <CommissionApplicationsPanel />
       ) : (
         <>
           <SearchFilterTemplate<CommissionSearchValues>

@@ -26,6 +26,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
@@ -691,6 +693,36 @@ func (_u *OrganizationUpdate) AddFinanceCommissionRuleAssignments(v ...*FinanceC
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// AddFinanceCommissionApplicationIDs adds the "finance_commission_applications" edge to the FinanceCommissionApplication entity by IDs.
+func (_u *OrganizationUpdate) AddFinanceCommissionApplicationIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddFinanceCommissionApplicationIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionApplications adds the "finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_u *OrganizationUpdate) AddFinanceCommissionApplications(v ...*FinanceCommissionApplication) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionApplicationIDs(ids...)
+}
+
+// AddFinanceCommissionApplicationLineIDs adds the "finance_commission_application_lines" edge to the FinanceCommissionApplicationLine entity by IDs.
+func (_u *OrganizationUpdate) AddFinanceCommissionApplicationLineIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddFinanceCommissionApplicationLineIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionApplicationLines adds the "finance_commission_application_lines" edges to the FinanceCommissionApplicationLine entity.
+func (_u *OrganizationUpdate) AddFinanceCommissionApplicationLines(v ...*FinanceCommissionApplicationLine) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionApplicationLineIDs(ids...)
 }
 
 // AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
@@ -1800,6 +1832,48 @@ func (_u *OrganizationUpdate) RemoveFinanceCommissionRuleAssignments(v ...*Finan
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearFinanceCommissionApplications clears all "finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_u *OrganizationUpdate) ClearFinanceCommissionApplications() *OrganizationUpdate {
+	_u.mutation.ClearFinanceCommissionApplications()
+	return _u
+}
+
+// RemoveFinanceCommissionApplicationIDs removes the "finance_commission_applications" edge to FinanceCommissionApplication entities by IDs.
+func (_u *OrganizationUpdate) RemoveFinanceCommissionApplicationIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveFinanceCommissionApplicationIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionApplications removes "finance_commission_applications" edges to FinanceCommissionApplication entities.
+func (_u *OrganizationUpdate) RemoveFinanceCommissionApplications(v ...*FinanceCommissionApplication) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionApplicationIDs(ids...)
+}
+
+// ClearFinanceCommissionApplicationLines clears all "finance_commission_application_lines" edges to the FinanceCommissionApplicationLine entity.
+func (_u *OrganizationUpdate) ClearFinanceCommissionApplicationLines() *OrganizationUpdate {
+	_u.mutation.ClearFinanceCommissionApplicationLines()
+	return _u
+}
+
+// RemoveFinanceCommissionApplicationLineIDs removes the "finance_commission_application_lines" edge to FinanceCommissionApplicationLine entities by IDs.
+func (_u *OrganizationUpdate) RemoveFinanceCommissionApplicationLineIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveFinanceCommissionApplicationLineIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionApplicationLines removes "finance_commission_application_lines" edges to FinanceCommissionApplicationLine entities.
+func (_u *OrganizationUpdate) RemoveFinanceCommissionApplicationLines(v ...*FinanceCommissionApplicationLine) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionApplicationLineIDs(ids...)
 }
 
 // ClearOrderCommissionAttributions clears all "order_commission_attributions" edges to the OrderCommissionAttribution entity.
@@ -3981,6 +4055,96 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FinanceCommissionApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationsTable,
+			Columns: []string{organization.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionApplicationsIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationsTable,
+			Columns: []string{organization.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationsTable,
+			Columns: []string{organization.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceCommissionApplicationLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationLinesTable,
+			Columns: []string{organization.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionApplicationLinesIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionApplicationLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationLinesTable,
+			Columns: []string{organization.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionApplicationLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationLinesTable,
+			Columns: []string{organization.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.OrderCommissionAttributionsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5822,6 +5986,36 @@ func (_u *OrganizationUpdateOne) AddFinanceCommissionRuleAssignments(v ...*Finan
 	return _u.AddFinanceCommissionRuleAssignmentIDs(ids...)
 }
 
+// AddFinanceCommissionApplicationIDs adds the "finance_commission_applications" edge to the FinanceCommissionApplication entity by IDs.
+func (_u *OrganizationUpdateOne) AddFinanceCommissionApplicationIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddFinanceCommissionApplicationIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionApplications adds the "finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_u *OrganizationUpdateOne) AddFinanceCommissionApplications(v ...*FinanceCommissionApplication) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionApplicationIDs(ids...)
+}
+
+// AddFinanceCommissionApplicationLineIDs adds the "finance_commission_application_lines" edge to the FinanceCommissionApplicationLine entity by IDs.
+func (_u *OrganizationUpdateOne) AddFinanceCommissionApplicationLineIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddFinanceCommissionApplicationLineIDs(ids...)
+	return _u
+}
+
+// AddFinanceCommissionApplicationLines adds the "finance_commission_application_lines" edges to the FinanceCommissionApplicationLine entity.
+func (_u *OrganizationUpdateOne) AddFinanceCommissionApplicationLines(v ...*FinanceCommissionApplicationLine) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceCommissionApplicationLineIDs(ids...)
+}
+
 // AddOrderCommissionAttributionIDs adds the "order_commission_attributions" edge to the OrderCommissionAttribution entity by IDs.
 func (_u *OrganizationUpdateOne) AddOrderCommissionAttributionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddOrderCommissionAttributionIDs(ids...)
@@ -6929,6 +7123,48 @@ func (_u *OrganizationUpdateOne) RemoveFinanceCommissionRuleAssignments(v ...*Fi
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceCommissionRuleAssignmentIDs(ids...)
+}
+
+// ClearFinanceCommissionApplications clears all "finance_commission_applications" edges to the FinanceCommissionApplication entity.
+func (_u *OrganizationUpdateOne) ClearFinanceCommissionApplications() *OrganizationUpdateOne {
+	_u.mutation.ClearFinanceCommissionApplications()
+	return _u
+}
+
+// RemoveFinanceCommissionApplicationIDs removes the "finance_commission_applications" edge to FinanceCommissionApplication entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveFinanceCommissionApplicationIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveFinanceCommissionApplicationIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionApplications removes "finance_commission_applications" edges to FinanceCommissionApplication entities.
+func (_u *OrganizationUpdateOne) RemoveFinanceCommissionApplications(v ...*FinanceCommissionApplication) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionApplicationIDs(ids...)
+}
+
+// ClearFinanceCommissionApplicationLines clears all "finance_commission_application_lines" edges to the FinanceCommissionApplicationLine entity.
+func (_u *OrganizationUpdateOne) ClearFinanceCommissionApplicationLines() *OrganizationUpdateOne {
+	_u.mutation.ClearFinanceCommissionApplicationLines()
+	return _u
+}
+
+// RemoveFinanceCommissionApplicationLineIDs removes the "finance_commission_application_lines" edge to FinanceCommissionApplicationLine entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveFinanceCommissionApplicationLineIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveFinanceCommissionApplicationLineIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceCommissionApplicationLines removes "finance_commission_application_lines" edges to FinanceCommissionApplicationLine entities.
+func (_u *OrganizationUpdateOne) RemoveFinanceCommissionApplicationLines(v ...*FinanceCommissionApplicationLine) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceCommissionApplicationLineIDs(ids...)
 }
 
 // ClearOrderCommissionAttributions clears all "order_commission_attributions" edges to the OrderCommissionAttribution entity.
@@ -9133,6 +9369,96 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionruleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceCommissionApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationsTable,
+			Columns: []string{organization.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionApplicationsIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationsTable,
+			Columns: []string{organization.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationsTable,
+			Columns: []string{organization.FinanceCommissionApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplication.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceCommissionApplicationLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationLinesTable,
+			Columns: []string{organization.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceCommissionApplicationLinesIDs(); len(nodes) > 0 && !_u.mutation.FinanceCommissionApplicationLinesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationLinesTable,
+			Columns: []string{organization.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceCommissionApplicationLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceCommissionApplicationLinesTable,
+			Columns: []string{organization.FinanceCommissionApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

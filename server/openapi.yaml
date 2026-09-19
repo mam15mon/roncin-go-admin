@@ -2164,6 +2164,124 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.MarkCommissionAdjustmentPaidResponse'
+    /api/v1/finance/commission-applications:
+        get:
+            tags:
+                - SettlementService
+            description: |-
+                月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+                 commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+                 ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。
+            operationId: SettlementService_ListCommissionApplications
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: employeeId
+                  in: query
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: applicationMonth
+                  in: query
+                  description: 提交月份过滤（YYYY-MM）。
+                  schema:
+                    type: string
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListCommissionApplicationsResponse'
+    /api/v1/finance/commission-applications/{id}:
+        get:
+            tags:
+                - SettlementService
+            description: GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。
+            operationId: SettlementService_GetCommissionApplication
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.GetCommissionApplicationResponse'
+    /api/v1/finance/commission-applications/{id}/approve:
+        post:
+            tags:
+                - SettlementService
+            description: |-
+                ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+                 确认申请内提成计算结果，不代表银行付款或工资发放。
+            operationId: SettlementService_ApproveCommissionApplication
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.ApproveCommissionApplicationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ApproveCommissionApplicationResponse'
+    /api/v1/finance/commission-applications/{id}/reject:
+        post:
+            tags:
+                - SettlementService
+            description: |-
+                RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+                 不产生同月替代申请。
+            operationId: SettlementService_RejectCommissionApplication
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.RejectCommissionApplicationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.RejectCommissionApplicationResponse'
     /api/v1/finance/commission-rules:
         get:
             tags:
@@ -7792,6 +7910,134 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.SetCurrencyEnabledResponse'
+    /api/v1/workbench/application-candidates:
+        get:
+            tags:
+                - WorkbenchService
+            description: |-
+                ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
+                 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
+                 全量解析，不信任客户端传入的员工/组织/金额。
+            operationId: WorkbenchService_ListMyApplicationCandidates
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: commissionMonth
+                  in: query
+                  description: 按提成归属月过滤（YYYY-MM）；缺省返回全部可申请候选（截至上一自然月末）。
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/workbench.v1.ListMyApplicationCandidatesResponse'
+    /api/v1/workbench/commission-applications:
+        get:
+            tags:
+                - WorkbenchService
+            description: ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。
+            operationId: WorkbenchService_ListMyCommissionApplications
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/workbench.v1.ListMyCommissionApplicationsResponse'
+    /api/v1/workbench/commission-applications/resubmit:
+        post:
+            tags:
+                - WorkbenchService
+            description: |-
+                ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+                 expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+                 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+                 剔除并留审计），版本递增并回到财务待审。
+            operationId: WorkbenchService_ResubmitMyCommissionApplication
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/workbench.v1.ResubmitMyCommissionApplicationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/workbench.v1.ResubmitMyCommissionApplicationResponse'
+    /api/v1/workbench/commission-applications/submit:
+        post:
+            tags:
+                - WorkbenchService
+            description: |-
+                SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+                 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+                 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+                 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。
+            operationId: WorkbenchService_SubmitMyCommissionApplication
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/workbench.v1.SubmitMyCommissionApplicationRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/workbench.v1.SubmitMyCommissionApplicationResponse'
+    /api/v1/workbench/commission-applications/{id}:
+        get:
+            tags:
+                - WorkbenchService
+            description: |-
+                GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计
+                 与明细快照；查询他人申请稳定返回不存在。
+            operationId: WorkbenchService_GetMyCommissionApplication
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/workbench.v1.GetMyCommissionApplicationResponse'
     /api/v1/workbench/my-commissions:
         get:
             tags:
@@ -10015,6 +10261,30 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup'
+                traceId:
+                    type: string
+        finance.v1.ApproveCommissionApplicationRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+        finance.v1.ApproveCommissionApplicationResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionApplication'
                 traceId:
                     type: string
         finance.v1.AssignCommissionRuleEmployeesRequest:
@@ -12353,6 +12623,107 @@ components:
                     type: string
                 cancelledBy:
                     type: string
+        finance.v1.FinanceCommissionApplication:
+            type: object
+            properties:
+                id:
+                    type: string
+                applicationMonth:
+                    type: string
+                coverageTo:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                version:
+                    type: string
+                commissionCount:
+                    type: integer
+                    format: int32
+                baseCurrency:
+                    type: string
+                totalCommissionAmount:
+                    type: string
+                totalCnyCommissionAmount:
+                    type: string
+                employeeId:
+                    type: string
+                employeeName:
+                    type: string
+                submittedAt:
+                    type: string
+                submittedBy:
+                    type: string
+                decidedAt:
+                    type: string
+                decidedBy:
+                    type: string
+                decisionReason:
+                    type: string
+                organizationId:
+                    type: string
+                organizationName:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: |-
+                FinanceCommissionApplication 是申请批次头投影：金额与覆盖月份为提交当时
+                 快照；员工姓名按 employee_id 服务端解析，供财务列表展示。
+        finance.v1.FinanceCommissionApplicationDetail:
+            type: object
+            properties:
+                application:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionApplication'
+                lines:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceCommissionApplicationLine'
+        finance.v1.FinanceCommissionApplicationLine:
+            type: object
+            properties:
+                id:
+                    type: string
+                applicationId:
+                    type: string
+                commissionId:
+                    type: string
+                commissionNo:
+                    type: string
+                commissionDate:
+                    type: string
+                verificationId:
+                    type: string
+                verificationNo:
+                    type: string
+                nettingId:
+                    type: string
+                nettingNo:
+                    type: string
+                personnelRole:
+                    type: string
+                ruleId:
+                    type: string
+                ruleVersion:
+                    type: string
+                ruleName:
+                    type: string
+                calculationBasis:
+                    type: string
+                baseCurrency:
+                    type: string
+                commissionAmount:
+                    type: string
+                cnyCommissionAmount:
+                    type: string
+                sourceFingerprint:
+                    type: string
+                createdAt:
+                    type: string
+            description: |-
+                FinanceCommissionApplicationLine 是申请明细快照投影：来源、方案、计算口径与
+                 金额为提交当时事实；commission_no 服务端按提成单解析，供下钻定位。
         finance.v1.FinanceCommissionLine:
             type: object
             properties:
@@ -12909,6 +13280,20 @@ components:
                 canUpdate:
                     type: boolean
                     description: can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
+        finance.v1.GetCommissionApplicationResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionApplicationDetail'
+                traceId:
+                    type: string
         finance.v1.GetCommissionResponse:
             type: object
             properties:
@@ -13183,6 +13568,30 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.FinanceCommissionAdjustment'
+                total:
+                    type: string
+                traceId:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+        finance.v1.ListCommissionApplicationsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceCommissionApplication'
                 total:
                     type: string
                 traceId:
@@ -13844,6 +14253,33 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoice'
+                traceId:
+                    type: string
+        finance.v1.RejectCommissionApplicationRequest:
+            required:
+                - id
+                - expectedVersion
+                - reason
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+                reason:
+                    type: string
+        finance.v1.RejectCommissionApplicationResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceCommissionApplication'
                 traceId:
                     type: string
         finance.v1.RemoveCommissionRuleEmployeesRequest:
@@ -22487,6 +22923,20 @@ components:
                     $ref: '#/components/schemas/task.v1.BackgroundTask'
                 traceId:
                     type: string
+        workbench.v1.GetMyCommissionApplicationResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/workbench.v1.WorkbenchMyCommissionApplicationDetail'
         workbench.v1.GetWorkbenchOverviewData:
             required:
                 - hasCommissionEligibility
@@ -22513,6 +22963,12 @@ components:
                     $ref: '#/components/schemas/workbench.v1.WorkbenchTodoSummary'
                 finance:
                     $ref: '#/components/schemas/workbench.v1.WorkbenchFinanceSummary'
+                applicationSummary:
+                    allOf:
+                        - $ref: '#/components/schemas/workbench.v1.WorkbenchApplicationSummary'
+                    description: |-
+                        application_summary 是本人月度提成申请摘要段：可申请分组、本月累计中与
+                         审批中/已批准计数及最近申请概要；金额全部为组织本位币口径。
         workbench.v1.GetWorkbenchOverviewResponse:
             type: object
             properties:
@@ -22531,6 +22987,54 @@ components:
                 GetWorkbenchOverviewResponse 中 has_commission_eligibility 为 optional bool 且
                  服务端始终赋值：门禁为假时 commission_summary 保持缺省，前端从首次渲染起就
                  不出现提成模块（不渲染标题、骨架、入口或零金额卡片）。
+        workbench.v1.ListMyApplicationCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/workbench.v1.WorkbenchApplicationCandidate'
+        workbench.v1.ListMyCommissionApplicationsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/workbench.v1.WorkbenchMyCommissionApplication'
         workbench.v1.ListMyCommissionsResponse:
             type: object
             properties:
@@ -22603,6 +23107,138 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/workbench.v1.WorkbenchRecentOrder'
+        workbench.v1.ResubmitMyCommissionApplicationRequest:
+            required:
+                - applicationId
+                - expectedVersion
+            type: object
+            properties:
+                applicationId:
+                    type: string
+                expectedVersion:
+                    type: string
+            description: |-
+                重提只接受原申请定位参数：application_id + expected_version；员工与组织固定
+                 取自当前会话，不接受客户端改写。
+        workbench.v1.ResubmitMyCommissionApplicationResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/workbench.v1.WorkbenchMyCommissionApplication'
+        workbench.v1.SubmitMyCommissionApplicationRequest:
+            type: object
+            properties: {}
+        workbench.v1.SubmitMyCommissionApplicationResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/workbench.v1.WorkbenchMyCommissionApplication'
+        workbench.v1.WorkbenchApplicationBrief:
+            type: object
+            properties:
+                applicationId:
+                    type: string
+                applicationMonth:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                commissionCount:
+                    type: integer
+                    format: int32
+                totalCommissionAmount:
+                    type: string
+                submittedAt:
+                    type: string
+            description: WorkbenchApplicationBrief 是最近一张申请的最小概要，用于首页入口展示。
+        workbench.v1.WorkbenchApplicationCandidate:
+            type: object
+            properties:
+                verificationId:
+                    type: string
+                verificationNo:
+                    type: string
+                nettingId:
+                    type: string
+                nettingNo:
+                    type: string
+                commissionDate:
+                    type: string
+                    description: 提成归属日期（YYYY-MM-DD）：核销日期或对冲确认日期。
+                personnelRole:
+                    type: string
+                ruleId:
+                    type: string
+                ruleName:
+                    type: string
+                calculationBasis:
+                    type: string
+                baseCurrency:
+                    type: string
+                commissionAmount:
+                    type: string
+                cnyCommissionAmount:
+                    type: string
+            description: |-
+                WorkbenchApplicationCandidate 是单条可申请提成候选：以核销/对冲来源为身份
+                 （恰好一个非空），金额为按现有提成口径的服务端计算值，尚未生成的提成事实
+                 以提交申请时受控创建为准；候选不携带 commission_id。
+        workbench.v1.WorkbenchApplicationSummary:
+            type: object
+            properties:
+                baseCurrency:
+                    type: string
+                applyGroups:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/workbench.v1.WorkbenchApplyMonthGroup'
+                accumulatingCount:
+                    type: integer
+                    format: int32
+                accumulatingAmount:
+                    type: string
+                pendingReviewCount:
+                    type: integer
+                    format: int32
+                approvedCount:
+                    type: integer
+                    format: int32
+                latestApplication:
+                    $ref: '#/components/schemas/workbench.v1.WorkbenchApplicationBrief'
+            description: |-
+                WorkbenchApplicationSummary 按自然月汇总本人申请事实：
+                 可申请=截至上一自然月末仍未进入任何申请的合格提成（按提成归属月分组）；
+                 本月累计中=当前自然月尚未结束、只能累计展示的合格提成；
+                 审批中/已批准为本人全部历史申请计数；最近申请概要尚无申请时缺省。
+        workbench.v1.WorkbenchApplyMonthGroup:
+            type: object
+            properties:
+                commissionMonth:
+                    type: string
+                commissionCount:
+                    type: integer
+                    format: int32
+                commissionAmount:
+                    type: string
+            description: WorkbenchApplyMonthGroup 是单个提成归属月的可申请汇总：金额为本位币合计。
         workbench.v1.WorkbenchCommissionSummary:
             type: object
             properties:
@@ -22698,6 +23334,36 @@ components:
                 WorkbenchFinanceSummary 按当前用户对当前工作区组织的实际权限出现：无
                  commission.read 时整体缺省；can_manage_commission 仅表示具备处理入口能力，
                  实际动作仍调用原端点并重新鉴权。
+        workbench.v1.WorkbenchMyApplicationLine:
+            type: object
+            properties:
+                id:
+                    type: string
+                commissionId:
+                    type: string
+                commissionDate:
+                    type: string
+                verificationNo:
+                    type: string
+                nettingNo:
+                    type: string
+                personnelRole:
+                    type: string
+                ruleName:
+                    type: string
+                calculationBasis:
+                    type: string
+                baseCurrency:
+                    type: string
+                commissionAmount:
+                    type: string
+                cnyCommissionAmount:
+                    type: string
+                createdAt:
+                    type: string
+            description: |-
+                WorkbenchMyApplicationLine 是本人申请明细快照投影：来源、方案与金额为提交
+                 当时事实，申请批准后不可修改。
         workbench.v1.WorkbenchMyCommission:
             type: object
             properties:
@@ -22748,6 +23414,52 @@ components:
                     type: string
                 createdAt:
                     type: string
+        workbench.v1.WorkbenchMyCommissionApplication:
+            type: object
+            properties:
+                id:
+                    type: string
+                applicationMonth:
+                    type: string
+                coverageTo:
+                    type: string
+                status:
+                    type: integer
+                    format: enum
+                version:
+                    type: string
+                commissionCount:
+                    type: integer
+                    format: int32
+                baseCurrency:
+                    type: string
+                totalCommissionAmount:
+                    type: string
+                totalCnyCommissionAmount:
+                    type: string
+                submittedAt:
+                    type: string
+                decidedAt:
+                    type: string
+                decisionReason:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+            description: |-
+                WorkbenchMyCommissionApplication 是本人单张月度申请投影：金额与明细为提交
+                 时固化的快照（重提按上游当前事实刷新）；决策审计字段保留最近一次决策，
+                 重提不清理，员工始终能看到最近一次驳回原因。
+        workbench.v1.WorkbenchMyCommissionApplicationDetail:
+            type: object
+            properties:
+                application:
+                    $ref: '#/components/schemas/workbench.v1.WorkbenchMyCommissionApplication'
+                lines:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/workbench.v1.WorkbenchMyApplicationLine'
         workbench.v1.WorkbenchMyReceivable:
             type: object
             properties:

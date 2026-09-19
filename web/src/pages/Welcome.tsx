@@ -112,6 +112,7 @@ export default function Welcome() {
                 data={data}
                 onOpenCommissions={() => setCommissionDrawerOpen(true)}
                 onOpenReceivables={() => setReceivablesDrawerOpen(true)}
+                onOverviewRefresh={reload}
               />
             ) : null}
 

@@ -19,10 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WorkbenchService_GetWorkbenchOverview_FullMethodName = "/workbench.v1.WorkbenchService/GetWorkbenchOverview"
-	WorkbenchService_ListMyCommissions_FullMethodName    = "/workbench.v1.WorkbenchService/ListMyCommissions"
-	WorkbenchService_ListMyReceivables_FullMethodName    = "/workbench.v1.WorkbenchService/ListMyReceivables"
-	WorkbenchService_ListMyRecentOrders_FullMethodName   = "/workbench.v1.WorkbenchService/ListMyRecentOrders"
+	WorkbenchService_GetWorkbenchOverview_FullMethodName            = "/workbench.v1.WorkbenchService/GetWorkbenchOverview"
+	WorkbenchService_ListMyCommissions_FullMethodName               = "/workbench.v1.WorkbenchService/ListMyCommissions"
+	WorkbenchService_ListMyReceivables_FullMethodName               = "/workbench.v1.WorkbenchService/ListMyReceivables"
+	WorkbenchService_ListMyRecentOrders_FullMethodName              = "/workbench.v1.WorkbenchService/ListMyRecentOrders"
+	WorkbenchService_ListMyApplicationCandidates_FullMethodName     = "/workbench.v1.WorkbenchService/ListMyApplicationCandidates"
+	WorkbenchService_SubmitMyCommissionApplication_FullMethodName   = "/workbench.v1.WorkbenchService/SubmitMyCommissionApplication"
+	WorkbenchService_ResubmitMyCommissionApplication_FullMethodName = "/workbench.v1.WorkbenchService/ResubmitMyCommissionApplication"
+	WorkbenchService_ListMyCommissionApplications_FullMethodName    = "/workbench.v1.WorkbenchService/ListMyCommissionApplications"
+	WorkbenchService_GetMyCommissionApplication_FullMethodName      = "/workbench.v1.WorkbenchService/GetMyCommissionApplication"
 )
 
 // WorkbenchServiceClient is the client API for WorkbenchService service.
@@ -43,6 +48,25 @@ type WorkbenchServiceClient interface {
 	ListMyReceivables(ctx context.Context, in *ListMyReceivablesRequest, opts ...grpc.CallOption) (*ListMyReceivablesResponse, error)
 	// ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
 	ListMyRecentOrders(ctx context.Context, in *ListMyRecentOrdersRequest, opts ...grpc.CallOption) (*ListMyRecentOrdersResponse, error)
+	// ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
+	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
+	// 全量解析，不信任客户端传入的员工/组织/金额。
+	ListMyApplicationCandidates(ctx context.Context, in *ListMyApplicationCandidatesRequest, opts ...grpc.CallOption) (*ListMyApplicationCandidatesResponse, error)
+	// SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+	// 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+	// 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+	// 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。
+	SubmitMyCommissionApplication(ctx context.Context, in *SubmitMyCommissionApplicationRequest, opts ...grpc.CallOption) (*SubmitMyCommissionApplicationResponse, error)
+	// ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+	// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+	// 剔除并留审计），版本递增并回到财务待审。
+	ResubmitMyCommissionApplication(ctx context.Context, in *ResubmitMyCommissionApplicationRequest, opts ...grpc.CallOption) (*ResubmitMyCommissionApplicationResponse, error)
+	// ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。
+	ListMyCommissionApplications(ctx context.Context, in *ListMyCommissionApplicationsRequest, opts ...grpc.CallOption) (*ListMyCommissionApplicationsResponse, error)
+	// GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计
+	// 与明细快照；查询他人申请稳定返回不存在。
+	GetMyCommissionApplication(ctx context.Context, in *GetMyCommissionApplicationRequest, opts ...grpc.CallOption) (*GetMyCommissionApplicationResponse, error)
 }
 
 type workbenchServiceClient struct {
@@ -93,6 +117,56 @@ func (c *workbenchServiceClient) ListMyRecentOrders(ctx context.Context, in *Lis
 	return out, nil
 }
 
+func (c *workbenchServiceClient) ListMyApplicationCandidates(ctx context.Context, in *ListMyApplicationCandidatesRequest, opts ...grpc.CallOption) (*ListMyApplicationCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyApplicationCandidatesResponse)
+	err := c.cc.Invoke(ctx, WorkbenchService_ListMyApplicationCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workbenchServiceClient) SubmitMyCommissionApplication(ctx context.Context, in *SubmitMyCommissionApplicationRequest, opts ...grpc.CallOption) (*SubmitMyCommissionApplicationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubmitMyCommissionApplicationResponse)
+	err := c.cc.Invoke(ctx, WorkbenchService_SubmitMyCommissionApplication_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workbenchServiceClient) ResubmitMyCommissionApplication(ctx context.Context, in *ResubmitMyCommissionApplicationRequest, opts ...grpc.CallOption) (*ResubmitMyCommissionApplicationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResubmitMyCommissionApplicationResponse)
+	err := c.cc.Invoke(ctx, WorkbenchService_ResubmitMyCommissionApplication_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workbenchServiceClient) ListMyCommissionApplications(ctx context.Context, in *ListMyCommissionApplicationsRequest, opts ...grpc.CallOption) (*ListMyCommissionApplicationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyCommissionApplicationsResponse)
+	err := c.cc.Invoke(ctx, WorkbenchService_ListMyCommissionApplications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workbenchServiceClient) GetMyCommissionApplication(ctx context.Context, in *GetMyCommissionApplicationRequest, opts ...grpc.CallOption) (*GetMyCommissionApplicationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyCommissionApplicationResponse)
+	err := c.cc.Invoke(ctx, WorkbenchService_GetMyCommissionApplication_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkbenchServiceServer is the server API for WorkbenchService service.
 // All implementations must embed UnimplementedWorkbenchServiceServer
 // for forward compatibility.
@@ -111,6 +185,25 @@ type WorkbenchServiceServer interface {
 	ListMyReceivables(context.Context, *ListMyReceivablesRequest) (*ListMyReceivablesResponse, error)
 	// ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
 	ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error)
+	// ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
+	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
+	// 全量解析，不信任客户端传入的员工/组织/金额。
+	ListMyApplicationCandidates(context.Context, *ListMyApplicationCandidatesRequest) (*ListMyApplicationCandidatesResponse, error)
+	// SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+	// 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+	// 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+	// 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。
+	SubmitMyCommissionApplication(context.Context, *SubmitMyCommissionApplicationRequest) (*SubmitMyCommissionApplicationResponse, error)
+	// ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+	// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+	// 剔除并留审计），版本递增并回到财务待审。
+	ResubmitMyCommissionApplication(context.Context, *ResubmitMyCommissionApplicationRequest) (*ResubmitMyCommissionApplicationResponse, error)
+	// ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。
+	ListMyCommissionApplications(context.Context, *ListMyCommissionApplicationsRequest) (*ListMyCommissionApplicationsResponse, error)
+	// GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计
+	// 与明细快照；查询他人申请稳定返回不存在。
+	GetMyCommissionApplication(context.Context, *GetMyCommissionApplicationRequest) (*GetMyCommissionApplicationResponse, error)
 	mustEmbedUnimplementedWorkbenchServiceServer()
 }
 
@@ -132,6 +225,21 @@ func (UnimplementedWorkbenchServiceServer) ListMyReceivables(context.Context, *L
 }
 func (UnimplementedWorkbenchServiceServer) ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyRecentOrders not implemented")
+}
+func (UnimplementedWorkbenchServiceServer) ListMyApplicationCandidates(context.Context, *ListMyApplicationCandidatesRequest) (*ListMyApplicationCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyApplicationCandidates not implemented")
+}
+func (UnimplementedWorkbenchServiceServer) SubmitMyCommissionApplication(context.Context, *SubmitMyCommissionApplicationRequest) (*SubmitMyCommissionApplicationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitMyCommissionApplication not implemented")
+}
+func (UnimplementedWorkbenchServiceServer) ResubmitMyCommissionApplication(context.Context, *ResubmitMyCommissionApplicationRequest) (*ResubmitMyCommissionApplicationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResubmitMyCommissionApplication not implemented")
+}
+func (UnimplementedWorkbenchServiceServer) ListMyCommissionApplications(context.Context, *ListMyCommissionApplicationsRequest) (*ListMyCommissionApplicationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyCommissionApplications not implemented")
+}
+func (UnimplementedWorkbenchServiceServer) GetMyCommissionApplication(context.Context, *GetMyCommissionApplicationRequest) (*GetMyCommissionApplicationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyCommissionApplication not implemented")
 }
 func (UnimplementedWorkbenchServiceServer) mustEmbedUnimplementedWorkbenchServiceServer() {}
 func (UnimplementedWorkbenchServiceServer) testEmbeddedByValue()                          {}
@@ -226,6 +334,96 @@ func _WorkbenchService_ListMyRecentOrders_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkbenchService_ListMyApplicationCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyApplicationCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkbenchServiceServer).ListMyApplicationCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkbenchService_ListMyApplicationCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkbenchServiceServer).ListMyApplicationCandidates(ctx, req.(*ListMyApplicationCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkbenchService_SubmitMyCommissionApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitMyCommissionApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkbenchServiceServer).SubmitMyCommissionApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkbenchService_SubmitMyCommissionApplication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkbenchServiceServer).SubmitMyCommissionApplication(ctx, req.(*SubmitMyCommissionApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkbenchService_ResubmitMyCommissionApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResubmitMyCommissionApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkbenchServiceServer).ResubmitMyCommissionApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkbenchService_ResubmitMyCommissionApplication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkbenchServiceServer).ResubmitMyCommissionApplication(ctx, req.(*ResubmitMyCommissionApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkbenchService_ListMyCommissionApplications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyCommissionApplicationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkbenchServiceServer).ListMyCommissionApplications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkbenchService_ListMyCommissionApplications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkbenchServiceServer).ListMyCommissionApplications(ctx, req.(*ListMyCommissionApplicationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkbenchService_GetMyCommissionApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyCommissionApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkbenchServiceServer).GetMyCommissionApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkbenchService_GetMyCommissionApplication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkbenchServiceServer).GetMyCommissionApplication(ctx, req.(*GetMyCommissionApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorkbenchService_ServiceDesc is the grpc.ServiceDesc for WorkbenchService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -248,6 +446,26 @@ var WorkbenchService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListMyRecentOrders",
 			Handler:    _WorkbenchService_ListMyRecentOrders_Handler,
+		},
+		{
+			MethodName: "ListMyApplicationCandidates",
+			Handler:    _WorkbenchService_ListMyApplicationCandidates_Handler,
+		},
+		{
+			MethodName: "SubmitMyCommissionApplication",
+			Handler:    _WorkbenchService_SubmitMyCommissionApplication_Handler,
+		},
+		{
+			MethodName: "ResubmitMyCommissionApplication",
+			Handler:    _WorkbenchService_ResubmitMyCommissionApplication_Handler,
+		},
+		{
+			MethodName: "ListMyCommissionApplications",
+			Handler:    _WorkbenchService_ListMyCommissionApplications_Handler,
+		},
+		{
+			MethodName: "GetMyCommissionApplication",
+			Handler:    _WorkbenchService_GetMyCommissionApplication_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

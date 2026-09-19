@@ -229,6 +229,15 @@ export const BillGroupingMode = {
 
 export type BillGroupingMode = (typeof BillGroupingMode)[keyof typeof BillGroupingMode];
 
+export const FinanceCommissionApplicationStatus = {
+  FINANCE_COMMISSION_APPLICATION_STATUS_UNSPECIFIED: 0,
+  FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW: 1,
+  FINANCE_COMMISSION_APPLICATION_STATUS_REJECTED: 2,
+  FINANCE_COMMISSION_APPLICATION_STATUS_APPROVED: 3,
+} as const;
+
+export type FinanceCommissionApplicationStatus = (typeof FinanceCommissionApplicationStatus)[keyof typeof FinanceCommissionApplicationStatus];
+
 export const FinanceOrganizationPurpose = {
   FINANCE_ORGANIZATION_PURPOSE_UNSPECIFIED: 0,
   FINANCE_ORGANIZATION_PURPOSE_BILL_READ: 1,
@@ -754,3 +763,12 @@ export const WorkbenchCommissionStatus = {
 } as const;
 
 export type WorkbenchCommissionStatus = (typeof WorkbenchCommissionStatus)[keyof typeof WorkbenchCommissionStatus];
+
+export const WorkbenchCommissionApplicationStatus = {
+  WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED: 0,
+  WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW: 1,
+  WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED: 2,
+  WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED: 3,
+} as const;
+
+export type WorkbenchCommissionApplicationStatus = (typeof WorkbenchCommissionApplicationStatus)[keyof typeof WorkbenchCommissionApplicationStatus];
