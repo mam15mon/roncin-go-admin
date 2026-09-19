@@ -1443,3 +1443,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 55: 月度提成申请任务收口：复验、antd6 修复与提交归档
+<!-- trellis-session: v=2 fp=c44f1678936f3b4d -->
+
+**Date**: 2026-09-19
+**Task**: 月度提成申请任务收口：复验、antd6 修复与提交归档
+**Branch**: `feat/monthly-commission-application`
+
+### Summary
+
+本机补装 Go 1.26.8 与 pnpm 环境后复验月度提成申请任务最终态：修复 antd 6 测试交互（MonthPicker click 打开、按角色点击提交按钮）、modal.confirm confirmLoading 迁移 okButtonProps、已提交过滤类型收窄与 Biome 格式；定向验证全绿后按 feat(finance)/feat(web)/docs(trellis) 三提交落地，spec 沉淀 antd6 测试惯例与 Go time.Format 布局坑，任务归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4a591cd1` | feat(finance): 月度申请重提改为显式申请路径并同步契约 |
+| `0770aaf1` | feat(web): 驳回原单显式重提与申请批次月份过滤 |
+| `825ec5e4` | docs(trellis): 沉淀 antd 6 测试惯例与 Go 时间格式规范 |
+
+### Status
+
+[OK] **Completed**
