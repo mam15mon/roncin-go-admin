@@ -15,6 +15,7 @@ import {
   exchangeRateServiceDownloadExchangeRateImportTemplate,
   exchangeRateServicePreviewExchangeRateImport,
 } from '@/services/roncin/exchangeRateService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import { generateUUID } from '@/utils/uuid';
@@ -76,8 +77,8 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       message.success('导入模板下载成功');
-    } catch (e: any) {
-      message.error(e.message || '下载导入模板失败');
+    } catch (e) {
+      message.error(getErrorMessage(e, '下载导入模板失败'));
     } finally {
       setDownloadingTemplate(false);
     }
@@ -124,11 +125,11 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
           `预检发现问题：存在 ${res.data?.invalidCount || 0} 条无效数据`,
         );
       }
-    } catch (e: any) {
+    } catch (e) {
       message.error(
         isRequestTimeoutError(e)
           ? '上传预检超时，请确认操作结果后重试'
-          : e.message || '上传预检失败',
+          : getErrorMessage(e, '上传预检失败'),
       );
       setBatch(undefined);
       setPreviewToken(undefined);
@@ -154,11 +155,11 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
       message.success('汇率批量导入成功');
       onSuccess();
       handleClose();
-    } catch (e: any) {
+    } catch (e) {
       message.error(
         isRequestTimeoutError(e)
           ? '确认导入超时，请确认操作结果后重试'
-          : e.message || '确认导入失败',
+          : getErrorMessage(e, '确认导入失败'),
       );
     } finally {
       setConfirming(false);

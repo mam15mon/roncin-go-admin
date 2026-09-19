@@ -27,6 +27,7 @@ import {
 } from '@/services/roncin/exchangeRateService';
 import { toTableRequest } from '@/utils/api';
 import { isPositiveExactDecimal } from '@/utils/decimal';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { getCurrencies } from '@/utils/options';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
@@ -124,8 +125,8 @@ export function ExchangeRatesPanel() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       message.success('导入模板下载成功');
-    } catch (e: any) {
-      message.error(e.message || '下载导入模板失败');
+    } catch (e) {
+      message.error(getErrorMessage(e, '下载导入模板失败'));
     } finally {
       setDownloadingTemplate(false);
     }

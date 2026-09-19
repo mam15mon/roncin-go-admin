@@ -35,6 +35,7 @@ import {
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
@@ -42,6 +43,17 @@ const { Text, Paragraph } = Typography;
 const contractStatusOptions = Object.entries(partnerContractStatusMeta).map(
   ([value, meta]) => ({ label: meta.text, value: Number(value) }),
 );
+
+/** 合同编辑表单值（必填项由表单校验保证运行时必有值）。 */
+type ContractFormValues = {
+  contractNo: string;
+  name: string;
+  status: number;
+  dateRange?: [Dayjs, Dayjs];
+  paymentTerms?: string;
+  disputeResolution?: string;
+  otherNotes?: string;
+};
 
 interface ContractCardListProps {
   partnerId?: string;
@@ -140,7 +152,7 @@ export default function ContractCardList({
     }
   };
 
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: ContractFormValues) => {
     if (!partnerId) return false;
     try {
       const dateRange: [Dayjs, Dayjs] = values.dateRange || [dayjs(), dayjs()];
@@ -187,8 +199,8 @@ export default function ContractCardList({
       setModalOpen(false);
       fetchContracts();
       return true;
-    } catch (err: any) {
-      message.error(err?.message || '保存失败');
+    } catch (err) {
+      message.error(getErrorMessage(err, '保存失败'));
       return false;
     }
   };

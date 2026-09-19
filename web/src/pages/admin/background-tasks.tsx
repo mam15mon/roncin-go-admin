@@ -37,6 +37,7 @@ import {
   backgroundTaskServiceRequeueBackgroundTask,
 } from '@/services/roncin/backgroundTaskService';
 import { toTableRequest } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 import {
   backgroundTaskExecutionSummary,
@@ -244,8 +245,8 @@ export default function BackgroundTasksPanel() {
                 );
                 message.success('任务已加入重新执行队列');
                 actionRef.current?.reload();
-              } catch (err: any) {
-                message.error(err?.message || '重新执行任务失败');
+              } catch (err) {
+                message.error(getErrorMessage(err, '重新执行任务失败'));
               }
             }}
           >

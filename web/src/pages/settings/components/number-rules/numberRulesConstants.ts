@@ -135,17 +135,32 @@ DOC_TYPES.forEach((t) => {
   docTypeMap.set(t.key.replace('DOCUMENT_TYPE_', ''), t);
 });
 
+/** 枚举字段的运行时取值：API 返回数字或字符串，未填充时为 undefined。 */
+export type EnumLikeValue = string | number | undefined;
+
+/** 单据类型查找：兼容 API.NumberRule.documentType 的 `number | undefined`。 */
+export function getDocTypeMeta(
+  documentType: EnumLikeValue,
+): DocTypeMeta | undefined {
+  return documentType === undefined ? undefined : docTypeMap.get(documentType);
+}
+
 export function filterVisibleNumberRules(
   rules: API.NumberRule[],
 ): API.NumberRule[] {
-  return rules.filter((rule) => docTypeMap.has(rule.documentType as any));
+  return rules.filter(
+    (rule) => getDocTypeMeta(rule.documentType) !== undefined,
+  );
 }
 
 // 2. 日期格式枚举映射 (支持字符串与数字双向兼容)
-export const DATE_FORMATS: Record<
-  string | number,
-  { label: string; formatStr: string; numValue: number }
-> = {
+export interface DateFormatMeta {
+  label: string;
+  formatStr: string;
+  numValue: number;
+}
+
+export const DATE_FORMATS: Record<string | number, DateFormatMeta> = {
   DATE_FORMAT_YYYYMMDD: {
     label: '年月日 (yyyyMMdd)',
     formatStr: 'YYYYMMDD',
@@ -166,11 +181,20 @@ export const DATE_FORMATS: Record<
   0: { label: '无日期', formatStr: '', numValue: 4 },
 };
 
+/** 日期格式查找：兼容 API.NumberRule.dateFormat 的 `number | undefined`。 */
+export function getDateFormatMeta(
+  dateFormat: EnumLikeValue,
+): DateFormatMeta | undefined {
+  return dateFormat === undefined ? undefined : DATE_FORMATS[dateFormat];
+}
+
 // 3. 重置周期枚举映射 (支持字符串与数字双向兼容)
-export const RESET_POLICIES: Record<
-  string | number,
-  { label: string; numValue: number }
-> = {
+export interface ResetPolicyMeta {
+  label: string;
+  numValue: number;
+}
+
+export const RESET_POLICIES: Record<string | number, ResetPolicyMeta> = {
   RESET_POLICY_DAILY: { label: '每日重置', numValue: 1 },
   1: { label: '每日重置', numValue: 1 },
   RESET_POLICY_MONTHLY: { label: '每月重置', numValue: 2 },
@@ -183,14 +207,31 @@ export const RESET_POLICIES: Record<
   0: { label: '永不重置', numValue: 4 },
 };
 
+/** 重置周期查找：兼容 API.NumberRule.resetPolicy 的 `number | undefined`。 */
+export function getResetPolicyMeta(
+  resetPolicy: EnumLikeValue,
+): ResetPolicyMeta | undefined {
+  return resetPolicy === undefined ? undefined : RESET_POLICIES[resetPolicy];
+}
+
+/** 编辑弹窗表单值（ModalForm onFinish 提交结构；required 表单项运行时必有值）。 */
+export type NumberRuleFormValues = {
+  documentType: number;
+  prefix?: string;
+  dateFormat: number;
+  sequenceLength: number;
+  resetPolicy: number;
+  enabled?: boolean;
+};
+
 // 工具函数：解析生成规则示例预览
 export function generatePreviewNumber(rule: API.NumberRule): {
   text: string;
   isDynamicType?: boolean;
 } {
-  const meta = docTypeMap.get(rule.documentType as any);
+  const meta = getDocTypeMeta(rule.documentType);
   const now = dayjs();
-  const dateMeta = DATE_FORMATS[rule.dateFormat as any] || DATE_FORMATS[4];
+  const dateMeta = getDateFormatMeta(rule.dateFormat) || DATE_FORMATS[4];
   const dateStr = dateMeta.formatStr ? now.format(dateMeta.formatStr) : '';
   const len = Number(rule.sequenceLength) || 4;
   const seq = '1'.padStart(len, '0');

@@ -40,8 +40,27 @@ import {
   partnerServiceUpdatePartnerShippingPreset,
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 const { Text, Paragraph } = Typography;
+
+/** 单证预设编辑表单值（title 必填由表单校验保证）。 */
+type ShippingPresetFormValues = {
+  title: string;
+  isDefault?: boolean;
+  sortOrder?: number;
+  remark?: string;
+  enabled?: boolean;
+  companyName?: string;
+  address?: string;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  countryCode?: string;
+  taxIdentifier?: string;
+  content?: string;
+  code?: string;
+};
 
 export const PRESET_TYPES = [
   {
@@ -209,7 +228,7 @@ export default function ShippingPresetSection({
     }
   };
 
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: ShippingPresetFormValues) => {
     if (!partnerId) return false;
     try {
       const isParty = currentType <= 3;
@@ -262,8 +281,8 @@ export default function ShippingPresetSection({
       setModalOpen(false);
       fetchPresets();
       return true;
-    } catch (err: any) {
-      message.error(err?.message || '保存失败');
+    } catch (err) {
+      message.error(getErrorMessage(err, '保存失败'));
       return false;
     }
   };

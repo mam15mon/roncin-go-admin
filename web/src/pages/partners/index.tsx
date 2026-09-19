@@ -42,6 +42,7 @@ import {
   partnerServiceSetPartnerRoleBlacklist,
 } from '@/services/roncin/partnerService';
 import { toTableRequest, unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import PartnerExcelImportModal from './components/PartnerExcelImportModal';
 import RoleSwitchModal from './components/RoleSwitchModal';
 import PartnerSecondary from './partner-secondary';
@@ -226,8 +227,8 @@ export default function Partners() {
       XLSX.utils.book_append_sheet(wb, ws, `${currentView.title}档案`);
       XLSX.writeFile(wb, `${currentView.title}档案列表.xlsx`);
       message.success(`成功导出 ${data.length} 条数据至 Excel`);
-    } catch (err: any) {
-      message.error(err?.message || '导出 Excel 失败');
+    } catch (err) {
+      message.error(getErrorMessage(err, '导出 Excel 失败'));
     } finally {
       setExporting(false);
     }

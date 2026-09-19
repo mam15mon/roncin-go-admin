@@ -33,7 +33,7 @@ type CommissionRuleRosterModalProps = {
   >;
   onCancel: () => void;
   onChanged: () => void;
-  onError: (error: any, fallback: string) => void;
+  onError: (error: unknown, fallback: string) => void;
 };
 
 /** 提成方案名单管理弹窗：当前名单展示 + 批量加入 / 移除表单 */
@@ -118,7 +118,7 @@ type RosterChangeFormsProps = {
   employeeOptions: EmployeeOption[];
   searchEmployees: (keyword?: string) => void;
   onChanged: () => void;
-  onError: (error: any, fallback: string) => void;
+  onError: (error: unknown, fallback: string) => void;
 };
 
 type RosterChangeValues = {
@@ -180,7 +180,7 @@ function RosterChangeForms({
         removeForm.resetFields();
       }
       onChanged();
-    } catch (error: any) {
+    } catch (error) {
       onError(error, action === 'assign' ? '加入名单失败' : '移除名单失败');
     }
   };

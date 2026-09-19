@@ -29,6 +29,7 @@ import {
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { generateUUID } from '@/utils/uuid';
 import InvoiceCancelModal from './components/InvoiceCancelModal';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
@@ -58,6 +59,26 @@ type RedFlushValues = {
   reason: string;
 };
 type CancelValues = { reason: string };
+
+/** 读取请求错误对象上的 `reason` 字段（仅接受 truthy 字符串）。 */
+function readReasonText(source: unknown): string | undefined {
+  if (typeof source !== 'object' || source === null) return undefined;
+  if (!('reason' in source)) return undefined;
+  const reason = (source as { reason?: unknown }).reason;
+  return typeof reason === 'string' && reason ? reason : undefined;
+}
+
+/** 提取开票失败的业务 reason：兼容 data 与 response.data 两层包裹。 */
+function readInvoiceErrorReason(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const { data, response } = error as { data?: unknown; response?: unknown };
+  const fromData = readReasonText(data);
+  if (fromData !== undefined) return fromData;
+  if (typeof response === 'object' && response !== null) {
+    return readReasonText((response as { data?: unknown }).data);
+  }
+  return undefined;
+}
 
 export default function FinanceInvoicesPage() {
   const access = useAccess();
@@ -102,8 +123,8 @@ export default function FinanceInvoicesPage() {
     if (!row.id) return;
     try {
       setDetail((await settlementServiceGetInvoice({ id: row.id })).data);
-    } catch (error: any) {
-      message.error(error.message || '加载开票详情失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '加载开票详情失败'));
     }
   };
 
@@ -125,12 +146,12 @@ export default function FinanceInvoicesPage() {
       message.success('开票记录已创建，账单已占用');
       setCreateOpen(false);
       reload();
-    } catch (error: any) {
-      const reason = error.data?.reason || error.response?.data?.reason;
+    } catch (error) {
+      const reason = readInvoiceErrorReason(error);
       if (reason === financeErrorReasons.FINANCE_INVOICE_PROFILE_REQUIRED) {
         message.error('请选择该结算单位下启用且完整的开票抬头');
       } else {
-        message.error(error.message || '创建开票记录失败');
+        message.error(getErrorMessage(error, '创建开票记录失败'));
       }
     } finally {
       setSubmitting(false);
@@ -158,12 +179,14 @@ export default function FinanceInvoicesPage() {
       );
       setIssueTarget(undefined);
       reload();
-    } catch (error: any) {
+    } catch (error) {
       message.error(
-        error.message ||
-          (isReceivableInvoice(issueTarget.direction)
+        getErrorMessage(
+          error,
+          isReceivableInvoice(issueTarget.direction)
             ? '确认开具失败'
-            : '确认收票失败'),
+            : '确认收票失败',
+        ),
       );
     } finally {
       setSubmitting(false);
@@ -193,9 +216,9 @@ export default function FinanceInvoicesPage() {
       );
       setCancelTarget(undefined);
       reload();
-    } catch (error: any) {
+    } catch (error) {
       message.error(
-        error.message || (issued ? '作废发票失败' : '取消开票记录失败'),
+        getErrorMessage(error, issued ? '作废发票失败' : '取消开票记录失败'),
       );
     } finally {
       setSubmitting(false);
@@ -220,8 +243,8 @@ export default function FinanceInvoicesPage() {
       message.success('发票已红冲，原账单开票占用已释放');
       setRedFlushTarget(undefined);
       reload();
-    } catch (error: any) {
-      message.error(error.message || '发票红冲失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '发票红冲失败'));
     } finally {
       setSubmitting(false);
     }

@@ -2,12 +2,16 @@ import { buildOrgTree, type OrgTreeNode } from '../../organization-tree';
 
 /** 组织画布树数据的纯计算逻辑：树回填、按 key 检索与折叠键收集。 */
 
-type GraphData = { nodes: any[]; edges: any[] };
+/** 组织图数据（G6 风格）：节点载荷挂 data 字段，缺失时节点自身承载组织字段。 */
+export type OrgGraphData = {
+  nodes: { id?: string; data?: API.AdminOrganization }[];
+  edges: { source: string; target: string }[];
+};
 
 // 优先使用 treeData prop，缺失时由 graphData 重建组织树
 export function resolveTreeData(
   treeData: OrgTreeNode[] | undefined,
-  graphData: GraphData | undefined,
+  graphData: OrgGraphData | undefined,
 ): OrgTreeNode[] {
   if (treeData && treeData.length > 0) return treeData;
   if (!graphData?.nodes || graphData.nodes.length === 0) return [];

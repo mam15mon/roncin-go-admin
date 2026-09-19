@@ -34,6 +34,7 @@ import {
   settlementServiceListFinanceSettlementPartyOptions,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import {
   disableCreditExceededOptions,
   getCurrencyOptions,
@@ -149,8 +150,8 @@ export default function FinanceCashflowsPage() {
         await settlementServiceConfirmCashflow({ id }, { id, expectedVersion });
         message.success('资金流水已确认，可进入核销');
         reload();
-      } catch (e: any) {
-        message.error(e.message || '确认失败');
+      } catch (e) {
+        message.error(getErrorMessage(e, '确认失败'));
       }
     });
   const cancel = (r: API.FinanceCashflow) => {
@@ -495,8 +496,8 @@ export default function FinanceCashflowsPage() {
             setOpen(false);
             reload();
             return true;
-          } catch (e: any) {
-            message.error(e.message || '登记失败');
+          } catch (e) {
+            message.error(getErrorMessage(e, '登记失败'));
             return false;
           }
         }}

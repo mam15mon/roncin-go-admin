@@ -2,13 +2,24 @@ import type { FormInstance } from 'antd';
 import { Col, Form, Input, InputNumber, Modal, Row, Select } from 'antd';
 import React from 'react';
 
+/** 新建共享物理箱表单值（必填项由表单校验保证）。 */
+export type SeaSharedContainerFormValues = {
+  containerNo: string;
+  containerSpecId: string;
+  sealNo?: string;
+  packageCount: number;
+  grossWeightKg: string;
+  volumeCbm: string;
+  note?: string;
+};
+
 type SeaSharedContainerCreateModalProps = {
   open: boolean;
   form: FormInstance;
   submitting: boolean;
   containerSpecOptions: { label: string; value: string | number }[];
   onCancel: () => void;
-  onFinish: (values: any) => void;
+  onFinish: (values: SeaSharedContainerFormValues) => void;
 };
 
 /** 新建跨订单共享物理箱 Modal */

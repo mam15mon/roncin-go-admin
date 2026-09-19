@@ -130,10 +130,26 @@ export const commissionDecreaseStatusMeta: Record<
 /** 锁后费用补录来源（冲减建议）的系统来源类型标识。 */
 export const LOCKED_FEE_SUPPLEMENT_SOURCE = 'LOCKED_FEE_SUPPLEMENT';
 
-export function getBusinessReason(error: any): string {
-  return (
-    error?.data?.reason ?? error?.response?.data?.reason ?? error?.reason ?? ''
-  );
+/** 从请求错误对象里读取 `reason` 字段值（仅对象层级有效）。 */
+function readReasonField(source: unknown): unknown {
+  if (typeof source !== 'object' || source === null) return undefined;
+  if (!('reason' in source)) return undefined;
+  return (source as { reason?: unknown }).reason;
+}
+
+/** 从请求错误中提取业务失败 reason；兼容 data / response.data / 顶层三种包裹层级。 */
+export function getBusinessReason(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return '';
+  const { data, response } = error as { data?: unknown; response?: unknown };
+  const nestedResponseData =
+    typeof response === 'object' && response !== null
+      ? (response as { data?: unknown }).data
+      : undefined;
+  const reason =
+    readReasonField(data) ??
+    readReasonField(nestedResponseData) ??
+    readReasonField(error);
+  return (reason ?? '') as string;
 }
 
 // isReversalAdjustment 判断调整单是否为系统生成的来源反转冲减

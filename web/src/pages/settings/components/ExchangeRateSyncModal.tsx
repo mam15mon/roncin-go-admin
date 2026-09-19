@@ -26,6 +26,7 @@ import {
   exchangeRateServiceFetchExchangeRates,
   exchangeRateServiceSyncExchangeRates,
 } from '@/services/roncin/exchangeRateService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 
 const { Text } = Typography;
@@ -257,11 +258,11 @@ export function ExchangeRateSyncModal({
         throw new Error('抓取结果为空');
       }
       applyPreview(response.data as ExchangeRateSyncPreviewData, precision);
-    } catch (error: any) {
+    } catch (error) {
       setPreview(undefined);
       setRawRows([]);
       setDraftRows([]);
-      setFetchError(error?.message || '牌价抓取失败');
+      setFetchError(getErrorMessage(error, '牌价抓取失败'));
     } finally {
       setFetching(false);
     }
@@ -375,8 +376,8 @@ export function ExchangeRateSyncModal({
       message.success('周汇率已发布生效，本次微调加点已自动记忆');
       onSuccess();
       onClose();
-    } catch (error: any) {
-      message.error(error?.message || '周汇率发布失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '周汇率发布失败'));
     } finally {
       setPublishing(false);
     }

@@ -32,12 +32,22 @@ import {
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 import { getCurrencyOptions } from '@/utils/options';
 import AccountsSection from './components/AccountsSection';
 import BasicInfoSection from './components/BasicInfoSection';
 import type { ContactItem } from './components/ContactCardList';
 import ContactsSection from './components/ContactsSection';
+
+/** 识别 antd 表单校验失败异常（validateFields 抛出的 ValidateErrorEntity）。 */
+function isFormValidationError(
+  error: unknown,
+): error is { errorFields: { name: (string | number)[]; errors: string[] }[] } {
+  if (typeof error !== 'object' || error === null) return false;
+  return Boolean((error as { errorFields?: unknown }).errorFields);
+}
+
 import ContractsSection from './components/ContractsSection';
 import InterestRuleModal, {
   type InterestRuleValues,
@@ -617,8 +627,8 @@ export default function PartnerDetailPage() {
       }
 
       history.push(listUrl);
-    } catch (err: any) {
-      if (err?.errorFields) {
+    } catch (err) {
+      if (isFormValidationError(err)) {
         const res = scrollToFirstFormError({
           errorFields: err.errorFields,
           onExpandSection: (sectionKey) => {
@@ -630,7 +640,7 @@ export default function PartnerDetailPage() {
         });
         setSectionErrors(res.errorsBySection);
       } else {
-        message.error(err?.message || '保存失败，请重试');
+        message.error(getErrorMessage(err, '保存失败，请重试'));
       }
     } finally {
       setSaving(false);

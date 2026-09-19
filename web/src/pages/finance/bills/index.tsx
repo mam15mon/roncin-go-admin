@@ -28,6 +28,7 @@ import {
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 import { makeVersionActions } from '@/utils/versionActions';
 import BillCreationWorkbench from './components/BillCreationWorkbench';
@@ -243,8 +244,8 @@ export default function FinanceBillsPage() {
     try {
       const response = await settlementServiceGetBill({ id: bill.id });
       setDetail(response.data);
-    } catch (error: any) {
-      message.error(error.message || '加载账单详情失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '加载账单详情失败'));
     } finally {
       setDetailLoading(false);
     }
@@ -273,8 +274,8 @@ export default function FinanceBillsPage() {
       message.success('账单已成功更新并自动刷新汇率快照');
       setEditOpen(false);
       reload();
-    } catch (error: any) {
-      message.error(error.message || '更新账单失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '更新账单失败'));
     } finally {
       setSubmitting(false);
     }
@@ -286,8 +287,8 @@ export default function FinanceBillsPage() {
         await settlementServiceConfirmBill({ id }, { id, expectedVersion });
         message.success('账单已确认，进入待开票/待核销流');
         reload();
-      } catch (error: any) {
-        message.error(error.message || '确认账单失败');
+      } catch (error) {
+        message.error(getErrorMessage(error, '确认账单失败'));
       }
     });
 

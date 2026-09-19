@@ -252,7 +252,7 @@ export function OrderContainerRequestFields({
   const handleChange = (
     index: number,
     field: 'containerSpecId' | 'quantity',
-    val: any,
+    val: string | number,
   ) => {
     const next = containerRequests.map((item, idx) => {
       if (idx === index) {

@@ -30,6 +30,7 @@ import {
   settlementServiceListFinanceSettlementPartyOptions,
   settlementServiceListVerificationCreationCandidates,
 } from '@/services/roncin/settlementService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import {
   disableCreditExceededOptions,
   getCurrencyOptions,
@@ -325,8 +326,8 @@ export default function VerificationWorkbench({
       message.success('核销成功，资金与账单余额已同步更新');
       onCreated();
       onClose();
-    } catch (error: any) {
-      message.error(error.message || '核销失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '核销失败'));
     } finally {
       setSubmitting(false);
     }

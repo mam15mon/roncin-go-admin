@@ -43,7 +43,7 @@ export default function InterestRuleModal({
     }
   }, [open, value, form]);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: InterestRuleValues) => {
     await onFinish({
       enabled: Boolean(values.enabled),
       dailyRateBp: Number(values.dailyRateBp || 0),

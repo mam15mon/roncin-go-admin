@@ -6,6 +6,7 @@ import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterD
 import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import { masterDataServiceListAdministrativeRegions } from '@/services/roncin/masterDataService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 export interface RegionItem extends BaseMasterDataItem {
   level: number;
@@ -43,8 +44,8 @@ export default function CitiesPanel() {
     try {
       const response = await masterDataServiceListAdministrativeRegions({});
       setData(unwrapList(response).map(mapRegion));
-    } catch (error: any) {
-      message.error(error.message || '行政区划数据加载失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '行政区划数据加载失败'));
     } finally {
       setLoading(false);
     }

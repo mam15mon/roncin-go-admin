@@ -29,6 +29,7 @@ import {
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import {
@@ -363,8 +364,8 @@ export default function CommissionCreateModal({
           resetPreview();
           onSuccess();
           return true;
-        } catch (error: any) {
-          message.error(error.message || '提成生成失败');
+        } catch (error) {
+          message.error(getErrorMessage(error, '提成生成失败'));
           return false;
         }
       }}
@@ -536,9 +537,9 @@ export default function CommissionCreateModal({
                     });
                     setPreview(response.data);
                     setPreviewSignature(calculationSignature(values));
-                  } catch (error: any) {
+                  } catch (error) {
                     resetPreview();
-                    message.error(error.message || '提成预览计算失败');
+                    message.error(getErrorMessage(error, '提成预览计算失败'));
                   } finally {
                     setPreviewLoading(false);
                   }

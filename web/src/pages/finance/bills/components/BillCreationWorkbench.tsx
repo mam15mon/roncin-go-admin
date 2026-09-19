@@ -18,6 +18,7 @@ import {
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import { generateUUID } from '@/utils/uuid';
 import BillCandidateSelectionStep from './BillCandidateSelectionStep';
@@ -116,10 +117,10 @@ export default function BillCreationWorkbench({
       .then((response) => {
         if (!cancelled) setOrganizationOptions(response.data ?? []);
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         if (!cancelled) {
           setOrganizationOptions([]);
-          message.error(error.message || '加载可建账所属公司失败');
+          message.error(getErrorMessage(error, '加载可建账所属公司失败'));
         }
       });
     return () => {
@@ -584,8 +585,8 @@ export default function BillCreationWorkbench({
       if (response.data) setResult(response.data);
       message.success('本批账单已全部确认，可以进入开票、收付款和核销流程');
       onCreated?.(response.data || result);
-    } catch (error: any) {
-      message.error(error.message || '批量确认账单失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '批量确认账单失败'));
     } finally {
       setConfirming(false);
     }

@@ -13,6 +13,7 @@ import {
 import React, { useEffect } from 'react';
 import { PartnerRoleType } from '@/enums.generated';
 import { partnerServiceUpdatePartner } from '@/services/roncin/partnerService';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 const { Text } = Typography;
 
@@ -94,8 +95,8 @@ export default function RoleSwitchModal({
       message.success('业务角色转换成功');
       onSuccess();
       onClose();
-    } catch (e: any) {
-      message.error(e?.message || '角色变更失败');
+    } catch (e) {
+      message.error(getErrorMessage(e, '角色变更失败'));
     } finally {
       setSubmitting(false);
     }

@@ -23,7 +23,7 @@ import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
-function renderDetailValue(key: string, value: any): React.ReactNode {
+function renderDetailValue(key: string, value: unknown): React.ReactNode {
   if (value === undefined || value === null) return '—';
 
   // 角色列表格式化为中文标签

@@ -8,6 +8,7 @@ import { Alert, App } from 'antd';
 import React, { useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { settlementServiceCreateCommissionAdjustment } from '@/services/roncin/settlementService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { generateUUID } from '@/utils/uuid';
 import { type AdjustmentValues, decimalText } from '../types';
 
@@ -58,8 +59,8 @@ export default function CommissionAdjustmentModal({
           onOpenChange(false);
           onSuccess();
           return true;
-        } catch (error: any) {
-          message.error(error.message || '提成调整创建失败');
+        } catch (error) {
+          message.error(getErrorMessage(error, '提成调整创建失败'));
           return false;
         }
       }}
