@@ -4,7 +4,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { message } from 'antd';
+import { App } from 'antd';
 import React, { forwardRef } from 'react';
 import {
   type SubEntityDrawerRef,
@@ -86,6 +86,7 @@ const columns: ProColumns<API.OrderCargoItem>[] = [
 
 const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
   function CargoItemDrawer({ canCreate, canUpdate, canRemove }, ref) {
+    const { message } = App.useApp();
     return (
       <SubEntityDrawerTemplate<
         API.OrderCargoItem,

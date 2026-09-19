@@ -212,7 +212,9 @@ export function SeaCreateDocumentModeField({
 
   // 全员分单制下新建默认 HOUSE：初始渲染不经过 onChange 联动，这里补一次
   // 分单内容默认值初始化（带入委托件重尺与条款默认），仅在分单内容为空时执行。
-  // Form.Item initialValue 未写入 store 时 getFieldValue 为 undefined，同样按 HOUSE 处理。
+  // 模式默认值在 effect 中写入 store，而不是用 Form.Item initialValue：
+  // 订单带入流程会经 Form initialValues 预置 seaDocumentStructure，字段级
+  // initialValue 与之冲突会触发 rc-field-form 覆盖警告。
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
@@ -222,7 +224,16 @@ export function SeaCreateDocumentModeField({
     ) {
       return;
     }
-    if (form.getFieldValue('seaHouseBill')) return;
+    if (form.getFieldValue('seaHouseBill')) {
+      // 已带入 HBL 数据时内容默认值已就绪，只补缺失的模式标记，不覆盖带入内容。
+      if (form.getFieldValue('seaDocumentStructure') === undefined) {
+        form.setFieldValue(
+          'seaDocumentStructure',
+          SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+        );
+      }
+      return;
+    }
     changeCreateMode(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE);
   }, []);
 
@@ -230,7 +241,6 @@ export function SeaCreateDocumentModeField({
     <Form.Item
       name="seaDocumentStructure"
       label="单证模式"
-      initialValue={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
       rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
       style={{ marginBottom: 0 }}
     >

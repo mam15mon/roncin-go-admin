@@ -55,11 +55,15 @@ vi.mock('@ant-design/pro-components', () => ({
     };
     return (
       <div>
+        {/* 真实 ProTable 会按列 key 为每个单元格容器补 key；替身直接铺开 option
+            列渲染结果时同样需要按列提供稳定 key，否则触发 React 缺 key 警告。 */}
         {(props.columns ?? [])
           .filter((column: any) => column.valueType === 'option')
-          .flatMap((column: any) =>
-            column.render ? column.render(undefined, sample) : [],
-          )}
+          .map((column: any) => (
+            <div key={column.key ?? column.dataIndex ?? 'option'}>
+              {column.render ? column.render(undefined, sample) : null}
+            </div>
+          ))}
       </div>
     );
   },
