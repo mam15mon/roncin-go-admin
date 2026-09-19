@@ -348,6 +348,19 @@ declare namespace API {
     sourceHash?: string;
   };
 
+  type ApproveCommissionApplicationRequest = {
+    id: string;
+    expectedVersion: string;
+  };
+
+  type ApproveCommissionApplicationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionApplication;
+    traceId?: string;
+  };
+
   type ApproveDingTalkRegistrationRequest = {
     /** 注册用户的 ID（待审批队列中的 user_id）。 */
     id: string;
@@ -2783,6 +2796,56 @@ declare namespace API {
     cancelledBy?: string;
   };
 
+  type FinanceCommissionApplication = {
+    id?: string;
+    applicationMonth?: string;
+    coverageTo?: string;
+    status?: number;
+    version?: string;
+    commissionCount?: number;
+    baseCurrency?: string;
+    totalCommissionAmount?: string;
+    totalCnyCommissionAmount?: string;
+    employeeId?: string;
+    employeeName?: string;
+    submittedAt?: string;
+    submittedBy?: string;
+    decidedAt?: string;
+    decidedBy?: string;
+    decisionReason?: string;
+    organizationId?: string;
+    organizationName?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type FinanceCommissionApplicationDetail = {
+    application?: FinanceCommissionApplication;
+    lines?: FinanceCommissionApplicationLine[];
+  };
+
+  type FinanceCommissionApplicationLine = {
+    id?: string;
+    applicationId?: string;
+    commissionId?: string;
+    commissionNo?: string;
+    commissionDate?: string;
+    verificationId?: string;
+    verificationNo?: string;
+    nettingId?: string;
+    nettingNo?: string;
+    personnelRole?: string;
+    ruleId?: string;
+    ruleVersion?: string;
+    ruleName?: string;
+    calculationBasis?: string;
+    baseCurrency?: string;
+    commissionAmount?: string;
+    cnyCommissionAmount?: string;
+    sourceFingerprint?: string;
+    createdAt?: string;
+  };
+
   type FinanceCommissionLine = {
     id?: string;
     orderId?: string;
@@ -3085,6 +3148,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetCommissionApplicationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionApplicationDetail;
+    traceId?: string;
+  };
+
   type GetCommissionResponse = {
     success?: boolean;
     code?: number;
@@ -3186,6 +3257,14 @@ declare namespace API {
     message?: string;
     data?: FinanceInvoice;
     traceId?: string;
+  };
+
+  type GetMyCommissionApplicationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    data?: WorkbenchMyCommissionApplicationDetail;
   };
 
   type GetMyFeeSupplementAdjustmentSourceResponse = {
@@ -3304,6 +3383,9 @@ declare namespace API {
     recentOrders?: WorkbenchRecentOrder[];
     todos?: WorkbenchTodoSummary;
     finance?: WorkbenchFinanceSummary;
+    /** application_summary 是本人月度提成申请摘要段：可申请分组、本月累计中与
+ 审批中/已批准计数及最近申请概要；金额全部为组织本位币口径。 */
+    applicationSummary?: WorkbenchApplicationSummary;
   };
 
   type GetWorkbenchOverviewResponse = {
@@ -3501,6 +3583,17 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCommissionAdjustment[];
+    total?: string;
+    traceId?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type ListCommissionApplicationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionApplication[];
     total?: string;
     traceId?: string;
     page?: number;
@@ -3777,6 +3870,28 @@ declare namespace API {
     message?: string;
     data?: OrderMilestone[];
     traceId?: string;
+  };
+
+  type ListMyApplicationCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    data?: WorkbenchApplicationCandidate[];
+  };
+
+  type ListMyCommissionApplicationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    data?: WorkbenchMyCommissionApplication[];
   };
 
   type ListMyCommissionsResponse = {
@@ -6011,6 +6126,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type RejectCommissionApplicationRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type RejectCommissionApplicationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCommissionApplication;
+    traceId?: string;
+  };
+
   type RejectDingTalkRegistrationRequest = {
     id: string;
     reason: string;
@@ -7261,6 +7390,10 @@ declare namespace API {
     traceId?: string;
   };
 
+  type SettlementServiceApproveCommissionApplicationParams = {
+    id: string;
+  };
+
   type SettlementServiceAssignCommissionRuleEmployeesParams = {
     id: string;
   };
@@ -7330,6 +7463,10 @@ declare namespace API {
   };
 
   type SettlementServiceGetBillParams = {
+    id: string;
+  };
+
+  type SettlementServiceGetCommissionApplicationParams = {
     id: string;
   };
 
@@ -7416,6 +7553,16 @@ declare namespace API {
     status?: number;
     sourceType?: string;
     employeeId?: string;
+    organizationId?: string;
+  };
+
+  type SettlementServiceListCommissionApplicationsParams = {
+    page?: number;
+    pageSize?: number;
+    employeeId?: string;
+    status?: number;
+    /** 提交月份过滤（YYYY-MM）。 */
+    applicationMonth?: string;
     organizationId?: string;
   };
 
@@ -7591,6 +7738,10 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceRejectCommissionApplicationParams = {
+    id: string;
+  };
+
   type SettlementServiceRemoveCommissionRuleEmployeesParams = {
     id: string;
   };
@@ -7629,6 +7780,16 @@ declare namespace API {
     enabled?: boolean;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type SubmitMyCommissionApplicationRequest = {};
+
+  type SubmitMyCommissionApplicationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    data?: WorkbenchMyCommissionApplication;
   };
 
   type SwitchOrganizationRequest = {
@@ -8552,6 +8713,47 @@ declare namespace API {
     traceId?: string;
   };
 
+  type WorkbenchApplicationBrief = {
+    applicationId?: string;
+    applicationMonth?: string;
+    status?: number;
+    commissionCount?: number;
+    totalCommissionAmount?: string;
+    submittedAt?: string;
+  };
+
+  type WorkbenchApplicationCandidate = {
+    verificationId?: string;
+    verificationNo?: string;
+    nettingId?: string;
+    nettingNo?: string;
+    /** 提成归属日期（YYYY-MM-DD）：核销日期或对冲确认日期。 */
+    commissionDate?: string;
+    personnelRole?: string;
+    ruleId?: string;
+    ruleName?: string;
+    calculationBasis?: string;
+    baseCurrency?: string;
+    commissionAmount?: string;
+    cnyCommissionAmount?: string;
+  };
+
+  type WorkbenchApplicationSummary = {
+    baseCurrency?: string;
+    applyGroups?: WorkbenchApplyMonthGroup[];
+    accumulatingCount?: number;
+    accumulatingAmount?: string;
+    pendingReviewCount?: number;
+    approvedCount?: number;
+    latestApplication?: WorkbenchApplicationBrief;
+  };
+
+  type WorkbenchApplyMonthGroup = {
+    commissionMonth?: string;
+    commissionCount?: number;
+    commissionAmount?: string;
+  };
+
   type WorkbenchCommissionSummary = {
     baseCurrency?: string;
     draftCount?: number;
@@ -8592,6 +8794,21 @@ declare namespace API {
     supplementApprovalsTruncated?: boolean;
   };
 
+  type WorkbenchMyApplicationLine = {
+    id?: string;
+    commissionId?: string;
+    commissionDate?: string;
+    verificationNo?: string;
+    nettingNo?: string;
+    personnelRole?: string;
+    ruleName?: string;
+    calculationBasis?: string;
+    baseCurrency?: string;
+    commissionAmount?: string;
+    cnyCommissionAmount?: string;
+    createdAt?: string;
+  };
+
   type WorkbenchMyCommission = {
     id?: string;
     commissionNo?: string;
@@ -8618,6 +8835,28 @@ declare namespace API {
     createdAt?: string;
   };
 
+  type WorkbenchMyCommissionApplication = {
+    id?: string;
+    applicationMonth?: string;
+    coverageTo?: string;
+    status?: number;
+    version?: string;
+    commissionCount?: number;
+    baseCurrency?: string;
+    totalCommissionAmount?: string;
+    totalCnyCommissionAmount?: string;
+    submittedAt?: string;
+    decidedAt?: string;
+    decisionReason?: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type WorkbenchMyCommissionApplicationDetail = {
+    application?: WorkbenchMyCommissionApplication;
+    lines?: WorkbenchMyApplicationLine[];
+  };
+
   type WorkbenchMyReceivable = {
     billId?: string;
     billNo?: string;
@@ -8640,6 +8879,23 @@ declare namespace API {
     terminationStatus?: string;
     orderDate?: string;
     createdAt?: string;
+  };
+
+  type WorkbenchServiceGetMyCommissionApplicationParams = {
+    id: string;
+  };
+
+  type WorkbenchServiceListMyApplicationCandidatesParams = {
+    page?: number;
+    pageSize?: number;
+    /** 按提成归属月过滤（YYYY-MM）；缺省返回全部可申请候选（截至上一自然月末）。 */
+    commissionMonth?: string;
+  };
+
+  type WorkbenchServiceListMyCommissionApplicationsParams = {
+    page?: number;
+    pageSize?: number;
+    status?: number;
   };
 
   type WorkbenchServiceListMyCommissionsParams = {

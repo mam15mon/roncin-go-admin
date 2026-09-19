@@ -109,6 +109,13 @@ func (User) Edges() []ent.Edge {
 		edge.To("created_finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("cancelled_finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type),
 		edge.To("terminated_finance_commission_rule_assignments", FinanceCommissionRuleAssignment.Type),
+		// 月度提成申请：员工作为申请主体与提交人是永久审计事实（NO ACTION，删除
+		// 用户不得清空申请历史）；决策人是可逆审计引用（SET NULL）。申请明细的
+		// 员工冗余列同为永久事实引用。
+		edge.To("finance_commission_applications", FinanceCommissionApplication.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("submitted_finance_commission_applications", FinanceCommissionApplication.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("decided_finance_commission_applications", FinanceCommissionApplication.Type),
+		edge.To("finance_commission_application_lines", FinanceCommissionApplicationLine.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("created_sea_master_bill_versions", SeaMasterBillVersion.Type),
 		edge.To("created_sea_house_bill_versions", SeaHouseBillVersion.Type),
 		edge.To("created_sea_document_void_events", SeaDocumentVoidEvent.Type),

@@ -99,6 +99,12 @@ type FinanceCommission func(*sql.Selector)
 // FinanceCommissionAdjustment is the predicate function for financecommissionadjustment builders.
 type FinanceCommissionAdjustment func(*sql.Selector)
 
+// FinanceCommissionApplication is the predicate function for financecommissionapplication builders.
+type FinanceCommissionApplication func(*sql.Selector)
+
+// FinanceCommissionApplicationLine is the predicate function for financecommissionapplicationline builders.
+type FinanceCommissionApplicationLine func(*sql.Selector)
+
 // FinanceCommissionLine is the predicate function for financecommissionline builders.
 type FinanceCommissionLine func(*sql.Selector)
 

@@ -469,6 +469,89 @@ export async function settlementServiceMarkCommissionAdjustmentPaid(
   );
 }
 
+/** 月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+ commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+ ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。 GET /api/v1/finance/commission-applications */
+export async function settlementServiceListCommissionApplications(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListCommissionApplicationsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListCommissionApplicationsResponse>(
+    "/api/v1/finance/commission-applications",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。 GET /api/v1/finance/commission-applications/${param0} */
+export async function settlementServiceGetCommissionApplication(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceGetCommissionApplicationParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.GetCommissionApplicationResponse>(
+    `/api/v1/finance/commission-applications/${param0}`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+ 确认申请内提成计算结果，不代表银行付款或工资发放。 POST /api/v1/finance/commission-applications/${param0}/approve */
+export async function settlementServiceApproveCommissionApplication(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceApproveCommissionApplicationParams,
+  body: API.ApproveCommissionApplicationRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.ApproveCommissionApplicationResponse>(
+    `/api/v1/finance/commission-applications/${param0}/approve`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+ 不产生同月替代申请。 POST /api/v1/finance/commission-applications/${param0}/reject */
+export async function settlementServiceRejectCommissionApplication(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceRejectCommissionApplicationParams,
+  body: API.RejectCommissionApplicationRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.RejectCommissionApplicationResponse>(
+    `/api/v1/finance/commission-applications/${param0}/reject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/commission-rules */
 export async function settlementServiceListCommissionRules(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

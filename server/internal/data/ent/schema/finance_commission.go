@@ -76,6 +76,9 @@ func (FinanceCommission) Edges() []ent.Edge {
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_commissions").Field("cancelled_by").Unique(),
 		edge.To("lines", FinanceCommissionLine.Type),
 		edge.To("adjustments", FinanceCommissionAdjustment.Type),
+		// 月度提成申请明细引用提成事实：外键 NO ACTION，删除提成单不得造成
+		// 历史申请断链。
+		edge.To("application_lines", FinanceCommissionApplicationLine.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 	}
 }
 

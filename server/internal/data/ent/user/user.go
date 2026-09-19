@@ -148,6 +148,14 @@ const (
 	EdgeCancelledFinanceCommissionRuleAssignments = "cancelled_finance_commission_rule_assignments"
 	// EdgeTerminatedFinanceCommissionRuleAssignments holds the string denoting the terminated_finance_commission_rule_assignments edge name in mutations.
 	EdgeTerminatedFinanceCommissionRuleAssignments = "terminated_finance_commission_rule_assignments"
+	// EdgeFinanceCommissionApplications holds the string denoting the finance_commission_applications edge name in mutations.
+	EdgeFinanceCommissionApplications = "finance_commission_applications"
+	// EdgeSubmittedFinanceCommissionApplications holds the string denoting the submitted_finance_commission_applications edge name in mutations.
+	EdgeSubmittedFinanceCommissionApplications = "submitted_finance_commission_applications"
+	// EdgeDecidedFinanceCommissionApplications holds the string denoting the decided_finance_commission_applications edge name in mutations.
+	EdgeDecidedFinanceCommissionApplications = "decided_finance_commission_applications"
+	// EdgeFinanceCommissionApplicationLines holds the string denoting the finance_commission_application_lines edge name in mutations.
+	EdgeFinanceCommissionApplicationLines = "finance_commission_application_lines"
 	// EdgeCreatedSeaMasterBillVersions holds the string denoting the created_sea_master_bill_versions edge name in mutations.
 	EdgeCreatedSeaMasterBillVersions = "created_sea_master_bill_versions"
 	// EdgeCreatedSeaHouseBillVersions holds the string denoting the created_sea_house_bill_versions edge name in mutations.
@@ -518,6 +526,34 @@ const (
 	TerminatedFinanceCommissionRuleAssignmentsInverseTable = "finance_commission_rule_assignments"
 	// TerminatedFinanceCommissionRuleAssignmentsColumn is the table column denoting the terminated_finance_commission_rule_assignments relation/edge.
 	TerminatedFinanceCommissionRuleAssignmentsColumn = "terminated_by"
+	// FinanceCommissionApplicationsTable is the table that holds the finance_commission_applications relation/edge.
+	FinanceCommissionApplicationsTable = "finance_commission_applications"
+	// FinanceCommissionApplicationsInverseTable is the table name for the FinanceCommissionApplication entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionapplication" package.
+	FinanceCommissionApplicationsInverseTable = "finance_commission_applications"
+	// FinanceCommissionApplicationsColumn is the table column denoting the finance_commission_applications relation/edge.
+	FinanceCommissionApplicationsColumn = "employee_id"
+	// SubmittedFinanceCommissionApplicationsTable is the table that holds the submitted_finance_commission_applications relation/edge.
+	SubmittedFinanceCommissionApplicationsTable = "finance_commission_applications"
+	// SubmittedFinanceCommissionApplicationsInverseTable is the table name for the FinanceCommissionApplication entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionapplication" package.
+	SubmittedFinanceCommissionApplicationsInverseTable = "finance_commission_applications"
+	// SubmittedFinanceCommissionApplicationsColumn is the table column denoting the submitted_finance_commission_applications relation/edge.
+	SubmittedFinanceCommissionApplicationsColumn = "submitted_by"
+	// DecidedFinanceCommissionApplicationsTable is the table that holds the decided_finance_commission_applications relation/edge.
+	DecidedFinanceCommissionApplicationsTable = "finance_commission_applications"
+	// DecidedFinanceCommissionApplicationsInverseTable is the table name for the FinanceCommissionApplication entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionapplication" package.
+	DecidedFinanceCommissionApplicationsInverseTable = "finance_commission_applications"
+	// DecidedFinanceCommissionApplicationsColumn is the table column denoting the decided_finance_commission_applications relation/edge.
+	DecidedFinanceCommissionApplicationsColumn = "decided_by"
+	// FinanceCommissionApplicationLinesTable is the table that holds the finance_commission_application_lines relation/edge.
+	FinanceCommissionApplicationLinesTable = "finance_commission_application_lines"
+	// FinanceCommissionApplicationLinesInverseTable is the table name for the FinanceCommissionApplicationLine entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionapplicationline" package.
+	FinanceCommissionApplicationLinesInverseTable = "finance_commission_application_lines"
+	// FinanceCommissionApplicationLinesColumn is the table column denoting the finance_commission_application_lines relation/edge.
+	FinanceCommissionApplicationLinesColumn = "employee_id"
 	// CreatedSeaMasterBillVersionsTable is the table that holds the created_sea_master_bill_versions relation/edge.
 	CreatedSeaMasterBillVersionsTable = "sea_master_bill_versions"
 	// CreatedSeaMasterBillVersionsInverseTable is the table name for the SeaMasterBillVersion entity.
@@ -1443,6 +1479,62 @@ func ByTerminatedFinanceCommissionRuleAssignments(term sql.OrderTerm, terms ...s
 	}
 }
 
+// ByFinanceCommissionApplicationsCount orders the results by finance_commission_applications count.
+func ByFinanceCommissionApplicationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionApplicationsStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionApplications orders the results by finance_commission_applications terms.
+func ByFinanceCommissionApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySubmittedFinanceCommissionApplicationsCount orders the results by submitted_finance_commission_applications count.
+func BySubmittedFinanceCommissionApplicationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubmittedFinanceCommissionApplicationsStep(), opts...)
+	}
+}
+
+// BySubmittedFinanceCommissionApplications orders the results by submitted_finance_commission_applications terms.
+func BySubmittedFinanceCommissionApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubmittedFinanceCommissionApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDecidedFinanceCommissionApplicationsCount orders the results by decided_finance_commission_applications count.
+func ByDecidedFinanceCommissionApplicationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDecidedFinanceCommissionApplicationsStep(), opts...)
+	}
+}
+
+// ByDecidedFinanceCommissionApplications orders the results by decided_finance_commission_applications terms.
+func ByDecidedFinanceCommissionApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDecidedFinanceCommissionApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFinanceCommissionApplicationLinesCount orders the results by finance_commission_application_lines count.
+func ByFinanceCommissionApplicationLinesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceCommissionApplicationLinesStep(), opts...)
+	}
+}
+
+// ByFinanceCommissionApplicationLines orders the results by finance_commission_application_lines terms.
+func ByFinanceCommissionApplicationLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceCommissionApplicationLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByCreatedSeaMasterBillVersionsCount orders the results by created_sea_master_bill_versions count.
 func ByCreatedSeaMasterBillVersionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1909,6 +2001,34 @@ func newTerminatedFinanceCommissionRuleAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TerminatedFinanceCommissionRuleAssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TerminatedFinanceCommissionRuleAssignmentsTable, TerminatedFinanceCommissionRuleAssignmentsColumn),
+	)
+}
+func newFinanceCommissionApplicationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionApplicationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionApplicationsTable, FinanceCommissionApplicationsColumn),
+	)
+}
+func newSubmittedFinanceCommissionApplicationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubmittedFinanceCommissionApplicationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SubmittedFinanceCommissionApplicationsTable, SubmittedFinanceCommissionApplicationsColumn),
+	)
+}
+func newDecidedFinanceCommissionApplicationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DecidedFinanceCommissionApplicationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DecidedFinanceCommissionApplicationsTable, DecidedFinanceCommissionApplicationsColumn),
+	)
+}
+func newFinanceCommissionApplicationLinesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceCommissionApplicationLinesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceCommissionApplicationLinesTable, FinanceCommissionApplicationLinesColumn),
 	)
 }
 func newCreatedSeaMasterBillVersionsStep() *sqlgraph.Step {

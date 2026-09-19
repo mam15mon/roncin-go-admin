@@ -2846,6 +2846,29 @@ func HasAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicat
 	})
 }
 
+// HasApplicationLines applies the HasEdge predicate on the "application_lines" edge.
+func HasApplicationLines() predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ApplicationLinesTable, ApplicationLinesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasApplicationLinesWith applies the HasEdge predicate on the "application_lines" edge with a given conditions (other predicates).
+func HasApplicationLinesWith(preds ...predicate.FinanceCommissionApplicationLine) predicate.FinanceCommission {
+	return predicate.FinanceCommission(func(s *sql.Selector) {
+		step := newApplicationLinesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FinanceCommission) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.AndPredicates(predicates...))

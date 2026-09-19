@@ -1952,6 +1952,159 @@ var (
 			},
 		},
 	}
+	// FinanceCommissionApplicationsColumns holds the columns for the "finance_commission_applications" table.
+	FinanceCommissionApplicationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "application_month", Type: field.TypeString, Size: 7},
+		{Name: "coverage_to", Type: field.TypeString, Size: 10},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING_REVIEW", "REJECTED", "APPROVED"}, Default: "PENDING_REVIEW"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "commission_count", Type: field.TypeInt},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "total_commission_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "total_cny_commission_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "submitted_at", Type: field.TypeTime},
+		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
+		{Name: "decision_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "employee_id", Type: field.TypeUUID},
+		{Name: "submitted_by", Type: field.TypeUUID},
+		{Name: "decided_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// FinanceCommissionApplicationsTable holds the schema information for the "finance_commission_applications" table.
+	FinanceCommissionApplicationsTable = &schema.Table{
+		Name:       "finance_commission_applications",
+		Columns:    FinanceCommissionApplicationsColumns,
+		PrimaryKey: []*schema.Column{FinanceCommissionApplicationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_commission_applications_organizations_finance_commission_applications",
+				Columns:    []*schema.Column{FinanceCommissionApplicationsColumns[14]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_applications_users_finance_commission_applications",
+				Columns:    []*schema.Column{FinanceCommissionApplicationsColumns[15]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_applications_users_submitted_finance_commission_applications",
+				Columns:    []*schema.Column{FinanceCommissionApplicationsColumns[16]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_applications_users_decided_finance_commission_applications",
+				Columns:    []*schema.Column{FinanceCommissionApplicationsColumns[17]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financecommissionapplication_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionApplicationsColumns[2]},
+			},
+			{
+				Name:    "financecommissionapplication_organization_id_employee_id_application_month",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionApplicationsColumns[14], FinanceCommissionApplicationsColumns[15], FinanceCommissionApplicationsColumns[3]},
+			},
+			{
+				Name:    "financecommissionapplication_organization_id_employee_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionApplicationsColumns[14], FinanceCommissionApplicationsColumns[15], FinanceCommissionApplicationsColumns[5]},
+			},
+			{
+				Name:    "financecommissionapplication_organization_id_application_month",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionApplicationsColumns[14], FinanceCommissionApplicationsColumns[3]},
+			},
+		},
+	}
+	// FinanceCommissionApplicationLinesColumns holds the columns for the "finance_commission_application_lines" table.
+	FinanceCommissionApplicationLinesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "commission_date", Type: field.TypeString, Size: 10},
+		{Name: "verification_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "verification_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "netting_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "netting_no", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "personnel_role", Type: field.TypeString, Size: 20},
+		{Name: "rule_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "rule_version", Type: field.TypeUint64, Default: 1},
+		{Name: "rule_name", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "calculation_basis", Type: field.TypeString, Nullable: true, Size: 30},
+		{Name: "base_currency", Type: field.TypeString, Size: 3},
+		{Name: "commission_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "cny_commission_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "source_fingerprint", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "commission_id", Type: field.TypeUUID},
+		{Name: "application_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "employee_id", Type: field.TypeUUID},
+	}
+	// FinanceCommissionApplicationLinesTable holds the schema information for the "finance_commission_application_lines" table.
+	FinanceCommissionApplicationLinesTable = &schema.Table{
+		Name:       "finance_commission_application_lines",
+		Columns:    FinanceCommissionApplicationLinesColumns,
+		PrimaryKey: []*schema.Column{FinanceCommissionApplicationLinesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_commission_application_lines_finance_commissions_application_lines",
+				Columns:    []*schema.Column{FinanceCommissionApplicationLinesColumns[17]},
+				RefColumns: []*schema.Column{FinanceCommissionsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_application_lines_finance_commission_applications_lines",
+				Columns:    []*schema.Column{FinanceCommissionApplicationLinesColumns[18]},
+				RefColumns: []*schema.Column{FinanceCommissionApplicationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_application_lines_organizations_finance_commission_application_lines",
+				Columns:    []*schema.Column{FinanceCommissionApplicationLinesColumns[19]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_application_lines_users_finance_commission_application_lines",
+				Columns:    []*schema.Column{FinanceCommissionApplicationLinesColumns[20]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financecommissionapplicationline_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionApplicationLinesColumns[2]},
+			},
+			{
+				Name:    "financecommissionapplicationline_application_id_commission_id",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionApplicationLinesColumns[18], FinanceCommissionApplicationLinesColumns[17]},
+			},
+			{
+				Name:    "financecommissionapplicationline_commission_id",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionApplicationLinesColumns[17]},
+			},
+			{
+				Name:    "financecommissionapplicationline_organization_id_employee_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionApplicationLinesColumns[19], FinanceCommissionApplicationLinesColumns[20]},
+			},
+		},
+	}
 	// FinanceCommissionLinesColumns holds the columns for the "finance_commission_lines" table.
 	FinanceCommissionLinesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -6983,6 +7136,8 @@ var (
 		FinanceCashflowsTable,
 		FinanceCommissionsTable,
 		FinanceCommissionAdjustmentsTable,
+		FinanceCommissionApplicationsTable,
+		FinanceCommissionApplicationLinesTable,
 		FinanceCommissionLinesTable,
 		FinanceCommissionRulesTable,
 		FinanceCommissionRuleAssignmentsTable,
@@ -7154,6 +7309,26 @@ func init() {
 		"commission_adjustment_source_supplement_check": "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
 		"commission_adjustment_source_type_check":       "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
 		"commission_adjustment_status_check":            "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
+	}
+	FinanceCommissionApplicationsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	FinanceCommissionApplicationsTable.ForeignKeys[1].RefTable = UsersTable
+	FinanceCommissionApplicationsTable.ForeignKeys[2].RefTable = UsersTable
+	FinanceCommissionApplicationsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceCommissionApplicationsTable.Annotation = &entsql.Annotation{}
+	FinanceCommissionApplicationsTable.Annotation.Checks = map[string]string{
+		"finance_commission_applications_commission_count_non_negative":            "commission_count >= 0",
+		"finance_commission_applications_status_check":                             "status IN ('PENDING_REVIEW', 'REJECTED', 'APPROVED')",
+		"finance_commission_applications_total_cny_commission_amount_non_negative": "total_cny_commission_amount >= 0",
+		"finance_commission_applications_total_commission_amount_non_negative":     "total_commission_amount >= 0",
+	}
+	FinanceCommissionApplicationLinesTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
+	FinanceCommissionApplicationLinesTable.ForeignKeys[1].RefTable = FinanceCommissionApplicationsTable
+	FinanceCommissionApplicationLinesTable.ForeignKeys[2].RefTable = OrganizationsTable
+	FinanceCommissionApplicationLinesTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceCommissionApplicationLinesTable.Annotation = &entsql.Annotation{}
+	FinanceCommissionApplicationLinesTable.Annotation.Checks = map[string]string{
+		"finance_commission_application_lines_cny_commission_amount_non_negative": "cny_commission_amount >= 0",
+		"finance_commission_application_lines_commission_amount_non_negative":     "commission_amount >= 0",
 	}
 	FinanceCommissionLinesTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
 	FinanceCommissionLinesTable.ForeignKeys[1].RefTable = OrdersTable

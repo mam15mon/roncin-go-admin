@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
@@ -627,6 +628,21 @@ func (_c *FinanceCommissionCreate) AddAdjustments(v ...*FinanceCommissionAdjustm
 	return _c.AddAdjustmentIDs(ids...)
 }
 
+// AddApplicationLineIDs adds the "application_lines" edge to the FinanceCommissionApplicationLine entity by IDs.
+func (_c *FinanceCommissionCreate) AddApplicationLineIDs(ids ...uuid.UUID) *FinanceCommissionCreate {
+	_c.mutation.AddApplicationLineIDs(ids...)
+	return _c
+}
+
+// AddApplicationLines adds the "application_lines" edges to the FinanceCommissionApplicationLine entity.
+func (_c *FinanceCommissionCreate) AddApplicationLines(v ...*FinanceCommissionApplicationLine) *FinanceCommissionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddApplicationLineIDs(ids...)
+}
+
 // Mutation returns the FinanceCommissionMutation object of the builder.
 func (_c *FinanceCommissionCreate) Mutation() *FinanceCommissionMutation {
 	return _c.mutation
@@ -1237,6 +1253,22 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ApplicationLinesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financecommission.ApplicationLinesTable,
+			Columns: []string{financecommission.ApplicationLinesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionapplicationline.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

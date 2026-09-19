@@ -79,6 +79,60 @@ func (WorkbenchCommissionStatus) EnumDescriptor() ([]byte, []int) {
 	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{0}
 }
 
+// WorkbenchCommissionApplicationStatus 是本人月度提成申请状态；与财务侧申请
+// 状态语义同源，但枚举独立声明，前端必须用本枚举消费，禁止借用财务枚举。
+type WorkbenchCommissionApplicationStatus int32
+
+const (
+	WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED    WorkbenchCommissionApplicationStatus = 0
+	WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW WorkbenchCommissionApplicationStatus = 1
+	WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED       WorkbenchCommissionApplicationStatus = 2
+	WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED       WorkbenchCommissionApplicationStatus = 3
+)
+
+// Enum value maps for WorkbenchCommissionApplicationStatus.
+var (
+	WorkbenchCommissionApplicationStatus_name = map[int32]string{
+		0: "WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED",
+		1: "WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW",
+		2: "WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED",
+		3: "WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED",
+	}
+	WorkbenchCommissionApplicationStatus_value = map[string]int32{
+		"WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED":    0,
+		"WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW": 1,
+		"WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED":       2,
+		"WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED":       3,
+	}
+)
+
+func (x WorkbenchCommissionApplicationStatus) Enum() *WorkbenchCommissionApplicationStatus {
+	p := new(WorkbenchCommissionApplicationStatus)
+	*p = x
+	return p
+}
+
+func (x WorkbenchCommissionApplicationStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (WorkbenchCommissionApplicationStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_workbench_v1_workbench_proto_enumTypes[1].Descriptor()
+}
+
+func (WorkbenchCommissionApplicationStatus) Type() protoreflect.EnumType {
+	return &file_workbench_v1_workbench_proto_enumTypes[1]
+}
+
+func (x WorkbenchCommissionApplicationStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use WorkbenchCommissionApplicationStatus.Descriptor instead.
+func (WorkbenchCommissionApplicationStatus) EnumDescriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{1}
+}
+
 type GetWorkbenchOverviewRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -207,8 +261,11 @@ type GetWorkbenchOverviewData struct {
 	RecentOrders      []*WorkbenchRecentOrder     `protobuf:"bytes,5,rep,name=recent_orders,json=recentOrders,proto3" json:"recent_orders,omitempty"`
 	Todos             *WorkbenchTodoSummary       `protobuf:"bytes,6,opt,name=todos,proto3" json:"todos,omitempty"`
 	Finance           *WorkbenchFinanceSummary    `protobuf:"bytes,7,opt,name=finance,proto3" json:"finance,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// application_summary 是本人月度提成申请摘要段：可申请分组、本月累计中与
+	// 审批中/已批准计数及最近申请概要；金额全部为组织本位币口径。
+	ApplicationSummary *WorkbenchApplicationSummary `protobuf:"bytes,8,opt,name=application_summary,json=applicationSummary,proto3" json:"application_summary,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *GetWorkbenchOverviewData) Reset() {
@@ -290,6 +347,255 @@ func (x *GetWorkbenchOverviewData) GetFinance() *WorkbenchFinanceSummary {
 	return nil
 }
 
+func (x *GetWorkbenchOverviewData) GetApplicationSummary() *WorkbenchApplicationSummary {
+	if x != nil {
+		return x.ApplicationSummary
+	}
+	return nil
+}
+
+// WorkbenchApplicationSummary 按自然月汇总本人申请事实：
+// 可申请=截至上一自然月末仍未进入任何申请的合格提成（按提成归属月分组）；
+// 本月累计中=当前自然月尚未结束、只能累计展示的合格提成；
+// 审批中/已批准为本人全部历史申请计数；最近申请概要尚无申请时缺省。
+type WorkbenchApplicationSummary struct {
+	state              protoimpl.MessageState      `protogen:"open.v1"`
+	BaseCurrency       string                      `protobuf:"bytes,1,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	ApplyGroups        []*WorkbenchApplyMonthGroup `protobuf:"bytes,2,rep,name=apply_groups,json=applyGroups,proto3" json:"apply_groups,omitempty"`
+	AccumulatingCount  int32                       `protobuf:"varint,3,opt,name=accumulating_count,json=accumulatingCount,proto3" json:"accumulating_count,omitempty"`
+	AccumulatingAmount string                      `protobuf:"bytes,4,opt,name=accumulating_amount,json=accumulatingAmount,proto3" json:"accumulating_amount,omitempty"`
+	PendingReviewCount int32                       `protobuf:"varint,5,opt,name=pending_review_count,json=pendingReviewCount,proto3" json:"pending_review_count,omitempty"`
+	ApprovedCount      int32                       `protobuf:"varint,6,opt,name=approved_count,json=approvedCount,proto3" json:"approved_count,omitempty"`
+	LatestApplication  *WorkbenchApplicationBrief  `protobuf:"bytes,7,opt,name=latest_application,json=latestApplication,proto3,oneof" json:"latest_application,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *WorkbenchApplicationSummary) Reset() {
+	*x = WorkbenchApplicationSummary{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchApplicationSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchApplicationSummary) ProtoMessage() {}
+
+func (x *WorkbenchApplicationSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchApplicationSummary.ProtoReflect.Descriptor instead.
+func (*WorkbenchApplicationSummary) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *WorkbenchApplicationSummary) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationSummary) GetApplyGroups() []*WorkbenchApplyMonthGroup {
+	if x != nil {
+		return x.ApplyGroups
+	}
+	return nil
+}
+
+func (x *WorkbenchApplicationSummary) GetAccumulatingCount() int32 {
+	if x != nil {
+		return x.AccumulatingCount
+	}
+	return 0
+}
+
+func (x *WorkbenchApplicationSummary) GetAccumulatingAmount() string {
+	if x != nil {
+		return x.AccumulatingAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationSummary) GetPendingReviewCount() int32 {
+	if x != nil {
+		return x.PendingReviewCount
+	}
+	return 0
+}
+
+func (x *WorkbenchApplicationSummary) GetApprovedCount() int32 {
+	if x != nil {
+		return x.ApprovedCount
+	}
+	return 0
+}
+
+func (x *WorkbenchApplicationSummary) GetLatestApplication() *WorkbenchApplicationBrief {
+	if x != nil {
+		return x.LatestApplication
+	}
+	return nil
+}
+
+// WorkbenchApplyMonthGroup 是单个提成归属月的可申请汇总：金额为本位币合计。
+type WorkbenchApplyMonthGroup struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	CommissionMonth  string                 `protobuf:"bytes,1,opt,name=commission_month,json=commissionMonth,proto3" json:"commission_month,omitempty"`
+	CommissionCount  int32                  `protobuf:"varint,2,opt,name=commission_count,json=commissionCount,proto3" json:"commission_count,omitempty"`
+	CommissionAmount string                 `protobuf:"bytes,3,opt,name=commission_amount,json=commissionAmount,proto3" json:"commission_amount,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *WorkbenchApplyMonthGroup) Reset() {
+	*x = WorkbenchApplyMonthGroup{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchApplyMonthGroup) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchApplyMonthGroup) ProtoMessage() {}
+
+func (x *WorkbenchApplyMonthGroup) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchApplyMonthGroup.ProtoReflect.Descriptor instead.
+func (*WorkbenchApplyMonthGroup) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *WorkbenchApplyMonthGroup) GetCommissionMonth() string {
+	if x != nil {
+		return x.CommissionMonth
+	}
+	return ""
+}
+
+func (x *WorkbenchApplyMonthGroup) GetCommissionCount() int32 {
+	if x != nil {
+		return x.CommissionCount
+	}
+	return 0
+}
+
+func (x *WorkbenchApplyMonthGroup) GetCommissionAmount() string {
+	if x != nil {
+		return x.CommissionAmount
+	}
+	return ""
+}
+
+// WorkbenchApplicationBrief 是最近一张申请的最小概要，用于首页入口展示。
+type WorkbenchApplicationBrief struct {
+	state                 protoimpl.MessageState               `protogen:"open.v1"`
+	ApplicationId         string                               `protobuf:"bytes,1,opt,name=application_id,json=applicationId,proto3" json:"application_id,omitempty"`
+	ApplicationMonth      string                               `protobuf:"bytes,2,opt,name=application_month,json=applicationMonth,proto3" json:"application_month,omitempty"`
+	Status                WorkbenchCommissionApplicationStatus `protobuf:"varint,3,opt,name=status,proto3,enum=workbench.v1.WorkbenchCommissionApplicationStatus" json:"status,omitempty"`
+	CommissionCount       int32                                `protobuf:"varint,4,opt,name=commission_count,json=commissionCount,proto3" json:"commission_count,omitempty"`
+	TotalCommissionAmount string                               `protobuf:"bytes,5,opt,name=total_commission_amount,json=totalCommissionAmount,proto3" json:"total_commission_amount,omitempty"`
+	SubmittedAt           string                               `protobuf:"bytes,6,opt,name=submitted_at,json=submittedAt,proto3" json:"submitted_at,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *WorkbenchApplicationBrief) Reset() {
+	*x = WorkbenchApplicationBrief{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchApplicationBrief) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchApplicationBrief) ProtoMessage() {}
+
+func (x *WorkbenchApplicationBrief) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchApplicationBrief.ProtoReflect.Descriptor instead.
+func (*WorkbenchApplicationBrief) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WorkbenchApplicationBrief) GetApplicationId() string {
+	if x != nil {
+		return x.ApplicationId
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationBrief) GetApplicationMonth() string {
+	if x != nil {
+		return x.ApplicationMonth
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationBrief) GetStatus() WorkbenchCommissionApplicationStatus {
+	if x != nil {
+		return x.Status
+	}
+	return WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED
+}
+
+func (x *WorkbenchApplicationBrief) GetCommissionCount() int32 {
+	if x != nil {
+		return x.CommissionCount
+	}
+	return 0
+}
+
+func (x *WorkbenchApplicationBrief) GetTotalCommissionAmount() string {
+	if x != nil {
+		return x.TotalCommissionAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationBrief) GetSubmittedAt() string {
+	if x != nil {
+		return x.SubmittedAt
+	}
+	return ""
+}
+
 // WorkbenchCommissionSummary 提成卡严格分桶：
 // DRAFT=待财务确认；CONFIRMED=已确认待发；PAID=已发放；CANCELLED 不计入有效金额。
 // 冲减三阶段：DRAFT=待处理、尚未扣回；CONFIRMED=已确认、尚未实际扣回；PAID=已扣回。
@@ -318,7 +624,7 @@ type WorkbenchCommissionSummary struct {
 
 func (x *WorkbenchCommissionSummary) Reset() {
 	*x = WorkbenchCommissionSummary{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[3]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -330,7 +636,7 @@ func (x *WorkbenchCommissionSummary) String() string {
 func (*WorkbenchCommissionSummary) ProtoMessage() {}
 
 func (x *WorkbenchCommissionSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[3]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -343,7 +649,7 @@ func (x *WorkbenchCommissionSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchCommissionSummary.ProtoReflect.Descriptor instead.
 func (*WorkbenchCommissionSummary) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{3}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *WorkbenchCommissionSummary) GetBaseCurrency() string {
@@ -474,7 +780,7 @@ type WorkbenchEstimatedOpportunity struct {
 
 func (x *WorkbenchEstimatedOpportunity) Reset() {
 	*x = WorkbenchEstimatedOpportunity{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[4]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -486,7 +792,7 @@ func (x *WorkbenchEstimatedOpportunity) String() string {
 func (*WorkbenchEstimatedOpportunity) ProtoMessage() {}
 
 func (x *WorkbenchEstimatedOpportunity) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[4]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -499,7 +805,7 @@ func (x *WorkbenchEstimatedOpportunity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchEstimatedOpportunity.ProtoReflect.Descriptor instead.
 func (*WorkbenchEstimatedOpportunity) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{4}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *WorkbenchEstimatedOpportunity) GetOpportunityCount() int32 {
@@ -539,7 +845,7 @@ type WorkbenchRecentOrder struct {
 
 func (x *WorkbenchRecentOrder) Reset() {
 	*x = WorkbenchRecentOrder{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[5]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -551,7 +857,7 @@ func (x *WorkbenchRecentOrder) String() string {
 func (*WorkbenchRecentOrder) ProtoMessage() {}
 
 func (x *WorkbenchRecentOrder) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[5]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -564,7 +870,7 @@ func (x *WorkbenchRecentOrder) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchRecentOrder.ProtoReflect.Descriptor instead.
 func (*WorkbenchRecentOrder) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{5}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *WorkbenchRecentOrder) GetOrderId() string {
@@ -635,7 +941,7 @@ type WorkbenchTodoSummary struct {
 
 func (x *WorkbenchTodoSummary) Reset() {
 	*x = WorkbenchTodoSummary{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[6]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -647,7 +953,7 @@ func (x *WorkbenchTodoSummary) String() string {
 func (*WorkbenchTodoSummary) ProtoMessage() {}
 
 func (x *WorkbenchTodoSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[6]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -660,7 +966,7 @@ func (x *WorkbenchTodoSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchTodoSummary.ProtoReflect.Descriptor instead.
 func (*WorkbenchTodoSummary) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{6}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WorkbenchTodoSummary) GetDraftFeeCount() int32 {
@@ -700,7 +1006,7 @@ type WorkbenchFinanceSummary struct {
 
 func (x *WorkbenchFinanceSummary) Reset() {
 	*x = WorkbenchFinanceSummary{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[7]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -712,7 +1018,7 @@ func (x *WorkbenchFinanceSummary) String() string {
 func (*WorkbenchFinanceSummary) ProtoMessage() {}
 
 func (x *WorkbenchFinanceSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[7]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -725,7 +1031,7 @@ func (x *WorkbenchFinanceSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchFinanceSummary.ProtoReflect.Descriptor instead.
 func (*WorkbenchFinanceSummary) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{7}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *WorkbenchFinanceSummary) GetCanReadCommission() bool {
@@ -795,7 +1101,7 @@ type WorkbenchSupplementApprovalItem struct {
 
 func (x *WorkbenchSupplementApprovalItem) Reset() {
 	*x = WorkbenchSupplementApprovalItem{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[8]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -807,7 +1113,7 @@ func (x *WorkbenchSupplementApprovalItem) String() string {
 func (*WorkbenchSupplementApprovalItem) ProtoMessage() {}
 
 func (x *WorkbenchSupplementApprovalItem) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[8]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -820,7 +1126,7 @@ func (x *WorkbenchSupplementApprovalItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchSupplementApprovalItem.ProtoReflect.Descriptor instead.
 func (*WorkbenchSupplementApprovalItem) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{8}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WorkbenchSupplementApprovalItem) GetRequestId() string {
@@ -906,7 +1212,7 @@ type ListMyCommissionsRequest struct {
 
 func (x *ListMyCommissionsRequest) Reset() {
 	*x = ListMyCommissionsRequest{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[9]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -918,7 +1224,7 @@ func (x *ListMyCommissionsRequest) String() string {
 func (*ListMyCommissionsRequest) ProtoMessage() {}
 
 func (x *ListMyCommissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[9]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -931,7 +1237,7 @@ func (x *ListMyCommissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyCommissionsRequest.ProtoReflect.Descriptor instead.
 func (*ListMyCommissionsRequest) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{9}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListMyCommissionsRequest) GetPage() int32 {
@@ -985,7 +1291,7 @@ type ListMyCommissionsResponse struct {
 
 func (x *ListMyCommissionsResponse) Reset() {
 	*x = ListMyCommissionsResponse{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[10]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -997,7 +1303,7 @@ func (x *ListMyCommissionsResponse) String() string {
 func (*ListMyCommissionsResponse) ProtoMessage() {}
 
 func (x *ListMyCommissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[10]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1010,7 +1316,7 @@ func (x *ListMyCommissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyCommissionsResponse.ProtoReflect.Descriptor instead.
 func (*ListMyCommissionsResponse) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{10}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListMyCommissionsResponse) GetSuccess() bool {
@@ -1090,7 +1396,7 @@ type WorkbenchMyCommission struct {
 
 func (x *WorkbenchMyCommission) Reset() {
 	*x = WorkbenchMyCommission{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[11]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1102,7 +1408,7 @@ func (x *WorkbenchMyCommission) String() string {
 func (*WorkbenchMyCommission) ProtoMessage() {}
 
 func (x *WorkbenchMyCommission) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[11]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1115,7 +1421,7 @@ func (x *WorkbenchMyCommission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchMyCommission.ProtoReflect.Descriptor instead.
 func (*WorkbenchMyCommission) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{11}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *WorkbenchMyCommission) GetId() string {
@@ -1224,7 +1530,7 @@ type WorkbenchMyCommissionAdjustment struct {
 
 func (x *WorkbenchMyCommissionAdjustment) Reset() {
 	*x = WorkbenchMyCommissionAdjustment{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[12]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1236,7 +1542,7 @@ func (x *WorkbenchMyCommissionAdjustment) String() string {
 func (*WorkbenchMyCommissionAdjustment) ProtoMessage() {}
 
 func (x *WorkbenchMyCommissionAdjustment) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[12]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1249,7 +1555,7 @@ func (x *WorkbenchMyCommissionAdjustment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchMyCommissionAdjustment.ProtoReflect.Descriptor instead.
 func (*WorkbenchMyCommissionAdjustment) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{12}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WorkbenchMyCommissionAdjustment) GetId() string {
@@ -1311,7 +1617,7 @@ type ListMyReceivablesRequest struct {
 
 func (x *ListMyReceivablesRequest) Reset() {
 	*x = ListMyReceivablesRequest{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[13]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1323,7 +1629,7 @@ func (x *ListMyReceivablesRequest) String() string {
 func (*ListMyReceivablesRequest) ProtoMessage() {}
 
 func (x *ListMyReceivablesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[13]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1336,7 +1642,7 @@ func (x *ListMyReceivablesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyReceivablesRequest.ProtoReflect.Descriptor instead.
 func (*ListMyReceivablesRequest) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{13}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListMyReceivablesRequest) GetPage() int32 {
@@ -1369,7 +1675,7 @@ type ListMyReceivablesResponse struct {
 
 func (x *ListMyReceivablesResponse) Reset() {
 	*x = ListMyReceivablesResponse{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[14]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1381,7 +1687,7 @@ func (x *ListMyReceivablesResponse) String() string {
 func (*ListMyReceivablesResponse) ProtoMessage() {}
 
 func (x *ListMyReceivablesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[14]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1394,7 +1700,7 @@ func (x *ListMyReceivablesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyReceivablesResponse.ProtoReflect.Descriptor instead.
 func (*ListMyReceivablesResponse) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{14}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListMyReceivablesResponse) GetSuccess() bool {
@@ -1473,7 +1779,7 @@ type WorkbenchMyReceivable struct {
 
 func (x *WorkbenchMyReceivable) Reset() {
 	*x = WorkbenchMyReceivable{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[15]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1485,7 +1791,7 @@ func (x *WorkbenchMyReceivable) String() string {
 func (*WorkbenchMyReceivable) ProtoMessage() {}
 
 func (x *WorkbenchMyReceivable) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[15]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1498,7 +1804,7 @@ func (x *WorkbenchMyReceivable) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkbenchMyReceivable.ProtoReflect.Descriptor instead.
 func (*WorkbenchMyReceivable) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{15}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *WorkbenchMyReceivable) GetBillId() string {
@@ -1581,7 +1887,7 @@ type ListMyRecentOrdersRequest struct {
 
 func (x *ListMyRecentOrdersRequest) Reset() {
 	*x = ListMyRecentOrdersRequest{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[16]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1593,7 +1899,7 @@ func (x *ListMyRecentOrdersRequest) String() string {
 func (*ListMyRecentOrdersRequest) ProtoMessage() {}
 
 func (x *ListMyRecentOrdersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[16]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1606,7 +1912,7 @@ func (x *ListMyRecentOrdersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyRecentOrdersRequest.ProtoReflect.Descriptor instead.
 func (*ListMyRecentOrdersRequest) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{16}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListMyRecentOrdersRequest) GetPage() int32 {
@@ -1639,7 +1945,7 @@ type ListMyRecentOrdersResponse struct {
 
 func (x *ListMyRecentOrdersResponse) Reset() {
 	*x = ListMyRecentOrdersResponse{}
-	mi := &file_workbench_v1_workbench_proto_msgTypes[17]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1651,7 +1957,7 @@ func (x *ListMyRecentOrdersResponse) String() string {
 func (*ListMyRecentOrdersResponse) ProtoMessage() {}
 
 func (x *ListMyRecentOrdersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workbench_v1_workbench_proto_msgTypes[17]
+	mi := &file_workbench_v1_workbench_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1664,7 +1970,7 @@ func (x *ListMyRecentOrdersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyRecentOrdersResponse.ProtoReflect.Descriptor instead.
 func (*ListMyRecentOrdersResponse) Descriptor() ([]byte, []int) {
-	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{17}
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListMyRecentOrdersResponse) GetSuccess() bool {
@@ -1723,6 +2029,1031 @@ func (x *ListMyRecentOrdersResponse) GetData() []*WorkbenchRecentOrder {
 	return nil
 }
 
+type ListMyApplicationCandidatesRequest struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Page     int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// 按提成归属月过滤（YYYY-MM）；缺省返回全部可申请候选（截至上一自然月末）。
+	CommissionMonth *string `protobuf:"bytes,3,opt,name=commission_month,json=commissionMonth,proto3,oneof" json:"commission_month,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListMyApplicationCandidatesRequest) Reset() {
+	*x = ListMyApplicationCandidatesRequest{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyApplicationCandidatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyApplicationCandidatesRequest) ProtoMessage() {}
+
+func (x *ListMyApplicationCandidatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyApplicationCandidatesRequest.ProtoReflect.Descriptor instead.
+func (*ListMyApplicationCandidatesRequest) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ListMyApplicationCandidatesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyApplicationCandidatesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMyApplicationCandidatesRequest) GetCommissionMonth() string {
+	if x != nil && x.CommissionMonth != nil {
+		return *x.CommissionMonth
+	}
+	return ""
+}
+
+type ListMyApplicationCandidatesResponse struct {
+	state         protoimpl.MessageState           `protogen:"open.v1"`
+	Success       bool                             `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                            `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                           `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                           `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int64                            `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                            `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                            `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Data          []*WorkbenchApplicationCandidate `protobuf:"bytes,8,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyApplicationCandidatesResponse) Reset() {
+	*x = ListMyApplicationCandidatesResponse{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyApplicationCandidatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyApplicationCandidatesResponse) ProtoMessage() {}
+
+func (x *ListMyApplicationCandidatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyApplicationCandidatesResponse.ProtoReflect.Descriptor instead.
+func (*ListMyApplicationCandidatesResponse) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMyApplicationCandidatesResponse) GetData() []*WorkbenchApplicationCandidate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// WorkbenchApplicationCandidate 是单条可申请提成候选：以核销/对冲来源为身份
+// （恰好一个非空），金额为按现有提成口径的服务端计算值，尚未生成的提成事实
+// 以提交申请时受控创建为准；候选不携带 commission_id。
+type WorkbenchApplicationCandidate struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	VerificationId *string                `protobuf:"bytes,1,opt,name=verification_id,json=verificationId,proto3,oneof" json:"verification_id,omitempty"`
+	VerificationNo *string                `protobuf:"bytes,2,opt,name=verification_no,json=verificationNo,proto3,oneof" json:"verification_no,omitempty"`
+	NettingId      *string                `protobuf:"bytes,3,opt,name=netting_id,json=nettingId,proto3,oneof" json:"netting_id,omitempty"`
+	NettingNo      *string                `protobuf:"bytes,4,opt,name=netting_no,json=nettingNo,proto3,oneof" json:"netting_no,omitempty"`
+	// 提成归属日期（YYYY-MM-DD）：核销日期或对冲确认日期。
+	CommissionDate      string  `protobuf:"bytes,5,opt,name=commission_date,json=commissionDate,proto3" json:"commission_date,omitempty"`
+	PersonnelRole       string  `protobuf:"bytes,6,opt,name=personnel_role,json=personnelRole,proto3" json:"personnel_role,omitempty"`
+	RuleId              *string `protobuf:"bytes,7,opt,name=rule_id,json=ruleId,proto3,oneof" json:"rule_id,omitempty"`
+	RuleName            *string `protobuf:"bytes,8,opt,name=rule_name,json=ruleName,proto3,oneof" json:"rule_name,omitempty"`
+	CalculationBasis    *string `protobuf:"bytes,9,opt,name=calculation_basis,json=calculationBasis,proto3,oneof" json:"calculation_basis,omitempty"`
+	BaseCurrency        string  `protobuf:"bytes,10,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	CommissionAmount    string  `protobuf:"bytes,11,opt,name=commission_amount,json=commissionAmount,proto3" json:"commission_amount,omitempty"`
+	CnyCommissionAmount string  `protobuf:"bytes,12,opt,name=cny_commission_amount,json=cnyCommissionAmount,proto3" json:"cny_commission_amount,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *WorkbenchApplicationCandidate) Reset() {
+	*x = WorkbenchApplicationCandidate{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchApplicationCandidate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchApplicationCandidate) ProtoMessage() {}
+
+func (x *WorkbenchApplicationCandidate) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchApplicationCandidate.ProtoReflect.Descriptor instead.
+func (*WorkbenchApplicationCandidate) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *WorkbenchApplicationCandidate) GetVerificationId() string {
+	if x != nil && x.VerificationId != nil {
+		return *x.VerificationId
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetVerificationNo() string {
+	if x != nil && x.VerificationNo != nil {
+		return *x.VerificationNo
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetNettingId() string {
+	if x != nil && x.NettingId != nil {
+		return *x.NettingId
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetNettingNo() string {
+	if x != nil && x.NettingNo != nil {
+		return *x.NettingNo
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetCommissionDate() string {
+	if x != nil {
+		return x.CommissionDate
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetPersonnelRole() string {
+	if x != nil {
+		return x.PersonnelRole
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetRuleId() string {
+	if x != nil && x.RuleId != nil {
+		return *x.RuleId
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetRuleName() string {
+	if x != nil && x.RuleName != nil {
+		return *x.RuleName
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetCalculationBasis() string {
+	if x != nil && x.CalculationBasis != nil {
+		return *x.CalculationBasis
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetCommissionAmount() string {
+	if x != nil {
+		return x.CommissionAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchApplicationCandidate) GetCnyCommissionAmount() string {
+	if x != nil {
+		return x.CnyCommissionAmount
+	}
+	return ""
+}
+
+type SubmitMyCommissionApplicationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitMyCommissionApplicationRequest) Reset() {
+	*x = SubmitMyCommissionApplicationRequest{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitMyCommissionApplicationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitMyCommissionApplicationRequest) ProtoMessage() {}
+
+func (x *SubmitMyCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitMyCommissionApplicationRequest.ProtoReflect.Descriptor instead.
+func (*SubmitMyCommissionApplicationRequest) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{24}
+}
+
+type SubmitMyCommissionApplicationResponse struct {
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Success       bool                              `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                             `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                            `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                            `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Data          *WorkbenchMyCommissionApplication `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitMyCommissionApplicationResponse) Reset() {
+	*x = SubmitMyCommissionApplicationResponse{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitMyCommissionApplicationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitMyCommissionApplicationResponse) ProtoMessage() {}
+
+func (x *SubmitMyCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitMyCommissionApplicationResponse.ProtoReflect.Descriptor instead.
+func (*SubmitMyCommissionApplicationResponse) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *SubmitMyCommissionApplicationResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SubmitMyCommissionApplicationResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SubmitMyCommissionApplicationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SubmitMyCommissionApplicationResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *SubmitMyCommissionApplicationResponse) GetData() *WorkbenchMyCommissionApplication {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type ListMyCommissionApplicationsRequest struct {
+	state         protoimpl.MessageState                `protogen:"open.v1"`
+	Page          int32                                 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                                 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Status        *WorkbenchCommissionApplicationStatus `protobuf:"varint,3,opt,name=status,proto3,enum=workbench.v1.WorkbenchCommissionApplicationStatus,oneof" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyCommissionApplicationsRequest) Reset() {
+	*x = ListMyCommissionApplicationsRequest{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyCommissionApplicationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyCommissionApplicationsRequest) ProtoMessage() {}
+
+func (x *ListMyCommissionApplicationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyCommissionApplicationsRequest.ProtoReflect.Descriptor instead.
+func (*ListMyCommissionApplicationsRequest) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *ListMyCommissionApplicationsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyCommissionApplicationsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMyCommissionApplicationsRequest) GetStatus() WorkbenchCommissionApplicationStatus {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED
+}
+
+type ListMyCommissionApplicationsResponse struct {
+	state         protoimpl.MessageState              `protogen:"open.v1"`
+	Success       bool                                `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                               `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                              `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                              `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int64                               `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                               `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                               `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Data          []*WorkbenchMyCommissionApplication `protobuf:"bytes,8,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyCommissionApplicationsResponse) Reset() {
+	*x = ListMyCommissionApplicationsResponse{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyCommissionApplicationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyCommissionApplicationsResponse) ProtoMessage() {}
+
+func (x *ListMyCommissionApplicationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyCommissionApplicationsResponse.ProtoReflect.Descriptor instead.
+func (*ListMyCommissionApplicationsResponse) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMyCommissionApplicationsResponse) GetData() []*WorkbenchMyCommissionApplication {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// WorkbenchMyCommissionApplication 是本人单张月度申请投影：金额与明细为提交
+// 时固化的快照；REJECTED 携带驳回原因，原申请重提后 version 递增。
+type WorkbenchMyCommissionApplication struct {
+	state                    protoimpl.MessageState               `protogen:"open.v1"`
+	Id                       string                               `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ApplicationMonth         string                               `protobuf:"bytes,2,opt,name=application_month,json=applicationMonth,proto3" json:"application_month,omitempty"`
+	CoverageTo               string                               `protobuf:"bytes,3,opt,name=coverage_to,json=coverageTo,proto3" json:"coverage_to,omitempty"`
+	Status                   WorkbenchCommissionApplicationStatus `protobuf:"varint,4,opt,name=status,proto3,enum=workbench.v1.WorkbenchCommissionApplicationStatus" json:"status,omitempty"`
+	Version                  uint64                               `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`
+	CommissionCount          int32                                `protobuf:"varint,6,opt,name=commission_count,json=commissionCount,proto3" json:"commission_count,omitempty"`
+	BaseCurrency             string                               `protobuf:"bytes,7,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	TotalCommissionAmount    string                               `protobuf:"bytes,8,opt,name=total_commission_amount,json=totalCommissionAmount,proto3" json:"total_commission_amount,omitempty"`
+	TotalCnyCommissionAmount string                               `protobuf:"bytes,9,opt,name=total_cny_commission_amount,json=totalCnyCommissionAmount,proto3" json:"total_cny_commission_amount,omitempty"`
+	SubmittedAt              string                               `protobuf:"bytes,10,opt,name=submitted_at,json=submittedAt,proto3" json:"submitted_at,omitempty"`
+	DecidedAt                *string                              `protobuf:"bytes,11,opt,name=decided_at,json=decidedAt,proto3,oneof" json:"decided_at,omitempty"`
+	DecisionReason           *string                              `protobuf:"bytes,12,opt,name=decision_reason,json=decisionReason,proto3,oneof" json:"decision_reason,omitempty"`
+	CreatedAt                string                               `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                string                               `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *WorkbenchMyCommissionApplication) Reset() {
+	*x = WorkbenchMyCommissionApplication{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchMyCommissionApplication) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchMyCommissionApplication) ProtoMessage() {}
+
+func (x *WorkbenchMyCommissionApplication) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchMyCommissionApplication.ProtoReflect.Descriptor instead.
+func (*WorkbenchMyCommissionApplication) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *WorkbenchMyCommissionApplication) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetApplicationMonth() string {
+	if x != nil {
+		return x.ApplicationMonth
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetCoverageTo() string {
+	if x != nil {
+		return x.CoverageTo
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetStatus() WorkbenchCommissionApplicationStatus {
+	if x != nil {
+		return x.Status
+	}
+	return WorkbenchCommissionApplicationStatus_WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED
+}
+
+func (x *WorkbenchMyCommissionApplication) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *WorkbenchMyCommissionApplication) GetCommissionCount() int32 {
+	if x != nil {
+		return x.CommissionCount
+	}
+	return 0
+}
+
+func (x *WorkbenchMyCommissionApplication) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetTotalCommissionAmount() string {
+	if x != nil {
+		return x.TotalCommissionAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetTotalCnyCommissionAmount() string {
+	if x != nil {
+		return x.TotalCnyCommissionAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetSubmittedAt() string {
+	if x != nil {
+		return x.SubmittedAt
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetDecidedAt() string {
+	if x != nil && x.DecidedAt != nil {
+		return *x.DecidedAt
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetDecisionReason() string {
+	if x != nil && x.DecisionReason != nil {
+		return *x.DecisionReason
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionApplication) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type GetMyCommissionApplicationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyCommissionApplicationRequest) Reset() {
+	*x = GetMyCommissionApplicationRequest{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyCommissionApplicationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyCommissionApplicationRequest) ProtoMessage() {}
+
+func (x *GetMyCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyCommissionApplicationRequest.ProtoReflect.Descriptor instead.
+func (*GetMyCommissionApplicationRequest) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetMyCommissionApplicationRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetMyCommissionApplicationResponse struct {
+	state         protoimpl.MessageState                  `protogen:"open.v1"`
+	Success       bool                                    `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                                   `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                                  `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                                  `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Data          *WorkbenchMyCommissionApplicationDetail `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyCommissionApplicationResponse) Reset() {
+	*x = GetMyCommissionApplicationResponse{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyCommissionApplicationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyCommissionApplicationResponse) ProtoMessage() {}
+
+func (x *GetMyCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyCommissionApplicationResponse.ProtoReflect.Descriptor instead.
+func (*GetMyCommissionApplicationResponse) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetMyCommissionApplicationResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetMyCommissionApplicationResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetMyCommissionApplicationResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetMyCommissionApplicationResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *GetMyCommissionApplicationResponse) GetData() *WorkbenchMyCommissionApplicationDetail {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type WorkbenchMyCommissionApplicationDetail struct {
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Application   *WorkbenchMyCommissionApplication `protobuf:"bytes,1,opt,name=application,proto3" json:"application,omitempty"`
+	Lines         []*WorkbenchMyApplicationLine     `protobuf:"bytes,2,rep,name=lines,proto3" json:"lines,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkbenchMyCommissionApplicationDetail) Reset() {
+	*x = WorkbenchMyCommissionApplicationDetail{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchMyCommissionApplicationDetail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchMyCommissionApplicationDetail) ProtoMessage() {}
+
+func (x *WorkbenchMyCommissionApplicationDetail) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchMyCommissionApplicationDetail.ProtoReflect.Descriptor instead.
+func (*WorkbenchMyCommissionApplicationDetail) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *WorkbenchMyCommissionApplicationDetail) GetApplication() *WorkbenchMyCommissionApplication {
+	if x != nil {
+		return x.Application
+	}
+	return nil
+}
+
+func (x *WorkbenchMyCommissionApplicationDetail) GetLines() []*WorkbenchMyApplicationLine {
+	if x != nil {
+		return x.Lines
+	}
+	return nil
+}
+
+// WorkbenchMyApplicationLine 是本人申请明细快照投影：来源、方案与金额为提交
+// 当时事实，申请批准后不可修改。
+type WorkbenchMyApplicationLine struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CommissionId        string                 `protobuf:"bytes,2,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
+	CommissionDate      string                 `protobuf:"bytes,3,opt,name=commission_date,json=commissionDate,proto3" json:"commission_date,omitempty"`
+	VerificationNo      *string                `protobuf:"bytes,4,opt,name=verification_no,json=verificationNo,proto3,oneof" json:"verification_no,omitempty"`
+	NettingNo           *string                `protobuf:"bytes,5,opt,name=netting_no,json=nettingNo,proto3,oneof" json:"netting_no,omitempty"`
+	PersonnelRole       string                 `protobuf:"bytes,6,opt,name=personnel_role,json=personnelRole,proto3" json:"personnel_role,omitempty"`
+	RuleName            *string                `protobuf:"bytes,7,opt,name=rule_name,json=ruleName,proto3,oneof" json:"rule_name,omitempty"`
+	CalculationBasis    *string                `protobuf:"bytes,8,opt,name=calculation_basis,json=calculationBasis,proto3,oneof" json:"calculation_basis,omitempty"`
+	BaseCurrency        string                 `protobuf:"bytes,9,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	CommissionAmount    string                 `protobuf:"bytes,10,opt,name=commission_amount,json=commissionAmount,proto3" json:"commission_amount,omitempty"`
+	CnyCommissionAmount string                 `protobuf:"bytes,11,opt,name=cny_commission_amount,json=cnyCommissionAmount,proto3" json:"cny_commission_amount,omitempty"`
+	CreatedAt           string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *WorkbenchMyApplicationLine) Reset() {
+	*x = WorkbenchMyApplicationLine{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchMyApplicationLine) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchMyApplicationLine) ProtoMessage() {}
+
+func (x *WorkbenchMyApplicationLine) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchMyApplicationLine.ProtoReflect.Descriptor instead.
+func (*WorkbenchMyApplicationLine) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *WorkbenchMyApplicationLine) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetCommissionId() string {
+	if x != nil {
+		return x.CommissionId
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetCommissionDate() string {
+	if x != nil {
+		return x.CommissionDate
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetVerificationNo() string {
+	if x != nil && x.VerificationNo != nil {
+		return *x.VerificationNo
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetNettingNo() string {
+	if x != nil && x.NettingNo != nil {
+		return *x.NettingNo
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetPersonnelRole() string {
+	if x != nil {
+		return x.PersonnelRole
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetRuleName() string {
+	if x != nil && x.RuleName != nil {
+		return *x.RuleName
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetCalculationBasis() string {
+	if x != nil && x.CalculationBasis != nil {
+		return *x.CalculationBasis
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetCommissionAmount() string {
+	if x != nil {
+		return x.CommissionAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetCnyCommissionAmount() string {
+	if x != nil {
+		return x.CnyCommissionAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchMyApplicationLine) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
 var File_workbench_v1_workbench_proto protoreflect.FileDescriptor
 
 const file_workbench_v1_workbench_proto_rawDesc = "" +
@@ -1734,7 +3065,7 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
 	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12:\n" +
-	"\x04data\x18\x05 \x01(\v2&.workbench.v1.GetWorkbenchOverviewDataR\x04data\"\x90\x04\n" +
+	"\x04data\x18\x05 \x01(\v2&.workbench.v1.GetWorkbenchOverviewDataR\x04data\"\xec\x04\n" +
 	"\x18GetWorkbenchOverviewData\x12F\n" +
 	"\x1ahas_commission_eligibility\x18\x01 \x01(\bB\x03\xe0A\x02H\x00R\x18hasCommissionEligibility\x88\x01\x01\x123\n" +
 	"\x13next_effective_date\x18\x02 \x01(\tH\x01R\x11nextEffectiveDate\x88\x01\x01\x12#\n" +
@@ -1742,9 +3073,30 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\x12commission_summary\x18\x04 \x01(\v2(.workbench.v1.WorkbenchCommissionSummaryR\x11commissionSummary\x12G\n" +
 	"\rrecent_orders\x18\x05 \x03(\v2\".workbench.v1.WorkbenchRecentOrderR\frecentOrders\x128\n" +
 	"\x05todos\x18\x06 \x01(\v2\".workbench.v1.WorkbenchTodoSummaryR\x05todos\x12?\n" +
-	"\afinance\x18\a \x01(\v2%.workbench.v1.WorkbenchFinanceSummaryR\afinanceB\x1d\n" +
+	"\afinance\x18\a \x01(\v2%.workbench.v1.WorkbenchFinanceSummaryR\afinance\x12Z\n" +
+	"\x13application_summary\x18\b \x01(\v2).workbench.v1.WorkbenchApplicationSummaryR\x12applicationSummaryB\x1d\n" +
 	"\x1b_has_commission_eligibilityB\x16\n" +
-	"\x14_next_effective_date\"\x8a\x06\n" +
+	"\x14_next_effective_date\"\xba\x03\n" +
+	"\x1bWorkbenchApplicationSummary\x12#\n" +
+	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x12I\n" +
+	"\fapply_groups\x18\x02 \x03(\v2&.workbench.v1.WorkbenchApplyMonthGroupR\vapplyGroups\x12-\n" +
+	"\x12accumulating_count\x18\x03 \x01(\x05R\x11accumulatingCount\x12/\n" +
+	"\x13accumulating_amount\x18\x04 \x01(\tR\x12accumulatingAmount\x120\n" +
+	"\x14pending_review_count\x18\x05 \x01(\x05R\x12pendingReviewCount\x12%\n" +
+	"\x0eapproved_count\x18\x06 \x01(\x05R\rapprovedCount\x12[\n" +
+	"\x12latest_application\x18\a \x01(\v2'.workbench.v1.WorkbenchApplicationBriefH\x00R\x11latestApplication\x88\x01\x01B\x15\n" +
+	"\x13_latest_application\"\x9d\x01\n" +
+	"\x18WorkbenchApplyMonthGroup\x12)\n" +
+	"\x10commission_month\x18\x01 \x01(\tR\x0fcommissionMonth\x12)\n" +
+	"\x10commission_count\x18\x02 \x01(\x05R\x0fcommissionCount\x12+\n" +
+	"\x11commission_amount\x18\x03 \x01(\tR\x10commissionAmount\"\xc1\x02\n" +
+	"\x19WorkbenchApplicationBrief\x12%\n" +
+	"\x0eapplication_id\x18\x01 \x01(\tR\rapplicationId\x12+\n" +
+	"\x11application_month\x18\x02 \x01(\tR\x10applicationMonth\x12J\n" +
+	"\x06status\x18\x03 \x01(\x0e22.workbench.v1.WorkbenchCommissionApplicationStatusR\x06status\x12)\n" +
+	"\x10commission_count\x18\x04 \x01(\x05R\x0fcommissionCount\x126\n" +
+	"\x17total_commission_amount\x18\x05 \x01(\tR\x15totalCommissionAmount\x12!\n" +
+	"\fsubmitted_at\x18\x06 \x01(\tR\vsubmittedAt\"\x8a\x06\n" +
 	"\x1aWorkbenchCommissionSummary\x12#\n" +
 	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x12\x1f\n" +
 	"\vdraft_count\x18\x02 \x01(\x05R\n" +
@@ -1893,18 +3245,141 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x126\n" +
-	"\x04data\x18\b \x03(\v2\".workbench.v1.WorkbenchRecentOrderR\x04data*\xeb\x01\n" +
+	"\x04data\x18\b \x03(\v2\".workbench.v1.WorkbenchRecentOrderR\x04data\"\x9a\x01\n" +
+	"\"ListMyApplicationCandidatesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12.\n" +
+	"\x10commission_month\x18\x03 \x01(\tH\x00R\x0fcommissionMonth\x88\x01\x01B\x13\n" +
+	"\x11_commission_month\"\x90\x02\n" +
+	"#ListMyApplicationCandidatesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12?\n" +
+	"\x04data\x18\b \x03(\v2+.workbench.v1.WorkbenchApplicationCandidateR\x04data\"\x81\x05\n" +
+	"\x1dWorkbenchApplicationCandidate\x12,\n" +
+	"\x0fverification_id\x18\x01 \x01(\tH\x00R\x0everificationId\x88\x01\x01\x12,\n" +
+	"\x0fverification_no\x18\x02 \x01(\tH\x01R\x0everificationNo\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"netting_id\x18\x03 \x01(\tH\x02R\tnettingId\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"netting_no\x18\x04 \x01(\tH\x03R\tnettingNo\x88\x01\x01\x12'\n" +
+	"\x0fcommission_date\x18\x05 \x01(\tR\x0ecommissionDate\x12%\n" +
+	"\x0epersonnel_role\x18\x06 \x01(\tR\rpersonnelRole\x12\x1c\n" +
+	"\arule_id\x18\a \x01(\tH\x04R\x06ruleId\x88\x01\x01\x12 \n" +
+	"\trule_name\x18\b \x01(\tH\x05R\bruleName\x88\x01\x01\x120\n" +
+	"\x11calculation_basis\x18\t \x01(\tH\x06R\x10calculationBasis\x88\x01\x01\x12#\n" +
+	"\rbase_currency\x18\n" +
+	" \x01(\tR\fbaseCurrency\x12+\n" +
+	"\x11commission_amount\x18\v \x01(\tR\x10commissionAmount\x122\n" +
+	"\x15cny_commission_amount\x18\f \x01(\tR\x13cnyCommissionAmountB\x12\n" +
+	"\x10_verification_idB\x12\n" +
+	"\x10_verification_noB\r\n" +
+	"\v_netting_idB\r\n" +
+	"\v_netting_noB\n" +
+	"\n" +
+	"\b_rule_idB\f\n" +
+	"\n" +
+	"_rule_nameB\x14\n" +
+	"\x12_calculation_basis\"&\n" +
+	"$SubmitMyCommissionApplicationRequest\"\xce\x01\n" +
+	"%SubmitMyCommissionApplicationResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12B\n" +
+	"\x04data\x18\x05 \x01(\v2..workbench.v1.WorkbenchMyCommissionApplicationR\x04data\"\xb2\x01\n" +
+	"#ListMyCommissionApplicationsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12O\n" +
+	"\x06status\x18\x03 \x01(\x0e22.workbench.v1.WorkbenchCommissionApplicationStatusH\x00R\x06status\x88\x01\x01B\t\n" +
+	"\a_status\"\x94\x02\n" +
+	"$ListMyCommissionApplicationsResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12B\n" +
+	"\x04data\x18\b \x03(\v2..workbench.v1.WorkbenchMyCommissionApplicationR\x04data\"\x83\x05\n" +
+	" WorkbenchMyCommissionApplication\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12+\n" +
+	"\x11application_month\x18\x02 \x01(\tR\x10applicationMonth\x12\x1f\n" +
+	"\vcoverage_to\x18\x03 \x01(\tR\n" +
+	"coverageTo\x12J\n" +
+	"\x06status\x18\x04 \x01(\x0e22.workbench.v1.WorkbenchCommissionApplicationStatusR\x06status\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\x04R\aversion\x12)\n" +
+	"\x10commission_count\x18\x06 \x01(\x05R\x0fcommissionCount\x12#\n" +
+	"\rbase_currency\x18\a \x01(\tR\fbaseCurrency\x126\n" +
+	"\x17total_commission_amount\x18\b \x01(\tR\x15totalCommissionAmount\x12=\n" +
+	"\x1btotal_cny_commission_amount\x18\t \x01(\tR\x18totalCnyCommissionAmount\x12!\n" +
+	"\fsubmitted_at\x18\n" +
+	" \x01(\tR\vsubmittedAt\x12\"\n" +
+	"\n" +
+	"decided_at\x18\v \x01(\tH\x00R\tdecidedAt\x88\x01\x01\x12,\n" +
+	"\x0fdecision_reason\x18\f \x01(\tH\x01R\x0edecisionReason\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\r \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x0e \x01(\tR\tupdatedAtB\r\n" +
+	"\v_decided_atB\x12\n" +
+	"\x10_decision_reason\"8\n" +
+	"!GetMyCommissionApplicationRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xd1\x01\n" +
+	"\"GetMyCommissionApplicationResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12H\n" +
+	"\x04data\x18\x05 \x01(\v24.workbench.v1.WorkbenchMyCommissionApplicationDetailR\x04data\"\xba\x01\n" +
+	"&WorkbenchMyCommissionApplicationDetail\x12P\n" +
+	"\vapplication\x18\x01 \x01(\v2..workbench.v1.WorkbenchMyCommissionApplicationR\vapplication\x12>\n" +
+	"\x05lines\x18\x02 \x03(\v2(.workbench.v1.WorkbenchMyApplicationLineR\x05lines\"\xb3\x04\n" +
+	"\x1aWorkbenchMyApplicationLine\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
+	"\rcommission_id\x18\x02 \x01(\tR\fcommissionId\x12'\n" +
+	"\x0fcommission_date\x18\x03 \x01(\tR\x0ecommissionDate\x12,\n" +
+	"\x0fverification_no\x18\x04 \x01(\tH\x00R\x0everificationNo\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"netting_no\x18\x05 \x01(\tH\x01R\tnettingNo\x88\x01\x01\x12%\n" +
+	"\x0epersonnel_role\x18\x06 \x01(\tR\rpersonnelRole\x12 \n" +
+	"\trule_name\x18\a \x01(\tH\x02R\bruleName\x88\x01\x01\x120\n" +
+	"\x11calculation_basis\x18\b \x01(\tH\x03R\x10calculationBasis\x88\x01\x01\x12#\n" +
+	"\rbase_currency\x18\t \x01(\tR\fbaseCurrency\x12+\n" +
+	"\x11commission_amount\x18\n" +
+	" \x01(\tR\x10commissionAmount\x122\n" +
+	"\x15cny_commission_amount\x18\v \x01(\tR\x13cnyCommissionAmount\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\f \x01(\tR\tcreatedAtB\x12\n" +
+	"\x10_verification_noB\r\n" +
+	"\v_netting_noB\f\n" +
+	"\n" +
+	"_rule_nameB\x14\n" +
+	"\x12_calculation_basis*\xeb\x01\n" +
 	"\x19WorkbenchCommissionStatus\x12+\n" +
 	"'WORKBENCH_COMMISSION_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
 	"!WORKBENCH_COMMISSION_STATUS_DRAFT\x10\x01\x12)\n" +
 	"%WORKBENCH_COMMISSION_STATUS_CONFIRMED\x10\x02\x12$\n" +
 	" WORKBENCH_COMMISSION_STATUS_PAID\x10\x03\x12)\n" +
-	"%WORKBENCH_COMMISSION_STATUS_CANCELLED\x10\x042\xf6\x04\n" +
+	"%WORKBENCH_COMMISSION_STATUS_CANCELLED\x10\x04*\x87\x02\n" +
+	"$WorkbenchCommissionApplicationStatus\x127\n" +
+	"3WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED\x10\x00\x12:\n" +
+	"6WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW\x10\x01\x124\n" +
+	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED\x10\x02\x124\n" +
+	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED\x10\x032\x82\v\n" +
 	"\x10WorkbenchService\x12\x97\x01\n" +
 	"\x14GetWorkbenchOverview\x12).workbench.v1.GetWorkbenchOverviewRequest\x1a*.workbench.v1.GetWorkbenchOverviewResponse\"(\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/workbench/overview\x12\x94\x01\n" +
 	"\x11ListMyCommissions\x12&.workbench.v1.ListMyCommissionsRequest\x1a'.workbench.v1.ListMyCommissionsResponse\".\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/workbench/my-commissions\x12\x94\x01\n" +
 	"\x11ListMyReceivables\x12&.workbench.v1.ListMyReceivablesRequest\x1a'.workbench.v1.ListMyReceivablesResponse\".\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/workbench/my-receivables\x12\x99\x01\n" +
-	"\x12ListMyRecentOrders\x12'.workbench.v1.ListMyRecentOrdersRequest\x1a(.workbench.v1.ListMyRecentOrdersResponse\"0\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/workbench/my-recent-ordersB>Z<github.com/roncin/roncin-go-admin/server/api/workbench/v1;v1b\x06proto3"
+	"\x12ListMyRecentOrders\x12'.workbench.v1.ListMyRecentOrdersRequest\x1a(.workbench.v1.ListMyRecentOrdersResponse\"0\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/workbench/my-recent-orders\x12\xba\x01\n" +
+	"\x1bListMyApplicationCandidates\x120.workbench.v1.ListMyApplicationCandidatesRequest\x1a1.workbench.v1.ListMyApplicationCandidatesResponse\"6\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/workbench/application-candidates\x12\xcb\x01\n" +
+	"\x1dSubmitMyCommissionApplication\x122.workbench.v1.SubmitMyCommissionApplicationRequest\x1a3.workbench.v1.SubmitMyCommissionApplicationResponse\"A\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/workbench/commission-applications/submit\x12\xbe\x01\n" +
+	"\x1cListMyCommissionApplications\x121.workbench.v1.ListMyCommissionApplicationsRequest\x1a2.workbench.v1.ListMyCommissionApplicationsResponse\"7\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/workbench/commission-applications\x12\xbd\x01\n" +
+	"\x1aGetMyCommissionApplication\x12/.workbench.v1.GetMyCommissionApplicationRequest\x1a0.workbench.v1.GetMyCommissionApplicationResponse\"<\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x020\x12./api/v1/workbench/commission-applications/{id}B>Z<github.com/roncin/roncin-go-admin/server/api/workbench/v1;v1b\x06proto3"
 
 var (
 	file_workbench_v1_workbench_proto_rawDescOnce sync.Once
@@ -1918,57 +3393,93 @@ func file_workbench_v1_workbench_proto_rawDescGZIP() []byte {
 	return file_workbench_v1_workbench_proto_rawDescData
 }
 
-var file_workbench_v1_workbench_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_workbench_v1_workbench_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_workbench_v1_workbench_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_workbench_v1_workbench_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_workbench_v1_workbench_proto_goTypes = []any{
-	(WorkbenchCommissionStatus)(0),          // 0: workbench.v1.WorkbenchCommissionStatus
-	(*GetWorkbenchOverviewRequest)(nil),     // 1: workbench.v1.GetWorkbenchOverviewRequest
-	(*GetWorkbenchOverviewResponse)(nil),    // 2: workbench.v1.GetWorkbenchOverviewResponse
-	(*GetWorkbenchOverviewData)(nil),        // 3: workbench.v1.GetWorkbenchOverviewData
-	(*WorkbenchCommissionSummary)(nil),      // 4: workbench.v1.WorkbenchCommissionSummary
-	(*WorkbenchEstimatedOpportunity)(nil),   // 5: workbench.v1.WorkbenchEstimatedOpportunity
-	(*WorkbenchRecentOrder)(nil),            // 6: workbench.v1.WorkbenchRecentOrder
-	(*WorkbenchTodoSummary)(nil),            // 7: workbench.v1.WorkbenchTodoSummary
-	(*WorkbenchFinanceSummary)(nil),         // 8: workbench.v1.WorkbenchFinanceSummary
-	(*WorkbenchSupplementApprovalItem)(nil), // 9: workbench.v1.WorkbenchSupplementApprovalItem
-	(*ListMyCommissionsRequest)(nil),        // 10: workbench.v1.ListMyCommissionsRequest
-	(*ListMyCommissionsResponse)(nil),       // 11: workbench.v1.ListMyCommissionsResponse
-	(*WorkbenchMyCommission)(nil),           // 12: workbench.v1.WorkbenchMyCommission
-	(*WorkbenchMyCommissionAdjustment)(nil), // 13: workbench.v1.WorkbenchMyCommissionAdjustment
-	(*ListMyReceivablesRequest)(nil),        // 14: workbench.v1.ListMyReceivablesRequest
-	(*ListMyReceivablesResponse)(nil),       // 15: workbench.v1.ListMyReceivablesResponse
-	(*WorkbenchMyReceivable)(nil),           // 16: workbench.v1.WorkbenchMyReceivable
-	(*ListMyRecentOrdersRequest)(nil),       // 17: workbench.v1.ListMyRecentOrdersRequest
-	(*ListMyRecentOrdersResponse)(nil),      // 18: workbench.v1.ListMyRecentOrdersResponse
+	(WorkbenchCommissionStatus)(0),                 // 0: workbench.v1.WorkbenchCommissionStatus
+	(WorkbenchCommissionApplicationStatus)(0),      // 1: workbench.v1.WorkbenchCommissionApplicationStatus
+	(*GetWorkbenchOverviewRequest)(nil),            // 2: workbench.v1.GetWorkbenchOverviewRequest
+	(*GetWorkbenchOverviewResponse)(nil),           // 3: workbench.v1.GetWorkbenchOverviewResponse
+	(*GetWorkbenchOverviewData)(nil),               // 4: workbench.v1.GetWorkbenchOverviewData
+	(*WorkbenchApplicationSummary)(nil),            // 5: workbench.v1.WorkbenchApplicationSummary
+	(*WorkbenchApplyMonthGroup)(nil),               // 6: workbench.v1.WorkbenchApplyMonthGroup
+	(*WorkbenchApplicationBrief)(nil),              // 7: workbench.v1.WorkbenchApplicationBrief
+	(*WorkbenchCommissionSummary)(nil),             // 8: workbench.v1.WorkbenchCommissionSummary
+	(*WorkbenchEstimatedOpportunity)(nil),          // 9: workbench.v1.WorkbenchEstimatedOpportunity
+	(*WorkbenchRecentOrder)(nil),                   // 10: workbench.v1.WorkbenchRecentOrder
+	(*WorkbenchTodoSummary)(nil),                   // 11: workbench.v1.WorkbenchTodoSummary
+	(*WorkbenchFinanceSummary)(nil),                // 12: workbench.v1.WorkbenchFinanceSummary
+	(*WorkbenchSupplementApprovalItem)(nil),        // 13: workbench.v1.WorkbenchSupplementApprovalItem
+	(*ListMyCommissionsRequest)(nil),               // 14: workbench.v1.ListMyCommissionsRequest
+	(*ListMyCommissionsResponse)(nil),              // 15: workbench.v1.ListMyCommissionsResponse
+	(*WorkbenchMyCommission)(nil),                  // 16: workbench.v1.WorkbenchMyCommission
+	(*WorkbenchMyCommissionAdjustment)(nil),        // 17: workbench.v1.WorkbenchMyCommissionAdjustment
+	(*ListMyReceivablesRequest)(nil),               // 18: workbench.v1.ListMyReceivablesRequest
+	(*ListMyReceivablesResponse)(nil),              // 19: workbench.v1.ListMyReceivablesResponse
+	(*WorkbenchMyReceivable)(nil),                  // 20: workbench.v1.WorkbenchMyReceivable
+	(*ListMyRecentOrdersRequest)(nil),              // 21: workbench.v1.ListMyRecentOrdersRequest
+	(*ListMyRecentOrdersResponse)(nil),             // 22: workbench.v1.ListMyRecentOrdersResponse
+	(*ListMyApplicationCandidatesRequest)(nil),     // 23: workbench.v1.ListMyApplicationCandidatesRequest
+	(*ListMyApplicationCandidatesResponse)(nil),    // 24: workbench.v1.ListMyApplicationCandidatesResponse
+	(*WorkbenchApplicationCandidate)(nil),          // 25: workbench.v1.WorkbenchApplicationCandidate
+	(*SubmitMyCommissionApplicationRequest)(nil),   // 26: workbench.v1.SubmitMyCommissionApplicationRequest
+	(*SubmitMyCommissionApplicationResponse)(nil),  // 27: workbench.v1.SubmitMyCommissionApplicationResponse
+	(*ListMyCommissionApplicationsRequest)(nil),    // 28: workbench.v1.ListMyCommissionApplicationsRequest
+	(*ListMyCommissionApplicationsResponse)(nil),   // 29: workbench.v1.ListMyCommissionApplicationsResponse
+	(*WorkbenchMyCommissionApplication)(nil),       // 30: workbench.v1.WorkbenchMyCommissionApplication
+	(*GetMyCommissionApplicationRequest)(nil),      // 31: workbench.v1.GetMyCommissionApplicationRequest
+	(*GetMyCommissionApplicationResponse)(nil),     // 32: workbench.v1.GetMyCommissionApplicationResponse
+	(*WorkbenchMyCommissionApplicationDetail)(nil), // 33: workbench.v1.WorkbenchMyCommissionApplicationDetail
+	(*WorkbenchMyApplicationLine)(nil),             // 34: workbench.v1.WorkbenchMyApplicationLine
 }
 var file_workbench_v1_workbench_proto_depIdxs = []int32{
-	3,  // 0: workbench.v1.GetWorkbenchOverviewResponse.data:type_name -> workbench.v1.GetWorkbenchOverviewData
-	4,  // 1: workbench.v1.GetWorkbenchOverviewData.commission_summary:type_name -> workbench.v1.WorkbenchCommissionSummary
-	6,  // 2: workbench.v1.GetWorkbenchOverviewData.recent_orders:type_name -> workbench.v1.WorkbenchRecentOrder
-	7,  // 3: workbench.v1.GetWorkbenchOverviewData.todos:type_name -> workbench.v1.WorkbenchTodoSummary
-	8,  // 4: workbench.v1.GetWorkbenchOverviewData.finance:type_name -> workbench.v1.WorkbenchFinanceSummary
-	5,  // 5: workbench.v1.WorkbenchCommissionSummary.estimated:type_name -> workbench.v1.WorkbenchEstimatedOpportunity
-	9,  // 6: workbench.v1.WorkbenchFinanceSummary.pending_supplement_approvals:type_name -> workbench.v1.WorkbenchSupplementApprovalItem
-	0,  // 7: workbench.v1.ListMyCommissionsRequest.status:type_name -> workbench.v1.WorkbenchCommissionStatus
-	12, // 8: workbench.v1.ListMyCommissionsResponse.data:type_name -> workbench.v1.WorkbenchMyCommission
-	0,  // 9: workbench.v1.WorkbenchMyCommission.status:type_name -> workbench.v1.WorkbenchCommissionStatus
-	13, // 10: workbench.v1.WorkbenchMyCommission.adjustments:type_name -> workbench.v1.WorkbenchMyCommissionAdjustment
-	0,  // 11: workbench.v1.WorkbenchMyCommissionAdjustment.status:type_name -> workbench.v1.WorkbenchCommissionStatus
-	16, // 12: workbench.v1.ListMyReceivablesResponse.data:type_name -> workbench.v1.WorkbenchMyReceivable
-	6,  // 13: workbench.v1.ListMyRecentOrdersResponse.data:type_name -> workbench.v1.WorkbenchRecentOrder
-	1,  // 14: workbench.v1.WorkbenchService.GetWorkbenchOverview:input_type -> workbench.v1.GetWorkbenchOverviewRequest
-	10, // 15: workbench.v1.WorkbenchService.ListMyCommissions:input_type -> workbench.v1.ListMyCommissionsRequest
-	14, // 16: workbench.v1.WorkbenchService.ListMyReceivables:input_type -> workbench.v1.ListMyReceivablesRequest
-	17, // 17: workbench.v1.WorkbenchService.ListMyRecentOrders:input_type -> workbench.v1.ListMyRecentOrdersRequest
-	2,  // 18: workbench.v1.WorkbenchService.GetWorkbenchOverview:output_type -> workbench.v1.GetWorkbenchOverviewResponse
-	11, // 19: workbench.v1.WorkbenchService.ListMyCommissions:output_type -> workbench.v1.ListMyCommissionsResponse
-	15, // 20: workbench.v1.WorkbenchService.ListMyReceivables:output_type -> workbench.v1.ListMyReceivablesResponse
-	18, // 21: workbench.v1.WorkbenchService.ListMyRecentOrders:output_type -> workbench.v1.ListMyRecentOrdersResponse
-	18, // [18:22] is the sub-list for method output_type
-	14, // [14:18] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	4,  // 0: workbench.v1.GetWorkbenchOverviewResponse.data:type_name -> workbench.v1.GetWorkbenchOverviewData
+	8,  // 1: workbench.v1.GetWorkbenchOverviewData.commission_summary:type_name -> workbench.v1.WorkbenchCommissionSummary
+	10, // 2: workbench.v1.GetWorkbenchOverviewData.recent_orders:type_name -> workbench.v1.WorkbenchRecentOrder
+	11, // 3: workbench.v1.GetWorkbenchOverviewData.todos:type_name -> workbench.v1.WorkbenchTodoSummary
+	12, // 4: workbench.v1.GetWorkbenchOverviewData.finance:type_name -> workbench.v1.WorkbenchFinanceSummary
+	5,  // 5: workbench.v1.GetWorkbenchOverviewData.application_summary:type_name -> workbench.v1.WorkbenchApplicationSummary
+	6,  // 6: workbench.v1.WorkbenchApplicationSummary.apply_groups:type_name -> workbench.v1.WorkbenchApplyMonthGroup
+	7,  // 7: workbench.v1.WorkbenchApplicationSummary.latest_application:type_name -> workbench.v1.WorkbenchApplicationBrief
+	1,  // 8: workbench.v1.WorkbenchApplicationBrief.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
+	9,  // 9: workbench.v1.WorkbenchCommissionSummary.estimated:type_name -> workbench.v1.WorkbenchEstimatedOpportunity
+	13, // 10: workbench.v1.WorkbenchFinanceSummary.pending_supplement_approvals:type_name -> workbench.v1.WorkbenchSupplementApprovalItem
+	0,  // 11: workbench.v1.ListMyCommissionsRequest.status:type_name -> workbench.v1.WorkbenchCommissionStatus
+	16, // 12: workbench.v1.ListMyCommissionsResponse.data:type_name -> workbench.v1.WorkbenchMyCommission
+	0,  // 13: workbench.v1.WorkbenchMyCommission.status:type_name -> workbench.v1.WorkbenchCommissionStatus
+	17, // 14: workbench.v1.WorkbenchMyCommission.adjustments:type_name -> workbench.v1.WorkbenchMyCommissionAdjustment
+	0,  // 15: workbench.v1.WorkbenchMyCommissionAdjustment.status:type_name -> workbench.v1.WorkbenchCommissionStatus
+	20, // 16: workbench.v1.ListMyReceivablesResponse.data:type_name -> workbench.v1.WorkbenchMyReceivable
+	10, // 17: workbench.v1.ListMyRecentOrdersResponse.data:type_name -> workbench.v1.WorkbenchRecentOrder
+	25, // 18: workbench.v1.ListMyApplicationCandidatesResponse.data:type_name -> workbench.v1.WorkbenchApplicationCandidate
+	30, // 19: workbench.v1.SubmitMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplication
+	1,  // 20: workbench.v1.ListMyCommissionApplicationsRequest.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
+	30, // 21: workbench.v1.ListMyCommissionApplicationsResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplication
+	1,  // 22: workbench.v1.WorkbenchMyCommissionApplication.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
+	33, // 23: workbench.v1.GetMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplicationDetail
+	30, // 24: workbench.v1.WorkbenchMyCommissionApplicationDetail.application:type_name -> workbench.v1.WorkbenchMyCommissionApplication
+	34, // 25: workbench.v1.WorkbenchMyCommissionApplicationDetail.lines:type_name -> workbench.v1.WorkbenchMyApplicationLine
+	2,  // 26: workbench.v1.WorkbenchService.GetWorkbenchOverview:input_type -> workbench.v1.GetWorkbenchOverviewRequest
+	14, // 27: workbench.v1.WorkbenchService.ListMyCommissions:input_type -> workbench.v1.ListMyCommissionsRequest
+	18, // 28: workbench.v1.WorkbenchService.ListMyReceivables:input_type -> workbench.v1.ListMyReceivablesRequest
+	21, // 29: workbench.v1.WorkbenchService.ListMyRecentOrders:input_type -> workbench.v1.ListMyRecentOrdersRequest
+	23, // 30: workbench.v1.WorkbenchService.ListMyApplicationCandidates:input_type -> workbench.v1.ListMyApplicationCandidatesRequest
+	26, // 31: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:input_type -> workbench.v1.SubmitMyCommissionApplicationRequest
+	28, // 32: workbench.v1.WorkbenchService.ListMyCommissionApplications:input_type -> workbench.v1.ListMyCommissionApplicationsRequest
+	31, // 33: workbench.v1.WorkbenchService.GetMyCommissionApplication:input_type -> workbench.v1.GetMyCommissionApplicationRequest
+	3,  // 34: workbench.v1.WorkbenchService.GetWorkbenchOverview:output_type -> workbench.v1.GetWorkbenchOverviewResponse
+	15, // 35: workbench.v1.WorkbenchService.ListMyCommissions:output_type -> workbench.v1.ListMyCommissionsResponse
+	19, // 36: workbench.v1.WorkbenchService.ListMyReceivables:output_type -> workbench.v1.ListMyReceivablesResponse
+	22, // 37: workbench.v1.WorkbenchService.ListMyRecentOrders:output_type -> workbench.v1.ListMyRecentOrdersResponse
+	24, // 38: workbench.v1.WorkbenchService.ListMyApplicationCandidates:output_type -> workbench.v1.ListMyApplicationCandidatesResponse
+	27, // 39: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:output_type -> workbench.v1.SubmitMyCommissionApplicationResponse
+	29, // 40: workbench.v1.WorkbenchService.ListMyCommissionApplications:output_type -> workbench.v1.ListMyCommissionApplicationsResponse
+	32, // 41: workbench.v1.WorkbenchService.GetMyCommissionApplication:output_type -> workbench.v1.GetMyCommissionApplicationResponse
+	34, // [34:42] is the sub-list for method output_type
+	26, // [26:34] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_workbench_v1_workbench_proto_init() }
@@ -1977,16 +3488,22 @@ func file_workbench_v1_workbench_proto_init() {
 		return
 	}
 	file_workbench_v1_workbench_proto_msgTypes[2].OneofWrappers = []any{}
-	file_workbench_v1_workbench_proto_msgTypes[9].OneofWrappers = []any{}
-	file_workbench_v1_workbench_proto_msgTypes[11].OneofWrappers = []any{}
-	file_workbench_v1_workbench_proto_msgTypes[15].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[3].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[12].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[14].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[18].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[21].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[23].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[26].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[28].OneofWrappers = []any{}
+	file_workbench_v1_workbench_proto_msgTypes[32].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workbench_v1_workbench_proto_rawDesc), len(file_workbench_v1_workbench_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   18,
+			NumEnums:      2,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

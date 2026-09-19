@@ -17,21 +17,38 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationWorkbenchServiceGetMyCommissionApplication = "/workbench.v1.WorkbenchService/GetMyCommissionApplication"
 const OperationWorkbenchServiceGetWorkbenchOverview = "/workbench.v1.WorkbenchService/GetWorkbenchOverview"
+const OperationWorkbenchServiceListMyApplicationCandidates = "/workbench.v1.WorkbenchService/ListMyApplicationCandidates"
+const OperationWorkbenchServiceListMyCommissionApplications = "/workbench.v1.WorkbenchService/ListMyCommissionApplications"
 const OperationWorkbenchServiceListMyCommissions = "/workbench.v1.WorkbenchService/ListMyCommissions"
 const OperationWorkbenchServiceListMyReceivables = "/workbench.v1.WorkbenchService/ListMyReceivables"
 const OperationWorkbenchServiceListMyRecentOrders = "/workbench.v1.WorkbenchService/ListMyRecentOrders"
+const OperationWorkbenchServiceSubmitMyCommissionApplication = "/workbench.v1.WorkbenchService/SubmitMyCommissionApplication"
 
 type WorkbenchServiceHTTPServer interface {
+	// GetMyCommissionApplication GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计
+	// 与明细快照；查询他人申请稳定返回不存在。
+	GetMyCommissionApplication(context.Context, *GetMyCommissionApplicationRequest) (*GetMyCommissionApplicationResponse, error)
 	// GetWorkbenchOverview GetWorkbenchOverview 返回模块门禁、本人提成状态汇总、近期订单、可靠作业
 	// 待办计数与当前用户有权查看的财务/审批摘要。
 	GetWorkbenchOverview(context.Context, *GetWorkbenchOverviewRequest) (*GetWorkbenchOverviewResponse, error)
+	// ListMyApplicationCandidates ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
+	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
+	// 全量解析，不信任客户端传入的员工/组织/金额。
+	ListMyApplicationCandidates(context.Context, *ListMyApplicationCandidatesRequest) (*ListMyApplicationCandidatesResponse, error)
+	// ListMyCommissionApplications ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。
+	ListMyCommissionApplications(context.Context, *ListMyCommissionApplicationsRequest) (*ListMyCommissionApplicationsResponse, error)
 	// ListMyCommissions ListMyCommissions 返回本人提成单与调整明细，服务端分页并支持状态/归属日期过滤。
 	ListMyCommissions(context.Context, *ListMyCommissionsRequest) (*ListMyCommissionsResponse, error)
 	// ListMyReceivables ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(context.Context, *ListMyReceivablesRequest) (*ListMyReceivablesResponse, error)
 	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
 	ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error)
+	// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
+	// 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
+	// 空候选与已进入有效申请的提成将被拒绝。
+	SubmitMyCommissionApplication(context.Context, *SubmitMyCommissionApplicationRequest) (*SubmitMyCommissionApplicationResponse, error)
 }
 
 func RegisterWorkbenchServiceHTTPServer(s *http.Server, srv WorkbenchServiceHTTPServer) {
@@ -40,6 +57,10 @@ func RegisterWorkbenchServiceHTTPServer(s *http.Server, srv WorkbenchServiceHTTP
 	r.Handle("GET", "/api/v1/workbench/my-commissions", _WorkbenchService_ListMyCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/my-receivables", _WorkbenchService_ListMyReceivables0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/my-recent-orders", _WorkbenchService_ListMyRecentOrders0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/workbench/application-candidates", _WorkbenchService_ListMyApplicationCandidates0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/workbench/commission-applications/submit", _WorkbenchService_SubmitMyCommissionApplication0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/workbench/commission-applications", _WorkbenchService_ListMyCommissionApplications0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/workbench/commission-applications/{id}", _WorkbenchService_GetMyCommissionApplication0_HTTP_Handler(srv))
 }
 
 func _WorkbenchService_GetWorkbenchOverview0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
@@ -118,16 +139,108 @@ func _WorkbenchService_ListMyRecentOrders0_HTTP_Handler(srv WorkbenchServiceHTTP
 	}
 }
 
+func _WorkbenchService_ListMyApplicationCandidates0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyApplicationCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkbenchServiceListMyApplicationCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyApplicationCandidates(ctx, req.(*ListMyApplicationCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyApplicationCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _WorkbenchService_SubmitMyCommissionApplication0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SubmitMyCommissionApplicationRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkbenchServiceSubmitMyCommissionApplication)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SubmitMyCommissionApplication(ctx, req.(*SubmitMyCommissionApplicationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SubmitMyCommissionApplicationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _WorkbenchService_ListMyCommissionApplications0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyCommissionApplicationsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkbenchServiceListMyCommissionApplications)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyCommissionApplications(ctx, req.(*ListMyCommissionApplicationsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyCommissionApplicationsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _WorkbenchService_GetMyCommissionApplication0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetMyCommissionApplicationRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkbenchServiceGetMyCommissionApplication)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetMyCommissionApplication(ctx, req.(*GetMyCommissionApplicationRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetMyCommissionApplicationResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type WorkbenchServiceHTTPClient interface {
+	// GetMyCommissionApplication GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计
+	// 与明细快照；查询他人申请稳定返回不存在。
+	GetMyCommissionApplication(ctx context.Context, req *GetMyCommissionApplicationRequest, opts ...http.CallOption) (rsp *GetMyCommissionApplicationResponse, err error)
 	// GetWorkbenchOverview GetWorkbenchOverview 返回模块门禁、本人提成状态汇总、近期订单、可靠作业
 	// 待办计数与当前用户有权查看的财务/审批摘要。
 	GetWorkbenchOverview(ctx context.Context, req *GetWorkbenchOverviewRequest, opts ...http.CallOption) (rsp *GetWorkbenchOverviewResponse, err error)
+	// ListMyApplicationCandidates ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
+	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
+	// 全量解析，不信任客户端传入的员工/组织/金额。
+	ListMyApplicationCandidates(ctx context.Context, req *ListMyApplicationCandidatesRequest, opts ...http.CallOption) (rsp *ListMyApplicationCandidatesResponse, err error)
+	// ListMyCommissionApplications ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。
+	ListMyCommissionApplications(ctx context.Context, req *ListMyCommissionApplicationsRequest, opts ...http.CallOption) (rsp *ListMyCommissionApplicationsResponse, err error)
 	// ListMyCommissions ListMyCommissions 返回本人提成单与调整明细，服务端分页并支持状态/归属日期过滤。
 	ListMyCommissions(ctx context.Context, req *ListMyCommissionsRequest, opts ...http.CallOption) (rsp *ListMyCommissionsResponse, err error)
 	// ListMyReceivables ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(ctx context.Context, req *ListMyReceivablesRequest, opts ...http.CallOption) (rsp *ListMyReceivablesResponse, err error)
 	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
 	ListMyRecentOrders(ctx context.Context, req *ListMyRecentOrdersRequest, opts ...http.CallOption) (rsp *ListMyRecentOrdersResponse, err error)
+	// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
+	// 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
+	// 空候选与已进入有效申请的提成将被拒绝。
+	SubmitMyCommissionApplication(ctx context.Context, req *SubmitMyCommissionApplicationRequest, opts ...http.CallOption) (rsp *SubmitMyCommissionApplicationResponse, err error)
 }
 
 type WorkbenchServiceHTTPClientImpl struct {
@@ -136,6 +249,24 @@ type WorkbenchServiceHTTPClientImpl struct {
 
 func NewWorkbenchServiceHTTPClient(client *http.Client) WorkbenchServiceHTTPClient {
 	return &WorkbenchServiceHTTPClientImpl{client}
+}
+
+// GetMyCommissionApplication GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计
+// 与明细快照；查询他人申请稳定返回不存在。
+func (c *WorkbenchServiceHTTPClientImpl) GetMyCommissionApplication(ctx context.Context, in *GetMyCommissionApplicationRequest, opts ...http.CallOption) (*GetMyCommissionApplicationResponse, error) {
+	var out GetMyCommissionApplicationResponse
+	pattern := "/api/v1/workbench/commission-applications/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationWorkbenchServiceGetMyCommissionApplication),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // GetWorkbenchOverview GetWorkbenchOverview 返回模块门禁、本人提成状态汇总、近期订单、可靠作业
@@ -147,6 +278,42 @@ func (c *WorkbenchServiceHTTPClientImpl) GetWorkbenchOverview(ctx context.Contex
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationWorkbenchServiceGetWorkbenchOverview),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMyApplicationCandidates ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
+// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
+// 全量解析，不信任客户端传入的员工/组织/金额。
+func (c *WorkbenchServiceHTTPClientImpl) ListMyApplicationCandidates(ctx context.Context, in *ListMyApplicationCandidatesRequest, opts ...http.CallOption) (*ListMyApplicationCandidatesResponse, error) {
+	var out ListMyApplicationCandidatesResponse
+	pattern := "/api/v1/workbench/application-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationWorkbenchServiceListMyApplicationCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMyCommissionApplications ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。
+func (c *WorkbenchServiceHTTPClientImpl) ListMyCommissionApplications(ctx context.Context, in *ListMyCommissionApplicationsRequest, opts ...http.CallOption) (*ListMyCommissionApplicationsResponse, error) {
+	var out ListMyCommissionApplicationsResponse
+	pattern := "/api/v1/workbench/commission-applications"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationWorkbenchServiceListMyCommissionApplications),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -201,6 +368,26 @@ func (c *WorkbenchServiceHTTPClientImpl) ListMyRecentOrders(ctx context.Context,
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SubmitMyCommissionApplication SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
+// 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
+// 空候选与已进入有效申请的提成将被拒绝。
+func (c *WorkbenchServiceHTTPClientImpl) SubmitMyCommissionApplication(ctx context.Context, in *SubmitMyCommissionApplicationRequest, opts ...http.CallOption) (*SubmitMyCommissionApplicationResponse, error) {
+	var out SubmitMyCommissionApplicationResponse
+	pattern := "/api/v1/workbench/commission-applications/submit"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationWorkbenchServiceSubmitMyCommissionApplication),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

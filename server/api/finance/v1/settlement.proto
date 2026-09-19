@@ -216,6 +216,18 @@ service SettlementService {
   // ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与
   // 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。
   rpc ListCommissionAdjustments(ListCommissionAdjustmentsRequest) returns (ListCommissionAdjustmentsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commission-adjustments"}; }
+  // 月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织
+  // commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。
+  // ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。
+  rpc ListCommissionApplications(ListCommissionApplicationsRequest) returns (ListCommissionApplicationsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commission-applications"}; }
+  // GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。
+  rpc GetCommissionApplication(GetCommissionApplicationRequest) returns (GetCommissionApplicationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commission-applications/{id}"}; }
+  // ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
+  // 确认申请内提成计算结果，不代表银行付款或工资发放。
+  rpc ApproveCommissionApplication(ApproveCommissionApplicationRequest) returns (ApproveCommissionApplicationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-applications/{id}/approve" body: "*"}; }
+  // RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
+  // 不产生同月替代申请。
+  rpc RejectCommissionApplication(RejectCommissionApplicationRequest) returns (RejectCommissionApplicationResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-applications/{id}/reject" body: "*"}; }
   // GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
   // employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
   // 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，
@@ -1003,6 +1015,80 @@ message CommissionCalculation { optional string verification_id=1; optional stri
 message CommissionCandidateSummary { string employee_id=1; string employee_name=2; string personnel_role=3; int32 customer_count=4; int32 order_count=5; int32 fee_count=6; string base_currency=7; string realized_revenue=8; string allocated_cost=9; string realized_profit=10; string commission_base_amount=11; string rate_percent=12; string commission_amount=13; string rule_id=14; string rule_name=15; string calculation_basis=16; uint64 rule_version=17; }
 message ListCommissionCandidatesResponse { bool success=1; int32 code=2; string message=3; repeated CommissionCandidateSummary data=4; int64 total=5; string trace_id=6; int32 page=7; int32 page_size=8; }
 message FinanceCommissionAdjustment { string id=1; string adjustment_no=2; string commission_id=3; string commission_no=4; string order_id=5; string order_no=6; string employee_id=7; string employee_name=8; string direction=9; FinanceCommissionStatus status=10; string base_currency=11; string amount=12; string reason=13; optional string note=14; uint64 version=15; optional string confirmed_at=16; optional string paid_at=17; optional string cancelled_at=18; optional string cancellation_reason=19; string created_at=20; string updated_at=21; string source_type=22; optional string source_verification_id=23; string organization_id=24; string organization_name=25; optional string confirmed_by=26; optional string paid_by=27; optional string cancelled_by=28; }
+
+// FinanceCommissionApplicationStatus 是月度提成申请状态，与申请头 CHECK 同源：
+// PENDING_REVIEW=财务待审；REJECTED=整单驳回（原申请可重提）；APPROVED=整单批准。
+enum FinanceCommissionApplicationStatus {
+  FINANCE_COMMISSION_APPLICATION_STATUS_UNSPECIFIED = 0;
+  FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW = 1;
+  FINANCE_COMMISSION_APPLICATION_STATUS_REJECTED = 2;
+  FINANCE_COMMISSION_APPLICATION_STATUS_APPROVED = 3;
+}
+
+message ListCommissionApplicationsRequest {
+  int32 page=1;
+  int32 page_size=2;
+  optional string employee_id=3;
+  optional FinanceCommissionApplicationStatus status=4;
+  // 提交月份过滤（YYYY-MM）。
+  optional string application_month=5;
+  optional string organization_id=6;
+}
+// FinanceCommissionApplication 是申请批次头投影：金额与覆盖月份为提交当时
+// 快照；员工姓名按 employee_id 服务端解析，供财务列表展示。
+message FinanceCommissionApplication {
+  string id=1;
+  string application_month=2;
+  string coverage_to=3;
+  FinanceCommissionApplicationStatus status=4;
+  uint64 version=5;
+  int32 commission_count=6;
+  string base_currency=7;
+  string total_commission_amount=8;
+  string total_cny_commission_amount=9;
+  string employee_id=10;
+  string employee_name=11;
+  string submitted_at=12;
+  string submitted_by=13;
+  optional string decided_at=14;
+  optional string decided_by=15;
+  optional string decision_reason=16;
+  string organization_id=17;
+  string organization_name=18;
+  string created_at=19;
+  string updated_at=20;
+}
+message ListCommissionApplicationsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCommissionApplication data=4; int64 total=5; string trace_id=6; int32 page=7; int32 page_size=8; }
+message GetCommissionApplicationRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; }
+message FinanceCommissionApplicationDetail { FinanceCommissionApplication application=1; repeated FinanceCommissionApplicationLine lines=2; }
+// FinanceCommissionApplicationLine 是申请明细快照投影：来源、方案、计算口径与
+// 金额为提交当时事实；commission_no 服务端按提成单解析，供下钻定位。
+message FinanceCommissionApplicationLine {
+  string id=1;
+  string application_id=2;
+  string commission_id=3;
+  string commission_no=4;
+  string commission_date=5;
+  optional string verification_id=6;
+  optional string verification_no=7;
+  optional string netting_id=8;
+  optional string netting_no=9;
+  string personnel_role=10;
+  optional string rule_id=11;
+  uint64 rule_version=12;
+  optional string rule_name=13;
+  optional string calculation_basis=14;
+  string base_currency=15;
+  string commission_amount=16;
+  string cny_commission_amount=17;
+  string source_fingerprint=18;
+  string created_at=19;
+}
+message GetCommissionApplicationResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionApplicationDetail data=4; string trace_id=5; }
+message ApproveCommissionApplicationRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
+message ApproveCommissionApplicationResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionApplication data=4; string trace_id=5; }
+message RejectCommissionApplicationRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
+message RejectCommissionApplicationResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionApplication data=4; string trace_id=5; }
 
 enum FinanceOrganizationPurpose {
   FINANCE_ORGANIZATION_PURPOSE_UNSPECIFIED = 0;
