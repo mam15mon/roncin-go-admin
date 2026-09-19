@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -62,6 +63,13 @@ vi.mock('@/utils/options', () => ({
 import BillCreationWorkbench from './BillCreationWorkbench';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** 防抖窗口断言仍用真实定时器；包进 act 让窗口期落地的预览/账户回调在 act 内更新状态。 */
+const sleepInAct = async (ms: number) => {
+  await act(async () => {
+    await sleep(ms);
+  });
+};
 
 function resetWorkbenchMocks() {
   mocks.organizations.mockReset();
@@ -547,7 +555,7 @@ describe('BillCreationWorkbench 预览触发边界', () => {
     expect(await screen.findByDisplayValue('结算单位甲')).toBeInTheDocument();
     // 初始预览 + 默认账户回填触发的一次防抖预览。
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
-    await sleep(700);
+    await sleepInAct(700);
     expect(mocks.preview).toHaveBeenCalledTimes(2);
 
     // 非计算字段：对账抬头、备注，不应触发预览重请求。
@@ -557,7 +565,7 @@ describe('BillCreationWorkbench 预览触发边界', () => {
     fireEvent.change(screen.getByPlaceholderText('选填'), {
       target: { value: '备注内容' },
     });
-    await sleep(700);
+    await sleepInAct(700);
     expect(mocks.preview).toHaveBeenCalledTimes(2);
 
     // 结算账户变化触发预览。
@@ -580,7 +588,7 @@ describe('BillCreationWorkbench 预览触发边界', () => {
       { target: { value: '6.5' } },
     );
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(6));
-    await sleep(500);
+    await sleepInAct(500);
     expect(mocks.preview).toHaveBeenCalledTimes(6);
   });
 });
@@ -609,17 +617,21 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
       </App>,
     );
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(1));
-    pending.shift()?.({
-      previewToken: 'token-init',
-      data: [singlePreviewGroup],
+    await act(async () => {
+      pending.shift()?.({
+        previewToken: 'token-init',
+        data: [singlePreviewGroup],
+      });
     });
     expect(await screen.findByDisplayValue('结算单位甲')).toBeInTheDocument();
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
-    pending.shift()?.({
-      previewToken: 'token-init',
-      data: [singlePreviewGroup],
+    await act(async () => {
+      pending.shift()?.({
+        previewToken: 'token-init',
+        data: [singlePreviewGroup],
+      });
     });
-    await sleep(700);
+    await sleepInAct(700);
     const baseline = mocks.preview.mock.calls.length;
 
     // 请求 1：日期改为 D1，保持挂起。
@@ -634,31 +646,35 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     );
     expect(pending).toHaveLength(2);
 
-    // 请求 2（D2）先完成并生效。
-    pending[1]?.({
-      previewToken: 'token-d2',
-      data: [
-        {
-          ...singlePreviewGroup,
-          baseCurrencyAmount: '200.00',
-          estimatedInvoiceAmount: '200.00',
-        },
-      ],
+    // 请求 2（D2）先完成并生效；resolve 的后续状态更新包进 act。
+    await act(async () => {
+      pending[1]?.({
+        previewToken: 'token-d2',
+        data: [
+          {
+            ...singlePreviewGroup,
+            baseCurrencyAmount: '200.00',
+            estimatedInvoiceAmount: '200.00',
+          },
+        ],
+      });
     });
     expect(await screen.findByText('200.00 CNY')).toBeInTheDocument();
 
     // 请求 1（D1）后完成，不得覆盖金额、完成状态或创建令牌。
-    pending[0]?.({
-      previewToken: 'token-d1',
-      data: [
-        {
-          ...singlePreviewGroup,
-          baseCurrencyAmount: '999.00',
-          estimatedInvoiceAmount: '999.00',
-        },
-      ],
+    await act(async () => {
+      pending[0]?.({
+        previewToken: 'token-d1',
+        data: [
+          {
+            ...singlePreviewGroup,
+            baseCurrencyAmount: '999.00',
+            estimatedInvoiceAmount: '999.00',
+          },
+        ],
+      });
     });
-    await sleep(300);
+    await sleepInAct(300);
     expect(screen.queryByText('999.00 CNY')).not.toBeInTheDocument();
     expect(screen.getByText('200.00 CNY')).toBeInTheDocument();
 
@@ -693,17 +709,21 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
       </App>,
     );
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(1));
-    pending.shift()?.({
-      previewToken: 'token-init',
-      data: [singlePreviewGroup],
+    await act(async () => {
+      pending.shift()?.({
+        previewToken: 'token-init',
+        data: [singlePreviewGroup],
+      });
     });
     expect(await screen.findByDisplayValue('结算单位甲')).toBeInTheDocument();
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
-    pending.shift()?.({
-      previewToken: 'token-init',
-      data: [singlePreviewGroup],
+    await act(async () => {
+      pending.shift()?.({
+        previewToken: 'token-init',
+        data: [singlePreviewGroup],
+      });
     });
-    await sleep(700);
+    await sleepInAct(700);
     const baseline = mocks.preview.mock.calls.length;
 
     // 请求 1：预计开票币种改为 USD，保持挂起。
@@ -722,31 +742,35 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     );
     expect(pending).toHaveLength(2);
 
-    // 请求 2 先完成并生效。
-    pending[1]?.({
-      previewToken: 'token-rate',
-      data: [
-        {
-          ...singlePreviewGroup,
-          baseCurrencyAmount: '300.00',
-          estimatedInvoiceAmount: '300.00',
-        },
-      ],
+    // 请求 2 先完成并生效；resolve 的后续状态更新包进 act。
+    await act(async () => {
+      pending[1]?.({
+        previewToken: 'token-rate',
+        data: [
+          {
+            ...singlePreviewGroup,
+            baseCurrencyAmount: '300.00',
+            estimatedInvoiceAmount: '300.00',
+          },
+        ],
+      });
     });
     expect(await screen.findByText('300.00 CNY')).toBeInTheDocument();
 
     // 请求 1 后完成，不得覆盖。
-    pending[0]?.({
-      previewToken: 'token-currency',
-      data: [
-        {
-          ...singlePreviewGroup,
-          baseCurrencyAmount: '111.00',
-          estimatedInvoiceAmount: '111.00',
-        },
-      ],
+    await act(async () => {
+      pending[0]?.({
+        previewToken: 'token-currency',
+        data: [
+          {
+            ...singlePreviewGroup,
+            baseCurrencyAmount: '111.00',
+            estimatedInvoiceAmount: '111.00',
+          },
+        ],
+      });
     });
-    await sleep(300);
+    await sleepInAct(300);
     expect(screen.queryByText('111.00 CNY')).not.toBeInTheDocument();
     expect(screen.getByText('300.00 CNY')).toBeInTheDocument();
 

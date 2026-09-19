@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from '@testing-library/react';
 import { Modal } from 'antd';
 import React from 'react';
@@ -568,7 +569,32 @@ describe('TagsView Component', () => {
     return el;
   }
 
-  it('右键菜单支持重新加载当前与非当前页签', () => {
+  /**
+   * 右键菜单弹层的 CSSMotion 步进队列由 rAF 逐帧推进，而 happy-dom 不会派发
+   * transitionend，离开动画永远不会自然结束，剩余步进会在用例结束后落地并触发
+   * act 警告。这里等待弹层进入离开动画步进后，在 act 内派发 transitionend
+   * 结束动画（与 rc-motion 官方测试一致），再排空一帧让队列到达终态。
+   */
+  async function settleDropdownPopup() {
+    const popup = document.querySelector('.ant-dropdown') as HTMLElement | null;
+    if (!popup) {
+      return;
+    }
+    await waitFor(() => {
+      expect(popup).toHaveClass('ant-slide-up-leave-active');
+    });
+    act(() => {
+      fireEvent.transitionEnd(popup);
+    });
+    await act(async () => {
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => resolve(null));
+      });
+    });
+    expect(popup).toHaveClass('ant-dropdown-hidden');
+  }
+
+  it('右键菜单支持重新加载当前与非当前页签', async () => {
     const originalLocation = window.location;
     const mockReload = vi.fn();
     Object.defineProperty(window, 'location', {
@@ -602,6 +628,8 @@ describe('TagsView Component', () => {
     act(() => {
       fireEvent.click(reloadInactiveItem);
     });
+    await settleDropdownPopup();
+
     expect(mockPush).toHaveBeenCalledWith('/orders/sea-export');
 
     Object.defineProperty(window, 'location', {
@@ -630,7 +658,7 @@ describe('TagsView Component', () => {
     expect(mockPush).toHaveBeenCalledWith('/welcome');
   });
 
-  it('右键菜单：支持关闭其他标签页', () => {
+  it('右键菜单：支持关闭其他标签页', async () => {
     mockPathname = '/partners/customers';
     const { rerender } = render(<TagsView />);
 
@@ -647,6 +675,7 @@ describe('TagsView Component', () => {
     act(() => {
       fireEvent.click(closeOtherItem);
     });
+    await settleDropdownPopup();
 
     expect(screen.queryByText('供应商')).not.toBeInTheDocument();
     expect(screen.getByText('客户')).toBeInTheDocument();
@@ -655,7 +684,7 @@ describe('TagsView Component', () => {
     expect(mockPush).toHaveBeenCalledWith('/partners/customers');
   });
 
-  it('右键菜单：支持关闭右侧标签页', () => {
+  it('右键菜单：支持关闭右侧标签页', async () => {
     mockPathname = '/partners/customers';
     const { rerender } = render(<TagsView />);
 
@@ -676,6 +705,7 @@ describe('TagsView Component', () => {
     act(() => {
       fireEvent.click(closeRightItem);
     });
+    await settleDropdownPopup();
 
     expect(screen.queryByText('国外代理')).not.toBeInTheDocument();
     expect(screen.getByText('工作台')).toBeInTheDocument();
@@ -685,7 +715,7 @@ describe('TagsView Component', () => {
     expect(mockPush).toHaveBeenCalledWith('/partners/suppliers');
   });
 
-  it('右键菜单：支持关闭左侧标签页', () => {
+  it('右键菜单：支持关闭左侧标签页', async () => {
     mockPathname = '/partners/customers';
     const { rerender } = render(<TagsView />);
 
@@ -710,6 +740,7 @@ describe('TagsView Component', () => {
     act(() => {
       fireEvent.click(closeLeftItem);
     });
+    await settleDropdownPopup();
 
     expect(screen.queryByText('客户')).not.toBeInTheDocument();
     expect(screen.getByText('工作台')).toBeInTheDocument();
@@ -778,7 +809,7 @@ describe('TagsView Component', () => {
     modalSpy.mockRestore();
   });
 
-  it('右键菜单关闭其他标签页包含已编辑页签时，弹出确认提示', () => {
+  it('右键菜单关闭其他标签页包含已编辑页签时，弹出确认提示', async () => {
     mockPathname = '/orders/sea-export/new';
     const { rerender } = render(<TagsView />);
 
@@ -814,6 +845,9 @@ describe('TagsView Component', () => {
     act(() => {
       modalSpy.mock.calls[0][0].onOk?.();
     });
+    // 右键菜单弹层的关闭动画需收敛，避免用例结束后更新迟到
+    await settleDropdownPopup();
+
     expect(screen.queryByText('新建订单')).not.toBeInTheDocument();
     expect(screen.getByText('客户')).toBeInTheDocument();
 

@@ -40,7 +40,24 @@ async function confirmDelete() {
     expect(screen.getByText(/确定移除/)).toBeInTheDocument();
   });
   const confirmButtons = screen.getAllByRole('button', { name: '确 定' });
-  fireEvent.click(confirmButtons.at(-1) as HTMLElement);
+  // 点击确认后，onConfirm 异步链（message 提示、列表刷新、弹层关闭）必须
+  // 在 act 作用域内落地，否则静态 message 独立根与 ProTable 刷新会迟到更新。
+  await act(async () => {
+    fireEvent.click(confirmButtons.at(-1) as HTMLElement);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
+// 删除确认后的收尾流（message 提示、列表刷新、弹层关闭）为异步链，
+// 在 act 内冲刷微任务，确保用例结束前全部落地，避免迟到 setState 触发 act 警告。
+async function flushDeleteAftermath() {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
 }
 
 describe('箱货删除版本', () => {
@@ -81,6 +98,7 @@ describe('箱货删除版本', () => {
         expectedVersion: '7',
       });
     });
+    await flushDeleteAftermath();
   });
 
   it('货物删除发送记录真实版本', async () => {
@@ -112,6 +130,7 @@ describe('箱货删除版本', () => {
         expectedVersion: '9',
       });
     });
+    await flushDeleteAftermath();
   });
 
   it('版本缺失或为零时不调用删除接口', async () => {
@@ -141,6 +160,7 @@ describe('箱货删除版本', () => {
     await waitFor(() => {
       expect(containerService.remove).not.toHaveBeenCalled();
     });
+    await flushDeleteAftermath();
   });
 
   it('货物版本为零时不调用删除接口', async () => {
@@ -168,5 +188,6 @@ describe('箱货删除版本', () => {
     await waitFor(() => {
       expect(cargoService.remove).not.toHaveBeenCalled();
     });
+    await flushDeleteAftermath();
   });
 });

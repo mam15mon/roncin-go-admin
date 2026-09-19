@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App, type MenuProps } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -190,7 +196,7 @@ describe('SeaExportDetailFeatures', () => {
     expect(await screen.findByText('该订单已拆票')).toBeInTheDocument();
   });
 
-  it('无对应操作权限时不渲染拆票或改配按钮', () => {
+  it('无对应操作权限时不渲染拆票或改配按钮', async () => {
     renderFeatures(buildContext({ canOrder: () => false }));
 
     expect(
@@ -199,6 +205,12 @@ describe('SeaExportDetailFeatures', () => {
     expect(
       screen.queryByRole('button', { name: /改配/ }),
     ).not.toBeInTheDocument();
+    // 挂载期动作资格请求在 act 内落地，避免用例结束后迟到更新
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 
   it('拆票跳转经锁单写入口校验，锁单关闭时不导航', async () => {
@@ -336,8 +348,16 @@ describe('SeaExportDetailFeatures', () => {
     );
 
     expect(mockGetChangeActions).toHaveBeenCalledTimes(1);
+    // 挂载期资格请求先在 act 内落地，再触发手动刷新
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
     await waitFor(() => expect(boundRefresh).toBeDefined());
-    await boundRefresh?.();
+    await act(async () => {
+      await boundRefresh?.();
+    });
     expect(mockGetChangeActions).toHaveBeenCalledTimes(2);
   });
 });

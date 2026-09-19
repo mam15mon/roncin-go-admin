@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { Form } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -70,9 +70,12 @@ describe('CurrencyAmountInput', () => {
     };
 
     render(<TestComponent />);
-    await expect(formRef.validateFields()).resolves.toEqual({
-      testCurrency: undefined,
-      testAmount: undefined,
+    // 表单校验是触发内部状态更新的异步流，必须在 act 内等待收敛
+    await act(async () => {
+      await expect(formRef.validateFields()).resolves.toEqual({
+        testCurrency: undefined,
+        testAmount: undefined,
+      });
     });
   });
 
@@ -94,13 +97,16 @@ describe('CurrencyAmountInput', () => {
     };
 
     render(<TestComponent />);
-    await expect(formRef.validateFields()).rejects.toMatchObject({
-      errorFields: expect.arrayContaining([
-        expect.objectContaining({
-          name: ['testCurrency'],
-          errors: ['必须选择币种'],
-        }),
-      ]),
+    // 表单校验是触发内部状态更新的异步流，必须在 act 内等待收敛
+    await act(async () => {
+      await expect(formRef.validateFields()).rejects.toMatchObject({
+        errorFields: expect.arrayContaining([
+          expect.objectContaining({
+            name: ['testCurrency'],
+            errors: ['必须选择币种'],
+          }),
+        ]),
+      });
     });
   });
 
@@ -122,13 +128,16 @@ describe('CurrencyAmountInput', () => {
     };
 
     render(<TestComponent />);
-    await expect(formRef.validateFields()).rejects.toMatchObject({
-      errorFields: expect.arrayContaining([
-        expect.objectContaining({
-          name: ['testAmount'],
-          errors: ['必须输入金额'],
-        }),
-      ]),
+    // 表单校验是触发内部状态更新的异步流，必须在 act 内等待收敛
+    await act(async () => {
+      await expect(formRef.validateFields()).rejects.toMatchObject({
+        errorFields: expect.arrayContaining([
+          expect.objectContaining({
+            name: ['testAmount'],
+            errors: ['必须输入金额'],
+          }),
+        ]),
+      });
     });
   });
 
@@ -153,13 +162,16 @@ describe('CurrencyAmountInput', () => {
     };
 
     render(<TestComponent />);
-    await expect(formRef.validateFields()).rejects.toMatchObject({
-      errorFields: expect.arrayContaining([
-        expect.objectContaining({
-          name: ['testAmount'],
-          errors: ['最多 4 位小数'],
-        }),
-      ]),
+    // 表单校验是触发内部状态更新的异步流，必须在 act 内等待收敛
+    await act(async () => {
+      await expect(formRef.validateFields()).rejects.toMatchObject({
+        errorFields: expect.arrayContaining([
+          expect.objectContaining({
+            name: ['testAmount'],
+            errors: ['最多 4 位小数'],
+          }),
+        ]),
+      });
     });
   });
 
@@ -183,9 +195,12 @@ describe('CurrencyAmountInput', () => {
     };
 
     render(<TestComponent />);
-    await expect(formRef.validateFields()).resolves.toEqual({
-      testCurrency: 'USD',
-      testAmount: '8888.88',
+    // 表单校验是触发内部状态更新的异步流，必须在 act 内等待收敛
+    await act(async () => {
+      await expect(formRef.validateFields()).resolves.toEqual({
+        testCurrency: 'USD',
+        testAmount: '8888.88',
+      });
     });
   });
 

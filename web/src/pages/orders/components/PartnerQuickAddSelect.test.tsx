@@ -212,6 +212,12 @@ describe('PartnerQuickAddSelect', () => {
       '/partners/customers/create?legalName=AB%20C%E5%85%AC%E5%8F%B8',
     );
     expect(partnerServiceCreatePartner).not.toHaveBeenCalled();
+    // 弹窗关闭的 motion 起步更新由宏任务/帧回调驱动，
+    // 在 act 作用域内让出事件循环，确保用例结束前全部落地。
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it('组织切换后本地新建选项被清理', async () => {

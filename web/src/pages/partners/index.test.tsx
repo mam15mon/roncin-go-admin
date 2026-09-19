@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { history } from '@umijs/max';
 import { App } from 'antd';
 import React from 'react';
@@ -238,7 +238,9 @@ describe('Partners 列表页', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: '确 定' }));
 
-    await vi.waitFor(() => {
+    // 提交后存在表单校验、弹窗关闭动画、消息提示与列表刷新等多段异步流，
+    // 用 RTL waitFor 等待整条链路收敛，避免用例结束后更新迟到触发 act 警告
+    await waitFor(() => {
       expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledWith(
         { id: 'p-blacklist' },
         {
@@ -248,6 +250,9 @@ describe('Partners 列表页', () => {
           reason: '延续供应商限制',
         },
       );
+    });
+    await waitFor(() => {
+      expect(partnerServiceListPartners).toHaveBeenCalledTimes(2);
     });
   });
 });

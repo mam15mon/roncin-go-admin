@@ -110,24 +110,28 @@ describe('提成导出按钮', () => {
     serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
   });
 
-  it('有导出权限时显示按钮', () => {
+  it('有导出权限时显示按钮', async () => {
     accessState.canExportFinanceCommissions = true;
     render(
       <App>
         <FinanceCommissionsPage />
       </App>,
     );
+    // 等待挂载触发的公司候选请求在 act 内收敛。
+    await act(async () => {});
     expect(
       screen.getByRole('button', { name: /导出提成/ }),
     ).toBeInTheDocument();
   });
 
-  it('无导出权限时隐藏按钮', () => {
+  it('无导出权限时隐藏按钮', async () => {
     render(
       <App>
         <FinanceCommissionsPage />
       </App>,
     );
+    // 等待挂载触发的公司候选请求在 act 内收敛。
+    await act(async () => {});
     expect(
       screen.queryByRole('button', { name: /导出提成/ }),
     ).not.toBeInTheDocument();
@@ -142,6 +146,8 @@ describe('提成导出按钮', () => {
         <FinanceCommissionsPage />
       </App>,
     );
+    // 等待挂载触发的公司候选请求在 act 内收敛。
+    await act(async () => {});
 
     const searchValues = {
       keyword: '  COM-001  ',
@@ -214,12 +220,14 @@ describe('提成导出按钮', () => {
     expect(document.querySelector('a[download]')).toBeNull();
   });
 
-  it('列表来源单号按核销或对冲二选一展示，两者都空显示占位符', () => {
+  it('列表来源单号按核销或对冲二选一展示，两者都空显示占位符', async () => {
     render(
       <App>
         <FinanceCommissionsPage />
       </App>,
     );
+    // 等待挂载触发的公司候选请求在 act 内收敛。
+    await act(async () => {});
 
     const columns: Record<string, any>[] =
       componentProps.proTable?.columns ?? [];
@@ -235,12 +243,14 @@ describe('提成导出按钮', () => {
     expect(sourceColumn.render(undefined, {})).toBe('-');
   });
 
-  it('切换到待处理冲减视图时渲染冲减面板，可切回台账', () => {
+  it('切换到待处理冲减视图时渲染冲减面板，可切回台账', async () => {
     render(
       <App>
         <FinanceCommissionsPage />
       </App>,
     );
+    // 等待挂载触发的公司候选请求在 act 内收敛。
+    await act(async () => {});
     expect(
       screen.queryByTestId('pending-decrease-panel'),
     ).not.toBeInTheDocument();

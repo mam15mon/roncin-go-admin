@@ -265,6 +265,16 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+// 详情页挂载时 SeaExportDetailFeatures 会异步拉取拆票/改配动作资格；
+// 同步用例结束前在 act 内冲刷微任务，避免迟到 setState 触发 act 警告。
+async function flushMountFetches() {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
 describe('订单详情页草稿生命周期与记录身份', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -292,7 +302,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     detailTestState.orderAvailable = true;
   });
 
-  it('详情 A 原地导航到 B 后，OrderFormTemplate 实例被重建且旧实例卸载', () => {
+  it('详情 A 原地导航到 B 后，OrderFormTemplate 实例被重建且旧实例卸载', async () => {
     const { rerender } = render(
       <App>
         <OrderDetailPage />
@@ -320,6 +330,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(templateLifecycleState.instancesMounted).toEqual([1, 2]);
     expect(screen.getByLabelText('客户参考号')).toHaveValue('B-服务端初始值');
     expect(templateLifecycleState.internalDirty).toBe(false);
+    await flushMountFetches();
   });
 
   it('详情 A 原地导航到 B 后，只恢复 B 自己的草稿并保持 dirty', async () => {
@@ -708,7 +719,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(templateLifecycleState.resetToCalls).toBe(0);
   });
 
-  it('底部重置修改按钮：通过模板 resetTo 清草稿并回填 initialValues', () => {
+  it('底部重置修改按钮：通过模板 resetTo 清草稿并回填 initialValues', async () => {
     const tabKey = resolveTabKey('/orders/sea-export/ord-A');
     const draftKey = getFormDraftKey(
       tabKey,
@@ -732,9 +743,10 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     const input = screen.getByLabelText('客户参考号') as HTMLInputElement;
     expect(input.value).toBe('服务端初始值');
     expect(templateLifecycleState.internalDirty).toBe(false);
+    await flushMountFetches();
   });
 
-  it('缺少编辑权限或业务锁单时，模板与分节均为 readonly', () => {
+  it('缺少编辑权限或业务锁单时，模板与分节均为 readonly', async () => {
     detailTestState.allowedActions = [];
     detailTestState.lockState = { isLocked: true } as API.OrderLockStateData;
 
@@ -747,6 +759,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(detailTestState.sectionReadonly).toBe(true);
     expect(detailTestState.templateReadonly).toBe(true);
     expect(screen.queryByText('重置修改')).not.toBeInTheDocument();
+    await flushMountFetches();
   });
 
   it('页面源码不再包含草稿键计算、直接清草稿或受控 dirty 代码', () => {

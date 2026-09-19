@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -362,7 +362,14 @@ describe('useOrderDetailData', () => {
       currentOrganization: { id: 'org-B', name: '组织B' },
     };
     rerender();
+    // 组织切换触发的详情重载（15 个 setState）在 act 内落地
+    await act(async () => {});
+
     delayedSearch.resolve([{ label: '旧组织港口', value: 'old-port' }]);
+    // 迟到搜索结果回调在 act 内收敛，避免用例结束后迟到更新
+    await act(async () => {
+      await searchPromise;
+    });
 
     await expect(searchPromise).resolves.toEqual([]);
   });

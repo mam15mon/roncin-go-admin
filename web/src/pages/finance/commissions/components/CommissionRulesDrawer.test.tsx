@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
@@ -113,24 +119,28 @@ describe('提成方案抽屉', () => {
     const createForm = drawerState.forms['新建提成方案'];
     expect(createForm).toBeTruthy();
 
-    // 启用方案缺少员工时不发起请求。
-    await createForm.onFinish({
-      name: '销售方案',
-      personnelRole: 'SALES',
-      calculationBasis: 'REALIZED_PROFIT',
-      ratePercent: 10,
-      enabled: true,
-      employeeIds: [],
+    // 启用方案缺少员工时不发起请求；提交走表单异步回调，包进 act 收敛消息与状态更新。
+    await act(async () => {
+      await createForm.onFinish({
+        name: '销售方案',
+        personnelRole: 'SALES',
+        calculationBasis: 'REALIZED_PROFIT',
+        ratePercent: 10,
+        enabled: true,
+        employeeIds: [],
+      });
     });
     expect(serviceMocks.createCommissionRule).not.toHaveBeenCalled();
 
-    await createForm.onFinish({
-      name: '销售方案',
-      personnelRole: 'SALES',
-      calculationBasis: 'REALIZED_PROFIT',
-      ratePercent: 10,
-      enabled: true,
-      employeeIds: ['employee-1', 'employee-2'],
+    await act(async () => {
+      await createForm.onFinish({
+        name: '销售方案',
+        personnelRole: 'SALES',
+        calculationBasis: 'REALIZED_PROFIT',
+        ratePercent: 10,
+        enabled: true,
+        employeeIds: ['employee-1', 'employee-2'],
+      });
     });
     await waitFor(() =>
       expect(serviceMocks.createCommissionRule).toHaveBeenCalledWith(
@@ -158,13 +168,16 @@ describe('提成方案抽屉', () => {
     await waitFor(() => expect(drawerState.forms['复制为新方案']).toBeTruthy());
     const copyForm = drawerState.forms['复制为新方案'];
 
-    await copyForm.onFinish({
-      name: '旧方案-新方案',
-      personnelRole: 'SALES',
-      calculationBasis: 'REALIZED_PROFIT',
-      ratePercent: 12,
-      effectiveFrom: dayjs('2026-09-20'),
-      employeeIds: ['employee-1'],
+    // 提交走表单异步回调，包进 act 收敛消息与状态更新。
+    await act(async () => {
+      await copyForm.onFinish({
+        name: '旧方案-新方案',
+        personnelRole: 'SALES',
+        calculationBasis: 'REALIZED_PROFIT',
+        ratePercent: 12,
+        effectiveFrom: dayjs('2026-09-20'),
+        employeeIds: ['employee-1'],
+      });
     });
     await waitFor(() =>
       expect(serviceMocks.copyCommissionRule).toHaveBeenCalledWith(
@@ -191,20 +204,25 @@ describe('提成方案抽屉', () => {
     fireEvent.click(screen.getByText('复制为新方案'));
     await waitFor(() => expect(drawerState.forms['复制为新方案']).toBeTruthy());
     const copyForm = drawerState.forms['复制为新方案'];
-    await copyForm.onFinish({
-      name: '旧方案-新方案',
-      personnelRole: 'SALES',
-      calculationBasis: 'REALIZED_PROFIT',
-      ratePercent: 12,
-      employeeIds: ['employee-1'],
+    // 缺起始日/缺员工均不提交；提交走表单异步回调，包进 act 收敛消息与状态更新。
+    await act(async () => {
+      await copyForm.onFinish({
+        name: '旧方案-新方案',
+        personnelRole: 'SALES',
+        calculationBasis: 'REALIZED_PROFIT',
+        ratePercent: 12,
+        employeeIds: ['employee-1'],
+      });
     });
-    await copyForm.onFinish({
-      name: '旧方案-新方案',
-      personnelRole: 'SALES',
-      calculationBasis: 'REALIZED_PROFIT',
-      ratePercent: 12,
-      effectiveFrom: dayjs('2026-09-20'),
-      employeeIds: [],
+    await act(async () => {
+      await copyForm.onFinish({
+        name: '旧方案-新方案',
+        personnelRole: 'SALES',
+        calculationBasis: 'REALIZED_PROFIT',
+        ratePercent: 12,
+        effectiveFrom: dayjs('2026-09-20'),
+        employeeIds: [],
+      });
     });
     expect(serviceMocks.copyCommissionRule).not.toHaveBeenCalled();
   });
