@@ -1599,3 +1599,25 @@ order_write/order_lock 各拆 5-6 个同包职责文件，零行丢失，范本�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 63: 拆分财务账单 biz 与 data 大文件
+<!-- trellis-session: v=2 fp=ff876fe257db371a -->
+
+**Date**: 2026-09-19
+**Task**: 拆分财务账单 biz 与 data 大文件
+**Branch**: `main`
+
+### Summary
+
+biz 1613 行拆 3 文件、data 1378 行拆 5 文件，零丢失，定向测试含真实库集成全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `41349f76` | refactor(finance): 账单 biz 与 data 文件按职责拆为同包文件 |
+
+### Status
+
+[OK] **Completed**
