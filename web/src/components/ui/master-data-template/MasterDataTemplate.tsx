@@ -49,6 +49,7 @@ const { Text } = Typography;
 
 export function MasterDataTemplate<
   T extends BaseMasterDataItem = BaseMasterDataItem,
+  TFormValues = Record<string, unknown>,
 >({
   title,
   subtitle,
@@ -82,7 +83,7 @@ export function MasterDataTemplate<
   showUpdatedAt = true,
   style,
   className,
-}: MasterDataTemplateProps<T>) {
+}: MasterDataTemplateProps<T, TFormValues>) {
   const { message } = App.useApp();
   const serverMode = query !== undefined && onQueryChange !== undefined;
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -216,7 +217,7 @@ export function MasterDataTemplate<
   };
 
   // Handle Form Submit
-  const handleFormFinish = async (values: any) => {
+  const handleFormFinish = async (values: TFormValues) => {
     try {
       if (editingItem && onUpdate) {
         await onUpdate(editingItem.id, values);
@@ -227,8 +228,8 @@ export function MasterDataTemplate<
       }
       setModalOpen(false);
       if (onRefresh) await onRefresh();
-    } catch (err: any) {
-      message.error(err.message || '操作失败');
+    } catch (err) {
+      message.error((err as { message?: string }).message || '操作失败');
     }
   };
 
@@ -249,8 +250,8 @@ export function MasterDataTemplate<
     try {
       await onRefresh();
       actionRef.current?.reload();
-    } catch (err: any) {
-      message.error(err?.message || '刷新失败');
+    } catch (err) {
+      message.error((err as { message?: string })?.message || '刷新失败');
     }
   };
 
@@ -270,8 +271,8 @@ export function MasterDataTemplate<
     if (!onToggleActive) return;
     try {
       await onToggleActive(record);
-    } catch (err: any) {
-      message.error(err?.message || '状态切换失败');
+    } catch (err) {
+      message.error((err as { message?: string })?.message || '状态切换失败');
     }
   };
 
@@ -368,7 +369,7 @@ export function MasterDataTemplate<
               dataIndex: 'updatedAt',
               key: 'updatedAt',
               width: 160,
-              render: (_: any, record: T) => (
+              render: (_: unknown, record: T) => (
                 <Text type="secondary" style={{ fontSize: 12 }}>
                   {formatDate(record.updatedAt)}
                 </Text>

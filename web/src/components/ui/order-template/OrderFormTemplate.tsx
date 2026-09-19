@@ -1,6 +1,15 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
-import { App, Card, Row, Skeleton, Space, Spin, Typography } from 'antd';
+import {
+  App,
+  Card,
+  type FormProps,
+  Row,
+  Skeleton,
+  Space,
+  Spin,
+  Typography,
+} from 'antd';
 import React, {
   useImperativeHandle,
   useLayoutEffect,
@@ -160,7 +169,9 @@ export function OrderFormTemplate<T>({
   };
 
   // 校验失败处理：自动平滑滚动居中并高亮首个错误项，同时统计各分节错误供导航器使用
-  const handleFinishFailed = (errorInfo: any) => {
+  const handleFinishFailed = (
+    errorInfo: Parameters<NonNullable<FormProps<T>['onFinishFailed']>>[0],
+  ) => {
     const res = scrollToFirstFormError({
       errorFields: errorInfo?.errorFields,
       notify: (msg) => message.warning(msg),

@@ -1,10 +1,22 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ModalForm } from '@ant-design/pro-components';
-import { Button, Col, Empty, Form, Row, Space, Tag } from 'antd';
+import {
+  Button,
+  Col,
+  Empty,
+  Form,
+  type FormInstance,
+  Row,
+  Space,
+  Tag,
+} from 'antd';
 import React, { type ReactNode, useRef, useState } from 'react';
 
-export interface SubEntityCardGridProps<TItem, TFormValues = any> {
+export interface SubEntityCardGridProps<
+  TItem extends { id?: string | number },
+  TFormValues = any,
+> {
   entityName: string;
   items: TItem[];
   title?: ReactNode;
@@ -29,7 +41,11 @@ export interface SubEntityCardGridProps<TItem, TFormValues = any> {
     },
   ) => ReactNode;
   initialValues?: (item?: TItem, index?: number) => TFormValues;
-  renderFormItems: (item?: TItem, form?: any, index?: number) => ReactNode;
+  renderFormItems: (
+    item?: TItem,
+    form?: FormInstance,
+    index?: number,
+  ) => ReactNode;
   onSave: (
     values: TFormValues,
     editingItem?: TItem,
@@ -39,7 +55,10 @@ export interface SubEntityCardGridProps<TItem, TFormValues = any> {
   extraHeader?: ReactNode;
 }
 
-export function SubEntityCardGrid<TItem, TFormValues = any>({
+export function SubEntityCardGrid<
+  TItem extends { id?: string | number },
+  TFormValues = any,
+>({
   entityName,
   items = [],
   title,
@@ -142,7 +161,7 @@ export function SubEntityCardGrid<TItem, TFormValues = any>({
       ) : (
         <Row gutter={[16, 16]}>
           {items.map((item, index) => (
-            <Col {...colSpan} key={(item as any)?.id || index}>
+            <Col {...colSpan} key={item?.id || index}>
               {renderCard(item, index, {
                 openEdit: () => handleOpenEdit(item, index),
                 deleteItem: () => handleDelete(item, index),

@@ -17,6 +17,7 @@ import {
   Select,
   Space,
 } from 'antd';
+import type { Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
 import type {
@@ -165,7 +166,7 @@ export function OrderListSearchFilter({
     : undefined;
 
   const handleFinish = (rawValues: Record<string, any>) => {
-    const formatRange = (range?: any[]) =>
+    const formatRange = (range?: [Dayjs, Dayjs]) =>
       range?.[0] && range[1]
         ? ([range[0].format('YYYY-MM-DD'), range[1].format('YYYY-MM-DD')] as [
             string,

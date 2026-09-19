@@ -25,13 +25,13 @@ export interface SearchFilterFieldItem {
   /** 异步请求获取候选项（当 type 为 select 或 searchable-select 时） */
   request?: (params: {
     keyWords?: string;
-  }) => Promise<{ label: string; value: any; [k: string]: any }[]>;
+  }) => Promise<{ label: string; value: unknown; [k: string]: unknown }[]>;
   /** 栅格跨度（默认 6，即 24 栅格下一行 4 列） */
   span?: number;
   /** 自定义渲染组件（当 type 为 'custom' 时） */
   render?: (form: FormInstance) => ReactNode;
   /** 初始值 */
-  initialValue?: any;
+  initialValue?: unknown;
   /** 是否允许清除，默认 true */
   allowClear?: boolean;
   /** 附加组件属性 */
@@ -43,14 +43,16 @@ export interface QuickFilterOption {
   name: string;
   /** 下拉占位文案 */
   placeholder?: string;
-  /** 下拉候选项列表 */
+  // 保留 any：往来户等页面在快捷筛选中传入 boolean 取值（如「启用/停用」），
+  // 而 SearchableSelect 落到 antd Select 的 option value 类型不含 boolean，
+  // 收紧会使这些消费方编译失败。
   options: { label: string; value: any }[];
   /** 下拉宽度，默认 140 */
   width?: number | string;
   /** 是否支持搜索，默认 true */
   showSearch?: boolean;
   /** 初始值 */
-  initialValue?: any;
+  initialValue?: unknown;
 }
 
 export interface SearchFilterTemplateProps<TValues = any> {

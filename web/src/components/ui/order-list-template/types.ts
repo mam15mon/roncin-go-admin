@@ -130,7 +130,10 @@ export interface OrderListItem {
   abnormalLevel?: 'normal' | 'low' | 'medium' | 'high';
   abnormalName?: string;
 
-  [key: string]: any;
+  /** 行内透传的服务端原始记录（列表页按需附加，供抽屉、弹窗等直达使用） */
+  rawRecord?: API.Order;
+
+  [key: string]: unknown;
 }
 
 /** 批量操作菜单枚举/动作 */

@@ -20,6 +20,7 @@ import {
   Statistic,
   Tooltip,
 } from 'antd';
+import type { ColumnGroupType, ColumnType } from 'antd/es/table';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
@@ -302,7 +303,7 @@ export function FinanceLedgerTemplate<
       return {
         ...col,
         width: currentWidth,
-        onHeaderCell: (column: any) => ({
+        onHeaderCell: (column: ColumnGroupType<T> | ColumnType<T>) => ({
           width: column.width,
           resizable: true,
           onResize: (newWidth: number) => handleResize(key, newWidth),
@@ -334,10 +335,10 @@ export function FinanceLedgerTemplate<
     const headers = exportableCols.map((col) =>
       String(col.title || col.dataIndex),
     );
-    const rows = list.map((item: any) =>
+    const rows = list.map((item) =>
       exportableCols.map((col) => {
         const key = String(col.dataIndex);
-        const val = item[key];
+        const val = (item as Record<string, unknown>)[key];
         return `"${String(val ?? '').replace(/"/g, '""')}"`;
       }),
     );
@@ -446,7 +447,7 @@ export function FinanceLedgerTemplate<
             if (rowColors && getRowStatusColorKey) {
               const statusKey = getRowStatusColorKey(record);
               if (statusKey) {
-                const bgColor = (rowColors as any)[statusKey];
+                const bgColor = rowColors[statusKey];
                 if (bgColor && bgColor !== '#FFFFFF') {
                   style.backgroundColor = bgColor;
                 }

@@ -238,7 +238,10 @@ export function SubEntityDrawerTemplateInner<
         formRef={formRef}
         initialValues={
           editingItem && initialValues
-            ? (initialValues(editingItem, parentRecord) as any)
+            ? (initialValues(editingItem, parentRecord) as Record<
+                string,
+                unknown
+              >)
             : undefined
         }
         modalProps={{

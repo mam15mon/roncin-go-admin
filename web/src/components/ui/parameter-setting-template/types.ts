@@ -1,5 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import type { ModalProps } from 'antd';
+import type { ColProps, ModalProps, RowProps } from 'antd';
 import type { TableRowSelection } from 'antd/es/table/interface';
 import type { ReactNode } from 'react';
 
@@ -66,7 +66,7 @@ export interface SettingTableTemplateProps<
   /** 渲染弹窗表单项 */
   renderFormItems: (editingRecord?: TRecord) => ReactNode;
   /** 异步获取数据 */
-  query: (params?: any) => Promise<{
+  query: (params?: Record<string, unknown>) => Promise<{
     data?: TRecord[];
     success?: boolean;
     total?: number;
@@ -94,11 +94,11 @@ export interface SettingTableTemplateProps<
   /** 标签宽度（如 145 或 '145px'），在 horizontal 下有效，默认自动计算（两列时 145px，单列时 140px） */
   labelWidth?: number | string;
   /** 自定义 labelCol 配置 */
-  labelCol?: any;
+  labelCol?: ColProps;
   /** 自定义 wrapperCol 配置 */
-  wrapperCol?: any;
+  wrapperCol?: ColProps;
   /** ModalForm 的 rowProps（如栅格间距） */
-  rowProps?: any;
+  rowProps?: RowProps;
   /** 自定义 Modal 属性 */
   modalProps?: Partial<ModalProps>;
   /** 是否开启搜索表单，默认 false */
