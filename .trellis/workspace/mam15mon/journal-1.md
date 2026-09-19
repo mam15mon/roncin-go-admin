@@ -1930,3 +1930,25 @@ TFilter 泛型化（豁免 41→7，发现港口/机场契约缺口）、ADR 15 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 78: 清零数据层存量测试失败
+<!-- trellis-session: v=2 fp=cf1a3baa69a5316d -->
+
+**Date**: 2026-09-19
+**Task**: 清零数据层存量测试失败
+**Branch**: `main`
+
+### Summary
+
+元数据测试改包初始化快照免疫全局表污染，组织用例审计事件对齐生产形态；真实库全量套件 203s 零失败，基线彻底干净。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8b793854` | test(data): 清零数据层三个存量测试失败 |
+
+### Status
+
+[OK] **Completed**
