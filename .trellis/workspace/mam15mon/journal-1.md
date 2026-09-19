@@ -1952,3 +1952,28 @@ TFilter 泛型化（豁免 41→7，发现港口/机场契约缺口）、ADR 15 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 79: 清理 antd6 弃用 API 与测试 act 警告噪音
+<!-- trellis-session: v=2 fp=a6491fce677ad23f -->
+
+**Date**: 2026-09-19
+**Task**: 清理 antd6 弃用 API 与测试 act 警告噪音
+**Branch**: `refactor/antd6-deprecation-noise`
+
+### Summary
+
+antd lint 109 处弃用用法清零（Alert/Space/Drawer/Modal/Select/List→Listy/addonAfter 等，含 modalProps 与 ProForm 透传场景）；21 个测试文件 304 条 act 警告清零（act 包裹、waitFor 收敛、rc-motion transitionEnd 等模式，断言零改动）；追加清理静态 message、Descriptions span、initialValues 覆盖等 5 类残余警告。全量 853 passed/12 skipped 持平基线，check:fast 双零通过；spec 沉淀 antd6 契约禁令与 act 治理模式。遗留：useMasterDataCrud 存量 Maximum update depth 待后续排查。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b119bfe2` | refactor(web): 迁移 antd6 弃用 API 至 v6 新契约 |
+| `966c8c88` | test(web): 修复测试异步等待并清零 act 警告 |
+| `6d48b5e9` | fix(web): 消除测试残余的静态 message 等五类警告 |
+| `10993eb7` | docs(spec): 沉淀 antd6 API 契约与测试零噪音口径 |
+
+### Status
+
+[OK] **Completed**

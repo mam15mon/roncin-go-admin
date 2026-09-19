@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 78
+- **Total Sessions**: 79
 - **Last Active**: 2026-09-19
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1954 | Active |
+| `journal-1.md` | ~1979 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 79 | 2026-09-19 | 清理 antd6 弃用 API 与测试 act 警告噪音 | `b119bfe2`, `966c8c88`, `6d48b5e9`, `10993eb7` | `refactor/antd6-deprecation-noise` |
 | 78 | 2026-09-19 | 清零数据层存量测试失败 | `8b793854` | `main` |
 | 77 | 2026-09-19 | 修复锚点导航吸顶遮挡与展开竞态 | `7a5abe0a` | `main` |
 | 76 | 2026-09-19 | 修正港口机场表单必填契约缺口 | `4a0ffdbd` | `main` |
