@@ -1577,3 +1577,25 @@ order_write/order_lock 各拆 5-6 个同包职责文件，零行丢失，范本�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 62: 拆分费用补录数据层文件
+<!-- trellis-session: v=2 fp=1ec8444b64bea2b0 -->
+
+**Date**: 2026-09-19
+**Task**: 拆分费用补录数据层文件
+**Branch**: `main`
+
+### Summary
+
+1327 行拆 7 个同包职责文件，零丢失，FeeSupplement 定向集成测试全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a1eb6e8d` | refactor(data): 费用补录文件按生命周期拆为同包文件 |
+
+### Status
+
+[OK] **Completed**
