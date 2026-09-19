@@ -16,6 +16,7 @@ import {
 } from 'antd';
 import React, { useState } from 'react';
 import { workbenchAmount } from './display';
+import MyApplicationPanel from './MyApplicationPanel';
 
 const { Text, Paragraph } = Typography;
 
@@ -67,6 +68,8 @@ type Props = {
   data: API.GetWorkbenchOverviewData;
   onOpenCommissions: () => void;
   onOpenReceivables: () => void;
+  /** 月度申请提交成功后刷新 Overview；等待刷新完成再解除提交 loading。 */
+  onOverviewRefresh: () => Promise<void>;
 };
 
 /**
@@ -77,6 +80,7 @@ export default function CommissionSummaryCard({
   data,
   onOpenCommissions,
   onOpenReceivables,
+  onOverviewRefresh,
 }: Props) {
   const [paidRange, setPaidRange] = useState<'year' | 'month'>('year');
   const summary: Summary | undefined = data.commissionSummary;
@@ -235,6 +239,14 @@ export default function CommissionSummaryCard({
             />
           </div>
         </>
+      ) : null}
+
+      {data.applicationSummary ? (
+        <MyApplicationPanel
+          summary={data.applicationSummary}
+          currency={currency}
+          onOverviewRefresh={onOverviewRefresh}
+        />
       ) : null}
 
       <div
