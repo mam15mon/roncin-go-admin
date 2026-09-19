@@ -58,7 +58,7 @@ func TestFinanceTagAssignmentCandidatesUseActionWritableOrganization(t *testing.
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			repo := &financeTagOptionRepoStub{}
-			service := NewSettlementService(nil, nil, nil, nil, nil, nil, nil, nil, nil, biz.NewBusinessTagUsecase(repo), nil)
+			service := NewSettlementService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, biz.NewBusinessTagUsecase(repo), nil)
 			ctx := financeTagCandidatePrincipal(tc.permission, allowed)
 
 			if err := tc.call(service, ctx, allowed.String()); err != nil {

@@ -2,8 +2,10 @@ package biz
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -27,6 +29,10 @@ var (
 	// ErrCommissionApplicationSourceConflict 提交事务内的来源变更冲突（design §3.3）：
 	// 已占用提成、指纹失效的 DRAFT、重提时明细失效等任一命中即整体回滚。
 	ErrCommissionApplicationSourceConflict = errors.Conflict("FINANCE_COMMISSION_APPLICATION_SOURCE_CONFLICT", "部分提成事实已变化或已被占用，请刷新后重试")
+	// ErrCommissionApplicationStatusConflict 审批门禁（design §5.2/§5.3）：申请头
+	// expected_version 与 PENDING_REVIEW 双重校验不通过——并发批准/驳回/重提只有
+	// 一个事务成功，后到者按「已被处理」稳定拒绝，不做部分批准。
+	ErrCommissionApplicationStatusConflict = errors.Conflict("FINANCE_COMMISSION_APPLICATION_STATUS_CONFLICT", "该申请已被处理，请刷新后重试")
 )
 
 // CommissionApplicationStatus 是月度提成申请头状态，与申请头 CHECK 同源。
@@ -40,6 +46,8 @@ const (
 
 // FinanceCommissionApplication 是员工在组织内按提交自然月形成的申请头投影；
 // 金额与覆盖月份为提交当时快照，驳回后原申请重提沿用同一 ID 与申请月份。
+// EmployeeName/OrganizationName 为财务列表/详情的展示投影，按 ID 服务端解析，
+// 员工本人读取路径不填充。
 type FinanceCommissionApplication struct {
 	ID, OrganizationID, EmployeeID                  uuid.UUID
 	ApplicationMonth, CoverageTo                    string
@@ -54,12 +62,15 @@ type FinanceCommissionApplication struct {
 	DecidedBy                                       *uuid.UUID
 	DecisionReason                                  *string
 	CreatedAt, UpdatedAt                            time.Time
+	EmployeeName, OrganizationName                  string
 }
 
 // FinanceCommissionApplicationLine 是申请明细的提成事实快照投影；commission_id
-// 全局唯一——一个提成事实至多进入一张申请，被驳回也不回流公共池。
+// 全局唯一——一个提成事实至多进入一张申请，被驳回也不回流公共池。CommissionNo
+// 为财务下钻按提成单解析的展示投影，员工本人读取路径不填充。
 type FinanceCommissionApplicationLine struct {
 	ID, OrganizationID, EmployeeID, ApplicationID, CommissionID uuid.UUID
+	CommissionNo                                                string
 	CommissionDate                                              string
 	VerificationID                                              *uuid.UUID
 	VerificationNo                                              *string
@@ -143,6 +154,16 @@ type WorkbenchApplicationFilter struct {
 	Status         CommissionApplicationStatus
 }
 
+// CommissionApplicationFinanceFilter 是财务申请列表的服务端分页筛选：组织范围
+// 由 Service 按 system.finance.commission.read 显式解析后传入，跨组织查询必须
+// 显式携带组织；员工、状态与提交月为可选过滤。
+type CommissionApplicationFinanceFilter struct {
+	Page, PageSize   int
+	EmployeeID       uuid.UUID
+	Status           CommissionApplicationStatus
+	ApplicationMonth string
+}
+
 // CommissionApplicationPeriod 由服务端财务业务日期推导提交月与覆盖截止日：
 // application_month 为提交发生的自然月（YYYY-MM），coverage_to 固定为前一自然月
 // 最后一天（YYYY-MM-DD）。当前自然月来源因晚于 coverage_to 只能进入累计中，
@@ -194,6 +215,19 @@ type FinanceCommissionApplicationRepo interface {
 	ListMyApplications(ctx context.Context, scope WorkbenchScope, filter WorkbenchApplicationFilter) (*PagedList[*FinanceCommissionApplication], error)
 	// GetMyApplication 返回本人单张申请详情；他人或跨组织申请按不存在处理。
 	GetMyApplication(ctx context.Context, scope WorkbenchScope, id uuid.UUID) (*FinanceCommissionApplicationDetail, error)
+	// ListForOrganization 财务申请列表：组织范围显式来自 read 权限解析，按
+	// 员工/状态/提交月过滤并服务端分页；填充员工与组织展示名。
+	ListForOrganization(ctx context.Context, organizationIDs []uuid.UUID, filter CommissionApplicationFinanceFilter) (*PagedList[*FinanceCommissionApplication], error)
+	// GetForOrganization 财务申请详情：申请头审计字段、明细快照与提成单号投影；
+	// 跨组织申请按不存在处理。
+	GetForOrganization(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCommissionApplicationDetail, error)
+	// Approve 整单批准（design §5.2）：单个共享事务内锁定申请头（expected_version
+	// + PENDING_REVIEW），按明细提成 ID 排序复核指纹与阻断事实后整批确认 DRAFT
+	// 提成；任一明细失效整体回滚，不做部分批准。
+	Approve(ctx context.Context, organizationIDs []uuid.UUID, decisionMaker, id uuid.UUID, expectedVersion uint64) (*FinanceCommissionApplication, error)
+	// Reject 整单驳回（design §5.3）：原因必填；只改变申请头状态与决策审计并
+	// 递增版本，明细与提成单保持不变，员工可在原申请上重提。
+	Reject(ctx context.Context, organizationIDs []uuid.UUID, decisionMaker, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceCommissionApplication, error)
 }
 
 // FinanceCommissionApplicationUsecase 月度提成申请用例：只做主体与参数校验后
@@ -250,6 +284,45 @@ func (u *FinanceCommissionApplicationUsecase) GetMyApplication(ctx context.Conte
 	return u.repo.GetMyApplication(ctx, scope, id)
 }
 
+// ListForOrganization 财务申请列表：组织范围必须显式来自 read 权限解析，
+// 分页、状态与提交月过滤在领域入口统一校验。
+func (u *FinanceCommissionApplicationUsecase) ListForOrganization(ctx context.Context, organizationIDs []uuid.UUID, filter CommissionApplicationFinanceFilter) (*PagedList[*FinanceCommissionApplication], error) {
+	if !validCommissionOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) ||
+		(filter.Status != "" && !validCommissionApplicationStatus(filter.Status)) ||
+		(filter.ApplicationMonth != "" && !ValidCommissionApplicationMonth(filter.ApplicationMonth)) {
+		return nil, ErrCommissionApplicationInvalid
+	}
+	return u.repo.ListForOrganization(ctx, organizationIDs, filter)
+}
+
+// GetForOrganization 财务申请详情：组织范围显式来自 read 权限解析，跨组织
+// 申请按不存在处理，不泄露记录事实。
+func (u *FinanceCommissionApplicationUsecase) GetForOrganization(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCommissionApplicationDetail, error) {
+	if !validCommissionOrganizationIDs(organizationIDs) || id == uuid.Nil {
+		return nil, ErrCommissionApplicationNotFound
+	}
+	return u.repo.GetForOrganization(ctx, organizationIDs, id)
+}
+
+// Approve 整单批准：申请头 expected_version 防并发覆盖，决策人取自当前会话；
+// 锁序、指纹复核、草稿费用阻断与整批状态迁移由仓储事务实现承担。
+func (u *FinanceCommissionApplicationUsecase) Approve(ctx context.Context, organizationIDs []uuid.UUID, decisionMaker, id uuid.UUID, expectedVersion uint64) (*FinanceCommissionApplication, error) {
+	if !validCommissionOrganizationIDs(organizationIDs) || decisionMaker == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
+		return nil, ErrCommissionApplicationInvalid
+	}
+	return u.repo.Approve(ctx, organizationIDs, decisionMaker, id, expectedVersion)
+}
+
+// Reject 整单驳回：原因必填（空原因或超长原因稳定拒绝），决策人取自当前会话。
+func (u *FinanceCommissionApplicationUsecase) Reject(ctx context.Context, organizationIDs []uuid.UUID, decisionMaker, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceCommissionApplication, error) {
+	reason = strings.TrimSpace(reason)
+	if !validCommissionOrganizationIDs(organizationIDs) || decisionMaker == uuid.Nil || id == uuid.Nil ||
+		expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
+		return nil, ErrCommissionApplicationInvalid
+	}
+	return u.repo.Reject(ctx, organizationIDs, decisionMaker, id, expectedVersion, reason)
+}
+
 // CommissionApplicationSubmitAudit 构造提交/重提审计：记录员工、申请月、覆盖
 // 截止日、明细笔数与金额快照，不记录完整收入明细。
 func CommissionApplicationSubmitAudit(org, actor, applicationID uuid.UUID, action string, month, coverageTo string, count int, total decimal.Decimal) *AuditEvent {
@@ -276,4 +349,38 @@ func CommissionApplicationSubmitAction(resubmit bool) string {
 		return "finance.commission_application.resubmit"
 	}
 	return "finance.commission_application.submit"
+}
+
+// CommissionApplicationDecisionAction 返回财务整单批准或驳回的审计动作名。
+func CommissionApplicationDecisionAction(approved bool) string {
+	if approved {
+		return "finance.commission_application.approve"
+	}
+	return "finance.commission_application.reject"
+}
+
+// CommissionApplicationDecisionAudit 构造财务整单批准/驳回审计：记录决策人、
+// 申请员工、申请月、覆盖截止日、笔数、金额快照与决策后版本；驳回携带必填原因。
+// 不记录完整收入明细。
+func CommissionApplicationDecisionAudit(org, decisionMaker, applicationID, employeeID uuid.UUID, action, month, coverageTo string, count int, total decimal.Decimal, version uint64, reason string) *AuditEvent {
+	details := map[string]string{
+		"employee_id":       employeeID.String(),
+		"application_month": month,
+		"coverage_to":       coverageTo,
+		"commission_count":  strconv.Itoa(count),
+		"total_amount":      total.StringFixed(8),
+		"version":           strconv.FormatUint(version, 10),
+	}
+	if reason != "" {
+		details["reason"] = reason
+	}
+	return &AuditEvent{
+		OrganizationID: &org,
+		UserID:         &decisionMaker,
+		Action:         action,
+		Result:         "success",
+		ResourceType:   "finance_commission_application",
+		ResourceID:     applicationID.String(),
+		Details:        details,
+	}
 }

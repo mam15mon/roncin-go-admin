@@ -20,17 +20,18 @@ import (
 // 服务锚点与跨子域共享的转换辅助。
 type SettlementService struct {
 	v1.UnimplementedSettlementServiceServer
-	usecase              *biz.SettlementUsecase
-	billUsecase          *biz.FinanceBillUsecase
-	invoiceUsecase       *biz.FinanceInvoiceUsecase
-	cashflowUsecase      *biz.FinanceCashflowUsecase
-	verificationUsecase  *biz.VerificationUsecase
-	nettingUsecase       *biz.FinanceNettingUsecase
-	commissionUsecase    *biz.CommissionUsecase
-	preferenceUsecase    *biz.FeeLedgerPreferenceUsecase
-	customSettingUsecase *biz.FinanceCustomSettingUsecase
-	tagUsecase           *biz.BusinessTagUsecase
-	accountUsecase       *biz.PartnerAccountUsecase
+	usecase                      *biz.SettlementUsecase
+	billUsecase                  *biz.FinanceBillUsecase
+	invoiceUsecase               *biz.FinanceInvoiceUsecase
+	cashflowUsecase              *biz.FinanceCashflowUsecase
+	verificationUsecase          *biz.VerificationUsecase
+	nettingUsecase               *biz.FinanceNettingUsecase
+	commissionUsecase            *biz.CommissionUsecase
+	commissionApplicationUsecase *biz.FinanceCommissionApplicationUsecase
+	preferenceUsecase            *biz.FeeLedgerPreferenceUsecase
+	customSettingUsecase         *biz.FinanceCustomSettingUsecase
+	tagUsecase                   *biz.BusinessTagUsecase
+	accountUsecase               *biz.PartnerAccountUsecase
 }
 
 func (s *SettlementService) ListFinanceOrganizationOptions(ctx context.Context, request *v1.ListFinanceOrganizationOptionsRequest) (*v1.ListFinanceOrganizationOptionsResponse, error) {
@@ -121,8 +122,8 @@ func financeOrganizationPurposePermission(purpose v1.FinanceOrganizationPurpose)
 	}
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, nettingUsecase *biz.FinanceNettingUsecase, commissionUsecase *biz.CommissionUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase, accountUsecase *biz.PartnerAccountUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, nettingUsecase: nettingUsecase, commissionUsecase: commissionUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase, accountUsecase: accountUsecase}
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, nettingUsecase *biz.FinanceNettingUsecase, commissionUsecase *biz.CommissionUsecase, commissionApplicationUsecase *biz.FinanceCommissionApplicationUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase, accountUsecase *biz.PartnerAccountUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, nettingUsecase: nettingUsecase, commissionUsecase: commissionUsecase, commissionApplicationUsecase: commissionApplicationUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase, accountUsecase: accountUsecase}
 }
 
 func financePrincipalAndID(ctx context.Context, rawID string) (*biz.Principal, uuid.UUID, error) {

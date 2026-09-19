@@ -1567,6 +1567,85 @@ func valueOrNilUUID(value *uuid.UUID) uuid.UUID {
 	return *value
 }
 
+// confirmCommissionsForApplicationApproval 是月度申请整单批准在共享事务内的
+// 整批确认辅助（design §5.2）：对申请明细对应的 DRAFT 提成保持与 Transition
+// CONFIRMED 分支完全一致的复核与写入语义——逐笔重算来源指纹（方案员工分配
+// 唯一命中、同员工/身份/方案快照一致）、草稿费用阻断、状态检查，确认时版本
+// 递增并写 CONFIRMED + confirmed_at/by + 逐笔确认审计，保持订单财务锁净额
+// 联动口径不变。本函数不开启独立事务、不做部分批准：任一明细复核失败立即
+// 返回领域错误，由调用方整体回滚。调用方必须已锁定申请头（expected_version
+// + PENDING_REVIEW）与申请明细；申请明细来源订单与提成父单在此按 design
+// §5.2 步骤 2 的固定锁序取得（订单升序 → 提成父单按 commission_id 升序）。
+func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID, commissionIDs []uuid.UUID) error {
+	if len(commissionIDs) == 0 {
+		return biz.ErrCommissionApplicationSourceConflict
+	}
+	sorted := uniqueSortedUUIDs(commissionIDs)
+	lineRows, err := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDIn(sorted...)).All(ctx)
+	if err != nil {
+		return err
+	}
+	if err := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(lineRows)); err != nil {
+		return err
+	}
+	parents, err := tx.FinanceCommission.Query().
+		Where(commission.IDIn(sorted...), commission.OrganizationIDEQ(org)).
+		Order(ent.Asc(commission.FieldID)).
+		ForUpdate().All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(parents) != len(sorted) {
+		return biz.ErrCommissionApplicationSourceConflict
+	}
+	for _, parent := range parents {
+		if parent.Status != commission.StatusDRAFT {
+			return biz.ErrCommissionApplicationSourceConflict
+		}
+		// 与 Transition CONFIRMED 分支同口径：按快照的员工、身份与来源归属日期
+		// 完整重算，解析失败或指纹漂移一律视为来源已变化。
+		current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org,
+			valueOrNilUUID(parent.VerificationID), valueOrNilUUID(parent.NettingID),
+			parent.EmployeeID, derefCommissionPersonnelRole(parent.PersonnelRole), true)
+		if calculateErr != nil {
+			return biz.ErrCommissionSourceChanged
+		}
+		if parent.SourceFingerprint == "" || parent.SourceFingerprint != current.SourceFingerprint {
+			return biz.ErrCommissionSourceChanged
+		}
+	}
+	orderIDs := orderUUIDsFromLines(lineRows)
+	hasDraftFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusEQ(fee.StatusDRAFT)).Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if hasDraftFees {
+		return biz.ErrCommissionUnconfirmedFees
+	}
+	now := time.Now()
+	for _, parent := range parents {
+		if _, updateErr := tx.FinanceCommission.UpdateOneID(parent.ID).
+			SetVersion(parent.Version + 1).
+			SetStatus(commission.StatusCONFIRMED).
+			SetConfirmedAt(now).
+			SetConfirmedBy(actor).
+			Save(ctx); updateErr != nil {
+			return updateErr
+		}
+		if auditErr := writeAudit(ctx, tx.AuditLog, &biz.AuditEvent{
+			OrganizationID: &org,
+			UserID:         &actor,
+			Action:         "finance.commission.confirm",
+			Result:         "success",
+			ResourceType:   "finance_commission",
+			ResourceID:     parent.ID.String(),
+		}); auditErr != nil {
+			return auditErr
+		}
+	}
+	return nil
+}
+
 // derefCommissionPersonnelRole 读取提成快照中的人员身份；存量行身份为空时返回
 // 非法值，由后续解析稳定拒绝。
 func derefCommissionPersonnelRole(value *string) biz.CommissionPersonnelRole {
