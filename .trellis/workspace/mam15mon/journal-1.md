@@ -1555,3 +1555,25 @@ order_write/order_lock 各拆 5-6 个同包职责文件，零行丢失，范本�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 61: 拆分单证变更数据层文件
+<!-- trellis-session: v=2 fp=238677d3b21fd86e -->
+
+**Date**: 2026-09-19
+**Task**: 拆分单证变更数据层文件
+**Branch**: `main`
+
+### Summary
+
+1483 行拆 7 个同包职责文件，零丢失，SeaDocument 定向集成测试全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0e37baab` | refactor(data): 单证变更文件按变更类型拆为同包文件 |
+
+### Status
+
+[OK] **Completed**
