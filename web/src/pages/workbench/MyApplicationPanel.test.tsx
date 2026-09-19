@@ -12,6 +12,7 @@ import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 
 const serviceMocks = vi.hoisted(() => ({
   submit: vi.fn(),
+  resubmit: vi.fn(),
   listCandidates: vi.fn(),
   listApplications: vi.fn(),
   getApplication: vi.fn(),
@@ -20,6 +21,8 @@ const serviceMocks = vi.hoisted(() => ({
 vi.mock('@/services/roncin/workbenchService', () => ({
   workbenchServiceSubmitMyCommissionApplication: (...args: unknown[]) =>
     serviceMocks.submit(...args),
+  workbenchServiceResubmitMyCommissionApplication: (...args: unknown[]) =>
+    serviceMocks.resubmit(...args),
   workbenchServiceListMyApplicationCandidates: (...args: unknown[]) =>
     serviceMocks.listCandidates(...args),
   workbenchServiceListMyCommissionApplications: (...args: unknown[]) =>
@@ -330,6 +333,113 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('VR-2026-001')).toBeInTheDocument();
     expect(screen.getByText('销售方案A')).toBeInTheDocument();
+  });
+
+  it('驳回申请在详情中提供显式重提：携带申请 ID 与版本调用后刷新 Overview', async () => {
+    serviceMocks.resubmit.mockResolvedValue({
+      success: true,
+      data: { id: 'app-1', status: 1, version: '3' },
+    });
+    serviceMocks.listApplications.mockResolvedValue({
+      success: true,
+      total: '1',
+      data: [
+        {
+          id: 'app-1',
+          applicationMonth: '2026-08',
+          coverageTo: '2026-08-31',
+          status:
+            WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED,
+          version: '2',
+          commissionCount: 5,
+          baseCurrency: 'CNY',
+          totalCommissionAmount: '800.25',
+          submittedAt: '2026-09-01 10:00:00',
+          decisionReason: '来源核销与订单不一致',
+        },
+      ],
+    });
+    serviceMocks.getApplication.mockResolvedValue({
+      success: true,
+      data: {
+        application: {
+          id: 'app-1',
+          applicationMonth: '2026-08',
+          coverageTo: '2026-08-31',
+          status:
+            WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED,
+          version: '2',
+          commissionCount: 5,
+          baseCurrency: 'CNY',
+          totalCommissionAmount: '800.25',
+          submittedAt: '2026-09-01 10:00:00',
+          decidedAt: '2026-09-02 09:00:00',
+          decisionReason: '来源核销与订单不一致',
+        },
+        lines: [],
+      },
+    });
+
+    renderPanel();
+
+    fireEvent.click(screen.getByRole('button', { name: /申请历史/ }));
+    fireEvent.click(await screen.findByText('明细'));
+
+    // 详情出现「重新提交」主按钮；确认弹窗说明刷新金额并重新进入财务审批。
+    fireEvent.click(await screen.findByTestId('resubmit-application-button'));
+    expect(
+      (await screen.findAllByText(/重新提交 2026-08 月度申请？/)).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/按最新上游数据刷新本申请各明细的提成金额/).length,
+    ).toBeGreaterThan(0);
+
+    const confirmOk = await waitFor(() => {
+      const btn = document.querySelector(
+        '.ant-modal-confirm-btns .ant-btn-primary',
+      );
+      expect(btn).toBeTruthy();
+      return btn as HTMLButtonElement;
+    });
+    fireEvent.click(confirmOk);
+
+    await waitFor(() => expect(serviceMocks.resubmit).toHaveBeenCalledTimes(1));
+    expect(serviceMocks.resubmit).toHaveBeenCalledWith({
+      applicationId: 'app-1',
+      expectedVersion: '2',
+    });
+    // 成功后刷新 Overview（面板透传回调）。
+    await waitFor(() => expect(refreshMock).toHaveBeenCalledTimes(1));
+    expect(
+      await screen.findByText('申请已重新提交，等待财务审批'),
+    ).toBeInTheDocument();
+  });
+
+  it('最近申请被驳回时面板引导到申请历史重提', () => {
+    renderPanel({
+      baseCurrency: 'CNY',
+      applyGroups: [],
+      accumulatingCount: 0,
+      accumulatingAmount: '0',
+      pendingReviewCount: 0,
+      approvedCount: 0,
+      latestApplication: {
+        applicationId: 'app-9',
+        applicationMonth: '2026-08',
+        status:
+          WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED,
+        commissionCount: 2,
+        totalCommissionAmount: '300.00',
+        submittedAt: '2026-09-01 10:00:00',
+      },
+    });
+
+    expect(screen.getByText(/最近申请：2026-08 · 2 笔/)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /最近一次申请已被驳回，请在申请历史中查看原因并重新提交/,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('最近申请概要与空申请时隐藏概要', () => {

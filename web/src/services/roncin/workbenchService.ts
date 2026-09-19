@@ -58,9 +58,31 @@ export async function workbenchServiceGetMyCommissionApplication(
   );
 }
 
-/** SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以
- 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、
- 空候选与已进入有效申请的提成将被拒绝。 POST /api/v1/workbench/commission-applications/submit */
+/** ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
+ expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
+ 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
+ 剔除并留审计），版本递增并回到财务待审。 POST /api/v1/workbench/commission-applications/resubmit */
+export async function workbenchServiceResubmitMyCommissionApplication(
+  body: API.ResubmitMyCommissionApplicationRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.ResubmitMyCommissionApplicationResponse>(
+    "/api/v1/workbench/commission-applications/resubmit",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，
+ 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前
+ 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头
+ 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。 POST /api/v1/workbench/commission-applications/submit */
 export async function workbenchServiceSubmitMyCommissionApplication(
   body: API.SubmitMyCommissionApplicationRequest,
   options?: { [key: string]: any }

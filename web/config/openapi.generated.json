@@ -13129,12 +13129,43 @@
         }
       }
     },
+    "/api/v1/workbench/commission-applications/resubmit": {
+      "post": {
+        "tags": [
+          "WorkbenchService"
+        ],
+        "description": "ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与\n expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前\n 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细\n 剔除并留审计），版本递增并回到财务待审。",
+        "operationId": "WorkbenchService_ResubmitMyCommissionApplication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/workbench.v1.ResubmitMyCommissionApplicationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/workbench.v1.ResubmitMyCommissionApplicationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/workbench/commission-applications/submit": {
       "post": {
         "tags": [
           "WorkbenchService"
         ],
-        "description": "SubmitMyCommissionApplication 提交本人月度提成申请：无业务参数，服务端以\n 当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前自然月、\n 空候选与已进入有效申请的提成将被拒绝。",
+        "description": "SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，\n 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前\n 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头\n 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。",
         "operationId": "WorkbenchService_SubmitMyCommissionApplication",
         "requestBody": {
           "content": {
@@ -35360,6 +35391,43 @@
           }
         }
       },
+      "workbench.v1.ResubmitMyCommissionApplicationRequest": {
+        "required": [
+          "applicationId",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        },
+        "description": "重提只接受原申请定位参数：application_id + expected_version；员工与组织固定\n 取自当前会话，不接受客户端改写。"
+      },
+      "workbench.v1.ResubmitMyCommissionApplicationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/workbench.v1.WorkbenchMyCommissionApplication"
+          }
+        }
+      },
       "workbench.v1.SubmitMyCommissionApplicationRequest": {
         "type": "object",
         "properties": {}
@@ -35780,7 +35848,7 @@
             "type": "string"
           }
         },
-        "description": "WorkbenchMyCommissionApplication 是本人单张月度申请投影：金额与明细为提交\n 时固化的快照；REJECTED 携带驳回原因，原申请重提后 version 递增。"
+        "description": "WorkbenchMyCommissionApplication 是本人单张月度申请投影：金额与明细为提交\n 时固化的快照（重提按上游当前事实刷新）；决策审计字段保留最近一次决策，\n 重提不清理，员工始终能看到最近一次驳回原因。"
       },
       "workbench.v1.WorkbenchMyCommissionApplicationDetail": {
         "type": "object",

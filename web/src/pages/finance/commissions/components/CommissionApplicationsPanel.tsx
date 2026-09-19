@@ -2,6 +2,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@umijs/max';
 import { App, DatePicker, Space } from 'antd';
+import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import { FinanceCommissionApplicationStatus } from '@/enums.generated';
@@ -28,6 +29,14 @@ type Application = API.FinanceCommissionApplication;
 type ApplicationFilterValues = {
   employeeId?: string;
   status?: number;
+  /** MonthPicker 的表单值：选择后为 Dayjs，提交前统一格式化为 YYYY-MM。 */
+  applicationMonth?: Dayjs | string;
+};
+
+/** 已提交过滤条件：MonthPicker 值已格式化为 YYYY-MM 字符串，不再含 Dayjs。 */
+type CommittedApplicationFilters = {
+  employeeId?: string;
+  status?: number;
   applicationMonth?: string;
 };
 
@@ -45,7 +54,7 @@ export default function CommissionApplicationsPanel() {
   const access = useAccess();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const committedFiltersRef = useRef<ApplicationFilterValues>({});
+  const committedFiltersRef = useRef<CommittedApplicationFilters>({});
   const [employeeOptions, setEmployeeOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -268,12 +277,17 @@ export default function CommissionApplicationsPanel() {
           </Space>
         }
         onSearch={(values) => {
+          // MonthPicker 表单值是 Dayjs：服务端 application_month 只接受
+          // YYYY-MM 字符串，提交前统一格式化（与资金流水日期提交同一范式）。
+          const rawMonth = values.applicationMonth;
           committedFiltersRef.current = {
             status:
               values.status === undefined || values.status === null
                 ? undefined
                 : Number(values.status),
-            applicationMonth: values.applicationMonth || undefined,
+            applicationMonth: rawMonth
+              ? dayjs(rawMonth).format('YYYY-MM')
+              : undefined,
             employeeId: values.employeeId || undefined,
           };
           reload();

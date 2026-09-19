@@ -5,6 +5,7 @@ import {
 } from '@ant-design/icons';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
+import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 import { workbenchServiceSubmitMyCommissionApplication } from '@/services/roncin/workbenchService';
 import { applicationAmount, sumBaseAmounts } from './applicationDisplay';
 import MyApplicationCandidatesDrawer from './MyApplicationCandidatesDrawer';
@@ -184,6 +185,14 @@ export default function MyApplicationPanel({
               <Text type="secondary" style={{ fontSize: 12 }}>
                 {`最近申请：${latest.applicationMonth} · ${latest.commissionCount ?? 0} 笔`}
               </Text>
+              {latest.status ===
+              WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED ? (
+                <div>
+                  <Text type="warning" style={{ fontSize: 12 }}>
+                    最近一次申请已被驳回，请在申请历史中查看原因并重新提交。
+                  </Text>
+                </div>
+              ) : null}
             </div>
           ) : null}
           <div style={{ marginTop: 8 }}>
@@ -234,6 +243,7 @@ export default function MyApplicationPanel({
           open
           baseCurrency={currencyText}
           onClose={() => setHistoryOpen(false)}
+          onResubmitted={onOverviewRefresh}
         />
       ) : null}
     </div>

@@ -6323,6 +6323,19 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ResubmitMyCommissionApplicationRequest = {
+    applicationId: string;
+    expectedVersion: string;
+  };
+
+  type ResubmitMyCommissionApplicationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    data?: WorkbenchMyCommissionApplication;
+  };
+
   type ReverseNettingRequest = {
     id: string;
     expectedVersion: string;

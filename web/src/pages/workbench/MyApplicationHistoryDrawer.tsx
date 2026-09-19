@@ -1,5 +1,6 @@
 import type { TableColumnsType } from 'antd';
 import {
+  App,
   Button,
   Descriptions,
   Drawer,
@@ -14,6 +15,7 @@ import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 import {
   workbenchServiceGetMyCommissionApplication,
   workbenchServiceListMyCommissionApplications,
+  workbenchServiceResubmitMyCommissionApplication,
 } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
 import { applicationStatusTag } from './applicationDisplay';
@@ -61,17 +63,21 @@ type Props = {
   open: boolean;
   baseCurrency?: string;
   onClose: () => void;
+  /** 显式重提成功后刷新工作台 Overview（由面板透传）。 */
+  onResubmitted?: () => void | Promise<void>;
 };
 
 /**
  * 本人月度申请历史抽屉：服务端分页列表 + 明细下钻。
- * 只读展示提交/决策审计与明细快照；被驳回的申请展示驳回原因，
- * 不在抽屉内提供重提或任何审批动作。
+ * 只读展示提交/决策审计与明细快照；被驳回的申请展示驳回原因并提供
+ * 「重新提交」显式重提入口（按申请 ID + 当前版本定位原申请，
+ * 服务端按最新上游数据刷新金额后重新进入财务审批）。
  */
 export default function MyApplicationHistoryDrawer({
   open,
   baseCurrency,
   onClose,
+  onResubmitted,
 }: Props) {
   const [items, setItems] = useState<Application[]>([]);
   const [total, setTotal] = useState(0);
@@ -80,10 +86,13 @@ export default function MyApplicationHistoryDrawer({
     page: 1,
     pageSize: DEFAULT_PAGE_SIZE,
   });
+  const [refreshToken, setRefreshToken] = useState(0);
   const [detail, setDetail] = useState<ApplicationDetail>();
   const [detailLoading, setDetailLoading] = useState(false);
+  const [resubmitting, setResubmitting] = useState(false);
   const listSequenceRef = useRef(0);
   const detailSequenceRef = useRef(0);
+  const { message, modal } = App.useApp();
 
   useEffect(() => {
     if (!open) return;
@@ -108,7 +117,7 @@ export default function MyApplicationHistoryDrawer({
     return () => {
       listSequenceRef.current += 1;
     };
-  }, [open, query]);
+  }, [open, query, refreshToken]);
 
   const openDetail = (record: Application) => {
     if (!record.id) return;
@@ -132,6 +141,53 @@ export default function MyApplicationHistoryDrawer({
     detailSequenceRef.current += 1;
     setDetail(undefined);
     setDetailLoading(false);
+  };
+
+  const isRejected =
+    detail?.application?.status ===
+    WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED;
+
+  /** 显式重提：按申请 ID + 当前版本定位原申请，服务端按最新上游数据刷新金额。 */
+  const resubmit = (record: Application) => {
+    if (!record.id || !record.version || resubmitting) return;
+    const applicationId = record.id;
+    const expectedVersion = record.version;
+    const monthLabel = record.applicationMonth || '';
+    modal.confirm({
+      title: `重新提交 ${monthLabel} 月度申请？`,
+      content: (
+        <div>
+          <p>
+            {`将按最新上游数据刷新本申请各明细的提成金额（已失效的明细会被剔除），重新提交财务整批审批。`}
+          </p>
+          <p style={{ color: '#64748b' }}>
+            最近一次驳回原因：{record.decisionReason || '-'}；重提沿用原申请与
+            申请月份，不会产生第二张申请。
+          </p>
+        </div>
+      ),
+      okText: '重新提交',
+      // antd 6 的 modal.confirm 移除 confirmLoading，经 okButtonProps 表达加载态。
+      okButtonProps: { loading: resubmitting },
+      cancelText: '再想想',
+      onOk: async () => {
+        setResubmitting(true);
+        try {
+          await workbenchServiceResubmitMyCommissionApplication({
+            applicationId,
+            expectedVersion,
+          });
+          message.success('申请已重新提交，等待财务审批');
+          backToList();
+          setRefreshToken((token) => token + 1);
+          await onResubmitted?.();
+        } catch (error: unknown) {
+          message.error((error as Error).message || '重新提交失败');
+        } finally {
+          setResubmitting(false);
+        }
+      },
+    });
   };
 
   const currency = baseCurrency || undefined;
@@ -234,8 +290,16 @@ export default function MyApplicationHistoryDrawer({
     {
       title: '操作',
       key: 'actions',
-      width: 80,
-      render: (_, record) => <a onClick={() => openDetail(record)}>明细</a>,
+      width: 110,
+      render: (_, record) => (
+        <Space size={8}>
+          <a onClick={() => openDetail(record)}>明细</a>
+          {record.status ===
+          WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED ? (
+            <a onClick={() => resubmit(record)}>重新提交</a>
+          ) : null}
+        </Space>
+      ),
     },
   ];
 
@@ -255,6 +319,17 @@ export default function MyApplicationHistoryDrawer({
             </Button>
             <Text strong>{application?.applicationMonth || '-'} 月度申请</Text>
             {applicationStatusTag(application?.status)}
+            {isRejected ? (
+              <Button
+                type="primary"
+                size="small"
+                loading={resubmitting}
+                onClick={() => resubmit(application as Application)}
+                data-testid="resubmit-application-button"
+              >
+                重新提交
+              </Button>
+            ) : null}
           </Space>
           <Descriptions
             size="small"
@@ -327,7 +402,7 @@ export default function MyApplicationHistoryDrawer({
               />
             </Space>
             <span style={{ fontSize: 12, color: '#64748b' }}>
-              金额与明细为提交时固化的快照；被驳回的申请可在原申请上重新提交。
+              金额与明细为提交时固化的快照；被驳回的申请可在原申请上按最新上游数据重新提交。
             </span>
           </div>
           <Table<Application>

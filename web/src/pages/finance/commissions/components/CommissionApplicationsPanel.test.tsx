@@ -20,36 +20,6 @@ vi.mock('@umijs/max', () => ({
   useAccess: () => accessState,
 }));
 
-const searchFilterProps = vi.hoisted(() => ({
-  current: undefined as Record<string, any> | undefined,
-}));
-
-vi.mock('@/components/ui', () => ({
-  SearchFilterTemplate: (props: Record<string, any>) => {
-    searchFilterProps.current = props;
-    return (
-      <div data-testid="application-search">
-        {props.extraRight}
-        <button
-          type="button"
-          onClick={() =>
-            props.onSearch({
-              status: 3,
-              applicationMonth: '2026-08',
-              employeeId: 'emp-1',
-            })
-          }
-        >
-          提交筛选
-        </button>
-        <button type="button" onClick={() => props.onReset()}>
-          重置筛选
-        </button>
-      </div>
-    );
-  },
-}));
-
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListCommissionApplications: vi.fn(),
   settlementServiceGetCommissionApplication: vi.fn(),
@@ -131,21 +101,43 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     expect(listEmployees).toHaveBeenCalledWith({ page: 1, pageSize: 200 });
   });
 
-  it('提交筛选后列表使用同一份状态/提交月/员工条件', async () => {
+  it('真实 MonthPicker 选择提交月份后按 YYYY-MM 字符串发起查询', async () => {
     renderPanel();
     await waitFor(() => expect(listApplications).toHaveBeenCalledTimes(1));
 
-    fireEvent.click(screen.getByRole('button', { name: '提交筛选' }));
+    // 打开真实月份选择面板并选中 2026-08（antd 6 的 rc-picker 只在 click 时打开）。
+    const monthInput = screen.getByPlaceholderText('选择提交月份');
+    fireEvent.click(monthInput);
+    const monthCell = await waitFor(() => {
+      const cell = document.querySelector(
+        '.ant-picker-month-panel .ant-picker-cell[title="2026-08"]',
+      );
+      expect(cell).toBeTruthy();
+      return cell as HTMLElement;
+    });
+    fireEvent.mouseDown(monthCell);
+    fireEvent.click(monthCell);
+
+    // 确认面板把选中的月份回填到输入框，再点击「查询」提交。
+    await waitFor(() =>
+      expect((monthInput as HTMLInputElement).value).toContain('2026-08'),
+    );
+    // htmlType="submit" 的激活行为只在点击按钮本身时触发，必须按角色取按钮而非内层文本。
+    fireEvent.click(screen.getByRole('button', { name: /查询/ }));
+
     await waitFor(() => expect(listApplications).toHaveBeenCalledTimes(2));
+    // 服务端 application_month 只接受 YYYY-MM：Dayjs 表单值必须在提交前格式化。
     expect(listApplications).toHaveBeenLastCalledWith({
       page: 1,
       pageSize: 20,
-      status: 3,
+      status:
+        FinanceCommissionApplicationStatus.FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW,
       applicationMonth: '2026-08',
-      employeeId: 'emp-1',
+      employeeId: undefined,
     });
 
-    fireEvent.click(screen.getByRole('button', { name: '重置筛选' }));
+    // 重置：清空已提交条件并回到默认待审批队列。
+    fireEvent.click(screen.getByText('重置'));
     await waitFor(() => expect(listApplications).toHaveBeenCalledTimes(3));
     expect(listApplications).toHaveBeenLastCalledWith({
       page: 1,
