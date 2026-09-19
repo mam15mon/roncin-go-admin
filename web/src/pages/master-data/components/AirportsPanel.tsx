@@ -253,8 +253,9 @@ export default function AirportsPanel() {
         {
           name: 'name',
           label: '中文机场名',
-          placeholder: '选填，例如：上海浦东国际机场',
-          required: false,
+          placeholder: '例如：上海浦东国际机场',
+          required: true,
+          rules: [{ required: true, message: '请输入中文机场名' }],
         },
         {
           name: 'nameEn',
@@ -265,8 +266,9 @@ export default function AirportsPanel() {
         {
           name: 'cityName',
           label: '所在城市中文名',
-          placeholder: '选填，例如：上海、洛杉矶',
-          required: false,
+          placeholder: '例如：上海、洛杉矶',
+          required: true,
+          rules: [{ required: true, message: '请输入所在城市中文名' }],
         },
         {
           name: 'cityNameEn',

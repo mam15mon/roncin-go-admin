@@ -230,8 +230,9 @@ export default function PortsPanel() {
         {
           name: 'name',
           label: '中文港口名',
-          placeholder: '选填，例如：上海港、洛杉矶港',
-          required: false,
+          placeholder: '例如：上海港、洛杉矶港',
+          required: true,
+          rules: [{ required: true, message: '请输入中文港口名' }],
         },
         {
           name: 'nameEn',
