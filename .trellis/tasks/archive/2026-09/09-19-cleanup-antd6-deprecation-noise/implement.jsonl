@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范入口与质量检查最小集选择"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "UI 模板规范；List→Listy、addonAfter→Space.Compact 需保持统一视觉"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "pnpm 禁令与校验命令约束"}
+{"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "页面组织与生成物边界，禁止手改生成物"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "迁移改名后的 props 类型对齐"}
