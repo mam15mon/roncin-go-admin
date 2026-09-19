@@ -1886,3 +1886,25 @@ TFilter 泛型化（豁免 41→7，发现港口/机场契约缺口）、ADR 15 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 76: 修正港口机场表单必填契约缺口
+<!-- trellis-session: v=2 fp=bb96c0f24848848e -->
+
+**Date**: 2026-09-19
+**Task**: 修正港口机场表单必填契约缺口
+**Branch**: `main`
+
+### Summary
+
+二期 TFilter 泛型化暴露的契约缺口：三处表单必填性对齐 REQUIRED 契约。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4a0ffdbd` | fix(web): 港口与机场表单必填性对齐创建/更新契约 |
+
+### Status
+
+[OK] **Completed**
