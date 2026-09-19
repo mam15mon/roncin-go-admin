@@ -1,0 +1,1 @@
+{"file": "server/internal/data/order_lock_integration_test.go", "reason": "锁与写入拆分后必须全绿的集成测试"}
