@@ -1409,3 +1409,37 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 54: 我的工作台与提成透出看板全量交付与风险清零
+<!-- trellis-session: v=2 fp=ba81a6190ae5c44d -->
+
+**Date**: 2026-09-19
+**Task**: 我的工作台与提成透出看板全量交付与风险清零
+**Branch**: `feat/my-workbench-and-commission`
+
+### Summary
+
+交付提成方案+员工有效期分配模型（固定锁序与实际区间唯一）、工作台资格门禁读模型、订单列表提成隐私投影与自适应前端；trellis-check 确认 AC1-AC11 落实并修复 P1 兄弟枚举消费（沉淀新 spec）；三代理并行清零遗留风险：存量集成测试 0 失败、FeeSupplementModal 抖动 8/8 稳定、Overview/EMPLOYEE 摘要最坏分布 253-291ms→84-110ms / 342-382ms→36-46ms 达标。分支 feat/my-workbench-and-commission 待合并 main。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `407688f4` | feat(finance): 支持提成方案分配多名员工 |
+| `9a0ca818` | feat(finance): 强制提成方案员工区间唯一 |
+| `f6d05596` | refactor(finance): 按方案员工分配自动解析提成 |
+| `ee1f7cdb` | feat(workbench): 提供按资格组合的工作台读模型 |
+| `84da21df` | feat(order): 按提成权限投影订单列表摘要 |
+| `984dc21f` | feat(web): 上线自适应工作台与提成摘要 |
+| `5162f69a` | test(workbench): 修复访问规则测试包清单缺 workbench.v1 并记录阶段 G 验证 |
+| `3d7b8a08` | fix(web): 工作台状态消费改用 WorkbenchCommissionStatus 生成常量 |
+| `0f092f6c` | docs(spec): 沉淀提成方案分配契约与兄弟枚举禁令并同步任务清单 |
+| `e7aefd6e` | test(server): 修复存量集成测试夹具与隔离设计 |
+| `08ea9968` | perf(server): 优化工作台与订单提成摘要查询计划 |
+| `edc9da40` | test(web): 稳定费用补录弹窗校验文案断言 |
+| `6fcba5ff` | docs(task): 记录遗留风险修复结果与运维注意项 |
+
+### Status
+
+[OK] **Completed**
