@@ -1864,3 +1864,25 @@ pages 全域 101 处 any 清零（分域表单类型化+unknown 收窄），comp
 ### Status
 
 [OK] **Completed**
+
+
+## Session 75: AI 友好架构二期收尾
+<!-- trellis-session: v=2 fp=5ef739bf86b3430b -->
+
+**Date**: 2026-09-19
+**Task**: AI 友好架构二期收尾
+**Branch**: `main`
+
+### Summary
+
+TFilter 泛型化（豁免 41→7，发现港口/机场契约缺口）、ADR 15 条、错误码 369 码目录三项全部合入归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3aed8905` | refactor(web): 台账模板筛选参数泛型化 |
+
+### Status
+
+[OK] **Completed**
