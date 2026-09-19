@@ -53,7 +53,7 @@ export default function QuickAddFeeModal({
   }, [open]);
 
   return (
-    <QuickCreateModal<any, API.FeeSetting>
+    <QuickCreateModal<API.CreateFeeSettingRequest, API.FeeSetting>
       title="快捷新增费用科目"
       open={open}
       width={580}

@@ -18,7 +18,9 @@ import {
 } from '@/services/roncin/seaSharedContainerService';
 import SeaSharedContainerAllocationTable from './SeaSharedContainerAllocationTable';
 import SeaSharedContainerCardList from './SeaSharedContainerCardList';
-import SeaSharedContainerCreateModal from './SeaSharedContainerCreateModal';
+import SeaSharedContainerCreateModal, {
+  type SeaSharedContainerFormValues,
+} from './SeaSharedContainerCreateModal';
 import SeaSharedContainerDetailCard from './SeaSharedContainerDetailCard';
 import {
   buildAllocationInputs,
@@ -445,7 +447,7 @@ export default function SeaSharedContainerDrawer({
   };
 
   // 新建共享箱提交
-  const handleCreateSubmit = async (values: any) => {
+  const handleCreateSubmit = async (values: SeaSharedContainerFormValues) => {
     if (!transportExecutionId || !orderId) return;
     setSubmitting(true);
     try {

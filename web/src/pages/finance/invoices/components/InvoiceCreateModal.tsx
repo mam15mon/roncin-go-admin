@@ -17,6 +17,7 @@ import {
   settlementServiceListInvoiceProfilesForBill,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 const { Text } = Typography;
 
@@ -65,10 +66,10 @@ export default function InvoiceCreateModal({
       .then((response) => {
         if (!cancelled) setOrganizationOptions(response.data ?? []);
       })
-      .catch((error: any) => {
+      .catch((error: unknown) => {
         if (!cancelled) {
           setOrganizationOptions([]);
-          message.error(error.message || '加载可开票所属公司失败');
+          message.error(getErrorMessage(error, '加载可开票所属公司失败'));
         }
       });
     return () => {
@@ -119,9 +120,9 @@ export default function InvoiceCreateModal({
           '该结算单位尚未配置可用开票抬头，请先到往来单位档案维护',
         );
       }
-    } catch (error: any) {
+    } catch (error) {
       if (requestSequence !== profileRequestSequence.current) return;
-      message.error(error.message || '加载开票抬头失败');
+      message.error(getErrorMessage(error, '加载开票抬头失败'));
     }
   };
 

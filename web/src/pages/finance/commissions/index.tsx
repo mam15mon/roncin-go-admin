@@ -39,6 +39,7 @@ import {
   settlementServiceMarkCommissionPaid,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { makeVersionActions } from '@/utils/versionActions';
 import {
   buildCommissionExportFileName,
@@ -118,8 +119,8 @@ export default function FinanceCommissionsPage() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       message.success(`成功导出 ${response.data?.length ?? 0} 条提成`);
-    } catch (error: any) {
-      message.error(error.message || '提成导出失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '提成导出失败'));
     } finally {
       setExporting(false);
     }
@@ -145,8 +146,8 @@ export default function FinanceCommissionsPage() {
         id: commissionId,
       });
       setDetail(response.data);
-    } catch (error: any) {
-      message.error(error.message || '提成明细加载失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '提成明细加载失败'));
       setDetailOpen(false);
     } finally {
       setDetailLoading(false);
@@ -213,7 +214,7 @@ export default function FinanceCommissionsPage() {
           }
           message.success(`${action}成功`);
           await refreshDetail();
-        } catch (error: any) {
+        } catch (error) {
           const reason = getBusinessReason(error);
           if (
             reason === financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS
@@ -232,7 +233,7 @@ export default function FinanceCommissionsPage() {
             await refreshDetail();
             return;
           }
-          message.error(error.message || `${action}失败`);
+          message.error(getErrorMessage(error, `${action}失败`));
         }
       },
     });
@@ -250,8 +251,8 @@ export default function FinanceCommissionsPage() {
           );
           message.success('调整已取消');
           await refreshDetail();
-        } catch (error: any) {
-          message.error(error.message || '取消调整失败');
+        } catch (error) {
+          message.error(getErrorMessage(error, '取消调整失败'));
         }
       },
       {
@@ -288,7 +289,7 @@ export default function FinanceCommissionsPage() {
           if (detail?.id === id) {
             await refreshDetail();
           }
-        } catch (error: any) {
+        } catch (error) {
           const reason = getBusinessReason(error);
           if (
             reason === financeErrorReasons.FINANCE_COMMISSION_SOURCE_CHANGED
@@ -315,7 +316,7 @@ export default function FinanceCommissionsPage() {
             if (detail?.id === id) await refreshDetail();
             return;
           }
-          message.error(error.message || `${action}失败`);
+          message.error(getErrorMessage(error, `${action}失败`));
         }
       },
     });
@@ -336,8 +337,8 @@ export default function FinanceCommissionsPage() {
           if (detail?.id === id) {
             await refreshDetail();
           }
-        } catch (error: any) {
-          message.error(error.message || '取消提成失败');
+        } catch (error) {
+          message.error(getErrorMessage(error, '取消提成失败'));
         }
       },
       {

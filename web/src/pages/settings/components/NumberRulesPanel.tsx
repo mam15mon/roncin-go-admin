@@ -35,13 +35,14 @@ import { unwrapList } from '@/utils/api';
 import NumberRuleCard from './number-rules/NumberRuleCard';
 import NumberRuleEditModal from './number-rules/NumberRuleEditModal';
 import {
-  DATE_FORMATS,
   DOC_TYPES,
   type DocTypeMeta,
-  docTypeMap,
   filterVisibleNumberRules,
   generatePreviewNumber,
-  RESET_POLICIES,
+  getDateFormatMeta,
+  getDocTypeMeta,
+  getResetPolicyMeta,
+  type NumberRuleFormValues,
 } from './number-rules/numberRulesConstants';
 
 export {
@@ -51,8 +52,11 @@ export {
   docTypeMap,
   filterVisibleNumberRules,
   generatePreviewNumber,
+  getDateFormatMeta,
+  getDocTypeMeta,
+  getResetPolicyMeta,
   RESET_POLICIES,
-};
+} from './number-rules/numberRulesConstants';
 
 const { Text } = Typography;
 
@@ -75,10 +79,10 @@ export function NumberRulesPanel() {
       setData(
         filterVisibleNumberRules(unwrapList(res)).sort((left, right) => {
           const leftOrder =
-            docTypeMap.get(left.documentType as any)?.numValue ??
+            getDocTypeMeta(left.documentType)?.numValue ??
             Number.MAX_SAFE_INTEGER;
           const rightOrder =
-            docTypeMap.get(right.documentType as any)?.numValue ??
+            getDocTypeMeta(right.documentType)?.numValue ??
             Number.MAX_SAFE_INTEGER;
           return leftOrder - rightOrder;
         }),
@@ -97,9 +101,9 @@ export function NumberRulesPanel() {
   // Handle Edit Click
   const handleOpenEdit = (rule: API.NumberRule) => {
     setEditingItem(rule);
-    const docMeta = docTypeMap.get(rule.documentType as any);
-    const dateMeta = DATE_FORMATS[rule.dateFormat as any];
-    const resetMeta = RESET_POLICIES[rule.resetPolicy as any];
+    const docMeta = getDocTypeMeta(rule.documentType);
+    const dateMeta = getDateFormatMeta(rule.dateFormat);
+    const resetMeta = getResetPolicyMeta(rule.resetPolicy);
 
     form.resetFields();
     form.setFieldsValue({
@@ -120,8 +124,8 @@ export function NumberRulesPanel() {
   ) => {
     if (!rule.id) return;
     try {
-      const dateMeta = DATE_FORMATS[rule.dateFormat as any];
-      const resetMeta = RESET_POLICIES[rule.resetPolicy as any];
+      const dateMeta = getDateFormatMeta(rule.dateFormat);
+      const resetMeta = getResetPolicyMeta(rule.resetPolicy);
       await masterDataServiceUpdateNumberRule(
         { id: rule.id },
         {
@@ -136,7 +140,7 @@ export function NumberRulesPanel() {
       setData((prev) =>
         prev.map((r) => (r.id === rule.id ? { ...r, enabled: checked } : r)),
       );
-      const docMeta = docTypeMap.get(rule.documentType as any);
+      const docMeta = getDocTypeMeta(rule.documentType);
       message.success(
         `${docMeta?.shortLabel || '单号规则'}已${checked ? '启用' : '停用'}`,
       );
@@ -146,7 +150,7 @@ export function NumberRulesPanel() {
   };
 
   // Submit Create / Edit
-  const handleFormFinish = async (values: any) => {
+  const handleFormFinish = async (values: NumberRuleFormValues) => {
     try {
       if (editingItem?.id) {
         await masterDataServiceUpdateNumberRule(
@@ -194,7 +198,7 @@ export function NumberRulesPanel() {
       key: 'documentType',
       width: 180,
       render: (docType) => {
-        const meta = docTypeMap.get(docType);
+        const meta = getDocTypeMeta(docType);
         return (
           <Tag
             color={meta?.color || 'blue'}
@@ -211,7 +215,7 @@ export function NumberRulesPanel() {
       key: 'prefix',
       width: 140,
       render: (prefix, record) => {
-        const meta = docTypeMap.get(record.documentType as any);
+        const meta = getDocTypeMeta(record.documentType);
         if (meta?.numValue === 1) {
           return (
             <Tag
@@ -246,7 +250,7 @@ export function NumberRulesPanel() {
       key: 'dateFormat',
       width: 170,
       render: (format) => {
-        const meta = DATE_FORMATS[format as any];
+        const meta = getDateFormatMeta(format);
         return meta?.label || '-';
       },
     },
@@ -263,7 +267,7 @@ export function NumberRulesPanel() {
       key: 'resetPolicy',
       width: 120,
       render: (policy) => {
-        const meta = RESET_POLICIES[policy as any];
+        const meta = getResetPolicyMeta(policy);
         return meta?.label || '-';
       },
     },
@@ -422,9 +426,7 @@ export function NumberRulesPanel() {
                 onClick={() => {
                   setEditingItem(null);
                   const existingTypes = new Set(
-                    data.map(
-                      (r) => docTypeMap.get(r.documentType as any)?.numValue,
-                    ),
+                    data.map((r) => getDocTypeMeta(r.documentType)?.numValue),
                   );
                   const firstUnused =
                     DOC_TYPES.find((t) => !existingTypes.has(t.numValue)) ||
@@ -461,9 +463,7 @@ export function NumberRulesPanel() {
           /* Card Grid View */
           <Row gutter={[16, 16]}>
             {data.map((rule) => {
-              const meta: DocTypeMeta = docTypeMap.get(
-                rule.documentType as any,
-              ) || {
+              const meta: DocTypeMeta = getDocTypeMeta(rule.documentType) || {
                 key: String(rule.documentType),
                 numValue: Number(rule.documentType) || 0,
                 label: `单据类型 ${rule.documentType}`,

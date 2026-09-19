@@ -24,6 +24,7 @@ import {
   settlementServiceUpdateBilledFeeEditPolicy,
   settlementServiceUpdateCreditLimitControlPolicy,
 } from '@/services/roncin/settlementService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
@@ -75,10 +76,10 @@ export function CustomSettingsPanel() {
       }
       setCreditPolicy(policyRes.data);
       setCanUpdateCreditPolicy(Boolean(policyRes.canUpdate));
-    } catch (e: any) {
+    } catch (e) {
       setCreditPolicy(undefined);
       setCanUpdateCreditPolicy(false);
-      message.error(e.message || '读取信用额度管控策略失败');
+      message.error(getErrorMessage(e, '读取信用额度管控策略失败'));
     }
   }, [message]);
 
@@ -91,10 +92,10 @@ export function CustomSettingsPanel() {
       }
       setBilledFeePolicy(policyRes.data);
       setCanUpdateBilledFeePolicy(Boolean(policyRes.canUpdate));
-    } catch (e: any) {
+    } catch (e) {
       setBilledFeePolicy(undefined);
       setCanUpdateBilledFeePolicy(false);
-      message.error(e.message || '当前公司无此设置权限');
+      message.error(getErrorMessage(e, '当前公司无此设置权限'));
     } finally {
       setLoadingPolicy(false);
     }
@@ -120,8 +121,8 @@ export function CustomSettingsPanel() {
           ? '已开启：账单创建后允许修改费用'
           : '已关闭：账单创建后允许修改费用',
       );
-    } catch (e: any) {
-      message.error(e.message || '更新账单费用修改策略失败，请刷新重试');
+    } catch (e) {
+      message.error(getErrorMessage(e, '更新账单费用修改策略失败，请刷新重试'));
       await loadBilledFeePolicy();
     } finally {
       setSavingPolicy(false);
@@ -139,8 +140,8 @@ export function CustomSettingsPanel() {
       });
       setBilledFeePolicy(response.data);
       message.success('已更新允许修改的费用字段');
-    } catch (e: any) {
-      message.error(e.message || '更新可修改字段失败，请刷新重试');
+    } catch (e) {
+      message.error(getErrorMessage(e, '更新可修改字段失败，请刷新重试'));
       await loadBilledFeePolicy();
     } finally {
       setSavingPolicy(false);
@@ -161,8 +162,8 @@ export function CustomSettingsPanel() {
           ? '已开启：超额往来单位仅提醒，仍可选择与录单'
           : '已关闭：超额往来单位将被置灰禁用并在保存时拦截',
       );
-    } catch (e: any) {
-      message.error(e.message || '更新信用额度管控策略失败，请刷新重试');
+    } catch (e) {
+      message.error(getErrorMessage(e, '更新信用额度管控策略失败，请刷新重试'));
       await loadCreditPolicy();
     } finally {
       setSavingCreditPolicy(false);

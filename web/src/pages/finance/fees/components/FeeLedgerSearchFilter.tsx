@@ -1,3 +1,4 @@
+import type { Dayjs } from 'dayjs';
 import React from 'react';
 import {
   type SearchFilterFieldItem,
@@ -14,7 +15,7 @@ export interface FeeLedgerFilterParams {
   settlementPartyId?: string;
   customerId?: string;
   billNo?: string;
-  expenseDateRange?: [any, any];
+  expenseDateRange?: [Dayjs, Dayjs];
 
   // 单据与往来
   orderNo?: string;
@@ -28,8 +29,8 @@ export interface FeeLedgerFilterParams {
   // 航次与人员
   businessType?: string;
   currency?: string;
-  etdRange?: [any, any];
-  etaRange?: [any, any];
+  etdRange?: [Dayjs, Dayjs];
+  etaRange?: [Dayjs, Dayjs];
   salesName?: string;
   operatorName?: string;
   csName?: string;
@@ -37,10 +38,10 @@ export interface FeeLedgerFilterParams {
   voyageNo?: string;
 
   // 账期与审计节点
-  invoiceDateRange?: [any, any];
-  verificationDateRange?: [any, any];
-  orderCreatedAtRange?: [any, any];
-  billCreatedAtRange?: [any, any];
+  invoiceDateRange?: [Dayjs, Dayjs];
+  verificationDateRange?: [Dayjs, Dayjs];
+  orderCreatedAtRange?: [Dayjs, Dayjs];
+  billCreatedAtRange?: [Dayjs, Dayjs];
 
   // 合约风控与标签
   isReconciled?: string;

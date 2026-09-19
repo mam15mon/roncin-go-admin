@@ -15,13 +15,14 @@ import {
   findAncestorKeys,
   findChildRawsByKey,
   findNodeRawByKey,
+  type OrgGraphData,
   resolveTreeData,
 } from './orgChartLayout';
 import { useOrgChartViewport } from './useOrgChartViewport';
 
 export type OrgChartCanvasProps = {
   loading: boolean;
-  graphData?: { nodes: any[]; edges: any[] };
+  graphData?: OrgGraphData;
   treeData?: OrgTreeNode[];
   chartDirection: 'vertical' | 'horizontal';
   selectedId: string;

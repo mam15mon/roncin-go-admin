@@ -7,7 +7,11 @@ import {
 } from '@ant-design/pro-components';
 import { Col, type FormInstance } from 'antd';
 import React from 'react';
-import { DOC_TYPES, docTypeMap } from './numberRulesConstants';
+import {
+  DOC_TYPES,
+  getDocTypeMeta,
+  type NumberRuleFormValues,
+} from './numberRulesConstants';
 
 interface NumberRuleEditModalProps {
   open: boolean;
@@ -15,7 +19,7 @@ interface NumberRuleEditModalProps {
   editingItem?: API.NumberRule;
   data: API.NumberRule[];
   form: FormInstance;
-  onFinish: (values: any) => Promise<boolean>;
+  onFinish: (values: NumberRuleFormValues) => Promise<boolean>;
 }
 
 export default function NumberRuleEditModal({
@@ -30,7 +34,7 @@ export default function NumberRuleEditModal({
     <ModalForm
       title={
         editingItem
-          ? `编辑【${docTypeMap.get(editingItem.documentType as any)?.label || '单据'}】规则`
+          ? `编辑【${getDocTypeMeta(editingItem.documentType)?.label || '单据'}】规则`
           : '新建单据编号规则'
       }
       open={open}
@@ -56,9 +60,7 @@ export default function NumberRuleEditModal({
             const alreadyExists =
               !editingItem &&
               data.some(
-                (r) =>
-                  docTypeMap.get(r.documentType as any)?.numValue ===
-                  t.numValue,
+                (r) => getDocTypeMeta(r.documentType)?.numValue === t.numValue,
               );
             return {
               label: alreadyExists ? `${t.label} (已配置)` : t.label,

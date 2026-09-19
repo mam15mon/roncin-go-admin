@@ -2,6 +2,7 @@ import { App } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 /** 加载订单档案与费用录入候选项、财务锁定状态。 */
 export function useOrderFeeOptions(orderId?: string) {
@@ -73,7 +74,7 @@ export function useOrderFeeOptions(orderId?: string) {
       setFinanceLockReason(optionsRes.financeLockReason || '');
       setFinanceLockCommissionNos(optionsRes.financeLockCommissionNos || []);
       setCustomerName(optionsRes.customerName || '');
-    } catch (error: any) {
+    } catch (error) {
       if (
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current
@@ -89,7 +90,7 @@ export function useOrderFeeOptions(orderId?: string) {
         setFinanceLockReason('');
         setFinanceLockCommissionNos([]);
         setCustomerName('');
-        message.error(error.message || '加载费用信息失败');
+        message.error(getErrorMessage(error, '加载费用信息失败'));
       }
     } finally {
       if (

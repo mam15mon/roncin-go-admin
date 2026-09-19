@@ -22,6 +22,7 @@ import {
 } from '@/services/roncin/orderFeeService';
 import { unwrapList } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import FeeFormModal, {
@@ -354,8 +355,8 @@ export default function OrderFeesPage() {
       receivableActionRef.current?.reload();
       payableActionRef.current?.reload();
       return true;
-    } catch (error: any) {
-      message.error(error.message || '保存费用失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '保存费用失败'));
       return false;
     }
   };
@@ -395,8 +396,8 @@ export default function OrderFeesPage() {
       );
       message.success('费用已确认，可以进入账单');
       reloadFeeTables();
-    } catch (error: any) {
-      message.error(error.message || '确认费用失败');
+    } catch (error) {
+      message.error(getErrorMessage(error, '确认费用失败'));
     }
   };
 

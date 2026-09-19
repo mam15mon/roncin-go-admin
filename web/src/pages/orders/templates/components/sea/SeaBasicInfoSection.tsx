@@ -24,7 +24,7 @@ import PartnerQuickAddSelect, {
 } from '../../../components/PartnerQuickAddSelect';
 import type { SelectOption, TemplateProps } from '../../types';
 
-export function TooltipInput(props: any) {
+export function TooltipInput(props: React.ComponentProps<typeof Input>) {
   const [value, setValue] = React.useState(props.value || '');
   React.useEffect(() => {
     setValue(props.value || '');

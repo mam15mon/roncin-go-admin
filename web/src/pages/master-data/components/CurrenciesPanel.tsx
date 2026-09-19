@@ -13,6 +13,7 @@ import {
   masterDataServiceSetCurrencyEnabled,
 } from '@/services/roncin/masterDataService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { getCurrencies } from '@/utils/options';
 
 export interface CurrencyItem extends BaseMasterDataItem {
@@ -44,8 +45,8 @@ export default function CurrenciesPanel() {
         updatedAt: item.updatedAt,
       }));
       setData(items);
-    } catch (err: any) {
-      message.error(err.message || '货币主数据加载失败');
+    } catch (err) {
+      message.error(getErrorMessage(err, '货币主数据加载失败'));
     } finally {
       setLoading(false);
     }
@@ -70,8 +71,8 @@ export default function CurrenciesPanel() {
       );
       await fetchCurrencies();
       getCurrencies(true);
-    } catch (err: any) {
-      message.error(err?.message || '操作失败');
+    } catch (err) {
+      message.error(getErrorMessage(err, '操作失败'));
     }
   };
 

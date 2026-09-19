@@ -83,7 +83,7 @@ export function amount(value?: string | number) {
   return Number(value || 0);
 }
 
-export function formatRate(value?: any): string {
+export function formatRate(value?: string | number | null): string {
   if (value === undefined || value === null || value === '') return '-';
   const num = Number(value);
   if (Number.isNaN(num)) return String(value);
@@ -320,9 +320,9 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       width: 80,
       align: 'right',
       search: false,
-      render: (val) => (
+      render: (_, row) => (
         <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
-          {formatRate(val)}
+          {formatRate(row.exchangeRate)}
         </span>
       ),
     },

@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { PartnerImportMode, PartnerRoleType } from '@/enums.generated';
 import { partnerServiceImportPartners } from '@/services/roncin/partnerService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { longRequestOptions } from '@/utils/requestTimeout';
 
 const { Text } = Typography;
@@ -237,8 +238,8 @@ export default function PartnerExcelImportModal({
       } else {
         message.success(`成功解析 ${items.length} 条数据`);
       }
-    } catch (e: any) {
-      setParseErrors([e?.message || '读取 Excel 文件发生错误']);
+    } catch (e) {
+      setParseErrors([getErrorMessage(e, '读取 Excel 文件发生错误')]);
       message.error('解析 Excel 文件失败，请确认文件格式为有效 .xlsx');
     }
   };
@@ -273,8 +274,8 @@ export default function PartnerExcelImportModal({
       );
       onSuccess();
       handleClose();
-    } catch (e: any) {
-      message.error(e?.message || '导入数据失败');
+    } catch (e) {
+      message.error(getErrorMessage(e, '导入数据失败'));
     } finally {
       setImporting(false);
     }

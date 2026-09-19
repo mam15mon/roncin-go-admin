@@ -19,6 +19,7 @@ import {
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import {
   calculationBasisMeta,
   calculationBasisText,
@@ -149,7 +150,7 @@ export default function CommissionRulesDrawer({
     void searchEmployees('', record.organizationId, setEmployeeOptions);
   };
 
-  const handleRuleError = (error: any, fallback: string) => {
+  const handleRuleError = (error: unknown, fallback: string) => {
     const reason = getBusinessReason(error);
     if (reason === financeErrorReasons.FINANCE_COMMISSION_RULE_CONFLICT) {
       modal.warning({
@@ -174,7 +175,7 @@ export default function CommissionRulesDrawer({
       message.error('方案已生效，核心参数不可修改，请复制为新方案');
       return;
     }
-    message.error(error.message || fallback);
+    message.error(getErrorMessage(error, fallback));
   };
 
   // 方案核心参数：名单变更只走名单管理入口，不随本表单提交。
@@ -221,7 +222,7 @@ export default function CommissionRulesDrawer({
       setRuleFormOpen(false);
       ruleActionRef.current?.reload();
       return true;
-    } catch (error: any) {
+    } catch (error) {
       handleRuleError(error, '保存方案失败');
       return false;
     }
@@ -261,7 +262,7 @@ export default function CommissionRulesDrawer({
       setCopySourceRule(undefined);
       ruleActionRef.current?.reload();
       return true;
-    } catch (error: any) {
+    } catch (error) {
       handleRuleError(error, '复制方案失败');
       return false;
     }

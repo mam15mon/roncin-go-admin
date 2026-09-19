@@ -7,6 +7,7 @@ import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPerso
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { unwrapList } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { getOrderPersonnelOptions } from '@/utils/order-options-cache';
 import {
   fetchOrderMasterData,
@@ -179,7 +180,7 @@ export function useOrderDetailData(
       setErrorState(null);
       setShippingDocs(unwrapList(docsRes));
       setPersonnel(unwrapList(personnelRes));
-    } catch (err: any) {
+    } catch (err) {
       if (
         currentRequestId === requestIdRef.current &&
         currentOrderId === activeOrderIdRef.current &&
@@ -201,7 +202,7 @@ export function useOrderDetailData(
         });
         setShippingDocs([]);
         setPersonnel([]);
-        message.error(err.message || '加载订单数据失败');
+        message.error(getErrorMessage(err, '加载订单数据失败'));
       }
     } finally {
       if (

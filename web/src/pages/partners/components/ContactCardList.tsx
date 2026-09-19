@@ -23,6 +23,15 @@ const { Text } = Typography;
 
 export type ContactItem = API.PartnerContact & { name: string };
 
+/** 联系人编辑表单值。 */
+export type ContactFormValues = {
+  name?: string;
+  phone?: string;
+  email?: string;
+  note?: string;
+  isPrimary?: boolean;
+};
+
 interface ContactCardListProps {
   contacts: ContactItem[];
   onChange: (contacts: ContactItem[]) => void;
@@ -35,12 +44,14 @@ export default function ContactCardList({
   const { message } = App.useApp();
 
   const handleSave = (
-    values: any,
+    values: ContactFormValues,
     _editingItem?: ContactItem,
     editingIndex?: number,
   ) => {
+    // name 为必填项，弹窗保存仅在表单校验通过后触发，此处按已校验视图读取
+    const validated = values as ContactFormValues & { name: string };
     const newItem: ContactItem = {
-      name: values.name?.trim(),
+      name: validated.name.trim(),
       phone: values.phone?.trim(),
       email: values.email?.trim(),
       note: values.note?.trim(),
@@ -71,7 +82,7 @@ export default function ContactCardList({
   };
 
   return (
-    <SubEntityCardGrid<ContactItem>
+    <SubEntityCardGrid<ContactItem, ContactFormValues>
       entityName="联系人"
       title="联系人"
       items={contacts}

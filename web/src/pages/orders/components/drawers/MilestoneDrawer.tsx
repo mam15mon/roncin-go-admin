@@ -6,7 +6,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { Tag, Typography } from 'antd';
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 import React, { forwardRef } from 'react';
 import {
   type SubEntityDrawerRef,
@@ -28,7 +28,8 @@ type MilestoneDrawerProps = {
 
 type MilestoneFormValues = {
   type: string;
-  occurredAt?: string;
+  /** DateTimePicker 表单值：运行时为 dayjs 对象，提交时序列化为 ISO 字符串。 */
+  occurredAt?: Dayjs;
   clearOccurredAt?: boolean;
   note?: string;
 };
@@ -149,7 +150,7 @@ const MilestoneDrawer = forwardRef<MilestoneDrawerRef, MilestoneDrawerProps>(
             ? {
                 type: editing.type ?? '',
                 occurredAt: editing.occurredAt
-                  ? (dayjs(editing.occurredAt) as any)
+                  ? dayjs(editing.occurredAt)
                   : undefined,
                 clearOccurredAt: false,
                 note: editing.note,

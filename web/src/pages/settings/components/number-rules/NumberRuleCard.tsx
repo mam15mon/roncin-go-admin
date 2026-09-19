@@ -5,6 +5,8 @@ import {
   DATE_FORMATS,
   type DocTypeMeta,
   generatePreviewNumber,
+  getDateFormatMeta,
+  getResetPolicyMeta,
   RESET_POLICIES,
 } from './numberRulesConstants';
 
@@ -24,9 +26,8 @@ export default function NumberRuleCard({
   onCopyPreview,
 }: NumberRuleCardProps) {
   const sample = generatePreviewNumber(rule);
-  const dateMeta = DATE_FORMATS[rule.dateFormat as any] || DATE_FORMATS[4];
-  const resetMeta =
-    RESET_POLICIES[rule.resetPolicy as any] || RESET_POLICIES[4];
+  const dateMeta = getDateFormatMeta(rule.dateFormat) || DATE_FORMATS[4];
+  const resetMeta = getResetPolicyMeta(rule.resetPolicy) || RESET_POLICIES[4];
 
   return (
     <Card
