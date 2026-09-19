@@ -1709,3 +1709,25 @@ biz 1361 行拆 4 文件、data 1669 行拆 5 文件，零丢失，定向集成�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 68: 前端代码卫生收敛
+<!-- trellis-session: v=2 fp=eaf0946f22e9b993 -->
+
+**Date**: 2026-09-19
+**Task**: 前端代码卫生收敛
+**Branch**: `main`
+
+### Summary
+
+116 文件格式漂移清零 + getErrorMessage 三处统一 + biome 生成物 ignore 补全；tsc 零错误，全量测试通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9191e0c6` | chore(web): 收敛 biome 格式与导入排序漂移并统一错误文案工具 |
+
+### Status
+
+[OK] **Completed**
