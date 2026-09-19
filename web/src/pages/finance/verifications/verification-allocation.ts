@@ -49,7 +49,10 @@ export function buildVerificationAllocations(
 }
 
 export function sumVerificationAmounts(values: string[]) {
-  return values.reduce((total, value) => total.plus(money(value)), new Decimal(0));
+  return values.reduce(
+    (total, value) => total.plus(money(value)),
+    new Decimal(0),
+  );
 }
 
 export function isPositiveVerificationAmount(value?: string) {

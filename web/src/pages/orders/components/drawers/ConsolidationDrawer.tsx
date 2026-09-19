@@ -27,9 +27,7 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
     return (
       <Drawer
         title={
-          order
-            ? `自拼订单汇总 - ${order.orderNo || order.id}`
-            : '自拼订单汇总'
+          order ? `自拼订单汇总 - ${order.orderNo || order.id}` : '自拼订单汇总'
         }
         open={drawerOpen}
         onClose={() => {

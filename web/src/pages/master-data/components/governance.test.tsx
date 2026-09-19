@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -105,9 +111,7 @@ describe('主数据页签组织身份收敛（A 型只读 / B 型基线+本地�
 
     await waitFor(() => expect(screen.getByText('CN')).toBeInTheDocument());
     expect(screen.getByText('由总部统一维护与共享')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /新增国家与地区/ }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: /新增国家与地区/ })).toBeNull();
     expect(screen.queryByText('编辑')).toBeNull();
   });
 
@@ -136,9 +140,7 @@ describe('主数据页签组织身份收敛（A 型只读 / B 型基线+本地�
     renderPanel(<CountriesPanel />);
 
     await waitFor(() => expect(screen.getByText('CN')).toBeInTheDocument());
-    expect(
-      screen.queryByRole('button', { name: /新增国家与地区/ }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: /新增国家与地区/ })).toBeNull();
     expect(screen.queryByText('编辑')).toBeNull();
   });
 

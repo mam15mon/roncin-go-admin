@@ -11,9 +11,9 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import type { DefaultOptionType } from 'antd/es/select';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
-import type { DefaultOptionType } from 'antd/es/select';
 import {
   seaOrderChangeServiceExecuteSeaTransportExecutionUpdate,
   seaOrderChangeServicePreviewSeaTransportExecutionUpdate,
@@ -45,7 +45,9 @@ type SeaTransportExecutionUpdateModalProps = {
   searchLocations?: (keyword?: string) => Promise<DefaultOptionType[]>;
 };
 
-function toUpdateInput(values: VoyageUpdateFormValues): API.SeaTransportExecutionUpdateInput {
+function toUpdateInput(
+  values: VoyageUpdateFormValues,
+): API.SeaTransportExecutionUpdateInput {
   return {
     originLocationId: values.originLocationId || undefined,
     dischargeLocationId: values.dischargeLocationId || undefined,
@@ -74,7 +76,9 @@ export default function SeaTransportExecutionUpdateModal({
   const [previewInput, setPreviewInput] =
     useState<API.SeaTransportExecutionUpdateInput>();
   const [idempotencyKey, setIdempotencyKey] = useState('');
-  const [locationOptions, setLocationOptions] = useState<DefaultOptionType[]>([]);
+  const [locationOptions, setLocationOptions] = useState<DefaultOptionType[]>(
+    [],
+  );
 
   const transportExecution = order.seaMasterBill;
   const expectedVersion = (
@@ -132,7 +136,9 @@ export default function SeaTransportExecutionUpdateModal({
       setPreviewInput(input);
     } catch (error: unknown) {
       if (!(typeof error === 'object' && error && 'errorFields' in error)) {
-        message.error(error instanceof Error ? error.message : '共享航次预览失败');
+        message.error(
+          error instanceof Error ? error.message : '共享航次预览失败',
+        );
       }
     } finally {
       setPreviewing(false);
@@ -140,7 +146,12 @@ export default function SeaTransportExecutionUpdateModal({
   };
 
   const handleExecute = async () => {
-    if (!order.id || !expectedVersion || !preview?.executable || !previewInput) {
+    if (
+      !order.id ||
+      !expectedVersion ||
+      !preview?.executable ||
+      !previewInput
+    ) {
       return;
     }
     try {
@@ -161,7 +172,9 @@ export default function SeaTransportExecutionUpdateModal({
       onClose();
     } catch (error: unknown) {
       if (!(typeof error === 'object' && error && 'errorFields' in error)) {
-        message.error(error instanceof Error ? error.message : '共享航次调整失败');
+        message.error(
+          error instanceof Error ? error.message : '共享航次调整失败',
+        );
       }
     } finally {
       setExecuting(false);
@@ -213,7 +226,9 @@ export default function SeaTransportExecutionUpdateModal({
       ]}
     >
       {!expectedVersion ? (
-        <Text type="danger">当前订单缺少有效的运输执行版本，请刷新后重试。</Text>
+        <Text type="danger">
+          当前订单缺少有效的运输执行版本，请刷新后重试。
+        </Text>
       ) : null}
       <Form
         form={form}
@@ -245,7 +260,9 @@ export default function SeaTransportExecutionUpdateModal({
         <Form.Item
           name="reason"
           label="调整原因"
-          rules={[{ required: true, whitespace: true, message: '请输入调整原因' }]}
+          rules={[
+            { required: true, whitespace: true, message: '请输入调整原因' },
+          ]}
         >
           <Input.TextArea rows={2} maxLength={500} showCount />
         </Form.Item>
@@ -269,7 +286,10 @@ export default function SeaTransportExecutionUpdateModal({
             ]}
           />
           {(preview.impacts ?? []).map((impact) => (
-            <Tag key={`${impact.factType}-${impact.referenceId}`} color="orange">
+            <Tag
+              key={`${impact.factType}-${impact.referenceId}`}
+              color="orange"
+            >
               {impact.message}
             </Tag>
           ))}

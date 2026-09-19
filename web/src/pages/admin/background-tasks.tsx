@@ -48,18 +48,28 @@ const { Text } = Typography;
 
 const activeStatusValueEnum = makeValueEnum({
   [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_PENDING]:
-    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_PENDING],
+    backgroundTaskStatusMeta[
+      BackgroundTaskStatus.BACKGROUND_TASK_STATUS_PENDING
+    ],
   [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_RUNNING]:
-    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_RUNNING],
+    backgroundTaskStatusMeta[
+      BackgroundTaskStatus.BACKGROUND_TASK_STATUS_RUNNING
+    ],
   [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED]:
-    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED],
+    backgroundTaskStatusMeta[
+      BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED
+    ],
 });
 
 const historyStatusValueEnum = makeValueEnum({
   [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_SUCCEEDED]:
-    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_SUCCEEDED],
+    backgroundTaskStatusMeta[
+      BackgroundTaskStatus.BACKGROUND_TASK_STATUS_SUCCEEDED
+    ],
   [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER]:
-    backgroundTaskStatusMeta[BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER],
+    backgroundTaskStatusMeta[
+      BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER
+    ],
 });
 
 export default function BackgroundTasksPanel() {
@@ -215,7 +225,8 @@ export default function BackgroundTasksPanel() {
       render: (_, record) => {
         if (!access.canRequeueTasks) return null;
         if (
-          record.status !== BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED &&
+          record.status !==
+            BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED &&
           record.status !==
             BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER
         )
@@ -260,15 +271,11 @@ export default function BackgroundTasksPanel() {
             activeKey={String(taskPhase)}
             items={[
               {
-                key: String(
-                  BackgroundTaskPhase.BACKGROUND_TASK_PHASE_ACTIVE,
-                ),
+                key: String(BackgroundTaskPhase.BACKGROUND_TASK_PHASE_ACTIVE),
                 label: '正在进行',
               },
               {
-                key: String(
-                  BackgroundTaskPhase.BACKGROUND_TASK_PHASE_HISTORY,
-                ),
+                key: String(BackgroundTaskPhase.BACKGROUND_TASK_PHASE_HISTORY),
                 label: '历史记录',
               },
             ]}

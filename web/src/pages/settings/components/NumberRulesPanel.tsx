@@ -7,7 +7,6 @@ import {
   ReloadOutlined,
   TableOutlined,
 } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
 import {
   App,
   Badge,
@@ -25,33 +24,34 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useEffect, useState } from 'react';
-import { unwrapList } from '@/utils/api';
 import {
   masterDataServiceCreateNumberRule,
   masterDataServiceListNumberRules,
   masterDataServiceUpdateNumberRule,
 } from '@/services/roncin/masterDataService';
+import { unwrapList } from '@/utils/api';
 import NumberRuleCard from './number-rules/NumberRuleCard';
 import NumberRuleEditModal from './number-rules/NumberRuleEditModal';
 import {
   DATE_FORMATS,
   DOC_TYPES,
   type DocTypeMeta,
-  RESET_POLICIES,
   docTypeMap,
   filterVisibleNumberRules,
   generatePreviewNumber,
+  RESET_POLICIES,
 } from './number-rules/numberRulesConstants';
 
 export {
-  DOC_TYPES,
   DATE_FORMATS,
-  RESET_POLICIES,
+  DOC_TYPES,
+  type DocTypeMeta,
   docTypeMap,
   filterVisibleNumberRules,
   generatePreviewNumber,
-  type DocTypeMeta,
+  RESET_POLICIES,
 };
 
 const { Text } = Typography;
@@ -296,9 +296,7 @@ export function NumberRulesPanel() {
                 type="text"
                 size="small"
                 icon={
-                  <CopyOutlined
-                    style={{ fontSize: 11, color: '#8c8c8c' }}
-                  />
+                  <CopyOutlined style={{ fontSize: 11, color: '#8c8c8c' }} />
                 }
                 onClick={() => handleCopyPreview(sample.text)}
                 style={{ width: 20, height: 20, padding: 0 }}
@@ -425,8 +423,7 @@ export function NumberRulesPanel() {
                   setEditingItem(null);
                   const existingTypes = new Set(
                     data.map(
-                      (r) =>
-                        docTypeMap.get(r.documentType as any)?.numValue,
+                      (r) => docTypeMap.get(r.documentType as any)?.numValue,
                     ),
                   );
                   const firstUnused =

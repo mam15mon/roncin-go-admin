@@ -27,7 +27,8 @@ export default function SettingsPage() {
       label: '费用设置',
       icon: <AccountBookOutlined />,
       visible: access.canReadFeeSettings,
-      tooltip: '维护基础费用科目字典（如海运费、港杂费、报关费、拖车费等）、默认收付币种与税率规则',
+      tooltip:
+        '维护基础费用科目字典（如海运费、港杂费、报关费、拖车费等）、默认收付币种与税率规则',
       children: <FeeItemsPanel />,
     },
     {
@@ -43,7 +44,8 @@ export default function SettingsPage() {
       label: '计费单位设置',
       icon: <CalculatorOutlined />,
       visible: access.canReadFeeSettings,
-      tooltip: '定义计费计量基准（如按票、CBM、车、箱量等），并区分常规计量单位与集装箱箱型单位',
+      tooltip:
+        '定义计费计量基准（如按票、CBM、车、箱量等），并区分常规计量单位与集装箱箱型单位',
       children: <BillingUnitsPanel />,
     },
     {
@@ -51,7 +53,8 @@ export default function SettingsPage() {
       label: '异常情况设置',
       icon: <AlertOutlined />,
       visible: access.canReadMasterDataItems,
-      tooltip: '定义业务执行中的异常事件类型（如延航、查验、甩柜、货损、扣关等）及对应标识',
+      tooltip:
+        '定义业务执行中的异常事件类型（如延航、查验、甩柜、货损、扣关等）及对应标识',
       children: <AbnormalCasesPanel />,
     },
     {
@@ -59,7 +62,8 @@ export default function SettingsPage() {
       label: '编号规则设置',
       icon: <NumberOutlined />,
       visible: access.canReadMasterDataNumberRules,
-      tooltip: '自定义各类业务单据的自动生成规则（如订单号、提单号、发票号、账单号等），支持前后缀、日期格式与流水号配置',
+      tooltip:
+        '自定义各类业务单据的自动生成规则（如订单号、提单号、发票号、账单号等），支持前后缀、日期格式与流水号配置',
       children: <NumberRulesPanel />,
     },
     {

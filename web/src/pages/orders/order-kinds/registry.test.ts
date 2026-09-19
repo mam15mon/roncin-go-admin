@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { OrderBusinessType, TradeDirection } from '@/enums.generated';
-import { seaExportDefinition } from './sea-export/definition';
 import {
   getOrderKindDefinition,
   getOrderKindDefinitionByBusinessType,
   ORDER_KIND_REGISTRY,
 } from './registry';
+import { seaExportDefinition } from './sea-export/definition';
 
 describe('订单类型注册表', () => {
   it('只注册 sea-export，且元数据与生成枚举一致', () => {
@@ -27,7 +27,9 @@ describe('订单类型注册表', () => {
     expect(getOrderKindDefinition('/orders/sea-export')).toBe(byKind);
     expect(getOrderKindDefinition('/orders/sea-export/new')).toBe(byKind);
     expect(getOrderKindDefinition('/orders/sea-export/ord-1')).toBe(byKind);
-    expect(getOrderKindDefinition('/orders/sea-export/ord-1/fees')).toBe(byKind);
+    expect(getOrderKindDefinition('/orders/sea-export/ord-1/fees')).toBe(
+      byKind,
+    );
   });
 
   it.each([
@@ -53,9 +55,9 @@ describe('订单类型注册表', () => {
   });
 
   it('按业务枚举反查只命中已注册定义，未注册类型返回 undefined', () => {
-    expect(getOrderKindDefinitionByBusinessType(
-      OrderBusinessType.BUSINESS_TYPE_SE,
-    )).toBe(seaExportDefinition);
+    expect(
+      getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_SE),
+    ).toBe(seaExportDefinition);
     expect(
       getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_SI),
     ).toBeUndefined();
@@ -66,10 +68,14 @@ describe('订单类型注册表', () => {
       getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_AI),
     ).toBeUndefined();
     expect(
-      getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_LAND),
+      getOrderKindDefinitionByBusinessType(
+        OrderBusinessType.BUSINESS_TYPE_LAND,
+      ),
     ).toBeUndefined();
     expect(
-      getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_RAIL),
+      getOrderKindDefinitionByBusinessType(
+        OrderBusinessType.BUSINESS_TYPE_RAIL,
+      ),
     ).toBeUndefined();
     expect(getOrderKindDefinitionByBusinessType(0)).toBeUndefined();
   });

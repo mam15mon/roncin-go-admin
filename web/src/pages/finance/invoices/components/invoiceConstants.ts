@@ -1,13 +1,22 @@
 import { FinanceInvoiceStatus } from '@/enums.generated';
 
-export const invoiceStates: Record<
-  number,
-  { text: string; color: string }
-> = {
-  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT]: { text: '草稿', color: 'gold' },
-  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED]: { text: '已开具', color: 'green' },
-  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_CANCELLED]: { text: '已作废', color: 'default' },
-  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_RED_FLUSHED]: { text: '已红冲', color: 'error' },
+export const invoiceStates: Record<number, { text: string; color: string }> = {
+  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT]: {
+    text: '草稿',
+    color: 'gold',
+  },
+  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED]: {
+    text: '已开具',
+    color: 'green',
+  },
+  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_CANCELLED]: {
+    text: '已作废',
+    color: 'default',
+  },
+  [FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_RED_FLUSHED]: {
+    text: '已红冲',
+    color: 'error',
+  },
 };
 
 // 销项（应收方向）用「开具」语义，进项（应付方向）用「收票」语义；

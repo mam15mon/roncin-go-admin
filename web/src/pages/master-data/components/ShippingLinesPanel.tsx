@@ -64,12 +64,15 @@ export default function ShippingLinesPanel() {
   // A 型全局主数据（阶段一起后端写路径仅总部放行）：前端按钮同步收敛，
   // 非总部组织只读并提示由总部统一维护。
   const canCreate =
-    access.isHeadquartersOrganization && access.canCreateMasterDataShippingLines;
+    access.isHeadquartersOrganization &&
+    access.canCreateMasterDataShippingLines;
   const canUpdate =
-    access.isHeadquartersOrganization && access.canUpdateMasterDataShippingLines;
+    access.isHeadquartersOrganization &&
+    access.canUpdateMasterDataShippingLines;
   const fetchShippingLines = React.useCallback(
-    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
-      masterDataServiceListShippingLines(query),
+    (
+      query: import('@/components/ui/master-data-template').MasterDataListQuery,
+    ) => masterDataServiceListShippingLines(query),
     [],
   );
   const {
@@ -96,9 +99,7 @@ export default function ShippingLinesPanel() {
         countryCode: values.countryCode.toUpperCase().trim(),
         trackingUrl: values.trackingUrl?.trim() || undefined,
         alliance: values.alliance || undefined,
-        containerPrefixes: parseContainerPrefixes(
-          values.containerPrefixesText,
-        ),
+        containerPrefixes: parseContainerPrefixes(values.containerPrefixesText),
         source: 'manual',
         sortOrder: 100,
       }),
@@ -140,9 +141,8 @@ export default function ShippingLinesPanel() {
       extraStats={[
         {
           label: '三大班轮联盟',
-          value: data.filter(
-            (s) => s.alliance && s.alliance !== 'Independent',
-          ).length,
+          value: data.filter((s) => s.alliance && s.alliance !== 'Independent')
+            .length,
           color: '#1677ff',
         },
         {

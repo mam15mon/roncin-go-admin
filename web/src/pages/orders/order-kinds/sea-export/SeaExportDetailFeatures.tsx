@@ -6,8 +6,14 @@ import {
   SwapOutlined,
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
-import { App, Button, Tooltip, type MenuProps } from 'antd';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { App, Button, type MenuProps, Tooltip } from 'antd';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
 import SameBatchOrdersSection from '../../components/detail/SameBatchOrdersSection';
 import SeaOrderChangeHistoryDrawer, {
@@ -165,9 +171,7 @@ export default function SeaExportDetailFeatures({
         onClick: () => {
           const teId = order.seaMasterBill?.transportExecutionId;
           if (!teId) {
-            message.warning(
-              '当前订单尚未关联实际运输执行，无法开展跨订单拼箱',
-            );
+            message.warning('当前订单尚未关联实际运输执行，无法开展跨订单拼箱');
             return;
           }
           setSharedContainerTEId(teId);
@@ -324,15 +328,9 @@ export default function SeaExportDetailFeatures({
           transportExecutionId={sharedContainerTEId}
           orderId={orderId}
           orderNo={order.orderNo}
-          canCreate={
-            !businessWritesDisabled && canOrder('container.create')
-          }
-          canUpdate={
-            !businessWritesDisabled && canOrder('container.update')
-          }
-          canDelete={
-            !businessWritesDisabled && canOrder('container.delete')
-          }
+          canCreate={!businessWritesDisabled && canOrder('container.create')}
+          canUpdate={!businessWritesDisabled && canOrder('container.update')}
+          canDelete={!businessWritesDisabled && canOrder('container.delete')}
           containerSpecOptions={containerSpecOptions}
         />
       </>

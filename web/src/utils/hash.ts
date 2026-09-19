@@ -49,7 +49,7 @@ export function sha256(str: string): string {
   }
 
   let paddedAscii = `${ascii}\x80`;
-  while (paddedAscii.length % 64 - 56) paddedAscii += '\x00';
+  while ((paddedAscii.length % 64) - 56) paddedAscii += '\x00';
 
   for (let i = 0; i < paddedAscii.length; i++) {
     const code = paddedAscii.charCodeAt(i);
@@ -78,7 +78,10 @@ export function sha256(str: string): string {
 
       const temp1 = workingHash[7] + s1 + ch + k[i] + w[i];
       const s0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
-      const maj = (a & workingHash[1]) ^ (a & workingHash[2]) ^ (workingHash[1] & workingHash[2]);
+      const maj =
+        (a & workingHash[1]) ^
+        (a & workingHash[2]) ^
+        (workingHash[1] & workingHash[2]);
       const temp2 = s0 + maj;
 
       workingHash.pop();

@@ -1,4 +1,3 @@
-import { App } from 'antd';
 import {
   act,
   fireEvent,
@@ -6,6 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { App } from 'antd';
 import React, { createRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import CargoItemDrawer, { type CargoItemDrawerRef } from './CargoItemDrawer';

@@ -37,8 +37,11 @@ const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
       open: (order) => {
         setRecord(order);
         formRef.current?.setFieldsValue({
-          currentStatus:
-            statusText(orderFlowStatusMeta, order.flowStatus ?? 0, '未知状态'),
+          currentStatus: statusText(
+            orderFlowStatusMeta,
+            order.flowStatus ?? 0,
+            '未知状态',
+          ),
           targetStatus: undefined,
           reason: undefined,
         });
@@ -60,12 +63,11 @@ const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
         initialValues={
           record
             ? {
-                currentStatus:
-                  statusText(
-                    orderFlowStatusMeta,
-                    record.flowStatus ?? 0,
-                    '未知状态',
-                  ),
+                currentStatus: statusText(
+                  orderFlowStatusMeta,
+                  record.flowStatus ?? 0,
+                  '未知状态',
+                ),
               }
             : undefined
         }
@@ -96,13 +98,11 @@ const TransitionModal = forwardRef<TransitionModalRef, TransitionModalProps>(
           name="currentStatus"
           label="当前状态"
           readonly
-          initialValue={
-            statusText(
-              orderFlowStatusMeta,
-              record?.flowStatus ?? 0,
-              '未知状态',
-            )
-          }
+          initialValue={statusText(
+            orderFlowStatusMeta,
+            record?.flowStatus ?? 0,
+            '未知状态',
+          )}
         />
         <ProFormSelect
           name="targetStatus"

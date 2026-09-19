@@ -41,10 +41,7 @@ export function housesToRawDocs(
   for (const h of houses) {
     const trimmedHouseNo = h.houseNo.trim();
     const isEmptyPlaceholder =
-      !h.id &&
-      !trimmedHouseNo &&
-      !h.releaseType?.trim() &&
-      !h.note?.trim();
+      !h.id && !trimmedHouseNo && !h.releaseType?.trim() && !h.note?.trim();
     if (isEmptyPlaceholder) {
       continue;
     }

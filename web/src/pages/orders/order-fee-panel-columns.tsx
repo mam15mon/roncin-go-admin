@@ -1,13 +1,13 @@
 import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Space, Tag } from 'antd';
+import { feeBaseColumns } from './components/fees/feeBaseColumns';
 import {
   FEE_BILLED,
   FEE_CONFIRMED,
   FEE_DRAFT,
   feeStatusCode,
 } from './components/fees/feeConstants';
-import { feeBaseColumns } from './components/fees/feeBaseColumns';
 
 interface OrderFeePanelColumnsDeps {
   canUpdate: boolean;
@@ -33,26 +33,24 @@ export function buildOrderFeePanelColumns({
       dataIndex: 'tags',
       width: 120,
       render: (_, row) =>
-        row.tags?.length ? (
-          row.tags.map((tag) => (
-            <Tag
-              key={tag.id}
-              style={
-                tag.groupColor
-                  ? {
-                      color: tag.groupColor,
-                      borderColor: tag.groupColor,
-                      marginInlineEnd: 4,
-                    }
-                  : { marginInlineEnd: 4 }
-              }
-            >
-              {tag.name}
-            </Tag>
-          ))
-        ) : (
-          '-'
-        ),
+        row.tags?.length
+          ? row.tags.map((tag) => (
+              <Tag
+                key={tag.id}
+                style={
+                  tag.groupColor
+                    ? {
+                        color: tag.groupColor,
+                        borderColor: tag.groupColor,
+                        marginInlineEnd: 4,
+                      }
+                    : { marginInlineEnd: 4 }
+                }
+              >
+                {tag.name}
+              </Tag>
+            ))
+          : '-',
     },
     ...feeBaseColumns({ variant: 'panel' }),
     {

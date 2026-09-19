@@ -2,7 +2,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ModalForm } from '@ant-design/pro-components';
 import { Button, Col, Empty, Form, Row, Space, Tag } from 'antd';
-import React, { useRef, useState, type ReactNode } from 'react';
+import React, { type ReactNode, useRef, useState } from 'react';
 
 export interface SubEntityCardGridProps<TItem, TFormValues = any> {
   entityName: string;
@@ -29,11 +29,7 @@ export interface SubEntityCardGridProps<TItem, TFormValues = any> {
     },
   ) => ReactNode;
   initialValues?: (item?: TItem, index?: number) => TFormValues;
-  renderFormItems: (
-    item?: TItem,
-    form?: any,
-    index?: number,
-  ) => ReactNode;
+  renderFormItems: (item?: TItem, form?: any, index?: number) => ReactNode;
   onSave: (
     values: TFormValues,
     editingItem?: TItem,
@@ -59,7 +55,9 @@ export function SubEntityCardGrid<TItem, TFormValues = any>({
   extraHeader,
 }: SubEntityCardGridProps<TItem, TFormValues>) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | undefined>(undefined);
+  const [editingIndex, setEditingIndex] = useState<number | undefined>(
+    undefined,
+  );
   const [editingItem, setEditingItem] = useState<TItem | undefined>(undefined);
   const [form] = Form.useForm();
   const formRef = useRef<ProFormInstance | undefined>(undefined);

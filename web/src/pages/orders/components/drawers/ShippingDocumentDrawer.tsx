@@ -10,16 +10,10 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
-import { isUnimplementedTransportMode, shippingDocumentStatusValueEnum } from '../../common';
-import type { OrderTransportMode } from '../../order-kinds/types';
-import {
-  SEA_HOUSE_RELEASE_TYPE_OPTIONS,
-  formatHouseReleaseType,
-} from '../../order-plan-fields';
 import {
   orderShippingDocumentServiceAddShippingDocument,
   orderShippingDocumentServiceListShippingDocuments,
@@ -28,6 +22,15 @@ import {
   orderShippingDocumentServiceUpdateShippingDocument,
 } from '@/services/roncin/orderShippingDocumentService';
 import { toTableRequest } from '@/utils/api';
+import {
+  isUnimplementedTransportMode,
+  shippingDocumentStatusValueEnum,
+} from '../../common';
+import type { OrderTransportMode } from '../../order-kinds/types';
+import {
+  formatHouseReleaseType,
+  SEA_HOUSE_RELEASE_TYPE_OPTIONS,
+} from '../../order-plan-fields';
 
 export type ShippingDocumentDrawerRef = {
   open: (order: API.Order) => void;
@@ -272,18 +275,18 @@ const ShippingDocumentDrawer = forwardRef<
 
         {!isUnimplementedTransportMode(transportMode) &&
           transportMode === 'sea' && (
-          <Alert
-            type="info"
-            showIcon
-            message={
-              <span>
-                当前订单关联海运主单 (MBL)：
-                <strong>{order?.seaMasterBill?.masterNo || '未录入'}</strong>
-              </span>
-            }
-            style={{ marginBottom: 16 }}
-          />
-        )}
+            <Alert
+              type="info"
+              showIcon
+              message={
+                <span>
+                  当前订单关联海运主单 (MBL)：
+                  <strong>{order?.seaMasterBill?.masterNo || '未录入'}</strong>
+                </span>
+              }
+              style={{ marginBottom: 16 }}
+            />
+          )}
 
         {order?.id && !isUnimplementedTransportMode(transportMode) && (
           <ProTable<API.OrderShippingDocument>

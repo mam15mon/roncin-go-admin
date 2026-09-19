@@ -12,9 +12,7 @@ describe('前端开发代理配置', () => {
   });
 
   it('测试和预发布环境必须显式提供合法目标', () => {
-    expect(() => getProxyConfig('test', '')).toThrow(
-      'RONCIN_API_PROXY_TARGET',
-    );
+    expect(() => getProxyConfig('test', '')).toThrow('RONCIN_API_PROXY_TARGET');
     expect(() => getProxyConfig('pre', 'redis://127.0.0.1')).toThrow(
       '仅支持 http 或 https',
     );

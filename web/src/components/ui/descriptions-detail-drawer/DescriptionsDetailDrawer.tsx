@@ -1,14 +1,14 @@
 import {
   Descriptions,
-  Drawer,
   type DescriptionsProps,
+  Drawer,
   type DrawerProps,
 } from 'antd';
 import {
   Children,
+  type ComponentProps,
   Fragment,
   isValidElement,
-  type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from 'react';
@@ -16,7 +16,9 @@ import {
 type DItemProps = ComponentProps<typeof Descriptions.Item>;
 
 function detailContent(children: ReactNode) {
-  return children === null || children === undefined || children === '' ? '-' : children;
+  return children === null || children === undefined || children === ''
+    ? '-'
+    : children;
 }
 
 function resolveDescriptionItems(children: ReactNode): ReactNode {
@@ -28,7 +30,9 @@ function resolveDescriptionItems(children: ReactNode): ReactNode {
       );
     }
     if (child.type === DItem) {
-      const { children: content, ...props } = (child as ReactElement<DItemProps>).props;
+      const { children: content, ...props } = (
+        child as ReactElement<DItemProps>
+      ).props;
       return (
         <Descriptions.Item {...props}>
           {detailContent(content)}
@@ -94,5 +98,7 @@ export function DescriptionsDetailDrawer<T>({
 
 /** 详情字段空值统一显示短横线，保留 0 与 false。 */
 export function DItem({ children, ...props }: DItemProps) {
-  return <Descriptions.Item {...props}>{detailContent(children)}</Descriptions.Item>;
+  return (
+    <Descriptions.Item {...props}>{detailContent(children)}</Descriptions.Item>
+  );
 }

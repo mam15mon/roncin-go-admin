@@ -15,7 +15,9 @@ describe('TooltipInput', () => {
 
   it('正常渲染输入框并支持输入', () => {
     render(<TooltipInput placeholder="请输入内部编号" />);
-    const input = screen.getByPlaceholderText('请输入内部编号') as HTMLInputElement;
+    const input = screen.getByPlaceholderText(
+      '请输入内部编号',
+    ) as HTMLInputElement;
     expect(input).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: 'RC20260823001' } });
@@ -45,12 +47,7 @@ describe('TooltipInput', () => {
   });
 
   it('支持自定义 tooltipTitle', () => {
-    render(
-      <TooltipInput
-        value="12345"
-        tooltipTitle="自定义提示文本"
-      />,
-    );
+    render(<TooltipInput value="12345" tooltipTitle="自定义提示文本" />);
 
     const input = screen.getByDisplayValue('12345');
     fireEvent.mouseEnter(input);

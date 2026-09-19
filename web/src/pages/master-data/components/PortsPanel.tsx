@@ -61,8 +61,9 @@ export default function PortsPanel() {
   const canCreate = access.canCreateMasterDataPorts;
   const canUpdate = access.canUpdateMasterDataPorts;
   const fetchPorts = React.useCallback(
-    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
-      masterDataServiceListPorts(query),
+    (
+      query: import('@/components/ui/master-data-template').MasterDataListQuery,
+    ) => masterDataServiceListPorts(query),
     [],
   );
   const {
@@ -123,7 +124,9 @@ export default function PortsPanel() {
       extraStats={[
         {
           label: '海港枢纽',
-          value: data.filter((p) => p.modes.includes('SEA') || p.modes.includes('PORT')).length,
+          value: data.filter(
+            (p) => p.modes.includes('SEA') || p.modes.includes('PORT'),
+          ).length,
           color: '#1677ff',
         },
         {

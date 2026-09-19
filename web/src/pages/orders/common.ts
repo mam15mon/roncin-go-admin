@@ -1,14 +1,4 @@
 import {
-  masterDataServiceListAirports,
-  masterDataServiceListItems,
-  masterDataServiceListPorts,
-} from '@/services/roncin/masterDataService';
-import {
-  getCachedAirports,
-  getCachedPorts,
-  getMasterDataOptions,
-} from '@/utils/order-options-cache';
-import {
   businessTypeMeta,
   makeValueEnum,
   statusText,
@@ -26,17 +16,24 @@ import {
   TradeDirection,
   TradeTerm,
 } from '@/enums.generated';
+import {
+  masterDataServiceListAirports,
+  masterDataServiceListItems,
+  masterDataServiceListPorts,
+} from '@/services/roncin/masterDataService';
 import { unwrapList } from '@/utils/api';
 import { getCurrencies, searchPartnerOptions } from '@/utils/options';
+import {
+  getCachedAirports,
+  getCachedPorts,
+  getMasterDataOptions,
+} from '@/utils/order-options-cache';
 import type { OrderTransportMode } from './order-kinds/types';
 import type { SelectOption } from './templates';
 
 export const businessTypeOptions = [
   {
-    label: statusText(
-      businessTypeMeta,
-      OrderBusinessType.BUSINESS_TYPE_SE,
-    ),
+    label: statusText(businessTypeMeta, OrderBusinessType.BUSINESS_TYPE_SE),
     value: OrderBusinessType.BUSINESS_TYPE_SE,
     color: 'blue',
   },
@@ -142,14 +139,38 @@ export function requireSeaServiceTypeOptions<
 }
 
 export const orderPersonnelRoleOptions = [
-  { label: '创建人 (CREATOR)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR },
-  { label: '操作专员 (OPERATOR)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR },
-  { label: '业务销售 (SALES)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES },
-  { label: '客服专员 (CUSTOMER_SERVICE)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE },
-  { label: '单证专员 (DOCUMENT)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT },
-  { label: '商务采购 (COMMERCIAL)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL },
-  { label: '协同助理 (ASSOCIATE)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE },
-  { label: '副协同 (ASSOCIATE2)', value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2 },
+  {
+    label: '创建人 (CREATOR)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR,
+  },
+  {
+    label: '操作专员 (OPERATOR)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
+  },
+  {
+    label: '业务销售 (SALES)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES,
+  },
+  {
+    label: '客服专员 (CUSTOMER_SERVICE)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE,
+  },
+  {
+    label: '单证专员 (DOCUMENT)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT,
+  },
+  {
+    label: '商务采购 (COMMERCIAL)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL,
+  },
+  {
+    label: '协同助理 (ASSOCIATE)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE,
+  },
+  {
+    label: '副协同 (ASSOCIATE2)',
+    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2,
+  },
 ];
 
 export const orderPersonnelRoleValueEnum: Record<
@@ -163,9 +184,18 @@ export const shippingDocumentStatusValueEnum: Record<
   number,
   { text: string; status: 'Default' | 'Processing' | 'Success' }
 > = {
-  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT]: { text: '草稿', status: 'Default' },
-  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED]: { text: '已确认', status: 'Processing' },
-  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED]: { text: '已放货', status: 'Success' },
+  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT]: {
+    text: '草稿',
+    status: 'Default',
+  },
+  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED]: {
+    text: '已确认',
+    status: 'Processing',
+  },
+  [OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED]: {
+    text: '已放货',
+    status: 'Success',
+  },
 };
 
 export const MASTER_DATA_KINDS = {
@@ -234,8 +264,18 @@ export async function searchOrderLocations(
       pageSize: 50,
     }),
     transportMode === 'sea'
-      ? masterDataServiceListPorts({ keyword, enabled: true, page: 1, pageSize: 50 })
-      : masterDataServiceListAirports({ keyword, enabled: true, page: 1, pageSize: 50 }),
+      ? masterDataServiceListPorts({
+          keyword,
+          enabled: true,
+          page: 1,
+          pageSize: 50,
+        })
+      : masterDataServiceListAirports({
+          keyword,
+          enabled: true,
+          page: 1,
+          pageSize: 50,
+        }),
   ]);
   const regions = unwrapList(regionsResponse).map((item) => ({
     label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
@@ -243,15 +283,17 @@ export async function searchOrderLocations(
   }));
   const transportLocations =
     transportMode === 'sea'
-      ? (transportResponse.data as API.Port[] | undefined)?.map((item) => ({
+      ? ((transportResponse.data as API.Port[] | undefined)?.map((item) => ({
           label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
           value: item.id ?? '',
-        })) ?? []
-      : (transportResponse.data as API.Airport[] | undefined)?.map((item) => ({
+        })) ?? [])
+      : ((transportResponse.data as API.Airport[] | undefined)?.map((item) => ({
           label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`,
           value: item.id ?? '',
-        })) ?? [];
-  return [...regions, ...transportLocations].filter((item) => item.value !== '');
+        })) ?? []);
+  return [...regions, ...transportLocations].filter(
+    (item) => item.value !== '',
+  );
 }
 
 export async function fetchOrderMasterData(

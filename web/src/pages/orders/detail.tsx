@@ -5,15 +5,7 @@ import {
 } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { history, useAccess, useParams } from '@umijs/max';
-import {
-  App,
-  Button,
-  Card,
-  Empty,
-  type MenuProps,
-  Result,
-  Spin,
-} from 'antd';
+import { App, Button, Card, Empty, type MenuProps, Result, Spin } from 'antd';
 import React, {
   useCallback,
   useEffect,

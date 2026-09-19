@@ -1,5 +1,5 @@
-import { OrderFeeDirection, OrderFeeStatus } from '@/enums.generated';
 import { normalizeOrderFeeStatus } from '@/constants/statusMeta';
+import { OrderFeeDirection, OrderFeeStatus } from '@/enums.generated';
 
 export const RECEIVABLE = OrderFeeDirection.ORDER_FEE_DIRECTION_RECEIVABLE;
 export const PAYABLE = OrderFeeDirection.ORDER_FEE_DIRECTION_PAYABLE;

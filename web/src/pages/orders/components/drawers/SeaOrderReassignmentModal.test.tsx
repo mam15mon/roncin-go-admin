@@ -1,12 +1,14 @@
-import React from 'react';
-import { App } from 'antd';
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import SeaOrderReassignmentModal from './SeaOrderReassignmentModal';
+import { App } from 'antd';
+import React from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as changeService from '@/services/roncin/seaOrderChangeService';
+import SeaOrderReassignmentModal from './SeaOrderReassignmentModal';
 
 vi.mock('@/services/roncin/orderAttachmentService', () => ({
-  orderAttachmentServiceListAttachments: vi.fn().mockResolvedValue({ data: [] }),
+  orderAttachmentServiceListAttachments: vi
+    .fn()
+    .mockResolvedValue({ data: [] }),
 }));
 
 describe('SeaOrderReassignmentModal', () => {
@@ -43,9 +45,16 @@ describe('SeaOrderReassignmentModal', () => {
       },
     };
 
-    vi.spyOn(changeService, 'seaOrderChangeServicePreviewSeaOrderReassignment').mockResolvedValue({
+    vi.spyOn(
+      changeService,
+      'seaOrderChangeServicePreviewSeaOrderReassignment',
+    ).mockResolvedValue({
       data: mockPreview,
-    } as Awaited<ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderReassignment>>);
+    } as Awaited<
+      ReturnType<
+        typeof changeService.seaOrderChangeServicePreviewSeaOrderReassignment
+      >
+    >);
 
     render(
       <App>

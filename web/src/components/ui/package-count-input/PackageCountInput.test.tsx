@@ -38,7 +38,11 @@ describe('PackageCountInput', () => {
   });
 
   it('正确渲染件数输入框和单位下拉框', () => {
-    render(<TestWrapper initialValues={{ totalPackages: 100, totalPackageUnit: 'CTNS' }} />);
+    render(
+      <TestWrapper
+        initialValues={{ totalPackages: 100, totalPackageUnit: 'CTNS' }}
+      />,
+    );
     const countInput = screen.getByRole('spinbutton');
     expect(countInput).toHaveValue('100');
     expect(screen.getByText('CTNS')).toBeInTheDocument();
@@ -52,7 +56,12 @@ describe('PackageCountInput', () => {
   });
 
   it('disabled 状态下输入和选择框均被禁用', () => {
-    render(<TestWrapper disabled initialValues={{ totalPackages: 50, totalPackageUnit: 'PLTS' }} />);
+    render(
+      <TestWrapper
+        disabled
+        initialValues={{ totalPackages: 50, totalPackageUnit: 'PLTS' }}
+      />,
+    );
     const countInput = screen.getByRole('spinbutton');
     expect(countInput).toBeDisabled();
     const select = screen.getByRole('combobox');

@@ -1,6 +1,15 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import { history, useAccess } from '@umijs/max';
-import { Alert, Button, Descriptions, Empty, Result, Space, Table, Tag } from 'antd';
+import {
+  Alert,
+  Button,
+  Descriptions,
+  Empty,
+  Result,
+  Space,
+  Table,
+  Tag,
+} from 'antd';
 import React from 'react';
 import { FinanceBillStatus } from '@/enums.generated';
 
@@ -63,15 +72,9 @@ export default function BillCreationResultTable({
         column={4}
         style={{ marginBottom: 16 }}
       >
-        <Descriptions.Item label="批次号">
-          {result.batchNo}
-        </Descriptions.Item>
-        <Descriptions.Item label="费用数">
-          {result.feeCount}
-        </Descriptions.Item>
-        <Descriptions.Item label="账单数">
-          {result.billCount}
-        </Descriptions.Item>
+        <Descriptions.Item label="批次号">{result.batchNo}</Descriptions.Item>
+        <Descriptions.Item label="费用数">{result.feeCount}</Descriptions.Item>
+        <Descriptions.Item label="账单数">{result.billCount}</Descriptions.Item>
         <Descriptions.Item label="本币合计">
           {result.totalBaseAmount} {result.baseCurrency}
         </Descriptions.Item>
@@ -141,8 +144,7 @@ export default function BillCreationResultTable({
               {
                 title: '抵销金额',
                 align: 'right',
-                render: (_, row) =>
-                  `${row.amount} ${row.currency}`,
+                render: (_, row) => `${row.amount} ${row.currency}`,
               },
               {
                 title: '本币抵销额',

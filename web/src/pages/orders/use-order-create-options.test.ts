@@ -6,10 +6,7 @@ import {
   clearOrderMasterDataCache,
   getOrderPersonnelOptions,
 } from '@/utils/order-options-cache';
-import {
-  fetchOrderMasterData,
-  searchOrderLocations,
-} from './common';
+import { fetchOrderMasterData, searchOrderLocations } from './common';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { useOrderCreateOptions } from './use-order-create-options';
 
@@ -364,7 +361,8 @@ describe('useOrderCreateOptions', () => {
     mockFetchMasterData.mockImplementationOnce(() => nextLoad.promise);
     currentConfig = {
       ...seaConfig,
-      businessType: (seaConfig.businessType + 1) as typeof seaConfig.businessType,
+      businessType: (seaConfig.businessType +
+        1) as typeof seaConfig.businessType,
     };
     rerender();
 

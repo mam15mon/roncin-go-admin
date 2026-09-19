@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { RECEIVABLE } from './feeConstants';
 import { feeBaseColumns } from './feeBaseColumns';
+import { RECEIVABLE } from './feeConstants';
 
 describe('feeBaseColumns', () => {
   it('保留费用工作台的列顺序与宽度', () => {
@@ -57,18 +57,7 @@ describe('feeBaseColumns', () => {
       'note',
     ]);
     expect(columns.map((column) => column.width)).toEqual([
-      90,
-      90,
-      130,
-      150,
-      190,
-      90,
-      110,
-      130,
-      150,
-      160,
-      110,
-      180,
+      90, 90, 130, 150, 190, 90, 110, 130, 150, 160, 110, 180,
     ]);
   });
 });

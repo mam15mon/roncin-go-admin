@@ -4,12 +4,12 @@ import {
   ProFormDigit,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import { Alert, App } from 'antd';
 import React, { useRef, useState } from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import { settlementServiceCreateCommissionAdjustment } from '@/services/roncin/settlementService';
 import { generateUUID } from '@/utils/uuid';
-import { decimalText, type AdjustmentValues } from '../types';
+import { type AdjustmentValues, decimalText } from '../types';
 
 type CommissionAdjustmentModalProps = {
   open: boolean;
@@ -26,9 +26,7 @@ export default function CommissionAdjustmentModal({
 }: CommissionAdjustmentModalProps) {
   const { message } = App.useApp();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
-  const [adjustmentIdempotencyKey] = useState(() =>
-    generateUUID(),
-  );
+  const [adjustmentIdempotencyKey] = useState(() => generateUUID());
 
   return (
     <ModalForm<AdjustmentValues>

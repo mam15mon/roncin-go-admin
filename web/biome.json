@@ -15,6 +15,7 @@
       "!**/.umi-test-production",
       "!**/src/services",
       "!**/src/permissions.generated.ts",
+      "!**/src/*.generated.ts",
       "!**/mock",
       "!**/dist",
       "!**/server",

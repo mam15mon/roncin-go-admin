@@ -14,8 +14,8 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import React, { useCallback, useRef, useState } from 'react';
 import dayjs from 'dayjs';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   OrderBusinessType,
   SeaDocumentEventType,
@@ -33,8 +33,8 @@ import {
   seaDocumentServicePreviewSeaDocumentAmendment,
   seaDocumentServicePreviewSeaDocumentVoid,
 } from '@/services/roncin/seaDocumentService';
-import { generateUUID } from '@/utils/uuid';
 import { formatDate } from '@/utils/format';
+import { generateUUID } from '@/utils/uuid';
 import SeaExternalConfirmationFields, {
   buildSeaExternalConfirmation,
   type SeaExternalConfirmationFormValues,
@@ -99,8 +99,10 @@ function createIdempotencyKey() {
 }
 
 function documentModeText(mode?: number) {
-  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) return 'HOUSE';
-  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT) return 'DIRECT';
+  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE)
+    return 'HOUSE';
+  if (mode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT)
+    return 'DIRECT';
   return '-';
 }
 

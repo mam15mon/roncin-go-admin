@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { DItem, DescriptionsDetailDrawer } from './DescriptionsDetailDrawer';
+import { DescriptionsDetailDrawer, DItem } from './DescriptionsDetailDrawer';
 
 describe('DItem', () => {
   it('空值显示短横线并保留零值', () => {

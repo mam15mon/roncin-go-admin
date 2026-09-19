@@ -18,9 +18,9 @@ import {
 import React from 'react';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
+  type MasterDocGroup,
   SEA_MASTER_DOCUMENT_TYPE_OPTIONS,
   SEA_MASTER_RELEASE_METHOD_OPTIONS,
-  type MasterDocGroup,
 } from '../../order-plan-constants';
 
 type OrderMasterDocGroupCardProps = {
@@ -100,7 +100,8 @@ export default function OrderMasterDocGroupCard({
   };
   const firstHouseTrimmed = firstHouse.houseNo.trim().toLowerCase();
   const firstHouseDuplicate =
-    Boolean(firstHouseTrimmed) && (houseNoCounts.get(firstHouseTrimmed) || 0) > 1;
+    Boolean(firstHouseTrimmed) &&
+    (houseNoCounts.get(firstHouseTrimmed) || 0) > 1;
   const firstHouseHasContent = Boolean(
     firstHouse.id ||
       (!firstHouse.omitWhenEmpty && group.masterNo.trim()) ||
@@ -148,16 +149,24 @@ export default function OrderMasterDocGroupCard({
       <Col className="col-5">
         <Form.Item
           label={
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+            >
               <span>{`主单 (${documentLabels.master})`}</span>
               {totalGroups > 1 && (
-                <Tag color="blue" variant="filled" style={{ margin: 0, fontSize: 10, padding: '0 4px' }}>
+                <Tag
+                  color="blue"
+                  variant="filled"
+                  style={{ margin: 0, fontSize: 10, padding: '0 4px' }}
+                >
                   #{groupIdx + 1}
                 </Tag>
               )}
               {groupIdx === 0 && (
                 <Tooltip title="当前操作票可加拼多张不同主单；同一主单下请直接添加分单。其他操作票使用相同主单号时，系统会归入同一主单批次（一主多分）。">
-                  <span style={{ color: '#8c8c8c', cursor: 'help', fontSize: 12 }}>
+                  <span
+                    style={{ color: '#8c8c8c', cursor: 'help', fontSize: 12 }}
+                  >
                     <InfoCircleOutlined style={{ color: '#1677ff' }} />
                     <span style={{ display: 'none' }}>一主多分</span>
                   </span>
@@ -166,7 +175,9 @@ export default function OrderMasterDocGroupCard({
             </span>
           }
           style={{ marginBottom: masterMissing || masterDuplicate ? 24 : 12 }}
-          validateStatus={masterMissing || masterDuplicate ? 'error' : undefined}
+          validateStatus={
+            masterMissing || masterDuplicate ? 'error' : undefined
+          }
           help={
             masterDuplicate
               ? '该主单已在当前操作票中，请在原主单组下添加分单'
@@ -190,14 +201,21 @@ export default function OrderMasterDocGroupCard({
                 type="link"
                 icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
                 onClick={onAddGroup}
-                style={{ padding: '0 2px', height: 32, fontSize: 12, flexShrink: 0 }}
+                style={{
+                  padding: '0 2px',
+                  height: 32,
+                  fontSize: 12,
+                  flexShrink: 0,
+                }}
               >
                 加拼主单 ({documentLabels.master})
               </Button>
             )}
             {totalGroups > 1 && (
               <span>
-                {group.houses.some((house) => house.id) && !groupHasReleased && !disabled ? (
+                {group.houses.some((house) => house.id) &&
+                !groupHasReleased &&
+                !disabled ? (
                   <Popconfirm
                     title="确认删除该主单组？"
                     description="保存订单后，组内已有分单会被删除。"
@@ -205,7 +223,9 @@ export default function OrderMasterDocGroupCard({
                     okText="删除"
                     cancelText="取消"
                   >
-                    {React.cloneElement(removeGroupButton, { onClick: undefined })}
+                    {React.cloneElement(removeGroupButton, {
+                      onClick: undefined,
+                    })}
                   </Popconfirm>
                 ) : (
                   removeGroupButton
@@ -219,8 +239,12 @@ export default function OrderMasterDocGroupCard({
       <Col className="col-5">
         <Form.Item
           label={`分单号 (${documentLabels.house})`}
-          style={{ marginBottom: firstHouseMissing || firstHouseDuplicate ? 24 : 12 }}
-          validateStatus={firstHouseMissing || firstHouseDuplicate ? 'error' : undefined}
+          style={{
+            marginBottom: firstHouseMissing || firstHouseDuplicate ? 24 : 12,
+          }}
+          validateStatus={
+            firstHouseMissing || firstHouseDuplicate ? 'error' : undefined
+          }
           help={
             firstHouseDuplicate
               ? '分单号重复'
@@ -238,7 +262,9 @@ export default function OrderMasterDocGroupCard({
               placeholder={`请输入分单号 (如 ${documentLabels.house}-001)`}
               maxLength={64}
               disabled={disabled || firstHouseReleased}
-              status={firstHouseMissing || firstHouseDuplicate ? 'error' : undefined}
+              status={
+                firstHouseMissing || firstHouseDuplicate ? 'error' : undefined
+              }
               allowClear
             />
             {!disabled && (
@@ -246,12 +272,20 @@ export default function OrderMasterDocGroupCard({
                 type="link"
                 icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
                 onClick={() => onAddHouse(groupIdx)}
-                style={{ padding: '0 2px', height: 32, fontSize: 12, flexShrink: 0 }}
+                style={{
+                  padding: '0 2px',
+                  height: 32,
+                  fontSize: 12,
+                  flexShrink: 0,
+                }}
               >
                 添加分单 ({documentLabels.house})
               </Button>
             )}
-            {(group.houses.length > 1 || firstHouse.id || firstHouseReleased || totalGroups > 1) && (
+            {(group.houses.length > 1 ||
+              firstHouse.id ||
+              firstHouseReleased ||
+              totalGroups > 1) && (
               <span>
                 {firstHouse.id && !firstHouseReleased && !disabled ? (
                   <Popconfirm
@@ -261,7 +295,9 @@ export default function OrderMasterDocGroupCard({
                     okText="删除"
                     cancelText="取消"
                   >
-                    {React.cloneElement(removeFirstHouseButton, { onClick: undefined })}
+                    {React.cloneElement(removeFirstHouseButton, {
+                      onClick: undefined,
+                    })}
                   </Popconfirm>
                 ) : (
                   removeFirstHouseButton
@@ -282,11 +318,7 @@ export default function OrderMasterDocGroupCard({
                 placeholder="请选择主单单证类型"
                 disabled={disabled || groupHasReleased}
                 onChange={(value) =>
-                  onMasterAttributeChange(
-                    groupIdx,
-                    'masterDocumentType',
-                    value,
-                  )
+                  onMasterAttributeChange(groupIdx, 'masterDocumentType', value)
                 }
                 allowClear
                 style={{ width: '100%' }}
@@ -366,7 +398,11 @@ export default function OrderMasterDocGroupCard({
           <React.Fragment key={extraHouse.key}>
             <Col className="col-5">
               <Form.Item label="所属主单" style={{ marginBottom: 12 }}>
-                <Input value={group.masterNo || '-'} disabled style={{ width: '100%' }} />
+                <Input
+                  value={group.masterNo || '-'}
+                  disabled
+                  style={{ width: '100%' }}
+                />
               </Form.Item>
             </Col>
             <Col className="col-5">
@@ -374,12 +410,23 @@ export default function OrderMasterDocGroupCard({
                 label={`分单号 #${houseIdx + 1}`}
                 style={{ marginBottom: isMissing || isDuplicate ? 24 : 12 }}
                 validateStatus={isMissing || isDuplicate ? 'error' : undefined}
-                help={isDuplicate ? '分单号重复' : isMissing ? '请填写分单号' : undefined}
+                help={
+                  isDuplicate
+                    ? '分单号重复'
+                    : isMissing
+                      ? '请填写分单号'
+                      : undefined
+                }
               >
                 <Input
                   value={extraHouse.houseNo}
                   onChange={(e) =>
-                    onHouseFieldChange(groupIdx, houseIdx, 'houseNo', e.target.value)
+                    onHouseFieldChange(
+                      groupIdx,
+                      houseIdx,
+                      'houseNo',
+                      e.target.value,
+                    )
                   }
                   placeholder={`请输入分单号 (如 ${documentLabels.house}-001)`}
                   maxLength={64}
@@ -409,7 +456,12 @@ export default function OrderMasterDocGroupCard({
                 <Input
                   value={extraHouse.note}
                   onChange={(e) =>
-                    onHouseFieldChange(groupIdx, houseIdx, 'note', e.target.value)
+                    onHouseFieldChange(
+                      groupIdx,
+                      houseIdx,
+                      'note',
+                      e.target.value,
+                    )
                   }
                   placeholder="分单备注说明 (选填)"
                   maxLength={500}

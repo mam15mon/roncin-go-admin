@@ -4,8 +4,8 @@ import React from 'react';
 import {
   DATE_FORMATS,
   type DocTypeMeta,
-  RESET_POLICIES,
   generatePreviewNumber,
+  RESET_POLICIES,
 } from './numberRulesConstants';
 
 interface NumberRuleCardProps {
@@ -229,11 +229,7 @@ export default function NumberRuleCard({
             <Button
               type="text"
               size="small"
-              icon={
-                <CopyOutlined
-                  style={{ fontSize: 12, color: '#52c41a' }}
-                />
-              }
+              icon={<CopyOutlined style={{ fontSize: 12, color: '#52c41a' }} />}
               onClick={() => onCopyPreview(sample.text)}
               style={{ height: 22, width: 22, padding: 0 }}
             />

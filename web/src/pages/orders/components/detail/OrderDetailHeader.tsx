@@ -14,8 +14,8 @@ import {
   OrderClosureStatus,
   OrderTerminationStatus,
 } from '@/enums.generated';
-import OrderLockControl, { OrderLockStatusTag } from './OrderLockControl';
 import OrderPageHeader from '../OrderPageHeader';
+import OrderLockControl, { OrderLockStatusTag } from './OrderLockControl';
 
 type OrderDetailHeaderProps = {
   kind: string;
@@ -116,15 +116,16 @@ export default function OrderDetailHeader({
           )}
 
           {/* 重置修改按钮 */}
-          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && onReset && (
-            <Button
-              icon={<UndoOutlined />}
-              disabled={businessWritesDisabled || saving}
-              onClick={onReset}
-            >
-              重置修改
-            </Button>
-          )}
+          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
+            onReset && (
+              <Button
+                icon={<UndoOutlined />}
+                disabled={businessWritesDisabled || saving}
+                onClick={onReset}
+              >
+                重置修改
+              </Button>
+            )}
 
           {hasAction(
             OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION,

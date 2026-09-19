@@ -32,11 +32,14 @@ export default function CountriesPanel() {
   const access = useAccess();
   // A 型全局主数据（master_data_items）：仅总部组织可写，与后端
   // RequireGlobalMasterDataWrite 同口径；非总部只读并提示由总部统一维护。
-  const canCreate = access.isHeadquartersOrganization && access.canCreateMasterDataItems;
-  const canUpdate = access.isHeadquartersOrganization && access.canUpdateMasterDataItems;
+  const canCreate =
+    access.isHeadquartersOrganization && access.canCreateMasterDataItems;
+  const canUpdate =
+    access.isHeadquartersOrganization && access.canUpdateMasterDataItems;
   const fetchCountries = React.useCallback(
-    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
-      masterDataServiceListItems({ ...query, kind: 2 }),
+    (
+      query: import('@/components/ui/master-data-template').MasterDataListQuery,
+    ) => masterDataServiceListItems({ ...query, kind: 2 }),
     [],
   );
   const {

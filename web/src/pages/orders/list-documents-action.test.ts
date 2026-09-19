@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { OrderBusinessType } from '@/enums.generated';
 import type { OrderListItem } from '@/components/ui/order-list-template/types';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   getDocumentsActionLabel,
   openOrderDocuments,
@@ -37,7 +37,9 @@ describe('订单列表单证入口', () => {
     const navigate = vi.fn();
     const openLegacyDocuments = vi.fn();
 
-    expect(getDocumentsActionLabel(OrderBusinessType.BUSINESS_TYPE_AE)).toBeUndefined();
+    expect(
+      getDocumentsActionLabel(OrderBusinessType.BUSINESS_TYPE_AE),
+    ).toBeUndefined();
     openOrderDocuments(
       OrderBusinessType.BUSINESS_TYPE_AE,
       'air-export',

@@ -77,9 +77,9 @@ describe('放货记录单证引用映射', () => {
   });
 
   it('按 API 显式字段回显关联类型，不猜测 UUID', () => {
-    expect(
-      getReleasePodDocumentValue({ shippingDocumentId: 'legacy-1' }),
-    ).toBe('legacy:legacy-1');
+    expect(getReleasePodDocumentValue({ shippingDocumentId: 'legacy-1' })).toBe(
+      'legacy:legacy-1',
+    );
     expect(
       getReleasePodDocumentValue({
         seaDocumentType: SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,

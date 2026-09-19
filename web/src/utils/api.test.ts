@@ -14,7 +14,9 @@ describe('API 响应解包', () => {
   });
 
   it('保留表格请求的失败状态和分页总数', () => {
-    expect(toTableRequest({ data: [{ id: '1' }], success: false, total: '3' })).toEqual({
+    expect(
+      toTableRequest({ data: [{ id: '1' }], success: false, total: '3' }),
+    ).toEqual({
       data: [{ id: '1' }],
       success: false,
       total: 3,

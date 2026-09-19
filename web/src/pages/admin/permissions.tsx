@@ -17,7 +17,9 @@ export default function PermissionsPanel() {
       width: 280,
       copyable: true,
       render: (_, record) => (
-        <Text style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 500 }}>
+        <Text
+          style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 500 }}
+        >
           {record.key}
         </Text>
       ),
@@ -70,7 +72,11 @@ export default function PermissionsPanel() {
         return toTableRequest(response);
       }}
       toolBarRender={() => [
-        <Button key="refresh" icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>
+        <Button
+          key="refresh"
+          icon={<ReloadOutlined />}
+          onClick={() => actionRef.current?.reload()}
+        >
           刷新
         </Button>,
       ]}

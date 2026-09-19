@@ -6,11 +6,7 @@ import {
   statusTag,
 } from '@/constants/statusMeta';
 import { trimDecimal } from '@/utils/format';
-import {
-  PAYABLE,
-  RECEIVABLE,
-  feeDirectionCode,
-} from './feeConstants';
+import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
 
 type FeeBaseColumnsOptions =
   | { variant: 'workbench'; direction: number }
@@ -26,10 +22,7 @@ export function feeBaseColumns(
     dataIndex: 'status',
     width: 90,
     render: (_, record) =>
-      statusTag(
-        orderFeeStatusMeta,
-        normalizeOrderFeeStatus(record.status),
-      ),
+      statusTag(orderFeeStatusMeta, normalizeOrderFeeStatus(record.status)),
   };
   const directionColumn: ProColumns<API.OrderFee> = {
     title: '收付方向',
@@ -58,8 +51,7 @@ export function feeBaseColumns(
     ...(panel
       ? { ellipsis: true }
       : {
-          render: (_: unknown, record: API.OrderFee) =>
-            record.feeName || '-',
+          render: (_: unknown, record: API.OrderFee) => record.feeName || '-',
         }),
   };
   const settlementPartyColumn: ProColumns<API.OrderFee> = {
@@ -97,8 +89,7 @@ export function feeBaseColumns(
     dataIndex: 'billingUnit',
     width: 90,
     ...(!panel && {
-      render: (_: unknown, record: API.OrderFee) =>
-        record.billingUnit || '-',
+      render: (_: unknown, record: API.OrderFee) => record.billingUnit || '-',
     }),
   };
   const totalAmountColumn: ProColumns<API.OrderFee> = {
@@ -115,8 +106,7 @@ export function feeBaseColumns(
         <span
           style={{
             fontWeight: 600,
-            color:
-              options.direction === RECEIVABLE ? '#1677ff' : '#fa8c16',
+            color: options.direction === RECEIVABLE ? '#1677ff' : '#fa8c16',
           }}
         >
           {trimDecimal(record.totalAmount)} {record.currency}
@@ -131,12 +121,8 @@ export function feeBaseColumns(
     render: (_, record) => (
       <Space size={4}>
         <span>{trimDecimal(record.exchangeRate)}</span>
-        {record.exchangeRateSource === 'MANUAL' && (
-          <Tag color="gold">手工</Tag>
-        )}
-        {record.exchangeRateSource === 'SYSTEM' && (
-          <Tag color="blue">系统</Tag>
-        )}
+        {record.exchangeRateSource === 'MANUAL' && <Tag color="gold">手工</Tag>}
+        {record.exchangeRateSource === 'SYSTEM' && <Tag color="blue">系统</Tag>}
         {panel && record.exchangeRateSource === 'BASE_CURRENCY' && (
           <Tag>本币</Tag>
         )}
@@ -148,8 +134,7 @@ export function feeBaseColumns(
     dataIndex: 'expenseDate',
     width: panel ? 110 : 220,
     ...(!panel && {
-      render: (_: unknown, record: API.OrderFee) =>
-        record.expenseDate || '-',
+      render: (_: unknown, record: API.OrderFee) => record.expenseDate || '-',
     }),
   };
   const noteColumn: ProColumns<API.OrderFee> = {

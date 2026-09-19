@@ -2,7 +2,13 @@ import { Descriptions, Space, Table, Tag } from 'antd';
 import React from 'react';
 import { DescriptionsDetailDrawer, DItem } from '@/components/ui';
 import { FinanceInvoiceStatus } from '@/enums.generated';
-import { invoiceIssueDateLabel, invoiceIssueVerb, invoiceRecordNoun, invoiceStateText, invoiceStates } from './invoiceConstants';
+import {
+  invoiceIssueDateLabel,
+  invoiceIssueVerb,
+  invoiceRecordNoun,
+  invoiceStates,
+  invoiceStateText,
+} from './invoiceConstants';
 
 interface InvoiceDetailDrawerProps {
   detail?: API.FinanceInvoice;
@@ -15,7 +21,9 @@ export default function InvoiceDetailDrawer({
 }: InvoiceDetailDrawerProps) {
   return (
     <DescriptionsDetailDrawer
-      title={(current) => `${invoiceRecordNoun(current?.direction)}详情 ${current?.recordNo || ''}`}
+      title={(current) =>
+        `${invoiceRecordNoun(current?.direction)}详情 ${current?.recordNo || ''}`
+      }
       open={Boolean(detail)}
       detail={detail}
       size={760}

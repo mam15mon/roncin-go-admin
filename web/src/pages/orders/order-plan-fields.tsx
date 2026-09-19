@@ -1,13 +1,10 @@
-import {
-  DeleteOutlined,
-  PlusCircleFilled,
-} from '@ant-design/icons';
+import { DeleteOutlined, PlusCircleFilled } from '@ant-design/icons';
 import { Button, Col, Form, Input, InputNumber, Select } from 'antd';
 import React from 'react';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
-  SEA_HOUSE_RELEASE_TYPE_OPTIONS,
   type HouseDocItem,
+  SEA_HOUSE_RELEASE_TYPE_OPTIONS,
   type SelectOption,
 } from './order-plan-constants';
 import {
@@ -201,9 +198,7 @@ export function OrderShippingDocumentFields({
                   disabled={disabled || isReleased}
                   allowClear
                   style={{ width: '100%' }}
-                  onChange={(val) =>
-                    handleFieldChange(idx, 'releaseType', val)
-                  }
+                  onChange={(val) => handleFieldChange(idx, 'releaseType', val)}
                 />
               </div>
               <div style={{ flex: 1 }}>
@@ -270,10 +265,7 @@ export function OrderContainerRequestFields({
 
   return (
     <Col span={24}>
-      <Form.Item
-        name="containerRequests"
-        hidden
-      >
+      <Form.Item name="containerRequests" hidden>
         <input type="hidden" />
       </Form.Item>
       <Form.Item
@@ -291,7 +283,9 @@ export function OrderContainerRequestFields({
           }}
         >
           {containerRequests.length === 0 ? (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <div
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+            >
               <Select
                 placeholder="请选择"
                 options={options}
@@ -353,9 +347,7 @@ export function OrderContainerRequestFields({
                     max={999}
                     precision={0}
                     style={{ width: 80 }}
-                    onChange={(val) =>
-                      handleChange(idx, 'quantity', val ?? 1)
-                    }
+                    onChange={(val) => handleChange(idx, 'quantity', val ?? 1)}
                   />
                   <Button
                     type="text"

@@ -80,9 +80,7 @@ export function getUnlockRequestStatusMeta(status?: string) {
   );
 }
 
-export function shouldPollUnlockRequests(
-  items: API.OrderUnlockRequestData[],
-) {
+export function shouldPollUnlockRequests(items: API.OrderUnlockRequestData[]) {
   return items.some((item) => ACTIVE_UNLOCK_STATUSES.has(item.status || ''));
 }
 
@@ -127,11 +125,7 @@ export default function UnlockRequestHistoryDrawer({
   }, [load, open]);
 
   useEffect(() => {
-    if (
-      !open ||
-      !shouldPollUnlockRequests(items)
-    )
-      return;
+    if (!open || !shouldPollUnlockRequests(items)) return;
     const timer = window.setInterval(() => void load(), 5000);
     return () => window.clearInterval(timer);
   }, [items, load, open]);

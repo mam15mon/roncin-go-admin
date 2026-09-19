@@ -74,7 +74,9 @@ export type CascaderOption = {
   children?: CascaderOption[];
 };
 
-export const pcaCascaderOptions: CascaderOption[] = (pcaSource as DivisionNode[]).map((p) => ({
+export const pcaCascaderOptions: CascaderOption[] = (
+  pcaSource as DivisionNode[]
+).map((p) => ({
   value: p.code,
   label: p.name,
   children: p.children?.map((c) => ({
@@ -86,4 +88,3 @@ export const pcaCascaderOptions: CascaderOption[] = (pcaSource as DivisionNode[]
     })),
   })),
 }));
-

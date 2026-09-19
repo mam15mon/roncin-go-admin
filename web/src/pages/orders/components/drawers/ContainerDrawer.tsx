@@ -5,14 +5,14 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { ProFormSearchableSelect } from '@/components/ui';
 import { Button, message, Typography } from 'antd';
 import React, { forwardRef, useState } from 'react';
-import { OrderBusinessType } from '@/enums.generated';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
-  SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
+  SubEntityDrawerTemplate,
 } from '@/components/ui/sub-entity-drawer';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   orderContainerServiceAddContainer,
   orderContainerServiceListContainers,
@@ -45,13 +45,7 @@ type ContainerFormValues = {
 
 const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
   function ContainerDrawer(
-    {
-      canCreate,
-      canUpdate,
-      canRemove,
-      containerSpecOptions,
-      containerSpecMap,
-    },
+    { canCreate, canUpdate, canRemove, containerSpecOptions, containerSpecMap },
     ref,
   ) {
     const [sharedDrawerOpen, setSharedDrawerOpen] = useState(false);
@@ -78,8 +72,7 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
         width: 160,
         render: (_, record) =>
           record.containerSpecId
-            ? containerSpecMap[record.containerSpecId] ||
-              record.containerSpecId
+            ? containerSpecMap[record.containerSpecId] || record.containerSpecId
             : '-',
       },
       {
@@ -119,180 +112,180 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
       <>
         <SubEntityDrawerTemplate<
           API.OrderContainer,
-        API.Order,
-        ContainerFormValues
-      >
-        ref={ref}
-        entityName="集装箱"
-        drawerTitle={(order) =>
-          order
-            ? `订单集装箱列表 - ${order.orderNo || order.id}`
-            : '订单集装箱列表'
-        }
-        canCreate={canCreate}
-        canUpdate={canUpdate}
-        canRemove={canRemove}
-        columns={columns}
-        fetchList={(order) =>
-          orderContainerServiceListContainers({
-            orderId: order.id as string,
-          })
-        }
-        createItem={(values, order) =>
-          orderContainerServiceAddContainer(
-            { orderId: order.id as string },
-            {
+          API.Order,
+          ContainerFormValues
+        >
+          ref={ref}
+          entityName="集装箱"
+          drawerTitle={(order) =>
+            order
+              ? `订单集装箱列表 - ${order.orderNo || order.id}`
+              : '订单集装箱列表'
+          }
+          canCreate={canCreate}
+          canUpdate={canUpdate}
+          canRemove={canRemove}
+          columns={columns}
+          fetchList={(order) =>
+            orderContainerServiceListContainers({
               orderId: order.id as string,
-              containerNo: values.containerNo.trim(),
-              containerSpecId: values.containerSpecId,
-              sealNo: values.sealNo?.trim() || undefined,
-              packageCount: Number(values.packageCount),
-              grossWeightKg: Number(values.grossWeightKg),
-              volumeCbm: Number(values.volumeCbm),
-              note: values.note?.trim() || undefined,
-            },
-          )
-        }
-        updateItem={(record, values, order) =>
-          orderContainerServiceUpdateContainer(
-            {
+            })
+          }
+          createItem={(values, order) =>
+            orderContainerServiceAddContainer(
+              { orderId: order.id as string },
+              {
+                orderId: order.id as string,
+                containerNo: values.containerNo.trim(),
+                containerSpecId: values.containerSpecId,
+                sealNo: values.sealNo?.trim() || undefined,
+                packageCount: Number(values.packageCount),
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                note: values.note?.trim() || undefined,
+              },
+            )
+          }
+          updateItem={(record, values, order) =>
+            orderContainerServiceUpdateContainer(
+              {
+                orderId: order.id as string,
+                id: record.id as string,
+              },
+              {
+                id: record.id as string,
+                orderId: order.id as string,
+                containerNo: values.containerNo.trim(),
+                containerSpecId: values.containerSpecId,
+                sealNo: values.sealNo?.trim() || undefined,
+                packageCount: Number(values.packageCount),
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                note: values.note?.trim() || undefined,
+                expectedVersion: String(record.version ?? '1'),
+              },
+            )
+          }
+          removeItem={(record, order) => {
+            const version = Number(record.version);
+            if (!Number.isSafeInteger(version) || version <= 0) {
+              const error = new Error('箱记录版本缺失，请刷新后重试');
+              message.error(error.message);
+              return Promise.resolve(false);
+            }
+            return orderContainerServiceRemoveContainer({
               orderId: order.id as string,
               id: record.id as string,
-            },
-            {
-              id: record.id as string,
-              orderId: order.id as string,
-              containerNo: values.containerNo.trim(),
-              containerSpecId: values.containerSpecId,
-              sealNo: values.sealNo?.trim() || undefined,
-              packageCount: Number(values.packageCount),
-              grossWeightKg: Number(values.grossWeightKg),
-              volumeCbm: Number(values.volumeCbm),
-              note: values.note?.trim() || undefined,
-              expectedVersion: String(record.version ?? '1'),
-            },
-          )
-        }
-        removeItem={(record, order) => {
-          const version = Number(record.version);
-          if (!Number.isSafeInteger(version) || version <= 0) {
-            const error = new Error('箱记录版本缺失，请刷新后重试');
-            message.error(error.message);
-            return Promise.resolve(false);
-          }
-          return orderContainerServiceRemoveContainer({
-            orderId: order.id as string,
-            id: record.id as string,
-            expectedVersion: String(record.version),
-          });
-        }}
-        initialValues={(editing) =>
-          editing
-            ? {
-                containerNo: editing.containerNo ?? '',
-                containerSpecId: editing.containerSpecId ?? '',
-                sealNo: editing.sealNo,
-                packageCount: editing.packageCount ?? 1,
-                grossWeightKg: editing.grossWeightKg ?? 0,
-                volumeCbm: editing.volumeCbm ?? 0,
-                note: editing.note,
-              }
-            : {
-                containerNo: '',
-                containerSpecId: '',
-                packageCount: 1,
-                grossWeightKg: 0,
-                volumeCbm: 0,
-              }
-        }
-        renderFormItems={() => (
-          <>
-            <ProFormText
-              name="containerNo"
-              label="箱号"
-              placeholder="请输入箱号 (如 COSU1234567)"
-              rules={[{ required: true, message: '请输入箱号' }]}
-            />
-            <ProFormSearchableSelect
-              name="containerSpecId"
-              label="集装箱规格"
-              rules={[{ required: true, message: '请选择箱型' }]}
-              options={containerSpecOptions}
-              placeholder="请选择箱型"
-            />
-            <ProFormText
-              name="sealNo"
-              label="铅封号"
-              placeholder="请输入铅封号 (可选)"
-            />
-            <ProFormDigit
-              name="packageCount"
-              label="件数 (PCS)"
-              min={1}
-              fieldProps={{ precision: 0 }}
-              placeholder="请输入件数"
-              rules={[{ required: true, message: '请输入件数' }]}
-            />
-            <ProFormDigit
-              name="grossWeightKg"
-              label="货物毛重 (KG)"
-              min={0.001}
-              placeholder="请输入毛重"
-              rules={[{ required: true, message: '请输入毛重' }]}
-            />
-            <ProFormDigit
-              name="volumeCbm"
-              label="货物体积 (CBM)"
-              min={0.001}
-              placeholder="请输入体积"
-              rules={[{ required: true, message: '请输入体积' }]}
-            />
-            <ProFormTextArea
-              name="note"
-              label="备注说明"
-              placeholder="请输入备注 (可选)"
-              fieldProps={{ maxLength: 500, showCount: true }}
-            />
-          </>
-        )}
-        extraToolbar={(order) => {
-          if (order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE) {
-            return [];
-          }
-          return [
-            <Button
-              key="shared-container"
-              icon={<ShareAltOutlined />}
-              onClick={() => {
-                const teId = order.seaMasterBill?.transportExecutionId;
-                if (!teId) {
-                  message.warning(
-                    '当前订单尚未关联运输执行，无法开展跨订单拼箱',
-                  );
-                  return;
+              expectedVersion: String(record.version),
+            });
+          }}
+          initialValues={(editing) =>
+            editing
+              ? {
+                  containerNo: editing.containerNo ?? '',
+                  containerSpecId: editing.containerSpecId ?? '',
+                  sealNo: editing.sealNo,
+                  packageCount: editing.packageCount ?? 1,
+                  grossWeightKg: editing.grossWeightKg ?? 0,
+                  volumeCbm: editing.volumeCbm ?? 0,
+                  note: editing.note,
                 }
-                setSharedTEId(teId);
-                setCurrentOrder(order);
-                setSharedDrawerOpen(true);
-              }}
-            >
-              共享箱 / 客户拼货
-            </Button>,
-          ];
-        }}
-      />
-      <SeaSharedContainerDrawer
-        open={sharedDrawerOpen}
-        onClose={() => setSharedDrawerOpen(false)}
-        transportExecutionId={sharedTEId}
-        orderId={currentOrder?.id}
-        orderNo={currentOrder?.orderNo}
-        canCreate={canCreate}
-        canUpdate={canUpdate}
-        canDelete={canRemove}
-        containerSpecOptions={containerSpecOptions}
-      />
-    </>
+              : {
+                  containerNo: '',
+                  containerSpecId: '',
+                  packageCount: 1,
+                  grossWeightKg: 0,
+                  volumeCbm: 0,
+                }
+          }
+          renderFormItems={() => (
+            <>
+              <ProFormText
+                name="containerNo"
+                label="箱号"
+                placeholder="请输入箱号 (如 COSU1234567)"
+                rules={[{ required: true, message: '请输入箱号' }]}
+              />
+              <ProFormSearchableSelect
+                name="containerSpecId"
+                label="集装箱规格"
+                rules={[{ required: true, message: '请选择箱型' }]}
+                options={containerSpecOptions}
+                placeholder="请选择箱型"
+              />
+              <ProFormText
+                name="sealNo"
+                label="铅封号"
+                placeholder="请输入铅封号 (可选)"
+              />
+              <ProFormDigit
+                name="packageCount"
+                label="件数 (PCS)"
+                min={1}
+                fieldProps={{ precision: 0 }}
+                placeholder="请输入件数"
+                rules={[{ required: true, message: '请输入件数' }]}
+              />
+              <ProFormDigit
+                name="grossWeightKg"
+                label="货物毛重 (KG)"
+                min={0.001}
+                placeholder="请输入毛重"
+                rules={[{ required: true, message: '请输入毛重' }]}
+              />
+              <ProFormDigit
+                name="volumeCbm"
+                label="货物体积 (CBM)"
+                min={0.001}
+                placeholder="请输入体积"
+                rules={[{ required: true, message: '请输入体积' }]}
+              />
+              <ProFormTextArea
+                name="note"
+                label="备注说明"
+                placeholder="请输入备注 (可选)"
+                fieldProps={{ maxLength: 500, showCount: true }}
+              />
+            </>
+          )}
+          extraToolbar={(order) => {
+            if (order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE) {
+              return [];
+            }
+            return [
+              <Button
+                key="shared-container"
+                icon={<ShareAltOutlined />}
+                onClick={() => {
+                  const teId = order.seaMasterBill?.transportExecutionId;
+                  if (!teId) {
+                    message.warning(
+                      '当前订单尚未关联运输执行，无法开展跨订单拼箱',
+                    );
+                    return;
+                  }
+                  setSharedTEId(teId);
+                  setCurrentOrder(order);
+                  setSharedDrawerOpen(true);
+                }}
+              >
+                共享箱 / 客户拼货
+              </Button>,
+            ];
+          }}
+        />
+        <SeaSharedContainerDrawer
+          open={sharedDrawerOpen}
+          onClose={() => setSharedDrawerOpen(false)}
+          transportExecutionId={sharedTEId}
+          orderId={currentOrder?.id}
+          orderNo={currentOrder?.orderNo}
+          canCreate={canCreate}
+          canUpdate={canUpdate}
+          canDelete={canRemove}
+          containerSpecOptions={containerSpecOptions}
+        />
+      </>
     );
   },
 );

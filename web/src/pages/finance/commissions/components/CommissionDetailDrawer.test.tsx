@@ -134,7 +134,8 @@ describe('提成详情双口径', () => {
                 id: 'adj-1',
                 adjustmentNo: 'ADJ-2026-0001',
                 direction: 'DECREASE',
-                status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+                status:
+                  FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
                 amount: '50.00000000',
                 reason: '对冲撤销冲减',
                 sourceType: 'NETTING_REVERSAL',

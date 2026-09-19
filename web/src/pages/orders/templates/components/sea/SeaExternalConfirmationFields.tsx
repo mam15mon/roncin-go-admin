@@ -16,11 +16,7 @@ export function buildSeaExternalConfirmation(
   const confirmedByParty = values.confirmedByParty?.trim();
   const confirmationNote = values.confirmationNote?.trim();
   const confirmedAt = values.confirmedAt ? dayjs(values.confirmedAt) : null;
-  if (
-    !confirmedByParty ||
-    !confirmationNote ||
-    !confirmedAt?.isValid()
-  ) {
+  if (!confirmedByParty || !confirmationNote || !confirmedAt?.isValid()) {
     throw new Error('外部确认方、确认时间和确认说明不能为空');
   }
   return {
