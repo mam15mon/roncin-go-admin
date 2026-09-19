@@ -45,8 +45,14 @@ describe('EllipsisTooltip', () => {
     const target = screen.getByText('超长字符串测试');
 
     // 模拟 scrollWidth > clientWidth (发生溢出截断)
-    Object.defineProperty(target, 'scrollWidth', { configurable: true, value: 200 });
-    Object.defineProperty(target, 'clientWidth', { configurable: true, value: 100 });
+    Object.defineProperty(target, 'scrollWidth', {
+      configurable: true,
+      value: 200,
+    });
+    Object.defineProperty(target, 'clientWidth', {
+      configurable: true,
+      value: 100,
+    });
 
     fireEvent.mouseEnter(target);
     expect(target).toBeInTheDocument();
@@ -73,11 +79,7 @@ describe('EllipsisTooltip', () => {
       configurable: true,
     });
 
-    render(
-      <EllipsisTooltip copyable>
-        ONEY123456789
-      </EllipsisTooltip>,
-    );
+    render(<EllipsisTooltip copyable>ONEY123456789</EllipsisTooltip>);
 
     const copyIcon = screen.getByTitle('点击复制');
     expect(copyIcon).toBeInTheDocument();

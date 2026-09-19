@@ -282,9 +282,7 @@ export default function FinanceNettingsPage() {
           );
         }
         return (
-          <span style={{ color: '#8c8c8c' }}>
-            0.00 {record.baseCurrency}
-          </span>
+          <span style={{ color: '#8c8c8c' }}>0.00 {record.baseCurrency}</span>
         );
       },
     },

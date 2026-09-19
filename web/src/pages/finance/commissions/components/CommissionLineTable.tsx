@@ -1,10 +1,7 @@
 import { Space, Table, Tag, Typography } from 'antd';
 import React from 'react';
 import { formatDate } from '@/utils/format';
-import {
-  decimalText,
-  personnelRoleText,
-} from '../types';
+import { decimalText, personnelRoleText } from '../types';
 
 export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
   if (!record.fees || record.fees.length === 0) {
@@ -95,7 +92,8 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
       </Typography.Text>
       <Table<API.CommissionFeeDetail>
         rowKey={(item) =>
-          item.feeId || `${item.feeCode}-${item.expenseDate}-${item.totalAmount}`
+          item.feeId ||
+          `${item.feeCode}-${item.expenseDate}-${item.totalAmount}`
         }
         columns={feeColumns}
         dataSource={record.fees}

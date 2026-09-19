@@ -123,7 +123,10 @@ describe('订单详情共享箱工作台路由复用隔离', () => {
       ).toBeInTheDocument();
     });
     expect(listContainersSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ orderId: 'ord-A', transportExecutionId: 'TE-A' }),
+      expect.objectContaining({
+        orderId: 'ord-A',
+        transportExecutionId: 'TE-A',
+      }),
     );
     expect(listContainersSpy.mock.calls.length).toBeGreaterThan(0);
 
@@ -144,7 +147,10 @@ describe('订单详情共享箱工作台路由复用隔离', () => {
     await new Promise((resolve) => setTimeout(resolve, 120));
     for (const call of listContainersSpy.mock.calls) {
       expect(call[0]).toEqual(
-        expect.objectContaining({ orderId: 'ord-A', transportExecutionId: 'TE-A' }),
+        expect.objectContaining({
+          orderId: 'ord-A',
+          transportExecutionId: 'TE-A',
+        }),
       );
     }
     expect(candidatesSpy.mock.calls.length).toBeGreaterThanOrEqual(1);

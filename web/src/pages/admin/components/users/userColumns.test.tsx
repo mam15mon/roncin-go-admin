@@ -111,7 +111,11 @@ describe('buildUserColumns 按页签隐藏操作列', () => {
         {columnRender(null, {
           id: 'user-ces',
           organizations: [
-            { organizationId: 'dept-1', organizationName: '北京财务', primary: true },
+            {
+              organizationId: 'dept-1',
+              organizationName: '北京财务',
+              primary: true,
+            },
           ],
         } as API.AdminUser)}
       </div>,

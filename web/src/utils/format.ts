@@ -26,7 +26,9 @@ export function formatDate(
   if (value === undefined || value === null || value === '') return '-';
   const parsed = dayjs(value);
   if (!parsed.isValid()) return '-';
-  return parsed.format(format === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss');
+  return parsed.format(
+    format === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss',
+  );
 }
 
 export function formatAmount(
@@ -44,5 +46,7 @@ export function formatAmount(
 
 export function trimDecimal(value?: string | number | null): string {
   if (value === undefined || value === null || value === '') return '-';
-  return String(value).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+  return String(value)
+    .replace(/(\.\d*?)0+$/, '$1')
+    .replace(/\.$/, '');
 }

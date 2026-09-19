@@ -7,7 +7,10 @@ import {
 } from '@ant-design/icons';
 import { useAccess } from '@umijs/max';
 import React from 'react';
-import { MultiTabCenterTemplate, type MultiTabCenterTabItem } from '@/components/ui';
+import {
+  type MultiTabCenterTabItem,
+  MultiTabCenterTemplate,
+} from '@/components/ui';
 import AirlinesPanel from './components/AirlinesPanel';
 import AirportsPanel from './components/AirportsPanel';
 import CitiesPanel from './components/CitiesPanel';
@@ -25,7 +28,8 @@ export default function MasterDataPage() {
       label: '海运港口',
       icon: <CompassOutlined />,
       visible: access.canReadMasterDataPorts,
-      tooltip: '维护全球港口五字码 (UN/LOCODE)、所属国家地区及海陆铁多式联运枢纽属性',
+      tooltip:
+        '维护全球港口五字码 (UN/LOCODE)、所属国家地区及海陆铁多式联运枢纽属性',
       children: <PortsPanel />,
     },
     {
@@ -33,7 +37,8 @@ export default function MasterDataPage() {
       label: '空运机场',
       icon: <SendOutlined />,
       visible: access.canReadMasterDataAirports,
-      tooltip: '维护国际航空运输协会 (IATA) 机场三字码、ICAO 四字码及城市空港基础资料',
+      tooltip:
+        '维护国际航空运输协会 (IATA) 机场三字码、ICAO 四字码及城市空港基础资料',
       children: <AirportsPanel />,
     },
     {
@@ -41,7 +46,8 @@ export default function MasterDataPage() {
       label: '航空公司',
       icon: <RocketOutlined />,
       visible: access.canReadMasterDataAirlines,
-      tooltip: '维护航司 IATA 二字码、ICAO 三字码、运单三位前缀及主营航线基础资料',
+      tooltip:
+        '维护航司 IATA 二字码、ICAO 三字码、运单三位前缀及主营航线基础资料',
       children: <AirlinesPanel />,
     },
     {
@@ -57,7 +63,8 @@ export default function MasterDataPage() {
       label: '国家与地区',
       icon: <GlobalOutlined />,
       visible: access.canReadMasterDataItems,
-      tooltip: '维护 ISO 3166-1 国家与地区二字码/三字码、中英文标准全称及大洲归属',
+      tooltip:
+        '维护 ISO 3166-1 国家与地区二字码/三字码、中英文标准全称及大洲归属',
       children: <CountriesPanel />,
     },
     {

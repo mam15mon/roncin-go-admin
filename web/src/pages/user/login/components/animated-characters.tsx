@@ -30,7 +30,10 @@ export const Pupil = memo(
     forceLookX,
     forceLookY,
   }: PupilProps) => {
-    const [pupilPosition, setPupilPosition] = useState<Position>({ x: 0, y: 0 });
+    const [pupilPosition, setPupilPosition] = useState<Position>({
+      x: 0,
+      y: 0,
+    });
     const pupilRef = useRef<HTMLDivElement>(null);
 
     const calculatePosition = useCallback(
@@ -46,7 +49,10 @@ export const Pupil = memo(
 
         const deltaX = mx - pupilCenterX;
         const deltaY = my - pupilCenterY;
-        const distance = Math.min(Math.sqrt(deltaX ** 2 + deltaY ** 2), maxDistance);
+        const distance = Math.min(
+          Math.sqrt(deltaX ** 2 + deltaY ** 2),
+          maxDistance,
+        );
 
         const angle = Math.atan2(deltaY, deltaX);
         return {
@@ -110,7 +116,10 @@ export const EyeBall = memo(
     forceLookX,
     forceLookY,
   }: EyeBallProps) => {
-    const [pupilPosition, setPupilPosition] = useState<Position>({ x: 0, y: 0 });
+    const [pupilPosition, setPupilPosition] = useState<Position>({
+      x: 0,
+      y: 0,
+    });
     const eyeRef = useRef<HTMLDivElement>(null);
 
     const calculatePosition = useCallback(
@@ -126,7 +135,10 @@ export const EyeBall = memo(
 
         const deltaX = mx - eyeCenterX;
         const deltaY = my - eyeCenterY;
-        const distance = Math.min(Math.sqrt(deltaX ** 2 + deltaY ** 2), maxDistance);
+        const distance = Math.min(
+          Math.sqrt(deltaX ** 2 + deltaY ** 2),
+          maxDistance,
+        );
 
         const angle = Math.atan2(deltaY, deltaX);
         return {
@@ -212,10 +224,26 @@ export const AnimatedCharacters = memo(
     const yellowRef = useRef<HTMLDivElement>(null);
     const orangeRef = useRef<HTMLDivElement>(null);
 
-    const [purplePos, setPurplePos] = useState<CharacterState>({ faceX: 0, faceY: 0, bodySkew: 0 });
-    const [blackPos, setBlackPos] = useState<CharacterState>({ faceX: 0, faceY: 0, bodySkew: 0 });
-    const [yellowPos, setYellowPos] = useState<CharacterState>({ faceX: 0, faceY: 0, bodySkew: 0 });
-    const [orangePos, setOrangePos] = useState<CharacterState>({ faceX: 0, faceY: 0, bodySkew: 0 });
+    const [purplePos, setPurplePos] = useState<CharacterState>({
+      faceX: 0,
+      faceY: 0,
+      bodySkew: 0,
+    });
+    const [blackPos, setBlackPos] = useState<CharacterState>({
+      faceX: 0,
+      faceY: 0,
+      bodySkew: 0,
+    });
+    const [yellowPos, setYellowPos] = useState<CharacterState>({
+      faceX: 0,
+      faceY: 0,
+      bodySkew: 0,
+    });
+    const [orangePos, setOrangePos] = useState<CharacterState>({
+      faceX: 0,
+      faceY: 0,
+      bodySkew: 0,
+    });
 
     const calculatePosForRef = useCallback(
       (ref: React.RefObject<HTMLDivElement | null>, mx: number, my: number) => {
@@ -326,12 +354,15 @@ export const AnimatedCharacters = memo(
       }
 
       let peekResetTimer: ReturnType<typeof setTimeout> | undefined;
-      const firstPeek = setTimeout(() => {
-        setIsPurplePeeking(true);
-        peekResetTimer = setTimeout(() => {
-          setIsPurplePeeking(false);
-        }, 800);
-      }, Math.random() * 3000 + 2000);
+      const firstPeek = setTimeout(
+        () => {
+          setIsPurplePeeking(true);
+          peekResetTimer = setTimeout(() => {
+            setIsPurplePeeking(false);
+          }, 800);
+        },
+        Math.random() * 3000 + 2000,
+      );
 
       return () => {
         clearTimeout(firstPeek);
@@ -341,7 +372,8 @@ export const AnimatedCharacters = memo(
 
     const isHidingPassword = passwordLength > 0 && !showPassword;
     const isLookingAtEachOtherActive = isTyping && isLookingAtEachOther;
-    const isPurplePeekingActive = passwordLength > 0 && showPassword && isPurplePeeking;
+    const isPurplePeekingActive =
+      passwordLength > 0 && showPassword && isPurplePeeking;
 
     return (
       <div

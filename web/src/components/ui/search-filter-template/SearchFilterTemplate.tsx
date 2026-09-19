@@ -19,10 +19,7 @@ import React, { useMemo, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
 import { SearchableSelect } from '../searchable-select';
 import './SearchFilterTemplate.less';
-import type {
-  SearchFilterFieldItem,
-  SearchFilterTemplateProps,
-} from './types';
+import type { SearchFilterFieldItem, SearchFilterTemplateProps } from './types';
 
 const { RangePicker } = DatePicker;
 
@@ -33,7 +30,9 @@ const { RangePicker } = DatePicker;
  * 2. 'bar'：紧凑单行快捷筛选栏（关键字输入 + 快捷下拉 + 按钮组）
  * 3. 'custom'：自由 JSX 渲染插槽
  */
-export function SearchFilterTemplate<TValues extends Record<string, any> = Record<string, any>>({
+export function SearchFilterTemplate<
+  TValues extends Record<string, any> = Record<string, any>,
+>({
   layout = 'grid',
   formLayout = 'horizontal',
   labelWidth = 80,
@@ -73,10 +72,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
   // 计算栅格使用量与操作按钮跨度
   const usedSpan = useMemo(() => {
     return (
-      visibleItems.reduce(
-        (acc, it) => acc + (it.span || colSpan || 4),
-        0,
-      ) % 24
+      visibleItems.reduce((acc, it) => acc + (it.span || colSpan || 4), 0) % 24
     );
   }, [visibleItems, colSpan]);
 
@@ -204,7 +200,12 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
 
               {/* 快捷下拉筛选 */}
               {quickFilters.map((qf) => (
-                <Form.Item key={qf.name} name={qf.name} noStyle initialValue={qf.initialValue}>
+                <Form.Item
+                  key={qf.name}
+                  name={qf.name}
+                  noStyle
+                  initialValue={qf.initialValue}
+                >
                   <SearchableSelect
                     allowClear
                     placeholder={qf.placeholder || '全部'}
@@ -320,8 +321,7 @@ export function SearchFilterTemplate<TValues extends Record<string, any> = Recor
             span={actionSpan}
             style={{
               display: 'flex',
-              justifyContent:
-                actionSpan === 24 ? 'space-between' : 'flex-end',
+              justifyContent: actionSpan === 24 ? 'space-between' : 'flex-end',
               alignItems: 'center',
               marginBottom: 10,
               minHeight: 32,

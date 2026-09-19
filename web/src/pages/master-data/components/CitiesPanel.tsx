@@ -64,7 +64,9 @@ export default function CitiesPanel() {
     () =>
       data.map((item) => ({
         ...item,
-        parentName: item.parentCode ? namesByCode.get(item.parentCode) : undefined,
+        parentName: item.parentCode
+          ? namesByCode.get(item.parentCode)
+          : undefined,
       })),
     [data, namesByCode],
   );
@@ -133,7 +135,9 @@ export default function CitiesPanel() {
           render: (pCode: string, record: RegionItem) =>
             pCode ? (
               <span>
-                <Tag style={{ fontFamily: 'monospace', margin: 0, marginRight: 6 }}>
+                <Tag
+                  style={{ fontFamily: 'monospace', margin: 0, marginRight: 6 }}
+                >
                   {pCode}
                 </Tag>
                 {record.parentName && (

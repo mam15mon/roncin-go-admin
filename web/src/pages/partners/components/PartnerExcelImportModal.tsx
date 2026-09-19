@@ -156,8 +156,7 @@ export default function PartnerExcelImportModal({
             if (
               keys.some(
                 (k) =>
-                  cleanKey.includes(k) ||
-                  key.toLowerCase() === k.toLowerCase(),
+                  cleanKey.includes(k) || key.toLowerCase() === k.toLowerCase(),
               )
             ) {
               return String(row[key] ?? '').trim();
@@ -167,7 +166,12 @@ export default function PartnerExcelImportModal({
         };
 
         const code = getVal(['单位编码', '编码', 'code']);
-        const legalName = getVal(['企业名称', '名称', 'legalName', 'legal_name']);
+        const legalName = getVal([
+          '企业名称',
+          '名称',
+          'legalName',
+          'legal_name',
+        ]);
         const uscc = getVal(['统一社会信用代码', '信用代码', '税号', 'uscc']);
         const rolesStr = getVal(['业务角色', '角色', 'roles']);
         const address = getVal(['注册地址', '地址', 'address']);
@@ -352,7 +356,14 @@ export default function PartnerExcelImportModal({
         </Button>,
       ]}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+          marginTop: 16,
+        }}
+      >
         <div
           style={{
             display: 'flex',
@@ -366,13 +377,11 @@ export default function PartnerExcelImportModal({
           <div>
             <Text strong>导入格式说明：</Text>
             <div style={{ fontSize: 12, color: '#8c8c8c', marginTop: 4 }}>
-              支持 .xlsx 格式，单次最多导入 500 条数据。未填写的业务角色将默认归入「{currentRoleLabel}」。
+              支持 .xlsx 格式，单次最多导入 500
+              条数据。未填写的业务角色将默认归入「{currentRoleLabel}」。
             </div>
           </div>
-          <Button
-            icon={<DownloadOutlined />}
-            onClick={handleDownloadTemplate}
-          >
+          <Button icon={<DownloadOutlined />} onClick={handleDownloadTemplate}>
             下载 Excel 导入模板
           </Button>
         </div>
@@ -441,7 +450,9 @@ export default function PartnerExcelImportModal({
         {parsedItems.length > 0 && (
           <div>
             <div style={{ marginBottom: 8 }}>
-              <Text strong>数据预览 (前 5 条 / 共 {parsedItems.length} 条)：</Text>
+              <Text strong>
+                数据预览 (前 5 条 / 共 {parsedItems.length} 条)：
+              </Text>
             </div>
             <Table
               dataSource={parsedItems.slice(0, 5).map((item, i) => ({

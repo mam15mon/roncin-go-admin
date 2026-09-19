@@ -1,7 +1,7 @@
 import { App } from 'antd';
 import type { MessageInstance } from 'antd/es/message/interface';
-import type { NotificationInstance } from 'antd/es/notification/interface';
 import type { ModalStaticFunctions } from 'antd/es/modal/confirm';
+import type { NotificationInstance } from 'antd/es/notification/interface';
 import React, { useEffect } from 'react';
 
 let messageInstance: MessageInstance | null = null;

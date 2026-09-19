@@ -53,11 +53,14 @@ export default function AirlinesPanel() {
   const access = useAccess();
   // A 型全局主数据（阶段一起后端写路径仅总部放行）：前端按钮同步收敛，
   // 非总部组织只读并提示由总部统一维护。
-  const canCreate = access.isHeadquartersOrganization && access.canCreateMasterDataAirlines;
-  const canUpdate = access.isHeadquartersOrganization && access.canUpdateMasterDataAirlines;
+  const canCreate =
+    access.isHeadquartersOrganization && access.canCreateMasterDataAirlines;
+  const canUpdate =
+    access.isHeadquartersOrganization && access.canUpdateMasterDataAirlines;
   const fetchAirlines = React.useCallback(
-    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
-      masterDataServiceListAirlines(query),
+    (
+      query: import('@/components/ui/master-data-template').MasterDataListQuery,
+    ) => masterDataServiceListAirlines(query),
     [],
   );
   const {
@@ -124,9 +127,8 @@ export default function AirlinesPanel() {
       extraStats={[
         {
           label: '中国国内航司',
-          value: data.filter((a) =>
-            ['CN', 'HK', 'TW'].includes(a.countryCode),
-          ).length,
+          value: data.filter((a) => ['CN', 'HK', 'TW'].includes(a.countryCode))
+            .length,
           color: '#1677ff',
         },
         {
@@ -234,9 +236,7 @@ export default function AirlinesPanel() {
           label: '运单结算前缀 (3位)',
           placeholder: '例如：999 (国航)、112 (东航)、784 (南航)（可选）',
           required: false,
-          rules: [
-            { pattern: /^\d{3}$/, message: '运单前缀必须为3位纯数字' },
-          ],
+          rules: [{ pattern: /^\d{3}$/, message: '运单前缀必须为3位纯数字' }],
         },
         {
           name: 'icaoCode',

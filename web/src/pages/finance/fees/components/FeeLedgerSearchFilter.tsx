@@ -1,12 +1,9 @@
 import React from 'react';
 import {
-  SearchFilterTemplate,
   type SearchFilterFieldItem,
+  SearchFilterTemplate,
 } from '@/components/ui';
-import {
-  FeeLedgerFinancialProgress,
-  OrderFeeStatus,
-} from '@/enums.generated';
+import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
 import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 
 export interface FeeLedgerFilterParams {
@@ -91,7 +88,8 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       options: [
         {
           label: '账单未建立',
-          value: FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED,
+          value:
+            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED,
         },
         {
           label: '未核销未开票',
@@ -120,7 +118,8 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         },
         {
           label: '已完成',
-          value: FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED,
+          value:
+            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED,
         },
       ],
     },

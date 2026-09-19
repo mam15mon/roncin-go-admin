@@ -155,9 +155,7 @@ function renderFeatures(
   context: OrderDetailFeaturesContext,
   mountKey = context.orderFormIdentity,
 ): Harness {
-  const view = render(
-    <App>{renderContribution(context, mountKey)}</App>,
-  );
+  const view = render(<App>{renderContribution(context, mountKey)}</App>);
   return {
     rerenderWith: (nextContext, key = nextContext.orderFormIdentity) =>
       view.rerender(<App>{renderContribution(nextContext, key)}</App>),
@@ -218,9 +216,7 @@ describe('SeaExportDetailFeatures', () => {
     const splitButton = await screen.findByRole('button', { name: /拆票/ });
     expect(splitButton).toBeDisabled();
     fireEvent.click(splitButton);
-    expect(mockPush).not.toHaveBeenCalledWith(
-      '/orders/sea-export/ord-1/split',
-    );
+    expect(mockPush).not.toHaveBeenCalledWith('/orders/sea-export/ord-1/split');
 
     harness.rerenderWith(
       buildContext({

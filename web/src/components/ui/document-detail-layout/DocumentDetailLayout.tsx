@@ -29,7 +29,6 @@ export function DocumentDetailLayout({
 }: DocumentDetailLayoutProps) {
   return (
     <div style={{ marginBottom: 24 }}>
-
       {/* 顶部操作工具栏 */}
       {actions && (
         <div

@@ -1,7 +1,13 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
+import { history } from '@umijs/max';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { history } from '@umijs/max';
 import { authServiceLogout } from '@/services/roncin/authService';
 import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import { AvatarDropdown } from './AvatarDropdown';

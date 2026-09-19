@@ -37,7 +37,10 @@ export interface OrderListToolbarProps {
   onCreateOrder?: () => void;
   onCopyOrder?: (selectedRows: OrderListItem[]) => void;
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
-  onBatchAction?: (actionKey: BatchActionKey, selectedRows: OrderListItem[]) => void;
+  onBatchAction?: (
+    actionKey: BatchActionKey,
+    selectedRows: OrderListItem[],
+  ) => void;
   onExportTable?: () => void;
   filterVisible?: boolean;
   onToggleFilter?: () => void;
@@ -180,7 +183,10 @@ export function OrderListToolbar({
           </Button>
         )}
 
-        <Dropdown menu={{ items: batchMenuItems, onClick: handleMenuClick }} disabled={readonly}>
+        <Dropdown
+          menu={{ items: batchMenuItems, onClick: handleMenuClick }}
+          disabled={readonly}
+        >
           <Button>
             批量操作 <DownOutlined />
           </Button>
@@ -225,7 +231,11 @@ export function OrderListToolbar({
 
         {hasSelected && (
           <Text type="secondary" style={{ fontSize: 13 }}>
-            已选择 <Text strong style={{ color: '#1677ff' }}>{selectedRows.length}</Text> 项
+            已选择{' '}
+            <Text strong style={{ color: '#1677ff' }}>
+              {selectedRows.length}
+            </Text>{' '}
+            项
           </Text>
         )}
       </Space>
@@ -236,7 +246,11 @@ export function OrderListToolbar({
           <Button
             icon={<FilterOutlined />}
             onClick={onToggleFilter}
-            style={filterVisible ? { borderColor: '#1677ff', color: '#1677ff' } : undefined}
+            style={
+              filterVisible
+                ? { borderColor: '#1677ff', color: '#1677ff' }
+                : undefined
+            }
           >
             {filterVisible ? '收起筛选' : '展开筛选'}
           </Button>

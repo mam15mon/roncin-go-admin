@@ -13,7 +13,9 @@ vi.mock('@/services/roncin/seaOrderChangeService', () => ({
 }));
 
 vi.mock('@/services/roncin/orderAttachmentService', () => ({
-  orderAttachmentServiceListAttachments: vi.fn().mockResolvedValue({ data: [] }),
+  orderAttachmentServiceListAttachments: vi
+    .fn()
+    .mockResolvedValue({ data: [] }),
 }));
 
 describe('SeaTransportExecutionUpdateModal', () => {
@@ -88,9 +90,7 @@ describe('SeaTransportExecutionUpdateModal', () => {
       expect(screen.getByText('本次将影响 2 张关联订单')).toBeInTheDocument();
     });
 
-    fireEvent.click(
-      screen.getByRole('button', { name: '确认统一调整' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: '确认统一调整' }));
     await waitFor(() => {
       expect(
         seaOrderChangeServiceExecuteSeaTransportExecutionUpdate,

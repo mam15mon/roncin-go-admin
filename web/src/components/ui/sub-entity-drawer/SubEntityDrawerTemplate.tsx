@@ -8,10 +8,10 @@ import { ModalForm, ProTable } from '@ant-design/pro-components';
 import { App, Button, Drawer, Popconfirm, Space } from 'antd';
 import React, {
   forwardRef,
+  type ReactNode,
   useImperativeHandle,
   useRef,
   useState,
-  type ReactNode,
 } from 'react';
 import { toTableRequest } from '@/utils/api';
 
@@ -145,11 +145,7 @@ export function SubEntityDrawerTemplateInner<
       render: (_, record) => (
         <Space size="small">
           {canUpdate && updateItemProp && (
-            <Button
-              type="link"
-              size="small"
-              onClick={() => openEdit(record)}
-            >
+            <Button type="link" size="small" onClick={() => openEdit(record)}>
               编辑
             </Button>
           )}

@@ -105,15 +105,13 @@ export function getReleasePodDocumentValue(record: API.OrderReleasePod) {
     return `legacy:${record.shippingDocumentId}`;
   }
   if (
-    record.seaDocumentType ===
-      SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL &&
+    record.seaDocumentType === SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL &&
     record.seaDocumentId
   ) {
     return `mbl:${record.seaDocumentId}`;
   }
   if (
-    record.seaDocumentType ===
-      SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL &&
+    record.seaDocumentType === SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL &&
     record.seaDocumentId
   ) {
     return `hbl:${record.seaDocumentId}`;
@@ -176,8 +174,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
         const loadDocuments =
           record.businessType === OrderBusinessType.BUSINESS_TYPE_SE
             ? seaDocumentServiceGetSeaOrderDocuments({ orderId }).then(
-                (response) =>
-                  buildSeaReleasePodDocumentOptions(response.data),
+                (response) => buildSeaReleasePodDocumentOptions(response.data),
               )
             : orderShippingDocumentServiceListShippingDocuments({
                 orderId,

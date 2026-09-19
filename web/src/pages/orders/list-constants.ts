@@ -1,7 +1,4 @@
-import {
-  OrderClosureStatus,
-  OrderTerminationStatus,
-} from '@/enums.generated';
+import { OrderClosureStatus, OrderTerminationStatus } from '@/enums.generated';
 
 export const lifecycleFiltersByStage: Record<
   string,
@@ -14,8 +11,7 @@ export const lifecycleFiltersByStage: Record<
     closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
   },
   unreturned: {
-    terminationStatus:
-      OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+    terminationStatus: OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
     closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
   },
   returned: {

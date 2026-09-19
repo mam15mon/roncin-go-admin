@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { history } from '@umijs/max';
 import {
   App,
   Button,
@@ -15,23 +15,15 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { history } from '@umijs/max';
+import React, { useEffect, useState } from 'react';
 import {
-  seaOrderChangeServiceListSeaOrderChangeEvents,
   seaOrderChangeServiceGetSeaOrderChangeEvent,
+  seaOrderChangeServiceListSeaOrderChangeEvents,
 } from '@/services/roncin/seaOrderChangeService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const messageValue = (error as { message?: unknown }).message;
-    if (typeof messageValue === 'string' && messageValue) return messageValue;
-  }
-  return fallback;
-}
 
 function formatSnapshot(raw?: string): string {
   if (!raw) return '无';
@@ -59,14 +51,17 @@ function renderEventSummary(record: API.SeaOrderChangeEventSummary) {
                   type="link"
                   size="small"
                   style={{ padding: 0 }}
-                  onClick={() => history.push(`/orders/sea-export/${result.orderId}`)}
+                  onClick={() =>
+                    history.push(`/orders/sea-export/${result.orderId}`)
+                  }
                 >
                   {result.orderNo}
                 </Button>
               ) : (
                 result.orderNo
               )}{' '}
-              ({result.packageCount} 件 / {result.grossWeightKg} KGS / {result.volumeCbm} CBM)
+              ({result.packageCount} 件 / {result.grossWeightKg} KGS /{' '}
+              {result.volumeCbm} CBM)
               {result.finalMasterNo ? ` · MBL ${result.finalMasterNo}` : ''}
             </Tag>
           ))}
@@ -83,12 +78,16 @@ function renderEventSummary(record: API.SeaOrderChangeEventSummary) {
           <Text code>{summary.previousMasterNo || '无'}</Text>
           <span style={{ margin: '0 8px' }}>➔</span>
           <Text type="secondary">新母单：</Text>
-          <Text code style={{ color: '#1677ff' }}>{summary.targetMasterNo || '新录入'}</Text>
+          <Text code style={{ color: '#1677ff' }}>
+            {summary.targetMasterNo || '新录入'}
+          </Text>
         </div>
         <div style={{ marginTop: 4 }}>
           <Tag color="orange">责任：{summary.responsibilityType || '-'}</Tag>
           {summary.responsiblePartnerName && (
-            <Text type="secondary">责任方：{summary.responsiblePartnerName}</Text>
+            <Text type="secondary">
+              责任方：{summary.responsiblePartnerName}
+            </Text>
           )}
         </div>
       </div>
@@ -102,10 +101,9 @@ interface SeaOrderChangeHistorySectionProps {
   onOpenAll: () => void;
 }
 
-export const SeaOrderChangeHistorySection: React.FC<SeaOrderChangeHistorySectionProps> = ({
-  orderId,
-  onOpenAll,
-}) => {
+export const SeaOrderChangeHistorySection: React.FC<
+  SeaOrderChangeHistorySectionProps
+> = ({ orderId, onOpenAll }) => {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<API.SeaOrderChangeEventSummary[]>([]);
@@ -114,12 +112,17 @@ export const SeaOrderChangeHistorySection: React.FC<SeaOrderChangeHistorySection
     if (!orderId) return;
     let active = true;
     setLoading(true);
-    seaOrderChangeServiceListSeaOrderChangeEvents({ orderId, page: 1, pageSize: 5 })
+    seaOrderChangeServiceListSeaOrderChangeEvents({
+      orderId,
+      page: 1,
+      pageSize: 5,
+    })
       .then((response) => {
         if (active) setEvents(response?.data || []);
       })
       .catch((error: unknown) => {
-        if (active) message.error(getErrorMessage(error, '加载拆票与改配记录失败'));
+        if (active)
+          message.error(getErrorMessage(error, '加载拆票与改配记录失败'));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -133,7 +136,10 @@ export const SeaOrderChangeHistorySection: React.FC<SeaOrderChangeHistorySection
     <Col span={24}>
       <Spin spinning={loading}>
         {events.length === 0 ? (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无拆票或改配记录" />
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="暂无拆票或改配记录"
+          />
         ) : (
           <List
             size="small"
@@ -141,7 +147,12 @@ export const SeaOrderChangeHistorySection: React.FC<SeaOrderChangeHistorySection
             renderItem={(event) => (
               <List.Item
                 actions={[
-                  <Button key="all" type="link" size="small" onClick={onOpenAll}>
+                  <Button
+                    key="all"
+                    type="link"
+                    size="small"
+                    onClick={onOpenAll}
+                  >
                     查看详情
                   </Button>,
                 ]}
@@ -149,7 +160,9 @@ export const SeaOrderChangeHistorySection: React.FC<SeaOrderChangeHistorySection
                 <List.Item.Meta
                   title={
                     <Space>
-                      <Tag color={event.eventType === 'SPLIT' ? 'purple' : 'blue'}>
+                      <Tag
+                        color={event.eventType === 'SPLIT' ? 'purple' : 'blue'}
+                      >
                         {event.eventType === 'SPLIT' ? '部分拆票' : '整票改配'}
                       </Tag>
                       <Text type="secondary">
@@ -165,7 +178,9 @@ export const SeaOrderChangeHistorySection: React.FC<SeaOrderChangeHistorySection
           />
         )}
         <div style={{ textAlign: 'right', marginTop: 8 }}>
-          <Button type="link" onClick={onOpenAll}>查看全部拆票与改配历史</Button>
+          <Button type="link" onClick={onOpenAll}>
+            查看全部拆票与改配历史
+          </Button>
         </div>
       </Spin>
     </Col>
@@ -178,11 +193,9 @@ interface SeaOrderChangeHistoryDrawerProps {
   onClose: () => void;
 }
 
-export const SeaOrderChangeHistoryDrawer: React.FC<SeaOrderChangeHistoryDrawerProps> = ({
-  orderId,
-  open,
-  onClose,
-}) => {
+export const SeaOrderChangeHistoryDrawer: React.FC<
+  SeaOrderChangeHistoryDrawerProps
+> = ({ orderId, open, onClose }) => {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<API.SeaOrderChangeEventSummary[]>([]);
@@ -192,7 +205,8 @@ export const SeaOrderChangeHistoryDrawer: React.FC<SeaOrderChangeHistoryDrawerPr
 
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [currentDetail, setCurrentDetail] = useState<API.SeaOrderChangeEventDetailData | null>(null);
+  const [currentDetail, setCurrentDetail] =
+    useState<API.SeaOrderChangeEventDetailData | null>(null);
 
   const loadEvents = async () => {
     if (!orderId || !open) return;
@@ -342,26 +356,62 @@ export const SeaOrderChangeHistoryDrawer: React.FC<SeaOrderChangeHistoryDrawerPr
               <Descriptions.Item label="发生时间">
                 {formatDate(currentDetail.createdAt)}
               </Descriptions.Item>
-              <Descriptions.Item label="操作人">{currentDetail.operatorName || '-'}</Descriptions.Item>
-              <Descriptions.Item label="原因/备注">{currentDetail.noteOrReason || '-'}</Descriptions.Item>
+              <Descriptions.Item label="操作人">
+                {currentDetail.operatorName || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="原因/备注">
+                {currentDetail.noteOrReason || '-'}
+              </Descriptions.Item>
             </Descriptions>
 
             {currentDetail.eventType === 'REASSIGNMENT' && (
               <>
                 <Text strong>航程变更前后快照比对：</Text>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <div style={{ flex: 1, border: '1px solid #f0f0f0', borderRadius: 4, padding: 12 }}>
-                    <Text type="secondary" strong>变更前快照：</Text>
+                  <div
+                    style={{
+                      flex: 1,
+                      border: '1px solid #f0f0f0',
+                      borderRadius: 4,
+                      padding: 12,
+                    }}
+                  >
+                    <Text type="secondary" strong>
+                      变更前快照：
+                    </Text>
                     <Paragraph style={{ marginTop: 8 }}>
-                      <pre style={{ background: '#fafafa', padding: 8, fontSize: 12, borderRadius: 4 }}>
+                      <pre
+                        style={{
+                          background: '#fafafa',
+                          padding: 8,
+                          fontSize: 12,
+                          borderRadius: 4,
+                        }}
+                      >
                         {formatSnapshot(currentDetail.beforeSnapshotJson)}
                       </pre>
                     </Paragraph>
                   </div>
-                  <div style={{ flex: 1, border: '1px solid #e6f4ff', borderRadius: 4, padding: 12 }}>
-                    <Text style={{ color: '#1677ff' }} strong>变更后快照：</Text>
+                  <div
+                    style={{
+                      flex: 1,
+                      border: '1px solid #e6f4ff',
+                      borderRadius: 4,
+                      padding: 12,
+                    }}
+                  >
+                    <Text style={{ color: '#1677ff' }} strong>
+                      变更后快照：
+                    </Text>
                     <Paragraph style={{ marginTop: 8 }}>
-                      <pre style={{ background: '#f6ffed', padding: 8, fontSize: 12, borderRadius: 4 }}>
+                      <pre
+                        style={{
+                          background: '#f6ffed',
+                          padding: 8,
+                          fontSize: 12,
+                          borderRadius: 4,
+                        }}
+                      >
                         {formatSnapshot(currentDetail.afterSnapshotJson)}
                       </pre>
                     </Paragraph>
@@ -373,9 +423,22 @@ export const SeaOrderChangeHistoryDrawer: React.FC<SeaOrderChangeHistoryDrawerPr
             {currentDetail.eventType === 'SPLIT' && (
               <>
                 <Text strong>拆票前基线与守恒汇总：</Text>
-                <div style={{ border: '1px solid #f0f0f0', borderRadius: 4, padding: 12 }}>
+                <div
+                  style={{
+                    border: '1px solid #f0f0f0',
+                    borderRadius: 4,
+                    padding: 12,
+                  }}
+                >
                   <Paragraph>
-                    <pre style={{ background: '#fafafa', padding: 8, fontSize: 12, borderRadius: 4 }}>
+                    <pre
+                      style={{
+                        background: '#fafafa',
+                        padding: 8,
+                        fontSize: 12,
+                        borderRadius: 4,
+                      }}
+                    >
                       {formatSnapshot(currentDetail.conservationSnapshotJson)}
                     </pre>
                   </Paragraph>

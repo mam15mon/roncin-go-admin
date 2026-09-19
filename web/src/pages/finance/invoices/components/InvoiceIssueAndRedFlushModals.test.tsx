@@ -15,11 +15,7 @@ import {
   invoiceStateText,
 } from './invoiceConstants';
 
-function IssueModalHarness({
-  direction,
-}: {
-  direction?: string;
-}) {
+function IssueModalHarness({ direction }: { direction?: string }) {
   const [form] = Form.useForm();
   return (
     <InvoiceIssueModal
@@ -41,26 +37,28 @@ function IssueModalHarness({
 describe('发票方向感知文案（AC3）', () => {
   it('销项（应收）呈现确认开具与开票日期', () => {
     render(<IssueModalHarness direction="RECEIVABLE" />);
-    expect(
-      screen.getByText('确认开具 验收组织 的发票'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('确认开具 验收组织 的发票')).toBeInTheDocument();
     expect(screen.getByText('开票日期')).toBeInTheDocument();
   });
 
   it('进项（应付）呈现确认收票与收票日期', () => {
     render(<IssueModalHarness direction="PAYABLE" />);
-    expect(
-      screen.getByText('确认收票 验收组织 的发票'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('确认收票 验收组织 的发票')).toBeInTheDocument();
     expect(screen.getByText('收票日期')).toBeInTheDocument();
   });
 
   it('同一 ISSUED 状态按方向分别呈现已开具与已收票', () => {
     expect(
-      invoiceStateText(FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED, 'RECEIVABLE'),
+      invoiceStateText(
+        FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED,
+        'RECEIVABLE',
+      ),
     ).toBe('已开具');
     expect(
-      invoiceStateText(FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED, 'PAYABLE'),
+      invoiceStateText(
+        FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED,
+        'PAYABLE',
+      ),
     ).toBe('已收票');
   });
 

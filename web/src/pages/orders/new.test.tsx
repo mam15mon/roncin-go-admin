@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import React from 'react';
 import { App } from 'antd';
+import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getFormDraftKey,
@@ -41,16 +41,22 @@ vi.mock('./use-order-create-options', () => ({
 
 let lastTemplateProps: any = null;
 
-vi.mock('@/components/ui/order-template/OrderFormTemplate', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/components/ui/order-template/OrderFormTemplate')>();
-  return {
-    ...actual,
-    OrderFormTemplate: (props: any) => {
-      lastTemplateProps = props;
-      return actual.OrderFormTemplate(props);
-    },
-  };
-});
+vi.mock(
+  '@/components/ui/order-template/OrderFormTemplate',
+  async (importOriginal) => {
+    const actual =
+      await importOriginal<
+        typeof import('@/components/ui/order-template/OrderFormTemplate')
+      >();
+    return {
+      ...actual,
+      OrderFormTemplate: (props: any) => {
+        lastTemplateProps = props;
+        return actual.OrderFormTemplate(props);
+      },
+    };
+  },
+);
 
 const mockUseOptions = vi.mocked(useOrderCreateOptions);
 

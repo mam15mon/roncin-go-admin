@@ -96,10 +96,10 @@ export default function OrderFeeHeader({
             {customerName || order.customerId || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="业务类型">{configTitle}</Descriptions.Item>
-              <Descriptions.Item label="贸易条款">
-                {tradeTermOptions.find((o) => o.value === order.tradeTerm)
-                  ?.label ?? '-'}
-              </Descriptions.Item>
+          <Descriptions.Item label="贸易条款">
+            {tradeTermOptions.find((o) => o.value === order.tradeTerm)?.label ??
+              '-'}
+          </Descriptions.Item>
           <Descriptions.Item label="主单号 (MBL)">
             {order.seaMasterBill?.masterNo || '-'}
           </Descriptions.Item>

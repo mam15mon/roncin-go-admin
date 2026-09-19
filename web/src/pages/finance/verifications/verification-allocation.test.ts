@@ -29,8 +29,8 @@ describe('buildVerificationAllocations', () => {
       [{ id: 'bill-1', balance: '0.30000000' }],
     );
     expect(allocations).toHaveLength(2);
-    expect(sumVerificationAmounts(allocations.map((item) => item.amount)).toFixed(8)).toBe(
-      '0.30000000',
-    );
+    expect(
+      sumVerificationAmounts(allocations.map((item) => item.amount)).toFixed(8),
+    ).toBe('0.30000000');
   });
 });

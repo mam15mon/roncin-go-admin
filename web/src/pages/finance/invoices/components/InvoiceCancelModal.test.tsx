@@ -55,7 +55,9 @@ describe('发票终态确认文案（INV-01）', () => {
     expect(
       screen.getByPlaceholderText('请输入取消原因（必填）'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '确认取消' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '确认取消' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('线下税务条件确认')).not.toBeInTheDocument();
   });
 
@@ -71,14 +73,20 @@ describe('发票终态确认文案（INV-01）', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('线下税务条件确认')).toBeInTheDocument();
     expect(
-      screen.getByText(/仅当已于线下税控\/开票系统完成作废或满足当期作废条件时才能执行/),
+      screen.getByText(
+        /仅当已于线下税控\/开票系统完成作废或满足当期作废条件时才能执行/,
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText(/系统不判断税期，不会代替线下税务判断/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/系统不判断税期，不会代替线下税务判断/),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('作废原因')).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText('请输入作废原因（必填）'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '确认作废' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '确认作废' }),
+    ).toBeInTheDocument();
   });
 
   it('作废标题与成功提示保持销项/进项方向语义', () => {

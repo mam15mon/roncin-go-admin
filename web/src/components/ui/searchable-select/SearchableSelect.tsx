@@ -1,7 +1,10 @@
 import { ProFormSelect } from '@ant-design/pro-components';
 import { Select } from 'antd';
 import React from 'react';
-import type { ProFormSearchableSelectProps, SearchableSelectProps } from './types';
+import type {
+  ProFormSearchableSelectProps,
+  SearchableSelectProps,
+} from './types';
 import { defaultSelectFilterOption } from './utils';
 
 /**
@@ -22,11 +25,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
         : false;
 
   return (
-    <Select
-      showSearch={mergedShowSearch}
-      allowClear={allowClear}
-      {...rest}
-    />
+    <Select showSearch={mergedShowSearch} allowClear={allowClear} {...rest} />
   );
 };
 
@@ -34,12 +33,9 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
  * 通用 ProFormSearchableSelect 表单下拉项
  * 默认开启模糊搜索与清除功能，无缝适配 ProForm 栅格和各类表单场景
  */
-export const ProFormSearchableSelect: React.FC<ProFormSearchableSelectProps> = ({
-  showSearch = true,
-  allowClear = true,
-  fieldProps,
-  ...rest
-}) => {
+export const ProFormSearchableSelect: React.FC<
+  ProFormSearchableSelectProps
+> = ({ showSearch = true, allowClear = true, fieldProps, ...rest }) => {
   const mergedFieldProps = {
     showSearch: showSearch ?? true,
     allowClear: allowClear ?? true,

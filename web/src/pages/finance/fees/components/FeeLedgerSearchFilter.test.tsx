@@ -1,6 +1,6 @@
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { FeeLedgerSearchFilter } from './FeeLedgerSearchFilter';
 
 // Mock partnerService
@@ -18,9 +18,7 @@ describe('FeeLedgerSearchFilter', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
-    render(
-      <FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />,
-    );
+    render(<FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />);
 
     expect(screen.getByText('综合搜索')).not.toBeNull();
     expect(screen.getByText('费用属性')).not.toBeNull();
@@ -34,9 +32,7 @@ describe('FeeLedgerSearchFilter', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
-    render(
-      <FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />,
-    );
+    render(<FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />);
 
     fireEvent.click(screen.getByText(/展开/));
 
@@ -57,9 +53,7 @@ describe('FeeLedgerSearchFilter', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
-    render(
-      <FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />,
-    );
+    render(<FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />);
 
     fireEvent.click(screen.getByText('重置'));
     expect(onReset).toHaveBeenCalled();

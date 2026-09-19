@@ -27,9 +27,9 @@ import {
 } from './components/roles/permissionTree';
 import RoleFormModal from './components/roles/RoleFormModal';
 import {
-  ROLE_BASE_PERMISSION_KEY,
   dataScopeMap,
   dataScopeOptions,
+  ROLE_BASE_PERMISSION_KEY,
 } from './components/roles/roleConstants';
 
 export default function RolesPanel() {

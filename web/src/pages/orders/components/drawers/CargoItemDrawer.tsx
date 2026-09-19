@@ -4,11 +4,11 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import React, { forwardRef } from 'react';
 import { message } from 'antd';
+import React, { forwardRef } from 'react';
 import {
-  SubEntityDrawerTemplate,
   type SubEntityDrawerRef,
+  SubEntityDrawerTemplate,
 } from '@/components/ui/sub-entity-drawer';
 import {
   orderCargoItemServiceAddCargoItem,
@@ -95,9 +95,7 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
         ref={ref}
         entityName="货物明细"
         drawerTitle={(order) =>
-          order
-            ? `订单货物明细 - ${order.orderNo || order.id}`
-            : '订单货物明细'
+          order ? `订单货物明细 - ${order.orderNo || order.id}` : '订单货物明细'
         }
         canCreate={canCreate}
         canUpdate={canUpdate}
@@ -118,8 +116,7 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
               grossWeightKg: Number(values.grossWeightKg),
               volumeCbm: Number(values.volumeCbm),
               netWeightKg:
-                values.netWeightKg !== undefined &&
-                values.netWeightKg !== null
+                values.netWeightKg !== undefined && values.netWeightKg !== null
                   ? Number(values.netWeightKg)
                   : undefined,
               note: values.note?.trim() || undefined,
@@ -140,8 +137,7 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
               grossWeightKg: Number(values.grossWeightKg),
               volumeCbm: Number(values.volumeCbm),
               netWeightKg:
-                values.netWeightKg !== undefined &&
-                values.netWeightKg !== null
+                values.netWeightKg !== undefined && values.netWeightKg !== null
                   ? Number(values.netWeightKg)
                   : undefined,
               note: values.note?.trim() || undefined,

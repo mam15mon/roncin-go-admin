@@ -8,12 +8,36 @@ import {
 } from '@/enums.generated';
 
 const STEPS = [
-  { value: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED, key: 'booked', label: '已订舱' },
-  { value: OrderFlowStatus.ORDER_FLOW_STATUS_SPACE_ALLOCATED, key: 'allocated', label: '已配舱' },
-  { value: OrderFlowStatus.ORDER_FLOW_STATUS_TRUCKING_ARRANGED, key: 'trucked', label: '拖车已安排' },
-  { value: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_CUTOFF, key: 'si_cutoff', label: '已截单' },
-  { value: OrderFlowStatus.ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED, key: 'customs', label: '报关已安排' },
-  { value: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED, key: 'released', label: '已放单' },
+  {
+    value: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
+    key: 'booked',
+    label: '已订舱',
+  },
+  {
+    value: OrderFlowStatus.ORDER_FLOW_STATUS_SPACE_ALLOCATED,
+    key: 'allocated',
+    label: '已配舱',
+  },
+  {
+    value: OrderFlowStatus.ORDER_FLOW_STATUS_TRUCKING_ARRANGED,
+    key: 'trucked',
+    label: '拖车已安排',
+  },
+  {
+    value: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_CUTOFF,
+    key: 'si_cutoff',
+    label: '已截单',
+  },
+  {
+    value: OrderFlowStatus.ORDER_FLOW_STATUS_CUSTOMS_DECLARATION_ARRANGED,
+    key: 'customs',
+    label: '报关已安排',
+  },
+  {
+    value: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED,
+    key: 'released',
+    label: '已放单',
+  },
 ];
 
 export function buildOrderStatusSection(

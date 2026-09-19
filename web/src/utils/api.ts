@@ -14,7 +14,10 @@ export function unwrapList<T>(response: ApiListResponse<T>): T[] {
   return response.data ?? [];
 }
 
-export function unwrapPage<T>(response: ApiPageResponse<T>): { data: T[]; total: number } {
+export function unwrapPage<T>(response: ApiPageResponse<T>): {
+  data: T[];
+  total: number;
+} {
   return {
     data: unwrapList(response),
     total: Number(response.total ?? 0),

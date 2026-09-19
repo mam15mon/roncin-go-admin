@@ -33,18 +33,20 @@ export const TooltipInput = forwardRef<InputRef, TooltipInputProps>(
     const inputRef = useRef<InputRef>(null);
     useImperativeHandle(ref, () => inputRef.current as InputRef);
 
-    const [innerVal, setInnerVal] = useState<string>(
-      () =>
-        value !== undefined && value !== null
-          ? String(value)
-          : defaultValue !== undefined && defaultValue !== null
-            ? String(defaultValue)
-            : '',
+    const [innerVal, setInnerVal] = useState<string>(() =>
+      value !== undefined && value !== null
+        ? String(value)
+        : defaultValue !== undefined && defaultValue !== null
+          ? String(defaultValue)
+          : '',
     );
     const [isOverflow, setIsOverflow] = useState(false);
 
     const resolvedVal = value !== undefined ? value : innerVal;
-    const stringVal = resolvedVal !== undefined && resolvedVal !== null ? String(resolvedVal) : '';
+    const stringVal =
+      resolvedVal !== undefined && resolvedVal !== null
+        ? String(resolvedVal)
+        : '';
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {

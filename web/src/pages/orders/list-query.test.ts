@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderTerminationStatus } from '@/enums.generated';
-import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { queryOrderList } from './list-query';
+import { seaExportDefinition } from './order-kinds/sea-export/definition';
 
 const listOrdersMock = vi.hoisted(() => vi.fn());
 

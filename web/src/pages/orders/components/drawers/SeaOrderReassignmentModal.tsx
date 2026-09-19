@@ -1,30 +1,31 @@
-import React, { useEffect, useRef, useState } from 'react';
 import {
-  Modal,
+  Alert,
+  App,
+  Button,
+  Col,
+  DatePicker,
   Form,
   Input,
-  Select,
+  Modal,
   Radio,
-  DatePicker,
+  Row,
+  Select,
+  Space,
+  Spin,
   Table,
   Tag,
   Typography,
-  Space,
-  Alert,
-  Row,
-  Col,
-  App,
-  Spin,
-  Button,
 } from 'antd';
+import type { DefaultOptionType } from 'antd/es/select';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import {
-  seaOrderChangeServicePreviewSeaOrderReassignment,
-  seaOrderChangeServiceExecuteSeaOrderReassignment,
-} from '@/services/roncin/seaOrderChangeService';
+import React, { useEffect, useRef, useState } from 'react';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
-import type { DefaultOptionType } from 'antd/es/select';
+import {
+  seaOrderChangeServiceExecuteSeaOrderReassignment,
+  seaOrderChangeServicePreviewSeaOrderReassignment,
+} from '@/services/roncin/seaOrderChangeService';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { computeCanonicalSha256 } from '@/utils/hash';
 import SeaExternalConfirmationFields, {
   buildSeaExternalConfirmation,
@@ -32,15 +33,6 @@ import SeaExternalConfirmationFields, {
 
 const { Text } = Typography;
 const { TextArea } = Input;
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const messageValue = (error as { message?: unknown }).message;
-    if (typeof messageValue === 'string' && messageValue) return messageValue;
-  }
-  return fallback;
-}
 
 interface SeaOrderReassignmentModalProps {
   orderId: string;
@@ -56,7 +48,9 @@ interface SeaOrderReassignmentModalProps {
   initialShippingLineName?: string;
 }
 
-export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps> = ({
+export const SeaOrderReassignmentModal: React.FC<
+  SeaOrderReassignmentModalProps
+> = ({
   orderId,
   orderNo,
   open,
@@ -74,13 +68,16 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
-  const [previewData, setPreviewData] = useState<API.SeaOrderReassignmentPreviewData | null>(null);
+  const [previewData, setPreviewData] =
+    useState<API.SeaOrderReassignmentPreviewData | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [orderVersion, setOrderVersion] = useState<string>('0');
   const [linkVersion, setLinkVersion] = useState<string>('0');
   const [targetType, setTargetType] = useState<'candidate' | 'new'>('new');
-  const [candidateMatched, setCandidateMatched] = useState<API.SeaMasterBillCandidate | null>(null);
-  const [candidateTe, setCandidateTe] = useState<API.SeaTransportExecution | null>(null);
+  const [candidateMatched, setCandidateMatched] =
+    useState<API.SeaMasterBillCandidate | null>(null);
+  const [candidateTe, setCandidateTe] =
+    useState<API.SeaTransportExecution | null>(null);
   const disabledRef = useRef({ disabled, reason: disabledReason });
   disabledRef.current = { disabled, reason: disabledReason };
   const onCloseRef = useRef(onClose);
@@ -88,9 +85,15 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
   // 选项缓存
   const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>([]);
-  const [originPortOptions, setOriginPortOptions] = useState<DefaultOptionType[]>([]);
-  const [dischargePortOptions, setDischargePortOptions] = useState<DefaultOptionType[]>([]);
-  const [transitPortOptions, setTransitPortOptions] = useState<DefaultOptionType[]>([]);
+  const [originPortOptions, setOriginPortOptions] = useState<
+    DefaultOptionType[]
+  >([]);
+  const [dischargePortOptions, setDischargePortOptions] = useState<
+    DefaultOptionType[]
+  >([]);
+  const [transitPortOptions, setTransitPortOptions] = useState<
+    DefaultOptionType[]
+  >([]);
 
   useEffect(() => {
     if (open && disabled) {
@@ -118,19 +121,35 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
       triggerPreview();
     }
-  }, [disabled, form, initialShippingLineId, initialShippingLineName, open, orderId]);
+  }, [
+    disabled,
+    form,
+    initialShippingLineId,
+    initialShippingLineName,
+    open,
+    orderId,
+  ]);
 
   // 实时触发比对预览
-  const triggerPreview = async (customTarget?: API.SeaOrderReassignmentTargetInput) => {
+  const triggerPreview = async (
+    customTarget?: API.SeaOrderReassignmentTargetInput,
+  ) => {
     if (!orderId || disabledRef.current.disabled) return;
     setPreviewing(true);
     setPreviewError(null);
     try {
       const values = form.getFieldsValue();
       const targetInput: API.SeaOrderReassignmentTargetInput = customTarget || {
-        targetType: targetType === 'candidate' && candidateMatched?.id ? 'CANDIDATE' : 'NEW',
-        candidateId: targetType === 'candidate' ? candidateMatched?.id : undefined,
-        candidateVersion: targetType === 'candidate' && candidateMatched?.version ? String(candidateMatched.version) : undefined,
+        targetType:
+          targetType === 'candidate' && candidateMatched?.id
+            ? 'CANDIDATE'
+            : 'NEW',
+        candidateId:
+          targetType === 'candidate' ? candidateMatched?.id : undefined,
+        candidateVersion:
+          targetType === 'candidate' && candidateMatched?.version
+            ? String(candidateMatched.version)
+            : undefined,
         candidateTeId: targetType === 'candidate' ? candidateTe?.id : undefined,
         candidateTeVersion:
           targetType === 'candidate' && candidateTe?.version
@@ -143,8 +162,12 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
         originLocationId: values.originLocationId,
         dischargeLocationId: values.dischargeLocationId,
         transitLocationId: values.transitLocationId,
-        etd: values.etd ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss') : undefined,
-        eta: values.eta ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss') : undefined,
+        etd: values.etd
+          ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss')
+          : undefined,
+        eta: values.eta
+          ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss')
+          : undefined,
       };
 
       const resp = await seaOrderChangeServicePreviewSeaOrderReassignment(
@@ -202,7 +225,8 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
           message.error('候选母单没有可选择的运输执行或版本信息！');
           return;
         }
-        const te = transportExecutions.length === 1 ? transportExecutions[0] : null;
+        const te =
+          transportExecutions.length === 1 ? transportExecutions[0] : null;
         setCandidateMatched(c);
         setCandidateTe(te);
         if (!te) {
@@ -222,7 +246,9 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
           etd: te?.etd ? dayjs(te.etd) : undefined,
           eta: te?.eta ? dayjs(te.eta) : undefined,
         });
-        message.success(`成功匹配到共享母单 [${c.masterNo}]，当前已有 ${c.memberCount || 1} 票订单`);
+        message.success(
+          `成功匹配到共享母单 [${c.masterNo}]，当前已有 ${c.memberCount || 1} 票订单`,
+        );
         const nextTargetInput: API.SeaOrderReassignmentTargetInput = {
           targetType: 'CANDIDATE',
           candidateId: c.id,
@@ -236,8 +262,12 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
           originLocationId: te?.originLocationId,
           dischargeLocationId: te?.dischargeLocationId,
           transitLocationId: te?.transitLocationId,
-          etd: te?.etd ? dayjs(te.etd).format('YYYY-MM-DD HH:mm:ss') : undefined,
-          eta: te?.eta ? dayjs(te.eta).format('YYYY-MM-DD HH:mm:ss') : undefined,
+          etd: te?.etd
+            ? dayjs(te.etd).format('YYYY-MM-DD HH:mm:ss')
+            : undefined,
+          eta: te?.eta
+            ? dayjs(te.eta).format('YYYY-MM-DD HH:mm:ss')
+            : undefined,
         };
         triggerPreview(nextTargetInput);
       } else {
@@ -254,8 +284,12 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
           originLocationId: values.originLocationId,
           dischargeLocationId: values.dischargeLocationId,
           transitLocationId: values.transitLocationId,
-          etd: values.etd ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss') : undefined,
-          eta: values.eta ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss') : undefined,
+          etd: values.etd
+            ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss')
+            : undefined,
+          eta: values.eta
+            ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss')
+            : undefined,
         };
         triggerPreview(nextTargetInput);
       }
@@ -270,7 +304,12 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
       message.warning(disabledRef.current.reason || '订单当前不可编辑');
       return;
     }
-    if (!orderVersion || orderVersion === '0' || !linkVersion || linkVersion === '0') {
+    if (
+      !orderVersion ||
+      orderVersion === '0' ||
+      !linkVersion ||
+      linkVersion === '0'
+    ) {
       message.error('未获取到有效的订单或母单关联版本，请刷新重试！');
       return;
     }
@@ -294,7 +333,8 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
         content: (
           <div>
             <p>
-              保留当前操作票号与流程状态，不会复制订单；当前航程将切换为目标 MBL 权威航程。
+              保留当前操作票号与流程状态，不会复制订单；当前航程将切换为目标 MBL
+              权威航程。
             </p>
             <p style={{ color: '#fa8c16' }}>
               请核对下方航程要素变动表。执行后将生成不可变改配历史记录。
@@ -311,10 +351,18 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
           setSubmitting(true);
           try {
             const targetInput: API.SeaOrderReassignmentTargetInput = {
-              targetType: targetType === 'candidate' && candidateMatched?.id ? 'CANDIDATE' : 'NEW',
-              candidateId: targetType === 'candidate' ? candidateMatched?.id : undefined,
-              candidateVersion: targetType === 'candidate' && candidateMatched?.version ? String(candidateMatched.version) : undefined,
-              candidateTeId: targetType === 'candidate' ? candidateTe?.id : undefined,
+              targetType:
+                targetType === 'candidate' && candidateMatched?.id
+                  ? 'CANDIDATE'
+                  : 'NEW',
+              candidateId:
+                targetType === 'candidate' ? candidateMatched?.id : undefined,
+              candidateVersion:
+                targetType === 'candidate' && candidateMatched?.version
+                  ? String(candidateMatched.version)
+                  : undefined,
+              candidateTeId:
+                targetType === 'candidate' ? candidateTe?.id : undefined,
               candidateTeVersion:
                 targetType === 'candidate' && candidateTe?.version
                   ? String(candidateTe.version)
@@ -326,8 +374,12 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
               originLocationId: values.originLocationId,
               dischargeLocationId: values.dischargeLocationId,
               transitLocationId: values.transitLocationId,
-              etd: values.etd ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss') : undefined,
-              eta: values.eta ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss') : undefined,
+              etd: values.etd
+                ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss')
+                : undefined,
+              eta: values.eta
+                ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss')
+                : undefined,
             };
 
             const payloadForHash = {
@@ -340,7 +392,9 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
               expectedOrderVersion: orderVersion,
               expectedLinkVersion: linkVersion,
               expectedCandidateMblVersion:
-                targetType === 'candidate' ? String(candidateMatched?.version) : undefined,
+                targetType === 'candidate'
+                  ? String(candidateMatched?.version)
+                  : undefined,
               expectedCandidateTeVersion:
                 targetType === 'candidate'
                   ? String(candidateTe?.version)
@@ -364,7 +418,9 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
                 expectedOrderVersion: orderVersion,
                 expectedLinkVersion: linkVersion,
                 expectedCandidateMblVersion:
-                  targetType === 'candidate' ? String(candidateMatched?.version) : undefined,
+                  targetType === 'candidate'
+                    ? String(candidateMatched?.version)
+                    : undefined,
                 expectedCandidateTeVersion:
                   targetType === 'candidate'
                     ? String(candidateTe?.version)
@@ -403,7 +459,11 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
       dataIndex: 'targetValue',
       render: (val: string, record) => {
         if (record.isDifferent) {
-          return <Text strong style={{ color: '#cf1322' }}>{val || '未填写'}</Text>;
+          return (
+            <Text strong style={{ color: '#cf1322' }}>
+              {val || '未填写'}
+            </Text>
+          );
         }
         return <Text>{val || '未填写'}</Text>;
       },
@@ -486,7 +546,8 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
                 { required: true, message: '请输入目标提单号' },
                 {
                   pattern: /^[A-Za-z0-9]+$/,
-                  message: '提单号只能包含英文字母和阿拉伯数字，不能包含空格或符号',
+                  message:
+                    '提单号只能包含英文字母和阿拉伯数字，不能包含空格或符号',
                 },
               ]}
             >
@@ -504,7 +565,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
         </Row>
 
         {candidateMatched && (
-          <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }}>
+          <Space
+            direction="vertical"
+            style={{ width: '100%', marginBottom: 16 }}
+          >
             <Alert
               type="success"
               showIcon
@@ -514,10 +578,12 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
             <Select
               value={candidateTe?.id}
               placeholder="请选择目标实际航次"
-              options={(candidateMatched.transportExecutions ?? []).map((te) => ({
-                value: te.id,
-                label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd || '无 ETD'}`,
-              }))}
+              options={(candidateMatched.transportExecutions ?? []).map(
+                (te) => ({
+                  value: te.id,
+                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd || '无 ETD'}`,
+                }),
+              )}
               onChange={(id) => {
                 const te = (candidateMatched.transportExecutions ?? []).find(
                   (item) => item.id === id,
@@ -678,7 +744,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
               label="改配原因说明"
               rules={[{ required: true, message: '请输入详细改配原因' }]}
             >
-              <TextArea rows={2} placeholder="详细记录改配发生的背景与原因（将记录进不可变事件历史与审计日志）" />
+              <TextArea
+                rows={2}
+                placeholder="详细记录改配发生的背景与原因（将记录进不可变事件历史与审计日志）"
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -688,7 +757,10 @@ export const SeaOrderReassignmentModal: React.FC<SeaOrderReassignmentModalProps>
 
       {/* 航程要素比对表格 */}
       <div style={{ marginTop: 12 }}>
-        <Text strong style={{ fontSize: 14, marginBottom: 8, display: 'block' }}>
+        <Text
+          strong
+          style={{ fontSize: 14, marginBottom: 8, display: 'block' }}
+        >
           航程要素变动实时比对：
         </Text>
         {previewing ? (

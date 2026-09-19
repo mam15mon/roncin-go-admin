@@ -12,7 +12,9 @@ import * as service from '@/services/roncin/seaDocumentService';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
 
 vi.mock('@/services/roncin/orderAttachmentService', () => ({
-  orderAttachmentServiceListAttachments: vi.fn().mockResolvedValue({ data: [] }),
+  orderAttachmentServiceListAttachments: vi
+    .fn()
+    .mockResolvedValue({ data: [] }),
 }));
 
 vi.mock('@umijs/max', async (importOriginal) => {

@@ -1,6 +1,9 @@
 import { DatePicker, Form, type FormInstance, Input, Modal } from 'antd';
 import React from 'react';
-import { invoiceIssueActionText, invoiceIssueDateLabel } from './invoiceConstants';
+import {
+  invoiceIssueActionText,
+  invoiceIssueDateLabel,
+} from './invoiceConstants';
 
 interface InvoiceIssueModalProps {
   open: boolean;

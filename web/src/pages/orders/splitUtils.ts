@@ -1,14 +1,7 @@
 import Decimal from 'decimal.js';
 
-/** 从未知错误对象中安全取出可展示文案。 */
-export function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const messageValue = (error as { message?: unknown }).message;
-    if (typeof messageValue === 'string' && messageValue) return messageValue;
-  }
-  return fallback;
-}
+// 错误文案提取已统一到 utils；re-export 维持既有导入路径。
+export { getErrorMessage } from '@/utils/errorMessage';
 
 export interface ResultConfig {
   key: string;

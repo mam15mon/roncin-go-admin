@@ -43,16 +43,18 @@ export function getMasterDataOptions(
 /**
  * 按组织获取首批港口数据。
  */
-export function getCachedPorts(
-  organizationId: string,
-): Promise<API.Port[]> {
+export function getCachedPorts(organizationId: string): Promise<API.Port[]> {
   if (!organizationId) {
     return Promise.reject(new Error('缺少当前组织，无法加载港口主数据'));
   }
   const req = portsCache.get(organizationId);
   if (!req) {
     let createdReq: Promise<API.Port[]>;
-    createdReq = masterDataServiceListPorts({ page: 1, pageSize: 50, enabled: true })
+    createdReq = masterDataServiceListPorts({
+      page: 1,
+      pageSize: 50,
+      enabled: true,
+    })
       .then(unwrapList)
       .catch((err) => {
         if (portsCache.get(organizationId) === createdReq) {

@@ -1,10 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import React from 'react';
 import { App } from 'antd';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useOrderFeeOptions } from './use-order-fee-options';
-import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
+import { orderServiceGetOrder } from '@/services/roncin/orderService';
+import { useOrderFeeOptions } from './use-order-fee-options';
 
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),
@@ -49,7 +49,9 @@ describe('useOrderFeeOptions', () => {
       data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
     } as any);
 
-    const { result } = renderHook(() => useOrderFeeOptions('ord-1'), { wrapper });
+    const { result } = renderHook(() => useOrderFeeOptions('ord-1'), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.order?.id).toBe('ord-1');
@@ -66,7 +68,10 @@ describe('useOrderFeeOptions', () => {
       .mockImplementationOnce(() => deferB.promise);
 
     let currentId = 'ord-A';
-    const { result, rerender } = renderHook(() => useOrderFeeOptions(currentId), { wrapper });
+    const { result, rerender } = renderHook(
+      () => useOrderFeeOptions(currentId),
+      { wrapper },
+    );
 
     // 1. A 正在加载
     expect(result.current.loading).toBe(true);
@@ -103,7 +108,10 @@ describe('useOrderFeeOptions', () => {
       .mockRejectedValueOnce(new Error('订单 B 加载失败'));
 
     let currentId = 'ord-A';
-    const { result, rerender } = renderHook(() => useOrderFeeOptions(currentId), { wrapper });
+    const { result, rerender } = renderHook(
+      () => useOrderFeeOptions(currentId),
+      { wrapper },
+    );
 
     await waitFor(() => expect(result.current.order?.id).toBe('ord-A'));
 
@@ -126,7 +134,10 @@ describe('useOrderFeeOptions', () => {
       .mockImplementationOnce(() => deferB.promise);
 
     let currentId = 'ord-A';
-    const { result, rerender } = renderHook(() => useOrderFeeOptions(currentId), { wrapper });
+    const { result, rerender } = renderHook(
+      () => useOrderFeeOptions(currentId),
+      { wrapper },
+    );
 
     // 切换至订单 B
     currentId = 'ord-B';

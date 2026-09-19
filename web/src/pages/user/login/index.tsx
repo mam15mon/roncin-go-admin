@@ -22,13 +22,13 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { startTransition, useEffect, useState } from 'react';
+import { getRequestErrorMessage } from '@/requestErrorConfig';
 import {
   authServiceGetDingTalkInvitationInfo,
   authServiceGetDingTalkLoginConfig,
   authServiceGetWeComLoginConfig,
   authServiceLogin,
 } from '@/services/roncin/authService';
-import { getRequestErrorMessage } from '@/requestErrorConfig';
 import Settings from '../../../../config/defaultSettings';
 import { AnimatedCharacters } from './components/animated-characters';
 import {

@@ -562,9 +562,7 @@ describe('BillCreationWorkbench 预览触发边界', () => {
 
     // 结算账户变化触发预览。
     fireEvent.mouseDown(screen.getByLabelText('结算账户'));
-    fireEvent.click(
-      await screen.findByText('第二账户｜测试银行 · 6223｜CNY'),
-    );
+    fireEvent.click(await screen.findByText('第二账户｜测试银行 · 6223｜CNY'));
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(3));
 
     // 账单日期变化触发预览。
@@ -667,9 +665,7 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     const createBtn = await screen.findByRole('button', {
       name: /原子生成 1 张账单/,
     });
-    await waitFor(() =>
-      expect(createBtn).not.toHaveClass('ant-btn-loading'),
-    );
+    await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create).toHaveBeenCalledWith(
@@ -757,9 +753,7 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     const createBtn = await screen.findByRole('button', {
       name: /原子生成 1 张账单/,
     });
-    await waitFor(() =>
-      expect(createBtn).not.toHaveClass('ant-btn-loading'),
-    );
+    await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create).toHaveBeenCalledWith(
@@ -848,17 +842,12 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
       </App>,
     );
     expect(
-      await screen.findByDisplayValue(
-        '第一单位',
-        {},
-        { timeout: 10000 },
-      ),
+      await screen.findByDisplayValue('第一单位', {}, { timeout: 10000 }),
     ).toBeInTheDocument();
     // 17 个叶子全部完成默认账户回填与防抖重预览。
-    await waitFor(
-      () => expect(mocks.accounts).toHaveBeenCalledTimes(17),
-      { timeout: 10000 },
-    );
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(17), {
+      timeout: 10000,
+    });
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2), {
       timeout: 10000,
     });
@@ -884,9 +873,7 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
       .getByText('订单 SE1102')
       .closest('.ant-card') as HTMLElement;
     await waitFor(() =>
-      expect(
-        within(usdCard).getByDisplayValue('第十一单位'),
-      ).toBeVisible(),
+      expect(within(usdCard).getByDisplayValue('第十一单位')).toBeVisible(),
     );
     fireEvent.change(within(usdCard).getByDisplayValue('第十一单位'), {
       target: { value: '抬头十一USD' },
@@ -907,16 +894,15 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     const createBtn = await screen.findByRole('button', {
       name: /原子生成 17 张账单/,
     });
-    await waitFor(() =>
-      expect(createBtn).not.toHaveClass('ant-btn-loading'),
-    );
+    await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     const createInput = mocks.create.mock.calls[0][0];
     expect(createInput.groups).toHaveLength(17);
     expect(createInput.previewToken).toBe('token-scale');
-    expect(new Set(createInput.groups.map((group: any) => group.groupKey)).size)
-      .toBe(17);
+    expect(
+      new Set(createInput.groups.map((group: any) => group.groupKey)).size,
+    ).toBe(17);
   }, 45000);
 
   it('任一叶子缺少结算账户时阻断整批创建并自动跳到该叶子', async () => {

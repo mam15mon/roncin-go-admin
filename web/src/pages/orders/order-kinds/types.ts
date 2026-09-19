@@ -2,8 +2,15 @@ import type { MenuProps } from 'antd';
 import type React from 'react';
 import type { OrderBusinessType, TradeDirection } from '@/enums.generated';
 import type { OrderPermissionOperation } from '@/permissions.generated';
-import type { SelectOption, TemplateProps, TemplateSection } from '../templates';
-import type { CreateOrderFormValues, OrderDetailFormValues } from './sea-export/form-adapter';
+import type {
+  SelectOption,
+  TemplateProps,
+  TemplateSection,
+} from '../templates';
+import type {
+  CreateOrderFormValues,
+  OrderDetailFormValues,
+} from './sea-export/form-adapter';
 
 /** 订单类型的稳定路由标识，同时是注册表的唯一 key。 */
 export type OrderKind = 'sea-export';
@@ -86,7 +93,5 @@ export interface OrderDetailFeatureContribution {
 
 export interface OrderDetailFeaturesProps {
   context: OrderDetailFeaturesContext;
-  children: (
-    contribution: OrderDetailFeatureContribution,
-  ) => React.ReactNode;
+  children: (contribution: OrderDetailFeatureContribution) => React.ReactNode;
 }

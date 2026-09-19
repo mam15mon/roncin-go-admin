@@ -59,8 +59,9 @@ export default function AirportsPanel() {
   const canCreate = access.canCreateMasterDataAirports;
   const canUpdate = access.canUpdateMasterDataAirports;
   const fetchAirports = React.useCallback(
-    (query: import('@/components/ui/master-data-template').MasterDataListQuery) =>
-      masterDataServiceListAirports(query),
+    (
+      query: import('@/components/ui/master-data-template').MasterDataListQuery,
+    ) => masterDataServiceListAirports(query),
     [],
   );
   const {
@@ -125,16 +126,14 @@ export default function AirportsPanel() {
       extraStats={[
         {
           label: '国内机场',
-          value: data.filter((a) =>
-            ['CN', 'HK', 'TW'].includes(a.countryCode),
-          ).length,
+          value: data.filter((a) => ['CN', 'HK', 'TW'].includes(a.countryCode))
+            .length,
           color: '#1677ff',
         },
         {
           label: '国际机场',
-          value: data.filter(
-            (a) => !['CN', 'HK', 'TW'].includes(a.countryCode),
-          ).length,
+          value: data.filter((a) => !['CN', 'HK', 'TW'].includes(a.countryCode))
+            .length,
           color: '#722ed1',
         },
         {

@@ -23,9 +23,7 @@ export default function NettingPairsCard({ pairs }: NettingPairsCardProps) {
         border: '1px solid #b7eb8f',
       }}
       title={
-        <Text strong>
-          对冲抵销预览（{pairs.length} 组结算单位 × 币种）
-        </Text>
+        <Text strong>对冲抵销预览（{pairs.length} 组结算单位 × 币种）</Text>
       }
       extra={
         <Tag color="green" style={{ margin: 0 }}>
@@ -34,9 +32,7 @@ export default function NettingPairsCard({ pairs }: NettingPairsCardProps) {
       }
     >
       <Table<API.BillBatchNettingPair>
-        rowKey={(row) =>
-          `${row.settlementPartyId || ''}|${row.currency || ''}`
-        }
+        rowKey={(row) => `${row.settlementPartyId || ''}|${row.currency || ''}`}
         size="small"
         bordered
         pagination={false}

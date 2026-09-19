@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MasterDataKind } from '@/enums.generated';
 import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import {
-  MASTER_DATA_KINDS,
-  PARTNER_ROLES,
   businessTypeOptions,
   fetchOrderMasterData,
   isMasterDataKind,
+  MASTER_DATA_KINDS,
+  PARTNER_ROLES,
   requireSeaServiceTypeOptions,
   seaServiceTypes,
   shipmentModeOptions,
@@ -174,9 +174,7 @@ describe('orders common and config', () => {
       result.masterOptions.filter((item) =>
         isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC),
       ),
-    ).toEqual([
-      expect.objectContaining({ id: 'container-1', code: '40HQ' }),
-    ]);
+    ).toEqual([expect.objectContaining({ id: 'container-1', code: '40HQ' })]);
   });
 
   it('真实数字响应缺少 BOOKING 时保留明确报错', async () => {
@@ -206,9 +204,9 @@ describe('orders common and config', () => {
   it.each(['land', 'rail'] as const)(
     '未开放的 %s 运输方式在装载主数据前显式抛错，不请求港口或机场',
     async (transportMode) => {
-      await expect(fetchOrderMasterData('org-1', transportMode)).rejects.toThrow(
-        '陆运与铁路订单的地点主数据尚未开放',
-      );
+      await expect(
+        fetchOrderMasterData('org-1', transportMode),
+      ).rejects.toThrow('陆运与铁路订单的地点主数据尚未开放');
       expect(listPorts).not.toHaveBeenCalled();
       expect(listAirports).not.toHaveBeenCalled();
     },

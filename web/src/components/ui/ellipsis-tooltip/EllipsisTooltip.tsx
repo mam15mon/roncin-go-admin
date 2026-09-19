@@ -1,11 +1,6 @@
 import { CopyOutlined } from '@ant-design/icons';
 import { App, Tooltip } from 'antd';
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import type { EllipsisTooltipProps } from './types';
 
 /**
@@ -133,7 +128,8 @@ export const EllipsisTooltip: React.FC<EllipsisTooltipProps> = ({
     return null;
   }
 
-  const shouldShowTooltip = Boolean(resolvedTitle) && (alwaysShowTooltip || isOverflow);
+  const shouldShowTooltip =
+    Boolean(resolvedTitle) && (alwaysShowTooltip || isOverflow);
 
   return (
     <span
@@ -143,10 +139,7 @@ export const EllipsisTooltip: React.FC<EllipsisTooltipProps> = ({
         maxWidth: '100%',
       }}
     >
-      <Tooltip
-        title={shouldShowTooltip ? resolvedTitle : ''}
-        {...tooltipProps}
-      >
+      <Tooltip title={shouldShowTooltip ? resolvedTitle : ''} {...tooltipProps}>
         <span
           ref={containerRef}
           className={className}

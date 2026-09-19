@@ -26,10 +26,7 @@ export function ExchangeRatePreviewCard({
   extra,
 }: ExchangeRatePreviewCardProps) {
   return (
-    <Card
-      size="small"
-      style={{ backgroundColor: '#f8fafc', marginBottom: 16 }}
-    >
+    <Card size="small" style={{ backgroundColor: '#f8fafc', marginBottom: 16 }}>
       <Space separator={<span style={{ color: '#cbd5e1' }}>|</span>} size={16}>
         <div>
           <Text type="secondary">费用金额：</Text>

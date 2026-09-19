@@ -205,7 +205,9 @@ describe('useOrderListResources', () => {
 
       // 用户触发的联想入口同样关闭：统一返回空，不请求、不抛「尚未开放」。
       await expect(result.current.searchCustomers('客户')).resolves.toEqual([]);
-      await expect(result.current.searchOrderPorts('港口')).resolves.toEqual([]);
+      await expect(result.current.searchOrderPorts('港口')).resolves.toEqual(
+        [],
+      );
       await expect(result.current.searchLocations('地点')).resolves.toEqual([]);
       await expect(
         result.current.searchOrderCarriers('船公司'),
@@ -300,9 +302,9 @@ describe('useOrderListResources', () => {
     await expect(result.current.searchCustomers('客户')).resolves.toEqual([]);
     await expect(result.current.searchOrderPorts('港口')).resolves.toEqual([]);
     await expect(result.current.searchLocations('地点')).resolves.toEqual([]);
-    await expect(
-      result.current.searchOrderPersonnel('人员'),
-    ).resolves.toEqual([]);
+    await expect(result.current.searchOrderPersonnel('人员')).resolves.toEqual(
+      [],
+    );
     expect(mockSearchLocations).not.toHaveBeenCalled();
     expect(mockSearchPersonnel).not.toHaveBeenCalled();
   });

@@ -75,7 +75,7 @@ import { SeaBillContentFormFields } from './SeaBillContentFormFields';
 import {
   buildHouseBillInput,
   isDocumentStructure,
-  ModeChangeFormValues,
+  type ModeChangeFormValues,
   ModeChangePreviewResult,
   SeaCreateDocumentModeField,
 } from './SeaCreateDocumentModeField';

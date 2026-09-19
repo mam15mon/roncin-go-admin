@@ -1,5 +1,11 @@
 import { ProForm, ProFormCheckbox } from '@ant-design/pro-components';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { Button, Form } from 'antd';
 import React from 'react';
 import { describe, expect, it } from 'vitest';
@@ -47,9 +53,15 @@ function DgController() {
       >
         Fill DG Fields
       </Button>
-      <div data-testid="un-val">{String(form.getFieldValue('unNumber') ?? '')}</div>
-      <div data-testid="class-val">{String(form.getFieldValue('hazardClass') ?? '')}</div>
-      <div data-testid="cutoff-val">{String(form.getFieldValue('declarationCutoffAt') ?? '')}</div>
+      <div data-testid="un-val">
+        {String(form.getFieldValue('unNumber') ?? '')}
+      </div>
+      <div data-testid="class-val">
+        {String(form.getFieldValue('hazardClass') ?? '')}
+      </div>
+      <div data-testid="cutoff-val">
+        {String(form.getFieldValue('declarationCutoffAt') ?? '')}
+      </div>
     </>
   );
 }
@@ -76,7 +88,9 @@ function TestHarness({
 
 describe('SeaDangerousGoodsFields 品类联动', () => {
   it('普货场景（默认未勾选危险品）默认隐藏 UN NO.、CLASS NO.、截申报时间', () => {
-    render(<TestHarness initialValues={{ cargoCategoryIds: ['cat-general'] }} />);
+    render(
+      <TestHarness initialValues={{ cargoCategoryIds: ['cat-general'] }} />,
+    );
 
     expect(screen.queryByText('UN NO.')).not.toBeInTheDocument();
     expect(screen.queryByText('CLASS NO.')).not.toBeInTheDocument();
@@ -117,7 +131,9 @@ describe('SeaDangerousGoodsFields 品类联动', () => {
   });
 
   it('动态勾选危险品展开字段，取消勾选后隐藏并重置相关字段值', async () => {
-    render(<TestHarness initialValues={{ cargoCategoryIds: ['cat-general'] }} />);
+    render(
+      <TestHarness initialValues={{ cargoCategoryIds: ['cat-general'] }} />,
+    );
 
     // 1. 初始为普货：隐藏
     expect(screen.queryByText('UN NO.')).not.toBeInTheDocument();
@@ -141,7 +157,9 @@ describe('SeaDangerousGoodsFields 品类联动', () => {
     });
 
     await waitFor(() => {
-      const unInput = screen.getByPlaceholderText('4位数字') as HTMLInputElement;
+      const unInput = screen.getByPlaceholderText(
+        '4位数字',
+      ) as HTMLInputElement;
       expect(unInput.value).toBe('1993');
     });
 

@@ -187,7 +187,10 @@ describe('SeaSharedContainerDrawer', () => {
       }),
     );
     expect(listContainersSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ orderId: 'order-1', transportExecutionId: 'te-123' }),
+      expect.objectContaining({
+        orderId: 'order-1',
+        transportExecutionId: 'te-123',
+      }),
     );
   });
 
@@ -203,9 +206,7 @@ describe('SeaSharedContainerDrawer', () => {
       </App>,
     );
 
-    expect(
-      screen.getByText('当前订单未关联实际运输执行'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('当前订单未关联实际运输执行')).toBeInTheDocument();
   });
 
   it('无对应权限时不展示创建、分配编辑与删除入口', async () => {
@@ -341,7 +342,10 @@ describe('SeaSharedContainerDrawer', () => {
       allocations: undefined,
       progress: undefined,
     };
-    listContainersSpy.mockResolvedValue({ data: [emptyContainer], total: 1 } as any);
+    listContainersSpy.mockResolvedValue({
+      data: [emptyContainer],
+      total: 1,
+    } as any);
     const saveSpy = vi
       .spyOn(
         service,
@@ -399,11 +403,19 @@ describe('SeaSharedContainerDrawer', () => {
     ];
     let listCall = 0;
     listContainersSpy.mockImplementation(
-      () => listDeferred[listCall++]?.promise ?? Promise.resolve({ data: [], total: 0 }),
+      () =>
+        listDeferred[listCall++]?.promise ??
+        Promise.resolve({ data: [], total: 0 }),
     );
     const candidatesDeferred = [
-      deferred<{ data: API.SeaSharedContainerCandidateOrder[]; total: number }>(),
-      deferred<{ data: API.SeaSharedContainerCandidateOrder[]; total: number }>(),
+      deferred<{
+        data: API.SeaSharedContainerCandidateOrder[];
+        total: number;
+      }>(),
+      deferred<{
+        data: API.SeaSharedContainerCandidateOrder[];
+        total: number;
+      }>(),
     ];
     let candidateCall = 0;
     candidatesSpy.mockImplementation(

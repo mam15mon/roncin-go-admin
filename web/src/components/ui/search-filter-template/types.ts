@@ -23,7 +23,9 @@ export interface SearchFilterFieldItem {
   /** 下拉候选项列表（当 type 为 select 或 searchable-select 时） */
   options?: SearchableSelectProps['options'];
   /** 异步请求获取候选项（当 type 为 select 或 searchable-select 时） */
-  request?: (params: { keyWords?: string }) => Promise<{ label: string; value: any; [k: string]: any }[]>;
+  request?: (params: {
+    keyWords?: string;
+  }) => Promise<{ label: string; value: any; [k: string]: any }[]>;
   /** 栅格跨度（默认 6，即 24 栅格下一行 4 列） */
   span?: number;
   /** 自定义渲染组件（当 type 为 'custom' 时） */
@@ -87,7 +89,13 @@ export interface SearchFilterTemplateProps<TValues = any> {
   /** 右侧快捷操作插槽（如新建、刷新、导出按钮组） */
   extraRight?: ReactNode;
   /** 自定义表单插槽渲染函数（用于 'custom' 模式） */
-  children?: ReactNode | ((context: { form: FormInstance; collapsed: boolean; toggleCollapse: () => void }) => ReactNode);
+  children?:
+    | ReactNode
+    | ((context: {
+        form: FormInstance;
+        collapsed: boolean;
+        toggleCollapse: () => void;
+      }) => ReactNode);
   /** 外部传入的 Form 实例 */
   form?: FormInstance;
 }
