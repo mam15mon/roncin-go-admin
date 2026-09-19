@@ -117,7 +117,7 @@ func TestAdminCreateOrganizationInitializesEnabledCurrencies(t *testing.T) {
 		Kind:         biz.OrganizationKindCompany,
 		ParentID:     &hqID,
 		BaseCurrency: "USD",
-	}, &biz.AuditEvent{Details: map[string]string{}})
+	}, &biz.AuditEvent{Action: "admin.organization.create", Result: "success", Details: map[string]string{}})
 	if err != nil {
 		t.Fatalf("CreateOrganization error = %v", err)
 	}
@@ -158,7 +158,7 @@ func TestAdminCreateOrganizationInitializesEnabledCurrencies(t *testing.T) {
 		Kind:         biz.OrganizationKindCompany,
 		ParentID:     &hqID,
 		BaseCurrency: "CAD",
-	}, &biz.AuditEvent{Details: map[string]string{}})
+	}, &biz.AuditEvent{Action: "admin.organization.create", Result: "success", Details: map[string]string{}})
 	if err != nil {
 		t.Fatalf("CreateOrganization with CAD error = %v", err)
 	}
@@ -185,7 +185,7 @@ func TestAdminCreateOrganizationInitializesEnabledCurrencies(t *testing.T) {
 		Kind:         biz.OrganizationKindCompany,
 		Enabled:      true,
 		BaseCurrency: "CAD",
-	}, &biz.AuditEvent{Details: map[string]string{}})
+	}, &biz.AuditEvent{Action: "admin.organization.create", Result: "success", Details: map[string]string{}})
 	if err != nil {
 		t.Fatalf("UpdateOrganization error = %v", err)
 	}
