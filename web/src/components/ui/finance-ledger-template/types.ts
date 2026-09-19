@@ -30,6 +30,7 @@ export interface FinanceLedgerGlobalSummary {
   baseCurrency?: string;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
 export interface FinanceBatchActionItem<T = any> {
   key: string;
   label: string;
@@ -72,6 +73,7 @@ export interface FinanceLedgerTemplateProps<
   extraToolBarActions?: ReactNode[];
 
   // ProTable 数据源请求
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   request: (params: Record<string, any>) => Promise<{
     data: T[];
     total: number;
@@ -95,6 +97,7 @@ export interface FinanceLedgerTemplateProps<
   onRowClick?: (record: T, event: React.MouseEvent) => void;
 
   // ProTable 搜索表单配置覆盖（默认固定 labelWidth: 80 保持对齐）
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   search?: Record<string, any> | false;
 
   // 自定义嵌入式搜索筛选栏插槽（置于顶部指标统计卡与表格台账之间）

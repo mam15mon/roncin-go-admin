@@ -15,6 +15,7 @@ import React, {
 } from 'react';
 import { toTableRequest } from '@/utils/api';
 
+// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
 export type SubEntityDrawerRef<TParent = any> = {
   open: (parent: TParent) => void;
   close: () => void;
@@ -23,7 +24,9 @@ export type SubEntityDrawerRef<TParent = any> = {
 
 export interface SubEntityDrawerTemplateProps<
   TItem extends { id?: string | number },
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TParent extends { id?: string | number } = any,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues = any,
 > {
   entityName: string;
@@ -38,12 +41,15 @@ export interface SubEntityDrawerTemplateProps<
   fetchList: (
     parent: TParent,
   ) => Promise<{ data?: TItem[]; success?: boolean }>;
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   createItem?: (values: TFormValues, parent: TParent) => Promise<any>;
   updateItem?: (
     item: TItem,
     values: TFormValues,
     parent: TParent,
+    // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   ) => Promise<any>;
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   removeItem?: (item: TItem, parent: TParent) => Promise<any>;
   initialValues?: (
     item?: TItem,
@@ -64,7 +70,9 @@ export interface SubEntityDrawerTemplateProps<
 
 export function SubEntityDrawerTemplateInner<
   TItem extends { id?: string | number },
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TParent extends { id?: string | number } = any,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues = any,
 >(
   {
@@ -274,7 +282,9 @@ export const SubEntityDrawerTemplate = forwardRef(
   SubEntityDrawerTemplateInner,
 ) as <
   TItem extends { id?: string | number },
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TParent extends { id?: string | number } = any,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues = any,
 >(
   props: SubEntityDrawerTemplateProps<TItem, TParent, TFormValues> & {

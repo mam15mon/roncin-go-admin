@@ -4,6 +4,7 @@
  */
 export const defaultSelectFilterOption = (
   input: string,
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   option?: Record<string, any>,
 ): boolean => {
   if (!input?.trim()) return true;

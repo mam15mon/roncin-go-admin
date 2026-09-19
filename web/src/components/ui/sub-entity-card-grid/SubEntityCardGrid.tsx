@@ -15,6 +15,7 @@ import React, { type ReactNode, useRef, useState } from 'react';
 
 export interface SubEntityCardGridProps<
   TItem extends { id?: string | number },
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues = any,
 > {
   entityName: string;
@@ -57,6 +58,7 @@ export interface SubEntityCardGridProps<
 
 export function SubEntityCardGrid<
   TItem extends { id?: string | number },
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   TFormValues = any,
 >({
   entityName,

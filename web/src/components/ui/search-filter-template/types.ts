@@ -35,6 +35,7 @@ export interface SearchFilterFieldItem {
   /** 是否允许清除，默认 true */
   allowClear?: boolean;
   /** 附加组件属性 */
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   fieldProps?: Record<string, any>;
 }
 
@@ -46,6 +47,7 @@ export interface QuickFilterOption {
   // 保留 any：往来户等页面在快捷筛选中传入 boolean 取值（如「启用/停用」），
   // 而 SearchableSelect 落到 antd Select 的 option value 类型不含 boolean，
   // 收紧会使这些消费方编译失败。
+  // biome-ignore lint/suspicious/noExplicitAny: 快捷筛选 boolean 取值落 antd Select 类型缺口，见上方注释
   options: { label: string; value: any }[];
   /** 下拉宽度，默认 140 */
   width?: number | string;
@@ -55,6 +57,7 @@ export interface QuickFilterOption {
   initialValue?: unknown;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
 export interface SearchFilterTemplateProps<TValues = any> {
   /** 模式：'bar' 快捷单行搜索栏 | 'grid' 配置化网格表单 | 'custom' 自由插槽，默认 'grid' */
   layout?: 'bar' | 'grid' | 'custom';

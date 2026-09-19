@@ -90,6 +90,7 @@ export function MasterDataTemplate<
 
   // Search & Filter state
   const [search, setSearch] = useState('');
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
   const [activeFilter, setActiveFilter] = useState<'all' | 'true' | 'false'>(
     'all',
@@ -198,6 +199,7 @@ export function MasterDataTemplate<
   const handleOpenCreate = () => {
     setEditingItem(null);
     form.resetFields();
+    // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
     const initialVals: Record<string, any> = {};
     for (const f of formFields) {
       if (f.initialValue !== undefined) {

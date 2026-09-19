@@ -54,8 +54,8 @@ export interface MultiTabCenterTemplateProps {
 export type ParameterSettingTemplateProps = MultiTabCenterTemplateProps;
 
 export interface SettingTableTemplateProps<
-  TRecord extends Record<string, any> = Record<string, any>,
-  TFormValues extends Record<string, any> = Record<string, any>,
+  TRecord extends Record<string, unknown> = Record<string, unknown>,
+  TFormValues extends Record<string, unknown> = Record<string, unknown>,
 > {
   /** 实体业务名称，如 '计费单位'、'异常情况'、'货物或应税劳务' */
   entityName: string;
@@ -72,8 +72,10 @@ export interface SettingTableTemplateProps<
     total?: number;
   }>;
   /** 异步创建数据 */
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   createItem?: (values: TFormValues) => Promise<any>;
   /** 异步更新数据 */
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   updateItem?: (record: TRecord, values: TFormValues) => Promise<any>;
   /** 是否具备创建权限，默认 true */
   canCreate?: boolean;
@@ -84,6 +86,7 @@ export interface SettingTableTemplateProps<
   /** 初始表单值生成函数或对象 */
   initialValues?: (editingRecord?: TRecord) => Partial<TFormValues>;
   /** 提交前数据转换钩子 */
+  // biome-ignore lint/suspicious/noExplicitAny: 模板泛型默认/边界保持消费方零改动的宽松度；收紧需模板泛型化改造（后续任务）
   beforeSubmit?: (values: TFormValues, editingRecord?: TRecord) => any;
   /** 弹窗宽度，默认 520 */
   modalWidth?: number;
