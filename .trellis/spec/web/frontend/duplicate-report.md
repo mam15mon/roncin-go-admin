@@ -26,8 +26,10 @@ pnpm run report:duplicates --baseline scripts/duplicate-baseline.json
 `.github/workflows/duplicate-report.yml` 每周一 11:00（北京时间）自动扫描并与已提交的基线 `scripts/duplicate-baseline.json` 对比，产出「新增 / 消失 / 成员变化」增量写入运行摘要；疑似重复本身不使工作流失败，扫描或解析错误才失败。对比只看重复组指纹与成员位置，文件/函数计数随仓库自然漂移不报变化。
 
 基线维护：有意提取重复或确认新增合理重复后，运行 `pnpm run baseline:duplicates`
-重新生成（只保留 `groups`，不带 exactOnly 等易漂移明细）并随代码同一提交，周报即可
+重新生成（保留 `version`、`modes`、`minNodes`、`roots` 和 `groups`，不带 exactOnly 等易漂移明细）并随代码同一提交，周报即可
 继续以新基线报告增量。基线是审查快照不是绩效指标，不为清零而清零。
+
+基线对比必须验证版本、匹配模式、最小节点阈值和扫描根范围一致；旧版仅含 groups 的基线不能直接比较，必须用生成命令重新生成。不兼容时非零退出，禁止把配置变化报告为重复组消失。生成基线前也检查扫描错误；扫描不完整时不得覆盖原基线。
 
 ## 3. 匹配契约
 
@@ -36,8 +38,10 @@ pnpm run report:duplicates --baseline scripts/duplicate-baseline.json
 - 无法可靠处理的绑定结构仅参与相同结构比较，并在结果统计中说明。
 - 默认最小函数阈值为 60 个语法节点；阈值与扫描范围必须随报告记录。
 - 输出位置、符号、匹配依据和覆盖统计，不复制整段源码到报告。
+- TS `as`、`satisfies`、非空断言等包装中的运行时表达式仍参与词法绑定解析；纯类型部分不改名。包装后的直接 eval 等动态绑定场景明确仅参与 exact。
+- 生成标记只在文件头注释中识别；业务字符串中的 `@generated` 不能导致整文件漏扫。
 
-JSON `version: 1` 包含 `modes`、`minNodes`、`roots`、`statistics`、`limitations`、`exactOnly`、`groups`、`errors`。每组包含语言、匹配模式（`exact` / `renamed`）、指纹、节点数、文件数、证据与成员；成员提供 `path`、`symbol`、`startLine`、`endLine`，不包含完整源码。统计中列出只参与 exact 的函数，便于识别覆盖限制。
+JSON `version: 2` 包含 `modes`、`minNodes`、`roots`、`statistics`、`limitations`、`exactOnly`、`groups`、`errors`。每组包含语言、匹配模式（`exact` / `renamed`）、指纹、节点数、文件数、证据与成员；成员提供 `path`、`symbol`、`startLine`、`endLine`，不包含完整源码。统计中列出只参与 exact 的函数，便于识别覆盖限制。
 
 JS 的 JSX、解构、var、嵌套函数声明、switch、计算方法名等复杂绑定采用保守 exact-only；Go 匿名函数不单独列为候选，但仍参与外层结构比较。局部类型和匿名结构体等 Go 复杂绑定同样仅参与 exact。准确范围以报告 `limitations` 与各函数原因字段为准。
 
@@ -47,6 +51,8 @@ JS 的 JSX、解构、var、嵌套函数声明、switch、计算方法名等复�
 | --- | --- |
 | 扫描成功，无候选 | 成功退出，明确说明覆盖范围 |
 | 扫描成功，有候选 | 成功退出，供人工审查，不作为重复违规阻断 CI |
+| 基线版本、模式、阈值、扫描范围不一致或结构损坏 | 非零退出，不产生误导性的新增/消失结论 |
+| 生成基线时扫描失败 | 非零退出，原基线保持不变 |
 | 解析失败、无效参数、缺少工具链或读取失败 | 非零退出，明确失败原因，不能当作零重复 |
 
 ## 5. 正常与异常案例

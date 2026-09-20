@@ -1,4 +1,14 @@
 {
+  "version": 2,
+  "modes": [
+    "exact",
+    "renamed"
+  ],
+  "minNodes": 60,
+  "roots": [
+    "web/src",
+    "server"
+  ],
   "groups": [
     {
       "language": "go",

@@ -48,7 +48,7 @@
     "build:server": "go -C server build -o bin/roncin-server ./cmd/server",
     "build": "pnpm run build:web && pnpm run build:server",
     "report:duplicates": "node scripts/report-duplicates.mjs",
-    "baseline:duplicates": "node -e \"import('./scripts/report-duplicates.mjs').then((m) => { const report = m.scan(); require('fs').writeFileSync('scripts/duplicate-baseline.json', JSON.stringify({ groups: report.groups }, null, 2) + '\\n'); })\"",
+    "baseline:duplicates": "node -e \"import('./scripts/report-duplicates.mjs').then((m) => m.writeBaseline('scripts/duplicate-baseline.json'))\"",
     "test:duplicates:web": "node --test web/scripts/duplicate-functions.test.mjs scripts/report-duplicates.test.mjs",
     "test:duplicates:go": "go -C scripts/duplicate-scan-go test ./...",
     "check:layers:go": "go -C scripts/layer-check-go test ./... && go -C scripts/layer-check-go run ."

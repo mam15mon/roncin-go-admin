@@ -22,6 +22,19 @@ const functions = new Set([
   'ClassPrivateMethod',
 ]);
 
+// 这些 TS 节点保留运行时表达式；类型子树仍不参与绑定解析。
+const runtimeWrappers = new Set([
+  'TSAsExpression',
+  'TSTypeAssertion',
+  'TSNonNullExpression',
+  'TSSatisfiesExpression',
+  'TSInstantiationExpression',
+]);
+function unwrapExpression(node) {
+  while (runtimeWrappers.has(node?.type)) node = node.expression;
+  return node;
+}
+
 function children(node, visit) {
   for (const [key, value] of Object.entries(node)) {
     if (ignored.has(key)) continue;
@@ -65,7 +78,21 @@ function localBindings(root) {
     declarations.set(id, scope.names.get(id.name));
   }
   function build(node, scope, typePosition = false) {
-    if (typePosition || node.type.startsWith('TS')) return;
+    if (typePosition) return;
+    if (runtimeWrappers.has(node.type)) {
+      build(node.expression, scope);
+      return;
+    }
+    if (node.type.startsWith('TS')) {
+      // 类型声明不进入运行时；枚举、命名空间等运行时声明保守处理。
+      if (
+        !['TSTypeAliasDeclaration', 'TSInterfaceDeclaration'].includes(
+          node.type,
+        )
+      )
+        reason ??= 'TS 运行时声明暂不规范化';
+      return;
+    }
     if (
       node.type.startsWith('JSX') ||
       ['ClassDeclaration', 'ClassExpression', 'WithStatement'].includes(
@@ -76,7 +103,10 @@ function localBindings(root) {
     }
     if (node.type === 'SwitchStatement')
       reason ??= 'switch 判别式与分支作用域暂不规范化';
-    if (node.type === 'CallExpression' && node.callee?.name === 'eval')
+    if (
+      node.type === 'CallExpression' &&
+      unwrapExpression(node.callee)?.name === 'eval'
+    )
       reason ??= '直接 eval 使用动态绑定';
     if (node !== root && node.type === 'FunctionDeclaration')
       reason ??= '嵌套函数声明暂不规范化';
@@ -124,7 +154,6 @@ function localBindings(root) {
   }
   function references(node, parent, key) {
     if (
-      node.type.startsWith('TS') ||
       [
         'typeAnnotation',
         'returnType',
@@ -133,6 +162,11 @@ function localBindings(root) {
       ].includes(key)
     )
       return;
+    if (runtimeWrappers.has(node.type)) {
+      references(node.expression, node, 'expression');
+      return;
+    }
+    if (node.type.startsWith('TS')) return;
     if (node.type === 'Identifier') {
       if (declarations.has(node)) names.set(node, declarations.get(node));
       else {

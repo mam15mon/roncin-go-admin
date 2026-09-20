@@ -102,3 +102,50 @@ test('默认参数中的自引用也与外部同名绑定区分', () => {
   );
   assert.notEqual(records[0].exact, records[1].exact);
 });
+
+test('TS 运行时包装内按绑定改名，区分参数和外部变量', () => {
+  for (const wrap of [
+    (x) => `${x} as number`,
+    (x) => `${x}!`,
+    (x) => `${x} satisfies number`,
+    (x) => `<number>${x}`,
+    (x) => `${x}<number>`,
+    (x) => `(${x}! as number) satisfies number`,
+  ]) {
+    const record = (param, value) =>
+      extractFunctions(
+        `function run(${param}) { return ${wrap(value)}; }`,
+        'a.ts',
+      )[0];
+    assert.equal(record('x', 'x').renamed, record('y', 'y').renamed);
+    assert.notEqual(record('x', 'x').renamed, record('y', 'x').renamed);
+    assert.equal(record('x', 'x').renameUnsupported, null);
+  }
+});
+
+test('TS 包装中的 eval 与复杂绑定仍降为 exact-only，类型差异保留', () => {
+  for (const expression of [
+    '(eval as Function)(code)',
+    'eval!(code)',
+    '(eval satisfies Function)(code)',
+    '(eval(code) as unknown)',
+    '((eval! as Function) satisfies Function)(code)',
+  ]) {
+    const record = extractFunctions(
+      `function run(code) { return ${expression}; }`,
+      'a.ts',
+    )[0];
+    assert.equal(record.renamed, null);
+    assert.match(record.renameUnsupported, /eval/);
+  }
+  const extract = (body) =>
+    extractFunctions(`function run(x) { ${body} }`, 'a.ts')[0];
+  assert.notEqual(
+    extract('return x as number;').renamed,
+    extract('return x as string;').renamed,
+  );
+  assert.equal(
+    extract('return (({ value }) => value) as Function;').renamed,
+    null,
+  );
+});

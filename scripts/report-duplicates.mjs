@@ -1,8 +1,9 @@
 // 按需运行的疑似重复报告；有候选不阻断 CI，解析/执行错误必须失败。
+
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { extractFunctions } from '../web/scripts/duplicate-functions.mjs';
 
@@ -23,6 +24,36 @@ const excludedDirectories = new Set([
 ]);
 const generated =
   /(?:Code generated .*DO NOT EDIT|@generated|此文件.*自动生成|This file is auto-generated)/i;
+// 版本同时标识扫描/指纹规则，规则变化必须更新并重新审阅基线。
+export function reportConfig(minNodes = 60) {
+  return {
+    version: 2,
+    modes: ['exact', 'renamed'],
+    minNodes,
+    roots: ['web/src', 'server'],
+  };
+}
+function hasGeneratedHeader(source) {
+  // 只读取首个代码 token 之前的连续注释，避免字符串和函数内注释漏扫。
+  let rest = source
+    .replace(/^\uFEFF/, '')
+    .replace(/^#![^\r\n]*(?:\r?\n|$)/, '');
+  while (true) {
+    rest = rest.trimStart();
+    let end;
+    if (rest.startsWith('//')) {
+      end = rest.search(/[\r\n]/);
+      if (end < 0) end = rest.length;
+    } else if (rest.startsWith('/*')) {
+      end = rest.indexOf('*/', 2);
+      if (end < 0) return false;
+      end += 2;
+    } else return false;
+    if (generated.test(rest.slice(0, end))) return true;
+    rest = rest.slice(end);
+  }
+}
+
 export const limitations = [
   '仅同语言完整函数结构匹配，不能证明业务等价；零候选不代表没有业务重复。',
   '保留字面量、操作符、外部符号、属性名及类型；不解析跨文件别名或跨语言语义。',
@@ -84,7 +115,7 @@ export function collectSources(root) {
       }
       try {
         const source = readFileSync(absolute, 'utf8');
-        if (generated.test(source.slice(0, 4096))) {
+        if (hasGeneratedHeader(source)) {
           exclude('生成标记');
           continue;
         }
@@ -191,21 +222,35 @@ export function renderText(report) {
       `基线对比（${path}）：新增 ${added.length} 组、消失 ${resolved.length} 组、成员变化 ${changed.length} 组。`,
     );
     for (const group of added) {
-      lines.push(`  + 新增 [${group.language}/${group.mode}] ${group.nodes} 节点：`);
+      lines.push(
+        `  + 新增 [${group.language}/${group.mode}] ${group.nodes} 节点：`,
+      );
       for (const member of group.members)
-        lines.push(`      ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+        lines.push(
+          `      ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`,
+        );
     }
     for (const group of resolved) {
-      lines.push(`  - 消失 [${group.language}/${group.mode}] ${group.nodes} 节点：`);
+      lines.push(
+        `  - 消失 [${group.language}/${group.mode}] ${group.nodes} 节点：`,
+      );
       for (const member of group.members)
-        lines.push(`      ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+        lines.push(
+          `      ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`,
+        );
     }
     for (const { baseline, current } of changed) {
-      lines.push(`  ~ 成员变化 [${current.language}/${current.mode}] ${current.nodes} 节点：`);
+      lines.push(
+        `  ~ 成员变化 [${current.language}/${current.mode}] ${current.nodes} 节点：`,
+      );
       for (const member of baseline.members)
-        lines.push(`      旧 ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+        lines.push(
+          `      旧 ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`,
+        );
       for (const member of current.members)
-        lines.push(`      新 ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+        lines.push(
+          `      新 ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`,
+        );
     }
   }
   for (const [index, group] of report.groups.entries()) {
@@ -274,10 +319,7 @@ export function scan(root = repository, minNodes = 60) {
     (item) => item.renameUnsupported,
   ).length;
   return {
-    version: 1,
-    modes: ['exact', 'renamed'],
-    minNodes,
-    roots: ['web/src', 'server'],
+    ...reportConfig(minNodes),
     statistics,
     limitations,
     exactOnly: records
@@ -287,6 +329,78 @@ export function scan(root = repository, minNodes = 60) {
     errors,
   };
 }
+// 对比前验证配置及渲染/增量算法依赖的结构，拒绝旧格式或损坏的基线。
+export function validateBaseline(baseline, expected = reportConfig()) {
+  if (!baseline || !Array.isArray(baseline.groups))
+    throw new Error('基线缺少 groups 数组');
+  for (const field of ['version', 'modes', 'minNodes', 'roots']) {
+    if (JSON.stringify(baseline[field]) !== JSON.stringify(expected[field]))
+      throw new Error(
+        `基线 ${field} 与当前扫描配置不一致，请使用相同配置重新生成基线`,
+      );
+  }
+  if (
+    baseline.errors !== undefined &&
+    (!Array.isArray(baseline.errors) || baseline.errors.length)
+  )
+    throw new Error('基线包含扫描错误');
+  const positive = (value) => Number.isSafeInteger(value) && value > 0;
+  const nonempty = (value) => typeof value === 'string' && value.length > 0;
+  const keys = new Set();
+  for (const group of baseline.groups) {
+    if (
+      !group ||
+      !['javascript', 'go'].includes(group.language) ||
+      !expected.modes.includes(group.mode) ||
+      typeof group.fingerprint !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(group.fingerprint) ||
+      !positive(group.nodes) ||
+      group.nodes < expected.minNodes ||
+      !positive(group.coveredNodes) ||
+      !positive(group.fileCount) ||
+      !nonempty(group.evidence) ||
+      !Array.isArray(group.members) ||
+      group.members.length < 2
+    )
+      throw new Error('基线重复组结构无效');
+    const key = `${group.language}:${group.mode}:${group.fingerprint}`;
+    if (keys.has(key)) throw new Error('基线重复组指纹重复');
+    keys.add(key);
+    const members = new Set();
+    for (const member of group.members) {
+      if (
+        !member ||
+        !nonempty(member.path) ||
+        !nonempty(member.symbol) ||
+        !positive(member.startLine) ||
+        !positive(member.endLine) ||
+        member.endLine < member.startLine
+      )
+        throw new Error('基线成员结构无效');
+      const memberKey = `${member.path}:${member.startLine}-${member.endLine}:${member.symbol}`;
+      if (members.has(memberKey)) throw new Error('基线成员重复');
+      members.add(memberKey);
+    }
+    if (
+      group.fileCount !==
+      new Set(group.members.map((member) => member.path)).size
+    )
+      throw new Error('基线文件数与成员不一致');
+  }
+}
+export function baselineSnapshot(report) {
+  if (!Array.isArray(report.errors) || report.errors.length)
+    throw new Error('扫描失败，禁止覆盖基线');
+  validateBaseline(report, reportConfig(report.minNodes));
+  const { version, modes, minNodes, roots, groups } = report;
+  return { version, modes, minNodes, roots, groups };
+}
+
+export function writeBaseline(path, report = scan()) {
+  const snapshot = baselineSnapshot(report);
+  writeFileSync(path, `${JSON.stringify(snapshot, null, 2)}\n`);
+}
+
 // 基线对比只比较重复组：统计数（文件/函数计数）随仓库自然增长漂移，不作为变化。
 // 同指纹但成员增减（复制处数变化）单独归入成员变化，不误报为新增/消失。
 export function baselineDelta(groups, baselineGroups = []) {
@@ -308,7 +422,8 @@ export function baselineDelta(groups, baselineGroups = []) {
   }
   for (const [k, group] of baseline) if (!current.has(k)) resolved.push(group);
   const order = (a, b) =>
-    b.coveredNodes - a.coveredNodes || compare(a.members[0].path, b.members[0].path);
+    b.coveredNodes - a.coveredNodes ||
+    compare(a.members[0].path, b.members[0].path);
   return {
     added: added.sort(order),
     resolved: resolved.sort(order),
@@ -351,11 +466,10 @@ export function main(args = process.argv.slice(2)) {
     } catch (error) {
       throw new Error(`读取基线失败 ${baselinePath}: ${error.message}`);
     }
-    if (!Array.isArray(baseline.groups))
-      throw new Error(`基线 ${baselinePath} 缺少 groups 数组`);
+    validateBaseline(baseline, reportConfig(minNodes));
   }
   const report = scan(repository, minNodes);
-  if (baseline)
+  if (baseline && !report.errors.length)
     report.baseline = {
       path: baselinePath,
       ...baselineDelta(report.groups, baseline.groups),
