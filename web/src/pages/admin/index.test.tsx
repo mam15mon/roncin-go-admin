@@ -50,10 +50,10 @@ vi.mock('./users', () => ({
 vi.mock('./roles', () => ({
   default: () => <div data-testid="roles-panel">角色权限面板</div>,
 }));
-vi.mock('@/pages/settings/components/NumberRulesPanel', () => ({
+vi.mock('./components/NumberRulesPanel', () => ({
   default: () => <div data-testid="number-rules-panel">单据规则面板</div>,
 }));
-vi.mock('@/pages/settings/components/AbnormalCasesPanel', () => ({
+vi.mock('./components/AbnormalCasesPanel', () => ({
   default: () => <div data-testid="abnormal-cases-panel">业务异常面板</div>,
 }));
 vi.mock('./audit', () => ({

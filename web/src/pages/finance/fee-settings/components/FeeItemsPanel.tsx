@@ -4,9 +4,9 @@ import {
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import { Alert, Tag } from 'antd';
 import React, { useState } from 'react';
+import { useAccess } from '@/app/access';
 import { ProFormSearchableSelect, SettingTableTemplate } from '@/components/ui';
 import {
   feeCatalogServiceCreateFeeSetting,

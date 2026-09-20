@@ -8,18 +8,18 @@ import {
   SafetyCertificateOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useLocation } from 'react-router';
 import React, { useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router';
+import { useAccess } from '@/app/access';
 import {
   type MultiTabCenterTabItem,
   MultiTabCenterTemplate,
 } from '@/components/ui';
-import AbnormalCasesPanel from '@/pages/settings/components/AbnormalCasesPanel';
-import NumberRulesPanel from '@/pages/settings/components/NumberRulesPanel';
+import { history } from '@/router/history';
 import AuditPanel from './audit';
 import BackgroundTasksPanel from './background-tasks';
+import AbnormalCasesPanel from './components/AbnormalCasesPanel';
+import NumberRulesPanel from './components/NumberRulesPanel';
 import OrganizationsPanel from './organizations';
 import PermissionsPanel from './permissions';
 import RolesPanel from './roles';

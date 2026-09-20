@@ -4,8 +4,8 @@ import {
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import React, { useState } from 'react';
+import { useAccess } from '@/app/access';
 import { SettingTableTemplate } from '@/components/ui';
 import {
   masterDataServiceCreateItem,

@@ -37,7 +37,7 @@ const routes: UmiRoute[] = [
     name: '工作台',
     icon: 'dashboard',
     access: 'canAccessPlatform',
-    component: './Welcome',
+    component: './workbench',
   },
   {
     path: '/partners',

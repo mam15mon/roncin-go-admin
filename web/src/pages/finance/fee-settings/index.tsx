@@ -4,18 +4,16 @@ import {
   FileTextOutlined,
   SlidersOutlined,
 } from '@ant-design/icons';
-import { useAccess } from '@/app/access';
 import React from 'react';
+import { useAccess } from '@/app/access';
 import {
   type MultiTabCenterTabItem,
   MultiTabCenterTemplate,
 } from '@/components/ui';
-import BillingUnitsPanel from '@/pages/settings/components/BillingUnitsPanel';
-import CustomSettingsPanel from '@/pages/settings/components/CustomSettingsPanel';
-import FeeItemsPanel from '@/pages/settings/components/FeeItemsPanel';
-import TaxableServicesPanel from '@/pages/settings/components/TaxableServicesPanel';
-
-export { FeeSettingsPanel } from '@/pages/settings/components/FeeSettingsPanel';
+import BillingUnitsPanel from './components/BillingUnitsPanel';
+import CustomSettingsPanel from './components/CustomSettingsPanel';
+import FeeItemsPanel from './components/FeeItemsPanel';
+import TaxableServicesPanel from './components/TaxableServicesPanel';
 
 /**
  * /finance/fee-settings 费用设置中心

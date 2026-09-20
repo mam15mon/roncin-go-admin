@@ -104,7 +104,7 @@ vi.mock('@/services/roncin/workbenchService', () => ({
     serviceMocks.getMyApplication(...args),
 }));
 
-import WelcomePage from '@/pages/Welcome';
+import WorkbenchPage from './index';
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
   let resolve!: (value: T) => void;
@@ -117,7 +117,7 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
 function renderUi() {
   return (
     <App>
-      <WelcomePage />
+      <WorkbenchPage />
     </App>
   );
 }

@@ -1,19 +1,19 @@
 import { ApartmentOutlined } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { useInitialState } from '@/app/AppProvider';
 import { Alert, Avatar, Button, Skeleton, Space, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
-import CommissionSummaryCard from './workbench/CommissionSummaryCard';
-import FinanceSummaryCard from './workbench/FinanceSummaryCard';
-import MyCommissionDrawer from './workbench/MyCommissionDrawer';
-import MyReceivablesDrawer from './workbench/MyReceivablesDrawer';
-import { useWorkbenchOverview } from './workbench/useWorkbenchOverview';
+import { useInitialState } from '@/app/AppProvider';
+import CommissionSummaryCard from './CommissionSummaryCard';
+import FinanceSummaryCard from './FinanceSummaryCard';
+import MyCommissionDrawer from './MyCommissionDrawer';
+import MyReceivablesDrawer from './MyReceivablesDrawer';
+import { useWorkbenchOverview } from './useWorkbenchOverview';
 import {
   AccountBoundaryCard,
   QuickEntriesCard,
   RecentOrdersCard,
   TodosCard,
-} from './workbench/WorkbenchSideCards';
+} from './WorkbenchSideCards';
 
 const { Text, Title } = Typography;
 
@@ -23,7 +23,7 @@ const GRID_STYLE: React.CSSProperties = {
   gap: 16,
 };
 
-export default function Welcome() {
+export default function Workbench() {
   const { initialState } = useInitialState();
   const user = initialState?.currentUser;
   const displayName = user?.displayName || user?.username || '用户';
