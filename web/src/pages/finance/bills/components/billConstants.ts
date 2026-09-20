@@ -1,21 +1,6 @@
 import type { Dayjs } from 'dayjs';
-import { FinanceBillStatus } from '@/enums.generated';
 
-export const statusOptions: Record<number, { text: string; color: string }> = {
-  [FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT]: {
-    text: '草稿',
-    color: 'default',
-  },
-  [FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED]: {
-    text: '已确认',
-    color: 'blue',
-  },
-  [FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED]: {
-    text: '已取消',
-    color: 'red',
-  },
-};
-
+/** 账单页编辑表单的表单值类型；账单状态映射已上提至 features/finance/bill-status。 */
 export type BillFormValues = {
   statementTitle: string;
   billDate: Dayjs;

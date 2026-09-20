@@ -12,6 +12,7 @@ import {
 import Decimal from 'decimal.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
+import { BillTermsCreditWarnings } from '@/features/finance/bill-creation';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   settlementServiceListBillSettlementAccountUpdateCandidates,
@@ -19,7 +20,6 @@ import {
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { getCurrencyOptions, type SelectOption } from '@/utils/options';
-import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 import type { BillFormValues } from './billConstants';
 
 interface BillEditModalProps {

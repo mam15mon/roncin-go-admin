@@ -1,9 +1,9 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import { App, Form, Select, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   type FinanceLedgerMetricCard,
@@ -11,10 +11,9 @@ import {
   type SearchFilterFieldItem,
   SearchFilterTemplate,
 } from '@/components/ui';
-import {
-  FinanceBillStatus,
-  FinanceOrganizationPurpose,
-} from '@/enums.generated';
+import { FinanceOrganizationPurpose } from '@/enums.generated';
+import { BillCreationWorkbench } from '@/features/finance/bill-creation';
+import { billStatusMeta } from '@/features/finance/bill-status';
 import {
   settlementServiceBatchAssignFinanceBillTags,
   settlementServiceBatchRemoveFinanceBillTags,
@@ -31,7 +30,6 @@ import { toTableRequest, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 import { makeVersionActions } from '@/utils/versionActions';
-import BillCreationWorkbench from './components/BillCreationWorkbench';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
 import { getFinanceBillColumns } from './components/billColumns';
@@ -166,17 +164,11 @@ export default function FinanceBillsPage() {
       label: '账单状态',
       type: 'select',
       placeholder: '全部状态',
-      options: [
-        { label: '草稿', value: FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT },
-        {
-          label: '已确认',
-          value: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
-        },
-        {
-          label: '已取消',
-          value: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED,
-        },
-      ],
+      // 选项直接派生自财务账单状态公开映射，与列表/详情展示保持单一真相。
+      options: Object.entries(billStatusMeta).map(([value, meta]) => ({
+        label: meta.text,
+        value: Number(value),
+      })),
     },
     {
       name: 'billDateRange',

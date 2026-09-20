@@ -4,15 +4,15 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, Descriptions, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
-import { adminServiceListAuditLogs } from '@/services/roncin/adminService';
-import { toTableRequest } from '@/utils/api';
 import {
   auditActionPresentation,
   auditActorName,
   auditBusinessObject,
   auditDetailLabel,
   auditDetailValue,
-} from './audit-presentation';
+} from '@/features/audit';
+import { adminServiceListAuditLogs } from '@/services/roncin/adminService';
+import { toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 

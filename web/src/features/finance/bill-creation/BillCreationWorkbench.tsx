@@ -41,8 +41,6 @@ import {
   type WorkbenchValidationError,
 } from './billWorkbenchHelpers';
 
-export type { BillCreationMode } from './billWorkbenchHelpers';
-
 export type BillCreationWorkbenchProps = {
   open: boolean;
   initialFeeIds?: string[];

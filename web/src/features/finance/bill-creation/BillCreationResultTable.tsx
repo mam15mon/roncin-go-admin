@@ -1,6 +1,4 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
 import {
   Alert,
   Button,
@@ -12,7 +10,11 @@ import {
   Tag,
 } from 'antd';
 import React from 'react';
+import { useAccess } from '@/app/access';
+import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
+import { billStatusMeta } from '@/features/finance/bill-status';
+import { history } from '@/router/history';
 
 type BillCreationResultTableProps = {
   result?: API.FinanceBillBatch;
@@ -92,11 +94,11 @@ export default function BillCreationResultTable({
             title: '状态',
             dataIndex: 'status',
             width: 90,
+            // 与账单列表共用 billStatusMeta 统一映射，替换原先内联的草稿/已确认判断。
             render: (value) =>
-              value === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED ? (
-                <Tag color="blue">已确认</Tag>
-              ) : (
-                <Tag color="default">草稿</Tag>
+              statusTag(
+                billStatusMeta,
+                value ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
               ),
           },
           {

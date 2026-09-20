@@ -22,10 +22,10 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { useEffect, useMemo, useState } from 'react';
-import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
 import { MODAL_SIZE } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
-import { useCreditLimitIntervention } from '@/hooks/useCreditLimitIntervention';
+import { useCreditLimitIntervention } from '@/features/finance/credit-control';
+import { PartnerSelectOptionTags } from '@/features/partners';
 import {
   settlementServiceCreateVerification,
   settlementServiceListFinanceOrganizationOptions,

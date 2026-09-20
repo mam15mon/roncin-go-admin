@@ -16,7 +16,7 @@ import {
   auditDetailLabel,
   isTechnicalAuditKey,
   parseRoleBadges,
-} from '@/pages/admin/audit-presentation';
+} from '@/features/audit';
 import { partnerServiceListPartnerAuditLogs } from '@/services/roncin/partnerService';
 import { unwrapPage } from '@/utils/api';
 import { formatDate } from '@/utils/format';

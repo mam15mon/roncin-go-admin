@@ -57,8 +57,8 @@ vi.mock('@/components/ui', () => ({
   ExchangeRatePreviewCard: () => <div data-testid="exchange-preview" />,
 }));
 
-vi.mock('@/pages/finance/bills/components/BillCreationWorkbench', () => ({
-  default: ({
+vi.mock('@/features/finance/bill-creation', () => ({
+  BillCreationWorkbench: ({
     open,
     initialFeeIds,
     initialOrganizationId,

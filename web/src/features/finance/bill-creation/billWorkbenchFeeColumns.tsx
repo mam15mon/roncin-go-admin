@@ -2,6 +2,7 @@ import { DeleteOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Tag, Typography } from 'antd';
 import React from 'react';
+import { orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
 import { OrderFeeStatus } from '@/enums.generated';
 
 const { Text } = Typography;
@@ -32,18 +33,13 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     dataIndex: 'status',
     width: 85,
     search: false,
-    render: (_, row) => {
-      if (row.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED) {
-        return <Tag color="blue">已确认</Tag>;
-      }
-      if (row.status === OrderFeeStatus.ORDER_FEE_STATUS_BILLED) {
-        return <Tag color="green">已开账</Tag>;
-      }
-      if (row.status === OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED) {
-        return <Tag color="red">已作废</Tag>;
-      }
-      return <Tag>草稿</Tag>;
-    },
+    // 与费用台账共用 orderFeeStatusMeta 统一展示映射（受控变更：
+    // 原「已开账」绿色改为标准「已进账单」蓝色，已确认 green、草稿 gold、已作废 default）。
+    render: (_, row) =>
+      statusTag(
+        orderFeeStatusMeta,
+        row.status ?? OrderFeeStatus.ORDER_FEE_STATUS_DRAFT,
+      ),
   },
   {
     title: '结算单位',

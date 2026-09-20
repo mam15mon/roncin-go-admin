@@ -1,8 +1,9 @@
 import { Descriptions, Space, Table, Tag } from 'antd';
 import React from 'react';
 import { DescriptionsDetailDrawer, DItem } from '@/components/ui';
+import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
-import { statusOptions } from './billConstants';
+import { billStatusMeta } from '@/features/finance/bill-status';
 
 interface BillDetailDrawerProps {
   open: boolean;
@@ -29,19 +30,10 @@ export default function BillDetailDrawer({
       descriptions={(detail) => (
         <>
           <Descriptions.Item label="状态">
-            <Tag
-              color={
-                statusOptions[
-                  detail.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
-                ]?.color
-              }
-            >
-              {
-                statusOptions[
-                  detail.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
-                ]?.text
-              }
-            </Tag>
+            {statusTag(
+              billStatusMeta,
+              detail.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+            )}
           </Descriptions.Item>
           <Descriptions.Item label="方向">
             {detail.direction === 'RECEIVABLE' ? '应收' : '应付'}

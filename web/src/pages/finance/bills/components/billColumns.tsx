@@ -7,8 +7,9 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Popconfirm, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
+import { makeValueEnum, statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
-import { statusOptions } from './billConstants';
+import { billStatusMeta } from '@/features/finance/bill-status';
 
 interface GetFinanceBillColumnsParams {
   access: {
@@ -82,23 +83,12 @@ export function getFinanceBillColumns({
       dataIndex: 'status',
       width: 85,
       valueType: 'select',
-      valueEnum: Object.fromEntries(
-        Object.entries(statusOptions).map(([key, value]) => [
-          key,
-          { text: value.text },
-        ]),
-      ),
-      render: (_, row) => {
-        const value =
-          statusOptions[
-            row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT
-          ];
-        return (
-          <Tag color={value?.color} style={{ margin: 0 }}>
-            {value?.text}
-          </Tag>
-        );
-      },
+      valueEnum: makeValueEnum(billStatusMeta),
+      render: (_, row) =>
+        statusTag(
+          billStatusMeta,
+          row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+        ),
     },
     {
       title: '账单编号',

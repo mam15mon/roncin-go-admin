@@ -11,11 +11,10 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { useAccess } from '@/app/access';
 import { App, Form, Popconfirm, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
-import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
+import { useAccess } from '@/app/access';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -25,7 +24,8 @@ import {
   FinanceCashflowStatus,
   FinanceOrganizationPurpose,
 } from '@/enums.generated';
-import { useCreditLimitIntervention } from '@/hooks/useCreditLimitIntervention';
+import { useCreditLimitIntervention } from '@/features/finance/credit-control';
+import { PartnerSelectOptionTags } from '@/features/partners';
 import {
   settlementServiceCancelCashflow,
   settlementServiceConfirmCashflow,

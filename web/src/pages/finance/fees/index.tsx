@@ -4,10 +4,9 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
 import { App, Select, Space } from 'antd';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   type FinanceLedgerMetricCard,
@@ -19,9 +18,11 @@ import {
   FinanceOrganizationPurpose,
   OrderFeeStatus,
 } from '@/enums.generated';
-import BillCreationWorkbench, {
+import {
   type BillCreationMode,
-} from '@/pages/finance/bills/components/BillCreationWorkbench';
+  BillCreationWorkbench,
+} from '@/features/finance/bill-creation';
+import { history } from '@/router/history';
 import { orderFeeServiceConfirmFee } from '@/services/roncin/orderFeeService';
 import {
   settlementServiceBatchAssignFinanceFeeTags,
