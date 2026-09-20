@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 87
+- **Total Sessions**: 88
 - **Last Active**: 2026-09-20
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~241 | Active |
+| `journal-2.md` | ~265 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 88 | 2026-09-20 | AI 友好架构二期：后端门禁与去重导航 | `98331d07`, `c77f0b14`, `1a72eaef` | `main` |
 | 87 | 2026-09-20 | 完成重复逻辑扫描与实仓审阅 | `3cc5722a`, `64cb1958` | `main` |
 | 86 | 2026-09-20 | AI 友好架构改造：features 分层与依赖边界门禁 | `dd4e5e03`, `954d6145`, `6ba94fff`, `58fdbd89` | `main` |
 | 85 | 2026-09-20 | 数据层迁移第三批：useMasterDataCrud 与事件驱动请求收敛 | `08407069`, `4a7df6af` | `refactor/data-layer-migration-batch3` |

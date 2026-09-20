@@ -239,3 +239,27 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 88: AI 友好架构二期：后端门禁与去重导航
+<!-- trellis-session: v=2 fp=a8a073c46e7083fc -->
+
+**Date**: 2026-09-20
+**Task**: AI 友好架构二期：后端门禁与去重导航
+**Branch**: `main`
+
+### Summary
+
+新增 Go 分层 import 门禁 scripts/layer-check-go（biz 的 ErrorReason 标识符级例外）接入 check:server 与 CI；提取重复报告确认的五组真实重复（候选 8→3 组，剩余为判定合理重复）；新增后端能力导航、补领域地图 features 新入口、修复规范断链并记录首轮审查结论；check:fast 全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `98331d07` | feat: 新增后端分层边界门禁并接入 check:server 与 CI |
+| `c77f0b14` | refactor: 提取重复报告确认的五组真实重复实现 |
+| `1a72eaef` | docs: 新增后端能力导航并同步领域地图与规范纠错 |
+
+### Status
+
+[OK] **Completed**
