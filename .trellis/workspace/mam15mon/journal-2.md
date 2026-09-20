@@ -75,3 +75,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 83: 数据层迁移 React Query v5：基建+阶段1/2+规范沉淀
+<!-- trellis-session: v=2 fp=d36db5429e5e8437 -->
+
+**Date**: 2026-09-20
+**Task**: 数据层迁移 React Query v5：基建+阶段1/2+规范沉淀
+**Branch**: `refactor/data-layer-react-query`
+
+### Summary
+
+选型实测推翻 umi 插件方案（v2 老包/vitest 不可用/无卸载保护），定案 @tanstack/react-query v5 直装。阶段0 基建（queryClient 单例/Provider/测试工具）；阶段1 迁移 4 个 workbench Drawer 与 CommissionCreateModal（sequenceRef/手写防抖全删）；阶段2 订单详情 8 state+五重竞态收敛为单条聚合 useQuery（消费方零改动）。规范沉淀 state-management.md（key 规范/silent 与 meta.errorMessage 错误提示约定/umi 插件禁用依据）与 quality 禁令。check:fast 869 passed/12 skipped 双零。剩余批次另立任务：use-order-create-options、use-order-fee-options、use-order-lock-state、VerificationWorkbench、BillCreationWorkbench、partner-detail、fees、split、cashflows、invoices、useWorkbenchOverview 等。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b4f3147d` | feat(web): 接入 React Query v5 基建 |
+| `e268ca41` | refactor(web): workbench 抽屉与佣金创建弹窗迁移 React Query |
+| `914dfc28` | refactor(web): 订单详情数据聚合迁移 React Query |
+
+### Status
+
+[OK] **Completed**
