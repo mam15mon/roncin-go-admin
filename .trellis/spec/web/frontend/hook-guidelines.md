@@ -1,11 +1,16 @@
 # Hook 与数据获取约定
 
-当前 `web/src/` 没有公共 hooks 目录；遵循以下约定：
+`web/src/hooks/` 只保留与业务无关的异步竞态工具（`useLatestAsync`/
+`useAsyncGuard`）。数据获取与业务 Hook 遵循以下约定：
 
-- 数据获取通过 `src/services/roncin/` 生成客户端 + React Query（或项目已在用
-  的服务端状态方案）完成，逻辑就近放在页面文件或页面 `components/` 内。
-- 不为一次性页面逻辑新建公共 hook；确实跨页面复用时才上提到 `src/hooks/`，
-  并以业务领域命名。
+- 数据获取通过 `src/services/roncin/` 生成客户端 + React Query 完成，逻辑
+  就近放在页面文件或页面 `components/` 内（见 state-management.md）。
+- 不为一次性页面逻辑新建公共 hook；确实跨页面复用时按领域提取到
+  `src/features/<领域>/<能力>/` 并经 `index.ts` 公开（如
+  `features/finance/credit-control/` 的信用控制查询），**不放全局
+  `src/hooks/`**——全局 hooks 只收业务无关的通用工具。
+- 领域 Hook 与其他能力的存在性先查[能力导航](./capability-navigation.md)，
+  已有能力的直接消费公开入口，不重写。
 - 列表页的筛选、分页状态与查询参数保持同步（URL 或查询键），避免组件内
   私有状态与服务端状态漂移。
 - 下拉/联想候选项走服务端 `keyword` 过滤接口，不循环翻页或一次性拉全量。

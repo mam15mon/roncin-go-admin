@@ -58,6 +58,7 @@ web/                      React + Ant Design Pro 管理后台
   config/                  Vite 配置：路由、代理、主题、OpenAPI 输入
                          （构建/测试入口为 web/vite.config.ts）
   src/pages/               按业务领域组织的页面
+  src/features/            跨页面共享的领域能力（真实共用才提取，经 index.ts 公开）
   src/services/roncin/    OpenAPI 生成的请求客户端
   src/components/         可复用界面组件
   tests/                   前端测试基础设施
@@ -147,7 +148,15 @@ scripts/                  根目录开发与构建辅助脚本
   主机地址。接口数据优先由 React Query 等服务端状态工具管理，不复制到全局
   可变状态。
 - 页面按业务领域放在 `web/src/pages/`，页面专属请求、类型和样式就近存放；
-  避免引入无关的大型聚合组件。
+  避免引入无关的大型聚合组件。跨页面共享的领域能力放 `web/src/features/`，
+  只在出现真实跨模块使用时提取，经 `features/<领域>/[<能力>/]index.ts`
+  公开最小导出面；不同页面模块禁止互相深引，features 不得反向依赖 pages，
+  `components/ui`、通用 `hooks`、`utils`、`constants` 不得导入
+  pages/features。
+- 模块依赖边界由 `pnpm run check:architecture` 自动强制（AST 扫描，接入
+  `check:web` 与 CI，无豁免清单）；可复用能力清单见
+  `.trellis/spec/web/frontend/capability-navigation.md`，新能力提取后同步
+  更新该导航。
 - `web/src/services/roncin/` 中由 OpenAPI 生成的文件不得
   手工修改。应修改服务端契约后运行生成命令，并把源文件与生成物放在同一组
   变更中审阅。

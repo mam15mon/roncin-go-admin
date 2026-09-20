@@ -63,11 +63,18 @@ pnpm --dir web exec vitest run src/pages/foo/bar.test.tsx
 匹配的完整前端门禁：
 
 ```bash
+pnpm run check:architecture
 pnpm --dir web lint
 pnpm --dir web test
 pnpm --dir web tsc
 pnpm --dir web biome:lint
 ```
+
+`pnpm run check:architecture` 用 AST 扫描强制模块依赖边界（跨页面模块互引、
+features 反向依赖、绕过 features 公开入口、通用层反向依赖、能力依赖环均直接
+失败）；新增/迁移 features 能力或调整页面模块后必跑。该检查已接入
+`pnpm run check:web` 与 CI，无豁免清单机制——出现违规要么修正源码归属，
+要么走正式契约变更，不塞豁免。
 
 `pnpm run check:web` 用于完整前端验收，`pnpm run check` 用于前后端全量验收。
 `pnpm run build` 只在构建配置、依赖、生产入口等相关变更、发布前验收或用户明确
@@ -157,4 +164,7 @@ antd 6 下会静默失效，测试表现为「元素找不到」或「回调未�
 - 手改任何生成文件（见 type-safety.md 清单）。
 - 硬编码第二套权限规则或复制后端权限清单。
 - 引入无关的大型聚合组件；无关格式化混入功能提交。
+- 跨页面模块互相导入、绕过 `features` 公开入口深引内部模块、`components/ui`
+  /`hooks`/`utils`/`constants` 反向依赖 pages/features（`check:architecture`
+  自动拦截）。
 - 不为通过检查而关闭 lint 规则、跳过类型错误或提交临时产物。

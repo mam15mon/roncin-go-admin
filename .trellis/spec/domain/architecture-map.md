@@ -7,7 +7,7 @@
 
 ```text
 React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go Kratos (server/)
-  Ant Design Pro / Umi                                          internal/service  传输层 DTO 转换与校验
+  Vite 7 + React Router v8 集中式路由                            internal/service  传输层 DTO 转换与校验
   React Query 服务端状态                                         internal/biz      领域对象/用例/仓储接口/业务规则
   OpenAPI 生成客户端 (services/roncin)                           internal/data     Ent 仓储实现（PostgreSQL）
   权限来自 /auth/me（不复制第二套）                                internal/access   权限 Manifest 唯一真相源
@@ -21,16 +21,18 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 
 | 域 | 后端 | 前端 |
 | --- | --- | --- |
-| 订单/海运单证 | `biz/sea_order_change.go`、`biz/sea_document_change.go`、`biz/sea_master_bill.go`、`data/sea_*` | `pages/orders/**`（模板 `templates/components/sea/`） |
+| 订单/海运单证 | `biz/sea_order_change.go`、`biz/sea_document_change.go`、`biz/sea_master_bill.go`、`data/sea_*` | `pages/orders/**`（品类模板 `pages/orders/templates/components/sea/`，注册表 `pages/orders/order-kinds/`） |
 | 订单锁定 | `biz/order_lock.go`、`biz/order_auto_lock.go`、`data/order_lock_*.go` | `pages/orders`（锁状态条） |
-| 费用/费用补录 | `service/settlement*.go`、`data/order_fee_supplement_*.go` | `pages/orders/fees.tsx` |
-| 账单/对冲/核销 | `biz/finance_bill*.go`、`data/finance_bill_*.go` | `pages/finance/bills/**` |
+| 费用/费用补录 | `service/settlement*.go`、`data/order_fee_supplement_*.go` | `pages/orders/fees.tsx`（建账工作台经 `features/finance/bill-creation`） |
+| 账单/对冲/核销 | `biz/finance_bill*.go`、`data/finance_bill_*.go` | `pages/finance/{bills,fees,cashflows,verifications}/**`、`features/finance/{bill-creation,bill-status,credit-control}` |
 | 提成（方案/台账/月度申请） | `biz/finance_commission*.go`、`data/finance_commission*.go` | `pages/finance/commissions/**`、`pages/workbench/**` |
-| 往来单位 | `biz/partner*.go` | `pages/partners/**` |
+| 往来单位 | `biz/partner*.go` | `pages/partners/**`、`features/partners` |
 | 企业资源 | `biz/enterprise_resource.go` | `pages/enterprise-resources/**` |
 | 组织/角色/权限 | `biz/admin_*.go`、`biz/auth.go` | `pages/admin/**` |
-| 设置（汇率/编号/自定义） | `biz/exchange_rate*.go`、`biz/number_rule.go` | `pages/settings/**` |
-| 工作台 | `biz/workbench.go` | `pages/workbench/**`、`pages/Welcome.tsx` |
+| 单据编号规则 | `biz/orderconfig.go` | `pages/admin/components/number-rules/` |
+| 财务配置（汇率/费用目录） | `biz/exchange_rate*.go`、`biz/fee_catalog.go` | `pages/finance/exchange-rates/**`、`pages/finance/fee-settings/**` |
+| 审计 | 审计事件独立存储 | `pages/admin/audit.tsx`、`features/audit`（业务页审计分区共用展示转换） |
+| 工作台 | `biz/workbench.go` | `pages/workbench/**` |
 
 ## 3. 核心数据流：一张订单的财务一生
 

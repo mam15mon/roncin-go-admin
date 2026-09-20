@@ -36,6 +36,7 @@
 | [0009](./0009-server-state-react-query.md) | 服务端状态归 React Query | 已采纳 | 接口数据不镜像进全局 store，直接消费服务端状态层 |
 | [0010](./0010-order-kind-registry.md) | 订单类型注册表与三类真相边界 | 已采纳 | 类型元数据、操作能力、表单生命周期三类真相各有唯一所有者，未知 kind 显式 404 |
 | [0011](./0011-antd6-testing-conventions.md) | antd 6 测试交互惯例 | 已采纳 | antd 6 基线下 DatePicker 用 click、submit 点按钮本体、modal.confirm 用 okButtonProps |
+| [0016](./0016-frontend-module-boundaries.md) | 前端模块边界与 features 领域能力层 | 已采纳 | 跨页面共享能力经 features 公开入口消费，依赖越界由 check:architecture 自动失败，无豁免清单 |
 
 ## 部署
 

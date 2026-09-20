@@ -37,14 +37,15 @@
   关键词 + 依赖参数进 queryKey」的 useQuery；「已选项保活」在渲染侧
   useMemo 合并（必要时 `queryClient.getQueriesData` 回填历史名称），
   禁止再写 `xxxRequestRef` 序号令牌。
-- 小型策略/布尔查询（如 `useCreditLimitIntervention`）同样走 useQuery；
+- 小型策略/布尔查询（如 `features/finance/credit-control` 的
+  `useCreditLimitIntervention`）同样走 useQuery；
   原 catch 静默回退的声明 `meta: { silent: true }`。
 
 ## 请求客户端
 
 - 所有后端请求经过统一请求配置或 OpenAPI 生成客户端
   （`src/services/roncin/`）；禁止页面自行拼接后端主机地址。
-- 开发期走 Umi 代理，生产同域（Go 服务同时提供 `/api/*` 与静态资源）；
+- 开发期走 Vite 代理，生产同域（Go 服务同时提供 `/api/*` 与静态资源）；
   修改打包或路由时两种路径都要验证。
 
 ## 本地状态
