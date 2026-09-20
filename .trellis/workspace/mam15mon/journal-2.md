@@ -216,3 +216,26 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 87: 完成重复逻辑扫描与实仓审阅
+<!-- trellis-session: v=2 fp=75118253cd539bb3 -->
+
+**Date**: 2026-09-20
+**Task**: 完成重复逻辑扫描与实仓审阅
+**Branch**: `main`
+
+### Summary
+
+完成第二阶段 TS/Go 函数重复扫描工具、Node 14 与 Go 7 回归及 CI 接入。check:web 通过（160 文件、884 用例），871 源码文件扫描产生 8 组候选并全部人工审阅。输出稳定；全量测试含 localhost:3000 连接噪音，未扩展产品修复。更新能力导航与扫描契约。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3cc5722a` | feat: 增加前后端疑似重复函数扫描与验证门禁 |
+| `64cb1958` | docs: 记录重复扫描契约与八组候选审查结果 |
+
+### Status
+
+[OK] **Completed**
