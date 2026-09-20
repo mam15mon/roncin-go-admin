@@ -21,6 +21,11 @@
 - 解除时清空角色当前的原因、时间和操作人字段，但审计事件必须保留本次原因与目标角色。
 - 已拉黑角色不得通过角色替换、停用后重加或导入更新被移除；重新启用不得清空黑名单字段。
 - 通用选择器保留黑名单单位可见，服务端写事务是权威门禁。
+- 列表过滤契约（2026-09 起）：`ListPartners` 与 `ExportPartners` 支持
+  `optional bool blacklisted` 查询参数，按目标 `role_type` 的角色记录过滤。
+  `blacklisted=true` 时不要求该角色 `enabled=true`——拉黑与停用正交，
+  已停用的黑名单档案必须仍出现在黑名单视图；`blacklisted=false` 语义为
+  「存在该类型、启用且未拉黑的角色」；缺省不过滤，行为与历史完全一致。
 
 订单字段与角色映射：
 
@@ -50,6 +55,8 @@
 ## 6. 必需测试
 
 - Biz：三种合法角色、非法角色、空白/超长原因、Trim 后入仓及审计 `role_type`。
+- Biz：ListPartners 的 `blacklisted` true/false/nil 三态透传（
+  `TestPartnerListFiltersByBlacklisted`，范本 `TestPartnerListFiltersByIsCasual`）。
 - Data：四个订单字段的新建门禁；草稿换入拒绝、原关联保留允许、可选关联清空允许；同档案不同角色独立判定；错误 reason 正确。
 - Data：角色替换和导入不能移除任意已拉黑角色，重新启用保留状态。
 - PostgreSQL 集成：订单对去重且排序后的档案行使用 `FOR SHARE`，拉黑使用同一档案行 `FOR UPDATE`，验证并发提交先后不会产生检查空窗。
