@@ -144,3 +144,7 @@ if (
   React key 警告）。
 - antd `message`/`modal` 静态导入改 `App.useApp()`，避免「can not consume
   context」警告。
+- 依赖 antd 内部实现细节（如 `.ant-form-item-has-error` 类名）的工具逻辑，
+  必须收拢选择器常量并配「升级哨兵测试」：用真实 antd 渲染断言该细节仍存在
+  （范例：`formErrorAntdContract.test.tsx`），antd 升级移除时测试显式失败，
+  不允许静默失效。

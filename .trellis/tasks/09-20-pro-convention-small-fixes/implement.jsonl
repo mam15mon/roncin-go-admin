@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范入口与最小检查集"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "组件规范与 antd6 API 契约禁令"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "测试交互惯例与零噪音口径"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "服务端状态与请求客户端边界"}
