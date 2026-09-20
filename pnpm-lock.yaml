@@ -78,6 +78,9 @@ importers:
       '@ant-design/cli':
         specifier: ^6.6.2
         version: 6.6.2
+      '@babel/parser':
+        specifier: ^7.29.8
+        version: 7.29.8
       '@biomejs/biome':
         specifier: ^2.5.3
         version: 2.5.9
