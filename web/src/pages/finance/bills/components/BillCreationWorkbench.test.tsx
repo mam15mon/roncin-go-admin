@@ -1,11 +1,6 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -155,7 +150,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
             data: [{ id: 'fee-B', feeName: '费用B', status: 2 }],
           }),
     );
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench open onClose={vi.fn()} />
       </App>,
@@ -204,7 +199,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         },
       ],
     });
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench
           open
@@ -270,7 +265,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
             ],
           }),
     );
-    const view = render(
+    const view = renderWithClient(
       <App>
         <BillCreationWorkbench
           open
@@ -288,14 +283,16 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     );
 
     view.rerender(
-      <App>
-        <BillCreationWorkbench
-          open
-          initialFeeIds={['fee-B']}
-          initialOrganizationId="B"
-          onClose={vi.fn()}
-        />
-      </App>,
+      <QueryClientProvider client={view.queryClient}>
+        <App>
+          <BillCreationWorkbench
+            open
+            initialFeeIds={['fee-B']}
+            initialOrganizationId="B"
+            onClose={vi.fn()}
+          />
+        </App>
+      </QueryClientProvider>,
     );
     expect(await screen.findByDisplayValue('结算单位B')).toBeInTheDocument();
 
@@ -359,7 +356,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         ],
       }),
     );
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench
           open
@@ -458,7 +455,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
             ],
           }),
     );
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench
           open
@@ -507,7 +504,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       ],
     });
     mocks.accounts.mockResolvedValue({ data: [] });
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench
           open
@@ -542,7 +539,7 @@ describe('BillCreationWorkbench 预览触发边界', () => {
   });
 
   it('修改对账抬头或备注不触发预览，修改日期、账户、预计开票配置触发预览', async () => {
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench
           open
@@ -606,7 +603,7 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
           pending.push(resolve);
         }),
     );
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench
           open
@@ -698,7 +695,7 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
           pending.push(resolve);
         }),
     );
-    render(
+    renderWithClient(
       <App>
         <BillCreationWorkbench
           open
