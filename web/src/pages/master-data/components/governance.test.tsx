@@ -1,3 +1,5 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import {
   cleanup,
   render,
@@ -87,7 +89,13 @@ const portItems = [
 ];
 
 function renderPanel(ui: React.ReactElement) {
-  return render(<App>{ui}</App>);
+  // 面板数据层已迁移 React Query：每用例独立 QueryClient，防止缓存串味。
+  const queryClient = createTestQueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <App>{ui}</App>
+    </QueryClientProvider>,
+  );
 }
 
 describe('主数据页签组织身份收敛（A 型只读 / B 型基线+本地）', () => {
