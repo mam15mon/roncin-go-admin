@@ -179,3 +179,40 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
   vitest 876 用例全绿；无数据库迁移、无新增权限码。
 - 提交：e84103ac（feat 黑名单视图）、bc338ccd（docs 契约沉淀）、
   882c6233（fix 导出正统化+操作人姓名）。
+
+
+## Session 86: AI 友好架构改造：features 分层与依赖边界门禁
+<!-- trellis-session: v=2 fp=78f442a21e25bfd3 -->
+
+**Date**: 2026-09-20
+**Task**: AI 友好架构改造：features 分层与依赖边界门禁
+**Branch**: `main`
+
+### Summary
+
+跨页面共享能力迁入 web/src/features 公开入口，新增 check:architecture 依赖边界门禁（无豁免清单），统一同义状态展示，沉淀能力导航与 ADR 0016；check:web 与 build:web 全绿，任务已归档。
+
+### Main Changes
+
+- 四阶段顺序落地（各阶段实施 + 独立 check 代理核对后提交）：
+  A `dd4e5e03` 建账工作台闭包等五个能力迁入 `web/src/features/`（bill-creation/bill-status/credit-control/audit/partners，公开入口 index.ts 最小导出面，无兼容 shim）；费用状态统一到 `statusMeta.ts` 映射（受控展示变更：已开账→已进账单 blue、已确认 green、已作废 default、草稿 gold）。
+  B `954d6145` 旧 settings 四组面板按真实消费方迁入 fee-settings/exchange-rates/admin 页内 components；Welcome→`pages/workbench/index.tsx`（URL/权限不变）；删除旧 settings 整页与两条无人用转导出链，`/settings` 重定向保留。
+  C `6ba94fff` `web/scripts/check-architecture.mjs`：@babel/parser AST 扫描，六类规则（跨页模块互引/features 反向依赖/绕过公开入口/通用层反依赖/路由精确授权/能力环），18 项正反例测试，接入 `check:web`+CI；无豁免清单。
+  D `58fdbd89` 新增 capability-navigation.md 能力导航 + ADR 0016，纠正 Umi/hooks/模板路径漂移，AGENTS.md 补 features 层与边界规则。
+- 关键坑：features 禁依赖 pages 迫使 `BillTermsCreditWarnings` 随工作台公开（账单页 BillEditModal 也消费）；编号规则后端在 `biz/orderconfig.go` 不在旧文档写的 number_rule.go；本机 pnpm/node 不在默认 PATH，需 export PATH="$HOME/.local/lib/nodejs/node-v24.21.0-linux-x64/bin:$PATH"。
+- 验收：check:web 全绿（含 check:architecture 456 文件 0 违规；Vitest 876 用例通过）、build:web 通过；独立 check 代理判定 R1—R6 全满足、AC1—AC5 全过、无 BLOCKER；server/、OpenAPI/权限生成物零改动。
+- 延期：订单候选缓存与 utils/options 领域化、全仓语义重复自动识别。
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dd4e5e03` | refactor(web): 提取建账工作台等跨页能力至 features 并统一费用状态展示 |
+| `954d6145` | refactor(web): 设置页面板按真实归属迁移并删除旧设置整页 |
+| `6ba94fff` | feat(web): 新增前端依赖边界检查器并接入 check:web 门禁 |
+| `58fdbd89` | docs: 新增前端复用能力导航与模块边界 ADR，纠正规范漂移 |
+
+### Status
+
+[OK] **Completed**
