@@ -1,5 +1,7 @@
 import { DingdingOutlined } from '@ant-design/icons';
-import { Helmet, history, useModel } from '@umijs/max';
+import { Helmet } from 'react-helmet-async';
+import { history } from '@/router/history';
+import { useInitialState } from '@/app/AppProvider';
 import { App, Button, Result, Select, Space, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { DingTalkLoginStatus } from '@/enums.generated';
@@ -41,7 +43,7 @@ function storedRedirect(): string {
 }
 
 export default function DingTalkCallback() {
-  const { setInitialState } = useModel('@@initialState');
+  const { setInitialState } = useInitialState();
   const { message } = App.useApp();
   const [failure, setFailure] = useState<LoginFailure>();
   const [registrationName, setRegistrationName] = useState('');

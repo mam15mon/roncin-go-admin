@@ -1,5 +1,5 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { history } from '@umijs/max';
+import { history } from '@/router/history';
 import { Tag } from 'antd';
 import {
   businessTypeMeta,

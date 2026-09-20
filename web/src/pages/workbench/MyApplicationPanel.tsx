@@ -3,7 +3,7 @@ import {
   TableOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
 import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';

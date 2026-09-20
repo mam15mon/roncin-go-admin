@@ -23,7 +23,9 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { history, useAccess, useLocation } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useLocation } from 'react-router';
 import {
   App,
   Button,

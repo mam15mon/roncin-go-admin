@@ -1,5 +1,5 @@
 import { SendOutlined } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { Tag } from 'antd';
 import React from 'react';
 import {

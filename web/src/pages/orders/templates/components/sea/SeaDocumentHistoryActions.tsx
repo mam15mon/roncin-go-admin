@@ -1,5 +1,5 @@
 import { HistoryOutlined, StopOutlined } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import {
   Alert,
   App,

@@ -1,5 +1,5 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { useLocation } from '@umijs/max';
+import { useLocation } from 'react-router';
 import { Result } from 'antd';
 import React from 'react';
 

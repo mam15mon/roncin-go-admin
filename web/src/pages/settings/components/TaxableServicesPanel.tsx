@@ -1,6 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormSwitch, ProFormText } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { Alert, Tag } from 'antd';
 import React from 'react';
 import { SettingTableTemplate } from '@/components/ui';

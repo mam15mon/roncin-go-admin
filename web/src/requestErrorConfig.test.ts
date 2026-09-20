@@ -203,7 +203,7 @@ describe('requestErrorConfig', () => {
 
 describe('请求层防重守卫', () => {
   // biome-ignore lint/style/noNonNullAssertion: guard interceptor is always defined
-  const guard = errorConfig.requestInterceptors![1] as (
+  const guard = errorConfig.requestInterceptors![1] as unknown as (
     config: RequestOptionsLike,
   ) => RequestOptionsLike;
   const responseInterceptorTuple = errorConfig.responseInterceptors?.[0] as

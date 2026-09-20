@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListReleasePods 获取指定订单的放货凭证列表。 GET /api/v1/orders/${param0}/release-pods */
 export async function orderReleasePodServiceListReleasePods(

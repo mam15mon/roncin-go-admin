@@ -8,7 +8,9 @@ import {
   SafetyCertificateOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { history, useAccess, useLocation } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useLocation } from 'react-router';
 import React, { useEffect, useMemo } from 'react';
 import {
   type MultiTabCenterTabItem,

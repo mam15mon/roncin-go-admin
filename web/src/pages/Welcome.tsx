@@ -1,6 +1,6 @@
 import { ApartmentOutlined } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
+import { useInitialState } from '@/app/AppProvider';
 import { Alert, Avatar, Button, Skeleton, Space, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
 import CommissionSummaryCard from './workbench/CommissionSummaryCard';
@@ -24,7 +24,7 @@ const GRID_STYLE: React.CSSProperties = {
 };
 
 export default function Welcome() {
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const user = initialState?.currentUser;
   const displayName = user?.displayName || user?.username || '用户';
   const orgName = user?.currentOrganization?.name || '默认组织';

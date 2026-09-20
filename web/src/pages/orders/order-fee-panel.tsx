@@ -1,7 +1,7 @@
 import { PlusOutlined, TagOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import React, {

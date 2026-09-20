@@ -1,4 +1,4 @@
-import { history } from '@umijs/max';
+import { history } from '@/router/history';
 import React, { type ReactNode } from 'react';
 import { PageHeaderShell } from '@/components/ui';
 

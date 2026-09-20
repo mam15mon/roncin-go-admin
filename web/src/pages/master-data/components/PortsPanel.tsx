@@ -1,5 +1,5 @@
 import { CompassOutlined } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { Space, Tag } from 'antd';
 import React from 'react';
 import {

@@ -7,7 +7,10 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { history, useAccess, useLocation, useModel } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useLocation } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
 import { App, Button, Card, Space, Tabs } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
@@ -38,7 +41,7 @@ function UserMembersView() {
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminUser>();
   const [resetting, setResetting] = useState<API.AdminUser>();

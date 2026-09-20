@@ -1,4 +1,4 @@
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import type { TableColumnsType } from 'antd';
 import { Button, Descriptions, Drawer, Space, Spin, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';

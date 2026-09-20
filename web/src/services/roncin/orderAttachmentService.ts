@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListAttachments 获取指定订单的附件列表。 GET /api/v1/orders/${param0}/attachments */
 export async function orderAttachmentServiceListAttachments(

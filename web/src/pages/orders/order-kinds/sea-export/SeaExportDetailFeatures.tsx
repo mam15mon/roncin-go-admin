@@ -5,7 +5,7 @@ import {
   ShareAltOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import { history } from '@umijs/max';
+import { history } from '@/router/history';
 import { App, Button, type MenuProps, Tooltip } from 'antd';
 import React, {
   useCallback,

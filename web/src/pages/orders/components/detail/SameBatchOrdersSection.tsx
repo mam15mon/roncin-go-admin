@@ -1,5 +1,5 @@
 import { LinkOutlined } from '@ant-design/icons';
-import { history } from '@umijs/max';
+import { history } from '@/router/history';
 import { Alert, Button, Empty, Skeleton, Space, Table, Tag } from 'antd';
 import { useEffect, useState } from 'react';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';

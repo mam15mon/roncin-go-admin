@@ -1,6 +1,6 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { App, Descriptions, Drawer, Select, Space, Table, Tag } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import {

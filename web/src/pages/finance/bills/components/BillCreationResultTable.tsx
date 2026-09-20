@@ -1,5 +1,6 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
-import { history, useAccess } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
 import {
   Alert,
   Button,

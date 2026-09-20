@@ -4,7 +4,7 @@ import {
   MinusCircleOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
-import { history } from '@umijs/max';
+import { history } from '@/router/history';
 import { Button, Listy, Space, Tag, Typography } from 'antd';
 import React from 'react';
 import { amountWithCurrency } from './display';

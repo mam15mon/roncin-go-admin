@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** 此处后端没有提供注释 POST /api/v1/enterprise-resource-address-types/batch-assign */
 export async function enterpriseResourceServiceBatchAssignAddressTypes(

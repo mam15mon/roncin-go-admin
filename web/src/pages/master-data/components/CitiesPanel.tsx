@@ -1,5 +1,5 @@
 import { CompassOutlined } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { App, Tag } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';

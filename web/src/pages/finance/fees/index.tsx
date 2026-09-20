@@ -4,7 +4,8 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { history, useAccess } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
 import { App, Select, Space } from 'antd';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';

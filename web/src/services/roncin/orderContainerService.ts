@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListContainers 获取指定订单的集装箱列表。 GET /api/v1/orders/${param0}/containers */
 export async function orderContainerServiceListContainers(

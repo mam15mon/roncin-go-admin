@@ -1,5 +1,6 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { history, useParams } from '@umijs/max';
+import { history } from '@/router/history';
+import { useParams } from 'react-router';
 import { App, Descriptions, Table, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { PageHeaderShell, SectionCard } from '@/components/ui';

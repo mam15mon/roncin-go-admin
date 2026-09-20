@@ -1,4 +1,4 @@
-import { useModel } from '@umijs/max';
+import { useInitialState } from '@/app/AppProvider';
 import { App } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { PartnerRoleType } from '@/enums.generated';
@@ -25,7 +25,7 @@ import type { OrderKindDefinition } from './order-kinds/types';
 /** 订单列表页共用的主数据加载、候选项派生与联想搜索逻辑。 */
 export function useOrderListResources(definition?: OrderKindDefinition) {
   const { message } = App.useApp();
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const activeOrgIdRef = useRef(organizationId);
   activeOrgIdRef.current = organizationId;

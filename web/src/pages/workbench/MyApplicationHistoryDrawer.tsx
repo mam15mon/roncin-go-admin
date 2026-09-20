@@ -3,7 +3,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import type { TableColumnsType } from 'antd';
 import {
   App,

@@ -1,7 +1,10 @@
 import { SaveOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { history, useAccess, useModel, useParams } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useInitialState } from '@/app/AppProvider';
+import { useParams } from 'react-router';
 import { App, Button, Card, Result, Space } from 'antd';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { getFormDraftScope } from '@/components/layout/formDraft';
@@ -29,7 +32,7 @@ export default function NewOrderPage() {
   const createIdempotencyKeyRef = useRef(generateUUID());
   const { message } = App.useApp();
   const access = useAccess();
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const draftScope = getFormDraftScope(
     initialState?.currentUser?.id,
     initialState?.currentUser?.currentOrganization?.id,

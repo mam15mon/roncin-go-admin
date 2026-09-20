@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useModel } from '@umijs/max';
+import { useInitialState } from '@/app/AppProvider';
 import { useCallback, useRef } from 'react';
 import { getErrorMessage } from '@/utils/errorMessage';
 import {
@@ -29,7 +29,7 @@ interface OrderCreateOptionsBundle {
 
 /** 新建订单页的主数据与人员候选项加载。 */
 export function useOrderCreateOptions(definition?: OrderKindDefinition) {
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const isUserLoaded = Boolean(initialState?.currentUser);
   const transportMode = definition?.transportMode;

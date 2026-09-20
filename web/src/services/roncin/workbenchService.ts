@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
  合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径

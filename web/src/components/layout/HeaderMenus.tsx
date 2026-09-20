@@ -12,7 +12,9 @@ import {
   ShopOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { history, useAccess, useLocation } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useLocation } from 'react-router';
 import type { MenuProps } from 'antd';
 import { Button, Space } from 'antd';
 import React, { useMemo } from 'react';

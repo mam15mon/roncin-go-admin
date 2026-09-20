@@ -7,7 +7,9 @@ import {
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { history, useAccess, useParams } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useParams } from 'react-router';
 import {
   Alert,
   App,

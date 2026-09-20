@@ -11,7 +11,9 @@ import {
   SettingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { history, useLocation, useModel } from '@umijs/max';
+import { history } from '@/router/history';
+import { useLocation } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
 import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -97,7 +99,7 @@ function getRouteIcon(path: string) {
  */
 export const TagsView: React.FC = () => {
   const location = useLocation();
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const draftScope = getFormDraftScope(
     initialState?.currentUser?.id,
     initialState?.currentUser?.currentOrganization?.id,

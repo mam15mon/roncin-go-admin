@@ -1,5 +1,5 @@
 import { GlobalOutlined, LinkOutlined } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { Button, Tag, Tooltip } from 'antd';
 import React from 'react';
 import {

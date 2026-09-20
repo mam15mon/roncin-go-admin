@@ -8,7 +8,8 @@ import {
   UserOutlined,
   WechatWorkOutlined,
 } from '@ant-design/icons';
-import { Helmet, useModel } from '@umijs/max';
+import { Helmet } from 'react-helmet-async';
+import { useInitialState } from '@/app/AppProvider';
 import {
   Alert,
   App,
@@ -46,7 +47,7 @@ function safeRedirect(value: string | null): string {
 }
 
 export default function Login() {
-  const { setInitialState } = useModel('@@initialState');
+  const { setInitialState } = useInitialState();
   const { message } = App.useApp();
   const [form] = Form.useForm<API.LoginRequest>();
 

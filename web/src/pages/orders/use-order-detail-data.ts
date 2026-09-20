@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useModel } from '@umijs/max';
+import { useInitialState } from '@/app/AppProvider';
 import { useCallback, useRef } from 'react';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { OrderBusinessType } from '@/enums.generated';
@@ -44,7 +44,7 @@ export function useOrderDetailData(
   orderId: string | undefined,
   definition?: OrderKindDefinition,
 ) {
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const isUserLoaded = Boolean(initialState?.currentUser);
   const businessType =

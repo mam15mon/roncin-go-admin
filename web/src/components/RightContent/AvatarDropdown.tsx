@@ -1,5 +1,6 @@
 import { LogoutOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
-import { history, useModel } from '@umijs/max';
+import { history } from '@/router/history';
+import { useInitialState } from '@/app/AppProvider';
 import { Avatar, Button, Divider, Spin, Tag } from 'antd';
 import React, { startTransition } from 'react';
 import { authServiceLogout } from '@/services/roncin/authService';
@@ -19,7 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
 type AvatarDropdownProps = { children?: React.ReactNode };
 
 export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
-  const { initialState, setInitialState } = useModel('@@initialState');
+  const { initialState, setInitialState } = useInitialState();
 
   if (!initialState?.currentUser) return <Spin size="small" />;
 

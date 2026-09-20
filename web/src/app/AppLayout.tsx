@@ -18,7 +18,11 @@ import { useAccess } from './access';
 // ProLayout 壳：插槽与守卫逻辑自 src/app.tsx 的 RunTimeLayoutConfig 原样平移。
 // menuItemRender 的 prefetch 属性随 Umi routePrefetch 一并放弃（RR Link 无此能力）。
 export function AppLayout() {
-  const { currentUser, settings } = useInitialState();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const layoutSettings = initialState?.settings as
+    | Partial<ProLayoutProps>
+    | undefined;
   const accessState = useAccess();
   const location = useLocation();
   const menuData = useMemo(
@@ -32,8 +36,6 @@ export function AppLayout() {
       history.replace(LOGIN_PATH);
     }
   }, [currentUser, location.pathname]);
-
-  const layoutSettings = settings as Partial<ProLayoutProps>;
 
   return (
     <ProLayout
