@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { history } from '@/router/history';
 import { PartnerRoleType } from '@/enums.generated';
 import {
+  partnerServiceExportPartners,
   partnerServiceListPartners,
   partnerServiceSetPartnerRoleBlacklist,
 } from '@/services/roncin/partnerService';
@@ -13,6 +14,17 @@ import Partners from './index';
 const routeState = vi.hoisted(() => ({
   pathname: '/partners/customers',
 }));
+
+const xlsxMock = vi.hoisted(() => ({
+  utils: {
+    aoa_to_sheet: vi.fn(() => ({})),
+    book_new: vi.fn(() => ({})),
+    book_append_sheet: vi.fn(),
+  },
+  writeFile: vi.fn(),
+}));
+
+vi.mock('xlsx', () => xlsxMock);
 
 vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
@@ -284,6 +296,7 @@ describe('Partners 列表页', () => {
               blacklisted: true,
               blacklistReason: '长期拖欠运费',
               blacklistedBy: 'admin',
+              blacklistedByName: '张风控',
               blacklistedAt: '2026-09-01T10:00:00Z',
             },
           ],
@@ -326,6 +339,9 @@ describe('Partners 列表页', () => {
       screen.getByRole('columnheader', { name: '拉黑信息' }),
     ).toBeInTheDocument();
     expect(screen.getByText('长期拖欠运费')).toBeInTheDocument();
+    // 操作人优先显示联查回填的姓名，而不是 UUID
+    expect(screen.getByText(/张风控/)).toBeInTheDocument();
+    expect(screen.queryByText(/admin/)).not.toBeInTheDocument();
 
     // 切回全部视图：blacklisted 回到 undefined，拉黑信息列隐藏
     fireEvent.click(screen.getByText('全部客户'));
@@ -340,5 +356,110 @@ describe('Partners 列表页', () => {
     expect(
       screen.queryByRole('columnheader', { name: '拉黑信息' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('导出走 ExportPartners 接口且列头不变，黑名单视图导出携带 blacklisted', async () => {
+    vi.mocked(partnerServiceListPartners).mockResolvedValue({
+      data: [
+        {
+          id: 'p-export',
+          code: 'CUST-EXP',
+          legalName: '导出测试公司',
+          enabled: true,
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: true,
+            },
+          ],
+        },
+      ],
+      total: 1,
+    } as never);
+    vi.mocked(partnerServiceExportPartners).mockResolvedValue({
+      data: [
+        {
+          code: 'CUST-EXP',
+          legalName: '导出测试公司',
+          enabled: true,
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: false,
+              blacklisted: true,
+            },
+          ],
+          contacts: [{ name: '王联系', phone: '13800000000' }],
+          updatedAt: '2026-09-20T08:00:00Z',
+        },
+      ],
+    } as never);
+
+    render(
+      <App>
+        <Partners />
+      </App>,
+    );
+
+    expect(await screen.findByText('导出测试公司')).toBeInTheDocument();
+
+    // 全部视图导出：走 ExportPartners 接口，透传当前视图角色
+    fireEvent.click(screen.getByRole('button', { name: /导出 Excel/ }));
+    await waitFor(() => {
+      expect(partnerServiceExportPartners).toHaveBeenLastCalledWith({
+        keyword: undefined,
+        role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+        enabled: undefined,
+        blacklisted: undefined,
+      });
+    });
+    expect(await screen.findByText('成功导出 1 条数据至 Excel')).toBeInTheDocument();
+    // ListPartners 只承担表格分页请求，不再出现超限 pageSize 的全量拉取
+    for (const call of vi.mocked(partnerServiceListPartners).mock.calls) {
+      expect((call[0] as { pageSize?: number }).pageSize).toBeLessThanOrEqual(
+        200,
+      );
+    }
+    // 导出列头与文件名保持现状
+    expect(xlsxMock.utils.aoa_to_sheet).toHaveBeenCalledTimes(1);
+    const [aoa] = xlsxMock.utils.aoa_to_sheet.mock.calls[0] as unknown as [
+      string[][],
+    ];
+    expect(aoa[0]).toEqual([
+      '单位编码',
+      '企业名称',
+      '统一社会信用代码',
+      '注册地址',
+      '启用状态',
+      '业务角色',
+      '主要联系人',
+      '更新时间',
+    ]);
+    expect(xlsxMock.writeFile).toHaveBeenLastCalledWith(
+      expect.anything(),
+      '客户档案列表.xlsx',
+    );
+
+    // 切到黑名单视图导出：携带 blacklisted: true，文件名带黑名单前缀
+    fireEvent.click(screen.getByText('黑名单客户'));
+    await waitFor(() => {
+      expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
+        expect.objectContaining({ blacklisted: true }),
+      );
+    });
+    fireEvent.click(screen.getByRole('button', { name: /导出 Excel/ }));
+    await waitFor(() => {
+      expect(partnerServiceExportPartners).toHaveBeenLastCalledWith({
+        keyword: undefined,
+        role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+        enabled: undefined,
+        blacklisted: true,
+      });
+    });
+    expect(await screen.findByText('成功导出 1 条数据至 Excel')).toBeInTheDocument();
+    expect(xlsxMock.writeFile).toHaveBeenLastCalledWith(
+      expect.anything(),
+      '黑名单客户档案列表.xlsx',
+    );
   });
 });

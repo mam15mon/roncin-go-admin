@@ -222,13 +222,7 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 			return nil, err
 		}
 		for _, item := range result.Items {
-			roles := make([]v1.PartnerRoleType, 0, len(item.Roles))
-			for _, role := range item.Roles {
-				if role.Enabled {
-					roles = append(roles, partnerRoleTypeToAPI(role.Type))
-				}
-			}
-			items = append(items, &v1.PartnerExportItem{Code: item.Code, LegalName: item.LegalName, UnifiedSocialCreditCode: item.UnifiedSocialCreditCode, RegisteredAddress: item.RegisteredAddress, Enabled: item.Enabled, Roles: roles})
+			items = append(items, partnerExportItemToAPI(item))
 		}
 		if len(result.Items) == 0 || len(items) >= result.Total {
 			break

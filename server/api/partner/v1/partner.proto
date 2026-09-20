@@ -229,6 +229,8 @@ message PartnerRole {
   string blacklisted_at = 5;
   string blacklisted_by = 6;
   PartnerSettlementRule settlement_rule = 7;
+  // 拉黑操作人显示姓名，由后端按 blacklisted_by 批量联查 users 回填。
+  string blacklisted_by_name = 8;
 }
 
 message PartnerContact {
@@ -442,7 +444,9 @@ message PartnerExportItem {
   string unified_social_credit_code = 3;
   string registered_address = 4;
   bool enabled = 5;
-  repeated PartnerRoleType roles = 6;
+  repeated PartnerRole roles = 6;
+  repeated PartnerContact contacts = 7;
+  string updated_at = 8;
 }
 
 message ExportPartnersResponse {

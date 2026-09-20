@@ -81,6 +81,9 @@ type PartnerRole struct {
 	BlacklistedAt   *time.Time
 	BlacklistedBy   *uuid.UUID
 	SettlementRule  *PartnerSettlementRule
+	// BlacklistedByName 拉黑操作人显示姓名，由 data 层按 BlacklistedBy 批量
+	// 联查 users 回填，不持久化。
+	BlacklistedByName string
 }
 
 type PartnerContact struct {

@@ -41,6 +41,7 @@ import * as XLSX from 'xlsx';
 import { SearchFilterTemplate } from '@/components/ui';
 import { PartnerRoleType } from '@/enums.generated';
 import {
+  partnerServiceExportPartners,
   partnerServiceListPartners,
   partnerServiceSetPartnerRoleBlacklist,
 } from '@/services/roncin/partnerService';
@@ -176,10 +177,12 @@ export default function Partners() {
   const handleExport = async () => {
     try {
       setExporting(true);
-      const response = await partnerServiceListPartners({
-        page: 1,
-        pageSize: 2000,
+      // 导出走服务端聚合翻页的 ExportPartners 接口，与列表读取同一组已提交
+      // 搜索条件（契约无 isCasual 过滤字段，故不透传）
+      const response = await partnerServiceExportPartners({
+        keyword: searchParams.keyword,
         role: currentView.roleType,
+        enabled: searchParams.enabled,
         blacklisted: blacklistView || undefined,
       });
       const data = unwrapList(response);
@@ -303,7 +306,8 @@ export default function Partners() {
           ? new Date(role.blacklistedAt).toLocaleString()
           : undefined;
         const reason = role?.blacklistReason;
-        const operator = role?.blacklistedBy;
+        // 优先展示联查回填的操作人姓名，缺失时回退用户 UUID
+        const operator = role?.blacklistedByName || role?.blacklistedBy;
         if (!reason && !operator && !blacklistedAt) {
           return <Text type="secondary">-</Text>;
         }

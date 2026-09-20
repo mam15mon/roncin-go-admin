@@ -34121,9 +34121,17 @@
           "roles": {
             "type": "array",
             "items": {
-              "type": "integer",
-              "format": "enum"
+              "$ref": "#/components/schemas/partner.v1.PartnerRole"
             }
+          },
+          "contacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/partner.v1.PartnerContact"
+            }
+          },
+          "updatedAt": {
+            "type": "string"
           }
         }
       },
@@ -34295,6 +34303,10 @@
           },
           "settlementRule": {
             "$ref": "#/components/schemas/partner.v1.PartnerSettlementRule"
+          },
+          "blacklistedByName": {
+            "type": "string",
+            "description": "拉黑操作人显示姓名，由后端按 blacklisted_by 批量联查 users 回填。"
           }
         }
       },

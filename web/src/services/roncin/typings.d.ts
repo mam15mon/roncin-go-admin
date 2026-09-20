@@ -5591,7 +5591,9 @@ declare namespace API {
     unifiedSocialCreditCode?: string;
     registeredAddress?: string;
     enabled?: boolean;
-    roles?: number[];
+    roles?: PartnerRole[];
+    contacts?: PartnerContact[];
+    updatedAt?: string;
   };
 
   type PartnerImportItemInput = {
@@ -5646,6 +5648,8 @@ declare namespace API {
     blacklistedAt?: string;
     blacklistedBy?: string;
     settlementRule?: PartnerSettlementRule;
+    /** 拉黑操作人显示姓名，由后端按 blacklisted_by 批量联查 users 回填。 */
+    blacklistedByName?: string;
   };
 
   type PartnerRoleInput = {

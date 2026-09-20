@@ -244,19 +244,9 @@ func partnerAssignmentsFromAPI(items []*v1.PartnerAssignmentInput) []*biz.Partne
 func partnerToAPI(value *biz.Partner) *v1.Partner {
 	roles := make([]*v1.PartnerRole, 0, len(value.Roles))
 	for _, role := range value.Roles {
-		roles = append(roles, &v1.PartnerRole{
-			Type: partnerRoleTypeToAPI(role.Type), Enabled: role.Enabled, Blacklisted: role.Blacklisted,
-			BlacklistReason: role.BlacklistReason, BlacklistedAt: formatOptionalTime(role.BlacklistedAt), BlacklistedBy: formatOptionalUUID(role.BlacklistedBy),
-			SettlementRule: partnerSettlementRuleToAPI(role.SettlementRule),
-		})
+		roles = append(roles, partnerRoleToAPI(role))
 	}
-	contacts := make([]*v1.PartnerContact, 0, len(value.Contacts))
-	for _, contact := range value.Contacts {
-		contacts = append(contacts, &v1.PartnerContact{
-			Id: contact.ID.String(), Name: contact.Name, Phone: contact.Phone, Email: contact.Email, Note: contact.Note,
-			IsPrimary: contact.IsPrimary, CreatedAt: contact.CreatedAt.Format(time.RFC3339), UpdatedAt: contact.UpdatedAt.Format(time.RFC3339),
-		})
-	}
+	contacts := partnerContactsToAPI(value.Contacts)
 	aliases := make([]*v1.PartnerAlias, 0, len(value.Aliases))
 	for _, alias := range value.Aliases {
 		aliases = append(aliases, &v1.PartnerAlias{
@@ -271,6 +261,41 @@ func partnerToAPI(value *biz.Partner) *v1.Partner {
 		CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
 		Profile: partnerProfileToAPI(value.Profile), Assignments: partnerAssignmentsToAPI(value.Assignments),
 		IsCasual: value.IsCasual,
+	}
+}
+
+// partnerRoleToAPI 输出角色完整状态，含 data 层联查回填的拉黑操作人显示姓名。
+func partnerRoleToAPI(role *biz.PartnerRole) *v1.PartnerRole {
+	return &v1.PartnerRole{
+		Type: partnerRoleTypeToAPI(role.Type), Enabled: role.Enabled, Blacklisted: role.Blacklisted,
+		BlacklistReason: role.BlacklistReason, BlacklistedAt: formatOptionalTime(role.BlacklistedAt), BlacklistedBy: formatOptionalUUID(role.BlacklistedBy),
+		BlacklistedByName: role.BlacklistedByName,
+		SettlementRule:    partnerSettlementRuleToAPI(role.SettlementRule),
+	}
+}
+
+func partnerContactsToAPI(items []*biz.PartnerContact) []*v1.PartnerContact {
+	contacts := make([]*v1.PartnerContact, 0, len(items))
+	for _, contact := range items {
+		contacts = append(contacts, &v1.PartnerContact{
+			Id: contact.ID.String(), Name: contact.Name, Phone: contact.Phone, Email: contact.Email, Note: contact.Note,
+			IsPrimary: contact.IsPrimary, CreatedAt: contact.CreatedAt.Format(time.RFC3339), UpdatedAt: contact.UpdatedAt.Format(time.RFC3339),
+		})
+	}
+	return contacts
+}
+
+// partnerExportItemToAPI 把导出档案转换为契约条目：携带完整角色（含启停与
+// 拉黑状态）、联系人列表与更新时间，供前端导出列渲染。
+func partnerExportItemToAPI(value *biz.Partner) *v1.PartnerExportItem {
+	roles := make([]*v1.PartnerRole, 0, len(value.Roles))
+	for _, role := range value.Roles {
+		roles = append(roles, partnerRoleToAPI(role))
+	}
+	return &v1.PartnerExportItem{
+		Code: value.Code, LegalName: value.LegalName, UnifiedSocialCreditCode: value.UnifiedSocialCreditCode,
+		RegisteredAddress: value.RegisteredAddress, Enabled: value.Enabled,
+		Roles: roles, Contacts: partnerContactsToAPI(value.Contacts), UpdatedAt: value.UpdatedAt.Format(time.RFC3339),
 	}
 }
 

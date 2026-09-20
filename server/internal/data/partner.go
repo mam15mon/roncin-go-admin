@@ -37,7 +37,11 @@ func (r *partnerRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*b
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrPartnerNotFound, nil)
 	}
-	return partnerToBiz(item), nil
+	result := partnerToBiz(item)
+	if err := r.enrichBlacklistedOperatorNames(ctx, []*biz.Partner{result}); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *partnerRepo) FindAuthorized(ctx context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*biz.Partner, error) {
@@ -100,9 +104,57 @@ func (r *partnerRepo) List(ctx context.Context, organizationIDs []uuid.UUID, opt
 	if options.IsCasual != nil {
 		query.Where(partnerent.IsCasualEQ(*options.IsCasual))
 	}
-	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Partner, error) {
+	result, err := paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Partner, error) {
 		return withPartnerEdges(query).Order(partnerent.ByLegalName()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(partnerToBiz))
+	if err != nil {
+		return nil, err
+	}
+	if err := r.enrichBlacklistedOperatorNames(ctx, result.Items); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// enrichBlacklistedOperatorNames 批量联查 users，回填各角色拉黑操作人的显示
+// 姓名；范式与 ListAuditLogs 的 displayNames 联查一致（去重收集用户 ID 后
+// 一次批量查询再回填）。
+func (r *partnerRepo) enrichBlacklistedOperatorNames(ctx context.Context, partners []*biz.Partner) error {
+	userIDs := make([]uuid.UUID, 0, len(partners))
+	seenUserIDs := make(map[uuid.UUID]struct{}, len(partners))
+	for _, partner := range partners {
+		for _, role := range partner.Roles {
+			if role.BlacklistedBy != nil {
+				if _, exists := seenUserIDs[*role.BlacklistedBy]; !exists {
+					seenUserIDs[*role.BlacklistedBy] = struct{}{}
+					userIDs = append(userIDs, *role.BlacklistedBy)
+				}
+			}
+		}
+	}
+	if len(userIDs) == 0 {
+		return nil
+	}
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	users, err := client.User.Query().Where(userent.IDIn(userIDs...)).All(ctx)
+	if err != nil {
+		return err
+	}
+	displayNames := make(map[uuid.UUID]string, len(users))
+	for _, user := range users {
+		displayNames[user.ID] = user.DisplayName
+	}
+	for _, partner := range partners {
+		for _, role := range partner.Roles {
+			if role.BlacklistedBy != nil {
+				role.BlacklistedByName = displayNames[*role.BlacklistedBy]
+			}
+		}
+	}
+	return nil
 }
 
 func partnerOrganizationScopePredicate(organizationIDs []uuid.UUID) entpredicate.Partner {
