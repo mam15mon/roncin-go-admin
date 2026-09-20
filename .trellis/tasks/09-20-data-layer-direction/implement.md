@@ -25,30 +25,35 @@
 
 ## 阶段 1：高痛点抽屉与弹窗（子代理并行）
 
-- [ ] 7. 批次 1A：`MyReceivablesDrawer`、`MyCommissionDrawer`、
-      `MyApplicationHistoryDrawer`、`MyApplicationCandidatesDrawer`
-      （4 个 Drawer 同模式：open+query 驱动、sequenceRef 全部删除）。
-- [ ] 8. 批次 1B：`CommissionCreateModal`（4 个候选 effect + 2 处手写
-      setTimeout 防抖 → enabled/防抖关键词进 queryKey）。
-- [ ] 9. 验证：定向 vitest 全绿零警告；`tsc` + biome（改动文件）。
-- [ ] 10. 提交 `refactor(web): workbench 抽屉与佣金创建弹窗迁移 React Query`。
+- [x] 7. 批次 1A：4 个 Drawer（sequenceRef 全部删除，enabled+queryKey+keepPreviousData；
+      历史 Drawer 明细改 detailId 驱动查询）。原空 catch 静默 → `meta: { silent: true }`。
+- [x] 8. 批次 1B：CommissionCreateModal（4 个候选 useQuery + enabled 链式门控 +
+      防抖关键词进 queryKey + keepPreviousData；meta.errorMessage 保留原文案）。
+- [x] 9. 验证：定向 vitest 全绿零警告；tsc + biome（改动文件）通过。
+- [x] 10. 提交 `refactor(web): workbench 抽屉与佣金创建弹窗迁移 React Query`
+      （e268ca41，含 queryClient silent/refetchOnReconnect 调整）。
 
 ## 阶段 2：订单详情聚合
 
-- [ ] 11. `orders/use-order-detail-data`：8 个 useState + requestIdRef/activeRef
-      五重竞态收敛为声明式 query（含订单不存在/无权限分支文案等价）；
-      对应测试改造。
-- [ ] 12. 验证同上；提交 `refactor(web): 订单详情数据聚合迁移 React Query`。
+- [x] 11. `use-order-detail-data`：单条聚合 useQuery（保持 5 路全有全无语义、
+      消费方零改动），queryKey 含组织参数；动态错误文案经 queryFn 包装 Error
+      保留；迟到的命令式地点搜索保留身份比对（测试有断言，库外路径）。
+- [x] 12. 验证：hook 11/11 + 消费方回归 25/25；补修漏网的
+      `orders-breadcrumbs.test.tsx`（真实渲染 OrderDetailPage 需要 Provider，
+      改 renderWithClient）；提交 8af3dcdb。
 
 ## 阶段 3：规范沉淀与收尾
 
-- [ ] 13. spec 写入：`state-management.md`（React Query 唯一模式、key 规范、
-      meta 错误文案约定）+ `quality-guidelines.md`（禁新增手写竞态模板）。
-- [ ] 14. 全量 `pnpm run check:fast`；`git diff --check`。
-- [ ] 15. 剩余批次另立后续任务清单（审计表：use-order-create-options、
-      use-order-fee-options、use-order-lock-state、VerificationWorkbench、
-      BillCreationWorkbench、partner-detail、fees、split、cashflows、invoices）。
-- [ ] 16. 归档或保留任务（后续批次多则保留任务继续推进，由用户定）。
+- [x] 13. spec 写入：`state-management.md`（React Query 唯一模式、key 规范、
+      silent/meta.errorMessage 错误提示约定、umi 插件禁用依据）+
+      `quality-guidelines.md`（禁新增手写竞态模板）。
+- [x] 14. 全量 `pnpm run check:fast` 通过：869 passed / 12 skipped，
+      act=0、deprecated=0。
+- [x] 15. 剩余批次（另立任务）：`use-order-create-options`、`use-order-fee-options`、
+      `use-order-lock-state`、`VerificationWorkbench`、`BillCreationWorkbench`、
+      `partner-detail`、`fees`、`split`、`cashflows`、`invoices`、
+      `useWorkbenchOverview`、`master-data-template`（用户自改部分收敛确认）。
+- [x] 16. 任务归档。
 
 ## 验证命令速查
 

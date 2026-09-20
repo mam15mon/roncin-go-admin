@@ -1,9 +1,32 @@
 # 状态管理
 
-## 服务端状态
+## 服务端状态（React Query v5，2026-09 起唯一模式）
 
-- 接口数据优先由 React Query 等服务端状态工具管理；不复制到全局可变状态。
-- 缓存键按业务领域命名，列表查询携带与后端一致的筛选参数。
+- 服务端数据一律用 `@tanstack/react-query`（直接 `import { useQuery, useMutation,
+  useQueryClient } from '@tanstack/react-query'`，生产与 vitest 同源）；**禁止**
+  新增手写 `useState` + `useEffect` + 竞态令牌（sequenceRef/cancelled/refreshToken）
+  请求链，也禁止使用 umi 插件的 `useRequest`（底层为 2021 年
+  `@ahooksjs/use-request` v2，vitest 不可用、无卸载保护，选型记录见任务
+  `09-20-data-layer-direction`）。
+- 单例在 `src/utils/queryClient.ts`，Provider 挂 `app.tsx` childrenRender。
+  默认策略：`retry: false`、`refetchOnWindowFocus: false`、
+  `refetchOnReconnect: false`；不得在调用点覆盖 retry。
+- QueryKey 规范：`[域前缀, 实体, 参数对象]`（如
+  `['workbench', 'my-receivables', { page, pageSize }]`）；域前缀常量就近收敛，
+  写操作后按前缀 `invalidateQueries` 刷新。
+- 常用映射：抽屉/弹窗开合用 `enabled`；链式依赖用 `enabled: !!parent`；
+  翻页/搜索保留旧内容用 `placeholderData: keepPreviousData`；防抖是
+  「防抖后的关键词进 queryKey」，不是在 queryFn 里 setTimeout。
+- v5 红线：`useQuery` 没有 `onSuccess/onError/onSettled` 回调；`isLoading`
+  仅表首次加载，静默刷新看 `isFetching`。
+- 错误提示约定：请求层 `errorHandler` 已统一弹 notification；组件历史上
+  「空 catch 静默」的查询必须声明 `meta: { silent: true }`，避免全局
+  onError 重复弹 message；历史上自带错误文案的查询把文案写入
+  `meta: { errorMessage }`；动态文案（服务端明细需透出）在 queryFn 内
+  catch 包装 Error 后抛出，由全局 onError 展示。
+- 测试：用 `tests/queryClientTestUtils.tsx` 的 `renderWithClient`/
+  `createTestQueryClient`（每用例独立 client，防缓存串味）；React Query
+  本体不需要 mock。
 
 ## 请求客户端
 

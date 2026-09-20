@@ -48,11 +48,12 @@
 ## Acceptance Criteria
 
 - [x] 方向决策记录在本 PRD（含理由）。
-- [ ] design.md / implement.md 完成并通过确认。
-- [ ] 阶段 0-2 迁移完成：指定文件全部改用 React Query，旧竞态令牌删除。
-- [ ] 定向测试与全量门禁通过，测试 stderr 零噪音。
-- [ ] spec 沉淀完成，新增请求不再出现第二套手写形态。
-- [ ] 剩余批次列出后续任务清单。
+- [x] design.md / implement.md 完成并通过确认。
+- [x] 阶段 0-2 迁移完成：指定文件全部改用 React Query，旧竞态令牌删除。
+- [x] 定向测试与全量门禁通过，测试 stderr 零噪音（869 passed / 12 skipped，
+      act=0、deprecated=0）。
+- [x] spec 沉淀完成，新增请求不再出现第二套手写形态。
+- [x] 剩余批次列出后续任务清单（见 implement.md 第 15 条）。
 
 ## Notes
 

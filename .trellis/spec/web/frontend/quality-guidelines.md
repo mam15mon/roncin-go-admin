@@ -152,6 +152,8 @@ antd 6 下会静默失效，测试表现为「元素找不到」或「回调未�
 - 站内路由跳转使用 `window.location.href/assign`（必须走 umi `history` /
   `useNavigate`；登录后整页会话重建、iframe 跨 frame 操作等特殊场景除外，
   需注释说明）。
+- 新增手写 `useState` + `useEffect` + 竞态令牌（sequenceRef/cancelled 等）
+  服务端请求链——服务端状态一律走 React Query（见 state-management.md）。
 - 手改任何生成文件（见 type-safety.md 清单）。
 - 硬编码第二套权限规则或复制后端权限清单。
 - 引入无关的大型聚合组件；无关格式化混入功能提交。
