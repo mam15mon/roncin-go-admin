@@ -9,7 +9,7 @@ import {
   Space,
   Tag,
 } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   enterpriseResourceServiceCreateEnterpriseResource,
   enterpriseResourceServiceListEnterpriseTagGroups,
@@ -89,12 +89,19 @@ export function BusinessTagModal({
     }
   };
 
+  // 加载器经 ref 转发：弹窗打开只在 open 翻转时拉取一次（调用方常内联传入
+  // loadOptions，直接进依赖数组会导致打开期间每次渲染重拉），同时满足依赖完整性。
+  const loadTagOptionsRef = useRef(loadTagOptions);
+  useEffect(() => {
+    loadTagOptionsRef.current = loadTagOptions;
+  });
+
   useEffect(() => {
     if (!open) return;
     setMode('assign');
     setSelectedTagIds([]);
     setQuickCreateOpen(false);
-    void loadTagOptions();
+    void loadTagOptionsRef.current();
   }, [open]);
 
   const mergedOptions = useMemo(() => {

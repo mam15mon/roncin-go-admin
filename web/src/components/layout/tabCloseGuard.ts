@@ -1,7 +1,31 @@
-import { Modal } from 'antd';
+import type { Modal } from 'antd';
 import { useEffect, useRef } from 'react';
 import { getAppFeedback } from '@/utils/appFeedback';
 import { hasTabDraft } from './formDraft';
+
+type ConfirmModalFn = (props: Parameters<typeof Modal.confirm>[0]) => void;
+
+/**
+ * 解析确认框实例：优先调用方自定义，其次 AppFeedbackBridge 注入的 App 上下文实例。
+ * AppFeedbackBridge 挂载于 ProLayout childrenRender，正常时序下先于任何用户交互；
+ * 桥接缺失（测试直调或异常时序）时显式告警并降级原生 confirm——绝不回退
+ * antd 静态 Modal.confirm，避免绕过运行时主题 token。
+ */
+function resolveConfirmFn(customConfirmModal?: ConfirmModalFn): ConfirmModalFn {
+  if (customConfirmModal) return customConfirmModal;
+  const bridged = getAppFeedback().modal?.confirm;
+  if (bridged) return bridged;
+  return (props) => {
+    console.error('[tabCloseGuard] App 反馈桥接未就绪，降级使用原生 confirm');
+    const message = `${props.title ?? '提示'}\n${props.content ?? ''}`;
+    if (typeof window.confirm === 'function' && window.confirm(message)) {
+      props.onOk?.();
+    } else {
+      // 无原生 confirm（如测试环境）或用户取消：中止动作，保持脏数据安全
+      props.onCancel?.();
+    }
+  };
+}
 
 export type TabCloseGuard = {
   isDirty: () => boolean;
@@ -74,8 +98,7 @@ export function confirmIfAnyTabDirty(
     return true;
   }
 
-  const confirmFn =
-    customConfirmModal || getAppFeedback().modal?.confirm || Modal.confirm;
+  const confirmFn = resolveConfirmFn(customConfirmModal);
   confirmFn({
     title: '提示',
     content: getTabGuardMessage(dirtyTabKey),
@@ -107,8 +130,7 @@ export function confirmIfTabsDirty(
   }
 
   const message = getTabGuardMessage(dirtyTabKey);
-  const confirmFn =
-    customConfirmModal || getAppFeedback().modal?.confirm || Modal.confirm;
+  const confirmFn = resolveConfirmFn(customConfirmModal);
 
   confirmFn({
     title: '提示',

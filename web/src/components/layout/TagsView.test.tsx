@@ -6,9 +6,13 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { Modal } from 'antd';
+import type { Modal } from 'antd';
+import type { MessageInstance } from 'antd/es/message/interface';
+import type { ModalStaticFunctions } from 'antd/es/modal/confirm';
+import type { NotificationInstance } from 'antd/es/notification/interface';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { setAppFeedback } from '@/utils/appFeedback';
 import { getFormDraftKey, getFormDraftScope, hasTabDraft } from './formDraft';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
 import {
@@ -29,17 +33,27 @@ let mockSearch = '';
 let mockHash = '';
 
 /**
- * 确认关闭行为只需要读取 Modal.confirm 参数并主动执行 onOk。
- * 不挂载 Ant Design 的命令式 portal，避免 portal 在 happy-dom 清理后继续调度 React 更新。
+ * 确认关闭行为只需要读取 confirm 参数并主动执行 onOk。
+ * 经 AppFeedbackBridge 注入实例（与生产运行时同链路），不再依赖
+ * antd 静态 Modal.confirm，避免 portal 在 happy-dom 清理后继续调度 React 更新。
  */
 function spyOnConfirm() {
-  return vi.spyOn(Modal, 'confirm').mockImplementation(
-    () =>
+  const confirmMock = vi.fn(
+    (_props: Parameters<typeof Modal.confirm>[0]) =>
       ({
         destroy: vi.fn(),
         update: vi.fn(),
       }) as ReturnType<typeof Modal.confirm>,
   );
+  setAppFeedback({
+    message: { error: vi.fn() } as unknown as MessageInstance,
+    notification: {} as unknown as NotificationInstance,
+    modal: { confirm: confirmMock } as unknown as Omit<
+      ModalStaticFunctions,
+      'warn'
+    >,
+  });
+  return confirmMock;
 }
 
 vi.mock('@umijs/max', () => ({

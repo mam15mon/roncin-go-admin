@@ -1,6 +1,16 @@
 import type { ScrollToErrorOptions, ScrollToErrorResult } from './types';
 
 /**
+ * antd Form 校验失败态的容器类名。
+ * 注意：该类名是 antd 内部实现细节而非公开 API 契约（antd 6.6 由
+ * FormItem/ItemHolder 在 validateStatus === 'error' 时输出）。本模块的
+ * 错误定位与统计都依赖它，因此统一引用本常量，并由
+ * formErrorAntdContract.test.tsx 哨兵测试守护——antd 升级若移除该类名，
+ * 测试会显式失败而不是让错误定位静默失效。
+ */
+export const ANT_FORM_ITEM_ERROR_SELECTOR = '.ant-form-item-has-error';
+
+/**
  * 将字段路径数组转换为用于 DOM 查找的标识串
  */
 function normalizeFieldPath(name: (string | number)[]): {
@@ -53,7 +63,7 @@ export function findFieldDomElement(
 
   // 3. 降级：从所有标红的表单项中查找
   const errorItems = root.querySelectorAll<HTMLElement>(
-    '.ant-form-item-has-error',
+    ANT_FORM_ITEM_ERROR_SELECTOR,
   );
   if (errorItems.length > 0) {
     return errorItems[0];
@@ -135,7 +145,7 @@ export function collectFormSectionErrors(
 ): Record<string, number> {
   const result: Record<string, number> = {};
   const errorElements = root.querySelectorAll<HTMLElement>(
-    '.ant-form-item-has-error',
+    ANT_FORM_ITEM_ERROR_SELECTOR,
   );
 
   errorElements.forEach((errorEl) => {
@@ -172,7 +182,7 @@ export function scrollToFirstFormError(
   const totalErrors =
     errorFields.length > 0
       ? errorFields.length
-      : root.querySelectorAll('.ant-form-item-has-error').length;
+      : root.querySelectorAll(ANT_FORM_ITEM_ERROR_SELECTOR).length;
 
   if (totalErrors === 0) {
     return {
@@ -190,7 +200,7 @@ export function scrollToFirstFormError(
   }
 
   if (!targetEl) {
-    targetEl = root.querySelector<HTMLElement>('.ant-form-item-has-error');
+    targetEl = root.querySelector<HTMLElement>(ANT_FORM_ITEM_ERROR_SELECTOR);
   }
 
   if (!targetEl) {
@@ -335,7 +345,7 @@ export async function locateSectionError(
   await waitForLayoutStable(sectionEl);
 
   const errorEl = sectionEl.querySelector<HTMLElement>(
-    '.ant-form-item-has-error',
+    ANT_FORM_ITEM_ERROR_SELECTOR,
   );
   if (errorEl) {
     errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
