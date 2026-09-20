@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 84
+- **Total Sessions**: 85
 - **Last Active**: 2026-09-20
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~126 | Active |
+| `journal-2.md` | ~149 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 85 | 2026-09-20 | 数据层迁移第三批：useMasterDataCrud 与事件驱动请求收敛 | `08407069`, `4a7df6af` | `refactor/data-layer-migration-batch3` |
 | 84 | 2026-09-20 | 数据层迁移第二批：剩余手写请求链全部收敛 | `04fdfc08`, `0edffa15`, `4b487253`, `ab72886f` | `refactor/data-layer-migration-batch2` |
 | 83 | 2026-09-20 | 数据层迁移 React Query v5：基建+阶段1/2+规范沉淀 | `b4f3147d`, `e268ca41`, `914dfc28` | `refactor/data-layer-react-query` |
 | 81 | 2026-09-20 | React Query v5 选型落地与阶段0基建（随后暂停） | `b4f3147d` | `refactor/data-layer-react-query` |
