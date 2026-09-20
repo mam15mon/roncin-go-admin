@@ -124,3 +124,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 85: 数据层迁移第三批：useMasterDataCrud 与事件驱动请求收敛
+<!-- trellis-session: v=2 fp=158b16ef728e1677 -->
+
+**Date**: 2026-09-20
+**Task**: 数据层迁移第三批：useMasterDataCrud 与事件驱动请求收敛
+**Branch**: `refactor/data-layer-migration-batch3`
+
+### Summary
+
+useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query：API 完全兼容、5 面板与模板零改动、无限重取防御语义以重渲染稳定性断言等价保留；useCreditLimitIntervention 与 fees 标签筛选迁移（防抖关键词进 queryKey + 渲染侧保活合并）；SearchableSelect 判定豁免（pro 原生 request）并沉淀事件驱动处置约定到 spec。全量 873 passed/12 skipped 双零，check:fast 通过。至此手写服务端状态链全部收敛完毕。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `08407069` | refactor(web): useMasterDataCrud 迁移 React Query |
+| `4a7df6af` | refactor(web): 事件驱动型请求收敛并沉淀豁免清单 |
+
+### Status
+
+[OK] **Completed**

@@ -1,14 +1,12 @@
 import type { ActionType } from '@ant-design/pro-components';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { history, useAccess } from '@umijs/max';
 import { App, Select, Space } from 'antd';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   type FinanceLedgerMetricCard,
@@ -259,55 +257,58 @@ export default function FinanceFeeLedgerPage() {
   const [tagModalOpen, setTagModalOpen] = useState(false);
   const [tagFeeIds, setTagFeeIds] = useState<string[]>([]);
   const [tagExisting, setTagExisting] = useState<API.BusinessTagSummary[]>([]);
-  const [tagOptions, setTagOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [tagOptionsLoading, setTagOptionsLoading] = useState(false);
+  const [tagSearchKeyword, setTagSearchKeyword] = useState('');
   const [tagFilterIds, setTagFilterIds] = useState<string[]>();
-  const tagFilterRequestRef = useRef(0);
+  // 搜索词规范化与原请求一致：空白关键字按未过滤处理，规范化后的词进 queryKey。
+  const normalizedTagKeyword = tagSearchKeyword.trim() || undefined;
 
-  const loadTagFilterOptions = useCallback(
-    async (keyword?: string, selectedIds: string[] = []) => {
-      if (!organizationId) {
-        setTagOptions([]);
-        return;
-      }
-      const requestSequence = ++tagFilterRequestRef.current;
-      setTagOptionsLoading(true);
-      try {
-        const response = await settlementServiceListFinanceFeeTagOptions({
-          page: 1,
-          pageSize: 50,
-          keyword: keyword?.trim() || undefined,
-          organizationId,
-        });
-        if (requestSequence !== tagFilterRequestRef.current) return;
-        setTagOptions((current) => {
-          const selected = new Set(selectedIds);
-          const options = new Map(
-            current
-              .filter((option) => selected.has(option.value))
-              .map((option) => [option.value, option]),
-          );
-          for (const tag of response.tags ?? []) {
-            if (tag.id) {
-              options.set(tag.id, { label: tag.name ?? '', value: tag.id });
-            }
-          }
-          return [...options.values()];
-        });
-      } finally {
-        if (requestSequence === tagFilterRequestRef.current) {
-          setTagOptionsLoading(false);
+  // 标签筛选候选：keyword 进 queryKey，公司切换整体换键重查；搜索期间保留
+  // 上一关键词结果，下拉不闪空。历史请求失败静默，声明 silent 避免全局
+  // onError 重复提示。
+  const tagOptionsQuery = useQuery({
+    queryKey: [
+      'finance',
+      'fee-tag-options',
+      { organizationId, keyword: normalizedTagKeyword },
+    ],
+    enabled: !!organizationId,
+    placeholderData: keepPreviousData,
+    meta: { silent: true },
+    queryFn: async () => {
+      const response = await settlementServiceListFinanceFeeTagOptions({
+        page: 1,
+        pageSize: 50,
+        keyword: normalizedTagKeyword,
+        organizationId,
+      });
+      return response.tags ?? [];
+    },
+  });
+
+  // 渲染侧合并候选（保留原 Map 合并语义）：服务端当前结果作为最终覆盖，
+  // 未在当前结果命中的已选标签从历史 keyword 查询缓存回填名称保活，
+  // 保证已选项始终以名称展示而非裸 ID。
+  const tagOptions = useMemo(() => {
+    if (!organizationId) return [];
+    const selected = new Set(tagFilterIds ?? []);
+    const options = new Map<string, { label: string; value: string }>();
+    const cachedEntries = queryClient.getQueriesData<API.BusinessTagSummary[]>({
+      queryKey: ['finance', 'fee-tag-options', { organizationId }],
+    });
+    for (const [, cached] of cachedEntries) {
+      for (const tag of cached ?? []) {
+        if (tag.id && selected.has(tag.id)) {
+          options.set(tag.id, { label: tag.name ?? '', value: tag.id });
         }
       }
-    },
-    [organizationId],
-  );
-
-  useEffect(() => {
-    if (organizationId) void loadTagFilterOptions();
-  }, [loadTagFilterOptions]);
+    }
+    for (const tag of tagOptionsQuery.data ?? []) {
+      if (tag.id) {
+        options.set(tag.id, { label: tag.name ?? '', value: tag.id });
+      }
+    }
+    return [...options.values()];
+  }, [organizationId, tagFilterIds, tagOptionsQuery.data, queryClient]);
 
   const openTagModal = (_keys: React.Key[], rows: API.FeeLedgerItem[]) => {
     if (!organizationId) {
@@ -365,12 +366,11 @@ export default function FinanceFeeLedgerPage() {
                   label: item.name ?? item.code ?? item.id,
                 }))}
                 onChange={(value) => {
-                  // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
-                  tagFilterRequestRef.current += 1;
-                  setTagOptionsLoading(false);
+                  // 切换或清空公司即整体换键：旧组织的在途结果落在旧 queryKey，
+                  // 不再回填；同步重置标签筛选与搜索词，候选按新公司重查。
                   setOrganizationId(value);
+                  setTagSearchKeyword('');
                   setTagFilterIds(undefined);
-                  setTagOptions([]);
                   actionRef.current?.reload();
                 }}
               />
@@ -384,10 +384,9 @@ export default function FinanceFeeLedgerPage() {
                 allowClear
                 showSearch={{
                   filterOption: false,
-                  onSearch: (keyword) =>
-                    void loadTagFilterOptions(keyword, tagFilterIds),
+                  onSearch: (keyword) => setTagSearchKeyword(keyword),
                 }}
-                loading={tagOptionsLoading}
+                loading={tagOptionsQuery.isFetching}
                 style={{ minWidth: 280 }}
                 placeholder={
                   organizationId ? '命中任一标签即返回' : '请先选择所属公司'
