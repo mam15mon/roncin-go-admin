@@ -99,3 +99,28 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 84: 数据层迁移第二批：剩余手写请求链全部收敛
+<!-- trellis-session: v=2 fp=b7ee62cb89e73913 -->
+
+**Date**: 2026-09-20
+**Task**: 数据层迁移第二批：剩余手写请求链全部收敛
+**Branch**: `refactor/data-layer-migration-batch2`
+
+### Summary
+
+迁移剩余 12 个手写服务端状态文件：orders 三 hook（lock-state/fee-options/create-options）与 fees 页、VerificationWorkbench 链式拉取、cashflows/invoices/commissions/fees 索引、useWorkbenchOverview、BillCreationWorkbench 预览编排（双令牌+防抖）、partner-detail 聚合与 split 防抖预览。全量 869 passed/12 skipped 双零，tsc 干净，分四笔提交。useMasterDataCrud 保持用户亲改实现不动（后续收敛候选）。剩余事件驱动型请求（tagFilterRequestRef/ProFormSearchableSelect request/useCreditLimitIntervention）已记录待评估。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `04fdfc08` | refactor(web): orders 数据链迁移 React Query |
+| `0edffa15` | refactor(web): finance 与工作台页面数据链迁移 React Query |
+| `4b487253` | refactor(web): BillCreationWorkbench 预览编排迁移 React Query |
+| `ab72886f` | refactor(web): partner-detail 与 split 数据链迁移 React Query |
+
+### Status
+
+[OK] **Completed**
