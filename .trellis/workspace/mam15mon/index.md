@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 80
+- **Total Sessions**: 81
 - **Last Active**: 2026-09-20
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~30 | Active |
+| `journal-2.md` | ~52 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 81 | 2026-09-20 | React Query v5 选型落地与阶段0基建（随后暂停） | `b4f3147d` | `refactor/data-layer-react-query` |
 | 80 | 2026-09-20 | Pro 规范小修清单：路由导航与 DOM 定位偏离 | `0b520206`, `fd939673` | `fix/pro-convention-small-fixes` |
 | 79 | 2026-09-19 | 清理 antd6 弃用 API 与测试 act 警告噪音 | `b119bfe2`, `966c8c88`, `6d48b5e9`, `10993eb7` | `refactor/antd6-deprecation-noise` |
 | 78 | 2026-09-19 | 清零数据层存量测试失败 | `8b793854` | `main` |
