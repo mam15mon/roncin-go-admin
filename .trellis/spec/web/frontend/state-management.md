@@ -28,6 +28,18 @@
   `createTestQueryClient`（每用例独立 client，防缓存串味）；React Query
   本体不需要 mock。
 
+### 事件驱动型请求处置约定
+
+- **豁免清单**（框架自管异步，不算手写数据链）：pro-components 表单字段的
+  原生 `request` prop（如 `ProFormSelect request={...}`、
+  `ProFormSearchableSelect` 透传形态），防抖/loading 由 ProForm 内部处理。
+- 命令式搜索（Select onSearch 等事件触发拉取）一律收敛为「防抖（或规范化）
+  关键词 + 依赖参数进 queryKey」的 useQuery；「已选项保活」在渲染侧
+  useMemo 合并（必要时 `queryClient.getQueriesData` 回填历史名称），
+  禁止再写 `xxxRequestRef` 序号令牌。
+- 小型策略/布尔查询（如 `useCreditLimitIntervention`）同样走 useQuery；
+  原 catch 静默回退的声明 `meta: { silent: true }`。
+
 ## 请求客户端
 
 - 所有后端请求经过统一请求配置或 OpenAPI 生成客户端
