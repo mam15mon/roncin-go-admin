@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { history, useAccess, useLocation } from '@umijs/max';
+import { history, useAccess, useSearchParams } from '@umijs/max';
 import type { UploadFile } from 'antd';
 import { App, Button, Form, Popconfirm, Tabs, Tag } from 'antd';
 import React, {
@@ -60,11 +60,11 @@ import { useRegionOptions } from './useRegionOptions';
 
 const EnterpriseResourcesPage: React.FC = () => {
   const access = useAccess();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { message } = App.useApp();
   const actionRef = useRef<ActionType>(undefined);
   const [form] = Form.useForm<EditorValues>();
-  const queryTab = new URLSearchParams(location.search).get('tab');
+  const queryTab = searchParams.get('tab');
   const [capabilities, setCapabilities] =
     useState<API.GetEnterpriseResourceCapabilitiesResponse>();
   const availableTabs = useMemo(

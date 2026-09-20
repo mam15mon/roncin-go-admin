@@ -1,5 +1,5 @@
 import { DingdingOutlined } from '@ant-design/icons';
-import { Helmet, useModel } from '@umijs/max';
+import { Helmet, history, useModel } from '@umijs/max';
 import { App, Button, Result, Select, Space, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { DingTalkLoginStatus } from '@/enums.generated';
@@ -182,7 +182,7 @@ export default function DingTalkCallback() {
             <Button
               type="primary"
               onClick={() => {
-                window.location.href = '/user/login';
+                history.push('/user/login');
               }}
             >
               返回登录
@@ -240,7 +240,7 @@ export default function DingTalkCallback() {
                 <Button
                   disabled={registrationLoading}
                   onClick={() => {
-                    window.location.href = '/user/login';
+                    history.push('/user/login');
                   }}
                 >
                   取消并返回登录
@@ -277,7 +277,7 @@ export default function DingTalkCallback() {
             <Button
               type="primary"
               onClick={() => {
-                window.location.href = '/user/login';
+                history.push('/user/login');
               }}
             >
               返回登录

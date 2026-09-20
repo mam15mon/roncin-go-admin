@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/operating-company-commission-attribution.md", "reason": "经营归属既有规则与需要收紧的跨组织办理例外"}
+{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "切换会话、资格和权限重算"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "保留总部公共资料维护边界"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "工作台切换状态与缓存隔离"}
+{"file": ".trellis/tasks/09-20-headquarters-business-boundary/design.md", "reason": "本任务技术边界与风险"}

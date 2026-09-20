@@ -123,17 +123,17 @@ export default function PartnerDetailPage() {
   // 表单导航浮层折叠状态：展开时内容区预留 164px 右侧空间，避免遮挡控件
   const [navCollapsed, setNavCollapsed] = useState(true);
 
-  // Detect roleType from pathname
+  // Detect roleType from pathname（按路由段结构解析：/partners/{roleSegment}/...）
   const { roleType, roleLabel, listUrl } = useMemo(() => {
-    const path = location.pathname;
-    if (path.includes('/suppliers')) {
+    const roleSegment = location.pathname.split('/')[2];
+    if (roleSegment === 'suppliers') {
       return {
         roleType: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
         roleLabel: '供应商',
         listUrl: '/partners/suppliers',
       };
     }
-    if (path.includes('/foreign-agents')) {
+    if (roleSegment === 'foreign-agents') {
       return {
         roleType: PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT,
         roleLabel: '国外代理',

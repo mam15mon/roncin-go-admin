@@ -1,5 +1,5 @@
 import { WechatWorkOutlined } from '@ant-design/icons';
-import { Helmet, useModel } from '@umijs/max';
+import { Helmet, history, useModel } from '@umijs/max';
 import { App, Button, Result, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { authServiceWeComLogin } from '@/services/roncin/authService';
@@ -128,7 +128,7 @@ export default function WeComCallback() {
                 if (isEmbedded && window.top) {
                   window.top.location.reload();
                 } else {
-                  window.location.href = '/user/login';
+                  history.push('/user/login');
                 }
               }}
             >
