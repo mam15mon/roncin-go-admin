@@ -26,13 +26,23 @@ const detailTestState = vi.hoisted(() => ({
   customerReferenceNo: '服务端初始值',
 }));
 
-vi.mock('@umijs/max', () => ({
-  useParams: () => routeState.params,
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useParams: () => routeState.params,
+  };
+});
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => detailTestState.canOperate,
     canOperateBusiness: true,
     canOrder: () => true,
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
 }));
 

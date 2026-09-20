@@ -14,7 +14,7 @@ import SeaExportDetailFeatures from './SeaExportDetailFeatures';
 
 const mockPush = vi.hoisted(() => vi.fn());
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: { push: mockPush },
 }));
 

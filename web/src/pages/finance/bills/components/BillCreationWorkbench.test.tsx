@@ -37,7 +37,7 @@ vi.mock('@ant-design/pro-components', () => ({
     );
   },
 }));
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => ({ hasAction: () => true }),
 }));
 vi.mock('@/services/roncin/settlementService', () => ({

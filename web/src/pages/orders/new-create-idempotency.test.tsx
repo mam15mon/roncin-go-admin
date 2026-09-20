@@ -15,10 +15,20 @@ const routeState = vi.hoisted(() => ({
   params: { kind: 'sea-export' },
 }));
 
-vi.mock('@umijs/max', () => ({
-  useParams: () => routeState.params,
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useParams: () => routeState.params,
+  };
+});
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({ canOrder: () => true }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',
@@ -27,6 +37,9 @@ vi.mock('@umijs/max', () => ({
       },
     },
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
 }));
 

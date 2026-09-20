@@ -17,9 +17,12 @@ const pushMock = vi.fn();
 let accessOverrides: Record<string, unknown> = {};
 let organizationId = 'org-1';
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => ({ canCreatePartners: true, ...accessOverrides }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',
@@ -27,6 +30,9 @@ vi.mock('@umijs/max', () => ({
       },
     },
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: { push: (...args: unknown[]) => pushMock(...args) },
 }));
 

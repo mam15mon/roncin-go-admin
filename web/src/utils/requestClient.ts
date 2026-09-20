@@ -1,9 +1,9 @@
-import axios from 'axios';
 import type {
   AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
+import axios from 'axios';
 import { errorConfig } from '@/requestErrorConfig';
 import { DEFAULT_REQUEST_TIMEOUT } from '@/utils/requestTimeout';
 
@@ -69,8 +69,15 @@ export async function request<T>(
   url: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = 'GET', params, data, headers, timeout, signal, responseType } =
-    options;
+  const {
+    method = 'GET',
+    params,
+    data,
+    headers,
+    timeout,
+    signal,
+    responseType,
+  } = options;
   try {
     const response = await instance.request<T>({
       url,

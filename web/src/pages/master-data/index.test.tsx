@@ -3,8 +3,8 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MasterDataPage from './index';
 
-// Mock umi access & hooks
-vi.mock('@umijs/max', () => ({
+// Mock access & hooks（新模块源：@/app/access、@/router/history、react-router）
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canReadMasterDataPorts: true,
     canReadMasterDataAirports: true,
@@ -14,14 +14,24 @@ vi.mock('@umijs/max', () => ({
     canReadMasterDataAdministrativeRegions: true,
     canReadMasterDataCurrencies: true,
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: {
     replace: vi.fn(),
   },
-  useLocation: () => ({
-    pathname: '/master-data',
-    search: '',
-  }),
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({
+      pathname: '/master-data',
+      search: '',
+    }),
+  };
+});
 
 // Mock sub-panels to isolate test
 vi.mock('./components/PortsPanel', () => ({

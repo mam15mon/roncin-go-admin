@@ -34,9 +34,12 @@ const {
 
 let currentUser: API.CurrentUser;
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: { replace: replaceMock },
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: { currentUser },
     setInitialState: setInitialStateMock,
   }),

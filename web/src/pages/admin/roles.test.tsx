@@ -23,7 +23,7 @@ const formModalProps = vi.hoisted(() => ({
   value: {} as Record<string, unknown>,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState.value,
 }));
 

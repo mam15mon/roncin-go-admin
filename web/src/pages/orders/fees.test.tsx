@@ -17,16 +17,26 @@ const feeTestState = vi.hoisted(() => ({
   canOperate: true,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
+}));
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => feeTestState.canOperate,
     canOperateBusiness: true,
     canCreateFinanceBills: true,
     canOrder: () => feeTestState.canCreateFee,
   }),
-  useParams: () => mockParams,
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useParams: () => mockParams,
+  };
+});
 
 vi.mock('@/components/ui', () => ({
   FinanceSummaryBoard: ({ selectedRows, allRows }: any) => (

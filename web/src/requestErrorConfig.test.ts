@@ -18,7 +18,7 @@ vi.mock('@/utils/appFeedback', () => ({
   showErrorNotification: vi.fn(),
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: {
     location: { pathname: '/welcome', search: '', hash: '' },
     replace,

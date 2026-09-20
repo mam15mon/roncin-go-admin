@@ -30,10 +30,16 @@ const {
   setInitialStateMock: vi.fn(),
 }));
 
-vi.mock('@umijs/max', () => ({
-  Helmet: ({ children }: { children?: React.ReactNode }) => children,
-  Link: ({ children }: { children?: React.ReactNode }) => <a>{children}</a>,
-  useModel: () => ({ setInitialState: setInitialStateMock }),
+vi.mock('react-helmet-async', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-helmet-async')>();
+  return {
+    ...actual,
+    Helmet: ({ children }: { children?: React.ReactNode }) => children,
+  };
+});
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({ setInitialState: setInitialStateMock }),
 }));
 
 vi.mock('antd', async (importOriginal) => {

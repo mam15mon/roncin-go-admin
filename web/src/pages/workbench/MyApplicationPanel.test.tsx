@@ -27,7 +27,7 @@ vi.mock('@/services/roncin/workbenchService', () => ({
 }));
 
 const accessState = vi.hoisted(() => ({ canOperateBusiness: true }));
-vi.mock('@umijs/max', () => ({ useAccess: () => accessState }));
+vi.mock('@/app/access', () => ({ useAccess: () => accessState }));
 
 import MyApplicationPanel from './MyApplicationPanel';
 

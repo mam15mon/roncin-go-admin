@@ -9,12 +9,12 @@ import {
   TransactionOutlined,
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
-import { Navigate, Outlet } from 'react-router';
-import type { RouteObject } from 'react-router';
 import type { ComponentType, ReactNode } from 'react';
+import type { RouteObject } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import umiRoutes from '../../config/routes';
 import { AccessGuard } from './guard';
-import type { AccessKey, AccessState, UmiRoute } from './routeTypes';
+import type { AccessState, UmiRoute } from './routeTypes';
 
 type PageLoader = () => Promise<{ default: ComponentType }>;
 

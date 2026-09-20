@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { history } from '@umijs/max';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { history } from '@/router/history';
 import {
   partnerServiceListPartners,
   partnerServiceSetPartnerRoleBlacklist,
@@ -13,15 +13,25 @@ const routeState = vi.hoisted(() => ({
   pathname: '/partners/customers',
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
-  useLocation: () => ({ pathname: routeState.pathname }),
+}));
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOperateBusiness: true,
     canManagePartners: true,
   }),
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: routeState.pathname }),
+  };
+});
 
 vi.mock('@/services/roncin/partnerService', () => ({
   partnerServiceListPartners: vi.fn(),

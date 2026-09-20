@@ -62,8 +62,8 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     sourcemap: mode === 'production',
   },
-  // test 段自 vitest.config.ts 平移（@@/.umi 痕迹别名已去除），
-  // 阶段 4 恢复被排除的 login.test.tsx 后同步删除 exclude 中的对应项。
+  // test 段自 vitest.config.ts 平移（@@/.umi 痕迹别名已去除）；原先排除的
+  // login.test.tsx 已在早期提交删除（登录页测试由 user/login/index.test.tsx 覆盖）。
   test: {
     environment: 'happy-dom',
     globals: true,
@@ -71,11 +71,7 @@ export default defineConfig(({ mode }) => ({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     fileParallelism: true,
     maxConcurrency: 32,
-    exclude: [
-      'src/pages/user/login/login.test.tsx',
-      'node_modules',
-      'dist',
-    ],
+    exclude: ['node_modules', 'dist'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

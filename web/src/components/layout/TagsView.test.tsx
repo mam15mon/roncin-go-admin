@@ -56,16 +56,14 @@ function spyOnConfirm() {
   return confirmMock;
 }
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: {
     push: (path: string) => mockPush(path),
   },
-  useLocation: () => ({
-    pathname: mockPathname,
-    search: mockSearch,
-    hash: mockHash,
-  }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',
@@ -74,6 +72,18 @@ vi.mock('@umijs/max', () => ({
     },
   }),
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({
+      pathname: mockPathname,
+      search: mockSearch,
+      hash: mockHash,
+    }),
+  };
+});
 
 describe('routeUtils', () => {
   describe('resolveRouteTitle', () => {

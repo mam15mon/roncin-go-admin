@@ -39,10 +39,12 @@ const proTableState = vi.hoisted(() => ({
   props: undefined as Record<string, any> | undefined,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState.value,
-  useModel: (namespace: string) =>
-    namespace === '@@initialState' ? initialStateState.model : {},
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => initialStateState.model,
 }));
 
 vi.mock('@ant-design/pro-components', () => ({

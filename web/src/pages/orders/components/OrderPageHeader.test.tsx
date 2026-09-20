@@ -5,24 +5,31 @@ import { OrderPageHeader } from './OrderPageHeader';
 
 const mockPush = vi.fn();
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: {
     push: (path: string) => mockPush(path),
   },
-  Link: ({ to, children, onClick, ...rest }: any) => (
-    <a
-      href={to}
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.(e);
-        mockPush(to);
-      }}
-      {...rest}
-    >
-      {children}
-    </a>
-  ),
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    Link: ({ to, children, onClick, ...rest }: any) => (
+      <a
+        href={to}
+        onClick={(e) => {
+          e.preventDefault();
+          onClick?.(e);
+          mockPush(to);
+        }}
+        {...rest}
+      >
+        {children}
+      </a>
+    ),
+  };
+});
 
 describe('OrderPageHeader', () => {
   beforeEach(() => {

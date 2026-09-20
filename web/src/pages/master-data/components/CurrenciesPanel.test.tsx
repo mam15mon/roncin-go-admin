@@ -12,7 +12,7 @@ vi.mock('@/services/roncin/masterDataService', () => ({
     mockSetCurrencyEnabled(params, body),
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     isHeadquartersOrganization: false,
     canUpdateMasterDataCurrencies: true,

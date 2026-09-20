@@ -17,16 +17,12 @@ vi.mock('@/services/roncin/orderAttachmentService', () => ({
     .mockResolvedValue({ data: [] }),
 }));
 
-vi.mock('@umijs/max', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@umijs/max')>();
-  return {
-    ...actual,
-    useAccess: () => ({
-      canOperateOrganization: () => true,
-      canOrder: () => true,
-    }),
-  };
-});
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canOperateOrganization: () => true,
+    canOrder: () => true,
+  }),
+}));
 
 const historyServiceMocks = vi.hoisted(() => ({
   listMasterBillVersions: vi.fn(),

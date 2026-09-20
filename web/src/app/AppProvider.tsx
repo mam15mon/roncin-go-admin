@@ -1,4 +1,5 @@
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import {
   createContext,
   useCallback,
@@ -7,9 +8,8 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type { Dispatch, ReactNode, SetStateAction } from 'react';
-import { history } from '@/router/history';
 import { getRequestErrorStatus } from '@/requestErrorConfig';
+import { history } from '@/router/history';
 import { authServiceMe } from '@/services/roncin/authService';
 import { DEV_MOCK_USER, isDevMockEnabled } from '@/utils/devMockUser';
 import defaultSettings from '../../config/defaultSettings';
@@ -83,9 +83,10 @@ async function getInitialState(): Promise<InitialState> {
   }
 }
 
-const initialStateContext = createContext<InitialStateModel | undefined>(
-  undefined,
-);
+// 导出供测试注入（tests/renderWithApp.tsx）；业务代码请使用 useInitialState。
+export const appInitialStateContext = createContext<
+  InitialStateModel | undefined
+>(undefined);
 
 // 与 Umi `useModel('@@initialState')` 同形的状态模型，业务调用点零语义变化。
 export interface InitialStateModel {
@@ -137,14 +138,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   if (!ready) return null;
 
   return (
-    <initialStateContext.Provider value={value}>
+    <appInitialStateContext.Provider value={value}>
       {children}
-    </initialStateContext.Provider>
+    </appInitialStateContext.Provider>
   );
 }
 
 export function useInitialState(): InitialStateModel {
-  const value = useContext(initialStateContext);
+  const value = useContext(appInitialStateContext);
   if (!value) {
     throw new Error('useInitialState 必须在 AppProvider 内使用');
   }

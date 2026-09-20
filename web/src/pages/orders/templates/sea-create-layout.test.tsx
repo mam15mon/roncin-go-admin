@@ -19,13 +19,15 @@ import { SeaCreateDocumentModeField } from './components/sea/SeaDocumentSection'
 import { getSeaTemplateSections } from './sea-template';
 import type { TemplateProps } from './types';
 
-vi.mock('@umijs/max', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@umijs/max')>()),
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOrder: () => true,
   }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',

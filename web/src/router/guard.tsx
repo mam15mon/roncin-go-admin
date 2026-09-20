@@ -14,7 +14,7 @@ export function AccessGuard({
 }) {
   const accessState = useAccess();
   return accessState[accessKey] ? (
-    <>{children}</>
+    children
   ) : (
     <Result status="403" title="403" subTitle="无权访问此页面" />
   );

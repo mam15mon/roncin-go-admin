@@ -2,7 +2,6 @@ import type { ProLayoutProps } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
 import { useEffect, useMemo } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
-import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { HeaderMenus } from '@/components/layout/HeaderMenus';
 import { HeaderTitle } from '@/components/layout/HeaderTitle';
 import {
@@ -10,6 +9,7 @@ import {
   OrganizationWorkspace,
 } from '@/components/layout/OrganizationWorkspace';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
+import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { buildMenuData } from '@/router/adaptRoutes';
 import { history } from '@/router/history';
 import { LOGIN_PATH, PUBLIC_AUTH_PATHS, useInitialState } from './AppProvider';
@@ -25,10 +25,7 @@ export function AppLayout() {
     | undefined;
   const accessState = useAccess();
   const location = useLocation();
-  const menuData = useMemo(
-    () => buildMenuData(accessState),
-    [accessState],
-  );
+  const menuData = useMemo(() => buildMenuData(accessState), [accessState]);
 
   // 平移 onPageChange 未登录守卫。
   useEffect(() => {
@@ -80,8 +77,7 @@ export function AppLayout() {
       ]}
       avatarProps={{
         src: currentUser?.avatarUrl,
-        title:
-          currentUser?.displayName ?? currentUser?.username,
+        title: currentUser?.displayName ?? currentUser?.username,
         render: (_, avatarChildren) => (
           <AvatarDropdown>{avatarChildren}</AvatarDropdown>
         ),
