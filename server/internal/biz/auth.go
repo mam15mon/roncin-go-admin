@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 )
 
@@ -252,20 +253,25 @@ type DingTalkLoginResult struct {
 }
 
 type Principal struct {
-	SessionTokenHash  string
-	UserID            uuid.UUID
-	Username          string
-	DisplayName       string
-	Email             *string
-	AvatarURL         *string
-	IsBootstrapAdmin  bool
-	Organization      Organization
-	Organizations     []Organization
-	RoleGrants        []RoleGrant
-	OrganizationNodes []OrganizationScopeNode
+	// WorkspaceOrganizationID 保留会话工作台；跨组织只读定位资源不能改变办理身份。
+	WorkspaceOrganizationID uuid.UUID
+	SessionTokenHash        string
+	UserID                  uuid.UUID
+	Username                string
+	DisplayName             string
+	Email                   *string
+	AvatarURL               *string
+	IsBootstrapAdmin        bool
+	Organization            Organization
+	Organizations           []Organization
+	RoleGrants              []RoleGrant
+	OrganizationNodes       []OrganizationScopeNode
 }
 
 func (p *Principal) HasPermission(key string) bool {
+	if !p.permissionAvailableInWorkspace(key) {
+		return false
+	}
 	for _, grant := range p.RoleGrants {
 		if _, ok := grant.Permissions[key]; ok {
 			return true
@@ -279,7 +285,9 @@ func (p *Principal) PermissionKeys() []string {
 	permissions := make(map[string]struct{})
 	for _, grant := range p.RoleGrants {
 		for permission := range grant.Permissions {
-			permissions[permission] = struct{}{}
+			if p.permissionAvailableInWorkspace(permission) {
+				permissions[permission] = struct{}{}
+			}
 		}
 	}
 	result := make([]string, 0, len(permissions))
@@ -295,6 +303,9 @@ func (p *Principal) PermissionKeys() []string {
 // narrower requirement, but a self-scoped role cannot manage organization
 // resources.
 func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
+	if !p.permissionAvailableInWorkspace(key) {
+		return false
+	}
 	for _, grant := range p.RoleGrants {
 		if _, hasPermission := grant.Permissions[key]; !hasPermission {
 			continue
@@ -324,6 +335,9 @@ func (p *Principal) RoleScopes() []RoleScope {
 // ResolvePermissionOrganizationScope 只合并持有目标权限的角色范围。
 // 没有匹配角色时返回统一权限错误，调用方不得回退为当前组织或其他角色的范围。
 func (p *Principal) ResolvePermissionOrganizationScope(permission string) (PermissionOrganizationScope, error) {
+	if !p.permissionAvailableInWorkspace(permission) {
+		return PermissionOrganizationScope{}, ErrPermissionDenied
+	}
 	matchingGrants := make([]RoleGrant, 0, len(p.RoleGrants))
 	for _, grant := range p.RoleGrants {
 		if _, ok := grant.Permissions[permission]; ok {
@@ -337,7 +351,7 @@ func (p *Principal) ResolvePermissionOrganizationScope(permission string) (Permi
 	nodes := p.organizationScopeNodes()
 	if p.IsBootstrapAdmin {
 		enabledIDs := enabledOrganizationIDs(nodes)
-		return permissionOrganizationScopeFromSets(enabledIDs, enabledIDs), nil
+		return p.workspacePermissionScope(permission, enabledIDs, enabledIDs), nil
 	}
 
 	readable := make(map[uuid.UUID]struct{})
@@ -348,7 +362,7 @@ func (p *Principal) ResolvePermissionOrganizationScope(permission string) (Permi
 			writable[organizationID] = struct{}{}
 		}
 	}
-	return permissionOrganizationScopeFromSets(readable, writable), nil
+	return p.workspacePermissionScope(permission, readable, writable), nil
 }
 
 // CanAccessOrganizationForPermission 按单个权限的组织范围检查目标组织。
@@ -1111,4 +1125,54 @@ func newSessionToken() (string, string, error) {
 func hashSessionToken(raw string) string {
 	digest := sha256.Sum256([]byte(raw))
 	return hex.EncodeToString(digest[:])
+}
+
+// CanOperateBusiness 经营办理只允许当前启用公司，管理员同样适用。
+func (p *Principal) CanOperateBusiness() bool {
+	if p != nil && p.WorkspaceOrganizationID != uuid.Nil && p.WorkspaceOrganizationID != p.Organization.ID {
+		return false
+	}
+	if p == nil || p.Organization.ID == uuid.Nil || p.Organization.Kind != OrganizationKindCompany {
+		return false
+	}
+	for _, node := range p.OrganizationNodes {
+		if node.ID == p.Organization.ID {
+			return !node.Disabled && node.Kind == OrganizationKindCompany
+		}
+	}
+	return false
+}
+
+func (p *Principal) permissionAvailableInWorkspace(permission string) bool {
+	return p != nil && (!access.IsBusinessOperationPermission(permission) || p.CanOperateBusiness())
+}
+
+func (p *Principal) workspacePermissionScope(permission string, readable, writable map[uuid.UUID]struct{}) PermissionOrganizationScope {
+	if access.IsBusinessOperationPermission(permission) {
+		current := make(map[uuid.UUID]struct{})
+		if _, allowed := writable[p.Organization.ID]; allowed && p.CanOperateBusiness() {
+			current[p.Organization.ID] = struct{}{}
+		}
+		writable = current
+	}
+	return permissionOrganizationScopeFromSets(readable, writable)
+}
+
+// OrderActions 业务状态可执行动作还须与当前工作台及该动作权限取交集。
+func (p *Principal) OrderActions(order *Order) []OrderAllowedAction {
+	if order == nil {
+		return nil
+	}
+	actions := make([]OrderAllowedAction, 0, len(order.AllowedActions))
+	for _, action := range order.AllowedActions {
+		operation := access.OrderTransition
+		if action == OrderActionEdit {
+			operation = access.OrderUpdate
+		}
+		permission := access.OrderPermission(access.OrderBusinessType(order.BusinessType), operation)
+		if p.CanAccessOrganizationForPermission(permission, order.OrganizationID, true) {
+			actions = append(actions, action)
+		}
+	}
+	return actions
 }

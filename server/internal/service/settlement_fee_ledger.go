@@ -214,9 +214,9 @@ func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.Ge
 	if err != nil {
 		return nil, err
 	}
-	// 读取使用 bill.read；是否可编辑必须独立按 bill.update 的当前组织写范围计算，
+	// 读取使用 bill.read；是否可编辑必须独立按 bill.configure 的当前组织写范围计算，
 	// 不能由前端把任一组织的 update 权限误当作当前组织能力。
-	canUpdate := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true) == nil
+	canUpdate := currentOrganizationAllowedForPermission(principal, access.FinanceBillConfigure, true) == nil
 	return ok(ctx, &v1.GetBilledFeeEditPolicyResponse{Data: billedFeeEditPolicyToAPI(policy), CanUpdate: canUpdate}), nil
 }
 
@@ -236,7 +236,7 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 		}
 		fields = append(fields, converted)
 	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true); err != nil {
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillConfigure, true); err != nil {
 		return nil, err
 	}
 	policy, err := s.customSettingUsecase.UpdateBilledFeeEditPolicy(ctx, principal.Organization.ID, principal.UserID, &biz.BilledFeeEditPolicy{Enabled: request.GetEnabled(), EditableFields: fields}, request.GetExpectedVersion().GetValue())
@@ -258,9 +258,9 @@ func (s *SettlementService) GetCreditLimitControlPolicy(ctx context.Context, _ *
 	if err != nil {
 		return nil, err
 	}
-	// 读取使用 bill.read；是否可编辑必须独立按 bill.update 的当前组织写范围计算，
+	// 读取使用 bill.read；是否可编辑必须独立按 bill.configure 的当前组织写范围计算，
 	// 不能由前端把任一组织的 update 权限误当作当前组织能力。
-	canUpdate := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true) == nil
+	canUpdate := currentOrganizationAllowedForPermission(principal, access.FinanceBillConfigure, true) == nil
 	return ok(ctx, &v1.GetCreditLimitControlPolicyResponse{Data: creditLimitControlPolicyToAPI(policy), CanUpdate: canUpdate}), nil
 }
 
@@ -272,7 +272,7 @@ func (s *SettlementService) UpdateCreditLimitControlPolicy(ctx context.Context, 
 	if request == nil || request.ExpectedVersion == nil {
 		return nil, biz.ErrFinanceCustomSettingInvalidArgument
 	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillUpdate, true); err != nil {
+	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillConfigure, true); err != nil {
 		return nil, err
 	}
 	policy, err := s.customSettingUsecase.UpdateCreditLimitControlPolicy(ctx, principal.Organization.ID, principal.UserID, request.GetAllowSelectionWhenCreditExceeded(), request.GetExpectedVersion().GetValue())

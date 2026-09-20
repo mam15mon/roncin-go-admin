@@ -24,7 +24,7 @@ func (s *financeTagOptionRepoStub) ListTagOptions(_ context.Context, organizatio
 
 func financeTagCandidatePrincipal(permission string, organizationID uuid.UUID) context.Context {
 	return biz.WithPrincipal(context.Background(), &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: organizationID}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
+		UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: organizationID}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "tag-manager", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{permission: {}}}},
 	})

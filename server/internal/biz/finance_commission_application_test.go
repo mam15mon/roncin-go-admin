@@ -152,7 +152,7 @@ func (r *financeCommissionApplicationFakeRepo) Reject(_ context.Context, organiz
 
 func newApplicationTestScope() WorkbenchScope {
 	now := time.Now()
-	return WorkbenchScope{
+	return WorkbenchScope{CanOperateBusiness: true,
 		OrganizationID: uuid.Must(uuid.NewV7()),
 		UserID:         uuid.Must(uuid.NewV7()),
 		Today:          FinanceBusinessDate(now),

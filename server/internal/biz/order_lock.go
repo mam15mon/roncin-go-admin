@@ -209,7 +209,17 @@ func NewOrderLockUsecase(repo OrderLockRepo) *OrderLockUsecase {
 }
 
 func (uc *OrderLockUsecase) GetOrderLockState(ctx context.Context, organizationID, orderID uuid.UUID, caller *Principal) (*OrderLockState, error) {
-	return uc.repo.GetOrderLockState(ctx, organizationID, orderID, caller)
+	state, err := uc.repo.GetOrderLockState(ctx, organizationID, orderID, caller)
+	if err != nil {
+		return nil, err
+	}
+	if !caller.CanOperateBusiness() || caller.Organization.ID != organizationID {
+		state.CanLock = false
+		state.CanRoleDirectUnlock = false
+		state.CanAdminEmergencyUnlock = false
+		state.CanRequestUnlock = false
+	}
+	return state, nil
 }
 
 func (uc *OrderLockUsecase) LockOrder(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, audit *AuditEvent) (*OrderLockResult, error) {
@@ -217,6 +227,9 @@ func (uc *OrderLockUsecase) LockOrder(ctx context.Context, caller *Principal, or
 	if caller == nil || caller.UserID == uuid.Nil || caller.Organization.ID == uuid.Nil || orderID == uuid.Nil || expectedOrderVersion == 0 ||
 		idempotencyKey == "" || utf8.RuneCountInString(idempotencyKey) > 128 || containsControl(idempotencyKey) {
 		return nil, ErrOrderInvalidArgument
+	}
+	if !caller.CanOperateBusiness() {
+		return nil, ErrOperatingCompanyRequired
 	}
 	return uc.repo.LockOrder(ctx, caller, orderID, expectedOrderVersion, idempotencyKey, audit)
 }
@@ -237,6 +250,9 @@ func (uc *OrderLockUsecase) RequestOrderUnlock(ctx context.Context, caller *Prin
 	if caller == nil || caller.UserID == uuid.Nil || caller.Organization.ID == uuid.Nil || orderID == uuid.Nil || expectedOrderVersion == 0 ||
 		idempotencyKey == "" || utf8.RuneCountInString(idempotencyKey) > 128 || containsControl(idempotencyKey) {
 		return nil, ErrOrderInvalidArgument
+	}
+	if !caller.CanOperateBusiness() {
+		return nil, ErrOperatingCompanyRequired
 	}
 	return uc.repo.RequestOrderUnlock(ctx, caller, orderID, expectedOrderVersion, idempotencyKey, reason, audit)
 }

@@ -84,7 +84,7 @@ func TestFinanceBillPermissionUsesOnlyMatchingRoleScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
 			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}),
@@ -104,8 +104,8 @@ func TestFinanceBillPermissionUsesOnlyMatchingRoleScope(t *testing.T) {
 		t.Fatalf("账单 read 不得借用更新角色的更大范围，actual=%v", readIDs)
 	}
 	updateIDs := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
-	if len(updateIDs) != 2 {
-		t.Fatalf("账单 update 应按自身角色范围解析目标组织，actual=%v", updateIDs)
+	if len(updateIDs) != 1 || updateIDs[0] != tianjinID {
+		t.Fatalf("账单 update 写范围必须收敛到当前公司，actual=%v", updateIDs)
 	}
 }
 
@@ -153,7 +153,7 @@ func TestScopedFinancePermissionWritesClassifiesAllMigratedPermissions(t *testin
 func TestUnmigratedFinancePermissionUsesCurrentOrganizationScope(t *testing.T) {
 	currentOrganizationID := uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: currentOrganizationID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
 		OrganizationNodes: serverOrganizationNodes(currentOrganizationID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("rate-reader", biz.DataScopeOrganization,
 			[]string{access.FinanceExchangeRateRead})},
@@ -176,10 +176,10 @@ func TestFinanceNettingPermissionResolvesAttachedOrganizationScope(t *testing.T)
 	beijingID := uuid.New()
 	beijingParentID := tianjinID
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: tianjinID},
+		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
-			{ID: tianjinID},
-			{ID: beijingID, ParentID: &beijingParentID},
+			{Kind: biz.OrganizationKindCompany, ID: tianjinID},
+			{Kind: biz.OrganizationKindCompany, ID: beijingID, ParentID: &beijingParentID},
 		},
 		RoleGrants: []biz.RoleGrant{
 			serverRoleGrant("netting-reader", biz.DataScopeOrganizationTree, []string{access.FinanceNettingRead}),
@@ -212,7 +212,7 @@ func TestFinanceNettingPermissionResolvesAttachedOrganizationScope(t *testing.T)
 
 	// 无任何目标组织授权时网关拒绝（403）。
 	noGrant := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 	}
 	if hasPermission(&financev1.ListNettingsRequest{}, noGrant, readRule) {
@@ -224,7 +224,7 @@ func TestFinanceBillPermissionDoesNotBorrowOtherDomainScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
 			serverRoleGrant("bill-reader", biz.DataScopeOrganization, []string{access.FinanceBillRead}),
@@ -245,10 +245,10 @@ func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	repo := &authorizationPartnerRepoStub{partner: &biz.Partner{ID: partnerID, OrganizationID: beijingID}}
 	usecase := biz.NewPartnerUsecase(repo)
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: tianjinID},
+		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
-			{ID: tianjinID},
-			{ID: beijingID, ParentID: &beijingParentID},
+			{Kind: biz.OrganizationKindCompany, ID: tianjinID},
+			{Kind: biz.OrganizationKindCompany, ID: beijingID, ParentID: &beijingParentID},
 		},
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-reader", biz.DataScopeOrganizationTree,
 			[]string{access.PartnerRead})},
@@ -269,7 +269,7 @@ func TestRequestPartnerRejectsCrossOrganizationWriteOutsideScope(t *testing.T) {
 	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
 	usecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: partner})
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-editor", biz.DataScopeOrganization,
 			[]string{access.PartnerUpdate})},
@@ -286,7 +286,7 @@ func TestRequestPartnerDoesNotBorrowOtherRoleScope(t *testing.T) {
 	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
 	usecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: partner})
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
 			serverRoleGrant("partner-reader", biz.DataScopeOrganization, []string{access.PartnerRead}),
@@ -304,7 +304,7 @@ func TestAuthorizationUsesPartnerOrganizationForDetailSubresource(t *testing.T) 
 	beijingID := uuid.New()
 	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("account-reader", biz.DataScopeAll,
 			[]string{access.PartnerAccountRead})},
@@ -437,7 +437,7 @@ func TestCheckOrderReferenceRequiresCreateScopeInCurrentOrganization(t *testing.
 	currentOrganizationID := uuid.New()
 	otherOrganizationID := uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: currentOrganizationID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
 		OrganizationNodes: serverOrganizationNodes(currentOrganizationID, otherOrganizationID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("reader", biz.DataScopeAll,
 			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderRead)})},
@@ -522,7 +522,7 @@ func TestRequestOrderUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	usecase := biz.NewOrderUsecase(repo, nil, nil, nil, newReminderModeCreditControl(), nil)
 
 	principal := principalWithOrderPermission(access.OrderBusinessSE, access.OrderRead)
-	principal.Organization = biz.Organization{ID: organizationID}
+	principal.Organization = biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID}
 	principal.OrganizationNodes = serverOrganizationNodes(organizationID)
 	order, direct := requestOrder(t.Context(), &orderv1.GetOrderRequest{Id: orderID.String()}, usecase, orderOrganizationScopes(principal, access.OrderRead, false))
 	if !direct || order == nil || order.ID != orderID {
@@ -540,7 +540,7 @@ func principalWithOrderPermission(businessType access.OrderBusinessType, operati
 	permission := access.OrderPermission(businessType, operation)
 	organizationID := uuid.New()
 	return &biz.Principal{
-		Organization:      biz.Organization{ID: organizationID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
 		OrganizationNodes: serverOrganizationNodes(organizationID),
 		RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission})},
 	}
@@ -557,7 +557,7 @@ func serverRoleGrant(code string, scope biz.DataScope, permissions []string) biz
 func serverOrganizationNodes(ids ...uuid.UUID) []biz.OrganizationScopeNode {
 	result := make([]biz.OrganizationScopeNode, 0, len(ids))
 	for _, id := range ids {
-		result = append(result, biz.OrganizationScopeNode{ID: id})
+		result = append(result, biz.OrganizationScopeNode{Kind: biz.OrganizationKindCompany, ID: id})
 	}
 	return result
 }
@@ -619,7 +619,7 @@ func TestSharedContainerRequestsAuthorizeThroughAnchorOrder(t *testing.T) {
 
 	for _, tc := range sharedContainerAuthRequests(anchorOrder.ID) {
 		principal := principalWithOrderPermission(access.OrderBusinessSE, tc.operation)
-		principal.Organization = biz.Organization{ID: organizationID}
+		principal.Organization = biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID}
 		principal.OrganizationNodes = serverOrganizationNodes(organizationID)
 		rule := accessRule{orderOperation: tc.operation, scope: biz.DataScopeOrganization}
 
@@ -685,7 +685,7 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, nil, newReminderModeCreditControl(), nil)
 
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: principalOrg},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: principalOrg},
 		OrganizationNodes: serverOrganizationNodes(principalOrg, anchorOrg),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll,
 			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)})},
@@ -701,7 +701,7 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 	}
 
 	// 无任何权限授权时拒绝
-	noAccess := &biz.Principal{Organization: biz.Organization{ID: principalOrg}, OrganizationNodes: serverOrganizationNodes(principalOrg, anchorOrg)}
+	noAccess := &biz.Principal{Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: principalOrg}, OrganizationNodes: serverOrganizationNodes(principalOrg, anchorOrg)}
 	denied, direct := requestOrder(t.Context(), request, orderUsecase, orderOrganizationScopes(noAccess, access.OrderContainerRead, false))
 	if !direct || denied != nil {
 		t.Fatal("无任何权限授权时应拒绝")
@@ -714,7 +714,7 @@ func TestRequestOrderRejectsCrossOrganizationUpdateOutsideScope(t *testing.T) {
 	order := &biz.Order{ID: uuid.New(), OrganizationID: beijingID, BusinessType: biz.OrderBusinessSE}
 	usecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: order}, nil, nil, nil, newReminderModeCreditControl(), nil)
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("order-editor", biz.DataScopeOrganization,
 			[]string{access.OrderPermission(access.OrderBusinessSE, access.OrderUpdate)})},
@@ -732,7 +732,7 @@ func TestRequestOrderDoesNotBorrowFinanceRoleScope(t *testing.T) {
 	order := &biz.Order{ID: uuid.New(), OrganizationID: beijingID, BusinessType: biz.OrderBusinessSE}
 	usecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: order}, nil, nil, nil, newReminderModeCreditControl(), nil)
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
 		RoleGrants: []biz.RoleGrant{
 			serverRoleGrant("order-reader", biz.DataScopeOrganization, []string{access.OrderPermission(access.OrderBusinessSE, access.OrderRead)}),

@@ -62,6 +62,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 						return nil, biz.ErrPermissionDenied
 					}
 					copy := *principal
+					copy.WorkspaceOrganizationID = principal.Organization.ID
 					copy.Organization.ID = order.OrganizationID
 					effectivePrincipal = &copy
 				}
@@ -75,6 +76,7 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 						return nil, biz.ErrPermissionDenied
 					}
 					copy := *principal
+					copy.WorkspaceOrganizationID = principal.Organization.ID
 					copy.Organization.ID = partner.OrganizationID
 					effectivePrincipal = &copy
 				}
@@ -224,7 +226,7 @@ func hasPermission(request any, principal *biz.Principal, rule accessRule) bool 
 			}
 			organizationIDs := organizationIDsForPermission(principal, rule.permission, writable)
 			// 财务资源的真实组织由 Service 按具体权限查询来源或目标对象；中间件
-			// 不得用当前工作区预先拦截角色追加的跨组织授权。
+			// 读取保留跨组织授权，经营写范围已经由 biz 收敛到当前公司。
 			return len(organizationIDs) > 0
 		}
 		if strings.HasPrefix(rule.permission, "business.partner.") {

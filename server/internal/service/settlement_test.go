@@ -142,11 +142,11 @@ func TestFeeLedgerRequestedOrganizationOnlyNarrowsMatchingPermissionScope(t *tes
 	deniedOrganizationID := uuid.New()
 	allowedParentID := currentOrganizationID
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: currentOrganizationID},
+		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
-			{ID: currentOrganizationID},
-			{ID: allowedOrganizationID, ParentID: &allowedParentID},
-			{ID: deniedOrganizationID},
+			{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
+			{Kind: biz.OrganizationKindCompany, ID: allowedOrganizationID, ParentID: &allowedParentID},
+			{Kind: biz.OrganizationKindCompany, ID: deniedOrganizationID},
 		},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode:  "fee-reader",
@@ -252,7 +252,8 @@ func TestVerificationCreateOrganizationPurposeUsesWritableScope(t *testing.T) {
 	allowedOrganizationID := uuid.New()
 	deniedOrganizationID := uuid.New()
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: allowedOrganizationID},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowedOrganizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowedOrganizationID, Kind: biz.OrganizationKindCompany}},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode:  "verification-creator",
 			DataScope: biz.DataScopeOrganization,
@@ -277,8 +278,8 @@ func TestInvoiceCreateCandidatesUseWritableOrganizationScope(t *testing.T) {
 	deniedOrganizationID := uuid.New()
 	billID := uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: organizationID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: organizationID}},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode:  "invoice-creator",
 			DataScope: biz.DataScopeOrganization,
@@ -333,7 +334,7 @@ func TestInvoiceCreateCandidatesUseWritableOrganizationScope(t *testing.T) {
 
 func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 	allowed, denied := uuid.New(), uuid.New()
-	p := &biz.Principal{Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}}}
+	p := &biz.Principal{Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}}}
 	repo := &billCreationCandidateServiceRepoStub{}
 	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), p)
@@ -359,8 +360,8 @@ func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 func TestBillSettlementAccountCandidatesUseBillCreateScopeAndDirection(t *testing.T) {
 	organizationID, partyID := uuid.New(), uuid.New()
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: organizationID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: organizationID}},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode: "bill-creator", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{access.FinanceBillCreate: {}},
@@ -388,7 +389,7 @@ func TestBillSettlementAccountCandidatesUseBillCreateScopeAndDirection(t *testin
 
 func TestBillSettlementAccountUpdateCandidatesRejectNonDraftBill(t *testing.T) {
 	organizationID, billID := uuid.New(), uuid.New()
-	principal := &biz.Principal{Organization: biz.Organization{ID: organizationID}, RoleGrants: []biz.RoleGrant{{
+	principal := &biz.Principal{Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{{
 		RoleCode: "bill-editor", DataScope: biz.DataScopeOrganization,
 		Permissions: map[string]struct{}{access.FinanceBillUpdate: {}},
 	}}}
@@ -431,8 +432,9 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		},
 	}
 	principal := &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: organizationID},
-		RoleGrants: []biz.RoleGrant{{RoleCode: "bill-creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}},
+		UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID, Kind: biz.OrganizationKindCompany}},
+		RoleGrants:        []biz.RoleGrant{{RoleCode: "bill-creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}},
 	}
 	repo := &billCreationCandidateServiceRepoStub{fees: []*biz.FinanceBillableFee{fee}}
 	rateRepo := &exchangeRateStub{
@@ -488,9 +490,9 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 	organizationID := uuid.New()
 	partyID := uuid.New()
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: organizationID},
+		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
-			{ID: organizationID},
+			{Kind: biz.OrganizationKindCompany, ID: organizationID},
 		},
 		RoleGrants: []biz.RoleGrant{{
 			RoleCode:  "verification-creator",

@@ -106,7 +106,7 @@ func (s *OrderService) GetOrder(ctx context.Context, request *v1.GetOrderRequest
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.GetOrderResponse{Data: orderToAPI(item)}), nil
+	return ok(ctx, &v1.GetOrderResponse{Data: orderToAPIForPrincipal(principal, item)}), nil
 }
 
 func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersRequest) (*v1.ListOrdersResponse, error) {
@@ -225,8 +225,7 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	}
 	data := make([]*v1.Order, 0, len(result.Items))
 	for _, item := range result.Items {
-		output := orderToAPI(item)
-		output.CanModify = canModifyOrder(principal, item)
+		output := orderToAPIForPrincipal(principal, item)
 		data = append(data, output)
 	}
 	// 海运出口订单页批量附加提成摘要：一次性把本页订单 ID 交给提成用例，
@@ -589,4 +588,14 @@ func (s *OrderService) ListSameBatchOrders(ctx context.Context, request *v1.List
 		data = append(data, summary)
 	}
 	return okList(ctx, &v1.ListSameBatchOrdersResponse{Data: data}), nil
+}
+
+func orderToAPIForPrincipal(principal *biz.Principal, item *biz.Order) *v1.Order {
+	output := orderToAPI(item)
+	output.CanModify = canModifyOrder(principal, item)
+	output.AllowedActions = orderAllowedActionsToAPI(principal.OrderActions(item))
+	if !principal.CanAccessOrganizationForPermission(access.OrderPermission(access.OrderBusinessType(item.BusinessType), access.OrderTransition), item.OrganizationID, true) {
+		output.AllowedTargetFlowStatuses = nil
+	}
+	return output
 }

@@ -51,10 +51,10 @@ func TestOrderOrganizationScopesKeepBusinessTypeAndOrganizationPaired(t *testing
 	seRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
 	aiRead := access.OrderPermission(access.OrderBusinessAI, access.OrderRead)
 	principal := &biz.Principal{
-		Organization: biz.Organization{ID: currentOrganizationID},
+		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
-			{ID: currentOrganizationID},
-			{ID: beijingOrganizationID, ParentID: &beijingParentID},
+			{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
+			{Kind: biz.OrganizationKindCompany, ID: beijingOrganizationID, ParentID: &beijingParentID},
 		},
 		RoleGrants: []biz.RoleGrant{
 			{RoleID: uuid.New(), RoleCode: "se-operator", DataScope: biz.DataScopeOrganizationTree, Permissions: map[string]struct{}{seRead: {}}},
@@ -77,8 +77,8 @@ func TestCanModifyOrderUsesBusinessTypeSpecificUpdateScope(t *testing.T) {
 	orderRead := access.OrderPermission(access.OrderBusinessSE, access.OrderRead)
 	orderUpdate := access.OrderPermission(access.OrderBusinessSE, access.OrderUpdate)
 	principal := &biz.Principal{
-		Organization:      biz.Organization{ID: tianjinID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: tianjinID}, {ID: beijingID}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: tianjinID}, {Kind: biz.OrganizationKindCompany, ID: beijingID}},
 		RoleGrants: []biz.RoleGrant{
 			{RoleID: uuid.New(), RoleCode: "order-reader", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{orderRead: {}}},
 			{RoleID: uuid.New(), RoleCode: "order-editor", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{orderUpdate: {}}},

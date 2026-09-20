@@ -2327,7 +2327,7 @@ type GetBilledFeeEditPolicyResponse struct {
 	Message string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data    *BilledFeeEditPolicy   `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 	TraceId string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	// can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
+	// can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。
 	CanUpdate     bool `protobuf:"varint,6,opt,name=can_update,json=canUpdate,proto3" json:"can_update,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2681,7 +2681,7 @@ type GetCreditLimitControlPolicyResponse struct {
 	Message string                    `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data    *CreditLimitControlPolicy `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 	TraceId string                    `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	// can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
+	// can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。
 	CanUpdate     bool `protobuf:"varint,6,opt,name=can_update,json=canUpdate,proto3" json:"can_update,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -22664,17 +22664,17 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"+FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE\x10\n" +
 	"\x12,\n" +
 	"(FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE\x10\v\x12-\n" +
-	")FINANCE_ORGANIZATION_PURPOSE_NETTING_READ\x10\f2\xc8~\n" +
+	")FINANCE_ORGANIZATION_PURPOSE_NETTING_READ\x10\f2\xdd~\n" +
 	"\x11SettlementService\x12\x93\x01\n" +
 	"\rListFeeLedger\x12 .finance.v1.ListFeeLedgerRequest\x1a!.finance.v1.ListFeeLedgerResponse\"=\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/finance/fees\x12\xc3\x01\n" +
 	"\x17GetFeeLedgerOrderDetail\x12*.finance.v1.GetFeeLedgerOrderDetailRequest\x1a+.finance.v1.GetFeeLedgerOrderDetailResponse\"O\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/finance/fees/orders/{order_id}\x12\xb9\x01\n" +
 	"\x16GetFeeLedgerPreference\x12).finance.v1.GetFeeLedgerPreferenceRequest\x1a*.finance.v1.GetFeeLedgerPreferenceResponse\"H\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02!\x12\x1f/api/v1/finance/fees/preference\x12\xc5\x01\n" +
 	"\x19UpdateFeeLedgerPreference\x12,.finance.v1.UpdateFeeLedgerPreferenceRequest\x1a-.finance.v1.UpdateFeeLedgerPreferenceResponse\"K\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02$:\x01*\x1a\x1f/api/v1/finance/fees/preference\x12\xbf\x01\n" +
 	"\x18ResetFeeLedgerPreference\x12+.finance.v1.ResetFeeLedgerPreferenceRequest\x1a,.finance.v1.ResetFeeLedgerPreferenceResponse\"H\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02!*\x1f/api/v1/finance/fees/preference\x12\xd1\x01\n" +
-	"\x16GetBilledFeeEditPolicy\x12).finance.v1.GetBilledFeeEditPolicyRequest\x1a*.finance.v1.GetBilledFeeEditPolicyResponse\"`\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x028\x126/api/v1/finance/custom-settings/billed-fee-edit-policy\x12\xdf\x01\n" +
-	"\x19UpdateBilledFeeEditPolicy\x12,.finance.v1.UpdateBilledFeeEditPolicyRequest\x1a-.finance.v1.UpdateBilledFeeEditPolicyResponse\"e\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x02;:\x01*\x1a6/api/v1/finance/custom-settings/billed-fee-edit-policy\x12\xe5\x01\n" +
-	"\x1bGetCreditLimitControlPolicy\x12..finance.v1.GetCreditLimitControlPolicyRequest\x1a/.finance.v1.GetCreditLimitControlPolicyResponse\"e\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02=\x12;/api/v1/finance/custom-settings/credit-limit-control-policy\x12\xf3\x01\n" +
-	"\x1eUpdateCreditLimitControlPolicy\x121.finance.v1.UpdateCreditLimitControlPolicyRequest\x1a2.finance.v1.UpdateCreditLimitControlPolicyResponse\"j\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x02@:\x01*\x1a;/api/v1/finance/custom-settings/credit-limit-control-policy\x12\x89\x01\n" +
+	"\x16GetBilledFeeEditPolicy\x12).finance.v1.GetBilledFeeEditPolicyRequest\x1a*.finance.v1.GetBilledFeeEditPolicyResponse\"`\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x028\x126/api/v1/finance/custom-settings/billed-fee-edit-policy\x12\xe2\x01\n" +
+	"\x19UpdateBilledFeeEditPolicy\x12,.finance.v1.UpdateBilledFeeEditPolicyRequest\x1a-.finance.v1.UpdateBilledFeeEditPolicyResponse\"h\x82\xb5\x18#\b\x03\x12\x1dsystem.finance.bill.configure \x02\x82\xd3\xe4\x93\x02;:\x01*\x1a6/api/v1/finance/custom-settings/billed-fee-edit-policy\x12\xe5\x01\n" +
+	"\x1bGetCreditLimitControlPolicy\x12..finance.v1.GetCreditLimitControlPolicyRequest\x1a/.finance.v1.GetCreditLimitControlPolicyResponse\"e\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02=\x12;/api/v1/finance/custom-settings/credit-limit-control-policy\x12\xf6\x01\n" +
+	"\x1eUpdateCreditLimitControlPolicy\x121.finance.v1.UpdateCreditLimitControlPolicyRequest\x1a2.finance.v1.UpdateCreditLimitControlPolicyResponse\"m\x82\xb5\x18#\b\x03\x12\x1dsystem.finance.bill.configure \x02\x82\xd3\xe4\x93\x02@:\x01*\x1a;/api/v1/finance/custom-settings/credit-limit-control-policy\x12\x89\x01\n" +
 	"\tListBills\x12\x1c.finance.v1.ListBillsRequest\x1a\x1d.finance.v1.ListBillsResponse\"?\x82\xb5\x18\x1e\b\x03\x12\x18system.finance.bill.read \x02\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/finance/bills\x12\xd2\x01\n" +
 	"\x1aListBillCreationCandidates\x12-.finance.v1.ListBillCreationCandidatesRequest\x1a..finance.v1.ListBillCreationCandidatesResponse\"U\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/finance/bills/creation-candidates\x12\xf6\x01\n" +
 	"#ListBillSettlementAccountCandidates\x126.finance.v1.ListBillSettlementAccountCandidatesRequest\x1a7.finance.v1.ListBillSettlementAccountCandidatesResponse\"^\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x024\x122/api/v1/finance/bill-settlement-account-candidates\x12\x8f\x02\n" +
@@ -22732,12 +22732,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x17ListCommissionEmployees\x12*.finance.v1.ListCommissionEmployeesRequest\x1a+.finance.v1.ListCommissionEmployeesResponse\"U\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/finance/commissions/employees\x12\xcf\x01\n" +
 	"\x18ListCommissionCandidates\x12+.finance.v1.ListCommissionCandidatesRequest\x1a,.finance.v1.ListCommissionCandidatesResponse\"X\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/finance/commissions/candidates\x12\xa6\x01\n" +
 	"\rGetCommission\x12 .finance.v1.GetCommissionRequest\x1a!.finance.v1.GetCommissionResponse\"P\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/commissions/{id}\x12\xb8\x01\n" +
-	"\x13ListCommissionRules\x12&.finance.v1.ListCommissionRulesRequest\x1a'.finance.v1.ListCommissionRulesResponse\"P\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/commission-rules\x12\xc0\x01\n" +
-	"\x14CreateCommissionRule\x12'.finance.v1.CreateCommissionRuleRequest\x1a(.finance.v1.CreateCommissionRuleResponse\"U\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/finance/commission-rules\x12\xc5\x01\n" +
-	"\x14UpdateCommissionRule\x12'.finance.v1.UpdateCommissionRuleRequest\x1a(.finance.v1.UpdateCommissionRuleResponse\"Z\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/finance/commission-rules/{id}\x12\xf1\x01\n" +
-	"\x1dAssignCommissionRuleEmployees\x120.finance.v1.AssignCommissionRuleEmployeesRequest\x1a1.finance.v1.AssignCommissionRuleEmployeesResponse\"k\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/finance/commission-rules/{id}/employees/assign\x12\xf1\x01\n" +
-	"\x1dRemoveCommissionRuleEmployees\x120.finance.v1.RemoveCommissionRuleEmployeesRequest\x1a1.finance.v1.RemoveCommissionRuleEmployeesResponse\"k\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/finance/commission-rules/{id}/employees/remove\x12\xc4\x01\n" +
-	"\x12CopyCommissionRule\x12%.finance.v1.CopyCommissionRuleRequest\x1a&.finance.v1.CopyCommissionRuleResponse\"_\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/finance/commission-rules/{id}/copy\x12\xba\x01\n" +
+	"\x13ListCommissionRules\x12&.finance.v1.ListCommissionRulesRequest\x1a'.finance.v1.ListCommissionRulesResponse\"P\x82\xb5\x18$\b\x03\x12\x1esystem.finance.commission.read \x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/finance/commission-rules\x12\xc3\x01\n" +
+	"\x14CreateCommissionRule\x12'.finance.v1.CreateCommissionRuleRequest\x1a(.finance.v1.CreateCommissionRuleResponse\"X\x82\xb5\x18)\b\x03\x12#system.finance.commission.configure \x02\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/finance/commission-rules\x12\xc8\x01\n" +
+	"\x14UpdateCommissionRule\x12'.finance.v1.UpdateCommissionRuleRequest\x1a(.finance.v1.UpdateCommissionRuleResponse\"]\x82\xb5\x18)\b\x03\x12#system.finance.commission.configure \x02\x82\xd3\xe4\x93\x02*:\x01*\x1a%/api/v1/finance/commission-rules/{id}\x12\xf4\x01\n" +
+	"\x1dAssignCommissionRuleEmployees\x120.finance.v1.AssignCommissionRuleEmployeesRequest\x1a1.finance.v1.AssignCommissionRuleEmployeesResponse\"n\x82\xb5\x18)\b\x03\x12#system.finance.commission.configure \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/finance/commission-rules/{id}/employees/assign\x12\xf4\x01\n" +
+	"\x1dRemoveCommissionRuleEmployees\x120.finance.v1.RemoveCommissionRuleEmployeesRequest\x1a1.finance.v1.RemoveCommissionRuleEmployeesResponse\"n\x82\xb5\x18)\b\x03\x12#system.finance.commission.configure \x02\x82\xd3\xe4\x93\x02;:\x01*\"6/api/v1/finance/commission-rules/{id}/employees/remove\x12\xc7\x01\n" +
+	"\x12CopyCommissionRule\x12%.finance.v1.CopyCommissionRuleRequest\x1a&.finance.v1.CopyCommissionRuleResponse\"b\x82\xb5\x18)\b\x03\x12#system.finance.commission.configure \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/finance/commission-rules/{id}/copy\x12\xba\x01\n" +
 	"\x11PreviewCommission\x12$.finance.v1.PreviewCommissionRequest\x1a%.finance.v1.PreviewCommissionResponse\"X\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/finance/commissions/preview\x12\xaf\x01\n" +
 	"\x10CreateCommission\x12#.finance.v1.CreateCommissionRequest\x1a$.finance.v1.CreateCommissionResponse\"P\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/finance/commissions\x12\xbf\x01\n" +
 	"\x11ConfirmCommission\x12$.finance.v1.ConfirmCommissionRequest\x1a%.finance.v1.ConfirmCommissionResponse\"]\x82\xb5\x18&\b\x03\x12 system.finance.commission.manage \x02\x82\xd3\xe4\x93\x02-:\x01*\"(/api/v1/finance/commissions/{id}/confirm\x12\xbf\x01\n" +

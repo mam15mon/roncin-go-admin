@@ -214,7 +214,7 @@ func (commissionTransactorStub) WithinTransaction(ctx context.Context, fn func(c
 
 func commissionPrincipalContext(org uuid.UUID) context.Context {
 	permissions := []string{access.FinanceCommissionRead, access.FinanceCommissionManage, access.FinanceCommissionExport}
-	return biz.WithPrincipal(context.Background(), &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: org}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: org}}, RoleGrants: []biz.RoleGrant{{RoleCode: "finance", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{permissions[0]: {}, permissions[1]: {}, permissions[2]: {}}}}})
+	return biz.WithPrincipal(context.Background(), &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: org}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: org}}, RoleGrants: []biz.RoleGrant{{RoleCode: "finance", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{permissions[0]: {}, permissions[1]: {}, permissions[2]: {}}}}})
 }
 
 func TestListCommissionsMapsCommissionDateFilterAndCNYFields(t *testing.T) {
@@ -270,7 +270,7 @@ func TestExportCommissionsMapsFilterAndDualCurrencyExportFields(t *testing.T) {
 		CNYEffectiveCommissionAmount: decimal.RequireFromString("220"),
 	}}
 
-	response, err := service.ExportCommissions(biz.WithPrincipal(context.Background(), &biz.Principal{UserID: actor, Organization: biz.Organization{ID: org}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: org}}, RoleGrants: []biz.RoleGrant{{RoleCode: "finance", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceCommissionExport: {}}}}}), &v1.ExportCommissionsRequest{
+	response, err := service.ExportCommissions(biz.WithPrincipal(context.Background(), &biz.Principal{UserID: actor, Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: org}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: org}}, RoleGrants: []biz.RoleGrant{{RoleCode: "finance", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceCommissionExport: {}}}}}), &v1.ExportCommissionsRequest{
 		Keyword:            ptrString("TC2026"),
 		Status:             v1.FinanceCommissionStatus(v1.FinanceCommissionStatus_FINANCE_COMMISSION_STATUS_PAID).Enum(),
 		CommissionDateFrom: ptrString("2026-07-01"),
@@ -363,7 +363,7 @@ func TestListCommissionNettingCandidatesUsesManageWritableOrganization(t *testin
 		Total: 1, Page: 1, PageSize: 20,
 	}
 	principal := &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
+		UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{access.FinanceCommissionManage: {}}}},
 	}
@@ -398,7 +398,7 @@ func TestListCommissionVerificationCandidatesUsesManageWritableOrganization(t *t
 	}}}}
 	service := NewSettlementService(nil, nil, nil, nil, biz.NewVerificationUsecase(repo, nil, nil, nil, nil), nil, nil, nil, nil, nil, nil, nil)
 	principal := &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
+		UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{access.FinanceCommissionManage: {}}}},
 	}
@@ -439,7 +439,7 @@ func TestListCommissionCandidatesUsesManageWritableOrganization(t *testing.T) {
 		BaseCurrency: "USD", CommissionAmount: decimal.RequireFromString("12.5"),
 	}}, Total: 1, Page: 1, PageSize: 20}
 	principal := &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}},
+		UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: allowed}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "commission-manager", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{access.FinanceCommissionManage: {}}}},
 	}
@@ -474,7 +474,7 @@ func TestListCommissionCandidatesUsesManageWritableOrganization(t *testing.T) {
 	}); !errors.Is(err, biz.ErrCommissionInvalid) {
 		t.Fatalf("来源双填错误 = %v，期望 %v", err, biz.ErrCommissionInvalid)
 	}
-	readOnly := &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "commission-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceCommissionRead: {}}}}}
+	readOnly := &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "commission-reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceCommissionRead: {}}}}}
 	if _, err := service.ListCommissionCandidates(biz.WithPrincipal(context.Background(), readOnly), &v1.ListCommissionCandidatesRequest{
 		OrganizationId: allowed.String(), VerificationId: &verificationID, Page: 1, PageSize: 20,
 	}); !errors.Is(err, biz.ErrPermissionDenied) {

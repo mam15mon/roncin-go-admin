@@ -90,8 +90,8 @@ func (s *commissionApplicationRepoStub) Reject(_ context.Context, organizationID
 func commissionApplicationPrincipalContext(permission string, organizationID uuid.UUID) context.Context {
 	return biz.WithPrincipal(context.Background(), &biz.Principal{
 		UserID:            uuid.New(),
-		Organization:      biz.Organization{ID: organizationID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: organizationID}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "finance", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{permission: {}}}},
 	})
@@ -140,8 +140,8 @@ func TestCommissionApplicationServicePermissionGate(t *testing.T) {
 	// 列表 RPC 契约要求 commission.read；财务角色同时持有 read + manage。
 	listCtx := biz.WithPrincipal(context.Background(), &biz.Principal{
 		UserID:            uuid.New(),
-		Organization:      biz.Organization{ID: organizationID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
+		OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: organizationID}},
 		RoleGrants: []biz.RoleGrant{{RoleCode: "finance", DataScope: biz.DataScopeOrganization,
 			Permissions: map[string]struct{}{access.FinanceCommissionRead: {}, access.FinanceCommissionManage: {}}}},
 	})
@@ -173,7 +173,7 @@ func TestCommissionApplicationServicePermissionGate(t *testing.T) {
 
 	// 无任何财务权限的员工执行读取同样拒绝。
 	if _, err := service.ListCommissionApplications(biz.WithPrincipal(context.Background(), &biz.Principal{
-		UserID: uuid.New(), Organization: biz.Organization{ID: organizationID},
+		UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
 	}), &v1.ListCommissionApplicationsRequest{Page: 1, PageSize: 20}); !errors.Is(err, biz.ErrPermissionDenied) {
 		t.Fatalf("无权限列表应被拒绝: %v", err)
 	}

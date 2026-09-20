@@ -23,7 +23,7 @@ func (s *financeCustomSettingServiceRepoStub) GetBilledFeeEditPolicy(_ context.C
 func TestCustomSettingUpdatesRejectMissingExpectedVersion(t *testing.T) {
 	ctx := biz.WithPrincipal(context.Background(), &biz.Principal{
 		UserID:       uuid.New(),
-		Organization: biz.Organization{ID: uuid.New()},
+		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: uuid.New()},
 	})
 
 	t.Run("账单费用修改策略", func(t *testing.T) {
@@ -44,11 +44,11 @@ func TestGetBilledFeeEditPolicyReturnsCurrentOrganizationUpdateCapability(t *tes
 			permissions[access.FinanceBillRead] = struct{}{}
 		}
 		if includeUpdate {
-			permissions[access.FinanceBillUpdate] = struct{}{}
+			permissions[access.FinanceBillConfigure] = struct{}{}
 		}
 		return biz.WithPrincipal(context.Background(), &biz.Principal{
-			UserID: uuid.New(), Organization: biz.Organization{ID: organizationID},
-			OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID}},
+			UserID: uuid.New(), Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID},
+			OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: organizationID}},
 			RoleGrants:        []biz.RoleGrant{{RoleCode: "settings", DataScope: biz.DataScopeOrganization, Permissions: permissions}},
 		})
 	}
@@ -86,5 +86,29 @@ func TestPolicyToAPICarriesUpdatedByName(t *testing.T) {
 	creditNoName := creditLimitControlPolicyToAPI(&biz.CreditLimitControlPolicy{OrganizationID: uuid.New(), AllowSelectionWhenCreditExceeded: true})
 	if creditNoName.UpdatedByName != nil {
 		t.Fatalf("操作人不可考时不应下发姓名，实际 %#v", creditNoName.UpdatedByName)
+	}
+}
+
+func (s *financeCustomSettingServiceRepoStub) SaveBilledFeeEditPolicy(_ context.Context, organizationID, _ uuid.UUID, policy *biz.BilledFeeEditPolicy, _ uint64, _ *biz.AuditEvent) (*biz.BilledFeeEditPolicy, error) {
+	s.policy = policy
+	policy.OrganizationID = organizationID
+	return policy, nil
+}
+
+func TestHeadquartersConfigurePolicyWithoutBusinessWrite(t *testing.T) {
+	id := uuid.New()
+	repo := &financeCustomSettingServiceRepoStub{}
+	service := &SettlementService{customSettingUsecase: biz.NewFinanceCustomSettingUsecase(repo)}
+	principal := &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: id, Kind: biz.OrganizationKindHeadquarters}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: id, Kind: biz.OrganizationKindHeadquarters}}, RoleGrants: []biz.RoleGrant{{DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.FinanceBillConfigure: {}, access.FinanceBillRead: {}, access.FinanceBillUpdate: {}}}}}
+	ctx := biz.WithPrincipal(context.Background(), principal)
+	response, err := service.GetBilledFeeEditPolicy(ctx, &v1.GetBilledFeeEditPolicyRequest{})
+	if err != nil || !response.GetCanUpdate() {
+		t.Fatalf("总部配置能力应保留: %v", err)
+	}
+	if _, err := service.UpdateBilledFeeEditPolicy(ctx, &v1.UpdateBilledFeeEditPolicyRequest{ExpectedVersion: wrapperspb.UInt64(0), Enabled: true}); err != nil || repo.policy == nil {
+		t.Fatalf("总部治理配置应成功保存: %v", err)
+	}
+	if _, err := organizationIDsForPermission(principal, access.FinanceBillUpdate, true); err != biz.ErrPermissionDenied {
+		t.Fatalf("配置能力不能变成业务更新权限: %v", err)
 	}
 }

@@ -265,6 +265,19 @@ func (uc *BackgroundTaskUsecase) Requeue(ctx context.Context, organizationID, ac
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrBackgroundTaskInvalidArgument
 	}
+	task, err := uc.repo.Get(ctx, organizationID, id)
+	if err != nil {
+		return nil, err
+	}
+	if task.Kind == BackgroundTaskKindDingTalkApproval || task.Kind == BackgroundTaskKindOrderReminder || task.Kind == BackgroundTaskKindIntegration {
+		principal, err := RequirePrincipal(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if !principal.CanOperateBusiness() || principal.Organization.ID != organizationID {
+			return nil, ErrOperatingCompanyRequired
+		}
+	}
 	return uc.repo.Requeue(ctx, organizationID, id, uc.now(), &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,

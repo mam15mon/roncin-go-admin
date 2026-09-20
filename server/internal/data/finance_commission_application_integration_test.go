@@ -372,7 +372,7 @@ func (f *commissionApplicationFixture) commissionUsecase() *biz.CommissionUsecas
 
 func (f *commissionApplicationFixture) scopeFor(employeeID uuid.UUID) biz.WorkbenchScope {
 	now := time.Now()
-	return biz.WorkbenchScope{
+	return biz.WorkbenchScope{CanOperateBusiness: true,
 		OrganizationID: f.organizationID,
 		UserID:         employeeID,
 		Today:          f.currentDate,
@@ -926,7 +926,7 @@ func TestCommissionApplicationSourceConflictPostgres(t *testing.T) {
 // scopeForToday 构造指定财务业务日期的本人范围：跨月重提用例以显式日期模拟
 // 「4 月提交、5 月重提」，不依赖真实时钟。
 func (f *commissionApplicationFixture) scopeForToday(employeeID uuid.UUID, today string) biz.WorkbenchScope {
-	return biz.WorkbenchScope{
+	return biz.WorkbenchScope{CanOperateBusiness: true,
 		OrganizationID: f.organizationID,
 		UserID:         employeeID,
 		Today:          today,

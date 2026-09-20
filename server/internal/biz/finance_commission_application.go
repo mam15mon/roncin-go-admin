@@ -276,6 +276,9 @@ func (u *FinanceCommissionApplicationUsecase) Submit(ctx context.Context, scope 
 	if !validWorkbenchScope(scope) {
 		return nil, ErrWorkbenchInvalid
 	}
+	if !scope.CanOperateBusiness {
+		return nil, ErrOperatingCompanyRequired
+	}
 	return u.repo.Submit(ctx, scope)
 }
 
@@ -285,6 +288,9 @@ func (u *FinanceCommissionApplicationUsecase) Submit(ctx context.Context, scope 
 func (u *FinanceCommissionApplicationUsecase) Resubmit(ctx context.Context, scope WorkbenchScope, id uuid.UUID, expectedVersion uint64) (*FinanceCommissionApplication, error) {
 	if !validWorkbenchScope(scope) || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrCommissionApplicationInvalid
+	}
+	if !scope.CanOperateBusiness {
+		return nil, ErrOperatingCompanyRequired
 	}
 	return u.repo.Resubmit(ctx, scope, id, expectedVersion)
 }

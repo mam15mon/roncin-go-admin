@@ -83,6 +83,9 @@ func validSupplementCaller(caller *Principal, organizationID, orderID uuid.UUID)
 // 固化版本化证据三元组与当时净额；同一事务写入申请、审计与逐审批人的待审批
 // 通知，找不到任何当前有效审批人时零写入。
 func (uc *OrderFeeSupplementUsecase) Create(ctx context.Context, caller *Principal, organizationID, orderID uuid.UUID, input *OrderFeeSupplementCreateInput, canOverrideExchangeRate bool) (*OrderFeeSupplementRequest, error) {
+	if !caller.CanOperateBusiness() || caller.Organization.ID != organizationID {
+		return nil, ErrOperatingCompanyRequired
+	}
 	if !validSupplementCaller(caller, organizationID, orderID) || input == nil {
 		return nil, ErrFeeSupplementInvalidArgument
 	}
@@ -341,6 +344,9 @@ func verifyLockBasis(request *OrderFeeSupplementRequest, evidence *OrderFeeSuppl
 // 锁定提成上下文 → 边际计算与双层封顶 → 创建费用与建议 → 申请终态、审计与
 // 逐员工通知。任何一步失败整体回滚，不允许部分成功。
 func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Principal, organizationID, orderID, requestID uuid.UUID, expectedVersion uint64) (*OrderFeeSupplementApproveResult, error) {
+	if !caller.CanOperateBusiness() || caller.Organization.ID != organizationID {
+		return nil, ErrOperatingCompanyRequired
+	}
 	if !validSupplementCaller(caller, organizationID, orderID) || requestID == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrFeeSupplementInvalidArgument
 	}
@@ -546,6 +552,9 @@ func (uc *OrderFeeSupplementUsecase) approveAudit(organizationID, actorID uuid.U
 // Reject 驳回补录申请：申请行锁 + 实时资格，只写申请终态与审计，不产生费用
 // 或调整。
 func (uc *OrderFeeSupplementUsecase) Reject(ctx context.Context, caller *Principal, organizationID, orderID, requestID uuid.UUID, expectedVersion uint64, reason *string) (*OrderFeeSupplementRequest, error) {
+	if !caller.CanOperateBusiness() || caller.Organization.ID != organizationID {
+		return nil, ErrOperatingCompanyRequired
+	}
 	if !validSupplementCaller(caller, organizationID, orderID) || requestID == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrFeeSupplementInvalidArgument
 	}
@@ -616,6 +625,9 @@ func (uc *OrderFeeSupplementUsecase) Reject(ctx context.Context, caller *Princip
 // Withdraw 仅发起人可撤回本人仍处于 PENDING 的申请；与审批并发时在同一申请行
 // 锁内竞争，只有先提交的一方成功，失败方返回状态冲突；撤回不产生费用或调整。
 func (uc *OrderFeeSupplementUsecase) Withdraw(ctx context.Context, caller *Principal, organizationID, orderID, requestID uuid.UUID, expectedVersion uint64) (*OrderFeeSupplementRequest, error) {
+	if !caller.CanOperateBusiness() || caller.Organization.ID != organizationID {
+		return nil, ErrOperatingCompanyRequired
+	}
 	if !validSupplementCaller(caller, organizationID, orderID) || requestID == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrFeeSupplementInvalidArgument
 	}
@@ -670,6 +682,9 @@ func (uc *OrderFeeSupplementUsecase) Withdraw(ctx context.Context, caller *Princ
 // CancelApprovedFee 专用作废已批准补录生成的费用：操作者必须实时具备与补录
 // 审批相同的直接解锁资格；事务内固定锁序与全部阻断校验由仓储实现（design 5.1）。
 func (uc *OrderFeeSupplementUsecase) CancelApprovedFee(ctx context.Context, caller *Principal, organizationID, orderID, requestID uuid.UUID, feeExpectedVersion uint64, reason string) (*OrderFeeSupplementCancelResult, error) {
+	if !caller.CanOperateBusiness() || caller.Organization.ID != organizationID {
+		return nil, ErrOperatingCompanyRequired
+	}
 	if !validSupplementCaller(caller, organizationID, orderID) || requestID == uuid.Nil || feeExpectedVersion == 0 {
 		return nil, ErrFeeSupplementInvalidArgument
 	}
@@ -763,8 +778,8 @@ func (uc *OrderFeeSupplementUsecase) List(ctx context.Context, caller *Principal
 	for _, row := range visible[start:end] {
 		view := &OrderFeeSupplementRequestView{
 			Request:           row,
-			CanApprove:        row.Status == OrderFeeSupplementPending && grant,
-			CanWithdraw:       row.Status == OrderFeeSupplementPending && row.RequestedBy == caller.UserID,
+			CanApprove:        caller.CanOperateBusiness() && caller.Organization.ID == organizationID && row.Status == OrderFeeSupplementPending && grant,
+			CanWithdraw:       caller.CanOperateBusiness() && caller.Organization.ID == organizationID && row.Status == OrderFeeSupplementPending && row.RequestedBy == caller.UserID,
 			ApproverAvailable: grant,
 		}
 		if row.Status == OrderFeeSupplementApproved {
@@ -774,7 +789,7 @@ func (uc *OrderFeeSupplementUsecase) List(ctx context.Context, caller *Principal
 			}
 			view.FeeID = capability.FeeID
 			view.FeeStatus = capability.FeeStatus
-			view.CanCancel = capability.Cancellable && grant
+			view.CanCancel = caller.CanOperateBusiness() && caller.Organization.ID == organizationID && capability.Cancellable && grant
 			view.CancelBlockCode = capability.BlockReasonCode
 			view.CancelBlockReason = capability.BlockReason
 		}

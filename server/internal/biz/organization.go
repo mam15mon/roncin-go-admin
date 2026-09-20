@@ -11,15 +11,13 @@ var ErrOperatingCompanyRequired = errors.Forbidden(
 	"总部仅用于集团管理，请切换到具体公司后再维护经营数据",
 )
 
-// RequireOperatingCompany 拦截以当前工作台为归属的新建经营数据：总部只承担
-// 集团治理，客户、订单等经营根数据只能归属公司。带显式目标公司的跨组织接口
-// 继续按各自权限范围校验，不使用本门禁。
+// RequireOperatingCompany 要求当前工作台为启用公司；所有经营办理均适用。
 func RequireOperatingCompany(ctx context.Context) error {
 	principal, err := RequirePrincipal(ctx)
 	if err != nil {
 		return err
 	}
-	if principal.Organization.Kind != OrganizationKindCompany {
+	if !principal.CanOperateBusiness() {
 		return ErrOperatingCompanyRequired
 	}
 	return nil

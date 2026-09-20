@@ -237,7 +237,7 @@ func (f *feeSupplementPostgresFixture) supplementInput(idempotencyKey string) *b
 }
 
 func (f *feeSupplementPostgresFixture) requesterPrincipal() *biz.Principal {
-	return &biz.Principal{UserID: f.requesterID, Organization: biz.Organization{ID: f.organizationID}}
+	return &biz.Principal{UserID: f.requesterID, Organization: biz.Organization{ID: f.organizationID, Kind: biz.OrganizationKindCompany}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: f.organizationID, Kind: biz.OrganizationKindCompany}}}
 }
 
 // setT 把断言目标切换到当前子测试，避免子测试通过父测试 t 触发 FailNow。
@@ -246,7 +246,7 @@ func (f *feeSupplementPostgresFixture) setT(t *testing.T) {
 }
 
 func (f *feeSupplementPostgresFixture) approverPrincipal() *biz.Principal {
-	return &biz.Principal{UserID: f.approverID, Organization: biz.Organization{ID: f.organizationID}}
+	return &biz.Principal{UserID: f.approverID, Organization: biz.Organization{ID: f.organizationID, Kind: biz.OrganizationKindCompany}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: f.organizationID, Kind: biz.OrganizationKindCompany}}}
 }
 
 // createSupplement 由发起人发起一笔补录申请并断言成功。

@@ -194,7 +194,7 @@ func (s *SettlementService) CreateCommissionRule(ctx context.Context, r *v1.Crea
 	if parseErr != nil {
 		return nil, biz.ErrCommissionRuleInvalid
 	}
-	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionConfigure, true)
 	if scopeErr != nil {
 		return nil, scopeErr
 	}
@@ -216,7 +216,7 @@ func (s *SettlementService) UpdateCommissionRule(ctx context.Context, r *v1.Upda
 	if err != nil {
 		return nil, err
 	}
-	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionConfigure, true)
 	if scopeErr != nil {
 		return nil, scopeErr
 	}
@@ -272,7 +272,7 @@ func (s *SettlementService) commissionRuleEmployeeChangeFromAPI(ctx context.Cont
 	if in == nil {
 		return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, biz.ErrCommissionRuleAssignmentInvalid
 	}
-	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionConfigure, true)
 	if scopeErr != nil {
 		return nil, uuid.Nil, biz.CommissionRuleEmployeeChange{}, scopeErr
 	}
@@ -310,7 +310,7 @@ func (s *SettlementService) CopyCommissionRule(ctx context.Context, r *v1.CopyCo
 	if rateErr != nil {
 		return nil, biz.ErrCommissionRuleInvalid
 	}
-	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceCommissionConfigure, true)
 	if scopeErr != nil {
 		return nil, scopeErr
 	}
