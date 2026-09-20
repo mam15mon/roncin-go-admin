@@ -12,11 +12,14 @@ const feeTestState = vi.hoisted(() => ({
   resetPreview: vi.fn(),
   lockState: { isLocked: false } as Partial<API.OrderLockStateData>,
   canCreateFee: true,
+  canOperate: true,
 }));
 
 vi.mock('@umijs/max', () => ({
   history: { push: vi.fn() },
   useAccess: () => ({
+    canOperateOrganization: () => feeTestState.canOperate,
+    canOperateBusiness: true,
     canCreateFinanceBills: true,
     canOrder: () => feeTestState.canCreateFee,
   }),
@@ -232,6 +235,7 @@ describe('订单费用页跨订单状态隔离', () => {
     mockParams = { kind: 'sea-export', id: 'order-A' };
     feeTestState.lockState = { isLocked: false };
     feeTestState.canCreateFee = true;
+    feeTestState.canOperate = true;
     vi.clearAllMocks();
   });
 
@@ -361,6 +365,7 @@ describe('订单费用页锁后费用补录', () => {
     mockParams = { kind: 'sea-export', id: 'order-A' };
     feeTestState.lockState = { isLocked: false };
     feeTestState.canCreateFee = true;
+    feeTestState.canOperate = true;
     vi.clearAllMocks();
     listSupplements.mockResolvedValue({
       data: { items: [], total: 0 },
@@ -405,6 +410,15 @@ describe('订单费用页锁后费用补录', () => {
   it('订单未锁定时不展示补录入口', async () => {
     renderPage();
 
+    await waitFor(() => expect(listSupplements).toHaveBeenCalled());
+    expect(
+      screen.queryByRole('button', { name: '补录费用' }),
+    ).not.toBeInTheDocument();
+  });
+  it('跨公司只读订单有费用权限也不能补录，仍可查看申请列表', async () => {
+    feeTestState.canOperate = false;
+    feeTestState.lockState = { isLocked: true };
+    renderPage();
     await waitFor(() => expect(listSupplements).toHaveBeenCalled());
     expect(
       screen.queryByRole('button', { name: '补录费用' }),

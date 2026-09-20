@@ -76,6 +76,10 @@ export default function OrderListPage() {
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
   const access = useAccess();
+  const [activeOrder, setActiveOrder] = useState<API.Order>();
+  const canOperateActiveOrder = access.canOperateOrganization(
+    activeOrder?.organizationId,
+  );
   const { message } = App.useApp();
   const [tagModalOpen, setTagModalOpen] = useState(false);
   const [tagRows, setTagRows] = useState<OrderListItem[]>([]);
@@ -165,6 +169,15 @@ export default function OrderListPage() {
         showManageTags={access.canOrder(definition.businessType, 'update')}
         onBatchAction={(actionKey, rows) => {
           if (actionKey === 'manage-tags') {
+            if (
+              rows.some(
+                (row) =>
+                  !access.canOperateOrganization(row.rawRecord?.organizationId),
+              )
+            ) {
+              message.warning('只能在订单所属分公司工作台维护标签');
+              return;
+            }
             setTagRows(rows);
             setTagModalOpen(true);
           }
@@ -183,12 +196,14 @@ export default function OrderListPage() {
             `/orders/${item.orderKind || definition.kind}/${item.id}`,
           )
         }
-        onOpenFees={(item) =>
-          item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord)
-        }
-        onOpenMilestones={(item) =>
-          item.rawRecord && milestoneDrawerRef.current?.open(item.rawRecord)
-        }
+        onOpenFees={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord);
+        }}
+        onOpenMilestones={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord && milestoneDrawerRef.current?.open(item.rawRecord);
+        }}
         documentsActionLabel={getDocumentsActionLabel(definition.businessType)}
         onOpenDocuments={(item) =>
           openOrderDocuments(
@@ -196,27 +211,37 @@ export default function OrderListPage() {
             definition.kind,
             item,
             (path) => history.push(path),
-            (record) => shippingDocumentDrawerRef.current?.open(record),
+            (record) => {
+              setActiveOrder(record);
+              shippingDocumentDrawerRef.current?.open(record);
+            },
           )
         }
-        onOpenContainers={(item) =>
-          item.rawRecord && containerDrawerRef.current?.open(item.rawRecord)
-        }
-        onOpenCargo={(item) =>
-          item.rawRecord && cargoItemDrawerRef.current?.open(item.rawRecord)
-        }
-        onOpenAttachments={(item) =>
-          item.rawRecord && attachmentDrawerRef.current?.open(item.rawRecord)
-        }
-        onOpenPersonnel={(item) =>
-          item.rawRecord && personnelDrawerRef.current?.open(item.rawRecord)
-        }
-        onOpenConsolidations={(item) =>
-          item.rawRecord && consolidationDrawerRef.current?.open(item.rawRecord)
-        }
-        onOpenAbnormal={(item) =>
-          item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord)
-        }
+        onOpenContainers={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord && containerDrawerRef.current?.open(item.rawRecord);
+        }}
+        onOpenCargo={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord && cargoItemDrawerRef.current?.open(item.rawRecord);
+        }}
+        onOpenAttachments={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord && attachmentDrawerRef.current?.open(item.rawRecord);
+        }}
+        onOpenPersonnel={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord && personnelDrawerRef.current?.open(item.rawRecord);
+        }}
+        onOpenConsolidations={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord &&
+            consolidationDrawerRef.current?.open(item.rawRecord);
+        }}
+        onOpenAbnormal={(item) => {
+          setActiveOrder(item.rawRecord);
+          item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord);
+        }}
         onTransitionStatus={(item) =>
           item.rawRecord && transitionModalRef.current?.open(item.rawRecord)
         }
@@ -240,7 +265,14 @@ export default function OrderListPage() {
         )}
         canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
         onSubmit={async (mode, tagIds) => {
-          if (!tagRows.length) return;
+          if (
+            !tagRows.length ||
+            tagRows.some(
+              (row) =>
+                !access.canOperateOrganization(row.rawRecord?.organizationId),
+            )
+          )
+            return;
           const orderIds = tagRows.map((row) => row.id);
           if (mode === 'assign') {
             await orderTagServiceBatchAssignOrderTags({
@@ -263,55 +295,76 @@ export default function OrderListPage() {
       />
       <MilestoneDrawer
         ref={milestoneDrawerRef}
-        canSet={access.canOrder(definition.businessType, 'milestone.set')}
+        canSet={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'milestone.set')
+        }
       />
       <AttachmentDrawer
         ref={attachmentDrawerRef}
-        canRegister={access.canOrder(
-          definition.businessType,
-          'attachment.register',
-        )}
+        canRegister={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'attachment.register')
+        }
       />
       <PersonnelDrawer
         ref={personnelDrawerRef}
-        canAssign={access.canOrder(definition.businessType, 'personnel.assign')}
-        canRemove={access.canOrder(definition.businessType, 'personnel.remove')}
+        canAssign={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'personnel.assign')
+        }
+        canRemove={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'personnel.remove')
+        }
       />
       <ContainerDrawer
         ref={containerDrawerRef}
-        canCreate={access.canOrder(definition.businessType, 'container.create')}
-        canUpdate={access.canOrder(definition.businessType, 'container.update')}
-        canRemove={access.canOrder(definition.businessType, 'container.delete')}
+        canCreate={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'container.create')
+        }
+        canUpdate={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'container.update')
+        }
+        canRemove={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'container.delete')
+        }
         containerSpecOptions={containerSpecOptions}
         containerSpecMap={containerSpecMap}
       />
       <ConsolidationDrawer ref={consolidationDrawerRef} />
       <CargoItemDrawer
         ref={cargoItemDrawerRef}
-        canCreate={access.canOrder(
-          definition.businessType,
-          'cargo_item.create',
-        )}
-        canUpdate={access.canOrder(
-          definition.businessType,
-          'cargo_item.update',
-        )}
-        canRemove={access.canOrder(
-          definition.businessType,
-          'cargo_item.delete',
-        )}
+        canCreate={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'cargo_item.create')
+        }
+        canUpdate={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'cargo_item.update')
+        }
+        canRemove={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'cargo_item.delete')
+        }
       />
       <ShippingDocumentDrawer
         ref={shippingDocumentDrawerRef}
-        canManage={access.canOrder(definition.businessType, 'update')}
+        canManage={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'update')
+        }
         transportMode={definition.transportMode}
       />
       <ReleasePodPanel
         ref={releasePodPanelRef}
-        canManage={access.canOrder(
-          definition.businessType,
-          'release_pod.create',
-        )}
+        canManage={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'release_pod.create')
+        }
       />
       <OrderFeePanel ref={orderFeePanelRef} />
       <OrderCommissionSummaryModal
@@ -327,10 +380,10 @@ export default function OrderListPage() {
       />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
-        canManage={access.canOrder(
-          definition.businessType,
-          'abnormal_case.create',
-        )}
+        canManage={
+          canOperateActiveOrder &&
+          access.canOrder(definition.businessType, 'abnormal_case.create')
+        }
         masterOptions={masterOptions}
       />
     </>

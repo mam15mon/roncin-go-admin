@@ -21,7 +21,10 @@ import type { TemplateProps } from './types';
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({
+    canOperateOrganization: () => true,
+    canOrder: () => true,
+  }),
   useModel: () => ({
     initialState: {
       currentUser: {

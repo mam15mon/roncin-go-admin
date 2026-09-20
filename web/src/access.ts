@@ -1,4 +1,4 @@
-import { AuthOrganizationKind } from '@/enums.generated';
+import { AuthOrganizationKind, BackgroundTaskKind } from '@/enums.generated';
 import type {
   ManifestPermissionKey,
   OrderPermissionOperation,
@@ -54,6 +54,7 @@ const permissions = {
   financeNettingReverse: 'system.finance.netting.reverse',
   financeCommissionRead: 'system.finance.commission.read',
   financeCommissionManage: 'system.finance.commission.manage',
+  financeCommissionConfigure: 'system.finance.commission.configure',
   financeCommissionExport: 'system.finance.commission.export',
   partnerRead: 'business.partner.read',
   partnerCreate: 'business.partner.create',
@@ -155,6 +156,14 @@ export default function access(
   const isHeadquartersOrganization =
     initialState?.currentUser?.currentOrganization?.kind ===
     AuthOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS;
+  // 工作台身份仅约束经营入口；具体业务权限继续消费服务端有效权限集。
+  const canOperateBusiness =
+    initialState?.currentUser?.currentOrganization?.kind ===
+    AuthOrganizationKind.ORGANIZATION_KIND_COMPANY;
+  const canOperateOrganization = (organizationId?: string) =>
+    canOperateBusiness &&
+    Boolean(organizationId) &&
+    organizationId === initialState?.currentUser?.currentOrganization?.id;
   const canOrder = (
     businessType: number | string,
     operation: OrderPermissionOperation,
@@ -166,6 +175,8 @@ export default function access(
   const result = {
     isAuthenticated: Boolean(initialState?.currentUser),
     isHeadquartersOrganization,
+    canOperateBusiness,
+    canOperateOrganization,
     canAccessPlatform: has(permissions.platformAccess),
     canReadOrganizations: has(permissions.organizationRead) && inAll,
     canCreateOrganizations: has(permissions.organizationCreate) && inAll,
@@ -235,6 +246,7 @@ export default function access(
     canReverseFinanceNettings: has(permissions.financeNettingReverse),
     canReadFinanceCommissions: has(permissions.financeCommissionRead),
     canManageFinanceCommissions: has(permissions.financeCommissionManage),
+    canConfigureFinanceCommissions: has(permissions.financeCommissionConfigure),
     canExportFinanceCommissions: has(permissions.financeCommissionExport),
     canReadPartners: has(permissions.partnerRead) && inOrganization,
     canReadEnterpriseResources:
@@ -370,6 +382,9 @@ export default function access(
       result.canBlacklistPartners ||
       result.canImportPartners,
     canOrder,
+    canConfirmAnyOrderFees: [1, 2, 3, 4].some((businessType) =>
+      canOrder(businessType, 'fee.update'),
+    ),
     canReadAnyOrders: [1, 2, 3, 4].some((businessType) =>
       canOrder(businessType, 'read'),
     ),
@@ -379,6 +394,20 @@ export default function access(
     canReadAEOrders: canOrder(3, 'read'),
     canReadAIOrders: canOrder(4, 'read'),
     canManageTasks: result.canRequeueTasks,
+    canRequeueTask: (kind?: number) => {
+      if (!result.canRequeueTasks) return false;
+      switch (kind) {
+        case BackgroundTaskKind.BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT:
+        case BackgroundTaskKind.BACKGROUND_TASK_KIND_UNLOCODE_IMPORT:
+        case BackgroundTaskKind.BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION:
+          return true;
+        case BackgroundTaskKind.BACKGROUND_TASK_KIND_ORDER_REMINDER:
+        case BackgroundTaskKind.BACKGROUND_TASK_KIND_INTEGRATION:
+          return canOperateBusiness;
+        default:
+          return false;
+      }
+    },
     canReadParameterSettings:
       result.canReadMasterDataNumberRules ||
       result.canReadFeeSettings ||

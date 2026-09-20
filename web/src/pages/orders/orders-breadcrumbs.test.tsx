@@ -13,6 +13,8 @@ let mockParams = { kind: 'sea-export', id: 'ord-1' };
 vi.mock('@umijs/max', () => ({
   useParams: () => mockParams,
   useAccess: () => ({
+    canOperateOrganization: () => true,
+    canOperateBusiness: true,
     canOrder: () => true,
     canCreateFee: () => true,
     canEditFee: () => true,

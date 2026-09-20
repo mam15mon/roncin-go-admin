@@ -22,12 +22,17 @@ const detailTestState = vi.hoisted(() => ({
   lockState: { isLocked: false } as API.OrderLockStateData | null,
   sectionReadonly: undefined as boolean | undefined,
   templateReadonly: undefined as boolean | undefined,
+  canOperate: true,
   customerReferenceNo: '服务端初始值',
 }));
 
 vi.mock('@umijs/max', () => ({
   useParams: () => routeState.params,
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({
+    canOperateOrganization: () => detailTestState.canOperate,
+    canOperateBusiness: true,
+    canOrder: () => true,
+  }),
   history: { push: vi.fn() },
 }));
 
@@ -177,6 +182,7 @@ function deferred<T>() {
 describe('订单详情页拆票与改配动作隔离', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    detailTestState.canOperate = true;
     routeState.params = { kind: 'sea-export', id: 'ord-A' };
     detailTestState.loadData.mockResolvedValue(undefined);
     detailTestState.allowedActions = [
@@ -191,17 +197,26 @@ describe('订单详情页拆票与改配动作隔离', () => {
   it.each([
     {
       name: '缺少编辑动作权限',
+      canOperate: true,
       allowedActions: [] as number[],
       lockState: { isLocked: false } as API.OrderLockStateData,
     },
     {
       name: '订单已锁定',
+      canOperate: true,
       allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT],
       lockState: { isLocked: true } as API.OrderLockStateData,
     },
+    {
+      name: '当前工作台不是订单所属分公司',
+      canOperate: false,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT],
+      lockState: { isLocked: false } as API.OrderLockStateData,
+    },
   ])(
     '$name 时模板与分节使用同一完整只读值',
-    async ({ allowedActions, lockState }) => {
+    async ({ allowedActions, lockState, canOperate }) => {
+      detailTestState.canOperate = canOperate;
       detailTestState.allowedActions = allowedActions;
       detailTestState.lockState = lockState;
       mockGetChangeActions.mockResolvedValue({ data: {} } as never);

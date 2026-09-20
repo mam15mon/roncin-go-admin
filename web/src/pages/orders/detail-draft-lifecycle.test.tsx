@@ -52,6 +52,8 @@ const detailTestState = vi.hoisted(() => ({
 vi.mock('@umijs/max', () => ({
   useParams: () => routeState.params,
   useAccess: () => ({
+    canOperateOrganization: () => true,
+    canOperateBusiness: true,
     canOrder: () => true,
   }),
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,

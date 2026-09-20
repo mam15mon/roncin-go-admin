@@ -11,10 +11,12 @@ import SeaOrderSplitPage, {
   calculateFeeCurrencySummaries,
 } from './split';
 
+const splitAccess = vi.hoisted(() => ({ allowed: true }));
+
 // Mock umi hooks
 vi.mock('@umijs/max', () => ({
   useParams: () => ({ id: 'test-order-123' }),
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({ canOrder: () => splitAccess.allowed }),
   history: {
     push: vi.fn(),
   },
@@ -34,6 +36,7 @@ const getLockState = vi.mocked(orderLockServiceGetOrderLockState);
 describe('SeaOrderSplitPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    splitAccess.allowed = true;
     getLockState.mockResolvedValue({
       data: {
         orderId: 'test-order-123',
@@ -42,6 +45,27 @@ describe('SeaOrderSplitPage', () => {
         orderVersion: '1',
       },
     } as Awaited<ReturnType<typeof getLockState>>);
+  });
+
+  it('没有当前工作台拆票能力时直接访问路由被拒绝且不请求办理上下文', async () => {
+    splitAccess.allowed = false;
+    const context = vi.spyOn(
+      changeService,
+      'seaOrderChangeServiceGetSeaOrderSplitContext',
+    );
+    render(
+      <App>
+        <SeaOrderSplitPage />
+      </App>,
+    );
+    expect(
+      screen.getByText('请进入获授权的分公司工作台办理拆票'),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(getLockState).toHaveBeenCalled());
+    expect(context).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole('button', { name: /执行拆票/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('渲染拆票工作台并展示守恒差额与分单分配表格', async () => {

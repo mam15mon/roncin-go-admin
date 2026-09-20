@@ -3,6 +3,7 @@ import {
   TableOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
+import { useAccess } from '@umijs/max';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
 import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
@@ -35,6 +36,7 @@ export default function MyApplicationPanel({
   currency,
   onOverviewRefresh,
 }: Props) {
+  const { canOperateBusiness } = useAccess();
   const { message, modal } = App.useApp();
   const [submitting, setSubmitting] = useState(false);
   const [candidatesOpen, setCandidatesOpen] = useState(false);
@@ -55,7 +57,7 @@ export default function MyApplicationPanel({
   const latest = summary.latestApplication;
 
   const submitApplication = () => {
-    if (groups.length === 0 || submitting) return;
+    if (!canOperateBusiness || groups.length === 0 || submitting) return;
     const monthLabels = groups
       .map((group) => group.commissionMonth || '-')
       .join('、');
@@ -197,16 +199,18 @@ export default function MyApplicationPanel({
           ) : null}
           <div style={{ marginTop: 8 }}>
             <Space size={8}>
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                disabled={groups.length === 0 || submitting}
-                loading={submitting}
-                onClick={submitApplication}
-                data-testid="apply-submit-button"
-              >
-                去申请
-              </Button>
+              {canOperateBusiness && (
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  disabled={groups.length === 0 || submitting}
+                  loading={submitting}
+                  onClick={submitApplication}
+                  data-testid="apply-submit-button"
+                >
+                  去申请
+                </Button>
+              )}
               <Button
                 icon={<TableOutlined />}
                 disabled={groups.length === 0}

@@ -452,7 +452,8 @@ export default function FinanceBillsPage() {
           access.canCreateFinanceBills ? '批量创建账单' : undefined
         }
         batchActions={
-          access.canUpdateFinanceBills && organizationId
+          access.canUpdateFinanceBills &&
+          access.canOperateOrganization(organizationId)
             ? [
                 {
                   key: 'manage-tags',

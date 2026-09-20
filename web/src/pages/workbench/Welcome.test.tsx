@@ -32,6 +32,7 @@ const umiState = vi.hoisted(() => ({
   } as Record<string, unknown>,
   access: {
     canReadSEOrders: true,
+    canOperateBusiness: true,
     canReadFinanceFees: false,
     canReadFinanceBills: false,
     canReadFinanceVerifications: false,

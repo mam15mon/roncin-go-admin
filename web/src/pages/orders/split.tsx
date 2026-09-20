@@ -19,6 +19,7 @@ import {
   InputNumber,
   Popconfirm,
   Radio,
+  Result,
   Row,
   Select,
   Space,
@@ -82,6 +83,7 @@ export default function SeaOrderSplitPage() {
   const orderId = params.id || '';
   const { message } = App.useApp();
   const access = useAccess();
+  const canSplit = access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'split');
   const canReassign = access.canOrder(
     OrderBusinessType.BUSINESS_TYPE_SE,
     'reassign',
@@ -96,6 +98,7 @@ export default function SeaOrderSplitPage() {
     state: lockState,
     loading: lockStateLoading,
     error: lockStateError,
+    canOperate: canSplit,
   });
   const lockWritePolicyRef = useRef(lockWritePolicy);
   lockWritePolicyRef.current = lockWritePolicy;
@@ -168,7 +171,7 @@ export default function SeaOrderSplitPage() {
 
   // 加载拆票上下文
   const loadContext = async () => {
-    if (!orderId) return;
+    if (!orderId || !canSplit) return;
     setLoadingContext(true);
     try {
       const resp = await seaOrderChangeServiceGetSeaOrderSplitContext({
@@ -309,7 +312,7 @@ export default function SeaOrderSplitPage() {
 
   useEffect(() => {
     loadContext();
-  }, [orderId]);
+  }, [orderId, canSplit]);
 
   // 页签占位标题为中性「订单拆票」，加载成功后回填带单号的真实标题。
   useEffect(() => {
@@ -784,6 +787,10 @@ export default function SeaOrderSplitPage() {
     }
   };
 
+  if (!canSplit) {
+    return <Result status="403" title="请进入获授权的分公司工作台办理拆票" />;
+  }
+
   return (
     <PageContainer
       title={false}
@@ -839,7 +846,11 @@ export default function SeaOrderSplitPage() {
                 : undefined
             }
           >
-            <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
+            <Space
+              orientation="vertical"
+              size="middle"
+              style={{ width: '100%' }}
+            >
               {previewError && (
                 <Alert
                   type="error"

@@ -33,10 +33,13 @@ export function getOrderBusinessWritePolicy({
   state,
   loading,
   error,
-}: Pick<
-  OrderLockSnapshot,
-  'state' | 'loading' | 'error'
->): OrderBusinessWritePolicy {
+  canOperate,
+}: Pick<OrderLockSnapshot, 'state' | 'loading' | 'error'> & {
+  canOperate: boolean;
+}): OrderBusinessWritePolicy {
+  if (!canOperate) {
+    return { disabled: true, reason: '请切换至订单所属分公司工作台办理' };
+  }
   if (loading) {
     return { disabled: true, reason: '正在同步订单锁定状态，请稍候' };
   }

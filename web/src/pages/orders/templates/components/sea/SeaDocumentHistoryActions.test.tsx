@@ -21,7 +21,10 @@ vi.mock('@umijs/max', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@umijs/max')>();
   return {
     ...actual,
-    useAccess: () => ({ canOrder: () => true }),
+    useAccess: () => ({
+      canOperateOrganization: () => true,
+      canOrder: () => true,
+    }),
   };
 });
 

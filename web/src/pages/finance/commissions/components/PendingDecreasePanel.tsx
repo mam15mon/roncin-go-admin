@@ -268,7 +268,8 @@ export default function PendingDecreasePanel({
       fixed: 'right',
       width: 230,
       render: (_, record) => {
-        if (!canManage) return ['-'];
+        if (!canManage || !access.canOperateOrganization(record.organizationId))
+          return ['-'];
         const actions: React.ReactNode[] = [];
         if (
           record.status ===

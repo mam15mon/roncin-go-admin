@@ -1,3 +1,4 @@
+import { useAccess } from '@umijs/max';
 import type { TableColumnsType } from 'antd';
 import {
   App,
@@ -79,6 +80,7 @@ export default function MyApplicationHistoryDrawer({
   onClose,
   onResubmitted,
 }: Props) {
+  const { canOperateBusiness } = useAccess();
   const [items, setItems] = useState<Application[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -149,7 +151,8 @@ export default function MyApplicationHistoryDrawer({
 
   /** 显式重提：按申请 ID + 当前版本定位原申请，服务端按最新上游数据刷新金额。 */
   const resubmit = (record: Application) => {
-    if (!record.id || !record.version || resubmitting) return;
+    if (!canOperateBusiness || !record.id || !record.version || resubmitting)
+      return;
     const applicationId = record.id;
     const expectedVersion = record.version;
     const monthLabel = record.applicationMonth || '';
@@ -294,8 +297,9 @@ export default function MyApplicationHistoryDrawer({
       render: (_, record) => (
         <Space size={8}>
           <a onClick={() => openDetail(record)}>明细</a>
-          {record.status ===
-          WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED ? (
+          {canOperateBusiness &&
+          record.status ===
+            WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED ? (
             <a onClick={() => resubmit(record)}>重新提交</a>
           ) : null}
         </Space>
@@ -319,7 +323,7 @@ export default function MyApplicationHistoryDrawer({
             </Button>
             <Text strong>{application?.applicationMonth || '-'} 月度申请</Text>
             {applicationStatusTag(application?.status)}
-            {isRejected ? (
+            {canOperateBusiness && isRejected ? (
               <Button
                 type="primary"
                 size="small"

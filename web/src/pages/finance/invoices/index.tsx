@@ -424,6 +424,7 @@ export default function FinanceInvoicesPage() {
           <EyeOutlined /> 详情
         </a>,
         access.canUpdateFinanceInvoices &&
+        access.canOperateOrganization(r.organizationId) &&
         r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ? (
           <a
             key="issue"
@@ -436,6 +437,7 @@ export default function FinanceInvoicesPage() {
           </a>
         ) : null,
         access.canUpdateFinanceInvoices &&
+        access.canOperateOrganization(r.organizationId) &&
         (r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_DRAFT ||
           r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED) ? (
           <a
@@ -453,6 +455,7 @@ export default function FinanceInvoicesPage() {
           </a>
         ) : null,
         access.canUpdateFinanceInvoices &&
+        access.canOperateOrganization(r.organizationId) &&
         r.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED ? (
           <a
             key="red-flush"

@@ -259,6 +259,7 @@ export default function FinanceVerificationsPage() {
           详情
         </a>,
         access.canReverseFinanceVerifications &&
+        access.canOperateOrganization(r.organizationId) &&
         r.status ===
           FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE ? (
           <a

@@ -169,17 +169,25 @@ export default function PartnerDetailPage() {
     access.canReadPartnerAccounts || access.canManagePartners,
   );
 
-  const canSave = isCreate
-    ? Boolean(access.canCreatePartners || access.canManagePartners)
-    : Boolean(access.canUpdatePartners || access.canManagePartners);
+  const canOperate = isCreate
+    ? access.canOperateBusiness
+    : access.canOperateOrganization(partner?.organizationId);
 
-  const canSaveSettlement = isCreate
-    ? Boolean(
-        access.canCreatePartnerSettlementRules || access.canManagePartners,
-      )
-    : Boolean(
-        access.canUpdatePartnerSettlementRules || access.canManagePartners,
-      );
+  const canSave =
+    canOperate &&
+    (isCreate
+      ? Boolean(access.canCreatePartners || access.canManagePartners)
+      : Boolean(access.canUpdatePartners || access.canManagePartners));
+
+  const canSaveSettlement =
+    canOperate &&
+    (isCreate
+      ? Boolean(
+          access.canCreatePartnerSettlementRules || access.canManagePartners,
+        )
+      : Boolean(
+          access.canUpdatePartnerSettlementRules || access.canManagePartners,
+        ));
 
   useEffect(() => {
     if (isInvalidId) {
@@ -747,6 +755,7 @@ export default function PartnerDetailPage() {
         <ProForm
           formRef={formRef}
           submitter={false}
+          disabled={!canOperate}
           layout="horizontal"
           style={{
             paddingRight: navCollapsed ? 0 : 164,
@@ -795,10 +804,12 @@ export default function PartnerDetailPage() {
               partner={partner}
               canRead={canReadAccounts}
               canCreate={
-                access.canCreatePartnerAccounts || access.canManagePartners
+                canOperate &&
+                (access.canCreatePartnerAccounts || access.canManagePartners)
               }
               canUpdate={
-                access.canUpdatePartnerAccounts || access.canManagePartners
+                canOperate &&
+                (access.canUpdatePartnerAccounts || access.canManagePartners)
               }
             />
           )}
@@ -825,12 +836,14 @@ export default function PartnerDetailPage() {
               partnerId={partnerId}
               roleLabel={roleLabel}
               canCreate={
-                access.canCreatePartnerShippingPresets ||
-                access.canManagePartners
+                canOperate &&
+                (access.canCreatePartnerShippingPresets ||
+                  access.canManagePartners)
               }
               canUpdate={
-                access.canUpdatePartnerShippingPresets ||
-                access.canManagePartners
+                canOperate &&
+                (access.canUpdatePartnerShippingPresets ||
+                  access.canManagePartners)
               }
             />
           )}
@@ -846,10 +859,12 @@ export default function PartnerDetailPage() {
               partnerId={partnerId}
               roleLabel={roleLabel}
               canCreate={
-                access.canCreatePartnerContracts || access.canManagePartners
+                canOperate &&
+                (access.canCreatePartnerContracts || access.canManagePartners)
               }
               canUpdate={
-                access.canUpdatePartnerContracts || access.canManagePartners
+                canOperate &&
+                (access.canUpdatePartnerContracts || access.canManagePartners)
               }
             />
           )}

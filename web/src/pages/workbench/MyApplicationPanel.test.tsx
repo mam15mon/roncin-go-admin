@@ -31,6 +31,9 @@ vi.mock('@/services/roncin/workbenchService', () => ({
     serviceMocks.getApplication(...args),
 }));
 
+const accessState = vi.hoisted(() => ({ canOperateBusiness: true }));
+vi.mock('@umijs/max', () => ({ useAccess: () => accessState }));
+
 import MyApplicationPanel from './MyApplicationPanel';
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
@@ -81,6 +84,7 @@ function renderPanel(
 
 beforeEach(() => {
   vi.clearAllMocks();
+  accessState.canOperateBusiness = true;
   refreshMock.mockClear();
   refreshMock.mockImplementation(() => Promise.resolve());
   serviceMocks.listCandidates.mockResolvedValue({
@@ -100,6 +104,14 @@ afterEach(() => {
 });
 
 describe('MyApplicationPanel 工作台月度申请面板', () => {
+  it('总部仅查看申请摘要与历史，不展示申请办理入口', () => {
+    accessState.canOperateBusiness = false;
+    renderPanel();
+    expect(screen.queryByTestId('apply-submit-button')).not.toBeInTheDocument();
+    expect(screen.getByText('申请历史')).toBeInTheDocument();
+    expect(serviceMocks.submit).not.toHaveBeenCalled();
+  });
+
   it('可申请提成按归属月分组展示笔数金额、合计与审批中/已批准计数', () => {
     renderPanel();
 

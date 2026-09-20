@@ -217,6 +217,7 @@ export default function CommissionApplicationsPanel() {
         ];
         if (
           canManage &&
+          access.canOperateOrganization(record.organizationId) &&
           record.status ===
             FinanceCommissionApplicationStatus.FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW
         ) {

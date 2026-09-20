@@ -359,6 +359,7 @@ export default function Partners() {
       fixed: 'right',
       render: (_, record) => {
         const moreItems: MenuProps['items'] = [];
+        const canOperate = access.canOperateOrganization(record.organizationId);
 
         moreItems.push({
           key: 'secondary',
@@ -367,7 +368,10 @@ export default function Partners() {
           onClick: () => setSecondaryPartner(record),
         });
 
-        if (access.canManagePartners || access.canUpdatePartners) {
+        if (
+          canOperate &&
+          (access.canManagePartners || access.canUpdatePartners)
+        ) {
           moreItems.push({
             key: 'role-switch',
             icon: <SwapOutlined />,
@@ -377,6 +381,7 @@ export default function Partners() {
         }
 
         if (
+          canOperate &&
           (access.canManagePartners || access.canBlacklistPartners) &&
           record.roles?.some((role) => roleMap.has(role.type ?? 0))
         ) {
@@ -394,17 +399,18 @@ export default function Partners() {
 
         return (
           <Space size={8}>
-            {(access.canManagePartners || access.canUpdatePartners) && (
-              <Button
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
-                style={{ padding: 0 }}
-                onClick={() => openEdit(record)}
-              >
-                编辑
-              </Button>
-            )}
+            {canOperate &&
+              (access.canManagePartners || access.canUpdatePartners) && (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<EditOutlined />}
+                  style={{ padding: 0 }}
+                  onClick={() => openEdit(record)}
+                >
+                  编辑
+                </Button>
+              )}
             {moreItems.length > 0 && (
               <Dropdown menu={{ items: moreItems }} trigger={['click']}>
                 <Button
@@ -631,9 +637,18 @@ export default function Partners() {
         partner={secondaryPartner}
         open={Boolean(secondaryPartner)}
         canReadAccounts={access.canReadPartnerAccounts}
-        canCreateAccounts={access.canCreatePartnerAccounts}
-        canUpdateAccounts={access.canUpdatePartnerAccounts}
-        canManage={access.canManagePartners}
+        canCreateAccounts={
+          access.canOperateOrganization(secondaryPartner?.organizationId) &&
+          access.canCreatePartnerAccounts
+        }
+        canUpdateAccounts={
+          access.canOperateOrganization(secondaryPartner?.organizationId) &&
+          access.canUpdatePartnerAccounts
+        }
+        canManage={
+          access.canOperateOrganization(secondaryPartner?.organizationId) &&
+          access.canManagePartners
+        }
         onClose={() => setSecondaryPartner(undefined)}
       />
     </PageContainer>

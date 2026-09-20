@@ -177,6 +177,7 @@ export default function OrderFeesPage() {
     state: lockState,
     loading: lockStateLoading,
     error: lockStateError,
+    canOperate: access.canOperateOrganization(order?.organizationId),
   });
   const feeWritesDisabled = financeLocked || lockWritePolicy.disabled;
   const feeWritePolicyRef = useRef({
@@ -575,7 +576,10 @@ export default function OrderFeesPage() {
         setAllPayableItems={setAllPayableItems}
         setReceivableSummary={setReceivableSummary}
         setPayableSummary={setPayableSummary}
-        canCreateFinanceBills={Boolean(access.canCreateFinanceBills)}
+        canCreateFinanceBills={
+          access.canOperateOrganization(order.organizationId) &&
+          Boolean(access.canCreateFinanceBills)
+        }
         feeWritesDisabled={feeWritesDisabled}
         onOpenBillWorkbench={(feeIds) => {
           if (!orderId) return;
@@ -599,6 +603,7 @@ export default function OrderFeesPage() {
           key={targetOrderId}
           orderId={orderId || ''}
           canCreate={
+            access.canOperateOrganization(order.organizationId) &&
             order.businessType !== undefined &&
             access.canOrder(order.businessType, 'fee.create')
           }

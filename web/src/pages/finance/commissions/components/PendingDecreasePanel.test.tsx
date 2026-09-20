@@ -13,6 +13,8 @@ import {
 import PendingDecreasePanel from './PendingDecreasePanel';
 
 const accessState = vi.hoisted(() => ({
+  canOperateOrganization: () => true,
+  canConfigureFinanceCommissions: false,
   canManageFinanceCommissions: true,
 }));
 

@@ -126,12 +126,26 @@ export default function FinanceFeeLedgerPage() {
   };
 
   const canCreateBill = (row: API.FeeLedgerItem) =>
-    row.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED && !row.billNo;
+    access.canOperateOrganization(row.organizationId) &&
+    row.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED &&
+    !row.billNo;
 
   const confirmDraftRows = async (
     _keys: React.Key[],
     rows: API.FeeLedgerItem[],
   ) => {
+    if (
+      rows.some(
+        (row) =>
+          !access.canOperateOrganization(row.organizationId) ||
+          !access.canOrder(row.businessType ?? '', 'fee.update'),
+      )
+    ) {
+      message.warning(
+        '只能确认当前公司且具备费用修改权限的费用，请调整勾选记录',
+      );
+      return;
+    }
     const draftRows = rows.filter(
       (row) =>
         row.status === OrderFeeStatus.ORDER_FEE_STATUS_DRAFT &&
@@ -421,11 +435,15 @@ export default function FinanceFeeLedgerPage() {
           setBillWorkbenchOpen(true);
         }}
         batchActions={[
-          {
-            key: 'batch-confirm',
-            label: '批量确认勾选费用',
-            onClick: handleBatchConfirm,
-          },
+          ...(access.canConfirmAnyOrderFees
+            ? [
+                {
+                  key: 'batch-confirm',
+                  label: '批量确认勾选费用',
+                  onClick: handleBatchConfirm,
+                },
+              ]
+            : []),
           ...(access.canCreateFinanceNettings
             ? [
                 {
@@ -465,7 +483,8 @@ export default function FinanceFeeLedgerPage() {
                 },
               ]
             : []),
-          ...(access.canManageFinanceFeeTags && organizationId
+          ...(access.canManageFinanceFeeTags &&
+          access.canOperateOrganization(organizationId)
             ? [
                 {
                   key: 'manage-tags',
