@@ -6,7 +6,7 @@ import {
   SaveOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { history } from '@umijs/max';
+import { history, useAccess } from '@umijs/max';
 import { Button, Dropdown, type MenuProps, Tooltip } from 'antd';
 import React, { type ReactNode } from 'react';
 import {
@@ -71,6 +71,7 @@ export default function OrderDetailHeader({
   onRetryLockState,
   onSynchronizeLockChange,
 }: OrderDetailHeaderProps) {
+  const access = useAccess();
   return (
     <OrderPageHeader
       page="detail"
@@ -87,15 +88,17 @@ export default function OrderDetailHeader({
       }
       actions={
         <>
-          <OrderLockControl
-            orderId={orderId}
-            orderNo={order.orderNo}
-            state={lockState}
-            loading={lockStateLoading}
-            error={lockStateError}
-            onRetry={onRetryLockState}
-            onSynchronize={onSynchronizeLockChange}
-          />
+          {access.canOperateOrganization(order.organizationId) && (
+            <OrderLockControl
+              orderId={orderId}
+              orderNo={order.orderNo}
+              state={lockState}
+              loading={lockStateLoading}
+              error={lockStateError}
+              onRetry={onRetryLockState}
+              onSynchronize={onSynchronizeLockChange}
+            />
+          )}
 
           {/* 实心蓝底主保存按钮 */}
           {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (

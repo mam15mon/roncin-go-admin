@@ -12,6 +12,7 @@ import { statusOptions } from './billConstants';
 
 interface GetFinanceBillColumnsParams {
   access: {
+    canOperateOrganization: (organizationId?: string) => boolean;
     canUpdateFinanceBills?: boolean;
     canConfirmFinanceBills?: boolean;
   };
@@ -273,12 +274,14 @@ export function getFinanceBillColumns({
           <EyeOutlined /> 详情
         </a>,
         access.canUpdateFinanceBills &&
+        access.canOperateOrganization(row.organizationId) &&
         row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
           <a key="edit" onClick={() => onOpenEdit(row)}>
             <EditOutlined /> 编辑
           </a>
         ) : null,
         access.canConfirmFinanceBills &&
+        access.canOperateOrganization(row.organizationId) &&
         row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
           <Popconfirm
             key="confirm"
@@ -291,6 +294,7 @@ export function getFinanceBillColumns({
           </Popconfirm>
         ) : null,
         access.canUpdateFinanceBills &&
+        access.canOperateOrganization(row.organizationId) &&
         row.status !== FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED ? (
           <a
             key="cancel"

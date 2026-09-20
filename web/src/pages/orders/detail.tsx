@@ -163,6 +163,7 @@ export default function OrderDetailPage() {
     state: lockState,
     loading: lockStateLoading || synchronizingLockChange,
     error: lockStateError,
+    canOperate: access.canOperateOrganization(order?.organizationId),
   });
   const businessWritesDisabled = lockWritePolicy.disabled;
 
@@ -233,6 +234,7 @@ export default function OrderDetailPage() {
       currencyOptions,
       containerSpecOptions,
       isDetail: true,
+      organizationId: order?.organizationId,
       searchCustomers: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
       searchShippingLines: searchShippingLineOptions,
@@ -259,6 +261,7 @@ export default function OrderDetailPage() {
       containerSpecOptions,
       personnelOptions,
       effectiveReadonly,
+      order?.organizationId,
       loadData,
     ],
   );
@@ -413,6 +416,7 @@ export default function OrderDetailPage() {
   }
 
   const hasAction = (action: number) =>
+    access.canOperateOrganization(order.organizationId) &&
     order.allowedActions?.includes(action) === true;
 
   const confirmTermination = (targetStatus: number) => {

@@ -353,8 +353,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		UserID:            roleUser.ID,
 		DisplayName:       roleUser.DisplayName,
 		IsBootstrapAdmin:  false,
-		Organization:      biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: org.ID, Code: org.Code, Name: org.Name},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID, Kind: biz.OrganizationKindCompany}},
 		RoleGrants: []biz.RoleGrant{{
 			RoleID:      seLockRole.ID,
 			RoleCode:    seLockRole.Code,
@@ -367,8 +367,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		UserID:            normalUser.ID,
 		DisplayName:       normalUser.DisplayName,
 		IsBootstrapAdmin:  false,
-		Organization:      biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: org.ID, Code: org.Code, Name: org.Name},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID, Kind: biz.OrganizationKindCompany}},
 		RoleGrants: []biz.RoleGrant{{
 			RoleID:      normalRole.ID,
 			RoleCode:    normalRole.Code,
@@ -378,10 +378,11 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	}
 
 	adminPrincipal := &biz.Principal{
-		UserID:           adminUser.ID,
-		DisplayName:      adminUser.DisplayName,
-		IsBootstrapAdmin: true,
-		Organization:     biz.Organization{ID: org.ID, Code: org.Code, Name: org.Name},
+		UserID:            adminUser.ID,
+		DisplayName:       adminUser.DisplayName,
+		IsBootstrapAdmin:  true,
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: org.ID, Kind: biz.OrganizationKindCompany}},
+		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: org.ID, Code: org.Code, Name: org.Name},
 	}
 
 	orderLockRepo := NewOrderLockRepo(data, &conf.Security{Dingtalk: &conf.Security_DingTalk{

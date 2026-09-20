@@ -121,7 +121,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 	principalWith := func(op access.OrderOperation) *biz.Principal {
 		permission := access.OrderPermission(access.OrderBusinessSE, op)
 		return &biz.Principal{
-			Organization:      biz.Organization{ID: anchorOrg},
+			Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: anchorOrg},
 			OrganizationNodes: serverOrganizationNodes(anchorOrg),
 			RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{permission})},
 		}
@@ -190,7 +190,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		permission := access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)
 		principal := &biz.Principal{
 			// 当前主体组织是 A，通过 DataScopeAll 覆盖锚点订单所在组织 B
-			Organization:      biz.Organization{ID: orgA},
+			Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: orgA},
 			OrganizationNodes: serverOrganizationNodes(orgA, orgB),
 			RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll, []string{permission})},
 		}
@@ -216,7 +216,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 
 		// 无任何权限授权时拒绝且不进入 handler
 		noGrant := &biz.Principal{
-			Organization:      biz.Organization{ID: orgA},
+			Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: orgA},
 			OrganizationNodes: serverOrganizationNodes(orgA, orgB),
 		}
 		denied := runSharedContainerMiddleware(
@@ -232,13 +232,13 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		}
 	})
 
-	t.Run("跨组织范围的写操作正向放行并切换到锚点组织", func(t *testing.T) {
+	t.Run("跨组织全量授权仍不得在其他公司工作台办理", func(t *testing.T) {
 		orgA := uuid.New()
 		orgB := uuid.New()
 		anchorOrderB := &biz.Order{ID: uuid.New(), OrganizationID: orgB, BusinessType: biz.OrderBusinessSE}
 		permission := access.OrderPermission(access.OrderBusinessSE, access.OrderContainerUpdate)
 		principal := &biz.Principal{
-			Organization:      biz.Organization{ID: orgA},
+			Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: orgA},
 			OrganizationNodes: serverOrganizationNodes(orgA, orgB),
 			RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll, []string{permission})},
 		}
@@ -256,18 +256,15 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			anchorOrderB,
 			request,
 		)
-		if !state.called {
-			t.Fatal("跨组织范围覆盖时写操作应进入 handler")
-		}
-		if state.orgID != orgB {
-			t.Fatalf("写操作 handler 内有效组织应为锚点组织 %s, 实际 %s", orgB, state.orgID)
+		if state.called {
+			t.Fatal("跨公司写操作必须在进入 handler 前拒绝")
 		}
 	})
 
 	t.Run("写操作在范围外组织时拒绝", func(t *testing.T) {
 		principalOrg := uuid.New()
 		principal := &biz.Principal{
-			Organization:      biz.Organization{ID: principalOrg},
+			Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: principalOrg},
 			OrganizationNodes: serverOrganizationNodes(principalOrg),
 			RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, []string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerUpdate)})},
 		}
@@ -304,5 +301,22 @@ func operationNameFromRequest(request any) string {
 		return "WithdrawSeaSharedContainer"
 	default:
 		return ""
+	}
+}
+
+func TestHeadquartersMiddlewareRejectsBusinessButReadsCompanyOrder(t *testing.T) {
+	hqID, companyID := uuid.New(), uuid.New()
+	order := &biz.Order{ID: uuid.New(), OrganizationID: companyID, BusinessType: biz.OrderBusinessSE}
+	for _, admin := range []bool{false, true} {
+		p := &biz.Principal{UserID: uuid.New(), IsBootstrapAdmin: admin, Organization: biz.Organization{ID: hqID, Kind: biz.OrganizationKindHeadquarters}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: hqID, Kind: biz.OrganizationKindHeadquarters}, {ID: companyID, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll, []string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead), access.OrderPermission(access.OrderBusinessSE, access.OrderContainerCreate)})}}
+		invoke, state := newAuthorizationTestMiddleware(t, p, order)
+		writeCtx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/order.v1.SeaSharedContainerService/CreateSeaSharedContainer", cookie: "sid=valid-token"})
+		if _, err := invoke(writeCtx, &orderv1.CreateSeaSharedContainerRequest{OrderId: order.ID.String()}); err == nil || state.called {
+			t.Fatalf("总部 admin=%v 必须在进入 handler 前拒绝公司业务写", admin)
+		}
+		readCtx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/order.v1.SeaSharedContainerService/ListSeaSharedContainers", cookie: "sid=valid-token"})
+		if _, err := invoke(readCtx, &orderv1.ListSeaSharedContainersRequest{OrderId: order.ID.String()}); err != nil || !state.called || state.orgID != companyID {
+			t.Fatalf("总部 admin=%v 应可按授权读取公司订单: %v", admin, err)
+		}
 	}
 }

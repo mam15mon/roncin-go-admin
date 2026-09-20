@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "服务端状态与请求客户端边界"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范入口"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "组件规范与 antd6 契约"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "测试零噪音口径与交互惯例"}

@@ -383,6 +383,7 @@ export default function FinanceCashflowsPage() {
       width: 150,
       render: (_, r) => [
         access.canUpdateFinanceCashflows &&
+        access.canOperateOrganization(r.organizationId) &&
         r.status === FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT ? (
           <Popconfirm
             key="confirm"
@@ -395,6 +396,7 @@ export default function FinanceCashflowsPage() {
           </Popconfirm>
         ) : null,
         access.canUpdateFinanceCashflows &&
+        access.canOperateOrganization(r.organizationId) &&
         r.status !== FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CANCELLED ? (
           <a
             key="cancel"

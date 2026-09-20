@@ -22,6 +22,8 @@ const routeState = vi.hoisted(() => ({
 }));
 
 const accessState = vi.hoisted(() => ({
+  canOperateOrganization: vi.fn(() => true),
+  canOperateBusiness: true,
   canManagePartners: false,
   canReadPartners: true,
   canCreatePartners: true,
@@ -84,6 +86,7 @@ vi.mock('@/utils/options', () => ({
 
 describe('PartnerDetailPage', () => {
   beforeEach(() => {
+    accessState.canOperateOrganization.mockReturnValue(true);
     vi.clearAllMocks();
     routeState.params = { id: 'create' };
     routeState.pathname = '/partners/customers/create';
@@ -366,5 +369,37 @@ describe('PartnerDetailPage', () => {
     );
     const saveButtons = screen.getAllByRole('button', { name: /保存客户档案/ });
     expect(saveButtons.length).toBeGreaterThanOrEqual(1);
+  });
+  it('跨公司档案即使具备更新与管理权限也只读，仍展示档案内容', async () => {
+    accessState.canOperateOrganization.mockReturnValue(false);
+    accessState.canManagePartners = true;
+    routeState.params = { id: VALID_UUID_1 };
+    routeState.pathname = `/partners/customers/${VALID_UUID_1}`;
+    vi.mocked(partnerServiceGetPartner).mockResolvedValue({
+      data: {
+        id: VALID_UUID_1,
+        organizationId: 'other-company',
+        legalName: '其他公司客户',
+        enabled: true,
+      } as never,
+    });
+    render(
+      <App>
+        <PartnerDetailPage />
+      </App>,
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText('公司抬头')).toHaveValue('其他公司客户'),
+    );
+    expect(screen.getByLabelText('公司抬头')).toBeDisabled();
+    expect(
+      screen.queryByRole('button', { name: /保存客户档案/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /新增账户|新增合同/ }),
+    ).not.toBeInTheDocument();
+    expect(accessState.canOperateOrganization).toHaveBeenCalledWith(
+      'other-company',
+    );
   });
 });

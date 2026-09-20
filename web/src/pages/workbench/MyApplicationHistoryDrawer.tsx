@@ -1,3 +1,9 @@
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { useAccess } from '@umijs/max';
 import type { TableColumnsType } from 'antd';
 import {
   App,
@@ -10,7 +16,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 import {
   workbenchServiceGetMyCommissionApplication,
@@ -30,7 +36,6 @@ const { Text } = Typography;
 
 type Application = API.WorkbenchMyCommissionApplication;
 type ApplicationLine = API.WorkbenchMyApplicationLine;
-type ApplicationDetail = API.WorkbenchMyCommissionApplicationDetail;
 
 type HistoryQuery = {
   page: number;
@@ -39,6 +44,9 @@ type HistoryQuery = {
 };
 
 const DEFAULT_PAGE_SIZE = 20;
+
+/** 服务端状态域前缀：本人月度申请（列表与详情）查询的统一 key 前缀。 */
+const APPLICATIONS_QUERY_BASE = ['workbench', 'my-applications'] as const;
 
 /** 状态过滤只提供工作台有效口径；UNSPECIFIED 不作为筛选项。 */
 const APPLICATION_STATUS_FILTER_OPTIONS = [
@@ -79,68 +87,54 @@ export default function MyApplicationHistoryDrawer({
   onClose,
   onResubmitted,
 }: Props) {
-  const [items, setItems] = useState<Application[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const { canOperateBusiness } = useAccess();
+  const queryClient = useQueryClient();
   const [query, setQuery] = useState<HistoryQuery>({
     page: 1,
     pageSize: DEFAULT_PAGE_SIZE,
   });
-  const [refreshToken, setRefreshToken] = useState(0);
-  const [detail, setDetail] = useState<ApplicationDetail>();
-  const [detailLoading, setDetailLoading] = useState(false);
+  /** 明细下钻只记录选中的申请 ID，数据由服务端状态层管理。 */
+  const [detailId, setDetailId] = useState<string>();
   const [resubmitting, setResubmitting] = useState(false);
-  const listSequenceRef = useRef(0);
-  const detailSequenceRef = useRef(0);
   const { message, modal } = App.useApp();
 
-  useEffect(() => {
-    if (!open) return;
-    const sequence = ++listSequenceRef.current;
-    setLoading(true);
-    workbenchServiceListMyCommissionApplications({
-      page: query.page,
-      pageSize: query.pageSize,
-      ...(query.status !== undefined ? { status: query.status } : {}),
-    })
-      .then((response) => {
-        if (sequence !== listSequenceRef.current) return;
-        setItems(response.data ?? []);
-        setTotal(Number(response.total ?? 0));
-      })
-      .catch(() => {
-        // 失败由统一请求错误处理提示；保留当前内容并停止加载。
-      })
-      .finally(() => {
-        if (sequence === listSequenceRef.current) setLoading(false);
-      });
-    return () => {
-      listSequenceRef.current += 1;
-    };
-  }, [open, query, refreshToken]);
+  const { data: listData, isFetching: listFetching } = useQuery({
+    queryKey: [
+      ...APPLICATIONS_QUERY_BASE,
+      { page: query.page, pageSize: query.pageSize, status: query.status },
+    ],
+    queryFn: () =>
+      workbenchServiceListMyCommissionApplications({
+        page: query.page,
+        pageSize: query.pageSize,
+        ...(query.status !== undefined ? { status: query.status } : {}),
+      }),
+    enabled: open,
+    // 旧行为为空 catch 静默，仅靠请求层 notification；显式声明避免全局 message 补充弹错
+    meta: { silent: true },
+    // 翻页与切换过滤期间保留当前内容，与既有手写层行为一致。
+    placeholderData: keepPreviousData,
+  });
+
+  const { data: detailData, isFetching: detailFetching } = useQuery({
+    queryKey: [...APPLICATIONS_QUERY_BASE, 'detail', detailId],
+    queryFn: () =>
+      workbenchServiceGetMyCommissionApplication({ id: detailId ?? '' }),
+    enabled: detailId !== undefined,
+    // 旧行为为空 catch 静默，仅靠请求层 notification；显式声明避免全局 message 补充弹错
+    meta: { silent: true },
+  });
+
+  const items = listData?.data ?? [];
+  const total = Number(listData?.total ?? 0);
+  const detail = detailData?.data;
 
   const openDetail = (record: Application) => {
-    if (!record.id) return;
-    const applicationId = record.id;
-    const sequence = ++detailSequenceRef.current;
-    setDetailLoading(true);
-    workbenchServiceGetMyCommissionApplication({ id: applicationId })
-      .then((response) => {
-        if (sequence !== detailSequenceRef.current) return;
-        setDetail(response.data);
-      })
-      .catch(() => {
-        // 失败由统一请求错误处理提示；留在列表视图。
-      })
-      .finally(() => {
-        if (sequence === detailSequenceRef.current) setDetailLoading(false);
-      });
+    if (record.id) setDetailId(record.id);
   };
 
   const backToList = () => {
-    detailSequenceRef.current += 1;
-    setDetail(undefined);
-    setDetailLoading(false);
+    setDetailId(undefined);
   };
 
   const isRejected =
@@ -149,7 +143,8 @@ export default function MyApplicationHistoryDrawer({
 
   /** 显式重提：按申请 ID + 当前版本定位原申请，服务端按最新上游数据刷新金额。 */
   const resubmit = (record: Application) => {
-    if (!record.id || !record.version || resubmitting) return;
+    if (!canOperateBusiness || !record.id || !record.version || resubmitting)
+      return;
     const applicationId = record.id;
     const expectedVersion = record.version;
     const monthLabel = record.applicationMonth || '';
@@ -179,7 +174,11 @@ export default function MyApplicationHistoryDrawer({
           });
           message.success('申请已重新提交，等待财务审批');
           backToList();
-          setRefreshToken((token) => token + 1);
+          // 重提成功后失效申请历史域（列表与详情快照按原翻页/过滤参数重查）；
+          // 刷新失败由全局查询错误处理提示，不改变本次重提的成功结果。
+          queryClient
+            .invalidateQueries({ queryKey: [...APPLICATIONS_QUERY_BASE] })
+            .catch(() => undefined);
           await onResubmitted?.();
         } catch (error: unknown) {
           message.error((error as Error).message || '重新提交失败');
@@ -294,8 +293,9 @@ export default function MyApplicationHistoryDrawer({
       render: (_, record) => (
         <Space size={8}>
           <a onClick={() => openDetail(record)}>明细</a>
-          {record.status ===
-          WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED ? (
+          {canOperateBusiness &&
+          record.status ===
+            WorkbenchCommissionApplicationStatus.WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED ? (
             <a onClick={() => resubmit(record)}>重新提交</a>
           ) : null}
         </Space>
@@ -319,7 +319,7 @@ export default function MyApplicationHistoryDrawer({
             </Button>
             <Text strong>{application?.applicationMonth || '-'} 月度申请</Text>
             {applicationStatusTag(application?.status)}
-            {isRejected ? (
+            {canOperateBusiness && isRejected ? (
               <Button
                 type="primary"
                 size="small"
@@ -379,7 +379,7 @@ export default function MyApplicationHistoryDrawer({
           <Table<ApplicationLine>
             rowKey={(record) => record.id || record.commissionId || ''}
             size="small"
-            loading={detailLoading}
+            loading={detailFetching}
             columns={lineColumns}
             dataSource={detail.lines ?? []}
             pagination={false}
@@ -408,7 +408,7 @@ export default function MyApplicationHistoryDrawer({
           <Table<Application>
             rowKey={(record) => record.id || record.applicationMonth || ''}
             size="small"
-            loading={loading}
+            loading={listFetching}
             columns={columns}
             dataSource={items}
             pagination={{

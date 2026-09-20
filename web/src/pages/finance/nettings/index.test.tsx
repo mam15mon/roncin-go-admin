@@ -14,6 +14,8 @@ const serviceMocks = vi.hoisted(() => ({
 const templateProps: { columns?: any[] } = {};
 
 const accessState = vi.hoisted(() => ({
+  canOperateOrganization: () => true,
+  canConfigureFinanceCommissions: false,
   canConfirmFinanceNettings: true,
   canReadFinanceNettings: true,
   canReverseFinanceNettings: true,

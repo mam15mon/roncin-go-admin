@@ -153,7 +153,7 @@ export default function SeaExportDetailFeatures({
   // —— 更多菜单：共享航次、共享箱、拆票/改配历史 ——
   const moreMenuItems: MenuProps['items'] = useMemo(
     () => [
-      ...(canOrder('reassign')
+      ...(!businessWritesDisabled && canOrder('reassign')
         ? [
             {
               key: 'shared-voyage-update',
@@ -186,7 +186,7 @@ export default function SeaExportDetailFeatures({
         onClick: () => setHistoryDrawerOpen(true),
       },
     ],
-    [canOrder, message, order, orderId],
+    [businessWritesDisabled, canOrder, message, order, orderId],
   );
 
   // —— 头部动作：拆票与改配（保持通用 Header 中的位置、样式与禁用语义）——

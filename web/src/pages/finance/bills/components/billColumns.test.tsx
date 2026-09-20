@@ -1,15 +1,52 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { FinanceBillStatus } from '@/enums.generated';
 import { getFinanceBillColumns } from './billColumns';
 
 describe('getFinanceBillColumns', () => {
+  afterEach(cleanup);
   const columns = getFinanceBillColumns({
-    access: { canUpdateFinanceBills: true, canConfirmFinanceBills: true },
+    access: {
+      canOperateOrganization: (id) => id === 'company-a',
+      canUpdateFinanceBills: true,
+      canConfirmFinanceBills: true,
+    },
     onOpenDetail: () => {},
     onOpenEdit: () => {},
     onConfirmBill: () => {},
     onCancelBill: () => {},
+  });
+
+  it.each(['company-b', undefined])(
+    '外公司或缺失归属 %s 仅显示详情',
+    (organizationId) => {
+      const actions = columns.find((col) => col.valueType === 'option')
+        ?.render as any;
+      render(
+        actions(undefined, {
+          organizationId,
+          status: FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+        }),
+      );
+      expect(screen.getByText('详情')).toBeInTheDocument();
+      expect(screen.queryByText('编辑')).not.toBeInTheDocument();
+      expect(screen.queryByText('确认')).not.toBeInTheDocument();
+      expect(screen.queryByText('取消')).not.toBeInTheDocument();
+    },
+  );
+
+  it('当前公司的草稿保留授权办理入口', () => {
+    const actions = columns.find((col) => col.valueType === 'option')
+      ?.render as any;
+    render(
+      actions(undefined, {
+        organizationId: 'company-a',
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+      }),
+    );
+    expect(screen.getByText('编辑')).toBeInTheDocument();
+    expect(screen.getByText('确认')).toBeInTheDocument();
   });
 
   const dueDateCol = columns.find((col) => col.dataIndex === 'dueDate');

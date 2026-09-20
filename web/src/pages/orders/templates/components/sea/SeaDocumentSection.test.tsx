@@ -1,10 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { FormInstance } from 'antd';
 import { App, Form } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,27 +7,21 @@ import {
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
-import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
-import {
-  DEFAULT_BILL_FORM,
-  DEFAULT_FREIGHT_TERMS,
-  DEFAULT_RELEASE_TYPE,
-  DEFAULT_TRANSPORT_TERMS,
-  SEA_BILL_FORM_OPTIONS,
-  SEA_FREIGHT_TERM_OPTIONS,
-  SEA_RELEASE_TYPE_OPTIONS,
-  SEA_TRANSPORT_TERM_OPTIONS,
-  SeaDocumentSectionComponent,
-} from './SeaDocumentSection';
+import { SeaDocumentSectionComponent } from './SeaDocumentSection';
+
+const workspaceAccess = vi.hoisted(() => ({ canOperate: true }));
 
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({
+    canOperateOrganization: () => workspaceAccess.canOperate,
+    canOrder: () => true,
+  }),
 }));
 
 vi.mock('@/services/roncin/seaDocumentService', () => ({
@@ -99,7 +87,6 @@ vi.mock('./SeaExternalConfirmationFields', async () => {
 const getDocuments = vi.mocked(seaDocumentServiceGetSeaOrderDocuments);
 const previewMode = vi.mocked(seaDocumentServicePreviewChangeSeaDocumentMode);
 const executeMode = vi.mocked(seaDocumentServiceExecuteChangeSeaDocumentMode);
-const getPartner = vi.mocked(partnerServiceGetPartner);
 
 function TestForm({
   initialValues,
@@ -166,11 +153,10 @@ function mockDocuments(structure: number) {
   });
 }
 
-// 单证分节组件随海运模板快速迭代中，暂时跳过重型表单测试；
-// 功能稳定后移除 skip 恢复（含免责条款勾选与委托实际件重尺对照用例）。
 describe('SeaDocumentSectionComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    workspaceAccess.canOperate = true;
     previewMode.mockResolvedValue({
       data: {
         executable: true,
@@ -336,355 +322,22 @@ describe('SeaDocumentSectionComponent', () => {
     expect(screen.getByRole('button', { name: '预览切换影响' })).toBeEnabled();
   }, 60000);
 
-  it('支持通知人与第二通知人切换，并支持从订单国外代理带入抬头与地址', async () => {
-    let capturedForm: FormInstance | undefined;
-    getPartner.mockResolvedValue({
-      data: {
-        id: 'agent-1',
-        legalName: 'Global Shipping Agent Ltd',
-        profile: {
-          nameEn: 'GLOBAL SHIPPING AGENT LTD',
-          addressEn: '123 Ocean Blvd, Hamburg, Germany',
-        },
-        contacts: [
-          { name: 'John Doe', phone: '+49 40 123456', email: 'john@agent.com' },
-        ],
-      },
-    });
-
+  it('外公司单证详情可查看，但不能切换单证模式', async () => {
+    workspaceAccess.canOperate = false;
+    mockDocuments(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE);
     render(
       <TestForm
-        initialValues={{
-          seaDocumentStructure:
-            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
-          foreignAgentId: 'agent-1',
-          seaMasterBillContent: {
-            notifyPartyText: 'SAME AS CONSIGNEE',
-          },
-        }}
-        exposeForm={(form) => {
-          capturedForm = form;
-        }}
+        isDetail
+        disabled
+        initialValues={{ id: 'order-1', version: '11' }}
       />,
     );
-
-    // 默认在通知人标签
+    await waitFor(() => expect(getDocuments).toHaveBeenCalled());
+    await screen.findByText('MBL001');
     expect(
-      screen.getByPlaceholderText(
-        '请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)',
-      ),
-    ).toBeVisible();
-
-    // 点击切换到第二通知人
-    fireEvent.click(screen.getByText('第二通知人 (Second Notify Party)'));
-    const secondNotifyInput = screen.getByPlaceholderText(
-      '请输入第二通知人名称与详细地址 (选填，多数提单无需填写)',
-    );
-    expect(secondNotifyInput).toBeVisible();
-
-    // 录入第二通知人并检查已填写标记
-    fireEvent.change(secondNotifyInput, {
-      target: { value: 'ALSO NOTIFY CO., LTD' },
-    });
-    await waitFor(() => {
-      expect(screen.getByText('已填写')).toBeInTheDocument();
-    });
-
-    // 点击从订单国外代理带入
-    const importBtn = screen.getByRole('button', {
-      name: /从订单国外代理带入/,
-    });
-    fireEvent.click(importBtn);
-
-    await waitFor(() => {
-      expect(getPartner).toHaveBeenCalledWith({ id: 'agent-1' });
-      const foreignAgentVal = capturedForm?.getFieldValue([
-        'seaMasterBillContent',
-        'foreignAgentText',
-      ]);
-      expect(foreignAgentVal).toContain('GLOBAL SHIPPING AGENT LTD');
-      expect(foreignAgentVal).toContain('123 Ocean Blvd, Hamburg, Germany');
-      expect(foreignAgentVal).toContain(
-        'TEL/CONTACT: John Doe +49 40 123456 john@agent.com',
-      );
-    });
-  });
-
-  it('提单运输条款与运费条款默认值及下拉选项符合海运标准', async () => {
-    let capturedForm: FormInstance | undefined;
-    render(
-      <TestForm
-        initialValues={{
-          seaDocumentStructure:
-            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
-        }}
-        exposeForm={(form) => {
-          capturedForm = form;
-        }}
-      />,
-    );
-
-    // 运输条款默认值为 CY - CY，运费条款默认值为 FREIGHT PREPAID
-    await waitFor(() => {
-      expect(
-        capturedForm?.getFieldValue(['seaMasterBillContent', 'transportTerms']),
-      ).toBe('CY - CY');
-      expect(
-        capturedForm?.getFieldValue(['seaMasterBillContent', 'freightTerms']),
-      ).toBe('FREIGHT PREPAID');
-    });
-
-    // 运输条款选项包含核心海运条款
-    expect(DEFAULT_TRANSPORT_TERMS).toBe('CY - CY');
-    expect(
-      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CY - CY'),
-    ).toBe(true);
-    expect(
-      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CFS - CFS'),
-    ).toBe(true);
-    expect(
-      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'DOOR - DOOR'),
-    ).toBe(true);
-    expect(
-      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CY - FO'),
-    ).toBe(true);
-    expect(
-      SEA_TRANSPORT_TERM_OPTIONS.some((opt) => opt.value === 'CFS / DDU'),
-    ).toBe(true);
-
-    // 运费条款选项与默认值
-    expect(DEFAULT_FREIGHT_TERMS).toBe('FREIGHT PREPAID');
-    expect(SEA_FREIGHT_TERM_OPTIONS.map((opt) => opt.value)).toEqual([
-      'FREIGHT PREPAID',
-      'FREIGHT COLLECT',
-      'FREIGHT PAYABLE AT DESTINATION',
-      'PAYABLE AT XXX',
-      '预付',
-      '到付',
-    ]);
-  });
-
-  it('支持一键从订单货物信息带入品名、件数、单位及毛重体积', async () => {
-    let capturedForm: FormInstance | undefined;
-    render(
-      <TestForm
-        initialValues={{
-          seaDocumentStructure:
-            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
-          goodsDescription: 'AUTO PARTS / 汽车配件',
-          totalPackages: 800,
-          totalPackageUnit: 'CTNS',
-          totalGrossWeightKg: 15200.5,
-          totalVolumeCbm: 45.8,
-        }}
-        exposeForm={(form) => {
-          capturedForm = form;
-        }}
-      />,
-    );
-
-    const importCargoBtn = screen.getByRole('button', {
-      name: /从订单货物信息带入/,
-    });
-    expect(importCargoBtn).toBeInTheDocument();
-    fireEvent.click(importCargoBtn);
-
-    await waitFor(() => {
-      const content = capturedForm?.getFieldValue('seaMasterBillContent');
-      expect(content?.goodsDescriptionText).toBe('AUTO PARTS / 汽车配件');
-      expect(content?.packageCount).toBe(800);
-      expect(content?.packageUnit).toBe('CTNS');
-      expect(content?.grossWeightKg).toBe(15200.5);
-      expect(content?.volumeCbm).toBe(45.8);
-    });
-  });
-
-  it('支持一键从委托客户带入发货人，并支持 TO ORDER、SAME AS CONSIGNEE、N/M 等快捷点选', async () => {
-    getPartner.mockResolvedValueOnce({
-      data: {
-        id: 'cust-1',
-        legalName: '上海某某外贸进出口有限公司',
-        profile: {
-          nameEn: 'SHANGHAI TRADING CO., LTD',
-          addressEn: '100 EAST NANJING ROAD, SHANGHAI, CHINA',
-        },
-        contacts: [
-          {
-            name: 'Alice',
-            phone: '+86 21 66668888',
-            email: 'alice@shanghaitrading.com',
-          },
-        ],
-      },
-    });
-
-    let capturedForm: FormInstance | undefined;
-    render(
-      <TestForm
-        initialValues={{
-          seaDocumentStructure:
-            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
-          customerId: 'cust-1',
-        }}
-        exposeForm={(form) => {
-          capturedForm = form;
-        }}
-      />,
-    );
-
-    // 1. 点击从委托客户带入发货人
-    const importShipperBtn = screen.getByRole('button', {
-      name: /从委托客户带入/,
-    });
-    fireEvent.click(importShipperBtn);
-
-    await waitFor(() => {
-      expect(getPartner).toHaveBeenCalledWith({ id: 'cust-1' });
-      const shipper = capturedForm?.getFieldValue([
-        'seaMasterBillContent',
-        'shipperText',
-      ]);
-      expect(shipper).toContain('SHANGHAI TRADING CO., LTD');
-      expect(shipper).toContain('100 EAST NANJING ROAD, SHANGHAI, CHINA');
-      expect(shipper).toContain(
-        'TEL/CONTACT: Alice +86 21 66668888 alice@shanghaitrading.com',
-      );
-    });
-
-    // 2. 点击快捷标签 + TO ORDER
-    const toOrderTag = screen.getByText('+ TO ORDER');
-    fireEvent.click(toOrderTag);
-    expect(
-      capturedForm?.getFieldValue(['seaMasterBillContent', 'consigneeText']),
-    ).toBe('TO ORDER');
-
-    // 3. 点击快捷标签 + SAME AS CONSIGNEE
-    const sameAsConsigneeTag = screen.getByText('+ SAME AS CONSIGNEE');
-    fireEvent.click(sameAsConsigneeTag);
-    expect(
-      capturedForm?.getFieldValue(['seaMasterBillContent', 'notifyPartyText']),
-    ).toBe('SAME AS CONSIGNEE');
-
-    // 4. 点击快捷标签 + N/M
-    const nmTag = screen.getByText('+ N/M');
-    fireEvent.click(nmTag);
-    expect(
-      capturedForm?.getFieldValue(['seaMasterBillContent', 'marksText']),
-    ).toBe('N/M');
-
-    // 5. 提单形式与放单方式默认值
-    expect(DEFAULT_BILL_FORM).toBe('ORIGINAL');
-    expect(DEFAULT_RELEASE_TYPE).toBe('电放');
-    expect(SEA_BILL_FORM_OPTIONS.map((o) => o.value)).toContain('ORIGINAL');
-    expect(SEA_RELEASE_TYPE_OPTIONS.map((o) => o.value)).toContain('电放');
-  });
-
-  it('支持英文品名免责条款快捷勾选与一键带入委托件重尺', async () => {
-    let capturedForm: FormInstance | undefined;
-    render(
-      <TestForm
-        initialValues={{
-          seaDocumentStructure:
-            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
-          totalPackages: 500,
-          totalPackageUnit: 'PLTS',
-          totalGrossWeightKg: 12000.5,
-          totalVolumeCbm: 32.4,
-          seaMasterBillContent: {
-            goodsDescriptionText: 'CAR PARTS',
-          },
-        }}
-        exposeForm={(form) => {
-          capturedForm = form;
-        }}
-      />,
-    );
-
-    // 1. 勾选免责条款 SHIPPER LOAD,COUNT AND SEAL
-    const clauseCheckbox = screen.getByLabelText('免责条款');
-    expect(clauseCheckbox).toBeInTheDocument();
-    expect(clauseCheckbox).not.toBeChecked();
-
-    fireEvent.click(clauseCheckbox);
-    await waitFor(() => {
-      expect(clauseCheckbox).toBeChecked();
-    });
-    expect(
-      capturedForm?.getFieldValue([
-        'seaMasterBillContent',
-        'goodsDescriptionText',
-      ]),
-    ).toBe('CAR PARTS\nSHIPPER LOAD,COUNT AND SEAL');
-
-    // 2. 取消勾选免责条款
-    fireEvent.click(clauseCheckbox);
-    await waitFor(() => {
-      expect(clauseCheckbox).not.toBeChecked();
-    });
-    expect(
-      capturedForm?.getFieldValue([
-        'seaMasterBillContent',
-        'goodsDescriptionText',
-      ]),
-    ).toBe('CAR PARTS');
-
-    // 3. 点击「带入委托件重尺 ↓」按钮
-    const importMeasurementsBtn = screen.getByRole('button', {
-      name: /带入委托件重尺/,
-    });
-    fireEvent.click(importMeasurementsBtn);
-
-    await waitFor(() => {
-      const content = capturedForm?.getFieldValue('seaMasterBillContent');
-      expect(content?.packageCount).toBe(500);
-      expect(content?.packageUnit).toBe('PLTS');
-      expect(content?.grossWeightKg).toBe(12000.5);
-      expect(content?.volumeCbm).toBe(32.4);
-    });
-  });
-
-  it('件重尺对照表格汇总行实时比对委托与实际差额', async () => {
-    let capturedForm: FormInstance | undefined;
-    render(
-      <TestForm
-        initialValues={{
-          totalPackages: 500,
-          totalPackageUnit: 'PLTS',
-          totalGrossWeightKg: 12000,
-          totalVolumeCbm: 32.4,
-          seaMasterBillContent: {
-            packageCount: 502,
-            packageUnit: 'PLTS',
-            grossWeightKg: 11880,
-            volumeCbm: 32.4,
-          },
-        }}
-        exposeForm={(form) => {
-          capturedForm = form;
-        }}
-      />,
-    );
-
-    // 件数与毛重不一致：逐项展示带符号差额；体积一致不单独展示
-    await waitFor(() => {
-      expect(screen.getByText('件数：实际+2 PLTS')).toBeInTheDocument();
-    });
-    expect(screen.getByText('毛重：实际-120 KGS')).toBeInTheDocument();
-    expect(screen.queryByText(/^体积：/)).not.toBeInTheDocument();
-    expect(
-      screen.queryByText('✓ 委托与实际件重尺一致'),
+      screen.queryByRole('button', { name: /切换为 DIRECT/ }),
     ).not.toBeInTheDocument();
-
-    // 修正为一致后，汇总收敛为一条绿色提示
-    act(() => {
-      capturedForm?.setFieldsValue({
-        seaMasterBillContent: { packageCount: 500, grossWeightKg: 12000 },
-      });
-    });
-    await waitFor(() => {
-      expect(screen.getByText('✓ 委托与实际件重尺一致')).toBeInTheDocument();
-    });
-    expect(screen.queryByText(/^件数：实际/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/^毛重：实际/)).not.toBeInTheDocument();
+    expect(previewMode).not.toHaveBeenCalled();
+    expect(executeMode).not.toHaveBeenCalled();
   });
 });

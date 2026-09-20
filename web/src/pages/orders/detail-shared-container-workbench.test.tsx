@@ -15,6 +15,8 @@ const routeState = vi.hoisted(() => ({
 vi.mock('@umijs/max', () => ({
   useParams: () => routeState.params,
   useAccess: () => ({
+    canOperateOrganization: () => true,
+    canOperateBusiness: true,
     canOrder: () => true,
   }),
   history: { push: vi.fn() },

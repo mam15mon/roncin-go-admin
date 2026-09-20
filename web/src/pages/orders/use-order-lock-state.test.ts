@@ -111,22 +111,32 @@ describe('useOrderLockState', () => {
 describe('getOrderBusinessWritePolicy', () => {
   it('加载、错误、空状态和已锁定时都失败关闭', () => {
     expect(
-      getOrderBusinessWritePolicy({ state: null, loading: true, error: null })
-        .disabled,
+      getOrderBusinessWritePolicy({
+        canOperate: true,
+        state: null,
+        loading: true,
+        error: null,
+      }).disabled,
     ).toBe(true);
     expect(
       getOrderBusinessWritePolicy({
+        canOperate: true,
         state: null,
         loading: false,
         error: new Error('failed'),
       }).disabled,
     ).toBe(true);
     expect(
-      getOrderBusinessWritePolicy({ state: null, loading: false, error: null })
-        .disabled,
+      getOrderBusinessWritePolicy({
+        canOperate: true,
+        state: null,
+        loading: false,
+        error: null,
+      }).disabled,
     ).toBe(true);
     expect(
       getOrderBusinessWritePolicy({
+        canOperate: true,
         state: {
           isLocked: true,
           businessType: OrderBusinessType.BUSINESS_TYPE_AI,
@@ -143,6 +153,7 @@ describe('getOrderBusinessWritePolicy', () => {
   it('只有成功加载且未锁定时开放业务写', () => {
     expect(
       getOrderBusinessWritePolicy({
+        canOperate: true,
         state: { isLocked: false },
         loading: false,
         error: null,

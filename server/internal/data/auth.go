@@ -775,7 +775,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	sort.Slice(organizationNodes, func(i, j int) bool {
 		return organizationNodes[i].ID.String() < organizationNodes[j].ID.String()
 	})
-	return &biz.Principal{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, IsBootstrapAdmin: account.IsBootstrapAdmin, Organization: *current, Organizations: organizations, RoleGrants: roleGrants, OrganizationNodes: organizationNodes}, nil
+	return &biz.Principal{WorkspaceOrganizationID: organizationID, UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, IsBootstrapAdmin: account.IsBootstrapAdmin, Organization: *current, Organizations: organizations, RoleGrants: roleGrants, OrganizationNodes: organizationNodes}, nil
 }
 
 // resolveBootstrapAdminPrincipalView 构建 bootstrap 管理员的主体投影：候选组织为全部

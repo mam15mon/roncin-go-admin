@@ -224,7 +224,7 @@ export default function BackgroundTasksPanel() {
       fixed: 'right',
       search: false,
       render: (_, record) => {
-        if (!access.canRequeueTasks) return null;
+        if (!access.canRequeueTask(record.kind)) return null;
         if (
           record.status !==
             BackgroundTaskStatus.BACKGROUND_TASK_STATUS_FAILED &&

@@ -31,6 +31,7 @@ const listQueryState = vi.hoisted(() => ({
 vi.mock('@umijs/max', () => ({
   useLocation: () => ({ pathname: pageState.pathname }),
   useAccess: () => ({
+    canOperateOrganization: () => true,
     canOrder: () => true,
     canCreateEnterpriseResources: true,
     canReadFinanceCommissions: accessState.canReadFinanceCommissions,

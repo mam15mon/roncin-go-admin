@@ -1,10 +1,5 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -32,6 +27,7 @@ const umiState = vi.hoisted(() => ({
   } as Record<string, unknown>,
   access: {
     canReadSEOrders: true,
+    canOperateBusiness: true,
     canReadFinanceFees: false,
     canReadFinanceBills: false,
     canReadFinanceVerifications: false,
@@ -112,7 +108,7 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
 }
 
 function renderPage() {
-  return render(
+  return renderWithClient(
     <App>
       <WelcomePage />
     </App>,

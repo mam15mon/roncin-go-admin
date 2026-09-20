@@ -323,18 +323,21 @@ export default function FinanceNettingsPage() {
           详情
         </a>,
         access.canConfirmFinanceNettings &&
+        access.canOperateOrganization(record.organizationId) &&
         record.status === FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT ? (
           <a key="confirm" onClick={() => confirmNetting(record)}>
             <CheckOutlined /> 确认
           </a>
         ) : null,
         access.canReverseFinanceNettings &&
+        access.canOperateOrganization(record.organizationId) &&
         record.status === FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT ? (
           <a key="cancel" onClick={() => cancelNetting(record)}>
             取消
           </a>
         ) : null,
         access.canReverseFinanceNettings &&
+        access.canOperateOrganization(record.organizationId) &&
         record.status ===
           FinanceNettingStatus.FINANCE_NETTING_STATUS_CONFIRMED ? (
           <a

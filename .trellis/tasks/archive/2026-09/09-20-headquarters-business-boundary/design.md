@@ -7,6 +7,12 @@
 
 经营写范围 = 当前启用公司 ∩ 该动作原始授权范围；总部、部门、团队均不得作为经营写工作台。规则先于管理员特例。管理写范围继续按现有规则；读取保留原范围。
 
+## 已确认的混合权限拆分
+
+- `system.finance.commission.configure`：方案维护、员工分配与复制；`commission.manage` 专用于经营办理。
+- `system.finance.bill.configure`：总部已计费费用编辑管控配置；`bill.update` 专用于经营账单修改。
+- 原始角色权限保留；不把旧业务权限隐式映射到新配置权限。权限目录与管理员授权通过现有 migrate 同步流程更新。
+
 ## 接口与持久化
 Service 只传递主体、操作和已解析范围；规则留在 biz。检查 `server/internal/server/auth.go` 的端点映射、所有 service 直接使用组织 ID 或 Principal.RoleGrants 的路径，防止只修组织范围 helper 而漏掉路径。仓储查询继续以目标 ID 与允许公司范围共同过滤，保留现有归属守卫和事务，不在本任务引入新锁或版本模型。
 

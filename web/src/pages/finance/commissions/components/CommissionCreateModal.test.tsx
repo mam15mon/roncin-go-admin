@@ -1,10 +1,5 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Form } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -193,7 +188,7 @@ describe('提成预览 CNY 快照', () => {
   });
 
   it('展示后端返回的 CNY 金额、汇率依据和重新解析提示', async () => {
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -217,7 +212,7 @@ describe('提成预览 CNY 快照', () => {
     serviceMocks.createCommission.mockResolvedValue({
       data: { cnyCommissionAmount: '401.00000000' },
     });
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -258,7 +253,7 @@ describe('提成预览 CNY 快照', () => {
   });
 
   it('选择核销来源后从服务端加载「员工 + 身份 + 已解析方案」候选', async () => {
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -287,7 +282,7 @@ describe('提成预览 CNY 快照', () => {
   });
 
   it('预览请求携带来源、员工、身份与组织且不携带规则', async () => {
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -321,7 +316,7 @@ describe('提成预览 CNY 快照', () => {
     serviceMocks.listCommissionNettingCandidates.mockResolvedValue({
       data: [nettingCandidate],
     });
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -377,7 +372,7 @@ describe('提成预览 CNY 快照', () => {
       },
     });
     serviceMocks.createCommission.mockResolvedValue({ data: {} });
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -455,7 +450,7 @@ describe('提成预览 CNY 快照', () => {
               ],
             }),
     );
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -510,7 +505,7 @@ describe('提成预览 CNY 快照', () => {
             : [verificationCandidate],
         }),
     );
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open
@@ -557,7 +552,7 @@ describe('提成预览 CNY 快照', () => {
     serviceMocks.listCommissionNettingCandidates.mockResolvedValue({
       data: [nettingCandidate],
     });
-    render(
+    renderWithClient(
       <App>
         <CommissionCreateModal
           open

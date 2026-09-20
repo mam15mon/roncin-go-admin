@@ -42,6 +42,8 @@ type WorkbenchScope struct {
 	CommissionReadable bool
 	// CommissionManageable 表示当前用户对当前组织具备 system.finance.commission.manage。
 	CommissionManageable bool
+	// CanOperateBusiness 决定本人业务申请是否可办理，不影响只读查询。
+	CanOperateBusiness bool
 	// IsBootstrapAdmin 透传给补录审批实时资格判定。
 	IsBootstrapAdmin bool
 }

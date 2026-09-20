@@ -3136,7 +3136,7 @@ declare namespace API {
     message?: string;
     data?: BilledFeeEditPolicy;
     traceId?: string;
-    /** can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。 */
+    /** can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。 */
     canUpdate?: boolean;
   };
 
@@ -3170,7 +3170,7 @@ declare namespace API {
     message?: string;
     data?: CreditLimitControlPolicy;
     traceId?: string;
-    /** can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。 */
+    /** can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。 */
     canUpdate?: boolean;
   };
 

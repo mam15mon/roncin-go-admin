@@ -241,11 +241,11 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 			UserID:           u.ID,
 			DisplayName:      u.DisplayName,
 			IsBootstrapAdmin: u.IsBootstrapAdmin,
-			Organization:     biz.Organization{ID: child.ID},
+			Organization:     biz.Organization{Kind: biz.OrganizationKindCompany, ID: child.ID},
 			OrganizationNodes: []biz.OrganizationScopeNode{
-				{ID: parent.ID},
-				{ID: child.ID, ParentID: &parent.ID},
-				{ID: sibling.ID, ParentID: &parent.ID},
+				{Kind: biz.OrganizationKindCompany, ID: parent.ID},
+				{Kind: biz.OrganizationKindCompany, ID: child.ID, ParentID: &parent.ID},
+				{Kind: biz.OrganizationKindCompany, ID: sibling.ID, ParentID: &parent.ID},
 			},
 			RoleGrants: grants,
 		}

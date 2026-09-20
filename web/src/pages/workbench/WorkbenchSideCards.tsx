@@ -83,9 +83,7 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
               key="open"
               type="link"
               size="small"
-              onClick={() =>
-                history.push(`/orders/sea-export/${item.orderId}`)
-              }
+              onClick={() => history.push(`/orders/sea-export/${item.orderId}`)}
             >
               订单详情
             </Button>

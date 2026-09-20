@@ -14,6 +14,7 @@ import { getSeaTemplateSections } from './sea-template';
 vi.mock('@umijs/max', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@umijs/max')>()),
   useAccess: () => ({
+    canOperateOrganization: () => true,
     canOrder: () => true,
     canCreatePartners: true,
   }),

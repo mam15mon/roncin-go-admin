@@ -44,6 +44,7 @@ const (
 	FinanceFeeSettingUpdate      = "system.finance.fee_setting.update"
 	FinanceFeeRead               = "system.finance.fee.read"
 	FinanceFeeTag                = "system.finance.fee.tag"
+	FinanceBillConfigure         = "system.finance.bill.configure"
 	FinanceBillRead              = "system.finance.bill.read"
 	FinanceBillCreate            = "system.finance.bill.create"
 	FinanceBillUpdate            = "system.finance.bill.update"
@@ -62,6 +63,7 @@ const (
 	FinanceNettingConfirm        = "system.finance.netting.confirm"
 	FinanceNettingReverse        = "system.finance.netting.reverse"
 	FinanceCommissionRead        = "system.finance.commission.read"
+	FinanceCommissionConfigure   = "system.finance.commission.configure"
 	FinanceCommissionManage      = "system.finance.commission.manage"
 	FinanceCommissionExport      = "system.finance.commission.export"
 
@@ -219,6 +221,7 @@ var manifest = append([]Permission{
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "费用管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 费用总台账", Description: "查看当前组织全部业务线的应收应付费用"},
 	{Key: FinanceFeeTag, Name: "维护费用标签", Group: "费用管理 · 费用总台账", Description: "在费用总台账批量添加或移除业务标签", Requires: []string{FinanceFeeRead}},
+	{Key: FinanceBillConfigure, Name: "配置账单治理策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
 	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合已确认费用创建账单", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单", Requires: []string{FinanceBillRead}},
@@ -237,7 +240,8 @@ var manifest = append([]Permission{
 	{Key: FinanceNettingConfirm, Name: "确认对冲", Group: "费用管理 · 对冲", Description: "确认对冲单并在双方账单形成抵销分摊", Requires: []string{FinanceNettingRead}},
 	{Key: FinanceNettingReverse, Name: "取消或反转对冲", Group: "费用管理 · 对冲", Description: "取消未生效对冲单或反转已确认对冲并恢复账单余额", Requires: []string{FinanceNettingRead}},
 	{Key: FinanceCommissionRead, Name: "查看提成", Group: "费用管理 · 提成", Description: "查看单票毛利和人员提成结果"},
-	{Key: FinanceCommissionManage, Name: "管理提成", Group: "费用管理 · 提成", Description: "维护提成规则并计算、确认提成", Requires: []string{FinanceCommissionRead}},
+	{Key: FinanceCommissionConfigure, Name: "配置提成方案", Group: "费用管理 · 提成", Description: "维护提成方案与员工分配", Requires: []string{FinanceCommissionRead}},
+	{Key: FinanceCommissionManage, Name: "办理提成", Group: "费用管理 · 提成", Description: "计算、确认、支付提成及审批提成申请", Requires: []string{FinanceCommissionRead}},
 	{Key: FinanceCommissionExport, Name: "导出提成", Group: "费用管理 · 提成", Description: "按当前筛选条件导出提成双口径数据", Requires: []string{FinanceCommissionRead}},
 	{Key: PartnerRead, Name: "查看往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "查看客户、供应商和国外代理档案"},
 	{Key: PartnerCreate, Name: "新建往来单位", Group: "业务资料 · 往来单位 · 单位档案", Description: "新建客户、供应商或国外代理档案", Requires: []string{PartnerRead}},
@@ -451,4 +455,49 @@ func ResolveDependencies(granted []string) []string {
 		visit(key)
 	}
 	return result
+}
+
+// IsBusinessOperationPermission 显式声明经营办理权限；公共配置与只读导出不属于经营办理。
+func IsBusinessOperationPermission(key string) bool {
+	_, exists := businessOperationPermissions[key]
+	return exists
+}
+
+var businessOperationPermissions = func() map[string]struct{} {
+	result := make(map[string]struct{})
+	for _, permission := range manifest {
+		if isBusinessOperationPermissionDefinition(permission.Key) {
+			result[permission.Key] = struct{}{}
+		}
+	}
+	return result
+}()
+
+func isBusinessOperationPermissionDefinition(key string) bool {
+	switch key {
+	case PartnerCreate, PartnerUpdate, PartnerBlacklist, PartnerImport,
+		PartnerAccountCreate, PartnerAccountUpdate, PartnerContractCreate, PartnerContractUpdate,
+		PartnerSettlementRuleCreate, PartnerSettlementRuleUpdate, PartnerAttachmentRegister,
+		PartnerShippingPresetCreate, PartnerShippingPresetUpdate,
+		FinanceFeeTag, FinanceBillCreate, FinanceBillUpdate, FinanceBillConfirm,
+		FinanceInvoiceCreate, FinanceInvoiceUpdate, FinanceCashflowCreate, FinanceCashflowUpdate,
+		FinanceVerificationCreate, FinanceVerificationReverse, FinanceNettingCreate, FinanceNettingConfirm,
+		FinanceNettingReverse, FinanceCommissionManage:
+		return true
+	}
+	for _, businessType := range orderBusinessTypes {
+		for _, operation := range []OrderOperation{
+			OrderCreate, OrderUpdate, OrderTransition, OrderMilestoneSet, OrderAttachmentRegister,
+			OrderPersonnelAssign, OrderPersonnelRemove, OrderContainerCreate, OrderContainerUpdate, OrderContainerDelete,
+			OrderCargoItemCreate, OrderCargoItemUpdate, OrderCargoItemDelete, OrderAbnormalCaseCreate,
+			OrderAbnormalCaseResolve, OrderAbnormalCaseDelete, OrderReleasePodCreate, OrderReleasePodUpdate,
+			OrderReleasePodTransition, OrderReleasePodDelete, OrderFeeCreate, OrderFeeUpdate, OrderFeeDelete,
+			OrderSplit, OrderReassign, OrderLock, OrderAmend, OrderVoid, OrderSwitch,
+		} {
+			if permission := OrderPermission(businessType, operation); permission != "" && permission == key {
+				return true
+			}
+		}
+	}
+	return false
 }

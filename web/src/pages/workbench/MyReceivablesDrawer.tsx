@@ -1,6 +1,7 @@
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Alert, Drawer, Space, Table, Tag } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { workbenchServiceListMyReceivables } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
 import { amountWithCurrency } from './display';
@@ -19,43 +20,38 @@ type Props = {
   onClose: () => void;
 };
 
+/** 服务端状态域前缀：在途回款下钻查询的统一 key 前缀。 */
+const RECEIVABLES_QUERY_BASE = ['workbench', 'my-receivables'] as const;
+
 /**
  * 在途回款抽屉：本人提成归属相关的已确认应收未结项，服务端分页。
  * 余额保留原币，不同币种不合并；潜在提成为预计值，非应发承诺。
  */
 export default function MyReceivablesDrawer({ open, onClose }: Props) {
-  const [items, setItems] = useState<MyReceivable[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState<ReceivablesQuery>({
     page: 1,
     pageSize: DEFAULT_PAGE_SIZE,
   });
-  const sequenceRef = useRef(0);
 
-  useEffect(() => {
-    if (!open) return;
-    const sequence = ++sequenceRef.current;
-    setLoading(true);
-    workbenchServiceListMyReceivables({
-      page: query.page,
-      pageSize: query.pageSize,
-    })
-      .then((response) => {
-        if (sequence !== sequenceRef.current) return;
-        setItems(response.data ?? []);
-        setTotal(Number(response.total ?? 0));
-      })
-      .catch(() => {
-        // 失败由统一请求错误处理提示；保留当前内容并停止加载。
-      })
-      .finally(() => {
-        if (sequence === sequenceRef.current) setLoading(false);
-      });
-    return () => {
-      sequenceRef.current += 1;
-    };
-  }, [open, query]);
+  const { data, isFetching } = useQuery({
+    queryKey: [
+      ...RECEIVABLES_QUERY_BASE,
+      { page: query.page, pageSize: query.pageSize },
+    ],
+    queryFn: () =>
+      workbenchServiceListMyReceivables({
+        page: query.page,
+        pageSize: query.pageSize,
+      }),
+    enabled: open,
+    // 旧行为为空 catch 静默，仅靠请求层 notification；显式声明避免全局 message 补充弹错
+    meta: { silent: true },
+    // 翻页加载期间保留当前页内容，与既有手写层行为一致。
+    placeholderData: keepPreviousData,
+  });
+
+  const items = data?.data ?? [];
+  const total = Number(data?.total ?? 0);
 
   const columns: TableColumnsType<MyReceivable> = [
     {
@@ -135,7 +131,7 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
         <Table<MyReceivable>
           rowKey={(record) => record.billId || record.billNo || ''}
           size="small"
-          loading={loading}
+          loading={isFetching}
           columns={columns}
           dataSource={items}
           pagination={{

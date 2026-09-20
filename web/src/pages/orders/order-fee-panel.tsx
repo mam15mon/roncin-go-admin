@@ -105,6 +105,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       state: lockState,
       loading: lockStateLoading,
       error: lockStateError,
+      canOperate: access.canOperateOrganization(order?.organizationId),
     });
     const feeWritesDisabled = financeLocked || lockWritePolicy.disabled;
     const feeWritePolicyRef = useRef({ financeLocked, lockWritePolicy });

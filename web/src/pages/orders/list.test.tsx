@@ -19,6 +19,8 @@ const locationState = vi.hoisted(() => ({
 vi.mock('@umijs/max', () => ({
   useLocation: () => ({ pathname: locationState.pathname }),
   useAccess: () => ({
+    canOperateOrganization: () => true,
+    canOperateBusiness: true,
     canOrder: () => true,
     canCreateEnterpriseResources: true,
   }),

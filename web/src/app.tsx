@@ -2,6 +2,7 @@ import './sentry';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import type { RequestConfig, RunTimeLayoutConfig } from '@umijs/max';
 import { history, Link } from '@umijs/max';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Result } from 'antd';
 import React from 'react';
 import { HeaderMenus } from '@/components/layout/HeaderMenus';
@@ -14,6 +15,7 @@ import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { authServiceMe } from '@/services/roncin/authService';
 import { AppFeedbackBridge } from '@/utils/appFeedback';
+import { queryClient } from '@/utils/queryClient';
 import { DEFAULT_REQUEST_TIMEOUT } from '@/utils/requestTimeout';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig, getRequestErrorStatus } from './requestErrorConfig';
@@ -142,14 +144,14 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => ({
   },
   unAccessible: <Result status="403" title="403" subTitle="无权访问此页面" />,
   childrenRender: (children) => (
-    <>
+    <QueryClientProvider client={queryClient}>
       <AppFeedbackBridge />
       <OrganizationWorkspace
         key={getOrganizationWorkspaceKey(initialState?.currentUser)}
       >
         {children}
       </OrganizationWorkspace>
-    </>
+    </QueryClientProvider>
   ),
   ...initialState?.settings,
 });

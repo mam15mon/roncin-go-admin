@@ -546,7 +546,8 @@ export default function FinanceCommissionsPage() {
           </a>,
           record.status ===
           FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT ? (
-            access.canManageFinanceCommissions ? (
+            access.canManageFinanceCommissions &&
+            access.canOperateOrganization(record.organizationId) ? (
               <a key="confirm" onClick={() => transition(record, 'CONFIRMED')}>
                 <CheckOutlined /> 确认
               </a>
@@ -554,7 +555,8 @@ export default function FinanceCommissionsPage() {
           ) : null,
           record.status ===
             FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED &&
-          access.canManageFinanceCommissions ? (
+          access.canManageFinanceCommissions &&
+          access.canOperateOrganization(record.organizationId) ? (
             <a key="paid" onClick={() => transition(record, 'PAID')}>
               <DollarOutlined /> 已发放
             </a>
@@ -563,7 +565,8 @@ export default function FinanceCommissionsPage() {
             FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT ||
             record.status ===
               FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED) &&
-          access.canManageFinanceCommissions ? (
+          access.canManageFinanceCommissions &&
+          access.canOperateOrganization(record.organizationId) ? (
             <a key="cancel" onClick={() => cancel(record)}>
               <CloseCircleOutlined /> 取消
             </a>
@@ -702,7 +705,9 @@ export default function FinanceCommissionsPage() {
                   icon={<SettingOutlined />}
                   onClick={() => setRulesDrawerOpen(true)}
                 >
-                  {access.canManageFinanceCommissions ? '考核规则' : '查看规则'}
+                  {access.canConfigureFinanceCommissions
+                    ? '考核规则'
+                    : '查看规则'}
                 </Button>
               </Space>
             }
@@ -748,7 +753,10 @@ export default function FinanceCommissionsPage() {
         }}
         detail={detail}
         loading={detailLoading}
-        canManage={access.canManageFinanceCommissions}
+        canManage={
+          access.canManageFinanceCommissions &&
+          access.canOperateOrganization(detail?.organizationId)
+        }
         onOpenAdjustment={() => setAdjustmentModalOpen(true)}
         onTransitionAdjustment={transitionAdjustment}
         onCancelAdjustment={cancelAdjustment}
@@ -764,7 +772,7 @@ export default function FinanceCommissionsPage() {
       <CommissionRulesDrawer
         open={rulesDrawerOpen}
         onClose={() => setRulesDrawerOpen(false)}
-        canManage={access.canManageFinanceCommissions}
+        canManage={access.canConfigureFinanceCommissions}
       />
     </PageContainer>
   );

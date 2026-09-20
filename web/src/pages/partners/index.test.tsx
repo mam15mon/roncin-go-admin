@@ -17,6 +17,8 @@ vi.mock('@umijs/max', () => ({
   history: { push: vi.fn() },
   useLocation: () => ({ pathname: routeState.pathname }),
   useAccess: () => ({
+    canOperateOrganization: () => true,
+    canOperateBusiness: true,
     canManagePartners: true,
   }),
 }));

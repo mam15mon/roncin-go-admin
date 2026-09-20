@@ -34,7 +34,8 @@ func workbenchScopeFromPrincipal(p *biz.Principal) biz.WorkbenchScope {
 		Now:                  now,
 		CommissionReadable:   p.CanAccessOrganizationForPermission(access.FinanceCommissionRead, p.Organization.ID, false),
 		CommissionManageable: p.CanAccessOrganizationForPermission(access.FinanceCommissionManage, p.Organization.ID, false),
-		IsBootstrapAdmin:     p.IsBootstrapAdmin,
+		IsBootstrapAdmin:     p.IsBootstrapAdmin && p.CanOperateBusiness(),
+		CanOperateBusiness:   p.CanOperateBusiness(),
 	}
 }
 

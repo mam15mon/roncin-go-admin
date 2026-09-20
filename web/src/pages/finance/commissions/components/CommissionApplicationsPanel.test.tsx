@@ -13,6 +13,8 @@ import {
 import CommissionApplicationsPanel from './CommissionApplicationsPanel';
 
 const accessState = vi.hoisted(() => ({
+  canOperateOrganization: () => true,
+  canConfigureFinanceCommissions: false,
   canManageFinanceCommissions: true,
 }));
 

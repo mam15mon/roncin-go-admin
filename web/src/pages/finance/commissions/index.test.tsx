@@ -24,6 +24,8 @@ const componentProps = vi.hoisted(() => ({
 }));
 
 const accessState = vi.hoisted(() => ({
+  canOperateOrganization: () => true,
+  canConfigureFinanceCommissions: false,
   canExportFinanceCommissions: false,
   canManageFinanceCommissions: false,
 }));
@@ -100,6 +102,7 @@ describe('提成导出按钮', () => {
   afterEach(() => {
     cleanup();
     accessState.canExportFinanceCommissions = false;
+    accessState.canConfigureFinanceCommissions = false;
     componentProps.searchFilter = undefined;
     componentProps.proTable = undefined;
     panelState.renderCount = 0;
@@ -108,6 +111,22 @@ describe('提成导出按钮', () => {
     serviceMocks.listCommissions.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
+  });
+
+  it('总部配置权限保留考核规则维护入口，不授予提成办理能力', async () => {
+    accessState.canConfigureFinanceCommissions = true;
+    render(
+      <App>
+        <FinanceCommissionsPage />
+      </App>,
+    );
+    await act(async () => {});
+    expect(
+      screen.getByRole('button', { name: /考核规则/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /生成提成/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('有导出权限时显示按钮', async () => {

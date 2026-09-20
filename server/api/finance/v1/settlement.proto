@@ -48,7 +48,7 @@ service SettlementService {
 
   // UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
   rpc UpdateBilledFeeEditPolicy(UpdateBilledFeeEditPolicyRequest) returns (UpdateBilledFeeEditPolicyResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.configure" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/finance/custom-settings/billed-fee-edit-policy" body: "*"};
   }
 
@@ -60,7 +60,7 @@ service SettlementService {
 
   // UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
   rpc UpdateCreditLimitControlPolicy(UpdateCreditLimitControlPolicyRequest) returns (UpdateCreditLimitControlPolicyResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.configure" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {put: "/api/v1/finance/custom-settings/credit-limit-control-policy" body: "*"};
   }
 
@@ -194,16 +194,16 @@ service SettlementService {
   rpc ListCommissionCandidates(ListCommissionCandidatesRequest) returns (ListCommissionCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/candidates"}; }
   rpc GetCommission(GetCommissionRequest) returns (GetCommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/{id}"}; }
   rpc ListCommissionRules(ListCommissionRulesRequest) returns (ListCommissionRulesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commission-rules"}; }
-  rpc CreateCommissionRule(CreateCommissionRuleRequest) returns (CreateCommissionRuleResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules" body: "*"}; }
-  rpc UpdateCommissionRule(UpdateCommissionRuleRequest) returns (UpdateCommissionRuleResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {put: "/api/v1/finance/commission-rules/{id}" body: "*"}; }
+  rpc CreateCommissionRule(CreateCommissionRuleRequest) returns (CreateCommissionRuleResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.configure" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules" body: "*"}; }
+  rpc UpdateCommissionRule(UpdateCommissionRuleRequest) returns (UpdateCommissionRuleResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.configure" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {put: "/api/v1/finance/commission-rules/{id}" body: "*"}; }
   // AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立
   // 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，
   // 不物理删除历史分配。按 commission.manage 可写组织过滤。
-  rpc AssignCommissionRuleEmployees(AssignCommissionRuleEmployeesRequest) returns (AssignCommissionRuleEmployeesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules/{id}/employees/assign" body: "*"}; }
-  rpc RemoveCommissionRuleEmployees(RemoveCommissionRuleEmployeesRequest) returns (RemoveCommissionRuleEmployeesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules/{id}/employees/remove" body: "*"}; }
+  rpc AssignCommissionRuleEmployees(AssignCommissionRuleEmployeesRequest) returns (AssignCommissionRuleEmployeesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.configure" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules/{id}/employees/assign" body: "*"}; }
+  rpc RemoveCommissionRuleEmployees(RemoveCommissionRuleEmployeesRequest) returns (RemoveCommissionRuleEmployeesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.configure" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules/{id}/employees/remove" body: "*"}; }
   // CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案
   // 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。
-  rpc CopyCommissionRule(CopyCommissionRuleRequest) returns (CopyCommissionRuleResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules/{id}/copy" body: "*"}; }
+  rpc CopyCommissionRule(CopyCommissionRuleRequest) returns (CopyCommissionRuleResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.configure" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commission-rules/{id}/copy" body: "*"}; }
   rpc PreviewCommission(PreviewCommissionRequest) returns (PreviewCommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commissions/preview" body: "*"}; }
   rpc CreateCommission(CreateCommissionRequest) returns (CreateCommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commissions" body: "*"}; }
   rpc ConfirmCommission(ConfirmCommissionRequest) returns (ConfirmCommissionResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/commissions/{id}/confirm" body: "*"}; }
@@ -461,7 +461,7 @@ message GetBilledFeeEditPolicyResponse {
   string message = 3;
   BilledFeeEditPolicy data = 4;
   string trace_id = 5;
-  // can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
+  // can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。
   bool can_update = 6;
 }
 
@@ -503,7 +503,7 @@ message GetCreditLimitControlPolicyResponse {
   string message = 3;
   CreditLimitControlPolicy data = 4;
   string trace_id = 5;
-  // can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。
+  // can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。
   bool can_update = 6;
 }
 

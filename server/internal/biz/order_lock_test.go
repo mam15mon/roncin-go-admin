@@ -109,7 +109,9 @@ func TestOrderLockUsecase_ValidationAndPagination(t *testing.T) {
 
 	ctx := context.Background()
 	orderID := uuid.New()
-	principal := &Principal{UserID: uuid.New(), Organization: Organization{ID: uuid.New()}}
+	principal := &Principal{UserID: uuid.New(), Organization: Organization{Kind: OrganizationKindCompany, ID: uuid.New()}}
+
+	principal.OrganizationNodes = []OrganizationScopeNode{{ID: principal.Organization.ID, Kind: OrganizationKindCompany}}
 
 	// 1. LockOrder requires idempotencyKey
 	_, err := uc.LockOrder(ctx, principal, orderID, 1, "", nil)

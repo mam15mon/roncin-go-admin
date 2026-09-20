@@ -1,3 +1,4 @@
+import { useAccess } from '@umijs/max';
 import type { TableColumnsType } from 'antd';
 import { Button, Descriptions, Drawer, Space, Spin, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
@@ -36,6 +37,7 @@ export default function CommissionApplicationDetailDrawer({
   onApprove,
   onReject,
 }: Props) {
+  const access = useAccess();
   const [detail, setDetail] =
     useState<API.FinanceCommissionApplicationDetail>();
   const [loading, setLoading] = useState(false);
@@ -64,6 +66,7 @@ export default function CommissionApplicationDetailDrawer({
   const application = detail?.application;
   const canDecide =
     canManage &&
+    access.canOperateOrganization(application?.organizationId) &&
     application?.status ===
       FinanceCommissionApplicationStatus.FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW;
 

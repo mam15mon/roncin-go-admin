@@ -103,10 +103,12 @@ export * from './seaDocumentSectionConstants';
 export function SeaDocumentSectionComponent({
   disabled = false,
   isDetail = false,
+  organizationId,
   onOrderDataChanged,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
+  organizationId?: string;
   onOrderDataChanged?: () => Promise<void> | void;
 }) {
   const form = Form.useFormInstance();
@@ -161,10 +163,9 @@ export function SeaDocumentSectionComponent({
     OrderBusinessType.BUSINESS_TYPE_SE,
     'release_pod.read',
   );
-  const canChangeMode = access.canOrder(
-    OrderBusinessType.BUSINESS_TYPE_SE,
-    'update',
-  );
+  const canChangeMode =
+    access.canOperateOrganization(organizationId) &&
+    access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'update');
 
   const loadReleasePods = useCallback(async () => {
     const requestedOrderId = orderId;
@@ -939,6 +940,7 @@ export function buildSeaDocumentSection(props: TemplateProps): TemplateSection {
       <SeaDocumentSectionComponent
         disabled={props.readonly}
         isDetail={props.isDetail}
+        organizationId={props.organizationId}
         onOrderDataChanged={props.onOrderDataChanged}
       />
     ),

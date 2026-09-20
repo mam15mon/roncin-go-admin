@@ -20982,7 +20982,7 @@
           },
           "canUpdate": {
             "type": "boolean",
-            "description": "can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。"
+            "description": "can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。"
           }
         }
       },
@@ -21049,7 +21049,7 @@
           },
           "canUpdate": {
             "type": "boolean",
-            "description": "can_update 表示当前主体是否可在当前组织更新本策略，由 bill.update 权限及其组织范围计算。"
+            "description": "can_update 表示当前主体是否可在当前组织更新本策略，由 bill.configure 权限及其组织范围计算。"
           }
         }
       },
