@@ -22,11 +22,14 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 | 域 | 后端 | 前端 |
 | --- | --- | --- |
 | 订单/海运单证 | `biz/sea_order_change.go`、`biz/sea_document_change.go`、`biz/sea_master_bill.go`、`data/sea_*` | `pages/orders/**`（品类模板 `pages/orders/templates/components/sea/`，注册表 `pages/orders/order-kinds/`） |
+| 订单候选缓存 | `service/order_query.go` | `features/orders/options`（字典/首批港口机场/人员候选，组织切换清理入口） |
 | 订单锁定 | `biz/order_lock.go`、`biz/order_auto_lock.go`、`data/order_lock_*.go` | `pages/orders`（锁状态条） |
 | 费用/费用补录 | `service/settlement*.go`、`data/order_fee_supplement_*.go` | `pages/orders/fees.tsx`（建账工作台经 `features/finance/bill-creation`） |
-| 账单/对冲/核销 | `biz/finance_bill*.go`、`data/finance_bill_*.go` | `pages/finance/{bills,fees,cashflows,verifications}/**`、`features/finance/{bill-creation,bill-status,credit-control}` |
+| 账单/对冲/核销 | `biz/finance_bill*.go`、`data/finance_bill_*.go` | `pages/finance/{bills,fees,cashflows,verifications}/**`、`features/finance/{bill-creation,bill-status,credit-control,exchange-gain-loss}` |
 | 提成（方案/台账/月度申请） | `biz/finance_commission*.go`、`data/finance_commission*.go` | `pages/finance/commissions/**`、`pages/workbench/**` |
-| 往来单位 | `biz/partner*.go` | `pages/partners/**`、`features/partners` |
+| 往来单位 | `biz/partner*.go` | `pages/partners/**`、`features/partners`（候选搜索 `searchPartnerOptions`） |
+| 主数据候选 | `biz/masterdata.go`、`biz/industry_reference.go` | `features/master-data/{currencies,shipping-lines}`、`pages/master-data/**`（通用类型 `types/select-option.ts`） |
+| 业务标签 | `biz/business_tag.go` | `components/business-tag/`（列表渲染与分配弹窗） |
 | 企业资源 | `biz/enterprise_resource.go` | `pages/enterprise-resources/**` |
 | 组织/角色/权限 | `biz/admin_*.go`、`biz/auth.go` | `pages/admin/**` |
 | 单据编号规则 | `biz/orderconfig.go` | `pages/admin/components/number-rules/` |

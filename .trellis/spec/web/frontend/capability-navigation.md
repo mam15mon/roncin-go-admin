@@ -13,6 +13,8 @@
 | 账单状态映射 | [`web/src/features/finance/bill-status/index.ts`](../../../../web/src/features/finance/bill-status/index.ts) | `billStatusMeta`（账单列表、抽屉、建账结果表共用） | 与费用状态合并；账单语义只归本能力 |
 | 账单建账工作台 | [`web/src/features/finance/bill-creation/index.ts`](../../../../web/src/features/finance/bill-creation/index.ts) | `BillCreationWorkbench` 及 Props（订单费用、财务费用、账单列表三入口共用） | 账单页私有表单/抽屉（`BillEditModal` 等留页面）；未经真实共用不上提新组件 |
 | 审计记录展示 | [`web/src/features/audit/index.ts`](../../../../web/src/features/audit/index.ts) | 审计操作/对象/明细的展示转换（管理端审计页与业务页审计分区共用） | 在管理页与业务页各自复制转换逻辑 |
+| 汇兑损益展示 | [`web/src/features/finance/exchange-gain-loss/index.ts`](../../../../web/src/features/finance/exchange-gain-loss/index.ts) | `ExchangeGainLossTag`（对冲汇差、核销已实现损益共用展示） | 损益口径与计算逻辑（留在调用方） |
+| 业务标签列表渲染 | [`web/src/components/business-tag/BusinessTagList.tsx`](../../../../web/src/components/business-tag/BusinessTagList.tsx) | 分组色描边 Tag 列表（账单、费用台账、订单费用面板共用） | 列宽、搜索等列配置（留在调用方） |
 | 往来单位候选标签 | [`web/src/features/partners/index.ts`](../../../../web/src/features/partners/index.ts) | `PartnerSelectOptionTags`、`searchPartnerOptions` 与 `PartnerOption`（核销、收付、订单等共用） | 往来单位领域展示回流通用 `components/` |
 | 信用额度干预提示 | [`web/src/features/finance/credit-control/index.ts`](../../../../web/src/features/finance/credit-control/index.ts) | `useCreditLimitIntervention` 与 `disableCreditExceededOptions` 信用控制查询和候选禁用 | 业务查询 Hook 放全局 `hooks/` |
 | 异步竞态防护 | [`web/src/hooks/`](../../../../web/src/hooks/) | 通用 `useLatestAsync`/`useAsyncGuard` 竞态工具 | 任何业务查询 Hook（领域 Hook 进 features） |

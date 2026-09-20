@@ -118,7 +118,7 @@ if (
 
 ## 往来单位选择器与快捷建档（散客契约）
 
-后端契约与完整口径见 `server/backend/partner-casual-contract.md`，此处只约束前端交互：
+后端契约与完整口径见 `../../server/backend/partner-casual-contract.md`，此处只约束前端交互：
 
 - **快捷建档角色由上下文决定，单选**：订单侧（`PartnerQuickAddSelect`）按触发字段静默写入单一角色；费用侧（`QuickAddPartnerModal`）客商类型为单选，经 `defaultRole` prop 由调用方按当前费用方向预选（应收→客户、应付→供应商、方向未选默认客户）。多角色勾选属主档维护，快捷弹窗不得提供。
 - **快捷新增弹窗默认勾选「单次合作」**，可取消；提交透传 `isCasual`。

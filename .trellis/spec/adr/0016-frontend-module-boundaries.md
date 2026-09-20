@@ -64,4 +64,5 @@
 - 旧 `pages/settings/` 已删除，`/settings` 仅保留重定向；后续配置类页面
   一律落在真实归属（财务配置进 `pages/finance/`，平台管理进 `pages/admin/`）。
 - 订单候选缓存与 `utils/options` 领域化等更深的语义重复治理明确延期，
-  待出现实际跨模块需求再提取，不在本决策内。
+  不在本决策内（后续于 2026-09-20 完成：候选能力已迁入 `features/orders/options`、
+  `features/master-data/{currencies,shipping-lines}` 等领域入口，旧聚合已删除）。

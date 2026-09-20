@@ -7,7 +7,8 @@
 
 | Guide | Description | Status |
 |-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | 分层职责与依赖方向 | ✅ |
+| [Capability Navigation](./capability-navigation.md) | 后端能力导航：场景→biz 入口，开发前先查 | ✅ |
+| [Directory Structure](./directory-structure.md) | 分层职责与依赖方向（import 边界由 `pnpm run check:layers:go` 自动强制） | ✅ |
 | [Database Guidelines](./database-guidelines.md) | Ent、事务封装、并发锁、分页 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
@@ -31,6 +32,7 @@
 
 动手写代码前确认：
 
+0. 先查 [能力导航](./capability-navigation.md)：已有用例直接消费，不重写同类规则。
 1. 接口变更是否已先修改 `.proto` 契约（禁止手改 `*.pb.go` 等生成物）。
 2. 涉及的层是否清楚：DTO 转换在 `service`、业务规则在 `biz`、Ent 查询在 `data`。
 3. 是否需要事务 / 并发防护；新实体是否需要 `version` 字段（判定不清先问用户）。
