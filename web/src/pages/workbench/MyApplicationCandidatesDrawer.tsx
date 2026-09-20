@@ -1,6 +1,7 @@
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Drawer, Select, Space, Table } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { workbenchServiceListMyApplicationCandidates } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
 import {
@@ -19,6 +20,9 @@ type CandidatesQuery = {
 };
 
 const DEFAULT_PAGE_SIZE = 20;
+
+/** 服务端状态域前缀：可申请提成候选下钻查询的统一 key 前缀。 */
+const CANDIDATES_QUERY_BASE = ['workbench', 'application-candidates'] as const;
 
 type Props = {
   open: boolean;
@@ -42,41 +46,37 @@ export default function MyApplicationCandidatesDrawer({
   monthOptions,
   onClose,
 }: Props) {
-  const [items, setItems] = useState<Candidate[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState<CandidatesQuery>({
     page: 1,
     pageSize: DEFAULT_PAGE_SIZE,
   });
-  const sequenceRef = useRef(0);
 
-  useEffect(() => {
-    if (!open) return;
-    const sequence = ++sequenceRef.current;
-    setLoading(true);
-    workbenchServiceListMyApplicationCandidates({
-      page: query.page,
-      pageSize: query.pageSize,
-      ...(query.commissionMonth
-        ? { commissionMonth: query.commissionMonth }
-        : {}),
-    })
-      .then((response) => {
-        if (sequence !== sequenceRef.current) return;
-        setItems(response.data ?? []);
-        setTotal(Number(response.total ?? 0));
-      })
-      .catch(() => {
-        // 失败由统一请求错误处理提示；保留当前内容并停止加载。
-      })
-      .finally(() => {
-        if (sequence === sequenceRef.current) setLoading(false);
-      });
-    return () => {
-      sequenceRef.current += 1;
-    };
-  }, [open, query]);
+  const { data, isFetching } = useQuery({
+    queryKey: [
+      ...CANDIDATES_QUERY_BASE,
+      {
+        page: query.page,
+        pageSize: query.pageSize,
+        commissionMonth: query.commissionMonth,
+      },
+    ],
+    queryFn: () =>
+      workbenchServiceListMyApplicationCandidates({
+        page: query.page,
+        pageSize: query.pageSize,
+        ...(query.commissionMonth
+          ? { commissionMonth: query.commissionMonth }
+          : {}),
+      }),
+    enabled: open,
+    // 旧行为为空 catch 静默，仅靠请求层 notification；显式声明避免全局 message 补充弹错
+    meta: { silent: true },
+    // 翻页与切换归属月期间保留当前内容，与既有手写层行为一致。
+    placeholderData: keepPreviousData,
+  });
+
+  const items = data?.data ?? [];
+  const total = Number(data?.total ?? 0);
 
   const currency = baseCurrency || undefined;
 
@@ -170,7 +170,7 @@ export default function MyApplicationCandidatesDrawer({
             ''
           }
           size="small"
-          loading={loading}
+          loading={isFetching}
           columns={columns}
           dataSource={items}
           pagination={{

@@ -1,10 +1,5 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -71,7 +66,7 @@ function summaryWithGroups(): API.WorkbenchApplicationSummary {
 function renderPanel(
   summary: API.WorkbenchApplicationSummary = summaryWithGroups(),
 ) {
-  return render(
+  return renderWithClient(
     <App>
       <MyApplicationPanel
         summary={summary}
@@ -301,8 +296,11 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
       page: 1,
       pageSize: 20,
     });
-    expect(await screen.findByText('2026-08')).toBeInTheDocument();
-    expect(screen.getByText('审批中')).toBeInTheDocument();
+    // 状态 Tag 是抽屉行独有文本（面板显示「审批中 1 张」，非精确匹配），
+    // 以它等待抽屉行渲染完成。
+    expect(await screen.findByText('审批中')).toBeInTheDocument();
+    // 申请月份同时出现在面板分组与抽屉行。
+    expect(screen.getAllByText('2026-08')).toHaveLength(2);
     expect(screen.getByText('800.25 CNY')).toBeInTheDocument();
 
     // 明细下钻：拉取详情并展示快照行。

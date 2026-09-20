@@ -1,7 +1,8 @@
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Link } from '@umijs/max';
 import type { TableColumnsType } from 'antd';
 import { Button, Drawer, Select, Space, Table, Tag, Tooltip } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { workbenchServiceListMyCommissions } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
@@ -55,6 +56,9 @@ type Props = {
   onClose: () => void;
 };
 
+/** 服务端状态域前缀：本人提成下钻查询的统一 key 前缀。 */
+const COMMISSIONS_QUERY_BASE = ['workbench', 'my-commissions'] as const;
+
 /**
  * 本人提成单下钻抽屉：服务端分页 + 状态过滤，展示三桶明细与冲减调整。
  * 只读 + 既有页面入口，不发明新的审批或发放操作。
@@ -64,39 +68,31 @@ export default function MyCommissionDrawer({
   baseCurrency,
   onClose,
 }: Props) {
-  const [items, setItems] = useState<MyCommission[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState<CommissionQuery>({
     page: 1,
     pageSize: DEFAULT_PAGE_SIZE,
   });
-  const sequenceRef = useRef(0);
 
-  useEffect(() => {
-    if (!open) return;
-    const sequence = ++sequenceRef.current;
-    setLoading(true);
-    workbenchServiceListMyCommissions({
-      page: query.page,
-      pageSize: query.pageSize,
-      ...(query.status !== undefined ? { status: query.status } : {}),
-    })
-      .then((response) => {
-        if (sequence !== sequenceRef.current) return;
-        setItems(response.data ?? []);
-        setTotal(Number(response.total ?? 0));
-      })
-      .catch(() => {
-        // 失败由统一请求错误处理提示；保留当前内容并停止加载。
-      })
-      .finally(() => {
-        if (sequence === sequenceRef.current) setLoading(false);
-      });
-    return () => {
-      sequenceRef.current += 1;
-    };
-  }, [open, query]);
+  const { data, isFetching } = useQuery({
+    queryKey: [
+      ...COMMISSIONS_QUERY_BASE,
+      { page: query.page, pageSize: query.pageSize, status: query.status },
+    ],
+    queryFn: () =>
+      workbenchServiceListMyCommissions({
+        page: query.page,
+        pageSize: query.pageSize,
+        ...(query.status !== undefined ? { status: query.status } : {}),
+      }),
+    enabled: open,
+    // 旧行为为空 catch 静默，仅靠请求层 notification；显式声明避免全局 message 补充弹错
+    meta: { silent: true },
+    // 翻页与切换过滤期间保留当前内容，与既有手写层行为一致。
+    placeholderData: keepPreviousData,
+  });
+
+  const items = data?.data ?? [];
+  const total = Number(data?.total ?? 0);
 
   const currency = baseCurrency || undefined;
 
@@ -200,7 +196,7 @@ export default function MyCommissionDrawer({
         <Table<MyCommission>
           rowKey={(record) => record.id || record.commissionNo || ''}
           size="small"
-          loading={loading}
+          loading={isFetching}
           columns={columns}
           dataSource={items}
           pagination={{

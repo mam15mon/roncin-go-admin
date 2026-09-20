@@ -1,8 +1,4 @@
-import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-} from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { showErrorMessage } from '@/utils/appFeedback';
 
 /**
@@ -17,6 +13,7 @@ export const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
     mutations: {
       retry: false,
@@ -24,6 +21,10 @@ export const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: (error, query) => {
+      // 请求层 errorHandler 已统一弹 notification；这里的 message 仅在
+      // 查询未声明静默时补充展示（历史上有 catch 文案的组件）。声明
+      // meta: { silent: true } 的查询只保留请求层通知，行为对齐旧空 catch。
+      if (query.meta?.silent === true) return;
       const message = query.meta?.errorMessage;
       if (typeof message === 'string') {
         showErrorMessage(message);
@@ -36,7 +37,8 @@ export const queryClient = new QueryClient({
     },
   }),
   mutationCache: new MutationCache({
-    onError: (error, variables, _context, mutation) => {
+    onError: (error, _variables, _context, mutation) => {
+      if (mutation.meta?.silent === true) return;
       const message = mutation.meta?.errorMessage;
       if (typeof message === 'string') {
         showErrorMessage(message);
