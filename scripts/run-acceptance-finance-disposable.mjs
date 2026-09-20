@@ -767,13 +767,10 @@ async function runStageA() {
     console.log('[Stage 1] 启动 Web 测试服务 (:8001)');
     webProcess = spawnTrackedProcess(
       'pnpm',
-      ['--dir', 'web', 'exec', 'cross-env', `PORT=${WEB_SERVER_PORT}`, 'UMI_ENV=test', 'MOCK=none', `RONCIN_API_PROXY_TARGET=${GO_SERVER_BASE_URL}`, 'max', 'dev'],
+      ['--dir', 'web', 'exec', 'vite', '--mode', 'test', '--port', String(WEB_SERVER_PORT)],
       {
         env: {
           ...process.env,
-          PORT: String(WEB_SERVER_PORT),
-          UMI_ENV: 'test',
-          MOCK: 'none',
           RONCIN_API_PROXY_TARGET: GO_SERVER_BASE_URL,
         },
       },

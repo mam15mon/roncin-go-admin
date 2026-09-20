@@ -9,65 +9,54 @@ vi.mock('@sentry/react', () => ({
 }));
 
 describe('sentry 轻量接入', () => {
-  const originalDsn = process.env.SENTRY_DSN;
-  const originalUmiEnv = process.env.UMI_ENV;
-  const originalCommitHash = process.env.COMMIT_HASH;
-
   afterEach(() => {
-    process.env.SENTRY_DSN = originalDsn;
-    process.env.UMI_ENV = originalUmiEnv;
-    process.env.COMMIT_HASH = originalCommitHash;
+    vi.unstubAllEnvs();
     sentryMock.init.mockClear();
     vi.resetModules();
   });
 
-  it('未配置 SENTRY_DSN 时完全不初始化（零网络行为）', async () => {
-    delete process.env.SENTRY_DSN;
-    vi.resetModules();
+  it('未配置 VITE_SENTRY_DSN 时完全不初始化（零网络行为）', async () => {
+    vi.stubEnv('VITE_SENTRY_DSN', '');
     await import('./sentry');
     expect(sentryMock.init).not.toHaveBeenCalled();
   });
 
-  it('配置 DSN 后初始化，release 使用 COMMIT_HASH，不开启 tracing/Replay/PII', async () => {
-    process.env.SENTRY_DSN = 'https://public-key@example.com/1';
-    process.env.COMMIT_HASH = 'abc1234';
-    delete process.env.UMI_ENV;
-    vi.resetModules();
+  it('配置 DSN 后初始化，release 使用提交哈希，不开启 tracing/Replay/PII', async () => {
+    vi.stubEnv('VITE_SENTRY_DSN', 'https://public-key@example.com/1');
+    vi.stubEnv('VITE_COMMIT_HASH', 'abc1234');
+    vi.stubEnv('MODE', 'test');
     await import('./sentry');
 
     expect(sentryMock.init).toHaveBeenCalledTimes(1);
     const options = sentryMock.init.mock.calls[0][0] as Record<string, unknown>;
     expect(options.dsn).toBe('https://public-key@example.com/1');
     expect(options.release).toBe('abc1234');
-    expect(options.environment).toBe('development');
+    expect(options.environment).toBe('test');
     expect(options.tracesSampleRate).toBeUndefined();
     expect(options.replaysSessionSampleRate).toBeUndefined();
     expect(options.sendDefaultPii).toBeUndefined();
   });
 
-  it('UMI_ENV=prod 时 environment 为 production', async () => {
-    process.env.SENTRY_DSN = 'https://public-key@example.com/1';
-    process.env.UMI_ENV = 'prod';
-    vi.resetModules();
+  it('生产构建（MODE=production）时 environment 为 production', async () => {
+    vi.stubEnv('VITE_SENTRY_DSN', 'https://public-key@example.com/1');
+    vi.stubEnv('MODE', 'production');
     await import('./sentry');
 
     const options = sentryMock.init.mock.calls[0][0] as Record<string, unknown>;
     expect(options.environment).toBe('production');
   });
 
-  it('UMI_ENV=dev（构建期由 define 注入）时 environment 为 dev', async () => {
-    process.env.SENTRY_DSN = 'https://public-key@example.com/1';
-    process.env.UMI_ENV = 'dev';
-    vi.resetModules();
+  it('裸 vite 开发模式（MODE=development）时 environment 为 development', async () => {
+    vi.stubEnv('VITE_SENTRY_DSN', 'https://public-key@example.com/1');
+    vi.stubEnv('MODE', 'development');
     await import('./sentry');
 
     const options = sentryMock.init.mock.calls[0][0] as Record<string, unknown>;
-    expect(options.environment).toBe('dev');
+    expect(options.environment).toBe('development');
   });
 
   it('beforeSend 双保险剔除 Authorization/Cookie 请求头', async () => {
-    process.env.SENTRY_DSN = 'https://public-key@example.com/1';
-    vi.resetModules();
+    vi.stubEnv('VITE_SENTRY_DSN', 'https://public-key@example.com/1');
     await import('./sentry');
 
     const options = sentryMock.init.mock.calls[0][0] as {

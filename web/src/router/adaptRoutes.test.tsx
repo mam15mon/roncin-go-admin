@@ -7,14 +7,18 @@ import { buildMenuData, buildRouterConfig } from './adaptRoutes';
 // tsc/build 捕获（lazy 不在构建期求值），只有真实加载才能暴露。
 describe('adaptRoutes 路由适配', () => {
   it('全部 35 个带 component 的路由均能解析并加载页面模块', async () => {
-    const flat: { lazy?: () => Promise<unknown>; children?: unknown[] }[] = [];
-    const walk = (routes: typeof flat) => {
+    interface FlatRoute {
+      lazy?: () => Promise<unknown>;
+      children?: FlatRoute[];
+    }
+    const flat: FlatRoute[] = [];
+    const walk = (routes: FlatRoute[]) => {
       for (const route of routes) {
         flat.push(route);
-        if (Array.isArray(route.children)) walk(route.children);
+        if (route.children) walk(route.children);
       }
     };
-    walk(buildRouterConfig() as unknown as typeof flat);
+    walk(buildRouterConfig() as unknown as FlatRoute[]);
 
     const lazyRoutes = flat.filter((route) => typeof route.lazy === 'function');
     // 35 个页面组件 + 1 个 AppLayout 布局壳。

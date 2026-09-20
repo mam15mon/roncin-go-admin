@@ -1,5 +1,4 @@
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL as NodeURL } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
@@ -7,9 +6,6 @@ import { defineConfig } from 'vite';
 import { getProxyConfig } from './config/proxy';
 
 const webRoot = fileURLToPath(new NodeURL('.', import.meta.url));
-
-// UMI_ENV 沿用既有环境命名（dev/test/pre/prod），仅由构建配置与 Sentry 消费。
-const { UMI_ENV = 'dev' } = process.env;
 
 // 计算提交哈希：环境变量优先，缺省回退 git；两者皆空时 Sentry release 为 undefined。
 function resolveCommitHash(): string {
@@ -24,10 +20,6 @@ function resolveCommitHash(): string {
   }
 }
 
-const pkg = JSON.parse(
-  readFileSync(new NodeURL('./package.json', import.meta.url), 'utf8'),
-) as { version: string };
-
 export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -36,14 +28,12 @@ export default defineConfig(({ mode }) => ({
       { find: '@root', replacement: webRoot },
     ],
   },
-  // define 仅注入实测存在的读取键（见任务 design.md D6）；
-  // NODE_ENV 由 Vite 内建替换，勿在此覆盖。
+  // VITE_ 前缀的环境变量（如部署注入的 VITE_SENTRY_DSN）由 Vite 自动注入
+  // import.meta.env；此处仅补充运行期才能计算的注入项。环境语义走 mode
+  // （--mode dev/test/pre，生产构建默认 production），经 import.meta.env.MODE
+  // 消费。NODE_ENV 由 Vite 内建替换，勿在此覆盖。
   define: {
-    'process.env.CI': JSON.stringify(process.env.CI ?? ''),
-    'process.env.COMMIT_HASH': JSON.stringify(resolveCommitHash()),
-    'process.env.UMI_ENV': JSON.stringify(UMI_ENV),
-    'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN ?? ''),
-    __APP_VERSION__: JSON.stringify(pkg.version),
+    'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(resolveCommitHash()),
   },
   css: {
     preprocessorOptions: {
@@ -53,7 +43,11 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '0.0.0.0',
     port: 8001,
-    proxy: getProxyConfig(UMI_ENV),
+    // 生产构建不挂开发代理；vitest（process.env.VITEST）虽默认 mode=test，
+    // 但不启动开发服务器，跳过 fail-fast 校验。
+    ...(mode === 'production' || process.env.VITEST
+      ? {}
+      : { proxy: getProxyConfig(mode) }),
   },
   preview: {
     port: 8000,

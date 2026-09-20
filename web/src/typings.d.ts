@@ -10,4 +10,3 @@ declare module '*.gif';
 declare module '*.bmp';
 declare module '*.tiff';
 
-declare const __APP_VERSION__: string;

@@ -16,7 +16,11 @@ describe('前端开发代理配置', () => {
     expect(() => getProxyConfig('pre', 'redis://127.0.0.1')).toThrow(
       '仅支持 http 或 https',
     );
-    expect(() => getProxyConfig('production')).toThrow('不支持的 UMI_ENV');
+    expect(() => getProxyConfig('production')).toThrow('不支持的启动模式');
+  });
+
+  it('裸 vite 的 development 默认模式视同本地 dev', () => {
+    expect(getProxyConfig('development')).toEqual(getProxyConfig('dev'));
   });
 
   it('远程环境开启跨主机代理且规范化末尾斜杠', () => {

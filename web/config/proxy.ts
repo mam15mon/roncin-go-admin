@@ -17,7 +17,7 @@ function remoteProxy(environment: 'test' | 'pre', rawTarget?: string): ProxyConf
   const target = rawTarget?.trim();
   if (!target) {
     throw new Error(
-      `UMI_ENV=${environment} 启动前必须设置 RONCIN_API_PROXY_TARGET`,
+      `--mode ${environment} 启动前必须设置 RONCIN_API_PROXY_TARGET`,
     );
   }
 
@@ -43,13 +43,15 @@ export function getProxyConfig(
   environment: string,
   remoteTarget = process.env.RONCIN_API_PROXY_TARGET,
 ): ProxyConfig {
-  switch (environment) {
+  // 裸 `vite`（未显式 --mode）的默认模式为 development，视同本地 dev。
+  const flavor = environment === 'development' ? 'dev' : environment;
+  switch (flavor) {
     case 'dev':
       return localProxy;
     case 'test':
     case 'pre':
-      return remoteProxy(environment, remoteTarget);
+      return remoteProxy(flavor, remoteTarget);
     default:
-      throw new Error(`不支持的 UMI_ENV：${environment}`);
+      throw new Error(`不支持的启动模式（vite --mode）：${environment}`);
   }
 }

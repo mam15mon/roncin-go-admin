@@ -127,8 +127,7 @@ function releaseInflightWrite(config: unknown) {
   if (key) inflightWriteKeys.delete(key);
 }
 
-// 原 @umijs/max RequestConfig 的等价本地类型：拦截器与错误处理约定的挂载结构，
-// 由 @/utils/requestClient 消费。
+// 请求拦截与错误处理约定的挂载结构，由 @/utils/requestClient 消费。
 export interface AxiosResponseLike {
   config?: unknown;
   [key: string]: unknown;
