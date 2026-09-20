@@ -50,3 +50,28 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 82: 总部工作台只读与分公司业务办理边界（收尾验证与提交）
+<!-- trellis-session: v=2 fp=1f4a2c9e07b6f1e7 -->
+
+**Date**: 2026-09-20
+**Task**: headquarters-business-boundary（总部只读与分公司办理边界）
+**Branch**: `refactor/data-layer-react-query`
+
+### Summary
+
+接手并行会话已完成大半的实施并收尾：核心机制为 access 显式经营权限分类 + `Principal.CanOperateBusiness`（启用公司工作台）+ `WorkspaceOrganizationID` 会话锚点（跨组织只读定位不再误判为切换）+ 经营写范围收敛当前公司；混合权限拆分 bill.configure / commission.configure；后台任务重试按业务种类门禁；前端 access.ts `canOperateBusiness/canOperateOrganization` 覆盖订单/往来单位/财务六域与工作台待办。本会话补齐：定向测试（含注入集成库真跑 CommissionApplication Postgres 用例）、生成物三条链幂等核验、开发库存量归属只读核验（41 经营表总部行数 0、非公司归属 0、子根组织错配 0，此前连接失败已补做成功）、check:fast 全绿（WEB 47s / SERVER 115s）。split.tsx 与 SeaDocumentSection.tsx 存量 20 个 noUnusedImports warning 属先前常量拆分任务遗留（HEAD 已存在），未顺带清理。分三组提交后归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `efe6314a` | feat(server): 经营办理收敛到启用公司工作台 |
+| `23459708` | feat(web): 业务办理入口按公司工作台身份受控 |
+| `c27876f2` | docs(spec): 收紧经营归属规范的跨组织办理例外 |
+| (auto) | chore(task): archive 09-20-headquarters-business-boundary |
+
+### Status
+
+[OK] **Completed**
