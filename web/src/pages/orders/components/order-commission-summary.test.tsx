@@ -1,3 +1,4 @@
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import {
   cleanup,
   fireEvent,
@@ -316,7 +317,7 @@ describe('海运出口订单列表提成摘要接线', () => {
       success: true,
     });
 
-    render(
+    renderWithClient(
       <App>
         <OrderListPage />
       </App>,
@@ -345,7 +346,7 @@ describe('海运出口订单列表提成摘要接线', () => {
       success: true,
     });
 
-    const { container } = render(
+    const { container } = renderWithClient(
       <App>
         <OrderListPage />
       </App>,

@@ -1,6 +1,7 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import {
   history,
   useAccess,
@@ -74,9 +75,7 @@ export default function PartnerDetailPage() {
   const location = useLocation();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
 
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [partner, setPartner] = useState<API.Partner | undefined>(undefined);
 
   // Contacts state for ContactCardList
   const [contacts, setContacts] = useState<ContactItem[]>([]);
@@ -94,15 +93,6 @@ export default function PartnerDetailPage() {
     calcMode: 'daily_simple',
     remark: '',
   });
-
-  // Options state
-  const [users, setUsers] = useState<API.AdminUser[]>([]);
-  const [assignmentOptions, setAssignmentOptions] = useState<
-    API.PartnerAssignmentOption[]
-  >([]);
-  const [currencyOptions, setCurrencyOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
 
   // Collapsible active keys (all expanded by default)
   const [activeCollapseKeys, setActiveCollapseKeys] = useState<string[]>([
@@ -169,6 +159,94 @@ export default function PartnerDetailPage() {
     access.canReadPartnerAccounts || access.canManagePartners,
   );
 
+  // ------------------------------------------------------------------
+  // 服务端状态统一由 React Query 管理（state-management.md 唯一模式）
+  // ------------------------------------------------------------------
+
+  // 档案详情：仅编辑模式按档案标识拉取；失败提示与旧 catch 文案一致
+  const partnerDetailQuery = useQuery({
+    queryKey: ['partner-detail', 'profile', { id: partnerId }],
+    enabled: Boolean(partnerId),
+    queryFn: async () => {
+      if (!partnerId) {
+        // enabled 已保证；此处仅为类型收窄兜底。
+        throw new Error('缺少档案标识');
+      }
+      const res = await partnerServiceGetPartner({ id: partnerId });
+      return res.data ?? null;
+    },
+    meta: { errorMessage: '加载档案详情失败' },
+  });
+  const partner = partnerDetailQuery.data ?? undefined;
+
+  // 结算规则：仅编辑模式且有读权限时拉取；失败静默，不阻断档案主体渲染
+  const settlementRuleQuery = useQuery({
+    queryKey: ['partner-detail', 'settlement-rule', { partnerId, roleType }],
+    enabled: Boolean(partnerId) && canReadSettlementRules,
+    queryFn: async () => {
+      if (!partnerId) {
+        throw new Error('缺少档案标识');
+      }
+      const res = await partnerServiceListPartnerSettlementRules({
+        partnerId,
+        roleType,
+      });
+      return unwrapList(res)[0] ?? null;
+    },
+    meta: { silent: true },
+  });
+
+  // 编辑模式加载态：档案请求进行中时全页 Spin（与旧 loading state 行为一致）
+  const loading = Boolean(partnerId) && partnerDetailQuery.isPending;
+
+  // 辅助选项（用户、币种、人员归属）：失败只提示不阻断；
+  // 全部结算后合并提示一次，与旧 Promise.allSettled 行为一致。
+  const usersQuery = useQuery({
+    queryKey: ['partner-detail', 'options', 'users'],
+    queryFn: async () => {
+      const res = await adminServiceListUsers(
+        { page: 1, pageSize: 200 },
+        { skipErrorHandler: true },
+      );
+      return res.data ?? [];
+    },
+    meta: { silent: true },
+  });
+  const currencyOptionsQuery = useQuery({
+    queryKey: ['partner-detail', 'options', 'currencies'],
+    queryFn: () => getCurrencyOptions(),
+    meta: { silent: true },
+  });
+  const assignmentOptionsQuery = useQuery({
+    queryKey: ['partner-detail', 'options', 'assignments'],
+    queryFn: async () => {
+      const res = await partnerServiceListPartnerAssignmentOptions({
+        skipErrorHandler: true,
+      });
+      return res.data ?? [];
+    },
+    meta: { silent: true },
+  });
+  const users = usersQuery.data ?? [];
+  const assignmentOptions = assignmentOptionsQuery.data ?? [];
+  const currencyOptions = currencyOptionsQuery.data ?? [];
+
+  const failedOptionLabels = [
+    usersQuery.isError ? '用户' : '',
+    currencyOptionsQuery.isError ? '币种' : '',
+    assignmentOptionsQuery.isError ? '人员归属' : '',
+  ].filter(Boolean);
+  const failedOptionSummary = failedOptionLabels.join('、');
+  const optionsSettled =
+    !usersQuery.isPending &&
+    !currencyOptionsQuery.isPending &&
+    !assignmentOptionsQuery.isPending;
+  useEffect(() => {
+    if (optionsSettled && failedOptionSummary) {
+      message.warning(`${failedOptionSummary}选项加载失败`);
+    }
+  }, [optionsSettled, failedOptionSummary, message]);
+
   const canOperate = isCreate
     ? access.canOperateBusiness
     : access.canOperateOrganization(partner?.organizationId);
@@ -203,217 +281,144 @@ export default function PartnerDetailPage() {
     ? (searchParams.get('legalName') ?? '').trim()
     : '';
 
-  // Load auxiliary options
+  // 创建模式（含非法路由）表单默认值：跟随当前地址重建；携带 legalName
+  // 查询参数时预填公司抬头，参数移除或变化时按新地址重建，不残留上一条地址的预填。
   useEffect(() => {
-    const fetchOptions = async () => {
-      const [usersRes, curRes, assignRes] = await Promise.allSettled([
-        adminServiceListUsers(
-          { page: 1, pageSize: 200 },
-          { skipErrorHandler: true },
-        ),
-        getCurrencyOptions(),
-        partnerServiceListPartnerAssignmentOptions({ skipErrorHandler: true }),
-      ]);
+    if (partnerId) return;
+    setContacts([]);
+    setAliases([]);
+    formRef.current?.resetFields();
+    formRef.current?.setFieldsValue({
+      enabled: true,
+      isCasual: false,
+      nature: roleLabel,
+      roleTypes: [roleType],
+      customerType: PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
+      customerTypes: [PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT],
+      developmentMethod: '自主开发',
+      businessTypes: [PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE],
+      statementMode: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
+      settlementMethod:
+        PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
+      settlementBase: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE,
+      settlementDay: 25,
+      settlementCurrency: 'CNY',
+      creditDays: 30,
+      legalName: prefillLegalName,
+    });
+  }, [partnerId, prefillLegalName, roleLabel, roleType]);
 
-      if (usersRes.status === 'fulfilled' && usersRes.value.data) {
-        setUsers(usersRes.value.data);
-      }
-      if (assignRes.status === 'fulfilled' && assignRes.value.data) {
-        setAssignmentOptions(assignRes.value.data);
-      }
-      if (curRes.status === 'fulfilled') {
-        setCurrencyOptions(curRes.value);
-      }
+  // 编辑模式回填：档案与结算规则都出结果后一次性填表；结算规则请求失败
+  // （静默）时按「无规则」回填，仅填档案字段，不阻断主体渲染。
+  useEffect(() => {
+    if (!partnerId) return;
+    const p = partnerDetailQuery.data;
+    if (!p) return;
+    // 有读权限时等结算规则请求出结果再统一回填，避免结算字段先空后有的闪烁
+    if (canReadSettlementRules && settlementRuleQuery.isPending) return;
+    const currentRule = settlementRuleQuery.data ?? undefined;
 
-      const failedLabels = [
-        usersRes.status === 'rejected' ? '用户' : '',
-        curRes.status === 'rejected' ? '币种' : '',
-        assignRes.status === 'rejected' ? '人员归属' : '',
-      ].filter(Boolean);
-      if (failedLabels.length > 0) {
-        message.warning(`${failedLabels.join('、')}选项加载失败`);
-      }
+    const profile = p.profile || {};
+    const assignments = p.assignments || [];
+
+    const findAssignment = (role: number, index = 0) => {
+      const item = assignments
+        .filter((assignment) => assignment.role === role)
+        .sort((left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0))[
+        index
+      ];
+      return { userId: item?.userId };
     };
 
-    fetchOptions();
-  }, [message]);
+    const regionCodes: string[] = [];
+    if (profile.provinceCode) regionCodes.push(profile.provinceCode);
+    if (profile.cityCode) regionCodes.push(profile.cityCode);
+    if (profile.districtCode) regionCodes.push(profile.districtCode);
 
-  // Load partner detail when editing
-  useEffect(() => {
-    if (!partnerId) {
-      setPartner(undefined);
-      setContacts([]);
-      setAliases([]);
-      formRef.current?.resetFields();
-      formRef.current?.setFieldsValue({
-        enabled: true,
-        isCasual: false,
-        nature: roleLabel,
-        roleTypes: [roleType],
-        customerType: PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
-        customerTypes: [PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT],
-        developmentMethod: '自主开发',
-        businessTypes: [PartnerBusinessType.PARTNER_BUSINESS_TYPE_SE],
-        statementMode: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE,
-        settlementMethod:
-          PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_BY_TICKET,
-        settlementBase: PartnerSettlementBase.PARTNER_SETTLEMENT_BASE_BILL_DATE,
-        settlementDay: 25,
-        settlementCurrency: 'CNY',
-        creditDays: 30,
-        // 创建默认值跟随当前地址重建：携带 legalName 查询参数时预填公司抬头，
-        // 参数移除或变化时按新地址重建，不残留上一条地址的预填。
-        legalName: prefillLegalName,
-      });
-      return;
-    }
+    // Aliases
+    const loadedAliases = (p.aliases || [])
+      .map((a) => a.aliasName || '')
+      .filter(Boolean);
+    setAliases(loadedAliases);
 
-    let isMounted = true;
-    setLoading(true);
+    // Contacts
+    const loadedContacts: ContactItem[] = (p.contacts || []).map((c) => ({
+      id: c.id,
+      name: c.name || '',
+      phone: c.phone,
+      email: c.email,
+      note: c.note,
+      isPrimary: c.isPrimary,
+    }));
+    setContacts(loadedContacts);
 
-    const loadPartnerData = async () => {
-      try {
-        const partnerRes = await partnerServiceGetPartner({ id: partnerId });
-        if (!isMounted) return;
-        const p = partnerRes.data;
-        setPartner(p);
+    // Credit Limit conversion
+    const creditAmount = currentRule?.creditLimitMinor;
+    const isForeign =
+      roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT;
 
-        let currentRule: API.PartnerSettlementRule | undefined;
-        if (canReadSettlementRules) {
-          try {
-            const ruleRes = await partnerServiceListPartnerSettlementRules({
-              partnerId,
-              roleType,
-            });
-            if (isMounted) {
-              const rules = unwrapList(ruleRes);
-              currentRule = rules[0];
-            }
-          } catch {
-            // 结算规则加载失败不阻断档案主体渲染
+    formRef.current?.setFieldsValue({
+      code: p.code,
+      legalName: p.legalName,
+      unifiedSocialCreditCode: isForeign
+        ? undefined
+        : p.unifiedSocialCreditCode,
+      enabled: p.enabled ?? true,
+      isCasual: isForeign ? false : (p.isCasual ?? false),
+      regionCodes: regionCodes.length > 0 ? regionCodes : undefined,
+      addressDetail: profile.addressDetail || p.registeredAddress,
+      nameEn: profile.nameEn || (isForeign ? p.legalName : undefined),
+      addressEn:
+        profile.addressEn || (isForeign ? p.registeredAddress : undefined),
+      nature: profile.nature || roleLabel,
+      roleTypes:
+        (p.roles ?? []).filter((r) => r.enabled).map((r) => r.type as number)
+          .length > 0
+          ? (p.roles ?? [])
+              .filter((r) => r.enabled)
+              .map((r) => r.type as number)
+          : [roleType],
+      customerType:
+        profile.customerTypes?.[0] ||
+        PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
+      customerTypes: profile.customerTypes || [1],
+      developmentMethod: profile.developmentMethod || '自主开发',
+      businessTypes: profile.businessTypes || [1],
+      remark: profile.remark,
+
+      // 责任人员只选择人员，归属公司由服务端固定为档案所属公司。
+      assignCreatorUser: findAssignment(1).userId,
+      assignOperatorUser: findAssignment(2).userId,
+      assignSalesUser: findAssignment(3).userId,
+      assignServiceUser: findAssignment(4).userId,
+      assignFinanceUser: findAssignment(5).userId,
+      assignCommercialUser: findAssignment(6).userId,
+      assignContactUser: findAssignment(7).userId,
+      assignContact2User: findAssignment(7, 1).userId,
+      assignDocUser: findAssignment(8).userId,
+
+      // Settlement Info
+      ...(currentRule
+        ? {
+            statementMode: currentRule.statementMode ?? 1,
+            settlementMethod: currentRule.settlementMethod ?? 1,
+            settlementBase: currentRule.settlementBase ?? 1,
+            settlementDay: currentRule.settlementDay ?? 25,
+            settlementCurrency: currentRule.settlementCurrency ?? 'CNY',
+            creditDays: currentRule.settlementCycleDays ?? 30,
+            creditLimit: creditAmount,
+            paymentTermsDays: currentRule.paymentTermsDays,
           }
-        }
-
-        if (!isMounted) return;
-
-        if (p) {
-          const profile = p.profile || {};
-          const assignments = p.assignments || [];
-
-          const findAssignment = (role: number, index = 0) => {
-            const item = assignments
-              .filter((assignment) => assignment.role === role)
-              .sort(
-                (left, right) => (left.sortOrder ?? 0) - (right.sortOrder ?? 0),
-              )[index];
-            return { userId: item?.userId };
-          };
-
-          const regionCodes: string[] = [];
-          if (profile.provinceCode) regionCodes.push(profile.provinceCode);
-          if (profile.cityCode) regionCodes.push(profile.cityCode);
-          if (profile.districtCode) regionCodes.push(profile.districtCode);
-
-          // Aliases
-          const loadedAliases = (p.aliases || [])
-            .map((a) => a.aliasName || '')
-            .filter(Boolean);
-          setAliases(loadedAliases);
-
-          // Contacts
-          const loadedContacts: ContactItem[] = (p.contacts || []).map((c) => ({
-            id: c.id,
-            name: c.name || '',
-            phone: c.phone,
-            email: c.email,
-            note: c.note,
-            isPrimary: c.isPrimary,
-          }));
-          setContacts(loadedContacts);
-
-          // Credit Limit conversion
-          const creditAmount = currentRule?.creditLimitMinor;
-          const isForeign =
-            roleType === PartnerRoleType.PARTNER_ROLE_TYPE_FOREIGN_AGENT;
-
-          formRef.current?.setFieldsValue({
-            code: p.code,
-            legalName: p.legalName,
-            unifiedSocialCreditCode: isForeign
-              ? undefined
-              : p.unifiedSocialCreditCode,
-            enabled: p.enabled ?? true,
-            isCasual: isForeign ? false : (p.isCasual ?? false),
-            regionCodes: regionCodes.length > 0 ? regionCodes : undefined,
-            addressDetail: profile.addressDetail || p.registeredAddress,
-            nameEn: profile.nameEn || (isForeign ? p.legalName : undefined),
-            addressEn:
-              profile.addressEn ||
-              (isForeign ? p.registeredAddress : undefined),
-            nature: profile.nature || roleLabel,
-            roleTypes:
-              (p.roles ?? [])
-                .filter((r) => r.enabled)
-                .map((r) => r.type as number).length > 0
-                ? (p.roles ?? [])
-                    .filter((r) => r.enabled)
-                    .map((r) => r.type as number)
-                : [roleType],
-            customerType:
-              profile.customerTypes?.[0] ||
-              PartnerCustomerType.PARTNER_CUSTOMER_TYPE_DIRECT,
-            customerTypes: profile.customerTypes || [1],
-            developmentMethod: profile.developmentMethod || '自主开发',
-            businessTypes: profile.businessTypes || [1],
-            remark: profile.remark,
-
-            // 责任人员只选择人员，归属公司由服务端固定为档案所属公司。
-            assignCreatorUser: findAssignment(1).userId,
-            assignOperatorUser: findAssignment(2).userId,
-            assignSalesUser: findAssignment(3).userId,
-            assignServiceUser: findAssignment(4).userId,
-            assignFinanceUser: findAssignment(5).userId,
-            assignCommercialUser: findAssignment(6).userId,
-            assignContactUser: findAssignment(7).userId,
-            assignContact2User: findAssignment(7, 1).userId,
-            assignDocUser: findAssignment(8).userId,
-
-            // Settlement Info
-            ...(currentRule
-              ? {
-                  statementMode: currentRule.statementMode ?? 1,
-                  settlementMethod: currentRule.settlementMethod ?? 1,
-                  settlementBase: currentRule.settlementBase ?? 1,
-                  settlementDay: currentRule.settlementDay ?? 25,
-                  settlementCurrency: currentRule.settlementCurrency ?? 'CNY',
-                  creditDays: currentRule.settlementCycleDays ?? 30,
-                  creditLimit: creditAmount,
-                  paymentTermsDays: currentRule.paymentTermsDays,
-                }
-              : {}),
-          });
-        }
-      } catch {
-        message.error('加载档案详情失败');
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadPartnerData();
-
-    return () => {
-      isMounted = false;
-    };
+        : {}),
+    });
   }, [
     partnerId,
+    partnerDetailQuery.data,
+    settlementRuleQuery.data,
+    settlementRuleQuery.isPending,
+    canReadSettlementRules,
     roleType,
     roleLabel,
-    prefillLegalName,
-    canReadSettlementRules,
-    message,
   ]);
 
   // User and Organization Select Options

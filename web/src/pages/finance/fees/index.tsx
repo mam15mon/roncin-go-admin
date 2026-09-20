@@ -1,4 +1,5 @@
 import type { ActionType } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { history, useAccess } from '@umijs/max';
 import { App, Select, Space } from 'antd';
 import React, {
@@ -81,8 +82,12 @@ export function feeRowsBelongToOrganization(
   );
 }
 
+/** 表头偏好查询 key：加载与保存共用，保存后直接回写缓存。 */
+const PREFERENCE_QUERY_KEY = ['finance', 'fee-ledger', 'preference'] as const;
+
 export default function FinanceFeeLedgerPage() {
   const { message, modal } = App.useApp();
+  const queryClient = useQueryClient();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
   const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
@@ -92,28 +97,46 @@ export default function FinanceFeeLedgerPage() {
   const [selectedBillOrganizationId, setSelectedBillOrganizationId] =
     useState<string>();
   const [columnConfigOpen, setColumnConfigOpen] = useState(false);
-  const [preference, setPreference] = useState<API.FeeLedgerPreference>();
   const [filterParams, setFilterParams] = useState<FeeLedgerFilterParams>({});
   const [organizationId, setOrganizationId] = useState<string>();
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose: FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_FEE_READ,
-    })
-      .then((response) => {
-        if (!cancelled) setOrganizationOptions(response.data ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) message.warning('所属公司候选加载失败');
+  // 顶部筛选所属公司候选：失败经全局 onError 提示原文案。
+  const organizationQuery = useQuery({
+    queryKey: [
+      'finance',
+      'organization-options',
+      {
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_FEE_READ,
+      },
+    ],
+    meta: { errorMessage: '所属公司候选加载失败' },
+    queryFn: async () => {
+      const response = await settlementServiceListFinanceOrganizationOptions({
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_FEE_READ,
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [message]);
+      return response.data ?? [];
+    },
+  });
+  const organizationOptions = organizationQuery.data ?? [];
+
+  // 当前用户云端表头偏好：历史加载无卸载保护，竞态与卸载由库收敛。
+  const preferenceQuery = useQuery({
+    queryKey: PREFERENCE_QUERY_KEY,
+    meta: { errorMessage: '费用表格偏好加载失败，当前未应用个人配置' },
+    queryFn: async () => {
+      const response = await settlementServiceGetFeeLedgerPreference({});
+      return response.data;
+    },
+  });
+  const preference = preferenceQuery.data;
+  const savePreference = useCallback(
+    (updated: API.FeeLedgerPreference) => {
+      queryClient.setQueryData(PREFERENCE_QUERY_KEY, updated);
+    },
+    [queryClient],
+  );
 
   const handleSearch = (values: FeeLedgerFilterParams) => {
     setFilterParams(values);
@@ -194,19 +217,6 @@ export default function FinanceFeeLedgerPage() {
       onOk: () => confirmDraftRows(keys, rows),
     });
   };
-
-  // 加载当前用户云端表头偏好配置
-  useEffect(() => {
-    settlementServiceGetFeeLedgerPreference({})
-      .then((res) => {
-        if (res.data) {
-          setPreference(res.data);
-        }
-      })
-      .catch(() => {
-        message.warning('费用表格偏好加载失败，当前未应用个人配置');
-      });
-  }, [message]);
 
   const formatAmounts = (
     field: 'receivableBaseAmount' | 'payableBaseAmount' | 'profitBaseAmount',
@@ -583,7 +593,7 @@ export default function FinanceFeeLedgerPage() {
         onClose={() => setColumnConfigOpen(false)}
         currentPreference={preference}
         onSaved={(updated) => {
-          setPreference(updated);
+          savePreference(updated);
           actionRef.current?.reload();
         }}
       />

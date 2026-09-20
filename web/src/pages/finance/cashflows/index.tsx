@@ -10,10 +10,11 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { useAccess } from '@umijs/max';
 import { App, Form, Popconfirm, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
 import {
   type FinanceLedgerMetricCard,
@@ -88,12 +89,6 @@ export default function FinanceCashflowsPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<Values>();
   const [open, setOpen] = useState(false);
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  const [readOrganizationOptions, setReadOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
   const [organizationId, setOrganizationId] = useState<string>();
   const [partyCasualMap, setPartyCasualMap] = useState<Record<string, boolean>>(
     {},
@@ -107,29 +102,48 @@ export default function FinanceCashflowsPage() {
     currentDirection === 'PAYABLE' &&
     Boolean(partyCasualMap[currentSettlementPartyId]);
 
-  useEffect(() => {
-    if (!access.canCreateFinanceCashflows) return;
-    let cancelled = false;
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
-    })
-      .then((response) => {
-        if (!cancelled) setOrganizationOptions(response.data ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) message.warning('资金登记公司候选加载失败');
+  // 登记弹窗所属公司候选：仅具备登记权限时拉取；失败经全局 onError 提示原文案。
+  const createOrganizationQuery = useQuery({
+    queryKey: [
+      'finance',
+      'organization-options',
+      {
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
+      },
+    ],
+    enabled: access.canCreateFinanceCashflows,
+    meta: { errorMessage: '资金登记公司候选加载失败' },
+    queryFn: async () => {
+      const response = await settlementServiceListFinanceOrganizationOptions({
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [access.canCreateFinanceCashflows, message]);
-  useEffect(() => {
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ,
-    }).then((response) => setReadOrganizationOptions(response.data ?? []));
-  }, []);
+      return response.data ?? [];
+    },
+  });
+
+  // 顶部筛选所属公司候选：历史无错误兜底，保持静默（仅请求层通知）。
+  const readOrganizationQuery = useQuery({
+    queryKey: [
+      'finance',
+      'organization-options',
+      {
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ,
+      },
+    ],
+    meta: { silent: true },
+    queryFn: async () => {
+      const response = await settlementServiceListFinanceOrganizationOptions({
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ,
+      });
+      return response.data ?? [];
+    },
+  });
+  const organizationOptions = createOrganizationQuery.data ?? [];
+  const readOrganizationOptions = readOrganizationQuery.data ?? [];
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
     amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 83
+- **Total Sessions**: 84
 - **Last Active**: 2026-09-20
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~101 | Active |
+| `journal-2.md` | ~126 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 84 | 2026-09-20 | 数据层迁移第二批：剩余手写请求链全部收敛 | `04fdfc08`, `0edffa15`, `4b487253`, `ab72886f` | `refactor/data-layer-migration-batch2` |
 | 83 | 2026-09-20 | 数据层迁移 React Query v5：基建+阶段1/2+规范沉淀 | `b4f3147d`, `e268ca41`, `914dfc28` | `refactor/data-layer-react-query` |
 | 81 | 2026-09-20 | React Query v5 选型落地与阶段0基建（随后暂停） | `b4f3147d` | `refactor/data-layer-react-query` |
 | 80 | 2026-09-20 | Pro 规范小修清单：路由导航与 DOM 定位偏离 | `0b520206`, `fd939673` | `fix/pro-convention-small-fixes` |

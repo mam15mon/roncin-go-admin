@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
 import { useModel } from '@umijs/max';
-import { App } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
+import { getErrorMessage } from '@/utils/errorMessage';
 import {
   clearOrderMasterDataCache,
   getOrderPersonnelOptions,
@@ -16,124 +17,60 @@ import {
 import type { OrderKindDefinition } from './order-kinds/types';
 import type { SelectOption } from './templates';
 
-type CreateOptionsRequestIdentity = {
-  organizationId: string;
-  transportMode: OrderKindDefinition['transportMode'];
-  businessType: OrderKindDefinition['businessType'];
-};
-
-type CreateOptionsErrorState = CreateOptionsRequestIdentity & {
-  error: Error;
-};
+/** 新建订单页候选聚合载荷：queryFn 内并行拉取主数据与人员选项并完成映射。 */
+interface OrderCreateOptionsBundle {
+  serviceTypeOptions: SelectOption[];
+  cargoCategoryOptions: SelectOption[];
+  locationOptions: SelectOption[];
+  currencyOptions: SelectOption[];
+  containerSpecOptions: SelectOption[];
+  personnelOptions: API.OrderPersonnelOption[];
+}
 
 /** 新建订单页的主数据与人员候选项加载。 */
 export function useOrderCreateOptions(definition?: OrderKindDefinition) {
-  const { message } = App.useApp();
   const { initialState } = useModel('@@initialState');
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const isUserLoaded = Boolean(initialState?.currentUser);
+  const transportMode = definition?.transportMode;
+  const businessType = definition?.businessType;
 
-  const [loading, setLoading] = useState(true);
-  const [errorState, setErrorState] = useState<CreateOptionsErrorState | null>(
-    null,
-  );
-  const [reloadKey, setReloadKey] = useState(0);
-  const [loadedIdentity, setLoadedIdentity] =
-    useState<CreateOptionsRequestIdentity | null>(null);
+  // 组织与业务身份全部就绪才允许发起请求；身份参数全部进入 queryKey，
+  // 组织/业务配置切换即自然重查且互不串数据。
+  const queryEnabled = Boolean(definition && organizationId);
 
-  const [serviceTypeOptions, setServiceTypeOptions] = useState<SelectOption[]>(
-    [],
-  );
-  const [cargoCategoryOptions, setCargoCategoryOptions] = useState<
-    SelectOption[]
-  >([]);
-  const [locationOptions, setLocationOptions] = useState<SelectOption[]>([]);
-  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
-  const [containerSpecOptions, setContainerSpecOptions] = useState<
-    SelectOption[]
-  >([]);
-  const [personnelOptions, setPersonnelOptions] = useState<
-    API.OrderPersonnelOption[]
-  >([]);
-
-  const activeOrgIdRef = useRef(organizationId);
-  activeOrgIdRef.current = organizationId;
-  const activeTransportModeRef = useRef(definition?.transportMode);
-  activeTransportModeRef.current = definition?.transportMode;
-  const activeBusinessTypeRef = useRef(definition?.businessType);
-  activeBusinessTypeRef.current = definition?.businessType;
-  const requestIdRef = useRef(0);
-
-  const retry = useCallback(() => {
-    if (organizationId) {
-      clearOrderMasterDataCache(organizationId);
-    }
-    setLoadedIdentity(null);
-    setErrorState(null);
-    setReloadKey((k) => k + 1);
-  }, [organizationId]);
-
-  useEffect(() => {
-    if (!definition) {
-      requestIdRef.current += 1;
-      setLoadedIdentity(null);
-      setLoading(false);
-      setErrorState(null);
-      return;
-    }
-
-    if (isUserLoaded && !organizationId) {
-      requestIdRef.current += 1;
-      setLoadedIdentity(null);
-      setLoading(false);
-      setErrorState(null);
-      return;
-    }
-
-    if (!organizationId) {
-      requestIdRef.current += 1;
-      setLoadedIdentity(null);
-      setLoading(true);
-      setErrorState(null);
-      return;
-    }
-
-    const currentRequestId = ++requestIdRef.current;
-    const currentOrgId = organizationId;
-    const currentTransportMode = definition.transportMode;
-    const currentBusinessType = definition.businessType;
-    setLoading(true);
-    setErrorState(null);
-
-    Promise.all([
-      fetchOrderMasterData(organizationId, definition.transportMode),
-      definition.transportMode === 'sea'
-        ? getOrderPersonnelOptions(organizationId, definition.businessType)
-        : Promise.resolve([]),
-    ])
-      .then(([masterData, personnelResponse]) => {
-        if (
-          currentRequestId !== requestIdRef.current ||
-          currentOrgId !== activeOrgIdRef.current ||
-          currentTransportMode !== activeTransportModeRef.current ||
-          currentBusinessType !== activeBusinessTypeRef.current
-        ) {
-          return;
-        }
-
-        const nextServiceTypeOptions =
+  const optionsQuery = useQuery({
+    queryKey: [
+      'orders',
+      'create-options',
+      { organizationId, transportMode, businessType },
+    ],
+    enabled: queryEnabled,
+    queryFn: async (): Promise<OrderCreateOptionsBundle> => {
+      if (!organizationId || !definition) {
+        // enabled 已保证身份齐备；此处仅为类型收窄兜底。
+        throw new Error('缺少订单主数据加载参数');
+      }
+      try {
+        const [masterData, personnelResponse] = await Promise.all([
+          fetchOrderMasterData(organizationId, definition.transportMode),
           definition.transportMode === 'sea'
-            ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
-            : masterData.serviceTypeOptions;
+            ? getOrderPersonnelOptions(organizationId, definition.businessType)
+            : Promise.resolve([]),
+        ]);
 
-        setServiceTypeOptions(nextServiceTypeOptions);
-        setCargoCategoryOptions(masterData.cargoCategoryOptions);
-        setLocationOptions(
-          resolveOrderLocationOptions(definition.transportMode, masterData),
-        );
-        setCurrencyOptions(masterData.currencyOptions);
-        setContainerSpecOptions(
-          masterData.masterOptions
+        return {
+          serviceTypeOptions:
+            definition.transportMode === 'sea'
+              ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
+              : masterData.serviceTypeOptions,
+          cargoCategoryOptions: masterData.cargoCategoryOptions,
+          locationOptions: resolveOrderLocationOptions(
+            definition.transportMode,
+            masterData,
+          ),
+          currencyOptions: masterData.currencyOptions,
+          containerSpecOptions: masterData.masterOptions
             .filter(
               (item) =>
                 isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC) &&
@@ -146,128 +83,90 @@ export function useOrderCreateOptions(definition?: OrderKindDefinition) {
               value: item.id ?? '',
             }))
             .filter((item) => item.value !== ''),
+          personnelOptions: personnelResponse,
+        };
+      } catch (err) {
+        // 动态错误文案：包装 Error 抛出，由全局 onError 展示（与旧实现
+        // message.error(err.message || '加载订单主数据失败') 一致）。
+        throw new Error(
+          getErrorMessage(err, '加载订单主数据失败') || '加载订单主数据失败',
         );
-        setPersonnelOptions(personnelResponse);
-        setLoadedIdentity({
-          organizationId: currentOrgId,
-          transportMode: currentTransportMode,
-          businessType: currentBusinessType,
-        });
-        setErrorState(null);
-      })
-      .catch((err: Error) => {
-        if (
-          currentRequestId !== requestIdRef.current ||
-          currentOrgId !== activeOrgIdRef.current ||
-          currentTransportMode !== activeTransportModeRef.current ||
-          currentBusinessType !== activeBusinessTypeRef.current
-        ) {
-          return;
-        }
-        setLoadedIdentity(null);
-        setErrorState({
-          organizationId: currentOrgId,
-          transportMode: currentTransportMode,
-          businessType: currentBusinessType,
-          error: err,
-        });
-        message.error(err.message || '加载订单主数据失败');
-      })
-      .finally(() => {
-        if (
-          currentRequestId === requestIdRef.current &&
-          currentOrgId === activeOrgIdRef.current &&
-          currentTransportMode === activeTransportModeRef.current &&
-          currentBusinessType === activeBusinessTypeRef.current
-        ) {
-          setLoading(false);
-        }
-      });
-  }, [definition, isUserLoaded, message, organizationId, reloadKey]);
+      }
+    },
+  });
 
-  const isIdentityMatched = Boolean(
-    organizationId &&
-      definition &&
-      loadedIdentity?.organizationId === organizationId &&
-      loadedIdentity.transportMode === definition.transportMode &&
-      loadedIdentity.businessType === definition.businessType,
-  );
-  const effectiveLocationOptions = isIdentityMatched ? locationOptions : [];
+  const { data, error, isPending, isFetching, refetch } = optionsQuery;
+
+  // 迟到搜索守卫：仅供 imperative 异步回调在 await 之后比对「当前身份」。
+  // 主数据本身的竞态已由 React Query 按 queryKey 隔离，不再使用请求序号令牌。
+  const latestIdentityRef = useRef({
+    organizationId,
+    transportMode,
+    businessType,
+  });
+  latestIdentityRef.current = { organizationId, transportMode, businessType };
 
   const searchLocations = useCallback(
     async (keyword?: string) => {
-      const requestOrgId = organizationId;
-      const requestTransportMode = definition?.transportMode;
-      const requestBusinessType = definition?.businessType;
-      if (
-        !requestOrgId ||
-        !requestTransportMode ||
-        requestBusinessType == null
-      ) {
+      if (!organizationId || !transportMode || businessType == null) {
         return [];
       }
 
       if (!keyword?.trim()) {
-        return activeOrgIdRef.current === requestOrgId &&
-          activeTransportModeRef.current === requestTransportMode &&
-          activeBusinessTypeRef.current === requestBusinessType &&
-          loadedIdentity?.organizationId === requestOrgId &&
-          loadedIdentity.transportMode === requestTransportMode &&
-          loadedIdentity.businessType === requestBusinessType
-          ? locationOptions
-          : [];
+        // 空关键字复用当前身份首批候选项；数据未就绪或加载失败时返回空。
+        return error ? [] : (data?.locationOptions ?? []);
       }
 
-      const options = await searchOrderLocations(requestTransportMode, keyword);
+      const options = await searchOrderLocations(transportMode, keyword);
+      const latest = latestIdentityRef.current;
       if (
-        activeOrgIdRef.current !== requestOrgId ||
-        activeTransportModeRef.current !== requestTransportMode ||
-        activeBusinessTypeRef.current !== requestBusinessType
+        latest.organizationId !== organizationId ||
+        latest.transportMode !== transportMode ||
+        latest.businessType !== businessType
       ) {
         return [];
       }
       return options;
     },
-    [
-      definition?.businessType,
-      definition?.transportMode,
-      loadedIdentity,
-      locationOptions,
-      organizationId,
-    ],
+    [organizationId, transportMode, businessType, data, error],
   );
+
+  const retry = useCallback(() => {
+    if (!organizationId) {
+      return Promise.resolve();
+    }
+    // 与旧行为一致：重试前先失效当前组织的主数据缓存。
+    clearOrderMasterDataCache(organizationId);
+    // refetch 的 Promise 只以结果对象 resolve、从不 reject，
+    // 与旧实现「吸收请求错误并正常 resolve」的语义一致。
+    return refetch().then(() => undefined);
+  }, [organizationId, refetch]);
 
   const missingOrgError =
     isUserLoaded && !organizationId
       ? new Error('缺少当前组织，无法加载订单主数据')
       : null;
-  const effectiveError =
-    missingOrgError ||
-    (organizationId &&
-    definition &&
-    errorState?.organizationId === organizationId &&
-    errorState.transportMode === definition.transportMode &&
-    errorState.businessType === definition.businessType
-      ? errorState.error
-      : null);
-  const effectiveLoading = !definition
+  const effectiveError = missingOrgError ?? error ?? null;
+  const bundle = effectiveError ? undefined : data;
+
+  // 首次拉取与重试期间保持加载态；用户信息未加载完成时同样保持加载，
+  // 已登录但缺少组织或加载失败时立即回落到错误/空态。
+  const loading = !definition
     ? false
-    : isUserLoaded && !organizationId
+    : missingOrgError
       ? false
-      : effectiveError
-        ? false
-        : !isIdentityMatched || loading;
+      : isPending || isFetching;
 
   return {
-    loading: effectiveLoading,
+    loading,
     error: effectiveError,
     retry,
-    serviceTypeOptions: isIdentityMatched ? serviceTypeOptions : [],
-    cargoCategoryOptions: isIdentityMatched ? cargoCategoryOptions : [],
-    locationOptions: effectiveLocationOptions,
+    serviceTypeOptions: bundle?.serviceTypeOptions ?? [],
+    cargoCategoryOptions: bundle?.cargoCategoryOptions ?? [],
+    locationOptions: bundle?.locationOptions ?? [],
     searchLocations,
-    currencyOptions: isIdentityMatched ? currencyOptions : [],
-    containerSpecOptions: isIdentityMatched ? containerSpecOptions : [],
-    personnelOptions: isIdentityMatched ? personnelOptions : [],
+    currencyOptions: bundle?.currencyOptions ?? [],
+    containerSpecOptions: bundle?.containerSpecOptions ?? [],
+    personnelOptions: bundle?.personnelOptions ?? [],
   };
 }

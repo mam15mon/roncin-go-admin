@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { useAccess } from '@umijs/max';
 import {
   App,
@@ -19,7 +20,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
 import {
   FinanceCommissionStatus,
@@ -84,16 +85,27 @@ export default function FinanceCommissionsPage() {
   const [detail, setDetail] = useState<API.FinanceCommission>();
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
 
-  useEffect(() => {
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
-    }).then((response) => setOrganizationOptions(response.data ?? []));
-  }, []);
+  // 筛选所属公司候选：历史无错误兜底，保持静默（仅请求层通知）。
+  const organizationQuery = useQuery({
+    queryKey: [
+      'finance',
+      'organization-options',
+      {
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
+      },
+    ],
+    meta: { silent: true },
+    queryFn: async () => {
+      const response = await settlementServiceListFinanceOrganizationOptions({
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
+      });
+      return response.data ?? [];
+    },
+  });
+  const organizationOptions = organizationQuery.data ?? [];
 
   const reload = () => actionRef.current?.reload();
 

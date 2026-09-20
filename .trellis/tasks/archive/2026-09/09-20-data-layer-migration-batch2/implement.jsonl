@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query 唯一模式与错误提示约定"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "测试零噪音口径与交互惯例"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范入口"}

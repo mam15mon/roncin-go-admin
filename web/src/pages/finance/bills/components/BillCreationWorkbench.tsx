@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Drawer, Form, Steps } from 'antd';
 import dayjs from 'dayjs';
 import React, {
@@ -53,6 +54,30 @@ export type BillCreationWorkbenchProps = {
   onCreated?: (batch: API.FinanceBillBatch) => void;
 };
 
+/** 预览快照 queryKey 域前缀；会话序号与防抖后请求参数逐层进 key。 */
+const PREVIEW_QUERY_KEY = ['finance-bills', 'bill-preview-batch'] as const;
+
+/**
+ * 拆单预览 queryFn：空叶子视为异常；错误文案与原实现 requestMessage 一致，
+ * 经全局 cache onError 透出（无 meta 静默）。
+ */
+async function fetchPreviewBatch(
+  request: API.PreviewBillBatchRequest,
+): Promise<API.PreviewBillBatchResponse> {
+  try {
+    const response = await settlementServicePreviewBillBatch(request, {
+      ...longRequestOptions,
+      skipErrorHandler: true,
+    });
+    if (unwrapList(response).length === 0) {
+      throw new Error('服务端未返回拆单预览');
+    }
+    return response;
+  } catch (rawError: unknown) {
+    throw new Error(requestMessage(rawError as RequestError, '拆单预览失败'));
+  }
+}
+
 export default function BillCreationWorkbench({
   open,
   initialFeeIds = [],
@@ -68,39 +93,40 @@ export default function BillCreationWorkbench({
     mode === 'NETTING'
       ? BillGroupingMode.BILL_GROUPING_MODE_NETTING
       : BillGroupingMode.BILL_GROUPING_MODE_NORMAL;
+  const queryClient = useQueryClient();
   const { message } = App.useApp();
   const [form] = Form.useForm<WorkbenchFormValue>();
   const [current, setCurrent] = useState(0);
   const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
   const [splitByOrder, setSplitByOrder] = useState(true);
   const [splitByTaxRate, setSplitByTaxRate] = useState(false);
-  const [preview, setPreview] = useState<API.PreviewBillBatchResponse>();
   const [organizationId, setOrganizationId] = useState<string>();
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
   const [result, setResult] = useState<API.FinanceBillBatch>();
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [confirming, setConfirming] = useState(false);
   const [activeGroupKey, setActiveGroupKey] = useState<string>();
   const [sessionIdentity, setSessionIdentity] = useState('');
+  // 防抖后进入 queryKey 的预览请求参数；undefined 表示当前没有待执行/进行中的预览。
+  const [previewRequest, setPreviewRequest] =
+    useState<API.PreviewBillBatchRequest>();
+  // 快照令牌失效时间戳：晚于该时间成功落地的预览才允许携带 previewToken
+  // 参与建单，等价原 fingerprint/previewTokenFingerprint 双 ref 的失效语义。
+  const [snapshotInvalidatedAt, setSnapshotInvalidatedAt] = useState(0);
+
   const previewInitKeyRef = useRef<string | undefined>(undefined);
-  const previewErrorKeyRef = useRef<string | undefined>(undefined);
-  const previewRequestTokenRef = useRef(0);
-  const previewFingerprintRef = useRef('');
-  const previewTokenFingerprintRef = useRef('');
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
-  const previewRef = useRef<API.PreviewBillBatchResponse | undefined>(
+  const previewDataRef = useRef<API.PreviewBillBatchResponse | undefined>(
     undefined,
   );
+  // 会话序号：同时驱动账户候选隔离身份（sessionIdentity）与预览 queryKey 分层。
   const sessionSequenceRef = useRef(0);
-  const previewPendingRef = useRef<{
-    key: string;
-    promise: Promise<boolean>;
-  } | null>(null);
+  const selectedIdsRef = useRef<string[]>([]);
+  const organizationIdRef = useRef<string | undefined>(undefined);
+  const splitByOrderRef = useRef(splitByOrder);
+  const splitByTaxRateRef = useRef(splitByTaxRate);
 
   const initialFeeKey = useMemo(
     () => (initialFeeIds || []).filter(Boolean).join('|'),
@@ -108,51 +134,103 @@ export default function BillCreationWorkbench({
   );
   const fixedSelection = initialFeeKey.length > 0;
 
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE,
-    })
-      .then((response) => {
-        if (!cancelled) setOrganizationOptions(response.data ?? []);
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) {
-          setOrganizationOptions([]);
-          message.error(getErrorMessage(error, '加载可建账所属公司失败'));
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [message, open]);
+  // 可建账所属公司候选：抽屉打开即加载；错误文案由 queryFn 包装后经全局
+  // cache onError 透出；失败时展示为空候选（等价原 catch 置空）。
+  const organizationOptionsQuery = useQuery({
+    queryKey: [
+      'finance-bills',
+      'organization-options',
+      {
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE,
+      },
+    ],
+    enabled: open,
+    queryFn: async (): Promise<API.FinanceOrganizationOption[]> => {
+      try {
+        const response = await settlementServiceListFinanceOrganizationOptions({
+          purpose:
+            FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE,
+        });
+        return response.data ?? [];
+      } catch (error: unknown) {
+        throw error instanceof Error
+          ? error
+          : new Error(getErrorMessage(error, '加载可建账所属公司失败'));
+      }
+    },
+  });
+  const organizationOptions = organizationOptionsQuery.isError
+    ? []
+    : (organizationOptionsQuery.data ?? []);
 
   const selectedIds = useMemo(
     () => selectedFeeIds.map(String).filter(Boolean),
     [selectedFeeIds],
   );
 
-  const selectedIdsRef = useRef<string[]>([]);
-  const organizationIdRef = useRef<string | undefined>(undefined);
-  const splitByOrderRef = useRef(splitByOrder);
-  const splitByTaxRateRef = useRef(splitByTaxRate);
+  // 拆单预览：350ms 防抖后的参数进 queryKey。D1→D2、币种/汇率、固定来源
+  // 切换等竞态一律由库按 queryKey 隔离（迟到响应只写自己的缓存键），
+  // 不再使用任何请求令牌比对。会话序号进 key 并在快照清空时递增，
+  // 用于切断换参期间 keepPreviousData 的跨会话旧数据桥接。
+  const previewQuery = useQuery({
+    queryKey: [
+      ...PREVIEW_QUERY_KEY,
+      sessionSequenceRef.current,
+      previewRequest,
+    ],
+    enabled: previewRequest !== undefined,
+    // 取数统一由 runPreview 的 fetchQuery（自带 staleTime=0，每次触发必发）
+    // 与换参（key 变化）驱动；观察者侧关闭 mount/换参时的重查判定，
+    // 避免 fetchQuery 快速落地后观察者才挂载/换参时再补一次同 key 请求，
+    // 保证每次触发只发一次请求（等价原实现）。
+    refetchOnMount: false,
+    staleTime: Infinity,
+    queryFn: async (): Promise<API.PreviewBillBatchResponse> => {
+      if (!previewRequest) {
+        // enabled 已保证参数存在；此处仅为类型收窄兜底。
+        throw new Error('缺少拆单预览参数');
+      }
+      return fetchPreviewBatch(previewRequest);
+    },
+    // 换参重查期间保留上一份快照，避免第 3 步面板闪空；跨会话不桥接。
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery &&
+      (previousQuery.queryKey[2] as number | undefined) ===
+        sessionSequenceRef.current
+        ? previousData
+        : undefined,
+  });
+  const preview = previewQuery.data;
+  const loading = previewQuery.isFetching || submitting;
 
   useEffect(() => {
     selectedIdsRef.current = selectedIds;
     organizationIdRef.current = organizationId;
     splitByOrderRef.current = splitByOrder;
     splitByTaxRateRef.current = splitByTaxRate;
-    previewRef.current = preview;
-  }, [organizationId, preview, selectedIds, splitByOrder, splitByTaxRate]);
+    previewDataRef.current = previewQuery.data;
+  }, [
+    organizationId,
+    previewQuery.data,
+    selectedIds,
+    splitByOrder,
+    splitByTaxRate,
+  ]);
 
-  const loadPreview = useCallback(
+  // 仅当展示中的数据是「当前参数、当前会话、失效标记之后」的成功响应时，
+  // 其 previewToken 才可用于创建；配置变更即刻失效，等待新预览落地。
+  const snapshotTokenUsable =
+    previewQuery.isSuccess &&
+    !previewQuery.isPlaceholderData &&
+    previewQuery.dataUpdatedAt > snapshotInvalidatedAt;
+
+  const runPreview = useCallback(
     async (
       overrideIds?: string[],
       policyOverride?: API.BillGroupingPolicy,
       organizationIdOverride?: string,
-    ) => {
+    ): Promise<boolean> => {
       if (previewTimerRef.current) {
         clearTimeout(previewTimerRef.current);
         previewTimerRef.current = undefined;
@@ -174,7 +252,7 @@ export default function BillCreationWorkbench({
         splitByTaxRate: splitByTaxRateRef.current,
       };
       const values = form.getFieldsValue(true) as WorkbenchFormValue;
-      const currentGroups = previewRef.current?.data || [];
+      const currentGroups = previewDataRef.current?.data || [];
       const groupConfigs: API.BillBatchPreviewGroupConfigInput[] = [];
       for (const group of currentGroups) {
         if (group.groupKey) {
@@ -192,147 +270,82 @@ export default function BillCreationWorkbench({
         organizationId: requestedOrganizationId,
         groupConfigs,
       } satisfies API.PreviewBillBatchRequest;
-      const requestFingerprint = JSON.stringify({ sessionIdentity, request });
-      previewFingerprintRef.current = requestFingerprint;
-      const requestToken = ++previewRequestTokenRef.current;
-      setLoading(true);
+      setPreviewRequest(request);
       try {
-        const response = await settlementServicePreviewBillBatch(request, {
-          ...longRequestOptions,
-          skipErrorHandler: true,
+        // 与 useQuery 同 key：与观察者共享同一次网络往返；同参重复触发时
+        // staleTime=0 保证仍会真实重查（等价原实现每次必发请求）。
+        await queryClient.fetchQuery({
+          queryKey: [...PREVIEW_QUERY_KEY, sessionSequenceRef.current, request],
+          queryFn: () => fetchPreviewBatch(request),
         });
-        if (
-          requestToken !== previewRequestTokenRef.current ||
-          requestFingerprint !== previewFingerprintRef.current ||
-          requestedOrganizationId !== organizationIdRef.current
-        ) {
-          return false;
-        }
-        const groups = unwrapList(response);
-        if (groups.length === 0) {
-          throw new Error('服务端未返回拆单预览');
-        }
-        previewErrorKeyRef.current = undefined;
-        setPreview(response);
-        previewRef.current = response;
-        previewTokenFingerprintRef.current = response.previewToken
-          ? requestFingerprint
-          : '';
-
-        const previousGroups = form.getFieldValue('groups') || {};
-        const nextGroups: Record<string, GroupFormValue> = {};
-        for (const group of groups) {
-          if (!group.groupKey) continue;
-          const existing = previousGroups[group.groupKey] as
-            | GroupFormValue
-            | undefined;
-          nextGroups[group.groupKey] = existing || {
-            statementTitle: group.settlementPartyName || '',
-            billDate: dayjs(),
-            paymentTermsDays:
-              group.defaultPaymentTermsDays !== undefined &&
-              group.defaultPaymentTermsDays !== null
-                ? group.defaultPaymentTermsDays
-                : undefined,
-            note: undefined,
-            settlementAccountId: undefined,
-            estimatedInvoiceCurrency:
-              group.estimatedInvoiceCurrency || group.currency || undefined,
-            estimatedInvoiceRate: group.estimatedInvoiceRate || undefined,
-          };
-          if (existing) {
-            nextGroups[group.groupKey] = {
-              ...existing,
-              paymentTermsDays:
-                existing.paymentTermsDays !== undefined
-                  ? existing.paymentTermsDays
-                  : group.defaultPaymentTermsDays !== undefined &&
-                      group.defaultPaymentTermsDays !== null
-                    ? group.defaultPaymentTermsDays
-                    : undefined,
-              estimatedInvoiceCurrency:
-                existing.estimatedInvoiceCurrency !== undefined
-                  ? existing.estimatedInvoiceCurrency
-                  : group.estimatedInvoiceCurrency ||
-                    group.currency ||
-                    undefined,
-              estimatedInvoiceRate:
-                existing.estimatedInvoiceRate !== undefined
-                  ? existing.estimatedInvoiceRate
-                  : group.estimatedInvoiceRate || undefined,
-            };
-          }
-        }
-        form.setFieldValue('groups', nextGroups);
-        setActiveGroupKey((previous) =>
-          previous && nextGroups[previous]
-            ? previous
-            : Object.keys(nextGroups)[0],
-        );
         return true;
-      } catch (rawError: unknown) {
-        if (
-          requestToken !== previewRequestTokenRef.current ||
-          requestFingerprint !== previewFingerprintRef.current ||
-          requestedOrganizationId !== organizationIdRef.current
-        ) {
-          return false;
-        }
-        const error = rawError as RequestError;
-        const errorKey = `${requestedOrganizationId}:${ids.join('|')}:${requestReason(error) || requestMessage(error, '拆单预览失败')}`;
-        if (previewErrorKeyRef.current !== errorKey) {
-          previewErrorKeyRef.current = errorKey;
-          message.error(requestMessage(error, '拆单预览失败'));
-        }
+      } catch {
         return false;
-      } finally {
-        if (requestToken === previewRequestTokenRef.current) {
-          setLoading(false);
-        }
       }
     },
-    [form, groupingMode, message, sessionIdentity],
+    [form, groupingMode, message, queryClient],
   );
 
-  const loadPreviewRef = useRef(loadPreview);
+  const runPreviewRef = useRef(runPreview);
   useEffect(() => {
-    loadPreviewRef.current = loadPreview;
-  }, [loadPreview]);
+    runPreviewRef.current = runPreview;
+  }, [runPreview]);
+
+  // 清空预览快照：递增会话序号（切断旧 key 的 placeholder 桥接与账户候选
+  // 身份）、丢弃未决防抖并复位快照令牌。用于组织切换、全部移除、重建会话
+  // 等需要彻底回到无快照状态的场景。
+  const clearPreviewSnapshot = useCallback(() => {
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = undefined;
+    }
+    previewDataRef.current = undefined;
+    setSnapshotInvalidatedAt(Date.now());
+    setSessionIdentity(`open-${++sessionSequenceRef.current}`);
+    setPreviewRequest(undefined);
+  }, []);
+
+  // 配置变更后立刻让当前快照令牌失效（创建将被要求重新预览），
+  // 数据本身保留展示，等待防抖后的新预览落地。
+  const invalidatePreview = useCallback(() => {
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = undefined;
+    }
+    setSnapshotInvalidatedAt(Date.now());
+  }, []);
+
+  const schedulePreview = useCallback(() => {
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    previewTimerRef.current = setTimeout(() => {
+      if (organizationIdRef.current && selectedIdsRef.current.length > 0) {
+        void runPreview();
+      }
+    }, 350);
+  }, [runPreview]);
+
+  const handleConfigurationChange = useCallback(() => {
+    invalidatePreview();
+    schedulePreview();
+  }, [invalidatePreview, schedulePreview]);
 
   // 初始化或当从业务页面进入时，自动快速预览并直达账单资料页
   useEffect(() => {
     if (!open) {
-      previewRequestTokenRef.current += 1;
-      previewFingerprintRef.current = '';
-      previewTokenFingerprintRef.current = '';
-      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+      if (previewTimerRef.current) {
+        clearTimeout(previewTimerRef.current);
+        previewTimerRef.current = undefined;
+      }
       previewInitKeyRef.current = undefined;
-      previewErrorKeyRef.current = undefined;
-      previewPendingRef.current = null;
       return;
     }
     const initialIds = initialFeeKey
       ? initialFeeKey.split('|').filter(Boolean)
       : [];
-    const initKey = `${initialFeeKey}:${initialOrganizationId || ''}:${groupingMode}:${open ? 'open' : 'closed'}`;
-    let cancelled = false;
-    if (previewInitKeyRef.current === initKey) {
-      const pending = previewPendingRef.current;
-      if (pending?.key === initKey) {
-        void pending.promise.then((ok) => {
-          if (cancelled) return;
-          setCurrent(ok ? 2 : 0);
-        });
-      }
-      return () => {
-        cancelled = true;
-      };
-    }
+    const initKey = `${initialFeeKey}:${initialOrganizationId || ''}:${groupingMode}`;
+    if (previewInitKeyRef.current === initKey) return;
     previewInitKeyRef.current = initKey;
-    previewRequestTokenRef.current += 1;
-    previewFingerprintRef.current = '';
-    previewTokenFingerprintRef.current = '';
-    setSessionIdentity(`open-${++sessionSequenceRef.current}`);
+    clearPreviewSnapshot();
     setSelectedFeeIds(initialIds);
     const nextOrganizationId =
       initialIds.length > 0 ? initialOrganizationId : undefined;
@@ -340,80 +353,44 @@ export default function BillCreationWorkbench({
     setOrganizationId(nextOrganizationId);
     setSplitByOrder(true);
     setSplitByTaxRate(false);
-    setPreview(undefined);
-    previewRef.current = undefined;
     setResult(undefined);
-    setLoading(false);
+    setSubmitting(false);
     setConfirming(false);
     setIdempotencyKey(generateUUID());
     form.resetFields();
 
     if (initialIds.length > 0 && initialOrganizationId) {
       // 极速模式：从单票/多选费用带入时，直接拉取预览并切到账单资料页
-      const previewPromise = loadPreviewRef.current(
-        initialIds,
-        {
-          mode: groupingMode,
-          splitByOrder: true,
-          splitByTaxRate: false,
-        },
-        initialOrganizationId,
-      );
-      previewPendingRef.current = { key: initKey, promise: previewPromise };
-      void previewPromise.then((ok) => {
-        if (cancelled) return;
-        if (ok) {
-          setCurrent(2);
-        } else {
-          setCurrent(0);
-        }
-      });
+      void runPreviewRef
+        .current(
+          initialIds,
+          {
+            mode: groupingMode,
+            splitByOrder: true,
+            splitByTaxRate: false,
+          },
+          initialOrganizationId,
+        )
+        .then((ok) => {
+          setCurrent(ok ? 2 : 0);
+        });
     } else {
-      previewPendingRef.current = null;
       setCurrent(0);
     }
-    return () => {
-      cancelled = true;
-    };
-  }, [open, initialFeeKey, initialOrganizationId, groupingMode]);
-
-  const invalidatePreview = useCallback(() => {
-    if (previewTimerRef.current) {
-      clearTimeout(previewTimerRef.current);
-      previewTimerRef.current = undefined;
-    }
-    previewRequestTokenRef.current += 1;
-    previewFingerprintRef.current = '';
-    previewTokenFingerprintRef.current = '';
-    setLoading(false);
-    setPreview((currentPreview) =>
-      currentPreview
-        ? { ...currentPreview, previewToken: undefined }
-        : currentPreview,
-    );
-  }, []);
-
-  const schedulePreview = useCallback(() => {
-    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
-    previewTimerRef.current = setTimeout(() => {
-      if (organizationIdRef.current && selectedIdsRef.current.length > 0) {
-        void loadPreview();
-      }
-    }, 350);
-  }, [loadPreview]);
-
-  const handleConfigurationChange = useCallback(() => {
-    invalidatePreview();
-    schedulePreview();
-  }, [invalidatePreview, schedulePreview]);
+  }, [
+    open,
+    initialFeeKey,
+    initialOrganizationId,
+    groupingMode,
+    clearPreviewSnapshot,
+    form,
+  ]);
 
   const handleOrganizationChange = (value: string | undefined) => {
-    invalidatePreview();
     organizationIdRef.current = value;
     setOrganizationId(value);
     setSelectedFeeIds([]);
-    setPreview(undefined);
-    previewRef.current = undefined;
+    clearPreviewSnapshot();
     setResult(undefined);
     setCurrent(0);
   };
@@ -425,16 +402,14 @@ export default function BillCreationWorkbench({
     if (nextIds.length === 0) {
       message.info('已移除所有费用，请重新选择');
       setSelectedFeeIds([]);
-      setPreview(undefined);
-      previewRef.current = undefined;
-      invalidatePreview();
+      clearPreviewSnapshot();
       setCurrent(0);
       return;
     }
     setSelectedFeeIds(nextIds);
     invalidatePreview();
     message.success('已从本次建单中移除该费用');
-    await loadPreview(nextIds);
+    await runPreview(nextIds);
   };
 
   const next = async () => {
@@ -452,7 +427,7 @@ export default function BillCreationWorkbench({
     }
     if (current === 1) {
       if (
-        await loadPreview(undefined, {
+        await runPreview(undefined, {
           mode: groupingMode,
           splitByOrder,
           splitByTaxRate,
@@ -486,7 +461,7 @@ export default function BillCreationWorkbench({
     if (
       !preview?.previewToken ||
       !preview.data?.length ||
-      previewTokenFingerprintRef.current !== previewFingerprintRef.current ||
+      !snapshotTokenUsable ||
       preview.data.some((group) => group.configurationComplete !== true)
     ) {
       message.warning('账单预览快照尚未完整或已失效，请补齐配置后重新预览');
@@ -508,7 +483,7 @@ export default function BillCreationWorkbench({
       message.warning('请为每张拟生成账单补齐必填资料和结算账户');
       return;
     }
-    setLoading(true);
+    setSubmitting(true);
     try {
       const allFormValues = form.getFieldsValue(true) as WorkbenchFormValue;
       const response = await settlementServiceCreateBillBatch(
@@ -556,7 +531,7 @@ export default function BillCreationWorkbench({
       const error = rawError as RequestError;
       if (requestReason(error) === 'FINANCE_BILL_PREVIEW_STALE') {
         message.warning('费用已发生变化，请重新预览后再生成账单');
-        setPreview(undefined);
+        clearPreviewSnapshot();
         setCurrent(1);
       } else if (requestReason(error) === 'FINANCE_BILL_FEE_INVALID') {
         message.error('所选费用必须为已确认状态且尚未进入其他账单');
@@ -564,7 +539,7 @@ export default function BillCreationWorkbench({
         message.error(requestMessage(error, '批量生成账单失败'));
       }
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -592,6 +567,74 @@ export default function BillCreationWorkbench({
       setConfirming(false);
     }
   };
+
+  // 预览快照落地后的草稿归位：新叶子补默认值、已编辑叶子按 groupKey 原样
+  // 保留，已移除叶子的表单值随整体重写丢弃。仅对当前观察 key 的真实响应
+  // 执行；迟到的旧参数响应只写自己的缓存键，不会触发本 effect。
+  useEffect(() => {
+    if (
+      !previewRequest ||
+      previewQuery.isPlaceholderData ||
+      !previewQuery.isSuccess
+    ) {
+      return;
+    }
+    const response = previewQuery.data;
+    if (!response) return;
+    const groups = unwrapList(response);
+    const previousGroups = form.getFieldValue('groups') || {};
+    const nextGroups: Record<string, GroupFormValue> = {};
+    for (const group of groups) {
+      if (!group.groupKey) continue;
+      const existing = previousGroups[group.groupKey] as
+        | GroupFormValue
+        | undefined;
+      nextGroups[group.groupKey] = existing || {
+        statementTitle: group.settlementPartyName || '',
+        billDate: dayjs(),
+        paymentTermsDays:
+          group.defaultPaymentTermsDays !== undefined &&
+          group.defaultPaymentTermsDays !== null
+            ? group.defaultPaymentTermsDays
+            : undefined,
+        note: undefined,
+        settlementAccountId: undefined,
+        estimatedInvoiceCurrency:
+          group.estimatedInvoiceCurrency || group.currency || undefined,
+        estimatedInvoiceRate: group.estimatedInvoiceRate || undefined,
+      };
+      if (existing) {
+        nextGroups[group.groupKey] = {
+          ...existing,
+          paymentTermsDays:
+            existing.paymentTermsDays !== undefined
+              ? existing.paymentTermsDays
+              : group.defaultPaymentTermsDays !== undefined &&
+                  group.defaultPaymentTermsDays !== null
+                ? group.defaultPaymentTermsDays
+                : undefined,
+          estimatedInvoiceCurrency:
+            existing.estimatedInvoiceCurrency !== undefined
+              ? existing.estimatedInvoiceCurrency
+              : group.estimatedInvoiceCurrency || group.currency || undefined,
+          estimatedInvoiceRate:
+            existing.estimatedInvoiceRate !== undefined
+              ? existing.estimatedInvoiceRate
+              : group.estimatedInvoiceRate || undefined,
+        };
+      }
+    }
+    form.setFieldValue('groups', nextGroups);
+    setActiveGroupKey((previous) =>
+      previous && nextGroups[previous] ? previous : Object.keys(nextGroups)[0],
+    );
+  }, [
+    form,
+    previewQuery.data,
+    previewQuery.isPlaceholderData,
+    previewQuery.isSuccess,
+    previewRequest,
+  ]);
 
   const formGroups = Form.useWatch('groups', form) as
     | Record<string, GroupFormValue>
@@ -695,7 +738,7 @@ export default function BillCreationWorkbench({
           onActiveGroupKeyChange={setActiveGroupKey}
           invalidGroupKeys={invalidGroupKeys}
           invalidatePreview={invalidatePreview}
-          loadPreview={loadPreview}
+          loadPreview={runPreview}
           onRemoveFee={handleRemoveFee}
           onConfigurationChange={handleConfigurationChange}
         />

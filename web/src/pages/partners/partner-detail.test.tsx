@@ -1,4 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { screen, waitFor } from '@testing-library/react';
 import { history } from '@umijs/max';
 import { App } from 'antd';
 import React from 'react';
@@ -121,7 +123,7 @@ describe('PartnerDetailPage', () => {
   });
 
   it('创建模式按当前查询参数预填，并在同组件地址变化时重建默认值', async () => {
-    const { rerender } = render(
+    const { rerender, queryClient } = renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -129,22 +131,24 @@ describe('PartnerDetailPage', () => {
 
     expect(await screen.findByLabelText('公司抬头')).toHaveValue('上海 安可');
 
+    // rerender 需自带同一 QueryClientProvider，保持同一组件树与查询缓存
+    const rerenderWithClient = () =>
+      rerender(
+        <QueryClientProvider client={queryClient}>
+          <App>
+            <PartnerDetailPage />
+          </App>
+        </QueryClientProvider>,
+      );
+
     routeState.search = '?legalName=%E6%96%B0%26%E5%85%AC%E5%8F%B8';
-    rerender(
-      <App>
-        <PartnerDetailPage />
-      </App>,
-    );
+    rerenderWithClient();
     await waitFor(() =>
       expect(screen.getByLabelText('公司抬头')).toHaveValue('新&公司'),
     );
 
     routeState.search = '';
-    rerender(
-      <App>
-        <PartnerDetailPage />
-      </App>,
-    );
+    rerenderWithClient();
     await waitFor(() =>
       expect(screen.getByLabelText('公司抬头')).toHaveValue(''),
     );
@@ -156,7 +160,7 @@ describe('PartnerDetailPage', () => {
     routeState.pathname = '/partners/customers/create';
     routeState.search = '';
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -177,7 +181,7 @@ describe('PartnerDetailPage', () => {
     routeState.pathname = '/partners/customers/new';
     routeState.search = '';
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -209,7 +213,7 @@ describe('PartnerDetailPage', () => {
       data: [],
     } as never);
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -239,7 +243,7 @@ describe('PartnerDetailPage', () => {
       data: [],
     } as never);
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -278,7 +282,7 @@ describe('PartnerDetailPage', () => {
       } as never,
     });
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -308,7 +312,7 @@ describe('PartnerDetailPage', () => {
     routeState.params = { id: 'create' };
     routeState.pathname = '/partners/customers/create';
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -332,7 +336,7 @@ describe('PartnerDetailPage', () => {
       } as never,
     });
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -358,7 +362,7 @@ describe('PartnerDetailPage', () => {
       } as never,
     });
 
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,
@@ -383,7 +387,7 @@ describe('PartnerDetailPage', () => {
         enabled: true,
       } as never,
     });
-    render(
+    renderWithClient(
       <App>
         <PartnerDetailPage />
       </App>,

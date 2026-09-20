@@ -1,4 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -228,6 +230,29 @@ vi.mock('./components/fees/QuickAddPartnerModal', () => ({
   ),
 }));
 
+// 费用页已迁移 React Query（快捷费目候选项查询）：渲染必须包
+// QueryClientProvider；rerender 需复用同一 client，保持在途请求语义。
+function renderFeesPage() {
+  return renderWithClient(
+    <App>
+      <OrderFeesPage />
+    </App>,
+  );
+}
+
+function rerenderFeesPage(
+  rerender: (ui: React.ReactNode) => void,
+  queryClient: ReturnType<typeof renderWithClient>['queryClient'],
+) {
+  rerender(
+    <QueryClientProvider client={queryClient}>
+      <App>
+        <OrderFeesPage />
+      </App>
+    </QueryClientProvider>,
+  );
+}
+
 describe('订单费用页跨订单状态隔离', () => {
   const listTaxableServices = vi.mocked(feeCatalogServiceListTaxableServices);
 
@@ -252,20 +277,12 @@ describe('订单费用页跨订单状态隔离', () => {
       .mockImplementationOnce(() => responseA)
       .mockImplementationOnce(() => responseB);
 
-    const { rerender } = render(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    const { rerender, queryClient } = renderFeesPage();
     fireEvent.click(screen.getByRole('button', { name: '打开快捷费目' }));
     await waitFor(() => expect(listTaxableServices).toHaveBeenCalledTimes(1));
 
     mockParams = { kind: 'sea-export', id: 'order-B' };
-    rerender(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    rerenderFeesPage(rerender, queryClient);
     fireEvent.click(screen.getByRole('button', { name: '打开快捷费目' }));
     await waitFor(() => expect(listTaxableServices).toHaveBeenCalledTimes(2));
 
@@ -288,11 +305,7 @@ describe('订单费用页跨订单状态隔离', () => {
   });
 
   it('同一页面实例从 A 切到 B 时关闭工作台并清空 A 的费用状态', async () => {
-    const { rerender } = render(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    const { rerender, queryClient } = renderFeesPage();
 
     fireEvent.click(screen.getByRole('button', { name: '准备当前订单费用' }));
     fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
@@ -319,11 +332,7 @@ describe('订单费用页跨订单状态隔离', () => {
     expect(screen.getByTestId('quick-partner-modal')).toHaveTextContent('true');
 
     mockParams = { kind: 'sea-export', id: 'order-B' };
-    rerender(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    rerenderFeesPage(rerender, queryClient);
 
     await waitFor(() => {
       expect(screen.getByTestId('fee-table-state')).toHaveTextContent(
@@ -354,13 +363,8 @@ describe('订单费用页锁后费用补录', () => {
   );
 
   function renderPage() {
-    return render(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    return renderFeesPage();
   }
-
   beforeEach(() => {
     mockParams = { kind: 'sea-export', id: 'order-A' };
     feeTestState.lockState = { isLocked: false };

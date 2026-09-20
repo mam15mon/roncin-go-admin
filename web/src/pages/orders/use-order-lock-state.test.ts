@@ -1,4 +1,7 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
+import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
 import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
@@ -15,6 +18,17 @@ const getLockState = vi.mocked(orderLockServiceGetOrderLockState);
 
 function response(state: API.OrderLockStateData) {
   return { data: state } as Awaited<ReturnType<typeof getLockState>>;
+}
+
+/**
+ * React Query 迁移后的 hook 测试包装：每个用例独立 QueryClient，
+ * 防止缓存串味（与 renderWithClient 同策略，但以 wrapper 形式供 renderHook 使用）。
+ */
+function createHookWrapper() {
+  const queryClient = createTestQueryClient();
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  return { queryClient, wrapper };
 }
 
 function deferred<T>() {
@@ -40,7 +54,9 @@ describe('useOrderLockState', () => {
       }),
     );
 
-    const { result } = renderHook(() => useOrderLockState('order-a'));
+    const { result } = renderHook(() => useOrderLockState('order-a'), {
+      wrapper: createHookWrapper().wrapper,
+    });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBeNull();
@@ -58,20 +74,22 @@ describe('useOrderLockState', () => {
         response({ orderId: 'order-a', isLocked: true, orderVersion: '2' }),
       );
 
-    const { result } = renderHook(() => useOrderLockState('order-a'));
+    const { result } = renderHook(() => useOrderLockState('order-a'), {
+      wrapper: createHookWrapper().wrapper,
+    });
     await waitFor(() => expect(result.current.state?.orderVersion).toBe('1'));
 
     await act(async () => {
       await result.current.refresh();
     });
-    expect(result.current.state).toBeNull();
+    await waitFor(() => expect(result.current.state).toBeNull());
     expect(result.current.error?.message).toBe('网络错误');
 
     await act(async () => {
       await result.current.refresh();
     });
+    await waitFor(() => expect(result.current.state?.isLocked).toBe(true));
     expect(result.current.error).toBeNull();
-    expect(result.current.state?.isLocked).toBe(true);
   });
 
   it('切换订单后立即清空旧状态并丢弃迟到响应', async () => {
@@ -83,7 +101,10 @@ describe('useOrderLockState', () => {
 
     const { result, rerender } = renderHook(
       ({ orderId }) => useOrderLockState(orderId),
-      { initialProps: { orderId: 'order-a' } },
+      {
+        initialProps: { orderId: 'order-a' },
+        wrapper: createHookWrapper().wrapper,
+      },
     );
     rerender({ orderId: 'order-b' });
     expect(result.current.state).toBeNull();
@@ -95,7 +116,7 @@ describe('useOrderLockState', () => {
       );
       await second.promise;
     });
-    expect(result.current.state?.orderId).toBe('order-b');
+    await waitFor(() => expect(result.current.state?.orderId).toBe('order-b'));
 
     await act(async () => {
       first.resolve(
@@ -103,7 +124,7 @@ describe('useOrderLockState', () => {
       );
       await first.promise;
     });
-    expect(result.current.state?.orderId).toBe('order-b');
+    await waitFor(() => expect(result.current.state?.orderId).toBe('order-b'));
     expect(result.current.state?.orderVersion).toBe('8');
   });
 });

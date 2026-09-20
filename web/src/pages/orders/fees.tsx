@@ -5,6 +5,7 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { history, useAccess, useParams } from '@umijs/max';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
@@ -64,7 +65,6 @@ export default function OrderFeesPage() {
   const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
   const createIdempotencyKeyRef = useRef(generateUUID());
   const activeFeeOrderIdRef = useRef(targetOrderId);
-  const taxableServicesRequestIdRef = useRef(0);
   const feeFormPopulationIdRef = useRef(0);
   activeFeeOrderIdRef.current = targetOrderId;
 
@@ -139,11 +139,20 @@ export default function OrderFeesPage() {
     count: number;
   }>({ totalAmount: 0, count: 0 });
 
-  // 快捷新增费目状态
+  // 快捷新增费目状态：候选项按订单身份隔离的弹窗期查询。旧实现为点击
+  // 拉取 + 请求序号竞态令牌，迁移后由 queryKey 隔离迟到响应。
   const [quickAddFeeModalOpen, setQuickAddFeeModalOpen] = useState(false);
-  const [taxableServices, setTaxableServices] = useState<API.TaxableService[]>(
-    [],
-  );
+  const taxableServicesQuery = useQuery({
+    queryKey: ['orders', 'taxable-services', { orderId: targetOrderId }],
+    enabled: Boolean(quickAddFeeModalOpen && targetOrderId),
+    // 旧实现空 catch 静默（skipErrorHandler + ignore）：失败仅展示空候选项。
+    meta: { silent: true },
+    queryFn: async (): Promise<API.TaxableService[]> =>
+      unwrapList(
+        await feeCatalogServiceListTaxableServices({ skipErrorHandler: true }),
+      ),
+  });
+  const taxableServices = taxableServicesQuery.data ?? [];
 
   // 快捷新建结算单位状态
   const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
@@ -152,7 +161,6 @@ export default function OrderFeesPage() {
   // TagsView 会复用同一个页面实例。订单切换时，上一订单的选择、汇总和弹窗
   // 都必须立即失效，不能等新订单数据返回后再覆盖。
   useEffect(() => {
-    taxableServicesRequestIdRef.current += 1;
     feeFormPopulationIdRef.current += 1;
     setModalOpen(false);
     setModalDirection(RECEIVABLE);
@@ -166,7 +174,6 @@ export default function OrderFeesPage() {
     setReceivableSummary({ totalAmount: 0, count: 0 });
     setPayableSummary({ totalAmount: 0, count: 0 });
     setQuickAddFeeModalOpen(false);
-    setTaxableServices([]);
     setQuickAddPartnerModalOpen(false);
     createIdempotencyKeyRef.current = generateUUID();
     formRef.current?.resetFields();
@@ -228,26 +235,10 @@ export default function OrderFeesPage() {
     }
   }, [order?.orderNo, order?.id, orderId, definition?.kind]);
 
-  const handleOpenQuickAddFee = async () => {
+  const handleOpenQuickAddFee = () => {
     if (!ensureFeeWriteAllowed()) return;
-    const requestedOrderId = targetOrderId;
-    if (!requestedOrderId) return;
-    const requestId = ++taxableServicesRequestIdRef.current;
+    if (!targetOrderId) return;
     setQuickAddFeeModalOpen(true);
-    try {
-      const res = await feeCatalogServiceListTaxableServices({
-        skipErrorHandler: true,
-      });
-      if (
-        requestId !== taxableServicesRequestIdRef.current ||
-        requestedOrderId !== activeFeeOrderIdRef.current
-      ) {
-        return;
-      }
-      setTaxableServices(unwrapList(res));
-    } catch {
-      // ignore
-    }
   };
 
   const handleOpenQuickAddPartner = () => {

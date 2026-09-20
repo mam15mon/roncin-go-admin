@@ -1,3 +1,5 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
@@ -17,8 +19,19 @@ vi.mock('@/services/roncin/orderFeeService', () => ({
 const mockGetOrder = vi.mocked(orderServiceGetOrder);
 const mockListFeeOptions = vi.mocked(orderFeeServiceListFeeOptions);
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(App, null, children);
+/**
+ * React Query 迁移后的 hook 测试包装：每个用例独立 QueryClient，
+ * 防止缓存串味（与 renderWithClient 同策略，但以 wrapper 形式供 renderHook 使用）。
+ */
+function createHookWrapper() {
+  const queryClient = createTestQueryClient();
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      React.createElement(App, null, children),
+    );
+  return { queryClient, wrapper };
 }
 
 function deferred<T>() {
@@ -50,7 +63,7 @@ describe('useOrderFeeOptions', () => {
     } as any);
 
     const { result } = renderHook(() => useOrderFeeOptions('ord-1'), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -70,7 +83,7 @@ describe('useOrderFeeOptions', () => {
     let currentId = 'ord-A';
     const { result, rerender } = renderHook(
       () => useOrderFeeOptions(currentId),
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
 
     // 1. A 正在加载
@@ -110,7 +123,7 @@ describe('useOrderFeeOptions', () => {
     let currentId = 'ord-A';
     const { result, rerender } = renderHook(
       () => useOrderFeeOptions(currentId),
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
 
     await waitFor(() => expect(result.current.order?.id).toBe('ord-A'));
@@ -136,7 +149,7 @@ describe('useOrderFeeOptions', () => {
     let currentId = 'ord-A';
     const { result, rerender } = renderHook(
       () => useOrderFeeOptions(currentId),
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
 
     // 切换至订单 B

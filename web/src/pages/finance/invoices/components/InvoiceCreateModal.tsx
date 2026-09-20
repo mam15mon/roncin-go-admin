@@ -1,4 +1,5 @@
 import { ProTable } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Descriptions,
@@ -9,7 +10,7 @@ import {
   Select,
   Typography,
 } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MODAL_SIZE } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
@@ -34,6 +35,9 @@ interface InvoiceCreateModalProps {
   onOk: () => Promise<void>;
 }
 
+/** 服务端状态域前缀：开票创建弹窗查询的统一 key 前缀。 */
+const INVOICE_CREATE_QUERY_BASE = ['finance', 'invoice-create'] as const;
+
 export default function InvoiceCreateModal({
   open,
   onCancel,
@@ -46,91 +50,85 @@ export default function InvoiceCreateModal({
   onOk,
 }: InvoiceCreateModalProps) {
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const [organizationID, setOrganizationID] = useState<string>();
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  const [availableProfiles, setAvailableProfiles] = useState<
-    API.FinanceInvoiceProfileOption[]
-  >([]);
   const [selectedProfile, setSelectedProfile] =
     useState<API.FinanceInvoiceProfileOption>();
-  const profileRequestSequence = useRef(0);
 
+  // 可开票所属公司候选：弹窗打开即拉取；动态错误文案包装进 Error 交全局 onError。
+  const organizationQuery = useQuery({
+    queryKey: [...INVOICE_CREATE_QUERY_BASE, 'organization-options'],
+    enabled: open,
+    queryFn: async () => {
+      try {
+        const response = await settlementServiceListFinanceOrganizationOptions({
+          purpose:
+            FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE,
+        });
+        return response.data ?? [];
+      } catch (error) {
+        throw new Error(getErrorMessage(error, '加载可开票所属公司失败'));
+      }
+    },
+  });
+
+  // 开票抬头联动：跟随首张已选账单自动加载，账单变化即换 key 重查。
+  const firstBillId = selectedBills[0]?.id;
+  const profilesQuery = useQuery({
+    queryKey: [
+      ...INVOICE_CREATE_QUERY_BASE,
+      'invoice-profiles',
+      { billId: firstBillId },
+    ],
+    enabled: open && Boolean(firstBillId),
+    queryFn: async () => {
+      try {
+        const response = await settlementServiceListInvoiceProfilesForBill(
+          { billId: firstBillId as string },
+          { skipErrorHandler: true },
+        );
+        return response.data?.data ?? [];
+      } catch (error) {
+        throw new Error(getErrorMessage(error, '加载开票抬头失败'));
+      }
+    },
+  });
+
+  // 抬头就绪后回填默认选择；账单未定或加载中时清空选择，旧抬头不残留。
   useEffect(() => {
     if (!open) return;
-    let cancelled = false;
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE,
-    })
-      .then((response) => {
-        if (!cancelled) setOrganizationOptions(response.data ?? []);
-      })
-      .catch((error: unknown) => {
-        if (!cancelled) {
-          setOrganizationOptions([]);
-          message.error(getErrorMessage(error, '加载可开票所属公司失败'));
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [message, open]);
-
-  useEffect(() => {
-    if (!open) {
-      profileRequestSequence.current += 1;
-      setOrganizationID(undefined);
-      setOrganizationOptions([]);
-      setAvailableProfiles([]);
+    const profiles = profilesQuery.data;
+    if (!profiles) {
       setSelectedProfile(undefined);
       createForm.setFieldValue('invoiceProfileId', undefined);
+      return;
     }
-  }, [createForm, open]);
+    const selected = profiles.find((item) => item.isDefault) || profiles[0];
+    setSelectedProfile(selected);
+    createForm.setFieldValue('invoiceProfileId', selected?.id);
+    if (selected?.defaultInvoiceType) {
+      createForm.setFieldValue('invoiceType', selected.defaultInvoiceType);
+    }
+    if (!selected) {
+      message.warning('该结算单位尚未配置可用开票抬头，请先到往来单位档案维护');
+    }
+  }, [createForm, message, open, profilesQuery.data]);
 
-  const clearProfiles = () => {
-    profileRequestSequence.current += 1;
-    setAvailableProfiles([]);
+  // 关闭弹窗即重置组织与抬头选择，并清除本弹窗查询缓存，
+  // 避免在途/缓存响应在下次打开时回填上一次会话的数据。
+  useEffect(() => {
+    if (open) return;
+    setOrganizationID(undefined);
     setSelectedProfile(undefined);
     createForm.setFieldValue('invoiceProfileId', undefined);
-  };
-
-  const loadSelectedProfiles = async (billID?: string) => {
-    const requestSequence = ++profileRequestSequence.current;
-    setAvailableProfiles([]);
-    setSelectedProfile(undefined);
-    createForm.setFieldValue('invoiceProfileId', undefined);
-    if (!billID) return;
-    try {
-      const response = await settlementServiceListInvoiceProfilesForBill(
-        { billId: billID },
-        { skipErrorHandler: true },
-      );
-      if (requestSequence !== profileRequestSequence.current) return;
-      const profiles = response.data?.data ?? [];
-      setAvailableProfiles(profiles);
-      const selected = profiles.find((item) => item.isDefault) || profiles[0];
-      setSelectedProfile(selected);
-      createForm.setFieldValue('invoiceProfileId', selected?.id);
-      if (selected?.defaultInvoiceType) {
-        createForm.setFieldValue('invoiceType', selected.defaultInvoiceType);
-      }
-      if (!selected) {
-        message.warning(
-          '该结算单位尚未配置可用开票抬头，请先到往来单位档案维护',
-        );
-      }
-    } catch (error) {
-      if (requestSequence !== profileRequestSequence.current) return;
-      message.error(getErrorMessage(error, '加载开票抬头失败'));
-    }
-  };
+    queryClient.removeQueries({ queryKey: INVOICE_CREATE_QUERY_BASE });
+  }, [createForm, open, queryClient]);
 
   const clearSelection = () => {
     setSelectedIDs([]);
     setSelectedBills([]);
-    clearProfiles();
+    setSelectedProfile(undefined);
+    createForm.setFieldValue('invoiceProfileId', undefined);
   };
 
   return (
@@ -150,7 +148,7 @@ export default function InvoiceCreateModal({
             placeholder="请先选择可开票所属公司"
             style={{ width: 240 }}
             value={organizationID}
-            options={organizationOptions.map((item) => ({
+            options={(organizationQuery.data ?? []).map((item) => ({
               value: item.id,
               label: item.name ?? item.code ?? item.id,
             }))}
@@ -171,12 +169,14 @@ export default function InvoiceCreateModal({
               selectedBills[0] ? '请选择该客户的开票抬头' : '请先选择账单'
             }
             disabled={!selectedBills[0] || !organizationID}
-            options={availableProfiles.map((item) => ({
+            options={(profilesQuery.data ?? []).map((item) => ({
               value: item.id,
               label: `${item.invoiceTitle}${item.isDefault ? '（默认）' : ''}`,
             }))}
             onChange={(id) => {
-              const profile = availableProfiles.find((item) => item.id === id);
+              const profile = (profilesQuery.data ?? []).find(
+                (item) => item.id === id,
+              );
               setSelectedProfile(profile);
               if (profile?.defaultInvoiceType) {
                 createForm.setFieldValue(
@@ -260,10 +260,7 @@ export default function InvoiceCreateModal({
                 .map((k) => m.get(String(k)))
                 .filter(Boolean) as API.FinanceBill[],
             );
-            const first = keys.map((key) => m.get(String(key))).find(Boolean);
-            if (first?.id !== selectedBills[0]?.id) {
-              void loadSelectedProfiles(first?.id);
-            }
+            // 抬头查询由首张账单驱动的 queryKey 自动联动，这里不再手动拉取。
           },
           getCheckboxProps: (r) => {
             const f = selectedBills[0];

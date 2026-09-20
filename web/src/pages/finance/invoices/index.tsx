@@ -6,10 +6,11 @@ import {
   SwapOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { useAccess } from '@umijs/max';
 import { App, Form, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -103,15 +104,26 @@ export default function FinanceInvoicesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<API.FinanceInvoice>();
   const [organizationId, setOrganizationId] = useState<string>();
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  useEffect(() => {
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ,
-    }).then((response) => setOrganizationOptions(response.data ?? []));
-  }, []);
+  // 顶部筛选所属公司候选：历史无错误兜底，保持静默（仅请求层通知）。
+  const organizationQuery = useQuery({
+    queryKey: [
+      'finance',
+      'organization-options',
+      {
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ,
+      },
+    ],
+    meta: { silent: true },
+    queryFn: async () => {
+      const response = await settlementServiceListFinanceOrganizationOptions({
+        purpose:
+          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ,
+      });
+      return response.data ?? [];
+    },
+  });
+  const organizationOptions = organizationQuery.data ?? [];
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
     issuedCount: 0,

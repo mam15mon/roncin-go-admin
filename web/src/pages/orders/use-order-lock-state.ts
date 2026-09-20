@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { businessTypeMeta } from '@/constants/statusMeta';
 import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 
@@ -13,11 +14,6 @@ export type OrderBusinessWritePolicy = {
   disabled: boolean;
   reason?: string;
 };
-
-function normalizeError(error: unknown): Error {
-  if (error instanceof Error) return error;
-  return new Error('加载订单锁定状态失败');
-}
 
 export function getOrderBusinessTypeLabel(businessType?: number): string {
   if (businessType === undefined) return '订单';
@@ -59,78 +55,57 @@ export function getOrderBusinessWritePolicy({
 }
 
 /**
- * 按订单 ID 加载锁状态。快照始终绑定到请求时的订单 ID，并用请求序号丢弃迟到响应。
+ * 按订单 ID 加载锁状态。
+ *
+ * 订单身份进入 queryKey：切换订单即切换到新身份的查询，旧订单的迟到响应
+ * 只会写入自己的缓存，天然丢弃；竞态令牌由 React Query 取代。
  */
 export function useOrderLockState(orderId?: string) {
-  const requestSequenceRef = useRef(0);
-  const [snapshot, setSnapshot] = useState<OrderLockSnapshot>({
-    state: null,
-    loading: Boolean(orderId),
-    error: null,
+  const lockStateQuery = useQuery({
+    queryKey: ['orders', 'lock-state', { orderId }],
+    enabled: Boolean(orderId),
+    // 旧实现对失败静默处理（错误只进入写策略 reason，不弹全局提示）。
+    meta: { silent: true },
+    queryFn: async (): Promise<API.OrderLockStateData> => {
+      if (!orderId) {
+        // enabled 已保证订单身份齐备；此处仅为类型收窄兜底。
+        throw new Error('缺少订单锁定状态加载参数');
+      }
+      try {
+        const response = await orderLockServiceGetOrderLockState({ orderId });
+        const state = response?.data ?? null;
+        if (!state) {
+          throw new Error('订单锁定状态响应为空');
+        }
+        return state;
+      } catch (error) {
+        throw error instanceof Error
+          ? error
+          : new Error('加载订单锁定状态失败');
+      }
+    },
   });
 
-  const load = useCallback(async (targetOrderId?: string) => {
-    const requestSequence = ++requestSequenceRef.current;
-    if (!targetOrderId) {
-      setSnapshot({ state: null, loading: false, error: null });
-      return null;
+  const { data, error, isPending, isFetching, refetch } = lockStateQuery;
+
+  // 失败即不暴露旧数据（与旧实现「刷新失败清空快照」语义一致），写入口
+  // 由 getOrderBusinessWritePolicy 依据 loading/error 失败关闭。
+  const state = error ? null : (data ?? null);
+  const loading = Boolean(orderId) && (isPending || isFetching);
+
+  const refresh = useCallback(() => {
+    if (!orderId) {
+      return Promise.resolve(null);
     }
-
-    setSnapshot({
-      orderId: targetOrderId,
-      state: null,
-      loading: true,
-      error: null,
-    });
-    try {
-      const response = await orderLockServiceGetOrderLockState({
-        orderId: targetOrderId,
-      });
-      if (requestSequence !== requestSequenceRef.current) return null;
-      const state = response?.data ?? null;
-      if (!state) {
-        const error = new Error('订单锁定状态响应为空');
-        setSnapshot({
-          orderId: targetOrderId,
-          state: null,
-          loading: false,
-          error,
-        });
-        return null;
-      }
-      setSnapshot({
-        orderId: targetOrderId,
-        state,
-        loading: false,
-        error: null,
-      });
-      return state;
-    } catch (error: unknown) {
-      if (requestSequence !== requestSequenceRef.current) return null;
-      setSnapshot({
-        orderId: targetOrderId,
-        state: null,
-        loading: false,
-        error: normalizeError(error),
-      });
-      return null;
-    }
-  }, []);
-
-  useEffect(() => {
-    void load(orderId);
-    return () => {
-      requestSequenceRef.current += 1;
-    };
-  }, [load, orderId]);
-
-  const refresh = useCallback(() => load(orderId), [load, orderId]);
-  const belongsToCurrentOrder = snapshot.orderId === orderId;
+    // refetch 的 Promise 只以结果对象 resolve、从不 reject，与旧实现
+    // 「refresh 吸收错误并正常返回」的语义一致。
+    return refetch().then((result) => result.data ?? null);
+  }, [orderId, refetch]);
 
   return {
-    state: belongsToCurrentOrder ? snapshot.state : null,
-    loading: Boolean(orderId) && (!belongsToCurrentOrder || snapshot.loading),
-    error: belongsToCurrentOrder ? snapshot.error : null,
+    state,
+    loading,
+    error: error ?? null,
     refresh,
   };
 }

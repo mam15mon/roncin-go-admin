@@ -1,4 +1,5 @@
 import { ReloadOutlined } from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
   App,
@@ -20,7 +21,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PartnerSelectOptionTags from '@/components/PartnerSelectOptionTags';
 import { MODAL_SIZE } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
@@ -60,6 +61,12 @@ type Scope = {
   note?: string;
 };
 
+/** 服务端状态域前缀：核销创建工作台查询的统一 key 前缀。 */
+const VERIFICATION_WORKBENCH_QUERY_BASE = [
+  'finance',
+  'verification-workbench',
+] as const;
+
 export default function VerificationWorkbench({
   open,
   onClose,
@@ -71,13 +78,11 @@ export default function VerificationWorkbench({
     currency: 'CNY',
     verificationDate: dayjs(),
   });
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  const [partnerOptions, setPartnerOptions] = useState<SelectOption[]>([]);
-  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
-  const [cashflows, setCashflows] = useState<API.FinanceCashflow[]>([]);
-  const [bills, setBills] = useState<API.FinanceBill[]>([]);
+  // 结算单位关键字搜索态：输入即收敛进 queryKey，竞态由库按 key 收敛。
+  const [partnerKeyword, setPartnerKeyword] = useState('');
+  // 关键字过滤后仍保留在展示列表头的当前选中结算单位（保持 label 可见）。
+  const [selectedPartyOption, setSelectedPartyOption] =
+    useState<SelectOption>();
   const [selectedCashflowIds, setSelectedCashflowIds] = useState<React.Key[]>(
     [],
   );
@@ -85,148 +90,126 @@ export default function VerificationWorkbench({
   const [allocations, setAllocations] = useState<VerificationAllocationDraft[]>(
     [],
   );
-  const [candidateLoading, setCandidateLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const partnerSearchSequence = useRef(0);
   // 直接干预模式下超额客户禁选（标签与禁用都由契约字段渲染）。
   const creditInterventionActive = useCreditLimitIntervention();
 
-  const resetSelections = () => {
+  // 第一段：弹窗打开即并行拉取组织候选与币种候选（历史为 Promise.all 单文案）。
+  const bootstrapQuery = useQuery({
+    queryKey: [...VERIFICATION_WORKBENCH_QUERY_BASE, 'bootstrap'],
+    enabled: open,
+    meta: { errorMessage: '加载核销创建候选失败' },
+    queryFn: async () => {
+      const [organizationResponse, currencies] = await Promise.all([
+        settlementServiceListFinanceOrganizationOptions({
+          purpose:
+            FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE,
+        }),
+        getCurrencyOptions(),
+      ]);
+      return { organizations: organizationResponse.data ?? [], currencies };
+    },
+  });
+  const organizationOptions = bootstrapQuery.data?.organizations ?? [];
+  const currencyOptions = bootstrapQuery.data?.currencies ?? [];
+
+  // 第二段：结算单位候选，依赖已选组织（enabled 门控）与搜索关键字。
+  const partnerQuery = useQuery({
+    queryKey: [
+      ...VERIFICATION_WORKBENCH_QUERY_BASE,
+      'settlement-party-options',
+      {
+        organizationId: scope.organizationId,
+        keyword: partnerKeyword || undefined,
+      },
+    ],
+    enabled: open && Boolean(scope.organizationId),
+    // 关键字搜索期间保留上一批候选，避免下拉闪空。
+    placeholderData: (previous) => previous,
+    meta: { errorMessage: '加载结算单位失败' },
+    queryFn: async () => {
+      if (!scope.organizationId) return [] as SelectOption[];
+      const response = await settlementServiceListFinanceSettlementPartyOptions(
+        {
+          purpose:
+            FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE,
+          organizationId: scope.organizationId,
+          keyword: partnerKeyword || undefined,
+          page: 1,
+          pageSize: 50,
+        },
+      );
+      return disableCreditExceededOptions(
+        (response.data ?? [])
+          .filter((item) => item.id)
+          .map((item) => ({
+            value: item.id as string,
+            label:
+              item.name && item.code
+                ? `${item.name} (${item.code})`
+                : item.name || item.code || item.id || '',
+            creditExceeded: Boolean(item.creditExceeded),
+          })),
+        creditInterventionActive,
+      );
+    },
+  });
+
+  // 第三段：待核销资金与账单候选，依赖组织 → 结算单位 → 币种全链就绪。
+  const candidatesQuery = useQuery({
+    queryKey: [
+      ...VERIFICATION_WORKBENCH_QUERY_BASE,
+      'candidates',
+      {
+        organizationId: scope.organizationId,
+        direction: scope.direction,
+        settlementPartyId: scope.settlementPartyId,
+        currency: scope.currency,
+      },
+    ],
+    enabled: Boolean(
+      open && scope.organizationId && scope.settlementPartyId && scope.currency,
+    ),
+    meta: { errorMessage: '加载待核销资金和账单失败' },
+    queryFn: async () => {
+      const response =
+        await settlementServiceListVerificationCreationCandidates({
+          organizationId: scope.organizationId as string,
+          direction: scope.direction,
+          settlementPartyId: scope.settlementPartyId as string,
+          currency: scope.currency,
+        });
+      return {
+        cashflows: response.data?.cashflows ?? [],
+        bills: response.data?.bills ?? [],
+      };
+    },
+  });
+  const cashflows = candidatesQuery.data?.cashflows ?? [];
+  const bills = candidatesQuery.data?.bills ?? [];
+  const candidateLoading = candidatesQuery.isFetching;
+
+  // 作用域任一维度变化（含关闭弹窗）即清空勾选与分配，旧选择不跨作用域残留。
+  useEffect(() => {
     setSelectedCashflowIds([]);
     setSelectedBillIds([]);
     setAllocations([]);
-  };
-
-  const clearCandidates = () => {
-    setCashflows([]);
-    setBills([]);
-    resetSelections();
-  };
-
-  const loadPartnerOptions = useCallback(
-    async (keyword?: string, selectedId?: string) => {
-      if (!scope.organizationId) {
-        setPartnerOptions([]);
-        return;
-      }
-      const sequence = ++partnerSearchSequence.current;
-      try {
-        const response =
-          await settlementServiceListFinanceSettlementPartyOptions({
-            purpose:
-              FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE,
-            organizationId: scope.organizationId,
-            keyword,
-            page: 1,
-            pageSize: 50,
-          });
-        const options = disableCreditExceededOptions(
-          (response.data ?? [])
-            .filter((item) => item.id)
-            .map((item) => ({
-              value: item.id as string,
-              label:
-                item.name && item.code
-                  ? `${item.name} (${item.code})`
-                  : item.name || item.code || item.id || '',
-              creditExceeded: Boolean(item.creditExceeded),
-            })),
-          creditInterventionActive,
-        );
-        if (sequence !== partnerSearchSequence.current) return;
-        setPartnerOptions((current) => {
-          const selected = current.find(
-            (option) => option.value === selectedId,
-          );
-          return selected
-            ? [
-                selected,
-                ...options.filter((option) => option.value !== selected.value),
-              ]
-            : options;
-        });
-      } catch {
-        if (sequence === partnerSearchSequence.current) {
-          message.error('加载结算单位失败');
-        }
-      }
-    },
-    [creditInterventionActive, message, scope.organizationId],
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    void Promise.all([
-      settlementServiceListFinanceOrganizationOptions({
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE,
-      }),
-      getCurrencyOptions(),
-    ])
-      .then(([organizationResponse, currencies]) => {
-        if (cancelled) return;
-        setOrganizationOptions(organizationResponse.data ?? []);
-        setCurrencyOptions(currencies);
-      })
-      .catch(() => {
-        if (!cancelled) message.error('加载核销创建候选失败');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [message, open]);
-
-  useEffect(() => {
-    if (!open || !scope.organizationId) {
-      setPartnerOptions([]);
-      clearCandidates();
-      return;
-    }
-    void loadPartnerOptions(undefined, scope.settlementPartyId);
-  }, [loadPartnerOptions, open, scope.organizationId, scope.settlementPartyId]);
-
-  useEffect(() => {
-    if (
-      !open ||
-      !scope.organizationId ||
-      !scope.settlementPartyId ||
-      !scope.currency
-    ) {
-      clearCandidates();
-      return;
-    }
-    let cancelled = false;
-    setCandidateLoading(true);
-    resetSelections();
-    void settlementServiceListVerificationCreationCandidates({
-      organizationId: scope.organizationId,
-      direction: scope.direction,
-      settlementPartyId: scope.settlementPartyId,
-      currency: scope.currency,
-    })
-      .then((response) => {
-        if (cancelled) return;
-        setCashflows(response.data?.cashflows ?? []);
-        setBills(response.data?.bills ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) message.error('加载待核销资金和账单失败');
-      })
-      .finally(() => {
-        if (!cancelled) setCandidateLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
   }, [
-    message,
     open,
-    scope.currency,
-    scope.direction,
     scope.organizationId,
+    scope.direction,
     scope.settlementPartyId,
+    scope.currency,
   ]);
+
+  // 关键字过滤后把当前选中项拼回展示列表头，保持 Select 回显 label 不退化为 ID。
+  const partnerOptions = useMemo(() => {
+    const options = partnerQuery.data ?? [];
+    if (!selectedPartyOption) return options;
+    return options.some((option) => option.value === selectedPartyOption.value)
+      ? options
+      : [selectedPartyOption, ...options];
+  }, [partnerQuery.data, selectedPartyOption]);
 
   const selectedCashflows = useMemo(
     () =>
@@ -425,9 +408,9 @@ export default function VerificationWorkbench({
                 label: item.name || item.code || item.id,
               }))}
               onChange={(organizationId) => {
-                partnerSearchSequence.current += 1;
-                setPartnerOptions([]);
-                clearCandidates();
+                // 切换组织即换 queryKey：结算单位候选重置，旧组织数据不再回显。
+                setPartnerKeyword('');
+                setSelectedPartyOption(undefined);
                 setScope((value) => ({
                   ...value,
                   organizationId,
@@ -447,7 +430,6 @@ export default function VerificationWorkbench({
                 { value: 'PAYABLE', label: '应付核销' },
               ]}
               onChange={(direction) => {
-                clearCandidates();
                 setScope((value) => ({ ...value, direction }));
               }}
             />
@@ -457,8 +439,7 @@ export default function VerificationWorkbench({
             <Select
               showSearch={{
                 filterOption: false,
-                onSearch: (keyword) =>
-                  void loadPartnerOptions(keyword, scope.settlementPartyId),
+                onSearch: (keyword) => setPartnerKeyword(keyword),
               }}
               aria-label="结算单位"
               value={scope.settlementPartyId}
@@ -484,7 +465,11 @@ export default function VerificationWorkbench({
                 </div>
               )}
               onChange={(settlementPartyId) => {
-                clearCandidates();
+                setSelectedPartyOption(
+                  (partnerQuery.data ?? []).find(
+                    (option) => option.value === settlementPartyId,
+                  ),
+                );
                 setScope((value) => ({ ...value, settlementPartyId }));
               }}
             />
@@ -498,7 +483,6 @@ export default function VerificationWorkbench({
               options={currencyOptions}
               style={{ width: '100%', marginTop: 6 }}
               onChange={(currency) => {
-                clearCandidates();
                 setScope((value) => ({ ...value, currency }));
               }}
             />
