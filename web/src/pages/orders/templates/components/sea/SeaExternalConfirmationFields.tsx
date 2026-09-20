@@ -94,9 +94,8 @@ export default function SeaExternalConfirmationFields({
       <Form.Item name="confirmationAttachmentId" label="确认附件（可选）">
         <Select
           allowClear
-          showSearch
           loading={loading}
-          optionFilterProp="label"
+          showSearch={{ optionFilterProp: 'label' }}
           placeholder="仅可选择当前订单附件"
           options={attachments
             .filter((attachment) => attachment.id)

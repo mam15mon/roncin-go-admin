@@ -3,7 +3,7 @@ import {
   Descriptions,
   Drawer,
   Empty,
-  List,
+  Listy,
   Space,
   Spin,
   Tag,
@@ -133,7 +133,7 @@ export default function UnlockRequestHistoryDrawer({
   return (
     <Drawer
       title="解锁审批记录"
-      width={600}
+      size={600}
       open={open}
       onClose={onClose}
       destroyOnHidden
@@ -143,7 +143,7 @@ export default function UnlockRequestHistoryDrawer({
           style={{ marginBottom: 16 }}
           type="error"
           showIcon
-          message={error}
+          title={error}
           action={
             <Typography.Link onClick={() => void load()}>重试</Typography.Link>
           }
@@ -153,81 +153,78 @@ export default function UnlockRequestHistoryDrawer({
         {items.length === 0 && !loading ? (
           <Empty description="暂无解锁申请" />
         ) : (
-          <List
-            dataSource={items}
-            renderItem={(item) => {
+          <Listy
+            items={items}
+            rowKey="id"
+            itemRender={(item) => {
               const meta = getUnlockRequestStatusMeta(item.status);
               return (
-                <List.Item key={item.id} style={{ alignItems: 'stretch' }}>
-                  <Space
-                    direction="vertical"
-                    size={10}
-                    style={{ width: '100%' }}
-                  >
-                    <Space wrap>
-                      <Tag color={meta.color}>{meta.label}</Tag>
-                      <Typography.Text strong>
-                        第 {item.lockGeneration || '-'} 代锁定
-                      </Typography.Text>
-                      <Typography.Text type="secondary">
-                        {item.requestedAt
-                          ? dayjs(item.requestedAt).format(
-                              'YYYY-MM-DD HH:mm:ss',
-                            )
-                          : '-'}
-                      </Typography.Text>
-                    </Space>
-                    <Typography.Text type="secondary">
-                      {meta.description}
+                <Space
+                  orientation="vertical"
+                  size={10}
+                  style={{ width: '100%' }}
+                >
+                  <Space wrap>
+                    <Tag color={meta.color}>{meta.label}</Tag>
+                    <Typography.Text strong>
+                      第 {item.lockGeneration || '-'} 代锁定
                     </Typography.Text>
-                    {item.status === 'DISPATCH_UNKNOWN' && (
-                      <Alert
-                        type="warning"
-                        showIcon
-                        message="请由管理员在钉钉后台核对实例，系统不会自动重发。"
-                      />
-                    )}
-                    <Descriptions size="small" column={1} bordered>
-                      <Descriptions.Item label="申请人">
-                        {item.requestedByName || item.requestedBy || '-'}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="处理路径">
-                        {item.route || '-'}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="申请原因">
-                        {item.reason || '-'}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="审批候选人">
-                        {item.approverCandidates
-                          ?.map((candidate) => candidate.displayNameSnapshot)
-                          .filter(Boolean)
-                          .join('、') || '-'}
-                      </Descriptions.Item>
-                      {item.decidedAt && (
-                        <Descriptions.Item label="审批时间">
-                          {dayjs(item.decidedAt).format('YYYY-MM-DD HH:mm:ss')}
-                        </Descriptions.Item>
-                      )}
-                      {item.decidedByName && (
-                        <Descriptions.Item label="审批人">
-                          {item.decidedByName}
-                        </Descriptions.Item>
-                      )}
-                      {item.failureMessage && (
-                        <Descriptions.Item label="失败原因">
-                          <Typography.Text type="danger">
-                            {item.failureMessage}
-                          </Typography.Text>
-                        </Descriptions.Item>
-                      )}
-                      {item.unlockedAt && (
-                        <Descriptions.Item label="解锁时间">
-                          {dayjs(item.unlockedAt).format('YYYY-MM-DD HH:mm:ss')}
-                        </Descriptions.Item>
-                      )}
-                    </Descriptions>
+                    <Typography.Text type="secondary">
+                      {item.requestedAt
+                        ? dayjs(item.requestedAt).format('YYYY-MM-DD HH:mm:ss')
+                        : '-'}
+                    </Typography.Text>
                   </Space>
-                </List.Item>
+                  <Typography.Text type="secondary">
+                    {meta.description}
+                  </Typography.Text>
+                  {item.status === 'DISPATCH_UNKNOWN' && (
+                    <Alert
+                      type="warning"
+                      showIcon
+                      title="请由管理员在钉钉后台核对实例，系统不会自动重发。"
+                    />
+                  )}
+                  <Descriptions size="small" column={1} bordered>
+                    <Descriptions.Item label="申请人">
+                      {item.requestedByName || item.requestedBy || '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="处理路径">
+                      {item.route || '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="申请原因">
+                      {item.reason || '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="审批候选人">
+                      {item.approverCandidates
+                        ?.map((candidate) => candidate.displayNameSnapshot)
+                        .filter(Boolean)
+                        .join('、') || '-'}
+                    </Descriptions.Item>
+                    {item.decidedAt && (
+                      <Descriptions.Item label="审批时间">
+                        {dayjs(item.decidedAt).format('YYYY-MM-DD HH:mm:ss')}
+                      </Descriptions.Item>
+                    )}
+                    {item.decidedByName && (
+                      <Descriptions.Item label="审批人">
+                        {item.decidedByName}
+                      </Descriptions.Item>
+                    )}
+                    {item.failureMessage && (
+                      <Descriptions.Item label="失败原因">
+                        <Typography.Text type="danger">
+                          {item.failureMessage}
+                        </Typography.Text>
+                      </Descriptions.Item>
+                    )}
+                    {item.unlockedAt && (
+                      <Descriptions.Item label="解锁时间">
+                        {dayjs(item.unlockedAt).format('YYYY-MM-DD HH:mm:ss')}
+                      </Descriptions.Item>
+                    )}
+                  </Descriptions>
+                </Space>
               );
             }}
           />

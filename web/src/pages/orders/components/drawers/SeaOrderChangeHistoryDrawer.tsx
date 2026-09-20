@@ -6,7 +6,7 @@ import {
   Descriptions,
   Drawer,
   Empty,
-  List,
+  Listy,
   Modal,
   Space,
   Spin,
@@ -142,39 +142,29 @@ export const SeaOrderChangeHistorySection: React.FC<
             description="暂无拆票或改配记录"
           />
         ) : (
-          <List
-            size="small"
-            dataSource={events}
-            renderItem={(event) => (
-              <List.Item
-                actions={[
-                  <Button
-                    key="all"
-                    type="link"
-                    size="small"
-                    onClick={onOpenAll}
-                  >
-                    查看详情
-                  </Button>,
-                ]}
+          <Listy
+            items={events}
+            rowKey="id"
+            itemRender={(event) => (
+              <div
+                style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}
               >
-                <List.Item.Meta
-                  title={
-                    <Space>
-                      <Tag
-                        color={event.eventType === 'SPLIT' ? 'purple' : 'blue'}
-                      >
-                        {event.eventType === 'SPLIT' ? '部分拆票' : '整票改配'}
-                      </Tag>
-                      <Text type="secondary">
-                        {formatDate(event.createdAt)}
-                      </Text>
-                      <Text type="secondary">{event.operatorName || '-'}</Text>
-                    </Space>
-                  }
-                  description={renderEventSummary(event)}
-                />
-              </List.Item>
+                <div style={{ flex: 'auto', minWidth: 0 }}>
+                  <Space style={{ marginBottom: 4 }}>
+                    <Tag
+                      color={event.eventType === 'SPLIT' ? 'purple' : 'blue'}
+                    >
+                      {event.eventType === 'SPLIT' ? '部分拆票' : '整票改配'}
+                    </Tag>
+                    <Text type="secondary">{formatDate(event.createdAt)}</Text>
+                    <Text type="secondary">{event.operatorName || '-'}</Text>
+                  </Space>
+                  <div>{renderEventSummary(event)}</div>
+                </div>
+                <Button type="link" size="small" onClick={onOpenAll}>
+                  查看详情
+                </Button>
+              </div>
             )}
           />
         )}
@@ -308,8 +298,8 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
         title="拆票与改配历史事件"
         open={open}
         onClose={onClose}
-        width={DRAWER_SIZE.MD}
-        destroyOnClose
+        size={DRAWER_SIZE.MD}
+        destroyOnHidden
       >
         <Table<API.SeaOrderChangeEventSummary>
           columns={columns}
@@ -338,7 +328,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
         }}
         footer={null}
         width={750}
-        destroyOnClose
+        destroyOnHidden
       >
         {detailLoading || !currentDetail ? (
           <div style={{ textAlign: 'center', padding: 40 }}>

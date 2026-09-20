@@ -146,7 +146,8 @@ export default function BillDetailDrawer({
               ? `${detail.estimatedInvoiceAmount} ${detail.estimatedInvoiceCurrency || ''}`.trim()
               : '-'}
           </Descriptions.Item>
-          <DItem label="备注" span={3}>
+          {/* column=3 下「预计开票金额」独占新行首列，备注补满剩余两列，避免行合计超出 column */}
+          <DItem label="备注" span={2}>
             {detail.note}
           </DItem>
           {detail.cancellationReason && (

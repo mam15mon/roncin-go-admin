@@ -358,8 +358,11 @@ export default function FinanceFeeLedgerPage() {
               <Select
                 mode="multiple"
                 allowClear
-                showSearch
-                filterOption={false}
+                showSearch={{
+                  filterOption: false,
+                  onSearch: (keyword) =>
+                    void loadTagFilterOptions(keyword, tagFilterIds),
+                }}
                 loading={tagOptionsLoading}
                 style={{ minWidth: 280 }}
                 placeholder={
@@ -368,9 +371,6 @@ export default function FinanceFeeLedgerPage() {
                 options={tagOptions}
                 value={tagFilterIds}
                 disabled={!organizationId}
-                onSearch={(keyword) =>
-                  void loadTagFilterOptions(keyword, tagFilterIds)
-                }
                 onChange={(value) => {
                   setTagFilterIds(value.length ? value : undefined);
                   actionRef.current?.reload();

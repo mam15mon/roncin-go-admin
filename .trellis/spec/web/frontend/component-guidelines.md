@@ -17,6 +17,13 @@
 - **严禁在任何页面、工作台或模板中私自硬编码 `maxWidth: 1440` 或自定义水平居中外层容器**。
 - 吸顶页头（`PageHeaderShell`）、业务分节卡片（`SectionCard`）、数据表格与吸底操作栏（`StickyFooterBar`）在任何屏幕分辨率下必须 100% 满屏平铺与贴边对齐，仅保留全局统一的 12px 内容区内边距。
 
+## Ant Design Pro / ProComponents 状态与请求核心范式
+
+- **表格数据流一律走官方 `request` 协议**：严禁在外层自建 `data/loading/query` 状态去架空 ProTable；服务端分页列表与搜索一律优先通过 ProTable 的 `request={(params) => Promise<{ data, success, total }>}` 消费接口，由组件内建引擎自动调度分页与防竞态。
+- **刷新与重置一律走官方 `actionRef`**：新增、编辑、删除或启停操作成功后，统一通过 `actionRef.current?.reload()` 触发列表刷新，严禁层层透传手写的 `reload/fetchList` 触发式回调。
+- **模态表单生命周期一律走 `ModalForm.onFinish`**：异步提交必须返回 Promise，由 ProComponents 自动接管提交中 loading 态与成功关闭，严禁在外部手工维护 `confirmLoading` 镜像状态。
+- **自定义 Hook 依赖防护**：在封装涉及异步请求的 Hook 时，纯动作型回调（如 api 函数、数据转换 map 函数）必须使用 `useRef` 保障引用稳定性，严禁将未 memoize 的内联函数作为 `useCallback` 依赖引发渲染死循环（`Maximum update depth exceeded`）。
+
 ## 侧边栏
 
 - 折叠收起宽度基准 48px，菜单项固定 36px 居中圆角卡片；折叠时彻底隐藏文本与
@@ -115,3 +122,25 @@ if (
 - **快捷新增弹窗默认勾选「单次合作」**，可取消；提交透传 `isCasual`。
 - **选择器元数据经契约字段渲染，不污染 label**：候选项携带 `isCasual` 时经 `optionRender` 动态渲染 `<Tag>散客</Tag>`；`label` 只拼 `legalName (code)`，禁止拼入散客等业务标注文本（防止单证 / 合同字符串污染，选中值不得出现多余前缀）。
 - **散客交互的软硬边界**：向散客供应商出款时对方账户动态标星必填（服务端刚性）；散客应收账单改大账期只出黄色预警、不阻断提交（刻意弹性，禁止加前端硬拦截）。
+
+## antd6 API 契约（禁用弃用用法，2026-09 清理后口径）
+
+源码侧弃用用法已全部清零（`cd web && antd lint ./src --only deprecated` 保持
+0 issues），新代码禁止再次引入以下旧写法：
+
+- Alert `message` → `title`；Space `direction` → `orientation`；Spin `tip` → `description`。
+- Drawer `width` → `size`（支持 `number | string`）；Drawer/Modal `destroyOnClose` →
+  `destroyOnHidden`（ProForm `modalProps` 透传同样适用）；Modal `maskClosable` →
+  `mask={{ closable }}`。
+- Select 顶层 `filterOption` / `onSearch` / `optionFilterProp` 必须并入
+  `showSearch={{ ... }}` 对象（传对象即开启搜索，布尔 `showSearch` 一并吸收）；
+  `onDropdownVisibleChange` → `onOpenChange`；`filterOption={false}` 表服务端
+  过滤，语义保持。
+- Timeline items 元素 `children` → `content`。
+- Input/InputNumber `addonAfter` → `Space.Compact`（+ `Space.Addon`）；ProForm
+  字段改用字段级 `addonAfter`（pro 自渲染，不透传 InputNumber）。
+- `List` 已整体弃用（下个大版本移除）：一律用 `Listy`（`items` + `rowKey` +
+  `itemRender`，行内容 JSX 原样迁移；`rowKey` 必须显式给出，缺省会触发
+  React key 警告）。
+- antd `message`/`modal` 静态导入改 `App.useApp()`，避免「can not consume
+  context」警告。

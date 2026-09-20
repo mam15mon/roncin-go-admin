@@ -94,13 +94,11 @@ export const PackageCountInput: React.FC<PackageCountInputProps> = ({
       {/* 2. 右侧包装单位搜索选择器 */}
       <Form.Item noStyle name={unitName}>
         <Select
-          showSearch
+          showSearch={{ filterOption, onSearch: setSearchValue }}
           allowClear
           placeholder={unitPlaceholder}
           disabled={disabled}
           options={mergedOptions}
-          filterOption={filterOption}
-          onSearch={setSearchValue}
           onSelect={() => setSearchValue('')}
           onBlur={() => setSearchValue('')}
           popupMatchSelectWidth={false}

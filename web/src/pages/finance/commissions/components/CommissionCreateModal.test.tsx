@@ -5,7 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { App } from 'antd';
+import { App, Form } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -29,7 +29,14 @@ const modalState = vi.hoisted(() => ({
 vi.mock('@ant-design/pro-components', () => ({
   ModalForm: (props: Record<string, any>) => {
     modalState.props = props;
-    return <div>{props.children}</div>;
+    // 组件内渲染了真实 Form.Item（对冲 Tab 的隐藏 nettingId 字段），
+    // 测试替身必须像真实 ModalForm 一样提供 FormContext，否则 Field
+    // 挂载会触发 "Can not find FormContext" 警告。
+    return (
+      <Form onFinish={props.onFinish} onValuesChange={props.onValuesChange}>
+        {props.children}
+      </Form>
+    );
   },
   ProFormDependency: ({ children }: Record<string, any>) => (
     <>{children(modalState.dependencyValues)}</>

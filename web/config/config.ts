@@ -46,7 +46,10 @@ export default defineConfig({
 
   publicPath: PUBLIC_PATH,
 
-  devtool: 'source-map',
+  devtool:
+    process.env.NODE_ENV === 'development'
+      ? 'eval-cheap-module-source-map'
+      : 'source-map',
 
   /**
    * @name 兼容性设置

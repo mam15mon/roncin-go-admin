@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -65,6 +66,13 @@ vi.mock('@/utils/options', () => ({
 import BillCreationWorkbench from './BillCreationWorkbench';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** 防抖窗口断言仍用真实定时器；包进 act 让窗口期落地的预览/账户回调在 act 内更新状态。 */
+const sleepInAct = async (ms: number) => {
+  await act(async () => {
+    await sleep(ms);
+  });
+};
 
 function resetWorkbenchMocks() {
   mocks.organizations.mockReset();
@@ -211,7 +219,7 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2), {
       timeout: 10000,
     });
-    await sleep(700);
+    await sleepInAct(700);
 
     // 批次汇总按币种分别列示，禁止跨币种相加。
     expect(screen.getByText('2400 CNY')).toBeInTheDocument();
@@ -338,7 +346,7 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
       ),
     );
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
-    await sleep(700);
+    await sleepInAct(700);
 
     fireEvent.click(screen.getByRole('button', { name: /原子生成 2 张账单/ }));
     await waitFor(() =>

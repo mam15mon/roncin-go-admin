@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -445,11 +451,13 @@ describe('SeaSharedContainerDrawer', () => {
       expect(screen.getAllByText('BBBB2222222').length).toBeGreaterThan(0);
     });
 
-    // A 响应迟到，必须被丢弃
-    candidatesDeferred[0].resolve({ data: candidatesPage2, total: 2 });
-    listDeferred[0].resolve({ data: [containerA], total: 1 });
-
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    // A 响应迟到，必须被丢弃；resolve 与落地等待都包在 act 作用域内，
+    // 迟到响应驱动的弹层/表格重渲染不会在用例结束后才落地。
+    await act(async () => {
+      candidatesDeferred[0].resolve({ data: candidatesPage2, total: 2 });
+      listDeferred[0].resolve({ data: [containerA], total: 1 });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
     expect(screen.queryByText('AAAA1111111')).not.toBeInTheDocument();
     expect(screen.queryByText('第二页货物')).not.toBeInTheDocument();
     expect(screen.getAllByText('BBBB2222222').length).toBeGreaterThan(0);

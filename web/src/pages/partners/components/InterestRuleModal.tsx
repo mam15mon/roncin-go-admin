@@ -62,8 +62,8 @@ export default function InterestRuleModal({
       onOpenChange={onOpenChange}
       onFinish={handleSubmit}
       modalProps={{
-        destroyOnClose: true,
-        maskClosable: false,
+        destroyOnHidden: true,
+        mask: { closable: false },
         width: 500,
       }}
       layout="horizontal"

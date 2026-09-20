@@ -340,8 +340,15 @@ describe('useOrderCreateOptions', () => {
       currentOrganization: { id: 'org-B', name: '组织B' },
     };
     rerender();
+    // 组织切换触发的主数据重载在 act 内落地
+    await act(async () => {});
 
     delayedSearch.resolve([{ label: '旧组织港口', value: 'old-port' }]);
+    // 迟到搜索结果回调在 act 内收敛，避免用例结束后迟到更新
+    await act(async () => {
+      await searchPromise;
+    });
+
     await expect(searchPromise).resolves.toEqual([]);
   });
 

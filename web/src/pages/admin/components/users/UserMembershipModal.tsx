@@ -58,7 +58,7 @@ export default function UserMembershipModal({
           : { enabled: true, primary: memberships.length === 0 }
       }
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         width: 520,
         onCancel: () => onOpenChange(false),
       }}

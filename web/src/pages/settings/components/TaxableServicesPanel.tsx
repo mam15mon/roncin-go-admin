@@ -67,7 +67,7 @@ export function TaxableServicesPanel() {
         type="info"
         showIcon
         style={{ marginBottom: 12 }}
-        message="货物或应税劳务名称随本组织税务主体自维护，仅本组织可见与使用"
+        title="货物或应税劳务名称随本组织税务主体自维护，仅本组织可见与使用"
       />
       <SettingTableTemplate<API.TaxableService, TaxableServiceFormValues>
         entityName="货物或应税劳务"

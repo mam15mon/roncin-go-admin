@@ -331,12 +331,12 @@ export function SeaMasterBillFields({
               borderColor: batchDirectBlocked ? '#ffccc7' : '#b7eb8f',
             }}
           >
-            <Space direction="vertical" style={{ width: '100%' }}>
+            <Space orientation="vertical" style={{ width: '100%' }}>
               {batchDirectBlocked ? (
                 <Alert
                   type="error"
                   showIcon
-                  message="该主单已被直单订单占用，如需拼单请先将其转为分单"
+                  title="该主单已被直单订单占用，如需拼单请先将其转为分单"
                   description={`共享批次：${candidate.masterNo} | 成员：${candidate.memberCount ?? 0} 票（含直单订单）`}
                 />
               ) : (
@@ -396,7 +396,7 @@ export function SeaMasterBillFields({
                 <Alert
                   type="warning"
                   showIcon
-                  message="检测到航程信息冲突，不能关联此主单"
+                  title="检测到航程信息冲突，不能关联此主单"
                   description={
                     <ul style={{ margin: 0, paddingLeft: 16 }}>
                       {conflicts.map((c) => (
@@ -419,7 +419,7 @@ export function SeaMasterBillFields({
           <Alert
             type="error"
             showIcon
-            message="主单候选查询失败"
+            title="主单候选查询失败"
             description={candidateMatchError}
           />
         </div>
@@ -499,7 +499,7 @@ export function SeaContainerPlanFields({
         <Alert
           type={containerRequests.length > 0 ? 'warning' : 'info'}
           showIcon
-          message={
+          title={
             <span style={{ fontSize: 13 }}>
               <span>散杂货不使用箱型箱量、箱号或封号配置</span>
               <span style={{ color: '#8c8c8c', marginLeft: 8, fontSize: 12 }}>

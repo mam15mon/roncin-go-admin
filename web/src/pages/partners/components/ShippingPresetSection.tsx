@@ -548,8 +548,8 @@ export default function ShippingPresetSection({
         onOpenChange={setModalOpen}
         onFinish={handleSave}
         modalProps={{
-          destroyOnClose: true,
-          maskClosable: false,
+          destroyOnHidden: true,
+          mask: { closable: false },
           width: 580,
         }}
         layout="horizontal"

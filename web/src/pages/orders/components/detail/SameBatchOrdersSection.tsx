@@ -63,7 +63,7 @@ export default function SameBatchOrdersSection({
   }, [orderId]);
 
   if (loading) return <Skeleton active paragraph={{ rows: 2 }} />;
-  if (error) return <Alert type="warning" showIcon message={error} />;
+  if (error) return <Alert type="warning" showIcon title={error} />;
   if (orders.length === 0) {
     return (
       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无同批订单" />

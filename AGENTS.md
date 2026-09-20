@@ -169,6 +169,11 @@ scripts/                  根目录开发与构建辅助脚本
   - 标准化配置类数据统一复用 `MasterDataTemplate`，内置顶部指标统计卡、关键字与下拉筛选栏、标准分页表格与快捷模态表单。
 - **表格列表页 (Table List Pages)**：
   - 统一采用 Ant Design ProTable 高密度样式，搜索卡片与表格卡片外层统一细边框与微圆角，操作列靠右对齐。
+- **Ant Design Pro / ProComponents 状态与请求核心范式**：
+  - **表格数据流一律走官方 `request` 协议**：严禁在外层自建 `data/loading/query` 状态去架空 ProTable；服务端分页列表与搜索一律优先通过 ProTable 的 `request={(params) => Promise<{ data, success, total }>}` 消费接口，由组件内建引擎自动调度分页与防竞态。
+  - **刷新与重置一律走官方 `actionRef`**：新增、编辑、删除或启停操作成功后，统一通过 `actionRef.current?.reload()` 触发列表刷新，严禁层层透传手写的 `reload/fetchList` 触发式回调。
+  - **模态表单生命周期一律走 `ModalForm.onFinish`**：异步提交必须返回 Promise，由 ProComponents 自动接管提交中 loading 态与成功关闭，严禁在外部手工维护 `confirmLoading` 镜像状态。
+  - **自定义 Hook 依赖防护**：在封装涉及异步请求的 Hook 时，纯动作型回调（如 api 函数、数据转换 map 函数）必须使用 `useRef` 保障引用稳定性，严禁将未 memoize 的内联函数作为 `useCallback` 依赖引发渲染死循环（`Maximum update depth exceeded`）。
 - **侧边栏与菜单交互规范**：
   - 侧边栏折叠收起宽度基准为 48px，菜单项固定 36px 居中圆角卡片，折叠时彻底隐藏文本与展开箭头，保证图标正中居中。
   - 含有子级的菜单项（如「订单管理」）在折叠态下鼠标 Hover 必须弹出纯白圆角子菜单浮层（`.ant-menu-submenu-popup`）供点击直达。

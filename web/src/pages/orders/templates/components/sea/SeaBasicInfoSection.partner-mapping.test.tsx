@@ -1,5 +1,5 @@
 import { ProForm } from '@ant-design/pro-components';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PartnerRoleType } from '@/enums.generated';
@@ -19,7 +19,7 @@ describe('SeaBasicInfoSection 伙伴快捷新增映射', () => {
     quickAddCalls.length = 0;
   });
 
-  it('委托单位、订舱代理和国外代理使用各自角色与完整档案路由', () => {
+  it('委托单位、订舱代理和国外代理使用各自角色与完整档案路由', async () => {
     const section = buildSeaBaseInfoSection({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -63,5 +63,11 @@ describe('SeaBasicInfoSection 伙伴快捷新增映射', () => {
         createRoute: '/partners/foreign-agents/create',
       },
     ]);
+    // 船公司/船代等 request 型下拉的挂载期查询在 act 内落地，避免迟到更新
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 });

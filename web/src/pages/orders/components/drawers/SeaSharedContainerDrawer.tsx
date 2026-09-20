@@ -483,10 +483,10 @@ export default function SeaSharedContainerDrawer({
   return (
     <Drawer
       title="跨订单共享箱 / 客户拼货工作台"
-      width={DRAWER_SIZE.LG}
+      size={DRAWER_SIZE.LG}
       open={open}
       onClose={onClose}
-      destroyOnClose
+      destroyOnHidden
       extra={
         <Space>
           {canCreate && (
@@ -505,7 +505,7 @@ export default function SeaSharedContainerDrawer({
         <Alert
           type="warning"
           showIcon
-          message="当前订单未关联实际运输执行"
+          title="当前订单未关联实际运输执行"
           description="共享集装箱以同一实际航次（TransportExecution）为协同边界。请先为订单指定运输执行与船名航次后，再开展客户拼货与跨订单分配。"
         />
       ) : (
@@ -514,7 +514,7 @@ export default function SeaSharedContainerDrawer({
             <Alert
               type="info"
               showIcon
-              message="共享箱业务原则"
+              title="共享箱业务原则"
               description="普通单票订单常态下直接使用独占箱。若多张 HOUSE 订单同航次拼装同一物理箱，请在下方选择或新建共享箱，逐票分配件重尺。确认前系统将严格检查箱容量与各订单货物件重尺守恒。"
             />
           </div>

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Form } from 'antd';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -119,9 +119,12 @@ describe('BillGroupCard', () => {
     expect(
       screen.queryByText(/该客户为单次合作散客，建议现结/),
     ).not.toBeInTheDocument();
+
+    // 等待挂载触发的结算账户候选、币种选项异步请求在 act 内收敛。
+    await act(async () => {});
   });
 
-  it('超额客户叶子展示信用超额黄色预警且不阻断提交', () => {
+  it('超额客户叶子展示信用超额黄色预警且不阻断提交', async () => {
     const exceededGroup = {
       groupKey: 'credit-1',
       direction: 'RECEIVABLE',
@@ -174,9 +177,12 @@ describe('BillGroupCard', () => {
 
     // 预警为软提示：账期与提交入口不被禁用
     expect(screen.getByLabelText('账期（天）')).toBeEnabled();
+
+    // 等待挂载触发的结算账户候选、币种选项异步请求在 act 内收敛。
+    await act(async () => {});
   });
 
-  it('未超额或未设额度的叶子不展示信用超额预警', () => {
+  it('未超额或未设额度的叶子不展示信用超额预警', async () => {
     const normalGroup = {
       groupKey: 'credit-2',
       direction: 'RECEIVABLE',
@@ -219,5 +225,8 @@ describe('BillGroupCard', () => {
     expect(
       screen.queryByText(/该客户应收未核销余额（本币）/),
     ).not.toBeInTheDocument();
+
+    // 等待挂载触发的结算账户候选、币种选项异步请求在 act 内收敛。
+    await act(async () => {});
   });
 });

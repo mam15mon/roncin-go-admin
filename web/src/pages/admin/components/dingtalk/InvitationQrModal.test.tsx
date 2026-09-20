@@ -60,8 +60,18 @@ vi.mock('antd', async (importOriginal) => ({
       {value}
     </div>
   ),
-  Space: ({ children }: { children?: React.ReactNode }) => (
-    <div>{children}</div>
+  // addonAfter 迁移为 Space.Compact + Space.Addon 紧凑拼接后，
+  // mock 的 Space 需挂载同名子组件，保持渲染树可寻址。
+  Space: Object.assign(
+    ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    {
+      Compact: ({ children }: { children?: React.ReactNode }) => (
+        <div>{children}</div>
+      ),
+      Addon: ({ children }: { children?: React.ReactNode }) => (
+        <span>{children}</span>
+      ),
+    },
   ),
   Tag: ({ children }: { children?: React.ReactNode }) => (
     <span>{children}</span>

@@ -513,18 +513,22 @@ describe('useOrderListResources', () => {
     } as typeof seaConfig;
     rerender();
 
-    locationSearch.resolve([
-      { label: '旧海运地点', value: 'old-sea-location' },
-    ]);
-    personnelSearch.resolve({
-      data: [
-        {
-          userId: 'old-sea-user',
-          displayName: '旧海运人员',
-          organizationId: 'org-1',
-          organizationName: '测试组织1',
-        },
-      ],
+    // 配置切换触发的重载与迟到搜索回调均在 act 内收敛，避免用例结束后迟到更新
+    await act(async () => {
+      locationSearch.resolve([
+        { label: '旧海运地点', value: 'old-sea-location' },
+      ]);
+      personnelSearch.resolve({
+        data: [
+          {
+            userId: 'old-sea-user',
+            displayName: '旧海运人员',
+            organizationId: 'org-1',
+            organizationName: '测试组织1',
+          },
+        ],
+      });
+      await Promise.all([locationPromise, personnelPromise]);
     });
 
     await expect(locationPromise).resolves.toEqual([]);

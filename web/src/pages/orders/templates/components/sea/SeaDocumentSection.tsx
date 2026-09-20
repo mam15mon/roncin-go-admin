@@ -350,7 +350,7 @@ export function SeaDocumentSectionComponent({
         {items.length === 0 ? (
           <Text type="secondary">暂无关联放货记录</Text>
         ) : (
-          <Space direction="vertical" size={4}>
+          <Space orientation="vertical" size={4}>
             {items.map((item) => (
               <Space key={item.id} wrap>
                 <Text>放货编号：{item.releaseNo || '-'}</Text>

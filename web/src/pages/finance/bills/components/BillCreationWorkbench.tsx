@@ -629,7 +629,7 @@ export default function BillCreationWorkbench({
     <Drawer
       title={mode === 'NETTING' ? '费用批量对冲建账' : '费用批量转账单'}
       open={open}
-      width={DRAWER_SIZE.XL}
+      size={DRAWER_SIZE.XL}
       destroyOnHidden
       mask={{ closable: false }}
       footer={footer}

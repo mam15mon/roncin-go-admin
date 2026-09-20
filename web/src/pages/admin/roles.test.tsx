@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { adminServiceListPermissions } from '@/services/roncin/adminService';
 
 const accessState = vi.hoisted(() => ({
   value: {
@@ -96,7 +97,7 @@ describe('RolesPanel 角色配置权限', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('administrator 角色不显示删除入口', () => {
+  it('administrator 角色不显示删除入口', async () => {
     accessState.value = {
       ...accessState.value,
       canDeleteRoles: true,
@@ -113,9 +114,14 @@ describe('RolesPanel 角色配置权限', () => {
     expect(
       screen.queryByRole('button', { name: '删除' }),
     ).not.toBeInTheDocument();
+
+    // 等待权限字典加载的异步落地，避免用例结束后状态更新迟到触发 act 警告
+    await waitFor(() => {
+      expect(adminServiceListPermissions).toHaveBeenCalled();
+    });
   });
 
-  it('已分配成员的角色删除入口禁用', () => {
+  it('已分配成员的角色删除入口禁用', async () => {
     operationRow.value = {
       id: 'role-2',
       code: 'operator',
@@ -125,9 +131,14 @@ describe('RolesPanel 角色配置权限', () => {
     render(<RolesPanel />);
 
     expect(screen.getByRole('button', { name: '删除' })).toBeDisabled();
+
+    // 等待权限字典加载的异步落地，避免用例结束后状态更新迟到触发 act 警告
+    await waitFor(() => {
+      expect(adminServiceListPermissions).toHaveBeenCalled();
+    });
   });
 
-  it('未分配成员的角色显示可用删除入口', () => {
+  it('未分配成员的角色显示可用删除入口', async () => {
     operationRow.value = {
       id: 'role-3',
       code: 'operator',
@@ -137,6 +148,11 @@ describe('RolesPanel 角色配置权限', () => {
     render(<RolesPanel />);
 
     expect(screen.getByRole('button', { name: '删除' })).toBeEnabled();
+
+    // 等待权限字典加载的异步落地，避免用例结束后状态更新迟到触发 act 警告
+    await waitFor(() => {
+      expect(adminServiceListPermissions).toHaveBeenCalled();
+    });
   });
 
   it('新建角色默认勾选访问工作台基础权限', async () => {

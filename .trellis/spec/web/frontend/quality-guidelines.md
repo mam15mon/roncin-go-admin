@@ -121,6 +121,31 @@ antd 6 下会静默失效，测试表现为「元素找不到」或「回调未�
   只反映调用瞬间值；`onOk` 返回 Promise 时 antd 会自动为确认按钮加转圈，
   优先依赖该内置行为而非手工状态镜像。
 
+- **测试输出零噪音口径**（2026-09 起）：全量 vitest 的 stderr 中
+  `not wrapped in act`、`is deprecated` 及 antd 运行时警告必须保持 0。
+  新增测试如触发异步更新，必须在用例内等待收敛后再结束。
+
+- **act 警告治理模式**（勿用 console 静音、`IS_REACT_ACT_ENVIRONMENT`
+  开关或删断言消音）：
+  - 挂载期请求/effect 在同步用例结束后落地 → 用例改 async，结尾
+    `await act(async () => {})` 冲刷微任务（见 `new.test.tsx` 的
+    `flushMountRequests` 惯例）。
+  - 测试直接调用异步方法（`formRef.validateFields()`、`onFinish`、
+    `onOk`、竞态用例手动 `resolve()`）→ 整体包进
+    `await act(async () => { ... })`。
+  - 防抖窗口、真实定时器等待 → 包进 act 内 sleep（见
+    `BillCreationWorkbench.test.tsx` 的 `sleepInAct`）。
+  - antd 静态 `message` 的独立根在微任务后渲染且内部 act 包装为
+    no-op → 把触发点击与微任务冲刷包进同一 act 作用域
+    （见 `ContainerCargoDelete.test.tsx`）。
+  - rc-motion 弹层离开动画在 happy-dom 永不结束（无 transitionend）→
+    等进入 leave-active 后在 act 内 `fireEvent.transitionEnd`
+    （rc-motion 官方测试同款，见 `TagsView.test.tsx` 的
+    `settleDropdownPopup`）。
+  - 组件使用 antd 静态 `message`/`modal` 会产生「can not consume
+    context」警告，应改 `App.useApp()`（生产链路由 Umi antd 插件
+    runtime 统一 `<App>` 包裹，测试渲染需自行补 `<App>`）。
+
 ## 禁令
 
 - 页面自行拼接后端主机地址（必须走统一请求配置 / 生成客户端）。

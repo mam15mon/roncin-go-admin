@@ -1,9 +1,9 @@
 import {
+  App,
   Button,
   Form,
   Input,
   Modal,
-  message,
   Segmented,
   Select,
   Space,
@@ -62,6 +62,7 @@ export function BusinessTagModal({
   onSubmit,
   onCancel,
 }: BusinessTagModalProps) {
+  const { message } = App.useApp();
   const [mode, setMode] = useState<BusinessTagModalMode>('assign');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [tagOptions, setTagOptions] = useState<API.BusinessTagSummary[]>([]);
@@ -165,7 +166,7 @@ export function BusinessTagModal({
       onCancel={onCancel}
       destroyOnHidden
     >
-      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+      <Space orientation="vertical" size={12} style={{ width: '100%' }}>
         <Space>
           <Segmented
             value={mode}
@@ -191,9 +192,10 @@ export function BusinessTagModal({
           value={selectedTagIds}
           onChange={setSelectedTagIds}
           loading={loading}
-          showSearch
-          filterOption={false}
-          onSearch={(keyword) => void loadTagOptions(keyword)}
+          showSearch={{
+            filterOption: false,
+            onSearch: (keyword) => void loadTagOptions(keyword),
+          }}
           options={mergedOptions.map((tag) => ({
             value: tag.id ?? '',
             label: (
@@ -267,8 +269,7 @@ export function BusinessTagModal({
               <Select
                 style={{ width: 160 }}
                 placeholder="标签组"
-                showSearch
-                optionFilterProp="label"
+                showSearch={{ optionFilterProp: 'label' }}
                 options={groupOptions}
               />
             </Form.Item>

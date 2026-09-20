@@ -40,7 +40,7 @@ export default function OrgEditModal({
         baseCurrency: editingOrg?.baseCurrency,
       }}
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         width: 520,
         onCancel: () => onOpenChange(false),
       }}

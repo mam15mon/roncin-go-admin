@@ -201,7 +201,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
     },
   ])(
     '$name 时模板与分节使用同一完整只读值',
-    ({ allowedActions, lockState }) => {
+    async ({ allowedActions, lockState }) => {
       detailTestState.allowedActions = allowedActions;
       detailTestState.lockState = lockState;
       mockGetChangeActions.mockResolvedValue({ data: {} } as never);
@@ -214,10 +214,16 @@ describe('订单详情页拆票与改配动作隔离', () => {
 
       expect(detailTestState.sectionReadonly).toBe(true);
       expect(detailTestState.templateReadonly).toBe(true);
+      // 挂载期动作资格请求在 act 内落地，避免用例结束后迟到更新
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
     },
   );
 
-  it('有编辑动作且未锁单时模板与分节均可编辑', () => {
+  it('有编辑动作且未锁单时模板与分节均可编辑', async () => {
     mockGetChangeActions.mockResolvedValue({ data: {} } as never);
 
     render(
@@ -228,6 +234,12 @@ describe('订单详情页拆票与改配动作隔离', () => {
 
     expect(detailTestState.sectionReadonly).toBe(false);
     expect(detailTestState.templateReadonly).toBe(false);
+    // 挂载期动作资格请求在 act 内落地，避免用例结束后迟到更新
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 
   it('A 与 B 响应逆序返回时，仅展示当前订单 B 的动作资格', async () => {

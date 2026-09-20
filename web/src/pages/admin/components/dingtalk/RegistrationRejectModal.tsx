@@ -37,7 +37,7 @@ export default function RegistrationRejectModal({
       open={open}
       formRef={formRef}
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}

@@ -5,7 +5,7 @@ import {
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
-import { Button, List, Space, Tag, Typography } from 'antd';
+import { Button, Listy, Space, Tag, Typography } from 'antd';
 import React from 'react';
 import { amountWithCurrency } from './display';
 
@@ -63,23 +63,18 @@ export default function FinanceSummaryCard({ finance }: Props) {
                 待审批数量超出服务端扫描上限，以上计数仅为部分统计。
               </Text>
             ) : null}
-            <List
-              size="small"
-              dataSource={approvals.slice(0, 5)}
-              renderItem={(item) => (
-                <List.Item
-                  actions={[
-                    <Button
-                      key="open"
-                      type="link"
-                      size="small"
-                      onClick={() =>
-                        history.push(`/orders/sea-export/${item.orderId}/fees`)
-                      }
-                    >
-                      前往处理
-                    </Button>,
-                  ]}
+            <Listy
+              rowKey="requestId"
+              items={approvals.slice(0, 5)}
+              itemRender={(item) => (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                    flexWrap: 'wrap',
+                  }}
                 >
                   <Space size={8} wrap>
                     <Text strong>{item.orderNo || '-'}</Text>
@@ -92,7 +87,17 @@ export default function FinanceSummaryCard({ finance }: Props) {
                       {item.requestedAt || '-'}
                     </Text>
                   </Space>
-                </List.Item>
+                  <Button
+                    key="open"
+                    type="link"
+                    size="small"
+                    onClick={() =>
+                      history.push(`/orders/sea-export/${item.orderId}/fees`)
+                    }
+                  >
+                    前往处理
+                  </Button>
+                </div>
               )}
             />
             {approvals.length === 0 ? (

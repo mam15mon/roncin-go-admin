@@ -28,7 +28,7 @@ export default function ResetPasswordModal({
       open={Boolean(user)}
       initialValues={user?.username ? { username: user.username } : undefined}
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         width: 500,
         onCancel: onClose,
       }}

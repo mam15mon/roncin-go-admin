@@ -292,7 +292,7 @@ export default function RoleFormModal({
           : { dataScope: 2, enabled: true }
       }
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         width: 1040,
         onCancel: () => onOpenChange(false),
       }}

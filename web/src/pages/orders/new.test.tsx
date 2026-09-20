@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -62,6 +68,16 @@ const mockUseOptions = vi.mocked(useOrderCreateOptions);
 
 function renderWithApp(ui: React.ReactElement) {
   return render(<App>{ui}</App>);
+}
+
+// 挂载期 request 型下拉会发起异步选项查询；在 act 内冲刷微任务，
+// 确保用例结束前已触发的异步流全部落地，避免迟到 setState 触发 act 警告。
+async function flushMountRequests() {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
 }
 
 describe('NewOrderPage', () => {
@@ -142,7 +158,7 @@ describe('NewOrderPage', () => {
     expect(defaultRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('优先按 GENERAL 业务码识别默认货物类别，无论名称是否为普货', () => {
+  it('优先按 GENERAL 业务码识别默认货物类别，无论名称是否为普货', async () => {
     const { container } = renderWithApp(<NewOrderPage />);
 
     expect(screen.getByText('创建订单')).toBeInTheDocument();
@@ -150,9 +166,10 @@ describe('NewOrderPage', () => {
     expect(lastTemplateProps?.initialValues?.cargoCategoryIds).toEqual([
       'cat-gen-id',
     ]);
+    await flushMountRequests();
   });
 
-  it('当 code=GENERAL 与 label=普货 分属不同选项冲突时，优先采用 code=GENERAL 的选项', () => {
+  it('当 code=GENERAL 与 label=普货 分属不同选项冲突时，优先采用 code=GENERAL 的选项', async () => {
     mockUseOptions.mockReturnValue({
       loading: false,
       error: null,
@@ -174,9 +191,10 @@ describe('NewOrderPage', () => {
     expect(lastTemplateProps?.initialValues?.cargoCategoryIds).toEqual([
       'cat-gen-correct',
     ]);
+    await flushMountRequests();
   });
 
-  it('当无 code=GENERAL 时，优雅回退采用 label=普货 的选项', () => {
+  it('当无 code=GENERAL 时，优雅回退采用 label=普货 的选项', async () => {
     mockUseOptions.mockReturnValue({
       loading: false,
       error: null,
@@ -198,9 +216,10 @@ describe('NewOrderPage', () => {
     expect(lastTemplateProps?.initialValues?.cargoCategoryIds).toEqual([
       'cat-pu-fallback',
     ]);
+    await flushMountRequests();
   });
 
-  it('当既无 code=GENERAL 也无 label=普货 时，cargoCategoryIds 为 undefined', () => {
+  it('当既无 code=GENERAL 也无 label=普货 时，cargoCategoryIds 为 undefined', async () => {
     mockUseOptions.mockReturnValue({
       loading: false,
       error: null,
@@ -220,14 +239,16 @@ describe('NewOrderPage', () => {
     renderWithApp(<NewOrderPage />);
 
     expect(lastTemplateProps?.initialValues?.cargoCategoryIds).toBeUndefined();
+    await flushMountRequests();
   });
 
-  it('海运出口订单默认贸易条款为 CIF', () => {
+  it('海运出口订单默认贸易条款为 CIF', async () => {
     renderWithApp(<NewOrderPage />);
 
     expect(lastTemplateProps?.initialValues?.tradeTerm).toBe(
       TradeTerm.TRADE_TERM_CIF,
     );
+    await flushMountRequests();
   });
 
   it('传入规范草稿身份并从规范路径键恢复新建页草稿', async () => {

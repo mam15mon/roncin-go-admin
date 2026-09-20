@@ -570,7 +570,7 @@ export default function Partners() {
           blacklisted: Boolean(defaultBlacklistRole?.blacklisted),
         }}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnHidden: true,
           width: 520,
           onCancel: () => setBlacklistModalOpen(false),
         }}

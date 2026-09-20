@@ -5,7 +5,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Button, message, Typography } from 'antd';
+import { App, Button, Typography } from 'antd';
 import React, { forwardRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
@@ -53,6 +53,7 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
     const [currentOrder, setCurrentOrder] = useState<API.Order | undefined>(
       undefined,
     );
+    const { message } = App.useApp();
 
     const columns: ProColumns<API.OrderContainer>[] = [
       {

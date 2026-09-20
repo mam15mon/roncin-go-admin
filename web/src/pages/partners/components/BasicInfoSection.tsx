@@ -166,7 +166,6 @@ export default function BasicInfoSection({
           {!isForeignAgent && (
             <Col xs={24} lg={9}>
               <Form.Item
-                name="unifiedSocialCreditCode"
                 label={
                   <Space size={4}>
                     <span>社会统一信用代码</span>
@@ -184,11 +183,15 @@ export default function BasicInfoSection({
                 ]}
                 style={{ marginBottom: 0 }}
               >
-                <Input
-                  placeholder="91510108MAKB..."
-                  allowClear
-                  style={{ fontFamily: 'monospace' }}
-                  addonAfter={
+                <Space.Compact block>
+                  <Form.Item name="unifiedSocialCreditCode" noStyle>
+                    <Input
+                      placeholder="91510108MAKB..."
+                      allowClear
+                      style={{ fontFamily: 'monospace' }}
+                    />
+                  </Form.Item>
+                  <Space.Addon>
                     <Button
                       type="link"
                       size="small"
@@ -206,8 +209,8 @@ export default function BasicInfoSection({
                     >
                       校验公司信息
                     </Button>
-                  }
-                />
+                  </Space.Addon>
+                </Space.Compact>
               </Form.Item>
             </Col>
           )}

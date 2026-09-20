@@ -3,6 +3,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from '@testing-library/react';
 import React from 'react';
@@ -183,5 +184,44 @@ describe('MasterDataTemplate (紧凑一体化 ProTable 模板与单行6卡片)',
     );
 
     expect(screen.getAllByText('编辑')).toHaveLength(mockItems.length);
+  });
+
+  it('支持 Ant Design Pro 官方 request 模式：自动分页与关键字检索', async () => {
+    const mockRequest = vi.fn(
+      async (_params: {
+        current?: number;
+        pageSize?: number;
+        keyword?: string;
+      }) => {
+        return {
+          data: [
+            {
+              id: 'item-req',
+              code: 'REQ01',
+              name: '请求测试项',
+              enabled: true,
+            },
+          ],
+          success: true,
+          total: 100,
+        };
+      },
+    );
+
+    render(
+      <MasterDataTemplate<TestItem>
+        title="测试管理"
+        request={mockRequest}
+        formFields={[]}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('REQ01')).toBeInTheDocument());
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        current: 1,
+        pageSize: 10,
+      }),
+    );
   });
 });

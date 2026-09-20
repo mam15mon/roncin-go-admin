@@ -55,7 +55,7 @@ export default function RegistrationTransferModal({
       open={open}
       formRef={formRef}
       modalProps={{
-        destroyOnClose: true,
+        destroyOnHidden: true,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}
@@ -78,8 +78,8 @@ export default function RegistrationTransferModal({
       <Alert
         type="info"
         showIcon
-        message={
-          <Space direction="vertical" size={2}>
+        title={
+          <Space orientation="vertical" size={2}>
             <span>
               转派后将把该人员的申请组织更新为目标分公司，并向目标分公司的审批管理员发送钉钉通知。
             </span>

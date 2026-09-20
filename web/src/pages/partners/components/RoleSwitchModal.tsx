@@ -117,7 +117,7 @@ export default function RoleSwitchModal({
       }
       open={open}
       onCancel={onClose}
-      destroyOnClose
+      destroyOnHidden
       footer={[
         <Button key="cancel" onClick={onClose} disabled={submitting}>
           取消
@@ -201,7 +201,7 @@ export default function RoleSwitchModal({
           <Alert
             type="info"
             showIcon
-            message="角色转换规则说明"
+            title="角色转换规则说明"
             description="往来单位在客户、供应商与国外代理之间可自由互转或多重身份并存。转换后该企业将立即在对应角色的档案列表中可见，未勾选的旧角色将被停用。"
           />
         </Form>

@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -207,12 +208,21 @@ describe('OrganizationSwitcher', () => {
     expect(authServiceSwitchOrganizationMock).not.toHaveBeenCalled();
 
     fireEvent.click(menuButton('org-2'));
-    modalConfirmMock.mock.calls[1][0].onOk();
+    // onOk 同步触发切换 loading 状态更新，必须在 act 内调用
+    act(() => {
+      modalConfirmMock.mock.calls[1][0].onOk();
+    });
 
     await waitFor(() => {
       expect(authServiceSwitchOrganizationMock).toHaveBeenCalledWith({
         organizationId: 'org-2',
       });
+      // 等待切换链路完全收敛：跳转已发生且 loading 复位（按钮恢复可用），
+      // 避免用例结束后仍有状态更新落地触发 act 警告
+      expect(replaceMock).toHaveBeenCalledWith('/welcome');
+      expect(
+        screen.getByRole('button', { name: '切换当前组织' }),
+      ).toBeEnabled();
     });
     expect(replaceMock).toHaveBeenCalledWith('/welcome');
   });

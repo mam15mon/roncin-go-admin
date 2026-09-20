@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  cacheDir: '/dev/shm/roncin-vitest-cache',
   resolve: {
     alias: [
       { find: /^@\/(.*)/, replacement: `${resolve(__dirname, 'src')}/$1` },
@@ -37,8 +38,5 @@ export default defineConfig({
     },
     passWithNoTests: true,
     testTimeout: 30000,
-    cache: {
-      dir: '/dev/shm/roncin-vitest-cache',
-    },
   },
 });

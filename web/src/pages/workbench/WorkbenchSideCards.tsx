@@ -11,7 +11,7 @@ import {
   Button,
   Descriptions,
   Empty,
-  List,
+  Listy,
   Space,
   Tag,
   Typography,
@@ -49,23 +49,18 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
       variant="outlined"
       data-testid="recent-orders-card"
     >
-      <List<RecentOrder>
-        size="small"
-        dataSource={list}
-        renderItem={(item) => (
-          <List.Item
-            actions={[
-              <Button
-                key="open"
-                type="link"
-                size="small"
-                onClick={() =>
-                  history.push(`/orders/sea-export/${item.orderId}`)
-                }
-              >
-                订单详情
-              </Button>,
-            ]}
+      <Listy<RecentOrder>
+        rowKey="orderId"
+        items={list}
+        itemRender={(item) => (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+              flexWrap: 'wrap',
+            }}
           >
             <Space size={8} wrap>
               <Text strong copyable={Boolean(item.orderNo)}>
@@ -84,7 +79,17 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
                 下单 {formatDate(item.orderDate || item.createdAt, 'date')}
               </Text>
             </Space>
-          </List.Item>
+            <Button
+              key="open"
+              type="link"
+              size="small"
+              onClick={() =>
+                history.push(`/orders/sea-export/${item.orderId}`)
+              }
+            >
+              订单详情
+            </Button>
+          </div>
         )}
       />
     </ProCard>
@@ -113,7 +118,7 @@ export function TodosCard({ todos }: { todos?: Todos }) {
       variant="outlined"
       data-testid="todos-card"
     >
-      <Space direction="vertical" size={8} style={{ width: '100%' }}>
+      <Space orientation="vertical" size={8} style={{ width: '100%' }}>
         {draftFeeCount > 0 ? (
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <Text>协作订单上的费用草稿</Text>
