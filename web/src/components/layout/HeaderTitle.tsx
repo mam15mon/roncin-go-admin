@@ -1,4 +1,4 @@
-import { useLocation } from '@umijs/max';
+import { useLocation } from 'react-router';
 import React from 'react';
 import { resolveRouteTitle } from './routeUtils';
 

@@ -37,13 +37,25 @@ const proTableState = vi.hoisted(() => ({
 
 const userFormModalState = vi.hoisted(() => ({ props: undefined as any }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState.value,
-  useModel: (namespace: string) =>
-    namespace === '@@initialState' ? initialStateState.model : {},
-  useLocation: () => ({ pathname: '/admin', search: '' }),
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => initialStateState.model,
+}));
+
+vi.mock('@/router/history', () => ({
   history: { replace: vi.fn() },
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: '/admin', search: '' }),
+  };
+});
 
 vi.mock('@ant-design/pro-components', () => ({
   ProTable: (props: any) => {

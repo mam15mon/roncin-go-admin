@@ -5,7 +5,8 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess, useModel } from '@umijs/max';
+import { useAccess } from '@/app/access';
+import { useInitialState } from '@/app/AppProvider';
 import { Avatar, Button, Space, Tag, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -30,7 +31,7 @@ export default function DingTalkRegistrationsPanel() {
   const rejectFormRef = useRef<ProFormInstance | undefined>(undefined);
   const transferFormRef = useRef<ProFormInstance | undefined>(undefined);
   const access = useAccess();
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
     [],
   );

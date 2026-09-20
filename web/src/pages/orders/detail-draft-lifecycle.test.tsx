@@ -49,14 +49,24 @@ const detailTestState = vi.hoisted(() => ({
   orderAvailable: true,
 }));
 
-vi.mock('@umijs/max', () => ({
-  useParams: () => routeState.params,
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useParams: () => routeState.params,
+    Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+  };
+});
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOperateBusiness: true,
     canOrder: () => true,
   }),
-  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+}));
+
+vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
 }));
 

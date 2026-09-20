@@ -1,5 +1,5 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { useParams } from '@umijs/max';
+import { useParams } from 'react-router';
 import { Button, Descriptions, Result, Spin, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { SectionCard } from '@/components/ui';

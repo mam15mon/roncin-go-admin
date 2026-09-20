@@ -3,7 +3,7 @@ import {
   CloseCircleOutlined,
   DollarOutlined,
 } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { App, Badge, Space, Tag } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';

@@ -1,5 +1,6 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { history, useLocation } from '@umijs/max';
+import { history } from '@/router/history';
+import { useLocation } from 'react-router';
 import { Alert, Space, Tabs, Tooltip, Typography } from 'antd';
 import React, { useCallback, useMemo, useState } from 'react';
 import type { MultiTabCenterTemplateProps } from './types';

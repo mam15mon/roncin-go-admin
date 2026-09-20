@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。 GET /api/v1/orders/${param0}/fee-exchange-rate */
 export async function orderFeeServiceResolveFeeExchangeRate(

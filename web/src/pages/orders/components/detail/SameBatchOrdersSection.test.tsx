@@ -17,7 +17,7 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceListSameBatchOrders: listSameBatchOrdersMock,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: { push: historyPushMock },
 }));
 

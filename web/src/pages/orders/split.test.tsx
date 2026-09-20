@@ -14,19 +14,29 @@ import SeaOrderSplitPage, {
 
 const splitAccess = vi.hoisted(() => ({ allowed: true }));
 
-// Mock umi hooks
-vi.mock('@umijs/max', () => ({
-  useParams: () => ({ id: 'test-order-123' }),
+// Mock 权限、路由与历史模块源（原 Umi 聚合 mock 按新模块源拆分）
+vi.mock('@/app/access', () => ({
   useAccess: () => ({ canOrder: () => splitAccess.allowed }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: {
     push: vi.fn(),
   },
-  Link: ({ to, children, ...rest }: any) => (
-    <a href={to} {...rest}>
-      {children}
-    </a>
-  ),
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useParams: () => ({ id: 'test-order-123' }),
+    Link: ({ to, children, ...rest }: any) => (
+      <a href={to} {...rest}>
+        {children}
+      </a>
+    ),
+  };
+});
 
 vi.mock('@/services/roncin/orderLockService', () => ({
   orderLockServiceGetOrderLockState: vi.fn(),

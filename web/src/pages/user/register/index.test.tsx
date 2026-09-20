@@ -9,13 +9,17 @@ const { navigateMock } = vi.hoisted(() => ({
 
 let mockSearch = '';
 
-vi.mock('@umijs/max', () => ({
-  Navigate: (props: { to: string; replace?: boolean }) => {
-    navigateMock(props);
-    return null;
-  },
-  useLocation: () => ({ search: mockSearch }),
-}));
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    Navigate: (props: { to: string; replace?: boolean }) => {
+      navigateMock(props);
+      return null;
+    },
+    useLocation: () => ({ search: mockSearch }),
+  };
+});
 
 describe('RegisterRedirect', () => {
   beforeEach(() => {

@@ -6,7 +6,8 @@ import {
   SaveOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { history, useAccess } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
 import { Button, Dropdown, type MenuProps, Tooltip } from 'antd';
 import React, { type ReactNode } from 'react';
 import {

@@ -29,7 +29,7 @@ const reasonFlow = vi.hoisted(() => ({
   submit: undefined as ((reason: string) => Promise<void> | void) | undefined,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState,
 }));
 

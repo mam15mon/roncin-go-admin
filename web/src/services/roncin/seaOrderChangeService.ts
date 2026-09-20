@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** GetSeaOrderChangeActions 获取订单可执行动作及阻断原因。 GET /api/v1/orders/${param0}/sea-order-change/actions */
 export async function seaOrderChangeServiceGetSeaOrderChangeActions(

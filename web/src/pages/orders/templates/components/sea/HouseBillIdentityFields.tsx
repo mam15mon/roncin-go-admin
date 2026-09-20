@@ -9,7 +9,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import {
   Alert,
   App,

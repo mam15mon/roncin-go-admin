@@ -10,8 +10,12 @@ const mockParams = vi.hoisted(() => ({
   id: undefined as string | undefined,
 }));
 
-vi.mock('@umijs/max', () => ({
-  useParams: () => mockParams,
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return { ...actual, useParams: () => mockParams };
+});
+
+vi.mock('@/app/access', () => ({
   // 员工本人落地页不要求组织级 commission.read：不注入任何权限。
   useAccess: () => ({}),
 }));

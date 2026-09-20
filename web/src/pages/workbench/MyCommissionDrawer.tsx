@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Link } from '@umijs/max';
+import { Link } from 'react-router';
 import type { TableColumnsType } from 'antd';
 import { Button, Drawer, Select, Space, Table, Tag, Tooltip } from 'antd';
 import React, { useState } from 'react';

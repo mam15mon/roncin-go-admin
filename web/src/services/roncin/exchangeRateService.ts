@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。 GET /api/v1/finance/exchange-rate-import-template */
 export async function exchangeRateServiceDownloadExchangeRateImportTemplate(options?: {

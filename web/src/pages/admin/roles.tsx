@@ -11,7 +11,7 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';

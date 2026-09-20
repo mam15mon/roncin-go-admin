@@ -8,7 +8,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import {
   Button,
   Card,

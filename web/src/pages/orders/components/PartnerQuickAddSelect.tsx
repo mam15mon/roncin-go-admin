@@ -1,5 +1,7 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { history, useAccess, useModel } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useInitialState } from '@/app/AppProvider';
 import { Button, Checkbox, Form, Input, Tag } from 'antd';
 import React, {
   type ReactNode,
@@ -57,7 +59,7 @@ export default function PartnerQuickAddSelect({
   onPartnerChange,
 }: PartnerQuickAddSelectProps) {
   const access = useAccess();
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const orderForm = Form.useFormInstance();
 
   const [modalOpen, setModalOpen] = useState(false);

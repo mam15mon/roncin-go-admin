@@ -1,6 +1,6 @@
 import { CheckOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import {
   App,
   Card,

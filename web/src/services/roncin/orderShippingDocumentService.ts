@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListShippingDocuments 获取指定订单的提单列表。 GET /api/v1/orders/${param0}/shipping-documents */
 export async function orderShippingDocumentServiceListShippingDocuments(

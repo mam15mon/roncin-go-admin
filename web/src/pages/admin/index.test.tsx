@@ -27,11 +27,18 @@ const locationState = vi.hoisted(() => ({
   search: '',
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState.value,
-  history: historyMock,
-  useLocation: () => locationState,
 }));
+
+vi.mock('@/router/history', () => ({
+  history: historyMock,
+}));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return { ...actual, useLocation: () => locationState };
+});
 
 // Mock sub-panels to isolate test
 vi.mock('./organizations', () => ({

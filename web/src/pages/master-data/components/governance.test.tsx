@@ -11,13 +11,13 @@ import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// 组织身份与权限判定统一走 @umijs/max 的 useAccess（access.ts 契约），
+// 组织身份与权限判定统一走 @/app/access 的 useAccess（access.ts 契约），
 // 测试通过 hoisted 可变对象切换总部 / 非总部视角。
 const accessRef = vi.hoisted(() => ({
   current: {} as Record<string, boolean>,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessRef.current,
 }));
 

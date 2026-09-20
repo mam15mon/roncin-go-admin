@@ -143,13 +143,13 @@ antd 6 下会静默失效，测试表现为「元素找不到」或「回调未�
     （rc-motion 官方测试同款，见 `TagsView.test.tsx` 的
     `settleDropdownPopup`）。
   - 组件使用 antd 静态 `message`/`modal` 会产生「can not consume
-    context」警告，应改 `App.useApp()`（生产链路由 Umi antd 插件
-    runtime 统一 `<App>` 包裹，测试渲染需自行补 `<App>`）。
+    context」警告，应改 `App.useApp()`（生产链路由 src/main.tsx 统一 `<App>` 包裹，测试渲染需自行补
+    `<App>` 或复用 tests/renderWithApp.tsx）。
 
 ## 禁令
 
 - 页面自行拼接后端主机地址（必须走统一请求配置 / 生成客户端）。
-- 站内路由跳转使用 `window.location.href/assign`（必须走 umi `history` /
+- 站内路由跳转使用 `window.location.href/assign`（必须走 `@/router/history` 的 `history` /
   `useNavigate`；登录后整页会话重建、iframe 跨 frame 操作等特殊场景除外，
   需注释说明）。
 - 新增手写 `useState` + `useEffect` + 竞态令牌（sequenceRef/cancelled 等）

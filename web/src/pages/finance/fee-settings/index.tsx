@@ -4,7 +4,7 @@ import {
   FileTextOutlined,
   SlidersOutlined,
 } from '@ant-design/icons';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import React from 'react';
 import {
   type MultiTabCenterTabItem,

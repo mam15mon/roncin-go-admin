@@ -1,4 +1,6 @@
-export default [
+import type { UmiRoute } from '../src/router/routeTypes';
+
+const routes: UmiRoute[] = [
   {
     path: '/login',
     layout: false,
@@ -265,3 +267,5 @@ export default [
     path: './*',
   },
 ];
+
+export default routes;

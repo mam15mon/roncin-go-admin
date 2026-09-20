@@ -30,7 +30,7 @@ const accessState = vi.hoisted(() => ({
   canManageFinanceCommissions: false,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState,
 }));
 

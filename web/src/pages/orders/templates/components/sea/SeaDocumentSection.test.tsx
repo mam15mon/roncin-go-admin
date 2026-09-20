@@ -16,8 +16,7 @@ import { SeaDocumentSectionComponent } from './SeaDocumentSection';
 
 const workspaceAccess = vi.hoisted(() => ({ canOperate: true }));
 
-vi.mock('@umijs/max', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@umijs/max')>()),
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => workspaceAccess.canOperate,
     canOrder: () => true,

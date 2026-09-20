@@ -18,10 +18,25 @@ import { TradeTerm } from '@/enums.generated';
 import NewOrderPage from './new';
 import { useOrderCreateOptions } from './use-order-create-options';
 
-vi.mock('@umijs/max', () => ({
-  useParams: () => ({ kind: 'sea-export' }),
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useParams: () => ({ kind: 'sea-export' }),
+    Link: ({ to, children, ...rest }: any) => (
+      <a href={to} {...rest}>
+        {children}
+      </a>
+    ),
+  };
+});
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({ canOrder: () => true }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',
@@ -30,15 +45,13 @@ vi.mock('@umijs/max', () => ({
       },
     },
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: {
     push: vi.fn(),
     replace: vi.fn(),
   },
-  Link: ({ to, children, ...rest }: any) => (
-    <a href={to} {...rest}>
-      {children}
-    </a>
-  ),
 }));
 
 vi.mock('./use-order-create-options', () => ({

@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListAbnormalCases 获取指定订单的异常标记列表。 GET /api/v1/orders/${param0}/abnormal-cases */
 export async function orderAbnormalCaseServiceListAbnormalCases(

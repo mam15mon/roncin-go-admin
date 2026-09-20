@@ -1,0 +1,10 @@
+{"path": "AGENTS.md", "note": "仓库协作规范：pnpm-only、无历史兼容、UI 模板与门禁命令"}
+{"path": "web/src/app.tsx", "note": "Umi 运行时布局/初始状态/请求配置真相源，全部插槽需平移（见 design.md D3-D5）"}
+{"path": "web/src/access.ts", "note": "权限纯函数，零改动直接复用；useAccess 需自建"}
+{"path": "web/src/requestErrorConfig.ts", "note": "umi-request 契约核心（防重守卫/401/Sentry/errorThrower），requestClient 复刻依据，其测试是回归基线"}
+{"path": "web/config/config.ts", "note": "Umi 插件全量清单：antd token/locale/tailwind/proxy/define 需逐项平移"}
+{"path": "web/config/routes.ts", "note": "集中式路由唯一真相源（267 行/42 路由/35 组件），保持不手改，adaptRoutes 消费"}
+{"path": "web/vitest.config.ts", "note": "现有 Vite 族测试配置（含 @@/.umi 痕迹别名、login.test.tsx exclude），需并入 vite.config.ts"}
+{"path": "web/tests/setupTests.ts", "note": "测试全局桩（localStorage/Worker/matchMedia/动画禁用），无 Umi 依赖，保留"}
+{"path": "web/scripts/generate-openapi-input.mjs", "note": "openapi 输入生成链路，保留；max openapi 需换 @umijs/openapi 的 generateService（新增 scripts/generate-services.mjs，输出与现有生成物风格一致）"}
+{"path": "web/package.json", "note": "脚本名与端口 8001 必须保持，root 脚本无感"}

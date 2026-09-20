@@ -11,14 +11,16 @@ import {
 } from './components/sea/SeaTransportSection';
 import { getSeaTemplateSections } from './sea-template';
 
-vi.mock('@umijs/max', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@umijs/max')>()),
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOrder: () => true,
     canCreatePartners: true,
   }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',

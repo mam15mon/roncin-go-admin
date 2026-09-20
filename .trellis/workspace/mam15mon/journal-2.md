@@ -147,3 +147,18 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
 ### Status
 
 [OK] **Completed**
+
+## 2026-09-20 Umi→Vite+React Router v8 全站迁移（09-20-vite-router-migration）
+
+- 四段式落地：并存基建 → 原子切换（79 文件 codemod + @umijs/openapi 重生成
+  25 个 Service）→ 删 Umi → 52 个测试 mock 迁移（4 个并行子代理按配方转换）。
+- 关键坑与修法：@umijs/openapi 相对路径按自身包解析须传绝对路径；
+  requestErrorConfig↔router 模块求值环导致 errorConfig TDZ 崩溃，history.ts
+  改叶子模块经 bindRouter 注入；import.meta.glob 相对路径错级（../../pages）
+  tsc/build 均不暴露，已用 adaptRoutes.test.tsx 真实加载 35 页面锁回归；
+  dayjs zh-cn locale 数据需显式导入。
+- 验收：全量 vitest 871 用例绿、tsc/biome 绿、check:fast 全过（77.8s）、
+  vite build 14s、dev 冒烟（首页/模块转换/深链回退）通过；e2e 因沙箱浏览器
+  进程被杀（launch ESRCH）无法执行，已记录差异待有浏览器环境补跑。
+- 新增约定已落 spec：@/router/history 跳转、renderWithApp 测试包装、
+  main.tsx App 包裹、generate-services.mjs 生成链路。

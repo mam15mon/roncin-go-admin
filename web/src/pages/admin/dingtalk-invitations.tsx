@@ -9,7 +9,8 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess, useModel } from '@umijs/max';
+import { useAccess } from '@/app/access';
+import { useInitialState } from '@/app/AppProvider';
 import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -52,7 +53,7 @@ export default function DingTalkInvitationsPanel() {
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
   const access = useAccess();
-  const { initialState } = useModel('@@initialState');
+  const { initialState } = useInitialState();
   const [createOpen, setCreateOpen] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [activeQrInvitation, setActiveQrInvitation] =

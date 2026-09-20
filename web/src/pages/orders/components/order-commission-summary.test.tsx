@@ -29,15 +29,25 @@ const listQueryState = vi.hoisted(() => ({
   queryOrderList: vi.fn(),
 }));
 
-vi.mock('@umijs/max', () => ({
-  useLocation: () => ({ pathname: pageState.pathname }),
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: pageState.pathname }),
+  };
+});
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOrder: () => true,
     canCreateEnterpriseResources: true,
     canReadFinanceCommissions: accessState.canReadFinanceCommissions,
   }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',
@@ -45,6 +55,9 @@ vi.mock('@umijs/max', () => ({
       },
     },
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: { push: historyState.push },
 }));
 

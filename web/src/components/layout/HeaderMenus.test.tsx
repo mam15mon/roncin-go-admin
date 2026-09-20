@@ -11,17 +11,27 @@ let mockAccess: Record<string, boolean> = {
   canReadPartners: true,
 };
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: {
     push: (path: string) => mockPush(path),
   },
-  useLocation: () => ({
-    pathname: mockPathname,
-    search: '',
-    hash: '',
-  }),
+}));
+
+vi.mock('@/app/access', () => ({
   useAccess: () => mockAccess,
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({
+      pathname: mockPathname,
+      search: '',
+      hash: '',
+    }),
+  };
+});
 
 describe('HeaderMenus Component', () => {
   beforeEach(() => {

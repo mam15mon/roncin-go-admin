@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListBackgroundTasks 查询当前组织的后台任务。 GET /api/v1/background-tasks */
 export async function backgroundTaskServiceListBackgroundTasks(

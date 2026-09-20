@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** 此处后端没有提供注释 GET /api/v1/admin/audit-logs */
 export async function adminServiceListAuditLogs(

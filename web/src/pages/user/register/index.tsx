@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from '@umijs/max';
+import { Navigate, useLocation } from 'react-router';
 import React from 'react';
 
 /**

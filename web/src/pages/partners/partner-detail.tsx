@@ -2,13 +2,9 @@ import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import {
-  history,
-  useAccess,
-  useLocation,
-  useParams,
-  useSearchParams,
-} from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useLocation, useParams, useSearchParams } from 'react-router';
 import { App, Button, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {

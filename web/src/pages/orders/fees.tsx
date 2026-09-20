@@ -6,7 +6,9 @@ import type {
 } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { history, useAccess, useParams } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useParams } from 'react-router';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';

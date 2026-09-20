@@ -1,5 +1,7 @@
 import { WechatWorkOutlined } from '@ant-design/icons';
-import { Helmet, history, useModel } from '@umijs/max';
+import { Helmet } from 'react-helmet-async';
+import { history } from '@/router/history';
+import { useInitialState } from '@/app/AppProvider';
 import { App, Button, Result, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { authServiceWeComLogin } from '@/services/roncin/authService';
@@ -34,7 +36,7 @@ function storedRedirect(): string {
 }
 
 export default function WeComCallback() {
-  const { setInitialState } = useModel('@@initialState');
+  const { setInitialState } = useInitialState();
   const { message } = App.useApp();
   const [errorMessage, setErrorMessage] = useState('');
   const [organizationOptions, setOrganizationOptions] =

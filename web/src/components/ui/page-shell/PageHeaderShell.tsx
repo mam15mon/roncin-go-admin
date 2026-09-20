@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Link } from '@umijs/max';
+import { Link } from 'react-router';
 import { Button, Tooltip, Typography } from 'antd';
 import React from 'react';
 import type { PageHeaderShellProps } from './types';

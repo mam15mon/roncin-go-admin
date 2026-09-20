@@ -11,8 +11,7 @@ import OrderFeesPage from './fees';
 const mockPush = vi.fn();
 let mockParams = { kind: 'sea-export', id: 'ord-1' };
 
-vi.mock('@umijs/max', () => ({
-  useParams: () => mockParams,
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOperateBusiness: true,
@@ -22,7 +21,10 @@ vi.mock('@umijs/max', () => ({
     canDeleteFee: () => true,
     canConfirmFee: () => true,
   }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',
@@ -31,16 +33,30 @@ vi.mock('@umijs/max', () => ({
       },
     },
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: {
     push: (path: string) => mockPush(path),
   },
-  request: vi.fn(),
-  Link: ({ to, children, ...rest }: any) => (
-    <a href={to} {...rest}>
-      {children}
-    </a>
-  ),
 }));
+
+vi.mock('@/utils/requestClient', () => ({
+  request: vi.fn(),
+}));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useParams: () => mockParams,
+    Link: ({ to, children, ...rest }: any) => (
+      <a href={to} {...rest}>
+        {children}
+      </a>
+    ),
+  };
+});
 
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),

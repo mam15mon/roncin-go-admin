@@ -13,16 +13,23 @@ import {
 } from './ParameterSettingTemplate';
 import { SettingTableTemplate } from './SettingTableTemplate';
 
-// Mock umi hooks
-vi.mock('@umijs/max', () => ({
+// Mock 路由与历史模块
+vi.mock('@/router/history', () => ({
   history: {
     replace: vi.fn(),
   },
-  useLocation: () => ({
-    pathname: '/settings',
-    search: '',
-  }),
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({
+      pathname: '/settings',
+      search: '',
+    }),
+  };
+});
 
 describe('MultiTabCenterTemplate / ParameterSettingTemplate', () => {
   beforeEach(() => {

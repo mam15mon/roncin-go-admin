@@ -26,9 +26,12 @@ const modalState = vi.hoisted(() => ({
   transfer: undefined as Record<string, any> | undefined,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState.value,
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: { currentOrganization: { id: 'org-1', name: '总部' } },
     },

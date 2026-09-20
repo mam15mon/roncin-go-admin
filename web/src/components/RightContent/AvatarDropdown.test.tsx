@@ -5,7 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { history } from '@umijs/max';
+import { history } from '@/router/history';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { authServiceLogout } from '@/services/roncin/authService';
@@ -15,19 +15,17 @@ import { AvatarDropdown } from './AvatarDropdown';
 let mockCurrentUser: any = null;
 const mockSetInitialState = vi.fn();
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: {
     replace: vi.fn(),
   },
-  useModel: (model: string) => {
-    if (model === '@@initialState') {
-      return {
-        initialState: { currentUser: mockCurrentUser },
-        setInitialState: mockSetInitialState,
-      };
-    }
-    return {};
-  },
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: { currentUser: mockCurrentUser },
+    setInitialState: mockSetInitialState,
+  }),
 }));
 
 vi.mock('@/services/roncin/authService', () => ({

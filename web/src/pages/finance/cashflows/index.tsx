@@ -11,7 +11,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { App, Form, Popconfirm, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';

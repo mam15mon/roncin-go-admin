@@ -22,15 +22,10 @@ let mockCurrentUser: any = {
   currentOrganization: { id: 'org-1', name: '测试组织1' },
 };
 
-vi.mock('@umijs/max', () => ({
-  useModel: (model: string) => {
-    if (model === '@@initialState') {
-      return {
-        initialState: { currentUser: mockCurrentUser },
-      };
-    }
-    return {};
-  },
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: { currentUser: mockCurrentUser },
+  }),
 }));
 
 vi.mock('@/utils/order-options-cache', () => ({

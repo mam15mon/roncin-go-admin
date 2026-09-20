@@ -8,7 +8,9 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { history, useAccess, useSearchParams } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useSearchParams } from 'react-router';
 import type { UploadFile } from 'antd';
 import { App, Button, Form, Popconfirm, Tabs, Tag } from 'antd';
 import React, {

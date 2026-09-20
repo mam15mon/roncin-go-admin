@@ -1,10 +1,10 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { screen, waitFor } from '@testing-library/react';
-import { history } from '@umijs/max';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { history } from '@/router/history';
 import {
   partnerServiceGetPartner,
   partnerServiceListPartnerAuditLogs,
@@ -45,19 +45,29 @@ const accessState = vi.hoisted(() => ({
   canReadPartnerAudit: true,
 }));
 
-vi.mock('@umijs/max', () => ({
+vi.mock('@/router/history', () => ({
   history: { push: vi.fn(), replace: vi.fn() },
-  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
-    <a href={to}>{children}</a>
-  ),
-  useLocation: () => ({
-    pathname: routeState.pathname,
-    search: routeState.search,
-  }),
-  useParams: () => routeState.params,
-  useSearchParams: () => [new URLSearchParams(routeState.search)],
+}));
+
+vi.mock('@/app/access', () => ({
   useAccess: () => accessState,
 }));
+
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+      <a href={to}>{children}</a>
+    ),
+    useLocation: () => ({
+      pathname: routeState.pathname,
+      search: routeState.search,
+    }),
+    useParams: () => routeState.params,
+    useSearchParams: () => [new URLSearchParams(routeState.search)],
+  };
+});
 
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceListOrganizations: vi.fn().mockResolvedValue({ data: [] }),

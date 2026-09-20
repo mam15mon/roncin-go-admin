@@ -5,21 +5,25 @@ import { PageHeaderShell } from './PageHeaderShell';
 
 const mockPush = vi.fn();
 
-vi.mock('@umijs/max', () => ({
-  Link: ({ to, children, onClick, ...rest }: any) => (
-    <a
-      href={to}
-      onClick={(e) => {
-        e.preventDefault();
-        onClick?.(e);
-        mockPush(to);
-      }}
-      {...rest}
-    >
-      {children}
-    </a>
-  ),
-}));
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    Link: ({ to, children, onClick, ...rest }: any) => (
+      <a
+        href={to}
+        onClick={(e) => {
+          e.preventDefault();
+          onClick?.(e);
+          mockPush(to);
+        }}
+        {...rest}
+      >
+        {children}
+      </a>
+    ),
+  };
+});
 
 describe('PageHeaderShell', () => {
   beforeEach(() => {

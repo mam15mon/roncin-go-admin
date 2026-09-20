@@ -16,15 +16,25 @@ const locationState = vi.hoisted(() => ({
   pathname: '/orders/sea-import',
 }));
 
-vi.mock('@umijs/max', () => ({
-  useLocation: () => ({ pathname: locationState.pathname }),
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>();
+  return {
+    ...actual,
+    useLocation: () => ({ pathname: locationState.pathname }),
+  };
+});
+
+vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOperateBusiness: true,
     canOrder: () => true,
     canCreateEnterpriseResources: true,
   }),
-  useModel: () => ({
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
     initialState: {
       currentUser: {
         id: 'user-1',
@@ -32,6 +42,9 @@ vi.mock('@umijs/max', () => ({
       },
     },
   }),
+}));
+
+vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
 }));
 

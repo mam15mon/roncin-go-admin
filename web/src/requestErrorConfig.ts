@@ -1,7 +1,6 @@
-import type { RequestOptions } from '@@/plugin-request/request';
+import type { RequestOptions } from '@/utils/requestClient';
 import * as Sentry from '@sentry/react';
-import type { RequestConfig } from '@umijs/max';
-import { history } from '@umijs/max';
+import { history } from '@/router/history';
 import { showErrorMessage, showErrorNotification } from '@/utils/appFeedback';
 import { generateUUID } from '@/utils/uuid';
 
@@ -128,7 +127,31 @@ function releaseInflightWrite(config: unknown) {
   if (key) inflightWriteKeys.delete(key);
 }
 
-export const errorConfig: RequestConfig = {
+// 原 @umijs/max RequestConfig 的等价本地类型：拦截器与错误处理约定的挂载结构，
+// 由 @/utils/requestClient 消费。
+export interface AxiosResponseLike {
+  config?: unknown;
+  [key: string]: unknown;
+}
+
+export interface AppRequestConfig {
+  errorConfig?: {
+    errorThrower?: (response: unknown) => void;
+    errorHandler?: (
+      error: unknown,
+      options?: { skipErrorHandler?: boolean },
+    ) => void;
+  };
+  requestInterceptors?: Array<(config: RequestOptions) => RequestOptions>;
+  responseInterceptors?: Array<[
+    (
+      response: AxiosResponseLike,
+    ) => AxiosResponseLike | Promise<AxiosResponseLike>,
+    (error: unknown) => unknown,
+  ]>;
+}
+
+export const errorConfig: AppRequestConfig = {
   errorConfig: {
     errorThrower: (response) => {
       const envelope = response as ErrorEnvelope;

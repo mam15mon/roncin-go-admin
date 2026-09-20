@@ -4,7 +4,9 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { history, useAccess, useParams } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
+import { useParams } from 'react-router';
 import { App, Button, Card, Empty, type MenuProps, Result, Spin } from 'antd';
 import React, {
   useCallback,

@@ -1,5 +1,6 @@
 import { CheckOutlined, DownOutlined, SwapOutlined } from '@ant-design/icons';
-import { history, useModel } from '@umijs/max';
+import { history } from '@/router/history';
+import { useInitialState } from '@/app/AppProvider';
 import type { MenuProps } from 'antd';
 import { App, Button, Spin } from 'antd';
 import React, { useRef, useState } from 'react';
@@ -9,7 +10,7 @@ import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import { confirmIfAnyTabDirty } from './layout/tabCloseGuard';
 
 export default function OrganizationSwitcher() {
-  const { initialState, setInitialState } = useModel('@@initialState');
+  const { initialState, setInitialState } = useInitialState();
   const { message } = App.useApp();
   const [switchingOrgName, setSwitchingOrgName] = useState<string>();
   const switchInProgressRef = useRef(false);

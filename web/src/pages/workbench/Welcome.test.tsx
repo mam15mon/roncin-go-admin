@@ -39,9 +39,15 @@ const umiState = vi.hoisted(() => ({
   historyPush: vi.fn(),
 }));
 
-vi.mock('@umijs/max', () => ({
-  useModel: () => ({ initialState: { currentUser: umiState.user } }),
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({ initialState: { currentUser: umiState.user } }),
+}));
+
+vi.mock('@/app/access', () => ({
   useAccess: () => umiState.access,
+}));
+
+vi.mock('@/router/history', () => ({
   history: { push: umiState.historyPush },
 }));
 

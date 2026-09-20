@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import { request } from "@umijs/max";
+import { request } from "@/utils/requestClient";
 
 /** ListPersonnel 获取指定订单的协作人员列表。 GET /api/v1/orders/${param0}/personnel */
 export async function orderPersonnelServiceListPersonnel(

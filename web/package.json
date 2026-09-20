@@ -5,24 +5,20 @@
   "description": "An out-of-box UI solution for enterprise applications",
   "repository": "git@github.com:ant-design/ant-design-pro.git",
   "scripts": {
-    "analyze": "cross-env ANALYZE=1 max build",
-    "build": "max build",
-    "deploy": "cross-env CI=true max build && gh-pages -d dist",
-    "dev": "cross-env HOST=0.0.0.0 PORT=8001 UMI_ENV=dev MOCK=none max dev",
-    "i18n-remove": "node scripts/i18n-remove.js",
+    "build": "vite build",
+    "deploy": "cross-env CI=true vite build && gh-pages -d dist",
+    "dev": "cross-env UMI_ENV=dev vite",
     "lint": "pnpm run biome:lint && pnpm run tsc",
     "lint-staged": "lint-staged",
     "biome:lint": "biome lint",
     "biome": "biome check --write",
-    "openapi": "node scripts/generate-openapi-input.mjs && max openapi",
-    "prepare": "husky && max setup",
-    "preview": "max preview --port 8000",
-    "preview:build": "max build && max preview --port 8000",
-    "record": "cross-env NODE_ENV=development UMI_ENV=test max record --scene=login",
-    "start": "cross-env HOST=0.0.0.0 PORT=8001 UMI_ENV=dev max dev",
-    "start:no-mock": "cross-env HOST=0.0.0.0 PORT=8001 MOCK=none max dev",
-    "start:pre": "node --env-file-if-exists=../.env.local ../scripts/run-with-env.mjs cross-env HOST=0.0.0.0 PORT=8001 UMI_ENV=pre MOCK=none max dev",
-    "start:test": "node --env-file-if-exists=../.env.local ../scripts/run-with-env.mjs cross-env HOST=0.0.0.0 PORT=8001 UMI_ENV=test MOCK=none max dev",
+    "openapi": "node scripts/generate-openapi-input.mjs && node scripts/generate-services.mjs",
+    "prepare": "husky",
+    "preview": "vite preview",
+    "preview:build": "vite build && vite preview",
+    "start": "cross-env UMI_ENV=dev vite",
+    "start:pre": "node --env-file-if-exists=../.env.local ../scripts/run-with-env.mjs cross-env UMI_ENV=pre vite",
+    "start:test": "node --env-file-if-exists=../.env.local ../scripts/run-with-env.mjs cross-env UMI_ENV=test vite",
     "test": "vitest run",
     "test:changed": "vitest run --changed",
     "test:e2e": "playwright test",
@@ -46,6 +42,7 @@
     "@tanstack/react-query": "^5.103.1",
     "antd": "^6.6.0",
     "antd-style": "^4.1.0",
+    "axios": "^1.20.0",
     "china-division": "^2.7.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.21",
@@ -53,6 +50,7 @@
     "highlight.js": "^11.11.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-helmet-async": "^3.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -61,6 +59,7 @@
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@playwright/test": "^1.62.1",
+    "@tailwindcss/vite": "^4.3.3",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
@@ -69,10 +68,8 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/react-helmet": "^6.1.11",
-    "@umijs/lint": "^4.7.3",
-    "@umijs/max": "^4.7.3",
-    "@umijs/max-plugin-openapi": "^2.0.3",
-    "@umijs/request-record": "^1.1.4",
+    "@umijs/openapi": "^1.14.1",
+    "@vitejs/plugin-react": "^5.2.0",
     "@vitest/coverage-v8": "4.1.10",
     "@vitest/ui": "4.1.10",
     "cross-env": "^10.1.0",
@@ -81,9 +78,11 @@
     "happy-dom": "^20.11.2",
     "husky": "^9.1.7",
     "jsdom": "^30.0.1",
+    "less": "^4.9.1",
     "lint-staged": "^17.3.0",
     "mockjs": "^1.1.0",
     "react-doctor": "^0.9.11",
+    "react-router": "^8.4.0",
     "swagger-ui-dist": "^5.32.8",
     "tailwindcss": "^4.3.2",
     "ts-node": "^10.9.2",
@@ -92,42 +91,8 @@
     "vitest": "4.1.10",
     "yaml": "^2.8.1"
   },
-  "overrides": {
-    "@umijs/plugins": {
-      "@ant-design/pro-components": "$@ant-design/pro-components"
-    }
-  },
   "engines": {
     "node": ">=22.0.0"
   },
-  "packageManager": "pnpm@10.33.4",
-  "create-umi": {
-    "ignoreScript": [
-      "docker*",
-      "functions*",
-      "site",
-      "generateMock"
-    ],
-    "ignoreDependencies": [
-      "netlify*",
-      "serverless"
-    ],
-    "ignore": [
-      ".dockerignore",
-      ".git",
-      ".github",
-      ".gitpod.yml",
-      "CODE_OF_CONDUCT.md",
-      "Dockerfile",
-      "Dockerfile.*",
-      "lambda",
-      "LICENSE",
-      "netlify.toml",
-      "README.*.md",
-      "azure-pipelines.yml",
-      "docker",
-      "CNAME",
-      "create-umi"
-    ]
-  }
+  "packageManager": "pnpm@10.33.4"
 }

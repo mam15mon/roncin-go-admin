@@ -6,7 +6,8 @@ import {
   TableOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
-import { history, useAccess } from '@umijs/max';
+import { history } from '@/router/history';
+import { useAccess } from '@/app/access';
 import {
   Button,
   Descriptions,

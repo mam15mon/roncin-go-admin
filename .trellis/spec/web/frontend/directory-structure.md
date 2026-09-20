@@ -1,13 +1,16 @@
 # 目录结构
 
 ```
-web/config/             Umi 配置、路由、代理、OpenAPI 输入
+web/config/             Vite 应用配置：路由、代理、主题、OpenAPI 输入
+web/vite.config.ts     Vite 构建/测试统一入口（react+tailwind 插件、define、代理）
+web/src/app/            应用壳：AppProvider（初始状态）、useAccess、AppLayout
+web/src/router/         路由适配：routes.ts→RouterConfig+菜单、history shim、403 守卫
 web/src/pages/          按业务领域组织的页面（finance/、orders/…）
 web/src/hooks/          通用异步竞态 Hook（useLatestAsync/useAsyncGuard）
 web/src/services/roncin/ OpenAPI 生成的请求客户端（禁止手改）
 web/src/components/     可复用界面组件（ui/ 内为全站公共模板）
 web/src/access.ts       路由权限定义（权限键来自 permissions.generated.ts）
-web/types/              Umi 生成类型（禁止手改）
+web/types/              OpenAPI 生成类型（禁止手改）
 web/tests/              前端测试基础设施
 ```
 

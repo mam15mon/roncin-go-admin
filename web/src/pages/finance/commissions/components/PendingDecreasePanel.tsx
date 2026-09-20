@@ -1,7 +1,7 @@
 import { CheckOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@umijs/max';
+import { useAccess } from '@/app/access';
 import { App, Button, Space, Tag, Tooltip } from 'antd';
 import React, { useRef } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
