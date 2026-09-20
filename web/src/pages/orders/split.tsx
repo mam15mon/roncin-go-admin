@@ -6,6 +6,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { history, useAccess, useParams } from '@umijs/max';
 import {
   Alert,
@@ -63,6 +64,17 @@ import {
 const { Text } = Typography;
 const { TextArea } = Input;
 
+/** 拆票域前缀：跨组件失效按该前缀 invalidate。 */
+const SPLIT_QUERY_PREFIX = 'order-split';
+
+/**
+ * 拆票预览输入：ready 表示可发起预览请求（完整请求体进 queryKey）；
+ * missing-versions 表示缺少版本控制信息，只本地报错不发请求。
+ */
+type SplitPreviewInput =
+  | { kind: 'ready'; request: API.PreviewSeaOrderSplitRequest }
+  | { kind: 'missing-versions' };
+
 // 纯函数与类型已抽至 splitUtils；此处 re-export 维持测试与既有导入路径稳定。
 export {
   buildSeaOrderSplitTargets,
@@ -110,9 +122,31 @@ export default function SeaOrderSplitPage() {
     return false;
   };
 
-  const [loadingContext, setLoadingContext] = useState(false);
-  const [splitContext, setSplitContext] =
-    useState<API.SeaOrderSplitContextData | null>(null);
+  // 拆票上下文：React Query 管理，orderId 变化自然重查；
+  // 无拆票能力时不发起请求（与旧 loadContext 门禁一致）。
+  const splitContextQuery = useQuery({
+    queryKey: [SPLIT_QUERY_PREFIX, 'context', { orderId }],
+    enabled: Boolean(orderId) && canSplit,
+    queryFn: async () => {
+      if (!orderId) {
+        // enabled 已保证；此处仅为类型收窄兜底。
+        throw new Error('缺少订单标识');
+      }
+      try {
+        const resp = await seaOrderChangeServiceGetSeaOrderSplitContext({
+          orderId,
+        });
+        return resp?.data ?? null;
+      } catch (error) {
+        // 非 Error 抛出统一包装，保证全局 onError 文案与旧 catch 一致。
+        throw error instanceof Error
+          ? error
+          : new Error(getErrorMessage(error, '加载拆票上下文失败'));
+      }
+    },
+  });
+  const splitContext = splitContextQuery.data ?? null;
+  const loadingContext = splitContextQuery.isFetching;
 
   // 拆票结果集：至少 1 个 ORIGINAL + 1 个 CREATED
   const [results, setResults] = useState<ResultConfig[]>([]);
@@ -149,11 +183,9 @@ export default function SeaOrderSplitPage() {
   const [note, setNote] = useState<string>('');
   const [confirmationForm] = Form.useForm<SeaExternalConfirmationFormValues>();
 
-  // 预览与校验结果
-  const [previewing, setPreviewing] = useState(false);
-  const [previewData, setPreviewData] =
-    useState<API.SeaOrderSplitPreviewData | null>(null);
-  const [previewError, setPreviewError] = useState<string | null>(null);
+  // 防抖后的预览输入：进 queryKey 驱动预览查询（沿用「防抖关键词进 queryKey」模式）
+  const [debouncedPreviewInput, setDebouncedPreviewInput] =
+    useState<SplitPreviewInput | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // 下拉选项
@@ -169,150 +201,135 @@ export default function SeaOrderSplitPage() {
     [splitContext?.draftFees, feeAssignments, results],
   );
 
-  // 加载拆票上下文
-  const loadContext = async () => {
-    if (!orderId || !canSplit) return;
-    setLoadingContext(true);
-    try {
-      const resp = await seaOrderChangeServiceGetSeaOrderSplitContext({
-        orderId,
-      });
-      if (resp?.data) {
-        const ctx = resp.data;
-        setSplitContext(ctx);
-        if (ctx.currentMasterBill?.shippingLineId) {
-          setCarrierOptions([
-            {
-              label:
-                ctx.currentMasterBill.shippingLineName ||
-                ctx.currentMasterBill.shippingLineId,
-              value: ctx.currentMasterBill.shippingLineId,
-            },
-          ]);
-        }
-
-        const defaultHouseNo = ctx.currentHouseBill?.houseNo
-          ? `${ctx.currentHouseBill.houseNo}-1`
-          : 'HBL-1';
-
-        // 初始化结果
-        const initialResults: ResultConfig[] = [
-          {
-            key: 'res-origin',
-            role: 'ORIGINAL',
-            title: `原票 (${ctx.orderNo})`,
-            targetType: 'CURRENT',
-            internalReferenceNo: ctx.internalReferenceNo,
-            bookingNotes: ctx.bookingNotes,
-            allocationNotes: ctx.allocationNotes,
-            operationNotes: ctx.operationNotes,
-          },
-          {
-            key: 'res-new-1',
-            role: 'CREATED',
-            title: '拆出新票 1',
-            targetType: 'CURRENT',
-            internalReferenceNo: '',
-            bookingNotes: ctx.bookingNotes,
-            allocationNotes: ctx.allocationNotes || '',
-            operationNotes: ctx.operationNotes,
-            houseNo: defaultHouseNo,
-            issuerSource: 'SELF_ORGANIZATION',
-          },
-        ];
-        setResults(initialResults);
-
-        // 初始化集装箱整箱归属：默认全在原票
-        const initialCntrMap: Record<string, string> = {};
-        ctx.containers?.forEach((c: API.SeaOrderSplitContainerItem) => {
-          if (c.id) {
-            initialCntrMap[c.id] = 'res-origin';
-          }
-        });
-        setContainerAssignments(initialCntrMap);
-
-        // 初始化货物件重尺分配：原票全量，新票 0
-        const initialCargoAlloc: Record<
-          string,
-          Record<
-            string,
-            { packageCount: number; grossWeightKg: string; volumeCbm: string }
-          >
-        > = {};
-        ctx.cargoItems?.forEach((ci: API.SeaOrderSplitCargoItem) => {
-          if (ci.id) {
-            initialCargoAlloc[ci.id] = {
-              'res-origin': {
-                packageCount: ci.packageCount || 0,
-                grossWeightKg: String(ci.grossWeightKg || '0'),
-                volumeCbm: String(ci.volumeCbm || '0'),
-              },
-              'res-new-1': {
-                packageCount: 0,
-                grossWeightKg: '0',
-                volumeCbm: '0',
-              },
-            };
-          }
-        });
-        setCargoAllocations(initialCargoAlloc);
-
-        // 初始化共享箱分配：原票全量，新票 0
-        const initialSharedAlloc: Record<
-          string,
-          Record<
-            string,
-            { packageCount: number; grossWeightKg: string; volumeCbm: string }
-          >
-        > = {};
-        ctx.sharedContainerAllocations?.forEach(
-          (sa: API.SeaOrderSplitSharedContainerAllocationItem) => {
-            if (sa.allocationId) {
-              initialSharedAlloc[sa.allocationId] = {
-                'res-origin': {
-                  packageCount: sa.packageCount || 0,
-                  grossWeightKg: String(sa.grossWeightKg || '0'),
-                  volumeCbm: String(sa.volumeCbm || '0'),
-                },
-                'res-new-1': {
-                  packageCount: 0,
-                  grossWeightKg: '0',
-                  volumeCbm: '0',
-                },
-              };
-            }
-          },
-        );
-        setSharedAllocations(initialSharedAlloc);
-
-        // 费用默认全部留原票
-        const initialFeeMap: Record<string, string> = {};
-        ctx.draftFees?.forEach((f: API.SeaOrderSplitDraftFeeItem) => {
-          if (f.id) {
-            initialFeeMap[f.id] = 'res-origin';
-          }
-        });
-        setFeeAssignments(initialFeeMap);
-
-        // 附件默认全部分配到原票
-        const initialAttMap: Record<string, string[]> = {};
-        ctx.attachments?.forEach((a: API.SeaOrderSplitAttachmentItem) => {
-          if (a.id) {
-            initialAttMap[a.id] = ['res-origin'];
-          }
-        });
-        setAttAssignments(initialAttMap);
-      }
-    } catch (error: unknown) {
-      message.error(getErrorMessage(error, '加载拆票上下文失败'));
-    } finally {
-      setLoadingContext(false);
-    }
-  };
-
+  // 上下文加载完成后初始化本地可编辑状态。依赖 dataUpdatedAt：每次上下文
+  // 重新拉取完成（含「刷新数据」）都按服务端数据重建一次分配状态，
+  // 与旧 loadContext 的「刷新会丢弃未保存分配编辑」行为一致。
   useEffect(() => {
-    loadContext();
-  }, [orderId, canSplit]);
+    if (!splitContext) return;
+    const ctx = splitContext;
+    if (ctx.currentMasterBill?.shippingLineId) {
+      setCarrierOptions([
+        {
+          label:
+            ctx.currentMasterBill.shippingLineName ||
+            ctx.currentMasterBill.shippingLineId,
+          value: ctx.currentMasterBill.shippingLineId,
+        },
+      ]);
+    }
+
+    const defaultHouseNo = ctx.currentHouseBill?.houseNo
+      ? `${ctx.currentHouseBill.houseNo}-1`
+      : 'HBL-1';
+
+    // 初始化结果
+    const initialResults: ResultConfig[] = [
+      {
+        key: 'res-origin',
+        role: 'ORIGINAL',
+        title: `原票 (${ctx.orderNo})`,
+        targetType: 'CURRENT',
+        internalReferenceNo: ctx.internalReferenceNo,
+        bookingNotes: ctx.bookingNotes,
+        allocationNotes: ctx.allocationNotes,
+        operationNotes: ctx.operationNotes,
+      },
+      {
+        key: 'res-new-1',
+        role: 'CREATED',
+        title: '拆出新票 1',
+        targetType: 'CURRENT',
+        internalReferenceNo: '',
+        bookingNotes: ctx.bookingNotes,
+        allocationNotes: ctx.allocationNotes || '',
+        operationNotes: ctx.operationNotes,
+        houseNo: defaultHouseNo,
+        issuerSource: 'SELF_ORGANIZATION',
+      },
+    ];
+    setResults(initialResults);
+
+    // 初始化集装箱整箱归属：默认全在原票
+    const initialCntrMap: Record<string, string> = {};
+    ctx.containers?.forEach((c: API.SeaOrderSplitContainerItem) => {
+      if (c.id) {
+        initialCntrMap[c.id] = 'res-origin';
+      }
+    });
+    setContainerAssignments(initialCntrMap);
+
+    // 初始化货物件重尺分配：原票全量，新票 0
+    const initialCargoAlloc: Record<
+      string,
+      Record<
+        string,
+        { packageCount: number; grossWeightKg: string; volumeCbm: string }
+      >
+    > = {};
+    ctx.cargoItems?.forEach((ci: API.SeaOrderSplitCargoItem) => {
+      if (ci.id) {
+        initialCargoAlloc[ci.id] = {
+          'res-origin': {
+            packageCount: ci.packageCount || 0,
+            grossWeightKg: String(ci.grossWeightKg || '0'),
+            volumeCbm: String(ci.volumeCbm || '0'),
+          },
+          'res-new-1': {
+            packageCount: 0,
+            grossWeightKg: '0',
+            volumeCbm: '0',
+          },
+        };
+      }
+    });
+    setCargoAllocations(initialCargoAlloc);
+
+    // 初始化共享箱分配：原票全量，新票 0
+    const initialSharedAlloc: Record<
+      string,
+      Record<
+        string,
+        { packageCount: number; grossWeightKg: string; volumeCbm: string }
+      >
+    > = {};
+    ctx.sharedContainerAllocations?.forEach(
+      (sa: API.SeaOrderSplitSharedContainerAllocationItem) => {
+        if (sa.allocationId) {
+          initialSharedAlloc[sa.allocationId] = {
+            'res-origin': {
+              packageCount: sa.packageCount || 0,
+              grossWeightKg: String(sa.grossWeightKg || '0'),
+              volumeCbm: String(sa.volumeCbm || '0'),
+            },
+            'res-new-1': {
+              packageCount: 0,
+              grossWeightKg: '0',
+              volumeCbm: '0',
+            },
+          };
+        }
+      },
+    );
+    setSharedAllocations(initialSharedAlloc);
+
+    // 费用默认全部留原票
+    const initialFeeMap: Record<string, string> = {};
+    ctx.draftFees?.forEach((f: API.SeaOrderSplitDraftFeeItem) => {
+      if (f.id) {
+        initialFeeMap[f.id] = 'res-origin';
+      }
+    });
+    setFeeAssignments(initialFeeMap);
+
+    // 附件默认全部分配到原票
+    const initialAttMap: Record<string, string[]> = {};
+    ctx.attachments?.forEach((a: API.SeaOrderSplitAttachmentItem) => {
+      if (a.id) {
+        initialAttMap[a.id] = ['res-origin'];
+      }
+    });
+    setAttAssignments(initialAttMap);
+  }, [splitContext, splitContextQuery.dataUpdatedAt]);
 
   // 页签占位标题为中性「订单拆票」，加载成功后回填带单号的真实标题。
   useEffect(() => {
@@ -483,95 +500,134 @@ export default function SeaOrderSplitPage() {
     };
   };
 
-  // 触发校验与预览
-  const triggerPreview = async (
-    currentResults = results,
-    currentContainers = containerAssignments,
-    currentCargoAllocs = cargoAllocations,
-    currentSharedAllocs = sharedAllocations,
-    currentFees = feeAssignments,
-    currentAtts = attAssignments,
-  ) => {
-    if (
-      lockWritePolicyRef.current.disabled ||
-      !orderId ||
-      !splitContext ||
-      currentResults.length < 2
-    )
-      return;
-    setPreviewing(true);
-    setPreviewError(null);
-    try {
-      const targets = buildTargets(currentResults);
-      const splitResults = buildSplitResults(
-        currentResults,
-        currentContainers,
-        currentCargoAllocs,
-        currentSharedAllocs,
-        currentFees,
-        currentAtts,
-      );
-      const expectedVersions = buildExpectedVersions(currentResults);
-      if (!expectedVersions) {
-        setPreviewError(
-          '缺少完整版本控制信息或候选版本未获取，无法进行拆票校验',
-        );
-        setPreviewData(null);
-        return;
-      }
-
-      const resp = await seaOrderChangeServicePreviewSeaOrderSplit(
-        { orderId },
-        {
-          orderId,
-          note: note ? note.trim() : undefined,
-          targets,
-          results: splitResults,
-          expectedVersions,
-        },
-      );
-
-      if (resp?.data) {
-        setPreviewData(resp.data);
-      }
-    } catch (error: unknown) {
-      setPreviewError(getErrorMessage(error, '拆票校验未通过'));
-      setPreviewData(null);
-    } finally {
-      setPreviewing(false);
-    }
-  };
-
-  // 依赖变化时防抖预览
-  useEffect(() => {
-    if (splitContext && results.length >= 2) {
-      if (!initialPreviewTriggeredRef.current) {
-        initialPreviewTriggeredRef.current = true;
-        triggerPreview();
-        return undefined;
-      }
-      const timer = setTimeout(() => {
-        triggerPreview();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
+  // 预览请求输入：由当前分配状态派生；null 表示上下文未就绪或结果不足
+  const previewInput = useMemo<SplitPreviewInput | null>(() => {
+    if (!splitContext || results.length < 2) return null;
+    const expectedVersions = buildExpectedVersions(results);
+    if (!expectedVersions) return { kind: 'missing-versions' };
+    return {
+      kind: 'ready',
+      request: {
+        orderId,
+        note: note ? note.trim() : undefined,
+        targets: buildTargets(results),
+        results: buildSplitResults(
+          results,
+          containerAssignments,
+          cargoAllocations,
+          sharedAllocations,
+          feeAssignments,
+          attAssignments,
+        ),
+        expectedVersions,
+      },
+    };
   }, [
+    splitContext,
     results,
+    orderId,
+    note,
     containerAssignments,
     cargoAllocations,
     sharedAllocations,
     feeAssignments,
     attAssignments,
-    note,
-    lockWritePolicy.disabled,
   ]);
 
-  useEffect(() => {
-    if (lockWritePolicy.disabled) {
-      setPreviewData(null);
+  // 供结果分节在「匹配候选母单」后立即发起预览：直接写入防抖值绕过等待窗口
+  const triggerPreview = (currentResults: ResultConfig[] = results) => {
+    if (
+      lockWritePolicyRef.current.disabled ||
+      !orderId ||
+      !splitContext ||
+      currentResults.length < 2
+    ) {
+      return;
     }
-  }, [lockWritePolicy.disabled]);
+    const expectedVersions = buildExpectedVersions(currentResults);
+    if (!expectedVersions) {
+      setDebouncedPreviewInput({ kind: 'missing-versions' });
+      return;
+    }
+    setDebouncedPreviewInput({
+      kind: 'ready',
+      request: {
+        orderId,
+        note: note ? note.trim() : undefined,
+        targets: buildTargets(currentResults),
+        results: buildSplitResults(
+          currentResults,
+          containerAssignments,
+          cargoAllocations,
+          sharedAllocations,
+          feeAssignments,
+          attAssignments,
+        ),
+        expectedVersions,
+      },
+    });
+  };
+
+  // 防抖收敛：预览输入变化后 300ms 才更新 queryKey；上下文就绪后的首次立即触发。
+  // 预览竞态由 queryKey 隔离保证，不再手写竞态令牌。
+  useEffect(() => {
+    if (!previewInput) {
+      setDebouncedPreviewInput(null);
+      return undefined;
+    }
+    if (!initialPreviewTriggeredRef.current) {
+      initialPreviewTriggeredRef.current = true;
+      setDebouncedPreviewInput(previewInput);
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      setDebouncedPreviewInput(previewInput);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [previewInput]);
+
+  // 预览查询：换参请求期间保留上一次结果（keepPreviousData），失败即清空；
+  // 锁定/无版本信息时经 enabled 门禁不发请求。
+  const previewQuery = useQuery({
+    queryKey: [
+      SPLIT_QUERY_PREFIX,
+      'preview',
+      { orderId, input: debouncedPreviewInput },
+    ],
+    enabled:
+      Boolean(orderId) &&
+      !lockWritePolicy.disabled &&
+      debouncedPreviewInput?.kind === 'ready',
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const input = debouncedPreviewInput;
+      if (input?.kind !== 'ready') {
+        // enabled 已保证；此处仅为类型收窄兜底。
+        throw new Error('缺少拆票预览参数');
+      }
+      const resp = await seaOrderChangeServicePreviewSeaOrderSplit(
+        { orderId },
+        input.request,
+      );
+      return resp?.data ?? null;
+    },
+    meta: { silent: true },
+  });
+
+  // 旧 previewData / previewError / previewing 三个 state 的派生等价映射
+  const previewData =
+    !lockWritePolicy.disabled &&
+    debouncedPreviewInput?.kind === 'ready' &&
+    !previewQuery.error
+      ? (previewQuery.data ?? null)
+      : null;
+  const previewError =
+    debouncedPreviewInput?.kind === 'missing-versions'
+      ? '缺少完整版本控制信息或候选版本未获取，无法进行拆票校验'
+      : previewQuery.error
+        ? getErrorMessage(previewQuery.error, '拆票校验未通过')
+        : null;
+  const previewing = previewQuery.isFetching;
 
   // 添加新票
   const handleAddResult = () => {
@@ -812,7 +868,7 @@ export default function SeaOrderSplitPage() {
             <Button
               icon={<ReloadOutlined />}
               onClick={() => {
-                void loadContext();
+                void splitContextQuery.refetch();
                 void refreshLockState();
               }}
             >
