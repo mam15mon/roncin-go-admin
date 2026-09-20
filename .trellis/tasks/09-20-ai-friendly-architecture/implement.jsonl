@@ -1,0 +1,6 @@
+{"file": "AGENTS.md", "reason": "仓库交付、分层、提交与验证约束"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范索引；已识别旧描述按本任务设计修订"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "UI 模板、ProTable 与组织隔离契约"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试、检查和构建范围"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "领域边界和核心业务链路"}
+{"file": ".trellis/tasks/09-20-ai-friendly-architecture/research/architecture-audit.md", "reason": "实际依赖证据、状态差异与迁移归属"}
