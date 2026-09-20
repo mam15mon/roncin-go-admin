@@ -43,6 +43,7 @@ RequireBaselineWrite(ctx, principal)          // B 型 NULL 基线行写入
   组织（`data/finance_custom_setting.go` 的已计费费用编辑管控/信用额度管控、
   `data/order_fee.go` 的已计费账单锁定校验——这些配置业务上即总部拥有，解析到总部是
   归属语义而非主数据共享语义）。新增调用点前先确认属于这两类，否则用 B 型谓词工厂。
+- 总部已计费费用编辑管控使用 `system.finance.bill.configure`，不复用经营 `system.finance.bill.update`；前端消费设置响应的 `canUpdate`。工作台经营禁写不能误禁总部单例治理配置。
 - 汇率特例（B 型）：`effective_from` 即当周周一，周窗口由服务端派生；`ar_rate`/`ap_rate`
   按费用收支方向取值；解析顺序 当周 org 行→回溯最近历史周（INHERITED_LAST_WEEK）→NULL
   基线直连/套算→MANUAL，不阻断单据；跨组织资金流按原币记账，不做系统折算。
