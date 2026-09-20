@@ -1,9 +1,9 @@
 import {
+  App,
   Button,
   Form,
   Input,
   Modal,
-  message,
   Segmented,
   Select,
   Space,
@@ -62,6 +62,7 @@ export function BusinessTagModal({
   onSubmit,
   onCancel,
 }: BusinessTagModalProps) {
+  const { message } = App.useApp();
   const [mode, setMode] = useState<BusinessTagModalMode>('assign');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [tagOptions, setTagOptions] = useState<API.BusinessTagSummary[]>([]);
