@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "校验命令与零噪音口径"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "数据层边界核对"}
