@@ -1,8 +1,8 @@
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import {
   act,
   cleanup,
   fireEvent,
-  render,
   screen,
   waitFor,
 } from '@testing-library/react';
@@ -115,7 +115,7 @@ describe('提成导出按钮', () => {
 
   it('总部配置权限保留考核规则维护入口，不授予提成办理能力', async () => {
     accessState.canConfigureFinanceCommissions = true;
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,
@@ -131,7 +131,7 @@ describe('提成导出按钮', () => {
 
   it('有导出权限时显示按钮', async () => {
     accessState.canExportFinanceCommissions = true;
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,
@@ -144,7 +144,7 @@ describe('提成导出按钮', () => {
   });
 
   it('无导出权限时隐藏按钮', async () => {
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,
@@ -160,7 +160,7 @@ describe('提成导出按钮', () => {
     accessState.canExportFinanceCommissions = true;
     serviceMocks.listCommissions.mockResolvedValue({ data: [], total: 0 });
     serviceMocks.exportCommissions.mockResolvedValue({ data: [] });
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,
@@ -199,7 +199,7 @@ describe('提成导出按钮', () => {
     accessState.canExportFinanceCommissions = true;
     serviceMocks.exportCommissions.mockResolvedValue({ data: [] });
     const createObjectURL = vi.spyOn(URL, 'createObjectURL');
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,
@@ -225,7 +225,7 @@ describe('提成导出按钮', () => {
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(() => undefined);
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,
@@ -240,7 +240,7 @@ describe('提成导出按钮', () => {
   });
 
   it('列表来源单号按核销或对冲二选一展示，两者都空显示占位符', async () => {
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,
@@ -263,7 +263,7 @@ describe('提成导出按钮', () => {
   });
 
   it('切换到待处理冲减视图时渲染冲减面板，可切回台账', async () => {
-    render(
+    renderWithClient(
       <App>
         <FinanceCommissionsPage />
       </App>,

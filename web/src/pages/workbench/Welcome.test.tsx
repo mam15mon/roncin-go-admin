@@ -1,4 +1,5 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
@@ -107,12 +108,16 @@ function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
   return { promise, resolve };
 }
 
-function renderPage() {
-  return renderWithClient(
+function renderUi() {
+  return (
     <App>
       <WelcomePage />
-    </App>,
+    </App>
   );
+}
+
+function renderPage() {
+  return renderWithClient(renderUi());
 }
 
 function overviewResponse(data: API.GetWorkbenchOverviewData) {
@@ -482,9 +487,9 @@ describe('工作台财务卡与组织切换', () => {
       code: 'CD01',
     };
     utils.rerender(
-      <App>
-        <WelcomePage />
-      </App>,
+      <QueryClientProvider client={utils.queryClient}>
+        {renderUi()}
+      </QueryClientProvider>,
     );
     expect(serviceMocks.getOverview).toHaveBeenCalledTimes(2);
 

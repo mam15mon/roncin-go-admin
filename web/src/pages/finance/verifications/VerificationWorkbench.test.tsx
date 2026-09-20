@@ -1,7 +1,7 @@
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import {
   act,
   fireEvent,
-  render,
   screen,
   waitFor,
   within,
@@ -236,7 +236,7 @@ describe('核销创建工作台组织候选', () => {
 
   it('先选择核销创建可写公司，再以该组织请求候选并能自动分配提交', async () => {
     const onCreated = vi.fn();
-    render(
+    renderWithClient(
       <App>
         <VerificationWorkbench open onClose={vi.fn()} onCreated={onCreated} />
       </App>,
@@ -303,7 +303,7 @@ describe('核销创建工作台组织候选', () => {
   });
 
   it('切换公司清空上一组织候选与选择，并只向新组织请求结算单位', async () => {
-    render(
+    renderWithClient(
       <App>
         <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
       </App>,
@@ -363,7 +363,7 @@ describe('核销创建工作台组织候选', () => {
         }),
     );
 
-    render(
+    renderWithClient(
       <App>
         <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
       </App>,
