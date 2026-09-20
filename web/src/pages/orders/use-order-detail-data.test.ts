@@ -1,5 +1,6 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
@@ -78,8 +79,15 @@ const detailMasterData = {
   currencies: [],
 };
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(App, null, children);
+/**
+ * React Query 迁移后的 hook 测试包装：每个用例独立 QueryClient，
+ * 防止缓存串味（与 renderWithClient 同策略，但以 wrapper 形式供 renderHook 使用）。
+ */
+function createHookWrapper() {
+  const queryClient = createTestQueryClient();
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  return { queryClient, wrapper };
 }
 
 function deferred<T>() {
@@ -108,6 +116,7 @@ describe('useOrderDetailData', () => {
       data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
     } as any);
 
+    const { wrapper } = createHookWrapper();
     const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
       wrapper,
     });
@@ -127,6 +136,7 @@ describe('useOrderDetailData', () => {
       .mockImplementationOnce(() => deferB.promise);
 
     let currentId = 'ord-A';
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => useOrderDetailData(currentId, config),
       { wrapper },
@@ -143,7 +153,7 @@ describe('useOrderDetailData', () => {
     await waitFor(() => expect(result.current.order?.id).toBe('ord-A'));
     expect(result.current.loading).toBe(false);
 
-    // 3. 切换至订单 B
+    // 3. 切换至订单 B：queryKey 变化后新键无缓存，order 立即为空
     currentId = 'ord-B';
     rerender();
 
@@ -167,6 +177,7 @@ describe('useOrderDetailData', () => {
       .mockRejectedValueOnce(new Error('订单 B 不存在或请求超时'));
 
     let currentId = 'ord-A';
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => useOrderDetailData(currentId, config),
       { wrapper },
@@ -194,6 +205,7 @@ describe('useOrderDetailData', () => {
       .mockImplementationOnce(() => deferB.promise);
 
     let currentId = 'ord-A';
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => useOrderDetailData(currentId, config),
       { wrapper },
@@ -209,7 +221,7 @@ describe('useOrderDetailData', () => {
     });
     await waitFor(() => expect(result.current.order?.id).toBe('ord-B'));
 
-    // 随后迟到的 A 响应到达
+    // 随后迟到的 A 响应到达：A 的结果写入 A 自己的 queryKey 缓存，不影响当前键
     deferA.resolve({
       data: { id: 'ord-A', orderNo: 'ORDER-A', version: '1' },
     });
@@ -231,6 +243,7 @@ describe('useOrderDetailData', () => {
       id: 'user-1',
       currentOrganization: { id: 'org-A', name: '组织A' },
     };
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => useOrderDetailData('ord-1', config),
       { wrapper },
@@ -238,7 +251,7 @@ describe('useOrderDetailData', () => {
 
     expect(result.current.loading).toBe(true);
 
-    // 切换到组织 B
+    // 切换到组织 B：organizationId 变化即 queryKey 变化，缓存天然隔离
     mockCurrentUser = {
       id: 'user-1',
       currentOrganization: { id: 'org-B', name: '组织B' },
@@ -266,6 +279,7 @@ describe('useOrderDetailData', () => {
       currentOrganization: null,
     };
 
+    const { wrapper } = createHookWrapper();
     const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
       wrapper,
     });
@@ -287,6 +301,7 @@ describe('useOrderDetailData', () => {
       data: { id: 'ord-1', orderNo: 'ORDER-A-001', version: '1' },
     } as any);
 
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => useOrderDetailData('ord-1', config),
       { wrapper },
@@ -323,6 +338,7 @@ describe('useOrderDetailData', () => {
     mockGetOrder.mockResolvedValue({
       data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
     } as any);
+    const { wrapper } = createHookWrapper();
     const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
       wrapper,
     });
@@ -346,6 +362,7 @@ describe('useOrderDetailData', () => {
     mockGetOrder.mockResolvedValue({
       data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
     } as any);
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => useOrderDetailData('ord-1', config),
       { wrapper },
@@ -362,7 +379,7 @@ describe('useOrderDetailData', () => {
       currentOrganization: { id: 'org-B', name: '组织B' },
     };
     rerender();
-    // 组织切换触发的详情重载（15 个 setState）在 act 内落地
+    // 组织切换触发的详情重查在 act 内落地
     await act(async () => {});
 
     delayedSearch.resolve([{ label: '旧组织港口', value: 'old-port' }]);
@@ -388,6 +405,7 @@ describe('useOrderDetailData', () => {
       loading: boolean;
       error: Error | null;
     }> = [];
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => {
         const state = useOrderDetailData('ord-1', config);
@@ -427,6 +445,7 @@ describe('useOrderDetailData', () => {
   it('同组织同订单切换业务配置时，首次渲染立即隐藏旧配置错误并拒绝迟到搜索', async () => {
     mockGetOrder.mockRejectedValueOnce(new Error('旧业务详情失败'));
     let currentConfig = config;
+    const { wrapper } = createHookWrapper();
     const { result, rerender } = renderHook(
       () => useOrderDetailData('ord-1', currentConfig),
       { wrapper },

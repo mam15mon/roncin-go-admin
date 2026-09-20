@@ -1,4 +1,5 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { cleanup, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -153,7 +154,7 @@ describe('订单模块面包屑与异常路由校验', () => {
   it('详情页遇到未知 kind 时显示 404 且不调用订单与锁状态接口', () => {
     mockParams = { kind: 'unknown-freight', id: 'ord-1' };
 
-    render(
+    renderWithClient(
       <App>
         <OrderDetailPage />
       </App>,
@@ -175,7 +176,7 @@ describe('订单模块面包屑与异常路由校验', () => {
   it('费用页遇到未知 kind 时显示 404 且不调用订单与费用接口', () => {
     mockParams = { kind: 'invalid-air', id: 'ord-1' };
 
-    render(
+    renderWithClient(
       <App>
         <OrderFeesPage />
       </App>,
@@ -206,7 +207,7 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     mockParams = { kind: 'sea-export', id: 'ord-loading' };
 
-    render(
+    renderWithClient(
       <App>
         <OrderDetailPage />
       </App>,
@@ -244,7 +245,7 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     mockParams = { kind: 'sea-export', id: 'ord-fee-loading' };
 
-    render(
+    renderWithClient(
       <App>
         <OrderFeesPage />
       </App>,
@@ -281,7 +282,7 @@ describe('订单模块面包屑与异常路由校验', () => {
       },
     } as any);
 
-    render(
+    renderWithClient(
       <App>
         <OrderDetailPage />
       </App>,
