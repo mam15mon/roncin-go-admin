@@ -1,3 +1,4 @@
+import type { ActionType } from '@ant-design/pro-components';
 import type { FormRule } from 'antd';
 import type { ReactNode } from 'react';
 
@@ -63,7 +64,15 @@ export interface MasterDataTemplateProps<
   codeLabel?: string; // 例如 "港口五字码" / "机场三字码" / "航司二字码"
 
   // Data & State
-  items: T[];
+  items?: T[];
+  request?: (params: {
+    pageSize?: number;
+    current?: number;
+    keyword?: string;
+    enabled?: boolean;
+    [key: string]: unknown;
+  }) => Promise<{ data?: T[]; success?: boolean; total?: number }>;
+  actionRef?: React.MutableRefObject<ActionType | undefined>;
   loading?: boolean;
   total?: number;
   activeTotal?: number;

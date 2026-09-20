@@ -83,10 +83,15 @@ export function MasterDataTemplate<
   showUpdatedAt = true,
   style,
   className,
+  request,
+  actionRef: externalActionRef,
 }: MasterDataTemplateProps<T, TFormValues>) {
   const { message } = App.useApp();
-  const serverMode = query !== undefined && onQueryChange !== undefined;
-  const actionRef = useRef<ActionType | undefined>(undefined);
+  const isRequestMode = typeof request === 'function';
+  const serverMode =
+    !isRequestMode && query !== undefined && onQueryChange !== undefined;
+  const internalActionRef = useRef<ActionType | undefined>(undefined);
+  const actionRef = externalActionRef || internalActionRef;
 
   // Search & Filter state
   const [search, setSearch] = useState('');
@@ -96,6 +101,7 @@ export function MasterDataTemplate<
   );
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [requestTotal, setRequestTotal] = useState(0);
 
   useEffect(() => {
     if (!serverMode || search === (query.keyword ?? '')) return;
@@ -104,6 +110,15 @@ export function MasterDataTemplate<
     }, 300);
     return () => window.clearTimeout(timer);
   }, [onQueryChange, query, search, serverMode]);
+
+  // Request mode search trigger
+  useEffect(() => {
+    if (!isRequestMode) return;
+    const timer = window.setTimeout(() => {
+      actionRef.current?.reload();
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [actionRef, isRequestMode, search, activeFilter]);
 
   // Syncing state
   const [syncing, setSyncing] = useState(false);
@@ -115,7 +130,7 @@ export function MasterDataTemplate<
 
   // Filter items in clientMode
   const filteredItems = useMemo(() => {
-    if (serverMode) return items;
+    if (isRequestMode || serverMode || !items) return items ?? [];
     return items.filter((item) => {
       // 1. Keyword search (code, name, nameEn)
       if (search.trim()) {
@@ -165,7 +180,12 @@ export function MasterDataTemplate<
   }, [serverMode, filteredItems, page, pageSize]);
 
   // Totals for statistics
-  const totalCount = total !== undefined ? total : filteredItems.length;
+  const totalCount =
+    total !== undefined
+      ? total
+      : isRequestMode
+        ? requestTotal
+        : filteredItems.length;
   const activeCount =
     activeTotal !== undefined
       ? activeTotal
@@ -174,7 +194,11 @@ export function MasterDataTemplate<
     disabledTotal !== undefined
       ? disabledTotal
       : filteredItems.filter((i) => !i.enabled).length;
-  const filteredTotal = serverMode ? (total ?? 0) : filteredItems.length;
+  const filteredTotal = isRequestMode
+    ? (total ?? requestTotal)
+    : serverMode
+      ? (total ?? 0)
+      : filteredItems.length;
   const currentSearch = search;
   const currentActiveFilter = serverMode
     ? query.enabled === undefined
@@ -227,6 +251,9 @@ export function MasterDataTemplate<
         message.success('创建成功');
       }
       setModalOpen(false);
+      if (isRequestMode) {
+        actionRef.current?.reload();
+      }
       if (onRefresh) await onRefresh();
     } catch (err) {
       message.error((err as { message?: string }).message || '操作失败');
@@ -271,6 +298,9 @@ export function MasterDataTemplate<
     if (!onToggleActive) return;
     try {
       await onToggleActive(record);
+      if (isRequestMode) {
+        actionRef.current?.reload();
+      }
     } catch (err) {
       message.error((err as { message?: string })?.message || '状态切换失败');
     }
@@ -538,7 +568,27 @@ export function MasterDataTemplate<
           actionRef={actionRef}
           rowKey="id"
           columns={proColumns}
-          dataSource={displayDataSource}
+          dataSource={isRequestMode ? undefined : displayDataSource}
+          request={
+            isRequestMode
+              ? async (params, sort, filter) => {
+                  const res = await request({
+                    ...params,
+                    keyword: search || undefined,
+                    enabled:
+                      activeFilter === 'all'
+                        ? undefined
+                        : activeFilter === 'true',
+                    ...sort,
+                    ...filter,
+                  });
+                  if (res.total !== undefined) {
+                    setRequestTotal(res.total);
+                  }
+                  return res;
+                }
+              : undefined
+          }
           loading={loading}
           cardProps={false}
           tableAlertRender={false}
@@ -682,27 +732,42 @@ export function MasterDataTemplate<
             ].filter(Boolean)
           }
           options={{
-            reload: onRefresh ? () => handleRefresh() : false,
+            reload: () => {
+              if (isRequestMode) {
+                actionRef.current?.reload();
+              } else if (onRefresh) {
+                handleRefresh();
+              }
+            },
             density: true,
             fullScreen: true,
             setting: true,
           }}
-          pagination={{
-            current: currentPage,
-            pageSize: currentPageSize,
-            total: filteredTotal,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50', '100'],
-            showTotal: (t) => `共 ${t} 条`,
-            onChange: (p, ps) => {
-              if (serverMode) {
-                onQueryChange({ ...query, page: p, pageSize: ps });
-              } else {
-                setPage(p);
-                setPageSize(ps);
-              }
-            },
-          }}
+          pagination={
+            isRequestMode
+              ? {
+                  defaultPageSize: 10,
+                  showSizeChanger: true,
+                  pageSizeOptions: ['10', '20', '50', '100'],
+                  showTotal: (t) => `共 ${t} 条`,
+                }
+              : {
+                  current: currentPage,
+                  pageSize: currentPageSize,
+                  total: filteredTotal,
+                  showSizeChanger: true,
+                  pageSizeOptions: ['10', '20', '50', '100'],
+                  showTotal: (t) => `共 ${t} 条`,
+                  onChange: (p, ps) => {
+                    if (serverMode) {
+                      onQueryChange({ ...query, page: p, pageSize: ps });
+                    } else {
+                      setPage(p);
+                      setPageSize(ps);
+                    }
+                  },
+                }
+          }
         />
       </Card>
 

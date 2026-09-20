@@ -1,5 +1,5 @@
 import { App } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { unwrapPage } from '@/utils/api';
 import type { BaseMasterDataItem, MasterDataListQuery } from './types';
 
@@ -52,12 +52,25 @@ export function useMasterDataCrud<
     pageSize: 10,
   });
 
+  // 用 ref 保持外部传入的回调函数，避免内联函数引用变化引发 useEffect 无限死循环
+  const fetchListRef = useRef(fetchList);
+  const mapItemRef = useRef(mapItem);
+  const createItemRef = useRef(createItem);
+  const updateItemRef = useRef(updateItem);
+
+  useEffect(() => {
+    fetchListRef.current = fetchList;
+    mapItemRef.current = mapItem;
+    createItemRef.current = createItem;
+    updateItemRef.current = updateItem;
+  });
+
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetchList(query);
+      const response = await fetchListRef.current(query);
       const page = unwrapPage(response);
-      setData(page.data.map(mapItem));
+      setData(page.data.map((item) => mapItemRef.current(item)));
       setTotal(page.total);
     } catch (error) {
       message.error(
@@ -67,13 +80,13 @@ export function useMasterDataCrud<
     } finally {
       setLoading(false);
     }
-  }, [fetchList, mapItem, entityName, message, query]);
+  }, [entityName, query]);
 
   const reloadStats = useCallback(async () => {
     try {
       const [activeResponse, disabledResponse] = await Promise.all([
-        fetchList({ page: 1, pageSize: 1, enabled: true }),
-        fetchList({ page: 1, pageSize: 1, enabled: false }),
+        fetchListRef.current({ page: 1, pageSize: 1, enabled: true }),
+        fetchListRef.current({ page: 1, pageSize: 1, enabled: false }),
       ]);
       setActiveTotal(activeResponse.total ?? 0);
       setDisabledTotal(disabledResponse.total ?? 0);
@@ -82,7 +95,7 @@ export function useMasterDataCrud<
         (error as { message?: string })?.message || `${entityName}统计加载失败`,
       );
     }
-  }, [entityName, fetchList, message]);
+  }, [entityName]);
 
   useEffect(() => {
     void reload();
@@ -97,7 +110,7 @@ export function useMasterDataCrud<
       if (!response.data) {
         throw new Error(`${entityName}响应缺少数据`);
       }
-      const saved = mapItem(response.data);
+      const saved = mapItemRef.current(response.data);
       setData((current) => {
         const exists = current.some((item) => item.id === saved.id);
         return exists
@@ -105,16 +118,16 @@ export function useMasterDataCrud<
           : [saved, ...current];
       });
     },
-    [entityName, mapItem],
+    [entityName],
   );
 
   const handleCreate = useCallback(
     async (values: TFormValues) => {
-      const response = await createItem(values);
+      const response = await createItemRef.current(values);
       saveResponse(response);
       await Promise.all([reload(), reloadStats()]);
     },
-    [createItem, reload, reloadStats, saveResponse],
+    [reload, reloadStats, saveResponse],
   );
 
   const handleUpdate = useCallback(
@@ -123,16 +136,21 @@ export function useMasterDataCrud<
       if (!record) {
         throw new Error(`待更新${entityName}不存在`);
       }
-      const response = await updateItem(id, values, record.enabled, record);
+      const response = await updateItemRef.current(
+        id,
+        values,
+        record.enabled,
+        record,
+      );
       saveResponse(response);
       await Promise.all([reload(), reloadStats()]);
     },
-    [data, entityName, reload, reloadStats, updateItem, saveResponse],
+    [data, entityName, reload, reloadStats, saveResponse],
   );
 
   const handleToggleActive = useCallback(
     async (record: TItem) => {
-      const response = await updateItem(
+      const response = await updateItemRef.current(
         record.id,
         record,
         !record.enabled,
@@ -141,7 +159,7 @@ export function useMasterDataCrud<
       saveResponse(response);
       await Promise.all([reload(), reloadStats()]);
     },
-    [reload, reloadStats, updateItem, saveResponse],
+    [reload, reloadStats, saveResponse],
   );
 
   return {
