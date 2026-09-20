@@ -70,11 +70,7 @@ export default defineConfig(({ mode }) => ({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.{ts,tsx}'],
-      exclude: [
-        'src/services/ant-design-pro/**',
-        'src/**/*.d.ts',
-        'src/**/index.style.ts',
-      ],
+      exclude: ['src/**/*.d.ts', 'src/**/index.style.ts'],
     },
     passWithNoTests: true,
     testTimeout: 30000,

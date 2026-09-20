@@ -5,7 +5,6 @@
 | 文件 | 来源 |
 |------|------|
 | `web/src/services/roncin/` | OpenAPI（服务端契约变更后 `pnpm run generate:web-client`） |
-| `web/types/` | OpenAPI 生成 |
 | `web/src/permissions.generated.ts` | 后端 `manifest.go`（`pnpm run generate:permission-keys`） |
 | `web/src/enums.generated.ts`、`errorReasons.generated.ts` | 生成产物，同样禁手改 |
 

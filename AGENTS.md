@@ -148,7 +148,7 @@ scripts/                  根目录开发与构建辅助脚本
   可变状态。
 - 页面按业务领域放在 `web/src/pages/`，页面专属请求、类型和样式就近存放；
   避免引入无关的大型聚合组件。
-- `web/src/services/roncin/`、`web/types/` 中由 OpenAPI 生成的文件不得
+- `web/src/services/roncin/` 中由 OpenAPI 生成的文件不得
   手工修改。应修改服务端契约后运行生成命令，并把源文件与生成物放在同一组
   变更中审阅。
 - 前端依赖、脚本和校验统一使用 `pnpm`。不得新增 `npm`、`npx`、Yarn 入口；
