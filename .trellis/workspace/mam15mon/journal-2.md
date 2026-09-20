@@ -263,3 +263,25 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 89: 修复重复扫描三项可信性缺陷
+<!-- trellis-session: v=2 fp=4576e81f724c7d72 -->
+
+**Date**: 2026-09-20
+**Task**: 修复重复扫描三项可信性缺陷
+**Branch**: `main`
+
+### Summary
+
+修复TS运行时断言绑定误判、生成注释误排除、基线配置与结构校验，并保护失败扫描不覆盖基线；20 Node测试、Go工具测试、tsc、Biome与独立复查通过。版本2基线仅加元数据，实仓3组无变化。保留并行工作台改动。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4c92c4f9` | fix: 修复重复扫描绑定误判与基线可比性校验 |
+
+### Status
+
+[OK] **Completed**
