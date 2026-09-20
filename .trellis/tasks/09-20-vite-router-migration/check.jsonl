@@ -1,0 +1,5 @@
+{"path": ".trellis/tasks/09-20-vite-router-migration/prd.md", "note": "验收标准清单（8 项），逐项核对"}
+{"path": ".trellis/tasks/09-20-vite-router-migration/design.md", "note": "映射表与 D1-D7 设计决策，检查实现是否偏离"}
+{"path": "web/src/requestErrorConfig.test.ts", "note": "请求契约回归基线：X-Request-ID/401/403/防重/Sentry"}
+{"path": "web/src/access.ts", "note": "权限逻辑不得变更；permissions.generated 链路不回归"}
+{"path": "AGENTS.md", "note": "前端边界、UI 规范（侧边栏折叠 48px 等）、测试长尾约束、门禁命令选择"}

@@ -5,7 +5,7 @@
 - 服务端数据一律用 `@tanstack/react-query`（直接 `import { useQuery, useMutation,
   useQueryClient } from '@tanstack/react-query'`，生产与 vitest 同源）；**禁止**
   新增手写 `useState` + `useEffect` + 竞态令牌（sequenceRef/cancelled/refreshToken）
-  请求链，也禁止使用 umi 插件的 `useRequest`（底层为 2021 年
+  请求链，也禁止使用已废弃的 Umi `useRequest`（底层为 2021 年
   `@ahooksjs/use-request` v2，vitest 不可用、无卸载保护，选型记录见任务
   `09-20-data-layer-direction`）。
 - 单例在 `src/utils/queryClient.ts`，Provider 挂 `app.tsx` childrenRender。
