@@ -102,7 +102,7 @@ func (uc *FinanceCashflowUsecase) List(ctx context.Context, org uuid.UUID, f Fin
 func (uc *FinanceCashflowUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f FinanceCashflowFilter) (*FinanceCashflowListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
 	f.Currency = strings.ToUpper(strings.TrimSpace(f.Currency))
-	if !validFinanceCashflowOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) || (f.Status != "" && f.Status != FinanceCashflowDraft && f.Status != FinanceCashflowConfirmed && f.Status != FinanceCashflowCancelled) || (f.SettlementPartyID != nil && *f.SettlementPartyID == uuid.Nil) || (f.Currency != "" && !financeBillCurrencyPattern.MatchString(f.Currency)) {
+	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) || (f.Status != "" && f.Status != FinanceCashflowDraft && f.Status != FinanceCashflowConfirmed && f.Status != FinanceCashflowCancelled) || (f.SettlementPartyID != nil && *f.SettlementPartyID == uuid.Nil) || (f.Currency != "" && !financeBillCurrencyPattern.MatchString(f.Currency)) {
 		return nil, ErrFinanceCashflowInvalidArgument
 	}
 	return uc.repo.ListScoped(ctx, organizationIDs, f)
@@ -112,28 +112,12 @@ func (uc *FinanceCashflowUsecase) Get(ctx context.Context, org, id uuid.UUID) (*
 }
 
 func (uc *FinanceCashflowUsecase) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCashflow, error) {
-	if !validFinanceCashflowOrganizationIDs(organizationIDs) || id == uuid.Nil {
+	if !validFinanceOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrFinanceCashflowInvalidArgument
 	}
 	return uc.repo.GetScoped(ctx, organizationIDs, id)
 }
 
-func validFinanceCashflowOrganizationIDs(organizationIDs []uuid.UUID) bool {
-	if len(organizationIDs) == 0 {
-		return false
-	}
-	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
-	for _, organizationID := range organizationIDs {
-		if organizationID == uuid.Nil {
-			return false
-		}
-		if _, exists := seen[organizationID]; exists {
-			return false
-		}
-		seen[organizationID] = struct{}{}
-	}
-	return true
-}
 func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateFinanceCashflowInput, canOverrideExchangeRate bool) (*FinanceCashflow, error) {
 	in.Currency = strings.ToUpper(strings.TrimSpace(in.Currency))
 	in.BaseCurrency = strings.ToUpper(strings.TrimSpace(in.BaseCurrency))

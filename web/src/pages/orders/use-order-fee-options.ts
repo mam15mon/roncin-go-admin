@@ -32,6 +32,29 @@ const INITIAL_EXTRAS: OrderBoundExtras<never> = {
   items: [],
 };
 
+/**
+ * setter 更新器共享算法：基于「未落库差集 + 服务端基线」拼出当前全量，
+ * 应用入参或更新器后再收敛回差集；订单身份任一维度变化时旧差集整体丢弃。
+ */
+function applyNextList<T extends { id?: string }>(
+  prev: OrderBoundExtras<T>,
+  base: T[],
+  currentOrderId: string | undefined,
+  next: T[] | ((prev: T[]) => T[]),
+): OrderBoundExtras<T> {
+  const baseIds = new Set(base.map((item) => item.id));
+  const prevExtras =
+    prev.orderId === currentOrderId
+      ? prev.items.filter((item) => item.id && !baseIds.has(item.id))
+      : [];
+  const current = [...prevExtras, ...base];
+  const value = typeof next === 'function' ? next(current) : next;
+  return {
+    orderId: currentOrderId,
+    items: value.filter((item) => item.id && !baseIds.has(item.id)),
+  };
+}
+
 /** 加载订单档案与费用录入候选项、财务锁定状态。 */
 export function useOrderFeeOptions(orderId?: string) {
   const feeOptionsQuery = useQuery({
@@ -122,21 +145,14 @@ export function useOrderFeeOptions(orderId?: string) {
             prev: API.OrderFeeSettlementPartyOption[],
           ) => API.OrderFeeSettlementPartyOption[]),
     ) => {
-      const base = settlementPartiesBaseRef.current;
-      const baseIds = new Set(base.map((item) => item.id));
-      setExtraSettlementParties((prev) => {
-        const currentOrderId = orderIdRef.current;
-        const prevExtras =
-          prev.orderId === currentOrderId
-            ? prev.items.filter((item) => item.id && !baseIds.has(item.id))
-            : [];
-        const current = [...prevExtras, ...base];
-        const value = typeof next === 'function' ? next(current) : next;
-        return {
-          orderId: currentOrderId,
-          items: value.filter((item) => item.id && !baseIds.has(item.id)),
-        };
-      });
+      setExtraSettlementParties((prev) =>
+        applyNextList(
+          prev,
+          settlementPartiesBaseRef.current,
+          orderIdRef.current,
+          next,
+        ),
+      );
     },
     [],
   );
@@ -147,21 +163,9 @@ export function useOrderFeeOptions(orderId?: string) {
         | API.OrderFeeSettingOption[]
         | ((prev: API.OrderFeeSettingOption[]) => API.OrderFeeSettingOption[]),
     ) => {
-      const base = feeSettingsBaseRef.current;
-      const baseIds = new Set(base.map((item) => item.id));
-      setExtraFeeSettings((prev) => {
-        const currentOrderId = orderIdRef.current;
-        const prevExtras =
-          prev.orderId === currentOrderId
-            ? prev.items.filter((item) => item.id && !baseIds.has(item.id))
-            : [];
-        const current = [...prevExtras, ...base];
-        const value = typeof next === 'function' ? next(current) : next;
-        return {
-          orderId: currentOrderId,
-          items: value.filter((item) => item.id && !baseIds.has(item.id)),
-        };
-      });
+      setExtraFeeSettings((prev) =>
+        applyNextList(prev, feeSettingsBaseRef.current, orderIdRef.current, next),
+      );
     },
     [],
   );

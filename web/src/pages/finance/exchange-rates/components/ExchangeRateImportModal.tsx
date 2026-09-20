@@ -12,13 +12,13 @@ import React, { useState } from 'react';
 import { isRequestTimeoutError } from '@/requestErrorConfig';
 import {
   exchangeRateServiceConfirmExchangeRateImport,
-  exchangeRateServiceDownloadExchangeRateImportTemplate,
   exchangeRateServicePreviewExchangeRateImport,
 } from '@/services/roncin/exchangeRateService';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import { generateUUID } from '@/utils/uuid';
+import { downloadExchangeRateImportTemplate } from './exchangeRateTemplate';
 
 type Props = {
   open: boolean;
@@ -51,34 +51,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
   const handleDownloadTemplate = async () => {
     setDownloadingTemplate(true);
     try {
-      const res = await exchangeRateServiceDownloadExchangeRateImportTemplate();
-      const base64Data = res.content;
-      if (!base64Data) {
-        message.error('下载模板失败：文件内容为空');
-        return;
-      }
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], {
-        type:
-          res.contentType ||
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = res.fileName || '汇率导入模板.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      message.success('导入模板下载成功');
-    } catch (e) {
-      message.error(getErrorMessage(e, '下载导入模板失败'));
+      await downloadExchangeRateImportTemplate(message);
     } finally {
       setDownloadingTemplate(false);
     }

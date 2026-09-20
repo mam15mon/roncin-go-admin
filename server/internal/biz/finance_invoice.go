@@ -171,7 +171,7 @@ func (uc *FinanceInvoiceUsecase) List(ctx context.Context, organizationID uuid.U
 
 func (uc *FinanceInvoiceUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
-	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
+	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	return uc.repo.ListScoped(ctx, organizationIDs, filter)
@@ -190,7 +190,7 @@ func (uc *FinanceInvoiceUsecase) ListCreationBills(ctx context.Context, organiza
 }
 
 func (uc *FinanceInvoiceUsecase) ListProfilesForBill(ctx context.Context, organizationIDs []uuid.UUID, billID uuid.UUID) (*FinanceInvoiceProfilesForBill, error) {
-	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || billID == uuid.Nil {
+	if !validFinanceOrganizationIDs(organizationIDs) || billID == uuid.Nil {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	return uc.repo.ListProfilesForBill(ctx, organizationIDs, billID)
@@ -209,27 +209,10 @@ func (uc *FinanceInvoiceUsecase) Get(ctx context.Context, organizationID, id uui
 }
 
 func (uc *FinanceInvoiceUsecase) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceInvoice, error) {
-	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || id == uuid.Nil {
+	if !validFinanceOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	return uc.repo.GetScoped(ctx, organizationIDs, id)
-}
-
-func validFinanceInvoiceOrganizationIDs(organizationIDs []uuid.UUID) bool {
-	if len(organizationIDs) == 0 {
-		return false
-	}
-	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
-	for _, organizationID := range organizationIDs {
-		if organizationID == uuid.Nil {
-			return false
-		}
-		if _, exists := seen[organizationID]; exists {
-			return false
-		}
-		seen[organizationID] = struct{}{}
-	}
-	return true
 }
 
 func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
@@ -298,7 +281,7 @@ func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, act
 
 // CreateScoped 先在创建权限的组织集合内定位全部来源账单，避免先全局读取后再做内存权限判断。
 func (uc *FinanceInvoiceUsecase) CreateScoped(ctx context.Context, organizationIDs []uuid.UUID, actorID uuid.UUID, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
-	if !validFinanceInvoiceOrganizationIDs(organizationIDs) || actorID == uuid.Nil || len(input.BillIDs) == 0 {
+	if !validFinanceOrganizationIDs(organizationIDs) || actorID == uuid.Nil || len(input.BillIDs) == 0 {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	bills, err := uc.repo.LoadBillsScoped(ctx, organizationIDs, input.BillIDs)

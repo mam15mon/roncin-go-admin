@@ -143,23 +143,6 @@ type FinanceSettlementPartyOption struct {
 	CreditExceeded bool
 }
 
-func validFinanceOrganizationIDs(organizationIDs []uuid.UUID) bool {
-	if len(organizationIDs) == 0 {
-		return false
-	}
-	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
-	for _, organizationID := range organizationIDs {
-		if organizationID == uuid.Nil {
-			return false
-		}
-		if _, exists := seen[organizationID]; exists {
-			return false
-		}
-		seen[organizationID] = struct{}{}
-	}
-	return true
-}
-
 type SettlementUsecase struct {
 	repo SettlementRepo
 }

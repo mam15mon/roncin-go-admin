@@ -22,16 +22,15 @@ import { getCurrencies } from '@/features/master-data/currencies';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
-  exchangeRateServiceDownloadExchangeRateImportTemplate,
   exchangeRateServiceListExchangeRateSettings,
   exchangeRateServiceUpdateExchangeRateSetting,
 } from '@/services/roncin/exchangeRateService';
 import { toTableRequest } from '@/utils/api';
 import { isPositiveExactDecimal } from '@/utils/decimal';
-import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 import { ExchangeRateSyncModal } from './ExchangeRateSyncModal';
+import { downloadExchangeRateImportTemplate } from './exchangeRateTemplate';
 
 const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
 
@@ -99,34 +98,7 @@ export function ExchangeRatesPanel() {
   const handleDownloadTemplate = async () => {
     setDownloadingTemplate(true);
     try {
-      const res = await exchangeRateServiceDownloadExchangeRateImportTemplate();
-      const base64Data = res.content;
-      if (!base64Data) {
-        message.error('下载模板失败：文件内容为空');
-        return;
-      }
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], {
-        type:
-          res.contentType ||
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = res.fileName || '汇率导入模板.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      message.success('导入模板下载成功');
-    } catch (e) {
-      message.error(getErrorMessage(e, '下载导入模板失败'));
+      await downloadExchangeRateImportTemplate(message);
     } finally {
       setDownloadingTemplate(false);
     }

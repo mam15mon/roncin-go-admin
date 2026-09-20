@@ -1,5 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Tag } from 'antd';
+import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import {
   businessTypeMeta,
   normalizeBusinessType,
@@ -117,25 +118,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       dataIndex: 'tags',
       width: 140,
       search: false,
-      render: (_, row) =>
-        row.tags?.length
-          ? row.tags.map((tag) => (
-              <Tag
-                key={tag.id}
-                style={
-                  tag.groupColor
-                    ? {
-                        color: tag.groupColor,
-                        borderColor: tag.groupColor,
-                        marginInlineEnd: 4,
-                      }
-                    : { marginInlineEnd: 4 }
-                }
-              >
-                {tag.name}
-              </Tag>
-            ))
-          : '-',
+      render: (_, row) => <BusinessTagList tags={row.tags} />,
     },
     {
       title: '所属公司',

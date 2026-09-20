@@ -7,6 +7,7 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Popconfirm, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
+import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import { makeValueEnum, statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
 import { billStatusMeta } from '@/features/finance/bill-status';
@@ -35,25 +36,7 @@ export function getFinanceBillColumns({
       title: '标签',
       dataIndex: 'tags',
       width: 140,
-      render: (_, row) =>
-        row.tags?.length
-          ? row.tags.map((tag) => (
-              <Tag
-                key={tag.id}
-                style={
-                  tag.groupColor
-                    ? {
-                        color: tag.groupColor,
-                        borderColor: tag.groupColor,
-                        marginInlineEnd: 4,
-                      }
-                    : { marginInlineEnd: 4 }
-                }
-              >
-                {tag.name}
-              </Tag>
-            ))
-          : '-',
+      render: (_, row) => <BusinessTagList tags={row.tags} />,
     },
     {
       title: '序号',

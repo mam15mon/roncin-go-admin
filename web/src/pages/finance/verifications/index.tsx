@@ -1,8 +1,8 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import { App, Descriptions, Drawer, Select, Space, Table, Tag } from 'antd';
 import { useEffect, useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -11,6 +11,7 @@ import {
   FinanceOrganizationPurpose,
   FinanceVerificationStatus,
 } from '@/enums.generated';
+import { ExchangeGainLossTag } from '@/features/finance/exchange-gain-loss';
 import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceListVerifications,
@@ -394,24 +395,10 @@ export default function FinanceVerificationsPage() {
                   : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="已实现汇兑损益">
-                {(() => {
-                  const val = Number(detail.exchangeGainLoss || 0);
-                  if (val > 0) {
-                    return (
-                      <Tag color="green">
-                        +{detail.exchangeGainLoss} {detail.baseCurrency} (收益)
-                      </Tag>
-                    );
-                  }
-                  if (val < 0) {
-                    return (
-                      <Tag color="red">
-                        {detail.exchangeGainLoss} {detail.baseCurrency} (损失)
-                      </Tag>
-                    );
-                  }
-                  return <span>0.00 {detail.baseCurrency}</span>;
-                })()}
+                <ExchangeGainLossTag
+                  value={detail.exchangeGainLoss}
+                  baseCurrency={detail.baseCurrency}
+                />
               </Descriptions.Item>
               <Descriptions.Item label="核销日期">
                 {detail.verificationDate}

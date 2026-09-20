@@ -1,6 +1,7 @@
 import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
-import { Button, Popconfirm, Space, Tag } from 'antd';
+import { Button, Popconfirm, Space } from 'antd';
+import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import { feeBaseColumns } from './components/fees/feeBaseColumns';
 import {
   FEE_BILLED,
@@ -32,25 +33,7 @@ export function buildOrderFeePanelColumns({
       title: '标签',
       dataIndex: 'tags',
       width: 120,
-      render: (_, row) =>
-        row.tags?.length
-          ? row.tags.map((tag) => (
-              <Tag
-                key={tag.id}
-                style={
-                  tag.groupColor
-                    ? {
-                        color: tag.groupColor,
-                        borderColor: tag.groupColor,
-                        marginInlineEnd: 4,
-                      }
-                    : { marginInlineEnd: 4 }
-                }
-              >
-                {tag.name}
-              </Tag>
-            ))
-          : '-',
+      render: (_, row) => <BusinessTagList tags={row.tags} />,
     },
     ...feeBaseColumns({ variant: 'panel' }),
     {

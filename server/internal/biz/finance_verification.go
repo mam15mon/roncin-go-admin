@@ -116,21 +116,21 @@ func (u *VerificationUsecase) List(ctx context.Context, org uuid.UUID, f Verific
 }
 func (u *VerificationUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f VerificationFilter) (*VerificationListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
-	if !validFinanceVerificationOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != VerificationActive && f.Status != VerificationReversed) || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) {
+	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || (f.Status != "" && f.Status != VerificationActive && f.Status != VerificationReversed) || (f.Direction != "" && f.Direction != OrderFeeReceivable && f.Direction != OrderFeePayable) {
 		return nil, ErrVerificationInvalid
 	}
 	return u.repo.ListScoped(ctx, organizationIDs, f)
 }
 
 func (u *VerificationUsecase) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceVerification, error) {
-	if !validFinanceVerificationOrganizationIDs(organizationIDs) || id == uuid.Nil {
+	if !validFinanceOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrVerificationInvalid
 	}
 	return u.repo.GetScoped(ctx, organizationIDs, id)
 }
 
 func (u *VerificationUsecase) LoadCashflowContextScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*FinanceCashflow, error) {
-	if !validFinanceVerificationOrganizationIDs(organizationIDs) || id == uuid.Nil {
+	if !validFinanceOrganizationIDs(organizationIDs) || id == uuid.Nil {
 		return nil, ErrVerificationInvalid
 	}
 	return u.repo.LoadCashflowContextScoped(ctx, organizationIDs, id)
@@ -146,22 +146,6 @@ func (u *VerificationUsecase) ListCreationCandidates(ctx context.Context, organi
 	return u.repo.ListCreationCandidates(ctx, organizationID, filter)
 }
 
-func validFinanceVerificationOrganizationIDs(organizationIDs []uuid.UUID) bool {
-	if len(organizationIDs) == 0 {
-		return false
-	}
-	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
-	for _, organizationID := range organizationIDs {
-		if organizationID == uuid.Nil {
-			return false
-		}
-		if _, exists := seen[organizationID]; exists {
-			return false
-		}
-		seen[organizationID] = struct{}{}
-	}
-	return true
-}
 func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateVerificationInput) (*FinanceVerification, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
 	in.Note = normalizedOptionalFinanceString(in.Note)
