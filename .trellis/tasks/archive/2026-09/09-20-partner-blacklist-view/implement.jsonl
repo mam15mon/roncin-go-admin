@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/partner-role-blacklist.md", "reason": "角色级黑名单既定契约：过滤语义必须与「黑名单属于 PartnerRole、各角色独立、读写分离门禁」一致"}
+{"file": ".trellis/spec/server/backend/partner-casual-contract.md", "reason": "is_casual 是同构 optional bool 列表过滤的先例契约，blacklisted 参数照此模式扩展"}
+{"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "后端分层边界：proto→service→biz→data 各层职责，DTO 不得跨层泄漏"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "列表页 UI 模板规范：SearchFilterTemplate/ProTable 范式与 Segmented 嵌入约束"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "表格 request 协议与豁免清单：ProTable 官方 request/actionRef 是唯一数据流"}
+{"file": ".agents/skills/roncin-web-stack/SKILL.md", "reason": "前端现代栈已校准规范：路由/权限/图标/测试回退 mock 范式，杜绝 Umi 写法"}

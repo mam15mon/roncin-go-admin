@@ -162,3 +162,20 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
   进程被杀（launch ESRCH）无法执行，已记录差异待有浏览器环境补跑。
 - 新增约定已落 spec：@/router/history 跳转、renderWithApp 测试包装、
   main.tsx App 包裹、generate-services.mjs 生成链路。
+
+## 2026-09-20 往来单位黑名单视图切换（09-20-partner-blacklist-view）
+
+- 需求：客户/供应商/国外代理三类列表页 Segmented 切换「全部|黑名单」视图；
+  追加修复导出超限与拉黑操作人姓名显示。
+- 契约：ListPartners/ExportPartners 新增 optional bool blacklisted（角色级过滤）；
+  PartnerRole 增 blacklisted_by_name 联查回填；PartnerExportItem 补齐完整角色
+  状态/联系人/更新时间。
+- 关键决策：黑名单谓词不加 EnabledEQ(true)——SetPartnerRoleBlacklist 不写
+  enabled，拉黑与停用正交，停用+拉黑必须仍可见；前端导出从自行调
+  ListPartners pageSize=2000（必被 200 上限拒绝）切回 ExportPartners 服务端
+  聚合接口，并补透传 keyword/enabled（旧导出无视搜索条件）；发现并修复
+  toolBarRender={false} 导致 ProTable 标题栏从未渲染的死代码。
+- 验收：trellis-check 0 阻断、PRD 6/6；go test -p 32 全量、vet、tsc、biome、
+  vitest 876 用例全绿；无数据库迁移、无新增权限码。
+- 提交：e84103ac（feat 黑名单视图）、bc338ccd（docs 契约沉淀）、
+  882c6233（fix 导出正统化+操作人姓名）。

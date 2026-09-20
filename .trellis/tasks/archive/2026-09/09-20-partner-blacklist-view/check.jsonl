@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/server/backend/partner-role-blacklist.md", "reason": "验收对照：黑名单过滤不得违反角色级独立与选择器可见性契约"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "后端质量门禁：测试/vet/生成物同步提交要求"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端质量门禁：pnpm 命令、生成物禁手改、最小检查集"}
+{"file": ".agents/skills/roncin-web-stack/SKILL.md", "reason": "检查前端实现是否遵循现代栈范式（ProTable request/actionRef、测试 mock 新模块源）"}
