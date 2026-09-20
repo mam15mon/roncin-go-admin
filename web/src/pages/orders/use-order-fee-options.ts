@@ -1,136 +1,199 @@
-import { App } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { getErrorMessage } from '@/utils/errorMessage';
 
+/** 订单费用工作台聚合载荷：queryFn 内并行拉取订单档案与候选项。 */
+interface OrderFeeOptionsBundle {
+  order: API.Order | undefined;
+  currencies: API.OrderFeeCurrencyOption[];
+  settlementParties: API.OrderFeeSettlementPartyOption[];
+  feeSettings: API.OrderFeeSettingOption[];
+  billingUnits: API.OrderFeeBillingUnitOption[];
+  financeLocked: boolean;
+  financeLockReason: string;
+  financeLockCommissionNos: string[];
+  customerName: string;
+}
+
+/**
+ * 本地新增候选项覆盖层：快捷新建费目/往来单位后即时可用。绑定到发起时的
+ * 订单身份防止跨订单串数据；只保存相对服务端基线的差集，重查返回后已
+ * 落库的项自动并入基线，未落库的项保持可见。
+ */
+interface OrderBoundExtras<T> {
+  orderId: string | undefined;
+  items: T[];
+}
+
+const INITIAL_EXTRAS: OrderBoundExtras<never> = {
+  orderId: undefined,
+  items: [],
+};
+
 /** 加载订单档案与费用录入候选项、财务锁定状态。 */
 export function useOrderFeeOptions(orderId?: string) {
-  const { message } = App.useApp();
-  const [loading, setLoading] = useState(Boolean(orderId));
-  const [order, setOrder] = useState<API.Order>();
-  const [loadedOrderId, setLoadedOrderId] = useState<string | undefined>();
-  const [failedOrderId, setFailedOrderId] = useState<string | undefined>();
-  const activeOrderIdRef = useRef(orderId);
-  activeOrderIdRef.current = orderId;
-  const requestIdRef = useRef(0);
-  const [currencies, setCurrencies] = useState<API.OrderFeeCurrencyOption[]>(
-    [],
-  );
-  const [settlementParties, setSettlementParties] = useState<
-    API.OrderFeeSettlementPartyOption[]
-  >([]);
-  const [feeSettings, setFeeSettings] = useState<API.OrderFeeSettingOption[]>(
-    [],
-  );
-  const [billingUnits, setBillingUnits] = useState<
-    API.OrderFeeBillingUnitOption[]
-  >([]);
-  const [financeLocked, setFinanceLocked] = useState(false);
-  const [financeLockReason, setFinanceLockReason] = useState('');
-  const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
-    string[]
-  >([]);
-  const [customerName, setCustomerName] = useState('');
+  const feeOptionsQuery = useQuery({
+    queryKey: ['orders', 'fee-options', { orderId }],
+    enabled: Boolean(orderId),
+    queryFn: async (): Promise<OrderFeeOptionsBundle> => {
+      if (!orderId) {
+        // enabled 已保证订单身份齐备；此处仅为类型收窄兜底。
+        throw new Error('缺少订单费用选项加载参数');
+      }
+      try {
+        const [orderRes, optionsRes] = await Promise.all([
+          orderServiceGetOrder({ id: orderId }),
+          orderFeeServiceListFeeOptions({ orderId }),
+        ]);
+        return {
+          order: orderRes.data,
+          currencies: optionsRes.currencies ?? [],
+          settlementParties: optionsRes.settlementParties ?? [],
+          feeSettings: optionsRes.feeSettings ?? [],
+          billingUnits: optionsRes.billingUnits ?? [],
+          financeLocked: Boolean(optionsRes.financeLocked),
+          financeLockReason: optionsRes.financeLockReason || '',
+          financeLockCommissionNos: optionsRes.financeLockCommissionNos || [],
+          customerName: optionsRes.customerName || '',
+        };
+      } catch (error) {
+        // 动态错误文案：包装 Error 抛出，由全局 onError 展示（与旧实现
+        // message.error(getErrorMessage(error, '加载费用信息失败')) 一致）。
+        throw new Error(getErrorMessage(error, '加载费用信息失败'));
+      }
+    },
+  });
 
-  const loadData = useCallback(async () => {
+  const { data, error, isPending, isFetching, refetch } = feeOptionsQuery;
+
+  // 迟到写入守卫：覆盖层写入按发起时的订单身份绑定，切单后旧覆盖层自然失效。
+  const orderIdRef = useRef(orderId);
+  orderIdRef.current = orderId;
+
+  const [extraSettlementParties, setExtraSettlementParties] =
+    useState<OrderBoundExtras<API.OrderFeeSettlementPartyOption>>(
+      INITIAL_EXTRAS,
+    );
+  const [extraFeeSettings, setExtraFeeSettings] =
+    useState<OrderBoundExtras<API.OrderFeeSettingOption>>(INITIAL_EXTRAS);
+
+  const baseSettlementParties = data?.settlementParties ?? [];
+  const baseFeeSettings = data?.feeSettings ?? [];
+  const settlementPartiesBaseRef = useRef(baseSettlementParties);
+  settlementPartiesBaseRef.current = baseSettlementParties;
+  const feeSettingsBaseRef = useRef(baseFeeSettings);
+  feeSettingsBaseRef.current = baseFeeSettings;
+
+  const mergeExtras = useCallback(
+    <T extends { id?: string }>(
+      extras: OrderBoundExtras<T>,
+      base: T[],
+    ): T[] => {
+      if (extras.orderId !== orderIdRef.current || extras.items.length === 0) {
+        return base;
+      }
+      const baseIds = new Set(base.map((item) => item.id));
+      const pending = extras.items.filter(
+        (item) => item.id && !baseIds.has(item.id),
+      );
+      return pending.length > 0 ? [...pending, ...base] : base;
+    },
+    [],
+  );
+
+  const settlementParties = useMemo(
+    () => mergeExtras(extraSettlementParties, baseSettlementParties),
+    [extraSettlementParties, baseSettlementParties, mergeExtras],
+  );
+  const feeSettings = useMemo(
+    () => mergeExtras(extraFeeSettings, baseFeeSettings),
+    [extraFeeSettings, baseFeeSettings, mergeExtras],
+  );
+
+  // setter 语义与旧实现一致：入参或更新器都基于「当前生效列表」计算下一份
+  // 全量列表；本地只保留相对服务端基线的差集。
+  const setSettlementParties = useCallback(
+    (
+      next:
+        | API.OrderFeeSettlementPartyOption[]
+        | ((
+            prev: API.OrderFeeSettlementPartyOption[],
+          ) => API.OrderFeeSettlementPartyOption[]),
+    ) => {
+      const base = settlementPartiesBaseRef.current;
+      const baseIds = new Set(base.map((item) => item.id));
+      setExtraSettlementParties((prev) => {
+        const currentOrderId = orderIdRef.current;
+        const prevExtras =
+          prev.orderId === currentOrderId
+            ? prev.items.filter((item) => item.id && !baseIds.has(item.id))
+            : [];
+        const current = [...prevExtras, ...base];
+        const value = typeof next === 'function' ? next(current) : next;
+        return {
+          orderId: currentOrderId,
+          items: value.filter((item) => item.id && !baseIds.has(item.id)),
+        };
+      });
+    },
+    [],
+  );
+
+  const setFeeSettings = useCallback(
+    (
+      next:
+        | API.OrderFeeSettingOption[]
+        | ((prev: API.OrderFeeSettingOption[]) => API.OrderFeeSettingOption[]),
+    ) => {
+      const base = feeSettingsBaseRef.current;
+      const baseIds = new Set(base.map((item) => item.id));
+      setExtraFeeSettings((prev) => {
+        const currentOrderId = orderIdRef.current;
+        const prevExtras =
+          prev.orderId === currentOrderId
+            ? prev.items.filter((item) => item.id && !baseIds.has(item.id))
+            : [];
+        const current = [...prevExtras, ...base];
+        const value = typeof next === 'function' ? next(current) : next;
+        return {
+          orderId: currentOrderId,
+          items: value.filter((item) => item.id && !baseIds.has(item.id)),
+        };
+      });
+    },
+    [],
+  );
+
+  // 出错即隐藏全部数据（与旧实现失败清空语义一致）；首次拉取与显式刷新
+  // （含错误重试）期间保持加载态。
+  const bundle = error ? undefined : data;
+  const loading = Boolean(orderId) && (isPending || isFetching);
+
+  const loadData = useCallback(() => {
     if (!orderId) {
-      setOrder(undefined);
-      setLoadedOrderId(undefined);
-      setFailedOrderId(undefined);
-      setCurrencies([]);
-      setSettlementParties([]);
-      setFeeSettings([]);
-      setBillingUnits([]);
-      setFinanceLocked(false);
-      setFinanceLockReason('');
-      setFinanceLockCommissionNos([]);
-      setCustomerName('');
-      setLoading(false);
-      return;
+      return Promise.resolve();
     }
-    const currentRequestId = ++requestIdRef.current;
-    const currentOrderId = orderId;
-    setLoading(true);
-    setFailedOrderId(undefined);
-    try {
-      const [orderRes, optionsRes] = await Promise.all([
-        orderServiceGetOrder({ id: orderId }),
-        orderFeeServiceListFeeOptions({ orderId }),
-      ]);
-      if (
-        currentRequestId !== requestIdRef.current ||
-        currentOrderId !== activeOrderIdRef.current
-      ) {
-        return;
-      }
-      setOrder(orderRes.data);
-      setLoadedOrderId(currentOrderId);
-      setCurrencies(optionsRes.currencies ?? []);
-      setSettlementParties(optionsRes.settlementParties ?? []);
-      setFeeSettings(optionsRes.feeSettings ?? []);
-      setBillingUnits(optionsRes.billingUnits ?? []);
-      setFinanceLocked(Boolean(optionsRes.financeLocked));
-      setFinanceLockReason(optionsRes.financeLockReason || '');
-      setFinanceLockCommissionNos(optionsRes.financeLockCommissionNos || []);
-      setCustomerName(optionsRes.customerName || '');
-    } catch (error) {
-      if (
-        currentRequestId === requestIdRef.current &&
-        currentOrderId === activeOrderIdRef.current
-      ) {
-        setOrder(undefined);
-        setLoadedOrderId(undefined);
-        setFailedOrderId(currentOrderId);
-        setCurrencies([]);
-        setSettlementParties([]);
-        setFeeSettings([]);
-        setBillingUnits([]);
-        setFinanceLocked(false);
-        setFinanceLockReason('');
-        setFinanceLockCommissionNos([]);
-        setCustomerName('');
-        message.error(getErrorMessage(error, '加载费用信息失败'));
-      }
-    } finally {
-      if (
-        currentRequestId === requestIdRef.current &&
-        currentOrderId === activeOrderIdRef.current
-      ) {
-        setLoading(false);
-      }
-    }
-  }, [orderId, message]);
-
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
-
-  const isOrderMatched = Boolean(orderId && loadedOrderId === orderId);
-  const effectiveOrder = isOrderMatched ? order : undefined;
-  const effectiveCurrencies = isOrderMatched ? currencies : [];
-  const effectiveSettlementParties = isOrderMatched ? settlementParties : [];
-  const effectiveFeeSettings = isOrderMatched ? feeSettings : [];
-  const effectiveBillingUnits = isOrderMatched ? billingUnits : [];
-  const effectiveCustomerName = isOrderMatched ? customerName : '';
-  const isPending =
-    Boolean(orderId) && !isOrderMatched && failedOrderId !== orderId;
-  const effectiveLoading = loading || isPending;
+    // refetch 的 Promise 只以结果对象 resolve、从不 reject，
+    // 与旧实现「吸收请求错误并正常 resolve」的语义一致。
+    return refetch().then(() => undefined);
+  }, [orderId, refetch]);
 
   return {
-    loading: effectiveLoading,
-    order: effectiveOrder,
-    loadedOrderId,
-    currencies: effectiveCurrencies,
-    settlementParties: effectiveSettlementParties,
+    loading,
+    order: bundle?.order,
+    loadedOrderId: bundle ? orderId : undefined,
+    currencies: bundle?.currencies ?? [],
+    settlementParties,
     setSettlementParties,
-    feeSettings: effectiveFeeSettings,
+    feeSettings,
     setFeeSettings,
-    billingUnits: effectiveBillingUnits,
-    financeLocked: isOrderMatched ? financeLocked : false,
-    financeLockReason: isOrderMatched ? financeLockReason : '',
-    financeLockCommissionNos: isOrderMatched ? financeLockCommissionNos : [],
-    customerName: effectiveCustomerName,
+    billingUnits: bundle?.billingUnits ?? [],
+    financeLocked: Boolean(bundle?.financeLocked),
+    financeLockReason: bundle?.financeLockReason ?? '',
+    financeLockCommissionNos: bundle?.financeLockCommissionNos ?? [],
+    customerName: bundle?.customerName ?? '',
     loadData,
   };
 }

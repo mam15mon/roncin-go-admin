@@ -1,3 +1,5 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
@@ -47,8 +49,19 @@ const mockClearCache = vi.mocked(clearOrderMasterDataCache);
 
 const seaConfig = seaExportDefinition;
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(App, null, children);
+/**
+ * React Query 迁移后的 hook 测试包装：每个用例独立 QueryClient，
+ * 防止缓存串味（与 renderWithClient 同策略，但以 wrapper 形式供 renderHook 使用）。
+ */
+function createHookWrapper() {
+  const queryClient = createTestQueryClient();
+  const wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      React.createElement(App, null, children),
+    );
+  return { queryClient, wrapper };
 }
 
 function deferred<T>() {
@@ -111,7 +124,7 @@ describe('useOrderCreateOptions', () => {
 
   it('config 为空时，loading 为 false 且无错误', () => {
     const { result } = renderHook(() => useOrderCreateOptions(undefined), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
@@ -124,7 +137,7 @@ describe('useOrderCreateOptions', () => {
     };
 
     const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -136,7 +149,7 @@ describe('useOrderCreateOptions', () => {
 
   it('具备有效组织时正常加载海运主数据与人员选项', async () => {
     const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -159,7 +172,7 @@ describe('useOrderCreateOptions', () => {
     mockFetchMasterData.mockRejectedValueOnce(new Error('数据字典加载超时'));
 
     const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -172,7 +185,7 @@ describe('useOrderCreateOptions', () => {
       .mockResolvedValueOnce(mockMasterDataSuccess);
 
     const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -204,7 +217,7 @@ describe('useOrderCreateOptions', () => {
 
     const { result, rerender } = renderHook(
       () => useOrderCreateOptions(seaConfig),
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
 
     expect(result.current.loading).toBe(true);
@@ -255,7 +268,7 @@ describe('useOrderCreateOptions', () => {
 
     const { result, rerender } = renderHook(
       () => useOrderCreateOptions(seaConfig),
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -290,7 +303,7 @@ describe('useOrderCreateOptions', () => {
 
   it('地点搜索为空或仅含空白时复用当前组织首批候选项，不发起远程请求', async () => {
     const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -309,7 +322,7 @@ describe('useOrderCreateOptions', () => {
       { label: '上海港远程结果', value: 'remote-port' },
     ]);
     const { result } = renderHook(() => useOrderCreateOptions(seaConfig), {
-      wrapper,
+      wrapper: createHookWrapper().wrapper,
     });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -327,7 +340,7 @@ describe('useOrderCreateOptions', () => {
     };
     const { result, rerender } = renderHook(
       () => useOrderCreateOptions(seaConfig),
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -356,7 +369,7 @@ describe('useOrderCreateOptions', () => {
     let currentConfig = seaConfig;
     const { result, rerender } = renderHook(
       () => useOrderCreateOptions(currentConfig),
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -405,7 +418,7 @@ describe('useOrderCreateOptions', () => {
         });
         return state;
       },
-      { wrapper },
+      { wrapper: createHookWrapper().wrapper },
     );
 
     await waitFor(() =>

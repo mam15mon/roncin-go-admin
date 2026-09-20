@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -53,7 +54,8 @@ describe('SeaOrderSplitPage', () => {
       changeService,
       'seaOrderChangeServiceGetSeaOrderSplitContext',
     );
-    render(
+    // 拆票页消费已迁移 React Query 的 useOrderLockState：渲染包 QueryClientProvider。
+    renderWithClient(
       <App>
         <SeaOrderSplitPage />
       </App>,
@@ -198,7 +200,8 @@ describe('SeaOrderSplitPage', () => {
       ReturnType<typeof changeService.seaOrderChangeServicePreviewSeaOrderSplit>
     >);
 
-    render(
+    // 拆票页消费已迁移 React Query 的 useOrderLockState：渲染包 QueryClientProvider。
+    renderWithClient(
       <App>
         <SeaOrderSplitPage />
       </App>,
@@ -283,7 +286,8 @@ describe('SeaOrderSplitPage', () => {
         >
       >);
 
-    render(
+    // 拆票页消费已迁移 React Query 的 useOrderLockState：渲染包 QueryClientProvider。
+    renderWithClient(
       <App>
         <SeaOrderSplitPage />
       </App>,
@@ -338,7 +342,8 @@ describe('SeaOrderSplitPage', () => {
       'seaOrderChangeServicePreviewSeaOrderSplit',
     );
 
-    render(
+    // 拆票页消费已迁移 React Query 的 useOrderLockState：渲染包 QueryClientProvider。
+    renderWithClient(
       <App>
         <SeaOrderSplitPage />
       </App>,
@@ -475,7 +480,8 @@ describe('SeaOrderSplitPage', () => {
       >
     >);
 
-    render(
+    // 拆票页消费已迁移 React Query 的 useOrderLockState：渲染包 QueryClientProvider。
+    renderWithClient(
       <App>
         <SeaOrderSplitPage />
       </App>,
