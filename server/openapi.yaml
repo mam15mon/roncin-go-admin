@@ -7209,6 +7209,13 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: blacklisted
+                  in: query
+                  description: |-
+                    按业务角色的黑名单状态过滤；缺省不过滤。true 匹配存在已拉黑角色
+                    （不要求角色启用）的档案，false 匹配存在未拉黑角色的档案。
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -7250,6 +7257,11 @@ paths:
                     format: enum
                 - name: enabled
                   in: query
+                  schema:
+                    type: boolean
+                - name: blacklisted
+                  in: query
+                  description: 语义与 ListPartnersRequest.blacklisted 一致，保证黑名单视图导出与列表口径相同。
                   schema:
                     type: boolean
             responses:

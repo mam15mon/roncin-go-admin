@@ -576,4 +576,54 @@ func TestPartnerListFiltersByIsCasual(t *testing.T) {
 	}
 }
 
+func TestPartnerListFiltersByBlacklisted(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo)
+	organizationIDs := []uuid.UUID{uuid.New()}
+
+	// 1. 过滤黑名单档案
+	blacklistedTrue := true
+	_, err := usecase.List(context.Background(), organizationIDs, PartnerListOptions{
+		Page:        1,
+		PageSize:    20,
+		Role:        PartnerRoleCustomer,
+		Blacklisted: &blacklistedTrue,
+	})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if repo.listOptions.Blacklisted == nil || *repo.listOptions.Blacklisted != true {
+		t.Fatalf("预期传递给 repo 的 Blacklisted 为 true，实际=%v", repo.listOptions.Blacklisted)
+	}
+
+	// 2. 过滤未拉黑档案
+	blacklistedFalse := false
+	_, err = usecase.List(context.Background(), organizationIDs, PartnerListOptions{
+		Page:        1,
+		PageSize:    20,
+		Role:        PartnerRoleCustomer,
+		Blacklisted: &blacklistedFalse,
+	})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if repo.listOptions.Blacklisted == nil || *repo.listOptions.Blacklisted != false {
+		t.Fatalf("预期传递给 repo 的 Blacklisted 为 false，实际=%v", repo.listOptions.Blacklisted)
+	}
+
+	// 3. 不带过滤
+	_, err = usecase.List(context.Background(), organizationIDs, PartnerListOptions{
+		Page:        1,
+		PageSize:    20,
+		Role:        PartnerRoleCustomer,
+		Blacklisted: nil,
+	})
+	if err != nil {
+		t.Fatalf("List() error = %v", err)
+	}
+	if repo.listOptions.Blacklisted != nil {
+		t.Fatalf("预期传递给 repo 的 Blacklisted 为 nil，实际=%v", repo.listOptions.Blacklisted)
+	}
+}
+
 var _ PartnerRepo = (*partnerRepoStub)(nil)

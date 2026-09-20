@@ -75,11 +75,24 @@ func (r *partnerRepo) List(ctx context.Context, organizationIDs []uuid.UUID, opt
 			)),
 		))
 	}
+	rolePredicates := []entpredicate.PartnerRole{
+		partnerroleent.RoleTypeEQ(partnerroleent.RoleType(options.Role)),
+	}
+	if options.Blacklisted != nil && *options.Blacklisted {
+		// 黑名单视图：只认拉黑标记，不要求角色启用（拉黑与停用正交）。
+		rolePredicates = append(rolePredicates, partnerroleent.BlacklistedEQ(true))
+	} else {
+		rolePredicates = append(rolePredicates, partnerroleent.EnabledEQ(true))
+		if options.Blacklisted != nil {
+			rolePredicates = append(rolePredicates, partnerroleent.BlacklistedEQ(false))
+		}
+	}
 	if options.Role != "" {
-		query.Where(partnerent.HasRolesWith(
-			partnerroleent.RoleTypeEQ(partnerroleent.RoleType(options.Role)),
-			partnerroleent.EnabledEQ(true),
-		))
+		query.Where(partnerent.HasRolesWith(rolePredicates...))
+	}
+	if options.Blacklisted != nil && options.Role == "" {
+		// 无角色类型时的兜底语义：任一角色命中黑名单状态即返回。
+		query.Where(partnerent.HasRolesWith(partnerroleent.BlacklistedEQ(*options.Blacklisted)))
 	}
 	if options.Enabled != nil {
 		query.Where(partnerent.EnabledEQ(*options.Enabled))

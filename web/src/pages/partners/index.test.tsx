@@ -3,6 +3,7 @@ import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { history } from '@/router/history';
+import { PartnerRoleType } from '@/enums.generated';
 import {
   partnerServiceListPartners,
   partnerServiceSetPartnerRoleBlacklist,
@@ -266,5 +267,78 @@ describe('Partners 列表页', () => {
     await waitFor(() => {
       expect(partnerServiceListPartners).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('切换黑名单视图后请求携带 blacklisted 参数并保持当前角色类型，切回全部后恢复', async () => {
+    vi.mocked(partnerServiceListPartners).mockResolvedValue({
+      data: [
+        {
+          id: 'p-blacklist-view',
+          code: 'CUST-BL',
+          legalName: '黑名单视图客户公司',
+          enabled: true,
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: true,
+              blacklisted: true,
+              blacklistReason: '长期拖欠运费',
+              blacklistedBy: 'admin',
+              blacklistedAt: '2026-09-01T10:00:00Z',
+            },
+          ],
+        },
+      ],
+      total: 1,
+    } as never);
+
+    render(
+      <App>
+        <Partners />
+      </App>,
+    );
+
+    expect(await screen.findByText('黑名单视图客户公司')).toBeInTheDocument();
+    // 初始请求按当前视图角色查询，不携带黑名单过滤
+    expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+        blacklisted: undefined,
+      }),
+    );
+    // 初始视图不展示拉黑信息列
+    expect(
+      screen.queryByRole('columnheader', { name: '拉黑信息' }),
+    ).not.toBeInTheDocument();
+
+    // 切到黑名单视图：请求携带 blacklisted: true，role 保持客户类型
+    fireEvent.click(screen.getByText('黑名单客户'));
+    await waitFor(() => {
+      expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+          blacklisted: true,
+        }),
+      );
+    });
+    // 黑名单视图展示「拉黑信息」列与当前角色的拉黑原因
+    expect(
+      screen.getByRole('columnheader', { name: '拉黑信息' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('长期拖欠运费')).toBeInTheDocument();
+
+    // 切回全部视图：blacklisted 回到 undefined，拉黑信息列隐藏
+    fireEvent.click(screen.getByText('全部客户'));
+    await waitFor(() => {
+      expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+          blacklisted: undefined,
+        }),
+      );
+    });
+    expect(
+      screen.queryByRole('columnheader', { name: '拉黑信息' }),
+    ).not.toBeInTheDocument();
   });
 });

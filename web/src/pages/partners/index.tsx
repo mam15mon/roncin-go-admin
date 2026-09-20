@@ -31,6 +31,7 @@ import {
   Button,
   Dropdown,
   type MenuProps,
+  Segmented,
   Space,
   Tag,
   Typography,
@@ -145,6 +146,8 @@ export default function Partners() {
     useState<API.Partner | null>(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  // 黑名单视图：仅显示当前角色类型已拉黑的档案（列表与导出口径一致）
+  const [blacklistView, setBlacklistView] = useState(false);
 
   const currentView =
     currentViewMeta[location.pathname] ||
@@ -177,6 +180,7 @@ export default function Partners() {
         page: 1,
         pageSize: 2000,
         role: currentView.roleType,
+        blacklisted: blacklistView || undefined,
       });
       const data = unwrapList(response);
       if (data.length === 0) {
@@ -234,7 +238,10 @@ export default function Partners() {
       ];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, `${currentView.title}档案`);
-      XLSX.writeFile(wb, `${currentView.title}档案列表.xlsx`);
+      XLSX.writeFile(
+        wb,
+        `${blacklistView ? '黑名单' : ''}${currentView.title}档案列表.xlsx`,
+      );
       message.success(`成功导出 ${data.length} 条数据至 Excel`);
     } catch (err) {
       message.error(getErrorMessage(err, '导出 Excel 失败'));
@@ -281,6 +288,36 @@ export default function Partners() {
           {roleTags(record.roles)}
         </Space>
       ),
+    },
+    {
+      title: '拉黑信息',
+      dataIndex: 'blacklist',
+      width: 220,
+      search: false,
+      hideInTable: !blacklistView,
+      render: (_, record) => {
+        const role = record.roles?.find(
+          (item) => item.type === currentView.roleType,
+        );
+        const blacklistedAt = role?.blacklistedAt
+          ? new Date(role.blacklistedAt).toLocaleString()
+          : undefined;
+        const reason = role?.blacklistReason;
+        const operator = role?.blacklistedBy;
+        if (!reason && !operator && !blacklistedAt) {
+          return <Text type="secondary">-</Text>;
+        }
+        return (
+          <Space orientation="vertical" size={2}>
+            {reason ? <Text style={{ fontSize: 12 }}>{reason}</Text> : null}
+            {operator || blacklistedAt ? (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {[operator, blacklistedAt].filter(Boolean).join(' · ')}
+              </Text>
+            ) : null}
+          </Space>
+        );
+      },
     },
     {
       title: '合作类型',
@@ -526,6 +563,21 @@ export default function Partners() {
           <Space size={8}>
             <ContactsOutlined style={{ color: '#1677ff' }} />
             <span>{currentView.title}档案列表</span>
+            <Segmented
+              value={blacklistView ? 'blacklist' : 'all'}
+              options={[
+                { label: `全部${currentView.title}`, value: 'all' },
+                { label: `黑名单${currentView.title}`, value: 'blacklist' },
+              ]}
+              onChange={(value) => {
+                setBlacklistView(value === 'blacklist');
+                // reset 负责把分页归位到第 1 页，但停留在第 1 页时它不会
+                // 触发刷新；reload 补上重新请求，两者经 ProTable 内部
+                // 防抖合并为一次请求，外部 searchParams 搜索条件不受影响
+                actionRef.current?.reset?.();
+                actionRef.current?.reload();
+              }}
+            />
           </Space>
         }
         rowKey="id"
@@ -547,11 +599,12 @@ export default function Partners() {
             role: currentView.roleType,
             enabled: searchParams.enabled,
             isCasual: searchParams.isCasual,
+            blacklisted: blacklistView || undefined,
           });
           return toTableRequest(response);
         }}
         search={false}
-        toolBarRender={false}
+        options={false}
       />
 
       <PartnerExcelImportModal

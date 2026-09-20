@@ -5679,6 +5679,8 @@ declare namespace API {
     keyword?: string;
     role?: number;
     enabled?: boolean;
+    /** 语义与 ListPartnersRequest.blacklisted 一致，保证黑名单视图导出与列表口径相同。 */
+    blacklisted?: boolean;
   };
 
   type PartnerServiceGetPartnerParams = {
@@ -5729,6 +5731,9 @@ declare namespace API {
     role?: number;
     enabled?: boolean;
     isCasual?: boolean;
+    /** 按业务角色的黑名单状态过滤；缺省不过滤。true 匹配存在已拉黑角色
+（不要求角色启用）的档案，false 匹配存在未拉黑角色的档案。 */
+    blacklisted?: boolean;
   };
 
   type PartnerServiceRegisterPartnerAttachmentParams = {

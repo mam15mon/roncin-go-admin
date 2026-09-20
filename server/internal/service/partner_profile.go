@@ -49,6 +49,10 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 		isCasual := request.GetIsCasual()
 		options.IsCasual = &isCasual
 	}
+	if request.Blacklisted != nil {
+		blacklisted := request.GetBlacklisted()
+		options.Blacklisted = &blacklisted
+	}
 	organizationIDs, err := organizationIDsForPermission(principal, access.PartnerRead, false)
 	if err != nil {
 		return nil, err
@@ -202,6 +206,10 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 	if request.Enabled != nil {
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
+	}
+	if request.Blacklisted != nil {
+		blacklisted := request.GetBlacklisted()
+		options.Blacklisted = &blacklisted
 	}
 	organizationIDs, err := organizationIDsForPermission(principal, access.PartnerExport, false)
 	if err != nil {

@@ -1920,13 +1920,16 @@ func (x *GetPartnerRequest) GetId() string {
 }
 
 type ListPartnersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword       string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	Role          PartnerRoleType        `protobuf:"varint,4,opt,name=role,proto3,enum=partner.v1.PartnerRoleType" json:"role,omitempty"`
-	Enabled       *bool                  `protobuf:"varint,5,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
-	IsCasual      *bool                  `protobuf:"varint,6,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Page     int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword  string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Role     PartnerRoleType        `protobuf:"varint,4,opt,name=role,proto3,enum=partner.v1.PartnerRoleType" json:"role,omitempty"`
+	Enabled  *bool                  `protobuf:"varint,5,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	IsCasual *bool                  `protobuf:"varint,6,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
+	// 按业务角色的黑名单状态过滤；缺省不过滤。true 匹配存在已拉黑角色
+	// （不要求角色启用）的档案，false 匹配存在未拉黑角色的档案。
+	Blacklisted   *bool `protobuf:"varint,7,opt,name=blacklisted,proto3,oneof" json:"blacklisted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1999,6 +2002,13 @@ func (x *ListPartnersRequest) GetEnabled() bool {
 func (x *ListPartnersRequest) GetIsCasual() bool {
 	if x != nil && x.IsCasual != nil {
 		return *x.IsCasual
+	}
+	return false
+}
+
+func (x *ListPartnersRequest) GetBlacklisted() bool {
+	if x != nil && x.Blacklisted != nil {
+		return *x.Blacklisted
 	}
 	return false
 }
@@ -2506,10 +2516,12 @@ func (x *ImportPartnersResponse) GetTraceId() string {
 }
 
 type ExportPartnersRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	Role          PartnerRoleType        `protobuf:"varint,2,opt,name=role,proto3,enum=partner.v1.PartnerRoleType" json:"role,omitempty"`
-	Enabled       *bool                  `protobuf:"varint,3,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Keyword string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Role    PartnerRoleType        `protobuf:"varint,2,opt,name=role,proto3,enum=partner.v1.PartnerRoleType" json:"role,omitempty"`
+	Enabled *bool                  `protobuf:"varint,3,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	// 语义与 ListPartnersRequest.blacklisted 一致，保证黑名单视图导出与列表口径相同。
+	Blacklisted   *bool `protobuf:"varint,4,opt,name=blacklisted,proto3,oneof" json:"blacklisted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2561,6 +2573,13 @@ func (x *ExportPartnersRequest) GetRole() PartnerRoleType {
 func (x *ExportPartnersRequest) GetEnabled() bool {
 	if x != nil && x.Enabled != nil {
 		return *x.Enabled
+	}
+	return false
+}
+
+func (x *ExportPartnersRequest) GetBlacklisted() bool {
+	if x != nil && x.Blacklisted != nil {
+		return *x.Blacklisted
 	}
 	return false
 }
@@ -7577,18 +7596,20 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
 	"sort_order\x18\x02 \x01(\x05R\tsortOrder\"(\n" +
 	"\x11GetPartnerRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xec\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xa3\x02\n" +
 	"\x13ListPartnersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
 	"\akeyword\x18\x03 \x01(\tR\akeyword\x12/\n" +
 	"\x04role\x18\x04 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04role\x12\x1d\n" +
 	"\aenabled\x18\x05 \x01(\bH\x00R\aenabled\x88\x01\x01\x12 \n" +
-	"\tis_casual\x18\x06 \x01(\bH\x01R\bisCasual\x88\x01\x01B\n" +
+	"\tis_casual\x18\x06 \x01(\bH\x01R\bisCasual\x88\x01\x01\x12%\n" +
+	"\vblacklisted\x18\a \x01(\bH\x02R\vblacklisted\x88\x01\x01B\n" +
 	"\n" +
 	"\b_enabledB\f\n" +
 	"\n" +
-	"_is_casual\"\x9e\x04\n" +
+	"_is_casualB\x0e\n" +
+	"\f_blacklisted\"\x9e\x04\n" +
 	"\x14CreatePartnerRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tH\x00R\x04code\x88\x01\x01\x12\"\n" +
 	"\n" +
@@ -7643,13 +7664,15 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
 	"\rcreated_count\x18\x04 \x01(\x05R\fcreatedCount\x12#\n" +
 	"\rupdated_count\x18\x05 \x01(\x05R\fupdatedCount\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\x8d\x01\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xc4\x01\n" +
 	"\x15ExportPartnersRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12/\n" +
 	"\x04role\x18\x02 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04role\x12\x1d\n" +
-	"\aenabled\x18\x03 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\aenabled\x18\x03 \x01(\bH\x00R\aenabled\x88\x01\x01\x12%\n" +
+	"\vblacklisted\x18\x04 \x01(\bH\x01R\vblacklisted\x88\x01\x01B\n" +
 	"\n" +
-	"\b_enabled\"\xff\x01\n" +
+	"\b_enabledB\x0e\n" +
+	"\f_blacklisted\"\xff\x01\n" +
 	"\x11PartnerExportItem\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x1d\n" +
 	"\n" +

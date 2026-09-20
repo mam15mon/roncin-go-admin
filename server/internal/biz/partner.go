@@ -206,12 +206,13 @@ type Partner struct {
 }
 
 type PartnerListOptions struct {
-	Page     int
-	PageSize int
-	Keyword  string
-	Role     PartnerRoleType
-	Enabled  *bool
-	IsCasual *bool
+	Page        int
+	PageSize    int
+	Keyword     string
+	Role        PartnerRoleType
+	Enabled     *bool
+	IsCasual    *bool
+	Blacklisted *bool
 }
 
 type PartnerList = PagedList[*Partner]
