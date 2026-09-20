@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { extractFunctions } from '../web/scripts/duplicate-functions.mjs';
 import {
+  baselineDelta,
   collectSources,
   groupFunctions,
   renderText,
@@ -91,6 +92,7 @@ test('CLI 无效参数必须非零退出', () => {
     ['--min-nodes', '0'],
     ['--format', 'csv'],
     ['--output'],
+    ['--baseline'],
     ['--unknown'],
   ]) {
     const child = spawnSync(
@@ -101,4 +103,80 @@ test('CLI 无效参数必须非零退出', () => {
     assert.notEqual(child.status, 0);
     assert.match(child.stderr, /重复扫描失败/);
   }
+  for (const [baseline, message] of [
+    ['/nonexistent-baseline.json', /读取基线失败/],
+    ['package.json', /缺少 groups 数组/],
+  ]) {
+    const child = spawnSync(
+      process.execPath,
+      ['scripts/report-duplicates.mjs', '--baseline', baseline],
+      { encoding: 'utf8' },
+    );
+    assert.notEqual(child.status, 0);
+    assert.match(child.stderr, message);
+  }
+});
+
+test('基线对比识别新增、消失与成员变化', () => {
+  const group = (language, fingerprint, members) => ({
+    language,
+    mode: 'exact',
+    fingerprint,
+    nodes: 10,
+    coveredNodes: 20,
+    fileCount: members.length,
+    evidence: 'x',
+    members: members.map(([path, startLine, endLine, symbol]) => ({
+      path,
+      startLine,
+      endLine,
+      symbol,
+    })),
+  });
+  const same = group('go', 'aaa', [
+    ['a.go', 1, 9, 'A'],
+    ['b.go', 1, 9, 'B'],
+  ]);
+  const baseline = [same, group('go', 'gone', [['c.go', 1, 9, 'C']])];
+  const grown = group('go', 'aaa', [
+    ['a.go', 1, 9, 'A'],
+    ['b.go', 1, 9, 'B'],
+    ['d.go', 5, 13, 'D'],
+  ]);
+  const fresh = group('javascript', 'new', [['e.ts', 1, 9, 'E']]);
+  const delta = baselineDelta([same, grown, fresh], baseline);
+  assert.deepEqual(
+    delta.added.map((item) => item.fingerprint),
+    ['new'],
+  );
+  assert.deepEqual(
+    delta.resolved.map((item) => item.fingerprint),
+    ['gone'],
+  );
+  assert.equal(delta.changed.length, 1);
+  assert.equal(delta.changed[0].current.members.length, 3);
+  assert.equal(delta.changed[0].baseline.members.length, 2);
+  const empty = baselineDelta([same], [same]);
+  assert.deepEqual(empty, { added: [], resolved: [], changed: [] });
+  const text = renderText({
+    minNodes: 60,
+    statistics: {
+      scannedFiles: { javascript: 1, go: 1 },
+      excludedFiles: {},
+      excludedDirectories: 0,
+      functions: 1,
+      eligibleFunctions: 1,
+      exactOnlyFunctions: 0,
+    },
+    limitations: [],
+    groups: [fresh],
+    errors: [],
+    baseline: { path: 'base.json', ...delta },
+  });
+  assert.match(text, /新增 1 组、消失 1 组、成员变化 1 组/);
+  assert.match(text, /\+ 新增 \[javascript\/exact\]/);
+  assert.match(text, /- 消失 \[go\/exact\]/);
+  assert.match(text, /~ 成员变化 \[go\/exact\]/);
+  assert.match(text, /旧 a\.go:1-9 A/);
+  assert.match(text, /新 d\.go:5-13 D/);
 });

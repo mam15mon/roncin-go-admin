@@ -14,11 +14,20 @@
 pnpm run report:duplicates
 pnpm run report:duplicates --format json --output /tmp/roncin-duplicates.json
 pnpm run report:duplicates --min-nodes 100
+pnpm run report:duplicates --baseline scripts/duplicate-baseline.json
 ```
 
 `--format` 为 `text`（默认）或 `json`，`--min-nodes` 为正整数（默认 60），`--output` 可选；省略时写标准输出，不在仓库生成文件。程序消费输出宜使用 `--output` 文件，避免 pnpm 命令提示混入 JSON。
 
 命令需 Node.js、pnpm 与 Go 工具链；只解析本地源码，不启动应用、不连接数据库、不调用外部模型。
+
+### 定期周报与基线
+
+`.github/workflows/duplicate-report.yml` 每周一 11:00（北京时间）自动扫描并与已提交的基线 `scripts/duplicate-baseline.json` 对比，产出「新增 / 消失 / 成员变化」增量写入运行摘要；疑似重复本身不使工作流失败，扫描或解析错误才失败。对比只看重复组指纹与成员位置，文件/函数计数随仓库自然漂移不报变化。
+
+基线维护：有意提取重复或确认新增合理重复后，运行 `pnpm run baseline:duplicates`
+重新生成（只保留 `groups`，不带 exactOnly 等易漂移明细）并随代码同一提交，周报即可
+继续以新基线报告增量。基线是审查快照不是绩效指标，不为清零而清零。
 
 ## 3. 匹配契约
 

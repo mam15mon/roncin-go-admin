@@ -1,0 +1,103 @@
+{
+  "groups": [
+    {
+      "language": "go",
+      "mode": "exact",
+      "fingerprint": "68d13277b96d1dfc1dc9eaa21fca075b4c3184d91476e8767477dbaaa569b1eb",
+      "nodes": 94,
+      "coveredNodes": 188,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "go",
+          "path": "server/internal/service/order_fee.go",
+          "symbol": "businessTagSummariesToOrderAPI",
+          "startLine": 400,
+          "endLine": 409,
+          "start": 15411,
+          "end": 15851,
+          "nodes": 94,
+          "renameUnsupported": null
+        },
+        {
+          "language": "go",
+          "path": "server/internal/service/settlement_fee_tag.go",
+          "symbol": "businessTagSummariesToFinanceAPI",
+          "startLine": 14,
+          "endLine": 23,
+          "start": 331,
+          "end": 773,
+          "nodes": 94,
+          "renameUnsupported": null
+        }
+      ]
+    },
+    {
+      "language": "go",
+      "mode": "exact",
+      "fingerprint": "14878857c2f88d1c844349a45b3c91caee27a09d785594d1bd23fdce75ee14b5",
+      "nodes": 78,
+      "coveredNodes": 156,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "go",
+          "path": "server/internal/server/auth.go",
+          "symbol": "orderBusinessTypeToBiz",
+          "startLine": 390,
+          "endLine": 407,
+          "start": 13777,
+          "end": 14316,
+          "nodes": 78,
+          "renameUnsupported": null
+        },
+        {
+          "language": "go",
+          "path": "server/internal/service/order_query.go",
+          "symbol": "orderBusinessTypeFromAccess",
+          "startLine": 418,
+          "endLine": 435,
+          "start": 15240,
+          "end": 15784,
+          "nodes": 78,
+          "renameUnsupported": null
+        }
+      ]
+    },
+    {
+      "language": "go",
+      "mode": "exact",
+      "fingerprint": "752f287e398cfa7a7b9c671d9dbc0c6b0162a0a2e4ab0fd3b7bcb7aa0c3162de",
+      "nodes": 78,
+      "coveredNodes": 156,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "go",
+          "path": "server/internal/server/auth.go",
+          "symbol": "orderBusinessTypeFromBiz",
+          "startLine": 428,
+          "endLine": 445,
+          "start": 14968,
+          "end": 15509,
+          "nodes": 78,
+          "renameUnsupported": null
+        },
+        {
+          "language": "go",
+          "path": "server/internal/service/order_query.go",
+          "symbol": "orderBusinessTypeToAccess",
+          "startLine": 437,
+          "endLine": 454,
+          "start": 15786,
+          "end": 16328,
+          "nodes": 78,
+          "renameUnsupported": null
+        }
+      ]
+    }
+  ]
+}

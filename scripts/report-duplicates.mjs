@@ -185,6 +185,29 @@ export function renderText(report) {
     `仅 exact 的函数：${report.statistics.exactOnlyFunctions}。`,
     ...report.limitations,
   ];
+  if (report.baseline) {
+    const { path, added, resolved, changed } = report.baseline;
+    lines.push(
+      `基线对比（${path}）：新增 ${added.length} 组、消失 ${resolved.length} 组、成员变化 ${changed.length} 组。`,
+    );
+    for (const group of added) {
+      lines.push(`  + 新增 [${group.language}/${group.mode}] ${group.nodes} 节点：`);
+      for (const member of group.members)
+        lines.push(`      ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+    }
+    for (const group of resolved) {
+      lines.push(`  - 消失 [${group.language}/${group.mode}] ${group.nodes} 节点：`);
+      for (const member of group.members)
+        lines.push(`      ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+    }
+    for (const { baseline, current } of changed) {
+      lines.push(`  ~ 成员变化 [${current.language}/${current.mode}] ${current.nodes} 节点：`);
+      for (const member of baseline.members)
+        lines.push(`      旧 ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+      for (const member of current.members)
+        lines.push(`      新 ${member.path}:${member.startLine}-${member.endLine} ${member.symbol}`);
+    }
+  }
   for (const [index, group] of report.groups.entries()) {
     lines.push(
       `\n${index + 1}. [${group.language}/${group.mode}] ${group.nodes} 节点 × ${group.members.length} 处：${group.evidence}`,
@@ -264,10 +287,40 @@ export function scan(root = repository, minNodes = 60) {
     errors,
   };
 }
+// 基线对比只比较重复组：统计数（文件/函数计数）随仓库自然增长漂移，不作为变化。
+// 同指纹但成员增减（复制处数变化）单独归入成员变化，不误报为新增/消失。
+export function baselineDelta(groups, baselineGroups = []) {
+  const key = (group) => `${group.language}:${group.mode}:${group.fingerprint}`;
+  const signature = (group) =>
+    group.members
+      .map((item) => `${item.path}:${item.startLine}-${item.endLine}`)
+      .join('|');
+  const current = new Map(groups.map((group) => [key(group), group]));
+  const baseline = new Map(baselineGroups.map((group) => [key(group), group]));
+  const added = [];
+  const resolved = [];
+  const changed = [];
+  for (const [k, group] of current) {
+    const base = baseline.get(k);
+    if (!base) added.push(group);
+    else if (signature(base) !== signature(group))
+      changed.push({ baseline: base, current: group });
+  }
+  for (const [k, group] of baseline) if (!current.has(k)) resolved.push(group);
+  const order = (a, b) =>
+    b.coveredNodes - a.coveredNodes || compare(a.members[0].path, b.members[0].path);
+  return {
+    added: added.sort(order),
+    resolved: resolved.sort(order),
+    changed,
+  };
+}
+
 export function main(args = process.argv.slice(2)) {
   let format = 'text';
   let minNodes = 60;
   let output;
+  let baselinePath;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
     if (argument === '--format') format = args[++index];
@@ -275,9 +328,12 @@ export function main(args = process.argv.slice(2)) {
     else if (argument === '--output') {
       output = args[++index];
       if (!output) throw new Error('--output 缺少路径');
+    } else if (argument === '--baseline') {
+      baselinePath = args[++index];
+      if (!baselinePath) throw new Error('--baseline 缺少路径');
     } else if (argument === '--help') {
       process.stdout.write(
-        'pnpm run report:duplicates [--format text|json] [--min-nodes 60] [--output 路径]\n',
+        'pnpm run report:duplicates [--format text|json] [--min-nodes 60] [--output 路径] [--baseline 基线JSON路径]\n',
       );
       return;
     } else throw new Error(`未知参数：${argument}`);
@@ -288,7 +344,22 @@ export function main(args = process.argv.slice(2)) {
     minNodes < 1
   )
     throw new Error('format 必须为 text/json，min-nodes 必须为正整数');
+  let baseline;
+  if (baselinePath) {
+    try {
+      baseline = JSON.parse(readFileSync(resolve(baselinePath), 'utf8'));
+    } catch (error) {
+      throw new Error(`读取基线失败 ${baselinePath}: ${error.message}`);
+    }
+    if (!Array.isArray(baseline.groups))
+      throw new Error(`基线 ${baselinePath} 缺少 groups 数组`);
+  }
   const report = scan(repository, minNodes);
+  if (baseline)
+    report.baseline = {
+      path: baselinePath,
+      ...baselineDelta(report.groups, baseline.groups),
+    };
   const rendered =
     format === 'json'
       ? `${JSON.stringify(report, null, 2)}\n`

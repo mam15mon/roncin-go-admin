@@ -1,0 +1,59 @@
+name: 重复扫描周报
+
+on:
+  schedule:
+    # GitHub Actions cron 为 UTC；周一 03:00 UTC = 北京时间周一 11:00。
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: duplicate-report
+  cancel-in-progress: true
+
+jobs:
+  report:
+    name: 疑似重复周报与基线对比
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v7
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v6
+      - name: 安装 Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.14.1
+          cache: pnpm
+      - name: 安装 Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+      - name: 生成报告并与基线对比
+        # 扫描或解析失败时命令非零退出，工作流显式失败；疑似重复本身不失败。
+        run: |
+          pnpm run report:duplicates --format json --baseline scripts/duplicate-baseline.json --output /tmp/duplicates.json
+          pnpm run report:duplicates --baseline scripts/duplicate-baseline.json --output /tmp/duplicates.txt
+      - name: 写入运行摘要
+        run: |
+          {
+            echo '# 疑似重复周报'
+            echo ''
+            echo '与已提交基线 \`scripts/duplicate-baseline.json\` 对比；有意变更重复实现后，重新生成基线并随代码提交。'
+            echo ''
+            echo '```'
+            cat /tmp/duplicates.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: 上传 JSON 报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: duplicate-report
+          path: /tmp/duplicates.json
+          retention-days: 90
