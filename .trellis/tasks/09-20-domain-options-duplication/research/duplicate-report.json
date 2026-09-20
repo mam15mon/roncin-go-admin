@@ -1,0 +1,339 @@
+{
+  "version": 1,
+  "modes": [
+    "exact",
+    "renamed"
+  ],
+  "minNodes": 60,
+  "roots": [
+    "web/src",
+    "server"
+  ],
+  "statistics": {
+    "scannedFiles": {
+      "javascript": 461,
+      "go": 410
+    },
+    "excludedFiles": {
+      "测试": 378,
+      "非目标源码": 230,
+      "生成后缀或类型声明": 90,
+      "生成标记": 782
+    },
+    "excludedDirectories": 4,
+    "functions": 7631,
+    "functionsByLanguage": {
+      "javascript": 4232,
+      "go": 3399
+    },
+    "eligibleFunctions": 3320,
+    "exactOnlyFunctions": 1174
+  },
+  "limitations": [
+    "仅同语言完整函数结构匹配，不能证明业务等价；零候选不代表没有业务重复。",
+    "保留字面量、操作符、外部符号、属性名及类型；不解析跨文件别名或跨语言语义。",
+    "JS 解构/默认/剩余参数、var、嵌套函数声明、类、JSX、eval、switch、计算方法名等复杂绑定只参与 exact；Go 局部类型和匿名结构体只参与 exact。",
+    "Go 覆盖函数和方法声明（包括 Ent schema），不单独报告匿名函数；其结构仍参与外层函数比较。"
+  ],
+  "groups": [
+    {
+      "language": "javascript",
+      "mode": "exact",
+      "fingerprint": "28df5c251d6c825722360f8bef7b0ba9ed547a9ec77f0ac0c9ae378f407b5165",
+      "nodes": 171,
+      "coveredNodes": 342,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "javascript",
+          "path": "web/src/pages/finance/exchange-rates/components/ExchangeRateImportModal.tsx",
+          "symbol": "handleDownloadTemplate",
+          "startLine": 51,
+          "endLine": 85,
+          "start": 1650,
+          "end": 2819,
+          "nodes": 171,
+          "renameUnsupported": null
+        },
+        {
+          "language": "javascript",
+          "path": "web/src/pages/finance/exchange-rates/components/ExchangeRatesPanel.tsx",
+          "symbol": "handleDownloadTemplate",
+          "startLine": 99,
+          "endLine": 133,
+          "start": 3371,
+          "end": 4540,
+          "nodes": 171,
+          "renameUnsupported": null
+        }
+      ]
+    },
+    {
+      "language": "go",
+      "mode": "exact",
+      "fingerprint": "b7886b1168d034c151fe81385416b0151c7dc96b77535a709c186542dfc4dd86",
+      "nodes": 70,
+      "coveredNodes": 280,
+      "fileCount": 4,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "go",
+          "path": "server/internal/biz/finance_cashflow.go",
+          "symbol": "validFinanceCashflowOrganizationIDs",
+          "startLine": 121,
+          "endLine": 136,
+          "start": 6601,
+          "end": 7014,
+          "nodes": 70,
+          "renameUnsupported": "匿名结构体字段暂不规范化"
+        },
+        {
+          "language": "go",
+          "path": "server/internal/biz/finance_invoice.go",
+          "symbol": "validFinanceInvoiceOrganizationIDs",
+          "startLine": 218,
+          "endLine": 233,
+          "start": 10799,
+          "end": 11211,
+          "nodes": 70,
+          "renameUnsupported": "匿名结构体字段暂不规范化"
+        },
+        {
+          "language": "go",
+          "path": "server/internal/biz/finance_verification.go",
+          "symbol": "validFinanceVerificationOrganizationIDs",
+          "startLine": 149,
+          "endLine": 164,
+          "start": 6810,
+          "end": 7227,
+          "nodes": 70,
+          "renameUnsupported": "匿名结构体字段暂不规范化"
+        },
+        {
+          "language": "go",
+          "path": "server/internal/biz/settlement.go",
+          "symbol": "validFinanceOrganizationIDs",
+          "startLine": 146,
+          "endLine": 161,
+          "start": 5139,
+          "end": 5544,
+          "nodes": 70,
+          "renameUnsupported": "匿名结构体字段暂不规范化"
+        }
+      ]
+    },
+    {
+      "language": "go",
+      "mode": "exact",
+      "fingerprint": "68d13277b96d1dfc1dc9eaa21fca075b4c3184d91476e8767477dbaaa569b1eb",
+      "nodes": 94,
+      "coveredNodes": 188,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "go",
+          "path": "server/internal/service/order_fee.go",
+          "symbol": "businessTagSummariesToOrderAPI",
+          "startLine": 400,
+          "endLine": 409,
+          "start": 15411,
+          "end": 15851,
+          "nodes": 94,
+          "renameUnsupported": null
+        },
+        {
+          "language": "go",
+          "path": "server/internal/service/settlement_fee_tag.go",
+          "symbol": "businessTagSummariesToFinanceAPI",
+          "startLine": 14,
+          "endLine": 23,
+          "start": 331,
+          "end": 773,
+          "nodes": 94,
+          "renameUnsupported": null
+        }
+      ]
+    },
+    {
+      "language": "javascript",
+      "mode": "exact",
+      "fingerprint": "2fa319ec05283dfb5a8566d2c24fb48e32d1caafc47d017b08534f554718c4bd",
+      "nodes": 60,
+      "coveredNodes": 180,
+      "fileCount": 3,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "javascript",
+          "path": "web/src/pages/finance/bills/components/billColumns.tsx",
+          "symbol": "<匿名@38:15>",
+          "startLine": 38,
+          "endLine": 56,
+          "start": 1099,
+          "end": 1626,
+          "nodes": 60,
+          "renameUnsupported": "JSX、类或动态作用域暂不规范化"
+        },
+        {
+          "language": "javascript",
+          "path": "web/src/pages/finance/fees/components/feeLedgerColumns.tsx",
+          "symbol": "<匿名@120:15>",
+          "startLine": 120,
+          "endLine": 138,
+          "start": 3274,
+          "end": 3801,
+          "nodes": 60,
+          "renameUnsupported": "JSX、类或动态作用域暂不规范化"
+        },
+        {
+          "language": "javascript",
+          "path": "web/src/pages/orders/order-fee-panel-columns.tsx",
+          "symbol": "<匿名@35:15>",
+          "startLine": 35,
+          "endLine": 53,
+          "start": 929,
+          "end": 1456,
+          "nodes": 60,
+          "renameUnsupported": "JSX、类或动态作用域暂不规范化"
+        }
+      ]
+    },
+    {
+      "language": "javascript",
+      "mode": "exact",
+      "fingerprint": "cf0a4876185aa8e15539adde04d8d49d95768ad002e9415eef89bd7b059cc8d3",
+      "nodes": 84,
+      "coveredNodes": 168,
+      "fileCount": 1,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "javascript",
+          "path": "web/src/pages/orders/use-order-fee-options.ts",
+          "symbol": "<匿名@127:33>",
+          "startLine": 127,
+          "endLine": 139,
+          "start": 4449,
+          "end": 4943,
+          "nodes": 84,
+          "renameUnsupported": null
+        },
+        {
+          "language": "javascript",
+          "path": "web/src/pages/orders/use-order-fee-options.ts",
+          "symbol": "<匿名@152:27>",
+          "startLine": 152,
+          "endLine": 164,
+          "start": 5285,
+          "end": 5779,
+          "nodes": 84,
+          "renameUnsupported": null
+        }
+      ]
+    },
+    {
+      "language": "go",
+      "mode": "exact",
+      "fingerprint": "14878857c2f88d1c844349a45b3c91caee27a09d785594d1bd23fdce75ee14b5",
+      "nodes": 78,
+      "coveredNodes": 156,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "go",
+          "path": "server/internal/server/auth.go",
+          "symbol": "orderBusinessTypeToBiz",
+          "startLine": 390,
+          "endLine": 407,
+          "start": 13777,
+          "end": 14316,
+          "nodes": 78,
+          "renameUnsupported": null
+        },
+        {
+          "language": "go",
+          "path": "server/internal/service/order_query.go",
+          "symbol": "orderBusinessTypeFromAccess",
+          "startLine": 418,
+          "endLine": 435,
+          "start": 15240,
+          "end": 15784,
+          "nodes": 78,
+          "renameUnsupported": null
+        }
+      ]
+    },
+    {
+      "language": "go",
+      "mode": "exact",
+      "fingerprint": "752f287e398cfa7a7b9c671d9dbc0c6b0162a0a2e4ab0fd3b7bcb7aa0c3162de",
+      "nodes": 78,
+      "coveredNodes": 156,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "go",
+          "path": "server/internal/server/auth.go",
+          "symbol": "orderBusinessTypeFromBiz",
+          "startLine": 428,
+          "endLine": 445,
+          "start": 14968,
+          "end": 15509,
+          "nodes": 78,
+          "renameUnsupported": null
+        },
+        {
+          "language": "go",
+          "path": "server/internal/service/order_query.go",
+          "symbol": "orderBusinessTypeToAccess",
+          "startLine": 437,
+          "endLine": 454,
+          "start": 15786,
+          "end": 16328,
+          "nodes": 78,
+          "renameUnsupported": null
+        }
+      ]
+    },
+    {
+      "language": "javascript",
+      "mode": "exact",
+      "fingerprint": "43e0c88618a7b592de0957d4c9ca6c5c0f5d3aea7ed8f11cbd11a44310cb0cf2",
+      "nodes": 73,
+      "coveredNodes": 146,
+      "fileCount": 2,
+      "evidence": "忽略位置、格式、注释及声明名称后的 AST 相同",
+      "members": [
+        {
+          "language": "javascript",
+          "path": "web/src/pages/finance/nettings/index.tsx",
+          "symbol": "<匿名@456:19>",
+          "startLine": 456,
+          "endLine": 473,
+          "start": 13357,
+          "end": 14021,
+          "nodes": 73,
+          "renameUnsupported": "JSX、类或动态作用域暂不规范化"
+        },
+        {
+          "language": "javascript",
+          "path": "web/src/pages/finance/verifications/index.tsx",
+          "symbol": "<匿名@397:19>",
+          "startLine": 397,
+          "endLine": 414,
+          "start": 11571,
+          "end": 12235,
+          "nodes": 73,
+          "renameUnsupported": "JSX、类或动态作用域暂不规范化"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "snapshotNote": "完整实时报告包含 exactOnly 明细；归档快照省略该长列表，保留统计、限制、全部候选与错误。"
+}
