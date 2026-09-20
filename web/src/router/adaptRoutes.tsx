@@ -23,8 +23,8 @@ type PageLoader = () => Promise<{ default: ComponentType }>;
 type ProRoute = Omit<MenuDataItem, 'routes'> & { routes?: ProRoute[] };
 
 const pageModules = import.meta.glob([
-  '../../pages/**/*.tsx',
-  '!../../pages/**/*.test.tsx',
+  '../pages/**/*.tsx',
+  '!../pages/**/*.test.tsx',
 ]) as Record<string, PageLoader>;
 
 // 组件路径两段式解析：先 `pages/<path>.tsx`，未命中回退 `pages/<path>/index.tsx`
@@ -32,8 +32,8 @@ const pageModules = import.meta.glob([
 function resolvePageLoader(component: string): PageLoader | undefined {
   const base = component.replace(/^\.\//, '');
   return (
-    pageModules[`../../pages/${base}.tsx`] ??
-    pageModules[`../../pages/${base}/index.tsx`]
+    pageModules[`../pages/${base}.tsx`] ??
+    pageModules[`../pages/${base}/index.tsx`]
   );
 }
 

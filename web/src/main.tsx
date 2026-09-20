@@ -11,6 +11,7 @@ import { router } from './router';
 import { AppFeedbackBridge } from './utils/appFeedback';
 import { queryClient } from './utils/queryClient';
 // Umi 隐式全局入口在此显式化：39KB 全局高密度样式 + Tailwind 基础层。
+import 'dayjs/locale/zh-cn';
 import './global.less';
 import '../tailwind.css';
 
