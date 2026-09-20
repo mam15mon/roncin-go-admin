@@ -25,7 +25,7 @@ vi.mock('@/app/AppProvider', () => ({
   }),
 }));
 
-vi.mock('@/utils/order-options-cache', () => ({
+vi.mock('@/features/orders/options', () => ({
   getOrderPersonnelOptions: vi.fn().mockResolvedValue([]),
 }));
 

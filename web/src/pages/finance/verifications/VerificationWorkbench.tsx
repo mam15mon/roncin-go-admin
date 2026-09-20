@@ -24,7 +24,11 @@ import Decimal from 'decimal.js';
 import { useEffect, useMemo, useState } from 'react';
 import { MODAL_SIZE } from '@/components/ui';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
-import { useCreditLimitIntervention } from '@/features/finance/credit-control';
+import {
+  disableCreditExceededOptions,
+  useCreditLimitIntervention,
+} from '@/features/finance/credit-control';
+import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { PartnerSelectOptionTags } from '@/features/partners';
 import {
   settlementServiceCreateVerification,
@@ -32,12 +36,8 @@ import {
   settlementServiceListFinanceSettlementPartyOptions,
   settlementServiceListVerificationCreationCandidates,
 } from '@/services/roncin/settlementService';
+import type { SelectOption } from '@/types/select-option';
 import { getErrorMessage } from '@/utils/errorMessage';
-import {
-  disableCreditExceededOptions,
-  getCurrencyOptions,
-  type SelectOption,
-} from '@/utils/options';
 import { generateUUID } from '@/utils/uuid';
 import {
   buildVerificationAllocations,

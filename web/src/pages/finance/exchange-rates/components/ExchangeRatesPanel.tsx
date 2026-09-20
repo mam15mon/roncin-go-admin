@@ -18,6 +18,7 @@ import { App, Button, Card, Form, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { getCurrencies } from '@/features/master-data/currencies';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
@@ -29,7 +30,6 @@ import { toTableRequest } from '@/utils/api';
 import { isPositiveExactDecimal } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate, trimDecimal } from '@/utils/format';
-import { getCurrencies } from '@/utils/options';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 import { ExchangeRateSyncModal } from './ExchangeRateSyncModal';
 

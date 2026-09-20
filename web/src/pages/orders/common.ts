@@ -16,18 +16,19 @@ import {
   TradeDirection,
   TradeTerm,
 } from '@/enums.generated';
+import { getCurrencies } from '@/features/master-data/currencies';
+import {
+  getCachedAirports,
+  getCachedPorts,
+  getMasterDataOptions,
+} from '@/features/orders/options';
+import { searchPartnerOptions } from '@/features/partners';
 import {
   masterDataServiceListAirports,
   masterDataServiceListItems,
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
 import { unwrapList } from '@/utils/api';
-import { getCurrencies, searchPartnerOptions } from '@/utils/options';
-import {
-  getCachedAirports,
-  getCachedPorts,
-  getMasterDataOptions,
-} from '@/utils/order-options-cache';
 import type { OrderTransportMode } from './order-kinds/types';
 import type { SelectOption } from './templates';
 

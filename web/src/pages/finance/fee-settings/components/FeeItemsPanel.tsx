@@ -8,6 +8,7 @@ import { Alert, Tag } from 'antd';
 import React, { useState } from 'react';
 import { useAccess } from '@/app/access';
 import { ProFormSearchableSelect, SettingTableTemplate } from '@/components/ui';
+import { getCurrencies } from '@/features/master-data/currencies';
 import {
   feeCatalogServiceCreateFeeSetting,
   feeCatalogServiceListBillingUnits,
@@ -17,7 +18,6 @@ import {
 } from '@/services/roncin/feeCatalogService';
 import { masterDataServiceListOptions } from '@/services/roncin/masterDataService';
 import { toTableRequest, unwrapList } from '@/utils/api';
-import { getCurrencies } from '@/utils/options';
 
 const isServiceType = (kind?: number | string) =>
   kind === 8 ||

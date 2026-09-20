@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({ accounts: vi.fn() }));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBillSettlementAccountUpdateCandidates: mocks.accounts,
 }));
-vi.mock('@/utils/options', () => ({
+vi.mock('@/features/master-data/currencies', () => ({
   getCurrencyOptions: vi.fn().mockResolvedValue([
     { label: 'CNY - 人民币', value: 'CNY' },
     { label: 'USD - 美元', value: 'USD' },

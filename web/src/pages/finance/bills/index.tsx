@@ -14,6 +14,8 @@ import {
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { billStatusMeta } from '@/features/finance/bill-status';
+import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { searchPartnerOptions } from '@/features/partners';
 import {
   settlementServiceBatchAssignFinanceBillTags,
   settlementServiceBatchRemoveFinanceBillTags,
@@ -28,7 +30,6 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { getCurrencyOptions, searchPartnerOptions } from '@/utils/options';
 import { makeVersionActions } from '@/utils/versionActions';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';

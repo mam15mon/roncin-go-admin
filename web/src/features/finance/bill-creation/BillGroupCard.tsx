@@ -18,9 +18,10 @@ import {
 import type { NamePath } from 'antd/es/form/interface';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
+import type { SelectOption } from '@/types/select-option';
 import { unwrapList } from '@/utils/api';
-import { getCurrencyOptions, type SelectOption } from '@/utils/options';
 import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 
 const { Text } = Typography;

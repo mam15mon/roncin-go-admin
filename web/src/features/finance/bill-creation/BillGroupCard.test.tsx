@@ -9,7 +9,7 @@ vi.mock('@/services/roncin/settlementService', () => ({
     .fn()
     .mockResolvedValue({ data: [] }),
 }));
-vi.mock('@/utils/options', () => ({
+vi.mock('@/features/master-data/currencies', () => ({
   getCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('@ant-design/pro-components', () => ({

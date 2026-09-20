@@ -108,7 +108,7 @@ vi.mock('@/utils/appFeedback', () => ({
   }),
 }));
 
-vi.mock('@/utils/order-options-cache', () => ({
+vi.mock('@/features/orders/options', () => ({
   clearOrderMasterDataCache: clearOrderMasterDataCacheMock,
 }));
 

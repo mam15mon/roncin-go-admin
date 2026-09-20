@@ -24,7 +24,11 @@ import {
   FinanceCashflowStatus,
   FinanceOrganizationPurpose,
 } from '@/enums.generated';
-import { useCreditLimitIntervention } from '@/features/finance/credit-control';
+import {
+  disableCreditExceededOptions,
+  useCreditLimitIntervention,
+} from '@/features/finance/credit-control';
+import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { PartnerSelectOptionTags } from '@/features/partners';
 import {
   settlementServiceCancelCashflow,
@@ -36,10 +40,6 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import {
-  disableCreditExceededOptions,
-  getCurrencyOptions,
-} from '@/utils/options';
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 

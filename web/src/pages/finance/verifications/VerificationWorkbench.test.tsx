@@ -149,8 +149,9 @@ vi.mock('antd', async () => {
   };
 });
 
-vi.mock('@/utils/options', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/utils/options')>();
+vi.mock('@/features/master-data/currencies', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/features/master-data/currencies')>();
   return {
     ...actual,
     getCurrencyOptions: vi

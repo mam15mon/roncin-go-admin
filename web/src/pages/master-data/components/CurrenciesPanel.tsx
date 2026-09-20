@@ -3,18 +3,18 @@ import {
   CloseCircleOutlined,
   DollarOutlined,
 } from '@ant-design/icons';
-import { useAccess } from '@/app/access';
 import { App, Badge, Space, Tag } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
+import { getCurrencies } from '@/features/master-data/currencies';
 import {
   masterDataServiceListCurrencies,
   masterDataServiceSetCurrencyEnabled,
 } from '@/services/roncin/masterDataService';
 import { unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { getCurrencies } from '@/utils/options';
 
 export interface CurrencyItem extends BaseMasterDataItem {
   symbol?: string;

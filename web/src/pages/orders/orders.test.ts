@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MasterDataKind } from '@/enums.generated';
-import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
+import { clearOrderMasterDataCache } from '@/features/orders/options';
 import {
   businessTypeOptions,
   fetchOrderMasterData,
@@ -26,8 +26,11 @@ vi.mock('@/services/roncin/masterDataService', () => ({
   masterDataServiceListAirports: listAirports,
 }));
 
-vi.mock('@/utils/options', () => ({
+vi.mock('@/features/master-data/currencies', () => ({
   getCurrencies,
+}));
+
+vi.mock('@/features/partners', () => ({
   searchPartnerOptions: vi.fn(),
 }));
 

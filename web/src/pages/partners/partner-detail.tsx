@@ -2,11 +2,10 @@ import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useLocation, useParams, useSearchParams } from 'react-router';
 import { App, Button, Space, Spin, Tag, Typography } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useParams, useSearchParams } from 'react-router';
+import { useAccess } from '@/app/access';
 import {
   PageHeaderShell,
   StickyFooterBar,
@@ -20,6 +19,8 @@ import {
   PartnerSettlementMethod,
   PartnerStatementMode,
 } from '@/enums.generated';
+import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { history } from '@/router/history';
 import { adminServiceListUsers } from '@/services/roncin/adminService';
 import {
   partnerServiceCreatePartner,
@@ -31,7 +32,6 @@ import {
 import { unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
-import { getCurrencyOptions } from '@/utils/options';
 import AccountsSection from './components/AccountsSection';
 import BasicInfoSection from './components/BasicInfoSection';
 import type { ContactItem } from './components/ContactCardList';

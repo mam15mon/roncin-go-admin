@@ -1,10 +1,10 @@
 import { LogoutOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useInitialState } from '@/app/AppProvider';
 import { Avatar, Button, Divider, Spin, Tag } from 'antd';
 import React, { startTransition } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { clearOrderMasterDataCache } from '@/features/orders/options';
+import { history } from '@/router/history';
 import { authServiceLogout } from '@/services/roncin/authService';
-import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import HeaderDropdown from '../HeaderDropdown';
 
 const ROLE_LABELS: Record<string, string> = {

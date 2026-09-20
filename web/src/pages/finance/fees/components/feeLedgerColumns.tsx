@@ -1,5 +1,4 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { history } from '@/router/history';
 import { Tag } from 'antd';
 import {
   businessTypeMeta,
@@ -9,8 +8,9 @@ import {
   statusText,
 } from '@/constants/statusMeta';
 import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
+import { searchPartnerOptions } from '@/features/partners';
+import { history } from '@/router/history';
 import { formatAmount } from '@/utils/format';
-import { searchPartnerOptions } from '@/utils/options';
 
 const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
   ['SE', 'SI', 'AE', 'AI', 'LAND', 'RAIL'].map((code) => [

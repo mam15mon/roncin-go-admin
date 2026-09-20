@@ -2,14 +2,14 @@ import { render, screen } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
-import { orderTagServiceListOrderTagOptions } from '@/services/roncin/orderTagService';
-import { searchPartnerOptions } from '@/utils/options';
 import {
   getCachedAirports,
   getCachedPorts,
   getMasterDataOptions,
-} from '@/utils/order-options-cache';
+} from '@/features/orders/options';
+import { searchPartnerOptions } from '@/features/partners';
+import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
+import { orderTagServiceListOrderTagOptions } from '@/services/roncin/orderTagService';
 import OrderListPage from './list';
 
 const locationState = vi.hoisted(() => ({
@@ -48,14 +48,17 @@ vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
 }));
 
-vi.mock('@/utils/order-options-cache', () => ({
+vi.mock('@/features/orders/options', () => ({
   getMasterDataOptions: vi.fn().mockResolvedValue([]),
   getCachedPorts: vi.fn().mockResolvedValue([]),
   getCachedAirports: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock('@/utils/options', () => ({
+vi.mock('@/features/partners', () => ({
   searchPartnerOptions: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('@/features/master-data/shipping-lines', () => ({
   searchShippingLineOptions: vi.fn().mockResolvedValue([]),
 }));
 

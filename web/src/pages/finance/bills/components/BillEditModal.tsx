@@ -13,13 +13,14 @@ import Decimal from 'decimal.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
 import { BillTermsCreditWarnings } from '@/features/finance/bill-creation';
+import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   settlementServiceListBillSettlementAccountUpdateCandidates,
   settlementServiceListBills,
 } from '@/services/roncin/settlementService';
+import type { SelectOption } from '@/types/select-option';
 import { unwrapList } from '@/utils/api';
-import { getCurrencyOptions, type SelectOption } from '@/utils/options';
 import type { BillFormValues } from './billConstants';
 
 interface BillEditModalProps {

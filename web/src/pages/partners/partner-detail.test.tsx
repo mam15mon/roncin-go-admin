@@ -92,7 +92,7 @@ vi.mock('@/services/roncin/partnerService', () => ({
   partnerServiceUpdatePartner: vi.fn(),
 }));
 
-vi.mock('@/utils/options', () => ({
+vi.mock('@/features/master-data/currencies', () => ({
   getCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 

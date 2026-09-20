@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearOrderMasterDataCache,
   getOrderPersonnelOptions,
-} from '@/utils/order-options-cache';
+} from '@/features/orders/options';
 import { fetchOrderMasterData, searchOrderLocations } from './common';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { useOrderCreateOptions } from './use-order-create-options';
@@ -23,7 +23,7 @@ vi.mock('@/app/AppProvider', () => ({
   }),
 }));
 
-vi.mock('@/utils/order-options-cache', () => ({
+vi.mock('@/features/orders/options', () => ({
   clearOrderMasterDataCache: vi.fn(),
   getOrderPersonnelOptions: vi.fn(),
 }));

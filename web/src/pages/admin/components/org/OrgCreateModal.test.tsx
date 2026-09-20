@@ -10,7 +10,7 @@ const { getCurrencyOptionsMock, adminServiceCreateOrganizationMock } =
     adminServiceCreateOrganizationMock: vi.fn(),
   }));
 
-vi.mock('@/utils/options', () => ({
+vi.mock('@/features/master-data/currencies', () => ({
   getCurrencyOptions: getCurrencyOptionsMock,
 }));
 

@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { useInitialState } from '@/app/AppProvider';
 import { useCallback, useRef } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { OrderBusinessType } from '@/enums.generated';
+import { getOrderPersonnelOptions } from '@/features/orders/options';
 import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { getOrderPersonnelOptions } from '@/utils/order-options-cache';
 import {
   fetchOrderMasterData,
   isMasterDataKind,

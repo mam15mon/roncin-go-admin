@@ -1,12 +1,12 @@
 import { CheckOutlined, DownOutlined, SwapOutlined } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useInitialState } from '@/app/AppProvider';
 import type { MenuProps } from 'antd';
 import { App, Button, Spin } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import HeaderDropdown from '@/components/HeaderDropdown';
+import { clearOrderMasterDataCache } from '@/features/orders/options';
+import { history } from '@/router/history';
 import { authServiceSwitchOrganization } from '@/services/roncin/authService';
-import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import { confirmIfAnyTabDirty } from './layout/tabCloseGuard';
 
 export default function OrganizationSwitcher() {

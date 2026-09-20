@@ -5,11 +5,11 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { history } from '@/router/history';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearOrderMasterDataCache } from '@/features/orders/options';
+import { history } from '@/router/history';
 import { authServiceLogout } from '@/services/roncin/authService';
-import { clearOrderMasterDataCache } from '@/utils/order-options-cache';
 import { AvatarDropdown } from './AvatarDropdown';
 
 let mockCurrentUser: any = null;
@@ -32,7 +32,7 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceLogout: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock('@/utils/order-options-cache', () => ({
+vi.mock('@/features/orders/options', () => ({
   clearOrderMasterDataCache: vi.fn(),
 }));
 

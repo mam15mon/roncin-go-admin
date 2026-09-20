@@ -7,8 +7,8 @@ import {
 } from '@ant-design/pro-components';
 import { App, Typography } from 'antd';
 import React, { useRef } from 'react';
+import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceUpdateOrganization } from '@/services/roncin/adminService';
-import { getCurrencyOptions } from '@/utils/options';
 import type { EditFormValues } from './types';
 
 const { Text } = Typography;
