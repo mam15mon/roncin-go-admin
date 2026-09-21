@@ -510,7 +510,7 @@ func (s *OrderService) ListPersonnelOptions(ctx context.Context, request *v1.Lis
 	data := make([]*v1.OrderPersonnelOption, 0, len(result.Items))
 	for _, item := range result.Items {
 		data = append(data, &v1.OrderPersonnelOption{
-			UserId: item.UserID.String(), DisplayName: item.DisplayName,
+			UserId: item.UserID.String(), DisplayName: item.DisplayName, DepartmentNames: item.DepartmentNames,
 		})
 	}
 	return okList(ctx, &v1.ListPersonnelOptionsResponse{Data: data, Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil

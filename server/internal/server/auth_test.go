@@ -255,11 +255,11 @@ func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	}
 
 	partner, direct := requestPartner(t.Context(), &partnerv1.GetPartnerRequest{Id: partnerID.String()}, usecase, partnerOrganizationIDs(principal, access.PartnerRead, false))
-	if !direct || partner == nil || partner.ID != partnerID {
-		t.Fatalf("授权查询应定位北京往来单位，actual partner=%#v direct=%v", partner, direct)
+	if !direct || partner != nil {
+		t.Fatalf("组织树权限不得读取其他公司往来单位，actual partner=%#v direct=%v", partner, direct)
 	}
-	if repo.findCalls != 1 || len(repo.ids) != 2 || !containsOrganizationID(repo.ids, tianjinID) || !containsOrganizationID(repo.ids, beijingID) {
-		t.Fatalf("授权查询必须把同一 partner.read 角色解析的组织范围传入仓储，actual=%v", repo.ids)
+	if repo.findCalls != 1 || len(repo.ids) != 1 || repo.ids[0] != tianjinID {
+		t.Fatalf("授权查询必须把当前公司范围传入仓储，actual=%v", repo.ids)
 	}
 }
 
@@ -299,37 +299,49 @@ func TestRequestPartnerDoesNotBorrowOtherRoleScope(t *testing.T) {
 	}
 }
 
-func TestAuthorizationUsesPartnerOrganizationForDetailSubresource(t *testing.T) {
-	tianjinID := uuid.New()
-	beijingID := uuid.New()
-	partner := &biz.Partner{ID: uuid.New(), OrganizationID: beijingID}
-	principal := &biz.Principal{
-		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
-		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
-		RoleGrants: []biz.RoleGrant{serverRoleGrant("account-reader", biz.DataScopeAll,
-			[]string{access.PartnerAccountRead})},
+func TestAuthorizationPartnerResourcesStayInWorkspace(t *testing.T) {
+	companyA, companyB, partnerID := uuid.New(), uuid.New(), uuid.New()
+	cases := []struct {
+		operation, permission string
+		request               any
+	}{
+		{"GetPartner", access.PartnerRead, &partnerv1.GetPartnerRequest{Id: partnerID.String()}},
+		{"ListPartnerAccounts", access.PartnerAccountRead, &partnerv1.ListPartnerAccountsRequest{PartnerId: partnerID.String()}},
+		{"ListPartnerContracts", access.PartnerContractRead, &partnerv1.ListPartnerContractsRequest{PartnerId: partnerID.String()}},
+		{"ListPartnerAttachments", access.PartnerAttachmentRead, &partnerv1.ListPartnerAttachmentsRequest{PartnerId: partnerID.String()}},
+		{"ListPartnerAuditLogs", access.PartnerAuditRead, &partnerv1.ListPartnerAuditLogsRequest{PartnerId: partnerID.String()}},
+		{"ListPartnerSettlementRules", access.PartnerSettlementRuleRead, &partnerv1.ListPartnerSettlementRulesRequest{PartnerId: partnerID.String()}},
+		{"ListPartnerShippingPresets", access.PartnerShippingPresetRead, &partnerv1.ListPartnerShippingPresetsRequest{PartnerId: partnerID.String()}},
 	}
-	policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
-	authUsecase := biz.NewAuthUsecase(&middlewareAuthRepoStub{
-		session:   &biz.Session{TokenHash: "valid", UserID: uuid.New(), OrganizationID: tianjinID, ExpiresAt: time.Now().Add(time.Hour)},
-		principal: principal,
-	}, policy, nil, nil, nil, nil, nil, nil)
-	partnerUsecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: partner})
-	called := false
-	organizationID := uuid.Nil
-	middleware := Authorization(authUsecase, policy, nil, partnerUsecase)
-	ctx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/partner.v1.PartnerService/ListPartnerAccounts", cookie: "sid=valid"})
-	_, err := middleware(func(ctx context.Context, _ any) (any, error) {
-		called = true
-		effective, requireErr := biz.RequirePrincipal(ctx)
-		if requireErr != nil {
-			return nil, requireErr
+	for _, test := range cases {
+		for _, target := range []uuid.UUID{companyA, companyB} {
+			t.Run(test.operation+"/"+target.String(), func(t *testing.T) {
+				principal := &biz.Principal{Organization: biz.Organization{ID: companyA, Kind: biz.OrganizationKindCompany}, OrganizationNodes: serverOrganizationNodes(companyA, companyB), RoleGrants: []biz.RoleGrant{serverRoleGrant("当前公司角色", biz.DataScopeAll, []string{test.permission})}}
+				policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
+				authUsecase := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{TokenHash: "valid", UserID: uuid.New(), OrganizationID: companyA, ExpiresAt: time.Now().Add(time.Hour)}, principal: principal}, policy, nil, nil, nil, nil, nil, nil)
+				partnerUsecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: &biz.Partner{ID: partnerID, OrganizationID: target}})
+				called := false
+				ctx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/partner.v1.PartnerService/" + test.operation, cookie: "sid=valid"})
+				_, err := Authorization(authUsecase, policy, nil, partnerUsecase)(func(ctx context.Context, _ any) (any, error) {
+					called = true
+					effective, requireErr := biz.RequirePrincipal(ctx)
+					if requireErr != nil {
+						return nil, requireErr
+					}
+					if effective != principal || effective.Organization.ID != companyA {
+						t.Fatal("伙伴资源不得重定位会话公司")
+					}
+					return nil, nil
+				})(ctx, test.request)
+				if target == companyA {
+					if err != nil || !called {
+						t.Fatalf("当前公司资源应允许访问: %v, called=%v", err, called)
+					}
+				} else if err != biz.ErrPermissionDenied || called {
+					t.Fatalf("外公司资源必须拒绝: %v, called=%v", err, called)
+				}
+			})
 		}
-		organizationID = effective.Organization.ID
-		return nil, nil
-	})(ctx, &partnerv1.ListPartnerAccountsRequest{PartnerId: partner.ID.String()})
-	if err != nil || !called || organizationID != beijingID {
-		t.Fatalf("跨组织详情子资源应以主档组织执行，err=%v called=%t organization=%s", err, called, organizationID)
 	}
 }
 

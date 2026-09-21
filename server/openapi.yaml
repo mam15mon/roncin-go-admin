@@ -18591,6 +18591,11 @@ components:
                     type: string
                 displayName:
                     type: string
+                departmentNames:
+                    type: array
+                    items:
+                        type: string
+                    description: 当前公司内的部门/团队名称；为空表示直接隶属公司。
             description: OrderPersonnelOption 订单协作人员候选；同一人员的多条部门 Membership 去重。
         order.v1.OrderReferenceCheck:
             type: object
@@ -22122,6 +22127,11 @@ components:
                     type: string
                 displayName:
                     type: string
+                departmentNames:
+                    type: array
+                    items:
+                        type: string
+                    description: 当前公司内的部门/团队名称；为空表示直接隶属公司。
             description: 责任人员候选收敛为纯人员语义：同一人员的多部门成员关系按人员去重后仅返回一条。
         partner.v1.PartnerAttachment:
             type: object

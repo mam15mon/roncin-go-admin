@@ -7,7 +7,7 @@
 ## 2. 签名
 
 - `PartnerAssignmentInput { role, user_id }`、`OrderPersonnelAssignmentInput { user_id, role }`、`AssignPersonnelRequest { order_id, user_id, role }`：写契约均不接收 `organization_id`。
-- `PartnerAssignmentOption` / `OrderPersonnelOption`：只返回 `user_id, display_name`，分页实体为唯一用户。
+- `PartnerAssignmentOption` / `OrderPersonnelOption`：返回人员 ID、姓名及当前公司内部门/团队展示信息，分页实体为唯一用户；不展示登录账号。
 - 数据库不变量：`partner_assignments.organization_id = partners.organization_id`；`order_personnels.organization_id = orders.organization_id`；上述经营归属组织的 `kind = company`。
 - `snapshotOrderCommissionAttributions(ctx, tx, companyID, orderID, customerID, at)` 在订单创建或草稿更换客户事务中运行。
 - `access.IsBusinessOperationPermission(key)` 显式标记经营办理权限；`Principal.CanOperateBusiness()` 校验启用公司工作台；`ResolvePermissionOrganizationScope` 将经营写范围收敛到当前公司。
@@ -17,7 +17,9 @@
 
 - 所有交互经营办理必须处于启用公司工作台，并具备对应操作权限；目标数据必须属于当前公司。总部保留授权查看与治理配置维护，但不能以显式目标公司、组织树范围或初始化管理员身份直接办理分公司业务。总部人员有切换资格和业务授权时，先切换分公司再办理。
 - `PermissionKeys` 与后端权限检查使用相同工作台规则；总部不返回纯经营写权限，原始角色授权仍保留，用于角色管理与切换后的权限重算。公司工作台查看他公司单据时，页面写按钮与响应的业务能力均不得开启。
-- 客户/订单人员可仅在公司下的部门或团队拥有启用 Membership，但用户必须启用，成员关系所在组织也必须启用且位于该公司的子树；落库 `organization_id` 一律写经营主体公司，而不是 Membership 所在部门。
+- 客户/订单人员可仅在公司下的部门或团队拥有启用 Membership，但用户、成员关系和所在组织必须启用；人员范围到其他公司节点即截止，不包含下属其他公司的人员。落库 `organization_id` 一律写经营主体公司，而不是 Membership 所在部门。
+- 人员选择只提交 user_id，不提供旁置公司选择。显示为姓名与部门/团队，无部门时显示公司；同一用户多部门聚合为一个候选，同名不同用户保留。
+- 往来单位及其列表、导出、详情和子资料固定当前公司；角色 ALL/TREE 和初始化管理员身份不扩大该范围。其他业务领域的跨公司只读权限仍按各自契约处理。
 - 客户 `CREATOR` 是用例根据当前操作者自动追加的创建事实，不是客户端分配的业务岗位，不要求创建人在公司子树内拥有 Membership；例如初始化管理员合法切换到公司后可创建客户。销售、操作、客服等可编辑责任岗位仍严格校验成员资格，客户端不得指定或改写 `CREATOR`。
 - 订单必须使用同公司客户；快照查询继续严格匹配 `partner_assignment.organization_id == order.organization_id`。既有订单提成快照不会因客户责任人变化自动刷新。
 - 迁移 `20260917120000_operating_company_personnel_ownership.sql` 先断言总部无客户和订单，再幂等收敛两张人员表的归属；不改历史 `order_commission_attributions`。

@@ -1,11 +1,13 @@
 import { Form } from 'antd';
 import React from 'react';
 import { FormRow, SearchableSelect } from '@/components/ui';
+import { formatPersonnelLabel } from '@/features/personnel';
 import type { TemplateProps } from '../../types';
 
 interface PersonnelAssignmentOption {
   userId?: string;
   displayName?: string;
+  departmentNames?: string[];
 }
 
 interface PersonnelAssignmentFieldsProps {
@@ -28,7 +30,7 @@ export function PersonnelAssignmentFields({
         .map((option) => [
           option.userId as string,
           {
-            label: option.displayName || option.userId,
+            label: formatPersonnelLabel(option),
             value: option.userId as string,
           },
         ]),

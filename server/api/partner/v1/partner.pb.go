@@ -1193,11 +1193,13 @@ func (x *PartnerAssignmentInput) GetUserId() string {
 
 // 责任人员候选收敛为纯人员语义：同一人员的多部门成员关系按人员去重后仅返回一条。
 type PartnerAssignmentOption struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	UserId      string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DisplayName string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// 当前公司内的部门/团队名称；为空表示直接隶属公司。
+	DepartmentNames []string `protobuf:"bytes,3,rep,name=department_names,json=departmentNames,proto3" json:"department_names,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *PartnerAssignmentOption) Reset() {
@@ -1242,6 +1244,13 @@ func (x *PartnerAssignmentOption) GetDisplayName() string {
 		return x.DisplayName
 	}
 	return ""
+}
+
+func (x *PartnerAssignmentOption) GetDepartmentNames() []string {
+	if x != nil {
+		return x.DepartmentNames
+	}
+	return nil
 }
 
 type ListPartnerAssignmentOptionsRequest struct {
@@ -7558,10 +7567,11 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"sort_order\x18\a \x01(\x05R\tsortOrder\"r\n" +
 	"\x16PartnerAssignmentInput\x12:\n" +
 	"\x04role\x18\x01 \x01(\x0e2!.partner.v1.PartnerAssignmentRoleB\x03\xe0A\x02R\x04role\x12\x1c\n" +
-	"\auser_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06userId\"U\n" +
+	"\auser_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06userId\"\x80\x01\n" +
 	"\x17PartnerAssignmentOption\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"%\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12)\n" +
+	"\x10department_names\x18\x03 \x03(\tR\x0fdepartmentNames\"%\n" +
 	"#ListPartnerAssignmentOptionsRequest\"r\n" +
 	"%SearchPartnerAssignmentOptionsRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +

@@ -20,6 +20,7 @@ import {
   PartnerStatementMode,
 } from '@/enums.generated';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { formatPersonnelLabel } from '@/features/personnel';
 import { history } from '@/router/history';
 import { adminServiceListUsers } from '@/services/roncin/adminService';
 import {
@@ -417,27 +418,16 @@ export default function PartnerDetailPage() {
     roleLabel,
   ]);
 
-  // User and Organization Select Options
-  const userSelectOptions = useMemo(() => {
-    if (assignmentOptions.length > 0) {
-      const map = new Map<string, string>();
-      for (const item of assignmentOptions) {
-        if (item.userId && item.displayName && !map.has(item.userId)) {
-          map.set(item.userId, item.displayName);
-        }
-      }
-      if (map.size > 0) {
-        return Array.from(map.entries()).map(([value, label]) => ({
-          label,
-          value,
-        }));
-      }
-    }
-    return users.map((u) => ({
-      label: `${u.displayName || u.username} (${u.username})`,
-      value: u.id ?? '',
-    }));
-  }, [assignmentOptions, users]);
+  // 候选资格由服务端限定当前公司；候选为空时不回退管理端用户列表。
+  const userSelectOptions = useMemo(
+    () =>
+      assignmentOptions.flatMap((item) =>
+        item.userId
+          ? [{ value: item.userId, label: formatPersonnelLabel(item) }]
+          : [],
+      ),
+    [assignmentOptions],
+  );
 
   // Tianyancha Verify
   const handleTianyanchaVerify = () => {

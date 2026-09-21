@@ -185,8 +185,9 @@ type PartnerAssignment struct {
 }
 
 type PartnerAssignmentOption struct {
-	UserID      uuid.UUID
-	DisplayName string
+	UserID          uuid.UUID
+	DisplayName     string
+	DepartmentNames []string
 }
 
 type Partner struct {
@@ -299,7 +300,7 @@ func (uc *PartnerUsecase) Get(ctx context.Context, organizationID, id uuid.UUID)
 }
 
 // FindAuthorized 在仓储查询中同时限制往来单位 ID 和允许组织，供传输鉴权定位
-// 跨组织详情及其子资源的组织上下文使用。禁止先按 ID 全局查询后在内存中判定。
+// 当前工作台详情及其子资源鉴权使用。禁止先按 ID 全局查询后在内存中判定。
 func (uc *PartnerUsecase) FindAuthorized(ctx context.Context, id uuid.UUID, organizationIDs []uuid.UUID) (*Partner, error) {
 	if id == uuid.Nil || !validPartnerOrganizationIDs(organizationIDs) {
 		return nil, ErrPartnerNotFound

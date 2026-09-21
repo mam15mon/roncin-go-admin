@@ -9,7 +9,6 @@ import (
 	administrativeregionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
-	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
@@ -166,50 +165,14 @@ func (r *partnerRepo) ListAssignmentOptions(ctx context.Context, organizationID 
 	if err != nil {
 		return nil, err
 	}
-	organizations, err := client.Organization.Query().
-		Select(organizationent.FieldID, organizationent.FieldParentID).
-		All(ctx)
+	query, err := companyPersonnelQuery(ctx, client, organizationID, options.Keyword)
 	if err != nil {
 		return nil, err
-	}
-	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
-	for _, organization := range organizations {
-		parentByID[organization.ID] = organization.ParentID
-	}
-	organizationIDs := make([]uuid.UUID, 0, len(organizations))
-	for _, organization := range organizations {
-		if organizationWithinRoot(parentByID, organizationID, organization.ID) {
-			organizationIDs = append(organizationIDs, organization.ID)
-		}
-	}
-	membershipScope := []entpredicate.Membership{
-		membershipent.OrganizationIDIn(organizationIDs...),
-		membershipent.EnabledEQ(true),
-		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
-	}
-	query := client.User.Query().Where(
-		userent.EnabledEQ(true),
-		userent.HasMembershipsWith(membershipScope...),
-	)
-	if options.Keyword != "" {
-		query.Where(userent.Or(
-			userent.UsernameContainsFold(options.Keyword),
-			userent.DisplayNameContainsFold(options.Keyword),
-			userent.SearchKeywordsContainsFold(options.Keyword),
-			userent.HasMembershipsWith(
-				membershipent.OrganizationIDIn(organizationIDs...),
-				membershipent.EnabledEQ(true),
-				membershipent.HasOrganizationWith(
-					organizationent.EnabledEQ(true),
-					organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword)),
-				),
-			),
-		))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
 		return query.Order(userent.ByDisplayName(), userent.ByID()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(func(item *ent.User) *biz.PartnerAssignmentOption {
-		return &biz.PartnerAssignmentOption{UserID: item.ID, DisplayName: item.DisplayName}
+		return &biz.PartnerAssignmentOption{UserID: item.ID, DisplayName: item.DisplayName, DepartmentNames: personnelDepartmentNames(item)}
 	}))
 }
 
@@ -661,8 +624,8 @@ func validatePartnerProfileRegions(ctx context.Context, tx *ent.Tx, profile *biz
 }
 
 // replacePartnerAssignments 重建客户责任人员：归属组织一律派生为 rootOrganizationID
-// （客户档案所属公司）；人员是否可担任按「当前公司子树内
-// 任一启用组织持有启用 Membership 且用户启用」判定，子树外或停用成员关系拒绝。
+// （客户档案所属公司）；人员是否可担任按当前公司及启用部门/团队成员判定，
+// 不包含下属其他公司，用户或成员关系停用时拒绝。
 // CREATOR 由用例从当前操作者生成，仅记录创建事实，不要求具备业务责任人资格。
 func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganizationID, partnerID uuid.UUID, assignments []*biz.PartnerAssignment) error {
 	if _, err := tx.PartnerAssignment.Delete().Where(
@@ -674,20 +637,9 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 	if len(assignments) == 0 {
 		return nil
 	}
-	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID, organizationent.FieldEnabled).All(ctx)
+	subtreeOrganizationIDs, err := companyPersonnelOrganizationIDs(ctx, tx.Client(), rootOrganizationID)
 	if err != nil {
 		return err
-	}
-	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
-	for _, organization := range organizations {
-		parentByID[organization.ID] = organization.ParentID
-	}
-	// parentByID 必须先完整建立再计算子树，避免遍历顺序影响祖先查找。
-	subtreeOrganizationIDs := make([]uuid.UUID, 0, len(organizations))
-	for _, organization := range organizations {
-		if organization.Enabled && organizationWithinRoot(parentByID, rootOrganizationID, organization.ID) {
-			subtreeOrganizationIDs = append(subtreeOrganizationIDs, organization.ID)
-		}
 	}
 	for _, assignment := range assignments {
 		if assignment.Role != biz.PartnerAssignmentCreator {
@@ -709,20 +661,6 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 		}
 	}
 	return nil
-}
-
-func organizationWithinRoot(parentByID map[uuid.UUID]*uuid.UUID, rootID, targetID uuid.UUID) bool {
-	for current := targetID; current != uuid.Nil; {
-		if current == rootID {
-			return true
-		}
-		parent, exists := parentByID[current]
-		if !exists || parent == nil {
-			return false
-		}
-		current = *parent
-	}
-	return false
 }
 
 func createPartnerContacts(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, contacts []*biz.PartnerContact) error {

@@ -75,10 +75,6 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 					if partner == nil {
 						return nil, biz.ErrPermissionDenied
 					}
-					copy := *principal
-					copy.WorkspaceOrganizationID = principal.Organization.ID
-					copy.Organization.ID = partner.OrganizationID
-					effectivePrincipal = &copy
 				}
 			}
 			if (rule.mode == accessModePermission || rule.mode == accessModeOrderPermission) && !directOrderRequest && !directPartnerRequest && !hasPermission(request, effectivePrincipal, rule) {
@@ -90,8 +86,8 @@ func Authorization(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, orderUse
 }
 
 // requestPartner 对携带往来单位主键的请求，以“ID + 当前接口具体权限的组织范围”
-// 定位主档。命中后中间件才会把下游 Service 的有效组织设为主档所属组织，使详情
-// 页的账户、合同、附件和审计等子资源继续走各自权限而不会误用当前工作区组织。
+// 定位当前公司主档；账户、合同、附件和审计等子资源同样先校验所属公司，
+// 不改变会话工作台，也不以跨公司主档反向切换下游 Service 的有效组织。
 func requestPartner(ctx context.Context, request any, partnerUsecase *biz.PartnerUsecase, organizationIDs []uuid.UUID) (*biz.Partner, bool) {
 	var partnerID string
 	switch value := request.(type) {

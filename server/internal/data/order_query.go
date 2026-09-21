@@ -10,13 +10,11 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
-	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	entpredicate "github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -387,50 +385,14 @@ func (r *orderRepo) ListPersonnelOptions(ctx context.Context, organizationID uui
 	if err != nil {
 		return nil, err
 	}
-	organizations, err := client.Organization.Query().
-		Select(organizationent.FieldID, organizationent.FieldParentID).
-		All(ctx)
+	query, err := companyPersonnelQuery(ctx, client, organizationID, options.Keyword)
 	if err != nil {
 		return nil, err
-	}
-	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
-	organizationIDs := make([]uuid.UUID, 0, len(organizations))
-	for _, organization := range organizations {
-		parentByID[organization.ID] = organization.ParentID
-	}
-	for _, organization := range organizations {
-		if organizationWithinRoot(parentByID, organizationID, organization.ID) {
-			organizationIDs = append(organizationIDs, organization.ID)
-		}
-	}
-	membershipScope := []entpredicate.Membership{
-		membershipent.OrganizationIDIn(organizationIDs...),
-		membershipent.EnabledEQ(true),
-		membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)),
-	}
-	query := client.User.Query().Where(
-		userent.EnabledEQ(true),
-		userent.HasMembershipsWith(membershipScope...),
-	)
-	if options.Keyword != "" {
-		query.Where(userent.Or(
-			userent.UsernameContainsFold(options.Keyword),
-			userent.DisplayNameContainsFold(options.Keyword),
-			userent.SearchKeywordsContainsFold(options.Keyword),
-			userent.HasMembershipsWith(
-				membershipent.OrganizationIDIn(organizationIDs...),
-				membershipent.EnabledEQ(true),
-				membershipent.HasOrganizationWith(
-					organizationent.EnabledEQ(true),
-					organizationent.Or(organizationent.CodeContainsFold(options.Keyword), organizationent.NameContainsFold(options.Keyword), organizationent.SearchKeywordsContainsFold(options.Keyword)),
-				),
-			),
-		))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.User, error) {
 		return query.Order(userent.ByDisplayName(), userent.ByID()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(func(item *ent.User) *biz.OrderPersonnelOption {
-		return &biz.OrderPersonnelOption{UserID: item.ID, DisplayName: item.DisplayName}
+		return &biz.OrderPersonnelOption{UserID: item.ID, DisplayName: item.DisplayName, DepartmentNames: personnelDepartmentNames(item)}
 	}))
 }
 

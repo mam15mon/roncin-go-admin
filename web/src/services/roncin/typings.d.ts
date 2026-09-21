@@ -5178,6 +5178,8 @@ declare namespace API {
   type OrderPersonnelOption = {
     userId?: string;
     displayName?: string;
+    /** 当前公司内的部门/团队名称；为空表示直接隶属公司。 */
+    departmentNames?: string[];
   };
 
   type OrderPersonnelServiceAssignPersonnelParams = {
@@ -5521,6 +5523,8 @@ declare namespace API {
   type PartnerAssignmentOption = {
     userId?: string;
     displayName?: string;
+    /** 当前公司内的部门/团队名称；为空表示直接隶属公司。 */
+    departmentNames?: string[];
   };
 
   type PartnerAssociations = {

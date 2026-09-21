@@ -17,7 +17,6 @@ import (
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
-	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
@@ -235,19 +234,9 @@ func replaceOrderSelections(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, 
 }
 
 func createOrderPersonnel(ctx context.Context, tx *ent.Tx, rootOrganizationID, orderID uuid.UUID, orderNo string, assignments []*biz.OrderPersonnel) error {
-	organizations, err := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID, organizationent.FieldEnabled).All(ctx)
+	subtreeOrganizationIDs, err := companyPersonnelOrganizationIDs(ctx, tx.Client(), rootOrganizationID)
 	if err != nil {
 		return err
-	}
-	parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
-	for _, organization := range organizations {
-		parentByID[organization.ID] = organization.ParentID
-	}
-	subtreeOrganizationIDs := make([]uuid.UUID, 0, len(organizations))
-	for _, organization := range organizations {
-		if organization.Enabled && organizationWithinRoot(parentByID, rootOrganizationID, organization.ID) {
-			subtreeOrganizationIDs = append(subtreeOrganizationIDs, organization.ID)
-		}
 	}
 	for _, assignment := range assignments {
 		user, err := tx.User.Query().Where(

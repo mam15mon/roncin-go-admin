@@ -1182,6 +1182,20 @@ func (p *Principal) permissionAvailableInWorkspace(permission string) bool {
 }
 
 func (p *Principal) workspacePermissionScope(permission string, readable, writable map[uuid.UUID]struct{}) PermissionOrganizationScope {
+	// 往来单位及子资源固定归属当前公司，角色的 ALL/TREE 范围不能扩大企业档案边界。
+	if strings.HasPrefix(permission, "business.partner.") {
+		currentReadable := make(map[uuid.UUID]struct{})
+		currentWritable := make(map[uuid.UUID]struct{})
+		if p.CanOperateBusiness() {
+			if _, allowed := readable[p.Organization.ID]; allowed {
+				currentReadable[p.Organization.ID] = struct{}{}
+			}
+			if _, allowed := writable[p.Organization.ID]; allowed {
+				currentWritable[p.Organization.ID] = struct{}{}
+			}
+		}
+		return permissionOrganizationScopeFromSets(currentReadable, currentWritable)
+	}
 	if access.IsBusinessOperationPermission(permission) {
 		current := make(map[uuid.UUID]struct{})
 		if _, allowed := writable[p.Organization.ID]; allowed && p.CanOperateBusiness() {

@@ -393,8 +393,9 @@ type OrderReferenceMatch struct {
 }
 
 type OrderPersonnelOption struct {
-	UserID      uuid.UUID
-	DisplayName string
+	UserID          uuid.UUID
+	DisplayName     string
+	DepartmentNames []string
 }
 
 type SameBatchOrderSummary struct {

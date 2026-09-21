@@ -103,7 +103,7 @@ func (s *PartnerService) listPartnerAssignmentOptions(ctx context.Context, optio
 	data := make([]*v1.PartnerAssignmentOption, 0, len(result.Items))
 	for _, item := range result.Items {
 		data = append(data, &v1.PartnerAssignmentOption{
-			UserId: item.UserID.String(), DisplayName: item.DisplayName,
+			UserId: item.UserID.String(), DisplayName: item.DisplayName, DepartmentNames: item.DepartmentNames,
 		})
 	}
 	return data, int32(result.Total), int32(result.Page), int32(result.PageSize), nil

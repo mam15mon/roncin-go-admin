@@ -12,6 +12,7 @@ import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { ProFormSearchableSelect, QuickCreateModal } from '@/components/ui';
 import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
+import { formatPersonnelLabel } from '@/features/personnel';
 import { useAsyncGuard } from '@/hooks/useAsyncGuard';
 import { useLatestAsync } from '@/hooks/useLatestAsync';
 import { history } from '@/router/history';
@@ -36,7 +37,7 @@ type PartnerQuickAddSelectProps = {
   /** 按角色过滤的服务端关键字检索函数。 */
   searchPartners: (keyword?: string) => Promise<PartnerSelectOption[]>;
   /** 客户快建时提成责任岗位（业务/操作/客服）的人员候选项。 */
-  staffOptions?: Array<{ userId?: string; displayName?: string }>;
+  staffOptions?: API.OrderPersonnelOption[];
   required?: boolean;
   /** 有效只读（无编辑动作权限或业务写入关闭）时隐藏快捷新增入口并禁用字段。 */
   disabled?: boolean;
@@ -89,7 +90,7 @@ export default function PartnerQuickAddSelect({
     () =>
       (staffOptions ?? []).flatMap((item) =>
         item.userId
-          ? [{ label: item.displayName || item.userId, value: item.userId }]
+          ? [{ label: formatPersonnelLabel(item), value: item.userId }]
           : [],
       ),
     [staffOptions],

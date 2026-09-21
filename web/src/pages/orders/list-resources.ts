@@ -9,6 +9,7 @@ import {
   getMasterDataOptions,
 } from '@/features/orders/options';
 import { searchPartnerOptions } from '@/features/partners';
+import { formatPersonnelLabel } from '@/features/personnel';
 import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
 import { unwrapList } from '@/utils/api';
@@ -315,7 +316,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       .filter((item) => item.userId && item.displayName)
       .map((item) => ({
         userId: item.userId as string,
-        displayName: item.displayName as string,
+        displayName: formatPersonnelLabel(item),
       }));
   };
 

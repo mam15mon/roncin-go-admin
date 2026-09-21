@@ -17,8 +17,12 @@ describe('订单人员选择', () => {
             label="操作"
             userField="operatorUserId"
             options={[
-              { userId: 'user-a', displayName: '用户甲' },
-              { userId: 'user-b', displayName: '用户乙' },
+              {
+                userId: 'user-a',
+                displayName: '张三',
+                departmentNames: ['财务部', '核算组'],
+              },
+              { userId: 'user-b', displayName: '张三', departmentNames: [] },
             ]}
           />
         </Form>
@@ -29,7 +33,10 @@ describe('订单人员选择', () => {
     const comboboxes = screen.getAllByRole('combobox');
     expect(comboboxes).toHaveLength(1);
     fireEvent.mouseDown(comboboxes[0]);
-    fireEvent.click(await screen.findByText('用户乙'));
+    expect(
+      await screen.findByText('张三 · 财务部、核算组'),
+    ).toBeInTheDocument();
+    fireEvent.click(await screen.findByText('张三 · 公司'));
 
     await waitFor(() => {
       expect(form?.getFieldValue('operatorUserId')).toBe('user-b');

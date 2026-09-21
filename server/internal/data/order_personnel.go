@@ -9,7 +9,6 @@ import (
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
-	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -64,19 +63,9 @@ func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID
 		if err := ensureOrderBusinessEditable(ctx, tx, orderRecord); err != nil {
 			return err
 		}
-		organizations, queryErr := tx.Organization.Query().Select(organizationent.FieldID, organizationent.FieldParentID, organizationent.FieldEnabled).All(ctx)
+		subtreeOrganizationIDs, queryErr := companyPersonnelOrganizationIDs(ctx, tx.Client(), organizationID)
 		if queryErr != nil {
 			return queryErr
-		}
-		parentByID := make(map[uuid.UUID]*uuid.UUID, len(organizations))
-		for _, organization := range organizations {
-			parentByID[organization.ID] = organization.ParentID
-		}
-		subtreeOrganizationIDs := make([]uuid.UUID, 0, len(organizations))
-		for _, organization := range organizations {
-			if organization.Enabled && organizationWithinRoot(parentByID, organizationID, organization.ID) {
-				subtreeOrganizationIDs = append(subtreeOrganizationIDs, organization.ID)
-			}
 		}
 		user, queryErr := tx.User.Query().
 			Where(

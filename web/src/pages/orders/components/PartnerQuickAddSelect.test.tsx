@@ -81,9 +81,9 @@ async function fillCommissionStaff() {
     'combobox',
   );
   expect(comboboxes).toHaveLength(3);
-  await pickSelectOption(comboboxes[0], '张三');
-  await pickSelectOption(comboboxes[1], '李四');
-  await pickSelectOption(comboboxes[2], '王五');
+  await pickSelectOption(comboboxes[0], '张三 · 公司');
+  await pickSelectOption(comboboxes[1], '李四 · 公司');
+  await pickSelectOption(comboboxes[2], '王五 · 公司');
 }
 
 function TestHost({

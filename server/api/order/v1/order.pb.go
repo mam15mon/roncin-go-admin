@@ -2344,11 +2344,13 @@ func (x *OrderPersonnelAssignmentInput) GetRole() OrderPersonnelRole {
 
 // OrderPersonnelOption 订单协作人员候选；同一人员的多条部门 Membership 去重。
 type OrderPersonnelOption struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	UserId      string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DisplayName string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// 当前公司内的部门/团队名称；为空表示直接隶属公司。
+	DepartmentNames []string `protobuf:"bytes,3,rep,name=department_names,json=departmentNames,proto3" json:"department_names,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *OrderPersonnelOption) Reset() {
@@ -2393,6 +2395,13 @@ func (x *OrderPersonnelOption) GetDisplayName() string {
 		return x.DisplayName
 	}
 	return ""
+}
+
+func (x *OrderPersonnelOption) GetDepartmentNames() []string {
+	if x != nil {
+		return x.DepartmentNames
+	}
+	return nil
 }
 
 // OrderServiceSelection 订单服务类型选择。
@@ -6636,10 +6645,11 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"t\n" +
 	"\x1dOrderPersonnelAssignmentInput\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x125\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\"R\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\"}\n" +
 	"\x14OrderPersonnelOption\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"\x90\x01\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12)\n" +
+	"\x10department_names\x18\x03 \x03(\tR\x0fdepartmentNames\"\x90\x01\n" +
 	"\x15OrderServiceSelection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12-\n" +

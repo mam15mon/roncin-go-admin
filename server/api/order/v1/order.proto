@@ -427,6 +427,8 @@ message OrderPersonnelAssignmentInput {
 message OrderPersonnelOption {
   string user_id = 1;
   string display_name = 2;
+  // 当前公司内的部门/团队名称；为空表示直接隶属公司。
+  repeated string department_names = 3;
 }
 
 // OrderServiceSelection 订单服务类型选择。
