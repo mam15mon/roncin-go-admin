@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { App as AntdApp, ConfigProvider } from 'antd';
+import { App as AntdApp, ConfigProvider, Spin } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import { createRoot } from 'react-dom/client';
@@ -7,6 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { RouterProvider } from 'react-router';
 import { themeConfig } from '../config/theme';
 import { AppProvider } from './app/AppProvider';
+import { QuarterRing } from './components/ui';
 import { router } from './router';
 import { AppFeedbackBridge } from './utils/appFeedback';
 import { queryClient } from './utils/queryClient';
@@ -16,6 +17,8 @@ import './global.less';
 import '../tailwind.css';
 
 dayjs.locale('zh-cn');
+
+Spin.setDefaultIndicator(<QuarterRing />);
 
 const container = document.getElementById('root');
 if (!container) {

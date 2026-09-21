@@ -14,6 +14,7 @@ export * from './order-template';
 export * from './package-count-input';
 export * from './page-shell';
 export * from './parameter-setting-template';
+export * from './quarter-ring';
 export * from './quick-create-modal';
 export * from './quick-date-picker';
 export * from './search-filter-template';
