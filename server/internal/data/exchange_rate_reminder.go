@@ -86,6 +86,7 @@ func (r *exchangeRateReminderRepo) ListFinanceReminderRecipients(ctx context.Con
 				membershipent.HasRoleAssignmentsWith(
 					roleassignmentent.HasRoleWith(
 						roleent.EnabledEQ(true),
+						roleent.DataScopeIn(roleent.DataScopeOrganization, roleent.DataScopeOrganizationTree, roleent.DataScopeAll),
 						roleent.HasPermissionsWith(
 							permissionent.KeyIn(access.FinanceExchangeRateCreate, access.FinanceExchangeRateUpdate),
 						),

@@ -134,23 +134,24 @@ function orderPermission(
 export default function access(
   initialState: { currentUser?: API.CurrentUser } | undefined,
 ) {
-  const granted = new Set(initialState?.currentUser?.permissions ?? []);
-  const roleScopes = initialState?.currentUser?.roleScopes ?? [];
-  const has = (permission: string) => granted.has(permission);
-  const hasAny = (...items: string[]) => items.some(has);
-  const hasScope = (minimum: string) => {
-    const rank: Record<string, number> = {
-      self: 1,
-      organization: 2,
-      organization_tree: 3,
-      all: 4,
-    };
-    return roleScopes.some(
-      (scope) => (rank[scope.dataScope ?? ''] ?? 0) >= (rank[minimum] ?? 0),
-    );
+  // 服务端按同一权限的有效角色授权聚合范围；禁止借用其他角色的范围。
+  const capabilities = new Map(
+    (initialState?.currentUser?.permissionCapabilities ?? []).map((item) => [
+      item.key,
+      item.dataScope,
+    ]),
+  );
+  const scopeRank: Record<string, number> = {
+    organization: 1,
+    organization_tree: 2,
+    all: 3,
   };
-  const inOrganization = hasScope('organization');
-  const inAll = hasScope('all');
+  const has = (
+    permission: string,
+    minimum: 'organization' | 'all' = 'organization',
+  ) =>
+    (scopeRank[capabilities.get(permission) ?? ''] ?? 0) >= scopeRank[minimum];
+  const hasAny = (...items: string[]) => items.some((item) => has(item));
   // 组织身份来自 auth/me 的 kind（阶段一契约），不复制第二套权限真相：
   // A 型页签与 B 型基线行的维护入口仅总部可见。
   const isHeadquartersOrganization =
@@ -169,7 +170,7 @@ export default function access(
     operation: OrderPermissionOperation,
   ) => {
     const permission = orderPermission(businessType, operation);
-    return permission !== '' && has(permission) && inOrganization;
+    return permission !== '' && has(permission);
   };
 
   const result = {
@@ -178,42 +179,33 @@ export default function access(
     canOperateBusiness,
     canOperateOrganization,
     canAccessPlatform: has(permissions.platformAccess),
-    canReadOrganizations: has(permissions.organizationRead) && inAll,
-    canCreateOrganizations: has(permissions.organizationCreate) && inAll,
-    canUpdateOrganizations: has(permissions.organizationUpdate) && inAll,
-    canReadUsers: has(permissions.userRead) && inOrganization,
-    canCreateUsers: has(permissions.userCreate) && inOrganization,
-    canUpdateUsers: has(permissions.userUpdate) && inOrganization,
-    canTerminateUsers: has(permissions.userTerminate) && inOrganization,
-    canReadAllUserMemberships: has(permissions.userRead) && inAll,
-    canManageUserMemberships: has(permissions.userUpdate) && inAll,
-    canAuthorizeWeComUsers: has(permissions.userAuthorizeWeCom) && inAll,
-    canAuthorizeDingTalkUsers: has(permissions.userAuthorizeDingTalk) && inAll,
-    canManageDingTalkInvitations:
-      has(permissions.userDingTalkInvitationManage) && inOrganization,
-    canResetUserPasswords: has(permissions.userResetPassword) && inOrganization,
-    canReadRoles: has(permissions.roleRead) && inOrganization,
-    canCreateRoles: has(permissions.roleCreate) && inOrganization,
-    canUpdateRoles: has(permissions.roleUpdate) && inOrganization,
-    canDeleteRoles: has(permissions.roleDelete) && inOrganization,
-    canReadPermissions: has(permissions.permissionRead) && inOrganization,
-    canReadAudit: has(permissions.auditRead) && inOrganization,
-    canReadExchangeRates:
-      has(permissions.financeExchangeRateRead) && inOrganization,
-    canCreateExchangeRates:
-      has(permissions.financeExchangeRateCreate) && inOrganization,
-    canUpdateExchangeRates:
-      has(permissions.financeExchangeRateUpdate) && inOrganization,
-    canDisableExchangeRates:
-      has(permissions.financeExchangeRateDisable) && inOrganization,
-    canOverrideFeeExchangeRate:
-      has(permissions.financeExchangeRateOverride) && inOrganization,
-    canReadFeeSettings:
-      has(permissions.financeFeeSettingRead) && inOrganization,
-    canCreateFeeSettings:
-      has(permissions.financeFeeSettingCreate) && inOrganization,
-    canUpdateFeeSettings:
-      has(permissions.financeFeeSettingUpdate) && inOrganization,
+    canReadOrganizations: has(permissions.organizationRead, 'all'),
+    canCreateOrganizations: has(permissions.organizationCreate, 'all'),
+    canUpdateOrganizations: has(permissions.organizationUpdate, 'all'),
+    canReadUsers: has(permissions.userRead),
+    canCreateUsers: has(permissions.userCreate),
+    canUpdateUsers: has(permissions.userUpdate),
+    canTerminateUsers: has(permissions.userTerminate),
+    canReadAllUserMemberships: has(permissions.userRead, 'all'),
+    canManageUserMemberships: has(permissions.userUpdate, 'all'),
+    canAuthorizeWeComUsers: has(permissions.userAuthorizeWeCom, 'all'),
+    canAuthorizeDingTalkUsers: has(permissions.userAuthorizeDingTalk, 'all'),
+    canManageDingTalkInvitations: has(permissions.userDingTalkInvitationManage),
+    canResetUserPasswords: has(permissions.userResetPassword),
+    canReadRoles: has(permissions.roleRead),
+    canCreateRoles: has(permissions.roleCreate),
+    canUpdateRoles: has(permissions.roleUpdate),
+    canDeleteRoles: has(permissions.roleDelete),
+    canReadPermissions: has(permissions.permissionRead),
+    canReadAudit: has(permissions.auditRead),
+    canReadExchangeRates: has(permissions.financeExchangeRateRead),
+    canCreateExchangeRates: has(permissions.financeExchangeRateCreate),
+    canUpdateExchangeRates: has(permissions.financeExchangeRateUpdate),
+    canDisableExchangeRates: has(permissions.financeExchangeRateDisable),
+    canOverrideFeeExchangeRate: has(permissions.financeExchangeRateOverride),
+    canReadFeeSettings: has(permissions.financeFeeSettingRead),
+    canCreateFeeSettings: has(permissions.financeFeeSettingCreate),
+    canUpdateFeeSettings: has(permissions.financeFeeSettingUpdate),
     canAccessFinanceManagement: [
       permissions.financeFeeRead,
       permissions.financeBillRead,
@@ -224,7 +216,7 @@ export default function access(
       permissions.financeCommissionRead,
       permissions.financeExchangeRateRead,
       permissions.financeFeeSettingRead,
-    ].some(has),
+    ].some((permission) => has(permission)),
     canReadFinanceFees: has(permissions.financeFeeRead),
     canManageFinanceFeeTags: has(permissions.financeFeeTag),
     canReadFinanceBills: has(permissions.financeBillRead),
@@ -248,122 +240,92 @@ export default function access(
     canManageFinanceCommissions: has(permissions.financeCommissionManage),
     canConfigureFinanceCommissions: has(permissions.financeCommissionConfigure),
     canExportFinanceCommissions: has(permissions.financeCommissionExport),
-    canReadPartners: has(permissions.partnerRead) && inOrganization,
-    canReadEnterpriseResources:
-      has(permissions.enterpriseResourceRead) && inOrganization,
-    canCreateEnterpriseResources:
-      has(permissions.enterpriseResourceCreate) && inOrganization,
-    canUpdateEnterpriseResources:
-      has(permissions.enterpriseResourceUpdate) && inOrganization,
-    canDeleteEnterpriseResources:
-      has(permissions.enterpriseResourceDelete) && inOrganization,
-    canCreatePartners: has(permissions.partnerCreate) && inOrganization,
-    canUpdatePartners: has(permissions.partnerUpdate) && inOrganization,
-    canBlacklistPartners: has(permissions.partnerBlacklist) && inOrganization,
-    canImportPartners: has(permissions.partnerImport) && inOrganization,
-    canExportPartners: has(permissions.partnerExport) && inOrganization,
-    canReadPartnerAccounts:
-      has(permissions.partnerAccountRead) && inOrganization,
-    canCreatePartnerAccounts:
-      has(permissions.partnerAccountCreate) && inOrganization,
-    canUpdatePartnerAccounts:
-      has(permissions.partnerAccountUpdate) && inOrganization,
-    canReadPartnerContracts:
-      has(permissions.partnerContractRead) && inOrganization,
-    canCreatePartnerContracts:
-      has(permissions.partnerContractCreate) && inOrganization,
-    canUpdatePartnerContracts:
-      has(permissions.partnerContractUpdate) && inOrganization,
-    canReadPartnerSettlementRules:
-      has(permissions.partnerSettlementRuleRead) && inOrganization,
-    canCreatePartnerSettlementRules:
-      has(permissions.partnerSettlementRuleCreate) && inOrganization,
-    canUpdatePartnerSettlementRules:
-      has(permissions.partnerSettlementRuleUpdate) && inOrganization,
-    canReadPartnerAttachments:
-      has(permissions.partnerAttachmentRead) && inOrganization,
-    canRegisterPartnerAttachments:
-      has(permissions.partnerAttachmentRegister) && inOrganization,
-    canReadPartnerShippingPresets:
-      has(permissions.partnerShippingPresetRead) && inOrganization,
-    canCreatePartnerShippingPresets:
-      has(permissions.partnerShippingPresetCreate) && inOrganization,
-    canUpdatePartnerShippingPresets:
-      has(permissions.partnerShippingPresetUpdate) && inOrganization,
-    canReadPartnerAudit: has(permissions.partnerAuditRead) && inOrganization,
-    canReadPartnerAssignmentOptions:
-      has(permissions.partnerAssignmentOptionRead) && inOrganization,
-    canReadMasterDataCurrencies:
-      has(permissions.masterDataCurrencyRead) && inOrganization,
+    canReadPartners: has(permissions.partnerRead),
+    canReadEnterpriseResources: has(permissions.enterpriseResourceRead),
+    canCreateEnterpriseResources: has(permissions.enterpriseResourceCreate),
+    canUpdateEnterpriseResources: has(permissions.enterpriseResourceUpdate),
+    canDeleteEnterpriseResources: has(permissions.enterpriseResourceDelete),
+    canCreatePartners: has(permissions.partnerCreate),
+    canUpdatePartners: has(permissions.partnerUpdate),
+    canBlacklistPartners: has(permissions.partnerBlacklist),
+    canImportPartners: has(permissions.partnerImport),
+    canExportPartners: has(permissions.partnerExport),
+    canReadPartnerAccounts: has(permissions.partnerAccountRead),
+    canCreatePartnerAccounts: has(permissions.partnerAccountCreate),
+    canUpdatePartnerAccounts: has(permissions.partnerAccountUpdate),
+    canReadPartnerContracts: has(permissions.partnerContractRead),
+    canCreatePartnerContracts: has(permissions.partnerContractCreate),
+    canUpdatePartnerContracts: has(permissions.partnerContractUpdate),
+    canReadPartnerSettlementRules: has(permissions.partnerSettlementRuleRead),
+    canCreatePartnerSettlementRules: has(
+      permissions.partnerSettlementRuleCreate,
+    ),
+    canUpdatePartnerSettlementRules: has(
+      permissions.partnerSettlementRuleUpdate,
+    ),
+    canReadPartnerAttachments: has(permissions.partnerAttachmentRead),
+    canRegisterPartnerAttachments: has(permissions.partnerAttachmentRegister),
+    canReadPartnerShippingPresets: has(permissions.partnerShippingPresetRead),
+    canCreatePartnerShippingPresets: has(
+      permissions.partnerShippingPresetCreate,
+    ),
+    canUpdatePartnerShippingPresets: has(
+      permissions.partnerShippingPresetUpdate,
+    ),
+    canReadPartnerAudit: has(permissions.partnerAuditRead),
+    canReadPartnerAssignmentOptions: has(
+      permissions.partnerAssignmentOptionRead,
+    ),
+    canReadMasterDataCurrencies: has(permissions.masterDataCurrencyRead),
     canUpdateMasterDataCurrencies:
-      (has(permissions.masterDataCurrencyUpdate) ||
-        has(permissions.financeFeeSettingUpdate) ||
-        has(permissions.financeFeeSettingCreate)) &&
-      inOrganization,
-    canReadMasterDataAdministrativeRegions:
-      has(permissions.masterDataAdministrativeRegionRead) && inOrganization,
-    canReadMasterDataOptions:
-      has(permissions.masterDataOptionRead) && inOrganization,
-    canReadMasterDataItems:
-      has(permissions.masterDataItemRead) && inOrganization,
-    canCreateMasterDataItems:
-      has(permissions.masterDataItemCreate) && inOrganization,
-    canUpdateMasterDataItems:
-      has(permissions.masterDataItemUpdate) && inOrganization,
-    canImportMasterDataItems:
-      has(permissions.masterDataItemImport) && inOrganization,
-    canReadMasterDataPorts:
-      has(permissions.masterDataPortRead) && inOrganization,
-    canCreateMasterDataPorts:
-      has(permissions.masterDataPortCreate) && inOrganization,
-    canUpdateMasterDataPorts:
-      has(permissions.masterDataPortUpdate) && inOrganization,
-    canReadMasterDataAirports:
-      has(permissions.masterDataAirportRead) && inOrganization,
-    canCreateMasterDataAirports:
-      has(permissions.masterDataAirportCreate) && inOrganization,
-    canUpdateMasterDataAirports:
-      has(permissions.masterDataAirportUpdate) && inOrganization,
-    canReadMasterDataAirlines:
-      has(permissions.masterDataAirlineRead) && inOrganization,
-    canCreateMasterDataAirlines:
-      has(permissions.masterDataAirlineCreate) && inOrganization,
-    canUpdateMasterDataAirlines:
-      has(permissions.masterDataAirlineUpdate) && inOrganization,
-    canReadMasterDataShippingLines:
-      has(permissions.masterDataShippingLineRead) && inOrganization,
-    canCreateMasterDataShippingLines:
-      has(permissions.masterDataShippingLineCreate) && inOrganization,
-    canUpdateMasterDataShippingLines:
-      has(permissions.masterDataShippingLineUpdate) && inOrganization,
-    canReadMasterDataNumberRules:
-      has(permissions.masterDataNumberRuleRead) && inOrganization,
-    canCreateMasterDataNumberRules:
-      has(permissions.masterDataNumberRuleCreate) && inOrganization,
-    canUpdateMasterDataNumberRules:
-      has(permissions.masterDataNumberRuleUpdate) && inOrganization,
-    canReadTasks: has(permissions.taskRead) && inOrganization,
-    canRequeueTasks: has(permissions.taskRequeue) && inOrganization,
+      has(permissions.masterDataCurrencyUpdate) ||
+      has(permissions.financeFeeSettingUpdate) ||
+      has(permissions.financeFeeSettingCreate),
+    canReadMasterDataAdministrativeRegions: has(
+      permissions.masterDataAdministrativeRegionRead,
+    ),
+    canReadMasterDataOptions: has(permissions.masterDataOptionRead),
+    canReadMasterDataItems: has(permissions.masterDataItemRead),
+    canCreateMasterDataItems: has(permissions.masterDataItemCreate),
+    canUpdateMasterDataItems: has(permissions.masterDataItemUpdate),
+    canImportMasterDataItems: has(permissions.masterDataItemImport),
+    canReadMasterDataPorts: has(permissions.masterDataPortRead),
+    canCreateMasterDataPorts: has(permissions.masterDataPortCreate),
+    canUpdateMasterDataPorts: has(permissions.masterDataPortUpdate),
+    canReadMasterDataAirports: has(permissions.masterDataAirportRead),
+    canCreateMasterDataAirports: has(permissions.masterDataAirportCreate),
+    canUpdateMasterDataAirports: has(permissions.masterDataAirportUpdate),
+    canReadMasterDataAirlines: has(permissions.masterDataAirlineRead),
+    canCreateMasterDataAirlines: has(permissions.masterDataAirlineCreate),
+    canUpdateMasterDataAirlines: has(permissions.masterDataAirlineUpdate),
+    canReadMasterDataShippingLines: has(permissions.masterDataShippingLineRead),
+    canCreateMasterDataShippingLines: has(
+      permissions.masterDataShippingLineCreate,
+    ),
+    canUpdateMasterDataShippingLines: has(
+      permissions.masterDataShippingLineUpdate,
+    ),
+    canReadMasterDataNumberRules: has(permissions.masterDataNumberRuleRead),
+    canCreateMasterDataNumberRules: has(permissions.masterDataNumberRuleCreate),
+    canUpdateMasterDataNumberRules: has(permissions.masterDataNumberRuleUpdate),
+    canReadTasks: has(permissions.taskRead),
+    canRequeueTasks: has(permissions.taskRequeue),
   };
 
   return {
     ...result,
-    canReadMasterData:
-      hasAny(
-        ...Object.entries(permissions)
-          .filter(
-            ([key]) => key.startsWith('masterData') && key.endsWith('Read'),
-          )
-          .map(([, value]) => value),
-      ) && inOrganization,
-    canManageMasterData:
-      hasAny(
-        ...Object.entries(permissions)
-          .filter(
-            ([key]) => key.startsWith('masterData') && !key.endsWith('Read'),
-          )
-          .map(([, value]) => value),
-      ) && inOrganization,
+    canReadMasterData: hasAny(
+      ...Object.entries(permissions)
+        .filter(([key]) => key.startsWith('masterData') && key.endsWith('Read'))
+        .map(([, value]) => value),
+    ),
+    canManageMasterData: hasAny(
+      ...Object.entries(permissions)
+        .filter(
+          ([key]) => key.startsWith('masterData') && !key.endsWith('Read'),
+        )
+        .map(([, value]) => value),
+    ),
     canManageOrganizations:
       result.canCreateOrganizations || result.canUpdateOrganizations,
     canManageUsers:

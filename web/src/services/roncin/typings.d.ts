@@ -1859,6 +1859,8 @@ declare namespace API {
     permissions?: string[];
     roleScopes?: RoleScope[];
     avatarUrl?: string;
+    /** 按权限聚合的有效范围，前端授权使用此字段。 */
+    permissionCapabilities?: PermissionCapability[];
   };
 
   type DeleteEnterpriseResourceResponse = {
@@ -5853,6 +5855,11 @@ declare namespace API {
   type PartnerShippingTextPayload = {
     content?: string;
     code?: string;
+  };
+
+  type PermissionCapability = {
+    key?: string;
+    dataScope?: string;
   };
 
   type Port = {

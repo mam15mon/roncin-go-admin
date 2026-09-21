@@ -273,6 +273,9 @@ func (p *Principal) HasPermission(key string) bool {
 		return false
 	}
 	for _, grant := range p.RoleGrants {
+		if !grant.DataScope.active() {
+			continue
+		}
 		if _, ok := grant.Permissions[key]; ok {
 			return true
 		}
@@ -280,21 +283,47 @@ func (p *Principal) HasPermission(key string) bool {
 	return false
 }
 
-// PermissionKeys 从角色授权真相源投影登录响应所需的权限集合。
-func (p *Principal) PermissionKeys() []string {
-	permissions := make(map[string]struct{})
+// PermissionCapability 保留单项权限与有效数据范围的对应关系。
+type PermissionCapability struct {
+	Key       string
+	DataScope DataScope
+}
+
+// PermissionCapabilities 只聚合有效角色，同一权限取最高范围并应用工作台限制。
+func (p *Principal) PermissionCapabilities() []PermissionCapability {
+	scopes := make(map[string]DataScope)
 	for _, grant := range p.RoleGrants {
+		if !grant.DataScope.active() {
+			continue
+		}
 		for permission := range grant.Permissions {
-			if p.permissionAvailableInWorkspace(permission) {
-				permissions[permission] = struct{}{}
+			if !p.permissionAvailableInWorkspace(permission) {
+				continue
+			}
+			scope := grant.DataScope
+			if p.IsBootstrapAdmin {
+				scope = DataScopeAll
+			}
+			if scope.rank() > scopes[permission].rank() {
+				scopes[permission] = scope
 			}
 		}
 	}
-	result := make([]string, 0, len(permissions))
-	for permission := range permissions {
-		result = append(result, permission)
+	result := make([]PermissionCapability, 0, len(scopes))
+	for permission, scope := range scopes {
+		result = append(result, PermissionCapability{Key: permission, DataScope: scope})
 	}
-	sort.Strings(result)
+	sort.Slice(result, func(i, j int) bool { return result[i].Key < result[j].Key })
+	return result
+}
+
+// PermissionKeys 与能力投影使用同一有效授权源。
+func (p *Principal) PermissionKeys() []string {
+	capabilities := p.PermissionCapabilities()
+	result := make([]string, 0, len(capabilities))
+	for _, capability := range capabilities {
+		result = append(result, capability.Key)
+	}
 	return result
 }
 
@@ -307,7 +336,7 @@ func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
 		return false
 	}
 	for _, grant := range p.RoleGrants {
-		if _, hasPermission := grant.Permissions[key]; !hasPermission {
+		if _, hasPermission := grant.Permissions[key]; !hasPermission || !grant.DataScope.active() {
 			continue
 		}
 		if p.IsBootstrapAdmin || grant.DataScope.rank() >= required.rank() {
@@ -340,7 +369,7 @@ func (p *Principal) ResolvePermissionOrganizationScope(permission string) (Permi
 	}
 	matchingGrants := make([]RoleGrant, 0, len(p.RoleGrants))
 	for _, grant := range p.RoleGrants {
-		if _, ok := grant.Permissions[permission]; ok {
+		if _, ok := grant.Permissions[permission]; ok && grant.DataScope.active() {
 			matchingGrants = append(matchingGrants, grant)
 		}
 	}
@@ -407,7 +436,7 @@ func (p *Principal) baseOrganizationIDs(scope DataScope, nodes map[uuid.UUID]Org
 	switch scope {
 	case DataScopeAll:
 		return sortedOrganizationIDs(enabledOrganizationIDs(nodes))
-	case DataScopeOrganization, DataScopeSelf:
+	case DataScopeOrganization:
 		return []uuid.UUID{p.Organization.ID}
 	case DataScopeOrganizationTree:
 		result := make(map[uuid.UUID]struct{})
@@ -464,6 +493,11 @@ func containsOrganizationID(ids []uuid.UUID, organizationID uuid.UUID) bool {
 		}
 	}
 	return false
+}
+
+// active 排除已停用的 self 及未知范围，历史值仅保留展示。
+func (s DataScope) active() bool {
+	return s == DataScopeOrganization || s == DataScopeOrganizationTree || s == DataScopeAll
 }
 
 func (s DataScope) rank() int {

@@ -298,6 +298,12 @@ export default function RoleFormModal({
       }}
       onOpenChange={onOpenChange}
       onFinish={async (values) => {
+        if (
+          !dataScopeOptions.some((option) => option.value === values.dataScope)
+        ) {
+          message.error('请选择有效的数据范围；仅本人范围已停用');
+          return false;
+        }
         try {
           if (editing?.id) {
             await adminServiceUpdateRole(

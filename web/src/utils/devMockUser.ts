@@ -1,7 +1,7 @@
 /**
  * 本地离线开发免密体验用户（具备全量超管权限与全数据范围）
  */
-export const DEV_MOCK_USER: API.CurrentUser = {
+const mockUser: API.CurrentUser = {
   id: 'dev-admin-user-001',
   username: 'admin',
   displayName: '系统管理员 (本地开发)',
@@ -139,6 +139,14 @@ export const DEV_MOCK_USER: API.CurrentUser = {
     'business.order.ai.delete',
     'business.order.ai.fee.read',
   ],
+};
+
+export const DEV_MOCK_USER: API.CurrentUser = {
+  ...mockUser,
+  permissionCapabilities: mockUser.permissions?.map((key) => ({
+    key,
+    dataScope: 'all',
+  })),
 };
 
 const DEV_MOCK_STORAGE_KEY = 'roncin_dev_mock_mode';

@@ -14,6 +14,9 @@ const feeTestState = vi.hoisted(() => ({
   resetPreview: vi.fn(),
   lockState: { isLocked: false } as Partial<API.OrderLockStateData>,
   canCreateFee: true,
+  canReadFee: true,
+  canLock: true,
+  feeOptions: vi.fn(),
   canOperate: true,
 }));
 
@@ -26,7 +29,12 @@ vi.mock('@/app/access', () => ({
     canOperateOrganization: () => feeTestState.canOperate,
     canOperateBusiness: true,
     canCreateFinanceBills: true,
-    canOrder: () => feeTestState.canCreateFee,
+    canOrder: (_: unknown, operation: string) =>
+      operation === 'fee.read'
+        ? feeTestState.canReadFee
+        : operation === 'lock'
+          ? feeTestState.canLock
+          : feeTestState.canCreateFee,
   }),
 }));
 
@@ -99,28 +107,31 @@ vi.mock('@/services/roncin/orderFeeService', () => ({
 }));
 
 vi.mock('./use-order-fee-options', () => ({
-  useOrderFeeOptions: (orderId?: string) => ({
-    loading: false,
-    order: orderId
-      ? {
-          id: orderId,
-          orderNo: orderId.replace('order-', 'ORDER-'),
-          organizationId: `organization-${orderId}`,
-          businessType: 1,
-        }
-      : undefined,
-    currencies: [],
-    settlementParties: [],
-    setSettlementParties: vi.fn(),
-    feeSettings: [],
-    setFeeSettings: vi.fn(),
-    billingUnits: [],
-    financeLocked: false,
-    financeLockReason: undefined,
-    financeLockCommissionNos: [],
-    customerName: '',
-    loadData: vi.fn(),
-  }),
+  useOrderFeeOptions: (orderId?: string) => {
+    feeTestState.feeOptions(orderId);
+    return {
+      loading: false,
+      order: orderId
+        ? {
+            id: orderId,
+            orderNo: orderId.replace('order-', 'ORDER-'),
+            organizationId: `organization-${orderId}`,
+            businessType: 1,
+          }
+        : undefined,
+      currencies: [],
+      settlementParties: [],
+      setSettlementParties: vi.fn(),
+      feeSettings: [],
+      setFeeSettings: vi.fn(),
+      billingUnits: [],
+      financeLocked: false,
+      financeLockReason: undefined,
+      financeLockCommissionNos: [],
+      customerName: '',
+      loadData: vi.fn(),
+    };
+  },
 }));
 
 vi.mock('./use-order-lock-state', async (importOriginal) => {
@@ -270,6 +281,9 @@ describe('订单费用页跨订单状态隔离', () => {
     mockParams = { kind: 'sea-export', id: 'order-A' };
     feeTestState.lockState = { isLocked: false };
     feeTestState.canCreateFee = true;
+    feeTestState.canReadFee = true;
+    feeTestState.canLock = true;
+    feeTestState.feeOptions.mockClear();
     feeTestState.canOperate = true;
     vi.clearAllMocks();
   });
@@ -379,12 +393,46 @@ describe('订单费用页锁后费用补录', () => {
     mockParams = { kind: 'sea-export', id: 'order-A' };
     feeTestState.lockState = { isLocked: false };
     feeTestState.canCreateFee = true;
+    feeTestState.canReadFee = true;
+    feeTestState.canLock = true;
+    feeTestState.feeOptions.mockClear();
     feeTestState.canOperate = true;
     vi.clearAllMocks();
     listSupplements.mockResolvedValue({
       data: { items: [], total: 0 },
       success: true,
     } as Awaited<ReturnType<typeof listSupplements>>);
+  });
+
+  it('仅 lock 审批人可加载申请列表但不加载费用候选与表格', async () => {
+    feeTestState.canReadFee = false;
+    renderWithClient(
+      <App>
+        <OrderFeesPage />
+      </App>,
+    );
+    await waitFor(() =>
+      expect(orderFeeServiceListOrderFeeSupplementRequests).toHaveBeenCalled(),
+    );
+    expect(feeTestState.feeOptions).toHaveBeenCalledWith(undefined);
+    expect(
+      screen.queryByTestId('finance-summary-board'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('当前业务类型既无费用查看也无 lock 权限时不加载申请', () => {
+    feeTestState.canReadFee = false;
+    feeTestState.canLock = false;
+    renderWithClient(
+      <App>
+        <OrderFeesPage />
+      </App>,
+    );
+    expect(screen.getByText('无权访问此业务类型')).toBeInTheDocument();
+    expect(
+      orderFeeServiceListOrderFeeSupplementRequests,
+    ).not.toHaveBeenCalled();
+    expect(feeTestState.feeOptions).toHaveBeenCalledWith(undefined);
   });
 
   it('订单锁定时普通费用写入口关闭，但按 fee.create 能力开放补录入口', async () => {

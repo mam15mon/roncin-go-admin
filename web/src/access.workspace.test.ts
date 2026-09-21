@@ -7,6 +7,10 @@ function workspace(kind: number, id: string, permissions: string[]) {
     currentUser: {
       currentOrganization: { kind, id },
       permissions,
+      permissionCapabilities: permissions.map((key) => ({
+        key,
+        dataScope: 'all',
+      })),
       roleScopes: [{ dataScope: 'all' }],
     },
   });

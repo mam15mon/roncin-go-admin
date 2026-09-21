@@ -1,5 +1,5 @@
-import access from '@/access';
 import { describe, expect, it } from 'vitest';
+import access from '@/access';
 import { buildMenuData, buildRouterConfig } from './adaptRoutes';
 
 // 路由适配层冒烟：锁死「routes.ts → RouterConfig + 菜单」两端完整性。
@@ -42,7 +42,10 @@ describe('adaptRoutes 路由适配', () => {
         currentUser: {
           id: 'x',
           username: 'admin',
-          permissions: ['system.platform.access', 'business.order.se.read'],
+          permissionCapabilities: [
+            'system.platform.access',
+            'business.order.se.read',
+          ].map((key) => ({ key, dataScope: 'all' })),
           roleScopes: [{ roleCode: 'r', dataScope: 'all' }],
         } as unknown as API.CurrentUser,
       }),

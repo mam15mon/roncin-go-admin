@@ -3,7 +3,10 @@ import {
   DollarOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import type { ProFormInstance } from '@ant-design/pro-components';
+import {
+  PageContainer,
+  type ProFormInstance,
+} from '@ant-design/pro-components';
 import { App, Button, Card, Empty, type MenuProps, Result, Spin } from 'antd';
 import React, {
   useCallback,
@@ -73,7 +76,10 @@ export default function OrderDetailPage() {
   const orderId = params.id;
   const definition = getOrderKindDefinition(kind);
 
-  const targetOrderId = definition ? orderId : undefined;
+  const canAccessPage = Boolean(
+    definition && access.canOrder(definition.businessType, 'read'),
+  );
+  const targetOrderId = canAccessPage ? orderId : undefined;
   const orderFormIdentity =
     definition && orderId ? `${definition.kind}:${orderId}` : undefined;
 
@@ -333,6 +339,14 @@ export default function OrderDetailPage() {
           }
         />
       </div>
+    );
+  }
+
+  if (!canAccessPage) {
+    return (
+      <PageContainer title={false}>
+        <Result status="403" title="无权访问此业务类型" />
+      </PageContainer>
     );
   }
 

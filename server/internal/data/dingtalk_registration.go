@@ -461,6 +461,7 @@ func listApproverRecipients(ctx context.Context, client *ent.Client, organizatio
 				membership.HasRoleAssignmentsWith(
 					roleassignment.HasRoleWith(
 						role.EnabledEQ(true),
+						role.DataScopeIn(role.DataScopeOrganization, role.DataScopeOrganizationTree, role.DataScopeAll),
 						role.HasPermissionsWith(permission.KeyEQ(access.UserDingTalkInvitationManage)),
 					),
 				),

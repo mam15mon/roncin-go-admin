@@ -9152,6 +9152,11 @@ components:
                         $ref: '#/components/schemas/auth.v1.RoleScope'
                 avatarUrl:
                     type: string
+                permissionCapabilities:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/auth.v1.PermissionCapability'
+                    description: 按权限聚合的有效范围，前端授权使用此字段。
         auth.v1.DingTalkInvitationPublicInfo:
             type: object
             properties:
@@ -9353,6 +9358,13 @@ components:
                     description: 组织节点类型，供前端推导主数据维护视角（总部/公司）。
                     format: enum
             description: OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。
+        auth.v1.PermissionCapability:
+            type: object
+            properties:
+                key:
+                    type: string
+                dataScope:
+                    type: string
         auth.v1.RegisterDingTalkUserRequest:
             type: object
             properties:

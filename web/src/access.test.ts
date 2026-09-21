@@ -5,6 +5,10 @@ function currentUser(permissions: string[]) {
   return {
     currentUser: {
       permissions,
+      permissionCapabilities: permissions.map((key) => ({
+        key,
+        dataScope: 'organization',
+      })),
       roleScopes: [{ dataScope: 'organization' }],
     } as API.CurrentUser,
   };
@@ -14,6 +18,10 @@ function currentUserWithSelfScope(permissions: string[]) {
   return {
     currentUser: {
       permissions,
+      permissionCapabilities: permissions.map((key) => ({
+        key,
+        dataScope: 'self',
+      })),
       roleScopes: [{ dataScope: 'self' }],
     } as API.CurrentUser,
   };
@@ -23,6 +31,10 @@ function currentUserWithAllScope(permissions: string[]) {
   return {
     currentUser: {
       permissions,
+      permissionCapabilities: permissions.map((key) => ({
+        key,
+        dataScope: 'all',
+      })),
       roleScopes: [{ dataScope: 'all' }],
     } as API.CurrentUser,
   };
@@ -35,6 +47,10 @@ function currentUserWithOrganizationKind(
   return {
     currentUser: {
       permissions,
+      permissionCapabilities: permissions.map((key) => ({
+        key,
+        dataScope: 'organization',
+      })),
       roleScopes: [{ dataScope: 'organization' }],
       currentOrganization: { kind },
     } as API.CurrentUser,
@@ -154,11 +170,11 @@ describe('提成导出权限', () => {
     ).toBe(false);
   });
 
-  it('本人范围在组织维度覆盖当前组织时允许显示导出按钮', () => {
+  it('已停用的本人范围不能显示组织提成导出按钮', () => {
     expect(
       access(currentUserWithSelfScope(['system.finance.commission.export']))
         .canExportFinanceCommissions,
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 
@@ -197,5 +213,45 @@ describe('角色删除权限', () => {
     expect(
       access(currentUserWithSelfScope(['system.role.delete'])).canDeleteRoles,
     ).toBe(false);
+  });
+});
+
+describe('权限范围来源一致性', () => {
+  it('缺少能力契约时不能使用旧权限与角色范围放行', () => {
+    const result = access({
+      currentUser: {
+        permissions: ['system.user.create'],
+        roleScopes: [{ dataScope: 'all' }],
+      },
+    });
+    expect(result.canCreateUsers).toBe(false);
+  });
+  it('不能借无关权限的 all 范围访问全局用户管理', () => {
+    const result = access({
+      currentUser: {
+        permissionCapabilities: [
+          { key: 'system.user.update', dataScope: 'organization' },
+          { key: 'system.role.read', dataScope: 'all' },
+        ],
+        roleScopes: [{ dataScope: 'all' }],
+      },
+    });
+    expect(result.canUpdateUsers).toBe(true);
+    expect(result.canManageUserMemberships).toBe(false);
+  });
+  it('self 能力即使与其他组织能力并存也不允许组织资源', () => {
+    const result = access({
+      currentUser: {
+        permissionCapabilities: [
+          { key: 'system.user.create', dataScope: 'self' },
+          { key: 'system.finance.bill.read', dataScope: 'self' },
+          { key: 'business.order.se.create', dataScope: 'self' },
+          { key: 'system.role.read', dataScope: 'all' },
+        ],
+      },
+    });
+    expect(result.canCreateUsers).toBe(false);
+    expect(result.canReadFinanceBills).toBe(false);
+    expect(result.canCreateAnyOrders).toBe(false);
   });
 });

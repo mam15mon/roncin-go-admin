@@ -251,8 +251,12 @@ func principalToAPI(principal *biz.Principal) *v1.CurrentUser {
 	for _, roleScope := range principal.RoleScopes() {
 		roleScopes = append(roleScopes, &v1.RoleScope{RoleCode: roleScope.RoleCode, DataScope: string(roleScope.DataScope), RoleName: roleScope.RoleName})
 	}
+	capabilities := make([]*v1.PermissionCapability, 0)
+	for _, capability := range principal.PermissionCapabilities() {
+		capabilities = append(capabilities, &v1.PermissionCapability{Key: capability.Key, DataScope: string(capability.DataScope)})
+	}
 	currentOrganization := principal.Organization
-	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: authOrganizationToAPI(currentOrganization), Organizations: organizations, Permissions: principal.PermissionKeys(), RoleScopes: roleScopes}
+	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: authOrganizationToAPI(currentOrganization), Organizations: organizations, Permissions: principal.PermissionKeys(), RoleScopes: roleScopes, PermissionCapabilities: capabilities}
 }
 
 // authOrganizationToAPI 投影登录视图组织：kind 供前端推导主数据维护视角（总部/公司）。

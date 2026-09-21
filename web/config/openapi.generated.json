@@ -14880,6 +14880,13 @@
           },
           "avatarUrl": {
             "type": "string"
+          },
+          "permissionCapabilities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/auth.v1.PermissionCapability"
+            },
+            "description": "按权限聚合的有效范围，前端授权使用此字段。"
           }
         }
       },
@@ -15180,6 +15187,17 @@
           }
         },
         "description": "OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。"
+      },
+      "auth.v1.PermissionCapability": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "dataScope": {
+            "type": "string"
+          }
+        }
       },
       "auth.v1.RegisterDingTalkUserRequest": {
         "type": "object",

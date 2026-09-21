@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	ErrAdminRoleScopeDisabled   = errors.BadRequest("ADMIN_ROLE_SCOPE_DISABLED", "仅本人数据范围已停用，请明确选择其他数据范围")
 	ErrAdminRoleNotFound        = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
 	ErrAdminRoleCodeExists      = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
 	ErrAdminRoleAnchorInvalid   = errors.BadRequest("ADMIN_ROLE_ANCHOR_INVALID", "角色只能在公司/总部维护")
@@ -101,7 +102,7 @@ func (uc *AdminUsecase) getActorPrivilegeProfile(ctx context.Context, organizati
 		if role == nil {
 			continue
 		}
-		if role.Code == "administrator" {
+		if role.Code == "administrator" && role.DataScope.active() {
 			profile.IsSuperAdmin = true
 		}
 		profile.RoleProfiles = append(profile.RoleProfiles, *role)
@@ -133,6 +134,9 @@ func checkPrivilegeEscalation(profile *AdminPrivilegeProfile, targetDataScope Da
 func actorRolesWithPermission(roles []AdminRoleProfile, permission string) []AdminRoleProfile {
 	matching := make([]AdminRoleProfile, 0, len(roles))
 	for _, role := range roles {
+		if !role.DataScope.active() {
+			continue
+		}
 		for _, key := range role.PermissionKeys {
 			if key == permission {
 				matching = append(matching, role)
@@ -236,6 +240,9 @@ func (uc *AdminUsecase) ListPermissions(ctx context.Context) ([]*AdminPermission
 func normalizeRole(input *AdminRole) (*AdminRole, error) {
 	if input == nil {
 		return nil, ErrAdminInvalidArgument
+	}
+	if input.DataScope == DataScopeSelf {
+		return nil, ErrAdminRoleScopeDisabled
 	}
 	output := *input
 	output.Code = strings.ToLower(strings.TrimSpace(output.Code))

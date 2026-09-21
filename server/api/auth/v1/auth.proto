@@ -264,6 +264,8 @@ message CurrentUser {
   repeated string permissions = 7;
   repeated RoleScope role_scopes = 8;
   optional string avatar_url = 9;
+  // 按权限聚合的有效范围，前端授权使用此字段。
+  repeated PermissionCapability permission_capabilities = 10;
 }
 
 message Organization {
@@ -273,6 +275,11 @@ message Organization {
   string base_currency = 4;
   // 组织节点类型，供前端推导主数据维护视角（总部/公司）。
   OrganizationKind kind = 5;
+}
+
+message PermissionCapability {
+  string key = 1;
+  string data_scope = 2;
 }
 
 message RoleScope {

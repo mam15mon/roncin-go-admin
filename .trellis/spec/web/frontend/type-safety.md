@@ -126,3 +126,44 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 **判定真值时用 truthy 即可**（`success`、`financeLocked` 等 true 才序列化的场景
 不受影响）；只有需要区分「明确 false」的分支必须用 `!== true`。新增后端响应
 布尔消费点时同步检查此规则。
+
+## 权限能力与数据范围契约
+
+### 1. 适用范围
+修改 auth/me、access.ts、角色范围配置、按钮/路由/页面查询门控时适用。
+
+### 2. 签名
+`CurrentUser.permissionCapabilities: PermissionCapability[]`，每项为
+`{ key: string, dataScope: string }`；由 auth.proto 生成客户端类型。
+
+### 3. 契约
+- 服务端从持有具体权限的有效角色中取最高范围，并应用当前工作台限制。
+- 前端只能按该权限的 dataScope 判断动作所需范围；roleScopes 只展示角色，
+  permissions 只用于展示权限列表/计数，不可作为旧契约回退。
+- 有效范围为 organization、organization_tree、all。self 已停用，旧值清晰展示
+  “已停用/需调整”，新建和保存拒绝；禁止自动改为 organization。
+- 同权限码可能用于不同范围接口：用户列表要求组织级，全部成员关系要求 all，
+  调用点应选择正确阈值，不把同码理解为全部接口可用。
+- auth/me 只控制入口；真实记录所属组织、状态与审批资格由后端请求时校验。
+
+### 4. 校验矩阵
+| 输入 | 结果 |
+| --- | --- |
+| 缺少 permissionCapabilities，仅有 permissions/roleScopes | 拒绝权限入口，不回退 |
+| 权限 A 属 organization，无关权限 B 属 all | A 不具备 all 能力 |
+| 权限仅来自旧 self 角色 | 无有效能力，组织资源拒绝 |
+| 同权限另有有效 organization 角色 | 按有效角色范围开放 |
+| Any 路由通过，但当前 kind 未授权 | 页面精确拒绝且不启动查询 |
+
+### 5. 正常与错误场景
+- 正常：当前公司操作员按海运出口 create 能力看到对应新增按钮。
+- 基础：总部与公司切换后刷新当前用户，能力随工作台变化。
+- 错误：用所有角色中的最高范围扩大某一个权限。
+
+### 6. 必需验证
+覆盖跨角色范围拼接、同权限多角色、self 停用、缺字段拒绝、工作区切换、
+具体业务类型请求门控；保留 lock 补录审批与本人工作台/提成入口。
+
+### 7. 错误与正确
+错误：`permissions.includes(key) && roleScopes.some(scopeMeetsMinimum)`。
+正确：查找 `permissionCapabilities` 中 key 对应的条目，仅比较该条目的范围。

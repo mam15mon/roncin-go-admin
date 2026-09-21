@@ -134,8 +134,9 @@ type OrderOrganizationScope struct {
 
 - Resolver 只合并持有目标 `permission` 的启用角色；多个匹配角色的结果可取并集，
   不持有该权限的角色不得贡献 `data_scope`。
-- 基础范围按该角色的 `all`、`organization_tree`、`organization`、`self` 解析；
-  `self` 在组织维度只包含当前组织，业务实体的本人条件仍由对应领域追加。
+- 有效授权范围只有 `all`、`organization_tree`、`organization`。`self` 已停用，
+  旧角色值仅保留供展示及管理员显式调整，不参与权限检查、能力投影或组织范围解析；
+  禁止把它映射为当前组织或自动升级。本人工作台与本人提成继续使用独立本人规则。
 - 基础范围同时进入 readable 与 writable；停用组织不进入任何结果。
 - Service 选择当前接口的具体权限码和读/写集合；Biz 接收明确的组织 ID；Data 使用
   `Data.client(ctx)`，并把实体 ID 与 `OrganizationIDIn(...)` 放在同一 Ent 查询中。

@@ -1582,8 +1582,10 @@ type CurrentUser struct {
 	Permissions         []string               `protobuf:"bytes,7,rep,name=permissions,proto3" json:"permissions,omitempty"`
 	RoleScopes          []*RoleScope           `protobuf:"bytes,8,rep,name=role_scopes,json=roleScopes,proto3" json:"role_scopes,omitempty"`
 	AvatarUrl           *string                `protobuf:"bytes,9,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// 按权限聚合的有效范围，前端授权使用此字段。
+	PermissionCapabilities []*PermissionCapability `protobuf:"bytes,10,rep,name=permission_capabilities,json=permissionCapabilities,proto3" json:"permission_capabilities,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *CurrentUser) Reset() {
@@ -1679,6 +1681,13 @@ func (x *CurrentUser) GetAvatarUrl() string {
 	return ""
 }
 
+func (x *CurrentUser) GetPermissionCapabilities() []*PermissionCapability {
+	if x != nil {
+		return x.PermissionCapabilities
+	}
+	return nil
+}
+
 type Organization struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1756,6 +1765,58 @@ func (x *Organization) GetKind() OrganizationKind {
 	return OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
 }
 
+type PermissionCapability struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	DataScope     string                 `protobuf:"bytes,2,opt,name=data_scope,json=dataScope,proto3" json:"data_scope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PermissionCapability) Reset() {
+	*x = PermissionCapability{}
+	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PermissionCapability) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PermissionCapability) ProtoMessage() {}
+
+func (x *PermissionCapability) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PermissionCapability.ProtoReflect.Descriptor instead.
+func (*PermissionCapability) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *PermissionCapability) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *PermissionCapability) GetDataScope() string {
+	if x != nil {
+		return x.DataScope
+	}
+	return ""
+}
+
 type RoleScope struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	RoleCode  string                 `protobuf:"bytes,1,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
@@ -1768,7 +1829,7 @@ type RoleScope struct {
 
 func (x *RoleScope) Reset() {
 	*x = RoleScope{}
-	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_auth_v1_auth_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1780,7 +1841,7 @@ func (x *RoleScope) String() string {
 func (*RoleScope) ProtoMessage() {}
 
 func (x *RoleScope) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_auth_v1_auth_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1793,7 +1854,7 @@ func (x *RoleScope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleScope.ProtoReflect.Descriptor instead.
 func (*RoleScope) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{24}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *RoleScope) GetRoleCode() string {
@@ -1825,7 +1886,7 @@ type GetWeComLoginConfigRequest struct {
 
 func (x *GetWeComLoginConfigRequest) Reset() {
 	*x = GetWeComLoginConfigRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_auth_v1_auth_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1837,7 +1898,7 @@ func (x *GetWeComLoginConfigRequest) String() string {
 func (*GetWeComLoginConfigRequest) ProtoMessage() {}
 
 func (x *GetWeComLoginConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_auth_v1_auth_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1850,7 +1911,7 @@ func (x *GetWeComLoginConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWeComLoginConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetWeComLoginConfigRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{25}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{26}
 }
 
 type GetDingTalkLoginConfigRequest struct {
@@ -1861,7 +1922,7 @@ type GetDingTalkLoginConfigRequest struct {
 
 func (x *GetDingTalkLoginConfigRequest) Reset() {
 	*x = GetDingTalkLoginConfigRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_auth_v1_auth_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1873,7 +1934,7 @@ func (x *GetDingTalkLoginConfigRequest) String() string {
 func (*GetDingTalkLoginConfigRequest) ProtoMessage() {}
 
 func (x *GetDingTalkLoginConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_auth_v1_auth_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1886,7 +1947,7 @@ func (x *GetDingTalkLoginConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDingTalkLoginConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetDingTalkLoginConfigRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{26}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{27}
 }
 
 type LogoutRequest struct {
@@ -1897,7 +1958,7 @@ type LogoutRequest struct {
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_auth_v1_auth_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1909,7 +1970,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_auth_v1_auth_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1922,7 +1983,7 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{27}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{28}
 }
 
 type MeRequest struct {
@@ -1933,7 +1994,7 @@ type MeRequest struct {
 
 func (x *MeRequest) Reset() {
 	*x = MeRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_auth_v1_auth_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1945,7 +2006,7 @@ func (x *MeRequest) String() string {
 func (*MeRequest) ProtoMessage() {}
 
 func (x *MeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_auth_v1_auth_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1958,7 +2019,7 @@ func (x *MeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MeRequest.ProtoReflect.Descriptor instead.
 func (*MeRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{28}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{29}
 }
 
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
@@ -2077,7 +2138,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\x92\x03\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xea\x03\n" +
 	"\vCurrentUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -2089,7 +2150,9 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\vrole_scopes\x18\b \x03(\v2\x12.auth.v1.RoleScopeR\n" +
 	"roleScopes\x12\"\n" +
 	"\n" +
-	"avatar_url\x18\t \x01(\tH\x01R\tavatarUrl\x88\x01\x01B\b\n" +
+	"avatar_url\x18\t \x01(\tH\x01R\tavatarUrl\x88\x01\x01\x12V\n" +
+	"\x17permission_capabilities\x18\n" +
+	" \x03(\v2\x1d.auth.v1.PermissionCapabilityR\x16permissionCapabilitiesB\b\n" +
 	"\x06_emailB\r\n" +
 	"\v_avatar_url\"\x9a\x01\n" +
 	"\fOrganization\x12\x0e\n" +
@@ -2097,7 +2160,11 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12#\n" +
 	"\rbase_currency\x18\x04 \x01(\tR\fbaseCurrency\x12-\n" +
-	"\x04kind\x18\x05 \x01(\x0e2\x19.auth.v1.OrganizationKindR\x04kind\"d\n" +
+	"\x04kind\x18\x05 \x01(\x0e2\x19.auth.v1.OrganizationKindR\x04kind\"G\n" +
+	"\x14PermissionCapability\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1d\n" +
+	"\n" +
+	"data_scope\x18\x02 \x01(\tR\tdataScope\"d\n" +
 	"\tRoleScope\x12\x1b\n" +
 	"\trole_code\x18\x01 \x01(\tR\broleCode\x12\x1d\n" +
 	"\n" +
@@ -2144,7 +2211,7 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_auth_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_auth_v1_auth_proto_goTypes = []any{
 	(DingTalkLoginStatus)(0),                  // 0: auth.v1.DingTalkLoginStatus
 	(OrganizationKind)(0),                     // 1: auth.v1.OrganizationKind
@@ -2172,11 +2239,12 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*LogoutResponse)(nil),                    // 23: auth.v1.LogoutResponse
 	(*CurrentUser)(nil),                       // 24: auth.v1.CurrentUser
 	(*Organization)(nil),                      // 25: auth.v1.Organization
-	(*RoleScope)(nil),                         // 26: auth.v1.RoleScope
-	(*GetWeComLoginConfigRequest)(nil),        // 27: auth.v1.GetWeComLoginConfigRequest
-	(*GetDingTalkLoginConfigRequest)(nil),     // 28: auth.v1.GetDingTalkLoginConfigRequest
-	(*LogoutRequest)(nil),                     // 29: auth.v1.LogoutRequest
-	(*MeRequest)(nil),                         // 30: auth.v1.MeRequest
+	(*PermissionCapability)(nil),              // 26: auth.v1.PermissionCapability
+	(*RoleScope)(nil),                         // 27: auth.v1.RoleScope
+	(*GetWeComLoginConfigRequest)(nil),        // 28: auth.v1.GetWeComLoginConfigRequest
+	(*GetDingTalkLoginConfigRequest)(nil),     // 29: auth.v1.GetDingTalkLoginConfigRequest
+	(*LogoutRequest)(nil),                     // 30: auth.v1.LogoutRequest
+	(*MeRequest)(nil),                         // 31: auth.v1.MeRequest
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	8,  // 0: auth.v1.GetDingTalkInvitationInfoResponse.data:type_name -> auth.v1.DingTalkInvitationPublicInfo
@@ -2196,33 +2264,34 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	1,  // 14: auth.v1.OrganizationChoice.kind:type_name -> auth.v1.OrganizationKind
 	25, // 15: auth.v1.CurrentUser.current_organization:type_name -> auth.v1.Organization
 	25, // 16: auth.v1.CurrentUser.organizations:type_name -> auth.v1.Organization
-	26, // 17: auth.v1.CurrentUser.role_scopes:type_name -> auth.v1.RoleScope
-	1,  // 18: auth.v1.Organization.kind:type_name -> auth.v1.OrganizationKind
-	2,  // 19: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	27, // 20: auth.v1.AuthService.GetWeComLoginConfig:input_type -> auth.v1.GetWeComLoginConfigRequest
-	3,  // 21: auth.v1.AuthService.WeComLogin:input_type -> auth.v1.WeComLoginRequest
-	28, // 22: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
-	4,  // 23: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
-	5,  // 24: auth.v1.AuthService.RegisterDingTalkUser:input_type -> auth.v1.RegisterDingTalkUserRequest
-	6,  // 25: auth.v1.AuthService.GetDingTalkInvitationInfo:input_type -> auth.v1.GetDingTalkInvitationInfoRequest
-	29, // 26: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
-	30, // 27: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
-	13, // 28: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
-	14, // 29: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	9,  // 30: auth.v1.AuthService.GetWeComLoginConfig:output_type -> auth.v1.GetWeComLoginConfigResponse
-	15, // 31: auth.v1.AuthService.WeComLogin:output_type -> auth.v1.WeComLoginResponse
-	11, // 32: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
-	16, // 33: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
-	18, // 34: auth.v1.AuthService.RegisterDingTalkUser:output_type -> auth.v1.RegisterDingTalkUserResponse
-	7,  // 35: auth.v1.AuthService.GetDingTalkInvitationInfo:output_type -> auth.v1.GetDingTalkInvitationInfoResponse
-	23, // 36: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
-	20, // 37: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
-	21, // 38: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
-	29, // [29:39] is the sub-list for method output_type
-	19, // [19:29] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	27, // 17: auth.v1.CurrentUser.role_scopes:type_name -> auth.v1.RoleScope
+	26, // 18: auth.v1.CurrentUser.permission_capabilities:type_name -> auth.v1.PermissionCapability
+	1,  // 19: auth.v1.Organization.kind:type_name -> auth.v1.OrganizationKind
+	2,  // 20: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	28, // 21: auth.v1.AuthService.GetWeComLoginConfig:input_type -> auth.v1.GetWeComLoginConfigRequest
+	3,  // 22: auth.v1.AuthService.WeComLogin:input_type -> auth.v1.WeComLoginRequest
+	29, // 23: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
+	4,  // 24: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
+	5,  // 25: auth.v1.AuthService.RegisterDingTalkUser:input_type -> auth.v1.RegisterDingTalkUserRequest
+	6,  // 26: auth.v1.AuthService.GetDingTalkInvitationInfo:input_type -> auth.v1.GetDingTalkInvitationInfoRequest
+	30, // 27: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
+	31, // 28: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
+	13, // 29: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
+	14, // 30: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	9,  // 31: auth.v1.AuthService.GetWeComLoginConfig:output_type -> auth.v1.GetWeComLoginConfigResponse
+	15, // 32: auth.v1.AuthService.WeComLogin:output_type -> auth.v1.WeComLoginResponse
+	11, // 33: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
+	16, // 34: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
+	18, // 35: auth.v1.AuthService.RegisterDingTalkUser:output_type -> auth.v1.RegisterDingTalkUserResponse
+	7,  // 36: auth.v1.AuthService.GetDingTalkInvitationInfo:output_type -> auth.v1.GetDingTalkInvitationInfoResponse
+	23, // 37: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
+	20, // 38: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
+	21, // 39: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
+	30, // [30:40] is the sub-list for method output_type
+	20, // [20:30] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -2242,7 +2311,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   29,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

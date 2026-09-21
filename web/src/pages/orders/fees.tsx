@@ -60,7 +60,12 @@ export default function OrderFeesPage() {
   const orderId = params.id;
   const definition = getOrderKindDefinition(kind);
 
-  const targetOrderId = definition ? orderId : undefined;
+  const canAccessPage = Boolean(
+    definition &&
+      (access.canOrder(definition.businessType, 'fee.read') ||
+        access.canOrder(definition.businessType, 'lock')),
+  );
+  const targetOrderId = canAccessPage ? orderId : undefined;
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
@@ -84,13 +89,21 @@ export default function OrderFeesPage() {
     financeLockCommissionNos,
     customerName,
     loadData,
-  } = useOrderFeeOptions(targetOrderId);
+  } = useOrderFeeOptions(
+    access.canOrder(definition?.businessType ?? '', 'fee.read')
+      ? targetOrderId
+      : undefined,
+  );
   const {
     state: lockState,
     loading: lockStateLoading,
     error: lockStateError,
     refresh: refreshLockState,
-  } = useOrderLockState(targetOrderId);
+  } = useOrderLockState(
+    access.canOrder(definition?.businessType ?? '', 'fee.read')
+      ? targetOrderId
+      : undefined,
+  );
 
   const {
     totalPreview,
@@ -437,6 +450,40 @@ export default function OrderFeesPage() {
           }
         />
       </div>
+    );
+  }
+
+  if (!canAccessPage) {
+    return (
+      <PageContainer title={false}>
+        <Result status="403" title="无权访问此业务类型" />
+      </PageContainer>
+    );
+  }
+
+  if (!access.canOrder(definition.businessType, 'fee.read') && targetOrderId) {
+    return (
+      <PageContainer title={false}>
+        <OrderPageHeader
+          page="fees"
+          orderKind={definition.kind}
+          navigationTitle={definition.navigationTitle}
+          orderId={orderId}
+        />
+        <SectionCard title="锁后费用补录审批">
+          <FeeSupplementSection
+            key={targetOrderId}
+            orderId={targetOrderId}
+            canCreate={false}
+            lockActive={false}
+            feeSettings={[]}
+            settlementParties={[]}
+            currencies={[]}
+            billingUnits={[]}
+            onFeeTablesReload={() => {}}
+          />
+        </SectionCard>
+      </PageContainer>
     );
   }
 

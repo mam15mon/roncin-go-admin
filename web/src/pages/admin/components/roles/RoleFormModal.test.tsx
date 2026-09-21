@@ -122,6 +122,18 @@ describe('RoleFormModal 角色提交载荷', () => {
     serviceMocks.updateRole.mockResolvedValue({});
   });
 
+  it('历史仅本人角色保留原值但不能保存或静默升权', async () => {
+    render(<RoleFormHarness editing={{ id: 'old-role', dataScope: 4 }} />);
+    expect(modalState.props?.initialValues).toMatchObject({ dataScope: 4 });
+    await act(async () => {
+      expect(await requiredOnFinish()({ name: '旧角色', dataScope: 4 })).toBe(
+        false,
+      );
+    });
+    expect(serviceMocks.updateRole).not.toHaveBeenCalled();
+    expect(serviceMocks.createRole).not.toHaveBeenCalled();
+  });
+
   it('创建载荷只携带名称、数据范围与权限集', async () => {
     render(<RoleFormHarness />);
 

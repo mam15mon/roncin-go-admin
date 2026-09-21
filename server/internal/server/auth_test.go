@@ -745,3 +745,33 @@ func TestRequestOrderDoesNotBorrowFinanceRoleScope(t *testing.T) {
 		t.Fatal("财务角色的更大范围不得被订单 read 权限借用")
 	}
 }
+
+func TestDisabledSelfCannotPassResourcePermissionGates(t *testing.T) {
+	tests := []struct {
+		name       string
+		request    any
+		permission string
+		operation  access.OrderOperation
+	}{
+		{"账单查询", &financev1.ListBillsRequest{}, access.FinanceBillRead, ""},
+		{"账单写入", &financev1.CreateBillRequest{}, access.FinanceBillCreate, ""},
+		{"往来单位查询", &partnerv1.ListPartnersRequest{}, access.PartnerRead, ""},
+		{"往来单位写入", &partnerv1.CreatePartnerRequest{}, access.PartnerCreate, ""},
+		{"订单查询", &orderv1.ListOrdersRequest{}, access.OrderPermission(access.OrderBusinessSE, access.OrderRead), access.OrderRead},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			id := uuid.New()
+			p := &biz.Principal{Organization: biz.Organization{ID: id, Kind: biz.OrganizationKindCompany}, OrganizationNodes: serverOrganizationNodes(id),
+				RoleGrants: []biz.RoleGrant{serverRoleGrant("legacy", biz.DataScopeSelf, []string{tt.permission}), serverRoleGrant("other", biz.DataScopeAll, []string{"unrelated"})}}
+			rule := accessRule{permission: tt.permission, scope: biz.DataScopeOrganization, orderOperation: tt.operation}
+			if hasPermission(tt.request, p, rule) {
+				t.Fatal("self 不得借无关角色范围通过资源门禁")
+			}
+			p.RoleGrants = append(p.RoleGrants, serverRoleGrant("valid", biz.DataScopeOrganization, []string{tt.permission}))
+			if !hasPermission(tt.request, p, rule) {
+				t.Fatal("同权限有效组织角色仍应放行")
+			}
+		})
+	}
+}

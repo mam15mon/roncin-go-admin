@@ -22,6 +22,8 @@ const detailTestState = vi.hoisted(() => ({
   lockState: { isLocked: false } as API.OrderLockStateData | null,
   sectionReadonly: undefined as boolean | undefined,
   templateReadonly: undefined as boolean | undefined,
+  canRead: true,
+  detailArgs: vi.fn(),
   canOperate: true,
   customerReferenceNo: '服务端初始值',
 }));
@@ -38,7 +40,7 @@ vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => detailTestState.canOperate,
     canOperateBusiness: true,
-    canOrder: () => true,
+    canOrder: () => detailTestState.canRead,
   }),
 }));
 
@@ -51,29 +53,32 @@ vi.mock('@/services/roncin/seaOrderChangeService', () => ({
 }));
 
 vi.mock('./use-order-detail-data', () => ({
-  useOrderDetailData: (orderId?: string) => ({
-    loading: false,
-    order: orderId
-      ? {
-          id: orderId,
-          orderNo: `ORDER-${orderId}`,
-          version: '1',
-          customerReferenceNo: detailTestState.customerReferenceNo,
-          allowedActions: detailTestState.allowedActions,
-        }
-      : undefined,
-    shippingDocs: [],
-    personnel: [],
-    serviceTypeOptions: [],
-    cargoCategoryOptions: [],
-    locationOptions: [],
-    searchLocations: vi.fn().mockResolvedValue([]),
-    currencyOptions: [],
-    containerSpecOptions: [],
-    personnelOptions: [],
-    draftScope: 'user-1:org-1',
-    loadData: () => detailTestState.loadData(orderId),
-  }),
+  useOrderDetailData: (orderId?: string) => {
+    detailTestState.detailArgs(orderId);
+    return {
+      loading: false,
+      order: orderId
+        ? {
+            id: orderId,
+            orderNo: `ORDER-${orderId}`,
+            version: '1',
+            customerReferenceNo: detailTestState.customerReferenceNo,
+            allowedActions: detailTestState.allowedActions,
+          }
+        : undefined,
+      shippingDocs: [],
+      personnel: [],
+      serviceTypeOptions: [],
+      cargoCategoryOptions: [],
+      locationOptions: [],
+      searchLocations: vi.fn().mockResolvedValue([]),
+      currencyOptions: [],
+      containerSpecOptions: [],
+      personnelOptions: [],
+      draftScope: 'user-1:org-1',
+      loadData: () => detailTestState.loadData(orderId),
+    };
+  },
 }));
 
 vi.mock('./use-order-lock-state', async (importOriginal) => {
@@ -193,6 +198,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     detailTestState.canOperate = true;
+    detailTestState.canRead = true;
     routeState.params = { kind: 'sea-export', id: 'ord-A' };
     detailTestState.loadData.mockResolvedValue(undefined);
     detailTestState.allowedActions = [
@@ -202,6 +208,18 @@ describe('订单详情页拆票与改配动作隔离', () => {
     detailTestState.sectionReadonly = undefined;
     detailTestState.templateReadonly = undefined;
     detailTestState.customerReferenceNo = '服务端初始值';
+  });
+
+  it('无当前业务类型查看权限时拒绝页面且不启动详情或动作查询', () => {
+    detailTestState.canRead = false;
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    expect(screen.getByText('无权访问此业务类型')).toBeInTheDocument();
+    expect(detailTestState.detailArgs).toHaveBeenCalledWith(undefined);
+    expect(mockGetChangeActions).not.toHaveBeenCalled();
   });
 
   it.each([

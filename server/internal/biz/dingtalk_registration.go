@@ -406,7 +406,7 @@ func (uc *DingTalkRegistrationUsecase) actorPrivilegeProfile(ctx context.Context
 		if role == nil {
 			continue
 		}
-		if role.Code == "administrator" {
+		if role.Code == "administrator" && role.DataScope.active() {
 			profile.IsSuperAdmin = true
 		}
 		profile.RoleProfiles = append(profile.RoleProfiles, *role)

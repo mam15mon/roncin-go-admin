@@ -594,7 +594,7 @@ func TestAdminUsecaseBuildsActorPrivilegeProfile(t *testing.T) {
 	if got := actorRolesWithPermission(profile.RoleProfiles, "system.user.update"); len(got) != 1 || got[0].Code != "manager" {
 		t.Fatalf("matching roles = %#v", got)
 	}
-	if got := actorRolesWithPermission(profile.RoleProfiles, "system.user.read"); len(got) != 2 {
+	if got := actorRolesWithPermission(profile.RoleProfiles, "system.user.read"); len(got) != 1 {
 		t.Fatalf("matching roles = %#v", got)
 	}
 }
@@ -892,5 +892,30 @@ func TestAdminUsecaseUpdateOrganizationBaseCurrencyImmutable(t *testing.T) {
 	}
 	if updated.BaseCurrency != "USD" {
 		t.Fatalf("updated org baseCurrency = %q, want USD", updated.BaseCurrency)
+	}
+}
+
+func TestCreateAndUpdateRoleRejectDisabledSelf(t *testing.T) {
+	uc := NewAdminUsecase(&adminRepoStub{})
+	input := &AdminRole{Name: "历史角色", DataScope: DataScopeSelf}
+	if _, err := uc.CreateRole(context.Background(), uuid.New(), uuid.New(), input, nil); err != ErrAdminRoleScopeDisabled {
+		t.Fatalf("新建 self 角色错误 = %v", err)
+	}
+	if _, err := uc.UpdateRole(context.Background(), uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminRoleScopeDisabled {
+		t.Fatalf("保存 self 角色错误 = %v", err)
+	}
+}
+
+func TestDisabledAdministratorCannotEscalateRolePrivileges(t *testing.T) {
+	repo := &adminRepoStub{actorRoleProfiles: []*AdminRoleProfile{{Code: "administrator", DataScope: DataScopeSelf, PermissionKeys: []string{"system.role.create"}}}}
+	profile, err := NewAdminUsecase(repo).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if profile.IsSuperAdmin {
+		t.Fatal("停用的管理员角色不得绕过提权检查")
+	}
+	if err := checkPrivilegeEscalation(profile, DataScopeOrganization, []string{"system.role.create"}, false); err != ErrAdminPrivilegeEscalation {
+		t.Fatalf("停用角色不得授权: %v", err)
 	}
 }

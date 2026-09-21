@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "权限与范围来源绑定、生成流程与后端门禁"}
+{"file": ".trellis/spec/server/backend/operating-company-commission-attribution.md", "reason": "总部公司工作区及经营写入限制"}
+{"file": ".trellis/spec/server/backend/role-workspace-ownership.md", "reason": "角色归属与分配边界"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "权限类型与生成契约"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "无权限请求门控与状态管理"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端定向测试与最终检查"}
+{"file": ".trellis/tasks/09-21-permission-scope-alignment/research/backend.md", "reason": "已验证的授权链与修复边界"}

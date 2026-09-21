@@ -1,7 +1,8 @@
 import { ProFormSwitch, ProFormText } from '@ant-design/pro-components';
 import { Col, Row } from 'antd';
 import { ProFormSearchableSelect } from '@/components/ui';
-import { dataScopeOptions } from '../roleConstants';
+import { AdminDataScope } from '@/enums.generated';
+import { dataScopeMap, dataScopeOptions } from '../roleConstants';
 
 type RoleBasicFormFieldsProps = {
   editing?: API.AdminRole;
@@ -11,6 +12,7 @@ type RoleBasicFormFieldsProps = {
 export default function RoleBasicFormFields({
   editing,
 }: RoleBasicFormFieldsProps) {
+  const retiredScope = dataScopeMap.get(AdminDataScope.DATA_SCOPE_SELF);
   return (
     <>
       <Row gutter={16}>
@@ -29,11 +31,31 @@ export default function RoleBasicFormFields({
           <ProFormSearchableSelect
             name="dataScope"
             label="数据访问范围"
-            options={dataScopeOptions.map((opt) => ({
+            extra={
+              editing?.dataScope === AdminDataScope.DATA_SCOPE_SELF
+                ? dataScopeMap.get(AdminDataScope.DATA_SCOPE_SELF)?.description
+                : undefined
+            }
+            options={[
+              ...dataScopeOptions,
+              ...(editing?.dataScope === AdminDataScope.DATA_SCOPE_SELF &&
+              retiredScope
+                ? [retiredScope]
+                : []),
+            ].map((opt) => ({
+              disabled: opt.value === AdminDataScope.DATA_SCOPE_SELF,
               label: `${opt.label} —— ${opt.description}`,
               value: opt.value,
             }))}
-            rules={[{ required: true, message: '请选择数据范围' }]}
+            rules={[
+              { required: true, message: '请选择数据范围' },
+              {
+                validator: async (_, value) => {
+                  if (value === AdminDataScope.DATA_SCOPE_SELF)
+                    throw new Error('仅本人范围已停用，请明确选择新的数据范围');
+                },
+              },
+            ]}
           />
         </Col>
         <Col span={8}>

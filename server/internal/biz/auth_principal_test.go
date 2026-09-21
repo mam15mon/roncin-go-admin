@@ -93,7 +93,6 @@ func TestResolvePermissionOrganizationScopeDataScopes(t *testing.T) {
 		{name: "all", scope: DataScopeAll, want: sortedIDs(rootID, currentID, childID, grandchildID, siblingID)},
 		{name: "organization_tree", scope: DataScopeOrganizationTree, want: sortedIDs(currentID, childID, grandchildID)},
 		{name: "organization", scope: DataScopeOrganization, want: []uuid.UUID{currentID}},
-		{name: "self", scope: DataScopeSelf, want: []uuid.UUID{currentID}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -170,7 +169,7 @@ func TestResolvePermissionOrganizationScopeResolvesPermissionsIndependently(t *t
 			{Kind: OrganizationKindCompany, ID: otherID, ParentID: &otherParentID},
 		},
 		RoleGrants: []RoleGrant{
-			roleGrant("reader", DataScopeSelf, []string{readPermission}),
+			roleGrant("reader", DataScopeOrganization, []string{readPermission}),
 			roleGrant("writer", DataScopeOrganizationTree, []string{writePermission}),
 		},
 	}
@@ -241,4 +240,43 @@ func sortedIDs(ids ...uuid.UUID) []uuid.UUID {
 		return 0
 	})
 	return result
+}
+
+func TestDisabledSelfCannotGrantPermissions(t *testing.T) {
+	for _, bootstrap := range []bool{false, true} {
+		p := &Principal{IsBootstrapAdmin: bootstrap, Organization: Organization{ID: uuid.New(), Kind: OrganizationKindCompany},
+			RoleGrants: []RoleGrant{roleGrant("legacy", DataScopeSelf, []string{"system.user.create"}), roleGrant("unrelated", DataScopeAll, []string{"system.user.read"})}}
+		if p.HasPermission("system.user.create") || p.HasPermissionInScope("system.user.create", DataScopeSelf) {
+			t.Fatal("停用角色不得授予权限，包括初始化管理员")
+		}
+		if _, err := p.ResolvePermissionOrganizationScope("system.user.create"); err != ErrPermissionDenied {
+			t.Fatalf("停用范围必须拒绝: %v", err)
+		}
+		if got := p.PermissionKeys(); !slices.Equal(got, []string{"system.user.read"}) {
+			t.Fatalf("权限投影包含停用授权: %v", got)
+		}
+		if len(p.RoleScopes()) != 2 {
+			t.Fatal("历史角色仍须展示")
+		}
+	}
+}
+
+func TestPermissionCapabilitiesKeepPermissionScopeSource(t *testing.T) {
+	p := &Principal{Organization: Organization{ID: uuid.New(), Kind: OrganizationKindCompany}, RoleGrants: []RoleGrant{
+		roleGrant("local", DataScopeOrganization, []string{"system.user.create"}),
+		roleGrant("tree", DataScopeOrganizationTree, []string{"system.user.create"}),
+		roleGrant("global", DataScopeAll, []string{"system.user.read"}),
+		roleGrant("legacy", DataScopeSelf, []string{"system.role.create"}),
+	}}
+	want := []PermissionCapability{{Key: "system.user.create", DataScope: DataScopeOrganizationTree}, {Key: "system.user.read", DataScope: DataScopeAll}}
+	if got := p.PermissionCapabilities(); !slices.Equal(got, want) {
+		t.Fatalf("权限范围投影 = %v，期望 %v", got, want)
+	}
+	if p.HasPermissionInScope("system.user.create", DataScopeAll) {
+		t.Fatal("不能借用其他权限的全局范围")
+	}
+	p.IsBootstrapAdmin = true
+	if p.PermissionCapabilities()[0].DataScope != DataScopeAll {
+		t.Fatal("初始化管理员投影必须匹配接口范围判定")
+	}
 }
