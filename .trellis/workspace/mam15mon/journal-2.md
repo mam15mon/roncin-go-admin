@@ -307,3 +307,25 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 91: 统一权限范围与停用仅本人授权
+<!-- trellis-session: v=2 fp=5315c89347e60de8 -->
+
+**Date**: 2026-09-21
+**Task**: 统一权限范围与停用仅本人授权
+**Branch**: `fix/permission-scope-alignment`
+
+### Summary
+
+后端按具体权限投影有效范围，前端权限判断不再跨角色拼接；停用 self 授权保留旧角色提示；修复订单详情和费用页权限门控，保留 lock-only 补录审批。完成契约生成、独立审查与 check:fast（前端917通过12跳过、后端测试及vet漏洞扫描通过）。未修改数据库角色，现存self需管理员显式调整。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3f6e5d67` | fix(auth): 统一权限范围投影并停用仅本人授权 |
+
+### Status
+
+[OK] **Completed**

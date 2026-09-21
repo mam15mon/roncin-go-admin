@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 90
+- **Total Sessions**: 91
 - **Last Active**: 2026-09-21
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~309 | Active |
+| `journal-2.md` | ~331 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 91 | 2026-09-21 | 统一权限范围与停用仅本人授权 | `3f6e5d67` | `fix/permission-scope-alignment` |
 | 90 | 2026-09-21 | 工作台提成模块 UI 结构重构 | `8ea4c421` | `main` |
 | 89 | 2026-09-20 | 修复重复扫描三项可信性缺陷 | `4c92c4f9` | `main` |
 | 88 | 2026-09-20 | AI 友好架构二期：后端门禁与去重导航 | `98331d07`, `c77f0b14`, `1a72eaef` | `main` |
