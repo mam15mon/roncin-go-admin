@@ -31,9 +31,10 @@ Thumbs.db
 *.key
 *.log
 bin/
-server
-migrate
-bootstrap-admin
+# 仅忽略 server/ 根目录下的 go build 产物，避免误伤 cmd/<同名>/ 源码目录
+/server
+/migrate
+/bootstrap-admin
 
 # Develop tools
 .vscode/

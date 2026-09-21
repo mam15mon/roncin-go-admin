@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 
@@ -31,8 +32,10 @@ type bootstrapConfig struct {
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	syncOnly := slices.Contains(os.Args[1:], "--sync-permissions")
-	config, err := loadConfig(syncOnly)
+	args := os.Args[1:]
+	syncOnly := slices.Contains(args, "--sync-permissions")
+	seedBranchesOnly := slices.Contains(args, "--seed-branches")
+	config, err := loadConfig(syncOnly || seedBranchesOnly)
 	if err != nil {
 		logger.Error("bootstrap configuration invalid", "error", err)
 		os.Exit(1)
@@ -46,6 +49,15 @@ func main() {
 		logger.Info("permission manifest synced", "created", summary.Created, "updated", summary.Updated, "removed", summary.Removed, "attached", summary.Attached)
 		return
 	}
+	if seedBranchesOnly {
+		created, seedErr := seedBranchCompanies(context.Background(), config.databaseSource)
+		if seedErr != nil {
+			logger.Error("seed default branch companies failed", "error", seedErr)
+			os.Exit(1)
+		}
+		logger.Info("default branch companies seeded", "created", created)
+		return
+	}
 	if err := bootstrap(context.Background(), config); err != nil {
 		logger.Error("bootstrap admin failed", "error", err)
 		os.Exit(1)
@@ -53,7 +65,7 @@ func main() {
 	logger.Info("bootstrap admin completed", "username", config.username, "organization.code", config.organizationCode)
 }
 
-func loadConfig(syncOnly bool) (*bootstrapConfig, error) {
+func loadConfig(toolsOnly bool) (*bootstrapConfig, error) {
 	config := &bootstrapConfig{
 		databaseSource:   os.Getenv("DATABASE_SOURCE"),
 		username:         strings.ToLower(strings.TrimSpace(os.Getenv("BOOTSTRAP_ADMIN_USERNAME"))),
@@ -65,7 +77,7 @@ func loadConfig(syncOnly bool) (*bootstrapConfig, error) {
 	if config.databaseSource == "" {
 		return nil, fmt.Errorf("DATABASE_SOURCE is required")
 	}
-	if syncOnly {
+	if toolsOnly {
 		return config, nil
 	}
 	if config.username == "" || config.displayName == "" || config.plainPassword == "" || config.organizationCode == "" || config.organizationName == "" {
@@ -107,6 +119,10 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 	if err := data.CreateDefaultNumberRules(ctx, tx, organization.ID); err != nil {
 		tx.Rollback()
 		return err
+	}
+	if _, err := data.CreateDefaultBranchCompanies(ctx, tx, organization.ID); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("create default branch companies: %w", err)
 	}
 	// A 型主数据种子全局唯一，仅首次建库初始化，若已由迁移种子同步过则不再重复写入。
 	if masterDataExists, checkErr := tx.MasterDataItem.Query().Limit(1).Exist(ctx); checkErr != nil {
@@ -182,4 +198,36 @@ func syncPermissions(ctx context.Context, databaseSource string) (*data.Permissi
 		return nil, fmt.Errorf("connect database: %w", err)
 	}
 	return data.SyncPermissionManifest(ctx, sqlDB)
+}
+
+// seedBranchCompanies 在已完成 bootstrap 的库上幂等补建默认分公司种子。
+// 完整 bootstrap 只允许跑在全新库上，存量开发库通过本入口补齐新增加的分公司。
+func seedBranchCompanies(ctx context.Context, databaseSource string) (int, error) {
+	sqlDB, err := sql.Open("pgx", databaseSource)
+	if err != nil {
+		return 0, fmt.Errorf("open database: %w", err)
+	}
+	defer sqlDB.Close()
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return 0, fmt.Errorf("connect database: %w", err)
+	}
+	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, sqlDB)))
+	defer client.Close()
+	headquarters, err := client.Organization.Query().Where(organizationent.KindEQ(organizationent.KindHeadquarters)).Only(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("locate headquarters: %w", err)
+	}
+	tx, err := client.Tx(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("begin seed transaction: %w", err)
+	}
+	created, err := data.CreateDefaultBranchCompanies(ctx, tx, headquarters.ID)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit seed transaction: %w", err)
+	}
+	return created, nil
 }
