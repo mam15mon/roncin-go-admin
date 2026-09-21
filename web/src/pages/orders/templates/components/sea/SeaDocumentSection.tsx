@@ -215,7 +215,7 @@ export function SeaDocumentSectionComponent({
       if (!response.data) throw new Error('接口未返回海运单证数据');
       const structure = response.data.documentStructure;
       if (!isDocumentStructure(structure))
-        throw new Error('海运订单缺少明确的 HOUSE/DIRECT 单证模式');
+        throw new Error('海运订单缺少明确的 HOUSE/DIRECT 提单模式');
       const currentHouseBill = response.data.houseBill ?? null;
       if (
         (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
@@ -223,7 +223,7 @@ export function SeaDocumentSectionComponent({
         (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT &&
           currentHouseBill)
       ) {
-        throw new Error('海运单证模式与当前 HBL 不一致');
+        throw new Error('海运提单模式与当前 HBL 不一致');
       }
 
       setFetchError(null);
@@ -429,7 +429,7 @@ export function SeaDocumentSectionComponent({
 
   const openModeChange = () => {
     if (!isDocumentStructure(docStructure)) {
-      message.error('当前单证模式缺失，请刷新后重试');
+      message.error('当前提单模式缺失，请刷新后重试');
       return;
     }
     const targetMode =
@@ -509,8 +509,8 @@ export function SeaDocumentSectionComponent({
       );
       message.success(
         modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-          ? '已切换为 HOUSE 并建立当前 HBL'
-          : '已切换为 DIRECT，原 HBL 已形成作废历史',
+          ? '已切换为有货代分单（HOUSE） 并建立当前 HBL'
+          : '已切换为仅船公司主单（DIRECT），原 HBL 已形成作废历史',
       );
       setModeModalOpen(false);
       setModePreview(null);
@@ -526,12 +526,12 @@ export function SeaDocumentSectionComponent({
 
   const renderStructureTag = () => {
     if (docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT) {
-      return <Tag color="success">直单 (DIRECT)</Tag>;
+      return <Tag color="success">仅船公司主单（DIRECT）</Tag>;
     }
     if (docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
-      return <Tag color="processing">分单 (HOUSE)</Tag>;
+      return <Tag color="processing">有货代分单（HOUSE）</Tag>;
     }
-    return <Tag>请选择单证模式</Tag>;
+    return <Tag>请选择提单模式</Tag>;
   };
 
   const masterBillTab = {
@@ -753,7 +753,7 @@ export function SeaDocumentSectionComponent({
           <Row justify="space-between" align="middle" gutter={[12, 12]}>
             <Col>
               <Space size="middle">
-                <Text strong>单证模式：</Text>
+                <Text strong>提单模式：</Text>
                 {renderStructureTag()}
                 {linkVersion !== '0' ? (
                   <Text type="secondary" style={{ fontSize: 12 }}>
@@ -771,8 +771,8 @@ export function SeaDocumentSectionComponent({
                 >
                   {docStructure ===
                   SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-                    ? '切换为 DIRECT'
-                    : '切换为 HOUSE'}
+                    ? '切换为仅船公司主单（DIRECT）'
+                    : '切换为有货代分单（HOUSE）'}
                 </Button>
               ) : null}
             </Col>
@@ -796,8 +796,8 @@ export function SeaDocumentSectionComponent({
             style={{ marginTop: 12 }}
             type="info"
             showIcon
-            title="当前为直单（DIRECT）"
-            description="本订单不签发 HBL，直接向客户交付船公司或船代提供的 MBL。"
+            title="仅船公司主单（DIRECT）"
+            description="直接使用船公司主单，无需填写分单。"
           />
         ) : null}
         {!isDetail && !docStructure ? (
@@ -805,7 +805,7 @@ export function SeaDocumentSectionComponent({
             style={{ marginTop: 12 }}
             type="warning"
             showIcon
-            title="请先选择单证模式"
+            title="请先选择提单模式"
             description="HOUSE 必须随订单提交唯一 HBL；DIRECT 不提交 HBL。"
           />
         ) : null}
@@ -826,8 +826,8 @@ export function SeaDocumentSectionComponent({
       <Modal
         title={
           modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-            ? '切换为 HOUSE'
-            : '切换为 DIRECT'
+            ? '切换为有货代分单（HOUSE）'
+            : '切换为仅船公司主单（DIRECT）'
         }
         width={860}
         open={modeModalOpen}

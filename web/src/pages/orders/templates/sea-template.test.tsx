@@ -176,10 +176,10 @@ describe.skip('海运订单新增模板', () => {
     expect(transportSection).not.toHaveTextContent('分单信息 (HBL)');
     expect(transportSection).toHaveTextContent('计划箱型箱量');
     expect(
-      screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ }),
+      screen.getByRole('radio', { name: /有货代分单（HOUSE）/ }),
     ).toBeTruthy();
     expect(
-      screen.getByRole('radio', { name: /DIRECT（直接交付 MBL）/ }),
+      screen.getByRole('radio', { name: /仅船公司主单（DIRECT）/ }),
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: /添加首张分单/ })).toBeNull();
     expect(
@@ -194,7 +194,7 @@ describe.skip('海运订单新增模板', () => {
     expect(carrierLabel).toHaveClass('ant-form-item-required');
   });
 
-  it('单证模式显式选择：HOUSE 只录入一张 HBL，DIRECT 不携带 HBL', async () => {
+  it('提单模式显式选择：HOUSE 只录入一张 HBL，DIRECT 不携带 HBL', async () => {
     const sections = getSeaTemplateSections({
       serviceTypeOptions: [],
       cargoCategoryOptions: [],
@@ -229,20 +229,22 @@ describe.skip('海运订单新增模板', () => {
     expect(screen.queryByRole('button', { name: /添加首张分单/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /添加分单/ })).toBeNull();
 
-    // 切换为 HOUSE 模式，只录入一张当前 HBL
-    const houseRadio = screen.getByRole('radio', { name: /HOUSE（签发 HBL）/ });
+    // 切换为有货代分单（HOUSE） 模式，只录入一张当前 HBL
+    const houseRadio = screen.getByRole('radio', {
+      name: /有货代分单（HOUSE）/,
+    });
     fireEvent.click(houseRadio);
 
     await waitFor(() => {
       expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
-      expect(screen.getAllByText('签发主体')).toHaveLength(1);
+      expect(screen.getAllByText('分单由谁签发')).toHaveLength(1);
     });
     // 不存在添加第二张 HBL 的入口
     expect(screen.queryByRole('button', { name: /添加分单/ })).toBeNull();
 
-    // 切换为 DIRECT 模式，不携带 HBL
+    // 切换为仅船公司主单（DIRECT） 模式，不携带 HBL
     const directRadio = screen.getByRole('radio', {
-      name: /DIRECT（直接交付 MBL）/,
+      name: /仅船公司主单（DIRECT）/,
     });
     fireEvent.click(directRadio);
 

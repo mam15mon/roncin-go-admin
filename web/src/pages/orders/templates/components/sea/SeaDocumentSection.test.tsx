@@ -185,7 +185,7 @@ describe('SeaDocumentSectionComponent', () => {
         SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
       );
     });
-    expect(screen.queryByText('请先选择单证模式')).not.toBeInTheDocument();
+    expect(screen.queryByText('请先选择提单模式')).not.toBeInTheDocument();
     expect(screen.queryByText('未确定')).not.toBeInTheDocument();
 
     // HBL 页签懒渲染，点击后展示唯一分单录入。
@@ -201,7 +201,7 @@ describe('SeaDocumentSectionComponent', () => {
       target: { value: 'HBL-NEW' },
     });
     fireEvent.click(
-      screen.getByRole('radio', { name: 'DIRECT（直接交付 MBL）' }),
+      screen.getByRole('radio', { name: '仅船公司主单（DIRECT）' }),
     );
     await waitFor(() =>
       expect(
@@ -214,7 +214,7 @@ describe('SeaDocumentSectionComponent', () => {
     );
 
     // 切回 HOUSE 恢复分单录入。
-    fireEvent.click(screen.getByRole('radio', { name: 'HOUSE（签发 HBL）' }));
+    fireEvent.click(screen.getByRole('radio', { name: '有货代分单（HOUSE）' }));
     await waitFor(() =>
       expect(screen.getByPlaceholderText('请输入分单号')).toBeInTheDocument(),
     );
@@ -231,7 +231,7 @@ describe('SeaDocumentSectionComponent', () => {
     );
 
     const switchButton = await screen.findByRole('button', {
-      name: /切换为 DIRECT/,
+      name: /切换为仅船公司主单（DIRECT）/,
     });
     expect(switchButton).toBeEnabled();
     fireEvent.click(switchButton);
@@ -281,12 +281,12 @@ describe('SeaDocumentSectionComponent', () => {
     );
 
     fireEvent.click(
-      await screen.findByRole('button', { name: /切换为 HOUSE/ }),
+      await screen.findByRole('button', { name: /切换为有货代分单（HOUSE）/ }),
     );
     fireEvent.change(screen.getByPlaceholderText('请输入分单号'), {
       target: { value: 'HBL-NEW' },
     });
-    fireEvent.click(screen.getByRole('radio', { name: '本公司' }));
+    fireEvent.click(screen.getByRole('radio', { name: '我们公司签发' }));
     fireEvent.change(
       screen.getByPlaceholderText('说明客户请求及本次 HOUSE/DIRECT 切换原因'),
       {
@@ -321,7 +321,7 @@ describe('SeaDocumentSectionComponent', () => {
     expect(screen.getByRole('button', { name: '预览切换影响' })).toBeEnabled();
   }, 60000);
 
-  it('外公司单证详情可查看，但不能切换单证模式', async () => {
+  it('外公司单证详情可查看，但不能切换提单模式', async () => {
     workspaceAccess.canOperate = false;
     mockDocuments(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE);
     render(
@@ -334,7 +334,7 @@ describe('SeaDocumentSectionComponent', () => {
     await waitFor(() => expect(getDocuments).toHaveBeenCalled());
     await screen.findByText('MBL001');
     expect(
-      screen.queryByRole('button', { name: /切换为 DIRECT/ }),
+      screen.queryByRole('button', { name: /切换为仅船公司主单（DIRECT）/ }),
     ).not.toBeInTheDocument();
     expect(previewMode).not.toHaveBeenCalled();
     expect(executeMode).not.toHaveBeenCalled();

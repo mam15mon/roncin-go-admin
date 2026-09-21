@@ -134,7 +134,8 @@ export function HouseBillIdentityFields({
       </Col>
       <Col xs={24} md={16}>
         <Form.Item
-          label="签发主体"
+          label="分单由谁签发"
+          extra="请选择 HBL 上显示的签发主体"
           required
           style={{ marginBottom: 24 }}
           layout="vertical"
@@ -155,21 +156,21 @@ export function HouseBillIdentityFields({
                   SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
                 }
               >
-                本公司
+                我们公司签发
               </Radio>
               <Radio
                 value={
                   SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
                 }
               >
-                委托单位
+                委托单位签发
               </Radio>
               <Radio
                 value={
                   SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
                 }
               >
-                其他主体
+                指定其他合作方签发
               </Radio>
             </Radio.Group>
           </Form.Item>

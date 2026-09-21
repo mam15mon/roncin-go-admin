@@ -240,7 +240,7 @@ export function SeaCreateDocumentModeField({
   return (
     <Form.Item
       name="seaDocumentStructure"
-      label="单证模式"
+      label="提单模式"
       rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
       style={{ marginBottom: 0 }}
     >
@@ -251,12 +251,12 @@ export function SeaCreateDocumentModeField({
         }
       >
         <Radio.Button value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}>
-          HOUSE（签发 HBL）
+          有货代分单（HOUSE）
         </Radio.Button>
         <Radio.Button
           value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
         >
-          DIRECT（直接交付 MBL）
+          仅船公司主单（DIRECT）
         </Radio.Button>
       </Radio.Group>
     </Form.Item>

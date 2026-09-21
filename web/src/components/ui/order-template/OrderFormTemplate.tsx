@@ -3,6 +3,7 @@ import { PageContainer, ProForm } from '@ant-design/pro-components';
 import {
   App,
   Card,
+  Form,
   type FormProps,
   Row,
   Skeleton,
@@ -13,7 +14,6 @@ import {
 import React, {
   useImperativeHandle,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -86,14 +86,33 @@ export function OrderFormTemplate<T>({
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
 
+  const [form] = Form.useForm();
+  const allSections = [...prependSections, ...sections, ...appendSections];
+  const getVisibility = (values: Record<string, unknown>) =>
+    allSections
+      .map((section) =>
+        !section.visible || section.visible(values) ? '1' : '0',
+      )
+      .join('');
+  // 只订阅分节可见性，普通字段键入不触发模板整体重渲染。
+  const watchedVisibility = Form.useWatch(getVisibility, {
+    form,
+    preserve: true,
+  });
+  const visibility = getVisibility(
+    watchedVisibility === undefined
+      ? (initialValues ?? {})
+      : form.getFieldsValue(true),
+  );
+  const visibleSections = allSections.filter(
+    (_, index) => visibility[index] === '1',
+  );
+
   // 楼层锚点分节列表
-  const anchorItems = useMemo(() => {
-    const all = [...prependSections, ...sections, ...appendSections];
-    return all.map((s) => ({
-      key: s.key,
-      title: s.title,
-    }));
-  }, [prependSections, sections, appendSections]);
+  const anchorItems = visibleSections.map((section) => ({
+    key: section.key,
+    title: section.title,
+  }));
 
   // 导航是否实际渲染：只读、加载中或分节不足时不渲染，也不预留右侧空间
   const anchorNavVisible =
@@ -247,6 +266,7 @@ export function OrderFormTemplate<T>({
       ) : (
         <ProForm<T>
           className="roncin-order-form"
+          form={form}
           formRef={resolvedFormRef}
           autoComplete="off"
           readonly={readonly}
@@ -312,14 +332,7 @@ export function OrderFormTemplate<T>({
                 }
           }
         >
-          {/* 1. 前置自定义区块（如：订单状态流程） */}
-          {prependSections.map(renderSection)}
-
-          {/* 2. 核心 5 大业务区块 */}
-          {sections.map(renderSection)}
-
-          {/* 3. 后置自定义区块（如：操作记录日志） */}
-          {appendSections.map(renderSection)}
+          {visibleSections.map(renderSection)}
 
           {/* 4. 额外底部插槽 */}
           {footer}

@@ -202,7 +202,7 @@ describe('SE 新建 MBL 连续录入', () => {
       });
     });
     fireEvent.click(
-      screen.getByRole('radio', { name: 'DIRECT（直接交付 MBL）' }),
+      screen.getByRole('radio', { name: '仅船公司主单（DIRECT）' }),
     );
     await waitFor(() =>
       expect(
@@ -217,7 +217,7 @@ describe('SE 新建 MBL 连续录入', () => {
       buildSeaExportCreatePayload(form.getFieldsValue(true)).seaDocument
         ?.houseBill,
     ).toBeUndefined();
-    fireEvent.click(screen.getByRole('radio', { name: 'HOUSE（签发 HBL）' }));
+    fireEvent.click(screen.getByRole('radio', { name: '有货代分单（HOUSE）' }));
     await waitFor(() =>
       expect(screen.getByPlaceholderText('请输入分单号')).toBeVisible(),
     );

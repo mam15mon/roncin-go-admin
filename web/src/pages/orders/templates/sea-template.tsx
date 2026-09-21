@@ -1,5 +1,5 @@
 import { ProFormTextArea } from '@ant-design/pro-components';
-import { Form, Typography } from 'antd';
+import { Form } from 'antd';
 import React from 'react';
 import { FormRow } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
@@ -114,11 +114,7 @@ export function SeaCreateHouseBillFields({ disabled }: { disabled?: boolean }) {
     Form.useWatch('seaDocumentStructure', form) ??
     form.getFieldValue('seaDocumentStructure');
   if (structure !== SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
-    return (
-      <Typography.Text type="secondary">
-        DIRECT 不签发 HBL；选择 HOUSE 后录入分单内容。
-      </Typography.Text>
-    );
+    return null;
   }
   return (
     <div style={{ width: '100%' }}>
@@ -204,6 +200,9 @@ function getSeaCreateTemplateSections(props: TemplateProps): TemplateSection[] {
     {
       key: 'houseBillContent',
       title: 'HBL 分单内容',
+      visible: (values) =>
+        values.seaDocumentStructure ===
+        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
       content: <SeaCreateHouseBillFields disabled={props.readonly} />,
     },
     {

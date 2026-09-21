@@ -7,6 +7,8 @@ export interface OrderFormTemplateSection {
   title: string;
   extra?: ReactNode;
   content: ReactNode;
+  /** 根据当前表单值同步控制分节与导航入口。 */
+  visible?: (values: Record<string, unknown>) => boolean;
 }
 
 /** 模板对外暴露的显式动作；草稿与脏状态生命周期由模板独占管理。 */
