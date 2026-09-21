@@ -663,6 +663,7 @@ func validatePartnerProfileRegions(ctx context.Context, tx *ent.Tx, profile *biz
 // replacePartnerAssignments 重建客户责任人员：归属组织一律派生为 rootOrganizationID
 // （客户档案所属公司）；人员是否可担任按「当前公司子树内
 // 任一启用组织持有启用 Membership 且用户启用」判定，子树外或停用成员关系拒绝。
+// CREATOR 由用例从当前操作者生成，仅记录创建事实，不要求具备业务责任人资格。
 func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganizationID, partnerID uuid.UUID, assignments []*biz.PartnerAssignment) error {
 	if _, err := tx.PartnerAssignment.Delete().Where(
 		partnerassignmentent.PartnerIDEQ(partnerID),
@@ -689,15 +690,17 @@ func replacePartnerAssignments(ctx context.Context, tx *ent.Tx, rootOrganization
 		}
 	}
 	for _, assignment := range assignments {
-		validMembership, err := tx.Membership.Query().Where(
-			membershipent.UserIDEQ(assignment.UserID), membershipent.OrganizationIDIn(subtreeOrganizationIDs...), membershipent.EnabledEQ(true),
-			membershipent.HasUserWith(userent.EnabledEQ(true)),
-		).Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if !validMembership {
-			return biz.ErrPartnerInvalidArgument
+		if assignment.Role != biz.PartnerAssignmentCreator {
+			validMembership, err := tx.Membership.Query().Where(
+				membershipent.UserIDEQ(assignment.UserID), membershipent.OrganizationIDIn(subtreeOrganizationIDs...), membershipent.EnabledEQ(true),
+				membershipent.HasUserWith(userent.EnabledEQ(true)),
+			).Exist(ctx)
+			if err != nil {
+				return err
+			}
+			if !validMembership {
+				return biz.ErrPartnerInvalidArgument
+			}
 		}
 		if _, err := tx.PartnerAssignment.Create().SetPartnerID(partnerID).SetUserID(assignment.UserID).
 			SetOrganizationID(rootOrganizationID).SetRole(partnerassignmentent.Role(assignment.Role)).
