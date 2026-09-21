@@ -388,6 +388,9 @@ export default function access(
     canReadAnyOrders: [1, 2, 3, 4].some((businessType) =>
       canOrder(businessType, 'read'),
     ),
+    canCreateAnyOrders: [1, 2, 3, 4].some((businessType) =>
+      canOrder(businessType, 'create'),
+    ),
     canReadSEOrders: canOrder(1, 'read'),
     canSplitSEOrders: canOrder(1, 'split'),
     canReadSIOrders: canOrder(2, 'read'),

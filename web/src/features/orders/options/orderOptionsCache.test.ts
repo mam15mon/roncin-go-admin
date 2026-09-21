@@ -121,6 +121,33 @@ describe('订单候选缓存', () => {
     expect(mockListPersonnel).toHaveBeenCalledTimes(1);
   });
 
+  it('请求层错误被全局处理后 resolve undefined 时，转成明确业务错误并移出缓存', async () => {
+    mockListOptions
+      .mockResolvedValueOnce(undefined as unknown as API.ListOptionsResponse)
+      .mockResolvedValueOnce({
+        data: [{ id: 'opt-retry', name: '重试选项' } as any],
+      });
+
+    await expect(getMasterDataOptions('org-1')).rejects.toThrow(
+      '主数据选项加载失败，请稍后重试',
+    );
+
+    // 失败后缓存条目已移除，下次调用重新发起请求而不是命中坏缓存
+    const retryRes = await getMasterDataOptions('org-1');
+    expect(retryRes).toEqual([{ id: 'opt-retry', name: '重试选项' }]);
+    expect(mockListOptions).toHaveBeenCalledTimes(2);
+  });
+
+  it('人员选项请求 resolve undefined 时转成明确业务错误，不得抛 TypeError', async () => {
+    mockListPersonnel.mockResolvedValueOnce(
+      undefined as unknown as API.ListPersonnelOptionsResponse,
+    );
+
+    await expect(getOrderPersonnelOptions('org-1', 1)).rejects.toThrow(
+      '订单人员选项加载失败，请稍后重试',
+    );
+  });
+
   it('请求失败自动移出缓存，下次调用重新发起', async () => {
     mockListAirports
       .mockRejectedValueOnce(new Error('网络超时'))

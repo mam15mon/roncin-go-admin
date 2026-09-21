@@ -1,13 +1,13 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useLocation } from 'react-router';
 import { App, Result } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router';
+import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { OrderListTemplate } from '@/components/ui';
 import type { OrderListItem } from '@/components/ui/order-list-template/types';
+import { history } from '@/router/history';
 import {
   orderTagServiceBatchAssignOrderTags,
   orderTagServiceBatchRemoveOrderTags,
@@ -192,7 +192,11 @@ export default function OrderListPage() {
             containerSpecMap,
           })
         }
-        onCreateOrder={() => history.push(`/orders/${definition.kind}/new`)}
+        onCreateOrder={
+          access.canOrder(definition.businessType, 'create')
+            ? () => history.push(`/orders/${definition.kind}/new`)
+            : undefined
+        }
         onViewDetail={(item) =>
           history.push(
             `/orders/${item.orderKind || definition.kind}/${item.id}`,

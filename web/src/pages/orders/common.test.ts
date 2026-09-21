@@ -92,4 +92,21 @@ describe('订单远程候选项', () => {
       expect(listAirports).not.toHaveBeenCalled();
     },
   );
+
+  it('港口/机场请求被全局错误处理器消费后 resolve undefined 时，转成明确业务错误而非 TypeError', async () => {
+    listPorts.mockResolvedValueOnce(undefined as unknown as any);
+
+    await expect(searchOrderLocations('sea', 'shang')).rejects.toThrow(
+      '运输地点主数据搜索失败，请稍后重试',
+    );
+  });
+
+  it('地区主数据请求 resolve undefined 时转成明确业务错误', async () => {
+    listItems.mockResolvedValueOnce(undefined as unknown as any);
+    listPorts.mockResolvedValue({ data: [] });
+
+    await expect(searchOrderLocations('sea', 'shang')).rejects.toThrow(
+      '地区主数据搜索失败，请稍后重试',
+    );
+  });
 });

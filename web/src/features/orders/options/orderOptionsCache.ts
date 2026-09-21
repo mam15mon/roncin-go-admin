@@ -4,7 +4,7 @@ import {
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
-import { unwrapList } from '@/utils/api';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 
 const masterOptionsCache = new Map<string, Promise<API.MasterDataItem[]>>();
 const portsCache = new Map<string, Promise<API.Port[]>>();
@@ -27,7 +27,11 @@ export function getMasterDataOptions(
   if (!req) {
     let createdReq: Promise<API.MasterDataItem[]>;
     createdReq = masterDataServiceListOptions()
-      .then(unwrapList)
+      .then((response) =>
+        unwrapList(
+          ensureListResponse(response, '主数据选项加载失败，请稍后重试'),
+        ),
+      )
       .catch((err) => {
         if (masterOptionsCache.get(organizationId) === createdReq) {
           masterOptionsCache.delete(organizationId);
@@ -55,7 +59,11 @@ export function getCachedPorts(organizationId: string): Promise<API.Port[]> {
       pageSize: 50,
       enabled: true,
     })
-      .then(unwrapList)
+      .then((response) =>
+        unwrapList(
+          ensureListResponse(response, '港口主数据加载失败，请稍后重试'),
+        ),
+      )
       .catch((err) => {
         if (portsCache.get(organizationId) === createdReq) {
           portsCache.delete(organizationId);
@@ -85,7 +93,11 @@ export function getCachedAirports(
       pageSize: 50,
       enabled: true,
     })
-      .then(unwrapList)
+      .then((response) =>
+        unwrapList(
+          ensureListResponse(response, '机场主数据加载失败，请稍后重试'),
+        ),
+      )
       .catch((err) => {
         if (airportsCache.get(organizationId) === createdReq) {
           airportsCache.delete(organizationId);
@@ -117,7 +129,11 @@ export function getOrderPersonnelOptions(
       page: 1,
       pageSize: 200,
     })
-      .then(unwrapList)
+      .then((response) =>
+        unwrapList(
+          ensureListResponse(response, '订单人员选项加载失败，请稍后重试'),
+        ),
+      )
       .catch((err) => {
         if (personnelOptionsCache.get(key) === createdReq) {
           personnelOptionsCache.delete(key);

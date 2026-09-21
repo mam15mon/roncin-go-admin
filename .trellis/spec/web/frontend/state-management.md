@@ -45,6 +45,13 @@
 
 - 所有后端请求经过统一请求配置或 OpenAPI 生成客户端
   （`src/services/roncin/`）；禁止页面自行拼接后端主机地址。
+- **错误被全局处理器消费后 `request()` 会 resolve `undefined`**（复刻
+  umi-request 契约，见 `src/utils/requestClient.ts`）。列表类调用禁止把
+  该返回值直接交给 `unwrapList` 读 `.data`：必须先用
+  `ensureListResponse(response, '<中文失败文案>')`（`src/utils/api.ts`）
+  转 reject，否则 403/5xx 之后会以
+  `Cannot read properties of undefined (reading 'data')` 的 TypeError
+  文案直达用户（案例：2026-09-21 总部用户新建订单）。
 - 开发期走 Vite 代理，生产同域（Go 服务同时提供 `/api/*` 与静态资源）；
   修改打包或路由时两种路径都要验证。
 

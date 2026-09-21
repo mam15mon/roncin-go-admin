@@ -163,6 +163,21 @@ describe('useOrderCreateOptions', () => {
     );
   });
 
+  it('无 create 权限时完全静默：不发请求、不进入加载态也无错误', async () => {
+    const { result } = renderHook(
+      () => useOrderCreateOptions(seaConfig, false),
+      {
+        wrapper: createHookWrapper().wrapper,
+      },
+    );
+
+    await act(async () => {});
+    expect(result.current.loading).toBe(false);
+    expect(result.current.error).toBeNull();
+    expect(mockFetchMasterData).not.toHaveBeenCalled();
+    expect(mockGetPersonnel).not.toHaveBeenCalled();
+  });
+
   it('接口加载失败时设置 error 状态', async () => {
     mockFetchMasterData.mockRejectedValueOnce(new Error('数据字典加载超时'));
 

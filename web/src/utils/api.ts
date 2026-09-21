@@ -14,6 +14,21 @@ export function unwrapList<T>(response: ApiListResponse<T>): T[] {
   return response.data ?? [];
 }
 
+/**
+ * 请求层在错误被全局处理器消费后会 resolve undefined（见 requestClient）。
+ * 列表类调用用它把 undefined 转成明确业务错误，避免 unwrapList 在
+ * undefined 上读 .data 抛 TypeError 文案直达用户。
+ */
+export function ensureListResponse<T>(
+  response: ApiListResponse<T> | undefined,
+  message: string,
+): ApiListResponse<T> {
+  if (!response) {
+    throw new Error(message);
+  }
+  return response;
+}
+
 export function unwrapPage<T>(response: ApiPageResponse<T>): {
   data: T[];
   total: number;

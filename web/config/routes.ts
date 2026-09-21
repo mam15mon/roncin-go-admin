@@ -135,6 +135,7 @@ const routes: UmiRoute[] = [
       {
         path: '/orders/:kind/new',
         name: '新建订单',
+        access: 'canCreateAnyOrders',
         hideInMenu: true,
         component: './orders/new',
       },

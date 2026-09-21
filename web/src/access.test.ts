@@ -59,6 +59,30 @@ describe('组织身份判定（auth/me kind 契约）', () => {
   });
 });
 
+describe('新建订单入口权限（canCreateAnyOrders）', () => {
+  it('组织范围且拥有任一业务类型 create 权限时放行新建订单路由', () => {
+    const result = access(currentUser(['business.order.se.create']));
+    expect(result.canCreateAnyOrders).toBe(true);
+  });
+
+  it('只有订单读取权限（如总部只读角色）时不得进入新建订单路由', () => {
+    const result = access(currentUser(['business.order.se.read']));
+    expect(result.canCreateAnyOrders).toBe(false);
+  });
+
+  it('无任何订单权限的总部用户不得进入新建订单路由', () => {
+    const result = access(currentUserWithAllScope([]));
+    expect(result.canCreateAnyOrders).toBe(false);
+  });
+
+  it('仅有本人数据范围时即使持有 create 权限码也不放行', () => {
+    const result = access(
+      currentUserWithSelfScope(['business.order.se.create']),
+    );
+    expect(result.canCreateAnyOrders).toBe(false);
+  });
+});
+
 describe('用户页数据源分流权限', () => {
   it('普通组织管理员可读当前组织角色，但无全组织读取与外部成员授权能力', () => {
     const result = access(

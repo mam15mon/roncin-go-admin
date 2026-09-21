@@ -31,8 +31,13 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
+const accessControl = vi.hoisted(() => ({ canCreate: true }));
+
 vi.mock('@/app/access', () => ({
-  useAccess: () => ({ canOrder: () => true }),
+  useAccess: () => ({
+    canOrder: (_businessType: number | string, operation: string) =>
+      operation === 'create' ? accessControl.canCreate : true,
+  }),
 }));
 
 vi.mock('@/app/AppProvider', () => ({
@@ -101,6 +106,7 @@ describe('NewOrderPage', () => {
     sessionStorage.clear();
     _clearAllTabCloseGuards();
     lastTemplateProps = null;
+    accessControl.canCreate = true;
     mockUseOptions.mockReturnValue({
       loading: false,
       error: null,
@@ -122,6 +128,15 @@ describe('NewOrderPage', () => {
     sessionStorage.clear();
     _clearAllTabCloseGuards();
     cleanup();
+  });
+
+  it('无 create 权限时渲染 403 兜底，并以 canCreate=false 门控候选项加载', async () => {
+    accessControl.canCreate = false;
+    renderWithApp(<NewOrderPage />);
+    await flushMountRequests();
+
+    expect(screen.getByText('无权新建此类订单')).toBeInTheDocument();
+    expect(mockUseOptions).toHaveBeenCalledWith(expect.anything(), false);
   });
 
   it('loading 为 true 时展示分节骨架屏与 loadingTip，不挂载表单', () => {

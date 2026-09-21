@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query 错误提示约定（meta errorMessage/silent、queryFn 包装 Error）与请求客户端边界"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "自定义 Hook 的 enabled 门控与依赖防护规范"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "权限键与 access.ts 编译期对齐规范"}

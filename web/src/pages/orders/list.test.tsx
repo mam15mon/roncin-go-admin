@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { screen } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +9,10 @@ import {
   getMasterDataOptions,
 } from '@/features/orders/options';
 import { searchPartnerOptions } from '@/features/partners';
-import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
+import {
+  orderServiceListOrders,
+  orderServiceListPersonnelOptions,
+} from '@/services/roncin/orderService';
 import { orderTagServiceListOrderTagOptions } from '@/services/roncin/orderTagService';
 import OrderListPage from './list';
 
@@ -24,11 +28,14 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
+const accessControl = vi.hoisted(() => ({ canCreate: true }));
+
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOperateBusiness: true,
-    canOrder: () => true,
+    canOrder: (_businessType: number | string, operation: string) =>
+      operation === 'create' ? accessControl.canCreate : true,
     canCreateEnterpriseResources: true,
   }),
 }));
@@ -64,6 +71,7 @@ vi.mock('@/features/master-data/shipping-lines', () => ({
 
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceListPersonnelOptions: vi.fn().mockResolvedValue({ data: [] }),
+  orderServiceListOrders: vi.fn().mockResolvedValue({ data: [], total: 0 }),
 }));
 
 vi.mock('@/services/roncin/orderTagService', () => ({
@@ -76,6 +84,7 @@ const mockGetAirports = vi.mocked(getCachedAirports);
 const mockSearchPartners = vi.mocked(searchPartnerOptions);
 const mockListTagOptions = vi.mocked(orderTagServiceListOrderTagOptions);
 const mockListPersonnelOptions = vi.mocked(orderServiceListPersonnelOptions);
+const mockListOrders = vi.mocked(orderServiceListOrders);
 
 describe('订单列表页未知业务类型 fail-closed', () => {
   beforeEach(() => {
@@ -84,7 +93,7 @@ describe('订单列表页未知业务类型 fail-closed', () => {
   });
 
   it('未知 kind 展示 404 且不发起任何主数据、标签或人员请求', () => {
-    render(
+    renderWithClient(
       <App>
         <OrderListPage />
       </App>,
@@ -97,5 +106,35 @@ describe('订单列表页未知业务类型 fail-closed', () => {
     expect(mockSearchPartners).not.toHaveBeenCalled();
     expect(mockListTagOptions).not.toHaveBeenCalled();
     expect(mockListPersonnelOptions).not.toHaveBeenCalled();
+  });
+});
+
+describe('订单列表新建入口权限收口', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    locationState.pathname = '/orders/sea-export';
+    accessControl.canCreate = true;
+    mockListOrders.mockResolvedValue({ data: [], total: 0 });
+  });
+
+  it('有 create 权限时渲染新增订单按钮', () => {
+    renderWithClient(
+      <App>
+        <OrderListPage />
+      </App>,
+    );
+
+    expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
+  });
+
+  it('无 create 权限时不渲染新增订单按钮（如总部只读角色）', () => {
+    accessControl.canCreate = false;
+    renderWithClient(
+      <App>
+        <OrderListPage />
+      </App>,
+    );
+
+    expect(screen.queryByText('新增海运出口订单')).not.toBeInTheDocument();
   });
 });

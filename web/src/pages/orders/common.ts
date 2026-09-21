@@ -28,7 +28,7 @@ import {
   masterDataServiceListItems,
   masterDataServiceListPorts,
 } from '@/services/roncin/masterDataService';
-import { unwrapList } from '@/utils/api';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 import type { OrderTransportMode } from './order-kinds/types';
 import type { SelectOption } from './templates';
 
@@ -278,20 +278,30 @@ export async function searchOrderLocations(
           pageSize: 50,
         }),
   ]);
-  const regions = unwrapList(regionsResponse).map((item) => ({
+  const guardedTransportResponse = ensureListResponse(
+    transportResponse,
+    '运输地点主数据搜索失败，请稍后重试',
+  );
+  const regions = unwrapList(
+    ensureListResponse(regionsResponse, '地区主数据搜索失败，请稍后重试'),
+  ).map((item) => ({
     label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
     value: item.id ?? '',
   }));
   const transportLocations =
     transportMode === 'sea'
-      ? ((transportResponse.data as API.Port[] | undefined)?.map((item) => ({
-          label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
-          value: item.id ?? '',
-        })) ?? [])
-      : ((transportResponse.data as API.Airport[] | undefined)?.map((item) => ({
-          label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`,
-          value: item.id ?? '',
-        })) ?? []);
+      ? ((guardedTransportResponse.data as API.Port[] | undefined)?.map(
+          (item) => ({
+            label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
+            value: item.id ?? '',
+          }),
+        ) ?? [])
+      : ((guardedTransportResponse.data as API.Airport[] | undefined)?.map(
+          (item) => ({
+            label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`,
+            value: item.id ?? '',
+          }),
+        ) ?? []);
   return [...regions, ...transportLocations].filter(
     (item) => item.value !== '',
   );

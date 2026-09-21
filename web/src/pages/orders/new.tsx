@@ -39,6 +39,8 @@ export default function NewOrderPage() {
   );
 
   const definition = getOrderKindDefinition(params.kind);
+  // create 权限同时门控候选项请求（无权限不发请求）与页面 403 兜底。
+  const canCreate = access.canOrder(definition?.businessType ?? '', 'create');
 
   const {
     loading,
@@ -51,7 +53,7 @@ export default function NewOrderPage() {
     currencyOptions,
     containerSpecOptions,
     personnelOptions,
-  } = useOrderCreateOptions(definition);
+  } = useOrderCreateOptions(definition, canCreate);
 
   const checkOrderReference = useCallback(
     async (referenceType: OrderReferenceType) => {
@@ -170,7 +172,7 @@ export default function NewOrderPage() {
     );
   }
 
-  if (!access.canOrder(definition.businessType, 'create')) {
+  if (!canCreate) {
     return <Result status="403" title="无权新建此类订单" />;
   }
 

@@ -27,17 +27,20 @@ interface OrderCreateOptionsBundle {
   personnelOptions: API.OrderPersonnelOption[];
 }
 
-/** 新建订单页的主数据与人员候选项加载。 */
-export function useOrderCreateOptions(definition?: OrderKindDefinition) {
+/** 新建订单页的主数据与人员候选项加载。无 create 权限时完全静默（不发请求）。 */
+export function useOrderCreateOptions(
+  definition?: OrderKindDefinition,
+  canCreate = true,
+) {
   const { initialState } = useInitialState();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const isUserLoaded = Boolean(initialState?.currentUser);
   const transportMode = definition?.transportMode;
   const businessType = definition?.businessType;
 
-  // 组织与业务身份全部就绪才允许发起请求；身份参数全部进入 queryKey，
-  // 组织/业务配置切换即自然重查且互不串数据。
-  const queryEnabled = Boolean(definition && organizationId);
+  // 组织与业务身份全部就绪且具备 create 权限才允许发起请求；身份参数全部进入
+  // queryKey，组织/业务配置切换即自然重查且互不串数据。
+  const queryEnabled = Boolean(definition && organizationId) && canCreate;
 
   const optionsQuery = useQuery({
     queryKey: [
@@ -150,12 +153,14 @@ export function useOrderCreateOptions(definition?: OrderKindDefinition) {
   const bundle = effectiveError ? undefined : data;
 
   // 首次拉取与重试期间保持加载态；用户信息未加载完成时同样保持加载，
-  // 已登录但缺少组织或加载失败时立即回落到错误/空态。
+  // 已登录但缺少组织、无 create 权限或加载失败时立即回落到错误/空态。
   const loading = !definition
     ? false
     : missingOrgError
       ? false
-      : isPending || isFetching;
+      : !canCreate
+        ? false
+        : isPending || isFetching;
 
   return {
     loading,
