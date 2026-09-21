@@ -329,3 +329,25 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 92: 海运提单模式与分单展示简化
+<!-- trellis-session: v=2 fp=0de519ddcd1c2aa4 -->
+
+**Date**: 2026-09-21
+**Task**: 海运提单模式与分单展示简化
+**Branch**: `main`
+
+### Summary
+
+DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐模式切换、草稿恢复与公共分节可见性测试，check:web 全量通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fe7a5650` | fix(web): 简化海运提单模式并在直单下隐藏分单区域 |
+
+### Status
+
+[OK] **Completed**
