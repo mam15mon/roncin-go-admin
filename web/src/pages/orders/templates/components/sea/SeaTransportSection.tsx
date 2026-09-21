@@ -13,7 +13,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
@@ -56,8 +56,15 @@ export function SeaMasterBillFields({
 }) {
   const form = Form.useFormInstance();
   const masterNo = Form.useWatch('seaMasterBillMasterNo', form);
-  const candidateId = Form.useWatch('seaMasterBillCandidateId', form);
-  const candidateTeId = Form.useWatch('seaMasterBillCandidateTeId', form);
+  // 候选标识由匹配结果写入 store，没有对应 Form.Item，需监听未注册字段。
+  const candidateId = Form.useWatch('seaMasterBillCandidateId', {
+    form,
+    preserve: true,
+  });
+  const candidateTeId = Form.useWatch('seaMasterBillCandidateTeId', {
+    form,
+    preserve: true,
+  });
   const existingMbl = Form.useWatch('seaMasterBill', {
     form,
     preserve: true,
@@ -247,6 +254,43 @@ export function SeaMasterBillFields({
     form,
   ]);
 
+  const validateMasterBillCandidate = useCallback(async () => {
+    if (candidateMatching) {
+      throw new Error('正在核对已有主单，请稍候');
+    }
+    if (candidateMatchError) {
+      throw new Error(candidateMatchError);
+    }
+    if (conflicts.length > 0) {
+      throw new Error('航程信息与已有主单冲突，不能确认关联');
+    }
+    if (batchDirectBlocked) {
+      throw new Error('该主单已被直单订单占用，如需拼单请先将其转为分单');
+    }
+    if (candidateMatched && isSingleMemberCorrection) {
+      throw new Error('新主单身份已存在，当前阶段不允许直接合并');
+    }
+    if (candidateMatched && !candidateId) {
+      throw new Error('发现已有主单，请明确确认关联后再保存');
+    }
+  }, [
+    candidateMatching,
+    candidateMatchError,
+    conflicts.length,
+    batchDirectBlocked,
+    candidateMatched,
+    isSingleMemberCorrection,
+    candidateId,
+  ]);
+
+  useEffect(() => {
+    // 候选核对状态不在表单 store 中，变化后需重验已交互字段，避免残留等待提示。
+    // 执行完整 rules，保留必填、格式与真实业务阻断错误。
+    void form
+      .validateFields(['seaMasterBillMasterNo'], { dirty: true })
+      .catch(() => undefined);
+  }, [form, validateMasterBillCandidate]);
+
   const selectedCandidateTe = candidate?.transportExecutions?.find(
     (item) => item.id === candidateTeId,
   );
@@ -271,28 +315,7 @@ export function SeaMasterBillFields({
               message: '主单号仅允许包含英文字母和数字，禁止包含空格或特殊字符',
             },
             {
-              validator: async () => {
-                if (candidateMatching) {
-                  throw new Error('正在核对已有主单，请稍候');
-                }
-                if (candidateMatchError) {
-                  throw new Error(candidateMatchError);
-                }
-                if (conflicts.length > 0) {
-                  throw new Error('航程信息与已有主单冲突，不能确认关联');
-                }
-                if (batchDirectBlocked) {
-                  throw new Error(
-                    '该主单已被直单订单占用，如需拼单请先将其转为分单',
-                  );
-                }
-                if (candidateMatched && isSingleMemberCorrection) {
-                  throw new Error('新主单身份已存在，当前阶段不允许直接合并');
-                }
-                if (candidateMatched && !candidateId) {
-                  throw new Error('发现已有主单，请明确确认关联后再保存');
-                }
-              },
+              validator: validateMasterBillCandidate,
             },
           ]}
           normalize={(value) =>
