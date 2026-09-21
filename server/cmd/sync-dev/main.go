@@ -43,6 +43,7 @@ import (
 	partnersettlementruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
+	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seatransportexecutionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -713,29 +714,34 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 	hq := sc.headquarters
 
 	type orderSeedDef struct {
-		orderNo    string
-		custCode   string
-		refNo      string
-		lineScac   string
-		vessel     string
-		voyage     string
-		mblNo      string
-		pol, pod   string
-		flowStatus orderent.FlowStatus
-		term       orderent.TradeTerm
-		payTerm    orderent.PaymentTerm
-		shipType   orderent.ShipmentType
-		desc       string
-		pkgs       int
-		weight     float64
-		volume     float64
-		isLocked   bool
-		salesRep   string
-		opRep      string
-		docRep     string
-		container  string
-		sealNo     string
-		fees       []feeItemDef
+		orderNo      string
+		custCode     string
+		refNo        string
+		lineScac     string
+		vessel       string
+		voyage       string
+		mblNo        string
+		pol, pod     string
+		flowStatus   orderent.FlowStatus
+		term         orderent.TradeTerm
+		payTerm      orderent.PaymentTerm
+		shipType     orderent.ShipmentType
+		desc         string
+		pkgs         int
+		weight       float64
+		volume       float64
+		isLocked     bool
+		salesRep     string
+		opRep        string
+		docRep       string
+		container    string
+		sealNo       string
+		docStructure seamasterbillorderlinkent.DocumentStructure
+		hblNo        string
+		hblShipper   string
+		hblConsignee string
+		hblNotify    string
+		fees         []feeItemDef
 	}
 
 	orders := []orderSeedDef{
@@ -747,6 +753,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			desc: "智能小家电与电炸锅 (40HQ整箱)", pkgs: 500, weight: 6800.0, volume: 58.5, isLocked: false,
 			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
 			container: "COSU8912345", sealNo: "COS887612",
+			docStructure: seamasterbillorderlinkent.DocumentStructureDIRECT,
 			fees: []feeItemDef{
 				{dir: "RECEIVABLE", code: "OF", name: "海运费", party: "CUST-HY-001", unit: "CONT", qty: "1.0000", price: "2200.0000", total: "2200.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "15950.00000000", taxRate: "0.00"},
 				{dir: "RECEIVABLE", code: "THC", name: "码头操作费", party: "CUST-HY-001", unit: "CONT", qty: "1.0000", price: "1150.0000", total: "1150.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "1150.00000000", taxRate: "6.00"},
@@ -765,6 +772,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			desc: "户外竹木花园家具 (2*40HQ整箱)", pkgs: 920, weight: 15200.0, volume: 130.0, isLocked: false,
 			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
 			container: "MSCU6781230", sealNo: "MSC998811",
+			docStructure: seamasterbillorderlinkent.DocumentStructureDIRECT,
 			fees: []feeItemDef{
 				{dir: "RECEIVABLE", code: "THC", name: "码头操作费", party: "CUST-ML-003", unit: "CONT", qty: "1.0000", price: "1150.0000", total: "1150.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "1150.00000000", taxRate: "6.00"},
 				{dir: "RECEIVABLE", code: "DOC", name: "文件费", party: "CUST-ML-003", unit: "BL", qty: "1.0000", price: "500.0000", total: "500.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "500.00000000", taxRate: "6.00"},
@@ -779,7 +787,8 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			desc: "跨境电商 3C 数码电子及配件", pkgs: 300, weight: 3200.0, volume: 25.0, isLocked: false,
 			salesRep: "wangli", opRep: "liming", docRep: "chenhua",
 			container: "MSCU3344556", sealNo: "MSC778899",
-			fees: []feeItemDef{},
+			docStructure: seamasterbillorderlinkent.DocumentStructureDIRECT,
+			fees:         []feeItemDef{},
 		},
 		{
 			orderNo: "SE26090004", custCode: "CUST-HT-004", refNo: "PO-HT-260904",
@@ -789,6 +798,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			desc: "汽车高压精密铝铸件 (重箱)", pkgs: 600, weight: 18500.0, volume: 45.0, isLocked: true,
 			salesRep: "wangli", opRep: "liming", docRep: "chenhua",
 			container: "MAEU5566778", sealNo: "MAE112233",
+			docStructure: seamasterbillorderlinkent.DocumentStructureDIRECT,
 			fees: []feeItemDef{
 				{dir: "RECEIVABLE", code: "OF", name: "海运费", party: "CUST-HT-004", unit: "CONT", qty: "1.0000", price: "2400.0000", total: "2400.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "17400.00000000", taxRate: "0.00"},
 				{dir: "RECEIVABLE", code: "THC", name: "码头操作费", party: "CUST-HT-004", unit: "CONT", qty: "1.0000", price: "1150.0000", total: "1150.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "1150.00000000", taxRate: "6.00"},
@@ -799,9 +809,14 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			lineScac: "ONEY", vessel: "ONE INTEGRITY", voyage: "005S", mblNo: "ONEY12345678",
 			pol: "CNSHA", pod: "SGSIN", flowStatus: orderent.FlowStatusSPACE_ALLOCATED,
 			term: orderent.TradeTermCIF, payTerm: orderent.PaymentTermPREPAID, shipType: orderent.ShipmentTypeLCL,
-			desc: "展会样品展示架及印刷宣传物料 (拼箱)", pkgs: 50, weight: 650.0, volume: 5.8, isLocked: false,
+			desc: "展会样品展示架及印刷宣传物料 (拼箱分单)", pkgs: 50, weight: 650.0, volume: 5.8, isLocked: false,
 			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
 			container: "", sealNo: "",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090005",
+			hblShipper:   "上海宏远国际贸易进出口有限公司\nSHANGHAI HONGYUAN TRADING CO., LTD.",
+			hblConsignee: "SINGAPORE EXHIBITION LOGISTICS PTE LTD\n10 ANSON ROAD #26-04, SINGAPORE",
+			hblNotify:    "SAME AS CONSIGNEE",
 			fees: []feeItemDef{
 				{dir: "RECEIVABLE", code: "OF", name: "海运拼箱运费", party: "CUST-HY-001", unit: "CBM", qty: "5.8000", price: "45.0000", total: "261.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "1892.25000000", taxRate: "0.00"},
 				{dir: "RECEIVABLE", code: "DOC", name: "分单文件费", party: "CUST-HY-001", unit: "BL", qty: "1.0000", price: "300.0000", total: "300.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "300.00000000", taxRate: "6.00"},
@@ -815,9 +830,65 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			desc: "高保真无线耳机及音响设备 (40HQ整箱)", pkgs: 800, weight: 5600.0, volume: 62.0, isLocked: false,
 			salesRep: "wangli", opRep: "liming", docRep: "chenhua",
 			container: "COSU1199887", sealNo: "COS665544",
+			docStructure: seamasterbillorderlinkent.DocumentStructureDIRECT,
 			fees: []feeItemDef{
 				{dir: "RECEIVABLE", code: "OF", name: "海运费", party: "CUST-JS-002", unit: "CONT", qty: "1.0000", price: "2100.0000", total: "2100.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "15225.00000000", taxRate: "0.00"},
 				{dir: "RECEIVABLE", code: "THC", name: "码头操作费", party: "CUST-JS-002", unit: "CONT", qty: "1.0000", price: "1150.0000", total: "1150.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "1150.00000000", taxRate: "6.00"},
+			},
+		},
+		{
+			orderNo: "SE26090007", custCode: "CUST-TG-005", refNo: "PO-TG-260907",
+			lineScac: "COSU", vessel: "COSCO ASIA", voyage: "088E", mblNo: "COSU77889901",
+			pol: "CNNBO", pod: "USLGB", flowStatus: orderent.FlowStatusDOCUMENT_RELEASED,
+			term: orderent.TradeTermFOB, payTerm: orderent.PaymentTermCOLLECT, shipType: orderent.ShipmentTypeFCL,
+			desc: "精装智能办公桌椅配件 (FOB指定货主分单)", pkgs: 450, weight: 8500.0, volume: 65.0, isLocked: false,
+			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
+			container: "COSU5566778", sealNo: "COS443322",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090007",
+			hblShipper:   "浙江美林工艺家具有限公司\nZHEJIANG MEILIN CRAFT FURNITURE CO., LTD.",
+			hblConsignee: "TO ORDER OF SHIPPER",
+			hblNotify:    "TRANSGLOBAL SUPPLY CHAIN (USA) INC.\n2200 PACIFIC AVE, LONG BEACH, CA 90806",
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "DOC", name: "分单文件费", party: "CUST-TG-005", unit: "BL", qty: "1.0000", price: "500.0000", total: "500.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "500.00000000", taxRate: "6.00"},
+				{dir: "RECEIVABLE", code: "THC", name: "码头操作费", party: "CUST-TG-005", unit: "CONT", qty: "1.0000", price: "1150.0000", total: "1150.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "1150.00000000", taxRate: "6.00"},
+				{dir: "PAYABLE", code: "THC", name: "码头操作费(付中远)", party: "SUPP-COSCO-01", unit: "CONT", qty: "1.0000", price: "950.0000", total: "950.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "950.00000000", taxRate: "6.00"},
+			},
+		},
+		{
+			orderNo: "SE26090008", custCode: "CUST-HY-001", refNo: "PO-HY-260908",
+			lineScac: "MSCU", vessel: "MSC OSCAR", voyage: "2640E", mblNo: "MSCU55667788",
+			pol: "CNSHA", pod: "USLAX", flowStatus: orderent.FlowStatusBOOKED,
+			term: orderent.TradeTermCIF, payTerm: orderent.PaymentTermPREPAID, shipType: orderent.ShipmentTypeFCL,
+			desc: "智能扫地机器人及配件 (共主单合拼A票)", pkgs: 200, weight: 2400.0, volume: 22.5, isLocked: false,
+			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
+			container: "MSCU9900112", sealNo: "MSC881122",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090008",
+			hblShipper:   "上海宏远国际贸易进出口有限公司\nSHANGHAI HONGYUAN TRADING CO., LTD.",
+			hblConsignee: "AMERICAN SMART ROBOTICS CORP.\n1230 HARBOR BLVD, LOS ANGELES, CA",
+			hblNotify:    "SAME AS CONSIGNEE",
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "OF", name: "海运费(A票分摊)", party: "CUST-HY-001", unit: "CONT", qty: "1.0000", price: "1200.0000", total: "1200.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "8700.00000000", taxRate: "0.00"},
+				{dir: "RECEIVABLE", code: "DOC", name: "分提单制单费", party: "CUST-HY-001", unit: "BL", qty: "1.0000", price: "500.0000", total: "500.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "500.00000000", taxRate: "6.00"},
+			},
+		},
+		{
+			orderNo: "SE26090009", custCode: "CUST-JS-002", refNo: "PO-JS-260909",
+			lineScac: "MSCU", vessel: "MSC OSCAR", voyage: "2640E", mblNo: "MSCU55667788",
+			pol: "CNSHA", pod: "USLAX", flowStatus: orderent.FlowStatusBOOKED,
+			term: orderent.TradeTermCIF, payTerm: orderent.PaymentTermPREPAID, shipType: orderent.ShipmentTypeFCL,
+			desc: "智能穿戴手表及蓝牙音箱 (共主单合拼B票)", pkgs: 350, weight: 3100.0, volume: 28.0, isLocked: false,
+			salesRep: "wangli", opRep: "liming", docRep: "chenhua",
+			container: "MSCU9900112", sealNo: "MSC881122",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090009",
+			hblShipper:   "深圳市极速跨境智能实业有限公司\nSHENZHEN SPEED CROSS-BORDER INDUSTRIAL CO.",
+			hblConsignee: "CALIFORNIA DIGITAL ACCESSORIES LLC\n900 WILSHIRE BLVD, LOS ANGELES, CA",
+			hblNotify:    "SAME AS CONSIGNEE",
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "OF", name: "海运费(B票分摊)", party: "CUST-JS-002", unit: "CONT", qty: "1.0000", price: "1400.0000", total: "1400.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "10150.00000000", taxRate: "0.00"},
+				{dir: "RECEIVABLE", code: "DOC", name: "分提单制单费", party: "CUST-JS-002", unit: "BL", qty: "1.0000", price: "500.0000", total: "500.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "500.00000000", taxRate: "6.00"},
 			},
 		},
 	}
@@ -967,19 +1038,57 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 					}
 				}
 				if exec != nil {
-					linkExists, _ := tx.SeaMasterBillOrderLink.Query().Where(
+					link, _ := tx.SeaMasterBillOrderLink.Query().Where(
 						seamasterbillorderlinkent.OrganizationIDEQ(hq.ID),
 						seamasterbillorderlinkent.OrderIDEQ(ord.ID),
-					).Exist(ctx)
-					if !linkExists {
+					).First(ctx)
+					docStruct := seamasterbillorderlinkent.DocumentStructureDIRECT
+					if o.docStructure == seamasterbillorderlinkent.DocumentStructureHOUSE {
+						docStruct = seamasterbillorderlinkent.DocumentStructureHOUSE
+					}
+					if link == nil {
 						_, _ = tx.SeaMasterBillOrderLink.Create().
 							SetOrganizationID(hq.ID).
 							SetMasterBillID(mbl.ID).
 							SetTransportExecutionID(exec.ID).
 							SetOrderID(ord.ID).
 							SetStatus(seamasterbillorderlinkent.StatusACTIVE).
-							SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureDIRECT).
+							SetDocumentStructure(docStruct).
 							Save(ctx)
+					} else if link.DocumentStructure != docStruct {
+						_ = link.Update().SetDocumentStructure(docStruct).Exec(ctx)
+					}
+
+					// 如果是 HOUSE 主分单结构且配置了分提单号，创建 SeaHouseBill
+					if docStruct == seamasterbillorderlinkent.DocumentStructureHOUSE && o.hblNo != "" {
+						hb, _ := tx.SeaHouseBill.Query().Where(
+							seahousebillent.OrganizationIDEQ(hq.ID),
+							seahousebillent.OrderIDEQ(ord.ID),
+						).First(ctx)
+						if hb == nil {
+							freightTerms := "FREIGHT PREPAID"
+							if o.payTerm == orderent.PaymentTermCOLLECT {
+								freightTerms = "FREIGHT COLLECT"
+							}
+							_, _ = tx.SeaHouseBill.Create().
+								SetOrganizationID(hq.ID).
+								SetOrderID(ord.ID).
+								SetMasterBillID(mbl.ID).
+								SetHouseNo(o.hblNo).
+								SetNormalizedHouseNo(o.hblNo).
+								SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
+								SetIssuerOrganizationID(hq.ID).
+								SetStatus(seahousebillent.StatusCONFIRMED).
+								SetShipperText(o.hblShipper).
+								SetConsigneeText(o.hblConsignee).
+								SetNotifyPartyText(o.hblNotify).
+								SetPackageCount(o.pkgs).
+								SetGrossWeightKg(o.weight).
+								SetVolumeCbm(o.volume).
+								SetGoodsDescriptionText(o.desc).
+								SetFreightTerms(freightTerms).
+								Save(ctx)
+						}
 					}
 				}
 			}
