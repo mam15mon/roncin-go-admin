@@ -4,8 +4,9 @@ import {
   OrderedListOutlined,
 } from '@ant-design/icons';
 import { Badge, Button, Space, Tooltip, Typography } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
+  measureStickyTopOffset,
   scrollToSectionWithStickyOffset,
   waitForLayoutStable,
 } from './formErrorUtils';
@@ -31,6 +32,15 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
     setCollapsed(next);
     onCollapsedChange?.(next);
   };
+  // 浮层顶部按吸顶页头壳实测底边下移，避免压住页头操作按钮行；
+  // 与点击跳转的落位补偿共用同一测量基准，无吸顶页头时回退 156。
+  const [topOffset, setTopOffset] = useState(156);
+  useLayoutEffect(() => {
+    const syncTopOffset = () => setTopOffset(measureStickyTopOffset(156));
+    syncTopOffset();
+    window.addEventListener('resize', syncTopOffset);
+    return () => window.removeEventListener('resize', syncTopOffset);
+  }, []);
   const [internalActiveKey, setInternalActiveKey] = useState<string>(
     items[0]?.key || '',
   );
@@ -101,7 +111,7 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
         style={{
           position: 'fixed',
           right: 16,
-          top: 156,
+          top: topOffset,
           zIndex: 88,
           ...style,
         }}
@@ -143,9 +153,10 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
       style={{
         position: 'fixed',
         right: 16,
-        top: 156,
+        top: topOffset,
+        // 高度按内容自适应，仅限制上限：底部预留吸底操作栏空间，分节过多时内部滚动
+        maxHeight: `calc(100vh - ${topOffset + 64}px)`,
         width: 140,
-        maxHeight: 'calc(100vh - 200px)',
         backgroundColor: 'rgba(255, 255, 255, 0.94)',
         backdropFilter: 'blur(8px)',
         borderRadius: 8,
