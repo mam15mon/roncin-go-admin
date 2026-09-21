@@ -33,6 +33,7 @@ createRoot(container).render(
       locale={zhCN}
       theme={themeConfig}
       spin={{ indicator: <QuarterRing /> }}
+      button={{ loadingIcon: <QuarterRing size="1em" strokeWidth="2px" /> }}
     >
       <AntdApp>
         <AppFeedbackBridge />

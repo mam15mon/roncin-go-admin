@@ -3,11 +3,11 @@ import {
   DingdingOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
-  LoadingOutlined,
   LockOutlined,
   UserOutlined,
   WechatWorkOutlined,
 } from '@ant-design/icons';
+import { QuarterRing } from '@/components/ui';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import {
@@ -410,7 +410,13 @@ export default function Login() {
                   loading={loading}
                   disabled={loading}
                   className={styles.submitButton}
-                  icon={loading ? <LoadingOutlined /> : <ArrowRightOutlined />}
+                  icon={
+                    loading ? (
+                      <QuarterRing size={16} strokeWidth="2px" />
+                    ) : (
+                      <ArrowRightOutlined />
+                    )
+                  }
                   iconPlacement="end"
                 >
                   {loading ? '登录中...' : '登录'}

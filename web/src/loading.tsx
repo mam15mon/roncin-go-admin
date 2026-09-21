@@ -1,7 +1,15 @@
-import { Skeleton } from 'antd';
+import { Flex } from 'antd';
+import type React from 'react';
+import { QuarterRing } from '@/components/ui';
 
 const Loading: React.FC = () => (
-  <Skeleton style={{ padding: '24px 40px', height: '60vh' }} active />
+  <Flex
+    align="center"
+    justify="center"
+    style={{ minHeight: '60vh', width: '100%' }}
+  >
+    <QuarterRing size={32} strokeWidth="3px" className="text-primary" />
+  </Flex>
 );
 
 export default Loading;
