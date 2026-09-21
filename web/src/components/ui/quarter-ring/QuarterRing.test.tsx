@@ -42,4 +42,9 @@ describe('QuarterRing', () => {
     expect(screen.getByTestId('custom-indicator')).toBeInTheDocument();
     expect(screen.getByText('业务内容')).toBeInTheDocument();
   });
+  it('Spin.setDefaultIndicator 生效', () => {
+    Spin.setDefaultIndicator(<QuarterRing data-testid="default-spin" />);
+    render(<Spin />);
+    expect(screen.getByTestId('default-spin')).toBeInTheDocument();
+  });
 });

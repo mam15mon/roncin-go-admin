@@ -38,11 +38,15 @@ export const QuarterRing: React.FC<QuarterRingProps> = ({
         role="status"
         aria-label="loading"
         className={clsx(
-          'inline-block rounded-full border-solid border-transparent border-t-current',
+          'inline-block rounded-full',
           !size && 'w-[1em] h-[1em]',
           className,
         )}
         style={{
+          boxSizing: 'border-box',
+          borderStyle: 'solid',
+          borderColor: 'transparent',
+          borderTopColor: 'currentColor',
           borderWidth: strokeValue,
           animation: `loading-ui-quarter-ring-rotation ${durationValue} linear infinite`,
           ...sizeStyle,

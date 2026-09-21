@@ -29,7 +29,11 @@ if (!container) {
 // React Query → 初始状态（阻塞首帧直至 getInitialState 完成）→ 路由。
 createRoot(container).render(
   <HelmetProvider>
-    <ConfigProvider locale={zhCN} theme={themeConfig}>
+    <ConfigProvider
+      locale={zhCN}
+      theme={themeConfig}
+      spin={{ indicator: <QuarterRing /> }}
+    >
       <AntdApp>
         <AppFeedbackBridge />
         <QueryClientProvider client={queryClient}>
