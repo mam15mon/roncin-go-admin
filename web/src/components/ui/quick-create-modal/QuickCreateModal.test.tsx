@@ -31,13 +31,55 @@ describe('QuickCreateModal', () => {
     fireEvent.change(screen.getByLabelText('名称'), {
       target: { value: '测试单位' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '保存并选用' }));
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith({ name: '测试单位' }),
     );
     expect(await screen.findByText('创建往来单位失败')).toBeInTheDocument();
     expect(screen.getByLabelText('名称')).toHaveValue('测试单位');
+  });
+
+  it('已处理的失败返回空结果时保留输入，允许再次提交成功', async () => {
+    const onSubmit = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ id: 'partner-1' });
+    const onSuccess = vi.fn();
+    render(
+      <App>
+        <QuickCreateModal<{ name: string }, { id: string }>
+          title="快捷创建"
+          open
+          onCancel={vi.fn()}
+          onSubmit={onSubmit}
+          onSuccess={onSuccess}
+        >
+          <Form.Item name="name" label="名称" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+        </QuickCreateModal>
+      </App>,
+    );
+    fireEvent.change(screen.getByLabelText('名称'), {
+      target: { value: '保留单位' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /取\s*消/ }),
+      ).not.toBeDisabled(),
+    );
+    expect(screen.getByLabelText('名称')).toHaveValue('保留单位');
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(document.querySelector('.ant-message-notice')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
+    await waitFor(() =>
+      expect(onSuccess).toHaveBeenCalledWith({ id: 'partner-1' }),
+    );
+    expect(onSubmit).toHaveBeenNthCalledWith(2, { name: '保留单位' });
+    expect(screen.getByLabelText('名称')).toHaveValue('');
   });
 
   it('附加动作渲染为第一个底部按钮，点击不触发表单校验与提交', async () => {

@@ -579,7 +579,7 @@ func normalizeUniqueValues[T comparable](values []T, valid func(T) bool) ([]T, e
 // 由 data 层统一派生为客户档案所属组织，因此这里只按岗位与人员去重。
 func normalizePartnerAssignments(input []*PartnerAssignment) ([]*PartnerAssignment, error) {
 	counts := make(map[PartnerAssignmentRole]int, len(input))
-	seenUsers := make(map[uuid.UUID]struct{}, len(input))
+	seenAssignments := make(map[string]struct{}, len(input))
 	result := make([]*PartnerAssignment, 0, len(input))
 	for _, item := range input {
 		if item == nil || !item.Role.Valid() || item.Role == PartnerAssignmentCreator || item.UserID == uuid.Nil {
@@ -593,10 +593,11 @@ func normalizePartnerAssignments(input []*PartnerAssignment) ([]*PartnerAssignme
 		} else if counts[item.Role] > 1 {
 			return nil, ErrPartnerInvalidArgument
 		}
-		if _, exists := seenUsers[item.UserID]; exists {
+		assignmentKey := string(item.Role) + ":" + item.UserID.String()
+		if _, exists := seenAssignments[assignmentKey]; exists {
 			return nil, ErrPartnerInvalidArgument
 		}
-		seenUsers[item.UserID] = struct{}{}
+		seenAssignments[assignmentKey] = struct{}{}
 		copy := *item
 		if copy.Role == PartnerAssignmentInternalContact {
 			copy.SortOrder = counts[item.Role]

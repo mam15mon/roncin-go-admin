@@ -362,6 +362,8 @@ export default function PartnerQuickAddSelect({
               ),
             (response) => {
               if (organizationAtSubmit !== organizationIdRef.current) return;
+              // 请求层已提示的失败返回 undefined，保留表单以便重试。
+              if (!response) return;
               const partner = response.data;
               if (!partner?.id) {
                 throw new Error('创建结果缺少伙伴 ID，请重试');

@@ -16,6 +16,7 @@ export interface QuickCreateModalProps<
   title: string | ReactNode;
   open: boolean;
   onCancel: () => void;
+  /** 返回 undefined 表示没有可用的创建结果，保留输入且不触发成功回调。 */
   onSubmit: (values: TFormValues) => Promise<TResult | undefined>;
   onSuccess?: (result: TResult) => void;
   width?: number;
@@ -76,8 +77,8 @@ export function QuickCreateModal<
       const result = await onSubmit(values);
       if (result !== undefined && result !== null) {
         onSuccess?.(result);
+        form.resetFields();
       }
-      form.resetFields();
     } catch (error) {
       message.error(error instanceof Error ? error.message : '保存失败');
     } finally {

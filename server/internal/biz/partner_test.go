@@ -360,6 +360,48 @@ func TestPartnerAllowsTwoInternalContacts(t *testing.T) {
 	}
 }
 
+func TestPartnerAllowsSameUserAcrossBusinessRoles(t *testing.T) {
+	repo := &partnerRepoStub{}
+	usecase := NewPartnerUsecase(repo)
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	userID := uuid.New()
+	created, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
+		Code: "CUSTOMER", LegalName: "多岗位客户",
+		Roles: []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+		Assignments: []*PartnerAssignment{
+			{Role: PartnerAssignmentSales, UserID: userID},
+			{Role: PartnerAssignmentOperator, UserID: userID},
+			{Role: PartnerAssignmentCustomerService, UserID: userID},
+		},
+	})
+	if err != nil {
+		t.Fatalf("同一人员兼任销售、操作、客服应允许: %v", err)
+	}
+	if len(created.Assignments) != 4 { // 三个业务岗位 + 系统创建人
+		t.Fatalf("责任人员数量 = %d, want 4", len(created.Assignments))
+	}
+
+	_, err = usecase.Create(context.Background(), organizationID, actorID, &Partner{
+		Code: "CUSTOMER", LegalName: "同岗重复客户",
+		Roles: []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
+		Assignments: []*PartnerAssignment{
+			{Role: PartnerAssignmentSales, UserID: userID},
+			{Role: PartnerAssignmentSales, UserID: userID},
+		},
+	})
+	if err != ErrPartnerInvalidArgument {
+		t.Fatalf("同一人员重复担任销售应拒绝，实际: %v", err)
+	}
+	_, err = normalizePartnerAssignments([]*PartnerAssignment{
+		{Role: PartnerAssignmentInternalContact, UserID: userID},
+		{Role: PartnerAssignmentInternalContact, UserID: userID},
+	})
+	if err != ErrPartnerInvalidArgument {
+		t.Fatalf("关联人员两个位置不能重复选择同一人，实际: %v", err)
+	}
+}
+
 func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 	repo := &partnerRepoStub{}
 	usecase := NewPartnerUsecase(repo)

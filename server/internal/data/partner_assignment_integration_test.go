@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 )
 
@@ -117,5 +118,62 @@ func TestPartnerCreateAssignmentEligibility(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestPartnerMultiRoleOrderPostgres(t *testing.T) {
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
+	ctx := context.Background()
+	fixture := newOrderPostgresFixture(t, data)
+	uc := biz.NewPartnerUsecase(NewPartnerRepo(data))
+	partner, err := uc.Create(ctx, fixture.organizationID, fixture.actorID, &biz.Partner{
+		LegalName: "兼岗快捷客户", IsCasual: true,
+		Roles: []*biz.PartnerRole{{Type: biz.PartnerRoleCustomer, Enabled: true}},
+		Assignments: []*biz.PartnerAssignment{
+			{Role: biz.PartnerAssignmentSales, UserID: fixture.actorID},
+			{Role: biz.PartnerAssignmentOperator, UserID: fixture.actorID},
+			{Role: biz.PartnerAssignmentCustomerService, UserID: fixture.actorID},
+		},
+	})
+	if err != nil {
+		t.Fatalf("同一成员兼任三个岗位创建客户失败: %v", err)
+	}
+	if len(partner.Assignments) != 4 {
+		t.Fatalf("客户应保存三个业务岗位和创建人: %+v", partner.Assignments)
+	}
+	input := fixture.validInput()
+	input.CustomerID = partner.ID
+	input.PersonnelAssignments = []*biz.OrderPersonnel{
+		{Role: biz.OrderPersonnelRoleSales, UserID: fixture.actorID, OrganizationID: fixture.organizationID},
+		{Role: biz.OrderPersonnelRoleOperator, UserID: fixture.actorID, OrganizationID: fixture.organizationID},
+		{Role: biz.OrderPersonnelRoleCustomerService, UserID: fixture.actorID, OrganizationID: fixture.organizationID},
+	}
+	order, err := fixture.newUsecase().Create(ctx, fixture.organizationID, fixture.actorID, input)
+	if err != nil {
+		t.Fatalf("兼岗客户创建订单失败: %v", err)
+	}
+	client, err := data.client(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshots, err := client.OrderCommissionAttribution.Query().Where(ordercommissionattributionent.OrderIDEQ(order.ID)).All(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snapshots) != 3 {
+		t.Fatalf("应保留三岗位提成快照，实际 %d", len(snapshots))
+	}
+	roles := make(map[string]bool)
+	for _, snapshot := range snapshots {
+		if snapshot.EmployeeID != fixture.actorID || snapshot.OrganizationID != fixture.organizationID || snapshot.CustomerID != partner.ID {
+			t.Fatalf("快照归属不正确: %+v", snapshot)
+		}
+		roles[string(snapshot.PersonnelRole)] = true
+	}
+	for _, role := range []string{"SALES", "OPERATOR", "CUSTOMER_SERVICE"} {
+		if !roles[role] {
+			t.Fatalf("缺少岗位快照 %s", role)
+		}
 	}
 }

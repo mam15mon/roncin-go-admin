@@ -34,7 +34,7 @@ describe('QuickAddPartnerModal', () => {
     fireEvent.change(screen.getByLabelText('单位全称'), {
       target: { value: '  费用测试单位  ' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '保存并选用' }));
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
 
     await waitFor(() =>
       expect(partnerServiceCreatePartner).toHaveBeenCalledWith({
@@ -86,7 +86,7 @@ describe('QuickAddPartnerModal', () => {
     fireEvent.click(checkbox);
     expect(checkbox).not.toBeChecked();
 
-    fireEvent.click(screen.getByRole('button', { name: '保存并选用' }));
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
 
     await waitFor(() =>
       expect(partnerServiceCreatePartner).toHaveBeenCalledWith({
@@ -100,5 +100,59 @@ describe('QuickAddPartnerModal', () => {
         isCasual: false,
       }),
     );
+  });
+  it('请求层已处理的失败不重复提示，保留输入后可重试成功', async () => {
+    vi.mocked(partnerServiceCreatePartner)
+      .mockResolvedValueOnce(undefined as never)
+      .mockResolvedValueOnce({
+        data: { id: 'partner-retry', legalName: '重试单位' },
+      });
+    const onSuccess = vi.fn();
+    render(
+      <App>
+        <QuickAddPartnerModal open onCancel={vi.fn()} onSuccess={onSuccess} />
+      </App>,
+    );
+    fireEvent.change(screen.getByLabelText('单位全称'), {
+      target: { value: '重试单位' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
+    await waitFor(() =>
+      expect(partnerServiceCreatePartner).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /取\s*消/ }),
+      ).not.toBeDisabled(),
+    );
+    expect(screen.getByLabelText('单位全称')).toHaveValue('重试单位');
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(document.querySelector('.ant-message-notice')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
+    await waitFor(() =>
+      expect(onSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'partner-retry' }),
+      ),
+    );
+    expect(partnerServiceCreatePartner).toHaveBeenCalledTimes(2);
+  });
+
+  it('非空响应缺少结果时仍提示缺少伙伴 ID 并保留输入', async () => {
+    vi.mocked(partnerServiceCreatePartner).mockResolvedValue({});
+    const onSuccess = vi.fn();
+    render(
+      <App>
+        <QuickAddPartnerModal open onCancel={vi.fn()} onSuccess={onSuccess} />
+      </App>,
+    );
+    fireEvent.change(screen.getByLabelText('单位全称'), {
+      target: { value: '缺结果单位' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保存并选用/ }));
+    expect(
+      await screen.findByText('创建结果缺少伙伴 ID，请重试'),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('单位全称')).toHaveValue('缺结果单位');
+    expect(onSuccess).not.toHaveBeenCalled();
   });
 });
