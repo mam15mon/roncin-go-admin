@@ -1,8 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useInitialState } from '@/app/AppProvider';
-import { Button, Checkbox, Form, Input, Tag } from 'antd';
+import { Button, Checkbox, Form, Input, Select, Tag } from 'antd';
 import React, {
   type ReactNode,
   useCallback,
@@ -11,10 +8,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { ProFormSearchableSelect, QuickCreateModal } from '@/components/ui';
-import type { PartnerRoleType } from '@/enums.generated';
+import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
 import { useAsyncGuard } from '@/hooks/useAsyncGuard';
 import { useLatestAsync } from '@/hooks/useLatestAsync';
+import { history } from '@/router/history';
 import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 
 export type PartnerSelectOption = {
@@ -35,6 +35,8 @@ type PartnerQuickAddSelectProps = {
   createRoute: string;
   /** 按角色过滤的服务端关键字检索函数。 */
   searchPartners: (keyword?: string) => Promise<PartnerSelectOption[]>;
+  /** 客户快建时提成责任岗位（业务/操作/客服）的人员候选项。 */
+  staffOptions?: Array<{ userId?: string; displayName?: string }>;
   required?: boolean;
   /** 有效只读（无编辑动作权限或业务写入关闭）时隐藏快捷新增入口并禁用字段。 */
   disabled?: boolean;
@@ -44,8 +46,9 @@ type PartnerQuickAddSelectProps = {
 /**
  * 订单表单伙伴选择字段：远程关键字检索 + 下拉底部快捷新增。
  *
- * - 快捷新增仅录入公司抬头，成功后回填选中；本地新选项与远程结果按伙伴 ID
- *   去重合并，并通过 params 版本号触发重载，避免当前值退化为只显示 ID。
+ * - 快捷新增仅录入公司抬头，客户角色额外必选提成责任岗位（业务/操作/客服，
+ *   缺配档案会被开单校验拦截）；成功后回填选中；本地新选项与远程结果按伙伴
+ *   ID 去重合并，并通过 params 版本号触发重载，避免当前值退化为只显示 ID。
  * - 组织切换时清理本地新选项并使在途响应失效，旧组织数据不写入新组织表单。
  */
 export default function PartnerQuickAddSelect({
@@ -54,6 +57,7 @@ export default function PartnerQuickAddSelect({
   role,
   createRoute,
   searchPartners,
+  staffOptions,
   required = false,
   disabled = false,
   onPartnerChange,
@@ -78,6 +82,18 @@ export default function PartnerQuickAddSelect({
   const createGuard = useAsyncGuard();
   organizationIdRef.current = currentOrganizationId;
   const canQuickAdd = Boolean(access.canCreatePartners) && !disabled;
+  // 客户快建必须同步配置提成责任岗位（业务/操作/客服），否则开单会被
+  // PARTNER_COMMISSION_ASSIGNMENT_MISSING 拦截；其他角色保持仅录抬头。
+  const isCustomerRole = role === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER;
+  const staffSelectOptions = useMemo(
+    () =>
+      (staffOptions ?? []).flatMap((item) =>
+        item.userId
+          ? [{ label: item.displayName || item.userId, value: item.userId }]
+          : [],
+      ),
+    [staffOptions],
+  );
 
   useEffect(() => {
     if (canQuickAdd) return;
@@ -272,7 +288,13 @@ export default function PartnerQuickAddSelect({
       />
 
       <QuickCreateModal<
-        { legalName: string; isCasual?: boolean },
+        {
+          legalName: string;
+          isCasual?: boolean;
+          assignSalesUser?: string;
+          assignOperatorUser?: string;
+          assignServiceUser?: string;
+        },
         PartnerSelectOption
       >
         key={`${currentOrganizationId ?? 'no-organization'}:${canQuickAdd ? 'enabled' : 'disabled'}`}
@@ -304,6 +326,27 @@ export default function PartnerQuickAddSelect({
           if (!organizationAtSubmit) {
             throw new Error('当前组织不可用，请刷新后重试');
           }
+          const requireStaff = (userId: string | undefined, label: string) => {
+            if (!userId) throw new Error(`请选择${label}`);
+            return userId;
+          };
+          const assignments: API.PartnerAssignmentInput[] | undefined =
+            isCustomerRole
+              ? [
+                  {
+                    role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
+                    userId: requireStaff(values.assignSalesUser, '业务人员'),
+                  },
+                  {
+                    role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
+                    userId: requireStaff(values.assignOperatorUser, '操作人员'),
+                  },
+                  {
+                    role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE,
+                    userId: requireStaff(values.assignServiceUser, '客服人员'),
+                  },
+                ]
+              : undefined;
           await createGuard.run(
             ({ signal }) =>
               partnerServiceCreatePartner(
@@ -312,6 +355,7 @@ export default function PartnerQuickAddSelect({
                   legalName: values.legalName.trim(),
                   roles: [{ type: role, enabled: true }],
                   isCasual: values.isCasual ?? true,
+                  assignments,
                 },
                 { signal },
               ),
@@ -363,6 +407,49 @@ export default function PartnerQuickAddSelect({
         <Form.Item name="isCasual" valuePropName="checked">
           <Checkbox>单次合作往来单位（散客）</Checkbox>
         </Form.Item>
+        {isCustomerRole && (
+          <>
+            <Form.Item
+              label="业务人员"
+              name="assignSalesUser"
+              rules={[{ required: true, message: '请选择业务人员' }]}
+            >
+              <Select
+                showSearch
+                allowClear
+                placeholder="选择人员"
+                options={staffSelectOptions}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+            <Form.Item
+              label="操作人员"
+              name="assignOperatorUser"
+              rules={[{ required: true, message: '请选择操作人员' }]}
+            >
+              <Select
+                showSearch
+                allowClear
+                placeholder="选择人员"
+                options={staffSelectOptions}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+            <Form.Item
+              label="客服人员"
+              name="assignServiceUser"
+              rules={[{ required: true, message: '请选择客服人员' }]}
+            >
+              <Select
+                showSearch
+                allowClear
+                placeholder="选择人员"
+                options={staffSelectOptions}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </>
+        )}
       </QuickCreateModal>
     </>
   );

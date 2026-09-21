@@ -4,10 +4,11 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { App, Form } from 'antd';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PartnerRoleType } from '@/enums.generated';
+import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
 import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 import PartnerQuickAddSelect, {
   type PartnerSelectOption,
@@ -44,6 +45,47 @@ const searchPartners = vi.fn<
   (keyword?: string) => Promise<PartnerSelectOption[]>
 >(async () => [{ label: '既有单位', value: 'partner-0', code: 'P0' }]);
 
+const STAFF_OPTIONS = [
+  { userId: 'user-a', displayName: '张三' },
+  { userId: 'user-b', displayName: '李四' },
+  { userId: 'user-c', displayName: '王五' },
+];
+
+/** 打开指定下拉并点击候选项；过滤掉已关闭下拉残留的隐藏 DOM（antd 关闭后选项仍挂载）。 */
+async function pickSelectOption(combobox: Element, name: string) {
+  fireEvent.mouseDown(combobox);
+  const option = await waitFor(() => {
+    const candidates = screen.getAllByText(name).filter((element) => {
+      const dropdown = element.closest('.ant-select-dropdown');
+      return (
+        dropdown !== null &&
+        !dropdown.className.includes('-hidden') &&
+        !dropdown.className.includes('ant-slide-up-leave')
+      );
+    });
+    if (candidates.length === 0) {
+      throw new Error(`选项 ${name} 尚未出现在打开的下拉中`);
+    }
+    return candidates[0];
+  });
+  fireEvent.click(option);
+  // 等待下拉确认关闭（离开动画类已生效），下一次挑选才不会被残留 DOM 干扰。
+  await waitFor(() =>
+    expect(combobox).toHaveAttribute('aria-expanded', 'false'),
+  );
+}
+
+/** 依次为客户快建弹窗中的业务/操作/客服三个必选人员下拉选择不同成员。 */
+async function fillCommissionStaff() {
+  const comboboxes = within(screen.getByRole('dialog')).getAllByRole(
+    'combobox',
+  );
+  expect(comboboxes).toHaveLength(3);
+  await pickSelectOption(comboboxes[0], '张三');
+  await pickSelectOption(comboboxes[1], '李四');
+  await pickSelectOption(comboboxes[2], '王五');
+}
+
 function TestHost({
   disabled = false,
   onPartnerChange,
@@ -66,6 +108,7 @@ function TestHost({
           role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
           createRoute="/partners/customers/create"
           searchPartners={searchPartners}
+          staffOptions={STAFF_OPTIONS}
           required
           disabled={disabled}
           onPartnerChange={(option) => {
@@ -137,6 +180,7 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.click(screen.getByText('新增 委托单位'));
     const input = await screen.findByLabelText('公司抬头');
     fireEvent.change(input, { target: { value: '  新测试单位  ' } });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     await waitFor(() =>
@@ -150,6 +194,20 @@ describe('PartnerQuickAddSelect', () => {
             },
           ],
           isCasual: true,
+          assignments: [
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
+              userId: 'user-a',
+            },
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
+              userId: 'user-b',
+            },
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE,
+              userId: 'user-c',
+            },
+          ],
         },
         { signal: expect.any(AbortSignal) },
       ),
@@ -163,7 +221,8 @@ describe('PartnerQuickAddSelect', () => {
     );
     expect(screen.getByTestId('customer-id')).toHaveTextContent('partner-1');
     expect(screen.getByTestId('customer-code')).toHaveTextContent('P1');
-    fireEvent.mouseDown(screen.getByRole('combobox'));
+    // 弹窗关闭动画期间人员下拉 combobox 仍挂载，主字段按标签精确定位
+    fireEvent.mouseDown(screen.getByLabelText('委托单位'));
     await waitFor(() => {
       expect(screen.getAllByText('既有单位').length).toBe(1);
     });
@@ -179,6 +238,7 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.click(screen.getByText('新增 委托单位'));
     const input = await screen.findByLabelText('公司抬头');
     fireEvent.change(input, { target: { value: '缺 ID 单位' } });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     expect(
@@ -198,6 +258,7 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '创建被拒绝单位' },
     });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     expect(await screen.findByText('无权创建往来单位')).toBeInTheDocument();
@@ -237,6 +298,7 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '切换前单位' },
     });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() => expect(partnerServiceCreatePartner).toHaveBeenCalled());
 
@@ -333,6 +395,7 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '卸载前新建单位' },
     });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() => expect(partnerServiceCreatePartner).toHaveBeenCalled());
 
@@ -371,12 +434,13 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '旧组织新建单位' },
     });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() => expect(partnerServiceCreatePartner).toHaveBeenCalled());
 
     organizationId = 'org-2';
     rerender(<TestHost key="stable" onPartnerChange={onPartnerChange} />);
-    fireEvent.mouseDown(screen.getByRole('combobox'));
+    fireEvent.mouseDown(screen.getByLabelText('委托单位'));
     fireEvent.click(
       await screen.findByRole('button', { name: '新增 委托单位' }),
     );
@@ -416,6 +480,7 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '锁单前新建单位' },
     });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() => expect(partnerServiceCreatePartner).toHaveBeenCalled());
 
@@ -487,12 +552,14 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '新测试单位' },
     });
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     await waitFor(() =>
       expect(screen.getByTestId('customer-id')).toHaveTextContent('partner-1'),
     );
-    fireEvent.mouseDown(screen.getByRole('combobox'));
+    // 弹窗关闭动画期间人员下拉 combobox 仍挂载，主字段按标签精确定位
+    fireEvent.mouseDown(screen.getByLabelText('委托单位'));
     await waitFor(() => {
       const dropdownOptions = screen
         .getAllByText('新测试单位')
@@ -533,6 +600,7 @@ describe('PartnerQuickAddSelect', () => {
     fireEvent.click(checkbox);
     expect(checkbox).not.toBeChecked();
 
+    await fillCommissionStaff();
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
     await waitFor(() =>
@@ -546,6 +614,87 @@ describe('PartnerQuickAddSelect', () => {
             },
           ],
           isCasual: false,
+          assignments: [
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
+              userId: 'user-a',
+            },
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
+              userId: 'user-b',
+            },
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE,
+              userId: 'user-c',
+            },
+          ],
+        },
+        { signal: expect.any(AbortSignal) },
+      ),
+    );
+  });
+
+  it('客户快建未选提成责任岗位时保存被拦截且不发起创建', async () => {
+    render(<TestHost />);
+    await openDropdown();
+
+    fireEvent.click(screen.getByText('新增 委托单位'));
+    fireEvent.change(await screen.findByLabelText('公司抬头'), {
+      target: { value: '缺责任人单位' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    expect(await screen.findByText('请选择业务人员')).toBeInTheDocument();
+    expect(screen.getByText('请选择操作人员')).toBeInTheDocument();
+    expect(screen.getByText('请选择客服人员')).toBeInTheDocument();
+    expect(partnerServiceCreatePartner).not.toHaveBeenCalled();
+    // 校验失败时弹窗保持打开，已录入内容不丢失
+    expect(screen.getByLabelText('公司抬头')).toHaveValue('缺责任人单位');
+  });
+
+  it('非客户角色快建不要求提成责任岗位', async () => {
+    function SupplierHost() {
+      const [form] = Form.useForm();
+      return (
+        <App>
+          <Form form={form}>
+            <PartnerQuickAddSelect
+              name="bookingAgentId"
+              displayName="订舱代理"
+              role={PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}
+              createRoute="/partners/suppliers/create"
+              searchPartners={searchPartners}
+              staffOptions={STAFF_OPTIONS}
+            />
+          </Form>
+        </App>
+      );
+    }
+    vi.mocked(partnerServiceCreatePartner).mockResolvedValue({
+      data: { id: 'partner-s1', legalName: '新订舱代理', code: 'PS1' } as never,
+    });
+    render(<SupplierHost />);
+    fireEvent.mouseDown(screen.getByRole('combobox'));
+    fireEvent.click(await screen.findByText('新增 订舱代理'));
+
+    fireEvent.change(await screen.findByLabelText('公司抬头'), {
+      target: { value: '新订舱代理' },
+    });
+    expect(screen.queryByLabelText('业务人员')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() =>
+      expect(partnerServiceCreatePartner).toHaveBeenCalledWith(
+        {
+          legalName: '新订舱代理',
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER,
+              enabled: true,
+            },
+          ],
+          isCasual: true,
+          assignments: undefined,
         },
         { signal: expect.any(AbortSignal) },
       ),

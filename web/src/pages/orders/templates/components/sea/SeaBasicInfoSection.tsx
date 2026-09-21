@@ -282,7 +282,7 @@ export function SeaCustomerField({
   searchCustomers: (keyword?: string) => Promise<PartnerSelectOption[]>;
   readonly?: boolean;
   setCustomerCode: (code?: string) => void;
-  personnelOptions?: Array<{ userId?: string }>;
+  personnelOptions?: Array<{ userId?: string; displayName?: string }>;
   onCustomerChange?: (option?: PartnerSelectOption) => void;
 }) {
   const form = Form.useFormInstance();
@@ -327,6 +327,7 @@ export function SeaCustomerField({
       role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
       createRoute="/partners/customers/create"
       searchPartners={searchCustomers}
+      staffOptions={personnelOptions}
       required
       disabled={readonly}
       onPartnerChange={handlePartnerChange}
