@@ -1,70 +1,12 @@
+import { ProFormText } from '@ant-design/pro-components';
+import { Col, Form, Radio, Row } from 'antd';
+import React, { useEffect } from 'react';
+import { ProFormSearchableSelect } from '@/components/ui';
 import {
-  DownloadOutlined,
-  SaveOutlined,
-  SwapOutlined,
-} from '@ant-design/icons';
-import {
-  ProFormDigit,
-  ProFormSelect,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Checkbox,
-  Col,
-  Form,
-  Modal,
-  Radio,
-  Row,
-  Segmented,
-  Space,
-  Table,
-  Tabs,
-  Tag,
-  Typography,
-} from 'antd';
-import { createStyles } from 'antd-style';
-import dayjs from 'dayjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useAccess } from '@/app/access';
-import {
-  FormRow,
-  PackageCountInput,
-  ProFormSearchableSelect,
-} from '@/components/ui';
-
-import {
-  OrderBusinessType,
-  OrderReleasePodStatus,
-  SeaDocumentStructure,
-  SeaDocumentType,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
 import { searchPartnerOptions } from '@/features/partners';
-import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
-import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
-import {
-  seaDocumentServiceExecuteChangeSeaDocumentMode,
-  seaDocumentServiceGetSeaOrderDocuments,
-  seaDocumentServicePreviewChangeSeaDocumentMode,
-  seaDocumentServiceUpdateSeaHouseBill,
-  seaDocumentServiceUpdateSeaMasterBillContent,
-} from '@/services/roncin/seaDocumentService';
-import { generateUUID } from '@/utils/uuid';
-import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
-import type { TemplateProps, TemplateSection } from '../../types';
-import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
-import SeaExternalConfirmationFields, {
-  buildSeaExternalConfirmation,
-  type SeaExternalConfirmationFormValues,
-} from './SeaExternalConfirmationFields';
-
-const { Text } = Typography;
 
 /** 与服务端 NormalizeSeaHouseNo 同口径的展示层归一化：NFC + 去首尾空白 + 大写。
  * 仅用于批次排重的即时提示（体验层），服务端事务内预查为权威。 */
@@ -144,119 +86,76 @@ export function HouseBillIdentityFields({
       </Col>
       <Col xs={24}>
         <Form.Item
-          label="分单由谁签发"
-          extra="请选择 HBL 上显示的签发主体"
+          name={[fieldKey, 'issuerSource']}
+          label="分单签发主体"
           required
-          style={{ marginBottom: 24 }}
+          rules={[{ required: true, message: '请选择分单签发主体' }]}
           layout="vertical"
+          style={{ marginBottom: 16 }}
         >
-          {/* 本字段独占整行（xs=24）：三个单选 + 行内下拉框总宽约 830px，
-              半行宽的列里放不下必然换行；分单备注因此上移与分单号凑成一行。
-              行内条件控件：选「指定其他合作方签发」时下拉框跟随在单选组右侧，
-              其余选项显示灰色短提示。 */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'flex-start',
-              gap: 12,
-            }}
+          <Radio.Group
+            disabled={disabled}
+            onChange={() =>
+              form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
+            }
           >
-            <Form.Item
-              name={[fieldKey, 'issuerSource']}
-              noStyle
-              rules={[{ required: true, message: '请选择签发主体' }]}
-            >
-              <Radio.Group
-                disabled={disabled}
-                onChange={() =>
-                  form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
-                }
-              >
-                <Radio
-                  value={
-                    SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
-                  }
-                >
-                  我们公司签发
-                </Radio>
-                <Radio
-                  value={
-                    SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-                  }
-                >
-                  委托单位签发
-                </Radio>
-                <Radio
-                  value={
-                    SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-                  }
-                >
-                  指定其他合作方签发
-                </Radio>
-              </Radio.Group>
-            </Form.Item>
-            <Form.Item
-              noStyle
-              shouldUpdate={(previous, current) =>
-                previous?.[fieldKey]?.issuerSource !==
-                current?.[fieldKey]?.issuerSource
+            <Radio
+              value={
+                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
               }
             >
-              {({ getFieldValue }) => {
-                const issuerSource = getFieldValue([fieldKey, 'issuerSource']);
-                if (
-                  issuerSource ===
-                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
-                ) {
-                  return (
-                    <Text
-                      type="secondary"
-                      style={{ fontSize: 12, lineHeight: '32px' }}
-                    >
-                      由所属公司或总部统一签发
-                    </Text>
-                  );
-                }
-                if (
-                  issuerSource ===
-                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-                ) {
-                  return (
-                    <Text
-                      type="secondary"
-                      style={{ fontSize: 12, lineHeight: '32px' }}
-                    >
-                      使用当前订单委托单位作为签发主体
-                    </Text>
-                  );
-                }
-                if (
-                  issuerSource ===
-                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-                ) {
-                  return (
-                    <ProFormSearchableSelect
-                      name={[fieldKey, 'issuerPartnerId']}
-                      placeholder="请选择签发主体合作伙伴"
-                      disabled={disabled}
-                      rules={[{ required: true, message: '请选择合作伙伴' }]}
-                      request={async ({ keyWords }) =>
-                        searchPartnerOptions(keyWords)
-                      }
-                      fieldProps={{ filterOption: false }}
-                      formItemProps={{
-                        style: { marginBottom: 0, width: 320 },
-                      }}
-                    />
-                  );
-                }
-                return null;
-              }}
-            </Form.Item>
-          </div>
+              本公司
+            </Radio>
+            <Radio
+              value={
+                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
+              }
+            >
+              委托单位
+            </Radio>
+            <Radio
+              value={
+                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+              }
+            >
+              指定合作方
+            </Radio>
+          </Radio.Group>
         </Form.Item>
       </Col>
+      <Form.Item
+        noStyle
+        shouldUpdate={(previous, current) =>
+          previous?.[fieldKey]?.issuerSource !==
+          current?.[fieldKey]?.issuerSource
+        }
+      >
+        {({ getFieldValue }) => {
+          const issuerSource = getFieldValue([fieldKey, 'issuerSource']);
+          if (
+            issuerSource !==
+            SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+          ) {
+            return null;
+          }
+          return (
+            <Col xs={24} md={8}>
+              <ProFormSearchableSelect
+                name={[fieldKey, 'issuerPartnerId']}
+                label="签发合作方"
+                placeholder="请选择签发主体合作伙伴"
+                disabled={disabled}
+                rules={[{ required: true, message: '请选择签发主体合作伙伴' }]}
+                request={async ({ keyWords }) => searchPartnerOptions(keyWords)}
+                fieldProps={{ filterOption: false }}
+                formItemProps={{
+                  style: { marginBottom: 24 },
+                }}
+              />
+            </Col>
+          );
+        }}
+      </Form.Item>
     </Row>
   );
 }

@@ -286,7 +286,7 @@ describe('SeaDocumentSectionComponent', () => {
     fireEvent.change(screen.getByPlaceholderText('请输入分单号'), {
       target: { value: 'HBL-NEW' },
     });
-    fireEvent.click(screen.getByRole('radio', { name: '我们公司签发' }));
+    fireEvent.click(screen.getByRole('radio', { name: '本公司' }));
     fireEvent.change(
       screen.getByPlaceholderText('说明客户请求及本次 HOUSE/DIRECT 切换原因'),
       {

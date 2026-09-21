@@ -237,7 +237,7 @@ describe.skip('海运订单新增模板', () => {
 
     await waitFor(() => {
       expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
-      expect(screen.getAllByText('分单由谁签发')).toHaveLength(1);
+      expect(screen.getAllByText('分单签发主体')).toHaveLength(1);
     });
     // 不存在添加第二张 HBL 的入口
     expect(screen.queryByRole('button', { name: /添加分单/ })).toBeNull();
