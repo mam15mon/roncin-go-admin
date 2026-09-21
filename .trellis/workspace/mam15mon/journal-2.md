@@ -373,3 +373,27 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 94: 全仓死代码与未使用依赖清理
+<!-- trellis-session: v=2 fp=2ece12cfcc650b6e -->
+
+**Date**: 2026-09-21
+**Task**: 全仓死代码与未使用依赖清理
+**Branch**: `main`
+
+### Summary
+
+逐项复核GLM报告后删除72个前端遗留文件，精确清理14个后端文件中的死符号与接口链；移除5个前端直接依赖并整理go.sum。check:fast全部通过，前端937通过12跳过，生产构建通过。保留Sentry、回填工具、测试钩子、重复实现。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `745b7320` | chore(deps): 移除未使用前端依赖并整理 Go 校验和 |
+| `effd92f3` | refactor: 清理确认不可达的前后端代码与迁移遗留 |
+| `2a7e10c6` | docs: 记录死代码清理复核证据与验收结果 |
+
+### Status
+
+[OK] **Completed**
