@@ -217,6 +217,7 @@ pnpm run dev:server
 pnpm run dev:permit
 pnpm run migrate:dev
 pnpm run sync:all
+pnpm run sync:dev
 pnpm run generate:web-client
 pnpm run generate:permission-keys
 pnpm run check:fast
@@ -295,6 +296,9 @@ pnpm --dir web biome:lint
 - 行业参考大数据（全球船公司、联合国海港、全球航司、全球机场、中国省市区行政区划）
   源文件归档于 `server/seeds/`，新环境初始化或日常更新执行 `pnpm run sync:all`
   一键幂等落库，不重复新增。
+- 本地开发业务测试数据（测试员工、客商档案及结算账户/联系人、海运出口全生命周期订单、
+  费用明细、财务账单、收款核销流水、提成方案与规则等）执行 `pnpm run sync:dev`
+  一键幂等注入，支持重复执行维护。
 - 迁移校验和按环境区分：`pnpm dev` 与 `pnpm run migrate:dev` 允许把已应用迁移
   的校验和重录为当前文件（开发期迁移文件在应用后继续修改属正常迭代）；
   `pnpm run migrate:server` 保持严格校验，禁止对生产库做任何自动修复。
