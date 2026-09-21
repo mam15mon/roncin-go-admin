@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范总索引与开发前检查清单"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "UI 模板规范与 SectionCard 等公共组件使用约束，本次两卡外壳选型依据"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "服务端状态与请求客户端约束：Overview 数据消费不得复制到本地状态"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "pnpm 命令、校验命令与禁令（LPT 测试拆分约束等）"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "自定义 Hook 依赖防护规范，MyApplicationCard 迁移提交逻辑时适用"}
