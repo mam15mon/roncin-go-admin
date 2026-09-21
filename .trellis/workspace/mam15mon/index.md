@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 92
+- **Total Sessions**: 93
 - **Last Active**: 2026-09-21
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~353 | Active |
+| `journal-2.md` | ~375 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 93 | 2026-09-21 | 往来单位当前公司范围与人员部门展示 | `76aa783e` | `main` |
 | 92 | 2026-09-21 | 海运提单模式与分单展示简化 | `fe7a5650` | `main` |
 | 91 | 2026-09-21 | 统一权限范围与停用仅本人授权 | `3f6e5d67` | `fix/permission-scope-alignment` |
 | 90 | 2026-09-21 | 工作台提成模块 UI 结构重构 | `8ea4c421` | `main` |
