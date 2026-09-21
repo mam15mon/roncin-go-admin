@@ -49,6 +49,10 @@ func CreateDefaultBranchCompanies(ctx context.Context, tx *ent.Tx, headquartersI
 		if err := CreateDefaultNumberRules(ctx, tx, organization.ID); err != nil {
 			return created, err
 		}
+		// 种子公司同样默认纳入 bootstrap 管理员覆盖，与运行期建公司保持一致。
+		if _, ensureErr := ensureBootstrapAdminCompanyMembership(ctx, tx.Client(), organization.ID); ensureErr != nil {
+			return created, ensureErr
+		}
 		created++
 	}
 	return created, nil

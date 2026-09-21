@@ -70,6 +70,12 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 		if defaultErr := CreateDefaultNumberRules(ctx, tx, created.ID); defaultErr != nil {
 			return defaultErr
 		}
+		// 新公司默认纳入 bootstrap 管理员覆盖： administrator 角色与管理员成员关系同事务落库。
+		if input.Kind == biz.OrganizationKindCompany {
+			if _, ensureErr := ensureBootstrapAdminCompanyMembership(ctx, tx.Client(), created.ID); ensureErr != nil {
+				return ensureErr
+			}
+		}
 		// A 型主数据种子全局唯一，仅首次建库初始化，不再随组织重复落行。
 		if exists, existErr := tx.MasterDataItem.Query().Limit(1).Exist(ctx); existErr != nil {
 			return existErr

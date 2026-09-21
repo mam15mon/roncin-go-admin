@@ -120,10 +120,6 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 		tx.Rollback()
 		return err
 	}
-	if _, err := data.CreateDefaultBranchCompanies(ctx, tx, organization.ID); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("create default branch companies: %w", err)
-	}
 	// A 型主数据种子全局唯一，仅首次建库初始化，若已由迁移种子同步过则不再重复写入。
 	if masterDataExists, checkErr := tx.MasterDataItem.Query().Limit(1).Exist(ctx); checkErr != nil {
 		tx.Rollback()
@@ -160,6 +156,11 @@ func bootstrap(ctx context.Context, config *bootstrapConfig) error {
 			return fmt.Errorf("synchronize permission %s: %w", definition.Key, err)
 		}
 		permissions = append(permissions, permission)
+	}
+	// 默认分公司在权限目录同步后落库，使分公司内置的 administrator 角色直接携带全量权限。
+	if _, err := data.CreateDefaultBranchCompanies(ctx, tx, organization.ID); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("create default branch companies: %w", err)
 	}
 	adminRole, err := tx.Role.Create().SetOrganizationID(organization.ID).SetCode("administrator").SetName("系统管理员").SetDataScope(role.DataScopeAll).AddPermissions(permissions...).Save(ctx)
 	if err != nil {

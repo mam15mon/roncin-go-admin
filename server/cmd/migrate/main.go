@@ -71,6 +71,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "回填下拉候选项拼音检索键失败: %v\n", err)
 		os.Exit(1)
 	}
+	membershipSummary, err := data.SyncBootstrapAdminCompanyMemberships(ctx, db)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "同步超管公司成员覆盖失败: %v\n", err)
+		os.Exit(1)
+	}
 	fmt.Printf("权限清单已同步：新增 %d 项，更新 %d 项，移除 %d 项，补齐角色依赖 %d 项\n", permissionSummary.Created, permissionSummary.Updated, permissionSummary.Removed, permissionSummary.Attached)
 	fmt.Printf("订单主数据种子已同步：补齐 %d 项\n", orderOptionsSummary.Created)
+	fmt.Printf("超管公司覆盖已同步：覆盖公司 %d 家，新建角色 %d 个，新建成员关系 %d 条，重启用成员关系 %d 条，补挂角色分配 %d 条\n",
+		membershipSummary.Companies, membershipSummary.CreatedRoles, membershipSummary.CreatedMemberships, membershipSummary.ReenabledMemberships, membershipSummary.CreatedRoleAssignments)
 }
