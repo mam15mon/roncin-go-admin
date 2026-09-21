@@ -107,7 +107,7 @@ afterEach(() => {
 });
 
 describe('deriveStage 申请阶段推导（纯函数）', () => {
-  it('有审批中申请：停在财务审批（在途优先于再次提交）', () => {
+  it('有审批中申请：停在财务审批（仅影响阶段提示，不决定可提交）', () => {
     expect(
       deriveStage({
         pendingReviewCount: 1,

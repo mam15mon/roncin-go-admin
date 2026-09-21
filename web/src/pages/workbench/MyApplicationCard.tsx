@@ -28,8 +28,8 @@ type StageSummary = Pick<Summary, 'pendingReviewCount' | 'applyGroups'>;
 export type ApplicationStage = { step: 0 | 1 | 2 };
 
 /**
- * 阶段推导（纯函数）：审批中优先于可申请——有在途申请时用户动作是等待/
- * 查看历史，不是再次提交，与服务端「同月唯一申请」约束一致。
+ * 阶段推导（纯函数）：审批中优先于可申请展示——仅决定 Steps 当前阶段提示，
+ * 不决定是否可提交（历史待审申请与当前可申请分组可并存，可提交性以分组为准）。
  */
 export function deriveStage(summary?: StageSummary): ApplicationStage {
   if ((summary?.pendingReviewCount ?? 0) > 0) return { step: 2 };
