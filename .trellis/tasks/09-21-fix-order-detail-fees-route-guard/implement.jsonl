@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "请求层 resolve undefined 契约与 ensureListResponse 防护规范"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "权限键与 access.ts 编译期对齐规范"}

@@ -72,6 +72,24 @@ describe('useOrderFeeOptions', () => {
     expect(result.current.customerName).toBe('某客户');
   });
 
+  it('请求被全局错误处理器消费后 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+    } as any);
+    mockListFeeOptions.mockResolvedValueOnce(undefined as unknown as any);
+
+    const { queryClient, wrapper } = createHookWrapper();
+    const { result } = renderHook(() => useOrderFeeOptions('ord-1'), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order).toBeUndefined();
+    expect(queryClient.getQueryCache().getAll()[0]?.state.error?.message).toBe(
+      '加载费用信息失败，请稍后重试',
+    );
+  });
+
   it('从订单 A 快速切换到订单 B 时，立即进入 B 加载态且不得渲染 A 的旧数据', async () => {
     const deferA = deferred<any>();
     const deferB = deferred<any>();

@@ -391,6 +391,13 @@ export default function access(
     canCreateAnyOrders: [1, 2, 3, 4].some((businessType) =>
       canOrder(businessType, 'create'),
     ),
+    // 费用录入工作台路由守卫：费用录入人群（fee.read）之外，锁后补录
+    // 审批人仅持 lock 权限码（后端按实时 lock grant 判定，不要求 fee.read），
+    // 工作台「前往处理」入口同样需要放行。
+    canAccessAnyOrderFees: [1, 2, 3, 4].some(
+      (businessType) =>
+        canOrder(businessType, 'fee.read') || canOrder(businessType, 'lock'),
+    ),
     canReadSEOrders: canOrder(1, 'read'),
     canSplitSEOrders: canOrder(1, 'split'),
     canReadSIOrders: canOrder(2, 'read'),

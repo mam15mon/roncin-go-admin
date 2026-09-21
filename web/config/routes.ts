@@ -149,12 +149,14 @@ const routes: UmiRoute[] = [
       {
         path: '/orders/:kind/:id',
         name: '订单详情',
+        access: 'canReadAnyOrders',
         hideInMenu: true,
         component: './orders/detail',
       },
       {
         path: '/orders/:kind/:id/fees',
         name: '费用录入',
+        access: 'canAccessAnyOrderFees',
         hideInMenu: true,
         component: './orders/fees',
       },

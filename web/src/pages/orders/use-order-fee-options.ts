@@ -70,6 +70,11 @@ export function useOrderFeeOptions(orderId?: string) {
           orderServiceGetOrder({ id: orderId }),
           orderFeeServiceListFeeOptions({ orderId }),
         ]);
+        // 请求层错误被全局处理器消费后会 resolve undefined：先转成明确
+        // 业务错误，避免下方取 .data 抛 TypeError 文案直达用户。
+        if (!orderRes || !optionsRes) {
+          throw new Error('加载费用信息失败，请稍后重试');
+        }
         return {
           order: orderRes.data,
           currencies: optionsRes.currencies ?? [],
@@ -164,7 +169,12 @@ export function useOrderFeeOptions(orderId?: string) {
         | ((prev: API.OrderFeeSettingOption[]) => API.OrderFeeSettingOption[]),
     ) => {
       setExtraFeeSettings((prev) =>
-        applyNextList(prev, feeSettingsBaseRef.current, orderIdRef.current, next),
+        applyNextList(
+          prev,
+          feeSettingsBaseRef.current,
+          orderIdRef.current,
+          next,
+        ),
       );
     },
     [],

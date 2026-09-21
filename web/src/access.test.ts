@@ -83,6 +83,25 @@ describe('新建订单入口权限（canCreateAnyOrders）', () => {
   });
 });
 
+describe('费用录入工作台权限（canAccessAnyOrderFees）', () => {
+  it('持任一业务类型 fee.read 时放行费用录入路由', () => {
+    const result = access(currentUser(['business.order.se.fee.read']));
+    expect(result.canAccessAnyOrderFees).toBe(true);
+  });
+
+  it('仅持 lock 权限的补录审批人同样放行（工作台「前往处理」入口）', () => {
+    const result = access(currentUser(['business.order.se.lock']));
+    expect(result.canAccessAnyOrderFees).toBe(true);
+  });
+
+  it('只有订单读取或创建权限时不得进入费用录入路由', () => {
+    const result = access(
+      currentUser(['business.order.se.read', 'business.order.se.create']),
+    );
+    expect(result.canAccessAnyOrderFees).toBe(false);
+  });
+});
+
 describe('用户页数据源分流权限', () => {
   it('普通组织管理员可读当前组织角色，但无全组织读取与外部成员授权能力', () => {
     const result = access(

@@ -4,6 +4,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
+import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import {
   fetchOrderMasterData,
   searchOrderLocations,
@@ -54,6 +55,9 @@ vi.mock('./common', async (importOriginal) => {
 });
 
 const mockGetOrder = vi.mocked(orderServiceGetOrder);
+const mockListShippingDocuments = vi.mocked(
+  orderShippingDocumentServiceListShippingDocuments,
+);
 const mockFetchMasterData = vi.mocked(fetchOrderMasterData);
 const mockSearchLocations = vi.mocked(searchOrderLocations);
 const config = seaExportDefinition;
@@ -120,6 +124,41 @@ describe('useOrderDetailData', () => {
     expect(result.current.order?.id).toBe('ord-1');
     expect(result.current.order?.orderNo).toBe('SE001');
     expect(result.current.loadedOrderId).toBe('ord-1');
+  });
+
+  it('订单档案请求被全局错误处理器消费后 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
+    mockGetOrder.mockResolvedValueOnce(undefined as unknown as any);
+
+    const { queryClient, wrapper } = createHookWrapper();
+    const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order).toBeUndefined();
+    expect(queryClient.getQueryCache().getAll()[0]?.state.error?.message).toBe(
+      '订单详情加载失败，请稍后重试',
+    );
+  });
+
+  it('单证列表请求 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+    } as any);
+    mockListShippingDocuments.mockResolvedValueOnce(
+      undefined as unknown as any,
+    );
+
+    const { queryClient, wrapper } = createHookWrapper();
+    const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order).toBeUndefined();
+    expect(queryClient.getQueryCache().getAll()[0]?.state.error?.message).toBe(
+      '订单单证加载失败，请稍后重试',
+    );
   });
 
   it('从订单 A 快速切换到订单 B 时，立即进入 B 加载态且不得渲染 A 的旧数据', async () => {

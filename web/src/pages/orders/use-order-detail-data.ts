@@ -7,7 +7,7 @@ import { getOrderPersonnelOptions } from '@/features/orders/options';
 import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
-import { unwrapList } from '@/utils/api';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import {
   fetchOrderMasterData,
@@ -79,10 +79,20 @@ export function useOrderDetailData(
             orderPersonnelServiceListPersonnel({ orderId }),
           ]);
 
+        // 请求层错误被全局处理器消费后会 resolve undefined：先转成明确
+        // 业务错误，避免下方取 .data 抛 TypeError 文案直达用户。
+        if (!orderRes) {
+          throw new Error('订单详情加载失败，请稍后重试');
+        }
+
         return {
           order: orderRes.data,
-          shippingDocs: unwrapList(docsRes),
-          personnel: unwrapList(personnelRes),
+          shippingDocs: unwrapList(
+            ensureListResponse(docsRes, '订单单证加载失败，请稍后重试'),
+          ),
+          personnel: unwrapList(
+            ensureListResponse(personnelRes, '订单人员加载失败，请稍后重试'),
+          ),
           serviceTypeOptions:
             transportMode === 'sea'
               ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
