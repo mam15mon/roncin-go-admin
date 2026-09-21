@@ -133,6 +133,16 @@ export function HouseBillIdentityFields({
         />
       </Col>
       <Col xs={24} md={16}>
+        <ProFormText
+          name={[fieldKey, 'note']}
+          label="分单备注"
+          placeholder="请输入分单备注"
+          disabled={disabled}
+          layout="vertical"
+          fieldProps={{ maxLength: 500 }}
+        />
+      </Col>
+      <Col xs={24}>
         <Form.Item
           label="分单由谁签发"
           extra="请选择 HBL 上显示的签发主体"
@@ -140,8 +150,10 @@ export function HouseBillIdentityFields({
           style={{ marginBottom: 24 }}
           layout="vertical"
         >
-          {/* 行内条件控件：选「指定其他合作方签发」时下拉框跟随在单选组右侧，
-              其余选项显示灰色短提示，避免下拉框换行孤立悬挂 */}
+          {/* 本字段独占整行（xs=24）：三个单选 + 行内下拉框总宽约 830px，
+              半行宽的列里放不下必然换行；分单备注因此上移与分单号凑成一行。
+              行内条件控件：选「指定其他合作方签发」时下拉框跟随在单选组右侧，
+              其余选项显示灰色短提示。 */}
           <div
             style={{
               display: 'flex',
@@ -244,16 +256,6 @@ export function HouseBillIdentityFields({
             </Form.Item>
           </div>
         </Form.Item>
-      </Col>
-      <Col xs={24}>
-        <ProFormText
-          name={[fieldKey, 'note']}
-          label="分单备注"
-          placeholder="请输入分单备注"
-          disabled={disabled}
-          layout="vertical"
-          fieldProps={{ maxLength: 500 }}
-        />
       </Col>
     </Row>
   );
