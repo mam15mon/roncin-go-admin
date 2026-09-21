@@ -285,3 +285,25 @@ useMasterDataCrud（用户亲改的 ref 稳定回调实现）迁移 React Query�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 90: 工作台提成模块 UI 结构重构
+<!-- trellis-session: v=2 fp=332f25d1fe9bf46d -->
+
+**Date**: 2026-09-21
+**Task**: 工作台提成模块 UI 结构重构
+**Branch**: `main`
+
+### Summary
+
+调研提成管理全貌后按结构重构方向改造工作台提成 UI：巨石卡拆为 SectionCard 外壳的总览卡（本年/本月已发双指标 hero + 三桶箭头衔接 FlowStat 流程条 + 冲减单行摘要）与月度申请卡（Steps 三阶段状态流 + deriveStage 纯函数 + 去申请主按钮 + 预计可计提脚注）；红线行为（门禁三态、总部仅查看、提交刷新时序、四个下钻抽屉）经 trellis-check 逐条核实等价保留；工作台模块 23 用例与全量 887 用例通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8ea4c421` | feat: 工作台提成模块重构为总览与月度申请双卡 |
+
+### Status
+
+[OK] **Completed**
