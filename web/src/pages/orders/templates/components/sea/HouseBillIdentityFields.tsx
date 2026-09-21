@@ -212,18 +212,26 @@ export function HouseBillIdentityFields({
                 SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
               ) {
                 return (
-                  <div style={{ marginTop: 8 }}>
-                    <ProFormSearchableSelect
-                      name={[fieldKey, 'issuerPartnerId']}
-                      placeholder="请选择签发主体合作伙伴"
-                      disabled={disabled}
-                      rules={[{ required: true, message: '请选择合作伙伴' }]}
-                      request={async ({ keyWords }) =>
-                        searchPartnerOptions(keyWords)
-                      }
-                      fieldProps={{ filterOption: false }}
-                    />
-                  </div>
+                  // 内层 md={12} 恰为外层 md={16} 列的一半，下拉框宽度与左侧
+                  // 分单号输入框（md={8}）对齐，避免铺满整行破坏栅格节奏。
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}>
+                      <div style={{ marginTop: 8 }}>
+                        <ProFormSearchableSelect
+                          name={[fieldKey, 'issuerPartnerId']}
+                          placeholder="请选择签发主体合作伙伴"
+                          disabled={disabled}
+                          rules={[
+                            { required: true, message: '请选择合作伙伴' },
+                          ]}
+                          request={async ({ keyWords }) =>
+                            searchPartnerOptions(keyWords)
+                          }
+                          fieldProps={{ filterOption: false }}
+                        />
+                      </div>
+                    </Col>
+                  </Row>
                 );
               }
               return null;
