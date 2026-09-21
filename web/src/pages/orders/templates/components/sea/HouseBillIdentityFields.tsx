@@ -140,103 +140,109 @@ export function HouseBillIdentityFields({
           style={{ marginBottom: 24 }}
           layout="vertical"
         >
-          <Form.Item
-            name={[fieldKey, 'issuerSource']}
-            noStyle
-            rules={[{ required: true, message: '请选择签发主体' }]}
+          {/* 行内条件控件：选「指定其他合作方签发」时下拉框跟随在单选组右侧，
+              其余选项显示灰色短提示，避免下拉框换行孤立悬挂 */}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'flex-start',
+              gap: 12,
+            }}
           >
-            <Radio.Group
-              disabled={disabled}
-              onChange={() =>
-                form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
+            <Form.Item
+              name={[fieldKey, 'issuerSource']}
+              noStyle
+              rules={[{ required: true, message: '请选择签发主体' }]}
+            >
+              <Radio.Group
+                disabled={disabled}
+                onChange={() =>
+                  form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
+                }
+              >
+                <Radio
+                  value={
+                    SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
+                  }
+                >
+                  我们公司签发
+                </Radio>
+                <Radio
+                  value={
+                    SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
+                  }
+                >
+                  委托单位签发
+                </Radio>
+                <Radio
+                  value={
+                    SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+                  }
+                >
+                  指定其他合作方签发
+                </Radio>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item
+              noStyle
+              shouldUpdate={(previous, current) =>
+                previous?.[fieldKey]?.issuerSource !==
+                current?.[fieldKey]?.issuerSource
               }
             >
-              <Radio
-                value={
+              {({ getFieldValue }) => {
+                const issuerSource = getFieldValue([fieldKey, 'issuerSource']);
+                if (
+                  issuerSource ===
                   SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
-                }
-              >
-                我们公司签发
-              </Radio>
-              <Radio
-                value={
-                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-                }
-              >
-                委托单位签发
-              </Radio>
-              <Radio
-                value={
-                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-                }
-              >
-                指定其他合作方签发
-              </Radio>
-            </Radio.Group>
-          </Form.Item>
-          <Form.Item
-            noStyle
-            shouldUpdate={(previous, current) =>
-              previous?.[fieldKey]?.issuerSource !==
-              current?.[fieldKey]?.issuerSource
-            }
-          >
-            {({ getFieldValue }) => {
-              const issuerSource = getFieldValue([fieldKey, 'issuerSource']);
-              if (
-                issuerSource ===
-                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
-              ) {
-                return (
-                  <div style={{ marginTop: 6 }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                ) {
+                  return (
+                    <Text
+                      type="secondary"
+                      style={{ fontSize: 12, lineHeight: '32px' }}
+                    >
                       由所属公司或总部统一签发
                     </Text>
-                  </div>
-                );
-              }
-              if (
-                issuerSource ===
-                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-              ) {
-                return (
-                  <div style={{ marginTop: 6 }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                  );
+                }
+                if (
+                  issuerSource ===
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
+                ) {
+                  return (
+                    <Text
+                      type="secondary"
+                      style={{ fontSize: 12, lineHeight: '32px' }}
+                    >
                       使用当前订单委托单位作为签发主体
                     </Text>
-                  </div>
-                );
-              }
-              if (
-                issuerSource ===
-                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-              ) {
-                return (
-                  // 内层 md={12} 恰为外层 md={16} 列的一半，下拉框宽度与左侧
-                  // 分单号输入框（md={8}）对齐，避免铺满整行破坏栅格节奏。
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={12}>
-                      <div style={{ marginTop: 8 }}>
-                        <ProFormSearchableSelect
-                          name={[fieldKey, 'issuerPartnerId']}
-                          placeholder="请选择签发主体合作伙伴"
-                          disabled={disabled}
-                          rules={[
-                            { required: true, message: '请选择合作伙伴' },
-                          ]}
-                          request={async ({ keyWords }) =>
-                            searchPartnerOptions(keyWords)
-                          }
-                          fieldProps={{ filterOption: false }}
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                );
-              }
-              return null;
-            }}
-          </Form.Item>
+                  );
+                }
+                if (
+                  issuerSource ===
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+                ) {
+                  return (
+                    <ProFormSearchableSelect
+                      name={[fieldKey, 'issuerPartnerId']}
+                      placeholder="请选择签发主体合作伙伴"
+                      disabled={disabled}
+                      rules={[{ required: true, message: '请选择合作伙伴' }]}
+                      request={async ({ keyWords }) =>
+                        searchPartnerOptions(keyWords)
+                      }
+                      fieldProps={{ filterOption: false }}
+                      formItemProps={{
+                        style: { marginBottom: 0, width: 320 },
+                      }}
+                    />
+                  );
+                }
+                return null;
+              }}
+            </Form.Item>
+          </div>
         </Form.Item>
       </Col>
       <Col xs={24}>
