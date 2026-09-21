@@ -570,7 +570,6 @@ type CommissionRepo interface {
 	// Preview 按来源二选一与「员工 + 人员身份」自动解析唯一有效方案后预览提成。
 	Preview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, CommissionPersonnelRole) (*CommissionCalculation, error)
 	GetGenerationContext(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error)
-	ListRules(context.Context, uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	ListRulesScoped(context.Context, []uuid.UUID, CommissionRuleFilter) (*CommissionRuleListResult, error)
 	GetRuleScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCommissionRule, error)
 	// CreateRule 在事务内按 Membership → Rule 固定锁序先锁员工成员关系，

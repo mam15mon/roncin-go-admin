@@ -260,7 +260,7 @@ func TestCommissionRepoReadMethodsRejectClosedTransactionContext(t *testing.T) {
 		{
 			name: "规则列表",
 			call: func() error {
-				_, err := repo.ListRules(transactionCtx, org, biz.CommissionRuleFilter{Page: 1, PageSize: 20})
+				_, err := repo.ListRulesScoped(transactionCtx, []uuid.UUID{org}, biz.CommissionRuleFilter{Page: 1, PageSize: 20})
 				return err
 			},
 		},

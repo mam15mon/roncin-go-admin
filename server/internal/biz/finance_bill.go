@@ -510,14 +510,6 @@ func intPointersEqual(left, right *int) bool {
 	return *left == *right
 }
 
-func financeBillableFeeIDs(fees []*FinanceBillableFee) []uuid.UUID {
-	result := make([]uuid.UUID, 0, len(fees))
-	for _, item := range fees {
-		result = append(result, item.Fee.ID)
-	}
-	return result
-}
-
 func validFinanceDate(value string) bool {
 	parsed, err := time.Parse("2006-01-02", value)
 	return err == nil && parsed.Format("2006-01-02") == value

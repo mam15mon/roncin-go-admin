@@ -47,12 +47,6 @@ func versionContent(shipper, consignee, notify, secondNotify, marks, goods *stri
 	}
 	return &biz.SeaBillContent{ShipperText: shipper, ConsigneeText: consignee, NotifyPartyText: notify, SecondNotifyPartyText: secondNotify, MarksText: marks, GoodsDescriptionText: goods, PackageCount: count, PackageUnit: unit, GrossWeightKg: weight, VolumeCbm: volume, FreightTerms: freight, TransportTerms: transport, BillForm: form, ReleaseType: release, Clauses: clauses, ForeignAgentText: foreignAgent}
 }
-func documentStringPointer(v string) *string {
-	if v == "" {
-		return nil
-	}
-	return &v
-}
 func amendmentEventFromVersion(v *biz.SeaDocumentVersion) *biz.SeaDocumentEvent {
 	id, no := v.DocumentID, v.DocumentNo
 	return &biz.SeaDocumentEvent{ID: v.ID, EventType: biz.SeaDocumentEventTypeAmendment, DocumentType: v.DocumentType, DocumentID: &id, DocumentNo: &no, ResultVersionID: &v.ID, Reason: derefString(v.Reason), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt}

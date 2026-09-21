@@ -19,7 +19,6 @@ export * from './quick-create-modal';
 export * from './quick-date-picker';
 export * from './search-filter-template';
 export * from './searchable-select';
-export * from './status-tag';
 export * from './sub-entity-card-grid';
 export * from './sub-entity-drawer';
 export * from './tooltip-input';

@@ -332,6 +332,5 @@ func CheckSeaVoyageConflicts(masterVoyage *SeaTransportExecution, orderVoyage *S
 
 type SeaMasterBillRepo interface {
 	MatchCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *SeaTransportExecution) (*SeaMasterBillMatchResult, error)
-	GetSummaryByOrderID(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaMasterBillSummary, error)
 	GetSummariesByOrderIDs(ctx context.Context, organizationID uuid.UUID, orderIDs []uuid.UUID) (map[uuid.UUID]*SeaMasterBillSummary, error)
 }

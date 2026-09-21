@@ -14,10 +14,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
-// commissionListPredicates 构造提成列表筛选谓词，列表与导出复用同一实现。
-func commissionListPredicates(org uuid.UUID, f biz.CommissionFilter) []predicate.FinanceCommission {
-	return commissionListPredicatesScoped([]uuid.UUID{org}, f)
-}
 func commissionListPredicatesScoped(organizationIDs []uuid.UUID, f biz.CommissionFilter) []predicate.FinanceCommission {
 	p := []predicate.FinanceCommission{commission.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {

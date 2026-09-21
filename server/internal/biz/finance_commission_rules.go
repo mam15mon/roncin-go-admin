@@ -14,9 +14,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func (u *CommissionUsecase) ListRules(ctx context.Context, org uuid.UUID, f CommissionRuleFilter) (*CommissionRuleListResult, error) {
-	return u.ListRulesScoped(ctx, []uuid.UUID{org}, f)
-}
 func (u *CommissionUsecase) ListRulesScoped(ctx context.Context, organizationIDs []uuid.UUID, f CommissionRuleFilter) (*CommissionRuleListResult, error) {
 	f.Keyword = strings.TrimSpace(f.Keyword)
 	if !validCommissionOrganizationIDs(organizationIDs) || !ValidListPagination(f.Page, f.PageSize) || utf8.RuneCountInString(f.Keyword) > 100 || (f.PersonnelRole != "" && !validCommissionPersonnelRole(f.PersonnelRole)) {

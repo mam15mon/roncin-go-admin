@@ -33,11 +33,6 @@ type financeInvoicePostgresFixture struct {
 	suffix         string
 }
 
-type invoiceCommandResult struct {
-	invoice *biz.FinanceInvoice
-	err     error
-}
-
 func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoicePostgresFixture {
 	t.Helper()
 	ctx := context.Background()

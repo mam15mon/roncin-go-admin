@@ -18,9 +18,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
-func (r *commissionRepo) ListRules(ctx context.Context, org uuid.UUID, f biz.CommissionRuleFilter) (*biz.CommissionRuleListResult, error) {
-	return r.ListRulesScoped(ctx, []uuid.UUID{org}, f)
-}
 func (r *commissionRepo) ListRulesScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.CommissionRuleFilter) (*biz.CommissionRuleListResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {

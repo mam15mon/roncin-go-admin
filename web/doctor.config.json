@@ -10,7 +10,6 @@
       "cloudflare-worker/**",
       "src/.umi*/**",
       "src/services/**",
-      "src/service-worker.js",
       "**/_mock.ts",
       "**/*.md",
       "**/*.less",
@@ -21,8 +20,6 @@
         "files": [
           "src/global.tsx",
           "src/global.style.ts",
-          "src/loading.tsx",
-          "src/locales/**",
           "src/pages/**",
           "tests/__mocks__/**"
         ],

@@ -476,19 +476,19 @@ func masterDataItemsToAPI(items []*biz.MasterDataItem) []*v1.MasterDataItem {
 
 func masterDataItemToAPI(item *biz.MasterDataItem) *v1.MasterDataItem {
 	return &v1.MasterDataItem{
-		Id:        item.ID.String(),
-		Kind:      masterDataKindToAPI(item.Kind),
-		Code:           item.Code,
-		Name:           item.Name,
-		NameEn:         item.NameEN,
-		ParentCode:     item.ParentCode,
-		TeuFactor:      item.TEUFactor,
-		Source:         item.Source,
-		SortOrder:      int32(item.SortOrder),
-		Enabled:        item.Enabled,
-		CreatedAt:      item.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:      item.UpdatedAt.Format(time.RFC3339),
-		Attributes:     masterDataAttributesToAPI(item.Attributes),
+		Id:         item.ID.String(),
+		Kind:       masterDataKindToAPI(item.Kind),
+		Code:       item.Code,
+		Name:       item.Name,
+		NameEn:     item.NameEN,
+		ParentCode: item.ParentCode,
+		TeuFactor:  item.TEUFactor,
+		Source:     item.Source,
+		SortOrder:  int32(item.SortOrder),
+		Enabled:    item.Enabled,
+		CreatedAt:  item.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:  item.UpdatedAt.Format(time.RFC3339),
+		Attributes: masterDataAttributesToAPI(item.Attributes),
 	}
 }
 
@@ -575,21 +575,21 @@ func airlinesToAPI(items []*biz.Airline) []*v1.Airline {
 
 func airlineToAPI(item *biz.Airline) *v1.Airline {
 	return &v1.Airline{
-		Id:       item.ID.String(),
-		IataCode: item.IATACode,
-		IcaoCode:       item.ICAOCode,
-		AwbPrefix:      optionalString(item.AWBPrefix, item.AWBPrefix != ""),
-		NameZh:         optionalString(item.NameZH, item.NameZH != ""),
-		NameEn:         item.NameEN,
-		CountryCode:    item.CountryCode,
-		CargoOnly:      item.CargoOnly,
-		Source:         item.Source,
-		SortOrder:      int32(item.SortOrder),
-		Enabled:        item.Enabled,
-		CreatedAt:      item.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:      item.UpdatedAt.UTC().Format(time.RFC3339),
-		SourceVersion:  item.SourceVersion,
-		SourceHash:     item.SourceHash,
+		Id:            item.ID.String(),
+		IataCode:      item.IATACode,
+		IcaoCode:      item.ICAOCode,
+		AwbPrefix:     optionalString(item.AWBPrefix, item.AWBPrefix != ""),
+		NameZh:        optionalString(item.NameZH, item.NameZH != ""),
+		NameEn:        item.NameEN,
+		CountryCode:   item.CountryCode,
+		CargoOnly:     item.CargoOnly,
+		Source:        item.Source,
+		SortOrder:     int32(item.SortOrder),
+		Enabled:       item.Enabled,
+		CreatedAt:     item.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:     item.UpdatedAt.UTC().Format(time.RFC3339),
+		SourceVersion: item.SourceVersion,
+		SourceHash:    item.SourceHash,
 	}
 }
 
@@ -755,44 +755,6 @@ func resetPolicyToAPI(value biz.ResetPolicy) v1.ResetPolicy {
 		return v1.ResetPolicy_RESET_POLICY_NEVER
 	default:
 		return v1.ResetPolicy_RESET_POLICY_UNSPECIFIED
-	}
-}
-
-func businessTypeFromAPI(value v1.BusinessType) biz.BusinessType {
-	switch value {
-	case v1.BusinessType_BUSINESS_TYPE_SE:
-		return biz.BusinessTypeSE
-	case v1.BusinessType_BUSINESS_TYPE_SI:
-		return biz.BusinessTypeSI
-	case v1.BusinessType_BUSINESS_TYPE_AE:
-		return biz.BusinessTypeAE
-	case v1.BusinessType_BUSINESS_TYPE_AI:
-		return biz.BusinessTypeAI
-	case v1.BusinessType_BUSINESS_TYPE_LAND:
-		return biz.BusinessTypeLand
-	case v1.BusinessType_BUSINESS_TYPE_RAIL:
-		return biz.BusinessTypeRail
-	default:
-		return ""
-	}
-}
-
-func businessTypeToAPI(value biz.BusinessType) v1.BusinessType {
-	switch value {
-	case biz.BusinessTypeSE:
-		return v1.BusinessType_BUSINESS_TYPE_SE
-	case biz.BusinessTypeSI:
-		return v1.BusinessType_BUSINESS_TYPE_SI
-	case biz.BusinessTypeAE:
-		return v1.BusinessType_BUSINESS_TYPE_AE
-	case biz.BusinessTypeAI:
-		return v1.BusinessType_BUSINESS_TYPE_AI
-	case biz.BusinessTypeLand:
-		return v1.BusinessType_BUSINESS_TYPE_LAND
-	case biz.BusinessTypeRail:
-		return v1.BusinessType_BUSINESS_TYPE_RAIL
-	default:
-		return v1.BusinessType_BUSINESS_TYPE_UNSPECIFIED
 	}
 }
 

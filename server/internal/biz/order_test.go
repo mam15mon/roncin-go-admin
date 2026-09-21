@@ -136,7 +136,6 @@ func (s *orderRepoStub) TransitionClosure(_ context.Context, organizationID, id 
 
 type seaMasterBillRepoStub struct {
 	matchResult *SeaMasterBillMatchResult
-	summary     *SeaMasterBillSummary
 	summaries   map[uuid.UUID]*SeaMasterBillSummary
 }
 
@@ -145,13 +144,6 @@ func (s *seaMasterBillRepoStub) MatchCandidate(ctx context.Context, organization
 		return s.matchResult, nil
 	}
 	return &SeaMasterBillMatchResult{Matched: false}, nil
-}
-
-func (s *seaMasterBillRepoStub) GetSummaryByOrderID(ctx context.Context, organizationID, orderID uuid.UUID) (*SeaMasterBillSummary, error) {
-	if s.summary != nil {
-		return s.summary, nil
-	}
-	return nil, nil
 }
 
 func (s *seaMasterBillRepoStub) GetSummariesByOrderIDs(ctx context.Context, organizationID uuid.UUID, orderIDs []uuid.UUID) (map[uuid.UUID]*SeaMasterBillSummary, error) {

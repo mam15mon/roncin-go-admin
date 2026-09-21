@@ -10,9 +10,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
+	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
-	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seatransportexecution "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
@@ -142,14 +142,6 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		Candidate: candidate,
 		Conflicts: conflicts,
 	}, nil
-}
-
-func (r *seaMasterBillRepo) GetSummaryByOrderID(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.SeaMasterBillSummary, error) {
-	summaries, err := r.GetSummariesByOrderIDs(ctx, organizationID, []uuid.UUID{orderID})
-	if err != nil {
-		return nil, err
-	}
-	return summaries[orderID], nil
 }
 
 func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organizationID uuid.UUID, orderIDs []uuid.UUID) (map[uuid.UUID]*biz.SeaMasterBillSummary, error) {
