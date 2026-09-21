@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,21 +23,31 @@ import (
 	exchangeratesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
+	financebillbatchent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	financecommissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	financecommissionapplicationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
 	financecommissionruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	financecommissionruleassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
+	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	financeverificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	financeverificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	masterdataitem "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
+	orderattachmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	ordercargoitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
+	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	orderfeesupplementrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	orderlockrecordent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
+	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -46,10 +58,17 @@ import (
 	partnersettlementruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
+	seadocumentmodechangeeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
+	seadocumentvoideventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	seahousebillversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seamasterbillversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillversion"
+	seaorderreassignmenteventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seaorderreassignmentevent"
+	seaorderspliteventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitevent"
+	seaordersplitresultent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seaordersplitresult"
+	seasharedcontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainer"
 	seatransportexecutionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
 	seatransportexecutionversionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecutionversion"
 	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
@@ -59,8 +78,10 @@ import (
 )
 
 type seedContext struct {
+	db             *sql.DB
 	tx             *ent.Tx
 	headquarters   *ent.Organization
+	company        *ent.Organization
 	adminUser      *ent.User
 	adminRole      *ent.Role
 	users          map[string]*ent.User
@@ -115,6 +136,7 @@ func main() {
 	defer tx.Rollback()
 
 	sc := &seedContext{
+		db:             sqlDB,
 		tx:             tx,
 		users:          make(map[string]*ent.User),
 		ports:          make(map[string]*ent.Port),
@@ -131,6 +153,10 @@ func main() {
 
 	if err := seedOrganizationAndStaff(ctx, sc); err != nil {
 		logger.Error("组织与员工同步失败", "error", err)
+		os.Exit(1)
+	}
+	if err := migrateOperatingDataToCompany(ctx, sc); err != nil {
+		logger.Error("总部经营数据迁移失败", "error", err)
 		os.Exit(1)
 	}
 	if err := seedReferenceData(ctx, sc); err != nil {
@@ -161,6 +187,18 @@ func main() {
 		logger.Error("提成方案与规则同步失败", "error", err)
 		os.Exit(1)
 	}
+	if err := seedCommissionLedger(ctx, sc); err != nil {
+		logger.Error("提成台账与月度申请同步失败", "error", err)
+		os.Exit(1)
+	}
+	if err := seedSeaDocumentOperations(ctx, sc); err != nil {
+		logger.Error("海运单证操作（拆票/改配/共享箱/改单作废）同步失败", "error", err)
+		os.Exit(1)
+	}
+	if err := seedOrderOperations(ctx, sc); err != nil {
+		logger.Error("订单运营数据（里程碑/POD/附件/异常）同步失败", "error", err)
+		os.Exit(1)
+	}
 
 	if err := tx.Commit(); err != nil {
 		logger.Error("提交数据事务失败", "error", err)
@@ -169,14 +207,17 @@ func main() {
 
 	fmt.Println("==================================================")
 	fmt.Println("🎉 开发测试数据同步完成 (sync:dev successful)！")
-	fmt.Printf("✔ 组织体系: 总部 [%s] + 默认分公司已完备\n", sc.headquarters.Name)
+	fmt.Printf("✔ 组织体系: 总部 [%s] + 默认分公司已完备；经营数据归属 [%s]，员工具备分公司身份\n", sc.headquarters.Name, sc.company.Name)
 	fmt.Printf("✔ 测试人员: %d 名业务员工 (张强/王丽/李明/陈华/赵芳/刘敏，默认密码: Dev123456!)\n", len(sc.users))
 	fmt.Printf("✔ 基础参考: %d 个核心海港 (CNSHA/CNNBO/USLAX...) + %d 家主流船公司\n", len(sc.ports), len(sc.shippingLines))
 	fmt.Printf("✔ 财务字典: %d 个计费单位 + %d 个费用科目 + 开发基准汇率已生效\n", len(sc.billingUnits), len(sc.feeSettings))
 	fmt.Printf("✔ 往来单位: %d 家客商档案 (包含进出口商、电商、船代、车队、报关行及对公账户/联系人)\n", len(sc.partners))
 	fmt.Printf("✔ 海运订单: %d 票全生命周期订单 (草稿/订舱/配舱/拖车/截单/报关安排/放单/终止/结案，含锁定票、拼舱与主分单)\n", len(sc.orders))
-	fmt.Printf("✔ 费用账单: 应收/应付费用明细已录入，含已核销、美元确认、草稿与应付账单\n")
+	fmt.Printf("✔ 费用账单: 应收/应付费用明细已录入，含已核销、部分核销+汇兑损益、美元确认、草稿、应付与批量建账批次\n")
 	fmt.Printf("✔ 订单锁治理: 核销自动锁+钉钉解锁审批(审批中)、人工锁定含单证版本快照、锁后补录(待审批+已审批)\n")
+	fmt.Printf("✔ 提成链路: 经营归属+核销计提台账(销售10%%/操作3%%)+月度申请(待审批/已审批)\n")
+	fmt.Printf("✔ 单证操作: 拆票+整体改配(含ENDED关系)、共享箱守恒、HBL改单/作废重出、直单转主分单\n")
+	fmt.Printf("✔ 运营数据: 异常标记(未解决/已解决)、里程碑、放单POD(待签/已签)、附件登记\n")
 	fmt.Println("==================================================")
 }
 
@@ -206,6 +247,24 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 
 	// 补充分公司
 	_, _ = data.CreateDefaultBranchCompanies(ctx, tx, hq.ID)
+
+	// 经营数据归属公司：总部工作台只读边界下，业务办理与经营数据必须落在
+	// 启用分公司。优先上海公司，回退到任意启用公司。
+	company, companyErr := tx.Organization.Query().Where(
+		organizationent.KindEQ(organizationent.KindCompany),
+		organizationent.EnabledEQ(true),
+		organizationent.CodeEQ("SH"),
+	).First(ctx)
+	if companyErr != nil && ent.IsNotFound(companyErr) {
+		company, companyErr = tx.Organization.Query().Where(
+			organizationent.KindEQ(organizationent.KindCompany),
+			organizationent.EnabledEQ(true),
+		).Order(ent.Asc(organizationent.FieldCode)).First(ctx)
+	}
+	if companyErr != nil {
+		return fmt.Errorf("缺少可用的分公司作为经营归属组织: %w", companyErr)
+	}
+	sc.company = company
 
 	// 查找系统管理员角色
 	adminRole, err := tx.Role.Query().Where(roleent.OrganizationIDEQ(hq.ID), roleent.CodeEQ("administrator")).First(ctx)
@@ -255,7 +314,7 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 		sc.users[s.username] = u
 
 		// 绑定总部 Membership
-		mExists, _ := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationID(hq.ID)).Exist(ctx)
+		mExists, _ := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationIDEQ(hq.ID)).Exist(ctx)
 		if !mExists {
 			m, mErr := tx.Membership.Create().
 				SetUserID(u.ID).
@@ -265,6 +324,21 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 				Save(ctx)
 			if mErr == nil && adminRole != nil {
 				_, _ = tx.RoleAssignment.Create().SetMembershipID(m.ID).SetRoleID(adminRole.ID).Save(ctx)
+			}
+		}
+
+		// 绑定经营公司 Membership（业务办理必须在分公司工作台进行）
+		companyAdminRole, _ := tx.Role.Query().Where(roleent.OrganizationIDEQ(company.ID), roleent.CodeEQ("administrator")).First(ctx)
+		cExists, _ := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationIDEQ(company.ID)).Exist(ctx)
+		if !cExists {
+			cm, cmErr := tx.Membership.Create().
+				SetUserID(u.ID).
+				SetOrganizationID(company.ID).
+				SetPrimary(false).
+				SetEnabled(true).
+				Save(ctx)
+			if cmErr == nil && companyAdminRole != nil {
+				_, _ = tx.RoleAssignment.Create().SetMembershipID(cm.ID).SetRoleID(companyAdminRole.ID).Save(ctx)
 			}
 		}
 	}
@@ -345,7 +419,7 @@ func seedReferenceData(ctx context.Context, sc *seedContext) error {
 // 3. 财务主数据（计费单位、应税服务、费用目录、汇率）
 func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	hq := sc.headquarters
+	co := sc.company
 
 	// 计费单位
 	units := []struct {
@@ -388,10 +462,10 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 		{"集装箱陆路运输服务", "9.00"},
 	}
 	for _, s := range services {
-		found, _ := tx.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(hq.ID), taxableserviceent.NameEQ(s.name)).First(ctx)
+		found, _ := tx.TaxableService.Query().Where(taxableserviceent.OrganizationIDEQ(co.ID), taxableserviceent.NameEQ(s.name)).First(ctx)
 		if found == nil {
 			created, err := tx.TaxableService.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetName(s.name).
 				SetDefaultTaxRate(s.taxRate).
 				SetEnabled(true).
@@ -474,10 +548,10 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 	}
 
 	for idx, f := range feeList {
-		found, _ := tx.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(hq.ID), feesettingent.FeeCodeEQ(f.code)).First(ctx)
+		found, _ := tx.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(co.ID), feesettingent.FeeCodeEQ(f.code)).First(ctx)
 		if found == nil {
 			created, err := tx.FeeSetting.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetFeeCode(f.code).
 				SetNameZh(f.nameZh).
 				SetNameEn(f.nameEn).
@@ -508,13 +582,13 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 	}
 	for _, r := range rates {
 		rFound, _ := tx.ExchangeRateSetting.Query().Where(
-			exchangeratesettingent.OrganizationIDEQ(hq.ID),
+			exchangeratesettingent.OrganizationIDEQ(co.ID),
 			exchangeratesettingent.FromCurrencyEQ(r.from),
 			exchangeratesettingent.ToCurrencyEQ(r.to),
 		).First(ctx)
 		if rFound == nil {
 			_, err := tx.ExchangeRateSetting.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetFromCurrency(r.from).
 				SetToCurrency(r.to).
 				SetRate(r.rate).
@@ -534,7 +608,7 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 // 4. 往来单位（客户、供应商）
 func seedPartners(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	hq := sc.headquarters
+	co := sc.company
 
 	type partnerSeedDef struct {
 		code, name, uscc, role, contactName, phone string
@@ -597,10 +671,10 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 	}
 
 	for _, s := range seeds {
-		p, _ := tx.Partner.Query().Where(partnerent.OrganizationIDEQ(hq.ID), partnerent.CodeEQ(s.code)).First(ctx)
+		p, _ := tx.Partner.Query().Where(partnerent.OrganizationIDEQ(co.ID), partnerent.CodeEQ(s.code)).First(ctx)
 		if p == nil {
 			created, err := tx.Partner.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetCode(s.code).
 				SetLegalName(s.name).
 				SetNormalizedName(s.name).
@@ -709,7 +783,7 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 				_, _ = tx.PartnerAssignment.Create().
 					SetPartnerID(p.ID).
 					SetUserID(u.ID).
-					SetOrganizationID(hq.ID).
+					SetOrganizationID(co.ID).
 					SetRole(partnerassignmentent.RoleSALES).
 					Save(ctx)
 			}
@@ -721,7 +795,7 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 // 5. 业务订单与费用明细
 func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	hq := sc.headquarters
+	co := sc.company
 
 	type orderSeedDef struct {
 		orderNo       string
@@ -979,6 +1053,88 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 				{dir: "PAYABLE", code: "OF", name: "海运费(付地中海代理)", party: "SUPP-MSC-02", unit: "CONT", qty: "1.0000", price: "1800.0000", total: "1800.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "13050.00000000", taxRate: "0.00"},
 			},
 		},
+		{
+			orderNo: "SE26090015", custCode: "CUST-ML-003", refNo: "PO-ML-260915",
+			lineScac: "MSCU", vessel: "MSC VELA", voyage: "2650E", mblNo: "MSCU77889900",
+			pol: "CNSHA", pod: "SGSIN", flowStatus: orderent.FlowStatusBOOKED,
+			term: orderent.TradeTermCIF, payTerm: orderent.PaymentTermPREPAID, shipType: orderent.ShipmentTypeLCL,
+			desc: "松木园艺工具把手 (拆票后剩余部分)", pkgs: 30, weight: 390.0, volume: 3.48, isLocked: false,
+			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090015",
+			hblShipper:   "浙江美林工艺家具有限公司\nZHEJIANG MEILIN CRAFT FURNITURE CO., LTD.",
+			hblConsignee: "GREEN GARDEN TOOLS PTE LTD\n12 JURONG EAST STREET, SINGAPORE",
+			hblNotify:    "SAME AS CONSIGNEE",
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "OF", name: "海运拼箱运费", party: "CUST-ML-003", unit: "CBM", qty: "3.4800", price: "45.0000", total: "156.60000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "1135.35000000", taxRate: "0.00"},
+			},
+		},
+		{
+			orderNo: "SE26090016", custCode: "CUST-JS-002", refNo: "PO-JS-260916",
+			lineScac: "MAEU", vessel: "MAERSK KOTKA", voyage: "2610W", mblNo: "MAEU31112233",
+			pol: "CNSHA", pod: "SGSIN", flowStatus: orderent.FlowStatusBOOKED,
+			term: orderent.TradeTermCIF, payTerm: orderent.PaymentTermPREPAID, shipType: orderent.ShipmentTypeLCL,
+			desc: "折叠野餐桌及铝合金支架 (拆票拆出部分)", pkgs: 20, weight: 260.0, volume: 2.32, isLocked: false,
+			salesRep: "wangli", opRep: "liming", docRep: "chenhua",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090016",
+			hblShipper:   "深圳市极速跨境智能实业有限公司\nSHENZHEN SPEED CROSS-BORDER INDUSTRIAL CO.",
+			hblConsignee: "SINGAPORE OUTDOOR LIVING PTE LTD\n8 MARINA VIEW, SINGAPORE",
+			hblNotify:    "SAME AS CONSIGNEE",
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "DOC", name: "分单文件费", party: "CUST-JS-002", unit: "BL", qty: "1.0000", price: "350.0000", total: "350.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "350.00000000", taxRate: "6.00"},
+			},
+		},
+		{
+			orderNo: "SE26090017", custCode: "CUST-TG-005", refNo: "PO-TG-260917",
+			lineScac: "ONEY", vessel: "ONE AKASAKA", voyage: "021E", mblNo: "ONEY55667788",
+			pol: "CNNBO", pod: "USLGB", flowStatus: orderent.FlowStatusBOOKED,
+			term: orderent.TradeTermFOB, payTerm: orderent.PaymentTermCOLLECT, shipType: orderent.ShipmentTypeFCL,
+			desc: "玻璃相框及镜面装饰品 (HBL 作废重出)", pkgs: 380, weight: 4100.0, volume: 54.0, isLocked: false,
+			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
+			container: "ONEY6655441", sealNo: "ONE334455",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090017R",
+			hblShipper:   "TransGlobal Trading (HK) Co., Limited\nUNIT 8, 12/F, KWAI CHUNG, HONG KONG",
+			hblConsignee: "PACIFIC FRAME & MIRROR INC.\n4500 E PICO BLVD, LOS ANGELES, CA",
+			hblNotify:    "SAME AS CONSIGNEE",
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "DOC", name: "分单文件费", party: "CUST-TG-005", unit: "BL", qty: "1.0000", price: "500.0000", total: "500.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "500.00000000", taxRate: "6.00"},
+			},
+		},
+		{
+			orderNo: "SE26090018", custCode: "CUST-HY-001", refNo: "PO-HY-260918",
+			lineScac: "EGLV", vessel: "EVER FORTHRIGHT", voyage: "0715E", mblNo: "EGLV90807060",
+			pol: "CNQDG", pod: "NLRTM", flowStatus: orderent.FlowStatusBOOKED,
+			term: orderent.TradeTermCIF, payTerm: orderent.PaymentTermPREPAID, shipType: orderent.ShipmentTypeFCL,
+			desc: "出口办公家具 (直单转主分单结构)", pkgs: 320, weight: 4600.0, volume: 52.0, isLocked: false,
+			salesRep: "zhangqiang", opRep: "liming", docRep: "chenhua",
+			container: "EGLV1357246", sealNo: "EGL990011",
+			docStructure: seamasterbillorderlinkent.DocumentStructureHOUSE,
+			hblNo:        "RC-HBL26090018",
+			hblShipper:   "上海宏远国际贸易进出口有限公司\nSHANGHAI HONGYUAN TRADING CO., LTD.",
+			hblConsignee: "EUROPE OFFICE FURNISHING B.V.\nHAVENWEG 12, ROTTERDAM, NETHERLANDS",
+			hblNotify:    "SAME AS CONSIGNEE",
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "OF", name: "海运费", party: "CUST-HY-001", unit: "CONT", qty: "1.0000", price: "2350.0000", total: "2350.00000000", cur: "USD", rate: "7.25000000", baseCur: "CNY", baseAmt: "17037.50000000", taxRate: "0.00"},
+				{dir: "RECEIVABLE", code: "DOC", name: "分单文件费", party: "CUST-HY-001", unit: "BL", qty: "1.0000", price: "500.0000", total: "500.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "500.00000000", taxRate: "6.00"},
+			},
+		},
+		{
+			orderNo: "SE26090019", custCode: "CUST-HT-004", refNo: "PO-HT-260919",
+			lineScac: "MSCU", vessel: "MSC AMBITION", voyage: "2655E", mblNo: "MSCU40506070",
+			pol: "CNNBO", pod: "DEHAM", flowStatus: orderent.FlowStatusDOCUMENT_RELEASED,
+			term: orderent.TradeTermDAP, payTerm: orderent.PaymentTermPREPAID, shipType: orderent.ShipmentTypeFCL,
+			desc: "精密医用影像设备备件 (多币种结算)", pkgs: 85, weight: 2900.0, volume: 24.0, isLocked: false,
+			salesRep: "wangli", opRep: "liming", docRep: "chenhua",
+			container: "MSCU8090506", sealNo: "MSC102030", containerSpec: "40GP",
+			docStructure: seamasterbillorderlinkent.DocumentStructureDIRECT,
+			fees: []feeItemDef{
+				{dir: "RECEIVABLE", code: "OF", name: "海运费(欧元)", party: "CUST-HT-004", unit: "CONT", qty: "1.0000", price: "1650.0000", total: "1650.00000000", cur: "EUR", rate: "7.85000000", baseCur: "CNY", baseAmt: "12952.50000000", taxRate: "0.00"},
+				{dir: "RECEIVABLE", code: "DOC", name: "文件费(港币)", party: "CUST-HT-004", unit: "BL", qty: "1.0000", price: "480.0000", total: "480.00000000", cur: "HKD", rate: "0.92500000", baseCur: "CNY", baseAmt: "444.00000000", taxRate: "6.00"},
+				{dir: "RECEIVABLE", code: "THC", name: "码头操作费", party: "CUST-HT-004", unit: "CONT", qty: "1.0000", price: "1150.0000", total: "1150.00000000", cur: "CNY", rate: "1.00000000", baseCur: "CNY", baseAmt: "1150.00000000", taxRate: "6.00"},
+			},
+		},
 	}
 
 	for _, o := range orders {
@@ -987,12 +1143,12 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 		pol := sc.ports[o.pol]
 		pod := sc.ports[o.pod]
 
-		ord, _ := tx.Order.Query().Where(orderent.OrganizationIDEQ(hq.ID), orderent.OrderNoEQ(o.orderNo)).First(ctx)
+		ord, _ := tx.Order.Query().Where(orderent.OrganizationIDEQ(co.ID), orderent.OrderNoEQ(o.orderNo)).First(ctx)
 		if ord == nil {
 			idempotencyKey := "DEV-IDEM-" + o.orderNo
 			vesselVoyage := o.vessel + " / " + o.voyage
 			builder := tx.Order.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetOrderNo(o.orderNo).
 				SetIdempotencyKey(idempotencyKey).
 				SetCustomerID(cust.ID).
@@ -1058,7 +1214,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 				_, _ = tx.OrderPersonnel.Create().
 					SetOrderID(ord.ID).
 					SetUserID(u.ID).
-					SetOrganizationID(hq.ID).
+					SetOrganizationID(co.ID).
 					SetRole(a.role).
 					Save(ctx)
 			}
@@ -1068,7 +1224,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 		cargoExists, _ := tx.OrderCargoItem.Query().Where(ordercargoitement.OrderIDEQ(ord.ID)).Exist(ctx)
 		if !cargoExists {
 			_, _ = tx.OrderCargoItem.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetOrderID(ord.ID).
 				SetCargoName(o.desc).
 				SetPackageCount(o.pkgs).
@@ -1089,7 +1245,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 					spec = sc.containerSpecs["20GP"]
 				}
 				_, _ = tx.OrderContainer.Create().
-					SetOrganizationID(hq.ID).
+					SetOrganizationID(co.ID).
 					SetOrderID(ord.ID).
 					SetContainerNo(o.container).
 					SetContainerSpecID(spec.ID).
@@ -1103,10 +1259,10 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 
 		// 海运主单与航程
 		if o.mblNo != "" {
-			mbl, _ := tx.SeaMasterBill.Query().Where(seamasterbillent.OrganizationIDEQ(hq.ID), seamasterbillent.MasterNoEQ(o.mblNo)).First(ctx)
+			mbl, _ := tx.SeaMasterBill.Query().Where(seamasterbillent.OrganizationIDEQ(co.ID), seamasterbillent.MasterNoEQ(o.mblNo)).First(ctx)
 			if mbl == nil {
 				createdMbl, err := tx.SeaMasterBill.Create().
-					SetOrganizationID(hq.ID).
+					SetOrganizationID(co.ID).
 					SetShippingLineID(line.ID).
 					SetMasterNo(o.mblNo).
 					SetNormalizedMasterNo(o.mblNo).
@@ -1118,14 +1274,14 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			}
 			if mbl != nil {
 				exec, _ := tx.SeaTransportExecution.Query().Where(
-					seatransportexecutionent.OrganizationIDEQ(hq.ID),
+					seatransportexecutionent.OrganizationIDEQ(co.ID),
 					seatransportexecutionent.ShippingLineIDEQ(line.ID),
 					seatransportexecutionent.VesselNameEQ(o.vessel),
 					seatransportexecutionent.VoyageNoEQ(o.voyage),
 				).First(ctx)
 				if exec == nil {
 					createdExec, err := tx.SeaTransportExecution.Create().
-						SetOrganizationID(hq.ID).
+						SetOrganizationID(co.ID).
 						SetShippingLineID(line.ID).
 						SetOriginLocationID(pol.ID).
 						SetDischargeLocationID(pod.ID).
@@ -1138,7 +1294,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 				}
 				if exec != nil {
 					link, _ := tx.SeaMasterBillOrderLink.Query().Where(
-						seamasterbillorderlinkent.OrganizationIDEQ(hq.ID),
+						seamasterbillorderlinkent.OrganizationIDEQ(co.ID),
 						seamasterbillorderlinkent.OrderIDEQ(ord.ID),
 					).First(ctx)
 					docStruct := seamasterbillorderlinkent.DocumentStructureDIRECT
@@ -1147,7 +1303,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 					}
 					if link == nil {
 						_, _ = tx.SeaMasterBillOrderLink.Create().
-							SetOrganizationID(hq.ID).
+							SetOrganizationID(co.ID).
 							SetMasterBillID(mbl.ID).
 							SetTransportExecutionID(exec.ID).
 							SetOrderID(ord.ID).
@@ -1161,7 +1317,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 					// 如果是 HOUSE 主分单结构且配置了分提单号，创建 SeaHouseBill
 					if docStruct == seamasterbillorderlinkent.DocumentStructureHOUSE && o.hblNo != "" {
 						hb, _ := tx.SeaHouseBill.Query().Where(
-							seahousebillent.OrganizationIDEQ(hq.ID),
+							seahousebillent.OrganizationIDEQ(co.ID),
 							seahousebillent.OrderIDEQ(ord.ID),
 						).First(ctx)
 						if hb == nil {
@@ -1170,13 +1326,13 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 								freightTerms = "FREIGHT COLLECT"
 							}
 							_, _ = tx.SeaHouseBill.Create().
-								SetOrganizationID(hq.ID).
+								SetOrganizationID(co.ID).
 								SetOrderID(ord.ID).
 								SetMasterBillID(mbl.ID).
 								SetHouseNo(o.hblNo).
 								SetNormalizedHouseNo(o.hblNo).
 								SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
-								SetIssuerOrganizationID(hq.ID).
+								SetIssuerOrganizationID(co.ID).
 								SetStatus(seahousebillent.StatusCONFIRMED).
 								SetShipperText(o.hblShipper).
 								SetConsigneeText(o.hblConsignee).
@@ -1256,14 +1412,14 @@ type feeItemDef struct {
 // 6. 财务账单、收付款流水与核销
 func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	hq := sc.headquarters
+	co := sc.company
 
 	// 账单 1：已核销的应收账单 (SE26090002 人民币费用)
 	bill1No := "AR26090001"
 	party1 := sc.partners["CUST-ML-003"]
 	ord2 := sc.orders["SE26090002"]
 
-	b1, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(hq.ID), financebillent.BillNoEQ(bill1No)).First(ctx)
+	b1, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ(bill1No)).First(ctx)
 	if b1 == nil && ord2 != nil {
 		account, _ := tx.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(party1.ID), partneraccountent.CurrencyEQ("CNY")).First(ctx)
 		accName, accHolder, bankName, accNo := "对公结算户", party1.LegalName, "工商银行", "5719000122334455"
@@ -1277,7 +1433,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 		}
 
 		created, err := tx.FinanceBill.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetBillNo(bill1No).
 			SetIdempotencyKey("DEV-BILL-" + bill1No).
 			SetDirection(financebillent.DirectionRECEIVABLE).
@@ -1344,10 +1500,10 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 	// 流水与核销 (对应 AR26090001)
 	if b1 != nil {
 		flowNo := "CF-AR-26090001"
-		cf, _ := tx.FinanceCashflow.Query().Where(financecashflowent.OrganizationIDEQ(hq.ID), financecashflowent.FlowNoEQ(flowNo)).First(ctx)
+		cf, _ := tx.FinanceCashflow.Query().Where(financecashflowent.OrganizationIDEQ(co.ID), financecashflowent.FlowNoEQ(flowNo)).First(ctx)
 		if cf == nil {
 			created, err := tx.FinanceCashflow.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetFlowNo(flowNo).
 				SetIdempotencyKey("DEV-CF-" + flowNo).
 				SetDirection(financecashflowent.DirectionRECEIVABLE).
@@ -1372,10 +1528,10 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 		}
 
 		vfNo := "VF-AR-26090001"
-		vf, _ := tx.FinanceVerification.Query().Where(financeverificationent.OrganizationIDEQ(hq.ID), financeverificationent.VerificationNoEQ(vfNo)).First(ctx)
+		vf, _ := tx.FinanceVerification.Query().Where(financeverificationent.OrganizationIDEQ(co.ID), financeverificationent.VerificationNoEQ(vfNo)).First(ctx)
 		if vf == nil {
 			created, err := tx.FinanceVerification.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetVerificationNo(vfNo).
 				SetIdempotencyKey("DEV-VF-" + vfNo).
 				SetStatus(financeverificationent.StatusACTIVE).
@@ -1418,10 +1574,40 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 		}
 	}
 
+	// 账单创建批次：AR26090002 通过批量建账产生
+	batchNo := "BT26090001"
+	batch, _ := tx.FinanceBillBatch.Query().Where(financebillbatchent.OrganizationIDEQ(co.ID), financebillbatchent.BatchNoEQ(batchNo)).First(ctx)
+	if batch == nil {
+		createdBatch, err := tx.FinanceBillBatch.Create().
+			SetOrganizationID(co.ID).
+			SetBatchNo(batchNo).
+			SetIdempotencyKey("DEV-BATCH-" + batchNo).
+			SetRequestHash("DEVSEEDBT26090001" + strings.Repeat("0", 47)).
+			SetSplitByOrder(true).
+			SetGroupingMode(financebillbatchent.GroupingModeNORMAL).
+			SetFeeCount(1).
+			SetBillCount(1).
+			SetTotalBaseAmount("15225.00000000").
+			SetBaseCurrency("CNY").
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建账单批次 %s: %w", batchNo, err)
+		}
+		batch = createdBatch
+	}
+
+	// batch_id 在领域层不可变：对批次建立前已存在的种子账单用裸 SQL 补挂批次
+	if _, err := sc.db.ExecContext(ctx,
+		"UPDATE finance_bills SET batch_id = $1 WHERE organization_id = $2 AND bill_no = 'AR26090002' AND batch_id IS NULL",
+		batch.ID, co.ID); err != nil {
+		return fmt.Errorf("补挂账单批次 %s: %w", batchNo, err)
+	}
+
 	// 账单 2：待付款的确认应收美金账单 (SE26090006)
 	bill2No := "AR26090002"
 	party2 := sc.partners["CUST-JS-002"]
-	b2, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(hq.ID), financebillent.BillNoEQ(bill2No)).First(ctx)
+	b2, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ(bill2No)).First(ctx)
 	if b2 == nil {
 		account, _ := tx.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(party2.ID), partneraccountent.CurrencyEQ("USD")).First(ctx)
 		accName, accHolder, bankName, accNo := "外汇账户", party2.LegalName, "交通银行", "888800029999"
@@ -1433,10 +1619,11 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 			bankName = account.BankName
 			accNo = account.AccountNo
 		}
-		_, err := tx.FinanceBill.Create().
-			SetOrganizationID(hq.ID).
+		created2, err := tx.FinanceBill.Create().
+			SetOrganizationID(co.ID).
 			SetBillNo(bill2No).
 			SetIdempotencyKey("DEV-BILL-" + bill2No).
+			SetBatchID(batch.ID).
 			SetDirection(financebillent.DirectionRECEIVABLE).
 			SetStatus(financebillent.StatusCONFIRMED).
 			SetSettlementPartyID(party2.ID).
@@ -1462,11 +1649,88 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 		if err != nil {
 			return fmt.Errorf("创建账单 %s: %w", bill2No, err)
 		}
+		b2 = created2
+	}
+
+	// 部分核销与汇兑损益：AR26090002 首期收款 1000 美元，收汇汇率与账单汇率
+	// 不同产生 50 元汇兑损益，账单剩余 1100 美元未核销。
+	if b2 != nil {
+		flowNo2 := "CF-AR-26090002"
+		cf2, _ := tx.FinanceCashflow.Query().Where(financecashflowent.OrganizationIDEQ(co.ID), financecashflowent.FlowNoEQ(flowNo2)).First(ctx)
+		if cf2 == nil {
+			createdCf2, err := tx.FinanceCashflow.Create().
+				SetOrganizationID(co.ID).
+				SetFlowNo(flowNo2).
+				SetIdempotencyKey("DEV-CF-" + flowNo2).
+				SetDirection(financecashflowent.DirectionRECEIVABLE).
+				SetStatus(financecashflowent.StatusCONFIRMED).
+				SetSettlementPartyID(party2.ID).
+				SetSettlementPartyName(party2.LegalName).
+				SetCurrency("USD").
+				SetAmount("1000.00000000").
+				SetExchangeRate("7.20000000").
+				SetExchangeRateSource(financecashflowent.ExchangeRateSourceMANUAL).
+				SetExchangeRateDate("2026-09-21").
+				SetBaseCurrency("CNY").
+				SetBaseAmount("7200.00000000").
+				SetTransactionDate("2026-09-21").
+				SetOurAccount("招商银行上海自贸区分行 121908888888888").
+				SetPaymentMethod("银行电汇").
+				Save(ctx)
+			if err != nil {
+				return fmt.Errorf("创建收款流水 %s: %w", flowNo2, err)
+			}
+			cf2 = createdCf2
+		}
+
+		vfNo2 := "VF-AR-26090002"
+		vf2, _ := tx.FinanceVerification.Query().Where(financeverificationent.OrganizationIDEQ(co.ID), financeverificationent.VerificationNoEQ(vfNo2)).First(ctx)
+		if vf2 == nil {
+			createdVf2, err := tx.FinanceVerification.Create().
+				SetOrganizationID(co.ID).
+				SetVerificationNo(vfNo2).
+				SetIdempotencyKey("DEV-VF-" + vfNo2).
+				SetStatus(financeverificationent.StatusACTIVE).
+				SetDirection(financeverificationent.DirectionRECEIVABLE).
+				SetSettlementPartyID(party2.ID).
+				SetSettlementPartyName(party2.LegalName).
+				SetCurrency("USD").
+				SetAmount("1000.00000000").
+				SetBaseCurrency("CNY").
+				SetBaseAmount("7200.00000000").
+				SetBillBaseAmount("7250.00000000").
+				SetCashflowBaseAmount("7200.00000000").
+				SetExchangeGainLoss("50.00000000").
+				SetVerificationDate("2026-09-21").
+				Save(ctx)
+			if err != nil {
+				return fmt.Errorf("创建核销记录 %s: %w", vfNo2, err)
+			}
+
+			alloc2Exists, _ := tx.FinanceVerificationAllocation.Query().Where(
+				financeverificationallocationent.VerificationIDEQ(createdVf2.ID),
+				financeverificationallocationent.BillIDEQ(b2.ID),
+			).Exist(ctx)
+			if !alloc2Exists {
+				_, _ = tx.FinanceVerificationAllocation.Create().
+					SetVerificationID(createdVf2.ID).
+					SetCashflowID(cf2.ID).
+					SetBillID(b2.ID).
+					SetCashflowNo(cf2.FlowNo).
+					SetBillNo(b2.BillNo).
+					SetAmount("1000.00000000").
+					SetBillBaseAmount("7250.00000000").
+					SetCashflowBaseAmount("7200.00000000").
+					SetExchangeGainLoss("50.00000000").
+					SetActive(true).
+					Save(ctx)
+			}
+		}
 	}
 
 	// 账单 3：草稿账单
 	bill3No := "AR26090003"
-	b3, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(hq.ID), financebillent.BillNoEQ(bill3No)).First(ctx)
+	b3, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ(bill3No)).First(ctx)
 	if b3 == nil {
 		account3, _ := tx.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(party1.ID), partneraccountent.CurrencyEQ("CNY")).First(ctx)
 		acc3Name, acc3Holder, bank3Name, acc3No := "对公结算户", party1.LegalName, "工商银行", "5719000122334455"
@@ -1479,7 +1743,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 			acc3No = account3.AccountNo
 		}
 		_, err := tx.FinanceBill.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetBillNo(bill3No).
 			SetIdempotencyKey("DEV-BILL-" + bill3No).
 			SetDirection(financebillent.DirectionRECEIVABLE).
@@ -1512,7 +1776,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 	// 账单 4：应付船公司账单
 	apBillNo := "AP26090001"
 	suppCosco := sc.partners["SUPP-COSCO-01"]
-	apB, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(hq.ID), financebillent.BillNoEQ(apBillNo)).First(ctx)
+	apB, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ(apBillNo)).First(ctx)
 	if apB == nil && suppCosco != nil {
 		account4, _ := tx.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(suppCosco.ID), partneraccountent.CurrencyEQ("USD")).First(ctx)
 		acc4Name, acc4Holder, bank4Name, acc4No := "中远海运对公户", suppCosco.LegalName, "中国银行上海分行", "1001234509008899"
@@ -1525,7 +1789,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 			acc4No = account4.AccountNo
 		}
 		_, err := tx.FinanceBill.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetBillNo(apBillNo).
 			SetIdempotencyKey("DEV-BILL-" + apBillNo).
 			SetDirection(financebillent.DirectionPAYABLE).
@@ -1552,6 +1816,101 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 			Save(ctx)
 		if err != nil {
 			return fmt.Errorf("创建账单 %s: %w", apBillNo, err)
+		}
+	}
+
+	// 应付客户账单：客户兼作协载同行，与应收形成同客商双向余额，构成对冲场景
+	apBill2No := "AP26090002"
+	apB2, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ(apBill2No)).First(ctx)
+	if apB2 == nil && party1 != nil {
+		account5, _ := tx.PartnerAccount.Query().Where(partneraccountent.PartnerIDEQ(party1.ID), partneraccountent.CurrencyEQ("CNY")).First(ctx)
+		acc5Name, acc5Holder, bank5Name, acc5No := "对公结算户", party1.LegalName, "工商银行", "5719000122334455"
+		var acc5ID uuid.UUID
+		if account5 != nil {
+			acc5ID = account5.ID
+			acc5Name = account5.Name
+			acc5Holder = account5.AccountHolder
+			bank5Name = account5.BankName
+			acc5No = account5.AccountNo
+		}
+		_, err := tx.FinanceBill.Create().
+			SetOrganizationID(co.ID).
+			SetBillNo(apBill2No).
+			SetIdempotencyKey("DEV-BILL-" + apBill2No).
+			SetDirection(financebillent.DirectionPAYABLE).
+			SetStatus(financebillent.StatusCONFIRMED).
+			SetSettlementPartyID(party1.ID).
+			SetSettlementPartyName(party1.LegalName).
+			SetSettlementAccountID(acc5ID).
+			SetSettlementAccountName(acc5Name).
+			SetSettlementAccountHolder(acc5Holder).
+			SetSettlementBankName(bank5Name).
+			SetSettlementBankAccount(acc5No).
+			SetSettlementAccountCurrency("CNY").
+			SetCurrency("CNY").
+			SetBaseCurrency("CNY").
+			SetExchangeRate("1.00000000").
+			SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
+			SetExchangeRateDate("2026-09-21").
+			SetTotalAmount("1500.00000000").
+			SetNetAmount("1500.00000000").
+			SetTaxAmount("0.00000000").
+			SetBaseCurrencyAmount("1500.00000000").
+			SetFeeCount(1).
+			SetBillDate("2026-09-21").
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建账单 %s: %w", apBill2No, err)
+		}
+	}
+
+	// 对冲草稿：勾选 CUST-ML-003 名下 1500 应收（AR26090003）与 1500 应付，
+	// 待财务复核后确认。
+	nettingNo := "NT26090001"
+	nt, _ := tx.FinanceNetting.Query().Where(financenettingent.OrganizationIDEQ(co.ID), financenettingent.NettingNoEQ(nettingNo)).First(ctx)
+	arDraft, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ("AR26090003")).First(ctx)
+	apCustomer, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ(apBill2No)).First(ctx)
+	if nt == nil && arDraft != nil && apCustomer != nil {
+		createdNt, err := tx.FinanceNetting.Create().
+			SetOrganizationID(co.ID).
+			SetNettingNo(nettingNo).
+			SetIdempotencyKey("DEV-NT-" + nettingNo).
+			SetRequestHash("DEVSEEDNT26090001").
+			SetStatus(financenettingent.StatusDRAFT).
+			SetSettlementPartyID(party1.ID).
+			SetSettlementPartyName(party1.LegalName).
+			SetCurrency("CNY").
+			SetAmount("1500.00000000").
+			SetBaseCurrency("CNY").
+			SetBaseCurrencyAmount("1500.00000000").
+			SetPayableBaseAmount("1500.00000000").
+			SetExchangeGainLoss("0.00000000").
+			SetNote("客户协载应付与应收运费对冲，待财务复核确认").
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建对冲 %s: %w", nettingNo, err)
+		}
+
+		ntAllocExists, _ := tx.FinanceNettingAllocation.Query().Where(financenettingallocationent.NettingIDEQ(createdNt.ID)).Exist(ctx)
+		if !ntAllocExists {
+			_, _ = tx.FinanceNettingAllocation.Create().
+				SetNettingID(createdNt.ID).
+				SetBillID(arDraft.ID).
+				SetBillNo(arDraft.BillNo).
+				SetDirection(financenettingallocationent.DirectionRECEIVABLE).
+				SetAmount("1500.00000000").
+				SetBaseCurrencyAmount("1500.00000000").
+				SetActive(true).
+				Save(ctx)
+			_, _ = tx.FinanceNettingAllocation.Create().
+				SetNettingID(createdNt.ID).
+				SetBillID(apCustomer.ID).
+				SetBillNo(apCustomer.BillNo).
+				SetDirection(financenettingallocationent.DirectionPAYABLE).
+				SetAmount("1500.00000000").
+				SetBaseCurrencyAmount("1500.00000000").
+				SetActive(true).
+				Save(ctx)
 		}
 	}
 
@@ -1762,7 +2121,7 @@ func ensureSeedTransportExecutionVersion(ctx context.Context, tx *ent.Tx, orgID 
 // 8. 订单锁治理：核销自动锁、钉钉解锁审批与锁后费用补录
 func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	hq := sc.headquarters
+	co := sc.company
 
 	zhaofang := sc.users["zhaofang"]
 	zhangqiang := sc.users["zhangqiang"]
@@ -1776,7 +2135,7 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 		return fmt.Errorf("缺少订单 SE26090002，无法注入自动锁")
 	}
 	vf, err := tx.FinanceVerification.Query().Where(
-		financeverificationent.OrganizationIDEQ(hq.ID),
+		financeverificationent.OrganizationIDEQ(co.ID),
 		financeverificationent.VerificationNoEQ("VF-AR-26090001"),
 	).First(ctx)
 	if err != nil {
@@ -1794,12 +2153,12 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 
 	// 销售张强对自动锁订单发起钉钉解锁审批（审批中）
 	unlockExists, _ := tx.OrderUnlockRequest.Query().Where(
-		orderunlockrequestent.OrganizationIDEQ(hq.ID),
+		orderunlockrequestent.OrganizationIDEQ(co.ID),
 		orderunlockrequestent.IdempotencyKeyEQ("DEV-UNLOCK-SE26090002"),
 	).Exist(ctx)
 	if !unlockExists {
 		_, err := tx.OrderUnlockRequest.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetOrderID(ord2.ID).
 			SetOrderNo(ord2.OrderNo).
 			SetBusinessType(orderunlockrequestent.BusinessTypeSE).
@@ -1821,7 +2180,7 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 	}
 
 	// 人工锁定票 SE26090004 的锁后应付补录：一笔待审批 + 一笔已审批并生成费用
-	ord4, err := tx.Order.Query().Where(orderent.OrganizationIDEQ(hq.ID), orderent.OrderNoEQ("SE26090004")).First(ctx)
+	ord4, err := tx.Order.Query().Where(orderent.OrganizationIDEQ(co.ID), orderent.OrderNoEQ("SE26090004")).First(ctx)
 	if err != nil {
 		return fmt.Errorf("查询订单 SE26090004: %w", err)
 	}
@@ -1832,12 +2191,12 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 
 	supp1Key := "DEV-SUPP-SE26090004-TRUCK"
 	supp1Exists, _ := tx.OrderFeeSupplementRequest.Query().Where(
-		orderfeesupplementrequestent.OrganizationIDEQ(hq.ID),
+		orderfeesupplementrequestent.OrganizationIDEQ(co.ID),
 		orderfeesupplementrequestent.IdempotencyKeyEQ(supp1Key),
 	).Exist(ctx)
 	if !supp1Exists {
 		_, err := tx.OrderFeeSupplementRequest.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetOrderID(ord4.ID).
 			SetLockBasis(orderfeesupplementrequestent.LockBasisBUSINESS).
 			SetBusinessLockGeneration(ord4.LockGeneration).
@@ -1874,12 +2233,12 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 
 	supp2Key := "DEV-SUPP-SE26090004-STORAGE"
 	supp2, _ := tx.OrderFeeSupplementRequest.Query().Where(
-		orderfeesupplementrequestent.OrganizationIDEQ(hq.ID),
+		orderfeesupplementrequestent.OrganizationIDEQ(co.ID),
 		orderfeesupplementrequestent.IdempotencyKeyEQ(supp2Key),
 	).First(ctx)
 	if supp2 == nil {
 		createdSupp, err := tx.OrderFeeSupplementRequest.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetOrderID(ord4.ID).
 			SetLockBasis(orderfeesupplementrequestent.LockBasisBUSINESS).
 			SetBusinessLockGeneration(ord4.LockGeneration).
@@ -1959,16 +2318,16 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 // 7. 提成方案与分配
 func seedCommissionRules(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	hq := sc.headquarters
+	co := sc.company
 
 	rule1Name := "海运出口业务员毛利提成方案 (标准10%)"
 	r1, _ := tx.FinanceCommissionRule.Query().Where(
-		financecommissionruleent.OrganizationIDEQ(hq.ID),
+		financecommissionruleent.OrganizationIDEQ(co.ID),
 		financecommissionruleent.NameEQ(rule1Name),
 	).First(ctx)
 	if r1 == nil {
 		created, err := tx.FinanceCommissionRule.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetName(rule1Name).
 			SetPersonnelRole(financecommissionruleent.PersonnelRoleSALES).
 			SetCalculationBasis(financecommissionruleent.CalculationBasisREALIZED_PROFIT).
@@ -1984,12 +2343,12 @@ func seedCommissionRules(ctx context.Context, sc *seedContext) error {
 
 	rule2Name := "海运出口操作员单票提成方案 (3%)"
 	r2, _ := tx.FinanceCommissionRule.Query().Where(
-		financecommissionruleent.OrganizationIDEQ(hq.ID),
+		financecommissionruleent.OrganizationIDEQ(co.ID),
 		financecommissionruleent.NameEQ(rule2Name),
 	).First(ctx)
 	if r2 == nil {
 		created, err := tx.FinanceCommissionRule.Create().
-			SetOrganizationID(hq.ID).
+			SetOrganizationID(co.ID).
 			SetName(rule2Name).
 			SetPersonnelRole(financecommissionruleent.PersonnelRoleOPERATOR).
 			SetCalculationBasis(financecommissionruleent.CalculationBasisREALIZED_PROFIT).
@@ -2011,13 +2370,13 @@ func seedCommissionRules(ctx context.Context, sc *seedContext) error {
 			continue
 		}
 		aExists, _ := tx.FinanceCommissionRuleAssignment.Query().Where(
-			financecommissionruleassignmentent.OrganizationIDEQ(hq.ID),
+			financecommissionruleassignmentent.OrganizationIDEQ(co.ID),
 			financecommissionruleassignmentent.RuleIDEQ(r1.ID),
 			financecommissionruleassignmentent.EmployeeIDEQ(u.ID),
 		).Exist(ctx)
 		if !aExists {
 			_, _ = tx.FinanceCommissionRuleAssignment.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetRuleID(r1.ID).
 				SetEmployeeID(u.ID).
 				SetEffectiveFrom("2026-01-01").
@@ -2030,13 +2389,13 @@ func seedCommissionRules(ctx context.Context, sc *seedContext) error {
 	opUser := sc.users["liming"]
 	if opUser != nil && r2 != nil {
 		aExists, _ := tx.FinanceCommissionRuleAssignment.Query().Where(
-			financecommissionruleassignmentent.OrganizationIDEQ(hq.ID),
+			financecommissionruleassignmentent.OrganizationIDEQ(co.ID),
 			financecommissionruleassignmentent.RuleIDEQ(r2.ID),
 			financecommissionruleassignmentent.EmployeeIDEQ(opUser.ID),
 		).Exist(ctx)
 		if !aExists {
 			_, _ = tx.FinanceCommissionRuleAssignment.Create().
-				SetOrganizationID(hq.ID).
+				SetOrganizationID(co.ID).
 				SetRuleID(r2.ID).
 				SetEmployeeID(opUser.ID).
 				SetEffectiveFrom("2026-01-01").
@@ -2046,4 +2405,956 @@ func seedCommissionRules(ctx context.Context, sc *seedContext) error {
 	}
 
 	return nil
+}
+
+// migrateOperatingDataToCompany 将历史上注入在总部名下的经营数据整体迁移到经营
+// 公司。总部工作台业务边界实施后经营数据必须归属启用分公司，本迁移按组织整体
+// 搬移，幂等（第二次执行无匹配行）。财务配置类数据（费用科目/税目/汇率）不迁移，
+// 由 seedFinanceMasterData 在经营公司名下另行生成。
+func migrateOperatingDataToCompany(ctx context.Context, sc *seedContext) error {
+	db := sc.db
+	tables := []string{
+		"partners", "partner_assignments",
+		"orders", "order_personnels", "order_cargo_items", "order_containers",
+		"order_fee_supplement_requests", "order_lock_records", "order_unlock_requests",
+		"order_commission_attributions",
+		"sea_master_bills", "sea_house_bills", "sea_transport_executions",
+		"sea_master_bill_order_links", "sea_master_bill_versions",
+		"sea_house_bill_versions", "sea_transport_execution_versions",
+		"finance_bills", "finance_cashflows", "finance_verifications",
+		"finance_commission_rules", "finance_commission_rule_assignments",
+	}
+	moved := 0
+	for _, table := range tables {
+		res, err := db.ExecContext(ctx, fmt.Sprintf(
+			"UPDATE %s SET organization_id = $1 WHERE organization_id = $2", table),
+			sc.company.ID, sc.headquarters.ID)
+		if err != nil {
+			return fmt.Errorf("迁移 %s 到经营公司: %w", table, err)
+		}
+		if affected, affErr := res.RowsAffected(); affErr == nil {
+			moved += int(affected)
+		}
+	}
+	// 自开分单的签发组织随归属一并切换
+	if _, err := db.ExecContext(ctx,
+		"UPDATE sea_house_bills SET organization_id = $1, issuer_organization_id = CASE WHEN issuer_organization_id = $2 THEN $1 ELSE issuer_organization_id END WHERE organization_id = $1",
+		sc.company.ID, sc.headquarters.ID); err != nil {
+		return fmt.Errorf("迁移 sea_house_bills 签发组织: %w", err)
+	}
+	if moved > 0 {
+		fmt.Printf("✔ 组织迁移: 总部名下 %d 行经营数据已迁移至 [%s]\n", moved, sc.company.Name)
+	}
+	return nil
+}
+
+// 9. 提成经营归属、台账与月度申请
+func seedCommissionLedger(ctx context.Context, sc *seedContext) error {
+	tx := sc.tx
+	co := sc.company
+	if sc.adminUser == nil {
+		return fmt.Errorf("缺少管理员用户，无法注入提成数据")
+	}
+
+	// 经营归属：全部种子订单补销售归属；SE26090002 另补操作与单证客服归属
+	for _, orderNo := range sortedOrderNos(sc.orders) {
+		ord := sc.orders[orderNo]
+		roles := []orderpersonnelent.Role{orderpersonnelent.RoleSALES}
+		if orderNo == "SE26090002" {
+			roles = append(roles, orderpersonnelent.RoleOPERATOR, orderpersonnelent.RoleDOCUMENT)
+		}
+		for _, role := range roles {
+			personnel, pErr := tx.OrderPersonnel.Query().Where(
+				orderpersonnelent.OrderIDEQ(ord.ID),
+				orderpersonnelent.RoleEQ(role),
+			).First(ctx)
+			if pErr != nil {
+				continue
+			}
+			user, uErr := tx.User.Get(ctx, personnel.UserID)
+			if uErr != nil {
+				continue
+			}
+			attributionRole := ordercommissionattributionent.PersonnelRoleSALES
+			switch role {
+			case orderpersonnelent.RoleOPERATOR:
+				attributionRole = ordercommissionattributionent.PersonnelRoleOPERATOR
+			case orderpersonnelent.RoleDOCUMENT:
+				attributionRole = ordercommissionattributionent.PersonnelRoleCUSTOMER_SERVICE
+			}
+			aExists, _ := tx.OrderCommissionAttribution.Query().Where(
+				ordercommissionattributionent.OrderIDEQ(ord.ID),
+				ordercommissionattributionent.PersonnelRoleEQ(attributionRole),
+				ordercommissionattributionent.EmployeeIDEQ(user.ID),
+			).Exist(ctx)
+			if !aExists {
+				if _, err := tx.OrderCommissionAttribution.Create().
+					SetOrganizationID(co.ID).
+					SetOrderID(ord.ID).
+					SetCustomerID(ord.CustomerID).
+					SetSourceAssignmentID(personnel.ID).
+					SetEmployeeID(user.ID).
+					SetEmployeeName(user.DisplayName).
+					SetPersonnelRole(attributionRole).
+					SetAttributedAt(personnel.CreatedAt).
+					Save(ctx); err != nil {
+					return fmt.Errorf("创建订单经营归属 %s/%s: %w", orderNo, attributionRole, err)
+				}
+			}
+		}
+	}
+
+	vf, err := tx.FinanceVerification.Query().Where(
+		financeverificationent.OrganizationIDEQ(co.ID),
+		financeverificationent.VerificationNoEQ("VF-AR-26090001"),
+	).First(ctx)
+	if err != nil {
+		return fmt.Errorf("查询核销记录 VF-AR-26090001: %w", err)
+	}
+	ord2 := sc.orders["SE26090002"]
+	if ord2 == nil {
+		return fmt.Errorf("缺少订单 SE26090002，无法注入提成台账")
+	}
+	cust, _ := tx.Partner.Get(ctx, ord2.CustomerID)
+
+	type commissionDef struct {
+		no         string
+		username   string
+		ruleName   string
+		rate       string
+		basis      string
+		personRole string
+	}
+	commissions := []commissionDef{
+		{no: "CM26090001", username: "zhangqiang", ruleName: "海运出口业务员毛利提成方案 (标准10%)", rate: "10.0000", basis: "REALIZED_PROFIT", personRole: "SALES"},
+		{no: "CM26090002", username: "liming", ruleName: "海运出口操作员单票提成方案 (3%)", rate: "3.0000", basis: "REALIZED_PROFIT", personRole: "OPERATOR"},
+	}
+
+	var salesPersonnel *ent.OrderPersonnel
+	if p, pErr := tx.OrderPersonnel.Query().Where(
+		orderpersonnelent.OrderIDEQ(ord2.ID), orderpersonnelent.RoleEQ(orderpersonnelent.RoleSALES),
+	).First(ctx); pErr == nil {
+		salesPersonnel = p
+	}
+	var operatorPersonnel *ent.OrderPersonnel
+	if p, pErr := tx.OrderPersonnel.Query().Where(
+		orderpersonnelent.OrderIDEQ(ord2.ID), orderpersonnelent.RoleEQ(orderpersonnelent.RoleOPERATOR),
+	).First(ctx); pErr == nil {
+		operatorPersonnel = p
+	}
+
+	for _, def := range commissions {
+		employee := sc.users[def.username]
+		if employee == nil {
+			return fmt.Errorf("缺少提成员工 %s", def.username)
+		}
+		rule, _ := tx.FinanceCommissionRule.Query().Where(
+			financecommissionruleent.OrganizationIDEQ(co.ID),
+			financecommissionruleent.NameEQ(def.ruleName),
+		).First(ctx)
+		personnel := salesPersonnel
+		if def.personRole == "OPERATOR" {
+			personnel = operatorPersonnel
+		}
+		if personnel == nil {
+			return fmt.Errorf("缺少订单 SE26090002 的 %s 协作人员", def.personRole)
+		}
+		amount := "280.00000000"
+		if def.rate == "3.0000" {
+			amount = "84.00000000"
+		}
+
+		cmExists, _ := tx.FinanceCommission.Query().Where(
+			financecommissionent.OrganizationIDEQ(co.ID),
+			financecommissionent.CommissionNoEQ(def.no),
+		).Exist(ctx)
+		if !cmExists {
+			created, cErr := tx.FinanceCommission.Create().
+				SetOrganizationID(co.ID).
+				SetCommissionNo(def.no).
+				SetIdempotencyKey("DEV-CM-" + def.no).
+				SetVerificationID(vf.ID).
+				SetVerificationNo(vf.VerificationNo).
+				SetEmployeeID(employee.ID).
+				SetEmployeeName(employee.DisplayName).
+				SetCustomerCount(1).
+				SetOrderCount(1).
+				SetFeeCount(3).
+				SetRuleID(rule.ID).
+				SetRuleName(rule.Name).
+				SetPersonnelRole(def.personRole).
+				SetCalculationBasis(def.basis).
+				SetSourceFingerprint("devseed").
+				SetStatus(financecommissionent.StatusCONFIRMED).
+				SetBaseCurrency("CNY").
+				SetRealizedRevenue("2800.00000000").
+				SetAllocatedCost("0.00000000").
+				SetRealizedProfit("2800.00000000").
+				SetCommissionBaseAmount("2800.00000000").
+				SetRatePercent(def.rate).
+				SetCommissionAmount(amount).
+				SetCommissionDate("2026-09-21").
+				SetCnyExchangeRate("1.00000000").
+				SetCnyExchangeRateSource(financecommissionent.CnyExchangeRateSourceBASE_CURRENCY).
+				SetCnyExchangeRateDate("2026-09-21").
+				SetCnyCommissionAmount(amount).
+				Save(ctx)
+			if cErr != nil {
+				return fmt.Errorf("创建提成台账 %s: %w", def.no, cErr)
+			}
+
+			if _, lErr := tx.FinanceCommissionLine.Create().
+				SetOrganizationID(co.ID).
+				SetCommissionID(created.ID).
+				SetOrderID(ord2.ID).
+				SetOrderNo(ord2.OrderNo).
+				SetOrderDate("2026-09-20").
+				SetCustomerID(ord2.CustomerID).
+				SetCustomerCode(strOr(cust.Code, "")).
+				SetCustomerName(cust.LegalName).
+				SetPersonnelAssignmentID(personnel.ID).
+				SetPersonnelOrganizationID(co.ID).
+				SetPersonnelAssignedAt(personnel.CreatedAt).
+				SetFeeCount(3).
+				SetEmployeeID(employee.ID).
+				SetEmployeeName(employee.DisplayName).
+				SetPersonnelRole(def.personRole).
+				SetCalculationBasis(def.basis).
+				SetBaseCurrency("CNY").
+				SetRealizedRevenue("2800.00000000").
+				SetAllocatedCost("0.00000000").
+				SetRealizedProfit("2800.00000000").
+				SetCommissionBaseAmount("2800.00000000").
+				SetRatePercent(def.rate).
+				SetCommissionAmount(amount).
+				Save(ctx); lErr != nil {
+				return fmt.Errorf("创建提成明细 %s: %w", def.no, lErr)
+			}
+		}
+	}
+
+	// 月度申请：张强 9 月申请待审批；李明 9 月申请已审批
+	type applicationDef struct {
+		username string
+		status   financecommissionapplicationent.Status
+		lineNo   string
+	}
+	applications := []applicationDef{
+		{username: "zhangqiang", status: financecommissionapplicationent.StatusPENDING_REVIEW, lineNo: "CM26090001"},
+		{username: "liming", status: financecommissionapplicationent.StatusAPPROVED, lineNo: "CM26090002"},
+	}
+	zhaofang := sc.users["zhaofang"]
+	for _, app := range applications {
+		employee := sc.users[app.username]
+		if employee == nil {
+			return fmt.Errorf("缺少申请员工 %s", app.username)
+		}
+		appExists, _ := tx.FinanceCommissionApplication.Query().Where(
+			financecommissionapplicationent.OrganizationIDEQ(co.ID),
+			financecommissionapplicationent.EmployeeIDEQ(employee.ID),
+			financecommissionapplicationent.ApplicationMonthEQ("2026-09"),
+		).Exist(ctx)
+		if appExists {
+			continue
+		}
+		cm, cmErr := tx.FinanceCommission.Query().Where(
+			financecommissionent.OrganizationIDEQ(co.ID),
+			financecommissionent.CommissionNoEQ(app.lineNo),
+		).First(ctx)
+		if cmErr != nil {
+			return fmt.Errorf("查询提成 %s: %w", app.lineNo, cmErr)
+		}
+
+		createdApp, aErr := tx.FinanceCommissionApplication.Create().
+			SetOrganizationID(co.ID).
+			SetEmployeeID(employee.ID).
+			SetApplicationMonth("2026-09").
+			SetCoverageTo("2026-09-30").
+			SetStatus(app.status).
+			SetCommissionCount(1).
+			SetBaseCurrency("CNY").
+			SetTotalCommissionAmount(cm.CommissionAmount).
+			SetTotalCnyCommissionAmount(cm.CnyCommissionAmount).
+			SetSubmittedAt(time.Now().UTC()).
+			SetSubmittedBy(employee.ID).
+			Save(ctx)
+		if aErr != nil {
+			return fmt.Errorf("创建月度提成申请 %s: %w", app.username, aErr)
+		}
+		if app.status == financecommissionapplicationent.StatusAPPROVED {
+			if _, err := createdApp.Update().
+				SetDecidedAt(time.Now().UTC()).
+				SetDecidedBy(zhaofang.ID).
+				SetDecisionReason("9月提成核对无误，同意发放").
+				Save(ctx); err != nil {
+				return fmt.Errorf("审批月度提成申请 %s: %w", app.username, err)
+			}
+		}
+
+		if _, err := tx.FinanceCommissionApplicationLine.Create().
+			SetOrganizationID(co.ID).
+			SetEmployeeID(employee.ID).
+			SetApplicationID(createdApp.ID).
+			SetCommissionID(cm.ID).
+			SetCommissionDate(cm.CommissionDate).
+			SetVerificationID(vf.ID).
+			SetVerificationNo(vf.VerificationNo).
+			SetPersonnelRole(strOr(cm.PersonnelRole, "")).
+			SetRuleID(uuidOr(cm.RuleID, uuid.Nil)).
+			SetRuleVersion(cm.RuleVersion).
+			SetRuleName(strOr(cm.RuleName, "")).
+			SetCalculationBasis(strOr(cm.CalculationBasis, "")).
+			SetBaseCurrency("CNY").
+			SetCommissionAmount(cm.CommissionAmount).
+			SetCnyCommissionAmount(cm.CnyCommissionAmount).
+			SetSourceFingerprint("devseed").
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建月度提成申请明细 %s: %w", app.username, err)
+		}
+	}
+	return nil
+}
+
+func sortedOrderNos(orders map[string]*ent.Order) []string {
+	keys := make([]string, 0, len(orders))
+	for k := range orders {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// 10. 海运单证操作：拆票、整体改配、共享箱、HBL 改单与作废、单证模式切换
+func seedSeaDocumentOperations(ctx context.Context, sc *seedContext) error {
+	tx := sc.tx
+	co := sc.company
+	if sc.adminUser == nil {
+		return fmt.Errorf("缺少管理员用户，无法注入单证操作数据")
+	}
+
+	// —— 拆票：SE26090015(原票剩余) → SE26090016(拆出结果票) ——
+	ord15 := sc.orders["SE26090015"]
+	ord16 := sc.orders["SE26090016"]
+	if ord15 == nil || ord16 == nil {
+		return fmt.Errorf("缺少拆票订单 SE26090015/SE26090016")
+	}
+	link15, err := tx.SeaMasterBillOrderLink.Query().Where(
+		seamasterbillorderlinkent.OrderIDEQ(ord15.ID),
+		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
+	).First(ctx)
+	if err != nil {
+		return fmt.Errorf("查询 SE26090015 ACTIVE 主单关系: %w", err)
+	}
+	link16, err := tx.SeaMasterBillOrderLink.Query().Where(
+		seamasterbillorderlinkent.OrderIDEQ(ord16.ID),
+		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
+	).First(ctx)
+	if err != nil {
+		return fmt.Errorf("查询 SE26090016 ACTIVE 主单关系: %w", err)
+	}
+
+	splitIdem := "DEV-SPLIT-SE26090015"
+	splitEvent, _ := tx.SeaOrderSplitEvent.Query().Where(
+		seaorderspliteventent.OrganizationIDEQ(co.ID),
+		seaorderspliteventent.IdempotencyKeyEQ(splitIdem),
+	).First(ctx)
+	if splitEvent == nil {
+		splitEvent, err = tx.SeaOrderSplitEvent.Create().
+			SetOrganizationID(co.ID).
+			SetSourceOrderID(ord15.ID).
+			SetSourceOrderNo(ord15.OrderNo).
+			SetIdempotencyKey(splitIdem).
+			SetRequestFingerprint("DEV-SPLIT-FP-SE26090015").
+			SetNote("花园家具拼箱货分批出运，拆出 20 件至新操作票").
+			SetSourceOrderVersion(ord15.Version).
+			SetSourceLinkID(link15.ID).
+			SetSourceLinkVersion(link15.Version).
+			SetSourceAllocationVersion(1).
+			SetBeforeSnapshot(json.RawMessage(`{"packages":50,"gross_weight_kg":650.0,"volume_cbm":5.8}`)).
+			SetConservationSnapshot(json.RawMessage(`{"SE26090015":{"packages":30,"gross_weight_kg":390.0,"volume_cbm":3.48},"SE26090016":{"packages":20,"gross_weight_kg":260.0,"volume_cbm":2.32},"balanced":true}`)).
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建拆票事件: %w", err)
+		}
+
+		results := []struct {
+			ord       *ent.Order
+			role      seaordersplitresultent.ResultRole
+			seq       int
+			clientKey string
+			initial   uuid.UUID
+			final     uuid.UUID
+			snapshot  string
+		}{
+			{ord15, seaordersplitresultent.ResultRoleORIGINAL, 0, "original", link15.MasterBillID, link15.MasterBillID, `{"order_no":"SE26090015","result_role":"ORIGINAL","packages":30,"gross_weight_kg":390.0,"volume_cbm":3.48}`},
+			{ord16, seaordersplitresultent.ResultRoleCREATED, 1, "created-1", link15.MasterBillID, link16.MasterBillID, `{"order_no":"SE26090016","result_role":"CREATED","packages":20,"gross_weight_kg":260.0,"volume_cbm":2.32,"master_bill_changed":true}`},
+		}
+		for _, r := range results {
+			if _, err := tx.SeaOrderSplitResult.Create().
+				SetSplitEventID(splitEvent.ID).
+				SetOrganizationID(co.ID).
+				SetOrderID(r.ord.ID).
+				SetOrderNo(r.ord.OrderNo).
+				SetResultRole(r.role).
+				SetSequence(r.seq).
+				SetClientResultKey(r.clientKey).
+				SetInitialMasterBillID(r.initial).
+				SetFinalMasterBillID(r.final).
+				SetResultSnapshot(json.RawMessage(r.snapshot)).
+				Save(ctx); err != nil {
+				return fmt.Errorf("创建拆票结果 %s: %w", r.ord.OrderNo, err)
+			}
+		}
+	}
+
+	// —— 整体改配：SE26090016 由 MSC VELA 航次改配至 MAERSK KOTKA 航次 ——
+	reassignIdem := "DEV-REASSIGN-SE26090016"
+	reassignExists, _ := tx.SeaOrderReassignmentEvent.Query().Where(
+		seaorderreassignmenteventent.OrganizationIDEQ(co.ID),
+		seaorderreassignmenteventent.IdempotencyKeyEQ(reassignIdem),
+	).Exist(ctx)
+	if !reassignExists {
+		endedLink, err := tx.SeaMasterBillOrderLink.Create().
+			SetOrganizationID(co.ID).
+			SetMasterBillID(link15.MasterBillID).
+			SetTransportExecutionID(link15.TransportExecutionID).
+			SetOrderID(ord16.ID).
+			SetStatus(seamasterbillorderlinkent.StatusENDED).
+			SetDocumentStructure(seamasterbillorderlinkent.DocumentStructureHOUSE).
+			SetStartedAt(time.Now().Add(-48 * time.Hour)).
+			SetEndedAt(time.Now()).
+			SetEndedReason("整票改配：原航次舱位甩柜").
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建改配前 ENDED 主单关系: %w", err)
+		}
+
+		responsible := sc.partners["SUPP-MSC-02"]
+		if _, err := tx.SeaOrderReassignmentEvent.Create().
+			SetOrganizationID(co.ID).
+			SetOrderID(ord16.ID).
+			SetOrderNo(ord16.OrderNo).
+			SetSplitEventID(splitEvent.ID).
+			SetIdempotencyKey(reassignIdem).
+			SetRequestFingerprint("DEV-REASSIGN-FP-SE26090016").
+			SetPreviousMasterBillID(link15.MasterBillID).
+			SetTargetMasterBillID(link16.MasterBillID).
+			SetPreviousTransportExecutionID(link15.TransportExecutionID).
+			SetTargetTransportExecutionID(link16.TransportExecutionID).
+			SetPreviousLinkID(endedLink.ID).
+			SetTargetLinkID(link16.ID).
+			SetPreviousLinkVersion(1).
+			SetTargetLinkVersion(link16.Version).
+			SetReason("原航次舱位不足被承运人甩柜，整票改配至马士基航次").
+			SetResponsibilityType(seaorderreassignmenteventent.ResponsibilityTypeCARRIER).
+			SetResponsiblePartnerID(responsible.ID).
+			SetResponsiblePartnerName(responsible.LegalName).
+			SetBeforeSnapshot(json.RawMessage(`{"master_bill_no":"MSCU77889900","vessel":"MSC VELA","voyage":"2650E"}`)).
+			SetAfterSnapshot(json.RawMessage(`{"master_bill_no":"MAEU31112233","vessel":"MAERSK KOTKA","voyage":"2610W"}`)).
+			SetCreatedBy(sc.adminUser.ID).
+			SetConfirmedByParty("地中海航运代理（上海）有限公司").
+			SetConfirmedAt(time.Now()).
+			SetConfirmationNote("船司订舱处邮件确认甩柜并同意改配至 MAERSK KOTKA 2610W").
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建改配事件: %w", err)
+		}
+	}
+
+	// —— 共享箱：MSC OSCAR 航次上 MSCU9900112 由 SE26090008/09 两票拼用 ——
+	execOscar, err := tx.SeaTransportExecution.Query().Where(
+		seatransportexecutionent.OrganizationIDEQ(co.ID),
+		seatransportexecutionent.VesselNameEQ("MSC OSCAR"),
+		seatransportexecutionent.VoyageNoEQ("2640E"),
+	).First(ctx)
+	if err != nil {
+		return fmt.Errorf("查询 MSC OSCAR 航次: %w", err)
+	}
+	sharedExists, _ := tx.SeaSharedContainer.Query().Where(
+		seasharedcontainerent.OrganizationIDEQ(co.ID),
+		seasharedcontainerent.ContainerNoEQ("MSCU9900112"),
+	).Exist(ctx)
+	if !sharedExists {
+		createdShared, err := tx.SeaSharedContainer.Create().
+			SetOrganizationID(co.ID).
+			SetTransportExecutionID(execOscar.ID).
+			SetContainerNo("MSCU9900112").
+			SetContainerSpecID(sc.containerSpecs["40HQ"].ID).
+			SetSealNo("MSC881122").
+			SetPackageCount(550).
+			SetGrossWeightKg("5500.000").
+			SetVolumeCbm("50.500000").
+			SetStatus(seasharedcontainerent.StatusCONFIRMED).
+			SetConfirmedAt(time.Now()).
+			SetConfirmedBy(sc.adminUser.ID).
+			SetNote("一主多分单拼舱共享箱，由两票分单按件重体分配").
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建共享箱: %w", err)
+		}
+		sharedOrders := []struct {
+			orderNo string
+			pkgs    int
+			weight  string
+			volume  string
+		}{
+			{"SE26090008", 200, "2400.000", "22.500000"},
+			{"SE26090009", 350, "3100.000", "28.000000"},
+		}
+		for _, so := range sharedOrders {
+			ord := sc.orders[so.orderNo]
+			hbl, _ := tx.SeaHouseBill.Query().Where(
+				seahousebillent.OrderIDEQ(ord.ID),
+				seahousebillent.StatusEQ(seahousebillent.StatusCONFIRMED),
+			).First(ctx)
+			cargo, _ := tx.OrderCargoItem.Query().Where(ordercargoitement.OrderIDEQ(ord.ID)).First(ctx)
+			if _, err := tx.SeaSharedContainerAllocation.Create().
+				SetOrganizationID(co.ID).
+				SetSharedContainerID(createdShared.ID).
+				SetOrderID(ord.ID).
+				SetHouseBillID(hbl.ID).
+				SetCargoItemID(cargo.ID).
+				SetPackageCount(so.pkgs).
+				SetGrossWeightKg(so.weight).
+				SetVolumeCbm(so.volume).
+				Save(ctx); err != nil {
+				return fmt.Errorf("创建共享箱分配 %s: %w", so.orderNo, err)
+			}
+		}
+	}
+
+	// —— HBL 改单与作废：SE26090017 旧分单改收货人后作废，重出 RC-HBL26090017R ——
+	ord17 := sc.orders["SE26090017"]
+	if ord17 == nil {
+		return fmt.Errorf("缺少订单 SE26090017")
+	}
+	mbl17, err := tx.SeaMasterBill.Query().Where(
+		seamasterbillent.OrganizationIDEQ(co.ID),
+		seamasterbillent.MasterNoEQ("ONEY55667788"),
+	).First(ctx)
+	if err != nil {
+		return fmt.Errorf("查询主单 ONEY55667788: %w", err)
+	}
+	voidIdem := "DEV-VOID-SE26090017-HBL"
+	voidExists, _ := tx.SeaDocumentVoidEvent.Query().Where(
+		seadocumentvoideventent.OrganizationIDEQ(co.ID),
+		seadocumentvoideventent.IdempotencyKeyEQ(voidIdem),
+	).Exist(ctx)
+	if !voidExists {
+		oldHbl, err := tx.SeaHouseBill.Create().
+			SetOrganizationID(co.ID).
+			SetOrderID(ord17.ID).
+			SetMasterBillID(mbl17.ID).
+			SetHouseNo("RC-HBL26090017").
+			SetNormalizedHouseNo("RC-HBL26090017").
+			SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
+			SetIssuerOrganizationID(co.ID).
+			SetStatus(seahousebillent.StatusVOIDED).
+			SetShipperText("TransGlobal Trading (HK) Co., Limited\nUNIT 8, 12/F, KWAI CHUNG, HONG KONG").
+			SetConsigneeText("TO ORDER OF SHIPPER").
+			SetNotifyPartyText("PACIFIC FRAME & MIRROR INC.\n4500 E PICO BLVD, LOS ANGELES, CA").
+			SetPackageCount(intOr(ord17.TotalPackages, 0)).
+			SetGrossWeightKg(floatOr(ord17.TotalGrossWeightKg, 0)).
+			SetVolumeCbm(floatOr(ord17.TotalVolumeCbm, 0)).
+			SetGoodsDescriptionText(ord17.GoodsDescription).
+			SetFreightTerms("FREIGHT COLLECT").
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建作废演示分单: %w", err)
+		}
+
+		// v1 制单确认 → v2 修改收货人 → v3 作废（当前版本）
+		v1, err := tx.SeaHouseBillVersion.Create().
+			SetOrganizationID(co.ID).
+			SetHouseBillID(oldHbl.ID).
+			SetOrderID(ord17.ID).
+			SetMasterBillID(mbl17.ID).
+			SetVersionNo(1).
+			SetSourceEntityVersion(oldHbl.Version).
+			SetHouseNo(oldHbl.HouseNo).
+			SetNormalizedHouseNo(oldHbl.NormalizedHouseNo).
+			SetIssuerSource(seahousebillversionent.IssuerSourceSELF_ORGANIZATION).
+			SetIssuerOrganizationID(co.ID).
+			SetStatus(seahousebillversionent.StatusCONFIRMED).
+			SetContentHash("devseed-hbl-RC-HBL26090017-v1").
+			SetSource(seahousebillversionent.SourceAMENDMENT).
+			SetReason("首次制单确认").
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建分单版本 v1: %w", err)
+		}
+		v2, err := tx.SeaHouseBillVersion.Create().
+			SetOrganizationID(co.ID).
+			SetHouseBillID(oldHbl.ID).
+			SetOrderID(ord17.ID).
+			SetMasterBillID(mbl17.ID).
+			SetVersionNo(2).
+			SetSourceEntityVersion(oldHbl.Version).
+			SetHouseNo(oldHbl.HouseNo).
+			SetNormalizedHouseNo(oldHbl.NormalizedHouseNo).
+			SetIssuerSource(seahousebillversionent.IssuerSourceSELF_ORGANIZATION).
+			SetIssuerOrganizationID(co.ID).
+			SetStatus(seahousebillversionent.StatusCONFIRMED).
+			SetContentHash("devseed-hbl-RC-HBL26090017-v2").
+			SetSource(seahousebillversionent.SourceAMENDMENT).
+			SetReason("按客户指示修改收货人抬头").
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建分单版本 v2: %w", err)
+		}
+		v3, err := tx.SeaHouseBillVersion.Create().
+			SetOrganizationID(co.ID).
+			SetHouseBillID(oldHbl.ID).
+			SetOrderID(ord17.ID).
+			SetMasterBillID(mbl17.ID).
+			SetVersionNo(3).
+			SetSourceEntityVersion(oldHbl.Version).
+			SetHouseNo(oldHbl.HouseNo).
+			SetNormalizedHouseNo(oldHbl.NormalizedHouseNo).
+			SetIssuerSource(seahousebillversionent.IssuerSourceSELF_ORGANIZATION).
+			SetIssuerOrganizationID(co.ID).
+			SetStatus(seahousebillversionent.StatusVOIDED).
+			SetContentHash("devseed-hbl-RC-HBL26090017-v3").
+			SetSource(seahousebillversionent.SourceVOID).
+			SetReason("客户改由记名直放，作废旧分单重出").
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建分单版本 v3: %w", err)
+		}
+		if _, err := oldHbl.Update().SetCurrentVersionID(v3.ID).Save(ctx); err != nil {
+			return fmt.Errorf("推进作废演示分单当前版本: %w", err)
+		}
+
+		if _, err := tx.SeaDocumentVoidEvent.Create().
+			SetOrganizationID(co.ID).
+			SetOrderID(ord17.ID).
+			SetDocumentType(seadocumentvoideventent.DocumentTypeHOUSE).
+			SetHouseBillID(oldHbl.ID).
+			SetHouseBillVersionID(v3.ID).
+			SetPreviousHouseBillVersionID(v2.ID).
+			SetPreviousStatus("CONFIRMED").
+			SetVoidedStatus("VOIDED").
+			SetReason("客户改由记名直放，旧分单作废并重出 RC-HBL26090017R").
+			SetImpactSummary("作废分单不影响主单与已录费用，重出分单沿用原箱货数据").
+			SetCreatedBy(sc.adminUser.ID).
+			SetIdempotencyKey(voidIdem).
+			SetRequestFingerprint("DEV-VOID-FP-SE26090017-HBL").
+			SetConfirmedByParty("TransGlobal Trading (HK) Co., Limited").
+			SetConfirmedAt(time.Now()).
+			SetConfirmationNote("客户邮件确认作废并授权按新抬头重出").
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建分单作废事件: %w", err)
+		}
+		_ = v1
+	}
+
+	// —— 单证模式切换：SE26090018 直单转主分单（DIRECT → HOUSE） ——
+	ord18 := sc.orders["SE26090018"]
+	if ord18 == nil {
+		return fmt.Errorf("缺少订单 SE26090018")
+	}
+	modeIdem := "DEV-MODE-SE26090018"
+	modeExists, _ := tx.SeaDocumentModeChangeEvent.Query().Where(
+		seadocumentmodechangeeventent.OrganizationIDEQ(co.ID),
+		seadocumentmodechangeeventent.IdempotencyKeyEQ(modeIdem),
+	).Exist(ctx)
+	if !modeExists {
+		hbl18, err := tx.SeaHouseBill.Query().Where(
+			seahousebillent.OrderIDEQ(ord18.ID),
+			seahousebillent.HouseNoEQ("RC-HBL26090018"),
+		).First(ctx)
+		if err != nil {
+			return fmt.Errorf("查询分单 RC-HBL26090018: %w", err)
+		}
+		v18, err := tx.SeaHouseBillVersion.Create().
+			SetOrganizationID(co.ID).
+			SetHouseBillID(hbl18.ID).
+			SetOrderID(ord18.ID).
+			SetMasterBillID(hbl18.MasterBillID).
+			SetVersionNo(1).
+			SetSourceEntityVersion(hbl18.Version).
+			SetHouseNo(hbl18.HouseNo).
+			SetNormalizedHouseNo(hbl18.NormalizedHouseNo).
+			SetIssuerSource(seahousebillversionent.IssuerSourceSELF_ORGANIZATION).
+			SetIssuerOrganizationID(co.ID).
+			SetStatus(seahousebillversionent.StatusCONFIRMED).
+			SetContentHash("devseed-hbl-RC-HBL26090018-v1").
+			SetSource(seahousebillversionent.SourceMODE_CHANGE).
+			SetReason("直单转主分单，客户要求签发自有分单").
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建模式切换分单版本: %w", err)
+		}
+		if _, err := hbl18.Update().SetCurrentVersionID(v18.ID).Save(ctx); err != nil {
+			return fmt.Errorf("推进模式切换分单当前版本: %w", err)
+		}
+
+		if _, err := tx.SeaDocumentModeChangeEvent.Create().
+			SetOrganizationID(co.ID).
+			SetOrderID(ord18.ID).
+			SetPreviousMode(seadocumentmodechangeeventent.PreviousModeDIRECT).
+			SetTargetMode(seadocumentmodechangeeventent.TargetModeHOUSE).
+			SetTargetHouseBillID(hbl18.ID).
+			SetTargetHouseBillVersionID(v18.ID).
+			SetReason("客户要求以我司分单抬头清关，直单转主分单结构").
+			SetImpactSummary("主单收货人改为我司目的港代理，箱货数据不变").
+			SetConfirmedByParty("上海宏远国际贸易进出口有限公司").
+			SetConfirmedAt(time.Now()).
+			SetConfirmationNote("客户书面委托确认切换单证结构").
+			SetCreatedBy(sc.adminUser.ID).
+			SetIdempotencyKey(modeIdem).
+			SetRequestFingerprint("DEV-MODE-FP-SE26090018").
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建单证模式切换事件: %w", err)
+		}
+	}
+
+	// —— HBL 改单版本历史：SE26090008 分单修改通知人 ——
+	ord08 := sc.orders["SE26090008"]
+	if ord08 == nil {
+		return fmt.Errorf("缺少订单 SE26090008")
+	}
+	hbl08, err := tx.SeaHouseBill.Query().Where(
+		seahousebillent.OrderIDEQ(ord08.ID),
+		seahousebillent.HouseNoEQ("RC-HBL26090008"),
+	).First(ctx)
+	if err != nil {
+		return fmt.Errorf("查询分单 RC-HBL26090008: %w", err)
+	}
+	if hbl08.CurrentVersionID == nil {
+		v08, err := tx.SeaHouseBillVersion.Create().
+			SetOrganizationID(co.ID).
+			SetHouseBillID(hbl08.ID).
+			SetOrderID(ord08.ID).
+			SetMasterBillID(hbl08.MasterBillID).
+			SetVersionNo(1).
+			SetSourceEntityVersion(hbl08.Version).
+			SetHouseNo(hbl08.HouseNo).
+			SetNormalizedHouseNo(hbl08.NormalizedHouseNo).
+			SetIssuerSource(seahousebillversionent.IssuerSourceSELF_ORGANIZATION).
+			SetIssuerOrganizationID(co.ID).
+			SetStatus(seahousebillversionent.StatusCONFIRMED).
+			SetContentHash("devseed-hbl-RC-HBL26090008-v1").
+			SetSource(seahousebillversionent.SourceAMENDMENT).
+			SetReason("按目的港代理要求补充通知人税号").
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建分单改单版本: %w", err)
+		}
+		if _, err := hbl08.Update().SetCurrentVersionID(v08.ID).Save(ctx); err != nil {
+			return fmt.Errorf("推进分单当前版本: %w", err)
+		}
+	}
+	return nil
+}
+
+// 11. 订单运营数据：异常标记、里程碑、放单 POD 与附件登记
+func seedOrderOperations(ctx context.Context, sc *seedContext) error {
+	tx := sc.tx
+	co := sc.company
+	if sc.adminUser == nil {
+		return fmt.Errorf("缺少管理员用户，无法注入订单运营数据")
+	}
+	liming := sc.users["liming"]
+	zhaofang := sc.users["zhaofang"]
+	chenhua := sc.users["chenhua"]
+
+	// 异常目录（全局主数据）
+	abnormalDefs := []struct{ code, name string }{
+		{"ABN-CUSTOMER-CANCEL", "客户取消出运"},
+		{"ABN-ROLL-REASSIGN", "甩柜改配"},
+	}
+	for _, d := range abnormalDefs {
+		found, _ := tx.MasterDataItem.Query().Where(
+			masterdataitem.KindEQ(masterdataitem.KindAbnormalCase),
+			masterdataitem.CodeEQ(d.code),
+		).First(ctx)
+		if found == nil {
+			created, err := tx.MasterDataItem.Create().
+				SetKind(masterdataitem.KindAbnormalCase).
+				SetCode(d.code).
+				SetName(d.name).
+				SetSource("system").
+				SetSortOrder(10).
+				SetEnabled(true).
+				Save(ctx)
+			if err != nil {
+				return fmt.Errorf("创建异常目录 %s: %w", d.code, err)
+			}
+			found = created
+		}
+		if d.code == "ABN-CUSTOMER-CANCEL" {
+			// SE26090013 终止票上保留一条未解决异常
+			ord13 := sc.orders["SE26090013"]
+			mExists, _ := tx.OrderAbnormalCase.Query().Where(
+				orderabnormalcaseent.OrderIDEQ(ord13.ID),
+				orderabnormalcaseent.AbnormalCaseIDEQ(found.ID),
+			).Exist(ctx)
+			if !mExists {
+				if _, err := tx.OrderAbnormalCase.Create().
+					SetOrderID(ord13.ID).
+					SetAbnormalCaseID(found.ID).
+					SetStatus(orderabnormalcaseent.StatusACTIVE).
+					SetMarkedBy(liming.ID).
+					Save(ctx); err != nil {
+					return fmt.Errorf("标记订单异常 SE26090013: %w", err)
+				}
+			}
+		}
+		if d.code == "ABN-ROLL-REASSIGN" {
+			// SE26090004 上一条已解决异常（甩柜后改配恢复）
+			ord04 := sc.orders["SE26090004"]
+			mExists, _ := tx.OrderAbnormalCase.Query().Where(
+				orderabnormalcaseent.OrderIDEQ(ord04.ID),
+				orderabnormalcaseent.AbnormalCaseIDEQ(found.ID),
+			).Exist(ctx)
+			if !mExists {
+				if _, err := tx.OrderAbnormalCase.Create().
+					SetOrderID(ord04.ID).
+					SetAbnormalCaseID(found.ID).
+					SetStatus(orderabnormalcaseent.StatusRESOLVED).
+					SetMarkedBy(liming.ID).
+					SetResolvedAt(time.Now()).
+					SetResolvedBy(zhaofang.ID).
+					Save(ctx); err != nil {
+					return fmt.Errorf("标记订单异常 SE26090004: %w", err)
+				}
+			}
+		}
+	}
+
+	// 里程碑：SE26090001 订舱确认 + 装船离港
+	ord01 := sc.orders["SE26090001"]
+	milestones := []struct {
+		typ, label string
+		occurred   *time.Time
+		note       string
+	}{
+		{"BOOKING_CONFIRMED", "订舱确认", ptrTime(time.Now().Add(-72 * time.Hour)), "中远海运舱位确认，S/O 已回传"},
+		{"VESSEL_DEPARTED", "装船离港", nil, "待船舶实际开航后补录"},
+	}
+	for _, m := range milestones {
+		mExists, _ := tx.OrderMilestone.Query().Where(
+			ordermilestoneent.OrderIDEQ(ord01.ID),
+			ordermilestoneent.TypeEQ(m.typ),
+		).Exist(ctx)
+		if !mExists {
+			create := tx.OrderMilestone.Create().
+				SetOrderID(ord01.ID).
+				SetType(m.typ).
+				SetTemplateNodeLabel(m.label).
+				SetNote(m.note).
+				SetUpdatedBy(sc.adminUser.ID)
+			if m.occurred != nil {
+				create = create.SetOccurredAt(*m.occurred)
+			}
+			if _, err := create.Save(ctx); err != nil {
+				return fmt.Errorf("创建订单里程碑 %s: %w", m.typ, err)
+			}
+		}
+	}
+
+	// 放单 POD：SE26090002 待签收；SE26090014 已签收
+	podDefs := []struct {
+		orderNo, releaseNo, podNo string
+		signed                    bool
+	}{
+		{"SE26090002", "REL-MSCU67812300", "", false},
+		{"SE26090014", "REL-MSCU10102020", "POD-26090014", true},
+	}
+	for _, p := range podDefs {
+		ord := sc.orders[p.orderNo]
+		pExists, _ := tx.OrderReleasePod.Query().Where(
+			orderreleasepodent.OrderIDEQ(ord.ID),
+			orderreleasepodent.ReleaseNoEQ(p.releaseNo),
+		).Exist(ctx)
+		if pExists {
+			continue
+		}
+		link, _ := tx.SeaMasterBillOrderLink.Query().Where(
+			seamasterbillorderlinkent.OrderIDEQ(ord.ID),
+			seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
+		).First(ctx)
+		create := tx.OrderReleasePod.Create().
+			SetOrderID(ord.ID).
+			SetSeaMasterBillID(link.MasterBillID).
+			SetReleaseNo(p.releaseNo).
+			SetStatus(orderreleasepodent.StatusPENDING)
+		if p.signed {
+			create = create.
+				SetPodNo(p.podNo).
+				SetStatus(orderreleasepodent.StatusSIGNED).
+				SetSignedAt(time.Now()).
+				SetSignedBy(chenhua.ID)
+		}
+		if _, err := create.Save(ctx); err != nil {
+			return fmt.Errorf("创建放单 POD %s: %w", p.releaseNo, err)
+		}
+	}
+
+	// 附件登记：SE26090001 订舱确认书（对象存储占位 key，用于列表与登记形态测试）
+	ord01Again := sc.orders["SE26090001"]
+	attIdem := "DEV-ATT-SE26090001-BOOKING"
+	attExists, _ := tx.OrderAttachment.Query().Where(
+		orderattachmentent.OrderIDEQ(ord01Again.ID),
+		orderattachmentent.IdempotencyKeyEQ(attIdem),
+	).Exist(ctx)
+	if !attExists {
+		asset, err := tx.OrderAttachmentAsset.Create().
+			SetOrganizationID(co.ID).
+			SetObjectKey("dev-seed/se26090001/booking-confirmation.pdf").
+			SetFileName("订舱确认书-COSCO PRIDE 042W.pdf").
+			SetMimeType("application/pdf").
+			SetFileSize(132688).
+			SetUploadedBy(sc.adminUser.ID).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建附件资产: %w", err)
+		}
+		if _, err := tx.OrderAttachment.Create().
+			SetOrderID(ord01Again.ID).
+			SetAssetID(asset.ID).
+			SetDocType("BOOKING_CONFIRMATION").
+			SetIdempotencyKey(attIdem).
+			SetCreatedBy(sc.adminUser.ID).
+			Save(ctx); err != nil {
+			return fmt.Errorf("创建订单附件登记: %w", err)
+		}
+	}
+	return nil
+}
+
+func ptrTime(t time.Time) *time.Time { return &t }
+
+func strOr(s *string, fallback string) string {
+	if s != nil {
+		return *s
+	}
+	return fallback
+}
+
+func intOr(i *int, fallback int) int {
+	if i != nil {
+		return *i
+	}
+	return fallback
+}
+
+func floatOr(f *float64, fallback float64) float64 {
+	if f != nil {
+		return *f
+	}
+	return fallback
+}
+
+func uuidOr(u *uuid.UUID, fallback uuid.UUID) uuid.UUID {
+	if u != nil {
+		return *u
+	}
+	return fallback
 }
