@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { formatAmount } from '@/utils/format';
 
@@ -107,3 +108,23 @@ export const workbenchSourceNo = (record: {
   verificationNo?: string;
   nettingNo?: string;
 }) => record.verificationNo || record.nettingNo || '-';
+
+/** 金额数字统一等宽排版（tabular-nums），避免数值变化时列宽跳动。 */
+export const amountFont = {
+  fontVariantNumeric: 'tabular-nums',
+} as const;
+
+/** hero 主数字（如本年已发）：30px / 700 / 等宽数字 / 深墨色。 */
+export const heroAmountStyle: CSSProperties = {
+  fontSize: 30,
+  fontWeight: 700,
+  ...amountFont,
+  color: '#0f172a',
+};
+
+/** 流程 stat 小卡金额（三桶）：20px / 600 / 等宽数字。 */
+export const statAmountStyle: CSSProperties = {
+  fontSize: 20,
+  fontWeight: 600,
+  ...amountFont,
+};

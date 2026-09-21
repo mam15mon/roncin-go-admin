@@ -154,7 +154,7 @@ describe('工作台提成门禁', () => {
     // 加载中：只有骨架，无提成标题与入口。
     expect(screen.getByTestId('workbench-loading')).toBeInTheDocument();
     expect(screen.queryByText('我的提成')).not.toBeInTheDocument();
-    expect(screen.queryByText('在途回款明细')).not.toBeInTheDocument();
+    expect(screen.queryByText('在途回款')).not.toBeInTheDocument();
 
     pending.resolve(
       overviewResponse({
@@ -226,6 +226,8 @@ describe('工作台提成门禁', () => {
     ).toBeInTheDocument();
     // 无法估算时明确说明原因，不显示假精确金额。
     expect(screen.getByText('暂无法估算')).toBeInTheDocument();
+    // 冲减摘要行：无任何冲减记录时不渲染。
+    expect(screen.queryByText('冲减')).not.toBeInTheDocument();
   });
 });
 
@@ -252,7 +254,7 @@ describe('工作台提成分桶与冲减语义', () => {
     },
   };
 
-  it('三桶与冲减三阶段按工作台语义展示，已发累计支持本年/本月切换', async () => {
+  it('三桶流程条与冲减单行摘要按工作台语义展示，本年/本月已发双指标同屏', async () => {
     serviceMocks.getOverview.mockResolvedValue(overviewResponse(summaryData));
 
     renderPage();
@@ -261,15 +263,16 @@ describe('工作台提成分桶与冲减语义', () => {
     expect(screen.getByText('已确认待发')).toBeInTheDocument();
     expect(screen.getByText('已发放')).toBeInTheDocument();
     expect(screen.getByText('1,200.50')).toBeInTheDocument();
-    expect(screen.getByText('冲减 · 待处理')).toBeInTheDocument();
-    expect(screen.getByText('冲减 · 已确认')).toBeInTheDocument();
-    expect(screen.getByText('冲减 · 已扣回')).toBeInTheDocument();
+    // 冲减降级为单行摘要：待处理带笔数，已确认/已扣回只列金额。
+    expect(screen.getByText(/待处理 100\.00 · 1 笔/)).toBeInTheDocument();
+    expect(screen.getByText(/已确认 50\.00/)).toBeInTheDocument();
+    expect(screen.getByText(/已扣回 30\.00/)).toBeInTheDocument();
 
-    // 本年已发默认展示，切换本月后显示本月口径。
+    // hero 双指标同屏：本年已发主数字与本月已发副指标同时可见，无需切换。
+    expect(screen.getByText('本年已发')).toBeInTheDocument();
     expect(screen.getByText('3,200.00')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('本月已发'));
-    await waitFor(() => expect(screen.getByText('800.00')).toBeInTheDocument());
-    expect(screen.queryByText('3,200.00')).not.toBeInTheDocument();
+    expect(screen.getByText('本月已发')).toBeInTheDocument();
+    expect(screen.getByText('800.00')).toBeInTheDocument();
   });
 
   it('点击查看提成明细打开下钻抽屉：服务端分页、状态过滤与翻页', async () => {
@@ -279,9 +282,7 @@ describe('工作台提成分桶与冲减语义', () => {
 
     renderPage();
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /查看提成明细/ }),
-    );
+    fireEvent.click(await screen.findByRole('button', { name: /提成明细/ }));
     expect(serviceMocks.listMyCommissions).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
@@ -390,9 +391,7 @@ describe('工作台提成分桶与冲减语义', () => {
 
     renderPage();
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /在途回款明细/ }),
-    );
+    fireEvent.click(await screen.findByRole('button', { name: /在途回款/ }));
     expect(serviceMocks.listMyReceivables).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,

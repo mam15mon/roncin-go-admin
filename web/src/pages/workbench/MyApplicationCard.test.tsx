@@ -29,7 +29,7 @@ vi.mock('@/services/roncin/workbenchService', () => ({
 const accessState = vi.hoisted(() => ({ canOperateBusiness: true }));
 vi.mock('@/app/access', () => ({ useAccess: () => accessState }));
 
-import MyApplicationPanel from './MyApplicationPanel';
+import MyApplicationCard, { deriveStage } from './MyApplicationCard';
 
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
   let resolve!: (value: T) => void;
@@ -63,18 +63,26 @@ function summaryWithGroups(): API.WorkbenchApplicationSummary {
   };
 }
 
-function renderPanel(
+function renderCard(
   summary: API.WorkbenchApplicationSummary = summaryWithGroups(),
 ) {
   return renderWithClient(
     <App>
-      <MyApplicationPanel
+      <MyApplicationCard
         summary={summary}
         currency="CNY"
         onOverviewRefresh={refreshMock}
       />
     </App>,
   );
+}
+
+/** 读取 Steps 当前处于 process 态的阶段标题（antd 稳定类名）。 */
+function activeStepTitle(): string {
+  const title = document.querySelector(
+    '.ant-steps-item-process .ant-steps-item-title',
+  );
+  return title?.textContent || '';
 }
 
 beforeEach(() => {
@@ -98,17 +106,47 @@ afterEach(() => {
   cleanup();
 });
 
-describe('MyApplicationPanel 工作台月度申请面板', () => {
+describe('deriveStage 申请阶段推导（纯函数）', () => {
+  it('有审批中申请：停在财务审批（在途优先于再次提交）', () => {
+    expect(
+      deriveStage({
+        pendingReviewCount: 1,
+        applyGroups: [{ commissionMonth: '2026-07' }],
+      }),
+    ).toEqual({ step: 2 });
+  });
+
+  it('无审批中且有可申请分组：停在可申请', () => {
+    expect(
+      deriveStage({
+        pendingReviewCount: 0,
+        applyGroups: [
+          { commissionMonth: '2026-07' },
+          { commissionMonth: '2026-08' },
+        ],
+      }),
+    ).toEqual({ step: 1 });
+  });
+
+  it('无审批中且无可申请分组（含摘要缺省）：停在本月累计中', () => {
+    expect(deriveStage({ pendingReviewCount: 0, applyGroups: [] })).toEqual({
+      step: 0,
+    });
+    expect(deriveStage(undefined)).toEqual({ step: 0 });
+  });
+});
+
+describe('MyApplicationCard 工作台月度申请卡', () => {
   it('总部仅查看申请摘要与历史，不展示申请办理入口', () => {
     accessState.canOperateBusiness = false;
-    renderPanel();
+    renderCard();
     expect(screen.queryByTestId('apply-submit-button')).not.toBeInTheDocument();
     expect(screen.getByText('申请历史')).toBeInTheDocument();
     expect(serviceMocks.submit).not.toHaveBeenCalled();
   });
 
-  it('可申请提成按归属月分组展示笔数金额、合计与审批中/已批准计数', () => {
-    renderPanel();
+  it('可申请提成按归属月分组展示笔数金额、合计与审批中/已批准计数，阶段停在财务审批', () => {
+    renderCard();
 
     expect(screen.getByText('月度申请')).toBeInTheDocument();
     expect(screen.getByText('2026-07')).toBeInTheDocument();
@@ -121,10 +159,12 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
     expect(screen.getByText('审批中 1 张')).toBeInTheDocument();
     expect(screen.getByText('已批准 2 张')).toBeInTheDocument();
     expect(screen.getByText('620.00')).toBeInTheDocument();
+    // 有审批中申请：状态流当前阶段为财务审批。
+    expect(activeStepTitle()).toContain('财务审批');
   });
 
-  it('本月累计中只展示当月累计与说明，不渲染任何独立申请入口', () => {
-    renderPanel({
+  it('本月累计中只展示当月累计与说明，不渲染任何独立申请入口，阶段停在累计中', () => {
+    renderCard({
       baseCurrency: 'CNY',
       applyGroups: [],
       accumulatingCount: 4,
@@ -143,10 +183,9 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
     expect(
       screen.getByTestId('apply-submit-button').hasAttribute('disabled'),
     ).toBe(true);
-    expect(
-      screen.queryByText('可申请提成（截至上一自然月末）'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('可申请（截至上一自然月末）')).toBeInTheDocument();
     expect(screen.getByText(/暂无可申请提成/)).toBeInTheDocument();
+    expect(activeStepTitle()).toContain('本月累计中');
   });
 
   it('提交确认流程：确认弹窗展示覆盖月份笔数总额与截止日说明，成功后等待刷新完成再解除 loading', async () => {
@@ -157,7 +196,7 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
       data: { id: 'app-1' },
     });
 
-    renderPanel();
+    renderCard();
 
     fireEvent.click(screen.getByTestId('apply-submit-button'));
 
@@ -203,7 +242,7 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
   it('提交失败时不刷新 Overview 并提示错误', async () => {
     serviceMocks.submit.mockRejectedValue(new Error('当前自然月不能提交'));
 
-    renderPanel();
+    renderCard();
 
     fireEvent.click(screen.getByTestId('apply-submit-button'));
     fireEvent.click(
@@ -219,7 +258,7 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
     const firstPage = deferred<API.ListMyApplicationCandidatesResponse>();
     serviceMocks.listCandidates.mockReturnValueOnce(firstPage.promise);
 
-    renderPanel();
+    renderCard();
 
     fireEvent.click(screen.getByRole('button', { name: /候选明细/ }));
     expect(serviceMocks.listCandidates).toHaveBeenCalledWith({
@@ -289,17 +328,17 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
       ],
     });
 
-    renderPanel();
+    renderCard();
 
     fireEvent.click(screen.getByRole('button', { name: /申请历史/ }));
     expect(serviceMocks.listApplications).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
     });
-    // 状态 Tag 是抽屉行独有文本（面板显示「审批中 1 张」，非精确匹配），
+    // 状态 Tag 是抽屉行独有文本（卡内显示「审批中 1 张」，非精确匹配），
     // 以它等待抽屉行渲染完成。
     expect(await screen.findByText('审批中')).toBeInTheDocument();
-    // 申请月份同时出现在面板分组与抽屉行。
+    // 申请月份同时出现在卡内分组与抽屉行。
     expect(screen.getAllByText('2026-08')).toHaveLength(2);
     expect(screen.getByText('800.25 CNY')).toBeInTheDocument();
 
@@ -390,7 +429,7 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
       },
     });
 
-    renderPanel();
+    renderCard();
 
     fireEvent.click(screen.getByRole('button', { name: /申请历史/ }));
     fireEvent.click(await screen.findByText('明细'));
@@ -418,15 +457,15 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
       applicationId: 'app-1',
       expectedVersion: '2',
     });
-    // 成功后刷新 Overview（面板透传回调）。
+    // 成功后刷新 Overview（卡片透传回调）。
     await waitFor(() => expect(refreshMock).toHaveBeenCalledTimes(1));
     expect(
       await screen.findByText('申请已重新提交，等待财务审批'),
     ).toBeInTheDocument();
   });
 
-  it('最近申请被驳回时面板引导到申请历史重提', () => {
-    renderPanel({
+  it('最近申请被驳回时卡片以 warning 引导到申请历史重提', () => {
+    renderCard({
       baseCurrency: 'CNY',
       applyGroups: [],
       accumulatingCount: 0,
@@ -452,8 +491,8 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
     ).toBeInTheDocument();
   });
 
-  it('最近申请概要与空申请时隐藏概要', () => {
-    renderPanel({
+  it('最近申请概要展示，无审批中且有可申请分组时阶段停在可申请', () => {
+    renderCard({
       baseCurrency: 'CNY',
       applyGroups: [
         {
@@ -464,7 +503,7 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
       ],
       accumulatingCount: 0,
       accumulatingAmount: '0',
-      pendingReviewCount: 1,
+      pendingReviewCount: 0,
       approvedCount: 0,
       latestApplication: {
         applicationId: 'app-9',
@@ -478,5 +517,6 @@ describe('MyApplicationPanel 工作台月度申请面板', () => {
     });
 
     expect(screen.getByText(/最近申请：2026-08 · 2 笔/)).toBeInTheDocument();
+    expect(activeStepTitle()).toContain('可申请');
   });
 });

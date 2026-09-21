@@ -3,8 +3,9 @@ import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Alert, Avatar, Button, Skeleton, Space, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
-import CommissionSummaryCard from './CommissionSummaryCard';
+import CommissionOverviewCard from './CommissionOverviewCard';
 import FinanceSummaryCard from './FinanceSummaryCard';
+import MyApplicationCard from './MyApplicationCard';
 import MyCommissionDrawer from './MyCommissionDrawer';
 import MyReceivablesDrawer from './MyReceivablesDrawer';
 import { useWorkbenchOverview } from './useWorkbenchOverview';
@@ -108,12 +109,21 @@ export default function Workbench() {
         ) : data ? (
           <>
             {showCommission ? (
-              <CommissionSummaryCard
-                data={data}
-                onOpenCommissions={() => setCommissionDrawerOpen(true)}
-                onOpenReceivables={() => setReceivablesDrawerOpen(true)}
-                onOverviewRefresh={reload}
-              />
+              <>
+                <CommissionOverviewCard
+                  data={data}
+                  onOpenCommissions={() => setCommissionDrawerOpen(true)}
+                  onOpenReceivables={() => setReceivablesDrawerOpen(true)}
+                />
+                <MyApplicationCard
+                  summary={data.applicationSummary}
+                  estimated={data.commissionSummary?.estimated}
+                  currency={
+                    data.baseCurrency || data.commissionSummary?.baseCurrency
+                  }
+                  onOverviewRefresh={reload}
+                />
+              </>
             ) : null}
 
             {finance ? <FinanceSummaryCard finance={finance} /> : null}
