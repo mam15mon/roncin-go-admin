@@ -2,13 +2,13 @@
 
 ## Project
 
-Ant Design Pro — React enterprise boilerplate on Umi Max v4, antd v6, ProComponents v3.
+React admin SPA on Vite + React Router v8 + React Query v5, antd v6, ProComponents v3, Vitest.
 
 ## Commands
 
 Run from `web/` (or via `pnpm --dir web <script>` from the repo root; this repo uses **pnpm only** for dependency management — no npm/Yarn installs):
 
-`pnpm dev` (dev server on :8001, mock disabled), `pnpm start` (dev server, mock enabled), `pnpm build`, `pnpm lint` (Biome+tsc), `pnpm test` (Vitest), `pnpm test:e2e` (Playwright), `npx antd lint ./src` (antd-specific checks).
+`pnpm dev` (Vite dev server on :8001; `pnpm start` is an alias), `pnpm build`, `pnpm lint` (Biome+tsc), `pnpm test` (Vitest), `pnpm test:e2e` (Playwright), `npx antd lint ./src` (antd-specific checks).
 
 Other: `pnpm openapi` (regenerate `src/services/` from the server OpenAPI document; root shortcut `pnpm run generate:web-client`), `pnpm biome` (auto-fix), `pnpm tsc` (type-check only).
 
@@ -19,25 +19,22 @@ Other: `pnpm openapi` (regenerate `src/services/` from the server OpenAPI docume
 - **Always `npx antd info <Component>` before writing antd code** — don't guess APIs from memory
 - **Conventional commits** required (commitlint enforced)
 - **TypeScript strict** · **Node ≥ 24.14.1** · **pnpm** with the repo-root `pnpm-lock.yaml` (not npm/Yarn)
-- **`.umi` dir is auto-generated** — delete `src/.umi` and restart if dev server acts up
 
 ## Architecture Essentials
 
-**Config**: `config/config.ts` (defineConfig), `config/routes.ts` (declarative routes). Route `name` → `menu.xxx` i18n key; `access` field gates visibility.
+**Config**: `vite.config.ts` (dev server, proxy, build), `config/routes.ts` (route table). `src/router/adaptRoutes.tsx` maps it onto React Router (`import.meta.glob` lazy pages) and ProLayout menu data; the `access` field gates visibility via `AccessGuard`.
 
-**Convention files** (`src/`): `app.tsx` (runtime config + `getInitialState`), `access.ts` (permissions), `global.tsx` (side effects), `loading.tsx`, `typings.d.ts`.
+**Entry & key files** (`src/`): `main.tsx` (Provider chain + global styles), `app/AppProvider.tsx` (initial state), `access.ts` (permissions), `requestErrorConfig.ts` (shared request-error handling), `typings.d.ts`.
 
-**Auth**: `getInitialState()` calls `authServiceMe()` (`/api/v1/auth/me`, proxied to the Go server in dev); 401 → redirect login. `access.ts` derives every gate from `currentUser.permissions` + `roleScopes`; permission key names are generated into `src/permissions.generated.ts` from the backend manifest — never hardcode a second source of truth.
+**Auth**: `app/AppProvider.tsx` calls `authServiceMe()` (`/api/v1/auth/me`, proxied to the Go server in dev); 401 → redirect login. `access.ts` derives every gate from `currentUser.permissions` + `roleScopes`; permission key names are generated into `src/permissions.generated.ts` from the backend manifest — never hardcode a second source of truth.
 
-**State**: `useModel('@@initialState')` for currentUser/settings. ProTable `request` prop for most data loading. `@tanstack/react-query` for complex server state.
+**State**: `useInitialState()` (from `src/app/AppProvider.tsx`) for currentUser/settings. ProTable `request` prop for most data loading. `@tanstack/react-query` for server state.
 
 **Styling priority**: Tailwind CSS v4 (layout) → antd-style v4 / `createStyles` (theme tokens) → CSS Modules → Less (legacy only).
 
-**Request**: built-in `request` from `@umijs/max`, configured in `src/requestErrorConfig.ts`. Page-specific requests/types/styles live next to the page — no ad-hoc backend host strings.
+**Request**: OpenAPI-generated clients in `src/services/roncin/` (regenerate via `pnpm openapi`); shared error handling in `src/requestErrorConfig.ts`. Page-specific requests/types/styles live next to the page — no ad-hoc backend host strings.
 
-**i18n**: 8 locales in `src/locales/`. `useIntl().formatMessage({ id, defaultMessage })`.
-
-**Dev mock**: there is no global `mock/` directory. For offline local development, `src/utils/devMockUser.ts` provides a full-permission placeholder user, enabled in dev via a localStorage flag (`enableDevMock()`).
+**Dev mock**: there is no global `mock/` directory. For offline local development, `src/utils/devMockUser.ts` provides a full-permission placeholder user, enabled only in dev builds via the localStorage flag `roncin_dev_mock_mode = 'true'`.
 
 ## AI Skills
 
