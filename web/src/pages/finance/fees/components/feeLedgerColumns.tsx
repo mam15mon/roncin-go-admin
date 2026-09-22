@@ -9,6 +9,7 @@ import {
   statusText,
 } from '@/constants/statusMeta';
 import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
+import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { searchPartnerOptions } from '@/features/partners';
 import { history } from '@/router/history';
 import { formatAmount } from '@/utils/format';
@@ -34,51 +35,33 @@ const feeLedgerStatusValueEnum = Object.fromEntries(
   ]),
 );
 
+/** 行配色 key 与财务进度枚举一一对应；文案与颜色以共享映射为唯一真相源。 */
+const progressRowColorKeys: Record<number, keyof API.FeeLedgerRowColors> = {
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED]:
+    'unbilled',
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED]:
+    'unverifiedUninvoiced',
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED]:
+    'invoicedUnverified',
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED]:
+    'invoicedPartiallyVerified',
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED]:
+    'partiallyVerifiedUninvoiced',
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED]:
+    'verifiedUninvoiced',
+  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED]:
+    'completed',
+};
+
 export const financialProgressLabels: Record<
   number,
   { text: string; color: string; key: keyof API.FeeLedgerRowColors }
-> = {
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED]: {
-    text: '账单未建立',
-    color: 'gold',
-    key: 'unbilled',
-  },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED]:
-    {
-      text: '未核销未开票',
-      color: 'orange',
-      key: 'unverifiedUninvoiced',
-    },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED]:
-    {
-      text: '已开票未核销',
-      color: 'blue',
-      key: 'invoicedUnverified',
-    },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED]:
-    {
-      text: '已开票部分核销',
-      color: 'cyan',
-      key: 'invoicedPartiallyVerified',
-    },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED]:
-    {
-      text: '部分核销未开票',
-      color: 'geekblue',
-      key: 'partiallyVerifiedUninvoiced',
-    },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED]:
-    {
-      text: '已核销未开票',
-      color: 'purple',
-      key: 'verifiedUninvoiced',
-    },
-  [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED]: {
-    text: '已完成',
-    color: 'green',
-    key: 'completed',
-  },
-};
+> = Object.fromEntries(
+  Object.entries(feeLedgerProgressLabels).map(([progress, label]) => [
+    Number(progress),
+    { ...label, key: progressRowColorKeys[Number(progress)] },
+  ]),
+);
 
 export function amount(value?: string | number) {
   return Number(value || 0);

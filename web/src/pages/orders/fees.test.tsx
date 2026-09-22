@@ -6,6 +6,7 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import { orderFeeServiceListOrderFeeSupplementRequests } from '@/services/roncin/orderFeeService';
+import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import OrderFeesPage from './fees';
 
 let mockParams = { kind: 'sea-export', id: 'order-A' };
@@ -195,6 +196,18 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
         {props.orderId}|{props.selectedReceivableFeeIds.join(',')}|
         {props.selectedPayableFeeIds.join(',')}
       </div>
+      <div data-testid="fee-bill-tracking">
+        {props.feeBillTracking
+          ? `${props.feeBillTracking.state}|${
+              props.feeBillTracking.byFeeId[
+                props.orderId === 'order-A' ? 'fee-A-1' : 'fee-B-1'
+              ]?.billNo ?? '-'
+            }`
+          : 'none'}
+      </div>
+      <button type="button" onClick={() => props.onFeeSaved?.()}>
+        通知行内保存
+      </button>
       <button
         type="button"
         onClick={() => {
@@ -225,6 +238,10 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
 
 vi.mock('./components/fees/orderFeeColumns', () => ({
   getOrderFeeTableColumns: () => [],
+}));
+
+vi.mock('@/services/roncin/settlementService', () => ({
+  settlementServiceGetFeeLedgerOrderDetail: vi.fn(),
 }));
 
 vi.mock('./components/fees/FeeFormModal', () => ({
@@ -495,5 +512,115 @@ describe('订单费用页锁后费用补录', () => {
     expect(
       screen.queryByRole('button', { name: '补录费用' }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('订单费用页关联账单追踪', () => {
+  const getFeeLedgerOrderDetail = vi.mocked(
+    settlementServiceGetFeeLedgerOrderDetail,
+  );
+
+  beforeEach(() => {
+    mockParams = { kind: 'sea-export', id: 'order-A' };
+    feeTestState.lockState = { isLocked: false };
+    feeTestState.canCreateFee = true;
+    feeTestState.canReadFee = true;
+    feeTestState.canLock = true;
+    feeTestState.canReadFinanceFees = false;
+    feeTestState.canOperate = true;
+    vi.clearAllMocks();
+  });
+
+  it('无财务读取权限时不发起关联账单请求，也不向表格注入投影', async () => {
+    renderFeesPage();
+    await waitFor(() =>
+      expect(screen.getByTestId('fee-table-state')).toBeInTheDocument(),
+    );
+    expect(screen.getByTestId('fee-bill-tracking')).toHaveTextContent('none');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(getFeeLedgerOrderDetail).not.toHaveBeenCalled();
+  });
+
+  it('有财务读取权限时按订单维度查询一次并投影活动账单号', async () => {
+    feeTestState.canReadFinanceFees = true;
+    getFeeLedgerOrderDetail.mockResolvedValue({
+      data: {
+        fees: [
+          { id: 'fee-A-1', billNo: 'BILL-2026-001', financialProgress: 2 },
+        ],
+      },
+    } as Awaited<ReturnType<typeof getFeeLedgerOrderDetail>>);
+
+    renderFeesPage();
+    await waitFor(() =>
+      expect(getFeeLedgerOrderDetail).toHaveBeenCalledWith(
+        { orderId: 'order-A' },
+        expect.anything(),
+      ),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('fee-bill-tracking')).toHaveTextContent(
+        'ready|BILL-2026-001',
+      ),
+    );
+    expect(getFeeLedgerOrderDetail).toHaveBeenCalledTimes(1);
+  });
+
+  it('行内保存通知后失效关联账单查询并重新拉取', async () => {
+    feeTestState.canReadFinanceFees = true;
+    getFeeLedgerOrderDetail.mockResolvedValue({
+      data: { fees: [] },
+    } as Awaited<ReturnType<typeof getFeeLedgerOrderDetail>>);
+
+    renderFeesPage();
+    await waitFor(() =>
+      expect(getFeeLedgerOrderDetail).toHaveBeenCalledTimes(1),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '通知行内保存' }));
+    await waitFor(() =>
+      expect(getFeeLedgerOrderDetail).toHaveBeenCalledTimes(2),
+    );
+  });
+
+  it('切换订单后按新订单查询，不串用上一订单的关联信息', async () => {
+    feeTestState.canReadFinanceFees = true;
+    getFeeLedgerOrderDetail.mockImplementation(({ orderId }) =>
+      Promise.resolve({
+        data: {
+          fees: [
+            {
+              id: orderId === 'order-A' ? 'fee-A-1' : 'fee-B-1',
+              billNo: `BILL-${orderId}`,
+              financialProgress: 7,
+            },
+          ],
+        },
+      } as any),
+    );
+
+    const { rerender, queryClient } = renderFeesPage();
+    await waitFor(() =>
+      expect(screen.getByTestId('fee-bill-tracking')).toHaveTextContent(
+        'ready|BILL-order-A',
+      ),
+    );
+
+    mockParams = { kind: 'sea-export', id: 'order-B' };
+    rerenderFeesPage(rerender, queryClient);
+    await waitFor(() =>
+      expect(getFeeLedgerOrderDetail).toHaveBeenCalledWith(
+        { orderId: 'order-B' },
+        expect.anything(),
+      ),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('fee-bill-tracking')).toHaveTextContent(
+        'ready|BILL-order-B',
+      ),
+    );
+    expect(screen.getByTestId('fee-bill-tracking')).not.toHaveTextContent(
+      'BILL-order-A',
+    );
   });
 });

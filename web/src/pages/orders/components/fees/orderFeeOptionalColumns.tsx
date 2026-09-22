@@ -1,19 +1,105 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag, Tooltip } from 'antd';
 import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
+import { FeeLedgerFinancialProgress } from '@/enums.generated';
+import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { formatAmount } from '@/utils/format';
+import type { FeeBillTrackingView } from './feeBillTracking';
 import type { FeeColumnPreference } from './feeColumnPreference';
+import { FEE_CANCELLED, feeStatusCode } from './feeConstants';
 
 /** 未保存新行的派生金额提示：服务端尚未计算，前端不猜算。 */
 function pendingSaveCell() {
   return <span style={{ color: '#8c8c8c' }}>待保存</span>;
 }
 
+/** 关联账单查询的整体状态文案：加载中/失败不得显示成未建账。 */
+function trackingStateCell(tracking: FeeBillTrackingView) {
+  if (tracking.state === 'loading') {
+    return <span style={{ color: '#8c8c8c' }}>加载中…</span>;
+  }
+  return <span style={{ color: '#cf1322' }}>加载失败</span>;
+}
+
+function renderBillNoCell(record: API.OrderFee, tracking: FeeBillTrackingView) {
+  if (tracking.state !== 'ready') return trackingStateCell(tracking);
+  if (feeStatusCode(record.status) === FEE_CANCELLED) {
+    return <span style={{ color: '#8c8c8c' }}>已作废</span>;
+  }
+  const item = record.id ? tracking.byFeeId[record.id] : undefined;
+  if (!item?.billNo) {
+    return <span style={{ color: '#8c8c8c' }}>未建账</span>;
+  }
+  return (
+    <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+      {item.billNo}
+    </span>
+  );
+}
+
+function renderFinancialProgressCell(
+  record: API.OrderFee,
+  tracking: FeeBillTrackingView,
+) {
+  if (tracking.state !== 'ready') return trackingStateCell(tracking);
+  if (feeStatusCode(record.status) === FEE_CANCELLED) {
+    return <span style={{ color: '#8c8c8c' }}>已作废</span>;
+  }
+  const item = record.id ? tracking.byFeeId[record.id] : undefined;
+  const progress = item?.financialProgress;
+  if (
+    progress === undefined ||
+    progress ===
+      FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNSPECIFIED ||
+    progress ===
+      FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED
+  ) {
+    return <Tag color="gold">未建账</Tag>;
+  }
+  const label = feeLedgerProgressLabels[progress] ?? {
+    text: '未知状态',
+    color: 'default',
+  };
+  return (
+    <Tag color={label.color} style={{ margin: 0 }}>
+      {label.text}
+    </Tag>
+  );
+}
+
 /**
  * 可选只读列：税率、税金、不含税总额、折本币金额与费用标签。
  * 金额与税率均为保存后服务端快照，前端不重算；未保存新行显示“待保存”。
+ * 传入关联账单投影时（即具备财务费用读取权限）追加账单号与关联账单财务
+ * 进度列；进度属于整张关联账单，多笔费用共用同一账单时显示相同进度。
  */
-export function buildOptionalFeeColumns(): ProColumns<API.OrderFee>[] {
+export function buildOptionalFeeColumns(
+  feeBillTracking?: FeeBillTrackingView,
+): ProColumns<API.OrderFee>[] {
+  const financeColumns: ProColumns<API.OrderFee>[] = feeBillTracking
+    ? [
+        {
+          title: '账单号',
+          dataIndex: 'billNo',
+          width: 150,
+          editable: false,
+          render: (_, record) => renderBillNoCell(record, feeBillTracking),
+        },
+        {
+          title: (
+            <Tooltip title="整张关联账单的开票与核销综合进度；同一账单下多笔费用显示相同进度">
+              <span>关联账单财务进度</span>
+            </Tooltip>
+          ),
+          dataIndex: 'financialProgress',
+          width: 150,
+          editable: false,
+          render: (_, record) =>
+            renderFinancialProgressCell(record, feeBillTracking),
+        },
+      ]
+    : [];
+
   return [
     {
       title: '税率(%)',
@@ -101,6 +187,7 @@ export function buildOptionalFeeColumns(): ProColumns<API.OrderFee>[] {
       editable: false,
       render: (_, record) => <BusinessTagList tags={record.tags} />,
     },
+    ...financeColumns,
   ];
 }
 

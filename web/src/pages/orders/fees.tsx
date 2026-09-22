@@ -4,10 +4,16 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
@@ -23,6 +29,7 @@ import {
   orderFeeServiceReopenFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
+import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import { getErrorMessage } from '@/utils/errorMessage';
@@ -32,6 +39,7 @@ import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
 import FeeSupplementSection from './components/fees/FeeSupplementSection';
+import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import {
   FEE_BILLED,
   feeStatusCode,
@@ -177,6 +185,70 @@ export default function OrderFeesPage() {
       ),
   });
   const taxableServices = taxableServicesQuery.data ?? [];
+
+  // 关联账单投影：具备财务费用读取权限且可操作该订单所属组织时，按订单维度
+  // 查询一次（应收/应付两表共用）；无权限完全不发起请求，也不影响订单费用
+  // 自身功能。queryKey 含订单与组织，切换上下文不串数据。
+  const queryClient = useQueryClient();
+  const canTrackFeeBills = Boolean(
+    access.canReadFinanceFees &&
+      access.canOperateOrganization(order?.organizationId),
+  );
+  const feeBillTrackingQuery = useQuery({
+    queryKey: [
+      'orders',
+      'fee-bill-tracking',
+      { orderId: targetOrderId, organizationId: order?.organizationId },
+    ],
+    enabled: canTrackFeeBills && Boolean(targetOrderId),
+    // 关联列内自带加载/失败/重试状态，不经全局错误通知重复提示。
+    meta: { silent: true },
+    queryFn: async (): Promise<API.FeeLedgerOrderDetail | undefined> => {
+      const orderIdForTracking = targetOrderId;
+      if (!orderIdForTracking) {
+        throw new Error('订单不存在，无法查询关联账单');
+      }
+      const response = await settlementServiceGetFeeLedgerOrderDetail(
+        { orderId: orderIdForTracking },
+        { skipErrorHandler: true },
+      );
+      return response.data;
+    },
+  });
+  const refreshFeeBillTracking = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: ['orders', 'fee-bill-tracking'],
+    });
+  }, [queryClient]);
+  const feeBillTracking = useMemo<FeeBillTrackingView | undefined>(() => {
+    if (!canTrackFeeBills) return undefined;
+    const byFeeId: FeeBillTrackingView['byFeeId'] = {};
+    for (const item of feeBillTrackingQuery.data?.fees ?? []) {
+      if (item.id) {
+        byFeeId[item.id] = {
+          billNo: item.billNo,
+          financialProgress: item.financialProgress,
+        };
+      }
+    }
+    return {
+      state: feeBillTrackingQuery.isPending
+        ? 'loading'
+        : feeBillTrackingQuery.isError
+          ? 'error'
+          : 'ready',
+      byFeeId,
+      onRetry: () => {
+        void feeBillTrackingQuery.refetch();
+      },
+    };
+  }, [
+    canTrackFeeBills,
+    feeBillTrackingQuery.data,
+    feeBillTrackingQuery.isPending,
+    feeBillTrackingQuery.isError,
+    feeBillTrackingQuery.refetch,
+  ]);
 
   // 快捷新建结算单位状态
   const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
@@ -370,6 +442,7 @@ export default function OrderFeesPage() {
       setModalOpen(false);
       receivableActionRef.current?.reload();
       payableActionRef.current?.reload();
+      refreshFeeBillTracking();
       return true;
     } catch (error) {
       message.error(getErrorMessage(error, '保存费用失败'));
@@ -380,6 +453,7 @@ export default function OrderFeesPage() {
   const reloadFeeTables = () => {
     receivableActionRef.current?.reload();
     payableActionRef.current?.reload();
+    refreshFeeBillTracking();
   };
 
   const handleCancelFee = (fee: API.OrderFee) => {
@@ -576,6 +650,7 @@ export default function OrderFeesPage() {
               void refreshLockState();
               receivableActionRef.current?.reload();
               payableActionRef.current?.reload();
+              refreshFeeBillTracking();
             }}
           >
             刷新数据
@@ -621,6 +696,8 @@ export default function OrderFeesPage() {
         }
         feeWritesDisabled={feeWritesDisabled}
         columnSettingScope={feeColumnSettingScope}
+        feeBillTracking={feeBillTracking}
+        onFeeSaved={refreshFeeBillTracking}
         onOpenBillWorkbench={(feeIds) => {
           if (!orderId) return;
           if (!order?.organizationId) {
@@ -689,6 +766,7 @@ export default function OrderFeesPage() {
           setSelectedPayableFeeIds([]);
           receivableActionRef.current?.reload();
           payableActionRef.current?.reload();
+          refreshFeeBillTracking();
         }}
       />
 

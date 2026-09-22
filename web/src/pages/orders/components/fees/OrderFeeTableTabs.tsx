@@ -15,6 +15,7 @@ import {
   orderFeeStatusMeta,
   statusTag,
 } from '@/constants/statusMeta';
+import { history } from '@/router/history';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceListFees,
@@ -26,6 +27,7 @@ import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import FeeColumnSettingsModal from './FeeColumnSettingsModal';
+import type { FeeBillTrackingView } from './feeBillTracking';
 import {
   clearFeeColumnPreference,
   defaultFeeColumnPreference,
@@ -97,6 +99,10 @@ interface OrderFeeTableTabsProps {
   onCancelFee?: (fee: API.OrderFee) => void;
   /** 列偏好隔离范围（用户 + 当前组织）；缺省时设置仅当前页面会话内生效。 */
   columnSettingScope?: FeeColumnPreferenceScope;
+  /** 关联账单投影；仅当页面具备财务费用读取权限时提供，两表共用一次查询。 */
+  feeBillTracking?: FeeBillTrackingView;
+  /** 行内保存成功后的通知（页面据此刷新关联账单投影）。 */
+  onFeeSaved?: () => void;
 }
 
 export default function OrderFeeTableTabs({
@@ -129,6 +135,8 @@ export default function OrderFeeTableTabs({
   onReopenFee,
   onCancelFee,
   columnSettingScope,
+  feeBillTracking,
+  onFeeSaved,
 }: OrderFeeTableTabsProps) {
   const { message } = App.useApp();
   const currentOrderIdRef = useRef(orderId);
@@ -164,21 +172,27 @@ export default function OrderFeeTableTabs({
   );
   const columnEditing =
     receivableEditableKeys.length > 0 || payableEditableKeys.length > 0;
+  // 账单号与关联账单财务进度列仅在页面提供关联投影（财务读取权限）时可用。
+  const financeAvailable = Boolean(feeBillTracking);
 
   useEffect(() => {
     setFeeColumnPref(
       resolveFeeColumnPreference(
         columnSettingScope ? loadFeeColumnPreference(columnSettingScope) : null,
-        false,
+        financeAvailable,
       ),
     );
-  }, [columnSettingScope?.userId, columnSettingScope?.organizationId]);
+  }, [
+    columnSettingScope?.userId,
+    columnSettingScope?.organizationId,
+    financeAvailable,
+  ]);
 
   const handleColumnSettingsConfirm = (next: FeeColumnPreference) => {
     setColumnSettingsOpen(false);
     setFeeColumnPref(next);
     const scope = columnSettingScope ?? {};
-    const persisted = isDefaultFeeColumnPreference(next, false)
+    const persisted = isDefaultFeeColumnPreference(next, financeAvailable)
       ? clearFeeColumnPreference(scope)
       : saveFeeColumnPreference(scope, next);
     if (!persisted) {
@@ -187,23 +201,48 @@ export default function OrderFeeTableTabs({
   };
 
   const renderColumnToolbar = () => (
-    <Tooltip
-      title={
-        columnEditing
-          ? '请先保存或取消正在编辑的费用行'
-          : '设置费用表格列（应收/应付共用）'
-      }
-    >
-      <span>
+    <Space size={8}>
+      {feeBillTracking?.state === 'error' && (
+        <Space size={4}>
+          <Tag color="error">账单关联加载失败</Tag>
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0 }}
+            onClick={feeBillTracking.onRetry}
+          >
+            重试
+          </Button>
+        </Space>
+      )}
+      {feeBillTracking && (
         <Button
-          icon={<SettingOutlined />}
-          disabled={columnEditing}
-          onClick={() => setColumnSettingsOpen(true)}
+          type="link"
+          size="small"
+          style={{ padding: 0 }}
+          onClick={() => history.push(`/finance/fees/detail/${orderId}`)}
         >
-          列设置
+          财务详情
         </Button>
-      </span>
-    </Tooltip>
+      )}
+      <Tooltip
+        title={
+          columnEditing
+            ? '请先保存或取消正在编辑的费用行'
+            : '设置费用表格列（应收/应付共用）'
+        }
+      >
+        <span>
+          <Button
+            icon={<SettingOutlined />}
+            disabled={columnEditing}
+            onClick={() => setColumnSettingsOpen(true)}
+          >
+            列设置
+          </Button>
+        </span>
+      </Tooltip>
+    </Space>
   );
 
   currentOrderIdRef.current = orderId;
@@ -362,6 +401,7 @@ export default function OrderFeeTableTabs({
       }
       receivableActionRef.current?.reload();
       payableActionRef.current?.reload();
+      onFeeSaved?.();
       return true;
     } catch (error) {
       message.error(
@@ -687,7 +727,7 @@ export default function OrderFeeTableTabs({
           placeholder: '备注（可选）',
         },
       },
-      ...buildOptionalFeeColumns(),
+      ...buildOptionalFeeColumns(feeBillTracking),
       {
         title: '操作',
         valueType: 'option',
@@ -1035,7 +1075,7 @@ export default function OrderFeeTableTabs({
 
       <FeeColumnSettingsModal
         open={columnSettingsOpen}
-        financeAvailable={false}
+        financeAvailable={financeAvailable}
         value={feeColumnPref}
         onCancel={() => setColumnSettingsOpen(false)}
         onConfirm={handleColumnSettingsConfirm}

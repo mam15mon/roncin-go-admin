@@ -11,6 +11,7 @@
 | 页面骨架、分节表单/详情、CRUD 列表 | [`web/src/components/ui/index.ts`](../../../../web/src/components/ui/index.ts) | `PageHeaderShell`/`SectionCard`/`StickyFooterBar`、`OrderFormTemplate`、`MasterDataTemplate`、`FinanceLedgerTemplate`、`OrderListTemplate` 等视觉与结构模板 | 领域请求、领域状态映射；模板内不发起新领域请求 |
 | 业务状态标签/文案 | [`web/src/constants/statusMeta.ts`](../../../../web/src/constants/statusMeta.ts) | `orderFeeStatusMeta` 等各实体状态元数据与通用 `statusTag`/`statusText`/`makeValueEnum` | 页面自写「状态→颜色/文字」映射；不新建平行的全局状态渲染体系 |
 | 账单状态映射 | [`web/src/features/finance/bill-status/index.ts`](../../../../web/src/features/finance/bill-status/index.ts) | `billStatusMeta`（账单列表、抽屉、建账结果表共用） | 与费用状态合并；账单语义只归本能力 |
+| 财务进度文案映射 | [`web/src/features/finance/fee-progress/index.ts`](../../../../web/src/features/finance/fee-progress/index.ts) | `feeLedgerProgressLabels`：整张关联账单开票与核销综合进度的文字/颜色（财务费用台账与订单费用关联账单列共用） | 行配色 key、台账请求与列配置逻辑（留在各调用方）；不得另建第二套进度文案 |
 | 账单建账工作台 | [`web/src/features/finance/bill-creation/index.ts`](../../../../web/src/features/finance/bill-creation/index.ts) | `BillCreationWorkbench` 及 Props（订单费用、财务费用、账单列表三入口共用） | 账单页私有表单/抽屉（`BillEditModal` 等留页面）；未经真实共用不上提新组件 |
 | 审计记录展示 | [`web/src/features/audit/index.ts`](../../../../web/src/features/audit/index.ts) | 审计操作/对象/明细的展示转换（管理端审计页与业务页审计分区共用） | 在管理页与业务页各自复制转换逻辑 |
 | 汇兑损益展示 | [`web/src/features/finance/exchange-gain-loss/index.ts`](../../../../web/src/features/finance/exchange-gain-loss/index.ts) | `ExchangeGainLossTag`（对冲汇差、核销已实现损益共用展示） | 损益口径与计算逻辑（留在调用方） |
