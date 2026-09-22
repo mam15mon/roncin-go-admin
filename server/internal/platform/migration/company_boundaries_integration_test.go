@@ -186,14 +186,64 @@ func TestCompanyBoundaryMigrationRejectsReferencedLocalOverride(t *testing.T) {
 	assertBoundaryCount(t, db, `SELECT count(*) FROM order_fees WHERE fee_setting_id='40000000-0000-0000-0000-000000000004'`, 1)
 	assertBoundaryCount(t, db, `SELECT count(*) FROM organizations WHERE code='migration-hq' AND kind='headquarters'`, 1)
 }
-func TestCompanyBoundaryMigrationRejectsSystemPrivateFee(t *testing.T) {
+func TestCompanyBoundaryMigrationConvertsSystemPrivateFeeOnlyToTemplate(t *testing.T) {
 	db, dir := companyBoundaryFixture(t)
 	seedBoundarySharedFee(t, db)
-	mustBoundarySQL(t, db, `UPDATE fee_settings SET organization_id='10000000-0000-0000-0000-000000000001' WHERE id='40000000-0000-0000-0000-000000000004'`)
-	err := Apply(context.Background(), db, dir)
-	if err == nil || !strings.Contains(err.Error(), "费用科目公司或税务归属不合法") {
-		t.Fatalf("期望未决归属阻断，得到 %v", err)
+	mustBoundarySQL(t, db, `UPDATE fee_settings SET organization_id='10000000-0000-0000-0000-000000000001' WHERE id='40000000-0000-0000-0000-000000000004';
+ INSERT INTO taxable_services(id,created_at,updated_at,organization_id,name,default_tax_rate) VALUES('60000000-0000-0000-0000-000000000001',now(),now(),'10000000-0000-0000-0000-000000000002','公司独立税项',13);
+ INSERT INTO fee_settings(id,created_at,updated_at,organization_id,fee_code,name_zh,charge_category_id,default_currency,billing_unit_id,tax_rate,taxable_service_id) VALUES('60000000-0000-0000-0000-000000000002',now(),now(),'10000000-0000-0000-0000-000000000002','MIGRATION_FEE','公司独立配置','40000000-0000-0000-0000-000000000001','CNY','40000000-0000-0000-0000-000000000002',13,'60000000-0000-0000-0000-000000000001');
+ INSERT INTO taxable_services(id,created_at,updated_at,organization_id,name,default_tax_rate) VALUES(gen_random_uuid(),now(),now(),'10000000-0000-0000-0000-000000000001','未使用税项',9);`)
+	var before string
+	if err := db.QueryRow(`SELECT jsonb_build_object('fee',to_jsonb(f),'tax',to_jsonb(t))::text FROM fee_settings f JOIN taxable_services t ON t.id=f.taxable_service_id WHERE f.id='60000000-0000-0000-0000-000000000002'`).Scan(&before); err != nil {
+		t.Fatal(err)
 	}
-	assertBoundaryCount(t, db, `SELECT count(*) FROM fee_settings WHERE id='40000000-0000-0000-0000-000000000004' AND organization_id='10000000-0000-0000-0000-000000000001'`, 1)
+	if err := Apply(context.Background(), db, dir); err != nil {
+		t.Fatal(err)
+	}
+	var after string
+	if err := db.QueryRow(`SELECT jsonb_build_object('fee',to_jsonb(f),'tax',to_jsonb(t))::text FROM fee_settings f JOIN taxable_services t ON t.id=f.taxable_service_id WHERE f.id='60000000-0000-0000-0000-000000000002'`).Scan(&after); err != nil {
+		t.Fatal(err)
+	}
+	if after != before {
+		t.Fatal("已有公司配置被修改")
+	}
+	assertBoundaryCount(t, db, `SELECT count(*) FROM fee_setting_templates WHERE id='40000000-0000-0000-0000-000000000004' AND taxable_service_name='迁移税务' AND taxable_service_short_name='税务' AND taxable_service_goods_code='123456' AND taxable_service_default_tax_rate=6`, 1)
+	assertBoundaryCount(t, db, `SELECT count(*) FROM fee_settings`, 1)
+	assertBoundaryCount(t, db, `SELECT count(*) FROM taxable_services WHERE organization_id='10000000-0000-0000-0000-000000000001'`, 2)
+}
+
+func TestCompanyBoundaryMigrationRejectsSystemTemplateCodeConflictAtomically(t *testing.T) {
+	db, dir := companyBoundaryFixture(t)
+	seedBoundarySharedFee(t, db)
+	mustBoundarySQL(t, db, `INSERT INTO fee_settings(id,created_at,updated_at,organization_id,fee_code,name_zh,charge_category_id,default_currency,billing_unit_id,tax_rate,taxable_service_id) SELECT gen_random_uuid(),created_at,updated_at,'10000000-0000-0000-0000-000000000001',fee_code,name_zh,charge_category_id,default_currency,billing_unit_id,tax_rate,taxable_service_id FROM fee_settings`)
+	err := Apply(context.Background(), db, dir)
+	if err == nil || !strings.Contains(err.Error(), "系统费用模板存在同码冲突") {
+		t.Fatalf("期望模板冲突，得到 %v", err)
+	}
+	assertBoundaryCount(t, db, `SELECT count(*) FROM fee_settings`, 2)
 	assertBoundaryCount(t, db, `SELECT count(*) FROM organizations WHERE code='migration-hq' AND kind='headquarters'`, 1)
+	assertBoundaryCount(t, db, `SELECT count(*) FROM information_schema.tables WHERE table_schema=current_schema() AND table_name='fee_setting_templates'`, 0)
+}
+
+func TestCompanyBoundaryMigrationRejectsReferencedSystemPrivateFeeAtomically(t *testing.T) {
+	for _, reference := range []string{"order_fees", "order_fee_supplement_requests"} {
+		t.Run(reference, func(t *testing.T) {
+			db, dir := companyBoundaryFixture(t)
+			seedBoundarySharedFee(t, db)
+			seedBoundaryFeeReferences(t, db)
+			// 两条路径分别验证，避免其中一种校验被另一种引用掩盖。
+			if reference == "order_fees" {
+				mustBoundarySQL(t, db, `DELETE FROM order_fee_supplement_requests`)
+			} else {
+				mustBoundarySQL(t, db, `DELETE FROM order_fees`)
+			}
+			mustBoundarySQL(t, db, `UPDATE fee_settings SET organization_id='10000000-0000-0000-0000-000000000001' WHERE id='40000000-0000-0000-0000-000000000004'`)
+			err := Apply(context.Background(), db, dir)
+			if err == nil || !strings.Contains(err.Error(), "系统私有费用存在经营引用") {
+				t.Fatalf("期望引用归属阻断，得到 %v", err)
+			}
+			assertBoundaryCount(t, db, `SELECT count(*) FROM fee_settings WHERE id='40000000-0000-0000-0000-000000000004'`, 1)
+			assertBoundaryCount(t, db, `SELECT count(*) FROM organizations WHERE code='migration-hq' AND kind='headquarters'`, 1)
+		})
+	}
 }

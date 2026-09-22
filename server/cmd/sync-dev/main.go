@@ -58,6 +58,7 @@ import (
 	partnersettlementruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
+	roleassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	seadocumentmodechangeeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	seadocumentvoideventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -78,7 +79,6 @@ import (
 )
 
 type seedContext struct {
-	db              *sql.DB
 	tx              *ent.Tx
 	systemWorkspace *ent.Organization
 	company         *ent.Organization
@@ -127,83 +127,76 @@ func main() {
 
 	fmt.Println("【开始同步开发测试数据...】")
 
-	tx, err := client.Tx(ctx)
+	sc, err := runSeed(ctx, client)
 	if err != nil {
-		logger.Error("开启事务失败", "error", err)
+		logger.Error("开发测试数据同步失败", "error", err)
 		os.Exit(1)
 	}
-	defer tx.Rollback()
+	printSeedSummary(sc)
+}
 
-	sc := &seedContext{
-		db:             sqlDB,
-		tx:             tx,
-		users:          make(map[string]*ent.User),
-		ports:          make(map[string]*ent.Port),
-		shippingLines:  make(map[string]*ent.ShippingLine),
-		billingUnits:   make(map[string]*ent.BillingUnit),
-		taxableSvcs:    make(map[string]*ent.TaxableService),
-		chargeCats:     make(map[string]*ent.MasterDataItem),
-		containerSpecs: make(map[string]*ent.MasterDataItem),
-		feeSettings:    make(map[string]*ent.FeeSetting),
-		partners:       make(map[string]*ent.Partner),
-		orders:         make(map[string]*ent.Order),
-		orderFees:      make(map[string]*ent.OrderFee),
-	}
+func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
+	var sc *seedContext
+	err := data.WithClientTx(ctx, client, func(tx *ent.Tx) error {
+		sc = &seedContext{
+			tx:             tx,
+			users:          make(map[string]*ent.User),
+			ports:          make(map[string]*ent.Port),
+			shippingLines:  make(map[string]*ent.ShippingLine),
+			billingUnits:   make(map[string]*ent.BillingUnit),
+			taxableSvcs:    make(map[string]*ent.TaxableService),
+			chargeCats:     make(map[string]*ent.MasterDataItem),
+			containerSpecs: make(map[string]*ent.MasterDataItem),
+			feeSettings:    make(map[string]*ent.FeeSetting),
+			partners:       make(map[string]*ent.Partner),
+			orders:         make(map[string]*ent.Order),
+			orderFees:      make(map[string]*ent.OrderFee),
+		}
 
-	if err := seedOrganizationAndStaff(ctx, sc); err != nil {
-		logger.Error("组织与员工同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedReferenceData(ctx, sc); err != nil {
-		logger.Error("基础参考数据（港口/船司）同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedFinanceMasterData(ctx, sc); err != nil {
-		logger.Error("财务主数据（计费单位/税目/费用/汇率）同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedPartners(ctx, sc); err != nil {
-		logger.Error("往来单位同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedOrdersAndFees(ctx, sc); err != nil {
-		logger.Error("业务订单与费用明细同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedFinanceBillsAndCashflows(ctx, sc); err != nil {
-		logger.Error("财务账单、流水与核销同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedOrderLockGovernance(ctx, sc); err != nil {
-		logger.Error("订单锁治理测试数据同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedCommissionRules(ctx, sc); err != nil {
-		logger.Error("提成方案与规则同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedCommissionLedger(ctx, sc); err != nil {
-		logger.Error("提成台账与月度申请同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedSeaDocumentOperations(ctx, sc); err != nil {
-		logger.Error("海运单证操作（拆票/改配/共享箱/改单作废）同步失败", "error", err)
-		os.Exit(1)
-	}
-	if err := seedOrderOperations(ctx, sc); err != nil {
-		logger.Error("订单运营数据（里程碑/POD/附件/异常）同步失败", "error", err)
-		os.Exit(1)
-	}
+		if err := seedOrganizationAndStaff(ctx, sc); err != nil {
+			return fmt.Errorf("组织与员工同步失败: %w", err)
+		}
+		if err := seedReferenceData(ctx, sc); err != nil {
+			return fmt.Errorf("基础参考数据（港口/船司）同步失败: %w", err)
+		}
+		if err := seedFinanceMasterData(ctx, sc); err != nil {
+			return fmt.Errorf("财务主数据（计费单位/税目/费用/汇率）同步失败: %w", err)
+		}
+		if err := seedPartners(ctx, sc); err != nil {
+			return fmt.Errorf("往来单位同步失败: %w", err)
+		}
+		if err := seedOrdersAndFees(ctx, sc); err != nil {
+			return fmt.Errorf("业务订单与费用明细同步失败: %w", err)
+		}
+		if err := seedFinanceBillsAndCashflows(ctx, sc); err != nil {
+			return fmt.Errorf("财务账单、流水与核销同步失败: %w", err)
+		}
+		if err := seedOrderLockGovernance(ctx, sc); err != nil {
+			return fmt.Errorf("订单锁治理测试数据同步失败: %w", err)
+		}
+		if err := seedCommissionRules(ctx, sc); err != nil {
+			return fmt.Errorf("提成方案与规则同步失败: %w", err)
+		}
+		if err := seedCommissionLedger(ctx, sc); err != nil {
+			return fmt.Errorf("提成台账与月度申请同步失败: %w", err)
+		}
+		if err := seedSeaDocumentOperations(ctx, sc); err != nil {
+			return fmt.Errorf("海运单证操作（拆票/改配/共享箱/改单作废）同步失败: %w", err)
+		}
+		if err := seedOrderOperations(ctx, sc); err != nil {
+			return fmt.Errorf("订单运营数据（里程碑/POD/附件/异常）同步失败: %w", err)
+		}
 
-	if err := tx.Commit(); err != nil {
-		logger.Error("提交数据事务失败", "error", err)
-		os.Exit(1)
-	}
+		return nil
+	})
+	return sc, err
+}
 
+func printSeedSummary(sc *seedContext) {
 	fmt.Println("==================================================")
 	fmt.Println("🎉 开发测试数据同步完成 (sync:dev successful)！")
 	fmt.Printf("✔ 组织体系: 系统管理 [%s] + 独立公司已完备；经营数据归属 [%s]，员工具备公司身份\n", sc.systemWorkspace.Name, sc.company.Name)
-	fmt.Printf("✔ 测试人员: %d 名业务员工 (张强/王丽/李明/陈华/赵芳/刘敏，默认密码: Dev123456!)\n", len(sc.users))
+	fmt.Printf("✔ 测试人员: %d 名业务员工 (张强/王丽/李明/陈华/赵芳/刘敏)\n", len(sc.users))
 	fmt.Printf("✔ 基础参考: %d 个核心海港 (CNSHA/CNNBO/USLAX...) + %d 家主流船公司\n", len(sc.ports), len(sc.shippingLines))
 	fmt.Printf("✔ 财务字典: %d 个计费单位 + %d 个费用科目 + 开发基准汇率已生效\n", len(sc.billingUnits), len(sc.feeSettings))
 	fmt.Printf("✔ 往来单位: %d 家客商档案 (包含进出口商、电商、船代、车队、报关行及对公账户/联系人)\n", len(sc.partners))
@@ -255,13 +248,6 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 	}
 	sc.company = company
 
-	// 查找已有 admin 用户
-	adminUser, _ := tx.User.Query().Where(userent.UsernameEQ("admin")).First(ctx)
-	if adminUser == nil {
-		adminUser, _ = tx.User.Query().Where(userent.IsBootstrapAdmin(true)).First(ctx)
-	}
-	sc.adminUser = adminUser
-
 	// 测试员工列表
 	staffList := []struct {
 		username    string
@@ -295,29 +281,30 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 		}
 		sc.users[s.username] = u
 
-		// 绑定经营公司 Membership（业务办理必须在公司工作台进行）
-		companyAdminRole, _ := tx.Role.Query().Where(roleent.OrganizationIDEQ(company.ID), roleent.CodeEQ("administrator")).First(ctx)
-		cExists, _ := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationIDEQ(company.ID)).Exist(ctx)
-		if !cExists {
-			cm, cmErr := tx.Membership.Create().
-				SetUserID(u.ID).
-				SetOrganizationID(company.ID).
-				SetPrimary(true).
-				SetEnabled(true).
-				Save(ctx)
-			if cmErr != nil {
-				return fmt.Errorf("创建公司测试成员: %w", cmErr)
-			}
-			if companyAdminRole != nil {
-				if _, err := tx.RoleAssignment.Create().SetMembershipID(cm.ID).SetRoleID(companyAdminRole.ID).Save(ctx); err != nil {
-					return err
-				}
+		// 重复执行时也补齐本公司角色，不授予系统管理成员资格。
+		companyAdminRole, err := tx.Role.Query().Where(roleent.OrganizationIDEQ(company.ID), roleent.CodeEQ("administrator")).Only(ctx)
+		if err != nil {
+			return fmt.Errorf("查询公司管理员角色: %w", err)
+		}
+		cm, err := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationIDEQ(company.ID)).Only(ctx)
+		if ent.IsNotFound(err) {
+			cm, err = tx.Membership.Create().SetUserID(u.ID).SetOrganizationID(company.ID).SetPrimary(true).SetEnabled(true).Save(ctx)
+		}
+		if err != nil {
+			return fmt.Errorf("确保公司测试成员: %w", err)
+		}
+		assigned, err := tx.RoleAssignment.Query().Where(roleassignmentent.MembershipIDEQ(cm.ID), roleassignmentent.RoleIDEQ(companyAdminRole.ID)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if !assigned {
+			if _, err := tx.RoleAssignment.Create().SetMembershipID(cm.ID).SetRoleID(companyAdminRole.ID).Save(ctx); err != nil {
+				return err
 			}
 		}
 	}
-	if sc.adminUser == nil && sc.users["zhangqiang"] != nil {
-		sc.adminUser = sc.users["zhangqiang"]
-	}
+	// 经营操作的创建人与审批人使用真实公司成员，不借用系统管理员身份。
+	sc.adminUser = sc.users["zhangqiang"]
 	return nil
 }
 
@@ -346,7 +333,7 @@ func seedReferenceData(ctx context.Context, sc *seedContext) error {
 				SetNameZh(p.nameZh).
 				SetNameEn(p.nameEn).
 				SetCountryCode(p.country).
-				SetTransportModes([]string{"maritime"}).
+				SetTransportModes([]string{"SEA"}).
 				SetSortOrder((idx + 1) * 10).
 				SetEnabled(true).
 				Save(ctx)
@@ -1568,13 +1555,6 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 			return fmt.Errorf("创建账单批次 %s: %w", batchNo, err)
 		}
 		batch = createdBatch
-	}
-
-	// batch_id 在领域层不可变：对批次建立前已存在的种子账单用裸 SQL 补挂批次
-	if _, err := sc.db.ExecContext(ctx,
-		"UPDATE finance_bills SET batch_id = $1 WHERE organization_id = $2 AND bill_no = 'AR26090002' AND batch_id IS NULL",
-		batch.ID, co.ID); err != nil {
-		return fmt.Errorf("补挂账单批次 %s: %w", batchNo, err)
 	}
 
 	// 账单 2：待付款的确认应收美金账单 (SE26090006)

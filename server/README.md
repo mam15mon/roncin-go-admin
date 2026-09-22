@@ -10,7 +10,7 @@ Protobuf 契约优先（HTTP + gRPC 双传输）、Ent + PostgreSQL 持久化、
 api/                  Protobuf 契约与生成的绑定代码（唯一契约真相源）
 cmd/                  入口指令
   server/               主服务入口
-  bootstrap-admin/      冷启动初始化根组织与超级管理员；--sync-permissions 手工同步权限
+  bootstrap-admin/      按正式迁移冷启动系统管理工作台与管理员；--sync-permissions 手工同步权限
   migrate/              版本化迁移执行器（迁移后自动同步权限清单）
   sync-airports/        OurAirports 机场同步 CLI
   sync-regions/         全国行政区划同步 CLI

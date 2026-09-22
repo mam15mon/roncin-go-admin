@@ -57,9 +57,24 @@ CREATE UNIQUE INDEX feesettingtemplate_fee_code ON fee_setting_templates(fee_cod
 CREATE INDEX feesettingtemplate_enabled_sort_order ON fee_setting_templates(enabled,sort_order);
 CREATE INDEX feesettingtemplate_updated_at ON fee_setting_templates(updated_at);
 
+-- 旧管理节点的私有目录经确认转为系统模板，不向已有公司复制。
+DO $$
+DECLARE bad text;
+BEGIN
+ SELECT string_agg(f.id::text,',') INTO bad FROM fee_settings f JOIN organizations o ON o.id=f.organization_id LEFT JOIN taxable_services t ON t.id=f.taxable_service_id WHERE o.kind='system' AND t.organization_id IS DISTINCT FROM f.organization_id;
+ IF bad IS NOT NULL THEN RAISE EXCEPTION '系统费用模板税务归属不合法: %',bad; END IF;
+ SELECT string_agg(f.id::text,',') INTO bad FROM fee_settings f JOIN organizations o ON o.id=f.organization_id WHERE o.kind='system' AND (EXISTS(SELECT 1 FROM order_fees r WHERE r.fee_setting_id=f.id) OR EXISTS(SELECT 1 FROM order_fee_supplement_requests r WHERE r.fee_setting_id=f.id));
+ IF bad IS NOT NULL THEN RAISE EXCEPTION '系统私有费用存在经营引用，需明确归属: %',bad; END IF;
+ SELECT string_agg(fee_code,',') INTO bad FROM (SELECT f.fee_code FROM fee_settings f LEFT JOIN organizations o ON o.id=f.organization_id WHERE f.organization_id IS NULL OR o.kind='system' GROUP BY f.fee_code HAVING count(*)>1) duplicates;
+ IF bad IS NOT NULL THEN RAISE EXCEPTION '系统费用模板存在同码冲突: %',bad; END IF;
+END $$;
+
 INSERT INTO fee_setting_templates
 SELECT f.id,f.created_at,f.updated_at,f.fee_code,f.name_zh,f.name_en,f.alias_name,f.charge_category_id,f.default_currency,f.billing_unit_id,f.abnormal_case_id,f.tax_rate,t.name,t.short_name,t.goods_code,t.default_tax_rate,f.enabled,f.sort_order,f.search_keywords
-FROM fee_settings f JOIN taxable_services t ON t.id=f.taxable_service_id WHERE f.organization_id IS NULL;
+FROM fee_settings f JOIN taxable_services t ON t.id=f.taxable_service_id WHERE f.organization_id IS NULL OR f.organization_id IN (SELECT id FROM organizations WHERE kind='system');
+
+-- 模板保存原科目ID和税务默认文本；原税项保留完整记录，避免丢失未引用配置。
+DELETE FROM fee_settings WHERE organization_id IN (SELECT id FROM organizations WHERE kind='system');
 
 DO $$
 DECLARE src fee_settings%ROWTYPE; tax taxable_services%ROWTYPE; local_tax taxable_services%ROWTYPE; local_fee fee_settings%ROWTYPE; company record; target_tax uuid; target_fee uuid; bad text;
