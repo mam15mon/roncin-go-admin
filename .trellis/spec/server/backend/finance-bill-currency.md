@@ -163,3 +163,19 @@ netting summary amount = sum(nettings where status = CONFIRMED)
 **Related**：提成计算的收入实现口径与分母聚合均以账单行 `BaseCurrencyAmount`（账单日汇率）
 为基准；未建账费用分母回落费用自身快照（费用发生日），见 finance-commission-lock.md 与
 提成分母相关测试。
+
+### Convention: 费用删除按账单占用判定，账单行快照独立于来源费用
+
+**What**：订单费用删除是物理删除，资格以「存在未取消账单（含草稿）的活动账单行」为唯一
+占用判定（`orderFeeRepo.Remove` 事务内复核，冲突码 `ORDER_FEE_BILL_OCCUPIED`）；已取消账单
+的历史行不阻断。`finance_bill_lines.order_fee_id` 可空，来源费用删除时由外键
+`ON DELETE SET NULL` 置空，行上费用代码/名称/数量/单价/税额/币种快照独立支撑历史展示；
+`order_fee_enterprise_tags` 随费用删除级联清理（迁移 20260922130000）。
+
+**Why**：用户澄清「取消账单后费用可删，不能因曾建过账永久禁删」（2026-09-22）；同时历史
+账单及其金额快照必须原样保留，故来源引用改可空而非级联删行。
+
+**Example**：费用已入草稿账单 → 删除返回 409 提示先取消账单；取消该账单后（费用回到
+CONFIRMED）删除成功，账单行保留快照且 `order_fee_id` 为空。删除与建账并发在费用行
+`ForUpdate` 上串行，不会出现账单引用已删除费用（集成测试
+`order_fee_delete_integration_test.go`）。
