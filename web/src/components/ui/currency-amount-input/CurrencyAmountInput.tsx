@@ -118,6 +118,7 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
   currencyPlaceholder = '币种',
   amountPlaceholder = '0.00',
   disabled = false,
+  allowClear = true,
   maxLength = 23,
   amountRuleMessage = '请输入有效金额，最多 4 位小数',
   emptyAmountMessage = '请输入金额',
@@ -155,7 +156,7 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
           options={currencyOptions}
           popupMatchSelectWidth={false}
           disabled={disabled}
-          allowClear={false}
+          allowClear={allowClear}
           labelRender={(optionProps) =>
             formatSelectedCurrency(optionProps, renderSelectedCurrency)
           }

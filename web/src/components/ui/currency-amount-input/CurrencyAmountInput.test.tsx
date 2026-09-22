@@ -236,4 +236,18 @@ describe('CurrencyAmountInput', () => {
       container.querySelector('.ant-select-show-search'),
     ).toBeInTheDocument();
   });
+
+  it('默认支持 allowClear 允许清除已选币种', () => {
+    const { container } = render(
+      <Form initialValues={{ testCurrency: 'USD' }}>
+        <CurrencyAmountInput
+          currencyName="testCurrency"
+          amountName="testAmount"
+          currencyOptions={mockCurrencies}
+        />
+      </Form>,
+    );
+
+    expect(container.querySelector('.ant-select-allow-clear')).toBeInTheDocument();
+  });
 });

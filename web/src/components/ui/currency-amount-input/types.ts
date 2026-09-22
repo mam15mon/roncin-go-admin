@@ -32,6 +32,8 @@ export interface CurrencyAmountInputProps {
   amountPlaceholder?: string;
   /** 是否禁用 */
   disabled?: boolean;
+  /** 币种选择器是否支持清除，默认 true */
+  allowClear?: boolean;
   /** 金额最大输入字符长度，默认 23 */
   maxLength?: number;
   /** 金额格式校验提示文案 */

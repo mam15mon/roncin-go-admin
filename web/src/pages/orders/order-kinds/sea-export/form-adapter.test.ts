@@ -770,6 +770,23 @@ describe('SE 适配器完整固定夹具等价', () => {
     });
   });
 
+  it('当订单未提供货值与保费时，初始表单值中货值、保费及其币种均保持 undefined，防止触发联动必填校验', () => {
+    const result = buildSeaExportDetailInitialValues({
+      id: 'order-2',
+      orderNo: 'SE-002',
+      customerId: 'customer-2',
+      cargoValue: undefined,
+      cargoCurrency: undefined,
+      insurancePremium: undefined,
+      insuranceCurrency: undefined,
+    });
+
+    expect(result.cargoValue).toBeUndefined();
+    expect(result.cargoCurrency).toBeUndefined();
+    expect(result.insurancePremium).toBeUndefined();
+    expect(result.insuranceCurrency).toBeUndefined();
+  });
+
   it('更新请求对空 receivedAt 显式输出 undefined，不误传默认日期', () => {
     const result = buildSeaExportUpdatePayload('order-1', '1', {
       customerId: 'customer-1',

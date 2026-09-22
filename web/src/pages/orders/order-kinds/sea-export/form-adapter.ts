@@ -368,9 +368,13 @@ export function buildSeaExportDetailInitialValues(
     shippingAgentId: order.shippingAgentId,
     contractNo: order.contractNo,
     cargoValue: order.cargoValue,
-    cargoCurrency: order.cargoCurrency || 'USD',
+    cargoCurrency: order.cargoValue?.trim()
+      ? order.cargoCurrency || 'USD'
+      : undefined,
     insurancePremium: order.insurancePremium,
-    insuranceCurrency: order.insuranceCurrency || 'CNY',
+    insuranceCurrency: order.insurancePremium?.trim()
+      ? order.insuranceCurrency || 'CNY'
+      : undefined,
     unNumber: order.unNumber,
     hazardClass: order.hazardClass,
     factoryName: order.factoryName,
