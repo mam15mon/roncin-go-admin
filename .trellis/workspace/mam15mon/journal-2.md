@@ -511,3 +511,26 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+## Session 100: 订单费用按账单占用关系物理删除
+<!-- trellis-session: v=2 -->
+
+**Date**: 2026-09-22
+**Task**: 09-22-order-fee-delete-by-bill-occupancy
+**Branch**: `main`
+
+### Summary
+
+承接用户对归档任务的补充澄清：RemoveFee 由软作废升级为物理删除，事务内锁定订单与费用后以「存在未取消账单（含草稿）的活动账单行」为唯一占用判定，冲突码 ORDER_FEE_BILL_OCCUPIED 提示先取消账单；取消账单后恢复可删。finance_bill_lines.order_fee_id 可空化 + SET NULL 保历史快照，费用标签外键改 CASCADE，正式迁移 20260922130000 隔离 Schema 冷启动验证；前端录入页删除确认不再采集原因并过滤历史作废行（数据/最近结果/父级集合/笔数金额同源）。吸收并行会话的 reason 选填契约作为删除无原因的前置必要变更；补丁级提交避免纳入其余未提交改动。新增 7 场景 PostgreSQL 集成测试（含删除与建账并发互斥）；全量单测、check:server、check:web 通过；RoleWorkspaceAnchorBackfill 与 FeeSupplementListAuthorization 两个集成失败经 HEAD 干净复测确认为既有问题。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d3e87222` | feat(server): 订单费用按账单占用关系物理删除 |
+| `677a9b7a` | feat(web): 订单费用录入页改为删除语义并隐藏历史作废行 |
+| `0f6a3e5a` | docs(spec): 记录费用删除按账单占用判定与账单行快照独立契约 |
+
+### Status
+
+[OK] **Completed**
