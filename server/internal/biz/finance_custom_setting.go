@@ -120,7 +120,7 @@ func normalizeBilledFeeEditableFields(fields []BilledFeeEditableField) ([]Billed
 	return result, nil
 }
 
-// GetCreditLimitControlPolicy 读取组织（含总部继承）的信用额度管控策略；
+// GetCreditLimitControlPolicy 读取目标公司的独立信用额度管控策略；
 // 未保存过策略时返回默认值（仅提醒模式开启）。
 func (uc *FinanceCustomSettingUsecase) GetCreditLimitControlPolicy(ctx context.Context, organizationID uuid.UUID) (*CreditLimitControlPolicy, error) {
 	if uc == nil || uc.repo == nil || organizationID == uuid.Nil {

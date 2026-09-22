@@ -113,7 +113,7 @@ describe('提成导出按钮', () => {
     serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
   });
 
-  it('总部配置权限保留考核规则维护入口，不授予提成办理能力', async () => {
+  it('系统管理配置权限保留考核规则维护入口，不授予提成办理能力', async () => {
     accessState.canConfigureFinanceCommissions = true;
     renderWithClient(
       <App>

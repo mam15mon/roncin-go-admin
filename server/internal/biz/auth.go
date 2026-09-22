@@ -61,19 +61,19 @@ type Organization struct {
 	Code         string
 	Name         string
 	BaseCurrency string
-	// Kind 是该组织节点自身的类型；工作台候选只可能是总部或公司。
+	// Kind 是该组织节点自身的类型；工作台候选只可能是系统管理或公司。
 	Kind OrganizationKind
 }
 
 // OrganizationChoice 是登录组织选择与应用内切换器共用的「工作台」候选视图。
-// 工作台 = 组织树中 kind ∈ {headquarters, company} 的启用节点；部门/团队任何情况下
+// 工作台 = 组织树中 kind ∈ {system, company} 的启用节点；部门/团队任何情况下
 // 不是工作台，不进入候选。IsDefault 对应用户 primary 成员关系映射出的工作台。
 type OrganizationChoice struct {
 	OrganizationID   uuid.UUID
 	OrganizationName string
 	OrganizationCode string
 	IsDefault        bool
-	// Kind 供前端推导主数据维护视角（总部/公司）；部门/团队不进入候选。
+	// Kind 供前端推导主数据维护视角（系统管理/公司）；部门/团队不进入候选。
 	Kind OrganizationKind
 }
 
@@ -116,8 +116,7 @@ type Credential struct {
 	Email        *string
 	PasswordHash *string
 	Enabled      bool
-	// IsBootstrapAdmin 标记 bootstrap 管理员：登录候选组织与切换准入按全组织
-	// 穿透方案放宽（详见 listOrganizationChoices），普通用户路径不受影响。
+	// IsBootstrapAdmin 仅标记初始化管理员，不赋予成员资格或跨公司权限。
 	IsBootstrapAdmin      bool
 	PrimaryOrganizationID uuid.UUID
 }
@@ -177,8 +176,8 @@ type DingTalkLoginRegistrationRepo interface {
 	ListRegistrationOrganizations(ctx context.Context) ([]OrganizationChoice, error)
 	// FindRegistrationOrganization 校验注册自选的目标组织（启用中的公司）。
 	FindRegistrationOrganization(ctx context.Context, organizationID uuid.UUID) (*Organization, error)
-	// FindHeadquartersOrganizationID 返回总部收口根组织（通道 B 未自选时的兜底路由）。
-	FindHeadquartersOrganizationID(ctx context.Context) (uuid.UUID, error)
+	// FindSystemOrganizationID 返回系统管理收口根组织（通道 B 未自选时的兜底路由）。
+	FindSystemOrganizationID(ctx context.Context) (uuid.UUID, error)
 	// ListApproverRecipients 返回目标组织内持有钉钉邀请管理权限的启用中用户
 	// （按最近活跃截断），作为注册审批通知的收件人。
 	ListApproverRecipients(ctx context.Context, organizationID uuid.UUID) ([]*DingTalkApproverRecipient, error)
@@ -187,7 +186,7 @@ type DingTalkLoginRegistrationRepo interface {
 }
 
 // ListApproverRecipientsWithEscalation 沿 parent_id 逐级向上追溯首个有候选审批人的
-// 祖先节点（直至总部根节点），根链均无审批人时兜底总部；属于通知兜底而非权限变更。
+// 祖先节点（直至系统管理根节点），根链均无审批人时兜底系统管理；属于通知兜底而非权限变更。
 // 追溯决策由 biz 组合仓储原语完成；一键转派事务内的 FOR SHARE 变体保留在 data 层。
 func ListApproverRecipientsWithEscalation(ctx context.Context, repo DingTalkLoginRegistrationRepo, targetOrgID uuid.UUID) ([]*DingTalkApproverRecipient, uuid.UUID, bool, error) {
 	if targetOrgID == uuid.Nil {
@@ -214,8 +213,8 @@ func ListApproverRecipientsWithEscalation(ctx context.Context, repo DingTalkLogi
 			return nil, uuid.Nil, false, err
 		}
 		if !hasParent || parentID == nil {
-			// 已达根组织，若当前不是总部且总部存在，尝试兜底总部
-			hqID, hqErr := repo.FindHeadquartersOrganizationID(ctx)
+			// 已达根组织，若当前不是系统管理且系统管理存在，尝试兜底系统管理
+			hqID, hqErr := repo.FindSystemOrganizationID(ctx)
 			if hqErr == nil && hqID != currID {
 				hqRecipients, hqQueryErr := repo.ListApproverRecipients(ctx, hqID)
 				if hqQueryErr != nil {
@@ -301,9 +300,7 @@ func (p *Principal) PermissionCapabilities() []PermissionCapability {
 				continue
 			}
 			scope := grant.DataScope
-			if p.IsBootstrapAdmin {
-				scope = DataScopeAll
-			}
+
 			if scope.rank() > scopes[permission].rank() {
 				scopes[permission] = scope
 			}
@@ -339,7 +336,7 @@ func (p *Principal) HasPermissionInScope(key string, required DataScope) bool {
 		if _, hasPermission := grant.Permissions[key]; !hasPermission || !grant.DataScope.active() {
 			continue
 		}
-		if p.IsBootstrapAdmin || grant.DataScope.rank() >= required.rank() {
+		if grant.DataScope.rank() >= required.rank() {
 			return true
 		}
 	}
@@ -378,10 +375,6 @@ func (p *Principal) ResolvePermissionOrganizationScope(permission string) (Permi
 	}
 
 	nodes := p.organizationScopeNodes()
-	if p.IsBootstrapAdmin {
-		enabledIDs := enabledOrganizationIDs(nodes)
-		return p.workspacePermissionScope(permission, enabledIDs, enabledIDs), nil
-	}
 
 	readable := make(map[uuid.UUID]struct{})
 	writable := make(map[uuid.UUID]struct{})
@@ -567,20 +560,16 @@ type AuthRepo interface {
 	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int, *AuditEvent) (bool, error)
 	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
-	// RegisterDingTalkCredential 注册钉钉账号（PENDING 禁用，收口总部成员资格）；
+	// RegisterDingTalkCredential 注册钉钉账号（PENDING 禁用，收口系统管理成员资格）；
 	// requestedOrganizationID 为通道 B 自选目标组织（可空），notice 为注册审批
 	// 通知的路由决策（收件人与展示组织名，含代管标注），仓储在注册同事务内
 	// 入队（任务幂等键确定性去重）。
 	RegisterDingTalkCredential(context.Context, *DingTalkIdentity, *uuid.UUID, *DingTalkApproverNotice, *AuditEvent) (*Credential, bool, error)
-	// ListEnabledMembershipOrganizations 返回普通用户的工作台候选：总部节点要求本人
-	// 总部节点本身的启用成员关系；公司节点要求本人在该公司节点或其子树内任一启用节点
+	// ListEnabledMembershipOrganizations 返回普通用户的工作台候选：系统管理节点要求本人
+	// 系统管理节点本身的启用成员关系；公司节点要求本人在该公司节点或其子树内任一启用节点
 	// 有启用成员关系（部门成员关系让所属公司成为候选）。IsDefault 按 primary 成员
 	// 关系映射出的工作台标记。
 	ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
-	// ListEnabledOrganizations 返回全部启用中工作台节点（总部+公司）的候选快照
-	//（IsDefault 按用户 primary 成员资格映射出的工作台标记），仅供 bootstrap 管理员的
-	// 工作台穿透候选使用；部门/团队不是工作台，任何情况下不进入候选。
-	ListEnabledOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session, string, *AuditEvent) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
@@ -637,9 +626,8 @@ const (
 )
 
 // Login 校验账号口令后建立会话；requestedOrganizationID 非空时必须属于当前账号的
-// 工作台候选（普通用户 = 成员关系向上取整出的启用总部/公司节点，bootstrap 管理员 =
-// 全部启用总部/公司节点），否则返回参数错误（不静默回退默认组织）。未指定时沿用
-// 默认工作台（primary 成员关系所在组织向上取整到所属总部/公司）。
+// 工作台候选（有效成员关系向上取整出的启用系统管理/公司节点），否则返回参数错误（不静默回退默认组织）。未指定时沿用
+// 默认工作台（primary 成员关系所在组织向上取整到所属系统管理/公司）。
 func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string, requestedOrganizationID uuid.UUID, userAgent, ipAddress string) (*AuthSessionResult, error) {
 	normalizedUsername := strings.ToLower(strings.TrimSpace(username))
 	now := time.Now().UTC()
@@ -669,7 +657,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string
 		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
 	organizationID := credential.PrimaryOrganizationID
-	choices, err := uc.listOrganizationChoices(ctx, credential.UserID, credential.IsBootstrapAdmin)
+	choices, err := uc.listOrganizationChoices(ctx, credential.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -932,9 +920,9 @@ func (uc *AuthUsecase) GetDingTalkInvitationInfo(ctx context.Context, token, ipA
 	}, nil
 }
 
-// ConfirmDingTalkRegistration 落库注册（PENDING 禁用 + 总部收口成员资格），
+// ConfirmDingTalkRegistration 落库注册（PENDING 禁用 + 系统管理收口成员资格），
 // 支持携带专属邀请 Token（服务端绑定组织，杜绝伪造）或自选目标公司；
-// 注册同事务内向目标组织（空 = 总部收口）持邀请管理权限的启用中用户入队审批通知，
+// 注册同事务内向目标组织（空 = 系统管理收口）持邀请管理权限的启用中用户入队审批通知，
 // 若目标组织无持权管理员则沿组织树逐级向上追溯兜底。
 func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registrationToken, invitationToken string, requestedOrganizationID uuid.UUID) (*DingTalkRegistrationResult, error) {
 	if !uc.dingtalk.Enabled() {
@@ -947,7 +935,7 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 	var requestedOrganization *uuid.UUID
 	var notice *DingTalkApproverNotice
 	// notificationOrgName 是通知卡片展示的目标组织名：Token 路径取邀请锁定组织、
-	// 自选路径取所选组织；未自选（总部收口）时留空，由仓储按总部名展示。
+	// 自选路径取所选组织；未自选（系统管理收口）时留空，由仓储按系统管理名展示。
 	notificationOrgName := ""
 
 	invitationToken = strings.TrimSpace(invitationToken)
@@ -988,9 +976,9 @@ func (uc *AuthUsecase) ConfirmDingTalkRegistration(ctx context.Context, registra
 	if uc.dingTalkRegistrations != nil {
 		routingOrganizationID := requestedOrganizationID
 		if routingOrganizationID == uuid.Nil {
-			// 未自选目标组织：总部兜底，通知总部收口组织的管理员。
+			// 未自选目标组织：系统管理兜底，通知系统管理收口组织的管理员。
 			var hqErr error
-			routingOrganizationID, hqErr = uc.dingTalkRegistrations.FindHeadquartersOrganizationID(ctx)
+			routingOrganizationID, hqErr = uc.dingTalkRegistrations.FindSystemOrganizationID(ctx)
 			if hqErr != nil {
 				return nil, hqErr
 			}
@@ -1060,12 +1048,12 @@ func (uc *AuthUsecase) Logout(ctx context.Context, principal *Principal) error {
 }
 
 // SwitchOrganization 把当前会话轮转为目标工作台的新会话：普通用户校验目标在本人
-// 成员关系映射出的工作台候选集内（总部要求总部本身成员关系，公司要求公司子树内
-// 任一启用成员关系），bootstrap 管理员按工作台穿透方案校验目标在全部启用总部/公司
+// 成员关系映射出的工作台候选集内（系统管理要求系统管理本身成员关系，公司要求公司子树内
+// 任一启用成员关系），初始化管理员同样遵循此规则。
 // 候选集内；权限主体随目标工作台重算，事务内新建会话并仅失效当前令牌（同一用户
 // 其他设备的会话不受影响）。
 func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Principal, organizationID uuid.UUID) (*AuthSessionResult, error) {
-	choices, err := uc.listOrganizationChoices(ctx, principal.UserID, principal.IsBootstrapAdmin)
+	choices, err := uc.listOrganizationChoices(ctx, principal.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -1097,20 +1085,9 @@ func (uc *AuthUsecase) SwitchOrganization(ctx context.Context, principal *Princi
 	return &AuthSessionResult{Token: rawToken, Principal: next, OrganizationChoices: choices, ExpiresAt: expiresAt}, nil
 }
 
-// listOrganizationChoices 返回登录组织选择与切换入口共用的工作台候选列表：
-// 普通用户 = 成员关系向上取整出的启用总部/公司节点（部门成员关系让所属公司成为
-// 候选，总部节点要求本人总部成员关系）；bootstrap 管理员按已批准的工作台穿透方案
-// 放宽为全部启用总部/公司节点（默认标记仍取其 primary 成员关系映射出的工作台）。
-// 候选默认组织置首并按组织名称稳定排序。
-func (uc *AuthUsecase) listOrganizationChoices(ctx context.Context, userID uuid.UUID, isBootstrapAdmin bool) ([]OrganizationChoice, error) {
-	if isBootstrapAdmin {
-		choices, err := uc.repo.ListEnabledOrganizations(ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-		sortOrganizationChoices(choices)
-		return choices, nil
-	}
+// listOrganizationChoices 统一按有效成员资格提供候选，初始化管理员同样适用。
+func (uc *AuthUsecase) listOrganizationChoices(ctx context.Context, userID uuid.UUID) ([]OrganizationChoice, error) {
+
 	return uc.listEnabledMembershipOrganizations(ctx, userID)
 }
 
@@ -1178,30 +1155,35 @@ func (p *Principal) CanOperateBusiness() bool {
 }
 
 func (p *Principal) permissionAvailableInWorkspace(permission string) bool {
-	return p != nil && (!access.IsBusinessOperationPermission(permission) || p.CanOperateBusiness())
+	if p == nil {
+		return false
+	}
+	if access.IsCompanyBusinessPermission(permission) {
+		return p.CanOperateBusiness()
+	}
+	if access.IsSystemManagementPermission(permission) {
+		return principalIsSystemWorkspace(p)
+	}
+	return true
 }
 
 func (p *Principal) workspacePermissionScope(permission string, readable, writable map[uuid.UUID]struct{}) PermissionOrganizationScope {
-	// 往来单位及子资源固定归属当前公司，角色的 ALL/TREE 范围不能扩大企业档案边界。
-	if strings.HasPrefix(permission, "business.partner.") {
-		currentReadable := make(map[uuid.UUID]struct{})
-		currentWritable := make(map[uuid.UUID]struct{})
+	// 公司工作台的全部授权范围封闭于本公司；系统工作台只有管理权限可跨公司。
+	if p.Organization.Kind == OrganizationKindCompany {
+		allowed := map[uuid.UUID]struct{}{}
 		if p.CanOperateBusiness() {
-			if _, allowed := readable[p.Organization.ID]; allowed {
-				currentReadable[p.Organization.ID] = struct{}{}
-			}
-			if _, allowed := writable[p.Organization.ID]; allowed {
-				currentWritable[p.Organization.ID] = struct{}{}
+			allowed[p.Organization.ID] = struct{}{}
+		}
+		for id := range readable {
+			if _, ok := allowed[id]; !ok {
+				delete(readable, id)
 			}
 		}
-		return permissionOrganizationScopeFromSets(currentReadable, currentWritable)
-	}
-	if access.IsBusinessOperationPermission(permission) {
-		current := make(map[uuid.UUID]struct{})
-		if _, allowed := writable[p.Organization.ID]; allowed && p.CanOperateBusiness() {
-			current[p.Organization.ID] = struct{}{}
+		for id := range writable {
+			if _, ok := allowed[id]; !ok {
+				delete(writable, id)
+			}
 		}
-		writable = current
 	}
 	return permissionOrganizationScopeFromSets(readable, writable)
 }

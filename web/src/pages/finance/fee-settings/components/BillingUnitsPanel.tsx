@@ -26,8 +26,8 @@ type BillingUnitFormValues = {
 
 export function BillingUnitsPanel() {
   const access = useAccess();
-  // A 型全局主数据：全员同权可见，仅总部可维护（权限码 + 组织身份双重收敛）。
-  const isHeadquartersOrganization = access.isHeadquartersOrganization;
+  // A 型全局主数据：全员同权可见，仅系统管理可维护（权限码 + 组织身份双重收敛）。
+  const isSystemWorkspace = access.isSystemWorkspace;
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   // 表头汇总：多选框、序号、计费单位、是否为箱型单位、操作
@@ -56,12 +56,12 @@ export function BillingUnitsPanel() {
 
   return (
     <>
-      {!isHeadquartersOrganization && (
+      {!isSystemWorkspace && (
         <Alert
           type="info"
           showIcon
           style={{ marginBottom: 12 }}
-          title="计费单位为集团全局基础资料，由总部统一维护与共享，本组织只读"
+          title="计费单位为系统公共基础资料，由系统管理员统一维护与共享，本组织只读"
         />
       )}
       <SettingTableTemplate<API.BillingUnit, BillingUnitFormValues>
@@ -70,8 +70,8 @@ export function BillingUnitsPanel() {
         modalWidth={560}
         labelWidth={145}
         query={feeCatalogServiceListBillingUnits}
-        canCreate={access.canCreateFeeSettings && isHeadquartersOrganization}
-        canUpdate={access.canUpdateFeeSettings && isHeadquartersOrganization}
+        canCreate={access.canCreateFeeSettings && isSystemWorkspace}
+        canUpdate={access.canUpdateFeeSettings && isSystemWorkspace}
         rowSelection={{
           selectedRowKeys,
           onChange: (keys) => setSelectedRowKeys(keys),

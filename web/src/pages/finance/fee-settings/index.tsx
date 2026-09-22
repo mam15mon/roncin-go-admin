@@ -13,6 +13,7 @@ import {
 import BillingUnitsPanel from './components/BillingUnitsPanel';
 import CustomSettingsPanel from './components/CustomSettingsPanel';
 import FeeItemsPanel from './components/FeeItemsPanel';
+import FeeTemplatesPanel from './components/FeeTemplatesPanel';
 import TaxableServicesPanel from './components/TaxableServicesPanel';
 
 /**
@@ -25,12 +26,16 @@ export default function FeeSettingsPage() {
   const tabItems: MultiTabCenterTabItem[] = [
     {
       key: 'fee-settings',
-      label: '费用科目',
+      label: access.isSystemWorkspace ? '初始费用目录' : '费用科目',
       icon: <AccountBookOutlined />,
       visible: access.canReadFeeSettings,
       tooltip:
         '维护基础费用科目字典（如海运费、港杂费、报关费、拖车费等）、默认收付币种与税率规则',
-      children: <FeeItemsPanel />,
+      children: access.isSystemWorkspace ? (
+        <FeeTemplatesPanel />
+      ) : (
+        <FeeItemsPanel />
+      ),
     },
     {
       key: 'billing-units',
@@ -45,7 +50,7 @@ export default function FeeSettingsPage() {
       key: 'taxable-services',
       label: '货物或应税劳务',
       icon: <FileTextOutlined />,
-      visible: access.canReadFeeSettings,
+      visible: access.canOperateBusiness && access.canReadFeeSettings,
       tooltip: '维护商品编码、发票货物或应税劳务名称与默认开票税率',
       children: <TaxableServicesPanel />,
     },
@@ -53,7 +58,7 @@ export default function FeeSettingsPage() {
       key: 'custom-settings',
       label: '自定义规则',
       icon: <SlidersOutlined />,
-      visible: access.canReadFinanceBills,
+      visible: access.canOperateBusiness && access.canReadFinanceBills,
       tooltip: '配置账单创建后允许修改的费用字段等组织级自定义财务规则',
       children: <CustomSettingsPanel />,
     },

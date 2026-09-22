@@ -34,7 +34,7 @@ func (r *orderFeeSupplementRepo) ResolveFeeFactsForApproval(ctx context.Context,
 	}
 	if snapshot.FeeSettingID != nil {
 		feeSetting, settingErr := client.FeeSetting.Query().
-			Where(feesettingent.IDEQ(*snapshot.FeeSettingID), feesettingent.Or(feesettingent.OrganizationIDEQ(organizationID), feesettingent.OrganizationIDIsNil()), feesettingent.EnabledEQ(true)).
+			Where(feesettingent.IDEQ(*snapshot.FeeSettingID), feesettingent.OrganizationIDEQ(organizationID), feesettingent.EnabledEQ(true)).
 			Only(ctx)
 		if settingErr != nil || !feeSettingApplies(feeSetting, applicability) {
 			return nil, biz.ErrOrderFeeSettingInvalid

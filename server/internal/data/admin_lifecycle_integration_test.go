@@ -29,17 +29,21 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	dingUnionID := "union-" + suffix
 	dingUserID := "ding-user-" + suffix
 
-	headquarters, err := data.db.Organization.Create().
+	systemWorkspace, err := data.db.Organization.Create().
 		SetCode("HQ-" + suffix).
-		SetName("总部-" + suffix).
-		SetKind("headquarters").
+		SetName("系统管理-" + suffix).
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部: %v", err)
+		t.Fatalf("创建系统管理: %v", err)
+	}
+	intakeWorkspace, err := data.db.Organization.Create().SetCode("SYS-" + suffix).SetName("系统管理").SetKind("system").SetBaseCurrency("CNY").Save(ctx)
+	if err != nil {
+		t.Fatal(err)
 	}
 	role, err := data.db.Role.Create().
-		SetOrganizationID(headquarters.ID).
+		SetOrganizationID(systemWorkspace.ID).
 		SetCode("operator").
 		SetName("操作员").
 		SetDataScope("organization").
@@ -59,7 +63,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 	membershipRecord, err := data.db.Membership.Create().
 		SetUserID(account.ID).
-		SetOrganizationID(headquarters.ID).
+		SetOrganizationID(systemWorkspace.ID).
 		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx)
@@ -71,7 +75,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 	if _, err := data.db.Session.Create().
 		SetUserID(account.ID).
-		SetOrganizationID(headquarters.ID).
+		SetOrganizationID(systemWorkspace.ID).
 		SetTokenHash("integration-session-" + suffix).
 		SetExpiresAt(time.Now().Add(time.Hour)).
 		Save(ctx); err != nil {
@@ -79,10 +83,10 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	adminRepo := &adminRepo{data: data}
-	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit(headquarters.ID, "admin.user.membership.delete")); err != biz.ErrAdminUserLastMembership {
+	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit(systemWorkspace.ID, "admin.user.membership.delete")); err != biz.ErrAdminUserLastMembership {
 		t.Fatalf("移出最后组织 error = %v, want ErrAdminUserLastMembership", err)
 	}
-	if err := adminRepo.TerminateUser(ctx, headquarters.ID, account.ID, adminLifecycleAudit(headquarters.ID, "admin.user.terminate")); err != nil {
+	if err := adminRepo.TerminateUser(ctx, systemWorkspace.ID, account.ID, adminLifecycleAudit(systemWorkspace.ID, "admin.user.terminate")); err != nil {
 		t.Fatalf("办理离职: %v", err)
 	}
 	terminated, err := data.db.User.Get(ctx, account.ID)
@@ -123,22 +127,22 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		t.Fatalf("返聘待审批不应恢复旧角色，角色数 = %d, error = %v", assignments, err)
 	}
 	pendingUsername := "pending." + suffix
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "pending-password-hash", &pendingUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
+	if err := adminRepo.ResetUserPassword(ctx, systemWorkspace.ID, account.ID, "pending-password-hash", &pendingUsername, adminLifecycleAudit(systemWorkspace.ID, "admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
 		t.Fatalf("待审批账号设置密码 error = %v, want ErrAdminUserNotFound", err)
 	}
-	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, account.ID, &biz.AdminUser{
+	if _, err := adminRepo.UpdateUser(ctx, systemWorkspace.ID, account.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
 		Enabled:     true,
-	}, []uuid.UUID{role.ID}, adminLifecycleAudit(headquarters.ID, "admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
+	}, []uuid.UUID{role.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
 	notification := biz.NewDingTalkUserAuthorizedNotification(account.ID)
-	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, headquarters.ID, headquarters.ID, &biz.AdminUser{
+	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, intakeWorkspace.ID, systemWorkspace.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
-	}, []uuid.UUID{role.ID}, notification, adminLifecycleAudit(headquarters.ID, "admin.user.dingtalk.authorize"))
+	}, []uuid.UUID{role.ID}, notification, adminLifecycleAudit(systemWorkspace.ID, "admin.user.dingtalk.authorize"))
 	if err != nil {
 		t.Fatalf("返聘重新授权: %v", err)
 	}
@@ -158,14 +162,14 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	backupUsername := "backup." + suffix
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "active-password-hash", &backupUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != nil {
+	if err := adminRepo.ResetUserPassword(ctx, systemWorkspace.ID, account.ID, "active-password-hash", &backupUsername, adminLifecycleAudit(systemWorkspace.ID, "admin.user.password.reset")); err != nil {
 		t.Fatalf("为在职账号设置备用账密: %v", err)
 	}
 	activeAccount, err := data.db.User.Get(ctx, account.ID)
 	if err != nil || activeAccount.Username != backupUsername || activeAccount.PasswordHash == nil || *activeAccount.PasswordHash != "active-password-hash" {
 		t.Fatalf("备用账密保存结果 = %#v, error = %v", activeAccount, err)
 	}
-	actorRoles, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, headquarters.ID, account.ID)
+	actorRoles, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, systemWorkspace.ID, account.ID)
 	if err != nil || len(actorRoles) != 1 || actorRoles[0].Code != "operator" {
 		t.Fatalf("在职账号角色能力 = %#v, error = %v", actorRoles, err)
 	}
@@ -174,7 +178,6 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		SetCode("COMPANY-" + suffix).
 		SetName("分公司-" + suffix).
 		SetKind("company").
-		SetParentID(headquarters.ID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -187,20 +190,20 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("加入分公司: %v", err)
 	}
-	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit(headquarters.ID, "admin.user.membership.delete")); err != nil {
-		t.Fatalf("移出总部: %v", err)
+	if err := adminRepo.DeleteUserMembership(ctx, account.ID, membershipRecord.ID, adminLifecycleAudit(systemWorkspace.ID, "admin.user.membership.delete")); err != nil {
+		t.Fatalf("移出系统管理: %v", err)
 	}
-	// 工作台范围口径变更：移出总部后用户仍归属公司（总部子树），总部工作台仍可为其
+	// 工作台范围口径变更：移出系统管理后用户仍归属公司（系统管理子树），系统管理工作台仍可为其
 	// 重置密码；精确组织口径下的「历史组织不可重置」不再成立。
 	replacementUsername := "replacement." + suffix
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, account.ID, "replacement-password-hash", &replacementUsername, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != nil {
-		t.Fatalf("总部工作台为公司子树成员重置密码: %v", err)
+	if err := adminRepo.ResetUserPassword(ctx, intakeWorkspace.ID, account.ID, "replacement-password-hash", &replacementUsername, adminLifecycleAudit(systemWorkspace.ID, "admin.user.password.reset")); err != nil {
+		t.Fatalf("系统管理工作台为公司子树成员重置密码: %v", err)
 	}
 	retainedAccount, err := data.db.User.Get(ctx, account.ID)
 	if err != nil || !retainedAccount.Enabled || retainedAccount.Username != replacementUsername || retainedAccount.PasswordHash == nil || *retainedAccount.PasswordHash != "replacement-password-hash" {
 		t.Fatalf("重置密码后的账号结果 = %#v, error = %v", retainedAccount, err)
 	}
-	if _, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, headquarters.ID, account.ID); err != biz.ErrAdminPrivilegeEscalation {
+	if _, err := adminRepo.GetActorRolesPrivilegeProfiles(ctx, systemWorkspace.ID, account.ID); err != biz.ErrAdminPrivilegeEscalation {
 		t.Fatalf("历史组织读取操作者能力 error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
 }

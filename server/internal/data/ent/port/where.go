@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -64,11 +63,6 @@ func CreatedAt(v time.Time) predicate.Port {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Port {
 	return predicate.Port(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
-func OrganizationID(v uuid.UUID) predicate.Port {
-	return predicate.Port(sql.FieldEQ(FieldOrganizationID, v))
 }
 
 // UnLocode applies equality check predicate on the "un_locode" field. It's identical to UnLocodeEQ.
@@ -199,36 +193,6 @@ func UpdatedAtLT(v time.Time) predicate.Port {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Port {
 	return predicate.Port(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
-func OrganizationIDEQ(v uuid.UUID) predicate.Port {
-	return predicate.Port(sql.FieldEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDNEQ applies the NEQ predicate on the "organization_id" field.
-func OrganizationIDNEQ(v uuid.UUID) predicate.Port {
-	return predicate.Port(sql.FieldNEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDIn applies the In predicate on the "organization_id" field.
-func OrganizationIDIn(vs ...uuid.UUID) predicate.Port {
-	return predicate.Port(sql.FieldIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
-func OrganizationIDNotIn(vs ...uuid.UUID) predicate.Port {
-	return predicate.Port(sql.FieldNotIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDIsNil applies the IsNil predicate on the "organization_id" field.
-func OrganizationIDIsNil() predicate.Port {
-	return predicate.Port(sql.FieldIsNull(FieldOrganizationID))
-}
-
-// OrganizationIDNotNil applies the NotNil predicate on the "organization_id" field.
-func OrganizationIDNotNil() predicate.Port {
-	return predicate.Port(sql.FieldNotNull(FieldOrganizationID))
 }
 
 // UnLocodeEQ applies the EQ predicate on the "un_locode" field.
@@ -829,29 +793,6 @@ func SearchKeywordsEqualFold(v string) predicate.Port {
 // SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
 func SearchKeywordsContainsFold(v string) predicate.Port {
 	return predicate.Port(sql.FieldContainsFold(FieldSearchKeywords, v))
-}
-
-// HasOrganization applies the HasEdge predicate on the "organization" edge.
-func HasOrganization() predicate.Port {
-	return predicate.Port(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOrganizationWith applies the HasEdge predicate on the "organization" edge with a given conditions (other predicates).
-func HasOrganizationWith(preds ...predicate.Organization) predicate.Port {
-	return predicate.Port(func(s *sql.Selector) {
-		step := newOrganizationStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

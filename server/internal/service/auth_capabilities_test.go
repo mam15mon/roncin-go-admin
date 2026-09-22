@@ -12,8 +12,8 @@ import (
 func TestPrincipalToAPIProjectsEffectiveCapabilities(t *testing.T) {
 	id := uuid.New()
 	p := &biz.Principal{
-		Organization:      biz.Organization{ID: id, Kind: biz.OrganizationKindHeadquarters},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: id, Kind: biz.OrganizationKindHeadquarters}},
+		Organization:      biz.Organization{ID: id, Kind: biz.OrganizationKindSystem},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: id, Kind: biz.OrganizationKindSystem}},
 		RoleGrants: []biz.RoleGrant{
 			{RoleCode: "legacy", DataScope: biz.DataScopeSelf, Permissions: map[string]struct{}{access.UserCreate: {}}},
 			{RoleCode: "reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.UserRead: {}}},

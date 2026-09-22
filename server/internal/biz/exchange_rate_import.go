@@ -87,7 +87,7 @@ func (uc *ExchangeRateUsecase) PreviewImport(ctx context.Context, organizationID
 	if err != nil {
 		return nil, "", err
 	}
-	// 汇率导入按当前组织落地：总部落 NULL 基线行，分公司落本组织行。
+	// 汇率导入按当前组织落地：系统管理落 NULL 基线行，公司落本组织行。
 	rows := normalizeExchangeRateImportRows(input.Rows, rateContext.BaseCurrency)
 	inspectionErrors, err := uc.repo.InspectImport(ctx, rateContext.OwnerOrganizationID, rows)
 	if err != nil {

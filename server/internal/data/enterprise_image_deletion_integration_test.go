@@ -127,7 +127,7 @@ func newEnterpriseImageDeletionFixture(t *testing.T, data *Data) *enterpriseImag
 	organization, err := data.db.Organization.Create().
 		SetCode("IMG-DEL-" + suffix).
 		SetName("图片删除集成测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

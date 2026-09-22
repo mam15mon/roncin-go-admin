@@ -365,8 +365,9 @@ message ListShippingLinesRequest {
 
 message Port {
   string id = 1;
-  // 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
-  optional string organization_id = 2;
+  // 公共目录不携带公司归属。
+  reserved 2;
+  reserved "organization_id";
   string un_locode = 3;
   optional string name_zh = 4;
   string name_en = 5;
@@ -433,8 +434,9 @@ message UpdatePortResponse {
 
 message Airport {
   string id = 1;
-  // 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。
-  optional string organization_id = 2;
+  // 公共目录不携带公司归属。
+  reserved 2;
+  reserved "organization_id";
   string iata_code = 3;
   optional string icao_code = 4;
   optional string name_zh = 5;

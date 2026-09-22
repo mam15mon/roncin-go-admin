@@ -70,7 +70,7 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 	org, err := data.db.Organization.Create().
 		SetCode("FCA-" + suffix).
 		SetName("月度申请测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -1134,7 +1134,7 @@ func TestCommissionApplicationResubmitRefreshPostgres(t *testing.T) {
 	foreignOrg, err := fixture.data.db.Organization.Create().
 		SetCode("FCA-FR-" + fixture.suffix).
 		SetName("月度申请外部组织-" + fixture.suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

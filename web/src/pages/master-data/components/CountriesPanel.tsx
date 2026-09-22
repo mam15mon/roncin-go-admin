@@ -1,7 +1,7 @@
 import { GlobalOutlined } from '@ant-design/icons';
-import { useAccess } from '@/app/access';
 import { Tag } from 'antd';
 import React from 'react';
+import { useAccess } from '@/app/access';
 import {
   MasterDataTemplate,
   useMasterDataCrud,
@@ -30,12 +30,10 @@ const mapCountry = (item: API.MasterDataItem): CountryItem => ({
 
 export default function CountriesPanel() {
   const access = useAccess();
-  // A 型全局主数据（master_data_items）：仅总部组织可写，与后端
-  // RequireGlobalMasterDataWrite 同口径；非总部只读并提示由总部统一维护。
-  const canCreate =
-    access.isHeadquartersOrganization && access.canCreateMasterDataItems;
-  const canUpdate =
-    access.isHeadquartersOrganization && access.canUpdateMasterDataItems;
+  // A 型全局主数据（master_data_items）：仅系统管理组织可写，与后端
+  // RequireGlobalMasterDataWrite 同口径；非系统管理只读并提示由系统管理统一维护。
+  const canCreate = access.isSystemWorkspace && access.canCreateMasterDataItems;
+  const canUpdate = access.isSystemWorkspace && access.canUpdateMasterDataItems;
   const fetchCountries = React.useCallback(
     (
       query: import('@/components/ui/master-data-template').MasterDataListQuery,
@@ -226,7 +224,7 @@ export default function CountriesPanel() {
       onUpdate={canUpdate ? handleUpdate : undefined}
       onToggleActive={canUpdate ? handleToggleActive : undefined}
       notice={
-        access.isHeadquartersOrganization ? undefined : '由总部统一维护与共享'
+        access.isSystemWorkspace ? undefined : '由系统管理员统一维护与共享'
       }
     />
   );

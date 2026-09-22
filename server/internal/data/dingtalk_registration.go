@@ -35,7 +35,13 @@ func NewDingTalkRegistrationRepo(data *Data) *dingTalkRegistrationRepo {
 func (r *dingTalkRegistrationRepo) CreateInvitation(ctx context.Context, input *biz.DingTalkInvitation, audit *biz.AuditEvent) (*biz.DingTalkInvitation, error) {
 	var createdID uuid.UUID
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if _, queryErr := tx.Organization.Query().Where(organization.IDEQ(input.OrganizationID), organization.EnabledEQ(true)).Only(ctx); queryErr != nil {
+		targetQuery := tx.Organization.Query().Where(organization.IDEQ(input.OrganizationID), organization.EnabledEQ(true))
+		if input.Kind == biz.DingTalkInvitationKindTargeted {
+			targetQuery.Where(organization.KindEQ(organization.KindCompany))
+		} else {
+			targetQuery.Where(organization.KindIn(organization.KindCompany, organization.KindSystem))
+		}
+		if _, queryErr := targetQuery.Only(ctx); queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminOrganizationNotFound, nil)
 		}
 		if input.RoleID != nil {
@@ -277,7 +283,7 @@ func (r *dingTalkRegistrationRepo) ConsumeInvitationAndActivate(ctx context.Cont
 		if invitation.Kind != invitationent.KindTARGETED || invitation.Status != invitationent.StatusPENDING || !invitation.ExpiresAt.After(now) {
 			return biz.ErrDingTalkInvitationNotConsumable
 		}
-		targetOrganization, queryErr := tx.Organization.Query().Where(organization.IDEQ(invitation.OrganizationID), organization.EnabledEQ(true)).Only(ctx)
+		targetOrganization, queryErr := tx.Organization.Query().Where(organization.IDEQ(invitation.OrganizationID), organization.EnabledEQ(true), organization.KindEQ(organization.KindCompany)).Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminOrganizationNotFound, nil)
 		}
@@ -410,17 +416,17 @@ func (r *dingTalkRegistrationRepo) FindRegistrationOrganization(ctx context.Cont
 	return organizationView, nil
 }
 
-func (r *dingTalkRegistrationRepo) FindHeadquartersOrganizationID(ctx context.Context) (uuid.UUID, error) {
+func (r *dingTalkRegistrationRepo) FindSystemOrganizationID(ctx context.Context) (uuid.UUID, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return uuid.Nil, err
 	}
-	return findHeadquartersOrganizationID(ctx, client)
+	return findSystemOrganizationID(ctx, client)
 }
 
-func findHeadquartersOrganizationID(ctx context.Context, client *ent.Client) (uuid.UUID, error) {
+func findSystemOrganizationID(ctx context.Context, client *ent.Client) (uuid.UUID, error) {
 	item, err := client.Organization.Query().
-		Where(organization.KindEQ(organization.KindHeadquarters), organization.ParentIDIsNil(), organization.EnabledEQ(true)).
+		Where(organization.KindEQ(organization.KindSystem), organization.ParentIDIsNil(), organization.EnabledEQ(true)).
 		Only(ctx)
 	if err != nil {
 		return uuid.Nil, mapEntError(err, biz.ErrAdminOrganizationNotFound, nil)
@@ -429,7 +435,7 @@ func findHeadquartersOrganizationID(ctx context.Context, client *ent.Client) (uu
 }
 
 // ListApproverRecipients 返回目标组织内持有「钉钉邀请与注册审批」权限的启用
-// 中用户。路由口径：目标组织内启用成员资格 × 启用角色真实持有权限——总部
+// 中用户。路由口径：目标组织内启用成员资格 × 启用角色真实持有权限——系统管理
 // 管理员即使持 ALL 范围也不会被分公司注册提醒打扰（仍可在审批队列处理）。
 // 收件人过多时按最近会话活跃时间取前 10 人（无会话者排最后，ID 稳定排序），
 // 防止大组织一次性给几十位管理员群发提醒。
@@ -546,7 +552,7 @@ func pendingRegistrationBasePredicates() []predicate.User {
 }
 
 // pendingRegistrationRoutingPredicate 限定注册的路由组织在调用者范围内：
-// 自选目标组织命中，或未自选时收口成员资格组织命中（注册收口为总部根，即总部兜底）。
+// 自选目标组织命中，或未自选时收口成员资格组织命中（注册收口为系统管理根，即系统管理兜底）。
 func pendingRegistrationRoutingPredicate(organizationIDs []uuid.UUID) predicate.User {
 	return user.Or(
 		user.DingtalkRequestedOrganizationIDIn(organizationIDs...),
@@ -578,7 +584,7 @@ func registrationFromUser(account *ent.User) (*biz.DingTalkRegistration, error) 
 		if org, err := member.Edges.OrganizationOrErr(); err == nil {
 			result.IntakeOrganizationID = org.ID
 			if result.RequestedOrganizationID == nil {
-				// 未自选目标组织：按总部兜底展示收口组织。
+				// 未自选目标组织：按系统管理兜底展示收口组织。
 				result.RequestedOrganizationName = org.Name
 			}
 			break
@@ -683,6 +689,9 @@ func (r *dingTalkRegistrationRepo) ApproveRegistration(ctx context.Context, deci
 		routingOrganization, queryErr := resolveRegistrationRouting(ctx, tx, account, decision.OrganizationIDs)
 		if queryErr != nil {
 			return queryErr
+		}
+		if routingOrganization.Kind != organization.KindCompany {
+			return biz.ErrDingTalkRegistrationCompanyRequired
 		}
 		roles, queryErr := rolesForOrganization(ctx, tx.Client(), routingOrganization.ID, decision.RoleIDs)
 		if queryErr != nil {
@@ -817,7 +826,7 @@ func getParentOrganizationID(ctx context.Context, client *ent.Client, orgID uuid
 	return nil, false, nil
 }
 
-// listApproverRecipientsWithEscalation 沿 parent_id 逐级向上追溯首个有候选审批人的祖先节点（直至总部根节点）。
+// listApproverRecipientsWithEscalation 沿 parent_id 逐级向上追溯首个有候选审批人的祖先节点（直至系统管理根节点）。
 // 属于通知兜底而非权限变更。仅供转派事务回调内部使用（显式传事务客户端并强制 FOR SHARE），
 // 普通上下文的追溯决策在 biz 层组合仓储原语完成（见 biz.ListApproverRecipientsWithEscalation）。
 func listApproverRecipientsWithEscalation(ctx context.Context, client *ent.Client, targetOrgID uuid.UUID, lockReads bool) ([]*biz.DingTalkApproverRecipient, uuid.UUID, bool, error) {
@@ -842,8 +851,8 @@ func listApproverRecipientsWithEscalation(ctx context.Context, client *ent.Clien
 			return nil, uuid.Nil, false, err
 		}
 		if !hasParent || parentID == nil {
-			// 已达根组织，若当前不是总部且总部存在，尝试兜底总部
-			hqID, hqErr := findHeadquartersOrganizationID(ctx, client)
+			// 已达根组织，若当前不是系统管理且系统管理存在，尝试兜底系统管理
+			hqID, hqErr := findSystemOrganizationID(ctx, client)
 			if hqErr == nil && hqID != currID {
 				hqRecipients, hqQueryErr := listApproverRecipients(ctx, client, hqID, lockReads)
 				if hqQueryErr != nil {
@@ -876,7 +885,7 @@ func (r *dingTalkRegistrationRepo) TransferRegistration(ctx context.Context, dec
 		if currentRoutingOrg.ID == targetOrgID {
 			return biz.ErrDingTalkRegistrationTransferSame
 		}
-		targetOrg, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrgID), organization.EnabledEQ(true)).Only(ctx)
+		targetOrg, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrgID), organization.EnabledEQ(true), organization.KindEQ(organization.KindCompany)).Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrDingTalkRegistrationOrgInvalid, nil)
 		}

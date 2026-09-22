@@ -1,10 +1,10 @@
 import { DingdingOutlined } from '@ant-design/icons';
-import { Helmet } from 'react-helmet-async';
-import { history } from '@/router/history';
-import { useInitialState } from '@/app/AppProvider';
 import { App, Button, Result, Select, Space, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useInitialState } from '@/app/AppProvider';
 import { DingTalkLoginStatus } from '@/enums.generated';
+import { history } from '@/router/history';
 import {
   authServiceDingTalkLogin,
   authServiceGetDingTalkInvitationInfo,
@@ -200,7 +200,7 @@ export default function DingTalkCallback() {
             invitationToken
               ? `已确认 ${registrationName} 属于本企业。您正通过【${invitationInfo?.organizationName || '专属通道'}】申请入职，确认后将转交该分公司管理员审批。`
               : registrationOrganizations.length > 1
-                ? `已确认 ${registrationName} 属于本企业。请选择要加入的公司；不选择时由总部审批。`
+                ? `已确认 ${registrationName} 属于本企业。请选择要加入的公司；不选择时由系统管理审批。`
                 : `已确认 ${registrationName} 属于本企业。确认注册后将提交管理员分配所属组织和角色。`
           }
           extra={
@@ -222,7 +222,7 @@ export default function DingTalkCallback() {
                     onChange={setSelectedOrganizationId}
                     style={{ width: 280, display: 'block' }}
                     options={[
-                      { label: '默认（总部审批）', value: '' },
+                      { label: '默认（系统管理审批）', value: '' },
                       ...registrationOrganizations.map((organization) => ({
                         label: `${organization.organizationName} (${organization.organizationCode})`,
                         value: organization.organizationId,

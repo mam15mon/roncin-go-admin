@@ -498,7 +498,7 @@ func TestMasterDataCreateRejectsBranchContext(t *testing.T) {
 	usecase := NewMasterDataUsecase(&masterDataRepoStub{})
 	ctx := principalContext(companyPrincipal("system.master_data.item.create"))
 	_, err := usecase.Create(ctx, uuid.New(), uuid.New(), &MasterDataItem{Kind: MasterDataKindCurrency, Code: "CNY", Name: "人民币"})
-	if err != ErrMasterDataHeadquartersRequired {
+	if err != ErrMasterDataSystemRequired {
 		t.Fatalf("分支上下文写 A 型主数据应返回 403 业务错误，实际 %v", err)
 	}
 }

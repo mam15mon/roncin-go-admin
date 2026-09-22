@@ -18,7 +18,7 @@ export type UserMembershipFormValues = {
 };
 
 export const organizationKindLabels: Record<number, string> = {
-  1: '总部',
+  1: '系统管理',
   2: '公司',
   3: '部门',
   4: '组',
@@ -48,14 +48,14 @@ export function resolveAnchorOrganizationId(
 }
 
 /**
- * 判定后端组织 kind 是否为工作台节点（总部/公司）。
+ * 判定后端组织 kind 是否为工作台节点（系统管理/公司）。
  * 角色库只归属工作台维护，部门与团队共享其所属工作台的角色库，
  * 判定口径与后端 `internal/data/auth.go` 的 isWorkspaceKind 保持一致。
  * 枚举值取自生成常量，不复制裸数字作为第二套真相。
  */
 export function isWorkspaceKindValue(kind?: number): boolean {
   return (
-    kind === AdminOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS ||
+    kind === AdminOrganizationKind.ORGANIZATION_KIND_SYSTEM ||
     kind === AdminOrganizationKind.ORGANIZATION_KIND_COMPANY
   );
 }
@@ -63,7 +63,7 @@ export function isWorkspaceKindValue(kind?: number): boolean {
 /**
  * 格式化组织层级名称：
  * 若组织为部门或组，向上溯源所属公司，拼接为 `${公司名} / ${部门名}`；
- * 若组织为公司或总部，直接展示自身名称。
+ * 若组织为公司或系统管理，直接展示自身名称。
  */
 export function formatOrganizationHierarchyName(
   orgIdOrOrg: string | API.AdminOrganization | undefined,
@@ -77,7 +77,7 @@ export function formatOrganizationHierarchyName(
   if (!org) {
     return typeof orgIdOrOrg === 'string' ? '' : orgIdOrOrg.name || '';
   }
-  // 如果是总部或公司，直接展示自身名称
+  // 如果是系统管理或公司，直接展示自身名称
   if (isWorkspaceKindValue(org.kind)) {
     return org.name || '';
   }
@@ -93,7 +93,7 @@ export function formatOrganizationHierarchyName(
     );
     if (!parent) break;
     parts.unshift(parent.name || '');
-    // 溯源到公司或总部即停
+    // 溯源到公司或系统管理即停
     if (isWorkspaceKindValue(parent.kind)) {
       break;
     }

@@ -3,7 +3,6 @@ import {
   adminServiceListRoles,
 } from '@/services/roncin/adminService';
 import { unwrapList } from '@/utils/api';
-import { buildOrgTree } from '../../organization-tree';
 
 /** 新建邀请的默认有效期（小时）：7 天。 */
 export const INVITATION_DEFAULT_TTL_HOURS = 168;
@@ -41,18 +40,6 @@ export function roleSelectOptions(roles: API.AdminRole[]): SelectOption[] {
       label: `${role.name ?? '-'} (${role.code ?? '-'})`,
       value: role.id as string,
     }));
-}
-
-/**
- * 解析组织树根节点 ID：总部兜底注册的审批路由组织是注册收口组织（总部根）。
- * 复用 organization-tree 的 buildOrgTree 根判定（parentId 为空或指向不存在
- * 组织的节点作为根），列表为空时返回 undefined，由调用方回退到当前组织。
- */
-export function resolveRootOrganizationId(
-  organizations: API.AdminOrganization[],
-): string | undefined {
-  if (organizations.length === 0) return undefined;
-  return buildOrgTree(organizations).treeData[0]?.key;
 }
 
 /**

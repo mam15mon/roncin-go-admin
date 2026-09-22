@@ -2,14 +2,10 @@ package data
 
 import (
 	"context"
-	"io"
-	"log/slog"
-	"os"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 )
@@ -18,20 +14,7 @@ import (
 // 同键同意图重放返回既有资源、同键不同意图返回冲突、UpdateDraft 可变最新键
 // 的重放返回当前草稿。依赖 RONCIN_INTEGRATION_DATABASE_SOURCE。
 func TestOrderIdempotencyPostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
-	data, cleanup, err := NewData(&conf.Data{Database: &conf.Data_Database{
-		Driver:             "postgres",
-		Source:             source,
-		AutoMigrate:        true,
-		MaxOpenConnections: 8,
-		MaxIdleConnections: 8,
-	}}, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	if err != nil {
-		t.Fatalf("初始化集成测试数据库: %v", err)
-	}
+	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 
 	t.Run("同键同意图创建重放返回同一订单", func(t *testing.T) {

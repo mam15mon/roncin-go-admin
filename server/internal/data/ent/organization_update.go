@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
@@ -54,7 +53,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
@@ -318,36 +316,6 @@ func (_u *OrganizationUpdate) AddFeeSettings(v ...*FeeSetting) *OrganizationUpda
 		ids[i] = v[i].ID
 	}
 	return _u.AddFeeSettingIDs(ids...)
-}
-
-// AddPortIDs adds the "ports" edge to the Port entity by IDs.
-func (_u *OrganizationUpdate) AddPortIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.AddPortIDs(ids...)
-	return _u
-}
-
-// AddPorts adds the "ports" edges to the Port entity.
-func (_u *OrganizationUpdate) AddPorts(v ...*Port) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddPortIDs(ids...)
-}
-
-// AddAirportIDs adds the "airports" edge to the Airport entity by IDs.
-func (_u *OrganizationUpdate) AddAirportIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.AddAirportIDs(ids...)
-	return _u
-}
-
-// AddAirports adds the "airports" edges to the Airport entity.
-func (_u *OrganizationUpdate) AddAirports(v ...*Airport) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddAirportIDs(ids...)
 }
 
 // AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by IDs.
@@ -1307,48 +1275,6 @@ func (_u *OrganizationUpdate) RemoveFeeSettings(v ...*FeeSetting) *OrganizationU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeSettingIDs(ids...)
-}
-
-// ClearPorts clears all "ports" edges to the Port entity.
-func (_u *OrganizationUpdate) ClearPorts() *OrganizationUpdate {
-	_u.mutation.ClearPorts()
-	return _u
-}
-
-// RemovePortIDs removes the "ports" edge to Port entities by IDs.
-func (_u *OrganizationUpdate) RemovePortIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.RemovePortIDs(ids...)
-	return _u
-}
-
-// RemovePorts removes "ports" edges to Port entities.
-func (_u *OrganizationUpdate) RemovePorts(v ...*Port) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemovePortIDs(ids...)
-}
-
-// ClearAirports clears all "airports" edges to the Airport entity.
-func (_u *OrganizationUpdate) ClearAirports() *OrganizationUpdate {
-	_u.mutation.ClearAirports()
-	return _u
-}
-
-// RemoveAirportIDs removes the "airports" edge to Airport entities by IDs.
-func (_u *OrganizationUpdate) RemoveAirportIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.RemoveAirportIDs(ids...)
-	return _u
-}
-
-// RemoveAirports removes "airports" edges to Airport entities.
-func (_u *OrganizationUpdate) RemoveAirports(v ...*Airport) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveAirportIDs(ids...)
 }
 
 // ClearNumberRules clears all "number_rules" edges to the NumberRule entity.
@@ -2923,96 +2849,6 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.PortsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.PortsTable,
-			Columns: []string{organization.PortsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedPortsIDs(); len(nodes) > 0 && !_u.mutation.PortsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.PortsTable,
-			Columns: []string{organization.PortsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.PortsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.PortsTable,
-			Columns: []string{organization.PortsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.AirportsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirportsTable,
-			Columns: []string{organization.AirportsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAirportsIDs(); len(nodes) > 0 && !_u.mutation.AirportsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirportsTable,
-			Columns: []string{organization.AirportsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AirportsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirportsTable,
-			Columns: []string{organization.AirportsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -5611,36 +5447,6 @@ func (_u *OrganizationUpdateOne) AddFeeSettings(v ...*FeeSetting) *OrganizationU
 	return _u.AddFeeSettingIDs(ids...)
 }
 
-// AddPortIDs adds the "ports" edge to the Port entity by IDs.
-func (_u *OrganizationUpdateOne) AddPortIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.AddPortIDs(ids...)
-	return _u
-}
-
-// AddPorts adds the "ports" edges to the Port entity.
-func (_u *OrganizationUpdateOne) AddPorts(v ...*Port) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddPortIDs(ids...)
-}
-
-// AddAirportIDs adds the "airports" edge to the Airport entity by IDs.
-func (_u *OrganizationUpdateOne) AddAirportIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.AddAirportIDs(ids...)
-	return _u
-}
-
-// AddAirports adds the "airports" edges to the Airport entity.
-func (_u *OrganizationUpdateOne) AddAirports(v ...*Airport) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddAirportIDs(ids...)
-}
-
 // AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by IDs.
 func (_u *OrganizationUpdateOne) AddNumberRuleIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddNumberRuleIDs(ids...)
@@ -6598,48 +6404,6 @@ func (_u *OrganizationUpdateOne) RemoveFeeSettings(v ...*FeeSetting) *Organizati
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeSettingIDs(ids...)
-}
-
-// ClearPorts clears all "ports" edges to the Port entity.
-func (_u *OrganizationUpdateOne) ClearPorts() *OrganizationUpdateOne {
-	_u.mutation.ClearPorts()
-	return _u
-}
-
-// RemovePortIDs removes the "ports" edge to Port entities by IDs.
-func (_u *OrganizationUpdateOne) RemovePortIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.RemovePortIDs(ids...)
-	return _u
-}
-
-// RemovePorts removes "ports" edges to Port entities.
-func (_u *OrganizationUpdateOne) RemovePorts(v ...*Port) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemovePortIDs(ids...)
-}
-
-// ClearAirports clears all "airports" edges to the Airport entity.
-func (_u *OrganizationUpdateOne) ClearAirports() *OrganizationUpdateOne {
-	_u.mutation.ClearAirports()
-	return _u
-}
-
-// RemoveAirportIDs removes the "airports" edge to Airport entities by IDs.
-func (_u *OrganizationUpdateOne) RemoveAirportIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.RemoveAirportIDs(ids...)
-	return _u
-}
-
-// RemoveAirports removes "airports" edges to Airport entities.
-func (_u *OrganizationUpdateOne) RemoveAirports(v ...*Airport) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveAirportIDs(ids...)
 }
 
 // ClearNumberRules clears all "number_rules" edges to the NumberRule entity.
@@ -8244,96 +8008,6 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.PortsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.PortsTable,
-			Columns: []string{organization.PortsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedPortsIDs(); len(nodes) > 0 && !_u.mutation.PortsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.PortsTable,
-			Columns: []string{organization.PortsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.PortsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.PortsTable,
-			Columns: []string{organization.PortsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.AirportsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirportsTable,
-			Columns: []string{organization.AirportsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedAirportsIDs(); len(nodes) > 0 && !_u.mutation.AirportsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirportsTable,
-			Columns: []string{organization.AirportsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AirportsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirportsTable,
-			Columns: []string{organization.AirportsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

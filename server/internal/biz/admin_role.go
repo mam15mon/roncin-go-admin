@@ -17,7 +17,7 @@ var (
 	ErrAdminRoleScopeDisabled   = errors.BadRequest("ADMIN_ROLE_SCOPE_DISABLED", "仅本人数据范围已停用，请明确选择其他数据范围")
 	ErrAdminRoleNotFound        = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
 	ErrAdminRoleCodeExists      = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
-	ErrAdminRoleAnchorInvalid   = errors.BadRequest("ADMIN_ROLE_ANCHOR_INVALID", "角色只能在公司/总部维护")
+	ErrAdminRoleAnchorInvalid   = errors.BadRequest("ADMIN_ROLE_ANCHOR_INVALID", "角色只能在公司/系统管理维护")
 	ErrAdminPermissionInvalid   = errors.BadRequest("ADMIN_PERMISSION_INVALID", "权限不存在或不属于当前请求")
 	ErrAdminPrivilegeEscalation = errors.Forbidden("ADMIN_PRIVILEGE_ESCALATION_DENIED", "不能分配超出自身权限范围的角色")
 	ErrAdminRoleProtected       = errors.Forbidden("ADMIN_ROLE_PROTECTED", "系统管理员角色不允许删除")
@@ -66,6 +66,12 @@ func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganiz
 	if actorOrganizationID == uuid.Nil || actorID == uuid.Nil || targetOrganizationID == uuid.Nil {
 		return ErrAdminPrivilegeEscalation
 	}
+	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
+		allowed := principal.baseOrganizationIDs(DataScopeOrganizationTree, principal.organizationScopeNodes())
+		if !containsOrganizationID(allowed, targetOrganizationID) {
+			return ErrAdminPrivilegeEscalation
+		}
+	}
 	if len(roleIDs) == 0 {
 		return nil
 	}
@@ -77,6 +83,13 @@ func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganiz
 	if err != nil {
 		return err
 	}
+	if principal, ok := PrincipalFromContext(ctx); ok && principalIsSystemWorkspace(principal) {
+		for _, node := range principal.OrganizationNodes {
+			if node.ID == targetOrganizationID && node.Kind != OrganizationKindSystem && (principal.HasPermission(access.UserUpdate) || principal.HasPermission(access.UserCreate)) {
+				profile.IsSuperAdmin = true
+			}
+		}
+	}
 	for _, roleProfile := range roleProfiles {
 		if err := checkPrivilegeEscalation(profile, roleProfile.DataScope, roleProfile.PermissionKeys, roleProfile.Code == "administrator"); err != nil {
 			return err
@@ -86,11 +99,6 @@ func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganiz
 }
 
 func (uc *AdminUsecase) getActorPrivilegeProfile(ctx context.Context, organizationID, actorID uuid.UUID) (*AdminPrivilegeProfile, error) {
-	// bootstrap 管理员按已批准的全组织穿透方案在任意组织上下文拥有完整管理能力，
-	// 提权校验按超管放行；其在目标组织可能没有成员关系，角色画像查询不可作为依据。
-	if principal, ok := PrincipalFromContext(ctx); ok && principal.IsBootstrapAdmin && principal.UserID == actorID {
-		return &AdminPrivilegeProfile{IsSuperAdmin: true, RoleProfiles: make([]AdminRoleProfile, 0)}, nil
-	}
 	roles, err := uc.repo.GetActorRolesPrivilegeProfiles(ctx, organizationID, actorID)
 	if err != nil {
 		return nil, err

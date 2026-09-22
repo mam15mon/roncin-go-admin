@@ -99,8 +99,9 @@ function renderModal(
       formRef={{ current: undefined }}
       roles={currentOrgRoles}
       organizations={[{ id: 'org-1', name: '天津分公司', code: 'TJ' }]}
-      canReadAllUserMemberships={false}
+      canReadUserMemberships={false}
       canManageUserMemberships={false}
+      canUpdateUserProfile={true}
       canAuthorizeWeComUsers={false}
       canAuthorizeDingTalkUsers={false}
       currentUserId="user-1"
@@ -166,7 +167,7 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
       data: [{ id: 'role-9', name: '锚定组织角色', code: 'anchor_role' }],
     });
 
-    renderModal(normalUser, { canReadAllUserMemberships: true });
+    renderModal(normalUser, { canReadUserMemberships: true });
 
     await act(async () => {});
     expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
@@ -189,7 +190,7 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
       ],
     });
 
-    renderModal(normalUser, { canReadAllUserMemberships: true });
+    renderModal(normalUser, { canReadUserMemberships: true });
 
     await act(async () => {});
     expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
@@ -256,5 +257,29 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
       { id: 'user-9' },
       expect.objectContaining({ organizationId: 'org-1' }),
     );
+  });
+});
+
+it('公司管理员只能管理成员关系，不能提交全局账号资料', async () => {
+  renderModal(normalUser, {
+    canUpdateUserProfile: false,
+    canReadUserMemberships: true,
+    canManageUserMemberships: true,
+  });
+  await act(async () => {});
+  expect(modalState.props?.submitter).toBe(false);
+  const finish = modalState.props?.onFinish as (
+    values: Record<string, unknown>,
+  ) => Promise<boolean>;
+  expect(
+    await finish({
+      displayName: '改名',
+      email: 'other@example.com',
+      roleIds: [],
+    }),
+  ).toBe(false);
+  expect(serviceMocks.updateUser).not.toHaveBeenCalled();
+  expect(serviceMocks.listUserMemberships).toHaveBeenCalledWith({
+    userId: normalUser.id,
   });
 });

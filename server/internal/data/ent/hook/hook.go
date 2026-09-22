@@ -297,6 +297,18 @@ func (f FeeSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeeSettingMutation", m)
 }
 
+// The FeeSettingTemplateFunc type is an adapter to allow the use of ordinary
+// function as FeeSettingTemplate mutator.
+type FeeSettingTemplateFunc func(context.Context, *ent.FeeSettingTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FeeSettingTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FeeSettingTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FeeSettingTemplateMutation", m)
+}
+
 // The FinanceBillFunc type is an adapter to allow the use of ordinary
 // function as FinanceBill mutator.
 type FinanceBillFunc func(context.Context, *ent.FinanceBillMutation) (ent.Value, error)

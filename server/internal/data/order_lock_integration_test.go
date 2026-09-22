@@ -245,7 +245,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	} {
 		if _, err := data.db.Port.Create().
 			SetID(routePort.id).
-			SetOrganizationID(org.ID).
 			SetUnLocode(routePort.unlocode).
 			SetNameZh(routePort.name).
 			SetNameEn(routePort.name).

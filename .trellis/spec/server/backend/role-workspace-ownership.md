@@ -11,7 +11,7 @@
 
 ```go
 // internal/data/auth.go —— 工作台模型的唯一口径（登录/切换工作台同一套）
-isWorkspaceKind(kind string) bool                     // 工作台 = headquarters | company
+isWorkspaceKind(kind string) bool                     // 工作台 = system | company
 workspaceAncestorID(nodes, organizationID) uuid.UUID  // 自身或最近工作台祖先；失败返回 uuid.Nil
 
 // internal/data/admin_role.go —— 角色锚点解析（读路径）
@@ -26,7 +26,7 @@ resolveRoleAnchorOrganizationID(ctx, client, organizationID) (uuid.UUID, error)
 BackfillRoleWorkspaceAnchors(ctx, database transactionStarter) error
 
 // internal/biz/admin_role.go
-ErrAdminRoleAnchorInvalid = errors.BadRequest("ADMIN_ROLE_ANCHOR_INVALID", "角色只能在公司/总部维护")
+ErrAdminRoleAnchorInvalid = errors.BadRequest("ADMIN_ROLE_ANCHOR_INVALID", "角色只能在公司/系统管理维护")
 
 // web/src/pages/admin/components/users/userConstants.ts —— 前端唯一出口
 isWorkspaceKindValue(kind?: number): boolean  // 取自 @/enums.generated，禁止裸数字
@@ -34,7 +34,7 @@ isWorkspaceKindValue(kind?: number): boolean  // 取自 @/enums.generated，禁�
 
 ## 3. Contracts
 
-- **归属**：角色库只归属工作台节点（总部/公司）；部门与团队**共享所属工作台的角色库**，
+- **归属**：角色库只归属工作台节点（系统管理/公司）；部门与团队**共享所属工作台的角色库**，
   不自建角色库。公司之间不共享（既有隔离设计）。
 - **读路径**：`ListRoles` / `GetRole` / `rolesPrivilegeProfiles` / `actorRolesPrivilegeProfiles`
   一律先把入参组织解析为工作台锚点再查；解析不出工作台即显式报错。
@@ -45,14 +45,14 @@ isWorkspaceKindValue(kind?: number): boolean  // 取自 @/enums.generated，禁�
   共享事务之外。
 - **前端**：工作台判定收敛为 `isWorkspaceKindValue` 单一出口，层级名展示复用它；
   前端不复制第二套 kind 规则，也不对字符串形态的 kind 做兜底猜测。
-- **不变量**：`roles.organization_id` 只允许指向 `kind ∈ {headquarters, company}` 的节点，
+- **不变量**：`roles.organization_id` 只允许指向 `kind ∈ {system, company}` 的节点，
   由迁移自检断言长期守门。
 
 ## 4. Validation & Error Matrix
 
 | 条件 | 行为 |
 | --- | --- |
-| 写路径传入部门/团队锚点（`resolved != 入参`） | `ErrAdminRoleAnchorInvalid`（400「角色只能在公司/总部维护」） |
+| 写路径传入部门/团队锚点（`resolved != 入参`） | `ErrAdminRoleAnchorInvalid`（400「角色只能在公司/系统管理维护」） |
 | 读路径组织不存在 / 父链断链 / 父链成环（`workspaceAncestorID` 返回 `uuid.Nil`） | `ErrAdminOrganizationNotFound`（404），不回退入参继续查询 |
 | `actorRolesPrivilegeProfiles` 解析不出工作台，或工作台子树成员范围为空 | `ErrAdminOrganizationNotFound`，不再回退为原始组织 |
 | 迁移归一后仍存在部门/团队锚定角色 | 迁移自检断言失败，报错终止发版 |
@@ -62,7 +62,7 @@ isWorkspaceKindValue(kind?: number): boolean  // 取自 @/enums.generated，禁�
 ## 5. Good / Base / Bad Cases
 
 - Good：部门上下文查询角色，沿父链解析到所属公司角色库，返回公司角色集合。
-- Good：在部门上下文调用角色管理接口，收到「角色只能在公司/总部维护」而非静默改挂。
+- Good：在部门上下文调用角色管理接口，收到「角色只能在公司/系统管理维护」而非静默改挂。
 - Base：组织停用不影响解析——`workspaceAncestorID` 不关注启用态，停用部门仍可解析到公司。
 - Bad：`resolveRoleOrganizationID` 解析失败返回入参继续查询——未知组织凭空获得「自己的
   角色库」，读路径静默纠错。
@@ -79,7 +79,7 @@ isWorkspaceKindValue(kind?: number): boolean  // 取自 @/enums.generated，禁�
   - 未知组织调 `ListRoles` → `ErrAdminOrganizationNotFound`；
   - 既有「部门继承公司角色」用例保持通过（读写对称的回归底线）；
   - 存量归一回填：幂等（跑两遍结果一致）、自检断言、断链与唯一冲突显式失败。
-- 前端定向 vitest：`isWorkspaceKindValue`（总部/公司 true，部门/团队/未提供 false）、
+- 前端定向 vitest：`isWorkspaceKindValue`（系统管理/公司 true，部门/团队/未提供 false）、
   `formatOrganizationHierarchyName`（部门拼「公司 / 部门」、多级中间层、工作台返回自身名、
   断链/成环不追加不可达上级）。
 

@@ -81,28 +81,28 @@ func (DataScope) EnumDescriptor() ([]byte, []int) {
 type OrganizationKind int32
 
 const (
-	OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED  OrganizationKind = 0
-	OrganizationKind_ORGANIZATION_KIND_HEADQUARTERS OrganizationKind = 1
-	OrganizationKind_ORGANIZATION_KIND_COMPANY      OrganizationKind = 2
-	OrganizationKind_ORGANIZATION_KIND_DEPARTMENT   OrganizationKind = 3
-	OrganizationKind_ORGANIZATION_KIND_TEAM         OrganizationKind = 4
+	OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED OrganizationKind = 0
+	OrganizationKind_ORGANIZATION_KIND_SYSTEM      OrganizationKind = 1
+	OrganizationKind_ORGANIZATION_KIND_COMPANY     OrganizationKind = 2
+	OrganizationKind_ORGANIZATION_KIND_DEPARTMENT  OrganizationKind = 3
+	OrganizationKind_ORGANIZATION_KIND_TEAM        OrganizationKind = 4
 )
 
 // Enum value maps for OrganizationKind.
 var (
 	OrganizationKind_name = map[int32]string{
 		0: "ORGANIZATION_KIND_UNSPECIFIED",
-		1: "ORGANIZATION_KIND_HEADQUARTERS",
+		1: "ORGANIZATION_KIND_SYSTEM",
 		2: "ORGANIZATION_KIND_COMPANY",
 		3: "ORGANIZATION_KIND_DEPARTMENT",
 		4: "ORGANIZATION_KIND_TEAM",
 	}
 	OrganizationKind_value = map[string]int32{
-		"ORGANIZATION_KIND_UNSPECIFIED":  0,
-		"ORGANIZATION_KIND_HEADQUARTERS": 1,
-		"ORGANIZATION_KIND_COMPANY":      2,
-		"ORGANIZATION_KIND_DEPARTMENT":   3,
-		"ORGANIZATION_KIND_TEAM":         4,
+		"ORGANIZATION_KIND_UNSPECIFIED": 0,
+		"ORGANIZATION_KIND_SYSTEM":      1,
+		"ORGANIZATION_KIND_COMPANY":     2,
+		"ORGANIZATION_KIND_DEPARTMENT":  3,
+		"ORGANIZATION_KIND_TEAM":        4,
 	}
 )
 
@@ -335,7 +335,7 @@ type CreateOrganizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	ParentId      *string                `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
 	Kind          OrganizationKind       `protobuf:"varint,4,opt,name=kind,proto3,enum=admin.v1.OrganizationKind" json:"kind,omitempty"`
 	BaseCurrency  *string                `protobuf:"bytes,5,opt,name=base_currency,json=baseCurrency,proto3,oneof" json:"base_currency,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -387,8 +387,8 @@ func (x *CreateOrganizationRequest) GetName() string {
 }
 
 func (x *CreateOrganizationRequest) GetParentId() string {
-	if x != nil {
-		return x.ParentId
+	if x != nil && x.ParentId != nil {
+		return *x.ParentId
 	}
 	return ""
 }
@@ -5505,13 +5505,15 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x1a\n" +
-	"\x18ListOrganizationsRequest\"\xe0\x01\n" +
+	"\x18ListOrganizationsRequest\"\xee\x01\n" +
 	"\x19CreateOrganizationRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
-	"\tparent_id\x18\x03 \x01(\tB\x03\xe0A\x02R\bparentId\x123\n" +
+	"\tparent_id\x18\x03 \x01(\tH\x00R\bparentId\x88\x01\x01\x123\n" +
 	"\x04kind\x18\x04 \x01(\x0e2\x1a.admin.v1.OrganizationKindB\x03\xe0A\x02R\x04kind\x12(\n" +
-	"\rbase_currency\x18\x05 \x01(\tH\x00R\fbaseCurrency\x88\x01\x01B\x10\n" +
+	"\rbase_currency\x18\x05 \x01(\tH\x01R\fbaseCurrency\x88\x01\x01B\f\n" +
+	"\n" +
+	"_parent_idB\x10\n" +
 	"\x0e_base_currency\"\x9f\x01\n" +
 	"\x19UpdateOrganizationRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
@@ -5990,10 +5992,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x0eDATA_SCOPE_ALL\x10\x01\x12\x1b\n" +
 	"\x17DATA_SCOPE_ORGANIZATION\x10\x02\x12 \n" +
 	"\x1cDATA_SCOPE_ORGANIZATION_TREE\x10\x03\x12\x13\n" +
-	"\x0fDATA_SCOPE_SELF\x10\x04*\xb6\x01\n" +
+	"\x0fDATA_SCOPE_SELF\x10\x04*\xb0\x01\n" +
 	"\x10OrganizationKind\x12!\n" +
-	"\x1dORGANIZATION_KIND_UNSPECIFIED\x10\x00\x12\"\n" +
-	"\x1eORGANIZATION_KIND_HEADQUARTERS\x10\x01\x12\x1d\n" +
+	"\x1dORGANIZATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18ORGANIZATION_KIND_SYSTEM\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
 	"\x16ORGANIZATION_KIND_TEAM\x10\x04*\xf2\x01\n" +
@@ -6015,24 +6017,24 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\"DING_TALK_INVITATION_KIND_TARGETED\x10\x01\x12%\n" +
 	"!DING_TALK_INVITATION_KIND_GENERIC\x10\x022\xb1*\n" +
 	"\fAdminService\x12\xa3\x01\n" +
-	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x01\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
-	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x01\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
-	"\x12UpdateOrganization\x12#.admin.v1.UpdateOrganizationRequest\x1a$.admin.v1.UpdateOrganizationResponse\"O\x82\xb5\x18 \b\x03\x12\x1asystem.organization.update \x01\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/v1/admin/organizations/{id}\x12{\n" +
+	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
+	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
+	"\x12UpdateOrganization\x12#.admin.v1.UpdateOrganizationRequest\x1a$.admin.v1.UpdateOrganizationResponse\"O\x82\xb5\x18 \b\x03\x12\x1asystem.organization.update \x02\x82\xd3\xe4\x93\x02%:\x01*\x1a /api/v1/admin/organizations/{id}\x12{\n" +
 	"\tListUsers\x12\x1a.admin.v1.ListUsersRequest\x1a\x1b.admin.v1.ListUsersResponse\"5\x82\xb5\x18\x16\b\x03\x12\x10system.user.read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/users\x12\x83\x01\n" +
 	"\n" +
 	"CreateUser\x12\x1b.admin.v1.CreateUserRequest\x1a\x1c.admin.v1.CreateUserResponse\":\x82\xb5\x18\x18\b\x03\x12\x12system.user.create \x02\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/users\x12\x88\x01\n" +
 	"\n" +
 	"UpdateUser\x12\x1b.admin.v1.UpdateUserRequest\x1a\x1c.admin.v1.UpdateUserResponse\"?\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x02\x1d:\x01*\x1a\x18/api/v1/admin/users/{id}\x12\xaf\x01\n" +
-	"\x13ListUserMemberships\x12$.admin.v1.ListUserMembershipsRequest\x1a%.admin.v1.ListUserMembershipsResponse\"K\x82\xb5\x18\x16\b\x03\x12\x10system.user.read \x01\x82\xd3\xe4\x93\x02+\x12)/api/v1/admin/users/{user_id}/memberships\x12\xb7\x01\n" +
-	"\x14CreateUserMembership\x12%.admin.v1.CreateUserMembershipRequest\x1a&.admin.v1.CreateUserMembershipResponse\"P\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/admin/users/{user_id}/memberships\x12\xbc\x01\n" +
-	"\x14UpdateUserMembership\x12%.admin.v1.UpdateUserMembershipRequest\x1a&.admin.v1.UpdateUserMembershipResponse\"U\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x023:\x01*\x1a./api/v1/admin/users/{user_id}/memberships/{id}\x12\xb9\x01\n" +
-	"\x14DeleteUserMembership\x12%.admin.v1.DeleteUserMembershipRequest\x1a&.admin.v1.DeleteUserMembershipResponse\"R\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x01\x82\xd3\xe4\x93\x020*./api/v1/admin/users/{user_id}/memberships/{id}\x12\x9d\x01\n" +
+	"\x13ListUserMemberships\x12$.admin.v1.ListUserMembershipsRequest\x1a%.admin.v1.ListUserMembershipsResponse\"K\x82\xb5\x18\x16\b\x03\x12\x10system.user.read \x02\x82\xd3\xe4\x93\x02+\x12)/api/v1/admin/users/{user_id}/memberships\x12\xb7\x01\n" +
+	"\x14CreateUserMembership\x12%.admin.v1.CreateUserMembershipRequest\x1a&.admin.v1.CreateUserMembershipResponse\"P\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/admin/users/{user_id}/memberships\x12\xbc\x01\n" +
+	"\x14UpdateUserMembership\x12%.admin.v1.UpdateUserMembershipRequest\x1a&.admin.v1.UpdateUserMembershipResponse\"U\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x023:\x01*\x1a./api/v1/admin/users/{user_id}/memberships/{id}\x12\xb9\x01\n" +
+	"\x14DeleteUserMembership\x12%.admin.v1.DeleteUserMembershipRequest\x1a&.admin.v1.DeleteUserMembershipResponse\"R\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x020*./api/v1/admin/users/{user_id}/memberships/{id}\x12\x9d\x01\n" +
 	"\rTerminateUser\x12\x1e.admin.v1.TerminateUserRequest\x1a\x1f.admin.v1.TerminateUserResponse\"K\x82\xb5\x18\x18\b\x03\x12\x12system.user.delete \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/admin/users/{id}/termination\x12\xbd\x01\n" +
 	"\x12AuthorizeWeComUser\x12#.admin.v1.AuthorizeWeComUserRequest\x1a$.admin.v1.AuthorizeWeComUserResponse\"\\\x82\xb5\x18!\b\x03\x12\x1bsystem.user.authorize_wecom \x01\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/admin/users/{id}/wecom-authorization\x12\xcc\x01\n" +
 	"\x15AuthorizeDingTalkUser\x12&.admin.v1.AuthorizeDingTalkUserRequest\x1a'.admin.v1.AuthorizeDingTalkUserResponse\"b\x82\xb5\x18$\b\x03\x12\x1esystem.user.authorize_dingtalk \x01\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/admin/users/{id}/dingtalk-authorization\x12\xae\x01\n" +
 	"\x11ResetUserPassword\x12\".admin.v1.ResetUserPasswordRequest\x1a#.admin.v1.ResetUserPasswordResponse\"P\x82\xb5\x18 \b\x03\x12\x1asystem.user.reset_password \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/admin/users/{id}/password\x12{\n" +
 	"\tListRoles\x12\x1a.admin.v1.ListRolesRequest\x1a\x1b.admin.v1.ListRolesResponse\"5\x82\xb5\x18\x16\b\x03\x12\x10system.role.read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/roles\x12\xbf\x01\n" +
-	"\x15ListOrganizationRoles\x12&.admin.v1.ListOrganizationRolesRequest\x1a'.admin.v1.ListOrganizationRolesResponse\"U\x82\xb5\x18\x16\b\x03\x12\x10system.role.read \x01\x82\xd3\xe4\x93\x025\x123/api/v1/admin/organizations/{organization_id}/roles\x12\x83\x01\n" +
+	"\x15ListOrganizationRoles\x12&.admin.v1.ListOrganizationRolesRequest\x1a'.admin.v1.ListOrganizationRolesResponse\"U\x82\xb5\x18\x16\b\x03\x12\x10system.role.read \x02\x82\xd3\xe4\x93\x025\x123/api/v1/admin/organizations/{organization_id}/roles\x12\x83\x01\n" +
 	"\n" +
 	"CreateRole\x12\x1b.admin.v1.CreateRoleRequest\x1a\x1c.admin.v1.CreateRoleResponse\":\x82\xb5\x18\x18\b\x03\x12\x12system.role.create \x02\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/admin/roles\x12\x88\x01\n" +
 	"\n" +

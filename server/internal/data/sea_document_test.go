@@ -25,22 +25,22 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	repo := NewSeaDocumentRepo(data)
 	orderRepo := NewOrderRepo(data)
 
-	// 1. 创建测试总部组织与下属部门组织
-	hqOrg, err := data.db.Organization.Create().
+	// 1. 创建独立的签发公司与业务公司
+	issuerCompany, err := data.db.Organization.Create().
 		SetCode("TEST-HQ-" + uuid.New().String()[:8]).
-		SetName("测试总部").
-		SetKind("headquarters").
+		SetName("测试签发公司").
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试总部组织失败: %v", err)
 	}
 
-	deptOrg, err := data.db.Organization.Create().
+	businessCompany, err := data.db.Organization.Create().
 		SetCode("TEST-DEPT-" + uuid.New().String()[:8]).
-		SetName("测试业务部").
-		SetKind("department").
-		SetParentID(hqOrg.ID).
+		SetName("测试业务公司").
+		SetKind("company").
+		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试部门组织失败: %v", err)
@@ -48,7 +48,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// 2. 创建客户 Partner
 	customerPartner, err := data.db.Partner.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetCode("CUST-" + uuid.New().String()[:8]).
 		SetLegalName("测试客户").
 		SetNormalizedName("测试客户").
@@ -79,7 +79,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	actorID := uuid.New()
 	makeAudit := func() *biz.AuditEvent {
 		return &biz.AuditEvent{
-			OrganizationID: &deptOrg.ID,
+			OrganizationID: &businessCompany.ID,
 			UserID:         &actorID,
 			Result:         "success",
 		}
@@ -88,7 +88,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	// 4. 创建 DIRECT 订单与关联验证
 	directOrder, err := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderNo("SE-DIR-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
 		SetShippingLineID(shippingLine.ID).
@@ -101,7 +101,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 DIRECT 订单失败: %v", err)
 	}
 	teDirect, err := data.db.SeaTransportExecution.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetShippingLineID(shippingLine.ID).
 		SetVesselName("EVER GIVEN").
 		SetVoyageNo("001W").
@@ -111,7 +111,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 	mblDirectNo := "TESTDIRMBL" + uuid.New().String()[:6]
 	mblDirect, err := data.db.SeaMasterBill.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetMasterNo(mblDirectNo).
 		SetNormalizedMasterNo(mblDirectNo).
 		SetShippingLineID(shippingLine.ID).
@@ -120,7 +120,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 DIRECT MBL 失败: %v", err)
 	}
 	linkDirect, err := data.db.SeaMasterBillOrderLink.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderID(directOrder.ID).
 		SetMasterBillID(mblDirect.ID).
 		SetTransportExecutionID(teDirect.ID).
@@ -132,7 +132,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	// 校验 1：DIRECT 单证查询验证（HouseBill 为空，允许操作不包含 UPDATE_HOUSE_BILL）
-	docAggDirect, err := repo.GetSeaOrderDocuments(ctx, deptOrg.ID, directOrder.ID)
+	docAggDirect, err := repo.GetSeaOrderDocuments(ctx, businessCompany.ID, directOrder.ID)
 	if err != nil {
 		t.Fatalf("GetSeaOrderDocuments direct failed: %v", err)
 	}
@@ -158,7 +158,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	// 5. 创建 HOUSE 订单及唯一分单
 	houseOrder, err := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderNo("SE-HSE-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
 		SetShippingLineID(shippingLine.ID).
@@ -171,7 +171,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 HOUSE 订单失败: %v", err)
 	}
 	teHouse, err := data.db.SeaTransportExecution.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetShippingLineID(shippingLine.ID).
 		SetVesselName("EVER SMART").
 		SetVoyageNo("002E").
@@ -181,7 +181,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 	mblHouseNo := "TESTHSEMBL" + uuid.New().String()[:6]
 	mblHouse, err := data.db.SeaMasterBill.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetMasterNo(mblHouseNo).
 		SetNormalizedMasterNo(mblHouseNo).
 		SetShippingLineID(shippingLine.ID).
@@ -190,7 +190,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 HOUSE MBL 失败: %v", err)
 	}
 	linkHouse, err := data.db.SeaMasterBillOrderLink.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderID(houseOrder.ID).
 		SetMasterBillID(mblHouse.ID).
 		SetTransportExecutionID(teHouse.ID).
@@ -204,13 +204,13 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	rawHouseNo := "  COSU 000123 / 2026.B  "
 	hbHouse, err := data.db.SeaHouseBill.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderID(houseOrder.ID).
 		SetMasterBillID(mblHouse.ID).
 		SetHouseNo(rawHouseNo).
 		SetNormalizedHouseNo("COSU 000123 / 2026.B").
 		SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
-		SetIssuerOrganizationID(hqOrg.ID).
+		SetIssuerOrganizationID(issuerCompany.ID).
 		SetStatus(seahousebillent.StatusDRAFT).
 		SetVersion(1).
 		Save(ctx)
@@ -219,7 +219,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	// 校验 2：HOUSE 单证查询验证（单值 HBL、IssuerOrg 向上解析）
-	docAggHouse, err := repo.GetSeaOrderDocuments(ctx, deptOrg.ID, houseOrder.ID)
+	docAggHouse, err := repo.GetSeaOrderDocuments(ctx, businessCompany.ID, houseOrder.ID)
 	if err != nil {
 		t.Fatalf("GetSeaOrderDocuments house failed: %v", err)
 	}
@@ -232,20 +232,20 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	if docAggHouse.HouseBill.HouseNo != rawHouseNo {
 		t.Fatalf("expected raw houseNo preserved verbatim %q, got %q", rawHouseNo, docAggHouse.HouseBill.HouseNo)
 	}
-	if docAggHouse.HouseBill.IssuerOrganizationID == nil || *docAggHouse.HouseBill.IssuerOrganizationID != hqOrg.ID {
-		t.Fatalf("expected IssuerOrganizationID = %s (hqOrg), got %v", hqOrg.ID, docAggHouse.HouseBill.IssuerOrganizationID)
+	if docAggHouse.HouseBill.IssuerOrganizationID == nil || *docAggHouse.HouseBill.IssuerOrganizationID != issuerCompany.ID {
+		t.Fatalf("expected IssuerOrganizationID = %s (issuerCompany), got %v", issuerCompany.ID, docAggHouse.HouseBill.IssuerOrganizationID)
 	}
 
 	// 校验 3：条件唯一索引（idx_sea_house_bills_current_order_unique）
 	// 同一订单创建第二张非 VOIDED 分单必须触发唯一性冲突
 	_, err = data.db.SeaHouseBill.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderID(houseOrder.ID).
 		SetMasterBillID(mblHouse.ID).
 		SetHouseNo("HBL-DUPLICATE-FAIL").
 		SetNormalizedHouseNo("HBL-DUPLICATE-FAIL").
 		SetIssuerSource(seahousebillent.IssuerSourceSELF_ORGANIZATION).
-		SetIssuerOrganizationID(hqOrg.ID).
+		SetIssuerOrganizationID(issuerCompany.ID).
 		SetStatus(seahousebillent.StatusDRAFT).
 		SetVersion(1).
 		Save(ctx)
@@ -255,7 +255,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	// 校验 4：UpdateSeaHouseBill 校验、版本递增与版本冲突
 	pkgCount := int32(100)
-	updatedHB, err := repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
+	updatedHB, err := repo.UpdateSeaHouseBill(ctx, businessCompany.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
 		HouseNo:      "COSU 000123 / 2026.B",
 		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 		Content: &biz.SeaBillContent{
@@ -274,7 +274,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	// 旧 HBL 版本更新必须触发冲突
-	_, err = repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion+1, &biz.SeaHouseBillInput{
+	_, err = repo.UpdateSeaHouseBill(ctx, businessCompany.ID, actorID, houseOrder.ID, hbHouse.ID, hbHouse.Version, docAggHouse.LinkVersion+1, &biz.SeaHouseBillInput{
 		HouseNo:      "COSU 000123 / 2026.B",
 		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 	}, makeAudit())
@@ -283,7 +283,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	// 旧 Link 版本更新必须触发结构冲突
-	_, err = repo.UpdateSeaHouseBill(ctx, deptOrg.ID, actorID, houseOrder.ID, hbHouse.ID, updatedHB.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
+	_, err = repo.UpdateSeaHouseBill(ctx, businessCompany.ID, actorID, houseOrder.ID, hbHouse.ID, updatedHB.Version, docAggHouse.LinkVersion, &biz.SeaHouseBillInput{
 		HouseNo:      "COSU 000123 / 2026.B",
 		IssuerSource: biz.SeaHouseBillIssuerSourceSelfOrganization,
 	}, makeAudit())
@@ -295,7 +295,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	mblPkgCount := int32(50)
 	gw := 1200.0
 	cbm := 15.5
-	updatedMbl, err := repo.UpdateSeaMasterBillContent(ctx, deptOrg.ID, actorID, houseOrder.ID, docAggHouse.MasterBill.Version, &biz.SeaBillContent{
+	updatedMbl, err := repo.UpdateSeaMasterBillContent(ctx, businessCompany.ID, actorID, houseOrder.ID, docAggHouse.MasterBill.Version, &biz.SeaBillContent{
 		ShipperText:   ptr("  MBL SHIPPER  "),
 		PackageCount:  &mblPkgCount,
 		GrossWeightKg: &gw,
@@ -312,7 +312,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	// 旧版本更新应触发 409 Conflict
-	_, err = repo.UpdateSeaMasterBillContent(ctx, deptOrg.ID, actorID, houseOrder.ID, docAggHouse.MasterBill.Version, &biz.SeaBillContent{
+	_, err = repo.UpdateSeaMasterBillContent(ctx, businessCompany.ID, actorID, houseOrder.ID, docAggHouse.MasterBill.Version, &biz.SeaBillContent{
 		ShipperText: ptr("STALE UPDATE"),
 	}, makeAudit())
 	if err != biz.ErrSeaMasterBillConflict {
@@ -327,7 +327,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	}
 
 	custHB, err := data.db.SeaHouseBill.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderID(houseOrder.ID).
 		SetMasterBillID(mblHouse.ID).
 		SetHouseNo("HBL-CUST-ACTIVE").
@@ -343,7 +343,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	_ = custHB
 
 	otherCustomer, err := data.db.Partner.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetCode("CUST-OTHER-" + uuid.New().String()[:8]).
 		SetLegalName("另一个测试客户").
 		SetNormalizedName("另一个测试客户").
@@ -364,7 +364,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("获取最新订单失败: %v", err)
 	}
-	_, err = orderRepo.UpdateDraft(ctx, deptOrg.ID, houseOrder.ID, freshHouseOrder.Version, &biz.Order{
+	_, err = orderRepo.UpdateDraft(ctx, businessCompany.ID, houseOrder.ID, freshHouseOrder.Version, &biz.Order{
 		CustomerID:     otherCustomer.ID,
 		ShippingLineID: &shippingLine.ID,
 		BusinessType:   biz.OrderBusinessSE,
@@ -393,7 +393,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 
 	baseOrder, err := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderNo("SE-BASE-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
 		SetCustomerReferenceNo("BATCH-REF-1").
@@ -407,7 +407,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 baseOrder 失败: %v", err)
 	}
 	_, err = data.db.SeaMasterBillOrderLink.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderID(baseOrder.ID).
 		SetMasterBillID(mblHouse.ID).
 		SetTransportExecutionID(teHouse.ID).
@@ -421,7 +421,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	// Order 2: 命中 CUSTOMER_REFERENCE
 	orderCustRef, err := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderNo("SE-REF-" + uuid.New().String()[:8]).
 		SetCustomerID(customerPartner.ID).
 		SetCustomerReferenceNo("BATCH-REF-1").
@@ -438,7 +438,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	// Order 3: 命中 BOOKING
 	orderBooking, err := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderNo("SE-BKG-" + uuid.New().String()[:8]).
 		SetCustomerID(otherCustomer.ID).
 		SetBookingNo("BKG-BATCH-1").
@@ -454,7 +454,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 	// Order 4: 命中 MASTER
 	orderMBL, err := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderNo("SE-MBL-" + uuid.New().String()[:8]).
 		SetCustomerID(otherCustomer.ID).
 		SetBookingNo("BKG-OTHER-88").
@@ -467,7 +467,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 orderMBL 失败: %v", err)
 	}
 	_, err = data.db.SeaMasterBillOrderLink.Create().
-		SetOrganizationID(deptOrg.ID).
+		SetOrganizationID(businessCompany.ID).
 		SetOrderID(orderMBL.ID).
 		SetMasterBillID(mblHouse.ID).
 		SetTransportExecutionID(teHouse.ID).
@@ -503,7 +503,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 otherOrgOrder 失败: %v", err)
 	}
 
-	sameBatchList, err := orderRepo.ListSameBatchOrders(ctx, deptOrg.ID, baseOrder.ID)
+	sameBatchList, err := orderRepo.ListSameBatchOrders(ctx, businessCompany.ID, baseOrder.ID)
 	if err != nil {
 		t.Fatalf("ListSameBatchOrders failed: %v", err)
 	}

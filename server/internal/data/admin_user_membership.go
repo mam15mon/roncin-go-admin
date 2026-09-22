@@ -9,6 +9,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -28,8 +29,12 @@ func (r *adminRepo) ListUserMemberships(ctx context.Context, userID uuid.UUID) (
 	if !exists {
 		return nil, biz.ErrAdminUserNotFound
 	}
+	scope, scopeErr := adminMembershipPredicate(ctx, client)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
 	items, err := client.Membership.Query().
-		Where(membership.UserIDEQ(userID)).
+		Where(membership.UserIDEQ(userID), scope).
 		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
 		Order(membership.ByOrganizationField(organization.FieldCode), membership.ByID()).
@@ -51,6 +56,19 @@ func (r *adminRepo) GetUserMembership(ctx context.Context, userID, membershipID 
 func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUserMembership, error) {
 	var created *ent.Membership
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if principal, ok := biz.PrincipalFromContext(ctx); ok {
+			scope, err := adminWorkspaceScope(ctx, tx.Client(), principal.Organization.ID)
+			if err != nil {
+				return err
+			}
+			if principal.Organization.Kind != biz.OrganizationKindSystem && input.Primary {
+				return biz.ErrPermissionDenied
+			}
+			if !uuidInValues(scope, input.OrganizationID) {
+				return biz.ErrAdminOrganizationNotFound
+			}
+		}
+
 		if _, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx); queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
@@ -104,16 +122,23 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUs
 func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUserMembership, error) {
 	var current *ent.Membership
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		scope, scopeErr := adminMembershipPredicate(ctx, tx.Client())
+		if scopeErr != nil {
+			return scopeErr
+		}
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		current, queryErr = tx.Membership.Query().
-			Where(membership.IDEQ(input.ID), membership.UserIDEQ(input.UserID)).
+			Where(membership.IDEQ(input.ID), membership.UserIDEQ(input.UserID), scope).
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserMembershipNotFound, nil)
+		}
+		if principal, ok := biz.PrincipalFromContext(ctx); ok && principal.Organization.Kind != biz.OrganizationKindSystem && input.Primary != current.Primary {
+			return biz.ErrPermissionDenied
 		}
 		if account.Enabled && current.Enabled && !input.Enabled {
 			activeCount, countErr := tx.Membership.Query().Where(membership.UserIDEQ(input.UserID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Count(ctx)
@@ -169,12 +194,16 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 
 func (r *adminRepo) DeleteUserMembership(ctx context.Context, userID, membershipID uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		scope, scopeErr := adminMembershipPredicate(ctx, tx.Client())
+		if scopeErr != nil {
+			return scopeErr
+		}
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(userID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
 		}
 		current, queryErr := tx.Membership.Query().
-			Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID)).
+			Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID), scope).
 			ForUpdate().
 			Only(ctx)
 		if queryErr != nil {
@@ -221,8 +250,12 @@ func (r *adminRepo) findUserMembership(ctx context.Context, userID, membershipID
 	if err != nil {
 		return nil, err
 	}
+	scope, scopeErr := adminMembershipPredicate(ctx, client)
+	if scopeErr != nil {
+		return nil, scopeErr
+	}
 	item, err := client.Membership.Query().
-		Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID)).
+		Where(membership.IDEQ(membershipID), membership.UserIDEQ(userID), scope).
 		WithOrganization().
 		WithRoleAssignments(func(query *ent.RoleAssignmentQuery) { query.WithRole() }).
 		Only(ctx)
@@ -309,4 +342,17 @@ func sortRoleCodeNames(codes, names []string) {
 	for i := range pairs {
 		codes[i], names[i] = pairs[i].code, pairs[i].name
 	}
+}
+
+// adminMembershipPredicate 将公司成员管理限制在本公司子树，系统工作台可管理各公司。
+func adminMembershipPredicate(ctx context.Context, client *ent.Client) (predicate.Membership, error) {
+	if principal, ok := biz.PrincipalFromContext(ctx); ok {
+		ids, err := adminOrganizationManagementScope(ctx, client, principal.Organization.ID)
+		if err != nil {
+			return nil, err
+		}
+		return membership.OrganizationIDIn(ids...), nil
+	}
+	// 内部种子与隔离测试不经过登录请求；HTTP 层始终要求 Principal。
+	return membership.IDNEQ(uuid.Nil), nil
 }

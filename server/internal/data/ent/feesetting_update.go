@@ -54,12 +54,6 @@ func (_u *FeeSettingUpdate) SetNillableOrganizationID(v *uuid.UUID) *FeeSettingU
 	return _u
 }
 
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (_u *FeeSettingUpdate) ClearOrganizationID() *FeeSettingUpdate {
-	_u.mutation.ClearOrganizationID()
-	return _u
-}
-
 // SetFeeCode sets the "fee_code" field.
 func (_u *FeeSettingUpdate) SetFeeCode(v string) *FeeSettingUpdate {
 	_u.mutation.SetFeeCode(v)
@@ -432,6 +426,9 @@ func (_u *FeeSettingUpdate) check() error {
 			return &ValidationError{Name: "default_currency", err: fmt.Errorf(`ent: validator failed for field "FeeSetting.default_currency": %w`, err)}
 		}
 	}
+	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "FeeSetting.organization"`)
+	}
 	if _u.mutation.ChargeCategoryCleared() && len(_u.mutation.ChargeCategoryIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FeeSetting.charge_category"`)
 	}
@@ -722,12 +719,6 @@ func (_u *FeeSettingUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *FeeSetti
 	if v != nil {
 		_u.SetOrganizationID(*v)
 	}
-	return _u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (_u *FeeSettingUpdateOne) ClearOrganizationID() *FeeSettingUpdateOne {
-	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -1115,6 +1106,9 @@ func (_u *FeeSettingUpdateOne) check() error {
 		if err := feesetting.DefaultCurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "default_currency", err: fmt.Errorf(`ent: validator failed for field "FeeSetting.default_currency": %w`, err)}
 		}
+	}
+	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "FeeSetting.organization"`)
 	}
 	if _u.mutation.ChargeCategoryCleared() && len(_u.mutation.ChargeCategoryIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FeeSetting.charge_category"`)

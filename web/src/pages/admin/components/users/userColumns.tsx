@@ -21,7 +21,7 @@ interface UserColumnsDeps {
   canUpdateUsers: boolean;
   canResetUserPasswords: boolean;
   canTerminateUsers: boolean;
-  canReadAllUserMemberships: boolean;
+  canReadUserMemberships: boolean;
   currentUserId?: string;
   onEdit: (user: API.AdminUser) => void;
   onResetPassword: (user: API.AdminUser) => void;
@@ -35,7 +35,7 @@ export function buildUserColumns({
   canUpdateUsers,
   canResetUserPasswords,
   canTerminateUsers,
-  canReadAllUserMemberships,
+  canReadUserMemberships,
   currentUserId,
   onEdit,
   onResetPassword,
@@ -92,7 +92,7 @@ export function buildUserColumns({
         );
       },
     },
-    ...(canReadAllUserMemberships
+    ...(canReadUserMemberships
       ? [
           {
             title: '所属组织',

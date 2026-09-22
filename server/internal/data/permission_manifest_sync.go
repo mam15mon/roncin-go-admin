@@ -29,7 +29,7 @@ type transactionStarter interface {
 }
 
 // SyncPermissionManifest 在单个事务内按 access.Manifest 同步权限目录、移除清单外
-// 权限，并补齐所有角色缺失的传递依赖；administrator 角色始终持有完整清单。函数
+// 权限，并补齐所有角色缺失的传递依赖；administrator 角色仅持有所属工作台允许的清单。函数
 // 不做 Schema 变更，也不创建或修改用户与组织，且只借用连接。
 func SyncPermissionManifest(ctx context.Context, database transactionStarter) (*PermissionManifestSyncSummary, error) {
 	summary := &PermissionManifestSyncSummary{}
@@ -85,7 +85,7 @@ func SyncPermissionManifest(ctx context.Context, database transactionStarter) (*
 		}
 		summary.Removed = removed
 
-		roles, err := client.Role.Query().WithPermissions().All(ctx)
+		roles, err := client.Role.Query().WithPermissions().WithOrganization().All(ctx)
 		if err != nil {
 			return fmt.Errorf("query roles: %w", err)
 		}
@@ -99,6 +99,25 @@ func SyncPermissionManifest(ctx context.Context, database transactionStarter) (*
 			targetKeys := access.ResolveDependencies(grantedKeys)
 			if currentRole.Code == "administrator" {
 				targetKeys = manifestKeys
+			}
+			system := string(currentRole.Edges.Organization.Kind) == "system"
+			filteredKeys := make([]string, 0, len(targetKeys))
+			removeIDs := make([]uuid.UUID, 0)
+			for _, item := range currentRole.Edges.Permissions {
+				if !access.PermissionAllowedInWorkspace(item.Key, system) {
+					removeIDs = append(removeIDs, item.ID)
+				}
+			}
+			for _, key := range targetKeys {
+				if access.PermissionAllowedInWorkspace(key, system) {
+					filteredKeys = append(filteredKeys, key)
+				}
+			}
+			targetKeys = filteredKeys
+			if len(removeIDs) > 0 {
+				if _, err := client.Role.UpdateOneID(currentRole.ID).RemovePermissionIDs(removeIDs...).Save(ctx); err != nil {
+					return err
+				}
 			}
 			missingIDs := make([]uuid.UUID, 0, len(targetKeys))
 			for _, key := range targetKeys {

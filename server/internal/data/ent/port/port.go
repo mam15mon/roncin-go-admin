@@ -7,7 +7,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -20,8 +19,6 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldOrganizationID holds the string denoting the organization_id field in the database.
-	FieldOrganizationID = "organization_id"
 	// FieldUnLocode holds the string denoting the un_locode field in the database.
 	FieldUnLocode = "un_locode"
 	// FieldNameZh holds the string denoting the name_zh field in the database.
@@ -44,17 +41,8 @@ const (
 	FieldEnabled = "enabled"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
-	// EdgeOrganization holds the string denoting the organization edge name in mutations.
-	EdgeOrganization = "organization"
 	// Table holds the table name of the port in the database.
 	Table = "ports"
-	// OrganizationTable is the table that holds the organization relation/edge.
-	OrganizationTable = "ports"
-	// OrganizationInverseTable is the table name for the Organization entity.
-	// It exists in this package in order to avoid circular dependency with the "organization" package.
-	OrganizationInverseTable = "organizations"
-	// OrganizationColumn is the table column denoting the organization relation/edge.
-	OrganizationColumn = "organization_id"
 )
 
 // Columns holds all SQL columns for port fields.
@@ -62,7 +50,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldOrganizationID,
 	FieldUnLocode,
 	FieldNameZh,
 	FieldNameEn,
@@ -143,11 +130,6 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByOrganizationID orders the results by the organization_id field.
-func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
-}
-
 // ByUnLocode orders the results by the un_locode field.
 func ByUnLocode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUnLocode, opts...).ToFunc()
@@ -196,18 +178,4 @@ func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 // BySearchKeywords orders the results by the search_keywords field.
 func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
-}
-
-// ByOrganizationField orders the results by organization field.
-func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrganizationStep(), sql.OrderByField(field, opts...))
-	}
-}
-func newOrganizationStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrganizationInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-	)
 }

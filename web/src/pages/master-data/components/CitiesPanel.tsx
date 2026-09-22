@@ -1,7 +1,7 @@
 import { CompassOutlined } from '@ant-design/icons';
-import { useAccess } from '@/app/access';
 import { App, Tag } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import { masterDataServiceListAdministrativeRegions } from '@/services/roncin/masterDataService';
@@ -82,7 +82,7 @@ export default function CitiesPanel() {
       loading={loading}
       onRefresh={fetchServerData}
       notice={
-        access.isHeadquartersOrganization ? undefined : '由总部统一维护与共享'
+        access.isSystemWorkspace ? undefined : '由系统管理员统一维护与共享'
       }
       searchPlaceholder="搜索12位区划代码(如 310115000000) / 城市区划名称..."
       extraStats={[

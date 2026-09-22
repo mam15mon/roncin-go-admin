@@ -58,7 +58,7 @@ describe('AvatarDropdown Component', () => {
     mockCurrentUser = {
       username: 'testadmin',
       displayName: '测试管理员',
-      currentOrganization: { id: 'org-1', name: '总部' },
+      currentOrganization: { id: 'org-1', name: '系统管理' },
       roleScopes: [{ roleCode: 'admin' }],
     };
 
@@ -73,7 +73,7 @@ describe('AvatarDropdown Component', () => {
     mockCurrentUser = {
       username: 'testadmin',
       displayName: '测试管理员',
-      currentOrganization: { id: 'org-1', name: '总部' },
+      currentOrganization: { id: 'org-1', name: '系统管理' },
       roleScopes: [{ roleCode: 'role_te22ck559e', roleName: '华东操作组' }],
     };
 
@@ -92,7 +92,7 @@ describe('AvatarDropdown Component', () => {
     mockCurrentUser = {
       username: 'testadmin',
       displayName: '测试管理员',
-      currentOrganization: { id: 'org-1', name: '总部' },
+      currentOrganization: { id: 'org-1', name: '系统管理' },
       roleScopes: [{ roleCode: 'admin' }],
     };
     const fallback = render(<AvatarDropdown />);
@@ -113,7 +113,7 @@ describe('AvatarDropdown Component', () => {
     mockCurrentUser = {
       username: 'testadmin',
       displayName: '测试管理员',
-      currentOrganization: { id: 'org-1', name: '总部' },
+      currentOrganization: { id: 'org-1', name: '系统管理' },
       roleScopes: [{ roleCode: 'admin' }],
     };
 
@@ -142,7 +142,7 @@ describe('AvatarDropdown Component', () => {
     mockCurrentUser = {
       username: 'testadmin',
       displayName: '测试管理员',
-      currentOrganization: { id: 'org-1', name: '总部' },
+      currentOrganization: { id: 'org-1', name: '系统管理' },
       roleScopes: [{ roleCode: 'admin' }],
     };
 

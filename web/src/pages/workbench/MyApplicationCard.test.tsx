@@ -137,7 +137,7 @@ describe('deriveStage 申请阶段推导（纯函数）', () => {
 });
 
 describe('MyApplicationCard 工作台月度申请卡', () => {
-  it('总部仅查看申请摘要与历史，不展示申请办理入口', () => {
+  it('系统管理仅查看申请摘要与历史，不展示申请办理入口', () => {
     accessState.canOperateBusiness = false;
     renderCard();
     expect(screen.queryByTestId('apply-submit-button')).not.toBeInTheDocument();

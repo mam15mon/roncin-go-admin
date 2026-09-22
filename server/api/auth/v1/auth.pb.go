@@ -77,28 +77,28 @@ func (DingTalkLoginStatus) EnumDescriptor() ([]byte, []int) {
 type OrganizationKind int32
 
 const (
-	OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED  OrganizationKind = 0
-	OrganizationKind_ORGANIZATION_KIND_HEADQUARTERS OrganizationKind = 1
-	OrganizationKind_ORGANIZATION_KIND_COMPANY      OrganizationKind = 2
-	OrganizationKind_ORGANIZATION_KIND_DEPARTMENT   OrganizationKind = 3
-	OrganizationKind_ORGANIZATION_KIND_TEAM         OrganizationKind = 4
+	OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED OrganizationKind = 0
+	OrganizationKind_ORGANIZATION_KIND_SYSTEM      OrganizationKind = 1
+	OrganizationKind_ORGANIZATION_KIND_COMPANY     OrganizationKind = 2
+	OrganizationKind_ORGANIZATION_KIND_DEPARTMENT  OrganizationKind = 3
+	OrganizationKind_ORGANIZATION_KIND_TEAM        OrganizationKind = 4
 )
 
 // Enum value maps for OrganizationKind.
 var (
 	OrganizationKind_name = map[int32]string{
 		0: "ORGANIZATION_KIND_UNSPECIFIED",
-		1: "ORGANIZATION_KIND_HEADQUARTERS",
+		1: "ORGANIZATION_KIND_SYSTEM",
 		2: "ORGANIZATION_KIND_COMPANY",
 		3: "ORGANIZATION_KIND_DEPARTMENT",
 		4: "ORGANIZATION_KIND_TEAM",
 	}
 	OrganizationKind_value = map[string]int32{
-		"ORGANIZATION_KIND_UNSPECIFIED":  0,
-		"ORGANIZATION_KIND_HEADQUARTERS": 1,
-		"ORGANIZATION_KIND_COMPANY":      2,
-		"ORGANIZATION_KIND_DEPARTMENT":   3,
-		"ORGANIZATION_KIND_TEAM":         4,
+		"ORGANIZATION_KIND_UNSPECIFIED": 0,
+		"ORGANIZATION_KIND_SYSTEM":      1,
+		"ORGANIZATION_KIND_COMPANY":     2,
+		"ORGANIZATION_KIND_DEPARTMENT":  3,
+		"ORGANIZATION_KIND_TEAM":        4,
 	}
 )
 
@@ -1432,7 +1432,7 @@ type OrganizationChoice struct {
 	OrganizationName string                 `protobuf:"bytes,2,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
 	OrganizationCode string                 `protobuf:"bytes,3,opt,name=organization_code,json=organizationCode,proto3" json:"organization_code,omitempty"`
 	IsDefault        bool                   `protobuf:"varint,4,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	// 组织节点类型，供前端推导主数据维护视角（总部/公司）。
+	// 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。
 	Kind          OrganizationKind `protobuf:"varint,5,opt,name=kind,proto3,enum=auth.v1.OrganizationKind" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1694,7 +1694,7 @@ type Organization struct {
 	Code         string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
 	Name         string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	BaseCurrency string                 `protobuf:"bytes,4,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	// 组织节点类型，供前端推导主数据维护视角（总部/公司）。
+	// 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。
 	Kind          OrganizationKind `protobuf:"varint,5,opt,name=kind,proto3,enum=auth.v1.OrganizationKind" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2177,10 +2177,10 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x13DingTalkLoginStatus\x12&\n" +
 	"\"DING_TALK_LOGIN_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
 	"$DING_TALK_LOGIN_STATUS_AUTHENTICATED\x10\x01\x120\n" +
-	",DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED\x10\x02*\xb6\x01\n" +
+	",DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED\x10\x02*\xb0\x01\n" +
 	"\x10OrganizationKind\x12!\n" +
-	"\x1dORGANIZATION_KIND_UNSPECIFIED\x10\x00\x12\"\n" +
-	"\x1eORGANIZATION_KIND_HEADQUARTERS\x10\x01\x12\x1d\n" +
+	"\x1dORGANIZATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18ORGANIZATION_KIND_SYSTEM\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
 	"\x16ORGANIZATION_KIND_TEAM\x10\x042\x93\n" +

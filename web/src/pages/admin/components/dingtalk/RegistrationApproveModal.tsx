@@ -5,11 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { adminServiceApproveDingTalkRegistration } from '@/services/roncin/adminService';
 import { formatDate } from '@/utils/format';
-import {
-  fetchRolesForOrganization,
-  resolveRootOrganizationId,
-  roleSelectOptions,
-} from './constants';
+import { fetchRolesForOrganization, roleSelectOptions } from './constants';
 
 const { Text } = Typography;
 
@@ -22,8 +18,7 @@ interface RegistrationApproveModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formRef: React.RefObject<ProFormInstance | undefined>;
-  /** 全量组织列表（总部兜底注册需从中解析根组织以加载角色）。 */
-  organizations: API.AdminOrganization[];
+
   currentOrganizationId?: string;
   canReadRoles: boolean;
   onReload: () => void;
@@ -31,14 +26,13 @@ interface RegistrationApproveModalProps {
 
 /**
  * 注册审批「同意」模态：一站式完成启用账号 + 目标组织成员资格 + 初始角色 +
- * 通知本人；路由组织为自选目标组织，未自选时按总部兜底（组织树根）。
+ * 通知本人；仅审批已指定公司的申请，未指定公司须先转派。
  */
 export default function RegistrationApproveModal({
   registration,
   open,
   onOpenChange,
   formRef,
-  organizations,
   currentOrganizationId,
   canReadRoles,
   onReload,
@@ -46,10 +40,7 @@ export default function RegistrationApproveModal({
   const { message } = App.useApp();
   const [roles, setRoles] = useState<API.AdminRole[]>([]);
 
-  const routingOrganizationId =
-    registration?.requestedOrganizationId ??
-    resolveRootOrganizationId(organizations) ??
-    currentOrganizationId;
+  const routingOrganizationId = registration?.requestedOrganizationId;
 
   useEffect(() => {
     if (!open) return;
@@ -68,7 +59,7 @@ export default function RegistrationApproveModal({
     formRef,
   ]);
 
-  if (!registration) return null;
+  if (!registration || !routingOrganizationId) return null;
 
   return (
     <ModalForm<ApproveFormValues>
@@ -113,11 +104,7 @@ export default function RegistrationApproveModal({
       <Alert
         showIcon
         type="info"
-        title={
-          registration.requestedOrganizationId
-            ? `自选目标组织：${registration.requestedOrganizationName || '未知组织'}`
-            : '未自选目标组织：按总部兜底处理'
-        }
+        title={`目标公司：${registration.requestedOrganizationName || '未知公司'}`}
         description="同意后将启用账号、创建目标组织成员资格、授予下列初始角色，并通过钉钉通知本人。"
         style={{ marginBottom: 16 }}
       />

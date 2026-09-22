@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from "@/utils/requestClient";
 
-/** ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。 GET /api/v1/orders/${param0}/fee-exchange-rate */
+/** ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。 GET /api/v1/orders/${param0}/fee-exchange-rate */
 export async function orderFeeServiceResolveFeeExchangeRate(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceResolveFeeExchangeRateParams,

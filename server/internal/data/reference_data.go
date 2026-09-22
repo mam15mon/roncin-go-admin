@@ -24,7 +24,7 @@ func NewReferenceDataRepo(data *Data) biz.ReferenceDataRepo {
 
 type orgCurrencyContext struct {
 	orgID             uuid.UUID
-	isHeadquarters    bool
+	isSystemWorkspace bool
 	baseCurrency      string
 	enabledCurrencies []string
 }
@@ -35,12 +35,12 @@ func (r *referenceDataRepo) resolveOrgCurrencyContext(ctx context.Context, organ
 		return nil, err
 	}
 	if organizationID == uuid.Nil {
-		hq, err := client.Organization.Query().Where(organizationent.KindEQ(organizationent.KindHeadquarters), organizationent.EnabledEQ(true)).First(ctx)
+		hq, err := client.Organization.Query().Where(organizationent.KindEQ(organizationent.KindSystem), organizationent.EnabledEQ(true)).First(ctx)
 		if err != nil {
 			return &orgCurrencyContext{
-				orgID:          uuid.Nil,
-				isHeadquarters: true,
-				baseCurrency:   "CNY",
+				orgID:             uuid.Nil,
+				isSystemWorkspace: true,
+				baseCurrency:      "CNY",
 			}, nil
 		}
 		base := "CNY"
@@ -48,9 +48,9 @@ func (r *referenceDataRepo) resolveOrgCurrencyContext(ctx context.Context, organ
 			base = *hq.BaseCurrency
 		}
 		return &orgCurrencyContext{
-			orgID:          hq.ID,
-			isHeadquarters: true,
-			baseCurrency:   base,
+			orgID:             hq.ID,
+			isSystemWorkspace: true,
+			baseCurrency:      base,
 		}, nil
 	}
 
@@ -72,9 +72,9 @@ func (r *referenceDataRepo) resolveOrgCurrencyContext(ctx context.Context, organ
 			if baseCurrency == "" {
 				baseCurrency = "CNY"
 			}
-			isHQ := (targetOrg.Kind == organizationent.KindHeadquarters)
+			isSystem := (targetOrg.Kind == organizationent.KindSystem)
 			var enabled []string
-			if !isHQ {
+			if !isSystem {
 				if len(targetOrg.EnabledCurrencies) > 0 {
 					enabled = targetOrg.EnabledCurrencies
 				} else {
@@ -83,7 +83,7 @@ func (r *referenceDataRepo) resolveOrgCurrencyContext(ctx context.Context, organ
 			}
 			return &orgCurrencyContext{
 				orgID:             targetOrg.ID,
-				isHeadquarters:    isHQ,
+				isSystemWorkspace: isSystem,
 				baseCurrency:      baseCurrency,
 				enabledCurrencies: enabled,
 			}, nil
@@ -112,8 +112,8 @@ func (r *referenceDataRepo) ListCurrencies(ctx context.Context, organizationID u
 	}
 
 	enabledMap := make(map[string]bool)
-	if orgCtx.isHeadquarters {
-		// 总部视角：全库所有有效币种均视为启用
+	if orgCtx.isSystemWorkspace {
+		// 系统管理视角：全库所有有效币种均视为启用
 		for _, item := range items {
 			enabledMap[item.Code] = true
 		}
@@ -174,8 +174,8 @@ func (r *referenceDataRepo) SetCurrencyEnabled(ctx context.Context, organization
 			return err
 		}
 
-		if orgCtx.isHeadquarters {
-			// 总部操作：切换单行启用状态，UPDATE 本身原子生效，无需预锁
+		if orgCtx.isSystemWorkspace {
+			// 系统管理操作：切换单行启用状态，UPDATE 本身原子生效，无需预锁
 			updated, saveErr := tx.Currency.UpdateOneID(curr.ID).SetEnabled(enabled).Save(ctx)
 			if saveErr != nil {
 				return saveErr

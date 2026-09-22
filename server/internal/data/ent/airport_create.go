@@ -14,7 +14,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 // AirportCreate is the builder for creating a Airport entity.
@@ -49,20 +48,6 @@ func (_c *AirportCreate) SetUpdatedAt(v time.Time) *AirportCreate {
 func (_c *AirportCreate) SetNillableUpdatedAt(v *time.Time) *AirportCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
-	}
-	return _c
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_c *AirportCreate) SetOrganizationID(v uuid.UUID) *AirportCreate {
-	_c.mutation.SetOrganizationID(v)
-	return _c
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_c *AirportCreate) SetNillableOrganizationID(v *uuid.UUID) *AirportCreate {
-	if v != nil {
-		_c.SetOrganizationID(*v)
 	}
 	return _c
 }
@@ -237,11 +222,6 @@ func (_c *AirportCreate) SetNillableID(v *uuid.UUID) *AirportCreate {
 		_c.SetID(*v)
 	}
 	return _c
-}
-
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_c *AirportCreate) SetOrganization(v *Organization) *AirportCreate {
-	return _c.SetOrganizationID(v.ID)
 }
 
 // Mutation returns the AirportMutation object of the builder.
@@ -496,23 +476,6 @@ func (_c *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 		_spec.SetField(airport.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
 	}
-	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   airport.OrganizationTable,
-			Columns: []string{airport.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OrganizationID = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	return _node, _spec
 }
 
@@ -574,24 +537,6 @@ func (u *AirportUpsert) SetUpdatedAt(v time.Time) *AirportUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *AirportUpsert) UpdateUpdatedAt() *AirportUpsert {
 	u.SetExcluded(airport.FieldUpdatedAt)
-	return u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *AirportUpsert) SetOrganizationID(v uuid.UUID) *AirportUpsert {
-	u.Set(airport.FieldOrganizationID, v)
-	return u
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *AirportUpsert) UpdateOrganizationID() *AirportUpsert {
-	u.SetExcluded(airport.FieldOrganizationID)
-	return u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *AirportUpsert) ClearOrganizationID() *AirportUpsert {
-	u.SetNull(airport.FieldOrganizationID)
 	return u
 }
 
@@ -846,27 +791,6 @@ func (u *AirportUpsertOne) SetUpdatedAt(v time.Time) *AirportUpsertOne {
 func (u *AirportUpsertOne) UpdateUpdatedAt() *AirportUpsertOne {
 	return u.Update(func(s *AirportUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *AirportUpsertOne) SetOrganizationID(v uuid.UUID) *AirportUpsertOne {
-	return u.Update(func(s *AirportUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *AirportUpsertOne) UpdateOrganizationID() *AirportUpsertOne {
-	return u.Update(func(s *AirportUpsert) {
-		s.UpdateOrganizationID()
-	})
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *AirportUpsertOne) ClearOrganizationID() *AirportUpsertOne {
-	return u.Update(func(s *AirportUpsert) {
-		s.ClearOrganizationID()
 	})
 }
 
@@ -1319,27 +1243,6 @@ func (u *AirportUpsertBulk) SetUpdatedAt(v time.Time) *AirportUpsertBulk {
 func (u *AirportUpsertBulk) UpdateUpdatedAt() *AirportUpsertBulk {
 	return u.Update(func(s *AirportUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *AirportUpsertBulk) SetOrganizationID(v uuid.UUID) *AirportUpsertBulk {
-	return u.Update(func(s *AirportUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *AirportUpsertBulk) UpdateOrganizationID() *AirportUpsertBulk {
-	return u.Update(func(s *AirportUpsert) {
-		s.UpdateOrganizationID()
-	})
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *AirportUpsertBulk) ClearOrganizationID() *AirportUpsertBulk {
-	return u.Update(func(s *AirportUpsert) {
-		s.ClearOrganizationID()
 	})
 }
 

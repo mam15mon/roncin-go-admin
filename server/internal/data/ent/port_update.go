@@ -12,8 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -34,26 +32,6 @@ func (_u *PortUpdate) Where(ps ...predicate.Port) *PortUpdate {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PortUpdate) SetUpdatedAt(v time.Time) *PortUpdate {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *PortUpdate) SetOrganizationID(v uuid.UUID) *PortUpdate {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *PortUpdate) SetNillableOrganizationID(v *uuid.UUID) *PortUpdate {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (_u *PortUpdate) ClearOrganizationID() *PortUpdate {
-	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -220,20 +198,9 @@ func (_u *PortUpdate) SetNillableSearchKeywords(v *string) *PortUpdate {
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *PortUpdate) SetOrganization(v *Organization) *PortUpdate {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // Mutation returns the PortMutation object of the builder.
 func (_u *PortUpdate) Mutation() *PortMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *PortUpdate) ClearOrganization() *PortUpdate {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -375,35 +342,6 @@ func (_u *PortUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(port.FieldSearchKeywords, field.TypeString, value)
 	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   port.OrganizationTable,
-			Columns: []string{port.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   port.OrganizationTable,
-			Columns: []string{port.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{port.Label}
@@ -427,26 +365,6 @@ type PortUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PortUpdateOne) SetUpdatedAt(v time.Time) *PortUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *PortUpdateOne) SetOrganizationID(v uuid.UUID) *PortUpdateOne {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *PortUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *PortUpdateOne {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (_u *PortUpdateOne) ClearOrganizationID() *PortUpdateOne {
-	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -613,20 +531,9 @@ func (_u *PortUpdateOne) SetNillableSearchKeywords(v *string) *PortUpdateOne {
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *PortUpdateOne) SetOrganization(v *Organization) *PortUpdateOne {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // Mutation returns the PortMutation object of the builder.
 func (_u *PortUpdateOne) Mutation() *PortMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *PortUpdateOne) ClearOrganization() *PortUpdateOne {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // Where appends a list predicates to the PortUpdate builder.
@@ -797,35 +704,6 @@ func (_u *PortUpdateOne) sqlSave(ctx context.Context) (_node *Port, err error) {
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(port.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   port.OrganizationTable,
-			Columns: []string{port.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   port.OrganizationTable,
-			Columns: []string{port.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Port{config: _u.config}
 	_spec.Assign = _node.assignValues

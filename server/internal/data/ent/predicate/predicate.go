@@ -78,6 +78,9 @@ type ExchangeRateSetting func(*sql.Selector)
 // FeeSetting is the predicate function for feesetting builders.
 type FeeSetting func(*sql.Selector)
 
+// FeeSettingTemplate is the predicate function for feesettingtemplate builders.
+type FeeSettingTemplate func(*sql.Selector)
+
 // FinanceBill is the predicate function for financebill builders.
 type FinanceBill func(*sql.Selector)
 

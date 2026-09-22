@@ -207,6 +207,9 @@ func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.Ge
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	if err := biz.RequireOperatingCompany(ctx); err != nil {
+		return nil, err
+	}
 	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillRead, false); err != nil {
 		return nil, err
 	}
@@ -236,6 +239,9 @@ func (s *SettlementService) UpdateBilledFeeEditPolicy(ctx context.Context, reque
 		}
 		fields = append(fields, converted)
 	}
+	if err := biz.RequireOperatingCompany(ctx); err != nil {
+		return nil, err
+	}
 	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillConfigure, true); err != nil {
 		return nil, err
 	}
@@ -250,6 +256,9 @@ func (s *SettlementService) GetCreditLimitControlPolicy(ctx context.Context, _ *
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
+	}
+	if err := biz.RequireOperatingCompany(ctx); err != nil {
+		return nil, err
 	}
 	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillRead, false); err != nil {
 		return nil, err
@@ -271,6 +280,9 @@ func (s *SettlementService) UpdateCreditLimitControlPolicy(ctx context.Context, 
 	}
 	if request == nil || request.ExpectedVersion == nil {
 		return nil, biz.ErrFinanceCustomSettingInvalidArgument
+	}
+	if err := biz.RequireOperatingCompany(ctx); err != nil {
+		return nil, err
 	}
 	if err := currentOrganizationAllowedForPermission(principal, access.FinanceBillConfigure, true); err != nil {
 		return nil, err

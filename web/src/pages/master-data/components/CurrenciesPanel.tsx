@@ -103,9 +103,7 @@ export default function CurrenciesPanel() {
           color: '#262626',
         },
         {
-          label: access.isHeadquartersOrganization
-            ? '有效主币'
-            : '本组织已启用',
+          label: access.isSystemWorkspace ? '有效主币' : '本组织已启用',
           value: enabledCount,
           color: '#52c41a',
           prefix: <CheckCircleOutlined style={{ fontSize: 14 }} />,

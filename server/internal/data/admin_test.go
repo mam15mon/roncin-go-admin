@@ -32,10 +32,10 @@ func TestAdminRepoListUsersUsesDatabaseFilteringAndPagination(t *testing.T) {
 	repo := NewAdminRepo(&Data{db: client, sqlDB: db})
 	workspaceID := uuid.New()
 
-	// 工作台范围先一次加载组织树（总部工作台 = 全树启用组织）。
+	// 工作台范围先一次加载组织树（系统管理工作台 = 全树启用组织）。
 	mock.ExpectQuery(`SELECT "organizations"."id", "organizations"."parent_id", "organizations"."kind", "organizations"."code", "organizations"."name", "organizations"."base_currency", "organizations"."enabled" FROM "organizations"`).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "parent_id", "kind", "code", "name", "base_currency", "enabled"}).
-			AddRow(workspaceID, nil, "headquarters", "HQ", "总部", "CNY", true))
+			AddRow(workspaceID, nil, "system", "HQ", "系统管理", "CNY", true))
 	mock.ExpectQuery(`SELECT COUNT\("users"\."id"\) FROM "users".*EXISTS.*"memberships".*"organization_id"`).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 	mock.ExpectQuery(`SELECT "users"\."id".*FROM "users".*EXISTS.*ORDER BY "users"\."username", "users"\."id" LIMIT 20 OFFSET 20`).
@@ -99,7 +99,7 @@ func TestAdminRepoListUsersEnabledFilter(t *testing.T) {
 
 			mock.ExpectQuery(`SELECT "organizations"."id", "organizations"."parent_id", "organizations"."kind", "organizations"."code", "organizations"."name", "organizations"."base_currency", "organizations"."enabled" FROM "organizations"`).
 				WillReturnRows(sqlmock.NewRows([]string{"id", "parent_id", "kind", "code", "name", "base_currency", "enabled"}).
-					AddRow(workspaceID, nil, "headquarters", "HQ", "总部", "CNY", true))
+					AddRow(workspaceID, nil, "system", "HQ", "系统管理", "CNY", true))
 			if test.wantPredicate != "" {
 				mock.ExpectQuery(`SELECT COUNT\("users"\."id"\) FROM "users".*ILIKE.*`+regexp.QuoteMeta(test.wantPredicate)).
 					WithArgs(workspaceID, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
@@ -205,10 +205,11 @@ func TestAdminRepoUpdateOrganizationAuditErrorRollsBack(t *testing.T) {
 	organizationID := uuid.New()
 	now := time.Now()
 	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "organizations"\."id", "organizations"\."parent_id"`).WillReturnRows(sqlmock.NewRows([]string{"id", "parent_id", "kind", "code", "name", "base_currency", "enabled"}).AddRow(organizationID, nil, "system", "SYS", "系统管理", "CNY", true))
 	mock.ExpectQuery(`SELECT "currencies"\."id" FROM "currencies"`).WithArgs("CNY").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uuid.New()))
 	mock.ExpectExec(`UPDATE "organizations"`).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery(`SELECT "id", "created_at".*FROM "organizations"`).WithArgs(organizationID).WillReturnRows(
-		sqlmock.NewRows(organizationent.Columns).AddRow(organizationID, now, now, "HQ", "新名称", "headquarters", nil, true, "CNY", "[]", "新名称"),
+		sqlmock.NewRows(organizationent.Columns).AddRow(organizationID, now, now, "HQ", "新名称", "system", nil, true, "CNY", "[]", "新名称"),
 	)
 	mock.ExpectExec(`INSERT INTO "audit_logs"`).WillReturnError(errors.New("写入审计失败"))
 	mock.ExpectRollback()
@@ -216,7 +217,7 @@ func TestAdminRepoUpdateOrganizationAuditErrorRollsBack(t *testing.T) {
 	result, repoErr := repo.UpdateOrganization(context.Background(), organizationID, &biz.AdminOrganization{
 		ID:           organizationID,
 		Name:         "新名称",
-		Kind:         biz.OrganizationKindHeadquarters,
+		Kind:         biz.OrganizationKindSystem,
 		Enabled:      true,
 		BaseCurrency: "CNY",
 	}, &biz.AuditEvent{

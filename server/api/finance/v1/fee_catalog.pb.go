@@ -234,8 +234,8 @@ func (x *TaxableService) GetUpdatedAt() string {
 type FeeSetting struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// 为空表示总部公共科目基线行，非空表示分公司本地明细行。
-	OrganizationId *string `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
+	// 科目归属公司，系统初始目录使用独立模板接口。
+	OrganizationId string  `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	FeeCode        string  `protobuf:"bytes,3,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
 	NameZh         string  `protobuf:"bytes,4,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
 	NameEn         *string `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
@@ -297,8 +297,8 @@ func (x *FeeSetting) GetId() string {
 }
 
 func (x *FeeSetting) GetOrganizationId() string {
-	if x != nil && x.OrganizationId != nil {
-		return *x.OrganizationId
+	if x != nil {
+		return x.OrganizationId
 	}
 	return ""
 }
@@ -2343,6 +2343,639 @@ func (x *UpdateTaxableServiceResponse) GetTraceId() string {
 	return ""
 }
 
+// 系统初始费用目录；税务默认值只保存文本，不引用公司的税务资料。
+type FeeSettingTemplateInput struct {
+	state                        protoimpl.MessageState `protogen:"open.v1"`
+	FeeCode                      string                 `protobuf:"bytes,1,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	NameZh                       string                 `protobuf:"bytes,2,opt,name=name_zh,json=nameZh,proto3" json:"name_zh,omitempty"`
+	NameEn                       *string                `protobuf:"bytes,3,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
+	AliasName                    *string                `protobuf:"bytes,4,opt,name=alias_name,json=aliasName,proto3,oneof" json:"alias_name,omitempty"`
+	ChargeCategoryId             string                 `protobuf:"bytes,5,opt,name=charge_category_id,json=chargeCategoryId,proto3" json:"charge_category_id,omitempty"`
+	DefaultCurrency              string                 `protobuf:"bytes,6,opt,name=default_currency,json=defaultCurrency,proto3" json:"default_currency,omitempty"`
+	BillingUnitId                string                 `protobuf:"bytes,7,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
+	AbnormalCaseId               *string                `protobuf:"bytes,8,opt,name=abnormal_case_id,json=abnormalCaseId,proto3,oneof" json:"abnormal_case_id,omitempty"`
+	TaxRate                      string                 `protobuf:"bytes,9,opt,name=tax_rate,json=taxRate,proto3" json:"tax_rate,omitempty"`
+	SortOrder                    int32                  `protobuf:"varint,10,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled                      bool                   `protobuf:"varint,11,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	TaxableServiceName           string                 `protobuf:"bytes,12,opt,name=taxable_service_name,json=taxableServiceName,proto3" json:"taxable_service_name,omitempty"`
+	TaxableServiceShortName      *string                `protobuf:"bytes,13,opt,name=taxable_service_short_name,json=taxableServiceShortName,proto3,oneof" json:"taxable_service_short_name,omitempty"`
+	TaxableServiceGoodsCode      *string                `protobuf:"bytes,14,opt,name=taxable_service_goods_code,json=taxableServiceGoodsCode,proto3,oneof" json:"taxable_service_goods_code,omitempty"`
+	TaxableServiceDefaultTaxRate string                 `protobuf:"bytes,15,opt,name=taxable_service_default_tax_rate,json=taxableServiceDefaultTaxRate,proto3" json:"taxable_service_default_tax_rate,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
+}
+
+func (x *FeeSettingTemplateInput) Reset() {
+	*x = FeeSettingTemplateInput{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FeeSettingTemplateInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FeeSettingTemplateInput) ProtoMessage() {}
+
+func (x *FeeSettingTemplateInput) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FeeSettingTemplateInput.ProtoReflect.Descriptor instead.
+func (*FeeSettingTemplateInput) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *FeeSettingTemplateInput) GetFeeCode() string {
+	if x != nil {
+		return x.FeeCode
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetNameZh() string {
+	if x != nil {
+		return x.NameZh
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetNameEn() string {
+	if x != nil && x.NameEn != nil {
+		return *x.NameEn
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetAliasName() string {
+	if x != nil && x.AliasName != nil {
+		return *x.AliasName
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetChargeCategoryId() string {
+	if x != nil {
+		return x.ChargeCategoryId
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetDefaultCurrency() string {
+	if x != nil {
+		return x.DefaultCurrency
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetBillingUnitId() string {
+	if x != nil {
+		return x.BillingUnitId
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetAbnormalCaseId() string {
+	if x != nil && x.AbnormalCaseId != nil {
+		return *x.AbnormalCaseId
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetTaxRate() string {
+	if x != nil {
+		return x.TaxRate
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *FeeSettingTemplateInput) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *FeeSettingTemplateInput) GetTaxableServiceName() string {
+	if x != nil {
+		return x.TaxableServiceName
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetTaxableServiceShortName() string {
+	if x != nil && x.TaxableServiceShortName != nil {
+		return *x.TaxableServiceShortName
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetTaxableServiceGoodsCode() string {
+	if x != nil && x.TaxableServiceGoodsCode != nil {
+		return *x.TaxableServiceGoodsCode
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplateInput) GetTaxableServiceDefaultTaxRate() string {
+	if x != nil {
+		return x.TaxableServiceDefaultTaxRate
+	}
+	return ""
+}
+
+type FeeSettingTemplate struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Id            string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Input         *FeeSettingTemplateInput `protobuf:"bytes,2,opt,name=input,proto3" json:"input,omitempty"`
+	CreatedAt     string                   `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                   `protobuf:"bytes,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FeeSettingTemplate) Reset() {
+	*x = FeeSettingTemplate{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FeeSettingTemplate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FeeSettingTemplate) ProtoMessage() {}
+
+func (x *FeeSettingTemplate) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FeeSettingTemplate.ProtoReflect.Descriptor instead.
+func (*FeeSettingTemplate) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *FeeSettingTemplate) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplate) GetInput() *FeeSettingTemplateInput {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+func (x *FeeSettingTemplate) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *FeeSettingTemplate) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type ListFeeSettingTemplatesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListFeeSettingTemplatesRequest) Reset() {
+	*x = ListFeeSettingTemplatesRequest{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListFeeSettingTemplatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListFeeSettingTemplatesRequest) ProtoMessage() {}
+
+func (x *ListFeeSettingTemplatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListFeeSettingTemplatesRequest.ProtoReflect.Descriptor instead.
+func (*ListFeeSettingTemplatesRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ListFeeSettingTemplatesRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListFeeSettingTemplatesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListFeeSettingTemplatesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListFeeSettingTemplatesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*FeeSettingTemplate  `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int32                  `protobuf:"varint,6,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,7,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,8,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListFeeSettingTemplatesResponse) Reset() {
+	*x = ListFeeSettingTemplatesResponse{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListFeeSettingTemplatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListFeeSettingTemplatesResponse) ProtoMessage() {}
+
+func (x *ListFeeSettingTemplatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListFeeSettingTemplatesResponse.ProtoReflect.Descriptor instead.
+func (*ListFeeSettingTemplatesResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetData() []*FeeSettingTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListFeeSettingTemplatesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type CreateFeeSettingTemplateRequest struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Input         *FeeSettingTemplateInput `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateFeeSettingTemplateRequest) Reset() {
+	*x = CreateFeeSettingTemplateRequest{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateFeeSettingTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateFeeSettingTemplateRequest) ProtoMessage() {}
+
+func (x *CreateFeeSettingTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateFeeSettingTemplateRequest.ProtoReflect.Descriptor instead.
+func (*CreateFeeSettingTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *CreateFeeSettingTemplateRequest) GetInput() *FeeSettingTemplateInput {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+type CreateFeeSettingTemplateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *FeeSettingTemplate    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateFeeSettingTemplateResponse) Reset() {
+	*x = CreateFeeSettingTemplateResponse{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateFeeSettingTemplateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateFeeSettingTemplateResponse) ProtoMessage() {}
+
+func (x *CreateFeeSettingTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateFeeSettingTemplateResponse.ProtoReflect.Descriptor instead.
+func (*CreateFeeSettingTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *CreateFeeSettingTemplateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CreateFeeSettingTemplateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *CreateFeeSettingTemplateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CreateFeeSettingTemplateResponse) GetData() *FeeSettingTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *CreateFeeSettingTemplateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type UpdateFeeSettingTemplateRequest struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Id            string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Input         *FeeSettingTemplateInput `protobuf:"bytes,2,opt,name=input,proto3" json:"input,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateFeeSettingTemplateRequest) Reset() {
+	*x = UpdateFeeSettingTemplateRequest{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateFeeSettingTemplateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateFeeSettingTemplateRequest) ProtoMessage() {}
+
+func (x *UpdateFeeSettingTemplateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateFeeSettingTemplateRequest.ProtoReflect.Descriptor instead.
+func (*UpdateFeeSettingTemplateRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *UpdateFeeSettingTemplateRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UpdateFeeSettingTemplateRequest) GetInput() *FeeSettingTemplateInput {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+type UpdateFeeSettingTemplateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *FeeSettingTemplate    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateFeeSettingTemplateResponse) Reset() {
+	*x = UpdateFeeSettingTemplateResponse{}
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateFeeSettingTemplateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateFeeSettingTemplateResponse) ProtoMessage() {}
+
+func (x *UpdateFeeSettingTemplateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_fee_catalog_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateFeeSettingTemplateResponse.ProtoReflect.Descriptor instead.
+func (*UpdateFeeSettingTemplateResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_fee_catalog_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *UpdateFeeSettingTemplateResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateFeeSettingTemplateResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *UpdateFeeSettingTemplateResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *UpdateFeeSettingTemplateResponse) GetData() *FeeSettingTemplate {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UpdateFeeSettingTemplateResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_finance_v1_fee_catalog_proto protoreflect.FileDescriptor
 
 const file_finance_v1_fee_catalog_proto_rawDesc = "" +
@@ -2376,24 +3009,24 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\t \x01(\tR\tupdatedAtB\r\n" +
 	"\v_short_nameB\r\n" +
-	"\v_goods_code\"\xd3\x06\n" +
+	"\v_goods_code\"\xba\x06\n" +
 	"\n" +
 	"FeeSetting\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12,\n" +
-	"\x0forganization_id\x18\x02 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12\x19\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
+	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
 	"\bfee_code\x18\x03 \x01(\tR\afeeCode\x12\x17\n" +
 	"\aname_zh\x18\x04 \x01(\tR\x06nameZh\x12\x1c\n" +
-	"\aname_en\x18\x05 \x01(\tH\x01R\x06nameEn\x88\x01\x01\x12\"\n" +
+	"\aname_en\x18\x05 \x01(\tH\x00R\x06nameEn\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"alias_name\x18\x06 \x01(\tH\x02R\taliasName\x88\x01\x01\x121\n" +
+	"alias_name\x18\x06 \x01(\tH\x01R\taliasName\x88\x01\x01\x121\n" +
 	"\x12charge_category_id\x18\a \x01(\tB\x03\xe0A\x02R\x10chargeCategoryId\x120\n" +
 	"\x14charge_category_name\x18\b \x01(\tR\x12chargeCategoryName\x12)\n" +
 	"\x10default_currency\x18\t \x01(\tR\x0fdefaultCurrency\x12&\n" +
 	"\x0fbilling_unit_id\x18\n" +
 	" \x01(\tR\rbillingUnitId\x12*\n" +
 	"\x11billing_unit_name\x18\v \x01(\tR\x0fbillingUnitName\x12-\n" +
-	"\x10abnormal_case_id\x18\f \x01(\tH\x03R\x0eabnormalCaseId\x88\x01\x01\x121\n" +
-	"\x12abnormal_case_name\x18\r \x01(\tH\x04R\x10abnormalCaseName\x88\x01\x01\x12\x19\n" +
+	"\x10abnormal_case_id\x18\f \x01(\tH\x02R\x0eabnormalCaseId\x88\x01\x01\x121\n" +
+	"\x12abnormal_case_name\x18\r \x01(\tH\x03R\x10abnormalCaseName\x88\x01\x01\x12\x19\n" +
 	"\btax_rate\x18\x0e \x01(\tR\ataxRate\x12,\n" +
 	"\x12taxable_service_id\x18\x0f \x01(\tR\x10taxableServiceId\x120\n" +
 	"\x14taxable_service_name\x18\x10 \x01(\tR\x12taxableServiceName\x12\x18\n" +
@@ -2403,8 +3036,7 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x13 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x14 \x01(\tR\tupdatedAtB\x12\n" +
-	"\x10_organization_idB\n" +
+	"updated_at\x18\x14 \x01(\tR\tupdatedAtB\n" +
 	"\n" +
 	"\b_name_enB\r\n" +
 	"\v_alias_nameB\x13\n" +
@@ -2588,8 +3220,73 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
 	"\x04data\x18\x04 \x01(\v2\x1a.finance.v1.TaxableServiceR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xd9\x11\n" +
-	"\x11FeeCatalogService\x12\xa9\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xff\x05\n" +
+	"\x17FeeSettingTemplateInput\x12\x19\n" +
+	"\bfee_code\x18\x01 \x01(\tR\afeeCode\x12\x17\n" +
+	"\aname_zh\x18\x02 \x01(\tR\x06nameZh\x12\x1c\n" +
+	"\aname_en\x18\x03 \x01(\tH\x00R\x06nameEn\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"alias_name\x18\x04 \x01(\tH\x01R\taliasName\x88\x01\x01\x12,\n" +
+	"\x12charge_category_id\x18\x05 \x01(\tR\x10chargeCategoryId\x12)\n" +
+	"\x10default_currency\x18\x06 \x01(\tR\x0fdefaultCurrency\x12&\n" +
+	"\x0fbilling_unit_id\x18\a \x01(\tR\rbillingUnitId\x12-\n" +
+	"\x10abnormal_case_id\x18\b \x01(\tH\x02R\x0eabnormalCaseId\x88\x01\x01\x12\x19\n" +
+	"\btax_rate\x18\t \x01(\tR\ataxRate\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\n" +
+	" \x01(\x05R\tsortOrder\x12\x18\n" +
+	"\aenabled\x18\v \x01(\bR\aenabled\x120\n" +
+	"\x14taxable_service_name\x18\f \x01(\tR\x12taxableServiceName\x12@\n" +
+	"\x1ataxable_service_short_name\x18\r \x01(\tH\x03R\x17taxableServiceShortName\x88\x01\x01\x12@\n" +
+	"\x1ataxable_service_goods_code\x18\x0e \x01(\tH\x04R\x17taxableServiceGoodsCode\x88\x01\x01\x12F\n" +
+	" taxable_service_default_tax_rate\x18\x0f \x01(\tR\x1ctaxableServiceDefaultTaxRateB\n" +
+	"\n" +
+	"\b_name_enB\r\n" +
+	"\v_alias_nameB\x13\n" +
+	"\x11_abnormal_case_idB\x1d\n" +
+	"\x1b_taxable_service_short_nameB\x1d\n" +
+	"\x1b_taxable_service_goods_code\"\x9d\x01\n" +
+	"\x12FeeSettingTemplate\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x129\n" +
+	"\x05input\x18\x02 \x01(\v2#.finance.v1.FeeSettingTemplateInputR\x05input\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x04 \x01(\tR\tupdatedAt\"k\n" +
+	"\x1eListFeeSettingTemplatesRequest\x12\x18\n" +
+	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xff\x01\n" +
+	"\x1fListFeeSettingTemplatesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x122\n" +
+	"\x04data\x18\x04 \x03(\v2\x1e.finance.v1.FeeSettingTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\x05R\x05total\x12\x12\n" +
+	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\\\n" +
+	"\x1fCreateFeeSettingTemplateRequest\x129\n" +
+	"\x05input\x18\x01 \x01(\v2#.finance.v1.FeeSettingTemplateInputR\x05input\"\xb9\x01\n" +
+	" CreateFeeSettingTemplateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x122\n" +
+	"\x04data\x18\x04 \x01(\v2\x1e.finance.v1.FeeSettingTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"l\n" +
+	"\x1fUpdateFeeSettingTemplateRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x129\n" +
+	"\x05input\x18\x02 \x01(\v2#.finance.v1.FeeSettingTemplateInputR\x05input\"\xb9\x01\n" +
+	" UpdateFeeSettingTemplateResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x122\n" +
+	"\x04data\x18\x04 \x01(\v2\x1e.finance.v1.FeeSettingTemplateR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xd5\x16\n" +
+	"\x11FeeCatalogService\x12\xca\x01\n" +
+	"\x17ListFeeSettingTemplates\x12*.finance.v1.ListFeeSettingTemplatesRequest\x1a+.finance.v1.ListFeeSettingTemplatesResponse\"V\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/finance/fee-setting-templates\x12\xd2\x01\n" +
+	"\x18CreateFeeSettingTemplate\x12+.finance.v1.CreateFeeSettingTemplateRequest\x1a,.finance.v1.CreateFeeSettingTemplateResponse\"[\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.create \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/fee-setting-templates\x12\xd7\x01\n" +
+	"\x18UpdateFeeSettingTemplate\x12+.finance.v1.UpdateFeeSettingTemplateRequest\x1a,.finance.v1.UpdateFeeSettingTemplateResponse\"`\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.update \x02\x82\xd3\xe4\x93\x02/:\x01*\x1a*/api/v1/finance/fee-setting-templates/{id}\x12\xa9\x01\n" +
 	"\x0fListFeeSettings\x12\".finance.v1.ListFeeSettingsRequest\x1a#.finance.v1.ListFeeSettingsResponse\"M\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/v1/finance/fee-settings\x12\xb6\x01\n" +
 	"\x11SearchFeeSettings\x12$.finance.v1.SearchFeeSettingsRequest\x1a%.finance.v1.SearchFeeSettingsResponse\"T\x82\xb5\x18%\b\x03\x12\x1fsystem.finance.fee_setting.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/finance/fee-settings/search\x12\xb1\x01\n" +
 	"\x10CreateFeeSetting\x12#.finance.v1.CreateFeeSettingRequest\x1a$.finance.v1.CreateFeeSettingResponse\"R\x82\xb5\x18'\b\x03\x12!system.finance.fee_setting.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/finance/fee-settings\x12\xb6\x01\n" +
@@ -2615,35 +3312,43 @@ func file_finance_v1_fee_catalog_proto_rawDescGZIP() []byte {
 	return file_finance_v1_fee_catalog_proto_rawDescData
 }
 
-var file_finance_v1_fee_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_finance_v1_fee_catalog_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_finance_v1_fee_catalog_proto_goTypes = []any{
-	(*BillingUnit)(nil),                   // 0: finance.v1.BillingUnit
-	(*TaxableService)(nil),                // 1: finance.v1.TaxableService
-	(*FeeSetting)(nil),                    // 2: finance.v1.FeeSetting
-	(*ListFeeSettingsRequest)(nil),        // 3: finance.v1.ListFeeSettingsRequest
-	(*ListBillingUnitsRequest)(nil),       // 4: finance.v1.ListBillingUnitsRequest
-	(*ListTaxableServicesRequest)(nil),    // 5: finance.v1.ListTaxableServicesRequest
-	(*SearchFeeSettingsRequest)(nil),      // 6: finance.v1.SearchFeeSettingsRequest
-	(*SearchBillingUnitsRequest)(nil),     // 7: finance.v1.SearchBillingUnitsRequest
-	(*SearchTaxableServicesRequest)(nil),  // 8: finance.v1.SearchTaxableServicesRequest
-	(*CreateFeeSettingRequest)(nil),       // 9: finance.v1.CreateFeeSettingRequest
-	(*UpdateFeeSettingRequest)(nil),       // 10: finance.v1.UpdateFeeSettingRequest
-	(*CreateBillingUnitRequest)(nil),      // 11: finance.v1.CreateBillingUnitRequest
-	(*UpdateBillingUnitRequest)(nil),      // 12: finance.v1.UpdateBillingUnitRequest
-	(*CreateTaxableServiceRequest)(nil),   // 13: finance.v1.CreateTaxableServiceRequest
-	(*UpdateTaxableServiceRequest)(nil),   // 14: finance.v1.UpdateTaxableServiceRequest
-	(*ListFeeSettingsResponse)(nil),       // 15: finance.v1.ListFeeSettingsResponse
-	(*SearchFeeSettingsResponse)(nil),     // 16: finance.v1.SearchFeeSettingsResponse
-	(*ListBillingUnitsResponse)(nil),      // 17: finance.v1.ListBillingUnitsResponse
-	(*SearchBillingUnitsResponse)(nil),    // 18: finance.v1.SearchBillingUnitsResponse
-	(*ListTaxableServicesResponse)(nil),   // 19: finance.v1.ListTaxableServicesResponse
-	(*SearchTaxableServicesResponse)(nil), // 20: finance.v1.SearchTaxableServicesResponse
-	(*CreateFeeSettingResponse)(nil),      // 21: finance.v1.CreateFeeSettingResponse
-	(*UpdateFeeSettingResponse)(nil),      // 22: finance.v1.UpdateFeeSettingResponse
-	(*CreateBillingUnitResponse)(nil),     // 23: finance.v1.CreateBillingUnitResponse
-	(*UpdateBillingUnitResponse)(nil),     // 24: finance.v1.UpdateBillingUnitResponse
-	(*CreateTaxableServiceResponse)(nil),  // 25: finance.v1.CreateTaxableServiceResponse
-	(*UpdateTaxableServiceResponse)(nil),  // 26: finance.v1.UpdateTaxableServiceResponse
+	(*BillingUnit)(nil),                      // 0: finance.v1.BillingUnit
+	(*TaxableService)(nil),                   // 1: finance.v1.TaxableService
+	(*FeeSetting)(nil),                       // 2: finance.v1.FeeSetting
+	(*ListFeeSettingsRequest)(nil),           // 3: finance.v1.ListFeeSettingsRequest
+	(*ListBillingUnitsRequest)(nil),          // 4: finance.v1.ListBillingUnitsRequest
+	(*ListTaxableServicesRequest)(nil),       // 5: finance.v1.ListTaxableServicesRequest
+	(*SearchFeeSettingsRequest)(nil),         // 6: finance.v1.SearchFeeSettingsRequest
+	(*SearchBillingUnitsRequest)(nil),        // 7: finance.v1.SearchBillingUnitsRequest
+	(*SearchTaxableServicesRequest)(nil),     // 8: finance.v1.SearchTaxableServicesRequest
+	(*CreateFeeSettingRequest)(nil),          // 9: finance.v1.CreateFeeSettingRequest
+	(*UpdateFeeSettingRequest)(nil),          // 10: finance.v1.UpdateFeeSettingRequest
+	(*CreateBillingUnitRequest)(nil),         // 11: finance.v1.CreateBillingUnitRequest
+	(*UpdateBillingUnitRequest)(nil),         // 12: finance.v1.UpdateBillingUnitRequest
+	(*CreateTaxableServiceRequest)(nil),      // 13: finance.v1.CreateTaxableServiceRequest
+	(*UpdateTaxableServiceRequest)(nil),      // 14: finance.v1.UpdateTaxableServiceRequest
+	(*ListFeeSettingsResponse)(nil),          // 15: finance.v1.ListFeeSettingsResponse
+	(*SearchFeeSettingsResponse)(nil),        // 16: finance.v1.SearchFeeSettingsResponse
+	(*ListBillingUnitsResponse)(nil),         // 17: finance.v1.ListBillingUnitsResponse
+	(*SearchBillingUnitsResponse)(nil),       // 18: finance.v1.SearchBillingUnitsResponse
+	(*ListTaxableServicesResponse)(nil),      // 19: finance.v1.ListTaxableServicesResponse
+	(*SearchTaxableServicesResponse)(nil),    // 20: finance.v1.SearchTaxableServicesResponse
+	(*CreateFeeSettingResponse)(nil),         // 21: finance.v1.CreateFeeSettingResponse
+	(*UpdateFeeSettingResponse)(nil),         // 22: finance.v1.UpdateFeeSettingResponse
+	(*CreateBillingUnitResponse)(nil),        // 23: finance.v1.CreateBillingUnitResponse
+	(*UpdateBillingUnitResponse)(nil),        // 24: finance.v1.UpdateBillingUnitResponse
+	(*CreateTaxableServiceResponse)(nil),     // 25: finance.v1.CreateTaxableServiceResponse
+	(*UpdateTaxableServiceResponse)(nil),     // 26: finance.v1.UpdateTaxableServiceResponse
+	(*FeeSettingTemplateInput)(nil),          // 27: finance.v1.FeeSettingTemplateInput
+	(*FeeSettingTemplate)(nil),               // 28: finance.v1.FeeSettingTemplate
+	(*ListFeeSettingTemplatesRequest)(nil),   // 29: finance.v1.ListFeeSettingTemplatesRequest
+	(*ListFeeSettingTemplatesResponse)(nil),  // 30: finance.v1.ListFeeSettingTemplatesResponse
+	(*CreateFeeSettingTemplateRequest)(nil),  // 31: finance.v1.CreateFeeSettingTemplateRequest
+	(*CreateFeeSettingTemplateResponse)(nil), // 32: finance.v1.CreateFeeSettingTemplateResponse
+	(*UpdateFeeSettingTemplateRequest)(nil),  // 33: finance.v1.UpdateFeeSettingTemplateRequest
+	(*UpdateFeeSettingTemplateResponse)(nil), // 34: finance.v1.UpdateFeeSettingTemplateResponse
 }
 var file_finance_v1_fee_catalog_proto_depIdxs = []int32{
 	2,  // 0: finance.v1.ListFeeSettingsResponse.data:type_name -> finance.v1.FeeSetting
@@ -2658,35 +3363,47 @@ var file_finance_v1_fee_catalog_proto_depIdxs = []int32{
 	0,  // 9: finance.v1.UpdateBillingUnitResponse.data:type_name -> finance.v1.BillingUnit
 	1,  // 10: finance.v1.CreateTaxableServiceResponse.data:type_name -> finance.v1.TaxableService
 	1,  // 11: finance.v1.UpdateTaxableServiceResponse.data:type_name -> finance.v1.TaxableService
-	3,  // 12: finance.v1.FeeCatalogService.ListFeeSettings:input_type -> finance.v1.ListFeeSettingsRequest
-	6,  // 13: finance.v1.FeeCatalogService.SearchFeeSettings:input_type -> finance.v1.SearchFeeSettingsRequest
-	9,  // 14: finance.v1.FeeCatalogService.CreateFeeSetting:input_type -> finance.v1.CreateFeeSettingRequest
-	10, // 15: finance.v1.FeeCatalogService.UpdateFeeSetting:input_type -> finance.v1.UpdateFeeSettingRequest
-	4,  // 16: finance.v1.FeeCatalogService.ListBillingUnits:input_type -> finance.v1.ListBillingUnitsRequest
-	7,  // 17: finance.v1.FeeCatalogService.SearchBillingUnits:input_type -> finance.v1.SearchBillingUnitsRequest
-	11, // 18: finance.v1.FeeCatalogService.CreateBillingUnit:input_type -> finance.v1.CreateBillingUnitRequest
-	12, // 19: finance.v1.FeeCatalogService.UpdateBillingUnit:input_type -> finance.v1.UpdateBillingUnitRequest
-	5,  // 20: finance.v1.FeeCatalogService.ListTaxableServices:input_type -> finance.v1.ListTaxableServicesRequest
-	8,  // 21: finance.v1.FeeCatalogService.SearchTaxableServices:input_type -> finance.v1.SearchTaxableServicesRequest
-	13, // 22: finance.v1.FeeCatalogService.CreateTaxableService:input_type -> finance.v1.CreateTaxableServiceRequest
-	14, // 23: finance.v1.FeeCatalogService.UpdateTaxableService:input_type -> finance.v1.UpdateTaxableServiceRequest
-	15, // 24: finance.v1.FeeCatalogService.ListFeeSettings:output_type -> finance.v1.ListFeeSettingsResponse
-	16, // 25: finance.v1.FeeCatalogService.SearchFeeSettings:output_type -> finance.v1.SearchFeeSettingsResponse
-	21, // 26: finance.v1.FeeCatalogService.CreateFeeSetting:output_type -> finance.v1.CreateFeeSettingResponse
-	22, // 27: finance.v1.FeeCatalogService.UpdateFeeSetting:output_type -> finance.v1.UpdateFeeSettingResponse
-	17, // 28: finance.v1.FeeCatalogService.ListBillingUnits:output_type -> finance.v1.ListBillingUnitsResponse
-	18, // 29: finance.v1.FeeCatalogService.SearchBillingUnits:output_type -> finance.v1.SearchBillingUnitsResponse
-	23, // 30: finance.v1.FeeCatalogService.CreateBillingUnit:output_type -> finance.v1.CreateBillingUnitResponse
-	24, // 31: finance.v1.FeeCatalogService.UpdateBillingUnit:output_type -> finance.v1.UpdateBillingUnitResponse
-	19, // 32: finance.v1.FeeCatalogService.ListTaxableServices:output_type -> finance.v1.ListTaxableServicesResponse
-	20, // 33: finance.v1.FeeCatalogService.SearchTaxableServices:output_type -> finance.v1.SearchTaxableServicesResponse
-	25, // 34: finance.v1.FeeCatalogService.CreateTaxableService:output_type -> finance.v1.CreateTaxableServiceResponse
-	26, // 35: finance.v1.FeeCatalogService.UpdateTaxableService:output_type -> finance.v1.UpdateTaxableServiceResponse
-	24, // [24:36] is the sub-list for method output_type
-	12, // [12:24] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	27, // 12: finance.v1.FeeSettingTemplate.input:type_name -> finance.v1.FeeSettingTemplateInput
+	28, // 13: finance.v1.ListFeeSettingTemplatesResponse.data:type_name -> finance.v1.FeeSettingTemplate
+	27, // 14: finance.v1.CreateFeeSettingTemplateRequest.input:type_name -> finance.v1.FeeSettingTemplateInput
+	28, // 15: finance.v1.CreateFeeSettingTemplateResponse.data:type_name -> finance.v1.FeeSettingTemplate
+	27, // 16: finance.v1.UpdateFeeSettingTemplateRequest.input:type_name -> finance.v1.FeeSettingTemplateInput
+	28, // 17: finance.v1.UpdateFeeSettingTemplateResponse.data:type_name -> finance.v1.FeeSettingTemplate
+	29, // 18: finance.v1.FeeCatalogService.ListFeeSettingTemplates:input_type -> finance.v1.ListFeeSettingTemplatesRequest
+	31, // 19: finance.v1.FeeCatalogService.CreateFeeSettingTemplate:input_type -> finance.v1.CreateFeeSettingTemplateRequest
+	33, // 20: finance.v1.FeeCatalogService.UpdateFeeSettingTemplate:input_type -> finance.v1.UpdateFeeSettingTemplateRequest
+	3,  // 21: finance.v1.FeeCatalogService.ListFeeSettings:input_type -> finance.v1.ListFeeSettingsRequest
+	6,  // 22: finance.v1.FeeCatalogService.SearchFeeSettings:input_type -> finance.v1.SearchFeeSettingsRequest
+	9,  // 23: finance.v1.FeeCatalogService.CreateFeeSetting:input_type -> finance.v1.CreateFeeSettingRequest
+	10, // 24: finance.v1.FeeCatalogService.UpdateFeeSetting:input_type -> finance.v1.UpdateFeeSettingRequest
+	4,  // 25: finance.v1.FeeCatalogService.ListBillingUnits:input_type -> finance.v1.ListBillingUnitsRequest
+	7,  // 26: finance.v1.FeeCatalogService.SearchBillingUnits:input_type -> finance.v1.SearchBillingUnitsRequest
+	11, // 27: finance.v1.FeeCatalogService.CreateBillingUnit:input_type -> finance.v1.CreateBillingUnitRequest
+	12, // 28: finance.v1.FeeCatalogService.UpdateBillingUnit:input_type -> finance.v1.UpdateBillingUnitRequest
+	5,  // 29: finance.v1.FeeCatalogService.ListTaxableServices:input_type -> finance.v1.ListTaxableServicesRequest
+	8,  // 30: finance.v1.FeeCatalogService.SearchTaxableServices:input_type -> finance.v1.SearchTaxableServicesRequest
+	13, // 31: finance.v1.FeeCatalogService.CreateTaxableService:input_type -> finance.v1.CreateTaxableServiceRequest
+	14, // 32: finance.v1.FeeCatalogService.UpdateTaxableService:input_type -> finance.v1.UpdateTaxableServiceRequest
+	30, // 33: finance.v1.FeeCatalogService.ListFeeSettingTemplates:output_type -> finance.v1.ListFeeSettingTemplatesResponse
+	32, // 34: finance.v1.FeeCatalogService.CreateFeeSettingTemplate:output_type -> finance.v1.CreateFeeSettingTemplateResponse
+	34, // 35: finance.v1.FeeCatalogService.UpdateFeeSettingTemplate:output_type -> finance.v1.UpdateFeeSettingTemplateResponse
+	15, // 36: finance.v1.FeeCatalogService.ListFeeSettings:output_type -> finance.v1.ListFeeSettingsResponse
+	16, // 37: finance.v1.FeeCatalogService.SearchFeeSettings:output_type -> finance.v1.SearchFeeSettingsResponse
+	21, // 38: finance.v1.FeeCatalogService.CreateFeeSetting:output_type -> finance.v1.CreateFeeSettingResponse
+	22, // 39: finance.v1.FeeCatalogService.UpdateFeeSetting:output_type -> finance.v1.UpdateFeeSettingResponse
+	17, // 40: finance.v1.FeeCatalogService.ListBillingUnits:output_type -> finance.v1.ListBillingUnitsResponse
+	18, // 41: finance.v1.FeeCatalogService.SearchBillingUnits:output_type -> finance.v1.SearchBillingUnitsResponse
+	23, // 42: finance.v1.FeeCatalogService.CreateBillingUnit:output_type -> finance.v1.CreateBillingUnitResponse
+	24, // 43: finance.v1.FeeCatalogService.UpdateBillingUnit:output_type -> finance.v1.UpdateBillingUnitResponse
+	19, // 44: finance.v1.FeeCatalogService.ListTaxableServices:output_type -> finance.v1.ListTaxableServicesResponse
+	20, // 45: finance.v1.FeeCatalogService.SearchTaxableServices:output_type -> finance.v1.SearchTaxableServicesResponse
+	25, // 46: finance.v1.FeeCatalogService.CreateTaxableService:output_type -> finance.v1.CreateTaxableServiceResponse
+	26, // 47: finance.v1.FeeCatalogService.UpdateTaxableService:output_type -> finance.v1.UpdateTaxableServiceResponse
+	33, // [33:48] is the sub-list for method output_type
+	18, // [18:33] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_fee_catalog_proto_init() }
@@ -2700,13 +3417,14 @@ func file_finance_v1_fee_catalog_proto_init() {
 	file_finance_v1_fee_catalog_proto_msgTypes[10].OneofWrappers = []any{}
 	file_finance_v1_fee_catalog_proto_msgTypes[13].OneofWrappers = []any{}
 	file_finance_v1_fee_catalog_proto_msgTypes[14].OneofWrappers = []any{}
+	file_finance_v1_fee_catalog_proto_msgTypes[27].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_fee_catalog_proto_rawDesc), len(file_finance_v1_fee_catalog_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

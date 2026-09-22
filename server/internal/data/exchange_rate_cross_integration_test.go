@@ -38,7 +38,7 @@ func newCrossCalcOrgTree(t *testing.T, data *Data) (hqID, branchID uuid.UUID) {
 	hq, err := data.db.Organization.Create().
 		SetCode("XR-HQ-" + suffix).
 		SetName("汇率套算测试总部-" + suffix).
-		SetKind(organizationent.KindHeadquarters).
+		SetKind(organizationent.KindSystem).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -48,7 +48,6 @@ func newCrossCalcOrgTree(t *testing.T, data *Data) (hqID, branchID uuid.UUID) {
 		SetCode("XR-CA-" + suffix).
 		SetName("汇率套算测试加拿大分公司-" + suffix).
 		SetKind(organizationent.KindCompany).
-		SetParentID(hq.ID).
 		SetBaseCurrency("CAD").
 		Save(ctx)
 	if err != nil {
@@ -105,13 +104,13 @@ func TestExchangeRateCrossCalculationPostgres(t *testing.T) {
 	createCrossCalcRate(t, data, "AUD", "5.12345678", crossCalcEffectiveDate(time.January))
 	repo := NewExchangeRateRepo(data)
 
-	t.Run("解析上下文携带总部基准币", func(t *testing.T) {
+	t.Run("解析上下文携带公司归属和公共基准币", func(t *testing.T) {
 		rateContext, err := repo.ResolveContext(ctx, branchID)
 		if err != nil {
 			t.Fatalf("解析汇率上下文失败: %v", err)
 		}
-		if rateContext.OwnerOrganizationID != hqID || rateContext.BaseCurrency != "CAD" || rateContext.PivotCurrency != "CNY" {
-			t.Fatalf("上下文应为总部/CAD/CNY，实际 %#v", rateContext)
+		if rateContext.OwnerOrganizationID != branchID || rateContext.BaseCurrency != "CAD" || rateContext.PivotCurrency != "CNY" {
+			t.Fatalf("上下文应为本公司/CAD/CNY，实际 %#v", rateContext)
 		}
 	})
 
@@ -215,7 +214,7 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 	ctx := context.Background()
-	hqID, branchID := newCrossCalcOrgTree(t, data)
+	_, branchID := newCrossCalcOrgTree(t, data)
 	createCrossCalcRate(t, data, "USD", "7.20000000", crossCalcEffectiveDate(time.January))
 	createCrossCalcRate(t, data, "CAD", "5.20000000", crossCalcEffectiveDate(time.January))
 	suffix := uuid.NewString()[:8]
@@ -250,7 +249,7 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 		t.Fatalf("创建计费单位: %v", err)
 	}
 	taxableService, err := data.db.TaxableService.Create().
-		SetOrganizationID(hqID).
+		SetOrganizationID(branchID).
 		SetName("汇率套算测试应税服务-" + suffix).
 		SetDefaultTaxRate("0").
 		SetEnabled(true).
@@ -274,8 +273,9 @@ func TestOrderFeeCrossRateSnapshotPostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("创建订单服务类型: %v", err)
 	}
-	// 总部维护的费用科目为 NULL 基线行：订单组织（分公司）经基线共享可见。
+	// 费用科目及开票项目归属订单所在公司。
 	feeSetting, err := data.db.FeeSetting.Create().
+		SetOrganizationID(branchID).
 		SetFeeCode("XR-FREIGHT-" + suffix).
 		SetNameZh("汇率套算测试海运费").
 		SetChargeCategoryID(chargeCategory.ID).
@@ -348,7 +348,7 @@ func TestExchangeRateBaselineShadowingPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 	ctx := context.Background()
-	hqID, branchID := newCrossCalcOrgTree(t, data)
+	_, branchID := newCrossCalcOrgTree(t, data)
 	// NULL 基线行（总部维护兜底基线，不挂组织）。
 	if _, err := data.db.ExchangeRateSetting.Create().
 		SetFromCurrency("USD").SetToCurrency("CNY").
@@ -364,7 +364,6 @@ func TestExchangeRateBaselineShadowingPostgres(t *testing.T) {
 		SetCode("XR-SG-" + uuid.NewString()[:8]).
 		SetName("汇率基线观察组织").
 		SetKind(organizationent.KindCompany).
-		SetParentID(hqID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

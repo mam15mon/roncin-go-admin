@@ -43,14 +43,16 @@ func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.Creat
 	if err != nil {
 		return nil, err
 	}
-	if request.GetParentId() == "" {
-		return nil, biz.ErrAdminOrganizationParentRequired
+	var parentID *uuid.UUID
+	if request.GetParentId() != "" {
+		parsed, parseErr := uuid.Parse(request.GetParentId())
+		if parseErr != nil {
+			return nil, biz.ErrAdminInvalidArgument
+		}
+		parentID = &parsed
 	}
-	parentID, err := uuid.Parse(request.GetParentId())
-	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
-	}
-	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), Kind: organizationKindFromAPI(request.GetKind()), ParentID: &parentID, Enabled: true, BaseCurrency: request.GetBaseCurrency()})
+
+	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), Kind: organizationKindFromAPI(request.GetKind()), ParentID: parentID, Enabled: true, BaseCurrency: request.GetBaseCurrency()})
 	if err != nil {
 		return nil, err
 	}
@@ -507,8 +509,8 @@ func organizationKindFromAPI(value v1.OrganizationKind) biz.OrganizationKind {
 
 func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 	switch value {
-	case biz.OrganizationKindHeadquarters:
-		return v1.OrganizationKind_ORGANIZATION_KIND_HEADQUARTERS
+	case biz.OrganizationKindSystem:
+		return v1.OrganizationKind_ORGANIZATION_KIND_SYSTEM
 	case biz.OrganizationKindCompany:
 		return v1.OrganizationKind_ORGANIZATION_KIND_COMPANY
 	case biz.OrganizationKindDepartment:

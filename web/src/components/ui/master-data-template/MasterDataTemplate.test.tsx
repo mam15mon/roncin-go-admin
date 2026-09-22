@@ -133,15 +133,15 @@ describe('MasterDataTemplate (紧凑一体化 ProTable 模板与单行6卡片)',
         title="国际货币与币种管理"
         items={mockItems}
         formFields={[]}
-        notice="由总部统一维护与共享"
+        notice="由系统管理员统一维护与共享"
       />,
     );
 
-    expect(screen.getByText('由总部统一维护与共享')).toBeInTheDocument();
+    expect(screen.getByText('由系统管理员统一维护与共享')).toBeInTheDocument();
   });
 
   it('canEditRecord 返回 false 的行不渲染编辑与停用按钮', () => {
-    // 模拟 B 型页签非总部视角：基线行（organizationId 为空）禁用编辑。
+    // 模拟 B 型页签非系统管理视角：基线行（organizationId 为空）禁用编辑。
     render(
       <MasterDataTemplate<TestItem>
         title="海运港口管理"

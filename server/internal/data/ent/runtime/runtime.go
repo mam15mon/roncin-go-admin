@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesettingtemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
@@ -394,7 +395,7 @@ func init() {
 	// airport.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	airport.UpdateDefaultUpdatedAt = airportDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// airportDescIataCode is the schema descriptor for iata_code field.
-	airportDescIataCode := airportFields[1].Descriptor()
+	airportDescIataCode := airportFields[0].Descriptor()
 	// airport.IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
 	airport.IataCodeValidator = func() func(string) error {
 		validators := airportDescIataCode.Validators
@@ -412,15 +413,15 @@ func init() {
 		}
 	}()
 	// airportDescIcaoCode is the schema descriptor for icao_code field.
-	airportDescIcaoCode := airportFields[2].Descriptor()
+	airportDescIcaoCode := airportFields[1].Descriptor()
 	// airport.IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
 	airport.IcaoCodeValidator = airportDescIcaoCode.Validators[0].(func(string) error)
 	// airportDescNameZh is the schema descriptor for name_zh field.
-	airportDescNameZh := airportFields[3].Descriptor()
+	airportDescNameZh := airportFields[2].Descriptor()
 	// airport.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
 	airport.NameZhValidator = airportDescNameZh.Validators[0].(func(string) error)
 	// airportDescNameEn is the schema descriptor for name_en field.
-	airportDescNameEn := airportFields[4].Descriptor()
+	airportDescNameEn := airportFields[3].Descriptor()
 	// airport.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
 	airport.NameEnValidator = func() func(string) error {
 		validators := airportDescNameEn.Validators
@@ -438,15 +439,15 @@ func init() {
 		}
 	}()
 	// airportDescCityNameZh is the schema descriptor for city_name_zh field.
-	airportDescCityNameZh := airportFields[5].Descriptor()
+	airportDescCityNameZh := airportFields[4].Descriptor()
 	// airport.CityNameZhValidator is a validator for the "city_name_zh" field. It is called by the builders before save.
 	airport.CityNameZhValidator = airportDescCityNameZh.Validators[0].(func(string) error)
 	// airportDescCityNameEn is the schema descriptor for city_name_en field.
-	airportDescCityNameEn := airportFields[6].Descriptor()
+	airportDescCityNameEn := airportFields[5].Descriptor()
 	// airport.CityNameEnValidator is a validator for the "city_name_en" field. It is called by the builders before save.
 	airport.CityNameEnValidator = airportDescCityNameEn.Validators[0].(func(string) error)
 	// airportDescCountryCode is the schema descriptor for country_code field.
-	airportDescCountryCode := airportFields[7].Descriptor()
+	airportDescCountryCode := airportFields[6].Descriptor()
 	// airport.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
 	airport.CountryCodeValidator = func() func(string) error {
 		validators := airportDescCountryCode.Validators
@@ -464,29 +465,29 @@ func init() {
 		}
 	}()
 	// airportDescSource is the schema descriptor for source field.
-	airportDescSource := airportFields[8].Descriptor()
+	airportDescSource := airportFields[7].Descriptor()
 	// airport.DefaultSource holds the default value on creation for the source field.
 	airport.DefaultSource = airportDescSource.Default.(string)
 	// airport.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	airport.SourceValidator = airportDescSource.Validators[0].(func(string) error)
 	// airportDescSourceVersion is the schema descriptor for source_version field.
-	airportDescSourceVersion := airportFields[9].Descriptor()
+	airportDescSourceVersion := airportFields[8].Descriptor()
 	// airport.SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
 	airport.SourceVersionValidator = airportDescSourceVersion.Validators[0].(func(string) error)
 	// airportDescSourceHash is the schema descriptor for source_hash field.
-	airportDescSourceHash := airportFields[10].Descriptor()
+	airportDescSourceHash := airportFields[9].Descriptor()
 	// airport.SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
 	airport.SourceHashValidator = airportDescSourceHash.Validators[0].(func(string) error)
 	// airportDescSortOrder is the schema descriptor for sort_order field.
-	airportDescSortOrder := airportFields[11].Descriptor()
+	airportDescSortOrder := airportFields[10].Descriptor()
 	// airport.DefaultSortOrder holds the default value on creation for the sort_order field.
 	airport.DefaultSortOrder = airportDescSortOrder.Default.(int)
 	// airportDescEnabled is the schema descriptor for enabled field.
-	airportDescEnabled := airportFields[12].Descriptor()
+	airportDescEnabled := airportFields[11].Descriptor()
 	// airport.DefaultEnabled holds the default value on creation for the enabled field.
 	airport.DefaultEnabled = airportDescEnabled.Default.(bool)
 	// airportDescSearchKeywords is the schema descriptor for search_keywords field.
-	airportDescSearchKeywords := airportFields[13].Descriptor()
+	airportDescSearchKeywords := airportFields[12].Descriptor()
 	// airport.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	airport.DefaultSearchKeywords = airportDescSearchKeywords.Default.(string)
 	// airportDescID is the schema descriptor for id field.
@@ -1928,6 +1929,130 @@ func init() {
 	feesettingDescID := feesettingMixinFields0[0].Descriptor()
 	// feesetting.DefaultID holds the default value on creation for the id field.
 	feesetting.DefaultID = feesettingDescID.Default.(func() uuid.UUID)
+	feesettingtemplateMixin := schema.FeeSettingTemplate{}.Mixin()
+	feesettingtemplateHooks := schema.FeeSettingTemplate{}.Hooks()
+	feesettingtemplate.Hooks[0] = feesettingtemplateHooks[0]
+	feesettingtemplateMixinFields0 := feesettingtemplateMixin[0].Fields()
+	_ = feesettingtemplateMixinFields0
+	feesettingtemplateMixinFields1 := feesettingtemplateMixin[1].Fields()
+	_ = feesettingtemplateMixinFields1
+	feesettingtemplateFields := schema.FeeSettingTemplate{}.Fields()
+	_ = feesettingtemplateFields
+	// feesettingtemplateDescCreatedAt is the schema descriptor for created_at field.
+	feesettingtemplateDescCreatedAt := feesettingtemplateMixinFields1[0].Descriptor()
+	// feesettingtemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	feesettingtemplate.DefaultCreatedAt = feesettingtemplateDescCreatedAt.Default.(func() time.Time)
+	// feesettingtemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	feesettingtemplateDescUpdatedAt := feesettingtemplateMixinFields1[1].Descriptor()
+	// feesettingtemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	feesettingtemplate.DefaultUpdatedAt = feesettingtemplateDescUpdatedAt.Default.(func() time.Time)
+	// feesettingtemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	feesettingtemplate.UpdateDefaultUpdatedAt = feesettingtemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// feesettingtemplateDescFeeCode is the schema descriptor for fee_code field.
+	feesettingtemplateDescFeeCode := feesettingtemplateFields[0].Descriptor()
+	// feesettingtemplate.FeeCodeValidator is a validator for the "fee_code" field. It is called by the builders before save.
+	feesettingtemplate.FeeCodeValidator = func() func(string) error {
+		validators := feesettingtemplateDescFeeCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(fee_code string) error {
+			for _, fn := range fns {
+				if err := fn(fee_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// feesettingtemplateDescNameZh is the schema descriptor for name_zh field.
+	feesettingtemplateDescNameZh := feesettingtemplateFields[1].Descriptor()
+	// feesettingtemplate.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
+	feesettingtemplate.NameZhValidator = func() func(string) error {
+		validators := feesettingtemplateDescNameZh.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name_zh string) error {
+			for _, fn := range fns {
+				if err := fn(name_zh); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// feesettingtemplateDescNameEn is the schema descriptor for name_en field.
+	feesettingtemplateDescNameEn := feesettingtemplateFields[2].Descriptor()
+	// feesettingtemplate.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	feesettingtemplate.NameEnValidator = feesettingtemplateDescNameEn.Validators[0].(func(string) error)
+	// feesettingtemplateDescAliasName is the schema descriptor for alias_name field.
+	feesettingtemplateDescAliasName := feesettingtemplateFields[3].Descriptor()
+	// feesettingtemplate.AliasNameValidator is a validator for the "alias_name" field. It is called by the builders before save.
+	feesettingtemplate.AliasNameValidator = feesettingtemplateDescAliasName.Validators[0].(func(string) error)
+	// feesettingtemplateDescDefaultCurrency is the schema descriptor for default_currency field.
+	feesettingtemplateDescDefaultCurrency := feesettingtemplateFields[5].Descriptor()
+	// feesettingtemplate.DefaultCurrencyValidator is a validator for the "default_currency" field. It is called by the builders before save.
+	feesettingtemplate.DefaultCurrencyValidator = func() func(string) error {
+		validators := feesettingtemplateDescDefaultCurrency.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+			validators[2].(func(string) error),
+		}
+		return func(default_currency string) error {
+			for _, fn := range fns {
+				if err := fn(default_currency); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// feesettingtemplateDescTaxableServiceName is the schema descriptor for taxable_service_name field.
+	feesettingtemplateDescTaxableServiceName := feesettingtemplateFields[9].Descriptor()
+	// feesettingtemplate.TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
+	feesettingtemplate.TaxableServiceNameValidator = func() func(string) error {
+		validators := feesettingtemplateDescTaxableServiceName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(taxable_service_name string) error {
+			for _, fn := range fns {
+				if err := fn(taxable_service_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// feesettingtemplateDescTaxableServiceShortName is the schema descriptor for taxable_service_short_name field.
+	feesettingtemplateDescTaxableServiceShortName := feesettingtemplateFields[10].Descriptor()
+	// feesettingtemplate.TaxableServiceShortNameValidator is a validator for the "taxable_service_short_name" field. It is called by the builders before save.
+	feesettingtemplate.TaxableServiceShortNameValidator = feesettingtemplateDescTaxableServiceShortName.Validators[0].(func(string) error)
+	// feesettingtemplateDescTaxableServiceGoodsCode is the schema descriptor for taxable_service_goods_code field.
+	feesettingtemplateDescTaxableServiceGoodsCode := feesettingtemplateFields[11].Descriptor()
+	// feesettingtemplate.TaxableServiceGoodsCodeValidator is a validator for the "taxable_service_goods_code" field. It is called by the builders before save.
+	feesettingtemplate.TaxableServiceGoodsCodeValidator = feesettingtemplateDescTaxableServiceGoodsCode.Validators[0].(func(string) error)
+	// feesettingtemplateDescEnabled is the schema descriptor for enabled field.
+	feesettingtemplateDescEnabled := feesettingtemplateFields[13].Descriptor()
+	// feesettingtemplate.DefaultEnabled holds the default value on creation for the enabled field.
+	feesettingtemplate.DefaultEnabled = feesettingtemplateDescEnabled.Default.(bool)
+	// feesettingtemplateDescSortOrder is the schema descriptor for sort_order field.
+	feesettingtemplateDescSortOrder := feesettingtemplateFields[14].Descriptor()
+	// feesettingtemplate.DefaultSortOrder holds the default value on creation for the sort_order field.
+	feesettingtemplate.DefaultSortOrder = feesettingtemplateDescSortOrder.Default.(int)
+	// feesettingtemplateDescSearchKeywords is the schema descriptor for search_keywords field.
+	feesettingtemplateDescSearchKeywords := feesettingtemplateFields[15].Descriptor()
+	// feesettingtemplate.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
+	feesettingtemplate.DefaultSearchKeywords = feesettingtemplateDescSearchKeywords.Default.(string)
+	// feesettingtemplateDescID is the schema descriptor for id field.
+	feesettingtemplateDescID := feesettingtemplateMixinFields0[0].Descriptor()
+	// feesettingtemplate.DefaultID holds the default value on creation for the id field.
+	feesettingtemplate.DefaultID = feesettingtemplateDescID.Default.(func() uuid.UUID)
 	financebillMixin := schema.FinanceBill{}.Mixin()
 	financebillMixinFields0 := financebillMixin[0].Fields()
 	_ = financebillMixinFields0
@@ -7346,7 +7471,7 @@ func init() {
 	// port.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	port.UpdateDefaultUpdatedAt = portDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// portDescUnLocode is the schema descriptor for un_locode field.
-	portDescUnLocode := portFields[1].Descriptor()
+	portDescUnLocode := portFields[0].Descriptor()
 	// port.UnLocodeValidator is a validator for the "un_locode" field. It is called by the builders before save.
 	port.UnLocodeValidator = func() func(string) error {
 		validators := portDescUnLocode.Validators
@@ -7364,11 +7489,11 @@ func init() {
 		}
 	}()
 	// portDescNameZh is the schema descriptor for name_zh field.
-	portDescNameZh := portFields[2].Descriptor()
+	portDescNameZh := portFields[1].Descriptor()
 	// port.NameZhValidator is a validator for the "name_zh" field. It is called by the builders before save.
 	port.NameZhValidator = portDescNameZh.Validators[0].(func(string) error)
 	// portDescNameEn is the schema descriptor for name_en field.
-	portDescNameEn := portFields[3].Descriptor()
+	portDescNameEn := portFields[2].Descriptor()
 	// port.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
 	port.NameEnValidator = func() func(string) error {
 		validators := portDescNameEn.Validators
@@ -7386,7 +7511,7 @@ func init() {
 		}
 	}()
 	// portDescCountryCode is the schema descriptor for country_code field.
-	portDescCountryCode := portFields[4].Descriptor()
+	portDescCountryCode := portFields[3].Descriptor()
 	// port.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
 	port.CountryCodeValidator = func() func(string) error {
 		validators := portDescCountryCode.Validators
@@ -7404,29 +7529,29 @@ func init() {
 		}
 	}()
 	// portDescSource is the schema descriptor for source field.
-	portDescSource := portFields[6].Descriptor()
+	portDescSource := portFields[5].Descriptor()
 	// port.DefaultSource holds the default value on creation for the source field.
 	port.DefaultSource = portDescSource.Default.(string)
 	// port.SourceValidator is a validator for the "source" field. It is called by the builders before save.
 	port.SourceValidator = portDescSource.Validators[0].(func(string) error)
 	// portDescSourceVersion is the schema descriptor for source_version field.
-	portDescSourceVersion := portFields[7].Descriptor()
+	portDescSourceVersion := portFields[6].Descriptor()
 	// port.SourceVersionValidator is a validator for the "source_version" field. It is called by the builders before save.
 	port.SourceVersionValidator = portDescSourceVersion.Validators[0].(func(string) error)
 	// portDescSourceHash is the schema descriptor for source_hash field.
-	portDescSourceHash := portFields[8].Descriptor()
+	portDescSourceHash := portFields[7].Descriptor()
 	// port.SourceHashValidator is a validator for the "source_hash" field. It is called by the builders before save.
 	port.SourceHashValidator = portDescSourceHash.Validators[0].(func(string) error)
 	// portDescSortOrder is the schema descriptor for sort_order field.
-	portDescSortOrder := portFields[9].Descriptor()
+	portDescSortOrder := portFields[8].Descriptor()
 	// port.DefaultSortOrder holds the default value on creation for the sort_order field.
 	port.DefaultSortOrder = portDescSortOrder.Default.(int)
 	// portDescEnabled is the schema descriptor for enabled field.
-	portDescEnabled := portFields[10].Descriptor()
+	portDescEnabled := portFields[9].Descriptor()
 	// port.DefaultEnabled holds the default value on creation for the enabled field.
 	port.DefaultEnabled = portDescEnabled.Default.(bool)
 	// portDescSearchKeywords is the schema descriptor for search_keywords field.
-	portDescSearchKeywords := portFields[11].Descriptor()
+	portDescSearchKeywords := portFields[10].Descriptor()
 	// port.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	port.DefaultSearchKeywords = portDescSearchKeywords.Default.(string)
 	// portDescID is the schema descriptor for id field.

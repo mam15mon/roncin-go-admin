@@ -8,7 +8,6 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import {
   Button,
   Card,
@@ -22,6 +21,7 @@ import {
 } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { adminServiceListOrganizations } from '@/services/roncin/adminService';
 import { unwrapList } from '@/utils/api';
 import OrgChartCanvas from './components/org/OrgChartCanvas';
@@ -336,6 +336,17 @@ export default function OrganizationsPanel() {
           </Space>
 
           <Space size={8}>
+            {access.isSystemWorkspace && access.canCreateOrganizations && (
+              <Button
+                type="primary"
+                onClick={() => {
+                  setParentForCreate(null);
+                  setCreateModalOpen(true);
+                }}
+              >
+                新增公司
+              </Button>
+            )}
             <Button
               icon={<ReloadOutlined />}
               onClick={() => loadData(selectedId)}

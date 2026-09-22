@@ -30,9 +30,9 @@ func (s *orderSummaryRepoStub) ListOrderSummaries(_ context.Context, scopes []Or
 // system.finance.commission.read；readRootOrganizationID 为空时权限范围
 // 覆盖全部节点组织，否则以组织树范围只覆盖该根。
 func newOrderSummaryPrincipal(userID, currentOrganizationID uuid.UUID, withCommissionRead bool, nodes ...uuid.UUID) *Principal {
-	principal := &Principal{UserID: userID, Organization: Organization{ID: currentOrganizationID}}
+	principal := &Principal{UserID: userID, Organization: Organization{ID: currentOrganizationID, Kind: OrganizationKindCompany}}
 	for _, organizationID := range nodes {
-		principal.OrganizationNodes = append(principal.OrganizationNodes, OrganizationScopeNode{ID: organizationID})
+		principal.OrganizationNodes = append(principal.OrganizationNodes, OrganizationScopeNode{ID: organizationID, Kind: OrganizationKindCompany})
 	}
 	if withCommissionRead {
 		principal.RoleGrants = []RoleGrant{{RoleCode: "commission-reader", DataScope: DataScopeOrganizationTree, Permissions: map[string]struct{}{access.FinanceCommissionRead: {}}}}

@@ -96,3 +96,8 @@ func (d *Data) withSQLTx(ctx context.Context, operation func(*sql.Tx) error) err
 }
 
 var _ biz.Transactor = (*Data)(nil)
+
+// WithClientTx 供命令行种子复用统一事务生命周期，不接管客户端所有权。
+func WithClientTx(ctx context.Context, client *ent.Client, operation func(*ent.Tx) error) error {
+	return (&Data{db: client}).WithTx(ctx, operation)
+}

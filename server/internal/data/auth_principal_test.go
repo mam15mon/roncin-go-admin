@@ -60,15 +60,15 @@ func TestResolvePrincipalOrganizationBaseCurrencyRetainsDisabledAncestorLookup(t
 }
 
 // authPrincipalFixture 构造 bootstrap 管理员全组织穿透解析的隔离数据：
-// bootstrap 用户仅持总部成员关系（无角色），另有其无成员关系的分公司与一个停用组织；
-// 普通用户同样仅持总部成员关系，用于普通用户路径回归。
+// bootstrap 用户仅持系统管理成员关系（无角色），另有其无成员关系的分公司与一个停用组织；
+// 普通用户同样仅持系统管理成员关系，用于普通用户路径回归。
 type authPrincipalFixture struct {
 	t               *testing.T
 	repo            *authRepo
 	data            *Data
 	bootstrapUserID uuid.UUID
 	normalUserID    uuid.UUID
-	headquarters    uuid.UUID
+	systemWorkspace uuid.UUID
 	branch          uuid.UUID
 	disabledOrg     uuid.UUID
 	permissionKeys  []string
@@ -82,14 +82,14 @@ func newAuthPrincipalFixture(t *testing.T) *authPrincipalFixture {
 
 	ctx := context.Background()
 	suffix := uuid.NewString()[:12]
-	headquarters, err := data.db.Organization.Create().
+	systemWorkspace, err := data.db.Organization.Create().
 		SetCode("HQ-" + suffix).
-		SetName("总部集团-" + suffix).
-		SetKind("headquarters").
+		SetName("系统管理-" + suffix).
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部组织失败: %v", err)
+		t.Fatalf("创建系统管理组织失败: %v", err)
 	}
 	branch, err := data.db.Organization.Create().
 		SetCode("BJ-" + suffix).
@@ -132,7 +132,7 @@ func newAuthPrincipalFixture(t *testing.T) *authPrincipalFixture {
 	}
 	if _, err := data.db.Membership.Create().
 		SetUserID(bootstrapUser.ID).
-		SetOrganizationID(headquarters.ID).
+		SetOrganizationID(systemWorkspace.ID).
 		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx); err != nil {
@@ -148,7 +148,7 @@ func newAuthPrincipalFixture(t *testing.T) *authPrincipalFixture {
 	}
 	if _, err := data.db.Membership.Create().
 		SetUserID(normalUser.ID).
-		SetOrganizationID(headquarters.ID).
+		SetOrganizationID(systemWorkspace.ID).
 		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx); err != nil {
@@ -160,7 +160,7 @@ func newAuthPrincipalFixture(t *testing.T) *authPrincipalFixture {
 		data:            data,
 		bootstrapUserID: bootstrapUser.ID,
 		normalUserID:    normalUser.ID,
-		headquarters:    headquarters.ID,
+		systemWorkspace: systemWorkspace.ID,
 		branch:          branch.ID,
 		disabledOrg:     disabledOrg.ID,
 		permissionKeys:  permissionKeys,
@@ -168,43 +168,17 @@ func newAuthPrincipalFixture(t *testing.T) *authPrincipalFixture {
 	}
 }
 
-func TestAuthRepoResolvePrincipalBootstrapAdminWithoutMembershipSynthesizesAdministratorGrant(t *testing.T) {
-	fixture := newAuthPrincipalFixture(t)
-
-	principal, err := fixture.repo.ResolvePrincipal(context.Background(), fixture.bootstrapUserID, fixture.branch)
+func TestAuthRepoResolvePrincipalBootstrapAdminRequiresMembershipAndDoesNotSynthesizePermissions(t *testing.T) {
+	f := newAuthPrincipalFixture(t)
+	if _, err := f.repo.ResolvePrincipal(context.Background(), f.bootstrapUserID, f.branch); err != biz.ErrOrganizationForbidden {
+		t.Fatalf("无成员公司应拒绝: %v", err)
+	}
+	principal, err := f.repo.ResolvePrincipal(context.Background(), f.bootstrapUserID, f.systemWorkspace)
 	if err != nil {
-		t.Fatalf("bootstrap 管理员解析无成员关系组织失败: %v", err)
+		t.Fatal(err)
 	}
-	if principal.Organization.ID != fixture.branch {
-		t.Fatalf("当前组织应为目标组织: %#v", principal.Organization)
-	}
-	if !principal.IsBootstrapAdmin {
-		t.Fatal("主体应保留 bootstrap 管理员标记")
-	}
-	if len(principal.RoleGrants) != 1 {
-		t.Fatalf("合成授权数量 = %d，期望 1: %#v", len(principal.RoleGrants), principal.RoleGrants)
-	}
-	grant := principal.RoleGrants[0]
-	if grant.RoleCode != "administrator" || grant.DataScope != biz.DataScopeAll {
-		t.Fatalf("合成授权 = %#v，期望 administrator + 最宽数据范围", grant)
-	}
-	for _, key := range fixture.permissionKeys {
-		if !principal.HasPermission(key) {
-			t.Fatalf("合成授权缺少权限键 %s: %#v", key, grant.Permissions)
-		}
-	}
-	organizationIDs := make(map[uuid.UUID]biz.Organization, len(principal.Organizations))
-	for _, organization := range principal.Organizations {
-		organizationIDs[organization.ID] = organization
-	}
-	if _, ok := organizationIDs[fixture.headquarters]; !ok {
-		t.Fatalf("候选组织应包含总部: %#v", principal.Organizations)
-	}
-	if _, ok := organizationIDs[fixture.branch]; !ok {
-		t.Fatalf("候选组织应包含无成员关系的分公司: %#v", principal.Organizations)
-	}
-	if _, ok := organizationIDs[fixture.disabledOrg]; ok {
-		t.Fatalf("候选组织不应包含停用组织: %#v", principal.Organizations)
+	if len(principal.RoleGrants) != 0 || len(principal.Organizations) != 1 {
+		t.Fatalf("不应合成角色或公司候选: %#v", principal)
 	}
 }
 
@@ -236,12 +210,12 @@ func TestAuthRepoResolvePrincipalNormalUserWithoutMembershipStillForbidden(t *te
 	if _, err := fixture.repo.ResolvePrincipal(ctx, fixture.normalUserID, fixture.branch); err != biz.ErrOrganizationForbidden {
 		t.Fatalf("普通用户解析无成员关系组织错误 = %v，期望 ErrOrganizationForbidden", err)
 	}
-	principal, err := fixture.repo.ResolvePrincipal(ctx, fixture.normalUserID, fixture.headquarters)
+	principal, err := fixture.repo.ResolvePrincipal(ctx, fixture.normalUserID, fixture.systemWorkspace)
 	if err != nil {
 		t.Fatalf("普通用户解析成员组织失败: %v", err)
 	}
-	if principal.Organization.ID != fixture.headquarters {
-		t.Fatalf("普通用户当前组织 = %v，期望总部", principal.Organization.ID)
+	if principal.Organization.ID != fixture.systemWorkspace {
+		t.Fatalf("普通用户当前组织 = %v，期望系统管理", principal.Organization.ID)
 	}
 	for _, organization := range principal.Organizations {
 		if organization.ID == fixture.branch {
@@ -250,100 +224,53 @@ func TestAuthRepoResolvePrincipalNormalUserWithoutMembershipStillForbidden(t *te
 	}
 }
 
-func TestAuthRepoListEnabledOrganizationsForBootstrapAdminCandidates(t *testing.T) {
-	fixture := newAuthPrincipalFixture(t)
-
-	choices, err := fixture.repo.ListEnabledOrganizations(context.Background(), fixture.bootstrapUserID)
+func TestAuthRepoBootstrapCandidatesRequireMembership(t *testing.T) {
+	f := newAuthPrincipalFixture(t)
+	choices, err := f.repo.ListEnabledMembershipOrganizations(context.Background(), f.bootstrapUserID)
 	if err != nil {
-		t.Fatalf("查询全部启用组织候选失败: %v", err)
+		t.Fatal(err)
 	}
-	byID := make(map[uuid.UUID]biz.OrganizationChoice, len(choices))
-	for _, choice := range choices {
-		byID[choice.OrganizationID] = choice
-	}
-	headquartersChoice, ok := byID[fixture.headquarters]
-	if !ok || !headquartersChoice.IsDefault {
-		t.Fatalf("总部候选应存在并标记默认: %#v", headquartersChoice)
-	}
-	branchChoice, ok := byID[fixture.branch]
-	if !ok || branchChoice.IsDefault {
-		t.Fatalf("分公司候选应存在且不标记默认: %#v", branchChoice)
-	}
-	if _, filtered := byID[fixture.disabledOrg]; filtered {
-		t.Fatalf("停用组织不应进入候选列表: %#v", choices)
+	if len(choices) != 1 || choices[0].OrganizationID != f.systemWorkspace || !choices[0].IsDefault {
+		t.Fatalf("候选仅来自成员资格: %#v", choices)
 	}
 }
 
-func TestAuthRepoRotateSessionBootstrapAdminEntersNonMembershipOrganization(t *testing.T) {
-	fixture := newAuthPrincipalFixture(t)
+func TestAuthRepoRotateSessionBootstrapAdminRejectsNonMembershipOrganization(t *testing.T) {
+	f := newAuthPrincipalFixture(t)
 	ctx := context.Background()
-	currentHash := "bootstrap-rotate-current-" + uuid.NewString()
-	nextHash := "bootstrap-rotate-next-" + uuid.NewString()
-	if err := fixture.repo.CreateSession(ctx, &biz.Session{
-		TokenHash:      currentHash,
-		UserID:         fixture.bootstrapUserID,
-		OrganizationID: fixture.headquarters,
-		ExpiresAt:      fixture.sessionExpiry,
-		UserAgent:      "integration-test",
-	}, "", &biz.AuditEvent{OrganizationID: &fixture.headquarters, UserID: &fixture.bootstrapUserID, Action: "auth.login", Result: "success"}); err != nil {
-		t.Fatalf("创建会话失败: %v", err)
+	currentHash, nextHash := "current-"+uuid.NewString(), "next-"+uuid.NewString()
+	audit := &biz.AuditEvent{OrganizationID: &f.systemWorkspace, UserID: &f.bootstrapUserID, Action: "auth.login", Result: "success"}
+	if err := f.repo.CreateSession(ctx, &biz.Session{TokenHash: currentHash, UserID: f.bootstrapUserID, OrganizationID: f.systemWorkspace, ExpiresAt: f.sessionExpiry}, "", audit); err != nil {
+		t.Fatal(err)
 	}
-
-	// bootstrap 管理员可轮转进入无成员关系的启用中组织。
-	err := fixture.repo.RotateSession(ctx, currentHash, &biz.Session{
-		TokenHash:      nextHash,
-		UserID:         fixture.bootstrapUserID,
-		OrganizationID: fixture.branch,
-		ExpiresAt:      fixture.sessionExpiry,
-	}, time.Now().UTC(), &biz.AuditEvent{OrganizationID: &fixture.branch, UserID: &fixture.bootstrapUserID, Action: "auth.organization.switch", Result: "success"})
-	if err != nil {
-		t.Fatalf("bootstrap 管理员轮转进入非成员组织失败: %v", err)
+	err := f.repo.RotateSession(ctx, currentHash, &biz.Session{TokenHash: nextHash, UserID: f.bootstrapUserID, OrganizationID: f.branch, ExpiresAt: f.sessionExpiry}, time.Now().UTC(), audit)
+	if err != biz.ErrAuthOrganizationForbidden {
+		t.Fatalf("无成员公司应拒绝: %v", err)
 	}
-	switched, err := fixture.repo.FindSession(ctx, nextHash, time.Now().UTC())
-	if err != nil {
-		t.Fatalf("新令牌应立即可用: %v", err)
+	if _, err := f.repo.FindSession(ctx, currentHash, time.Now().UTC()); err != nil {
+		t.Fatalf("原会话须保留: %v", err)
 	}
-	if switched.OrganizationID != fixture.branch {
-		t.Fatalf("新会话组织 = %v，期望分公司", switched.OrganizationID)
-	}
-	if _, err := fixture.repo.FindSession(ctx, currentHash, time.Now().UTC()); err != biz.ErrSessionExpired {
-		t.Fatalf("旧令牌应失效，错误 = %v", err)
-	}
-
-	// 停用组织依旧不可进入，且被拒绝的轮转不影响当前会话。
-	rejectedHash := "bootstrap-rotate-rejected-" + uuid.NewString()
-	if err := fixture.repo.RotateSession(ctx, nextHash, &biz.Session{
-		TokenHash:      rejectedHash,
-		UserID:         fixture.bootstrapUserID,
-		OrganizationID: fixture.disabledOrg,
-		ExpiresAt:      fixture.sessionExpiry,
-	}, time.Now().UTC(), &biz.AuditEvent{OrganizationID: &fixture.disabledOrg, UserID: &fixture.bootstrapUserID, Action: "auth.organization.switch", Result: "success"}); err != biz.ErrAuthOrganizationForbidden {
-		t.Fatalf("轮转进入停用组织错误 = %v，期望 ErrAuthOrganizationForbidden", err)
-	}
-	if _, err := fixture.repo.FindSession(ctx, rejectedHash, time.Now().UTC()); err != biz.ErrSessionExpired {
-		t.Fatalf("被拒绝的轮转不应留下新会话: %v", err)
-	}
-	if _, err := fixture.repo.FindSession(ctx, nextHash, time.Now().UTC()); err != nil {
-		t.Fatalf("被拒绝的轮转不应影响当前会话: %v", err)
+	if _, err := f.repo.FindSession(ctx, nextHash, time.Now().UTC()); err != biz.ErrSessionExpired {
+		t.Fatalf("不应创建新会话: %v", err)
 	}
 }
 
-// authCompanyGranularityFixture 构造公司粒度工作台口径的隔离数据：总部 → 公司 → 部门
-// 三级树。双职用户在总部与部门各持一条启用成员关系并各挂一个角色，用于断言总部工作台
+// authCompanyGranularityFixture 构造公司粒度工作台口径的隔离数据：系统管理 → 公司 → 部门
+// 三级树。双职用户在系统管理与部门各持一条启用成员关系并各挂一个角色，用于断言系统管理工作台
 // 不聚合公司子树角色、公司工作台聚合子树角色；仅部门成员用户用于断言部门成员关系向上
 // 取整出公司候选与 RotateSession 的子树复核。
 type authCompanyGranularityFixture struct {
-	t             *testing.T
-	repo          *authRepo
-	data          *Data
-	headquarters  uuid.UUID
-	company       uuid.UUID
-	department    uuid.UUID
-	hqRoleID      uuid.UUID
-	deptRoleID    uuid.UUID
-	dualUserID    uuid.UUID
-	deptOnlyUser  uuid.UUID
-	sessionExpiry time.Time
+	t               *testing.T
+	repo            *authRepo
+	data            *Data
+	systemWorkspace uuid.UUID
+	company         uuid.UUID
+	department      uuid.UUID
+	hqRoleID        uuid.UUID
+	deptRoleID      uuid.UUID
+	dualUserID      uuid.UUID
+	deptOnlyUser    uuid.UUID
+	sessionExpiry   time.Time
 }
 
 func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixture {
@@ -353,20 +280,19 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 
 	ctx := context.Background()
 	suffix := uuid.NewString()[:12]
-	headquarters, err := data.db.Organization.Create().
+	systemWorkspace, err := data.db.Organization.Create().
 		SetCode("GH-" + suffix).
-		SetName("集团总部-" + suffix).
-		SetKind("headquarters").
+		SetName("集团系统管理-" + suffix).
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部组织失败: %v", err)
+		t.Fatalf("创建系统管理组织失败: %v", err)
 	}
 	company, err := data.db.Organization.Create().
 		SetCode("CO-" + suffix).
 		SetName("融迅公司-" + suffix).
 		SetKind("company").
-		SetParentID(headquarters.ID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -382,13 +308,13 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 		t.Fatalf("创建部门组织失败: %v", err)
 	}
 	hqRole, err := data.db.Role.Create().
-		SetOrganizationID(headquarters.ID).
+		SetOrganizationID(systemWorkspace.ID).
 		SetCode("hq_role_" + suffix).
-		SetName("总部角色-" + suffix).
+		SetName("系统管理角色-" + suffix).
 		SetDataScope(roleent.DataScopeOrganization).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部角色失败: %v", err)
+		t.Fatalf("创建系统管理角色失败: %v", err)
 	}
 	deptRole, err := data.db.Role.Create().
 		SetOrganizationID(company.ID).
@@ -409,12 +335,12 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 	}
 	hqMembership, err := data.db.Membership.Create().
 		SetUserID(dualUser.ID).
-		SetOrganizationID(headquarters.ID).
+		SetOrganizationID(systemWorkspace.ID).
 		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部成员关系失败: %v", err)
+		t.Fatalf("创建系统管理成员关系失败: %v", err)
 	}
 	deptMembership, err := data.db.Membership.Create().
 		SetUserID(dualUser.ID).
@@ -425,7 +351,7 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 		t.Fatalf("创建部门成员关系失败: %v", err)
 	}
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(hqMembership.ID).SetRoleID(hqRole.ID).Save(ctx); err != nil {
-		t.Fatalf("挂载总部角色失败: %v", err)
+		t.Fatalf("挂载系统管理角色失败: %v", err)
 	}
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(deptMembership.ID).SetRoleID(deptRole.ID).Save(ctx); err != nil {
 		t.Fatalf("挂载部门角色失败: %v", err)
@@ -447,17 +373,17 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 		t.Fatalf("创建仅部门成员关系失败: %v", err)
 	}
 	return &authCompanyGranularityFixture{
-		t:             t,
-		repo:          NewAuthRepo(data).(*authRepo),
-		data:          data,
-		headquarters:  headquarters.ID,
-		company:       company.ID,
-		department:    department.ID,
-		hqRoleID:      hqRole.ID,
-		deptRoleID:    deptRole.ID,
-		dualUserID:    dualUser.ID,
-		deptOnlyUser:  deptOnlyUser.ID,
-		sessionExpiry: time.Now().Add(time.Hour),
+		t:               t,
+		repo:            NewAuthRepo(data).(*authRepo),
+		data:            data,
+		systemWorkspace: systemWorkspace.ID,
+		company:         company.ID,
+		department:      department.ID,
+		hqRoleID:        hqRole.ID,
+		deptRoleID:      deptRole.ID,
+		dualUserID:      dualUser.ID,
+		deptOnlyUser:    deptOnlyUser.ID,
+		sessionExpiry:   time.Now().Add(time.Hour),
 	}
 }
 
@@ -470,32 +396,32 @@ func grantRoleIDs(principal *biz.Principal) map[uuid.UUID]struct{} {
 }
 
 // TestAuthRepoResolvePrincipalWorkspaceRoleScopeFollowsWorkspaceKind 锁定两条容易回退的
-// 口径：总部工作台只收集总部节点本身的成员关系角色（不跨公司聚合）；公司工作台聚合
-// 公司子树内全部启用成员关系角色（部门角色在公司工作区生效），但不回收总部角色。
+// 口径：系统管理工作台只收集系统管理节点本身的成员关系角色（不跨公司聚合）；公司工作台聚合
+// 公司子树内全部启用成员关系角色（部门角色在公司工作区生效），但不回收系统管理角色。
 func TestAuthRepoResolvePrincipalWorkspaceRoleScopeFollowsWorkspaceKind(t *testing.T) {
 	fixture := newAuthCompanyGranularityFixture(t)
 	ctx := context.Background()
 
-	headquartersPrincipal, err := fixture.repo.ResolvePrincipal(ctx, fixture.dualUserID, fixture.headquarters)
+	systemWorkspacePrincipal, err := fixture.repo.ResolvePrincipal(ctx, fixture.dualUserID, fixture.systemWorkspace)
 	if err != nil {
-		t.Fatalf("解析总部工作台失败: %v", err)
+		t.Fatalf("解析系统管理工作台失败: %v", err)
 	}
-	hqGrants := grantRoleIDs(headquartersPrincipal)
+	hqGrants := grantRoleIDs(systemWorkspacePrincipal)
 	if _, ok := hqGrants[fixture.hqRoleID]; !ok {
-		t.Fatalf("总部工作台应包含总部成员关系角色: %#v", headquartersPrincipal.RoleGrants)
+		t.Fatalf("系统管理工作台应包含系统管理成员关系角色: %#v", systemWorkspacePrincipal.RoleGrants)
 	}
 	if _, ok := hqGrants[fixture.deptRoleID]; ok {
-		t.Fatalf("总部工作台不应聚合公司子树角色: %#v", headquartersPrincipal.RoleGrants)
+		t.Fatalf("系统管理工作台不应聚合公司子树角色: %#v", systemWorkspacePrincipal.RoleGrants)
 	}
-	organizationIDs := make(map[uuid.UUID]struct{}, len(headquartersPrincipal.Organizations))
-	for _, organization := range headquartersPrincipal.Organizations {
+	organizationIDs := make(map[uuid.UUID]struct{}, len(systemWorkspacePrincipal.Organizations))
+	for _, organization := range systemWorkspacePrincipal.Organizations {
 		organizationIDs[organization.ID] = struct{}{}
 	}
 	if _, ok := organizationIDs[fixture.company]; !ok {
-		t.Fatalf("部门成员关系应让所属公司进入候选: %#v", headquartersPrincipal.Organizations)
+		t.Fatalf("部门成员关系应让所属公司进入候选: %#v", systemWorkspacePrincipal.Organizations)
 	}
 	if _, ok := organizationIDs[fixture.department]; ok {
-		t.Fatalf("部门不是工作台，不应进入候选: %#v", headquartersPrincipal.Organizations)
+		t.Fatalf("部门不是工作台，不应进入候选: %#v", systemWorkspacePrincipal.Organizations)
 	}
 
 	companyPrincipal, err := fixture.repo.ResolvePrincipal(ctx, fixture.dualUserID, fixture.company)
@@ -507,12 +433,12 @@ func TestAuthRepoResolvePrincipalWorkspaceRoleScopeFollowsWorkspaceKind(t *testi
 		t.Fatalf("公司工作台应聚合子树内部门成员关系角色: %#v", companyPrincipal.RoleGrants)
 	}
 	if _, ok := companyGrants[fixture.hqRoleID]; ok {
-		t.Fatalf("公司工作台不应包含总部成员关系角色: %#v", companyPrincipal.RoleGrants)
+		t.Fatalf("公司工作台不应包含系统管理成员关系角色: %#v", companyPrincipal.RoleGrants)
 	}
 }
 
 // TestAuthRepoListEnabledMembershipOrganizationsRoundsDepartmentUpToCompany 断言普通用户
-// 候选口径：部门成员关系向上取整让所属公司成为候选，总部不因公司成员资格进入候选，
+// 候选口径：部门成员关系向上取整让所属公司成为候选，系统管理不因公司成员资格进入候选，
 // 部门/团队本身任何情况下不是候选。
 func TestAuthRepoListEnabledMembershipOrganizationsRoundsDepartmentUpToCompany(t *testing.T) {
 	fixture := newAuthCompanyGranularityFixture(t)
@@ -540,8 +466,8 @@ func TestAuthRepoListEnabledMembershipOrganizationsRoundsDepartmentUpToCompany(t
 	if len(dualChoices) != 2 {
 		t.Fatalf("双职用户候选数 = %d，期望 2: %#v", len(dualChoices), dualChoices)
 	}
-	if choice, ok := byID[fixture.headquarters]; !ok || !choice.IsDefault {
-		t.Fatalf("总部成员关系（primary）应映射为默认总部候选: %#v", choice)
+	if choice, ok := byID[fixture.systemWorkspace]; !ok || !choice.IsDefault {
+		t.Fatalf("系统管理成员关系（primary）应映射为默认系统管理候选: %#v", choice)
 	}
 	if choice, ok := byID[fixture.company]; !ok || choice.IsDefault {
 		t.Fatalf("部门成员关系应映射出公司候选且不标记默认: %#v", choice)
@@ -553,7 +479,7 @@ func TestAuthRepoListEnabledMembershipOrganizationsRoundsDepartmentUpToCompany(t
 
 // TestAuthRepoRotateSessionNormalUserRechecksSubtreeMembership 锁定 RotateSession 的
 // TOCTOU 子树复核：普通用户目标为公司时，公司子树内任一启用成员关系即可通过（无需
-// 公司节点本身成员关系）；总部范围外与部门目标一律拒绝。
+// 公司节点本身成员关系）；系统管理范围外与部门目标一律拒绝。
 func TestAuthRepoRotateSessionNormalUserRechecksSubtreeMembership(t *testing.T) {
 	fixture := newAuthCompanyGranularityFixture(t)
 	ctx := context.Background()
@@ -583,7 +509,7 @@ func TestAuthRepoRotateSessionNormalUserRechecksSubtreeMembership(t *testing.T) 
 		name           string
 		organizationID uuid.UUID
 	}{
-		{name: "总部（子树外）", organizationID: fixture.headquarters},
+		{name: "系统管理（子树外）", organizationID: fixture.systemWorkspace},
 		{name: "部门（非工作台）", organizationID: fixture.department},
 	}
 	for _, test := range rejected {

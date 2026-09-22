@@ -231,7 +231,6 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			targetSummary.OriginLocationID = input.Target.OriginLocationID
 			p, err := client.Port.Query().Where(
 				portent.IDEQ(*input.Target.OriginLocationID),
-				portent.OrganizationIDEQ(organizationID),
 			).Only(ctx)
 			if err != nil {
 				return nil, err
@@ -242,7 +241,6 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			targetSummary.DischargeLocationID = input.Target.DischargeLocationID
 			p, err := client.Port.Query().Where(
 				portent.IDEQ(*input.Target.DischargeLocationID),
-				portent.OrganizationIDEQ(organizationID),
 			).Only(ctx)
 			if err != nil {
 				return nil, err
@@ -253,7 +251,6 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 			targetSummary.TransitLocationID = input.Target.TransitLocationID
 			p, err := client.Port.Query().Where(
 				portent.IDEQ(*input.Target.TransitLocationID),
-				portent.OrganizationIDEQ(organizationID),
 			).Only(ctx)
 			if err != nil {
 				return nil, err

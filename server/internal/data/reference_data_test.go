@@ -115,7 +115,6 @@ func TestAdminCreateOrganizationInitializesEnabledCurrencies(t *testing.T) {
 		Code:         "NEW-BRANCH-01",
 		Name:         "新设立分公司",
 		Kind:         biz.OrganizationKindCompany,
-		ParentID:     &hqID,
 		BaseCurrency: "USD",
 	}, &biz.AuditEvent{Action: "admin.organization.create", Result: "success", Details: map[string]string{}})
 	if err != nil {
@@ -156,7 +155,6 @@ func TestAdminCreateOrganizationInitializesEnabledCurrencies(t *testing.T) {
 		Code:         "NEW-BRANCH-CAD",
 		Name:         "新设立加拿大分公司",
 		Kind:         biz.OrganizationKindCompany,
-		ParentID:     &hqID,
 		BaseCurrency: "CAD",
 	}, &biz.AuditEvent{Action: "admin.organization.create", Result: "success", Details: map[string]string{}})
 	if err != nil {
@@ -208,5 +206,3 @@ func TestAdminCreateOrganizationInitializesEnabledCurrencies(t *testing.T) {
 		t.Fatalf("expected new base currency CAD to be added to enabled_currencies on update")
 	}
 }
-
-

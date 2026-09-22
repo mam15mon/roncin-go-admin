@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
@@ -64,11 +63,6 @@ func CreatedAt(v time.Time) predicate.Airport {
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.Airport {
 	return predicate.Airport(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
-func OrganizationID(v uuid.UUID) predicate.Airport {
-	return predicate.Airport(sql.FieldEQ(FieldOrganizationID, v))
 }
 
 // IataCode applies equality check predicate on the "iata_code" field. It's identical to IataCodeEQ.
@@ -214,36 +208,6 @@ func UpdatedAtLT(v time.Time) predicate.Airport {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Airport {
 	return predicate.Airport(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
-func OrganizationIDEQ(v uuid.UUID) predicate.Airport {
-	return predicate.Airport(sql.FieldEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDNEQ applies the NEQ predicate on the "organization_id" field.
-func OrganizationIDNEQ(v uuid.UUID) predicate.Airport {
-	return predicate.Airport(sql.FieldNEQ(FieldOrganizationID, v))
-}
-
-// OrganizationIDIn applies the In predicate on the "organization_id" field.
-func OrganizationIDIn(vs ...uuid.UUID) predicate.Airport {
-	return predicate.Airport(sql.FieldIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
-func OrganizationIDNotIn(vs ...uuid.UUID) predicate.Airport {
-	return predicate.Airport(sql.FieldNotIn(FieldOrganizationID, vs...))
-}
-
-// OrganizationIDIsNil applies the IsNil predicate on the "organization_id" field.
-func OrganizationIDIsNil() predicate.Airport {
-	return predicate.Airport(sql.FieldIsNull(FieldOrganizationID))
-}
-
-// OrganizationIDNotNil applies the NotNil predicate on the "organization_id" field.
-func OrganizationIDNotNil() predicate.Airport {
-	return predicate.Airport(sql.FieldNotNull(FieldOrganizationID))
 }
 
 // IataCodeEQ applies the EQ predicate on the "iata_code" field.
@@ -1069,29 +1033,6 @@ func SearchKeywordsEqualFold(v string) predicate.Airport {
 // SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
 func SearchKeywordsContainsFold(v string) predicate.Airport {
 	return predicate.Airport(sql.FieldContainsFold(FieldSearchKeywords, v))
-}
-
-// HasOrganization applies the HasEdge predicate on the "organization" edge.
-func HasOrganization() predicate.Airport {
-	return predicate.Airport(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOrganizationWith applies the HasEdge predicate on the "organization" edge with a given conditions (other predicates).
-func HasOrganizationWith(preds ...predicate.Organization) predicate.Airport {
-	return predicate.Airport(func(s *sql.Selector) {
-		step := newOrganizationStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -127,7 +127,7 @@ describe('订单列表新建入口权限收口', () => {
     expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
   });
 
-  it('无 create 权限时不渲染新增订单按钮（如总部只读角色）', () => {
+  it('无 create 权限时不渲染新增订单按钮（如系统管理只读角色）', () => {
     accessControl.canCreate = false;
     renderWithClient(
       <App>

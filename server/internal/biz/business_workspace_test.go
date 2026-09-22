@@ -18,11 +18,11 @@ func TestBusinessWorkspacePermissionsAndSwitch(t *testing.T) {
 	}
 	for _, admin := range []bool{false, true} {
 		p := &Principal{UserID: uuid.New(), IsBootstrapAdmin: admin,
-			Organization:      Organization{ID: hq, Kind: OrganizationKindHeadquarters},
-			OrganizationNodes: []OrganizationScopeNode{{ID: hq, Kind: OrganizationKindHeadquarters}, {ID: company, Kind: OrganizationKindCompany}, {ID: other, Kind: OrganizationKindCompany}},
+			Organization:      Organization{ID: hq, Kind: OrganizationKindSystem},
+			OrganizationNodes: []OrganizationScopeNode{{ID: hq, Kind: OrganizationKindSystem}, {ID: company, Kind: OrganizationKindCompany}, {ID: other, Kind: OrganizationKindCompany}},
 			RoleGrants:        []RoleGrant{{DataScope: DataScopeAll, Permissions: grants}},
 		}
-		for _, permission := range []string{access.PartnerUpdate, access.PartnerAttachmentRegister, access.FinanceBillConfirm, access.FinanceCommissionManage, access.OrderPermission(access.OrderBusinessSE, access.OrderSplit)} {
+		for _, permission := range []string{access.PartnerRead, access.PartnerExport, access.FinanceCommissionExport, access.FinanceBillConfigure, access.FinanceCommissionConfigure, access.EnterpriseResourceCreate, access.PartnerUpdate, access.PartnerAttachmentRegister, access.FinanceBillConfirm, access.FinanceCommissionManage, access.OrderPermission(access.OrderBusinessSE, access.OrderSplit)} {
 			if p.HasPermission(permission) || p.HasPermissionInScope(permission, DataScopeOrganization) || slices.Contains(p.PermissionKeys(), permission) {
 				t.Fatalf("总部 admin=%v 暴露经营权限 %s", admin, permission)
 			}
@@ -30,7 +30,7 @@ func TestBusinessWorkspacePermissionsAndSwitch(t *testing.T) {
 				t.Fatalf("总部应拒绝经营范围: %v", err)
 			}
 		}
-		for _, permission := range []string{access.PartnerRead, access.PartnerExport, access.FinanceCommissionExport, access.FinanceBillConfigure, access.FinanceCommissionConfigure, access.EnterpriseResourceCreate, access.MasterDataItemCreate, access.UserCreate} {
+		for _, permission := range []string{access.MasterDataItemCreate, access.UserCreate} {
 			if !p.HasPermission(permission) || !slices.Contains(p.PermissionKeys(), permission) {
 				t.Fatalf("总部不得误禁治理或读取 %s", permission)
 			}
@@ -40,13 +40,13 @@ func TestBusinessWorkspacePermissionsAndSwitch(t *testing.T) {
 			t.Fatal("进入获授权公司后应恢复原角色经营权限")
 		}
 		scope, err := p.ResolvePermissionOrganizationScope(access.FinanceBillConfirm)
-		if err != nil || !slices.Equal(scope.WritableOrganizationIDs, []uuid.UUID{company}) || len(scope.ReadableOrganizationIDs) != 3 {
-			t.Fatalf("公司经营写范围必须限当前公司，读范围保留: %#v %v", scope, err)
+		if err != nil || !slices.Equal(scope.WritableOrganizationIDs, []uuid.UUID{company}) || !slices.Equal(scope.ReadableOrganizationIDs, []uuid.UUID{company}) {
+			t.Fatalf("公司经营写范围必须限当前公司，读写均限当前公司: %#v %v", scope, err)
 		}
 		if p.CanAccessOrganizationForPermission(access.FinanceBillConfirm, other, true) {
 			t.Fatal("全量授权不能跨工作台写")
 		}
-		p.Organization = Organization{ID: hq, Kind: OrganizationKindHeadquarters}
+		p.Organization = Organization{ID: hq, Kind: OrganizationKindSystem}
 		if p.HasPermission(access.FinanceBillConfirm) {
 			t.Fatal("返回总部应再次禁写")
 		}
@@ -64,7 +64,7 @@ func TestBusinessWorkspaceFailsClosed(t *testing.T) {
 		t.Fatal("停用公司不可办理")
 	}
 	p.OrganizationNodes[0].Disabled = false
-	for _, kind := range []OrganizationKind{OrganizationKindHeadquarters, OrganizationKindDepartment, OrganizationKindTeam, ""} {
+	for _, kind := range []OrganizationKind{OrganizationKindSystem, OrganizationKindDepartment, OrganizationKindTeam, ""} {
 		p.Organization.Kind = kind
 		if p.CanOperateBusiness() {
 			t.Fatalf("非公司 %s 不可办理", kind)

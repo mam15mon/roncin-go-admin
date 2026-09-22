@@ -48,7 +48,7 @@ func newCommissionResolutionFixture(t *testing.T) *commissionResolutionFixture {
 	org, err := data.db.Organization.Create().
 		SetCode("COMM-RS-" + suffix).
 		SetName("计提解析测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

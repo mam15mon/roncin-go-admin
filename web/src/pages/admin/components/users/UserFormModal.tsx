@@ -41,8 +41,9 @@ interface UserFormModalProps {
   formRef: React.RefObject<ProFormInstance | undefined>;
   roles: API.AdminRole[];
   organizations: API.AdminOrganization[];
-  canReadAllUserMemberships: boolean;
+  canReadUserMemberships: boolean;
   canManageUserMemberships: boolean;
+  canUpdateUserProfile: boolean;
   canAuthorizeWeComUsers: boolean;
   canAuthorizeDingTalkUsers: boolean;
   currentUserId?: string;
@@ -57,8 +58,9 @@ export default function UserFormModal({
   formRef,
   roles,
   organizations,
-  canReadAllUserMemberships,
+  canReadUserMemberships,
   canManageUserMemberships,
+  canUpdateUserProfile,
   canAuthorizeWeComUsers,
   canAuthorizeDingTalkUsers,
   currentUserId,
@@ -74,7 +76,7 @@ export default function UserFormModal({
     useState<API.AdminUserMembership>();
   const [membershipRoles, setMembershipRoles] = useState<API.AdminRole[]>([]);
   // 编辑时角色选项按锚定成员关系所在组织拉取：后端保存时按锚定组织校验角色，
-  // 锚定组织可能不是当前工作台组织（如总部工作台编辑公司/部门成员）。
+  // 锚定组织可能不是当前工作台组织（如系统管理工作台编辑公司/部门成员）。
   const [anchorRoles, setAnchorRoles] = useState<API.AdminRole[]>([]);
   const [anchorOrganizationId, setAnchorOrganizationId] = useState<string>();
   // 外部成员的组织授权流程（依赖 ListOrganizationRoles / ListOrganizations 的全局
@@ -129,7 +131,7 @@ export default function UserFormModal({
       setApprovalRoles(roles);
       setMemberships([]);
       resetAnchorRoles();
-    } else if (editing.id && canReadAllUserMemberships) {
+    } else if (editing.id && canReadUserMemberships) {
       void loadMemberships(editing.id);
     } else {
       setMemberships([]);
@@ -162,6 +164,7 @@ export default function UserFormModal({
           ? `编辑用户：${editing.displayName || editing.username}`
           : '新增用户'
       }
+      submitter={editing && !canUpdateUserProfile ? false : undefined}
       open={open}
       formRef={formRef}
       initialValues={
@@ -177,11 +180,12 @@ export default function UserFormModal({
       modalProps={{
         destroyOnHidden: true,
         width:
-          editing && !pendingProvider && canReadAllUserMemberships ? 880 : 560,
+          editing && !pendingProvider && canReadUserMemberships ? 880 : 560,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}
       onFinish={async (values) => {
+        if (editing && !canUpdateUserProfile) return false;
         if (editing?.id && pendingProvider) {
           const authorize =
             pendingProvider === 'wecom'
@@ -227,6 +231,13 @@ export default function UserFormModal({
         return true;
       }}
     >
+      {editing && !canUpdateUserProfile && (
+        <Alert
+          type="info"
+          showIcon
+          title="仅管理本公司成员关系和角色；账号姓名、邮箱、密码及全局状态由系统管理员维护。"
+        />
+      )}
       {pendingProvider && (
         <Alert
           showIcon
@@ -277,6 +288,7 @@ export default function UserFormModal({
         />
       )}
       <ProFormText
+        disabled={Boolean(editing) && !canUpdateUserProfile}
         name="displayName"
         label="显示名称（用户姓名）"
         placeholder="例如：张三 / 操作一组"
@@ -293,12 +305,14 @@ export default function UserFormModal({
         />
       )}
       <ProFormText
+        disabled={Boolean(editing) && !canUpdateUserProfile}
         name="email"
         label="邮箱地址"
         placeholder="例如：user@roncin.com"
         rules={[{ type: 'email', message: '请输入有效的邮箱地址' }]}
       />
       <ProFormSearchableSelect
+        disabled={Boolean(editing) && !canUpdateUserProfile}
         name="roleIds"
         label={editing && !pendingProvider ? '当前组织角色' : '分配角色'}
         mode="multiple"
@@ -320,7 +334,7 @@ export default function UserFormModal({
             : undefined
         }
       />
-      {editing && !pendingProvider && canReadAllUserMemberships && (
+      {editing && !pendingProvider && canReadUserMemberships && (
         <div style={{ marginTop: 8 }}>
           <Space
             align="center"

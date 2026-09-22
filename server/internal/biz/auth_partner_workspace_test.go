@@ -42,13 +42,13 @@ func TestPartnerReadRejectsHeadquartersAndRelocatedPrincipal(t *testing.T) {
 		kind   OrganizationKind
 		anchor uuid.UUID
 	}{
-		{"总部", OrganizationKindHeadquarters, uuid.Nil},
+		{"系统管理", OrganizationKindSystem, uuid.Nil},
 		{"临时定位其他公司", OrganizationKindCompany, companyB},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			p := &Principal{Organization: Organization{ID: companyA, Kind: test.kind}, WorkspaceOrganizationID: test.anchor, OrganizationNodes: []OrganizationScopeNode{{ID: companyA, Kind: test.kind}, {ID: companyB, Kind: OrganizationKindCompany}}, RoleGrants: []RoleGrant{roleGrant("查看", DataScopeAll, []string{access.PartnerRead})}}
 			scope, err := p.ResolvePermissionOrganizationScope(access.PartnerRead)
-			if err != nil || len(scope.ReadableOrganizationIDs) != 0 || len(scope.WritableOrganizationIDs) != 0 {
+			if err != ErrPermissionDenied || len(scope.ReadableOrganizationIDs) != 0 || len(scope.WritableOrganizationIDs) != 0 {
 				t.Fatalf("不应获得伙伴范围: %+v %v", scope, err)
 			}
 		})

@@ -19,18 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FeeCatalogService_ListFeeSettings_FullMethodName       = "/finance.v1.FeeCatalogService/ListFeeSettings"
-	FeeCatalogService_SearchFeeSettings_FullMethodName     = "/finance.v1.FeeCatalogService/SearchFeeSettings"
-	FeeCatalogService_CreateFeeSetting_FullMethodName      = "/finance.v1.FeeCatalogService/CreateFeeSetting"
-	FeeCatalogService_UpdateFeeSetting_FullMethodName      = "/finance.v1.FeeCatalogService/UpdateFeeSetting"
-	FeeCatalogService_ListBillingUnits_FullMethodName      = "/finance.v1.FeeCatalogService/ListBillingUnits"
-	FeeCatalogService_SearchBillingUnits_FullMethodName    = "/finance.v1.FeeCatalogService/SearchBillingUnits"
-	FeeCatalogService_CreateBillingUnit_FullMethodName     = "/finance.v1.FeeCatalogService/CreateBillingUnit"
-	FeeCatalogService_UpdateBillingUnit_FullMethodName     = "/finance.v1.FeeCatalogService/UpdateBillingUnit"
-	FeeCatalogService_ListTaxableServices_FullMethodName   = "/finance.v1.FeeCatalogService/ListTaxableServices"
-	FeeCatalogService_SearchTaxableServices_FullMethodName = "/finance.v1.FeeCatalogService/SearchTaxableServices"
-	FeeCatalogService_CreateTaxableService_FullMethodName  = "/finance.v1.FeeCatalogService/CreateTaxableService"
-	FeeCatalogService_UpdateTaxableService_FullMethodName  = "/finance.v1.FeeCatalogService/UpdateTaxableService"
+	FeeCatalogService_ListFeeSettingTemplates_FullMethodName  = "/finance.v1.FeeCatalogService/ListFeeSettingTemplates"
+	FeeCatalogService_CreateFeeSettingTemplate_FullMethodName = "/finance.v1.FeeCatalogService/CreateFeeSettingTemplate"
+	FeeCatalogService_UpdateFeeSettingTemplate_FullMethodName = "/finance.v1.FeeCatalogService/UpdateFeeSettingTemplate"
+	FeeCatalogService_ListFeeSettings_FullMethodName          = "/finance.v1.FeeCatalogService/ListFeeSettings"
+	FeeCatalogService_SearchFeeSettings_FullMethodName        = "/finance.v1.FeeCatalogService/SearchFeeSettings"
+	FeeCatalogService_CreateFeeSetting_FullMethodName         = "/finance.v1.FeeCatalogService/CreateFeeSetting"
+	FeeCatalogService_UpdateFeeSetting_FullMethodName         = "/finance.v1.FeeCatalogService/UpdateFeeSetting"
+	FeeCatalogService_ListBillingUnits_FullMethodName         = "/finance.v1.FeeCatalogService/ListBillingUnits"
+	FeeCatalogService_SearchBillingUnits_FullMethodName       = "/finance.v1.FeeCatalogService/SearchBillingUnits"
+	FeeCatalogService_CreateBillingUnit_FullMethodName        = "/finance.v1.FeeCatalogService/CreateBillingUnit"
+	FeeCatalogService_UpdateBillingUnit_FullMethodName        = "/finance.v1.FeeCatalogService/UpdateBillingUnit"
+	FeeCatalogService_ListTaxableServices_FullMethodName      = "/finance.v1.FeeCatalogService/ListTaxableServices"
+	FeeCatalogService_SearchTaxableServices_FullMethodName    = "/finance.v1.FeeCatalogService/SearchTaxableServices"
+	FeeCatalogService_CreateTaxableService_FullMethodName     = "/finance.v1.FeeCatalogService/CreateTaxableService"
+	FeeCatalogService_UpdateTaxableService_FullMethodName     = "/finance.v1.FeeCatalogService/UpdateTaxableService"
 )
 
 // FeeCatalogServiceClient is the client API for FeeCatalogService service.
@@ -39,6 +42,9 @@ const (
 //
 // FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。
 type FeeCatalogServiceClient interface {
+	ListFeeSettingTemplates(ctx context.Context, in *ListFeeSettingTemplatesRequest, opts ...grpc.CallOption) (*ListFeeSettingTemplatesResponse, error)
+	CreateFeeSettingTemplate(ctx context.Context, in *CreateFeeSettingTemplateRequest, opts ...grpc.CallOption) (*CreateFeeSettingTemplateResponse, error)
+	UpdateFeeSettingTemplate(ctx context.Context, in *UpdateFeeSettingTemplateRequest, opts ...grpc.CallOption) (*UpdateFeeSettingTemplateResponse, error)
 	ListFeeSettings(ctx context.Context, in *ListFeeSettingsRequest, opts ...grpc.CallOption) (*ListFeeSettingsResponse, error)
 	SearchFeeSettings(ctx context.Context, in *SearchFeeSettingsRequest, opts ...grpc.CallOption) (*SearchFeeSettingsResponse, error)
 	CreateFeeSetting(ctx context.Context, in *CreateFeeSettingRequest, opts ...grpc.CallOption) (*CreateFeeSettingResponse, error)
@@ -59,6 +65,36 @@ type feeCatalogServiceClient struct {
 
 func NewFeeCatalogServiceClient(cc grpc.ClientConnInterface) FeeCatalogServiceClient {
 	return &feeCatalogServiceClient{cc}
+}
+
+func (c *feeCatalogServiceClient) ListFeeSettingTemplates(ctx context.Context, in *ListFeeSettingTemplatesRequest, opts ...grpc.CallOption) (*ListFeeSettingTemplatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFeeSettingTemplatesResponse)
+	err := c.cc.Invoke(ctx, FeeCatalogService_ListFeeSettingTemplates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *feeCatalogServiceClient) CreateFeeSettingTemplate(ctx context.Context, in *CreateFeeSettingTemplateRequest, opts ...grpc.CallOption) (*CreateFeeSettingTemplateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateFeeSettingTemplateResponse)
+	err := c.cc.Invoke(ctx, FeeCatalogService_CreateFeeSettingTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *feeCatalogServiceClient) UpdateFeeSettingTemplate(ctx context.Context, in *UpdateFeeSettingTemplateRequest, opts ...grpc.CallOption) (*UpdateFeeSettingTemplateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateFeeSettingTemplateResponse)
+	err := c.cc.Invoke(ctx, FeeCatalogService_UpdateFeeSettingTemplate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *feeCatalogServiceClient) ListFeeSettings(ctx context.Context, in *ListFeeSettingsRequest, opts ...grpc.CallOption) (*ListFeeSettingsResponse, error) {
@@ -187,6 +223,9 @@ func (c *feeCatalogServiceClient) UpdateTaxableService(ctx context.Context, in *
 //
 // FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。
 type FeeCatalogServiceServer interface {
+	ListFeeSettingTemplates(context.Context, *ListFeeSettingTemplatesRequest) (*ListFeeSettingTemplatesResponse, error)
+	CreateFeeSettingTemplate(context.Context, *CreateFeeSettingTemplateRequest) (*CreateFeeSettingTemplateResponse, error)
+	UpdateFeeSettingTemplate(context.Context, *UpdateFeeSettingTemplateRequest) (*UpdateFeeSettingTemplateResponse, error)
 	ListFeeSettings(context.Context, *ListFeeSettingsRequest) (*ListFeeSettingsResponse, error)
 	SearchFeeSettings(context.Context, *SearchFeeSettingsRequest) (*SearchFeeSettingsResponse, error)
 	CreateFeeSetting(context.Context, *CreateFeeSettingRequest) (*CreateFeeSettingResponse, error)
@@ -209,6 +248,15 @@ type FeeCatalogServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFeeCatalogServiceServer struct{}
 
+func (UnimplementedFeeCatalogServiceServer) ListFeeSettingTemplates(context.Context, *ListFeeSettingTemplatesRequest) (*ListFeeSettingTemplatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListFeeSettingTemplates not implemented")
+}
+func (UnimplementedFeeCatalogServiceServer) CreateFeeSettingTemplate(context.Context, *CreateFeeSettingTemplateRequest) (*CreateFeeSettingTemplateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateFeeSettingTemplate not implemented")
+}
+func (UnimplementedFeeCatalogServiceServer) UpdateFeeSettingTemplate(context.Context, *UpdateFeeSettingTemplateRequest) (*UpdateFeeSettingTemplateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateFeeSettingTemplate not implemented")
+}
 func (UnimplementedFeeCatalogServiceServer) ListFeeSettings(context.Context, *ListFeeSettingsRequest) (*ListFeeSettingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFeeSettings not implemented")
 }
@@ -264,6 +312,60 @@ func RegisterFeeCatalogServiceServer(s grpc.ServiceRegistrar, srv FeeCatalogServ
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&FeeCatalogService_ServiceDesc, srv)
+}
+
+func _FeeCatalogService_ListFeeSettingTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFeeSettingTemplatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FeeCatalogServiceServer).ListFeeSettingTemplates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FeeCatalogService_ListFeeSettingTemplates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FeeCatalogServiceServer).ListFeeSettingTemplates(ctx, req.(*ListFeeSettingTemplatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FeeCatalogService_CreateFeeSettingTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateFeeSettingTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FeeCatalogServiceServer).CreateFeeSettingTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FeeCatalogService_CreateFeeSettingTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FeeCatalogServiceServer).CreateFeeSettingTemplate(ctx, req.(*CreateFeeSettingTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FeeCatalogService_UpdateFeeSettingTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFeeSettingTemplateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FeeCatalogServiceServer).UpdateFeeSettingTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FeeCatalogService_UpdateFeeSettingTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FeeCatalogServiceServer).UpdateFeeSettingTemplate(ctx, req.(*UpdateFeeSettingTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _FeeCatalogService_ListFeeSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -489,6 +591,18 @@ var FeeCatalogService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "finance.v1.FeeCatalogService",
 	HandlerType: (*FeeCatalogServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListFeeSettingTemplates",
+			Handler:    _FeeCatalogService_ListFeeSettingTemplates_Handler,
+		},
+		{
+			MethodName: "CreateFeeSettingTemplate",
+			Handler:    _FeeCatalogService_CreateFeeSettingTemplate_Handler,
+		},
+		{
+			MethodName: "UpdateFeeSettingTemplate",
+			Handler:    _FeeCatalogService_UpdateFeeSettingTemplate_Handler,
+		},
 		{
 			MethodName: "ListFeeSettings",
 			Handler:    _FeeCatalogService_ListFeeSettings_Handler,

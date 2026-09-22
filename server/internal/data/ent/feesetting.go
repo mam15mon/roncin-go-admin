@@ -27,7 +27,7 @@ type FeeSetting struct {
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
-	OrganizationID *uuid.UUID `json:"organization_id,omitempty"`
+	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// FeeCode holds the value of the "fee_code" field.
 	FeeCode string `json:"fee_code,omitempty"`
 	// NameZh holds the value of the "name_zh" field.
@@ -148,7 +148,7 @@ func (*FeeSetting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case feesetting.FieldOrganizationID, feesetting.FieldAbnormalCaseID:
+		case feesetting.FieldAbnormalCaseID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case feesetting.FieldEnabled:
 			values[i] = new(sql.NullBool)
@@ -158,7 +158,7 @@ func (*FeeSetting) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case feesetting.FieldCreatedAt, feesetting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case feesetting.FieldID, feesetting.FieldChargeCategoryID, feesetting.FieldBillingUnitID, feesetting.FieldTaxableServiceID:
+		case feesetting.FieldID, feesetting.FieldOrganizationID, feesetting.FieldChargeCategoryID, feesetting.FieldBillingUnitID, feesetting.FieldTaxableServiceID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -194,11 +194,10 @@ func (_m *FeeSetting) assignValues(columns []string, values []any) error {
 				_m.UpdatedAt = value.Time
 			}
 		case feesetting.FieldOrganizationID:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
+			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
-			} else if value.Valid {
-				_m.OrganizationID = new(uuid.UUID)
-				*_m.OrganizationID = *value.S.(*uuid.UUID)
+			} else if value != nil {
+				_m.OrganizationID = *value
 			}
 		case feesetting.FieldFeeCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -353,10 +352,8 @@ func (_m *FeeSetting) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	if v := _m.OrganizationID; v != nil {
-		builder.WriteString("organization_id=")
-		builder.WriteString(fmt.Sprintf("%v", *v))
-	}
+	builder.WriteString("organization_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
 	builder.WriteString(", ")
 	builder.WriteString("fee_code=")
 	builder.WriteString(_m.FeeCode)

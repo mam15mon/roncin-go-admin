@@ -118,12 +118,12 @@ export interface MasterDataTemplateProps<
   renderCode?: (record: T, defaultDom: ReactNode) => ReactNode;
   renderStatus?: (record: T, defaultDom: ReactNode) => ReactNode;
 
-  // 顶部提示横幅（非空时渲染）：A 型页签非总部提示「由总部统一维护与共享」，
-  // B 型页签非总部提示「总部共享基线 + 本地补充行仅本组织可见」。
+  // 顶部提示横幅（非空时渲染）：A 型页签非系统管理提示「由系统管理员统一维护与共享」，
+  // B 型页签非系统管理提示「系统管理共享基线 + 本地补充行仅本组织可见」。
   notice?: string;
 
   // 行级写入口门控（返回 false 时该行不渲染编辑与停用/启用按钮）：
-  // B 型基线行（organizationId 为空）对非总部组织禁用编辑。
+  // B 型基线行（organizationId 为空）对非系统管理组织禁用编辑。
   canEditRecord?: (record: T) => boolean;
 
   // 是否展示「更新时间」列（默认 true，针对静态标准字典可传 false 隐藏冗余噪音）

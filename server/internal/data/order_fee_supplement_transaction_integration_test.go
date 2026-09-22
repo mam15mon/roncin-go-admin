@@ -65,7 +65,7 @@ func newFeeSupplementFixture(t *testing.T) *feeSupplementPostgresFixture {
 	org, err := data.db.Organization.Create().
 		SetCode("FSUP-" + suffix).
 		SetName("费用补录测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		SetEnabled(true).
 		Save(ctx)

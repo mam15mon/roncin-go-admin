@@ -5,7 +5,7 @@ import { ExchangeRatesPanel } from './components/ExchangeRatesPanel';
 
 /**
  * /finance/exchange-rates 财务 · 汇率页：各核算组织维护本组织周汇率行
- * （应收/应付双轨点差），总部额外维护 NULL 基线兜底行；一键同步入口对本币
+ * （应收/应付双轨点差），系统管理额外维护 NULL 基线兜底行；一键同步入口对本币
  * CNY 组织显示「从中国银行同步周汇率」，非 CNY 本币组织显示「一键同步周汇率」。
  */
 export default function ExchangeRatesPage() {

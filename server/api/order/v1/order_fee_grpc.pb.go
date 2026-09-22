@@ -49,7 +49,7 @@ type OrderFeeServiceClient interface {
 	ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(ctx context.Context, in *ListFeesRequest, opts ...grpc.CallOption) (*ListFeesResponse, error)
-	// ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。
+	// ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, in *AddFeeRequest, opts ...grpc.CallOption) (*AddFeeResponse, error)
@@ -275,7 +275,7 @@ type OrderFeeServiceServer interface {
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)
-	// ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。
+	// ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)

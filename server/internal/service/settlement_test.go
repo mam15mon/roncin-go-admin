@@ -138,14 +138,12 @@ func (s *verificationCreationCandidateRepoStub) ListCreationCandidates(_ context
 
 func TestFeeLedgerRequestedOrganizationOnlyNarrowsMatchingPermissionScope(t *testing.T) {
 	currentOrganizationID := uuid.New()
-	allowedOrganizationID := uuid.New()
+	allowedOrganizationID := currentOrganizationID
 	deniedOrganizationID := uuid.New()
-	allowedParentID := currentOrganizationID
 	principal := &biz.Principal{
 		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
 			{Kind: biz.OrganizationKindCompany, ID: currentOrganizationID},
-			{Kind: biz.OrganizationKindCompany, ID: allowedOrganizationID, ParentID: &allowedParentID},
 			{Kind: biz.OrganizationKindCompany, ID: deniedOrganizationID},
 		},
 		RoleGrants: []biz.RoleGrant{{

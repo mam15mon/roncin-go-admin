@@ -10,6 +10,19 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1"
 
 // FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。
 service FeeCatalogService {
+  rpc ListFeeSettingTemplates(ListFeeSettingTemplatesRequest) returns (ListFeeSettingTemplatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/fee-setting-templates"};
+  }
+  rpc CreateFeeSettingTemplate(CreateFeeSettingTemplateRequest) returns (CreateFeeSettingTemplateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.create" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/fee-setting-templates" body: "*"};
+  }
+  rpc UpdateFeeSettingTemplate(UpdateFeeSettingTemplateRequest) returns (UpdateFeeSettingTemplateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/finance/fee-setting-templates/{id}" body: "*"};
+  }
+
   rpc ListFeeSettings(ListFeeSettingsRequest) returns (ListFeeSettingsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee_setting.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/finance/fee-settings"};
@@ -89,8 +102,8 @@ message TaxableService {
 
 message FeeSetting {
   string id = 1;
-  // 为空表示总部公共科目基线行，非空表示分公司本地明细行。
-  optional string organization_id = 2;
+  // 科目归属公司，系统初始目录使用独立模板接口。
+  string organization_id = 2;
   string fee_code = 3;
   string name_zh = 4;
   optional string name_en = 5;
@@ -195,3 +208,34 @@ message CreateBillingUnitResponse { bool success = 1; int32 code = 2; string mes
 message UpdateBillingUnitResponse { bool success = 1; int32 code = 2; string message = 3; BillingUnit data = 4; string trace_id = 5; }
 message CreateTaxableServiceResponse { bool success = 1; int32 code = 2; string message = 3; TaxableService data = 4; string trace_id = 5; }
 message UpdateTaxableServiceResponse { bool success = 1; int32 code = 2; string message = 3; TaxableService data = 4; string trace_id = 5; }
+
+// 系统初始费用目录；税务默认值只保存文本，不引用公司的税务资料。
+message FeeSettingTemplateInput {
+ string fee_code = 1;
+ string name_zh = 2;
+ optional string name_en = 3;
+ optional string alias_name = 4;
+ string charge_category_id = 5;
+ string default_currency = 6;
+ string billing_unit_id = 7;
+ optional string abnormal_case_id = 8;
+ string tax_rate = 9;
+ int32 sort_order = 10;
+ bool enabled = 11;
+ string taxable_service_name = 12;
+ optional string taxable_service_short_name = 13;
+ optional string taxable_service_goods_code = 14;
+ string taxable_service_default_tax_rate = 15;
+}
+message FeeSettingTemplate {
+ string id = 1;
+ FeeSettingTemplateInput input = 2;
+ string created_at = 3;
+ string updated_at = 4;
+}
+message ListFeeSettingTemplatesRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
+message ListFeeSettingTemplatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeSettingTemplate data = 4; string trace_id = 5; int32 total = 6; int32 page = 7; int32 page_size = 8; }
+message CreateFeeSettingTemplateRequest { FeeSettingTemplateInput input = 1; }
+message CreateFeeSettingTemplateResponse { bool success = 1; int32 code = 2; string message = 3; FeeSettingTemplate data = 4; string trace_id = 5; }
+message UpdateFeeSettingTemplateRequest { string id = 1; FeeSettingTemplateInput input = 2; }
+message UpdateFeeSettingTemplateResponse { bool success = 1; int32 code = 2; string message = 3; FeeSettingTemplate data = 4; string trace_id = 5; }

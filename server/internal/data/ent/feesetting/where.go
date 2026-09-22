@@ -236,16 +236,6 @@ func OrganizationIDNotIn(vs ...uuid.UUID) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldNotIn(FieldOrganizationID, vs...))
 }
 
-// OrganizationIDIsNil applies the IsNil predicate on the "organization_id" field.
-func OrganizationIDIsNil() predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldIsNull(FieldOrganizationID))
-}
-
-// OrganizationIDNotNil applies the NotNil predicate on the "organization_id" field.
-func OrganizationIDNotNil() predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldNotNull(FieldOrganizationID))
-}
-
 // FeeCodeEQ applies the EQ predicate on the "fee_code" field.
 func FeeCodeEQ(v string) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldEQ(FieldFeeCode, v))

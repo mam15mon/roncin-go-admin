@@ -153,10 +153,10 @@ export default function access(
     (scopeRank[capabilities.get(permission) ?? ''] ?? 0) >= scopeRank[minimum];
   const hasAny = (...items: string[]) => items.some((item) => has(item));
   // 组织身份来自 auth/me 的 kind（阶段一契约），不复制第二套权限真相：
-  // A 型页签与 B 型基线行的维护入口仅总部可见。
-  const isHeadquartersOrganization =
+  // 公共资料维护入口仅系统管理工作台可见。
+  const isSystemWorkspace =
     initialState?.currentUser?.currentOrganization?.kind ===
-    AuthOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS;
+    AuthOrganizationKind.ORGANIZATION_KIND_SYSTEM;
   // 工作台身份仅约束经营入口；具体业务权限继续消费服务端有效权限集。
   const canOperateBusiness =
     initialState?.currentUser?.currentOrganization?.kind ===
@@ -170,28 +170,31 @@ export default function access(
     operation: OrderPermissionOperation,
   ) => {
     const permission = orderPermission(businessType, operation);
-    return permission !== '' && has(permission);
+    return canOperateBusiness && permission !== '' && has(permission);
   };
 
   const result = {
     isAuthenticated: Boolean(initialState?.currentUser),
-    isHeadquartersOrganization,
+    isSystemWorkspace,
     canOperateBusiness,
     canOperateOrganization,
     canAccessPlatform: has(permissions.platformAccess),
-    canReadOrganizations: has(permissions.organizationRead, 'all'),
-    canCreateOrganizations: has(permissions.organizationCreate, 'all'),
-    canUpdateOrganizations: has(permissions.organizationUpdate, 'all'),
+    canReadOrganizations: has(permissions.organizationRead),
+    canCreateOrganizations: has(permissions.organizationCreate),
+    canUpdateOrganizations: has(permissions.organizationUpdate),
     canReadUsers: has(permissions.userRead),
     canCreateUsers: has(permissions.userCreate),
-    canUpdateUsers: has(permissions.userUpdate),
-    canTerminateUsers: has(permissions.userTerminate),
-    canReadAllUserMemberships: has(permissions.userRead, 'all'),
-    canManageUserMemberships: has(permissions.userUpdate, 'all'),
-    canAuthorizeWeComUsers: has(permissions.userAuthorizeWeCom, 'all'),
-    canAuthorizeDingTalkUsers: has(permissions.userAuthorizeDingTalk, 'all'),
+    canUpdateUsers: isSystemWorkspace && has(permissions.userUpdate),
+    canTerminateUsers: isSystemWorkspace && has(permissions.userTerminate),
+    canReadUserMemberships: has(permissions.userRead),
+    canManageUserMemberships: has(permissions.userUpdate),
+    canAuthorizeWeComUsers:
+      isSystemWorkspace && has(permissions.userAuthorizeWeCom, 'all'),
+    canAuthorizeDingTalkUsers:
+      isSystemWorkspace && has(permissions.userAuthorizeDingTalk, 'all'),
     canManageDingTalkInvitations: has(permissions.userDingTalkInvitationManage),
-    canResetUserPasswords: has(permissions.userResetPassword),
+    canResetUserPasswords:
+      isSystemWorkspace && has(permissions.userResetPassword),
     canReadRoles: has(permissions.roleRead),
     canCreateRoles: has(permissions.roleCreate),
     canUpdateRoles: has(permissions.roleUpdate),
@@ -202,7 +205,8 @@ export default function access(
     canCreateExchangeRates: has(permissions.financeExchangeRateCreate),
     canUpdateExchangeRates: has(permissions.financeExchangeRateUpdate),
     canDisableExchangeRates: has(permissions.financeExchangeRateDisable),
-    canOverrideFeeExchangeRate: has(permissions.financeExchangeRateOverride),
+    canOverrideFeeExchangeRate:
+      canOperateBusiness && has(permissions.financeExchangeRateOverride),
     canReadFeeSettings: has(permissions.financeFeeSettingRead),
     canCreateFeeSettings: has(permissions.financeFeeSettingCreate),
     canUpdateFeeSettings: has(permissions.financeFeeSettingUpdate),
@@ -217,65 +221,97 @@ export default function access(
       permissions.financeExchangeRateRead,
       permissions.financeFeeSettingRead,
     ].some((permission) => has(permission)),
-    canReadFinanceFees: has(permissions.financeFeeRead),
-    canManageFinanceFeeTags: has(permissions.financeFeeTag),
-    canReadFinanceBills: has(permissions.financeBillRead),
-    canCreateFinanceBills: has(permissions.financeBillCreate),
-    canUpdateFinanceBills: has(permissions.financeBillUpdate),
-    canConfirmFinanceBills: has(permissions.financeBillConfirm),
-    canReadFinanceInvoices: has(permissions.financeInvoiceRead),
-    canCreateFinanceInvoices: has(permissions.financeInvoiceCreate),
-    canUpdateFinanceInvoices: has(permissions.financeInvoiceUpdate),
-    canReadFinanceCashflows: has(permissions.financeCashflowRead),
-    canCreateFinanceCashflows: has(permissions.financeCashflowCreate),
-    canUpdateFinanceCashflows: has(permissions.financeCashflowUpdate),
-    canReadFinanceVerifications: has(permissions.financeVerificationRead),
-    canCreateFinanceVerifications: has(permissions.financeVerificationCreate),
-    canReverseFinanceVerifications: has(permissions.financeVerificationReverse),
-    canReadFinanceNettings: has(permissions.financeNettingRead),
-    canCreateFinanceNettings: has(permissions.financeNettingCreate),
-    canConfirmFinanceNettings: has(permissions.financeNettingConfirm),
-    canReverseFinanceNettings: has(permissions.financeNettingReverse),
-    canReadFinanceCommissions: has(permissions.financeCommissionRead),
-    canManageFinanceCommissions: has(permissions.financeCommissionManage),
-    canConfigureFinanceCommissions: has(permissions.financeCommissionConfigure),
-    canExportFinanceCommissions: has(permissions.financeCommissionExport),
-    canReadPartners: has(permissions.partnerRead),
-    canReadEnterpriseResources: has(permissions.enterpriseResourceRead),
-    canCreateEnterpriseResources: has(permissions.enterpriseResourceCreate),
-    canUpdateEnterpriseResources: has(permissions.enterpriseResourceUpdate),
-    canDeleteEnterpriseResources: has(permissions.enterpriseResourceDelete),
-    canCreatePartners: has(permissions.partnerCreate),
-    canUpdatePartners: has(permissions.partnerUpdate),
-    canBlacklistPartners: has(permissions.partnerBlacklist),
-    canImportPartners: has(permissions.partnerImport),
-    canExportPartners: has(permissions.partnerExport),
-    canReadPartnerAccounts: has(permissions.partnerAccountRead),
-    canCreatePartnerAccounts: has(permissions.partnerAccountCreate),
-    canUpdatePartnerAccounts: has(permissions.partnerAccountUpdate),
-    canReadPartnerContracts: has(permissions.partnerContractRead),
-    canCreatePartnerContracts: has(permissions.partnerContractCreate),
-    canUpdatePartnerContracts: has(permissions.partnerContractUpdate),
-    canReadPartnerSettlementRules: has(permissions.partnerSettlementRuleRead),
-    canCreatePartnerSettlementRules: has(
-      permissions.partnerSettlementRuleCreate,
-    ),
-    canUpdatePartnerSettlementRules: has(
-      permissions.partnerSettlementRuleUpdate,
-    ),
-    canReadPartnerAttachments: has(permissions.partnerAttachmentRead),
-    canRegisterPartnerAttachments: has(permissions.partnerAttachmentRegister),
-    canReadPartnerShippingPresets: has(permissions.partnerShippingPresetRead),
-    canCreatePartnerShippingPresets: has(
-      permissions.partnerShippingPresetCreate,
-    ),
-    canUpdatePartnerShippingPresets: has(
-      permissions.partnerShippingPresetUpdate,
-    ),
-    canReadPartnerAudit: has(permissions.partnerAuditRead),
-    canReadPartnerAssignmentOptions: has(
-      permissions.partnerAssignmentOptionRead,
-    ),
+    canReadFinanceFees: canOperateBusiness && has(permissions.financeFeeRead),
+    canManageFinanceFeeTags:
+      canOperateBusiness && has(permissions.financeFeeTag),
+    canReadFinanceBills: canOperateBusiness && has(permissions.financeBillRead),
+    canCreateFinanceBills:
+      canOperateBusiness && has(permissions.financeBillCreate),
+    canUpdateFinanceBills:
+      canOperateBusiness && has(permissions.financeBillUpdate),
+    canConfirmFinanceBills:
+      canOperateBusiness && has(permissions.financeBillConfirm),
+    canReadFinanceInvoices:
+      canOperateBusiness && has(permissions.financeInvoiceRead),
+    canCreateFinanceInvoices:
+      canOperateBusiness && has(permissions.financeInvoiceCreate),
+    canUpdateFinanceInvoices:
+      canOperateBusiness && has(permissions.financeInvoiceUpdate),
+    canReadFinanceCashflows:
+      canOperateBusiness && has(permissions.financeCashflowRead),
+    canCreateFinanceCashflows:
+      canOperateBusiness && has(permissions.financeCashflowCreate),
+    canUpdateFinanceCashflows:
+      canOperateBusiness && has(permissions.financeCashflowUpdate),
+    canReadFinanceVerifications:
+      canOperateBusiness && has(permissions.financeVerificationRead),
+    canCreateFinanceVerifications:
+      canOperateBusiness && has(permissions.financeVerificationCreate),
+    canReverseFinanceVerifications:
+      canOperateBusiness && has(permissions.financeVerificationReverse),
+    canReadFinanceNettings:
+      canOperateBusiness && has(permissions.financeNettingRead),
+    canCreateFinanceNettings:
+      canOperateBusiness && has(permissions.financeNettingCreate),
+    canConfirmFinanceNettings:
+      canOperateBusiness && has(permissions.financeNettingConfirm),
+    canReverseFinanceNettings:
+      canOperateBusiness && has(permissions.financeNettingReverse),
+    canReadFinanceCommissions:
+      canOperateBusiness && has(permissions.financeCommissionRead),
+    canManageFinanceCommissions:
+      canOperateBusiness && has(permissions.financeCommissionManage),
+    canConfigureFinanceCommissions:
+      canOperateBusiness && has(permissions.financeCommissionConfigure),
+    canExportFinanceCommissions:
+      canOperateBusiness && has(permissions.financeCommissionExport),
+    canReadPartners: canOperateBusiness && has(permissions.partnerRead),
+    canReadEnterpriseResources:
+      canOperateBusiness && has(permissions.enterpriseResourceRead),
+    canCreateEnterpriseResources:
+      canOperateBusiness && has(permissions.enterpriseResourceCreate),
+    canUpdateEnterpriseResources:
+      canOperateBusiness && has(permissions.enterpriseResourceUpdate),
+    canDeleteEnterpriseResources:
+      canOperateBusiness && has(permissions.enterpriseResourceDelete),
+    canCreatePartners: canOperateBusiness && has(permissions.partnerCreate),
+    canUpdatePartners: canOperateBusiness && has(permissions.partnerUpdate),
+    canBlacklistPartners:
+      canOperateBusiness && has(permissions.partnerBlacklist),
+    canImportPartners: canOperateBusiness && has(permissions.partnerImport),
+    canExportPartners: canOperateBusiness && has(permissions.partnerExport),
+    canReadPartnerAccounts:
+      canOperateBusiness && has(permissions.partnerAccountRead),
+    canCreatePartnerAccounts:
+      canOperateBusiness && has(permissions.partnerAccountCreate),
+    canUpdatePartnerAccounts:
+      canOperateBusiness && has(permissions.partnerAccountUpdate),
+    canReadPartnerContracts:
+      canOperateBusiness && has(permissions.partnerContractRead),
+    canCreatePartnerContracts:
+      canOperateBusiness && has(permissions.partnerContractCreate),
+    canUpdatePartnerContracts:
+      canOperateBusiness && has(permissions.partnerContractUpdate),
+    canReadPartnerSettlementRules:
+      canOperateBusiness && has(permissions.partnerSettlementRuleRead),
+    canCreatePartnerSettlementRules:
+      canOperateBusiness && has(permissions.partnerSettlementRuleCreate),
+    canUpdatePartnerSettlementRules:
+      canOperateBusiness && has(permissions.partnerSettlementRuleUpdate),
+    canReadPartnerAttachments:
+      canOperateBusiness && has(permissions.partnerAttachmentRead),
+    canRegisterPartnerAttachments:
+      canOperateBusiness && has(permissions.partnerAttachmentRegister),
+    canReadPartnerShippingPresets:
+      canOperateBusiness && has(permissions.partnerShippingPresetRead),
+    canCreatePartnerShippingPresets:
+      canOperateBusiness && has(permissions.partnerShippingPresetCreate),
+    canUpdatePartnerShippingPresets:
+      canOperateBusiness && has(permissions.partnerShippingPresetUpdate),
+    canReadPartnerAudit:
+      canOperateBusiness && has(permissions.partnerAuditRead),
+    canReadPartnerAssignmentOptions:
+      canOperateBusiness && has(permissions.partnerAssignmentOptionRead),
     canReadMasterDataCurrencies: has(permissions.masterDataCurrencyRead),
     canUpdateMasterDataCurrencies:
       has(permissions.masterDataCurrencyUpdate) ||
@@ -305,9 +341,12 @@ export default function access(
     canUpdateMasterDataShippingLines: has(
       permissions.masterDataShippingLineUpdate,
     ),
-    canReadMasterDataNumberRules: has(permissions.masterDataNumberRuleRead),
-    canCreateMasterDataNumberRules: has(permissions.masterDataNumberRuleCreate),
-    canUpdateMasterDataNumberRules: has(permissions.masterDataNumberRuleUpdate),
+    canReadMasterDataNumberRules:
+      canOperateBusiness && has(permissions.masterDataNumberRuleRead),
+    canCreateMasterDataNumberRules:
+      canOperateBusiness && has(permissions.masterDataNumberRuleCreate),
+    canUpdateMasterDataNumberRules:
+      canOperateBusiness && has(permissions.masterDataNumberRuleUpdate),
     canReadTasks: has(permissions.taskRead),
     canRequeueTasks: has(permissions.taskRequeue),
   };
@@ -331,6 +370,7 @@ export default function access(
     canManageUsers:
       result.canCreateUsers ||
       result.canUpdateUsers ||
+      result.canManageUserMemberships ||
       result.canTerminateUsers ||
       result.canAuthorizeWeComUsers ||
       result.canAuthorizeDingTalkUsers ||

@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 )
 
@@ -49,20 +48,6 @@ func (_c *PortCreate) SetUpdatedAt(v time.Time) *PortCreate {
 func (_c *PortCreate) SetNillableUpdatedAt(v *time.Time) *PortCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
-	}
-	return _c
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_c *PortCreate) SetOrganizationID(v uuid.UUID) *PortCreate {
-	_c.mutation.SetOrganizationID(v)
-	return _c
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_c *PortCreate) SetNillableOrganizationID(v *uuid.UUID) *PortCreate {
-	if v != nil {
-		_c.SetOrganizationID(*v)
 	}
 	return _c
 }
@@ -201,11 +186,6 @@ func (_c *PortCreate) SetNillableID(v *uuid.UUID) *PortCreate {
 		_c.SetID(*v)
 	}
 	return _c
-}
-
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_c *PortCreate) SetOrganization(v *Organization) *PortCreate {
-	return _c.SetOrganizationID(v.ID)
 }
 
 // Mutation returns the PortMutation object of the builder.
@@ -440,23 +420,6 @@ func (_c *PortCreate) createSpec() (*Port, *sqlgraph.CreateSpec) {
 		_spec.SetField(port.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
 	}
-	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   port.OrganizationTable,
-			Columns: []string{port.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OrganizationID = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	return _node, _spec
 }
 
@@ -518,24 +481,6 @@ func (u *PortUpsert) SetUpdatedAt(v time.Time) *PortUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *PortUpsert) UpdateUpdatedAt() *PortUpsert {
 	u.SetExcluded(port.FieldUpdatedAt)
-	return u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *PortUpsert) SetOrganizationID(v uuid.UUID) *PortUpsert {
-	u.Set(port.FieldOrganizationID, v)
-	return u
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *PortUpsert) UpdateOrganizationID() *PortUpsert {
-	u.SetExcluded(port.FieldOrganizationID)
-	return u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *PortUpsert) ClearOrganizationID() *PortUpsert {
-	u.SetNull(port.FieldOrganizationID)
 	return u
 }
 
@@ -748,27 +693,6 @@ func (u *PortUpsertOne) SetUpdatedAt(v time.Time) *PortUpsertOne {
 func (u *PortUpsertOne) UpdateUpdatedAt() *PortUpsertOne {
 	return u.Update(func(s *PortUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *PortUpsertOne) SetOrganizationID(v uuid.UUID) *PortUpsertOne {
-	return u.Update(func(s *PortUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *PortUpsertOne) UpdateOrganizationID() *PortUpsertOne {
-	return u.Update(func(s *PortUpsert) {
-		s.UpdateOrganizationID()
-	})
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *PortUpsertOne) ClearOrganizationID() *PortUpsertOne {
-	return u.Update(func(s *PortUpsert) {
-		s.ClearOrganizationID()
 	})
 }
 
@@ -1172,27 +1096,6 @@ func (u *PortUpsertBulk) SetUpdatedAt(v time.Time) *PortUpsertBulk {
 func (u *PortUpsertBulk) UpdateUpdatedAt() *PortUpsertBulk {
 	return u.Update(func(s *PortUpsert) {
 		s.UpdateUpdatedAt()
-	})
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (u *PortUpsertBulk) SetOrganizationID(v uuid.UUID) *PortUpsertBulk {
-	return u.Update(func(s *PortUpsert) {
-		s.SetOrganizationID(v)
-	})
-}
-
-// UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
-func (u *PortUpsertBulk) UpdateOrganizationID() *PortUpsertBulk {
-	return u.Update(func(s *PortUpsert) {
-		s.UpdateOrganizationID()
-	})
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *PortUpsertBulk) ClearOrganizationID() *PortUpsertBulk {
-	return u.Update(func(s *PortUpsert) {
-		s.ClearOrganizationID()
 	})
 }
 

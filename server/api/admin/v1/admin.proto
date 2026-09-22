@@ -10,12 +10,12 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/admin/v1;v1";
 
 service AdminService {
   rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.read" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/organizations"};
   }
 
   rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.create" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/admin/organizations"
       body: "*"
@@ -23,7 +23,7 @@ service AdminService {
   }
 
   rpc UpdateOrganization(UpdateOrganizationRequest) returns (UpdateOrganizationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.update" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.organization.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/organizations/{id}"
       body: "*"
@@ -52,12 +52,12 @@ service AdminService {
   }
 
   rpc ListUserMemberships(ListUserMembershipsRequest) returns (ListUserMembershipsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.read" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/users/{user_id}/memberships"};
   }
 
   rpc CreateUserMembership(CreateUserMembershipRequest) returns (CreateUserMembershipResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       post: "/api/v1/admin/users/{user_id}/memberships"
       body: "*"
@@ -65,7 +65,7 @@ service AdminService {
   }
 
   rpc UpdateUserMembership(UpdateUserMembershipRequest) returns (UpdateUserMembershipResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/admin/users/{user_id}/memberships/{id}"
       body: "*"
@@ -73,7 +73,7 @@ service AdminService {
   }
 
   rpc DeleteUserMembership(DeleteUserMembershipRequest) returns (DeleteUserMembershipResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/admin/users/{user_id}/memberships/{id}"};
   }
 
@@ -116,7 +116,7 @@ service AdminService {
   }
 
   rpc ListOrganizationRoles(ListOrganizationRolesRequest) returns (ListOrganizationRolesResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.read" scope: DATA_SCOPE_ALL};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.role.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/admin/organizations/{organization_id}/roles"};
   }
 
@@ -225,7 +225,7 @@ enum DataScope {
 
 enum OrganizationKind {
   ORGANIZATION_KIND_UNSPECIFIED = 0;
-  ORGANIZATION_KIND_HEADQUARTERS = 1;
+  ORGANIZATION_KIND_SYSTEM = 1;
   ORGANIZATION_KIND_COMPANY = 2;
   ORGANIZATION_KIND_DEPARTMENT = 3;
   ORGANIZATION_KIND_TEAM = 4;
@@ -245,7 +245,7 @@ message ListOrganizationsRequest {}
 message CreateOrganizationRequest {
   string code = 1 [(google.api.field_behavior) = REQUIRED];
   string name = 2 [(google.api.field_behavior) = REQUIRED];
-  string parent_id = 3 [(google.api.field_behavior) = REQUIRED];
+  optional string parent_id = 3;
   OrganizationKind kind = 4 [(google.api.field_behavior) = REQUIRED];
   optional string base_currency = 5;
 }

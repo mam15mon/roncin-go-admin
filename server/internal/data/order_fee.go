@@ -170,7 +170,7 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		return nil, err
 	}
 	feeSettings, err := client.FeeSetting.Query().
-		Where(feeSettingBaselineScope(organizationID), feesettingent.EnabledEQ(true)).
+		Where(feesettingent.OrganizationIDEQ(organizationID), feesettingent.EnabledEQ(true)).
 		WithBillingUnit().WithTaxableService().
 		Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).
 		All(ctx)
@@ -304,7 +304,7 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 		return nil, err
 	}
 	feeSetting, err := client.FeeSetting.Query().
-		Where(feesettingent.IDEQ(feeSettingID), feesettingent.Or(feesettingent.OrganizationIDEQ(organizationID), feesettingent.OrganizationIDIsNil()), feesettingent.EnabledEQ(true)).
+		Where(feesettingent.IDEQ(feeSettingID), feesettingent.OrganizationIDEQ(organizationID), feesettingent.EnabledEQ(true)).
 		WithBillingUnit().WithTaxableService().Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeSettingInvalid, nil)
@@ -502,11 +502,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			if activeBill.Status != financebillent.StatusDRAFT {
 				return biz.ErrBilledFeeBillLocked
 			}
-			ownerID, ownerErr := resolveHeadquartersOrganizationID(ctx, tx.Organization, organizationID)
-			if ownerErr != nil {
-				return ownerErr
-			}
-			setting, settingErr := tx.FinanceCustomSetting.Query().Where(financecustomsettingent.OrganizationIDEQ(ownerID)).ForShare().Only(ctx)
+			setting, settingErr := tx.FinanceCustomSetting.Query().Where(financecustomsettingent.OrganizationIDEQ(organizationID)).ForShare().Only(ctx)
 			if settingErr != nil {
 				return mapEntError(settingErr, biz.ErrBilledFeeEditDisabled, nil)
 			}

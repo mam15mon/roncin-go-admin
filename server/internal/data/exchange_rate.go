@@ -28,8 +28,12 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 		return nil, err
 	}
 	currentID := organizationID
-	baseCurrency := ""
+	visited := map[uuid.UUID]struct{}{}
 	for {
+		if _, exists := visited[currentID]; exists {
+			return nil, biz.ErrExchangeRateOrganizationInvalid
+		}
+		visited[currentID] = struct{}{}
 		query := client.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true))
 		if _, transactional := transactionFromContext(ctx); transactional {
 			query.ForShare()
@@ -38,27 +42,32 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrExchangeRateOrganizationInvalid, nil)
 		}
-		if baseCurrency == "" && item.BaseCurrency != nil {
-			baseCurrency = *item.BaseCurrency
+		if item.Kind == organizationent.KindCompany || item.Kind == organizationent.KindSystem {
+			if item.ParentID != nil || item.BaseCurrency == nil || strings.TrimSpace(*item.BaseCurrency) == "" {
+				return nil, biz.ErrExchangeRateOrganizationInvalid
+			}
+			// 公司拥有业务汇率；公共参考汇率的交叉币种独立取系统配置，不依赖组织祖先。
+			systemQuery := client.Organization.Query().Where(organizationent.KindEQ(organizationent.KindSystem), organizationent.EnabledEQ(true))
+			if _, transactional := transactionFromContext(ctx); transactional {
+				systemQuery.ForShare()
+			}
+			system, err := systemQuery.Only(ctx)
+			if err != nil {
+				return nil, mapEntError(err, biz.ErrExchangeRateOrganizationInvalid, nil)
+			}
+			if system.BaseCurrency == nil || strings.TrimSpace(*system.BaseCurrency) == "" {
+				return nil, biz.ErrExchangeRateOrganizationInvalid
+			}
+			return &biz.ExchangeRateContext{OwnerOrganizationID: item.ID, BaseCurrency: *item.BaseCurrency, PivotCurrency: *system.BaseCurrency}, nil
 		}
 		if item.ParentID == nil {
-			if item.Kind != organizationent.KindHeadquarters || baseCurrency == "" {
-				return nil, biz.ErrExchangeRateOrganizationInvalid
-			}
-			pivotCurrency := ""
-			if item.BaseCurrency != nil {
-				pivotCurrency = *item.BaseCurrency
-			}
-			if pivotCurrency == "" {
-				return nil, biz.ErrExchangeRateOrganizationInvalid
-			}
-			return &biz.ExchangeRateContext{OwnerOrganizationID: item.ID, BaseCurrency: baseCurrency, PivotCurrency: pivotCurrency}, nil
+			return nil, biz.ErrExchangeRateOrganizationInvalid
 		}
 		currentID = *item.ParentID
 	}
 }
 
-// List 返回调用方组织行 + 集团基线行；维护入口按行归属呈现（基线行对非总部只读）。
+// List 返回调用方组织行 + 公共参考行；维护入口按行归属呈现（基线行对公司工作台只读）。
 // 分页按最新生效周降序优先，便于财务首屏查看最新汇率。
 func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.ExchangeRateListOptions) ([]*biz.ExchangeRateSetting, int64, error) {
 	client, err := r.data.client(ctx)
@@ -228,7 +237,7 @@ func scopePredicateFor(organizationID *uuid.UUID) predicate.ExchangeRateSetting 
 	return exchangerateent.OrganizationIDEQ(*organizationID)
 }
 
-// UpdateScoped 按 ID 更新汇率行；allowBaseline 时总部可命中 NULL 基线行，
+// UpdateScoped 按 ID 更新汇率行；allowBaseline 时系统工作台可命中 NULL 基线行，
 // 否则仅限调用组织自己的组织行。周窗口与三轨汇率整体覆盖。
 func (r *exchangeRateRepo) UpdateScoped(ctx context.Context, callerOrganizationID uuid.UUID, input *biz.ExchangeRateSetting, allowBaseline bool, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
 	effectiveFrom, err := parseExchangeRateStorageTime(input.EffectiveFrom)

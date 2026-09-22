@@ -43,7 +43,7 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 	organization, err := client.Organization.Create().
 		SetCode("PERMISSION-SYNC-" + suffix).
 		SetName("权限同步测试组织").
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

@@ -13,16 +13,16 @@ import (
 )
 
 type authOrganizationSwitchFixture struct {
-	t             *testing.T
-	data          *Data
-	repo          *authRepo
-	userID        uuid.UUID
-	headquarters  uuid.UUID
-	branch        uuid.UUID
-	extra         uuid.UUID // 启用组织但成员资格停用
-	disabledOrg   uuid.UUID // 组织停用但成员资格启用
-	suffix        string
-	sessionExpiry time.Time
+	t               *testing.T
+	data            *Data
+	repo            *authRepo
+	userID          uuid.UUID
+	systemWorkspace uuid.UUID
+	branch          uuid.UUID
+	extra           uuid.UUID // 启用组织但成员资格停用
+	disabledOrg     uuid.UUID // 组织停用但成员资格启用
+	suffix          string
+	sessionExpiry   time.Time
 }
 
 func newAuthOrganizationSwitchFixture(t *testing.T) *authOrganizationSwitchFixture {
@@ -32,14 +32,14 @@ func newAuthOrganizationSwitchFixture(t *testing.T) *authOrganizationSwitchFixtu
 
 	ctx := context.Background()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
-	headquarters, err := data.db.Organization.Create().
+	systemWorkspace, err := data.db.Organization.Create().
 		SetCode("HQ-" + suffix).
-		SetName("总部集团-" + suffix).
-		SetKind("headquarters").
+		SetName("系统管理-" + suffix).
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部组织失败: %v", err)
+		t.Fatalf("创建系统管理组织失败: %v", err)
 	}
 	branch, err := data.db.Organization.Create().
 		SetCode("CD-" + suffix).
@@ -82,7 +82,7 @@ func newAuthOrganizationSwitchFixture(t *testing.T) *authOrganizationSwitchFixtu
 		primary        bool
 		enabled        bool
 	}{
-		{organizationID: headquarters.ID, primary: true, enabled: true},
+		{organizationID: systemWorkspace.ID, primary: true, enabled: true},
 		{organizationID: branch.ID, primary: false, enabled: true},
 		{organizationID: extra.ID, primary: false, enabled: false},
 		{organizationID: disabledOrg.ID, primary: false, enabled: true},
@@ -98,16 +98,16 @@ func newAuthOrganizationSwitchFixture(t *testing.T) *authOrganizationSwitchFixtu
 		}
 	}
 	return &authOrganizationSwitchFixture{
-		t:             t,
-		data:          data,
-		repo:          NewAuthRepo(data).(*authRepo),
-		userID:        account.ID,
-		headquarters:  headquarters.ID,
-		branch:        branch.ID,
-		extra:         extra.ID,
-		disabledOrg:   disabledOrg.ID,
-		suffix:        suffix,
-		sessionExpiry: time.Now().Add(time.Hour),
+		t:               t,
+		data:            data,
+		repo:            NewAuthRepo(data).(*authRepo),
+		userID:          account.ID,
+		systemWorkspace: systemWorkspace.ID,
+		branch:          branch.ID,
+		extra:           extra.ID,
+		disabledOrg:     disabledOrg.ID,
+		suffix:          suffix,
+		sessionExpiry:   time.Now().Add(time.Hour),
 	}
 }
 
@@ -132,15 +132,15 @@ func TestAuthRepoListEnabledMembershipOrganizationsFiltersDisabled(t *testing.T)
 		t.Fatalf("查询成员资格候选组织失败: %v", err)
 	}
 	if len(choices) != 2 {
-		t.Fatalf("候选组织 = %#v，期望仅总部与分公司", choices)
+		t.Fatalf("候选组织 = %#v，期望仅系统管理与分公司", choices)
 	}
 	byID := make(map[uuid.UUID]biz.OrganizationChoice, len(choices))
 	for _, choice := range choices {
 		byID[choice.OrganizationID] = choice
 	}
-	headquartersChoice, ok := byID[fixture.headquarters]
-	if !ok || !headquartersChoice.IsDefault || headquartersChoice.OrganizationCode != "HQ-"+fixture.suffix || headquartersChoice.OrganizationName != "总部集团-"+fixture.suffix {
-		t.Fatalf("默认候选组织异常: %#v", headquartersChoice)
+	systemWorkspaceChoice, ok := byID[fixture.systemWorkspace]
+	if !ok || !systemWorkspaceChoice.IsDefault || systemWorkspaceChoice.OrganizationCode != "HQ-"+fixture.suffix || systemWorkspaceChoice.OrganizationName != "系统管理-"+fixture.suffix {
+		t.Fatalf("默认候选组织异常: %#v", systemWorkspaceChoice)
 	}
 	branchChoice, ok := byID[fixture.branch]
 	if !ok || branchChoice.IsDefault {
@@ -158,8 +158,8 @@ func TestAuthRepoRotateSessionSwitchesTokenAndKeepsOtherSessions(t *testing.T) {
 	fixture := newAuthOrganizationSwitchFixture(t)
 	ctx := context.Background()
 	currentHash, nextHash, otherDeviceHash := "rotate-current-"+fixture.suffix, "rotate-next-"+fixture.suffix, "rotate-other-"+fixture.suffix
-	fixture.createSession(ctx, currentHash, fixture.headquarters)
-	fixture.createSession(ctx, otherDeviceHash, fixture.headquarters)
+	fixture.createSession(ctx, currentHash, fixture.systemWorkspace)
+	fixture.createSession(ctx, otherDeviceHash, fixture.systemWorkspace)
 	now := time.Now().UTC()
 
 	err := fixture.repo.RotateSession(ctx, currentHash, &biz.Session{
@@ -168,7 +168,7 @@ func TestAuthRepoRotateSessionSwitchesTokenAndKeepsOtherSessions(t *testing.T) {
 		OrganizationID: fixture.branch,
 		ExpiresAt:      fixture.sessionExpiry,
 		UserAgent:      "ignored",
-	}, now, &biz.AuditEvent{OrganizationID: &fixture.branch, UserID: &fixture.userID, Action: "auth.organization.switch", Result: "success", Details: map[string]string{"source_organization.id": fixture.headquarters.String(), "target_organization.id": fixture.branch.String()}})
+	}, now, &biz.AuditEvent{OrganizationID: &fixture.branch, UserID: &fixture.userID, Action: "auth.organization.switch", Result: "success", Details: map[string]string{"source_organization.id": fixture.systemWorkspace.String(), "target_organization.id": fixture.branch.String()}})
 	if err != nil {
 		t.Fatalf("轮转会话失败: %v", err)
 	}
@@ -184,7 +184,7 @@ func TestAuthRepoRotateSessionSwitchesTokenAndKeepsOtherSessions(t *testing.T) {
 		t.Fatalf("旧令牌应失效，错误 = %v", err)
 	}
 	otherDevice, err := fixture.repo.FindSession(ctx, otherDeviceHash, time.Now().UTC())
-	if err != nil || otherDevice.OrganizationID != fixture.headquarters {
+	if err != nil || otherDevice.OrganizationID != fixture.systemWorkspace {
 		t.Fatalf("其他设备会话不应受轮转影响: session=%#v error=%v", otherDevice, err)
 	}
 }
@@ -193,7 +193,7 @@ func TestAuthRepoRotateSessionRejectsInvalidTargets(t *testing.T) {
 	fixture := newAuthOrganizationSwitchFixture(t)
 	ctx := context.Background()
 	currentHash := "rotate-reject-" + fixture.suffix
-	fixture.createSession(ctx, currentHash, fixture.headquarters)
+	fixture.createSession(ctx, currentHash, fixture.systemWorkspace)
 	now := time.Now().UTC()
 
 	tests := []struct {
@@ -230,14 +230,14 @@ func TestAuthRepoRotateSessionWritesAuditWithSourceAndTarget(t *testing.T) {
 	fixture := newAuthOrganizationSwitchFixture(t)
 	ctx := context.Background()
 	currentHash := "rotate-audit-" + fixture.suffix
-	fixture.createSession(ctx, currentHash, fixture.headquarters)
+	fixture.createSession(ctx, currentHash, fixture.systemWorkspace)
 
 	err := fixture.repo.RotateSession(ctx, currentHash, &biz.Session{
 		TokenHash:      "rotate-audit-next-" + fixture.suffix,
 		UserID:         fixture.userID,
 		OrganizationID: fixture.branch,
 		ExpiresAt:      fixture.sessionExpiry,
-	}, time.Now().UTC(), &biz.AuditEvent{OrganizationID: &fixture.branch, UserID: &fixture.userID, Action: "auth.organization.switch", Result: "success", Details: map[string]string{"source_organization.id": fixture.headquarters.String(), "target_organization.id": fixture.branch.String()}})
+	}, time.Now().UTC(), &biz.AuditEvent{OrganizationID: &fixture.branch, UserID: &fixture.userID, Action: "auth.organization.switch", Result: "success", Details: map[string]string{"source_organization.id": fixture.systemWorkspace.String(), "target_organization.id": fixture.branch.String()}})
 	if err != nil {
 		t.Fatalf("轮转会话失败: %v", err)
 	}
@@ -255,7 +255,7 @@ func TestAuthRepoRotateSessionWritesAuditWithSourceAndTarget(t *testing.T) {
 	if err := json.Unmarshal(audit.Details, &details); err != nil {
 		t.Fatalf("解析切换审计详情失败: %v", err)
 	}
-	if details["source_organization.id"] != fixture.headquarters.String() || details["target_organization.id"] != fixture.branch.String() {
+	if details["source_organization.id"] != fixture.systemWorkspace.String() || details["target_organization.id"] != fixture.branch.String() {
 		t.Fatalf("切换审计应包含来源与目标组织: %#v", details)
 	}
 }

@@ -233,7 +233,7 @@ message OrganizationChoice {
   string organization_name = 2 [(google.api.field_behavior) = REQUIRED];
   string organization_code = 3 [(google.api.field_behavior) = REQUIRED];
   bool is_default = 4;
-  // 组织节点类型，供前端推导主数据维护视角（总部/公司）。
+  // 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。
   OrganizationKind kind = 5;
 }
 
@@ -241,7 +241,7 @@ message OrganizationChoice {
 // 不引入存储中不存在的其他取值。
 enum OrganizationKind {
   ORGANIZATION_KIND_UNSPECIFIED = 0;
-  ORGANIZATION_KIND_HEADQUARTERS = 1;
+  ORGANIZATION_KIND_SYSTEM = 1;
   ORGANIZATION_KIND_COMPANY = 2;
   ORGANIZATION_KIND_DEPARTMENT = 3;
   ORGANIZATION_KIND_TEAM = 4;
@@ -273,7 +273,7 @@ message Organization {
   string code = 2;
   string name = 3;
   string base_currency = 4;
-  // 组织节点类型，供前端推导主数据维护视角（总部/公司）。
+  // 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。
   OrganizationKind kind = 5;
 }
 

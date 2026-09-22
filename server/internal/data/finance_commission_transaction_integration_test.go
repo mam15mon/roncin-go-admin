@@ -207,7 +207,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 	org, err := data.db.Organization.Create().
 		SetCode("COMM-TX-" + suffix).
 		SetName("提成事务测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

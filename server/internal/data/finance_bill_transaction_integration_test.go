@@ -473,7 +473,7 @@ func newFinanceBillPostgresFixture(t *testing.T, data *Data) *financeBillPostgre
 	organization, err := data.db.Organization.Create().
 		SetCode("BILL-TX-" + suffix).
 		SetName("账单事务集成测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

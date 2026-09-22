@@ -93,10 +93,6 @@ func (s *wecomAuthRepoStub) ListEnabledMembershipOrganizations(context.Context, 
 	return nil, nil
 }
 
-func (s *wecomAuthRepoStub) ListEnabledOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error) {
-	return nil, nil
-}
-
 func (s *wecomAuthRepoStub) RotateSession(_ context.Context, _ string, _ *Session, _ time.Time, audit *AuditEvent) error {
 	s.auditActions = append(s.auditActions, audit.Action)
 	return nil

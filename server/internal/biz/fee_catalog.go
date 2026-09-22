@@ -14,14 +14,14 @@ import (
 )
 
 var (
-	ErrFeeCatalogInvalidArgument      = errors.BadRequest("FEE_CATALOG_INVALID_ARGUMENT", "费用设置字段不合法")
-	ErrFeeSettingNotFound             = errors.NotFound("FEE_SETTING_NOT_FOUND", "费用设置不存在")
-	ErrFeeSettingCodeExists           = errors.Conflict("FEE_SETTING_CODE_EXISTS", "费用代码已存在")
-	ErrBillingUnitNotFound            = errors.NotFound("BILLING_UNIT_NOT_FOUND", "计费单位不存在")
-	ErrBillingUnitCodeExists          = errors.Conflict("BILLING_UNIT_CODE_EXISTS", "计费单位代码已存在")
-	ErrTaxableServiceNotFound         = errors.NotFound("TAXABLE_SERVICE_NOT_FOUND", "货物或应税劳务名称不存在")
-	ErrTaxableServiceNameExists       = errors.Conflict("TAXABLE_SERVICE_NAME_EXISTS", "货物或应税劳务名称已存在")
-	ErrFeeCatalogReferenceInvalid     = errors.BadRequest("FEE_CATALOG_REFERENCE_INVALID", "费用设置引用的基础资料不存在、已停用或不属于当前组织")
+	ErrFeeCatalogInvalidArgument  = errors.BadRequest("FEE_CATALOG_INVALID_ARGUMENT", "费用设置字段不合法")
+	ErrFeeSettingNotFound         = errors.NotFound("FEE_SETTING_NOT_FOUND", "费用设置不存在")
+	ErrFeeSettingCodeExists       = errors.Conflict("FEE_SETTING_CODE_EXISTS", "费用代码已存在")
+	ErrBillingUnitNotFound        = errors.NotFound("BILLING_UNIT_NOT_FOUND", "计费单位不存在")
+	ErrBillingUnitCodeExists      = errors.Conflict("BILLING_UNIT_CODE_EXISTS", "计费单位代码已存在")
+	ErrTaxableServiceNotFound     = errors.NotFound("TAXABLE_SERVICE_NOT_FOUND", "货物或应税劳务名称不存在")
+	ErrTaxableServiceNameExists   = errors.Conflict("TAXABLE_SERVICE_NAME_EXISTS", "货物或应税劳务名称已存在")
+	ErrFeeCatalogReferenceInvalid = errors.BadRequest("FEE_CATALOG_REFERENCE_INVALID", "费用设置引用的基础资料不存在、已停用或不属于当前组织")
 )
 
 var catalogCodePattern = regexp.MustCompile(`^[A-Z0-9_]{2,32}$`)
@@ -51,8 +51,8 @@ type TaxableService struct {
 
 type FeeSetting struct {
 	ID uuid.UUID
-	// OrganizationID 为空表示总部公共科目基线行（NULL），非空表示分公司本地明细行。
-	OrganizationID *uuid.UUID
+	// OrganizationID 为费用科目所属公司，业务写入必填。
+	OrganizationID uuid.UUID
 	FeeCode        string
 	NameZH         string
 	NameEN         *string
@@ -81,14 +81,10 @@ type FeeCatalogListOptions struct {
 }
 
 type FeeCatalogRepo interface {
+	FeeSettingTemplateRepo
 	ListFeeSettings(context.Context, uuid.UUID, FeeCatalogListOptions) (*PagedList[*FeeSetting], error)
-	// CreateFeeSetting 的 organizationID 为当前调用组织：税务名称（C 型）引用按其
-	// 校验「本组织有效行」；行归属由 input.OrganizationID 决定（总部 nil 基线行 /
-	// 分公司本组织行）。
 	CreateFeeSetting(context.Context, uuid.UUID, *FeeSetting, *AuditEvent) (*FeeSetting, error)
-	// UpdateFeeSetting 按 ID 更新费用设置；allowBaseline 时总部可命中 NULL 基线行，
-	// 否则仅限调用组织自己的组织行（他组织行与基线行按不存在处理）。
-	UpdateFeeSetting(context.Context, uuid.UUID, *FeeSetting, bool, *AuditEvent) (*FeeSetting, error)
+	UpdateFeeSetting(context.Context, uuid.UUID, *FeeSetting, *AuditEvent) (*FeeSetting, error)
 	ListBillingUnits(context.Context, uuid.UUID, FeeCatalogListOptions) (*PagedList[*BillingUnit], error)
 	CreateBillingUnit(context.Context, *BillingUnit, *AuditEvent) (*BillingUnit, error)
 	UpdateBillingUnit(context.Context, *BillingUnit, *AuditEvent) (*BillingUnit, error)
@@ -104,6 +100,10 @@ func NewFeeCatalogUsecase(repo FeeCatalogRepo) *FeeCatalogUsecase {
 }
 
 func (uc *FeeCatalogUsecase) ListFeeSettings(ctx context.Context, organizationID uuid.UUID, options FeeCatalogListOptions) (*PagedList[*FeeSetting], error) {
+	if err := requireFeeCompany(ctx, organizationID); err != nil {
+		return nil, err
+	}
+
 	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
@@ -112,6 +112,10 @@ func (uc *FeeCatalogUsecase) ListFeeSettings(ctx context.Context, organizationID
 }
 
 func (uc *FeeCatalogUsecase) CreateFeeSetting(ctx context.Context, organizationID, actorID uuid.UUID, input *FeeSetting) (*FeeSetting, error) {
+	if err := requireFeeCompany(ctx, organizationID); err != nil {
+		return nil, err
+	}
+
 	if organizationID == uuid.Nil || actorID == uuid.Nil {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
@@ -119,25 +123,21 @@ func (uc *FeeCatalogUsecase) CreateFeeSetting(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
-	// B 型两级归属（design §5）：总部写 NULL 基线公共科目（RequireBaselineWrite
-	// 双重校验）；分公司写本组织本地明细行（权限码校验），必挂 A 型费用大类。
-	if IsHeadquartersOrganization(ctx) {
-		if err := RequireBaselineWrite(ctx, access.FinanceFeeSettingCreate); err != nil {
-			return nil, err
-		}
-		normalized.OrganizationID = nil
-	} else {
-		if !requireFeeCatalogPermission(ctx, access.FinanceFeeSettingCreate) {
-			return nil, ErrPermissionDenied
-		}
-		normalized.OrganizationID = &organizationID
+	if IsSystemWorkspace(ctx) || !requireFeeCatalogPermission(ctx, access.FinanceFeeSettingCreate) {
+		return nil, ErrPermissionDenied
 	}
+	normalized.OrganizationID = organizationID
+
 	normalized.ID = uuid.Must(uuid.NewV7())
 	normalized.Enabled = true
 	return uc.repo.CreateFeeSetting(ctx, organizationID, normalized, feeCatalogAudit(organizationID, actorID, normalized.ID, "finance.fee_setting.create", "fee_setting"))
 }
 
 func (uc *FeeCatalogUsecase) UpdateFeeSetting(ctx context.Context, organizationID, actorID, id uuid.UUID, input *FeeSetting) (*FeeSetting, error) {
+	if err := requireFeeCompany(ctx, organizationID); err != nil {
+		return nil, err
+	}
+
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
@@ -145,20 +145,14 @@ func (uc *FeeCatalogUsecase) UpdateFeeSetting(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
-	// 行归属决定维护权：基线行仅总部可改（RequireBaselineWrite 双重校验），
-	// 本组织行由所属组织改（权限码校验）；他组织行与基线行对非总部按不存在处理。
-	isHeadquarters := IsHeadquartersOrganization(ctx)
-	if isHeadquarters {
-		if err := RequireBaselineWrite(ctx, access.FinanceFeeSettingUpdate); err != nil {
-			return nil, err
-		}
-	} else if !requireFeeCatalogPermission(ctx, access.FinanceFeeSettingUpdate) {
+	if IsSystemWorkspace(ctx) || !requireFeeCatalogPermission(ctx, access.FinanceFeeSettingUpdate) {
 		return nil, ErrPermissionDenied
 	}
+
 	normalized.ID = id
 	// 归属不可迁移：OrganizationID 不作为更新入参，以既有行为准。
-	normalized.OrganizationID = nil
-	return uc.repo.UpdateFeeSetting(ctx, organizationID, normalized, isHeadquarters, feeCatalogAudit(organizationID, actorID, id, "finance.fee_setting.update", "fee_setting"))
+	normalized.OrganizationID = organizationID
+	return uc.repo.UpdateFeeSetting(ctx, organizationID, normalized, feeCatalogAudit(organizationID, actorID, id, "finance.fee_setting.update", "fee_setting"))
 }
 
 func (uc *FeeCatalogUsecase) ListBillingUnits(ctx context.Context, organizationID uuid.UUID, options FeeCatalogListOptions) (*PagedList[*BillingUnit], error) {
@@ -201,6 +195,10 @@ func (uc *FeeCatalogUsecase) UpdateBillingUnit(ctx context.Context, organization
 }
 
 func (uc *FeeCatalogUsecase) ListTaxableServices(ctx context.Context, organizationID uuid.UUID, options FeeCatalogListOptions) (*PagedList[*TaxableService], error) {
+	if err := requireFeeCompany(ctx, organizationID); err != nil {
+		return nil, err
+	}
+
 	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
@@ -208,8 +206,7 @@ func (uc *FeeCatalogUsecase) ListTaxableServices(ctx context.Context, organizati
 	return uc.repo.ListTaxableServices(ctx, organizationID, options)
 }
 
-// requireFeeCatalogPermission 校验当前主体持有费用目录写权限码：分公司写本组织
-// 行时的身份外另一半校验（总部身份 + 权限码双重校验由 RequireBaselineWrite 承担）。
+// requireFeeCatalogPermission 校验当前公司主体持有目录写权限。
 func requireFeeCatalogPermission(ctx context.Context, permissionKey string) bool {
 	principal, err := RequirePrincipal(ctx)
 	if err != nil {
@@ -219,6 +216,10 @@ func requireFeeCatalogPermission(ctx context.Context, permissionKey string) bool
 }
 
 func (uc *FeeCatalogUsecase) CreateTaxableService(ctx context.Context, organizationID, actorID uuid.UUID, input *TaxableService) (*TaxableService, error) {
+	if err := requireFeeCompany(ctx, organizationID); err != nil {
+		return nil, err
+	}
+
 	if organizationID == uuid.Nil || actorID == uuid.Nil {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
@@ -233,6 +234,10 @@ func (uc *FeeCatalogUsecase) CreateTaxableService(ctx context.Context, organizat
 }
 
 func (uc *FeeCatalogUsecase) UpdateTaxableService(ctx context.Context, organizationID, actorID, id uuid.UUID, input *TaxableService) (*TaxableService, error) {
+	if err := requireFeeCompany(ctx, organizationID); err != nil {
+		return nil, err
+	}
+
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
@@ -246,7 +251,13 @@ func (uc *FeeCatalogUsecase) UpdateTaxableService(ctx context.Context, organizat
 }
 
 func normalizeFeeSetting(input *FeeSetting) (*FeeSetting, error) {
-	if input == nil || input.BillingUnitID == uuid.Nil || input.TaxableServiceID == uuid.Nil || input.ChargeCategoryID == uuid.Nil || input.SortOrder < 0 {
+	if input == nil || input.TaxableServiceID == uuid.Nil {
+		return nil, ErrFeeCatalogInvalidArgument
+	}
+	return normalizeFeeSettingFields(input)
+}
+func normalizeFeeSettingFields(input *FeeSetting) (*FeeSetting, error) {
+	if input == nil || input.BillingUnitID == uuid.Nil || input.ChargeCategoryID == uuid.Nil || input.SortOrder < 0 {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
 	output := *input
@@ -309,4 +320,18 @@ func validTaxRate(value decimal.Decimal) bool {
 
 func feeCatalogAudit(organizationID, actorID, id uuid.UUID, action, resourceType string) *AuditEvent {
 	return &AuditEvent{OrganizationID: &organizationID, UserID: &actorID, Action: action, Result: "success", ResourceType: resourceType, ResourceID: id.String()}
+}
+
+func requireFeeCompany(ctx context.Context, organizationID uuid.UUID) error {
+	if err := RequireOperatingCompany(ctx); err != nil {
+		return err
+	}
+	p, err := RequirePrincipal(ctx)
+	if err != nil {
+		return err
+	}
+	if p.Organization.ID != organizationID {
+		return ErrPermissionDenied
+	}
+	return nil
 }

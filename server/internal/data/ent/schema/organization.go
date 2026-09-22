@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -18,7 +19,7 @@ func (Organization) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
-		field.Enum("kind").Values("headquarters", "company", "department", "team").Immutable(),
+		field.Enum("kind").Values("system", "company", "department", "team").Immutable(),
 		field.UUID("parent_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
 		field.String("base_currency").Optional().Nillable().MinLen(3).MaxLen(3),
@@ -39,8 +40,6 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("partner_assignments", PartnerAssignment.Type),
 		edge.To("taxable_services", TaxableService.Type),
 		edge.To("fee_settings", FeeSetting.Type),
-		edge.To("ports", Port.Type),
-		edge.To("airports", Airport.Type),
 		edge.To("number_rules", NumberRule.Type),
 		edge.To("orders", Order.Type),
 		edge.To("sea_transport_executions", SeaTransportExecution.Type),
@@ -100,4 +99,13 @@ func (Organization) Edges() []ent.Edge {
 
 func (Organization) Indexes() []ent.Index {
 	return []ent.Index{index.Fields("code").Unique(), index.Fields("parent_id")}
+}
+
+// Annotations 将工作台根节点边界固化为数据库约束。
+func (Organization) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Annotation{Checks: map[string]string{
+		"organizations_base_currency_by_kind":  "((kind IN ('system', 'company') AND base_currency IS NOT NULL) OR (kind IN ('department', 'team') AND base_currency IS NULL))",
+		"organizations_kind_check":             "kind IN ('system', 'company', 'department', 'team')",
+		"organizations_workspace_parent_check": "((kind IN ('system', 'company') AND parent_id IS NULL) OR (kind IN ('department', 'team') AND parent_id IS NOT NULL))",
+	}}}
 }

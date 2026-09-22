@@ -26,7 +26,7 @@ describe('adaptRoutes 路由适配', () => {
 
     await Promise.all(
       lazyRoutes.map((route) =>
-        route.lazy!().then((loaded) => {
+        route.lazy?.().then((loaded) => {
           expect((loaded as { Component?: unknown }).Component).toBeTruthy();
         }),
       ),
@@ -42,6 +42,7 @@ describe('adaptRoutes 路由适配', () => {
         currentUser: {
           id: 'x',
           username: 'admin',
+          currentOrganization: { kind: 2 },
           permissionCapabilities: [
             'system.platform.access',
             'business.order.se.read',

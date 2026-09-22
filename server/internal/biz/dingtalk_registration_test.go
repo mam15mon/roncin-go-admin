@@ -122,7 +122,7 @@ func (s *dingTalkLoginRegistrationRepoStub) FindRegistrationOrganization(_ conte
 	return s.organization, nil
 }
 
-func (s *dingTalkLoginRegistrationRepoStub) FindHeadquartersOrganizationID(context.Context) (uuid.UUID, error) {
+func (s *dingTalkLoginRegistrationRepoStub) FindSystemOrganizationID(context.Context) (uuid.UUID, error) {
 	return s.headquartersID, nil
 }
 

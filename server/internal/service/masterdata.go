@@ -547,8 +547,7 @@ func portsToAPI(items []*biz.Port) []*v1.Port {
 
 func portToAPI(item *biz.Port) *v1.Port {
 	// 基线行 OrganizationID 为 nil，必须先判空再取 String()，避免空指针 panic。
-	portOrganizationID := uuidStringPtr(item.OrganizationID)
-	return &v1.Port{Id: item.ID.String(), OrganizationId: portOrganizationID, UnLocode: item.UNLocode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
+	return &v1.Port{Id: item.ID.String(), UnLocode: item.UNLocode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
 }
 
 func airportsToAPI(items []*biz.Airport) []*v1.Airport {
@@ -561,8 +560,7 @@ func airportsToAPI(items []*biz.Airport) []*v1.Airport {
 
 func airportToAPI(item *biz.Airport) *v1.Airport {
 	// 基线行 OrganizationID 为 nil，必须先判空再取 String()，避免空指针 panic。
-	airportOrganizationID := uuidStringPtr(item.OrganizationID)
-	return &v1.Airport{Id: item.ID.String(), OrganizationId: airportOrganizationID, IataCode: item.IATACode, IcaoCode: item.ICAOCode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CityNameZh: optionalString(item.CityNameZH, item.CityNameZH != ""), CityNameEn: item.CityNameEN, CountryCode: item.CountryCode, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
+	return &v1.Airport{Id: item.ID.String(), IataCode: item.IATACode, IcaoCode: item.ICAOCode, NameZh: optionalString(item.NameZH, item.NameZH != ""), NameEn: item.NameEN, CityNameZh: optionalString(item.CityNameZH, item.CityNameZH != ""), CityNameEn: item.CityNameEN, CountryCode: item.CountryCode, Source: item.Source, SortOrder: int32(item.SortOrder), Enabled: item.Enabled, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339), SourceVersion: item.SourceVersion, SourceHash: item.SourceHash}
 }
 
 func airlinesToAPI(items []*biz.Airline) []*v1.Airline {

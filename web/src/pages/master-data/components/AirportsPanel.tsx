@@ -1,7 +1,7 @@
 import { SendOutlined } from '@ant-design/icons';
-import { useAccess } from '@/app/access';
 import { Tag } from 'antd';
 import React from 'react';
+import { useAccess } from '@/app/access';
 import {
   MasterDataTemplate,
   useMasterDataCrud,
@@ -14,8 +14,6 @@ import {
 import type { PersistedMasterDataItem } from './masterDataMapper';
 
 export interface AirportItem extends PersistedMasterDataItem {
-  /** 为空表示集团基线行（总部维护、全网可见），非空表示本组织本地补充行。 */
-  organizationId?: string;
   icaoCode: string;
   cityName: string;
   cityNameEn?: string;
@@ -41,7 +39,6 @@ const mapAirport = (item: API.Airport): AirportItem => {
     icaoCode: item.icaoCode ?? '',
     name: item.nameZh ?? '',
     nameEn: item.nameEn,
-    organizationId: item.organizationId,
     cityName: item.cityNameZh ?? '',
     cityNameEn: item.cityNameEn,
     countryCode: item.countryCode,
@@ -54,10 +51,11 @@ const mapAirport = (item: API.Airport): AirportItem => {
 
 export default function AirportsPanel() {
   const access = useAccess();
-  // B 型基线+本地：总部可编辑全部行，非总部仅可编辑本组织本地行（同码本地行
-  // 覆盖基线行）；本地新增入口对具备写权限的组织保持开放。
-  const canCreate = access.canCreateMasterDataAirports;
-  const canUpdate = access.canUpdateMasterDataAirports;
+  // 公共目录由系统管理工作台统一维护。
+  const canCreate =
+    access.isSystemWorkspace && access.canCreateMasterDataAirports;
+  const canUpdate =
+    access.isSystemWorkspace && access.canUpdateMasterDataAirports;
   const fetchAirports = React.useCallback(
     (
       query: import('@/components/ui/master-data-template').MasterDataListQuery,
@@ -161,22 +159,6 @@ export default function AirportsPanel() {
         },
       ]}
       extraColumns={[
-        {
-          title: '归属',
-          dataIndex: 'organizationId',
-          key: 'organizationId',
-          width: 100,
-          render: (_, record: AirportItem) =>
-            record.organizationId ? (
-              <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
-                本组织行
-              </Tag>
-            ) : (
-              <Tag color="purple" style={{ margin: 0, fontSize: 11 }}>
-                集团基线行
-              </Tag>
-            ),
-        },
         {
           title: 'ICAO 四字码',
           dataIndex: 'icaoCode',
@@ -286,13 +268,8 @@ export default function AirportsPanel() {
       onCreate={canCreate ? handleCreate : undefined}
       onUpdate={canUpdate ? handleUpdate : undefined}
       onToggleActive={canUpdate ? handleToggleActive : undefined}
-      canEditRecord={(record) =>
-        access.isHeadquartersOrganization || Boolean(record.organizationId)
-      }
       notice={
-        access.isHeadquartersOrganization
-          ? undefined
-          : '总部共享基线 + 本地补充行仅本组织可见'
+        access.isSystemWorkspace ? undefined : '由系统管理员统一维护与共享'
       }
     />
   );

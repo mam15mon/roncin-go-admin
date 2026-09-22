@@ -2,7 +2,9 @@ import { ApartmentOutlined } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { Alert, Avatar, Button, Skeleton, Space, Tag, Typography } from 'antd';
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import CommissionOverviewCard from './CommissionOverviewCard';
 import FinanceSummaryCard from './FinanceSummaryCard';
 import MyApplicationCard from './MyApplicationCard';
@@ -24,7 +26,7 @@ const GRID_STYLE: React.CSSProperties = {
   gap: 16,
 };
 
-export default function Workbench() {
+function CompanyWorkbench() {
   const { initialState } = useInitialState();
   const user = initialState?.currentUser;
   const displayName = user?.displayName || user?.username || '用户';
@@ -156,6 +158,36 @@ export default function Workbench() {
           onClose={() => setReceivablesDrawerOpen(false)}
         />
       ) : null}
+    </PageContainer>
+  );
+}
+
+export default function Workbench() {
+  const access = useAccess();
+  if (!access.isSystemWorkspace) return <CompanyWorkbench />;
+  return (
+    <PageContainer title="系统管理工作台">
+      <ProCard title="系统管理">
+        <Space orientation="vertical" size={16}>
+          <Typography.Paragraph>
+            维护系统公共资料、管理公司及处理注册申请。办理公司业务请通过右上角切换工作台。
+          </Typography.Paragraph>
+          <Space wrap>
+            {access.canReadMasterData && (
+              <Link to="/master-data">公共基础资料</Link>
+            )}
+            {access.canReadOrganizations && (
+              <Link to="/admin?tab=organizations">公司管理</Link>
+            )}
+            {access.canAuthorizeDingTalkUsers && (
+              <Link to="/admin?tab=users&subTab=registrations">注册审批</Link>
+            )}
+            {access.canReadFeeSettings && (
+              <Link to="/finance/fee-settings">初始费用目录</Link>
+            )}
+          </Space>
+        </Space>
+      </ProCard>
     </PageContainer>
   );
 }

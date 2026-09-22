@@ -57,6 +57,10 @@ func TestGetBilledFeeEditPolicyReturnsCurrentOrganizationUpdateCapability(t *tes
 	if err != nil || !response.GetCanUpdate() {
 		t.Fatalf("当前组织同时具备读取和更新权限应可编辑: response=%#v err=%v", response, err)
 	}
+	updated, updateErr := service.UpdateBilledFeeEditPolicy(newContext(true, true), &v1.UpdateBilledFeeEditPolicyRequest{ExpectedVersion: wrapperspb.UInt64(0), Enabled: true})
+	if updateErr != nil || updated.GetData().GetOrganizationId() != organizationID.String() {
+		t.Fatalf("策略必须保存到当前公司: response=%#v err=%v", updated, updateErr)
+	}
 	response, err = service.GetBilledFeeEditPolicy(newContext(true, false), &v1.GetBilledFeeEditPolicyRequest{})
 	if err != nil || response.GetCanUpdate() {
 		t.Fatalf("当前组织缺少更新权限时不应可编辑: response=%#v err=%v", response, err)
@@ -95,20 +99,25 @@ func (s *financeCustomSettingServiceRepoStub) SaveBilledFeeEditPolicy(_ context.
 	return policy, nil
 }
 
-func TestHeadquartersConfigurePolicyWithoutBusinessWrite(t *testing.T) {
+func TestSystemWorkspaceCannotConfigureCompanyPolicy(t *testing.T) {
 	id := uuid.New()
 	repo := &financeCustomSettingServiceRepoStub{}
 	service := &SettlementService{customSettingUsecase: biz.NewFinanceCustomSettingUsecase(repo)}
-	principal := &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: id, Kind: biz.OrganizationKindHeadquarters}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: id, Kind: biz.OrganizationKindHeadquarters}}, RoleGrants: []biz.RoleGrant{{DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.FinanceBillConfigure: {}, access.FinanceBillRead: {}, access.FinanceBillUpdate: {}}}}}
+	principal := &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: id, Kind: biz.OrganizationKindSystem}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: id, Kind: biz.OrganizationKindSystem}}, RoleGrants: []biz.RoleGrant{{DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.FinanceBillConfigure: {}, access.FinanceBillRead: {}}}}}
 	ctx := biz.WithPrincipal(context.Background(), principal)
-	response, err := service.GetBilledFeeEditPolicy(ctx, &v1.GetBilledFeeEditPolicyRequest{})
-	if err != nil || !response.GetCanUpdate() {
-		t.Fatalf("总部配置能力应保留: %v", err)
+	if _, err := service.GetBilledFeeEditPolicy(ctx, &v1.GetBilledFeeEditPolicyRequest{}); err != biz.ErrOperatingCompanyRequired {
+		t.Fatalf("系统工作台不可读取公司策略: %v", err)
 	}
-	if _, err := service.UpdateBilledFeeEditPolicy(ctx, &v1.UpdateBilledFeeEditPolicyRequest{ExpectedVersion: wrapperspb.UInt64(0), Enabled: true}); err != nil || repo.policy == nil {
-		t.Fatalf("总部治理配置应成功保存: %v", err)
+	if _, err := service.UpdateBilledFeeEditPolicy(ctx, &v1.UpdateBilledFeeEditPolicyRequest{ExpectedVersion: wrapperspb.UInt64(0), Enabled: true}); err != biz.ErrOperatingCompanyRequired {
+		t.Fatalf("系统工作台不可修改公司策略: %v", err)
 	}
-	if _, err := organizationIDsForPermission(principal, access.FinanceBillUpdate, true); err != biz.ErrPermissionDenied {
-		t.Fatalf("配置能力不能变成业务更新权限: %v", err)
+	if _, err := service.GetCreditLimitControlPolicy(ctx, &v1.GetCreditLimitControlPolicyRequest{}); err != biz.ErrOperatingCompanyRequired {
+		t.Fatalf("系统工作台不可读取公司信用策略: %v", err)
+	}
+	if _, err := service.UpdateCreditLimitControlPolicy(ctx, &v1.UpdateCreditLimitControlPolicyRequest{ExpectedVersion: wrapperspb.UInt64(0)}); err != biz.ErrOperatingCompanyRequired {
+		t.Fatalf("系统工作台不可修改公司信用策略: %v", err)
+	}
+	if repo.policy != nil {
+		t.Fatal("拒绝请求不能写入策略")
 	}
 }

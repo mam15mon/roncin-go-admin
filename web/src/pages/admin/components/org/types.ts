@@ -1,5 +1,5 @@
 export const organizationKindMeta = {
-  1: { label: '总部', color: 'purple' },
+  1: { label: '系统管理', color: 'purple' },
   2: { label: '公司', color: 'blue' },
   3: { label: '部门', color: 'cyan' },
   4: { label: '组', color: 'gold' },
@@ -14,7 +14,7 @@ export function normalizeOrganizationKind(
 ): number {
   if (typeof kind === 'number') return kind;
   switch (String(kind)) {
-    case 'ORGANIZATION_KIND_HEADQUARTERS':
+    case 'ORGANIZATION_KIND_SYSTEM':
       return 1;
     case 'ORGANIZATION_KIND_COMPANY':
       return 2;
@@ -28,7 +28,7 @@ export function normalizeOrganizationKind(
 }
 
 export function getChildOrganizationKind(kind?: number): 2 | 3 | 4 | undefined {
-  if (kind === 1) return 2;
+  if (kind === undefined) return 2;
   if (kind === 2) return 3;
   if (kind === 3) return 4;
   return undefined;

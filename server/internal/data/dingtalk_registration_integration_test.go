@@ -23,16 +23,16 @@ import (
 )
 
 type dingTalkRegistrationFixture struct {
-	t            *testing.T
-	data         *Data
-	repo         *dingTalkRegistrationRepo
-	authRepo     *authRepo
-	ctx          context.Context
-	suffix       string
-	headquarters *ent.Organization
-	branch       *ent.Organization
-	staffRole    *ent.Role
-	inviter      *ent.User
+	t               *testing.T
+	data            *Data
+	repo            *dingTalkRegistrationRepo
+	authRepo        *authRepo
+	ctx             context.Context
+	suffix          string
+	systemWorkspace *ent.Organization
+	branch          *ent.Organization
+	staffRole       *ent.Role
+	inviter         *ent.User
 }
 
 func newDingTalkRegistrationFixture(t *testing.T) *dingTalkRegistrationFixture {
@@ -42,14 +42,14 @@ func newDingTalkRegistrationFixture(t *testing.T) *dingTalkRegistrationFixture {
 
 	ctx := context.Background()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:10]
-	headquarters, err := data.db.Organization.Create().
+	systemWorkspace, err := data.db.Organization.Create().
 		SetCode("DTR-HQ-" + suffix).
-		SetName("钉钉注册总部-" + suffix).
-		SetKind("headquarters").
+		SetName("钉钉注册系统管理-" + suffix).
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部组织失败: %v", err)
+		t.Fatalf("创建系统管理组织失败: %v", err)
 	}
 	branch, err := data.db.Organization.Create().
 		SetCode("DTR-CD-" + suffix).
@@ -113,16 +113,16 @@ func newDingTalkRegistrationFixture(t *testing.T) *dingTalkRegistrationFixture {
 	}
 
 	return &dingTalkRegistrationFixture{
-		t:            t,
-		data:         data,
-		repo:         NewDingTalkRegistrationRepo(data),
-		authRepo:     NewAuthRepo(data).(*authRepo),
-		ctx:          ctx,
-		suffix:       suffix,
-		headquarters: headquarters,
-		branch:       branch,
-		staffRole:    staffRole,
-		inviter:      inviter,
+		t:               t,
+		data:            data,
+		repo:            NewDingTalkRegistrationRepo(data),
+		authRepo:        NewAuthRepo(data).(*authRepo),
+		ctx:             ctx,
+		suffix:          suffix,
+		systemWorkspace: systemWorkspace,
+		branch:          branch,
+		staffRole:       staffRole,
+		inviter:         inviter,
 	}
 }
 
@@ -251,7 +251,7 @@ func TestDingTalkInvitationLifecycleConstraints(t *testing.T) {
 	if err != nil {
 		t.Fatalf("重建有效邀请失败: %v", err)
 	}
-	if _, err := fixture.repo.RevokeInvitation(fixture.ctx, fixture.inviter.ID, again.ID, []uuid.UUID{fixture.headquarters.ID}, &biz.AuditEvent{UserID: &fixture.inviter.ID, Action: "admin.dingtalk.invitation.revoke", Result: "success", Details: map[string]string{}}); err != biz.ErrPermissionDenied {
+	if _, err := fixture.repo.RevokeInvitation(fixture.ctx, fixture.inviter.ID, again.ID, []uuid.UUID{fixture.systemWorkspace.ID}, &biz.AuditEvent{UserID: &fixture.inviter.ID, Action: "admin.dingtalk.invitation.revoke", Result: "success", Details: map[string]string{}}); err != biz.ErrPermissionDenied {
 		t.Fatalf("越权撤销错误 = %v，期望 ErrPermissionDenied", err)
 	}
 }
@@ -381,7 +381,7 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 		}
 	}
 
-	// 收件人路由：目标组织内有权限且启用的人入选；总部兜底收件人不含分公司注册。
+	// 收件人路由：目标组织内有权限且启用的人入选；系统管理兜底收件人不含分公司注册。
 	recipients, err := fixture.repo.ListApproverRecipients(fixture.ctx, fixture.branch.ID)
 	if err != nil {
 		t.Fatalf("查询审批收件人失败: %v", err)
@@ -399,13 +399,13 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 	if !found {
 		t.Fatalf("成都审批人应在收件人列表: %#v", recipients)
 	}
-	hqRecipients, err := fixture.repo.ListApproverRecipients(fixture.ctx, fixture.headquarters.ID)
+	hqRecipients, err := fixture.repo.ListApproverRecipients(fixture.ctx, fixture.systemWorkspace.ID)
 	if err != nil {
-		t.Fatalf("查询总部收件人失败: %v", err)
+		t.Fatalf("查询系统管理收件人失败: %v", err)
 	}
 	for _, recipient := range hqRecipients {
 		if recipient.UserID == branchApprover.ID {
-			t.Fatal("成都审批人不应出现在总部兜底收件人中")
+			t.Fatal("成都审批人不应出现在系统管理兜底收件人中")
 		}
 	}
 
@@ -425,7 +425,7 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 	if err != nil || len(pendingDeliveries) != 2 {
 		t.Fatalf("两位审批人应各有通知明细 = %#v err=%v", pendingDeliveries, err)
 	}
-	// 通知卡片必须展示自选目标组织名，而不是固定总部名。
+	// 通知卡片必须展示自选目标组织名，而不是固定系统管理名。
 	for _, delivery := range pendingDeliveries {
 		if delivery.Parameter != fixture.branch.Name {
 			t.Fatalf("通知应展示目标组织名 %q，实际 %q", fixture.branch.Name, delivery.Parameter)
@@ -457,7 +457,7 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 		t.Fatalf("重复确认不应重复入队通知: %#v err=%v", pendingDeliveries, err)
 	}
 
-	// 队列路由：成都组织能看到，总部组织看不到该注册。
+	// 队列路由：成都组织能看到，系统管理组织看不到该注册。
 	branchQueue, err := fixture.repo.ListPendingRegistrations(fixture.ctx, []uuid.UUID{fixture.branch.ID}, biz.DingTalkRegistrationListOptions{Page: 1, PageSize: 20})
 	if err != nil {
 		t.Fatalf("查询成都审批队列失败: %v", err)
@@ -465,19 +465,19 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 	if len(branchQueue.Items) != 1 || branchQueue.Items[0].UserID != credential.UserID || branchQueue.Items[0].RequestedOrganizationID == nil || *branchQueue.Items[0].RequestedOrganizationID != fixture.branch.ID {
 		t.Fatalf("成都审批队列 = %#v", branchQueue.Items)
 	}
-	hqQueue, err := fixture.repo.ListPendingRegistrations(fixture.ctx, []uuid.UUID{fixture.headquarters.ID}, biz.DingTalkRegistrationListOptions{Page: 1, PageSize: 20})
+	hqQueue, err := fixture.repo.ListPendingRegistrations(fixture.ctx, []uuid.UUID{fixture.systemWorkspace.ID}, biz.DingTalkRegistrationListOptions{Page: 1, PageSize: 20})
 	if err != nil {
-		t.Fatalf("查询总部审批队列失败: %v", err)
+		t.Fatalf("查询系统管理审批队列失败: %v", err)
 	}
 	if len(hqQueue.Items) != 0 {
-		t.Fatalf("成都注册不应出现在总部队列: %#v", hqQueue.Items)
+		t.Fatalf("成都注册不应出现在系统管理队列: %#v", hqQueue.Items)
 	}
 
-	// 越权审批：总部范围处理成都注册 → 403。
+	// 越权审批：系统管理范围处理成都注册 → 403。
 	if _, err := fixture.repo.ApproveRegistration(fixture.ctx, &biz.DingTalkRegistrationDecision{
 		ActorID:         branchApprover.ID,
 		UserID:          credential.UserID,
-		OrganizationIDs: []uuid.UUID{fixture.headquarters.ID},
+		OrganizationIDs: []uuid.UUID{fixture.systemWorkspace.ID},
 		RoleIDs:         []uuid.UUID{fixture.staffRole.ID},
 		Notification:    biz.NewDingTalkUserAuthorizedNotification(credential.UserID),
 		Audit:           &biz.AuditEvent{UserID: &branchApprover.ID, Action: "admin.dingtalk.registration.approve", Result: "success", Details: map[string]string{}},
@@ -520,18 +520,18 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 		t.Fatalf("重复审批错误 = %v，期望 ErrDingTalkRegistrationProcessed", err)
 	}
 
-	// 兜底注册（未自选组织）应出现在总部队列。
-	fallbackIdentity := &biz.DingTalkIdentity{UnionID: "dtr-union-hq-" + fixture.suffix, UserID: "dtr-user-hq-" + fixture.suffix, CorpID: "ding-corp", Name: "总部兜底员工"}
+	// 兜底注册（未自选组织）应出现在系统管理队列。
+	fallbackIdentity := &biz.DingTalkIdentity{UnionID: "dtr-union-hq-" + fixture.suffix, UserID: "dtr-user-hq-" + fixture.suffix, CorpID: "ding-corp", Name: "系统管理兜底员工"}
 	fallbackCredential, created, err := fixture.authRepo.RegisterDingTalkCredential(fixture.ctx, fallbackIdentity, nil, nil, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
 	if err != nil || !created {
 		t.Fatalf("兜底注册失败: (%#v, %v, %v)", fallbackCredential, created, err)
 	}
-	hqQueue, err = fixture.repo.ListPendingRegistrations(fixture.ctx, []uuid.UUID{fixture.headquarters.ID}, biz.DingTalkRegistrationListOptions{Page: 1, PageSize: 20})
+	hqQueue, err = fixture.repo.ListPendingRegistrations(fixture.ctx, []uuid.UUID{fixture.systemWorkspace.ID}, biz.DingTalkRegistrationListOptions{Page: 1, PageSize: 20})
 	if err != nil {
-		t.Fatalf("查询总部兜底队列失败: %v", err)
+		t.Fatalf("查询系统管理兜底队列失败: %v", err)
 	}
 	if len(hqQueue.Items) != 1 || hqQueue.Items[0].UserID != fallbackCredential.UserID {
-		t.Fatalf("总部兜底队列 = %#v", hqQueue.Items)
+		t.Fatalf("系统管理兜底队列 = %#v", hqQueue.Items)
 	}
 
 	// 拒绝：停用收口成员资格、通知本人、出队。
@@ -539,10 +539,10 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 	if err := fixture.repo.RejectRegistration(fixture.ctx, &biz.DingTalkRegistrationDecision{
 		ActorID:         branchApprover.ID,
 		UserID:          fallbackCredential.UserID,
-		OrganizationIDs: []uuid.UUID{fixture.headquarters.ID},
+		OrganizationIDs: []uuid.UUID{fixture.systemWorkspace.ID},
 		Reason:          reason,
 		Notification:    biz.NewDingTalkRegistrationRejectedNotification(fallbackCredential.UserID),
-		Audit:           &biz.AuditEvent{UserID: &branchApprover.ID, OrganizationID: &fixture.headquarters.ID, Action: "admin.dingtalk.registration.reject", Result: "success", Details: map[string]string{"value": reason}},
+		Audit:           &biz.AuditEvent{UserID: &branchApprover.ID, OrganizationID: &fixture.systemWorkspace.ID, Action: "admin.dingtalk.registration.reject", Result: "success", Details: map[string]string{"value": reason}},
 	}); err != nil {
 		t.Fatalf("拒绝注册失败: %v", err)
 	}
@@ -550,7 +550,7 @@ func TestDingTalkRegistrationQueueAndApproval(t *testing.T) {
 	if err != nil || remaining != 0 {
 		t.Fatalf("拒绝后启用成员资格应清零: %d err=%v", remaining, err)
 	}
-	hqQueue, err = fixture.repo.ListPendingRegistrations(fixture.ctx, []uuid.UUID{fixture.headquarters.ID}, biz.DingTalkRegistrationListOptions{Page: 1, PageSize: 20})
+	hqQueue, err = fixture.repo.ListPendingRegistrations(fixture.ctx, []uuid.UUID{fixture.systemWorkspace.ID}, biz.DingTalkRegistrationListOptions{Page: 1, PageSize: 20})
 	if err != nil || len(hqQueue.Items) != 0 {
 		t.Fatalf("拒绝后应出队: %#v err=%v", hqQueue.Items, err)
 	}
@@ -672,37 +672,36 @@ func TestDingTalkGenericInvitationAndTransferAndEscalation(t *testing.T) {
 		t.Fatalf("Token 查询结果不一致: %v vs %v", found.ID, genericInvitation.ID)
 	}
 
-	// 3. 向上追溯：创建新分公司（无管理员），断言向上追溯命中总部
+	// 3. 向上追溯：创建新分公司（无管理员），断言向上追溯命中系统管理
 	subBranch, err := fixture.data.db.Organization.Create().
 		SetCode("SUB-" + fixture.suffix).
 		SetName("二级办事处-" + fixture.suffix).
 		SetKind(organizationent.KindCompany).
 		SetBaseCurrency("CNY").
-		SetParentID(fixture.headquarters.ID).
 		SetEnabled(true).
 		Save(fixture.ctx)
 	if err != nil {
 		t.Fatalf("创建二级办事处失败: %v", err)
 	}
-	// 在总部配置审批人
+	// 在系统管理配置审批人
 	managePermission, _ := fixture.data.db.Permission.Query().Where(permissionent.KeyEQ(access.UserDingTalkInvitationManage)).Only(fixture.ctx)
 	hqRole, _ := fixture.data.db.Role.Create().
-		SetOrganizationID(fixture.headquarters.ID).
-		SetName("总部管理员角色-" + fixture.suffix).
+		SetOrganizationID(fixture.systemWorkspace.ID).
+		SetName("系统管理管理员角色-" + fixture.suffix).
 		SetCode("hq_admin_" + fixture.suffix).
 		SetEnabled(true).
 		AddPermissions(managePermission).
 		Save(fixture.ctx)
 	hqAdmin, _ := fixture.data.db.User.Create().
-		SetDisplayName("总部审批人").
+		SetDisplayName("系统管理审批人").
 		SetDingtalkUnionid("hq-union-" + fixture.suffix).
 		SetDingtalkUserid("hq-user-" + fixture.suffix).
-		SetDingtalkName("总部审批人").
+		SetDingtalkName("系统管理审批人").
 		SetEnabled(true).
 		Save(fixture.ctx)
 	hqMembership, _ := fixture.data.db.Membership.Create().
 		SetUserID(hqAdmin.ID).
-		SetOrganizationID(fixture.headquarters.ID).
+		SetOrganizationID(fixture.systemWorkspace.ID).
 		SetPrimary(true).
 		SetEnabled(true).
 		Save(fixture.ctx)
@@ -716,8 +715,8 @@ func TestDingTalkGenericInvitationAndTransferAndEscalation(t *testing.T) {
 	if err != nil {
 		t.Fatalf("向上追溯失败: %v", err)
 	}
-	if !isEscalated || escalatedOrgID != fixture.headquarters.ID || len(recipients) == 0 {
-		t.Fatalf("办事处无审批人应向上追溯至总部: isEscalated=%v, escalatedOrgID=%v, recipients=%v", isEscalated, escalatedOrgID, recipients)
+	if !isEscalated || escalatedOrgID != fixture.systemWorkspace.ID || len(recipients) == 0 {
+		t.Fatalf("办事处无审批人应向上追溯至系统管理: isEscalated=%v, escalatedOrgID=%v, recipients=%v", isEscalated, escalatedOrgID, recipients)
 	}
 
 	// 4. 转派测试：注册员工初建在 branch，转派至 subBranch
@@ -731,7 +730,7 @@ func TestDingTalkGenericInvitationAndTransferAndEscalation(t *testing.T) {
 	decision := &biz.DingTalkRegistrationDecision{
 		ActorID:         hqAdmin.ID,
 		UserID:          cred.UserID,
-		OrganizationIDs: []uuid.UUID{fixture.branch.ID, fixture.headquarters.ID, subBranch.ID},
+		OrganizationIDs: []uuid.UUID{fixture.branch.ID, fixture.systemWorkspace.ID, subBranch.ID},
 		Reason:          "转派至办事处",
 		Audit:           &biz.AuditEvent{Action: "admin.dingtalk.registration.transfer", Result: "success", Details: map[string]string{}},
 	}

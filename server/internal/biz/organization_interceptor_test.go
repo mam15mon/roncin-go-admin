@@ -49,8 +49,8 @@ func headquartersPrincipal(permissions ...string) *Principal {
 		keys[permission] = struct{}{}
 	}
 	return &Principal{
-		Organization:      Organization{ID: orgID, Kind: OrganizationKindHeadquarters},
-		OrganizationNodes: []OrganizationScopeNode{{ID: orgID, Kind: OrganizationKindHeadquarters}},
+		Organization:      Organization{ID: orgID, Kind: OrganizationKindSystem},
+		OrganizationNodes: []OrganizationScopeNode{{ID: orgID, Kind: OrganizationKindSystem}},
 		RoleGrants:        []RoleGrant{{RoleCode: "administrator", DataScope: DataScopeAll, Permissions: keys}},
 	}
 }
@@ -67,7 +67,7 @@ func companyPrincipal(permissions ...string) *Principal {
 	return &Principal{
 		Organization: Organization{ID: companyID, Kind: OrganizationKindCompany},
 		OrganizationNodes: []OrganizationScopeNode{
-			{ID: headquartersID, Kind: OrganizationKindHeadquarters},
+			{ID: headquartersID, Kind: OrganizationKindSystem},
 			{ID: companyID, ParentID: &headquartersID, Kind: OrganizationKindCompany},
 		},
 		RoleGrants: []RoleGrant{{RoleCode: "administrator", DataScope: DataScopeAll, Permissions: keys}},

@@ -183,13 +183,13 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		}
 	})
 
-	t.Run("跨组织主体经真实中间件切换到锚点订单组织", func(t *testing.T) {
+	t.Run("跨公司锚点拒绝且切换到本公司后允许", func(t *testing.T) {
 		orgA := uuid.New()
 		orgB := uuid.New()
 		anchorOrderB := &biz.Order{ID: uuid.New(), OrganizationID: orgB, BusinessType: biz.OrderBusinessSE}
 		permission := access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead)
 		principal := &biz.Principal{
-			// 当前主体组织是 A，通过 DataScopeAll 覆盖锚点订单所在组织 B
+			// 当前主体在 A，公司角色即使 all 也不能读取 B。
 			Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: orgA},
 			OrganizationNodes: serverOrganizationNodes(orgA, orgB),
 			RoleGrants:        []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll, []string{permission})},
@@ -207,8 +207,13 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 			anchorOrderB,
 			request,
 		)
+		if state.called {
+			t.Fatal("公司 A 不得读取公司 B 的锚点订单")
+		}
+		principal.Organization.ID = orgB
+		state = runSharedContainerMiddleware(t, "/order.v1.SeaSharedContainerService/ListSeaSharedContainers", "sid=valid-token", principal, anchorOrderB, request)
 		if !state.called {
-			t.Fatal("跨组织主体范围覆盖锚点组织且持有时应进入 handler")
+			t.Fatal("切换公司 B 后本公司授权订单应可读取")
 		}
 		if state.orgID != orgB {
 			t.Fatalf("handler 内有效组织应为锚点订单组织 %s, 实际 %s", orgB, state.orgID)
@@ -304,19 +309,19 @@ func operationNameFromRequest(request any) string {
 	}
 }
 
-func TestHeadquartersMiddlewareRejectsBusinessButReadsCompanyOrder(t *testing.T) {
+func TestSystemMiddlewareRejectsCompanyOrderReadsAndWrites(t *testing.T) {
 	hqID, companyID := uuid.New(), uuid.New()
 	order := &biz.Order{ID: uuid.New(), OrganizationID: companyID, BusinessType: biz.OrderBusinessSE}
 	for _, admin := range []bool{false, true} {
-		p := &biz.Principal{UserID: uuid.New(), IsBootstrapAdmin: admin, Organization: biz.Organization{ID: hqID, Kind: biz.OrganizationKindHeadquarters}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: hqID, Kind: biz.OrganizationKindHeadquarters}, {ID: companyID, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll, []string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead), access.OrderPermission(access.OrderBusinessSE, access.OrderContainerCreate)})}}
+		p := &biz.Principal{UserID: uuid.New(), IsBootstrapAdmin: admin, Organization: biz.Organization{ID: hqID, Kind: biz.OrganizationKindSystem}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: hqID, Kind: biz.OrganizationKindSystem}, {ID: companyID, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeAll, []string{access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead), access.OrderPermission(access.OrderBusinessSE, access.OrderContainerCreate)})}}
 		invoke, state := newAuthorizationTestMiddleware(t, p, order)
 		writeCtx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/order.v1.SeaSharedContainerService/CreateSeaSharedContainer", cookie: "sid=valid-token"})
 		if _, err := invoke(writeCtx, &orderv1.CreateSeaSharedContainerRequest{OrderId: order.ID.String()}); err == nil || state.called {
 			t.Fatalf("总部 admin=%v 必须在进入 handler 前拒绝公司业务写", admin)
 		}
 		readCtx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/order.v1.SeaSharedContainerService/ListSeaSharedContainers", cookie: "sid=valid-token"})
-		if _, err := invoke(readCtx, &orderv1.ListSeaSharedContainersRequest{OrderId: order.ID.String()}); err != nil || !state.called || state.orgID != companyID {
-			t.Fatalf("总部 admin=%v 应可按授权读取公司订单: %v", admin, err)
+		if _, err := invoke(readCtx, &orderv1.ListSeaSharedContainersRequest{OrderId: order.ID.String()}); err == nil || state.called {
+			t.Fatalf("总部 admin=%v 不得读取公司订单: %v", admin, err)
 		}
 	}
 }

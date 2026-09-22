@@ -79,7 +79,7 @@ export interface SettingTableTemplateProps<
   canCreate?: boolean;
   /** 是否具备编辑权限，默认 true */
   canUpdate?: boolean;
-  /** 行级编辑判定（如 B 型基线行仅总部可编辑），返回 false 的行不展示编辑按钮 */
+  /** 行级编辑判定（如 B 型基线行仅系统管理可编辑），返回 false 的行不展示编辑按钮 */
   canEditRecord?: (record: TRecord) => boolean;
   /** 初始表单值生成函数或对象 */
   initialValues?: (editingRecord?: TRecord) => Partial<TFormValues>;

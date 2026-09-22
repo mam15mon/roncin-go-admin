@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
@@ -24,9 +25,11 @@ func TestCompanyPersonnelWorkspacePostgres(t *testing.T) {
 	companyID := fixture.organizationID
 	newOrg := func(code, name string, kind organizationent.Kind, parentID uuid.UUID, enabled bool) *ent.Organization {
 		t.Helper()
-		create := client.Organization.Create().SetCode(code).SetName(name).SetKind(kind).SetParentID(parentID).SetEnabled(enabled)
+		create := client.Organization.Create().SetCode(code).SetName(name).SetKind(kind).SetEnabled(enabled)
 		if kind == organizationent.KindCompany {
 			create.SetBaseCurrency("CNY")
+		} else {
+			create.SetParentID(parentID)
 		}
 		org, err := create.Save(ctx)
 		if err != nil {
@@ -36,9 +39,27 @@ func TestCompanyPersonnelWorkspacePostgres(t *testing.T) {
 	}
 	department := newOrg("PERSONNEL-DEPT", "财务部", organizationent.KindDepartment, companyID, true)
 	team := newOrg("PERSONNEL-TEAM", "核算组", organizationent.KindTeam, department.ID, true)
-	childCompany := newOrg("PERSONNEL-CHILD", "下属经营公司", organizationent.KindCompany, companyID, true)
-	childDepartment := newOrg("PERSONNEL-CHILD-DEPT", "下属公司部门", organizationent.KindDepartment, childCompany.ID, true)
+	childCompany := newOrg("PERSONNEL-CHILD", "另一经营公司", organizationent.KindCompany, companyID, true)
+	childDepartment := newOrg("PERSONNEL-CHILD-DEPT", "另一公司部门", organizationent.KindDepartment, childCompany.ID, true)
+	t.Cleanup(func() {
+		for _, id := range []uuid.UUID{team.ID, department.ID, childDepartment.ID} {
+			if _, err := client.Membership.Delete().Where(membershipent.OrganizationIDEQ(id)).Exec(ctx); err != nil {
+				t.Error(err)
+			}
+			if err := client.Organization.DeleteOneID(id).Exec(ctx); err != nil {
+				t.Error(err)
+			}
+		}
+	})
 	disabledDepartment := newOrg("PERSONNEL-DISABLED", "停用部门", organizationent.KindDepartment, companyID, false)
+	t.Cleanup(func() {
+		if _, err := client.Membership.Delete().Where(membershipent.OrganizationIDEQ(disabledDepartment.ID)).Exec(ctx); err != nil {
+			t.Error(err)
+		}
+		if err := client.Organization.DeleteOneID(disabledDepartment.ID).Exec(ctx); err != nil {
+			t.Error(err)
+		}
+	})
 	newUser := func(orgID uuid.UUID, enabled, membershipEnabled bool) *ent.User {
 		t.Helper()
 		person, err := client.User.Create().SetDisplayName("张三").SetEnabled(enabled).Save(ctx)

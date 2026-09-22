@@ -414,7 +414,7 @@ export function MasterDataTemplate<
         align: 'right',
         fixed: 'right',
         render: (_, record) => {
-          // B 型基线行对非总部禁用编辑：不渲染编辑与停用/启用入口。
+          // B 型基线行对非系统管理禁用编辑：不渲染编辑与停用/启用入口。
           const canEditRow = !canEditRecord || canEditRecord(record);
           return (
             <Space size={6}>
@@ -496,7 +496,7 @@ export function MasterDataTemplate<
 
   return (
     <div style={{ minHeight: '100%' }}>
-      {/* 0. 组织治理提示横幅：A 型非总部只读提示 / B 型非总部基线+本地说明 */}
+      {/* 0. 组织治理提示横幅：A 型非系统管理只读提示 / B 型非系统管理基线+本地说明 */}
       {notice && (
         <Alert
           type="info"

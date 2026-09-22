@@ -56,9 +56,9 @@ const rateRule =
 
 export function ExchangeRatesPanel() {
   const access = useAccess();
-  // 组织身份统一取自 access.ts 的 isHeadquartersOrganization（auth/me kind 契约），
-  // 不在面板内重复推导；仅总部可编辑 NULL 基线行。
-  const isHeadquartersOrganization = access.isHeadquartersOrganization;
+  // 组织身份统一取自 access.ts 的 isSystemWorkspace（auth/me kind 契约），
+  // 不在面板内重复推导；仅系统管理可编辑 NULL 基线行。
+  const isSystemWorkspace = access.isSystemWorkspace;
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<ExchangeRateFormValues>();
@@ -184,11 +184,11 @@ export function ExchangeRatesPanel() {
         const canEdit =
           record.isActive &&
           access.canUpdateExchangeRates &&
-          (isBaseline ? isHeadquartersOrganization : true);
+          (isBaseline ? isSystemWorkspace : true);
         const canDisable =
           record.isActive &&
           access.canDisableExchangeRates &&
-          (isBaseline ? isHeadquartersOrganization : true);
+          (isBaseline ? isSystemWorkspace : true);
         return (
           <Space size="small">
             {canEdit && (

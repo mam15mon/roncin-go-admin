@@ -78,23 +78,22 @@ import (
 )
 
 type seedContext struct {
-	db             *sql.DB
-	tx             *ent.Tx
-	headquarters   *ent.Organization
-	company        *ent.Organization
-	adminUser      *ent.User
-	adminRole      *ent.Role
-	users          map[string]*ent.User
-	ports          map[string]*ent.Port
-	shippingLines  map[string]*ent.ShippingLine
-	billingUnits   map[string]*ent.BillingUnit
-	taxableSvcs    map[string]*ent.TaxableService
-	chargeCats     map[string]*ent.MasterDataItem
-	containerSpecs map[string]*ent.MasterDataItem
-	feeSettings    map[string]*ent.FeeSetting
-	partners       map[string]*ent.Partner
-	orders         map[string]*ent.Order
-	orderFees      map[string]*ent.OrderFee
+	db              *sql.DB
+	tx              *ent.Tx
+	systemWorkspace *ent.Organization
+	company         *ent.Organization
+	adminUser       *ent.User
+	users           map[string]*ent.User
+	ports           map[string]*ent.Port
+	shippingLines   map[string]*ent.ShippingLine
+	billingUnits    map[string]*ent.BillingUnit
+	taxableSvcs     map[string]*ent.TaxableService
+	chargeCats      map[string]*ent.MasterDataItem
+	containerSpecs  map[string]*ent.MasterDataItem
+	feeSettings     map[string]*ent.FeeSetting
+	partners        map[string]*ent.Partner
+	orders          map[string]*ent.Order
+	orderFees       map[string]*ent.OrderFee
 }
 
 func main() {
@@ -155,10 +154,6 @@ func main() {
 		logger.Error("组织与员工同步失败", "error", err)
 		os.Exit(1)
 	}
-	if err := migrateOperatingDataToCompany(ctx, sc); err != nil {
-		logger.Error("总部经营数据迁移失败", "error", err)
-		os.Exit(1)
-	}
 	if err := seedReferenceData(ctx, sc); err != nil {
 		logger.Error("基础参考数据（港口/船司）同步失败", "error", err)
 		os.Exit(1)
@@ -207,7 +202,7 @@ func main() {
 
 	fmt.Println("==================================================")
 	fmt.Println("🎉 开发测试数据同步完成 (sync:dev successful)！")
-	fmt.Printf("✔ 组织体系: 总部 [%s] + 默认分公司已完备；经营数据归属 [%s]，员工具备分公司身份\n", sc.headquarters.Name, sc.company.Name)
+	fmt.Printf("✔ 组织体系: 系统管理 [%s] + 独立公司已完备；经营数据归属 [%s]，员工具备公司身份\n", sc.systemWorkspace.Name, sc.company.Name)
 	fmt.Printf("✔ 测试人员: %d 名业务员工 (张强/王丽/李明/陈华/赵芳/刘敏，默认密码: Dev123456!)\n", len(sc.users))
 	fmt.Printf("✔ 基础参考: %d 个核心海港 (CNSHA/CNNBO/USLAX...) + %d 家主流船公司\n", len(sc.ports), len(sc.shippingLines))
 	fmt.Printf("✔ 财务字典: %d 个计费单位 + %d 个费用科目 + 开发基准汇率已生效\n", len(sc.billingUnits), len(sc.feeSettings))
@@ -224,54 +219,41 @@ func main() {
 // 1. 组织架构与人员
 func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	hq, err := tx.Organization.Query().Where(organizationent.KindEQ(organizationent.KindHeadquarters)).First(ctx)
+	systemWorkspace, err := tx.Organization.Query().Where(organizationent.KindEQ(organizationent.KindSystem)).First(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return err
 	}
-	if hq == nil {
+	if systemWorkspace == nil {
 		created, createErr := tx.Organization.Create().
-			SetCode("HQ").
-			SetName("融迅供应链管理总部").
-			SetKind(organizationent.KindHeadquarters).
+			SetCode("SYSTEM").
+			SetName("系统管理").
+			SetKind(organizationent.KindSystem).
 			SetBaseCurrency("CNY").
 			SetEnabledCurrencies([]string{"CNY", "USD", "EUR", "HKD"}).
 			SetEnabled(true).
 			Save(ctx)
 		if createErr != nil {
-			return fmt.Errorf("创建总部组织: %w", createErr)
+			return fmt.Errorf("创建系统管理工作台: %w", createErr)
 		}
-		hq = created
-		_ = data.CreateDefaultNumberRules(ctx, tx, hq.ID)
+		systemWorkspace = created
 	}
-	sc.headquarters = hq
+	sc.systemWorkspace = systemWorkspace
 
-	// 补充分公司
-	_, _ = data.CreateDefaultBranchCompanies(ctx, tx, hq.ID)
+	// 补充独立公司；公共管理工作台不作为公司父节点。
+	if _, err := data.CreateDefaultBranchCompanies(ctx, tx, systemWorkspace.ID); err != nil {
+		return err
+	}
 
-	// 经营数据归属公司：总部工作台只读边界下，业务办理与经营数据必须落在
-	// 启用分公司。优先上海公司，回退到任意启用公司。
+	// 开发数据明确归属上海公司，不向其他公司隐式写入。
 	company, companyErr := tx.Organization.Query().Where(
 		organizationent.KindEQ(organizationent.KindCompany),
 		organizationent.EnabledEQ(true),
 		organizationent.CodeEQ("SH"),
 	).First(ctx)
-	if companyErr != nil && ent.IsNotFound(companyErr) {
-		company, companyErr = tx.Organization.Query().Where(
-			organizationent.KindEQ(organizationent.KindCompany),
-			organizationent.EnabledEQ(true),
-		).Order(ent.Asc(organizationent.FieldCode)).First(ctx)
-	}
 	if companyErr != nil {
-		return fmt.Errorf("缺少可用的分公司作为经营归属组织: %w", companyErr)
+		return fmt.Errorf("缺少启用的上海公司作为开发数据归属组织: %w", companyErr)
 	}
 	sc.company = company
-
-	// 查找系统管理员角色
-	adminRole, err := tx.Role.Query().Where(roleent.OrganizationIDEQ(hq.ID), roleent.CodeEQ("administrator")).First(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		return err
-	}
-	sc.adminRole = adminRole
 
 	// 查找已有 admin 用户
 	adminUser, _ := tx.User.Query().Where(userent.UsernameEQ("admin")).First(ctx)
@@ -313,32 +295,23 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 		}
 		sc.users[s.username] = u
 
-		// 绑定总部 Membership
-		mExists, _ := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationIDEQ(hq.ID)).Exist(ctx)
-		if !mExists {
-			m, mErr := tx.Membership.Create().
-				SetUserID(u.ID).
-				SetOrganizationID(hq.ID).
-				SetPrimary(true).
-				SetEnabled(true).
-				Save(ctx)
-			if mErr == nil && adminRole != nil {
-				_, _ = tx.RoleAssignment.Create().SetMembershipID(m.ID).SetRoleID(adminRole.ID).Save(ctx)
-			}
-		}
-
-		// 绑定经营公司 Membership（业务办理必须在分公司工作台进行）
+		// 绑定经营公司 Membership（业务办理必须在公司工作台进行）
 		companyAdminRole, _ := tx.Role.Query().Where(roleent.OrganizationIDEQ(company.ID), roleent.CodeEQ("administrator")).First(ctx)
 		cExists, _ := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationIDEQ(company.ID)).Exist(ctx)
 		if !cExists {
 			cm, cmErr := tx.Membership.Create().
 				SetUserID(u.ID).
 				SetOrganizationID(company.ID).
-				SetPrimary(false).
+				SetPrimary(true).
 				SetEnabled(true).
 				Save(ctx)
-			if cmErr == nil && companyAdminRole != nil {
-				_, _ = tx.RoleAssignment.Create().SetMembershipID(cm.ID).SetRoleID(companyAdminRole.ID).Save(ctx)
+			if cmErr != nil {
+				return fmt.Errorf("创建公司测试成员: %w", cmErr)
+			}
+			if companyAdminRole != nil {
+				if _, err := tx.RoleAssignment.Create().SetMembershipID(cm.ID).SetRoleID(companyAdminRole.ID).Save(ctx); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -366,7 +339,7 @@ func seedReferenceData(ctx context.Context, sc *seedContext) error {
 	}
 
 	for idx, p := range ports {
-		found, _ := tx.Port.Query().Where(portent.UnLocodeEQ(p.code), portent.OrganizationIDIsNil()).First(ctx)
+		found, _ := tx.Port.Query().Where(portent.UnLocodeEQ(p.code)).First(ctx)
 		if found == nil {
 			created, err := tx.Port.Create().
 				SetUnLocode(p.code).
@@ -1931,11 +1904,11 @@ type lockSeedSpec struct {
 // DIRECT 单证结构，HOUSE 锁定还需要 HBL 版本与快照，不在本种子范围。
 func ensureOrderLockedWithRecord(ctx context.Context, sc *seedContext, ord *ent.Order, spec lockSeedSpec) (*ent.OrderLockRecord, error) {
 	tx := sc.tx
-	hq := sc.headquarters
+	company := sc.company
 
 	idemKey := "DEV-LOCK-" + ord.OrderNo
 	existing, _ := tx.OrderLockRecord.Query().Where(
-		orderlockrecordent.OrganizationIDEQ(hq.ID),
+		orderlockrecordent.OrganizationIDEQ(company.ID),
 		orderlockrecordent.IdempotencyKeyEQ(idemKey),
 	).First(ctx)
 	if existing != nil {
@@ -1956,7 +1929,7 @@ func ensureOrderLockedWithRecord(ctx context.Context, sc *seedContext, ord *ent.
 	}
 
 	link, err := tx.SeaMasterBillOrderLink.Query().Where(
-		seamasterbillorderlinkent.OrganizationIDEQ(hq.ID),
+		seamasterbillorderlinkent.OrganizationIDEQ(company.ID),
 		seamasterbillorderlinkent.OrderIDEQ(ord.ID),
 		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
 	).First(ctx)
@@ -1964,7 +1937,7 @@ func ensureOrderLockedWithRecord(ctx context.Context, sc *seedContext, ord *ent.
 		return nil, fmt.Errorf("订单 %s 缺少 ACTIVE 主单关系: %w", ord.OrderNo, err)
 	}
 	hblCount, err := tx.SeaHouseBill.Query().Where(
-		seahousebillent.OrganizationIDEQ(hq.ID),
+		seahousebillent.OrganizationIDEQ(company.ID),
 		seahousebillent.OrderIDEQ(ord.ID),
 	).Count(ctx)
 	if err != nil {
@@ -1996,7 +1969,7 @@ func ensureOrderLockedWithRecord(ctx context.Context, sc *seedContext, ord *ent.
 		SetLockSource(orderent.LockSource(spec.lockSource)).
 		SetVersion(orderVersionAtLock)
 	recordCreate := tx.OrderLockRecord.Create().
-		SetOrganizationID(hq.ID).
+		SetOrganizationID(company.ID).
 		SetOrderID(ord.ID).
 		SetOrderNo(ord.OrderNo).
 		SetBusinessType(orderlockrecordent.BusinessTypeSE).
@@ -2027,11 +2000,11 @@ func ensureOrderLockedWithRecord(ctx context.Context, sc *seedContext, ord *ent.
 		return nil, err
 	}
 
-	mblVersionID, err := ensureSeedMasterBillVersion(ctx, tx, hq.ID, mbl, manualActor)
+	mblVersionID, err := ensureSeedMasterBillVersion(ctx, tx, company.ID, mbl, manualActor)
 	if err != nil {
 		return nil, err
 	}
-	teVersionID, err := ensureSeedTransportExecutionVersion(ctx, tx, hq.ID, exec, manualActor)
+	teVersionID, err := ensureSeedTransportExecutionVersion(ctx, tx, company.ID, exec, manualActor)
 	if err != nil {
 		return nil, err
 	}
@@ -2404,47 +2377,6 @@ func seedCommissionRules(ctx context.Context, sc *seedContext) error {
 		}
 	}
 
-	return nil
-}
-
-// migrateOperatingDataToCompany 将历史上注入在总部名下的经营数据整体迁移到经营
-// 公司。总部工作台业务边界实施后经营数据必须归属启用分公司，本迁移按组织整体
-// 搬移，幂等（第二次执行无匹配行）。财务配置类数据（费用科目/税目/汇率）不迁移，
-// 由 seedFinanceMasterData 在经营公司名下另行生成。
-func migrateOperatingDataToCompany(ctx context.Context, sc *seedContext) error {
-	db := sc.db
-	tables := []string{
-		"partners", "partner_assignments",
-		"orders", "order_personnels", "order_cargo_items", "order_containers",
-		"order_fee_supplement_requests", "order_lock_records", "order_unlock_requests",
-		"order_commission_attributions",
-		"sea_master_bills", "sea_house_bills", "sea_transport_executions",
-		"sea_master_bill_order_links", "sea_master_bill_versions",
-		"sea_house_bill_versions", "sea_transport_execution_versions",
-		"finance_bills", "finance_cashflows", "finance_verifications",
-		"finance_commission_rules", "finance_commission_rule_assignments",
-	}
-	moved := 0
-	for _, table := range tables {
-		res, err := db.ExecContext(ctx, fmt.Sprintf(
-			"UPDATE %s SET organization_id = $1 WHERE organization_id = $2", table),
-			sc.company.ID, sc.headquarters.ID)
-		if err != nil {
-			return fmt.Errorf("迁移 %s 到经营公司: %w", table, err)
-		}
-		if affected, affErr := res.RowsAffected(); affErr == nil {
-			moved += int(affected)
-		}
-	}
-	// 自开分单的签发组织随归属一并切换
-	if _, err := db.ExecContext(ctx,
-		"UPDATE sea_house_bills SET organization_id = $1, issuer_organization_id = CASE WHEN issuer_organization_id = $2 THEN $1 ELSE issuer_organization_id END WHERE organization_id = $1",
-		sc.company.ID, sc.headquarters.ID); err != nil {
-		return fmt.Errorf("迁移 sea_house_bills 签发组织: %w", err)
-	}
-	if moved > 0 {
-		fmt.Printf("✔ 组织迁移: 总部名下 %d 行经营数据已迁移至 [%s]\n", moved, sc.company.Name)
-	}
 	return nil
 }
 

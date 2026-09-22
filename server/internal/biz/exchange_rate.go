@@ -87,11 +87,11 @@ func ExchangeRateWeekWindow(t time.Time) (time.Time, time.Time) {
 	return monday, sunday
 }
 
-// ExchangeRateSetting 是折本币周汇率：NULL 组织为集团基线行（总部维护的公共兜底），
+// ExchangeRateSetting 是折本币周汇率：NULL 组织为公共参考行（系统管理维护的公共兜底），
 // 非空为本组织行（各核算组织面向自身本币自治维护）。区间恒为单自然周。
 type ExchangeRateSetting struct {
 	ID uuid.UUID
-	// OrganizationID 为空表示集团基线行（NULL），非空表示本组织行。
+	// OrganizationID 为空表示公共参考行（NULL），非空表示本组织行。
 	OrganizationID *uuid.UUID
 	FromCurrency   string
 	ToCurrency     string
@@ -108,9 +108,9 @@ type ExchangeRateSetting struct {
 	UpdatedAt time.Time
 }
 
-// ExchangeRateContext 携带调用组织基准币种与总部本位币；BaseCurrency 是当前核算
+// ExchangeRateContext 携带调用组织基准币种与系统管理本位币；BaseCurrency 是当前核算
 // 组织的本币（汇率行 to_currency 必须等于它），PivotCurrency 是 NULL 基线行
-// 交叉套算的基准币（总部本币）。
+// 交叉套算的基准币（系统管理本币）。
 type ExchangeRateContext struct {
 	OwnerOrganizationID uuid.UUID
 	BaseCurrency        string
@@ -137,7 +137,7 @@ type ExchangeRateRepo interface {
 	// UpsertWeeklyBatch 按自然周幂等写入汇率行（同作用域同货币对同周命中即覆盖更新，
 	// 不报唯一键冲突），source 标记行写入来源。
 	UpsertWeeklyBatch(ctx context.Context, source string, inputs []*ExchangeRateSetting, audit *AuditEvent) ([]*ExchangeRateSetting, error)
-	// UpdateScoped 按 ID 更新汇率行；allowBaseline 时可命中 NULL 基线行（总部），
+	// UpdateScoped 按 ID 更新汇率行；allowBaseline 时可命中 NULL 基线行（系统管理），
 	// 否则仅限调用组织自己的组织行。
 	UpdateScoped(ctx context.Context, callerOrganizationID uuid.UUID, input *ExchangeRateSetting, allowBaseline bool, audit *AuditEvent) (*ExchangeRateSetting, error)
 	// DisableScoped 停用汇率行，作用域语义同 UpdateScoped。
@@ -240,7 +240,7 @@ func (uc *ExchangeRateUsecase) Update(ctx context.Context, organizationID, actor
 	if err := uc.ensureOrganizationScope(ctx, organizationID, normalized, access.FinanceExchangeRateUpdate); err != nil {
 		return nil, err
 	}
-	return uc.repo.UpdateScoped(ctx, organizationID, normalized, IsHeadquartersOrganization(ctx), exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.update"))
+	return uc.repo.UpdateScoped(ctx, organizationID, normalized, IsSystemWorkspace(ctx), exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.update"))
 }
 
 func (uc *ExchangeRateUsecase) Disable(ctx context.Context, organizationID, actorID uuid.UUID, id uuid.UUID) error {
@@ -248,19 +248,19 @@ func (uc *ExchangeRateUsecase) Disable(ctx context.Context, organizationID, acto
 		return ErrExchangeRateInvalidArgument
 	}
 	var permissionKey = access.FinanceExchangeRateDisable
-	if IsHeadquartersOrganization(ctx) {
-		// 总部可停用 NULL 基线行（权限码 + 总部身份双重校验）。
+	if IsSystemWorkspace(ctx) {
+		// 系统管理可停用 NULL 基线行（权限码 + 系统管理身份双重校验）。
 		if err := RequireBaselineWrite(ctx, permissionKey); err != nil {
 			return err
 		}
 	} else if !requireExchangeRatePermission(ctx, permissionKey) {
 		return ErrExchangeRatePermissionDenied
 	}
-	return uc.repo.DisableScoped(ctx, organizationID, id, IsHeadquartersOrganization(ctx), exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.disable"))
+	return uc.repo.DisableScoped(ctx, organizationID, id, IsSystemWorkspace(ctx), exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.disable"))
 }
 
 // ensureOrganizationScope 校验 to_currency 必须等于组织本币，并按组织身份决定行
-// 归属：总部写 NULL 基线行（RequireBaselineWrite 双重校验），分公司写本组织行。
+// 归属：系统管理写 NULL 基线行（RequireBaselineWrite 双重校验），公司写本组织行。
 func (uc *ExchangeRateUsecase) ensureOrganizationScope(ctx context.Context, organizationID uuid.UUID, normalized *ExchangeRateSetting, permissionKey string) error {
 	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
 	if err != nil {
@@ -269,7 +269,7 @@ func (uc *ExchangeRateUsecase) ensureOrganizationScope(ctx context.Context, orga
 	if normalized.ToCurrency != rateContext.BaseCurrency {
 		return ErrExchangeRateCurrencyInvalid
 	}
-	if IsHeadquartersOrganization(ctx) {
+	if IsSystemWorkspace(ctx) {
 		if err := RequireBaselineWrite(ctx, permissionKey); err != nil {
 			return err
 		}
@@ -481,10 +481,10 @@ func (uc *ExchangeRateUsecase) SyncExchangeRates(ctx context.Context, organizati
 	if err != nil {
 		return 0, "", "", err
 	}
-	// 行归属与组织身份一致（与页面维护同款判定）：总部写 NULL 基线行（权限码 +
-	// 总部身份双重校验），分公司写本组织 org 行——分公司一键同步严禁覆盖全网基线。
+	// 行归属与组织身份一致（与页面维护同款判定）：系统管理写 NULL 基线行（权限码 +
+	// 系统管理身份双重校验），公司写本组织 org 行——公司一键同步严禁覆盖全网基线。
 	var organizationScope *uuid.UUID
-	if IsHeadquartersOrganization(ctx) {
+	if IsSystemWorkspace(ctx) {
 		if err := RequireBaselineWrite(ctx, access.FinanceExchangeRateCreate); err != nil {
 			return 0, "", "", err
 		}

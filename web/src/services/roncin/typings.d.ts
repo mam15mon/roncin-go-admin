@@ -330,8 +330,6 @@ declare namespace API {
 
   type Airport = {
     id?: string;
-    /** 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。 */
-    organizationId?: string;
     iataCode?: string;
     icaoCode?: string;
     nameZh?: string;
@@ -1412,6 +1410,18 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateFeeSettingTemplateRequest = {
+    input?: FeeSettingTemplateInput;
+  };
+
+  type CreateFeeSettingTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeSettingTemplate;
+    traceId?: string;
+  };
+
   type CreateInvoiceRequest = {
     billIds: string[];
     invoiceType: string;
@@ -1579,7 +1589,7 @@ declare namespace API {
   type CreateOrganizationRequest = {
     code: string;
     name: string;
-    parentId: string;
+    parentId?: string;
     kind: number;
     baseCurrency?: string;
   };
@@ -2420,6 +2430,12 @@ declare namespace API {
     traceId?: string;
   };
 
+  type FeeCatalogServiceListFeeSettingTemplatesParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
   type FeeCatalogServiceSearchBillingUnitsParams = {
     keyword?: string;
     page?: number;
@@ -2443,6 +2459,10 @@ declare namespace API {
   };
 
   type FeeCatalogServiceUpdateFeeSettingParams = {
+    id: string;
+  };
+
+  type FeeCatalogServiceUpdateFeeSettingTemplateParams = {
     id: string;
   };
 
@@ -2538,7 +2558,7 @@ declare namespace API {
 
   type FeeSetting = {
     id?: string;
-    /** 为空表示总部公共科目基线行，非空表示分公司本地明细行。 */
+    /** 科目归属公司，系统初始目录使用独立模板接口。 */
     organizationId?: string;
     feeCode?: string;
     nameZh?: string;
@@ -2559,6 +2579,31 @@ declare namespace API {
     sortOrder?: number;
     createdAt?: string;
     updatedAt?: string;
+  };
+
+  type FeeSettingTemplate = {
+    id?: string;
+    input?: FeeSettingTemplateInput;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type FeeSettingTemplateInput = {
+    feeCode?: string;
+    nameZh?: string;
+    nameEn?: string;
+    aliasName?: string;
+    chargeCategoryId?: string;
+    defaultCurrency?: string;
+    billingUnitId?: string;
+    abnormalCaseId?: string;
+    taxRate?: string;
+    sortOrder?: number;
+    enabled?: boolean;
+    taxableServiceName?: string;
+    taxableServiceShortName?: string;
+    taxableServiceGoodsCode?: string;
+    taxableServiceDefaultTaxRate?: string;
   };
 
   type FetchExchangeRatesRequest = {
@@ -3773,6 +3818,17 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FeeSetting[];
+    traceId?: string;
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type ListFeeSettingTemplatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeSettingTemplate[];
     traceId?: string;
     total?: number;
     page?: number;
@@ -5429,7 +5485,7 @@ declare namespace API {
     code?: string;
     name?: string;
     baseCurrency?: string;
-    /** 组织节点类型，供前端推导主数据维护视角（总部/公司）。 */
+    /** 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。 */
     kind?: number;
   };
 
@@ -5438,7 +5494,7 @@ declare namespace API {
     organizationName: string;
     organizationCode: string;
     isDefault?: boolean;
-    /** 组织节点类型，供前端推导主数据维护视角（总部/公司）。 */
+    /** 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。 */
     kind?: number;
   };
 
@@ -5868,8 +5924,6 @@ declare namespace API {
 
   type Port = {
     id?: string;
-    /** 为空表示集团基线行（总部维护、全网可见），非空表示本组织行。 */
-    organizationId?: string;
     unLocode?: string;
     nameZh?: string;
     nameEn?: string;
@@ -8253,6 +8307,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FeeSetting;
+    traceId?: string;
+  };
+
+  type UpdateFeeSettingTemplateRequest = {
+    id?: string;
+    input?: FeeSettingTemplateInput;
+  };
+
+  type UpdateFeeSettingTemplateResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeSettingTemplate;
     traceId?: string;
   };
 

@@ -55,10 +55,6 @@ const (
 	EdgeTaxableServices = "taxable_services"
 	// EdgeFeeSettings holds the string denoting the fee_settings edge name in mutations.
 	EdgeFeeSettings = "fee_settings"
-	// EdgePorts holds the string denoting the ports edge name in mutations.
-	EdgePorts = "ports"
-	// EdgeAirports holds the string denoting the airports edge name in mutations.
-	EdgeAirports = "airports"
 	// EdgeNumberRules holds the string denoting the number_rules edge name in mutations.
 	EdgeNumberRules = "number_rules"
 	// EdgeOrders holds the string denoting the orders edge name in mutations.
@@ -222,20 +218,6 @@ const (
 	FeeSettingsInverseTable = "fee_settings"
 	// FeeSettingsColumn is the table column denoting the fee_settings relation/edge.
 	FeeSettingsColumn = "organization_id"
-	// PortsTable is the table that holds the ports relation/edge.
-	PortsTable = "ports"
-	// PortsInverseTable is the table name for the Port entity.
-	// It exists in this package in order to avoid circular dependency with the "port" package.
-	PortsInverseTable = "ports"
-	// PortsColumn is the table column denoting the ports relation/edge.
-	PortsColumn = "organization_id"
-	// AirportsTable is the table that holds the airports relation/edge.
-	AirportsTable = "airports"
-	// AirportsInverseTable is the table name for the Airport entity.
-	// It exists in this package in order to avoid circular dependency with the "airport" package.
-	AirportsInverseTable = "airports"
-	// AirportsColumn is the table column denoting the airports relation/edge.
-	AirportsColumn = "organization_id"
 	// NumberRulesTable is the table that holds the number_rules relation/edge.
 	NumberRulesTable = "number_rules"
 	// NumberRulesInverseTable is the table name for the NumberRule entity.
@@ -659,10 +641,10 @@ type Kind string
 
 // Kind values.
 const (
-	KindHeadquarters Kind = "headquarters"
-	KindCompany      Kind = "company"
-	KindDepartment   Kind = "department"
-	KindTeam         Kind = "team"
+	KindSystem     Kind = "system"
+	KindCompany    Kind = "company"
+	KindDepartment Kind = "department"
+	KindTeam       Kind = "team"
 )
 
 func (k Kind) String() string {
@@ -672,7 +654,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindHeadquarters, KindCompany, KindDepartment, KindTeam:
+	case KindSystem, KindCompany, KindDepartment, KindTeam:
 		return nil
 	default:
 		return fmt.Errorf("organization: invalid enum value for kind field: %q", k)
@@ -848,34 +830,6 @@ func ByFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
 func ByFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByPortsCount orders the results by ports count.
-func ByPortsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newPortsStep(), opts...)
-	}
-}
-
-// ByPorts orders the results by ports terms.
-func ByPorts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPortsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByAirportsCount orders the results by airports count.
-func ByAirportsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAirportsStep(), opts...)
-	}
-}
-
-// ByAirports orders the results by airports terms.
-func ByAirports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAirportsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1667,20 +1621,6 @@ func newFeeSettingsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FeeSettingsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FeeSettingsTable, FeeSettingsColumn),
-	)
-}
-func newPortsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PortsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, PortsTable, PortsColumn),
-	)
-}
-func newAirportsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AirportsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AirportsTable, AirportsColumn),
 	)
 }
 func newNumberRulesStep() *sqlgraph.Step {

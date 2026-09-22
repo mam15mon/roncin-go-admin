@@ -14,19 +14,17 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
 // AirportQuery is the builder for querying Airport entities.
 type AirportQuery struct {
 	config
-	ctx              *QueryContext
-	order            []airport.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.Airport
-	withOrganization *OrganizationQuery
-	modifiers        []func(*sql.Selector)
+	ctx        *QueryContext
+	order      []airport.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Airport
+	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,28 +59,6 @@ func (_q *AirportQuery) Unique(unique bool) *AirportQuery {
 func (_q *AirportQuery) Order(o ...airport.OrderOption) *AirportQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryOrganization chains the current query on the "organization" edge.
-func (_q *AirportQuery) QueryOrganization() *OrganizationQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(airport.Table, airport.FieldID, selector),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, airport.OrganizationTable, airport.OrganizationColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Airport entity from the query.
@@ -272,27 +248,15 @@ func (_q *AirportQuery) Clone() *AirportQuery {
 		return nil
 	}
 	return &AirportQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]airport.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.Airport{}, _q.predicates...),
-		withOrganization: _q.withOrganization.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]airport.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Airport{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithOrganization tells the query-builder to eager-load the nodes that are connected to
-// the "organization" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *AirportQuery) WithOrganization(opts ...func(*OrganizationQuery)) *AirportQuery {
-	query := (&OrganizationClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withOrganization = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -371,11 +335,8 @@ func (_q *AirportQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *AirportQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Airport, error) {
 	var (
-		nodes       = []*Airport{}
-		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
-			_q.withOrganization != nil,
-		}
+		nodes = []*Airport{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Airport).scanValues(nil, columns)
@@ -383,7 +344,6 @@ func (_q *AirportQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Airp
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Airport{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(_q.modifiers) > 0 {
@@ -398,46 +358,7 @@ func (_q *AirportQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Airp
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withOrganization; query != nil {
-		if err := _q.loadOrganization(ctx, query, nodes, nil,
-			func(n *Airport, e *Organization) { n.Edges.Organization = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *AirportQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*Airport, init func(*Airport), assign func(*Airport, *Organization)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Airport)
-	for i := range nodes {
-		if nodes[i].OrganizationID == nil {
-			continue
-		}
-		fk := *nodes[i].OrganizationID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(organization.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "organization_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *AirportQuery) sqlCount(ctx context.Context) (int, error) {
@@ -467,9 +388,6 @@ func (_q *AirportQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != airport.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withOrganization != nil {
-			_spec.Node.AddColumnOnce(airport.FieldOrganizationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

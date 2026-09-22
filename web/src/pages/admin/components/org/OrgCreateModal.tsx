@@ -35,7 +35,11 @@ export default function OrgCreateModal({
 
   return (
     <ModalForm<CreateFormValues>
-      title={`新增${childKindMeta?.label ?? ''}（所属上级：${parentOrg?.name ?? ''}）`}
+      title={
+        parentOrg
+          ? `新增${childKindMeta?.label ?? ''}（所属上级：${parentOrg.name}）`
+          : '新增公司'
+      }
       open={open}
       formRef={formRef}
       modalProps={{
@@ -45,12 +49,12 @@ export default function OrgCreateModal({
       }}
       onOpenChange={onOpenChange}
       onFinish={async (values) => {
-        if (!parentOrg?.id || !childKind) return false;
+        if (!childKind) return false;
         try {
           const response = await adminServiceCreateOrganization({
             code: values.code?.trim() ?? '',
             name: values.name?.trim() ?? '',
-            parentId: parentOrg.id,
+            parentId: parentOrg?.id,
             kind: childKind,
             baseCurrency:
               childKind === 2

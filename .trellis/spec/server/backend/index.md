@@ -17,12 +17,12 @@
 | [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 周汇率双轨点差（ar/ap）与组织自治：本币口径、四级容灾链、跨组织原币记账、NULL 基线兜底 | ✅ |
 | [Finance Commission Lock](./finance-commission-lock.md) | 提成净额财务锁：Clawback 冲减、净额归零释放、双落点同口径 | ✅ |
 | [Commission Scheme Assignment](./commission-scheme-assignment.md) | 提成方案与员工分配：实际区间唯一、Membership 固定锁序、legacy_readonly、工作台资格门禁与订单摘要隐私投影 | ✅ |
-| [Organization Shared Masterdata](./organization-shared-masterdata.md) | 主数据存储三型（A 全局/B 基线+本地/C 组织私有）与维护权、B 型统一读取谓词、写拦截器、迁移 CHECK/部分索引陷阱 | ✅ |
+| [Organization Shared Masterdata](./organization-shared-masterdata.md) | 公共主数据、系统费用模板与公司独立配置、工作台维护权及迁移约束 | ✅ |
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Partner Role Blacklist](./partner-role-blacklist.md) | 客户、供应商、国外代理角色级黑名单及订单新增关联门禁 | ✅ |
 | [Auth Session Org Switch](./auth-session-org-switch.md) | 登录组织选择、应用内切换与会话轮转契约：成员资格唯一入场券、单事务轮转、并发语义 | ✅ |
-| [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属总部/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
-| [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 总部仅治理、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
+| [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属系统管理/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
+| [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 系统管理仅管理公共资料与授权、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
 | [DingTalk Registration Approval](./dingtalk-registration-approval.md) | 钉钉注册双通道：邀请自动激活（降级红线）、认领审批、按目标组织路由通知、手机号与令牌安全 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、常用命令 | ✅ |

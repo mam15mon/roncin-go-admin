@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
@@ -54,7 +53,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
@@ -328,36 +326,6 @@ func (_c *OrganizationCreate) AddFeeSettings(v ...*FeeSetting) *OrganizationCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddFeeSettingIDs(ids...)
-}
-
-// AddPortIDs adds the "ports" edge to the Port entity by IDs.
-func (_c *OrganizationCreate) AddPortIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddPortIDs(ids...)
-	return _c
-}
-
-// AddPorts adds the "ports" edges to the Port entity.
-func (_c *OrganizationCreate) AddPorts(v ...*Port) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddPortIDs(ids...)
-}
-
-// AddAirportIDs adds the "airports" edge to the Airport entity by IDs.
-func (_c *OrganizationCreate) AddAirportIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddAirportIDs(ids...)
-	return _c
-}
-
-// AddAirports adds the "airports" edges to the Airport entity.
-func (_c *OrganizationCreate) AddAirports(v ...*Airport) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddAirportIDs(ids...)
 }
 
 // AddNumberRuleIDs adds the "number_rules" edge to the NumberRule entity by IDs.
@@ -1462,38 +1430,6 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.PortsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.PortsTable,
-			Columns: []string{organization.PortsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(port.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.AirportsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.AirportsTable,
-			Columns: []string{organization.AirportsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(airport.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

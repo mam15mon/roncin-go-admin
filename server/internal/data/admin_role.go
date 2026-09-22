@@ -18,8 +18,8 @@ import (
 )
 
 // resolveRoleOrganizationID 解析组织对应的角色所属组织：
-// 总部与公司自身独立维护角色库；部门与团队公用其所属公司的角色与工作区，
-// 沿组织树向上回溯到最近的总部/公司祖先节点。组织不存在、断链或成环时
+// 系统管理与公司自身独立维护角色库；部门与团队公用其所属公司的角色与工作区，
+// 沿组织树向上回溯到最近的系统管理/公司祖先节点。组织不存在、断链或成环时
 // 显式返回组织不存在错误，不回退为传入的组织 ID。
 func resolveRoleOrganizationID(ctx context.Context, client *ent.Client, organizationID uuid.UUID) (uuid.UUID, error) {
 	nodes, err := loadOrganizationTree(ctx, client)
@@ -34,7 +34,7 @@ func resolveRoleOrganizationID(ctx context.Context, client *ent.Client, organiza
 }
 
 // resolveRoleAnchorOrganizationID 校验角色写入的锚定组织：角色库只归属工作台
-// （总部/公司），部门/团队锚点一律拒绝，不做静默归一。
+// （系统管理/公司），部门/团队锚点一律拒绝，不做静默归一。
 func resolveRoleAnchorOrganizationID(ctx context.Context, client *ent.Client, organizationID uuid.UUID) (uuid.UUID, error) {
 	resolved, err := resolveRoleOrganizationID(ctx, client, organizationID)
 	if err != nil {
@@ -54,6 +54,15 @@ func (r *adminRepo) ListRoles(ctx context.Context, organizationID uuid.UUID) ([]
 	roleOrgID, err := resolveRoleOrganizationID(ctx, client, organizationID)
 	if err != nil {
 		return nil, err
+	}
+	if principal, ok := biz.PrincipalFromContext(ctx); ok {
+		scope, scopeErr := adminWorkspaceScope(ctx, client, principal.Organization.ID)
+		if scopeErr != nil {
+			return nil, scopeErr
+		}
+		if !uuidInValues(scope, organizationID) {
+			return nil, biz.ErrAdminOrganizationNotFound
+		}
 	}
 	items, err := client.Role.Query().Where(role.OrganizationIDEQ(roleOrgID)).WithPermissions().All(ctx)
 	if err != nil {
@@ -267,6 +276,15 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 		if resolveErr != nil {
 			return resolveErr
 		}
+		target, targetErr := tx.Organization.Get(ctx, roleOrgID)
+		if targetErr != nil {
+			return targetErr
+		}
+		for _, key := range permissionKeys {
+			if !access.PermissionAllowedInWorkspace(key, target.Kind == organization.KindSystem) {
+				return biz.ErrAdminPrivilegeEscalation
+			}
+		}
 		var saveErr error
 		created, saveErr = tx.Role.Create().SetOrganizationID(roleOrgID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
 		if saveErr != nil {
@@ -299,6 +317,15 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 		roleOrgID, resolveErr := resolveRoleAnchorOrganizationID(ctx, tx.Client(), organizationID)
 		if resolveErr != nil {
 			return resolveErr
+		}
+		target, targetErr := tx.Organization.Get(ctx, roleOrgID)
+		if targetErr != nil {
+			return targetErr
+		}
+		for _, key := range permissionKeys {
+			if !access.PermissionAllowedInWorkspace(key, target.Kind == organization.KindSystem) {
+				return biz.ErrAdminPrivilegeEscalation
+			}
 		}
 		var saveErr error
 		updated, saveErr = tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(roleOrgID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)

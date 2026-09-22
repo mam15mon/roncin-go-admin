@@ -11,9 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -33,26 +31,6 @@ func (_u *AirportUpdate) Where(ps ...predicate.Airport) *AirportUpdate {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AirportUpdate) SetUpdatedAt(v time.Time) *AirportUpdate {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *AirportUpdate) SetOrganizationID(v uuid.UUID) *AirportUpdate {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *AirportUpdate) SetNillableOrganizationID(v *uuid.UUID) *AirportUpdate {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (_u *AirportUpdate) ClearOrganizationID() *AirportUpdate {
-	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -267,20 +245,9 @@ func (_u *AirportUpdate) SetNillableSearchKeywords(v *string) *AirportUpdate {
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *AirportUpdate) SetOrganization(v *Organization) *AirportUpdate {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // Mutation returns the AirportMutation object of the builder.
 func (_u *AirportUpdate) Mutation() *AirportMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *AirportUpdate) ClearOrganization() *AirportUpdate {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -447,35 +414,6 @@ func (_u *AirportUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(airport.FieldSearchKeywords, field.TypeString, value)
 	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   airport.OrganizationTable,
-			Columns: []string{airport.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   airport.OrganizationTable,
-			Columns: []string{airport.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{airport.Label}
@@ -499,26 +437,6 @@ type AirportUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AirportUpdateOne) SetUpdatedAt(v time.Time) *AirportUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (_u *AirportUpdateOne) SetOrganizationID(v uuid.UUID) *AirportUpdateOne {
-	_u.mutation.SetOrganizationID(v)
-	return _u
-}
-
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_u *AirportUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *AirportUpdateOne {
-	if v != nil {
-		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (_u *AirportUpdateOne) ClearOrganizationID() *AirportUpdateOne {
-	_u.mutation.ClearOrganizationID()
 	return _u
 }
 
@@ -733,20 +651,9 @@ func (_u *AirportUpdateOne) SetNillableSearchKeywords(v *string) *AirportUpdateO
 	return _u
 }
 
-// SetOrganization sets the "organization" edge to the Organization entity.
-func (_u *AirportUpdateOne) SetOrganization(v *Organization) *AirportUpdateOne {
-	return _u.SetOrganizationID(v.ID)
-}
-
 // Mutation returns the AirportMutation object of the builder.
 func (_u *AirportUpdateOne) Mutation() *AirportMutation {
 	return _u.mutation
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (_u *AirportUpdateOne) ClearOrganization() *AirportUpdateOne {
-	_u.mutation.ClearOrganization()
-	return _u
 }
 
 // Where appends a list predicates to the AirportUpdate builder.
@@ -942,35 +849,6 @@ func (_u *AirportUpdateOne) sqlSave(ctx context.Context) (_node *Airport, err er
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(airport.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.OrganizationCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   airport.OrganizationTable,
-			Columns: []string{airport.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrganizationIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   airport.OrganizationTable,
-			Columns: []string{airport.OrganizationColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Airport{config: _u.config}
 	_spec.Assign = _node.assignValues

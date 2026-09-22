@@ -276,14 +276,14 @@ func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
 
 func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 	parentID := uuid.New()
-	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindHeadquarters, BaseCurrency: "CNY"}}
+	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindSystem, BaseCurrency: "CNY"}}
 	usecase := NewAdminUsecase(repo)
 
-	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " branch ", Name: " 分公司 ", Kind: OrganizationKindCompany, ParentID: &parentID, BaseCurrency: "usd"})
+	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " branch ", Name: " 分公司 ", Kind: OrganizationKindCompany, BaseCurrency: "usd"})
 	if err != nil {
 		t.Fatalf("CreateOrganization() error = %v", err)
 	}
-	if repo.organizationID != parentID || created.ParentID == nil || *created.ParentID != parentID {
+	if repo.organizationID != uuid.Nil || created.ParentID != nil {
 		t.Fatalf("created organization = %#v, looked up parent = %s", created, repo.organizationID)
 	}
 	if created.BaseCurrency != "USD" {
@@ -291,7 +291,7 @@ func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 	}
 
 	missingParentID := uuid.New()
-	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: "missing", Name: "缺失父组织", Kind: OrganizationKindCompany, ParentID: &missingParentID}); err != ErrAdminOrganizationNotFound {
+	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: "missing", Name: "缺失父组织", Kind: OrganizationKindCompany, ParentID: &missingParentID}); err != ErrAdminOrganizationHierarchy {
 		t.Fatalf("missing parent error = %v, want ErrAdminOrganizationNotFound", err)
 	}
 	if repo.organizationInput.Code != "BRANCH" {
@@ -303,7 +303,7 @@ func TestAdminUsecaseCreateOrganizationRejectsRoot(t *testing.T) {
 	repo := &adminRepoStub{}
 	usecase := NewAdminUsecase(repo)
 
-	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " root ", Name: " 根组织 ", Kind: OrganizationKindCompany}); err != ErrAdminOrganizationParentRequired {
+	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " root ", Name: " 根组织 ", Kind: OrganizationKindDepartment}); err != ErrAdminOrganizationParentRequired {
 		t.Fatalf("root organization error = %v, want ErrAdminOrganizationParentRequired", err)
 	}
 }

@@ -1,3 +1,4 @@
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -33,7 +34,7 @@ vi.mock('@/app/access', () => ({
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({
     initialState: {
-      currentUser: { currentOrganization: { id: 'org-1', name: '总部' } },
+      currentUser: { currentOrganization: { id: 'org-1', name: '系统管理' } },
     },
   }),
 }));
@@ -117,7 +118,7 @@ describe('DingTalkRegistrationsPanel', () => {
 
   it('队列请求只带分页参数', async () => {
     await act(async () => {
-      render(<DingTalkRegistrationsPanel />);
+      renderWithClient(<DingTalkRegistrationsPanel />);
     });
 
     await act(async () => {
@@ -131,9 +132,9 @@ describe('DingTalkRegistrationsPanel', () => {
     expect(serviceMocks.listOrganizations).not.toHaveBeenCalled();
   });
 
-  it('未自选目标组织展示总部兜底，自选组织展示组织名', async () => {
+  it('未自选目标组织展示系统管理收口，自选组织展示组织名', async () => {
     await act(async () => {
-      render(<DingTalkRegistrationsPanel />);
+      renderWithClient(<DingTalkRegistrationsPanel />);
     });
 
     const orgColumn = (proTableState.props?.columns ?? []).find(
@@ -155,7 +156,7 @@ describe('DingTalkRegistrationsPanel', () => {
         })}
       </>,
     );
-    expect(container.textContent).toContain('总部兜底');
+    expect(container.textContent).toContain('系统管理收口');
     expect(container.textContent).toContain('成都分公司');
     unmount();
   });
@@ -163,7 +164,7 @@ describe('DingTalkRegistrationsPanel', () => {
   it('同意/拒绝操作把对应注册传给审批模态', async () => {
     let renderResult: ReturnType<typeof render> | undefined;
     await act(async () => {
-      renderResult = render(<DingTalkRegistrationsPanel />);
+      renderResult = renderWithClient(<DingTalkRegistrationsPanel />);
     });
 
     const optionColumn = (proTableState.props?.columns ?? []).find(
@@ -173,7 +174,7 @@ describe('DingTalkRegistrationsPanel', () => {
       userId: 'user-9',
       displayName: '钉钉新员工',
       requestedOrganizationId: 'org-1',
-      requestedOrganizationName: '总部',
+      requestedOrganizationName: '系统管理',
     };
 
     const { unmount } = render(

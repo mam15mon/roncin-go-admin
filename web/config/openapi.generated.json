@@ -5071,6 +5071,119 @@
         }
       }
     },
+    "/api/v1/finance/fee-setting-templates": {
+      "get": {
+        "tags": [
+          "FeeCatalogService"
+        ],
+        "operationId": "FeeCatalogService_ListFeeSettingTemplates",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFeeSettingTemplatesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FeeCatalogService"
+        ],
+        "operationId": "FeeCatalogService_CreateFeeSettingTemplate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.CreateFeeSettingTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.CreateFeeSettingTemplateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/fee-setting-templates/{id}": {
+      "put": {
+        "tags": [
+          "FeeCatalogService"
+        ],
+        "operationId": "FeeCatalogService_UpdateFeeSettingTemplate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.UpdateFeeSettingTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.UpdateFeeSettingTemplateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/fee-settings": {
       "get": {
         "tags": [
@@ -9229,7 +9342,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。",
+        "description": "ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。",
         "operationId": "OrderFeeService_ResolveFeeExchangeRate",
         "parameters": [
           {
@@ -13894,7 +14007,6 @@
         "required": [
           "code",
           "name",
-          "parentId",
           "kind"
         ],
         "type": "object",
@@ -15155,7 +15267,7 @@
           },
           "kind": {
             "type": "integer",
-            "description": "组织节点类型，供前端推导主数据维护视角（总部/公司）。",
+            "description": "组织节点类型，供前端推导主数据维护视角（系统管理/公司）。",
             "format": "enum"
           }
         }
@@ -15182,7 +15294,7 @@
           },
           "kind": {
             "type": "integer",
-            "description": "组织节点类型，供前端推导主数据维护视角（总部/公司）。",
+            "description": "组织节点类型，供前端推导主数据维护视角（系统管理/公司）。",
             "format": "enum"
           }
         },
@@ -18506,6 +18618,35 @@
           }
         }
       },
+      "finance.v1.CreateFeeSettingTemplateRequest": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "$ref": "#/components/schemas/finance.v1.FeeSettingTemplateInput"
+          }
+        }
+      },
+      "finance.v1.CreateFeeSettingTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FeeSettingTemplate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.CreateInvoiceRequest": {
         "required": [
           "billIds",
@@ -19273,7 +19414,7 @@
           },
           "organizationId": {
             "type": "string",
-            "description": "为空表示总部公共科目基线行，非空表示分公司本地明细行。"
+            "description": "科目归属公司，系统初始目录使用独立模板接口。"
           },
           "feeCode": {
             "type": "string"
@@ -19332,6 +19473,75 @@
             "type": "string"
           }
         }
+      },
+      "finance.v1.FeeSettingTemplate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/finance.v1.FeeSettingTemplateInput"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FeeSettingTemplateInput": {
+        "type": "object",
+        "properties": {
+          "feeCode": {
+            "type": "string"
+          },
+          "nameZh": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "aliasName": {
+            "type": "string"
+          },
+          "chargeCategoryId": {
+            "type": "string"
+          },
+          "defaultCurrency": {
+            "type": "string"
+          },
+          "billingUnitId": {
+            "type": "string"
+          },
+          "abnormalCaseId": {
+            "type": "string"
+          },
+          "taxRate": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "taxableServiceName": {
+            "type": "string"
+          },
+          "taxableServiceShortName": {
+            "type": "string"
+          },
+          "taxableServiceGoodsCode": {
+            "type": "string"
+          },
+          "taxableServiceDefaultTaxRate": {
+            "type": "string"
+          }
+        },
+        "description": "系统初始费用目录；税务默认值只保存文本，不引用公司的税务资料。"
       },
       "finance.v1.FetchExchangeRatesRequest": {
         "required": [
@@ -21736,6 +21946,42 @@
           }
         }
       },
+      "finance.v1.ListFeeSettingTemplatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FeeSettingTemplate"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "finance.v1.ListFeeSettingsResponse": {
         "type": "object",
         "properties": {
@@ -23274,6 +23520,38 @@
           }
         }
       },
+      "finance.v1.UpdateFeeSettingTemplateRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/finance.v1.FeeSettingTemplateInput"
+          }
+        }
+      },
+      "finance.v1.UpdateFeeSettingTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FeeSettingTemplate"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.UpdateTaxableServiceRequest": {
         "required": [
           "id",
@@ -23454,10 +23732,6 @@
         "properties": {
           "id": {
             "type": "string"
-          },
-          "organizationId": {
-            "type": "string",
-            "description": "为空表示集团基线行（总部维护、全网可见），非空表示本组织行。"
           },
           "iataCode": {
             "type": "string"
@@ -24382,10 +24656,6 @@
         "properties": {
           "id": {
             "type": "string"
-          },
-          "organizationId": {
-            "type": "string",
-            "description": "为空表示集团基线行（总部维护、全网可见），非空表示本组织行。"
           },
           "unLocode": {
             "type": "string"

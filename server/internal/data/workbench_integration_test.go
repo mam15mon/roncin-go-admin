@@ -58,7 +58,7 @@ func newWorkbenchIntegrationFixture(t *testing.T) *workbenchIntegrationFixture {
 	org, err := data.db.Organization.Create().
 		SetCode("WB-" + suffix).
 		SetName("工作台测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		SetEnabled(true).
 		Save(ctx)

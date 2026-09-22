@@ -74,7 +74,7 @@ type IndustryReferenceSyncResult struct {
 }
 
 // IndustryReferenceSyncStore 行业参考大数据同步存储。A 型实体（航司/船司）直写全局行，
-// B 型实体（港口/机场）直写基线行（organization_id IS NULL），不再解析目标组织。
+// 港口、机场同步到全局公共目录，不按公司拆分。
 type IndustryReferenceSyncStore struct{ data *Data }
 
 func NewIndustryReferenceSyncStore(data *Data) *IndustryReferenceSyncStore {
@@ -98,7 +98,7 @@ func (s *IndustryReferenceSyncStore) CheckAirports(ctx context.Context, source s
 	if err != nil {
 		return nil, err
 	}
-	items, err := client.Airport.Query().Where(airport.OrganizationIDIsNil()).All(ctx)
+	items, err := client.Airport.Query().All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有机场失败: %w", err)
 	}
@@ -110,7 +110,7 @@ func (s *IndustryReferenceSyncStore) CheckPorts(ctx context.Context, source stri
 	if err != nil {
 		return nil, err
 	}
-	items, err := client.Port.Query().Where(port.OrganizationIDIsNil()).All(ctx)
+	items, err := client.Port.Query().All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("查询现有港口失败: %w", err)
 	}
@@ -132,7 +132,7 @@ func (s *IndustryReferenceSyncStore) CheckShippingLines(ctx context.Context, sou
 func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, source, sourceVersion, sourceHash string, rows []AirportSyncRecord) (IndustryReferenceSyncResult, error) {
 	result := IndustryReferenceSyncResult{}
 	err := s.data.WithTx(ctx, func(tx *ent.Tx) error {
-		items, queryErr := tx.Airport.Query().Where(airport.OrganizationIDIsNil()).All(ctx)
+		items, queryErr := tx.Airport.Query().All(ctx)
 		if queryErr != nil {
 			return fmt.Errorf("查询现有机场失败: %w", queryErr)
 		}
@@ -140,7 +140,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, source, 
 		if len(conflicts) > 0 {
 			return fmt.Errorf("机场同步存在 %d 条数据库冲突", len(conflicts))
 		}
-		if _, updateErr := tx.Airport.Update().Where(airport.OrganizationIDIsNil(), airport.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
+		if _, updateErr := tx.Airport.Update().Where(airport.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
 			return fmt.Errorf("停用旧机场数据失败: %w", updateErr)
 		}
 		existingByCode := make(map[string]*ent.Airport, len(items))
@@ -167,7 +167,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, source, 
 				result.Updated++
 				continue
 			}
-			// 行业参考大数据是客观事实，同步直写基线行（NULL）。
+			// 行业参考大数据是客观事实，同步写入公共目录。
 			create := tx.Airport.Create().
 				SetIataCode(row.IATACode).
 				SetNillableIcaoCode(row.ICAOCode).
@@ -184,7 +184,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, source, 
 			result.Created++
 		}
 		var countErr error
-		result.Disabled, countErr = tx.Airport.Query().Where(airport.OrganizationIDIsNil(), airport.SourceEQ(source), airport.EnabledEQ(false)).Count(ctx)
+		result.Disabled, countErr = tx.Airport.Query().Where(airport.SourceEQ(source), airport.EnabledEQ(false)).Count(ctx)
 		if countErr != nil {
 			return fmt.Errorf("统计停用机场失败: %w", countErr)
 		}
@@ -286,7 +286,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirlines(ctx context.Context, source, 
 func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, source, sourceVersion, sourceHash string, rows []PortSyncRecord) (IndustryReferenceSyncResult, error) {
 	result := IndustryReferenceSyncResult{}
 	err := s.data.WithTx(ctx, func(tx *ent.Tx) error {
-		items, queryErr := tx.Port.Query().Where(port.OrganizationIDIsNil()).All(ctx)
+		items, queryErr := tx.Port.Query().All(ctx)
 		if queryErr != nil {
 			return fmt.Errorf("查询现有港口失败: %w", queryErr)
 		}
@@ -294,7 +294,7 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, source, sou
 		if len(conflicts) > 0 {
 			return fmt.Errorf("港口同步存在 %d 条数据库冲突", len(conflicts))
 		}
-		if _, updateErr := tx.Port.Update().Where(port.OrganizationIDIsNil(), port.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
+		if _, updateErr := tx.Port.Update().Where(port.SourceEQ(source)).SetEnabled(false).Save(ctx); updateErr != nil {
 			return fmt.Errorf("停用旧港口数据失败: %w", updateErr)
 		}
 		existingByCode := make(map[string]*ent.Port, len(items))
@@ -316,7 +316,7 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, source, sou
 				result.Updated++
 				continue
 			}
-			// 行业参考大数据是客观事实，同步直写基线行（NULL）。
+			// 行业参考大数据是客观事实，同步写入公共目录。
 			if _, createErr := tx.Port.Create().
 				SetUnLocode(row.UNLocode).
 				SetNameEn(row.NameEN).
@@ -332,7 +332,7 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, source, sou
 			result.Created++
 		}
 		var countErr error
-		result.Disabled, countErr = tx.Port.Query().Where(port.OrganizationIDIsNil(), port.SourceEQ(source), port.EnabledEQ(false)).Count(ctx)
+		result.Disabled, countErr = tx.Port.Query().Where(port.SourceEQ(source), port.EnabledEQ(false)).Count(ctx)
 		if countErr != nil {
 			return fmt.Errorf("统计停用港口失败: %w", countErr)
 		}

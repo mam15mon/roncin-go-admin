@@ -11,7 +11,7 @@ describe('organization-tree utils', () => {
     {
       id: '1',
       code: 'HQ',
-      name: '总部集团',
+      name: '系统管理',
       kind: 1,
       parentId: '',
       enabled: true,
@@ -68,7 +68,7 @@ describe('organization-tree utils', () => {
     expect(treeData[1].key).toBe('6'); // ISOLATED
 
     expect(allKeys).toEqual(['1', '2', '3', '4', '5', '6']);
-    expect(orgMap.get('1')?.name).toBe('总部集团');
+    expect(orgMap.get('1')?.name).toBe('系统管理');
     expect(treeData[0].kind).toBe(1);
   });
 

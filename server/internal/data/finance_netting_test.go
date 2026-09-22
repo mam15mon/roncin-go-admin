@@ -25,7 +25,7 @@ func TestFinanceNettingLoadPreviewRejectsTooManyBills(t *testing.T) {
 	mock.ExpectQuery(`SELECT .*FROM "organizations" WHERE "organizations"\."id" = \$1`).
 		WithArgs(organizationID).
 		WillReturnRows(sqlmock.NewRows(organizationent.Columns).
-			AddRow(organizationID, now, now, "HQ", "总部", "headquarters", nil, true, "CNY", "[]", "总部"))
+			AddRow(organizationID, now, now, "HQ", "总部", "system", nil, true, "CNY", "[]", "总部"))
 	mock.ExpectQuery(`SELECT .*FROM "partners" WHERE`).
 		WithArgs(partyID, organizationID).
 		WillReturnRows(sqlmock.NewRows(partnerent.Columns).

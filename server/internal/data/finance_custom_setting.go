@@ -20,13 +20,9 @@ func (r *financeCustomSettingRepo) GetBilledFeeEditPolicy(ctx context.Context, o
 	if err != nil {
 		return nil, err
 	}
-	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).WithUpdatedByUser().Only(ctx)
+	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(organizationID)).WithUpdatedByUser().Only(ctx)
 	if ent.IsNotFound(err) {
-		return &biz.BilledFeeEditPolicy{OrganizationID: ownerID, EditableFields: []biz.BilledFeeEditableField{}}, nil
+		return &biz.BilledFeeEditPolicy{OrganizationID: organizationID, EditableFields: []biz.BilledFeeEditableField{}}, nil
 	}
 	if err != nil {
 		return nil, err
@@ -39,13 +35,9 @@ func (r *financeCustomSettingRepo) GetCreditLimitControlPolicy(ctx context.Conte
 	if err != nil {
 		return nil, err
 	}
-	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).WithUpdatedByUser().Only(ctx)
+	item, err := client.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(organizationID)).WithUpdatedByUser().Only(ctx)
 	if ent.IsNotFound(err) {
-		return &biz.CreditLimitControlPolicy{OrganizationID: ownerID, AllowSelectionWhenCreditExceeded: true}, nil
+		return &biz.CreditLimitControlPolicy{OrganizationID: organizationID, AllowSelectionWhenCreditExceeded: true}, nil
 	}
 	if err != nil {
 		return nil, err
@@ -54,22 +46,14 @@ func (r *financeCustomSettingRepo) GetCreditLimitControlPolicy(ctx context.Conte
 }
 
 func (r *financeCustomSettingRepo) SaveCreditLimitControlPolicy(ctx context.Context, organizationID, actorID uuid.UUID, policy *biz.CreditLimitControlPolicy, expectedVersion uint64, audit *biz.AuditEvent) (*biz.CreditLimitControlPolicy, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).ForUpdate().Only(ctx)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		switch {
 		case ent.IsNotFound(queryErr):
 			if expectedVersion != 0 {
 				return biz.ErrFinanceCustomSettingConflict
 			}
-			_, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).
+			_, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(organizationID).
 				SetCreditLimitSelectionAllowed(policy.AllowSelectionWhenCreditExceeded).
 				SetVersion(1).SetUpdatedBy(actorID).Save(ctx)
 			if queryErr != nil {
@@ -97,23 +81,15 @@ func (r *financeCustomSettingRepo) SaveCreditLimitControlPolicy(ctx context.Cont
 }
 
 func (r *financeCustomSettingRepo) SaveBilledFeeEditPolicy(ctx context.Context, organizationID, actorID uuid.UUID, policy *biz.BilledFeeEditPolicy, expectedVersion uint64, audit *biz.AuditEvent) (*biz.BilledFeeEditPolicy, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	ownerID, err := resolveHeadquartersOrganizationID(ctx, client.Organization, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(ownerID)).ForUpdate().Only(ctx)
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		current, queryErr := tx.FinanceCustomSetting.Query().Where(settingent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 		flags := billedFeeFieldFlags(policy.EditableFields)
 		switch {
 		case ent.IsNotFound(queryErr):
 			if expectedVersion != 0 {
 				return biz.ErrFinanceCustomSettingConflict
 			}
-			_, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(ownerID).SetBilledFeeEditEnabled(policy.Enabled).
+			_, queryErr = tx.FinanceCustomSetting.Create().SetOrganizationID(organizationID).SetBilledFeeEditEnabled(policy.Enabled).
 				SetBilledFeeNameEditable(flags[biz.BilledFeeFieldFeeName]).SetBilledFeeCurrencyEditable(flags[biz.BilledFeeFieldCurrency]).
 				SetBilledFeeExchangeRateEditable(flags[biz.BilledFeeFieldExchangeRate]).SetBilledFeeQuantityEditable(flags[biz.BilledFeeFieldQuantity]).
 				SetBilledFeeUnitPriceEditable(flags[biz.BilledFeeFieldUnitPrice]).SetBilledFeeTaxRateEditable(flags[biz.BilledFeeFieldTaxRate]).

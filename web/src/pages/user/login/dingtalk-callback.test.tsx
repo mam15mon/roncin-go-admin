@@ -151,7 +151,7 @@ describe('DingTalkCallback', () => {
     );
 
     expect(await screen.findByText('要加入的公司')).toBeInTheDocument();
-    expect(screen.getByText('默认（总部审批）')).toBeInTheDocument();
+    expect(screen.getByText('默认（系统管理审批）')).toBeInTheDocument();
 
     // 选择成都分公司后确认注册。
     fireEvent.mouseDown(screen.getByRole('combobox'));
@@ -167,7 +167,7 @@ describe('DingTalkCallback', () => {
     );
   });
 
-  it('多个候选公司时不选择则走总部兜底注册', async () => {
+  it('多个候选公司时不选择则走系统管理收口注册', async () => {
     dingTalkLogin.mockResolvedValueOnce({
       data: {
         status: 2,

@@ -259,15 +259,15 @@ func principalToAPI(principal *biz.Principal) *v1.CurrentUser {
 	return &v1.CurrentUser{Id: principal.UserID.String(), Username: principal.Username, DisplayName: principal.DisplayName, Email: principal.Email, AvatarUrl: principal.AvatarURL, CurrentOrganization: authOrganizationToAPI(currentOrganization), Organizations: organizations, Permissions: principal.PermissionKeys(), RoleScopes: roleScopes, PermissionCapabilities: capabilities}
 }
 
-// authOrganizationToAPI 投影登录视图组织：kind 供前端推导主数据维护视角（总部/公司）。
+// authOrganizationToAPI 投影登录视图组织：kind 供前端推导主数据维护视角（系统管理/公司）。
 func authOrganizationToAPI(organization biz.Organization) *v1.Organization {
 	return &v1.Organization{Id: organization.ID.String(), Code: organization.Code, Name: organization.Name, BaseCurrency: organization.BaseCurrency, Kind: authOrganizationKindToAPI(organization.Kind)}
 }
 
 func authOrganizationKindToAPI(kind biz.OrganizationKind) v1.OrganizationKind {
 	switch kind {
-	case biz.OrganizationKindHeadquarters:
-		return v1.OrganizationKind_ORGANIZATION_KIND_HEADQUARTERS
+	case biz.OrganizationKindSystem:
+		return v1.OrganizationKind_ORGANIZATION_KIND_SYSTEM
 	case biz.OrganizationKindCompany:
 		return v1.OrganizationKind_ORGANIZATION_KIND_COMPANY
 	case biz.OrganizationKindDepartment:

@@ -56,7 +56,8 @@ func TestPrincipalPermissionsAreDerivedOnlyFromRoleGrants(t *testing.T) {
 	permission := "business.order.se.read"
 	grant := roleGrant("reader", DataScopeOrganization, []string{permission})
 	grant.RoleName = "只读角色"
-	principal := &Principal{RoleGrants: []RoleGrant{grant}}
+	companyID := uuid.New()
+	principal := &Principal{Organization: Organization{ID: companyID, Kind: OrganizationKindCompany}, OrganizationNodes: scopeNodes(companyID), RoleGrants: []RoleGrant{grant}}
 
 	if !principal.HasPermission(permission) {
 		t.Fatal("RoleGrant 中的权限应通过授权检查")
@@ -90,8 +91,8 @@ func TestResolvePermissionOrganizationScopeDataScopes(t *testing.T) {
 		scope DataScope
 		want  []uuid.UUID
 	}{
-		{name: "all", scope: DataScopeAll, want: sortedIDs(rootID, currentID, childID, grandchildID, siblingID)},
-		{name: "organization_tree", scope: DataScopeOrganizationTree, want: sortedIDs(currentID, childID, grandchildID)},
+		{name: "all", scope: DataScopeAll, want: []uuid.UUID{currentID}},
+		{name: "organization_tree", scope: DataScopeOrganizationTree, want: []uuid.UUID{currentID}},
 		{name: "organization", scope: DataScopeOrganization, want: []uuid.UUID{currentID}},
 	}
 	for _, test := range tests {
@@ -130,7 +131,7 @@ func TestResolvePermissionOrganizationScopeTreeIncludesEnabledDescendantBelowDis
 	if err != nil {
 		t.Fatalf("解析组织树范围失败: %v", err)
 	}
-	if want := sortedIDs(currentID, enabledChildID); !slices.Equal(scope.ReadableOrganizationIDs, want) || !slices.Equal(scope.WritableOrganizationIDs, want) {
+	if want := []uuid.UUID{currentID}; !slices.Equal(scope.ReadableOrganizationIDs, want) || !slices.Equal(scope.WritableOrganizationIDs, want) {
 		t.Fatalf("停用父组织下的启用后代范围 = %#v，期望 %#v", scope, want)
 	}
 }
@@ -185,7 +186,7 @@ func TestResolvePermissionOrganizationScopeResolvesPermissionsIndependently(t *t
 	if !slices.Equal(readScope.ReadableOrganizationIDs, []uuid.UUID{currentID}) || !slices.Equal(readScope.WritableOrganizationIDs, []uuid.UUID{currentID}) {
 		t.Fatalf("读取权限范围错误: %#v", readScope)
 	}
-	if !slices.Equal(writeScope.ReadableOrganizationIDs, sortedIDs(currentID, otherID)) || !slices.Equal(writeScope.WritableOrganizationIDs, []uuid.UUID{currentID}) {
+	if !slices.Equal(writeScope.ReadableOrganizationIDs, []uuid.UUID{currentID}) || !slices.Equal(writeScope.WritableOrganizationIDs, []uuid.UUID{currentID}) {
 		t.Fatalf("写入权限范围错误: %#v", writeScope)
 	}
 	if _, err := principal.ResolvePermissionOrganizationScope("missing"); err != ErrPermissionDenied {
@@ -206,7 +207,7 @@ func TestResolvePermissionOrganizationScopeBootstrapAdminUsesAllEnabledOrganizat
 	if err != nil {
 		t.Fatalf("bootstrap 管理员解析范围失败: %v", err)
 	}
-	want := sortedIDs(currentID, otherID)
+	want := []uuid.UUID{currentID}
 	if !slices.Equal(actual.ReadableOrganizationIDs, want) || !slices.Equal(actual.WritableOrganizationIDs, want) {
 		t.Fatalf("bootstrap 管理员应拥有全部启用组织范围，实际 %#v", actual)
 	}
@@ -276,7 +277,7 @@ func TestPermissionCapabilitiesKeepPermissionScopeSource(t *testing.T) {
 		t.Fatal("不能借用其他权限的全局范围")
 	}
 	p.IsBootstrapAdmin = true
-	if p.PermissionCapabilities()[0].DataScope != DataScopeAll {
+	if p.PermissionCapabilities()[0].DataScope != DataScopeOrganizationTree {
 		t.Fatal("初始化管理员投影必须匹配接口范围判定")
 	}
 }

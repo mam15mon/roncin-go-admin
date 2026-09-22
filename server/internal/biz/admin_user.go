@@ -44,7 +44,7 @@ type AdminUser struct {
 	Status                   AdminUserStatus
 	CurrentMembershipEnabled bool
 	// CurrentOrganizationID 是锚定成员关系所在组织（用户管理工作台范围口径）。
-	// 与权限解析的总部角色生效口径不同：总部工作台的用户管理覆盖全树，锚定成员
+	// 与权限解析的系统管理角色生效口径不同：系统管理工作台的用户管理覆盖全树，锚定成员
 	// 关系可能落在任意组织，编辑时的角色提权校验与写入都按该组织执行。
 	CurrentOrganizationID uuid.UUID
 	HasPassword           bool
@@ -102,6 +102,9 @@ func (uc *AdminUsecase) CreateUser(ctx context.Context, organizationID, actorID 
 }
 
 func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID, id uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
+	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
+		return nil, ErrPermissionDenied
+	}
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
@@ -121,6 +124,9 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 	return uc.repo.UpdateUser(ctx, organizationID, id, normalized, roleIDs, adminAuditEvent(ctx, actorID, &id, "admin.user.update", ""))
 }
 func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
+	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
+		return ErrPermissionDenied
+	}
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return ErrAdminInvalidArgument
 	}
@@ -130,6 +136,9 @@ func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actor
 	return uc.repo.TerminateUser(ctx, organizationID, id, adminAuditEvent(ctx, actorID, &id, "admin.user.terminate", ""))
 }
 func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
+	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
+		return nil, ErrPermissionDenied
+	}
 	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || len(roleIDs) == 0 {
 		return nil, ErrAdminInvalidArgument
 	}
@@ -144,6 +153,9 @@ func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizati
 }
 
 func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
+	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
+		return nil, ErrPermissionDenied
+	}
 	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || len(roleIDs) == 0 {
 		return nil, ErrAdminInvalidArgument
 	}
@@ -158,6 +170,9 @@ func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganiz
 	return uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs, notification, adminAuditEvent(ctx, actorID, &normalized.ID, "admin.user.dingtalk.authorize", ""))
 }
 func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string, username *string) error {
+	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
+		return ErrPermissionDenied
+	}
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || len(strings.TrimSpace(plainPassword)) < 12 {
 		return ErrAdminInvalidArgument
 	}

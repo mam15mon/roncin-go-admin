@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { AuthOrganizationKind } from '@/enums.generated';
 import access from './access';
 
 function currentUser(permissions: string[]) {
   return {
     currentUser: {
+      currentOrganization: {
+        kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+      },
       permissions,
       permissionCapabilities: permissions.map((key) => ({
         key,
@@ -17,6 +21,9 @@ function currentUser(permissions: string[]) {
 function currentUserWithSelfScope(permissions: string[]) {
   return {
     currentUser: {
+      currentOrganization: {
+        kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+      },
       permissions,
       permissionCapabilities: permissions.map((key) => ({
         key,
@@ -30,6 +37,9 @@ function currentUserWithSelfScope(permissions: string[]) {
 function currentUserWithAllScope(permissions: string[]) {
   return {
     currentUser: {
+      currentOrganization: {
+        kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+      },
       permissions,
       permissionCapabilities: permissions.map((key) => ({
         key,
@@ -58,20 +68,20 @@ function currentUserWithOrganizationKind(
 }
 
 describe('组织身份判定（auth/me kind 契约）', () => {
-  it('总部工作台判定为总部组织', () => {
+  it('系统管理工作台判定为系统管理组织', () => {
     const result = access(
-      currentUserWithOrganizationKind([], 1), // ORGANIZATION_KIND_HEADQUARTERS
+      currentUserWithOrganizationKind([], 1), // ORGANIZATION_KIND_SYSTEM
     );
-    expect(result.isHeadquartersOrganization).toBe(true);
+    expect(result.isSystemWorkspace).toBe(true);
   });
 
-  it('公司/部门等分支工作台判定为非总部组织', () => {
+  it('公司/部门等分支工作台判定为非系统管理组织', () => {
     const company = access(currentUserWithOrganizationKind([], 2)); // ORGANIZATION_KIND_COMPANY
     const department = access(currentUserWithOrganizationKind([], 3)); // ORGANIZATION_KIND_DEPARTMENT
     const anonymous = access(currentUser([]));
-    expect(company.isHeadquartersOrganization).toBe(false);
-    expect(department.isHeadquartersOrganization).toBe(false);
-    expect(anonymous.isHeadquartersOrganization).toBe(false);
+    expect(company.isSystemWorkspace).toBe(false);
+    expect(department.isSystemWorkspace).toBe(false);
+    expect(anonymous.isSystemWorkspace).toBe(false);
   });
 });
 
@@ -81,12 +91,12 @@ describe('新建订单入口权限（canCreateAnyOrders）', () => {
     expect(result.canCreateAnyOrders).toBe(true);
   });
 
-  it('只有订单读取权限（如总部只读角色）时不得进入新建订单路由', () => {
+  it('只有订单读取权限（如系统管理只读角色）时不得进入新建订单路由', () => {
     const result = access(currentUser(['business.order.se.read']));
     expect(result.canCreateAnyOrders).toBe(false);
   });
 
-  it('无任何订单权限的总部用户不得进入新建订单路由', () => {
+  it('无任何订单权限的系统管理用户不得进入新建订单路由', () => {
     const result = access(currentUserWithAllScope([]));
     expect(result.canCreateAnyOrders).toBe(false);
   });
@@ -129,8 +139,8 @@ describe('用户页数据源分流权限', () => {
     );
     expect(result.canReadRoles).toBe(true);
     expect(result.canReadOrganizations).toBe(false);
-    expect(result.canReadAllUserMemberships).toBe(false);
-    expect(result.canManageUserMemberships).toBe(false);
+    expect(result.canReadUserMemberships).toBe(true);
+    expect(result.canManageUserMemberships).toBe(true);
     expect(result.canAuthorizeWeComUsers).toBe(false);
     expect(result.canAuthorizeDingTalkUsers).toBe(false);
   });
@@ -148,10 +158,10 @@ describe('用户页数据源分流权限', () => {
     );
     expect(result.canReadRoles).toBe(true);
     expect(result.canReadOrganizations).toBe(true);
-    expect(result.canReadAllUserMemberships).toBe(true);
+    expect(result.canReadUserMemberships).toBe(true);
     expect(result.canManageUserMemberships).toBe(true);
-    expect(result.canAuthorizeWeComUsers).toBe(true);
-    expect(result.canAuthorizeDingTalkUsers).toBe(true);
+    expect(result.canAuthorizeWeComUsers).toBe(false);
+    expect(result.canAuthorizeDingTalkUsers).toBe(false);
   });
 });
 
@@ -236,8 +246,8 @@ describe('权限范围来源一致性', () => {
         roleScopes: [{ dataScope: 'all' }],
       },
     });
-    expect(result.canUpdateUsers).toBe(true);
-    expect(result.canManageUserMemberships).toBe(false);
+    expect(result.canUpdateUsers).toBe(false);
+    expect(result.canManageUserMemberships).toBe(true);
   });
   it('self 能力即使与其他组织能力并存也不允许组织资源', () => {
     const result = access({

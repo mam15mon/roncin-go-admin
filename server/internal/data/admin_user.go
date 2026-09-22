@@ -18,18 +18,18 @@ import (
 	"github.com/google/uuid"
 )
 
-// adminWorkspaceScopeIDs 返回用户管理工作台的组织管理范围：总部工作台 = 全树全部
+// adminWorkspaceScopeIDs 返回用户管理工作台的组织管理范围：系统管理工作台 = 全树全部
 // 启用组织；公司工作台 = 公司子树（含公司节点本身）中的启用组织；非启用工作台节点
 // 返回空。注意与 auth.workspaceMembershipScopeIDs 的权限解析口径区分：后者是角色
-// 生效口径（总部工作台只聚合总部节点本身成员关系上的角色），本函数是用户管理的
-// 可见/可管理范围口径（总部可管理全树任意组织的成员，公司只管理本公司子树成员）。
+// 生效口径（系统管理工作台只聚合系统管理节点本身成员关系上的角色），本函数是用户管理的
+// 可见/可管理范围口径（系统管理可管理全树任意组织的成员，公司只管理本公司子树成员）。
 func adminWorkspaceScopeIDs(nodes map[uuid.UUID]authOrgNode, workspaceID uuid.UUID) []uuid.UUID {
 	node, ok := nodes[workspaceID]
 	if !ok || !node.Enabled || !isWorkspaceKind(node.Kind) {
 		return nil
 	}
 	var candidateIDs []uuid.UUID
-	if node.Kind == string(organization.KindHeadquarters) {
+	if node.Kind == string(organization.KindSystem) {
 		candidateIDs = make([]uuid.UUID, 0, len(nodes))
 		for _, item := range nodes {
 			candidateIDs = append(candidateIDs, item.ID)
@@ -92,7 +92,7 @@ func adminUserRow(account *ent.User, scope map[uuid.UUID]struct{}) (*biz.AdminUs
 		if _, inScope := scope[member.OrganizationID]; inScope {
 			candidates = append(candidates, member)
 		}
-		if member.Enabled && member.Edges.Organization != nil && member.Edges.Organization.Enabled {
+		if _, inScope := scope[member.OrganizationID]; inScope && member.Enabled && member.Edges.Organization != nil && member.Edges.Organization.Enabled {
 			active = append(active, member)
 		}
 	}
@@ -192,6 +192,9 @@ func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, in
 }
 
 func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
+	if _, ok := biz.PrincipalFromContext(ctx); ok && !biz.IsSystemWorkspace(ctx) {
+		return nil, biz.ErrPermissionDenied
+	}
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx)
 		if queryErr != nil {
@@ -249,6 +252,9 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 	return r.findUser(ctx, organizationID, id)
 }
 func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
+	if _, ok := biz.PrincipalFromContext(ctx); ok && !biz.IsSystemWorkspace(ctx) {
+		return biz.ErrPermissionDenied
+	}
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if _, queryErr := tx.User.Query().Where(userent.IDEQ(id)).ForUpdate().Only(ctx); queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
@@ -305,6 +311,9 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 }
 
 func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
+	if _, ok := biz.PrincipalFromContext(ctx); ok && !biz.IsSystemWorkspace(ctx) {
+		return nil, biz.ErrPermissionDenied
+	}
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
@@ -331,7 +340,7 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 		if !hasExternalIdentity(account) || account.Enabled {
 			return biz.ErrAdminInvalidArgument
 		}
-		exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrganizationID), organization.EnabledEQ(true)).Exist(ctx)
+		exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrganizationID), organization.EnabledEQ(true), organization.KindEQ(organization.KindCompany)).Exist(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -393,6 +402,9 @@ func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganization
 }
 
 func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uuid.UUID, passwordHash string, username *string, audit *biz.AuditEvent) error {
+	if _, ok := biz.PrincipalFromContext(ctx); ok && !biz.IsSystemWorkspace(ctx) {
+		return biz.ErrPermissionDenied
+	}
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		targetUser, queryErr := tx.User.Query().
 			Where(userent.IDEQ(id), userent.EnabledEQ(true)).

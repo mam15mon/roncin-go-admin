@@ -127,21 +127,12 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AirportsTable holds the schema information for the "airports" table.
 	AirportsTable = &schema.Table{
 		Name:       "airports",
 		Columns:    AirportsColumns,
 		PrimaryKey: []*schema.Column{AirportsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "airports_organizations_airports",
-				Columns:    []*schema.Column{AirportsColumns[16]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "airport_updated_at",
@@ -149,33 +140,22 @@ var (
 				Columns: []*schema.Column{AirportsColumns[2]},
 			},
 			{
-				Name:    "airports_baseline_iata_unique",
+				Name:    "airports_iata_unique",
 				Unique:  true,
 				Columns: []*schema.Column{AirportsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "organization_id IS NULL",
-				},
 			},
 			{
-				Name:    "airports_org_iata_unique",
-				Unique:  true,
-				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "organization_id IS NOT NULL",
-				},
-			},
-			{
-				Name:    "airports_baseline_icao_unique",
+				Name:    "airports_icao_unique",
 				Unique:  true,
 				Columns: []*schema.Column{AirportsColumns[4]},
 				Annotation: &entsql.IndexAnnotation{
-					Where: "organization_id IS NULL AND icao_code IS NOT NULL",
+					Where: "icao_code IS NOT NULL",
 				},
 			},
 			{
-				Name:    "airport_organization_id_enabled_sort_order",
+				Name:    "airport_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{AirportsColumns[16], AirportsColumns[14], AirportsColumns[13]},
+				Columns: []*schema.Column{AirportsColumns[14], AirportsColumns[13]},
 			},
 		},
 	}
@@ -1169,7 +1149,7 @@ var (
 		{Name: "billing_unit_id", Type: field.TypeUUID},
 		{Name: "charge_category_id", Type: field.TypeUUID},
 		{Name: "abnormal_case_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "organization_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "taxable_service_id", Type: field.TypeUUID},
 	}
 	// FeeSettingsTable holds the schema information for the "fee_settings" table.
@@ -1200,7 +1180,7 @@ var (
 				Symbol:     "fee_settings_organizations_fee_settings",
 				Columns:    []*schema.Column{FeeSettingsColumns[15]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "fee_settings_taxable_services_fee_settings",
@@ -1216,20 +1196,9 @@ var (
 				Columns: []*schema.Column{FeeSettingsColumns[2]},
 			},
 			{
-				Name:    "fee_settings_baseline_code_unique",
-				Unique:  true,
-				Columns: []*schema.Column{FeeSettingsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "organization_id IS NULL",
-				},
-			},
-			{
 				Name:    "fee_settings_org_code_unique",
 				Unique:  true,
 				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "organization_id IS NOT NULL",
-				},
 			},
 			{
 				Name:    "feesetting_organization_id_enabled_sort_order",
@@ -1240,6 +1209,51 @@ var (
 				Name:    "feesetting_organization_id_charge_category_id_abnormal_case_id",
 				Unique:  false,
 				Columns: []*schema.Column{FeeSettingsColumns[15], FeeSettingsColumns[13], FeeSettingsColumns[14]},
+			},
+		},
+	}
+	// FeeSettingTemplatesColumns holds the columns for the "fee_setting_templates" table.
+	FeeSettingTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "fee_code", Type: field.TypeString, Size: 32},
+		{Name: "name_zh", Type: field.TypeString, Size: 64},
+		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "alias_name", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "charge_category_id", Type: field.TypeUUID},
+		{Name: "default_currency", Type: field.TypeString, Size: 3},
+		{Name: "billing_unit_id", Type: field.TypeUUID},
+		{Name: "abnormal_case_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
+		{Name: "taxable_service_name", Type: field.TypeString, Size: 128},
+		{Name: "taxable_service_short_name", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "taxable_service_goods_code", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "taxable_service_default_tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "sort_order", Type: field.TypeInt, Default: 100},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
+	}
+	// FeeSettingTemplatesTable holds the schema information for the "fee_setting_templates" table.
+	FeeSettingTemplatesTable = &schema.Table{
+		Name:       "fee_setting_templates",
+		Columns:    FeeSettingTemplatesColumns,
+		PrimaryKey: []*schema.Column{FeeSettingTemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "feesettingtemplate_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FeeSettingTemplatesColumns[2]},
+			},
+			{
+				Name:    "feesettingtemplate_fee_code",
+				Unique:  true,
+				Columns: []*schema.Column{FeeSettingTemplatesColumns[3]},
+			},
+			{
+				Name:    "feesettingtemplate_enabled_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{FeeSettingTemplatesColumns[16], FeeSettingTemplatesColumns[17]},
 			},
 		},
 	}
@@ -4815,7 +4829,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString, Size: 64},
 		{Name: "name", Type: field.TypeString, Size: 200},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"headquarters", "company", "department", "team"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"system", "company", "department", "team"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "base_currency", Type: field.TypeString, Nullable: true, Size: 3},
 		{Name: "enabled_currencies", Type: field.TypeJSON, Nullable: true},
@@ -5476,21 +5490,12 @@ var (
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
-		{Name: "organization_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// PortsTable holds the schema information for the "ports" table.
 	PortsTable = &schema.Table{
 		Name:       "ports",
 		Columns:    PortsColumns,
 		PrimaryKey: []*schema.Column{PortsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "ports_organizations_ports",
-				Columns:    []*schema.Column{PortsColumns[14]},
-				RefColumns: []*schema.Column{OrganizationsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "port_updated_at",
@@ -5498,25 +5503,14 @@ var (
 				Columns: []*schema.Column{PortsColumns[2]},
 			},
 			{
-				Name:    "ports_baseline_locode_unique",
+				Name:    "ports_locode_unique",
 				Unique:  true,
 				Columns: []*schema.Column{PortsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "organization_id IS NULL",
-				},
 			},
 			{
-				Name:    "ports_org_locode_unique",
-				Unique:  true,
-				Columns: []*schema.Column{PortsColumns[14], PortsColumns[3]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "organization_id IS NOT NULL",
-				},
-			},
-			{
-				Name:    "port_organization_id_enabled_sort_order",
+				Name:    "port_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{PortsColumns[14], PortsColumns[12], PortsColumns[11]},
+				Columns: []*schema.Column{PortsColumns[12], PortsColumns[11]},
 			},
 		},
 	}
@@ -7129,6 +7123,7 @@ var (
 		ExchangeRateImportBatchesTable,
 		ExchangeRateSettingsTable,
 		FeeSettingsTable,
+		FeeSettingTemplatesTable,
 		FinanceBillsTable,
 		FinanceBillBatchesTable,
 		FinanceBillEnterpriseTagsTable,
@@ -7220,7 +7215,6 @@ var (
 )
 
 func init() {
-	AirportsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[0].RefTable = BackgroundTasksTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[1].RefTable = OrderUnlockRequestsTable
@@ -7498,6 +7492,12 @@ func init() {
 	OrderUnlockRequestsTable.ForeignKeys[4].RefTable = UsersTable
 	OrderUnlockRequestsTable.ForeignKeys[5].RefTable = UsersTable
 	OrganizationsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	OrganizationsTable.Annotation = &entsql.Annotation{}
+	OrganizationsTable.Annotation.Checks = map[string]string{
+		"organizations_base_currency_by_kind":  "((kind IN ('system', 'company') AND base_currency IS NOT NULL) OR (kind IN ('department', 'team') AND base_currency IS NULL))",
+		"organizations_kind_check":             "kind IN ('system', 'company', 'department', 'team')",
+		"organizations_workspace_parent_check": "((kind IN ('system', 'company') AND parent_id IS NULL) OR (kind IN ('department', 'team') AND parent_id IS NOT NULL))",
+	}
 	PartnersTable.ForeignKeys[0].RefTable = OrganizationsTable
 	PartnerAccountsTable.ForeignKeys[0].RefTable = PartnersTable
 	PartnerAccountsTable.Annotation = &entsql.Annotation{}
@@ -7520,7 +7520,6 @@ func init() {
 		"partner_roles_role_type_check": "role_type IN ('customer', 'supplier', 'foreign_agent')",
 	}
 	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable
-	PortsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable

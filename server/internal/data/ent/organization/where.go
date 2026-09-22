@@ -723,52 +723,6 @@ func HasFeeSettingsWith(preds ...predicate.FeeSetting) predicate.Organization {
 	})
 }
 
-// HasPorts applies the HasEdge predicate on the "ports" edge.
-func HasPorts() predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PortsTable, PortsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasPortsWith applies the HasEdge predicate on the "ports" edge with a given conditions (other predicates).
-func HasPortsWith(preds ...predicate.Port) predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := newPortsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasAirports applies the HasEdge predicate on the "airports" edge.
-func HasAirports() predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, AirportsTable, AirportsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAirportsWith applies the HasEdge predicate on the "airports" edge with a given conditions (other predicates).
-func HasAirportsWith(preds ...predicate.Airport) predicate.Organization {
-	return predicate.Organization(func(s *sql.Selector) {
-		step := newAirportsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasNumberRules applies the HasEdge predicate on the "number_rules" edge.
 func HasNumberRules() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

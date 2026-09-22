@@ -174,12 +174,11 @@ func TestUnmigratedFinancePermissionUsesCurrentOrganizationScope(t *testing.T) {
 func TestFinanceNettingPermissionResolvesAttachedOrganizationScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
-	beijingParentID := tianjinID
 	principal := &biz.Principal{
 		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
 			{Kind: biz.OrganizationKindCompany, ID: tianjinID},
-			{Kind: biz.OrganizationKindCompany, ID: beijingID, ParentID: &beijingParentID},
+			{Kind: biz.OrganizationKindCompany, ID: beijingID},
 		},
 		RoleGrants: []biz.RoleGrant{
 			serverRoleGrant("netting-reader", biz.DataScopeOrganizationTree, []string{access.FinanceNettingRead}),
@@ -194,8 +193,8 @@ func TestFinanceNettingPermissionResolvesAttachedOrganizationScope(t *testing.T)
 		t.Fatal("组织树范围的 netting read 应通过网关并按目标组织解析")
 	}
 	readIDs := organizationIDsForPermission(principal, access.FinanceNettingRead, false)
-	if len(readIDs) != 2 || !containsOrganizationID(readIDs, beijingID) {
-		t.Fatalf("netting read 应解析出包含北京的组织树范围，actual=%v", readIDs)
+	if len(readIDs) != 1 || !containsOrganizationID(readIDs, tianjinID) || containsOrganizationID(readIDs, beijingID) {
+		t.Fatalf("netting read 只能解析当前公司范围，actual=%v", readIDs)
 	}
 
 	// netting read 的读取范围不得进入任一 netting 写命令的可写目标组织（Service 层按此范围执行写入）。
@@ -239,7 +238,6 @@ func TestFinanceBillPermissionDoesNotBorrowOtherDomainScope(t *testing.T) {
 
 func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 	tianjinID := uuid.New()
-	beijingParentID := tianjinID
 	beijingID := uuid.New()
 	partnerID := uuid.New()
 	repo := &authorizationPartnerRepoStub{partner: &biz.Partner{ID: partnerID, OrganizationID: beijingID}}
@@ -248,7 +246,7 @@ func TestRequestPartnerUsesPermissionScopedRepositoryQuery(t *testing.T) {
 		Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: []biz.OrganizationScopeNode{
 			{Kind: biz.OrganizationKindCompany, ID: tianjinID},
-			{Kind: biz.OrganizationKindCompany, ID: beijingID, ParentID: &beijingParentID},
+			{Kind: biz.OrganizationKindCompany, ID: beijingID},
 		},
 		RoleGrants: []biz.RoleGrant{serverRoleGrant("partner-reader", biz.DataScopeOrganizationTree,
 			[]string{access.PartnerRead})},
@@ -697,11 +695,16 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 
 	request := &orderv1.ListSeaSharedContainersRequest{OrderId: anchorOrder.ID.String(), TransportExecutionId: uuid.New().String()}
 	order, direct := requestOrder(t.Context(), request, orderUsecase, orderOrganizationScopes(principal, access.OrderContainerRead, false))
+	if !direct || order != nil {
+		t.Fatal("不得定位其他公司的锚点订单")
+	}
+	principal.Organization.ID = anchorOrg
+	order, direct = requestOrder(t.Context(), request, orderUsecase, orderOrganizationScopes(principal, access.OrderContainerRead, false))
 	if !direct || order == nil {
-		t.Fatal("锚点订单应可定位")
+		t.Fatal("切换公司后本公司锚点订单应可定位")
 	}
 	if order.OrganizationID != anchorOrg {
-		t.Fatal("授权查询应返回跨组织锚点订单")
+		t.Fatal("授权查询应返回本公司锚点订单")
 	}
 
 	// 无任何权限授权时拒绝

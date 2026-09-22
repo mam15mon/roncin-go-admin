@@ -19,7 +19,7 @@ func TestCreateDefaultBranchCompaniesSeedsAndIsIdempotent(t *testing.T) {
 	headquarters, err := data.db.Organization.Create().
 		SetCode("HQ").
 		SetName("总部").
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -72,8 +72,8 @@ func TestCreateDefaultBranchCompaniesSeedsAndIsIdempotent(t *testing.T) {
 		if company.Name != seed.Name {
 			t.Fatalf("分公司 %s 名称 = %s, 期望 %s", company.Code, company.Name, seed.Name)
 		}
-		if company.ParentID == nil || *company.ParentID != headquarters.ID {
-			t.Fatalf("分公司 %s 未挂到总部之下: %v", company.Code, company.ParentID)
+		if company.ParentID != nil {
+			t.Fatalf("分公司 %s 应为独立根节点: %v", company.Code, company.ParentID)
 		}
 		if company.BaseCurrency == nil || *company.BaseCurrency != "CNY" {
 			t.Fatalf("分公司 %s 本币 = %v, 期望 CNY", company.Code, company.BaseCurrency)

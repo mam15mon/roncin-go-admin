@@ -56,7 +56,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 	org, err := data.db.Organization.Create().
 		SetCode("COMM-NT-" + suffix).
 		SetName("对冲提成测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

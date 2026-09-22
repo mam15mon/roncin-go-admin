@@ -40,6 +40,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesettingtemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
@@ -181,6 +182,8 @@ type Client struct {
 	ExchangeRateSetting *ExchangeRateSettingClient
 	// FeeSetting is the client for interacting with the FeeSetting builders.
 	FeeSetting *FeeSettingClient
+	// FeeSettingTemplate is the client for interacting with the FeeSettingTemplate builders.
+	FeeSettingTemplate *FeeSettingTemplateClient
 	// FinanceBill is the client for interacting with the FinanceBill builders.
 	FinanceBill *FinanceBillClient
 	// FinanceBillBatch is the client for interacting with the FinanceBillBatch builders.
@@ -388,6 +391,7 @@ func (c *Client) init() {
 	c.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(c.config)
 	c.ExchangeRateSetting = NewExchangeRateSettingClient(c.config)
 	c.FeeSetting = NewFeeSettingClient(c.config)
+	c.FeeSettingTemplate = NewFeeSettingTemplateClient(c.config)
 	c.FinanceBill = NewFinanceBillClient(c.config)
 	c.FinanceBillBatch = NewFinanceBillBatchClient(c.config)
 	c.FinanceBillEnterpriseTag = NewFinanceBillEnterpriseTagClient(c.config)
@@ -590,6 +594,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ExchangeRateImportBatch:          NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:              NewExchangeRateSettingClient(cfg),
 		FeeSetting:                       NewFeeSettingClient(cfg),
+		FeeSettingTemplate:               NewFeeSettingTemplateClient(cfg),
 		FinanceBill:                      NewFinanceBillClient(cfg),
 		FinanceBillBatch:                 NewFinanceBillBatchClient(cfg),
 		FinanceBillEnterpriseTag:         NewFinanceBillEnterpriseTagClient(cfg),
@@ -719,6 +724,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ExchangeRateImportBatch:          NewExchangeRateImportBatchClient(cfg),
 		ExchangeRateSetting:              NewExchangeRateSettingClient(cfg),
 		FeeSetting:                       NewFeeSettingClient(cfg),
+		FeeSettingTemplate:               NewFeeSettingTemplateClient(cfg),
 		FinanceBill:                      NewFinanceBillClient(cfg),
 		FinanceBillBatch:                 NewFinanceBillBatchClient(cfg),
 		FinanceBillEnterpriseTag:         NewFinanceBillEnterpriseTagClient(cfg),
@@ -842,21 +848,21 @@ func (c *Client) Use(hooks ...Hook) {
 		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
 		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
 		c.EnterpriseTagGroup, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillEnterpriseTag,
-		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
-		c.FinanceCommissionAdjustment, c.FinanceCommissionApplication,
-		c.FinanceCommissionApplicationLine, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
-		c.FinanceCustomSetting, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
-		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
-		c.FinanceNettingAllocation, c.FinanceVerification,
-		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
-		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
-		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
-		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
+		c.FeeSetting, c.FeeSettingTemplate, c.FinanceBill, c.FinanceBillBatch,
+		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
+		c.FinanceCommission, c.FinanceCommissionAdjustment,
+		c.FinanceCommissionApplication, c.FinanceCommissionApplicationLine,
+		c.FinanceCommissionLine, c.FinanceCommissionRule,
+		c.FinanceCommissionRuleAssignment, c.FinanceCustomSetting,
+		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
+		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.OrderFeeEnterpriseTag, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
 		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderMilestone,
 		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
@@ -887,21 +893,21 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
 		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
 		c.EnterpriseTagGroup, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.FeeSetting, c.FinanceBill, c.FinanceBillBatch, c.FinanceBillEnterpriseTag,
-		c.FinanceBillLine, c.FinanceCashflow, c.FinanceCommission,
-		c.FinanceCommissionAdjustment, c.FinanceCommissionApplication,
-		c.FinanceCommissionApplicationLine, c.FinanceCommissionLine,
-		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
-		c.FinanceCustomSetting, c.FinanceFeeLedgerPreference, c.FinanceInvoice,
-		c.FinanceInvoiceBill, c.FinanceInvoiceLine, c.FinanceNetting,
-		c.FinanceNettingAllocation, c.FinanceVerification,
-		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
-		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
-		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
-		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
-		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
-		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
+		c.FeeSetting, c.FeeSettingTemplate, c.FinanceBill, c.FinanceBillBatch,
+		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
+		c.FinanceCommission, c.FinanceCommissionAdjustment,
+		c.FinanceCommissionApplication, c.FinanceCommissionApplicationLine,
+		c.FinanceCommissionLine, c.FinanceCommissionRule,
+		c.FinanceCommissionRuleAssignment, c.FinanceCustomSetting,
+		c.FinanceFeeLedgerPreference, c.FinanceInvoice, c.FinanceInvoiceBill,
+		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
+		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
+		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
+		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
+		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
+		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
+		c.OrderContainerRequest, c.OrderEnterpriseTag, c.OrderFee,
+		c.OrderFeeEnterpriseTag, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
 		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderMilestone,
 		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
@@ -971,6 +977,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ExchangeRateSetting.mutate(ctx, m)
 	case *FeeSettingMutation:
 		return c.FeeSetting.mutate(ctx, m)
+	case *FeeSettingTemplateMutation:
+		return c.FeeSettingTemplate.mutate(ctx, m)
 	case *FinanceBillMutation:
 		return c.FinanceBill.mutate(ctx, m)
 	case *FinanceBillBatchMutation:
@@ -1522,22 +1530,6 @@ func (c *AirportClient) GetX(ctx context.Context, id uuid.UUID) *Airport {
 		panic(err)
 	}
 	return obj
-}
-
-// QueryOrganization queries the organization edge of a Airport.
-func (c *AirportClient) QueryOrganization(_m *Airport) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(airport.Table, airport.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, airport.OrganizationTable, airport.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.
@@ -5145,6 +5137,140 @@ func (c *FeeSettingClient) mutate(ctx context.Context, m *FeeSettingMutation) (V
 		return (&FeeSettingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FeeSetting mutation op: %q", m.Op())
+	}
+}
+
+// FeeSettingTemplateClient is a client for the FeeSettingTemplate schema.
+type FeeSettingTemplateClient struct {
+	config
+}
+
+// NewFeeSettingTemplateClient returns a client for the FeeSettingTemplate from the given config.
+func NewFeeSettingTemplateClient(c config) *FeeSettingTemplateClient {
+	return &FeeSettingTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `feesettingtemplate.Hooks(f(g(h())))`.
+func (c *FeeSettingTemplateClient) Use(hooks ...Hook) {
+	c.hooks.FeeSettingTemplate = append(c.hooks.FeeSettingTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `feesettingtemplate.Intercept(f(g(h())))`.
+func (c *FeeSettingTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FeeSettingTemplate = append(c.inters.FeeSettingTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a FeeSettingTemplate entity.
+func (c *FeeSettingTemplateClient) Create() *FeeSettingTemplateCreate {
+	mutation := newFeeSettingTemplateMutation(c.config, OpCreate)
+	return &FeeSettingTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FeeSettingTemplate entities.
+func (c *FeeSettingTemplateClient) CreateBulk(builders ...*FeeSettingTemplateCreate) *FeeSettingTemplateCreateBulk {
+	return &FeeSettingTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FeeSettingTemplateClient) MapCreateBulk(slice any, setFunc func(*FeeSettingTemplateCreate, int)) *FeeSettingTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FeeSettingTemplateCreateBulk{err: fmt.Errorf("calling to FeeSettingTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FeeSettingTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FeeSettingTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FeeSettingTemplate.
+func (c *FeeSettingTemplateClient) Update() *FeeSettingTemplateUpdate {
+	mutation := newFeeSettingTemplateMutation(c.config, OpUpdate)
+	return &FeeSettingTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FeeSettingTemplateClient) UpdateOne(_m *FeeSettingTemplate) *FeeSettingTemplateUpdateOne {
+	mutation := newFeeSettingTemplateMutation(c.config, OpUpdateOne, withFeeSettingTemplate(_m))
+	return &FeeSettingTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FeeSettingTemplateClient) UpdateOneID(id uuid.UUID) *FeeSettingTemplateUpdateOne {
+	mutation := newFeeSettingTemplateMutation(c.config, OpUpdateOne, withFeeSettingTemplateID(id))
+	return &FeeSettingTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FeeSettingTemplate.
+func (c *FeeSettingTemplateClient) Delete() *FeeSettingTemplateDelete {
+	mutation := newFeeSettingTemplateMutation(c.config, OpDelete)
+	return &FeeSettingTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FeeSettingTemplateClient) DeleteOne(_m *FeeSettingTemplate) *FeeSettingTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FeeSettingTemplateClient) DeleteOneID(id uuid.UUID) *FeeSettingTemplateDeleteOne {
+	builder := c.Delete().Where(feesettingtemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FeeSettingTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for FeeSettingTemplate.
+func (c *FeeSettingTemplateClient) Query() *FeeSettingTemplateQuery {
+	return &FeeSettingTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFeeSettingTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FeeSettingTemplate entity by its id.
+func (c *FeeSettingTemplateClient) Get(ctx context.Context, id uuid.UUID) (*FeeSettingTemplate, error) {
+	return c.Query().Where(feesettingtemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FeeSettingTemplateClient) GetX(ctx context.Context, id uuid.UUID) *FeeSettingTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *FeeSettingTemplateClient) Hooks() []Hook {
+	hooks := c.hooks.FeeSettingTemplate
+	return append(hooks[:len(hooks):len(hooks)], feesettingtemplate.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *FeeSettingTemplateClient) Interceptors() []Interceptor {
+	return c.inters.FeeSettingTemplate
+}
+
+func (c *FeeSettingTemplateClient) mutate(ctx context.Context, m *FeeSettingTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FeeSettingTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FeeSettingTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FeeSettingTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FeeSettingTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FeeSettingTemplate mutation op: %q", m.Op())
 	}
 }
 
@@ -15880,38 +16006,6 @@ func (c *OrganizationClient) QueryFeeSettings(_m *Organization) *FeeSettingQuery
 	return query
 }
 
-// QueryPorts queries the ports edge of a Organization.
-func (c *OrganizationClient) QueryPorts(_m *Organization) *PortQuery {
-	query := (&PortClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(port.Table, port.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.PortsTable, organization.PortsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAirports queries the airports edge of a Organization.
-func (c *OrganizationClient) QueryAirports(_m *Organization) *AirportQuery {
-	query := (&AirportClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, id),
-			sqlgraph.To(airport.Table, airport.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.AirportsTable, organization.AirportsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryNumberRules queries the number_rules edge of a Organization.
 func (c *OrganizationClient) QueryNumberRules(_m *Organization) *NumberRuleQuery {
 	query := (&NumberRuleClient{config: c.config}).Query()
@@ -19082,22 +19176,6 @@ func (c *PortClient) GetX(ctx context.Context, id uuid.UUID) *Port {
 		panic(err)
 	}
 	return obj
-}
-
-// QueryOrganization queries the organization edge of a Port.
-func (c *PortClient) QueryOrganization(_m *Port) *OrganizationQuery {
-	query := (&OrganizationClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(port.Table, port.FieldID, id),
-			sqlgraph.To(organization.Table, organization.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, port.OrganizationTable, port.OrganizationColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.
@@ -25020,16 +25098,17 @@ type (
 		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
 		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
 		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
-		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
-		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
-		FinanceCommissionApplication, FinanceCommissionApplicationLine,
-		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
-		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FeeSettingTemplate, FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag,
+		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionApplication,
+		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceCommissionRuleAssignment, FinanceCustomSetting,
+		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
+		FinanceInvoiceLine, FinanceNetting, FinanceNettingAllocation,
+		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
+		MasterDataItem, Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
@@ -25053,16 +25132,17 @@ type (
 		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
 		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
 		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
-		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
-		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
-		FinanceCommissionApplication, FinanceCommissionApplicationLine,
-		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
-		FinanceCustomSetting, FinanceFeeLedgerPreference, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FeeSettingTemplate, FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag,
+		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionApplication,
+		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceCommissionRuleAssignment, FinanceCustomSetting,
+		FinanceFeeLedgerPreference, FinanceInvoice, FinanceInvoiceBill,
+		FinanceInvoiceLine, FinanceNetting, FinanceNettingAllocation,
+		FinanceVerification, FinanceVerificationAllocation, LoginRateLimitBucket,
+		MasterDataItem, Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,

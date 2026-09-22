@@ -24,7 +24,7 @@ service OrderFeeService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fees"};
   }
 
-  // ResolveFeeExchangeRate 按费用发生日解析币种折本位币的总部基准汇率。
+  // ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
   rpc ResolveFeeExchangeRate(ResolveFeeExchangeRateRequest) returns (ResolveFeeExchangeRateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-exchange-rate"};

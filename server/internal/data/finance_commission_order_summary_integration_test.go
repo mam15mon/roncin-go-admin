@@ -54,7 +54,7 @@ func (f *orderSummaryFixture) newOrg(label, suffix string) *orderSummaryOrg {
 	org, err := f.data.db.Organization.Create().
 		SetCode("OS-" + label + "-" + suffix).
 		SetName("订单摘要测试组织-" + label + "-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -525,14 +525,14 @@ func assertSummaryFacts(t *testing.T, label string, summary *biz.OrderCommission
 }
 
 func newOrderSummaryEmployeePrincipal(userID, currentOrganizationID uuid.UUID) *biz.Principal {
-	return &biz.Principal{UserID: userID, Organization: biz.Organization{ID: currentOrganizationID}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID}}}
+	return &biz.Principal{UserID: userID, Organization: biz.Organization{ID: currentOrganizationID, Kind: biz.OrganizationKindCompany}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID, Kind: biz.OrganizationKindCompany}}}
 }
 
 func newOrderSummaryFinancePrincipal(userID, currentOrganizationID, readableOrganizationID uuid.UUID) *biz.Principal {
 	return &biz.Principal{
 		UserID:            userID,
-		Organization:      biz.Organization{ID: currentOrganizationID},
-		OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID}, {ID: readableOrganizationID}},
+		Organization:      biz.Organization{ID: currentOrganizationID, Kind: biz.OrganizationKindCompany},
+		OrganizationNodes: []biz.OrganizationScopeNode{{ID: currentOrganizationID, Kind: biz.OrganizationKindCompany}, {ID: readableOrganizationID, Kind: biz.OrganizationKindCompany}},
 		RoleGrants:        []biz.RoleGrant{{RoleCode: "commission-reader", DataScope: biz.DataScopeOrganizationTree, Permissions: map[string]struct{}{access.FinanceCommissionRead: {}}}},
 	}
 }

@@ -145,7 +145,7 @@ describe('SettingTableTemplate', () => {
     });
   });
 
-  it('canEditRecord 命中的行不展示编辑按钮（B 型基线行仅总部可编辑）', async () => {
+  it('canEditRecord 命中的行不展示编辑按钮（B 型基线行仅系统管理可编辑）', async () => {
     const mockQuery = vi.fn().mockResolvedValue({
       data: [
         { id: '1', code: 'BASE', name: '基线行', organizationId: undefined },

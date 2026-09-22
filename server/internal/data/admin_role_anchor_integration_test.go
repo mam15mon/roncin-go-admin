@@ -12,7 +12,7 @@ import (
 )
 
 // TestAdminRoleAnchorPostgres 覆盖角色库锚定不变量（验收 A2/A3）：
-// 写入侧只允许工作台（总部/公司）锚定，部门/团队锚定显式失败且不改动数据；
+// 写入侧只允许工作台（系统管理/公司）锚定，部门/团队锚定显式失败且不改动数据；
 // 读取侧无法解析出工作台时显式返回组织不存在，不回退为传入组织。
 func TestAdminRoleAnchorPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
@@ -22,20 +22,19 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
 	repo := NewAdminRepo(data)
 
-	headquarters, err := data.db.Organization.Create().
+	_, err := data.db.Organization.Create().
 		SetCode("HQ-" + suffix).
-		SetName("总部-" + suffix).
-		SetKind("headquarters").
+		SetName("系统管理-" + suffix).
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部: %v", err)
+		t.Fatalf("创建系统管理: %v", err)
 	}
 	company, err := data.db.Organization.Create().
 		SetCode("CO-" + suffix).
 		SetName("公司-" + suffix).
 		SetKind("company").
-		SetParentID(headquarters.ID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -164,20 +163,19 @@ func TestRoleWorkspaceAnchorBackfillPostgres(t *testing.T) {
 	ctx := context.Background()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
 
-	headquarters, err := data.db.Organization.Create().
+	_, err := data.db.Organization.Create().
 		SetCode("HQ-" + suffix).
-		SetName("总部-" + suffix).
-		SetKind("headquarters").
+		SetName("系统管理-" + suffix).
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部: %v", err)
+		t.Fatalf("创建系统管理: %v", err)
 	}
 	company, err := data.db.Organization.Create().
 		SetCode("CO-" + suffix).
 		SetName("公司-" + suffix).
 		SetKind("company").
-		SetParentID(headquarters.ID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

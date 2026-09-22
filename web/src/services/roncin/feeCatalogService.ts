@@ -73,6 +73,64 @@ export async function feeCatalogServiceSearchBillingUnits(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/finance/fee-setting-templates */
+export async function feeCatalogServiceListFeeSettingTemplates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.FeeCatalogServiceListFeeSettingTemplatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListFeeSettingTemplatesResponse>(
+    "/api/v1/finance/fee-setting-templates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/fee-setting-templates */
+export async function feeCatalogServiceCreateFeeSettingTemplate(
+  body: API.CreateFeeSettingTemplateRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.CreateFeeSettingTemplateResponse>(
+    "/api/v1/finance/fee-setting-templates",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 PUT /api/v1/finance/fee-setting-templates/${param0} */
+export async function feeCatalogServiceUpdateFeeSettingTemplate(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.FeeCatalogServiceUpdateFeeSettingTemplateParams,
+  body: API.UpdateFeeSettingTemplateRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.UpdateFeeSettingTemplateResponse>(
+    `/api/v1/finance/fee-setting-templates/${param0}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/fee-settings */
 export async function feeCatalogServiceListFeeSettings(options?: {
   [key: string]: any;

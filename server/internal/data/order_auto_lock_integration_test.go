@@ -55,7 +55,7 @@ func newAutoLockPostgresFixture(t *testing.T, data *Data) *autoLockPostgresFixtu
 	organization, err := data.db.Organization.Create().
 		SetCode("ALOCK-" + suffix).
 		SetName("自动锁定集成测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

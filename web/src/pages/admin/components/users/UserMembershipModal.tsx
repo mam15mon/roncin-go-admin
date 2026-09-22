@@ -2,6 +2,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { ModalForm, ProFormSwitch } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef } from 'react';
+import { useAccess } from '@/app/access';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
   adminServiceCreateUserMembership,
@@ -39,6 +40,7 @@ export default function UserMembershipModal({
   currentUserId,
   onSaved,
 }: UserMembershipModalProps) {
+  const { isSystemWorkspace } = useAccess();
   const membershipFormRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
 
@@ -73,7 +75,9 @@ export default function UserMembershipModal({
               id: membershipEditing.id,
               roleIds: values.roleIds ?? [],
               enabled: values.enabled ?? true,
-              primary: values.primary ?? false,
+              primary: isSystemWorkspace
+                ? (values.primary ?? false)
+                : (membershipEditing.primary ?? false),
             },
           );
           message.success('组织成员关系已更新');
@@ -84,7 +88,7 @@ export default function UserMembershipModal({
               userId,
               organizationId: values.organizationId ?? '',
               roleIds: values.roleIds ?? [],
-              primary: values.primary ?? false,
+              primary: isSystemWorkspace ? (values.primary ?? false) : false,
             },
           );
           message.success('用户已加入组织');
@@ -143,16 +147,18 @@ export default function UserMembershipModal({
           name: role.name,
         }))}
       />
-      <ProFormSwitch
-        name="primary"
-        label="主要组织"
-        extra={
-          membershipEditing?.primary
-            ? '如需更换主要组织，请在另一条启用的成员关系中将其设为主要组织。'
-            : '开启后会自动取消原主要组织，用户下次登录将默认进入这里。'
-        }
-        disabled={membershipEditing?.primary}
-      />
+      {isSystemWorkspace && (
+        <ProFormSwitch
+          name="primary"
+          label="主要组织"
+          extra={
+            membershipEditing?.primary
+              ? '如需更换主要组织，请在另一条启用的成员关系中将其设为主要组织。'
+              : '开启后会自动取消原主要组织，用户下次登录将默认进入这里。'
+          }
+          disabled={membershipEditing?.primary}
+        />
+      )}
       {membershipEditing && (
         <ProFormSwitch
           name="enabled"

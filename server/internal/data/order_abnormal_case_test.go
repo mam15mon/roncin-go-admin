@@ -122,5 +122,5 @@ func TestOrderAbnormalCaseRepo_Mark_AuditErrorRollsBack(t *testing.T) {
 func headquartersOrganizationRows(id uuid.UUID) *sqlmock.Rows {
 	now := time.Now()
 	return sqlmock.NewRows(organizationent.Columns).
-		AddRow(id, now, now, "HQ", "总部", organizationent.KindHeadquarters, nil, true, "CNY", "[]", "ZONGBU ZB")
+		AddRow(id, now, now, "HQ", "总部", organizationent.KindSystem, nil, true, "CNY", "[]", "ZONGBU ZB")
 }

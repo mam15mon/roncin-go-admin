@@ -34,7 +34,7 @@ SyncExchangeRates(ctx, principal, source, inputs, audit) error  // 同周幂等 
 
 ```text
 Table: exchange_rate_settings（B 型，organization_id 可空）
-  organization_id  -- NULL=总部兜底基线行；非 NULL=核算组织自维护行
+  organization_id  -- NULL=系统管理兜底基线行；非 NULL=核算组织自维护行
   from_currency / to_currency  -- to_currency 恒为行归属组织的本币
   effective_from  -- 即当周周一 00:00:00（Asia/Shanghai）；区间由服务端派生，写契约不含 effective_to
   ar_rate / ap_rate  -- 中行现汇卖出价（收高）/ 现汇买入价（付低），numeric(18,8)
@@ -53,7 +53,7 @@ Table: exchange_rate_settings（B 型，organization_id 可空）
 
 | 条件 | 行为 |
 | --- | --- |
-| 非总部写 NULL 基线行 / 无权限写 org 行 | 403（拦截器双校验） |
+| 非系统管理写 NULL 基线行 / 无权限写 org 行 | 403（拦截器双校验） |
 | 同组织同货币对同周重复 | 幂等 Upsert 覆盖（唯一索引兜底），不报唯一冲突 |
 | 全链未命中且无手工覆盖 | `ErrExchangeRateMissing`（仅此时允许阻断） |
 | 跨组织提成/往来 | 原币记账恒等快照（rate=1/BASE_CURRENCY），禁止二次折算 |
@@ -61,7 +61,7 @@ Table: exchange_rate_settings（B 型，organization_id 可空）
 
 ## 5. Good / Base / Bad Cases
 
-- Good：香港分公司（本币 HKD）一键同步，直盘预填 USD→HKD 双轨价，财务微调后当周生效。
+- Good：香港公司（本币 HKD）一键同步，直盘预填 USD→HKD 双轨价，财务微调后当周生效。
 - Base：新组织当周未同步，费用录入自动继承上周（黄色 Tag「暂沿用上周汇率」），单据不卡死。
 - Bad：跨组织结算用任一方本地汇率折算记账——必须原币对账。
 - Bad：解析链跳过 ForShare——账单事务内并发改汇率会撕裂快照一致性。
@@ -83,13 +83,16 @@ Table: exchange_rate_settings（B 型，organization_id 可空）
 ```go
 // 跨组织折算 + 同步行硬编码归属
 rate, _ := uc.ResolveBaseRate(ctx, orgID, from, to, date)      // 已退役
-rows[i].OrganizationID = nil                                    // 分公司同步越权写基线行
+rows[i].OrganizationID = nil                                    // 公司同步越权写基线行
 ```
 
 ### Correct
 
 ```go
-// 组织内按方向解析；同步按组织身份落行（总部→基线，分公司→org 行）
+// 组织内按方向解析；同步按组织身份落行（系统管理→基线，公司→org 行）
 resolved, _ := uc.ResolveRate(ctx, orgID, currency, direction, date)
-scope := ensureOrganizationScope(principal) // 总部→RequireBaselineWrite+nil；分公司→org 行
+scope := ensureOrganizationScope(principal) // 系统管理→RequireBaselineWrite+nil；公司→org 行
 ```
+
+## 独立公司上下文
+公司汇率OwnerOrganizationID取本公司，BaseCurrency取公司本币；公共参考PivotCurrency单独读取系统管理节点本币，不要求公司父节点为系统。部门团队可向上定位所属公司，不能把系统节点当作公司业务汇率归属。

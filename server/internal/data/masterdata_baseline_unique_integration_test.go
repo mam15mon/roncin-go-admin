@@ -2,7 +2,7 @@ package data
 
 // 集成测试覆盖存储三型的唯一性物理约束与业务错误映射（prd.md §6.2）：
 // A 型 master_data_items 同 (kind, code) 第二行插入被数据库唯一索引拒绝并映射
-// ErrMasterDataCodeExists；B 型 ports 两条 NULL 基线行同 un_locode 被部分唯一索引
+// ErrMasterDataCodeExists；A 型 ports 同 un_locode 被全局唯一索引
 // 物理拒绝并映射 ErrIndustryReferenceCodeExist。
 
 import (
@@ -33,7 +33,7 @@ func TestMasterDataGlobalUniqueConflictPostgres(t *testing.T) {
 	_ = first
 }
 
-func TestPortBaselineUniquePhysicalRejectPostgres(t *testing.T) {
+func TestPortGlobalUniquePhysicalRejectPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 	ctx := context.Background()
@@ -51,14 +51,14 @@ func TestPortBaselineUniquePhysicalRejectPostgres(t *testing.T) {
 
 	baseline := &biz.Port{UNLocode: "CNXYP", NameEN: "Baseline Xiny Port", CountryCode: "CN", TransportModes: []string{"SEA"}, Source: "manual", SortOrder: 10}
 	if _, err := repo.CreatePort(ctx, uuid.Nil, baseline, audit()); err != nil {
-		t.Fatalf("首个 NULL 基线港口创建失败: %v", err)
+		t.Fatalf("首个公共港口创建失败: %v", err)
 	}
-	// 两条 NULL 同 Code：被部分唯一索引 ports_baseline_locode_unique 物理拒绝。
+	// 同码公共港口被全局唯一索引物理拒绝。
 	if _, err := repo.CreatePort(ctx, uuid.Nil, &biz.Port{UNLocode: "CNXYP", NameEN: "Duplicate Baseline", CountryCode: "CN", TransportModes: []string{"SEA"}, Source: "manual", SortOrder: 20}, audit()); err != biz.ErrIndustryReferenceCodeExist {
-		t.Fatalf("B 型两条 NULL 同 un_locode 应被物理拒绝并映射 ErrIndustryReferenceCodeExist，实际 %v", err)
+		t.Fatalf("两条公共港口同 un_locode 应被物理拒绝并映射 ErrIndustryReferenceCodeExist，实际 %v", err)
 	}
-	// NULL 基线行与 org 行同 Code 允许并存（B 型遮蔽前置条件）。
-	if _, err := repo.CreatePort(ctx, branch.ID, &biz.Port{OrganizationID: &branch.ID, UNLocode: "CNXYP", NameEN: "Branch Xiny Port", CountryCode: "CN", TransportModes: []string{"SEA"}, Source: "manual", SortOrder: 30}, audit()); err != nil {
-		t.Fatalf("基线行与本组织行同 Code 并存应成功: %v", err)
+	// 从其他公司调用仓储也不能创建同码公共港口。
+	if _, err := repo.CreatePort(ctx, branch.ID, &biz.Port{UNLocode: "CNXYP", NameEN: "Branch Xiny Port", CountryCode: "CN", TransportModes: []string{"SEA"}, Source: "manual", SortOrder: 30}, audit()); err != biz.ErrIndustryReferenceCodeExist {
+		t.Fatalf("公司上下文同码公共港口应拒绝: %v", err)
 	}
 }

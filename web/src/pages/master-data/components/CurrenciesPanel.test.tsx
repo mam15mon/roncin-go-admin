@@ -14,7 +14,7 @@ vi.mock('@/services/roncin/masterDataService', () => ({
 
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
-    isHeadquartersOrganization: false,
+    isSystemWorkspace: false,
     canUpdateMasterDataCurrencies: true,
   }),
 }));

@@ -9,7 +9,7 @@ import (
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
-// defaultBranchCompanySeeds 是建库种子中的默认分公司清单，挂在总部之下。
+// defaultBranchCompanySeeds 是建库种子中的默认分公司清单，各公司为独立根节点。
 type branchCompanySeed struct {
 	Code string
 	Name string
@@ -22,10 +22,10 @@ var defaultBranchCompanySeeds = []branchCompanySeed{
 	{Code: "CQ", Name: "融迅（重庆）供应链管理有限公司"},
 }
 
-// CreateDefaultBranchCompanies 在总部下幂等补建默认分公司种子：编码已存在的
+// CreateDefaultBranchCompanies 幂等补建默认公司种子：编码已存在的
 // 分支跳过不覆盖；新建分支与后台手工创建的分公司保持同构（本币 CNY、默认
 // 启用币种与全套默认单号规则）。
-func CreateDefaultBranchCompanies(ctx context.Context, tx *ent.Tx, headquartersID uuid.UUID) (int, error) {
+func CreateDefaultBranchCompanies(ctx context.Context, tx *ent.Tx, _ uuid.UUID) (int, error) {
 	created := 0
 	for _, seed := range defaultBranchCompanySeeds {
 		exists, err := tx.Organization.Query().Where(organizationent.CodeEQ(seed.Code)).Exist(ctx)
@@ -39,7 +39,6 @@ func CreateDefaultBranchCompanies(ctx context.Context, tx *ent.Tx, headquartersI
 			SetCode(seed.Code).
 			SetName(seed.Name).
 			SetKind(organizationent.KindCompany).
-			SetParentID(headquartersID).
 			SetBaseCurrency("CNY").
 			SetEnabledCurrencies(defaultCompanyEnabledCurrencies("CNY")).
 			Save(ctx)
@@ -49,9 +48,11 @@ func CreateDefaultBranchCompanies(ctx context.Context, tx *ent.Tx, headquartersI
 		if err := CreateDefaultNumberRules(ctx, tx, organization.ID); err != nil {
 			return created, err
 		}
-		// 种子公司同样默认纳入 bootstrap 管理员覆盖，与运行期建公司保持一致。
-		if _, ensureErr := ensureBootstrapAdminCompanyMembership(ctx, tx.Client(), organization.ID); ensureErr != nil {
-			return created, ensureErr
+		if err := initializeCompanyAdministrator(ctx, tx.Client(), organization.ID); err != nil {
+			return created, err
+		}
+		if err := initializeCompanyFeeSettings(ctx, tx.Client(), organization.ID); err != nil {
+			return created, err
 		}
 		created++
 	}

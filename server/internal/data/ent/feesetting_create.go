@@ -63,14 +63,6 @@ func (_c *FeeSettingCreate) SetOrganizationID(v uuid.UUID) *FeeSettingCreate {
 	return _c
 }
 
-// SetNillableOrganizationID sets the "organization_id" field if the given value is not nil.
-func (_c *FeeSettingCreate) SetNillableOrganizationID(v *uuid.UUID) *FeeSettingCreate {
-	if v != nil {
-		_c.SetOrganizationID(*v)
-	}
-	return _c
-}
-
 // SetFeeCode sets the "fee_code" field.
 func (_c *FeeSettingCreate) SetFeeCode(v string) *FeeSettingCreate {
 	_c.mutation.SetFeeCode(v)
@@ -332,6 +324,9 @@ func (_c *FeeSettingCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FeeSetting.updated_at"`)}
 	}
+	if _, ok := _c.mutation.OrganizationID(); !ok {
+		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FeeSetting.organization_id"`)}
+	}
 	if _, ok := _c.mutation.FeeCode(); !ok {
 		return &ValidationError{Name: "fee_code", err: errors.New(`ent: missing required field "FeeSetting.fee_code"`)}
 	}
@@ -386,6 +381,9 @@ func (_c *FeeSettingCreate) check() error {
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FeeSetting.search_keywords"`)}
+	}
+	if len(_c.mutation.OrganizationIDs()) == 0 {
+		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "FeeSetting.organization"`)}
 	}
 	if len(_c.mutation.ChargeCategoryIDs()) == 0 {
 		return &ValidationError{Name: "charge_category", err: errors.New(`ent: missing required edge "FeeSetting.charge_category"`)}
@@ -490,7 +488,7 @@ func (_c *FeeSettingCreate) createSpec() (*FeeSetting, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.OrganizationID = &nodes[0]
+		_node.OrganizationID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.ChargeCategoryIDs(); len(nodes) > 0 {
@@ -650,12 +648,6 @@ func (u *FeeSettingUpsert) SetOrganizationID(v uuid.UUID) *FeeSettingUpsert {
 // UpdateOrganizationID sets the "organization_id" field to the value that was provided on create.
 func (u *FeeSettingUpsert) UpdateOrganizationID() *FeeSettingUpsert {
 	u.SetExcluded(feesetting.FieldOrganizationID)
-	return u
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *FeeSettingUpsert) ClearOrganizationID() *FeeSettingUpsert {
-	u.SetNull(feesetting.FieldOrganizationID)
 	return u
 }
 
@@ -915,13 +907,6 @@ func (u *FeeSettingUpsertOne) SetOrganizationID(v uuid.UUID) *FeeSettingUpsertOn
 func (u *FeeSettingUpsertOne) UpdateOrganizationID() *FeeSettingUpsertOne {
 	return u.Update(func(s *FeeSettingUpsert) {
 		s.UpdateOrganizationID()
-	})
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *FeeSettingUpsertOne) ClearOrganizationID() *FeeSettingUpsertOne {
-	return u.Update(func(s *FeeSettingUpsert) {
-		s.ClearOrganizationID()
 	})
 }
 
@@ -1378,13 +1363,6 @@ func (u *FeeSettingUpsertBulk) SetOrganizationID(v uuid.UUID) *FeeSettingUpsertB
 func (u *FeeSettingUpsertBulk) UpdateOrganizationID() *FeeSettingUpsertBulk {
 	return u.Update(func(s *FeeSettingUpsert) {
 		s.UpdateOrganizationID()
-	})
-}
-
-// ClearOrganizationID clears the value of the "organization_id" field.
-func (u *FeeSettingUpsertBulk) ClearOrganizationID() *FeeSettingUpsertBulk {
-	return u.Update(func(s *FeeSettingUpsert) {
-		s.ClearOrganizationID()
 	})
 }
 

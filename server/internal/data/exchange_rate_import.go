@@ -108,10 +108,10 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 	if err != nil {
 		return nil, err
 	}
-	// 导入按当前组织落地：总部写 NULL 基线行，分公司写本组织行；与页面写入、
+	// 导入按当前组织落地：系统管理写 NULL 基线行，公司写本组织行；与页面写入、
 	// 牌价同步共用作用域级 advisory 锁。
 	scope := organizationID.String()
-	if biz.IsHeadquartersOrganization(ctx) {
+	if biz.IsSystemWorkspace(ctx) {
 		scope = "baseline"
 	}
 	lockKey := "exchange-rate-weekly:" + scope
@@ -161,10 +161,10 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 		if validateErr := validateExchangeRateImportRowsInTx(ctx, tx, rows); validateErr != nil {
 			return validateErr
 		}
-		// 行归属与组织身份一致：总部导入基线行，分公司导入本组织行；
+		// 行归属与组织身份一致：系统管理导入基线行，公司导入本组织行；
 		// 同周重复导入按幂等 Upsert 覆盖更新，不抛唯一键冲突。
 		var organizationScope *uuid.UUID
-		if !biz.IsHeadquartersOrganization(ctx) {
+		if !biz.IsSystemWorkspace(ctx) {
 			organizationScope = &organizationID
 		}
 		for _, row := range rows {

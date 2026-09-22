@@ -627,10 +627,7 @@ func (_q *FeeSettingQuery) loadOrganization(ctx context.Context, query *Organiza
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FeeSetting)
 	for i := range nodes {
-		if nodes[i].OrganizationID == nil {
-			continue
-		}
-		fk := *nodes[i].OrganizationID
+		fk := nodes[i].OrganizationID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}

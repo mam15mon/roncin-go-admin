@@ -18,7 +18,15 @@ func (r *adminRepo) ListOrganizations(ctx context.Context) ([]*biz.AdminOrganiza
 	if err != nil {
 		return nil, err
 	}
-	items, err := client.Organization.Query().All(ctx)
+	query := client.Organization.Query()
+	if principal, ok := biz.PrincipalFromContext(ctx); ok {
+		scope, scopeErr := adminOrganizationManagementScope(ctx, client, principal.Organization.ID)
+		if scopeErr != nil {
+			return nil, scopeErr
+		}
+		query.Where(organization.IDIn(scope...))
+	}
+	items, err := query.All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +58,7 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 	var created *ent.Organization
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		create := tx.Organization.Create().SetCode(input.Code).SetName(input.Name).SetKind(organization.Kind(input.Kind))
-		if input.Kind == biz.OrganizationKindCompany || input.Kind == biz.OrganizationKindHeadquarters {
+		if input.Kind == biz.OrganizationKindCompany || input.Kind == biz.OrganizationKindSystem {
 			if currencyErr := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); currencyErr != nil {
 				return currencyErr
 			}
@@ -70,10 +78,12 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 		if defaultErr := CreateDefaultNumberRules(ctx, tx, created.ID); defaultErr != nil {
 			return defaultErr
 		}
-		// 新公司默认纳入 bootstrap 管理员覆盖： administrator 角色与管理员成员关系同事务落库。
 		if input.Kind == biz.OrganizationKindCompany {
-			if _, ensureErr := ensureBootstrapAdminCompanyMembership(ctx, tx.Client(), created.ID); ensureErr != nil {
-				return ensureErr
+			if err := initializeCompanyAdministrator(ctx, tx.Client(), created.ID); err != nil {
+				return err
+			}
+			if err := initializeCompanyFeeSettings(ctx, tx.Client(), created.ID); err != nil {
+				return err
 			}
 		}
 		// A 型主数据种子全局唯一，仅首次建库初始化，不再随组织重复落行。
@@ -103,8 +113,12 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.UUID, input *biz.AdminOrganization, audit *biz.AuditEvent) (*biz.AdminOrganization, error) {
 	var updated *ent.Organization
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		update := tx.Organization.UpdateOneID(input.ID).Where(organization.Or(organization.IDEQ(organizationID), organization.ParentIDEQ(organizationID))).SetName(input.Name).SetEnabled(input.Enabled)
-		if input.Kind == biz.OrganizationKindHeadquarters || input.Kind == biz.OrganizationKindCompany {
+		scope, scopeErr := adminOrganizationManagementScope(ctx, tx.Client(), organizationID)
+		if scopeErr != nil {
+			return scopeErr
+		}
+		update := tx.Organization.UpdateOneID(input.ID).Where(organization.IDIn(scope...)).SetName(input.Name).SetEnabled(input.Enabled)
+		if input.Kind == biz.OrganizationKindSystem || input.Kind == biz.OrganizationKindCompany {
 			if currencyErr := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); currencyErr != nil {
 				return currencyErr
 			}
@@ -208,4 +222,28 @@ func validateOrganizationCurrency(ctx context.Context, client currencyQuery, cod
 		return biz.ErrAdminOrganizationCurrency
 	}
 	return nil
+}
+
+// adminOrganizationManagementScope 保留停用节点供管理员重新启用；经营和成员候选仍只用启用节点。
+func adminOrganizationManagementScope(ctx context.Context, client *ent.Client, workspaceID uuid.UUID) ([]uuid.UUID, error) {
+	nodes, err := loadOrganizationTree(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+	nodeMap := authOrganizationNodes(nodes)
+	workspace, ok := nodeMap[workspaceID]
+	if !ok || !workspace.Enabled {
+		return nil, biz.ErrAdminOrganizationNotFound
+	}
+	if workspace.Kind == string(organization.KindSystem) {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		for _, node := range nodes {
+			ids = append(ids, node.ID)
+		}
+		return ids, nil
+	}
+	if workspace.Kind != string(organization.KindCompany) {
+		return nil, biz.ErrAdminOrganizationNotFound
+	}
+	return organizationSubtreeIDs(nodeMap, workspaceID), nil
 }

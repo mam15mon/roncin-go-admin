@@ -142,7 +142,7 @@ func TestRenderDingTalkRegistrationPendingNotificationEscalated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("renderNotification error = %v", err)
 	}
-	expectedTitle := "【青岛分公司新员工待审批（该组织暂无管理员，由总部代管审批）】"
+	expectedTitle := "【青岛分公司新员工待审批（该组织暂无管理员，由系统管理代管审批）】"
 	if !strings.Contains(content, expectedTitle) {
 		t.Fatalf("通知卡片未包含代管标题 %q: %s", expectedTitle, content)
 	}

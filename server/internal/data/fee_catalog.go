@@ -22,8 +22,8 @@ func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uui
 	if err != nil {
 		return nil, err
 	}
-	// B 型基线+本地：本组织行 + 未被同码本地行覆盖的基线行（Shadowing 去重下推）。
-	query := client.FeeSetting.Query().Where(feeSettingBaselineScope(organizationID))
+	// 公司实际使用的科目不读取系统模板。
+	query := client.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(organizationID))
 	if options.Keyword != "" {
 		query.Where(feesettingent.Or(feesettingent.FeeCodeContainsFold(options.Keyword), feesettingent.NameZhContainsFold(options.Keyword), feesettingent.NameEnContainsFold(options.Keyword), feesettingent.AliasNameContainsFold(options.Keyword), feesettingent.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -34,8 +34,7 @@ func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uui
 	}, options.Page, options.PageSize, feeSettingToBiz)
 }
 
-// CreateFeeSetting 创建费用设置：行归属由 input.OrganizationID 决定（总部 nil
-// 基线行 / 分公司本组织行）；organizationID 为调用组织，税务名称引用按其校验。
+// CreateFeeSetting 创建本公司费用科目。
 func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, organizationID uuid.UUID, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
 	if err := r.validateFeeSettingReferences(ctx, organizationID, input); err != nil {
 		return nil, err
@@ -43,7 +42,7 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, organizationID uu
 	var converted *biz.FeeSetting
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		builder := tx.FeeSetting.Create().
-			SetID(input.ID).SetNillableOrganizationID(input.OrganizationID).
+			SetID(input.ID).SetOrganizationID(organizationID).
 			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
 			SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).SetChargeCategoryID(input.ChargeCategoryID).
 			SetDefaultCurrency(input.DefaultCurrency).SetBillingUnitID(input.BillingUnitID).SetNillableAbnormalCaseID(input.AbnormalCaseID).
@@ -69,16 +68,11 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, organizationID uu
 	return converted, nil
 }
 
-// UpdateFeeSetting 按 ID 更新费用设置（悲观锁 + 作用域归属校验，语义同汇率
-// UpdateScoped）：allowBaseline 时总部可命中 NULL 基线行，否则仅限调用组织
-// 自己的组织行；行归属不可迁移，作用域外一律按不存在处理。
-func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, organizationID uuid.UUID, input *biz.FeeSetting, allowBaseline bool, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
+// UpdateFeeSetting 仅更新本公司科目，归属不可迁移。
+func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, organizationID uuid.UUID, input *biz.FeeSetting, audit *biz.AuditEvent) (*biz.FeeSetting, error) {
 	var converted *biz.FeeSetting
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		scope := feesettingent.OrganizationIDEQ(organizationID)
-		if allowBaseline {
-			scope = feesettingent.Or(feesettingent.OrganizationIDEQ(organizationID), feesettingent.OrganizationIDIsNil())
-		}
 		current, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID), scope).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			// 归属校验先行：作用域外的行一律按不存在处理，不提前泄漏引用细节。
@@ -135,6 +129,19 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, organ
 	if err != nil {
 		return err
 	}
+	if err := validateFeePublicReferences(ctx, client, input); err != nil {
+		return err
+	}
+	taxableExists, err := client.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(organizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if !taxableExists {
+		return biz.ErrFeeCatalogReferenceInvalid
+	}
+	return nil
+}
+func validateFeePublicReferences(ctx context.Context, client *ent.Client, input *biz.FeeSetting) error {
 	chargeCategoryExists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(input.ChargeCategoryID), masterdataitement.KindEQ(masterdataitement.KindChargeCategory), masterdataitement.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
@@ -155,15 +162,11 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, organ
 	if err != nil {
 		return err
 	}
-	taxableExists, err := client.TaxableService.Query().Where(taxableserviceent.IDEQ(input.TaxableServiceID), taxableserviceent.OrganizationIDEQ(organizationID), taxableserviceent.EnabledEQ(true)).Exist(ctx)
-	if err != nil {
-		return err
-	}
 	currencyExists, err := client.Currency.Query().Where(currencyent.CodeEQ(input.DefaultCurrency), currencyent.EnabledEQ(true)).Exist(ctx)
 	if err != nil {
 		return err
 	}
-	if !billingExists || !taxableExists || !currencyExists {
+	if !billingExists || !currencyExists {
 		return biz.ErrFeeCatalogReferenceInvalid
 	}
 	return nil

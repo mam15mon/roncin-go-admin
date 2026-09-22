@@ -36,6 +36,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesettingtemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
@@ -206,6 +207,7 @@ func checkColumn(t, c string) error {
 			exchangerateimportbatch.Table:          exchangerateimportbatch.ValidColumn,
 			exchangeratesetting.Table:              exchangeratesetting.ValidColumn,
 			feesetting.Table:                       feesetting.ValidColumn,
+			feesettingtemplate.Table:               feesettingtemplate.ValidColumn,
 			financebill.Table:                      financebill.ValidColumn,
 			financebillbatch.Table:                 financebillbatch.ValidColumn,
 			financebillenterprisetag.Table:         financebillenterprisetag.ValidColumn,

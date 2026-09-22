@@ -7,8 +7,8 @@ import {
 
 const headquarters: API.AdminOrganization = {
   id: 'org-hq',
-  name: '总部',
-  kind: AdminOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS,
+  name: '系统管理',
+  kind: AdminOrganizationKind.ORGANIZATION_KIND_SYSTEM,
 };
 const company: API.AdminOrganization = {
   id: 'org-company',
@@ -44,11 +44,9 @@ const organizations: API.AdminOrganization[] = [
 ];
 
 describe('isWorkspaceKindValue', () => {
-  it('只把总部与公司判定为工作台节点', () => {
+  it('只把系统管理与公司判定为工作台节点', () => {
     expect(
-      isWorkspaceKindValue(
-        AdminOrganizationKind.ORGANIZATION_KIND_HEADQUARTERS,
-      ),
+      isWorkspaceKindValue(AdminOrganizationKind.ORGANIZATION_KIND_SYSTEM),
     ).toBe(true);
     expect(
       isWorkspaceKindValue(AdminOrganizationKind.ORGANIZATION_KIND_COMPANY),
@@ -85,13 +83,13 @@ describe('formatOrganizationHierarchyName', () => {
     );
   });
 
-  it('总部与公司直接展示自身名称，不再向上拼接', () => {
+  it('系统管理与公司直接展示自身名称，不再向上拼接', () => {
     expect(formatOrganizationHierarchyName(company.id, organizations)).toBe(
       '上海公司',
     );
     expect(
       formatOrganizationHierarchyName(headquarters.id, organizations),
-    ).toBe('总部');
+    ).toBe('系统管理');
   });
 
   it('支持直接传入组织对象，并保持部门拼接口径一致', () => {

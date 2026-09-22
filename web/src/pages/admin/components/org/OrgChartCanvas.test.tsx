@@ -9,13 +9,13 @@ describe('OrgChartCanvas', () => {
   const mockTreeData: OrgTreeNode[] = [
     {
       key: 'org-root',
-      title: '隆胜货运总部',
+      title: '隆胜货运系统管理',
       code: 'RC-HQ',
-      kind: 1, // 总部
+      kind: 1, // 系统管理
       enabled: true,
       raw: {
         id: 'org-root',
-        name: '隆胜货运总部',
+        name: '隆胜货运系统管理',
         code: 'RC-HQ',
         kind: 1,
         enabled: true,
@@ -95,11 +95,11 @@ describe('OrgChartCanvas', () => {
     );
 
     // 根节点
-    expect(screen.getAllByText('隆胜货运总部').length).toBeGreaterThanOrEqual(
-      1,
-    );
+    expect(
+      screen.getAllByText('隆胜货运系统管理').length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('RC-HQ').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('总部').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('系统管理').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('2 个下级')).toBeInTheDocument();
 
     // 子节点
@@ -217,9 +217,9 @@ describe('OrgChartCanvas', () => {
       </App>,
     );
 
-    expect(screen.getAllByText('隆胜货运总部').length).toBeGreaterThanOrEqual(
-      1,
-    );
+    expect(
+      screen.getAllByText('隆胜货运系统管理').length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('深圳分公司').length).toBeGreaterThanOrEqual(1);
   });
 

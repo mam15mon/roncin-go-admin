@@ -211,17 +211,17 @@ var manifest = append([]Permission{
 	{Key: EnterpriseResourceCreate, Name: "新建资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "新建资源及标签组", Requires: []string{EnterpriseResourceRead}},
 	{Key: EnterpriseResourceUpdate, Name: "编辑资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "编辑资源、标签组和企业关联", Requires: []string{EnterpriseResourceRead}},
 	{Key: EnterpriseResourceDelete, Name: "删除资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "删除资源及空标签组", Requires: []string{EnterpriseResourceRead}},
-	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "费用管理 · 汇率", Description: "查看总部折本币基准汇率"},
-	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "费用管理 · 汇率", Description: "新建总部折本币基准汇率", Requires: []string{FinanceExchangeRateRead}},
-	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改总部折本币基准汇率", Requires: []string{FinanceExchangeRateRead}},
-	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "费用管理 · 汇率", Description: "停用总部折本币基准汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "费用管理 · 汇率", Description: "查看公共参考与公司业务汇率"},
+	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "费用管理 · 汇率", Description: "新建公共参考与公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改公共参考与公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "费用管理 · 汇率", Description: "停用公共参考与公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceExchangeRateOverride, Name: "覆盖财务汇率", Group: "费用管理 · 汇率", Description: "在订单费用或资金流水中手工覆盖系统汇率", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "费用管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "费用管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "费用管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 费用总台账", Description: "查看当前组织全部业务线的应收应付费用"},
 	{Key: FinanceFeeTag, Name: "维护费用标签", Group: "费用管理 · 费用总台账", Description: "在费用总台账批量添加或移除业务标签", Requires: []string{FinanceFeeRead}},
-	{Key: FinanceBillConfigure, Name: "配置账单治理策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
+	{Key: FinanceBillConfigure, Name: "配置公司账单策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
 	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合已确认费用创建账单", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单", Requires: []string{FinanceBillRead}},
@@ -500,4 +500,32 @@ func isBusinessOperationPermissionDefinition(key string) bool {
 		}
 	}
 	return false
+}
+
+// IsCompanyBusinessPermission 包含经营读取、办理和公司财务配置，系统工作台不授予。
+func IsCompanyBusinessPermission(key string) bool {
+	if strings.HasPrefix(key, "business.") {
+		return true
+	}
+	if strings.HasPrefix(key, "system.finance.") {
+		return !strings.HasPrefix(key, "system.finance.exchange_rate.") && !strings.HasPrefix(key, "system.finance.fee_setting.") || key == FinanceExchangeRateOverride
+	}
+	return strings.HasPrefix(key, "system.master_data.number_rule.")
+}
+
+// IsSystemManagementPermission 公共字典写权限仅由系统管理工作台持有。
+// 用户、角色及组织管理可用于公司内部管理，不因 system 前缀被归为系统专属。
+func IsSystemManagementPermission(key string) bool {
+	if key == UserResetPassword || key == UserTerminate || key == UserAuthorizeWeCom || key == UserAuthorizeDingTalk {
+		return true
+	}
+	return strings.HasPrefix(key, "system.master_data.") && !strings.HasPrefix(key, "system.master_data.number_rule.") && !strings.HasSuffix(key, ".read")
+}
+
+// PermissionAllowedInWorkspace 是运行时投影、角色写入和权限同步共用的边界。
+func PermissionAllowedInWorkspace(key string, system bool) bool {
+	if system {
+		return !IsCompanyBusinessPermission(key)
+	}
+	return !IsSystemManagementPermission(key)
 }

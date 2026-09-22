@@ -87,7 +87,7 @@ func validatePortIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, 
 	if len(ids) == 0 {
 		return nil
 	}
-	count, err := tx.Port.Query().Where(portent.IDIn(ids...), portBaselineScope(organizationID), portent.EnabledEQ(true)).Count(ctx)
+	count, err := tx.Port.Query().Where(portent.IDIn(ids...), portent.EnabledEQ(true)).Count(ctx)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func validateAirportIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 	if len(ids) == 0 {
 		return nil
 	}
-	count, err := tx.Airport.Query().Where(airportent.IDIn(ids...), airportBaselineScope(organizationID), airportent.EnabledEQ(true)).Count(ctx)
+	count, err := tx.Airport.Query().Where(airportent.IDIn(ids...), airportent.EnabledEQ(true)).Count(ctx)
 	if err != nil {
 		return err
 	}

@@ -149,7 +149,7 @@ func TestCommissionRuleAssignmentSchemaPostgres(t *testing.T) {
 		org, err := data.db.Organization.Create().
 			SetCode("CRA-" + suffix).
 			SetName("分配Schema测试组织-" + suffix).
-			SetKind("headquarters").
+			SetKind("system").
 			SetBaseCurrency("CNY").
 			Save(ctx)
 		if err != nil {
@@ -201,7 +201,7 @@ func TestCommissionRuleAssignmentSchemaPostgres(t *testing.T) {
 		org, err := data.db.Organization.Create().
 			SetCode("CRL-" + suffix).
 			SetName("旧规则停用测试组织-" + suffix).
-			SetKind("headquarters").
+			SetKind("system").
 			SetBaseCurrency("CNY").
 			Save(ctx)
 		if err != nil {

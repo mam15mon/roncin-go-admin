@@ -8,7 +8,7 @@ const mockUser: API.CurrentUser = {
   email: 'admin@roncin.com',
   currentOrganization: {
     id: 'org-root-001',
-    name: 'Roncin 国际物流总部',
+    name: 'Roncin 国际物流系统管理',
     code: 'RONCIN_HQ',
   },
   roleScopes: [

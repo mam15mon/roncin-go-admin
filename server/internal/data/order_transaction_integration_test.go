@@ -4,16 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
-	"log/slog"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -46,6 +42,7 @@ type orderPostgresFixture struct {
 	shippingLineID uuid.UUID
 	actorID        uuid.UUID
 	suffix         string
+	portIDs        []uuid.UUID
 }
 
 type orderWriteResult struct {
@@ -54,20 +51,7 @@ type orderWriteResult struct {
 }
 
 func TestOrderCreateTransactionPostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
-	data, cleanup, err := NewData(&conf.Data{Database: &conf.Data_Database{
-		Driver:             "postgres",
-		Source:             source,
-		AutoMigrate:        true,
-		MaxOpenConnections: 8,
-		MaxIdleConnections: 8,
-	}}, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	if err != nil {
-		t.Fatalf("初始化集成测试数据库: %v", err)
-	}
+	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 
 	t.Run("创建订单审计包含初始单证结构与HBL数量", func(t *testing.T) {
@@ -427,8 +411,8 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		ctx := context.Background()
 		usecase := fixture.newUsecase()
 
-		destPort1 := fixture.createPort(ctx, "D1"+fixture.suffix[:3], "目的港1")
-		destPort2 := fixture.createPort(ctx, "D2"+fixture.suffix[:3], "目的港2")
+		destPort1 := fixture.createPort(ctx, "CN"+strings.ToUpper(fixture.suffix[:2])+"1", "目的港1")
+		destPort2 := fixture.createPort(ctx, "CN"+strings.ToUpper(fixture.suffix[:2])+"2", "目的港2")
 
 		masterNo := "VOY" + strings.ToUpper(fixture.suffix)
 		first := fixture.validInput()
@@ -601,7 +585,6 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 
 func (f *orderPostgresFixture) createPort(ctx context.Context, unlocode, name string) *ent.Port {
 	port, err := f.data.db.Port.Create().
-		SetOrganizationID(f.organizationID).
 		SetUnLocode(unlocode).
 		SetNameZh(name).
 		SetNameEn(name).
@@ -614,6 +597,7 @@ func (f *orderPostgresFixture) createPort(ctx context.Context, unlocode, name st
 	if err != nil {
 		f.t.Fatalf("创建测试港口: %v", err)
 	}
+	f.portIDs = append(f.portIDs, port.ID)
 	return port
 }
 
@@ -673,7 +657,7 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 	headquarters, err := data.db.Organization.Create().
 		SetCode("ORDER-TX-" + suffix).
 		SetName("订单事务集成测试总部-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -683,7 +667,6 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 		SetCode("ORDER-COMPANY-" + suffix).
 		SetName("订单事务集成测试公司-" + suffix).
 		SetKind("company").
-		SetParentID(headquarters.ID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -984,7 +967,7 @@ func (f *orderPostgresFixture) cleanup() {
 			return err
 		}},
 		{name: "港口", run: func() error {
-			_, err := f.data.db.Port.Delete().Where(portent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
+			_, err := f.data.db.Port.Delete().Where(portent.IDIn(f.portIDs...)).Exec(ctx)
 			return err
 		}},
 		{name: "组织", run: func() error {

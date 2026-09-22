@@ -19,8 +19,10 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationFeeCatalogServiceCreateBillingUnit = "/finance.v1.FeeCatalogService/CreateBillingUnit"
 const OperationFeeCatalogServiceCreateFeeSetting = "/finance.v1.FeeCatalogService/CreateFeeSetting"
+const OperationFeeCatalogServiceCreateFeeSettingTemplate = "/finance.v1.FeeCatalogService/CreateFeeSettingTemplate"
 const OperationFeeCatalogServiceCreateTaxableService = "/finance.v1.FeeCatalogService/CreateTaxableService"
 const OperationFeeCatalogServiceListBillingUnits = "/finance.v1.FeeCatalogService/ListBillingUnits"
+const OperationFeeCatalogServiceListFeeSettingTemplates = "/finance.v1.FeeCatalogService/ListFeeSettingTemplates"
 const OperationFeeCatalogServiceListFeeSettings = "/finance.v1.FeeCatalogService/ListFeeSettings"
 const OperationFeeCatalogServiceListTaxableServices = "/finance.v1.FeeCatalogService/ListTaxableServices"
 const OperationFeeCatalogServiceSearchBillingUnits = "/finance.v1.FeeCatalogService/SearchBillingUnits"
@@ -28,13 +30,16 @@ const OperationFeeCatalogServiceSearchFeeSettings = "/finance.v1.FeeCatalogServi
 const OperationFeeCatalogServiceSearchTaxableServices = "/finance.v1.FeeCatalogService/SearchTaxableServices"
 const OperationFeeCatalogServiceUpdateBillingUnit = "/finance.v1.FeeCatalogService/UpdateBillingUnit"
 const OperationFeeCatalogServiceUpdateFeeSetting = "/finance.v1.FeeCatalogService/UpdateFeeSetting"
+const OperationFeeCatalogServiceUpdateFeeSettingTemplate = "/finance.v1.FeeCatalogService/UpdateFeeSettingTemplate"
 const OperationFeeCatalogServiceUpdateTaxableService = "/finance.v1.FeeCatalogService/UpdateTaxableService"
 
 type FeeCatalogServiceHTTPServer interface {
 	CreateBillingUnit(context.Context, *CreateBillingUnitRequest) (*CreateBillingUnitResponse, error)
 	CreateFeeSetting(context.Context, *CreateFeeSettingRequest) (*CreateFeeSettingResponse, error)
+	CreateFeeSettingTemplate(context.Context, *CreateFeeSettingTemplateRequest) (*CreateFeeSettingTemplateResponse, error)
 	CreateTaxableService(context.Context, *CreateTaxableServiceRequest) (*CreateTaxableServiceResponse, error)
 	ListBillingUnits(context.Context, *ListBillingUnitsRequest) (*ListBillingUnitsResponse, error)
+	ListFeeSettingTemplates(context.Context, *ListFeeSettingTemplatesRequest) (*ListFeeSettingTemplatesResponse, error)
 	ListFeeSettings(context.Context, *ListFeeSettingsRequest) (*ListFeeSettingsResponse, error)
 	ListTaxableServices(context.Context, *ListTaxableServicesRequest) (*ListTaxableServicesResponse, error)
 	SearchBillingUnits(context.Context, *SearchBillingUnitsRequest) (*SearchBillingUnitsResponse, error)
@@ -42,11 +47,15 @@ type FeeCatalogServiceHTTPServer interface {
 	SearchTaxableServices(context.Context, *SearchTaxableServicesRequest) (*SearchTaxableServicesResponse, error)
 	UpdateBillingUnit(context.Context, *UpdateBillingUnitRequest) (*UpdateBillingUnitResponse, error)
 	UpdateFeeSetting(context.Context, *UpdateFeeSettingRequest) (*UpdateFeeSettingResponse, error)
+	UpdateFeeSettingTemplate(context.Context, *UpdateFeeSettingTemplateRequest) (*UpdateFeeSettingTemplateResponse, error)
 	UpdateTaxableService(context.Context, *UpdateTaxableServiceRequest) (*UpdateTaxableServiceResponse, error)
 }
 
 func RegisterFeeCatalogServiceHTTPServer(s *http.Server, srv FeeCatalogServiceHTTPServer) {
 	r := s.Route("/")
+	r.Handle("GET", "/api/v1/finance/fee-setting-templates", _FeeCatalogService_ListFeeSettingTemplates0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/fee-setting-templates", _FeeCatalogService_CreateFeeSettingTemplate0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/finance/fee-setting-templates/{id}", _FeeCatalogService_UpdateFeeSettingTemplate0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/fee-settings", _FeeCatalogService_ListFeeSettings0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/fee-settings/search", _FeeCatalogService_SearchFeeSettings0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/fee-settings", _FeeCatalogService_CreateFeeSetting0_HTTP_Handler(srv))
@@ -59,6 +68,66 @@ func RegisterFeeCatalogServiceHTTPServer(s *http.Server, srv FeeCatalogServiceHT
 	r.Handle("GET", "/api/v1/finance/taxable-services/search", _FeeCatalogService_SearchTaxableServices0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/taxable-services", _FeeCatalogService_CreateTaxableService0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/taxable-services/{id}", _FeeCatalogService_UpdateTaxableService0_HTTP_Handler(srv))
+}
+
+func _FeeCatalogService_ListFeeSettingTemplates0_HTTP_Handler(srv FeeCatalogServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListFeeSettingTemplatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFeeCatalogServiceListFeeSettingTemplates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListFeeSettingTemplates(ctx, req.(*ListFeeSettingTemplatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListFeeSettingTemplatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FeeCatalogService_CreateFeeSettingTemplate0_HTTP_Handler(srv FeeCatalogServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CreateFeeSettingTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFeeCatalogServiceCreateFeeSettingTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CreateFeeSettingTemplate(ctx, req.(*CreateFeeSettingTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CreateFeeSettingTemplateResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _FeeCatalogService_UpdateFeeSettingTemplate0_HTTP_Handler(srv FeeCatalogServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateFeeSettingTemplateRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationFeeCatalogServiceUpdateFeeSettingTemplate)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateFeeSettingTemplate(ctx, req.(*UpdateFeeSettingTemplateRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateFeeSettingTemplateResponse)
+		return ctx.Result(200, reply)
+	}
 }
 
 func _FeeCatalogService_ListFeeSettings0_HTTP_Handler(srv FeeCatalogServiceHTTPServer) func(ctx http.Context) error {
@@ -301,8 +370,10 @@ func _FeeCatalogService_UpdateTaxableService0_HTTP_Handler(srv FeeCatalogService
 type FeeCatalogServiceHTTPClient interface {
 	CreateBillingUnit(ctx context.Context, req *CreateBillingUnitRequest, opts ...http.CallOption) (rsp *CreateBillingUnitResponse, err error)
 	CreateFeeSetting(ctx context.Context, req *CreateFeeSettingRequest, opts ...http.CallOption) (rsp *CreateFeeSettingResponse, err error)
+	CreateFeeSettingTemplate(ctx context.Context, req *CreateFeeSettingTemplateRequest, opts ...http.CallOption) (rsp *CreateFeeSettingTemplateResponse, err error)
 	CreateTaxableService(ctx context.Context, req *CreateTaxableServiceRequest, opts ...http.CallOption) (rsp *CreateTaxableServiceResponse, err error)
 	ListBillingUnits(ctx context.Context, req *ListBillingUnitsRequest, opts ...http.CallOption) (rsp *ListBillingUnitsResponse, err error)
+	ListFeeSettingTemplates(ctx context.Context, req *ListFeeSettingTemplatesRequest, opts ...http.CallOption) (rsp *ListFeeSettingTemplatesResponse, err error)
 	ListFeeSettings(ctx context.Context, req *ListFeeSettingsRequest, opts ...http.CallOption) (rsp *ListFeeSettingsResponse, err error)
 	ListTaxableServices(ctx context.Context, req *ListTaxableServicesRequest, opts ...http.CallOption) (rsp *ListTaxableServicesResponse, err error)
 	SearchBillingUnits(ctx context.Context, req *SearchBillingUnitsRequest, opts ...http.CallOption) (rsp *SearchBillingUnitsResponse, err error)
@@ -310,6 +381,7 @@ type FeeCatalogServiceHTTPClient interface {
 	SearchTaxableServices(ctx context.Context, req *SearchTaxableServicesRequest, opts ...http.CallOption) (rsp *SearchTaxableServicesResponse, err error)
 	UpdateBillingUnit(ctx context.Context, req *UpdateBillingUnitRequest, opts ...http.CallOption) (rsp *UpdateBillingUnitResponse, err error)
 	UpdateFeeSetting(ctx context.Context, req *UpdateFeeSettingRequest, opts ...http.CallOption) (rsp *UpdateFeeSettingResponse, err error)
+	UpdateFeeSettingTemplate(ctx context.Context, req *UpdateFeeSettingTemplateRequest, opts ...http.CallOption) (rsp *UpdateFeeSettingTemplateResponse, err error)
 	UpdateTaxableService(ctx context.Context, req *UpdateTaxableServiceRequest, opts ...http.CallOption) (rsp *UpdateTaxableServiceResponse, err error)
 }
 
@@ -355,6 +427,23 @@ func (c *FeeCatalogServiceHTTPClientImpl) CreateFeeSetting(ctx context.Context, 
 	return &out, nil
 }
 
+func (c *FeeCatalogServiceHTTPClientImpl) CreateFeeSettingTemplate(ctx context.Context, in *CreateFeeSettingTemplateRequest, opts ...http.CallOption) (*CreateFeeSettingTemplateResponse, error) {
+	var out CreateFeeSettingTemplateResponse
+	pattern := "/api/v1/finance/fee-setting-templates"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationFeeCatalogServiceCreateFeeSettingTemplate),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *FeeCatalogServiceHTTPClientImpl) CreateTaxableService(ctx context.Context, in *CreateTaxableServiceRequest, opts ...http.CallOption) (*CreateTaxableServiceResponse, error) {
 	var out CreateTaxableServiceResponse
 	pattern := "/api/v1/finance/taxable-services"
@@ -379,6 +468,22 @@ func (c *FeeCatalogServiceHTTPClientImpl) ListBillingUnits(ctx context.Context, 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationFeeCatalogServiceListBillingUnits),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *FeeCatalogServiceHTTPClientImpl) ListFeeSettingTemplates(ctx context.Context, in *ListFeeSettingTemplatesRequest, opts ...http.CallOption) (*ListFeeSettingTemplatesResponse, error) {
+	var out ListFeeSettingTemplatesResponse
+	pattern := "/api/v1/finance/fee-setting-templates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationFeeCatalogServiceListFeeSettingTemplates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -493,6 +598,23 @@ func (c *FeeCatalogServiceHTTPClientImpl) UpdateFeeSetting(ctx context.Context, 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationFeeCatalogServiceUpdateFeeSetting),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *FeeCatalogServiceHTTPClientImpl) UpdateFeeSettingTemplate(ctx context.Context, in *UpdateFeeSettingTemplateRequest, opts ...http.CallOption) (*UpdateFeeSettingTemplateResponse, error) {
+	var out UpdateFeeSettingTemplateResponse
+	pattern := "/api/v1/finance/fee-setting-templates/{id}"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationFeeCatalogServiceUpdateFeeSettingTemplate),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

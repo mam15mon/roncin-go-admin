@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// FinanceCustomSetting 保存总部组织的通用财务自定义策略。
+// FinanceCustomSetting 保存各公司的财务自定义策略。
 type FinanceCustomSetting struct{ ent.Schema }
 
 func (FinanceCustomSetting) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }

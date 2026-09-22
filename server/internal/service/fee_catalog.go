@@ -264,9 +264,7 @@ func optionalCatalogUUID(value *string) (*uuid.UUID, error) {
 
 func feeSettingToAPI(value *biz.FeeSetting) *v1.FeeSetting {
 	result := &v1.FeeSetting{Id: value.ID.String(), FeeCode: value.FeeCode, NameZh: value.NameZH, NameEn: value.NameEN, AliasName: value.AliasName, ChargeCategoryId: value.ChargeCategoryID.String(), ChargeCategoryName: value.ChargeCategoryName, DefaultCurrency: value.DefaultCurrency, BillingUnitId: value.BillingUnitID.String(), BillingUnitName: value.BillingUnitName, AbnormalCaseName: value.AbnormalCaseName, TaxRate: value.TaxRate.StringFixed(2), TaxableServiceId: value.TaxableServiceID.String(), TaxableServiceName: value.TaxableServiceName, Enabled: value.Enabled, SortOrder: int32(value.SortOrder), CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
-	if value.OrganizationID != nil {
-		result.OrganizationId = optionalString(value.OrganizationID.String(), true)
-	}
+	result.OrganizationId = value.OrganizationID.String()
 	if value.AbnormalCaseID != nil {
 		text := value.AbnormalCaseID.String()
 		result.AbnormalCaseId = &text

@@ -23,7 +23,7 @@ const baseDeps = {
   canUpdateUsers: true,
   canResetUserPasswords: true,
   canTerminateUsers: true,
-  canReadAllUserMemberships: true,
+  canReadUserMemberships: true,
   currentUserId: 'user-1',
   onEdit: vi.fn(),
   onResetPassword: vi.fn(),

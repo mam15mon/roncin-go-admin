@@ -84,7 +84,6 @@ func validateTransportExecutionTargetInput(ctx context.Context, client *ent.Clie
 	if len(portIDs) > 0 {
 		portCount, err := client.Port.Query().Where(
 			portent.IDIn(portIDs...),
-			portent.OrganizationIDEQ(organizationID),
 			portent.EnabledEQ(true),
 		).Count(ctx)
 		if err != nil {
@@ -204,7 +203,6 @@ func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.U
 			s.OriginLocationID = te.OriginLocationID
 			p, err := client.Port.Query().Where(
 				portent.IDEQ(*te.OriginLocationID),
-				portent.OrganizationIDEQ(organizationID),
 			).Only(ctx)
 			if err != nil {
 				return nil, err
@@ -215,7 +213,6 @@ func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.U
 			s.DischargeLocationID = te.DischargeLocationID
 			p, err := client.Port.Query().Where(
 				portent.IDEQ(*te.DischargeLocationID),
-				portent.OrganizationIDEQ(organizationID),
 			).Only(ctx)
 			if err != nil {
 				return nil, err
@@ -226,7 +223,6 @@ func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.U
 			s.TransitLocationID = te.TransitLocationID
 			p, err := client.Port.Query().Where(
 				portent.IDEQ(*te.TransitLocationID),
-				portent.OrganizationIDEQ(organizationID),
 			).Only(ctx)
 			if err != nil {
 				return nil, err

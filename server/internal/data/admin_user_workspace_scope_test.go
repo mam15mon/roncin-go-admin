@@ -19,21 +19,21 @@ func TestAdminWorkspaceScopeIDs(t *testing.T) {
 	companyBID := uuid.New()
 	disabledID := uuid.New()
 	nodes := map[uuid.UUID]authOrgNode{
-		hqID:       {ID: hqID, ParentID: nil, Kind: string(organization.KindHeadquarters), Enabled: true},
+		hqID:       {ID: hqID, ParentID: nil, Kind: string(organization.KindSystem), Enabled: true},
 		companyAID: {ID: companyAID, ParentID: &hqID, Kind: string(organization.KindCompany), Enabled: true},
 		deptID:     {ID: deptID, ParentID: &companyAID, Kind: string(organization.KindDepartment), Enabled: true},
 		companyBID: {ID: companyBID, ParentID: &hqID, Kind: string(organization.KindCompany), Enabled: true},
 		disabledID: {ID: disabledID, ParentID: &hqID, Kind: string(organization.KindCompany), Enabled: false},
 	}
 
-	headquartersScope := adminWorkspaceScopeIDs(nodes, hqID)
-	if len(headquartersScope) != 4 {
-		t.Fatalf("总部工作台范围应为全树启用组织（4 个）: %v", headquartersScope)
+	systemWorkspaceScope := adminWorkspaceScopeIDs(nodes, hqID)
+	if len(systemWorkspaceScope) != 4 {
+		t.Fatalf("系统管理工作台范围应为全树启用组织（4 个）: %v", systemWorkspaceScope)
 	}
 	for _, excluded := range []uuid.UUID{disabledID} {
-		for _, scopeID := range headquartersScope {
+		for _, scopeID := range systemWorkspaceScope {
 			if scopeID == excluded {
-				t.Fatalf("总部工作台范围不应包含停用组织: %v", headquartersScope)
+				t.Fatalf("系统管理工作台范围不应包含停用组织: %v", systemWorkspaceScope)
 			}
 		}
 	}
@@ -126,7 +126,7 @@ func TestPreferAdminAnchorMembership(t *testing.T) {
 }
 
 // TestAdminUserWorkspaceScopePostgres 在隔离 Schema 上验证用户管理的工作台范围口径：
-// 总部工作台可见/可编辑全树用户（含仅有公司、部门成员关系的用户）；公司工作台只见
+// 系统管理工作台可见/可编辑全树用户（含仅有公司、部门成员关系的用户）；公司工作台只见
 // 本公司子树；移除工作台节点成员关系后用户仍可编辑；角色按锚定成员关系所属
 // 工作台（部门/团队沿树回溯公司）的角色库校验。
 func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
@@ -136,20 +136,19 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	ctx := context.Background()
 	adminRepo := &adminRepo{data: data}
 
-	headquarters, err := data.db.Organization.Create().
+	systemWorkspace, err := data.db.Organization.Create().
 		SetCode("HQ").
-		SetName("总部").
-		SetKind("headquarters").
+		SetName("系统管理").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部: %v", err)
+		t.Fatalf("创建系统管理: %v", err)
 	}
 	companyA, err := data.db.Organization.Create().
 		SetCode("COMPANY-A").
 		SetName("公司A").
 		SetKind("company").
-		SetParentID(headquarters.ID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -168,15 +167,14 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 		SetCode("COMPANY-B").
 		SetName("公司B").
 		SetKind("company").
-		SetParentID(headquarters.ID).
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建公司B: %v", err)
 	}
-	roleHQ, err := data.db.Role.Create().SetOrganizationID(headquarters.ID).SetCode("hq_operator").SetName("总部操作员").SetDataScope("organization").Save(ctx)
+	roleHQ, err := data.db.Role.Create().SetOrganizationID(systemWorkspace.ID).SetCode("hq_operator").SetName("系统管理操作员").SetDataScope("organization").Save(ctx)
 	if err != nil {
-		t.Fatalf("创建总部角色: %v", err)
+		t.Fatalf("创建系统管理角色: %v", err)
 	}
 	roleA, err := data.db.Role.Create().SetOrganizationID(companyA.ID).SetCode("a_operator").SetName("A公司操作员").SetDataScope("organization").Save(ctx)
 	if err != nil {
@@ -209,18 +207,18 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 		return record
 	}
 
-	// deptUser 仅在公司A的部门有成员关系：总部工作台可见可编辑，公司B工作台不可见。
+	// deptUser 仅在公司A的部门有成员关系：系统管理工作台可见可编辑，公司B工作台不可见。
 	deptUser := newUser("部门用户", "dept.user")
 	deptMembership := newMembership(deptUser.ID, deptA1.ID, true)
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(deptMembership.ID).SetRoleID(roleDept.ID).Save(ctx); err != nil {
 		t.Fatalf("分配部门角色: %v", err)
 	}
 
-	// removedUser 回归用户报告场景：总部成员关系被移除后仍保留公司A成员关系。
+	// removedUser 回归用户报告场景：系统管理成员关系被移除后仍保留公司A成员关系。
 	removedUser := newUser("被移除用户", "removed.user")
-	hqMembership := newMembership(removedUser.ID, headquarters.ID, true)
+	hqMembership := newMembership(removedUser.ID, systemWorkspace.ID, true)
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(hqMembership.ID).SetRoleID(roleHQ.ID).Save(ctx); err != nil {
-		t.Fatalf("分配总部角色: %v", err)
+		t.Fatalf("分配系统管理角色: %v", err)
 	}
 	companyAMembership := newMembership(removedUser.ID, companyA.ID, false)
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(companyAMembership.ID).SetRoleID(roleA.ID).Save(ctx); err != nil {
@@ -231,15 +229,15 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	outsiderUser := newUser("外部用户", "outsider.user")
 	newMembership(outsiderUser.ID, companyB.ID, true)
 
-	// 1. 总部工作台列表包含仅有部门/公司成员关系的用户。
-	headquartersList, err := adminRepo.ListUsers(ctx, headquarters.ID, biz.AdminUserListOptions{Page: 1, PageSize: 200})
+	// 1. 系统管理工作台列表包含仅有部门/公司成员关系的用户。
+	systemWorkspaceList, err := adminRepo.ListUsers(ctx, systemWorkspace.ID, biz.AdminUserListOptions{Page: 1, PageSize: 200})
 	if err != nil {
-		t.Fatalf("总部工作台列表: %v", err)
+		t.Fatalf("系统管理工作台列表: %v", err)
 	}
-	headquartersRows := listUserIDs(headquartersList)
+	systemWorkspaceRows := listUserIDs(systemWorkspaceList)
 	for _, expected := range []uuid.UUID{deptUser.ID, removedUser.ID, outsiderUser.ID} {
-		if !headquartersRows[expected] {
-			t.Fatalf("总部工作台列表缺少用户（全树口径） %v: %v", expected, headquartersRows)
+		if !systemWorkspaceRows[expected] {
+			t.Fatalf("系统管理工作台列表缺少用户（全树口径） %v: %v", expected, systemWorkspaceRows)
 		}
 	}
 
@@ -267,9 +265,9 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	}
 
 	// 3. 锚定成员关系按 primary 优先：部门用户锚定部门关系，角色与 CurrentOrganizationID 随锚定关系。
-	deptView, err := adminRepo.GetUser(ctx, headquarters.ID, deptUser.ID)
+	deptView, err := adminRepo.GetUser(ctx, systemWorkspace.ID, deptUser.ID)
 	if err != nil {
-		t.Fatalf("总部工作台读取部门用户: %v", err)
+		t.Fatalf("系统管理工作台读取部门用户: %v", err)
 	}
 	if deptView.CurrentOrganizationID != deptA1.ID || !deptView.CurrentMembershipEnabled {
 		t.Fatalf("部门用户锚定视图 = org=%v enabled=%v, want org=%v enabled=true", deptView.CurrentOrganizationID, deptView.CurrentMembershipEnabled, deptA1.ID)
@@ -278,24 +276,24 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 		t.Fatalf("部门用户角色展示应来自锚定关系: %v", deptView.RoleIDs)
 	}
 
-	// 4. 回归场景：移除总部成员关系后，总部工作台仍可编辑该用户（不再报用户不存在）。
-	if err := adminRepo.DeleteUserMembership(ctx, removedUser.ID, hqMembership.ID, adminLifecycleAudit(headquarters.ID, "admin.user.membership.delete")); err != nil {
-		t.Fatalf("移除总部成员关系: %v", err)
+	// 4. 回归场景：移除系统管理成员关系后，系统管理工作台仍可编辑该用户（不再报用户不存在）。
+	if err := adminRepo.DeleteUserMembership(ctx, removedUser.ID, hqMembership.ID, adminLifecycleAudit(systemWorkspace.ID, "admin.user.membership.delete")); err != nil {
+		t.Fatalf("移除系统管理成员关系: %v", err)
 	}
-	removedList, err := adminRepo.ListUsers(ctx, headquarters.ID, biz.AdminUserListOptions{Page: 1, PageSize: 200})
+	removedList, err := adminRepo.ListUsers(ctx, systemWorkspace.ID, biz.AdminUserListOptions{Page: 1, PageSize: 200})
 	if err != nil {
-		t.Fatalf("移除后总部工作台列表: %v", err)
+		t.Fatalf("移除后系统管理工作台列表: %v", err)
 	}
 	if !listUserIDs(removedList)[removedUser.ID] {
-		t.Fatal("移除总部成员关系后用户仍应出现在总部工作台列表")
+		t.Fatal("移除系统管理成员关系后用户仍应出现在系统管理工作台列表")
 	}
-	updated, err := adminRepo.UpdateUser(ctx, headquarters.ID, removedUser.ID, &biz.AdminUser{
+	updated, err := adminRepo.UpdateUser(ctx, systemWorkspace.ID, removedUser.ID, &biz.AdminUser{
 		ID:          removedUser.ID,
 		DisplayName: "被移除用户-新名",
 		Enabled:     true,
-	}, []uuid.UUID{roleA.ID}, adminLifecycleAudit(headquarters.ID, "admin.user.update"))
+	}, []uuid.UUID{roleA.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update"))
 	if err != nil {
-		t.Fatalf("移除总部成员关系后编辑用户: %v", err)
+		t.Fatalf("移除系统管理成员关系后编辑用户: %v", err)
 	}
 	if updated.CurrentOrganizationID != companyA.ID || updated.DisplayName != "被移除用户-新名" {
 		t.Fatalf("移除后编辑结果 = %#v", updated)
@@ -307,7 +305,7 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 
 	// 5. 角色按锚定成员关系所属工作台的角色库校验：部门锚定用户挂所属公司角色成功、
 	// 跨工作台角色被拒。
-	if _, err := adminRepo.UpdateUser(ctx, headquarters.ID, deptUser.ID, &biz.AdminUser{ID: deptUser.ID, DisplayName: "部门用户", Enabled: true}, []uuid.UUID{roleB.ID}, adminLifecycleAudit(headquarters.ID, "admin.user.update")); err != biz.ErrAdminRoleNotFound {
+	if _, err := adminRepo.UpdateUser(ctx, systemWorkspace.ID, deptUser.ID, &biz.AdminUser{ID: deptUser.ID, DisplayName: "部门用户", Enabled: true}, []uuid.UUID{roleB.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update")); err != biz.ErrAdminRoleNotFound {
 		t.Fatalf("错配组织角色 error = %v, want ErrAdminRoleNotFound", err)
 	}
 	if _, err := adminRepo.UpdateUser(ctx, companyA.ID, deptUser.ID, &biz.AdminUser{ID: deptUser.ID, DisplayName: "部门用户-新名", Enabled: true}, []uuid.UUID{roleDept.ID}, adminLifecycleAudit(companyA.ID, "admin.user.update")); err != nil {
@@ -315,8 +313,8 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	}
 
 	// 6. 重置密码/办理离职按工作台范围内启用成员关系校验。
-	if err := adminRepo.ResetUserPassword(ctx, headquarters.ID, deptUser.ID, "new-password-hash", nil, adminLifecycleAudit(headquarters.ID, "admin.user.password.reset")); err != nil {
-		t.Fatalf("总部工作台重置密码: %v", err)
+	if err := adminRepo.ResetUserPassword(ctx, systemWorkspace.ID, deptUser.ID, "new-password-hash", nil, adminLifecycleAudit(systemWorkspace.ID, "admin.user.password.reset")); err != nil {
+		t.Fatalf("系统管理工作台重置密码: %v", err)
 	}
 	if err := adminRepo.ResetUserPassword(ctx, companyB.ID, deptUser.ID, "new-password-hash", nil, adminLifecycleAudit(companyB.ID, "admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
 		t.Fatalf("跨公司重置密码 error = %v, want ErrAdminUserNotFound", err)

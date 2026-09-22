@@ -40,7 +40,7 @@ func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoiceP
 	organization, err := data.db.Organization.Create().
 		SetCode("INV-TX-" + suffix).
 		SetName("发票事务集成测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

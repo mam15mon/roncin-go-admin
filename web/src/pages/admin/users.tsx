@@ -7,13 +7,13 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useLocation } from 'react-router';
-import { useInitialState } from '@/app/AppProvider';
 import { App, Button, Card, Space, Tabs } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
+import { history } from '@/router/history';
 import {
   adminServiceListOrganizations,
   adminServiceListRoles,
@@ -96,10 +96,10 @@ function UserMembersView() {
     roles,
     organizations,
     showActions: listTab === 'active',
-    canUpdateUsers: access.canUpdateUsers,
+    canUpdateUsers: access.canUpdateUsers || access.canManageUserMemberships,
     canResetUserPasswords: access.canResetUserPasswords,
     canTerminateUsers: access.canTerminateUsers,
-    canReadAllUserMemberships: access.canReadAllUserMemberships,
+    canReadUserMemberships: access.canReadUserMemberships,
     currentUserId: initialState?.currentUser?.id,
     onEdit: openEdit,
     onResetPassword: setResetting,
@@ -198,8 +198,9 @@ function UserMembersView() {
         formRef={formRef}
         roles={roles}
         organizations={organizations}
-        canReadAllUserMemberships={access.canReadAllUserMemberships}
+        canReadUserMemberships={access.canReadUserMemberships}
         canManageUserMemberships={access.canManageUserMemberships}
+        canUpdateUserProfile={access.canUpdateUsers}
         canAuthorizeWeComUsers={access.canAuthorizeWeComUsers}
         canAuthorizeDingTalkUsers={access.canAuthorizeDingTalkUsers}
         currentUserId={initialState?.currentUser?.id}

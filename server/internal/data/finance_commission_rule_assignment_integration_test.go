@@ -46,7 +46,7 @@ func newCommissionRuleAssignmentFixture(t *testing.T) *commissionRuleAssignmentF
 	org, err := data.db.Organization.Create().
 		SetCode("CRA-" + suffix).
 		SetName("方案分配测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -102,7 +102,7 @@ func newCommissionRuleAssignmentFixture(t *testing.T) *commissionRuleAssignmentF
 	secondOrg, err := data.db.Organization.Create().
 		SetCode("CRA2-" + suffix).
 		SetName("方案分配备援组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {

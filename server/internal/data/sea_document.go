@@ -600,7 +600,7 @@ func resolveIssuerOrganization(ctx context.Context, client *ent.Client, rootOrgI
 		if err != nil {
 			return uuid.Nil, biz.ErrSeaDocumentIssuerOrgNotFound
 		}
-		if org.Kind == organizationent.KindCompany || org.Kind == organizationent.KindHeadquarters {
+		if org.Kind == organizationent.KindCompany || org.Kind == organizationent.KindSystem {
 			return org.ID, nil
 		}
 		if org.ParentID == nil || *org.ParentID == uuid.Nil {

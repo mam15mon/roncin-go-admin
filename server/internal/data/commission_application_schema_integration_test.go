@@ -27,7 +27,7 @@ func TestCommissionApplicationSchemaPostgres(t *testing.T) {
 	org, err := data.db.Organization.Create().
 		SetCode("FCA-" + suffix).
 		SetName("申请Schema测试组织-" + suffix).
-		SetKind("headquarters").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -365,7 +365,7 @@ func TestCommissionApplicationSchemaPostgres(t *testing.T) {
 		for _, table := range []string{"finance_commission_applications", "finance_commission_application_lines"} {
 			var count int
 			if err = data.sqlDB.QueryRowContext(ctx,
-				`SELECT count(*) FROM ` + table).Scan(&count); err != nil {
+				`SELECT count(*) FROM `+table).Scan(&count); err != nil {
 				t.Fatalf("统计 %s 失败: %v", table, err)
 			}
 			if count != 0 {

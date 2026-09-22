@@ -9,7 +9,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 )
@@ -25,7 +24,7 @@ func (r *industryReferenceRepo) ListPorts(ctx context.Context, organizationID uu
 	if err != nil {
 		return nil, err
 	}
-	query := client.Port.Query().Where(portBaselineScope(organizationID))
+	query := client.Port.Query()
 	if options.Keyword != "" {
 		query.Where(port.Or(port.UnLocodeContainsFold(options.Keyword), port.NameZhContainsFold(options.Keyword), port.NameEnContainsFold(options.Keyword), port.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -41,9 +40,6 @@ func (r *industryReferenceRepo) CreatePort(ctx context.Context, organizationID u
 	var created *ent.Port
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		create := tx.Port.Create().SetUnLocode(input.UNLocode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCountryCode(input.CountryCode).SetTransportModes(input.TransportModes).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true)
-		if input.OrganizationID != nil {
-			create.SetOrganizationID(*input.OrganizationID)
-		}
 		var createErr error
 		created, createErr = create.Save(ctx)
 		if createErr != nil {
@@ -60,7 +56,7 @@ func (r *industryReferenceRepo) CreatePort(ctx context.Context, organizationID u
 func (r *industryReferenceRepo) UpdatePort(ctx context.Context, organizationID, id uuid.UUID, input *biz.Port, audit *biz.AuditEvent) (*biz.Port, error) {
 	var updated *ent.Port
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, err := tx.Port.Query().Where(port.IDEQ(id), portOwnershipScope(organizationID, input.OrganizationID)).Only(ctx)
+		existing, err := tx.Port.Query().Where(port.IDEQ(id)).Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrIndustryReferenceNotFound, nil)
 		}
@@ -81,7 +77,7 @@ func (r *industryReferenceRepo) ListAirports(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
-	query := client.Airport.Query().Where(airportBaselineScope(organizationID))
+	query := client.Airport.Query()
 	if options.Keyword != "" {
 		query.Where(airport.Or(airport.IataCodeContainsFold(options.Keyword), airport.IcaoCodeContainsFold(options.Keyword), airport.NameZhContainsFold(options.Keyword), airport.NameEnContainsFold(options.Keyword), airport.CityNameZhContainsFold(options.Keyword), airport.CityNameEnContainsFold(options.Keyword), airport.SearchKeywordsContainsFold(options.Keyword)))
 	}
@@ -97,9 +93,6 @@ func (r *industryReferenceRepo) CreateAirport(ctx context.Context, organizationI
 	var created *ent.Airport
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		create := tx.Airport.Create().SetIataCode(input.IATACode).SetNillableIcaoCode(input.ICAOCode).SetNameZh(input.NameZH).SetNameEn(input.NameEN).SetCityNameZh(input.CityNameZH).SetNillableCityNameEn(input.CityNameEN).SetCountryCode(input.CountryCode).SetSource(input.Source).SetSortOrder(input.SortOrder).SetEnabled(true)
-		if input.OrganizationID != nil {
-			create.SetOrganizationID(*input.OrganizationID)
-		}
 		var createErr error
 		created, createErr = create.Save(ctx)
 		if createErr != nil {
@@ -116,7 +109,7 @@ func (r *industryReferenceRepo) CreateAirport(ctx context.Context, organizationI
 func (r *industryReferenceRepo) UpdateAirport(ctx context.Context, organizationID, id uuid.UUID, input *biz.Airport, audit *biz.AuditEvent) (*biz.Airport, error) {
 	var updated *ent.Airport
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, err := tx.Airport.Query().Where(airport.IDEQ(id), airportOwnershipScope(organizationID, input.OrganizationID)).Only(ctx)
+		existing, err := tx.Airport.Query().Where(airport.IDEQ(id)).Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrIndustryReferenceNotFound, nil)
 		}
@@ -319,47 +312,31 @@ func replaceShippingLinePrefixes(ctx context.Context, tx *ent.Tx, shippingLineID
 	return nil
 }
 
-// portOwnershipScope 更新落位：总部改基线行，分公司改本组织行（与 create 落位一致）。
-func portOwnershipScope(organizationID uuid.UUID, owner *uuid.UUID) predicate.Port {
-	if owner == nil {
-		return port.OrganizationIDIsNil()
-	}
-	return port.OrganizationIDEQ(*owner)
-}
-
-// airportOwnershipScope 同 portOwnershipScope。
-func airportOwnershipScope(organizationID uuid.UUID, owner *uuid.UUID) predicate.Airport {
-	if owner == nil {
-		return airport.OrganizationIDIsNil()
-	}
-	return airport.OrganizationIDEQ(*owner)
-}
-
 func portToBiz(item *ent.Port) *biz.Port {
-	return &biz.Port{ID: item.ID, OrganizationID: item.OrganizationID, UNLocode: item.UnLocode, NameZH: stringValue(item.NameZh), NameEN: item.NameEn, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SourceVersion: item.SourceVersion, SourceHash: item.SourceHash, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.Port{ID: item.ID, UNLocode: item.UnLocode, NameZH: stringValue(item.NameZh), NameEN: item.NameEn, CountryCode: item.CountryCode, TransportModes: append([]string(nil), item.TransportModes...), Source: item.Source, SourceVersion: item.SourceVersion, SourceHash: item.SourceHash, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func airportToBiz(item *ent.Airport) *biz.Airport {
-	return &biz.Airport{ID: item.ID, OrganizationID: item.OrganizationID, IATACode: item.IataCode, ICAOCode: item.IcaoCode, NameZH: stringValue(item.NameZh), NameEN: item.NameEn, CityNameZH: stringValue(item.CityNameZh), CityNameEN: item.CityNameEn, CountryCode: item.CountryCode, Source: item.Source, SourceVersion: item.SourceVersion, SourceHash: item.SourceHash, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.Airport{ID: item.ID, IATACode: item.IataCode, ICAOCode: item.IcaoCode, NameZH: stringValue(item.NameZh), NameEN: item.NameEn, CityNameZH: stringValue(item.CityNameZh), CityNameEN: item.CityNameEn, CountryCode: item.CountryCode, Source: item.Source, SourceVersion: item.SourceVersion, SourceHash: item.SourceHash, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func airlineToBiz(item *ent.Airline) *biz.Airline {
 	return &biz.Airline{
-		ID:             item.ID,
-		IATACode:       item.IataCode,
-		ICAOCode:       item.IcaoCode,
-		AWBPrefix:      stringValue(item.AwbPrefix),
-		NameZH:         stringValue(item.NameZh),
-		NameEN:         item.NameEn,
-		CountryCode:    item.CountryCode,
-		CargoOnly:      item.CargoOnly,
-		Source:         item.Source,
-		SourceVersion:  item.SourceVersion,
-		SourceHash:     item.SourceHash,
-		SortOrder:      item.SortOrder,
-		Enabled:        item.Enabled,
-		CreatedAt:      item.CreatedAt,
-		UpdatedAt:      item.UpdatedAt,
+		ID:            item.ID,
+		IATACode:      item.IataCode,
+		ICAOCode:      item.IcaoCode,
+		AWBPrefix:     stringValue(item.AwbPrefix),
+		NameZH:        stringValue(item.NameZh),
+		NameEN:        item.NameEn,
+		CountryCode:   item.CountryCode,
+		CargoOnly:     item.CargoOnly,
+		Source:        item.Source,
+		SourceVersion: item.SourceVersion,
+		SourceHash:    item.SourceHash,
+		SortOrder:     item.SortOrder,
+		Enabled:       item.Enabled,
+		CreatedAt:     item.CreatedAt,
+		UpdatedAt:     item.UpdatedAt,
 	}
 }
 

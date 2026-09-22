@@ -70,7 +70,6 @@ vi.mock('@/services/roncin/adminService', () => ({
   adminServiceListRoles: serviceMocks.listRoles,
 }));
 
-import { resolveRootOrganizationId } from './constants';
 import RegistrationApproveModal from './RegistrationApproveModal';
 import RegistrationRejectModal from './RegistrationRejectModal';
 import RegistrationTransferModal from './RegistrationTransferModal';
@@ -78,20 +77,10 @@ import RegistrationTransferModal from './RegistrationTransferModal';
 const formRef = { current: undefined };
 
 const organizations: API.AdminOrganization[] = [
-  { id: 'org-root', name: 'Roncin 总部', code: 'HQ' },
-  { id: 'org-cd', name: '成都分公司', code: 'CD', parentId: 'org-root' },
-  { id: 'org-tj', name: '天津分公司', code: 'TJ', parentId: 'org-root' },
+  { id: 'org-root', name: '系统管理', code: 'SYSTEM', kind: 1 },
+  { id: 'org-cd', name: '成都分公司', code: 'CD', kind: 2, enabled: true },
+  { id: 'org-tj', name: '天津分公司', code: 'TJ', kind: 2, enabled: true },
 ];
-
-describe('resolveRootOrganizationId', () => {
-  it('返回组织树根，空列表返回 undefined', () => {
-    expect(resolveRootOrganizationId(organizations)).toBe('org-root');
-    expect(resolveRootOrganizationId([])).toBeUndefined();
-    expect(
-      resolveRootOrganizationId([{ id: 'a', name: 'A', parentId: 'missing' }]),
-    ).toBe('a');
-  });
-});
 
 describe('RegistrationApproveModal', () => {
   beforeEach(() => {
@@ -117,7 +106,6 @@ describe('RegistrationApproveModal', () => {
           open
           onOpenChange={() => {}}
           formRef={formRef}
-          organizations={organizations}
           currentOrganizationId="org-root"
           canReadRoles
           onReload={() => {}}
@@ -131,7 +119,7 @@ describe('RegistrationApproveModal', () => {
     expect(serviceMocks.listRoles).not.toHaveBeenCalled();
   });
 
-  it('未自选目标组织（总部兜底）按组织树根加载当前组织角色', async () => {
+  it('未指定公司时不加载系统角色，必须先转派', async () => {
     await act(async () => {
       render(
         <RegistrationApproveModal
@@ -142,7 +130,6 @@ describe('RegistrationApproveModal', () => {
           open
           onOpenChange={() => {}}
           formRef={formRef}
-          organizations={organizations}
           currentOrganizationId="org-root"
           canReadRoles
           onReload={() => {}}
@@ -150,8 +137,8 @@ describe('RegistrationApproveModal', () => {
       );
     });
 
-    // 路由组织为组织树根（总部），且等于当前组织时走组织内 ListRoles。
-    expect(serviceMocks.listRoles).toHaveBeenCalledWith();
+    // 路由组织为组织树根（系统管理），且等于当前组织时走组织内 ListRoles。
+    expect(serviceMocks.listRoles).not.toHaveBeenCalled();
     expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
   });
 
@@ -169,7 +156,6 @@ describe('RegistrationApproveModal', () => {
           open
           onOpenChange={() => {}}
           formRef={formRef}
-          organizations={organizations}
           currentOrganizationId="org-root"
           canReadRoles
           onReload={() => {}}
@@ -232,7 +218,7 @@ describe('RegistrationTransferModal', () => {
     const options = targetOrgItem?.options as Array<{ value: string }>;
     expect(options.some((opt) => opt.value === 'org-cd')).toBe(false);
     expect(options.some((opt) => opt.value === 'org-tj')).toBe(true);
-    expect(options.some((opt) => opt.value === 'org-root')).toBe(true);
+    expect(options.some((opt) => opt.value === 'org-root')).toBe(false);
   });
 
   it('转派提交调用接口携带用户 ID、目标组织 ID 与原因', async () => {

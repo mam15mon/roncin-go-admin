@@ -32,7 +32,7 @@ export type AdminDataScope = (typeof AdminDataScope)[keyof typeof AdminDataScope
 
 export const AdminOrganizationKind = {
   ORGANIZATION_KIND_UNSPECIFIED: 0,
-  ORGANIZATION_KIND_HEADQUARTERS: 1,
+  ORGANIZATION_KIND_SYSTEM: 1,
   ORGANIZATION_KIND_COMPANY: 2,
   ORGANIZATION_KIND_DEPARTMENT: 3,
   ORGANIZATION_KIND_TEAM: 4,
@@ -79,7 +79,7 @@ export type DingTalkLoginStatus = (typeof DingTalkLoginStatus)[keyof typeof Ding
 
 export const AuthOrganizationKind = {
   ORGANIZATION_KIND_UNSPECIFIED: 0,
-  ORGANIZATION_KIND_HEADQUARTERS: 1,
+  ORGANIZATION_KIND_SYSTEM: 1,
   ORGANIZATION_KIND_COMPANY: 2,
   ORGANIZATION_KIND_DEPARTMENT: 3,
   ORGANIZATION_KIND_TEAM: 4,

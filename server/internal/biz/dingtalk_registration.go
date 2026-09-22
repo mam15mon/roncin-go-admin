@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"github.com/go-kratos/kratos/v3/errors"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -13,20 +14,20 @@ import (
 
 // DingTalkRegistration 是待审批的钉钉扫码注册视图：钉钉姓名/头像来自扫码返回，
 // 供管理员在审批队列人工认领。RequestedOrganizationID 为空表示存量兜底
-// （落总部收口，通知总部管理员）。
+// （落系统管理收口，通知系统管理管理员）。
 type DingTalkRegistration struct {
 	UserID                    uuid.UUID
 	DisplayName               string
 	AvatarURL                 *string
 	RequestedOrganizationID   *uuid.UUID
 	RequestedOrganizationName string
-	// IntakeOrganizationID 是注册落库时的收口成员资格组织（注册时为总部根），由仓储填充。
+	// IntakeOrganizationID 是注册落库时的收口成员资格组织（注册时为系统管理根），由仓储填充。
 	IntakeOrganizationID uuid.UUID
 	RegisteredAt         time.Time
 }
 
 // RoutingOrganizationID 返回该注册的路由组织（审批通知与权限校验的目标）：
-// 自选了目标组织用自选值，否则用收口成员资格所在组织（注册时为总部根）。
+// 自选了目标组织用自选值，否则用收口成员资格所在组织（注册时为系统管理根）。
 func (r *DingTalkRegistration) RoutingOrganizationID() uuid.UUID {
 	if r == nil {
 		return uuid.Nil
@@ -52,12 +53,12 @@ type DingTalkApproverRecipient struct {
 
 // DingTalkEscalatedOrgSuffix 是目标组织无管理员、审批通知向上追溯代管时，
 // 通知卡片展示组织名追加的完整后缀（PRD §3.3 明确定义）；扫码注册与一键转派两条路径共用同一口径。
-const DingTalkEscalatedOrgSuffix = "（该组织暂无管理员，由总部代管审批）"
+const DingTalkEscalatedOrgSuffix = "（该组织暂无管理员，由系统管理代管审批）"
 
 // DingTalkApproverNotice 是注册待审批通知的路由决策命令（biz 决策，仓储只做入队转换）：
 // ApproverUserIDs 为向上追溯后的实际收件人；OrganizationName 为通知卡片展示的
 // 目标组织名（代管时已含 DingTalkEscalatedOrgSuffix 后缀），空值表示未自选
-// 目标组织（总部收口，由仓储按总部名展示）。
+// 目标组织（系统管理收口，由仓储按系统管理名展示）。
 type DingTalkApproverNotice struct {
 	ApproverUserIDs  []uuid.UUID
 	OrganizationName string
@@ -375,11 +376,11 @@ func (uc *DingTalkRegistrationUsecase) validateRolePrivilege(ctx context.Context
 	if len(roleIDs) == 0 {
 		return nil
 	}
-	// bootstrap 管理员按全组织穿透方案按超管放行（与 AdminUsecase 口径一致），
-	// 其在目标组织可能没有成员关系，角色画像查询不可作为依据。
-	if principal.IsBootstrapAdmin {
+	// 系统管理身份可分配公司角色，但必须持有注册管理权限。
+	if principalIsSystemWorkspace(principal) && principal.HasPermission(access.UserDingTalkInvitationManage) {
 		return nil
 	}
+
 	profile, err := uc.actorPrivilegeProfile(ctx, principal.Organization.ID, principal.UserID)
 	if err != nil {
 		return err
@@ -406,9 +407,6 @@ func (uc *DingTalkRegistrationUsecase) actorPrivilegeProfile(ctx context.Context
 		if role == nil {
 			continue
 		}
-		if role.Code == "administrator" && role.DataScope.active() {
-			profile.IsSuperAdmin = true
-		}
 		profile.RoleProfiles = append(profile.RoleProfiles, *role)
 	}
 	return profile, nil
@@ -422,3 +420,5 @@ func uuidInSlice(values []uuid.UUID, target uuid.UUID) bool {
 	}
 	return false
 }
+
+var ErrDingTalkRegistrationCompanyRequired = errors.BadRequest("DINGTALK_REGISTRATION_COMPANY_REQUIRED", "请先将注册申请转交到具体公司，再分配角色并同意")

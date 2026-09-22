@@ -11,7 +11,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
-// 角色库只归属工作台（总部/公司）节点：部门与团队沿组织树共享所属工作台的
+// 角色库只归属工作台（系统管理/公司）节点：部门与团队沿组织树共享所属工作台的
 // 角色库。本文件提供迁移期的存量归一与自检，父链解析复用登录/切换工作台同一
 // 口径（workspaceAncestorID），不另写一套组织树规则。
 
@@ -33,7 +33,7 @@ type roleAnchorUpdate struct {
 }
 
 // BackfillRoleWorkspaceAnchors 幂等归一存量角色锚点：把锚定在部门/团队的角色改挂到
-// 其最近的总部/公司祖先，并在归一后断言角色表不再存在部门/团队锚定行。
+// 其最近的系统管理/公司祖先，并在归一后断言角色表不再存在部门/团队锚定行。
 // 组织树断链、成环导致无法解析工作台，或归一与既有 (organization_id, code) 唯一索引
 // 冲突时，直接返回错误终止迁移，不做静默丢弃、重命名或停用兜底。
 func BackfillRoleWorkspaceAnchors(ctx context.Context, database transactionStarter) error {

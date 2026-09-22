@@ -15,7 +15,6 @@ type organizationSwitchRepoStub struct {
 	wecomAuthRepoStub
 	credential         *Credential
 	choices            []OrganizationChoice
-	allChoices         []OrganizationChoice
 	principalsByOrg    map[uuid.UUID]*Principal
 	createdSessions    []*Session
 	createAuditActions []string
@@ -33,10 +32,6 @@ func (s *organizationSwitchRepoStub) FindCredential(context.Context, string) (*C
 
 func (s *organizationSwitchRepoStub) ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error) {
 	return s.choices, nil
-}
-
-func (s *organizationSwitchRepoStub) ListEnabledOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error) {
-	return s.allChoices, nil
 }
 
 func (s *organizationSwitchRepoStub) ResolvePrincipal(_ context.Context, userID, organizationID uuid.UUID) (*Principal, error) {
@@ -160,7 +155,7 @@ func TestAuthUsecaseSwitchOrganizationRotatesCurrentSessionToken(t *testing.T) {
 			{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
 			{OrganizationID: targetID, OrganizationName: "成都公司", OrganizationCode: "CD"},
 		},
-		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, Organization: Organization{ID: targetID, Name: "成都公司"}, RoleGrants: []RoleGrant{roleGrant("branch-operator", DataScopeOrganization, []string{"business.order.se.read"})}}},
+		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, OrganizationNodes: scopeNodes(targetID), Organization: Organization{Kind: OrganizationKindCompany, ID: targetID, Name: "成都公司"}, RoleGrants: []RoleGrant{roleGrant("branch-operator", DataScopeOrganization, []string{"business.order.se.read"})}}},
 	}
 	current := &Principal{UserID: userID, Organization: Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"}
 
@@ -222,69 +217,45 @@ func TestAuthUsecaseSwitchOrganizationRejectsOutsideCandidates(t *testing.T) {
 	}
 }
 
-func TestAuthUsecaseLoginBootstrapAdminEntersNonMembershipOrganization(t *testing.T) {
+func TestAuthUsecaseLoginBootstrapAdminRejectsNonMembershipOrganization(t *testing.T) {
 	primaryID, branchID := uuid.New(), uuid.New()
 	userID := uuid.New()
 	passwordHash := organizationSwitchPasswordHash(t)
 	repo := &organizationSwitchRepoStub{
-		// bootstrap 管理员可能只在总部有成员资格，但候选集应放宽为全部启用组织。
-		credential: &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true, IsBootstrapAdmin: true, PrimaryOrganizationID: primaryID},
-		choices:    []OrganizationChoice{{OrganizationID: primaryID, OrganizationName: "总部集团", OrganizationCode: "HQ", IsDefault: true}},
-		allChoices: []OrganizationChoice{
-			{OrganizationID: primaryID, OrganizationName: "总部集团", OrganizationCode: "HQ", IsDefault: true},
-			{OrganizationID: branchID, OrganizationName: "北京财务", OrganizationCode: "BJFD"},
-		},
+		// 初始化管理员只在系统管理有成员资格，不能进入未授权公司。
+		credential:      &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true, IsBootstrapAdmin: true, PrimaryOrganizationID: primaryID},
+		choices:         []OrganizationChoice{{OrganizationID: primaryID, OrganizationName: "系统管理", OrganizationCode: "HQ", IsDefault: true}},
 		principalsByOrg: map[uuid.UUID]*Principal{branchID: {UserID: userID, IsBootstrapAdmin: true, Organization: Organization{ID: branchID, Name: "北京财务"}}},
 	}
 
 	result, err := newOrganizationSwitchUsecase(repo).Login(context.Background(), "admin", "correct-password", branchID, "test", "127.0.0.1")
-	if err != nil {
-		t.Fatalf("bootstrap 管理员显式登录非成员组织失败: %v", err)
+	if err != ErrAuthOrganizationInvalid || result != nil || len(repo.createdSessions) != 0 {
+		t.Fatalf("bootstrap 标记不得绕过公司成员资格: result=%#v err=%v", result, err)
 	}
-	if result.Principal.Organization.ID != branchID {
-		t.Fatalf("登录主体组织 = %v，期望 %v", result.Principal.Organization.ID, branchID)
-	}
-	if len(repo.createdSessions) != 1 || repo.createdSessions[0].OrganizationID != branchID {
-		t.Fatalf("会话应建立在所选组织上: %#v", repo.createdSessions)
-	}
-	if len(result.OrganizationChoices) != 2 || result.OrganizationChoices[0].OrganizationID != primaryID {
-		t.Fatalf("bootstrap 管理员候选应来自全部启用组织: %#v", result.OrganizationChoices)
-	}
+
 }
 
-func TestAuthUsecaseSwitchOrganizationBootstrapAdminEntersNonMembershipOrganization(t *testing.T) {
+func TestAuthUsecaseSwitchOrganizationBootstrapAdminRejectsNonMembershipOrganization(t *testing.T) {
 	sourceID, targetID := uuid.New(), uuid.New()
 	userID := uuid.New()
 	repo := &organizationSwitchRepoStub{
-		// 普通用户候选集只含总部；bootstrap 管理员候选集含全部启用组织。
-		choices: []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "总部集团", OrganizationCode: "HQ", IsDefault: true}},
-		allChoices: []OrganizationChoice{
-			{OrganizationID: sourceID, OrganizationName: "总部集团", OrganizationCode: "HQ", IsDefault: true},
-			{OrganizationID: targetID, OrganizationName: "北京财务", OrganizationCode: "BJFD"},
-		},
-		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, IsBootstrapAdmin: true, Organization: Organization{ID: targetID, Name: "北京财务"}}},
+		// 初始化管理员与普通用户共用成员资格候选。
+		choices:         []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "系统管理", OrganizationCode: "HQ", IsDefault: true}},
+		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, IsBootstrapAdmin: true, OrganizationNodes: scopeNodes(targetID), Organization: Organization{Kind: OrganizationKindCompany, ID: targetID, Name: "北京财务"}}},
 	}
 	current := &Principal{UserID: userID, IsBootstrapAdmin: true, Organization: Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"}
 
 	result, err := newOrganizationSwitchUsecase(repo).SwitchOrganization(context.Background(), current, targetID)
-	if err != nil {
-		t.Fatalf("bootstrap 管理员切换进入非成员组织失败: %v", err)
+	if err != ErrAuthOrganizationForbidden || result != nil || len(repo.rotatedSessions) != 0 {
+		t.Fatalf("bootstrap 标记不得绕过切换成员资格: result=%#v err=%v", result, err)
 	}
-	if result.Principal.Organization.ID != targetID {
-		t.Fatalf("切换后主体组织 = %v，期望 %v", result.Principal.Organization.ID, targetID)
-	}
-	if len(repo.rotatedSessions) != 1 || repo.rotatedSessions[0].OrganizationID != targetID {
-		t.Fatalf("新会话应指向目标组织: %#v", repo.rotatedSessions)
-	}
-	if len(repo.rotateAudits) != 1 || repo.rotateAudits[0].Action != "auth.organization.switch" {
-		t.Fatalf("切换必须写审计: %#v", repo.rotateAudits)
-	}
+
 }
 
 func TestAuthUsecaseSwitchOrganizationBootstrapAdminStillRejectsDisabledOrganization(t *testing.T) {
 	sourceID := uuid.New()
 	repo := &organizationSwitchRepoStub{
-		allChoices: []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "总部集团", OrganizationCode: "HQ", IsDefault: true}},
+		choices: []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "系统管理", OrganizationCode: "HQ", IsDefault: true}},
 	}
 	current := &Principal{UserID: uuid.New(), IsBootstrapAdmin: true, Organization: Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"}
 
@@ -299,7 +270,7 @@ func TestSortOrganizationChoicesDefaultFirstThenNameStable(t *testing.T) {
 	choices := []OrganizationChoice{
 		{OrganizationID: betaID, OrganizationName: "成都公司"},
 		{OrganizationID: alphaID, OrganizationName: "北京公司"},
-		{OrganizationID: defaultID, OrganizationName: "总部集团", IsDefault: true},
+		{OrganizationID: defaultID, OrganizationName: "系统管理", IsDefault: true},
 		{OrganizationID: gammaID, OrganizationName: "成都公司"},
 	}
 	if gammaID.String() < betaID.String() {

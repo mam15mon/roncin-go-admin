@@ -5,13 +5,13 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
-import { useInitialState } from '@/app/AppProvider';
+import { useQuery } from '@tanstack/react-query';
 import { Avatar, Button, Space, Tag, Typography } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import {
   adminServiceListDingTalkRegistrations,
-  adminServiceListOrganizations,
   adminServiceListTransferOrganizations,
 } from '@/services/roncin/adminService';
 import { toTableRequest, unwrapList } from '@/utils/api';
@@ -32,29 +32,16 @@ export default function DingTalkRegistrationsPanel() {
   const transferFormRef = useRef<ProFormInstance | undefined>(undefined);
   const access = useAccess();
   const { initialState } = useInitialState();
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
-    [],
-  );
-  const [transferOrganizations, setTransferOrganizations] = useState<
-    API.AdminOrganization[]
-  >([]);
   const [approving, setApproving] = useState<API.DingTalkRegistration>();
   const [rejecting, setRejecting] = useState<API.DingTalkRegistration>();
   const [transferring, setTransferring] = useState<API.DingTalkRegistration>();
 
-  useEffect(() => {
-    // 总部兜底注册（未自选目标组织）的路由组织是组织树根，需要全量组织列表
-    // 解析根组织以加载可授予角色。
-    if (access.canReadOrganizations) {
-      adminServiceListOrganizations().then((response) =>
-        setOrganizations(unwrapList(response)),
-      );
-    }
-    // 转派候选组织列表（仅返回启用中的公司节点，受邀请管理权限保护，分公司管理员可读）
-    adminServiceListTransferOrganizations()
-      .then((response) => setTransferOrganizations(unwrapList(response)))
-      .catch(() => {});
-  }, [access.canReadOrganizations]);
+  const { data: transferOrganizations = [] } = useQuery({
+    queryKey: ['dingtalk-registration-transfer-organizations'],
+    queryFn: async () =>
+      unwrapList(await adminServiceListTransferOrganizations()),
+    meta: { silent: true },
+  });
 
   const columns: ProColumns<API.DingTalkRegistration>[] = [
     {
@@ -99,7 +86,7 @@ export default function DingTalkRegistrationsPanel() {
           <Text>{record.requestedOrganizationName || '未知组织'}</Text>
         ) : (
           <Tag color="orange" style={{ margin: 0 }}>
-            总部兜底
+            系统管理收口
           </Tag>
         ),
     },
@@ -111,6 +98,10 @@ export default function DingTalkRegistrationsPanel() {
       render: (_, record) => (
         <Space size={4}>
           <Button
+            disabled={!record.requestedOrganizationId}
+            title={
+              !record.requestedOrganizationId ? '请先转派至目标公司' : undefined
+            }
             type="link"
             size="small"
             style={{ padding: 0 }}
@@ -179,7 +170,6 @@ export default function DingTalkRegistrationsPanel() {
           if (!open) setApproving(undefined);
         }}
         formRef={approveFormRef}
-        organizations={organizations}
         currentOrganizationId={
           initialState?.currentUser?.currentOrganization?.id
         }
