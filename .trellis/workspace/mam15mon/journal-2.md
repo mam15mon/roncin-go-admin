@@ -442,3 +442,28 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 97: 订单提成归属真相源切换为订单人员分工
+<!-- trellis-session: v=2 fp=a320a1445a70a1bd -->
+
+**Date**: 2026-09-22
+**Task**: 订单提成归属真相源切换为订单人员分工
+**Branch**: `main`
+
+### Summary
+
+开单被客户档案缺配拦截的问题定位与根治：提成归属（销售/操作/客服三岗）唯一真相源从客户档案责任人切换为订单人员分工。后端创建校验三岗必配（新增 ORDER_COMMISSION_PERSONNEL_MISSING，删除 PARTNER_COMMISSION_ASSIGNMENT_MISSING），快照改从 order_personnels 取数（source_assignment_id 指向订单人员行），草稿换客户仅同步归属行 customer_id；前端海运出口新建表单三岗必填（详情模式不变），客户档案与订单页快建三岗降为选填默认值；sync:dev 种子客户幂等补齐三岗；同步修订提成归属契约/术语表并重新生成错误码目录。check:fast 全绿，trellis-check 有条件通过后两项问题（目录生成物手改、二进制残留）已闭环。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f59fae24` | feat: 提成归属唯一真相源切换为订单人员分工 |
+| `6643334b` | feat: 订单表单三岗必填并放宽客户档案责任人 |
+| `b6709633` | feat: sync:dev 种子客户幂等补齐三岗责任人 |
+| `1305610b` | fix: 重新生成领域错误码目录与代码对齐 |
+
+### Status
+
+[OK] **Completed**
