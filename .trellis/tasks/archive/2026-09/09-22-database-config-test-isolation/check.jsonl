@@ -1,0 +1,2 @@
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"复核开发库与测试库隔离边界未被削弱，测试不再隐式连接本地库。"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"复核定向测试日志准确区分 SKIP 与 PASS，并检查最小质量门。"}

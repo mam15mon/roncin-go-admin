@@ -1,0 +1,2 @@
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"约束真实 PostgreSQL 集成测试必须使用专用连接，禁止回退开发库。"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"规定集成测试 PASS/SKIP 的验收区分、最小验证命令和提交质量要求。"}
