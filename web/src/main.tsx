@@ -1,3 +1,5 @@
+// Sentry 副作用初始化须先于业务模块执行（DSN 未配置时自动跳过，零网络开销）。
+import './sentry';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { App as AntdApp, ConfigProvider, Spin } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
