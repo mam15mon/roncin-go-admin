@@ -124,17 +124,6 @@ export default function BasicInfoSection({
     roleType === PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER ||
     roleLabel === '供应商';
   const isCustomer = !isForeignAgent && !isSupplier;
-  // 提成相关责任岗位（操作/业务/客服）缺配的客户档案会被开单拦截
-  // （PARTNER_COMMISSION_ASSIGNMENT_MISSING），因此客户角色档案在这里必填。
-  const form = Form.useFormInstance();
-  const watchedRoleTypes = Form.useWatch<number[]>('roleTypes', form);
-  const requiresCommissionStaff = (
-    watchedRoleTypes ?? (roleType != null ? [roleType] : [])
-  ).includes(PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER);
-  const commissionStaffRule = (label: string) =>
-    requiresCommissionStaff
-      ? [{ required: true, message: `请选择${label}` }]
-      : [];
 
   return (
     <SectionCard
@@ -401,7 +390,7 @@ export default function BasicInfoSection({
         <Divider style={{ margin: '14px 0' }} />
 
         {/* 责任人员分配矩阵 (重点降噪：移除创建人员输入项至标题侧元数据展示，去除双列占位下拉框)。
-            客户角色档案的操作/业务/客服人员必填，缺配档案会被开单校验拦截。 */}
+            提成归属以订单人员为唯一真相，这里的操作/业务/客服仅作为开单带入默认值，选填。 */}
         <div
           style={{
             display: 'flex',
@@ -421,14 +410,13 @@ export default function BasicInfoSection({
         </div>
 
         <Row gutter={[20, 10]}>
-          {/* Slot 1: 操作人员（客户档案必填） */}
+          {/* Slot 1: 操作人员（开单带入默认值，选填） */}
           <Col xs={24} md={12}>
             <Form.Item
               label="操作人员"
               name="assignOperatorUser"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
-              rules={commissionStaffRule('操作人员')}
             >
               <Select
                 showSearch
@@ -441,14 +429,13 @@ export default function BasicInfoSection({
             </Form.Item>
           </Col>
 
-          {/* Slot 2: 业务人员（客户档案必填，对应开单校验的销售岗） */}
+          {/* Slot 2: 业务人员（开单带入默认值，选填） */}
           <Col xs={24} md={12}>
             <Form.Item
               label="业务人员"
               name="assignSalesUser"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
-              rules={commissionStaffRule('业务人员')}
             >
               <Select
                 showSearch
@@ -461,14 +448,13 @@ export default function BasicInfoSection({
             </Form.Item>
           </Col>
 
-          {/* Slot 3: 客服人员（客户档案必填） */}
+          {/* Slot 3: 客服人员（开单带入默认值，选填） */}
           <Col xs={24} md={12}>
             <Form.Item
               label="客服人员"
               name="assignServiceUser"
               labelCol={labelCol(LABEL_COL_WIDTH.primary)}
               style={{ marginBottom: 0 }}
-              rules={commissionStaffRule('客服人员')}
             >
               <Select
                 showSearch

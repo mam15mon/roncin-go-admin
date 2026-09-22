@@ -75,7 +75,7 @@ async function pickSelectOption(combobox: Element, name: string) {
   );
 }
 
-/** 依次为客户快建弹窗中的业务/操作/客服三个必选人员下拉选择不同成员。 */
+/** 依次为客户快建弹窗中的业务/操作/客服三个人员下拉选择不同成员。 */
 async function fillCommissionStaff() {
   const comboboxes = within(screen.getByRole('dialog')).getAllByRole(
     'combobox',
@@ -634,22 +634,80 @@ describe('PartnerQuickAddSelect', () => {
     );
   });
 
-  it('客户快建未选提成责任岗位时保存被拦截且不发起创建', async () => {
-    render(<TestHost />);
-    await openDropdown();
+  it('客户快建未选或部分选择提成岗位时均可保存，仅提交已选岗位', async () => {
+    vi.mocked(partnerServiceCreatePartner)
+      .mockResolvedValueOnce({
+        data: { id: 'partner-bare', legalName: '缺责任人单位', code: 'PB' },
+      } as never)
+      .mockResolvedValueOnce({
+        data: { id: 'partner-partial', legalName: '部分责任人单位' },
+      } as never);
 
+    // 第一轮：完全不选提成岗位，保存不再被拦截。
+    const { unmount } = render(<TestHost />);
+    await openDropdown();
     fireEvent.click(screen.getByText('新增 委托单位'));
     fireEvent.change(await screen.findByLabelText('公司抬头'), {
       target: { value: '缺责任人单位' },
     });
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
 
-    expect(await screen.findByText('请选择业务人员')).toBeInTheDocument();
-    expect(screen.getByText('请选择操作人员')).toBeInTheDocument();
-    expect(screen.getByText('请选择客服人员')).toBeInTheDocument();
-    expect(partnerServiceCreatePartner).not.toHaveBeenCalled();
-    // 校验失败时弹窗保持打开，已录入内容不丢失
-    expect(screen.getByLabelText('公司抬头')).toHaveValue('缺责任人单位');
+    await waitFor(() =>
+      expect(partnerServiceCreatePartner).toHaveBeenCalledWith(
+        {
+          legalName: '缺责任人单位',
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: true,
+            },
+          ],
+          isCasual: true,
+          assignments: [],
+        },
+        { signal: expect.any(AbortSignal) },
+      ),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('customer-id')).toHaveTextContent('partner-bare'),
+    );
+    unmount();
+
+    // 第二轮：仅选业务人员，只提交已选岗位。
+    render(<TestHost />);
+    await openDropdown();
+    fireEvent.click(screen.getByText('新增 委托单位'));
+    fireEvent.change(await screen.findByLabelText('公司抬头'), {
+      target: { value: '部分责任人单位' },
+    });
+    const comboboxes = within(screen.getByRole('dialog')).getAllByRole(
+      'combobox',
+    );
+    expect(comboboxes).toHaveLength(3);
+    await pickSelectOption(comboboxes[0], '张三 · 公司');
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() =>
+      expect(partnerServiceCreatePartner).toHaveBeenLastCalledWith(
+        {
+          legalName: '部分责任人单位',
+          roles: [
+            {
+              type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+              enabled: true,
+            },
+          ],
+          isCasual: true,
+          assignments: [
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
+              userId: 'user-a',
+            },
+          ],
+        },
+        { signal: expect.any(AbortSignal) },
+      ),
+    );
   });
 
   it('非客户角色快建不要求提成责任岗位', async () => {

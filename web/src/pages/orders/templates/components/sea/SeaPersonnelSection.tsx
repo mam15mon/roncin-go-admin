@@ -1,4 +1,5 @@
 import { Form } from 'antd';
+import type { Rule } from 'antd/es/form';
 import React from 'react';
 import { FormRow, SearchableSelect } from '@/components/ui';
 import { formatPersonnelLabel } from '@/features/personnel';
@@ -15,6 +16,8 @@ interface PersonnelAssignmentFieldsProps {
   userField: string;
   options: PersonnelAssignmentOption[];
   disabled?: boolean;
+  /** 表单校验规则：新建模式下提成相关三岗由调用方传入必填规则。 */
+  rules?: Rule[];
 }
 
 export function PersonnelAssignmentFields({
@@ -22,6 +25,7 @@ export function PersonnelAssignmentFields({
   userField,
   options,
   disabled = false,
+  rules,
 }: PersonnelAssignmentFieldsProps) {
   const userOptions = Array.from(
     new Map(
@@ -38,7 +42,12 @@ export function PersonnelAssignmentFields({
   );
 
   return (
-    <Form.Item label={label} name={userField} style={{ marginBottom: 0 }}>
+    <Form.Item
+      label={label}
+      name={userField}
+      rules={rules}
+      style={{ marginBottom: 0 }}
+    >
       <SearchableSelect
         disabled={disabled}
         options={userOptions}
@@ -51,16 +60,36 @@ export function PersonnelAssignmentFields({
 }
 
 export function buildSeaPersonnelSection(props: TemplateProps) {
-  const { personnelOptions, creator } = props;
-  const fields = [
-    ['操作人员', 'operatorUserId'],
-    ['业务人员', 'salesUserId'],
-    ['客服人员', 'customerServiceUserId'],
-    ['关联人员', 'associateUserId'],
-    ['单证人员', 'documentUserId'],
-    ['商务人员', 'commercialUserId'],
-    ['关联人员 2', 'associate2UserId'],
-  ] as const;
+  const { personnelOptions, creator, isDetail } = props;
+  // 提成归属以订单人员为唯一真相：新建模式下操作/业务/客服三岗必填；
+  // 详情模式不施加规则，避免存量订单缺岗时阻塞其它字段保存。
+  const commissionStaffRules = (message: string): Rule[] =>
+    isDetail ? [] : [{ required: true, message }];
+  const fields: ReadonlyArray<{
+    label: string;
+    userField: string;
+    rules?: Rule[];
+  }> = [
+    {
+      label: '操作人员',
+      userField: 'operatorUserId',
+      rules: commissionStaffRules('请选择操作人员'),
+    },
+    {
+      label: '业务人员',
+      userField: 'salesUserId',
+      rules: commissionStaffRules('请选择业务人员'),
+    },
+    {
+      label: '客服人员',
+      userField: 'customerServiceUserId',
+      rules: commissionStaffRules('请选择客服人员'),
+    },
+    { label: '关联人员', userField: 'associateUserId' },
+    { label: '单证人员', userField: 'documentUserId' },
+    { label: '商务人员', userField: 'commercialUserId' },
+    { label: '关联人员 2', userField: 'associate2UserId' },
+  ];
 
   return {
     key: 'internalInfo',
@@ -77,12 +106,13 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
           }
           disabled
         />
-        {fields.map(([label, userField]) => (
+        {fields.map(({ label, userField, rules }) => (
           <PersonnelAssignmentFields
             key={userField}
             label={label}
             userField={userField}
             options={personnelOptions}
+            rules={rules}
           />
         ))}
       </FormRow>

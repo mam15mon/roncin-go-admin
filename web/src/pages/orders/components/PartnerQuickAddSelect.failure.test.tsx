@@ -74,7 +74,7 @@ async function pickSelectOption(combobox: Element, name: string) {
   );
 }
 
-/** 依次为客户快建弹窗中的业务/操作/客服三个必选人员下拉选择同一个成员。 */
+/** 依次为客户快建弹窗中的业务/操作/客服三个人员下拉选择同一个成员。 */
 async function fillCommissionStaff() {
   const comboboxes = within(screen.getByRole('dialog')).getAllByRole(
     'combobox',

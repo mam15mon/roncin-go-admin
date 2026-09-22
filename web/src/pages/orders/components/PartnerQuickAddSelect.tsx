@@ -47,8 +47,9 @@ type PartnerQuickAddSelectProps = {
 /**
  * 订单表单伙伴选择字段：远程关键字检索 + 下拉底部快捷新增。
  *
- * - 快捷新增仅录入公司抬头，客户角色额外必选提成责任岗位（业务/操作/客服，
- *   缺配档案会被开单校验拦截）；成功后回填选中；本地新选项与远程结果按伙伴
+ * - 快捷新增仅录入公司抬头；客户角色额外展示提成责任岗位（业务/操作/客服）
+ *   选择作为开单带入默认值，提成归属以订单人员为唯一真相，三岗选填；
+ *   成功后回填选中；本地新选项与远程结果按伙伴
  *   ID 去重合并，并通过 params 版本号触发重载，避免当前值退化为只显示 ID。
  * - 组织切换时清理本地新选项并使在途响应失效，旧组织数据不写入新组织表单。
  */
@@ -83,8 +84,8 @@ export default function PartnerQuickAddSelect({
   const createGuard = useAsyncGuard();
   organizationIdRef.current = currentOrganizationId;
   const canQuickAdd = Boolean(access.canCreatePartners) && !disabled;
-  // 客户快建必须同步配置提成责任岗位（业务/操作/客服），否则开单会被
-  // PARTNER_COMMISSION_ASSIGNMENT_MISSING 拦截；其他角色保持仅录抬头。
+  // 客户快建展示提成责任岗位（业务/操作/客服）供录入开单带入默认值；
+  // 提成归属以订单人员为唯一真相，三岗选填。其他角色保持仅录抬头。
   const isCustomerRole = role === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER;
   const staffSelectOptions = useMemo(
     () =>
@@ -327,26 +328,28 @@ export default function PartnerQuickAddSelect({
           if (!organizationAtSubmit) {
             throw new Error('当前组织不可用，请刷新后重试');
           }
-          const requireStaff = (userId: string | undefined, label: string) => {
-            if (!userId) throw new Error(`请选择${label}`);
-            return userId;
-          };
+          // 提成责任岗位选填：仅提交已选择的岗位作为开单带入默认值。
+          const selectedStaff: Array<
+            [PartnerAssignmentRole, string | undefined]
+          > = [
+            [
+              PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
+              values.assignSalesUser,
+            ],
+            [
+              PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
+              values.assignOperatorUser,
+            ],
+            [
+              PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE,
+              values.assignServiceUser,
+            ],
+          ];
           const assignments: API.PartnerAssignmentInput[] | undefined =
             isCustomerRole
-              ? [
-                  {
-                    role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
-                    userId: requireStaff(values.assignSalesUser, '业务人员'),
-                  },
-                  {
-                    role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
-                    userId: requireStaff(values.assignOperatorUser, '操作人员'),
-                  },
-                  {
-                    role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE,
-                    userId: requireStaff(values.assignServiceUser, '客服人员'),
-                  },
-                ]
+              ? selectedStaff.flatMap(([role, userId]) =>
+                  userId ? [{ role, userId }] : [],
+                )
               : undefined;
           await createGuard.run(
             ({ signal }) =>
@@ -412,11 +415,7 @@ export default function PartnerQuickAddSelect({
         </Form.Item>
         {isCustomerRole && (
           <>
-            <Form.Item
-              label="业务人员"
-              name="assignSalesUser"
-              rules={[{ required: true, message: '请选择业务人员' }]}
-            >
+            <Form.Item label="业务人员" name="assignSalesUser">
               <Select
                 showSearch
                 allowClear
@@ -425,11 +424,7 @@ export default function PartnerQuickAddSelect({
                 style={{ width: '100%' }}
               />
             </Form.Item>
-            <Form.Item
-              label="操作人员"
-              name="assignOperatorUser"
-              rules={[{ required: true, message: '请选择操作人员' }]}
-            >
+            <Form.Item label="操作人员" name="assignOperatorUser">
               <Select
                 showSearch
                 allowClear
@@ -438,11 +433,7 @@ export default function PartnerQuickAddSelect({
                 style={{ width: '100%' }}
               />
             </Form.Item>
-            <Form.Item
-              label="客服人员"
-              name="assignServiceUser"
-              rules={[{ required: true, message: '请选择客服人员' }]}
-            >
+            <Form.Item label="客服人员" name="assignServiceUser">
               <Select
                 showSearch
                 allowClear

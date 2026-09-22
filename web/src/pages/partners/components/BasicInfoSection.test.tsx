@@ -81,7 +81,7 @@ function expectCommissionStaffRequired(required: boolean) {
 }
 
 describe('BasicInfoSection 责任人员分配矩阵', () => {
-  it('客户档案要求业务/操作/客服人员必填并显示星号', async () => {
+  it('客户档案三岗选填：不显示必填星号，空岗可直接提交', async () => {
     const onFinish = vi.fn();
     render(
       <Host
@@ -91,13 +91,16 @@ describe('BasicInfoSection 责任人员分配矩阵', () => {
       />,
     );
 
-    expectCommissionStaffRequired(true);
+    expectCommissionStaffRequired(false);
 
     fireEvent.click(screen.getByRole('button', { name: '提交' }));
-    expect(await screen.findByText('请选择业务人员')).toBeInTheDocument();
-    expect(screen.getByText('请选择操作人员')).toBeInTheDocument();
-    expect(screen.getByText('请选择客服人员')).toBeInTheDocument();
-    expect(onFinish).not.toHaveBeenCalled();
+    await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
+    expect(onFinish).toHaveBeenCalledWith(
+      expect.objectContaining({ legalName: '测试客户有限公司' }),
+    );
+    expect(screen.queryByText('请选择业务人员')).not.toBeInTheDocument();
+    expect(screen.queryByText('请选择操作人员')).not.toBeInTheDocument();
+    expect(screen.queryByText('请选择客服人员')).not.toBeInTheDocument();
   });
 
   it('客户档案补全三名责任人员后可提交', async () => {
