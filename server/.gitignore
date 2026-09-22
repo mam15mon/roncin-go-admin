@@ -35,6 +35,7 @@ bin/
 /server
 /migrate
 /bootstrap-admin
+/sync-dev
 
 # Develop tools
 .vscode/
