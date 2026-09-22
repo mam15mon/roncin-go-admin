@@ -419,3 +419,26 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 96: 系统管理与公司经营分离及种子验收
+<!-- trellis-session: v=2 fp=5bcf1ac93aeff08b -->
+
+**Date**: 2026-09-22
+**Task**: 系统管理与公司经营分离及种子验收
+**Branch**: `main`
+
+### Summary
+
+完成系统工作台、公司权限和独立配置、公共地点与费用模板迁移。用户批准旧总部费用转换；隔离数据库实际bootstrap及seed两遍成功，正式迁移与权限回归通过，check:fast与生产构建通过。实际开发库未应用迁移或seed，保留已有数据。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d8370c12` | feat: 分离系统管理工作台与公司经营数据 |
+| `792c336f` | fix: 完成系统费用模板迁移与开发种子适配验证 |
+
+### Status
+
+[OK] **Completed**

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 95
+- **Total Sessions**: 96
 - **Last Active**: 2026-09-22
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~421 | Active |
+| `journal-2.md` | ~444 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 96 | 2026-09-22 | 系统管理与公司经营分离及种子验收 | `d8370c12`, `792c336f` | `main` |
 | 95 | 2026-09-22 | 修复共享港口导致海运订单列表加载失败 | `f9b567a2` | `main` |
 | 94 | 2026-09-21 | 全仓死代码与未使用依赖清理 | `745b7320`, `effd92f3`, `2a7e10c6` | `main` |
 | 93 | 2026-09-21 | 往来单位当前公司范围与人员部门展示 | `76aa783e` | `main` |
