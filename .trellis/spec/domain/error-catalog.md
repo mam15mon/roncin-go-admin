@@ -10,7 +10,7 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 369 个唯一错误码，371 条目录记录。
+- 当前共 370 个唯一错误码，372 条目录记录。
 
 ## 汇总
 
@@ -20,8 +20,8 @@
 | 单证 | 29 |
 | 财务 | 85 |
 | 提成 | 37 |
-| 往来单位 | 35 |
-| 权限 | 58 |
+| 往来单位 | 34 |
+| 权限 | 60 |
 | 平台 | 26 |
 
 ## 订单
@@ -55,7 +55,7 @@
 | ORDER_CLOSED | 409 Conflict | 订单已结案，不允许修改业务数据 | order.go | — |
 | ORDER_CLOSURE_BLOCKED | 409 Conflict | 订单尚未满足结案条件 | order.go | — |
 | ORDER_CLOSURE_INVALID | 400 Bad Request | 订单结案状态流转不合法 | order.go | — |
-| ORDER_COMMISSION_PERSONNEL_MISSING | 400 Bad Request | 订单缺少%s人员，请在内部信息区补全后再开单（销售/操作/客服三岗必配，按缺失岗位列出） | order_usecase.go | — |
+| ORDER_COMMISSION_PERSONNEL_MISSING | 400 Bad Request | 订单缺少%s、%s人员，请在内部信息区补全后再开单 | order.go | — |
 | ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID | 400 Bad Request | 仅拼箱订单可查看自拼汇总 | order.go | — |
 | ORDER_CONTAINER_EXISTS | 409 Conflict | 该箱号已存在于当前订单 | order_container.go | — |
 | ORDER_CONTAINER_INVALID_ARGUMENT | 400 Bad Request | 仅整箱(FCL)业务允许维护集装箱<br>订单集装箱参数不合法 | order_container.go | — |
@@ -103,7 +103,6 @@
 | ORDER_UNLOCK_APPROVER_INVALID | 403 Forbidden | 非有效审批人 | order_lock.go | — |
 | ORDER_UNLOCK_APPROVER_NOT_CONFIGURED | 400 Bad Request | 未配置具备对应业务类型订单锁定权限的业务角色成员 | order_lock.go | — |
 | ORDER_UNLOCK_DINGTALK_DISPATCH_FAILED | 500 Internal Server Error | 钉钉审批发起明确失败 | order_lock.go | — |
-| ORDER_UNLOCK_DINGTALK_DISPATCH_UNKNOWN | 500 Internal Server Error | 钉钉审批发起结果未知 | order_lock.go | — |
 | ORDER_UNLOCK_DINGTALK_NOT_CONFIGURED | 400 Bad Request | 申请人或审批候选人未绑定钉钉账号 | order_lock.go | — |
 | ORDER_UNLOCK_REQUEST_ACTIVE | 409 Conflict | 当前订单已有生效中或审批中的解锁请求 | order_lock.go | — |
 | SEA_CARGO_ALLOCATION_NOT_FOUND | 404 Not Found | 海运货物分配记录不存在 | sea_order_change.go | — |
@@ -349,12 +348,13 @@
 | ADMIN_ORGANIZATION_PARENT_REQUIRED | 400 Bad Request | 新建组织必须指定上级组织 | admin_organization.go | — |
 | ADMIN_PERMISSION_INVALID | 400 Bad Request | 权限不存在或不属于当前请求 | admin_role.go | — |
 | ADMIN_PRIVILEGE_ESCALATION_DENIED | 403 Forbidden | 不能分配超出自身权限范围的角色 | admin_role.go | — |
-| ADMIN_ROLE_ANCHOR_INVALID | 400 Bad Request | 角色只能在公司/总部维护 | admin_role.go | — |
+| ADMIN_ROLE_ANCHOR_INVALID | 400 Bad Request | 角色只能在公司/系统管理维护 | admin_role.go | — |
 | ADMIN_ROLE_ASSIGNED | 409 Conflict | 该角色已分配成员，请先移除后重试 | admin_role.go | — |
 | ADMIN_ROLE_CODE_EXISTS | 409 Conflict | 角色编码已存在 | admin_role.go | — |
 | ADMIN_ROLE_IN_USE | 409 Conflict | 该角色仍被其他数据引用，无法删除 | admin_role.go | — |
 | ADMIN_ROLE_NOT_FOUND | 404 Not Found | 角色不存在 | admin_role.go | — |
 | ADMIN_ROLE_PROTECTED | 403 Forbidden | 系统管理员角色不允许删除 | admin_role.go | — |
+| ADMIN_ROLE_SCOPE_DISABLED | 400 Bad Request | 仅本人数据范围已停用，请明确选择其他数据范围 | admin_role.go | — |
 | ADMIN_USERNAME_EXISTS | 409 Conflict | 用户名已存在 | admin_user.go | — |
 | ADMIN_USER_AUTHORIZATION_REQUIRED | 400 Bad Request | 外部身份账号必须通过身份授权流程启用 | admin_user.go | — |
 | ADMIN_USER_LAST_MEMBERSHIP | 400 Bad Request | 在职用户必须保留至少一个有效组织；请先加入新组织或办理离职 | admin_user.go | — |
@@ -393,11 +393,12 @@
 | DINGTALK_INVITATION_NOT_REVOCABLE | 409 Conflict | 邀请已消费或已撤销，不能再撤销 | dingtalk_invitation.go | — |
 | DINGTALK_INVITATION_REVOKED | 400 Bad Request | 邀请已撤销 | dingtalk_invitation.go | — |
 | DINGTALK_REGISTRATION_ALREADY_PROCESSED | 409 Conflict | 该注册申请已处理 | dingtalk_invitation.go | — |
+| DINGTALK_REGISTRATION_COMPANY_REQUIRED | 400 Bad Request | 请先将注册申请转交到具体公司，再分配角色并同意 | dingtalk_registration.go | — |
 | DINGTALK_REGISTRATION_NOT_FOUND | 404 Not Found | 注册申请不存在或已处理 | dingtalk_invitation.go | — |
 | DINGTALK_REGISTRATION_ORGANIZATION_INVALID | 400 Bad Request | 所选组织无效或不可选 | dingtalk_invitation.go | — |
 | DINGTALK_REGISTRATION_REASON_MISSING | 400 Bad Request | 原因说明不能为空 | dingtalk_invitation.go | — |
 | DINGTALK_REGISTRATION_TRANSFER_SAME | 400 Bad Request | 不能转派至当前已申请组织 | dingtalk_invitation.go | — |
-| OPERATING_COMPANY_REQUIRED | 403 Forbidden | 总部仅用于集团管理，请切换到具体公司后再维护经营数据 | organization.go | — |
+| OPERATING_COMPANY_REQUIRED | 403 Forbidden | 系统管理工作台不承载经营数据，请切换到具体公司后再维护经营数据 | organization.go | — |
 
 ## 平台
 
@@ -422,10 +423,10 @@
 | INDUSTRY_REFERENCE_CODE_EXISTS | 409 Conflict | 行业标准码已存在 | industry_reference.go | — |
 | INDUSTRY_REFERENCE_NOT_FOUND | 404 Not Found | 行业主数据不存在 | industry_reference.go | — |
 | MASTER_DATA_CODE_EXISTS | 409 Conflict | 主数据编码已存在 | masterdata.go | — |
-| MASTER_DATA_HEADQUARTERS_REQUIRED | 403 Forbidden | 主数据只能由总部维护 | masterdata.go | — |
 | MASTER_DATA_INVALID_ARGUMENT | 400 Bad Request | 主数据字段不合法 | masterdata.go | — |
 | MASTER_DATA_INVALID_KIND | 400 Bad Request | 主数据类型不合法 | masterdata.go | — |
 | MASTER_DATA_NOT_FOUND | 404 Not Found | 主数据不存在 | masterdata.go | — |
+| MASTER_DATA_SYSTEM_REQUIRED | 403 Forbidden | 公共主数据只能在系统管理工作台维护 | masterdata.go | — |
 | NOTIFICATION_NOT_FOUND | 404 Not Found | 通知明细不存在 | notification.go | — |
 | REFERENCE_DATA_INVALID_ARGUMENT | 400 Bad Request | 基础字典查询参数不合法 | reference_data.go | — |
 | WORKBENCH_INVALID_ARGUMENT | 400 Bad Request | 工作台查询参数不合法 | workbench.go | — |
