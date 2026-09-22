@@ -11,7 +11,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
-	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 )
 
 func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
@@ -143,40 +143,23 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 	return r.Get(ctx, organizationID, createdID)
 }
 
+// snapshotOrderCommissionAttributions 以同事务内已写入的订单人员（销售/操作/
+// 客服三岗）为唯一真相生成提成归属快照：source_assignment_id 记录订单人员行 ID，
+// customer_id 写入订单客户冗余列。三岗齐全由 biz 层创建门禁保证，本函数不再
+// 承担缺配校验；同岗同人由 normalizeOrder 去重保证，此处仅保留 userID:role
+// 防御性去重。
 func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organizationID, orderID, customerID uuid.UUID, attributedAt time.Time) error {
-	assignments, err := tx.PartnerAssignment.Query().Where(
-		partnerassignmentent.OrganizationIDEQ(organizationID),
-		partnerassignmentent.PartnerIDEQ(customerID),
-		partnerassignmentent.RoleIn(partnerassignmentent.RoleSALES, partnerassignmentent.RoleOPERATOR, partnerassignmentent.RoleCUSTOMER_SERVICE),
-	).WithUser().Order(partnerassignmentent.ByRole(), partnerassignmentent.BySortOrder()).All(ctx)
+	personnel, err := tx.OrderPersonnel.Query().Where(
+		orderpersonnelent.OrderIDEQ(orderID),
+		orderpersonnelent.OrganizationIDEQ(organizationID),
+		orderpersonnelent.RoleIn(orderpersonnelent.RoleSALES, orderpersonnelent.RoleOPERATOR, orderpersonnelent.RoleCUSTOMER_SERVICE),
+	).WithUser().All(ctx)
 	if err != nil {
 		return err
 	}
-	// 提成相关岗位（销售/操作/客服）缺人时阻止开单：归属组织已收敛为客户档案
-	// 所属组织，快照严格等值匹配必然命中已配置人员，缺配属于必须显式暴露的配置问题。
-	coveredRoles := make(map[partnerassignmentent.Role]struct{}, len(assignments))
-	for _, item := range assignments {
-		coveredRoles[item.Role] = struct{}{}
-	}
-	missingRoles := make([]biz.PartnerAssignmentRole, 0, 3)
-	for _, check := range []struct {
-		role    biz.PartnerAssignmentRole
-		entRole partnerassignmentent.Role
-	}{
-		{biz.PartnerAssignmentSales, partnerassignmentent.RoleSALES},
-		{biz.PartnerAssignmentOperator, partnerassignmentent.RoleOPERATOR},
-		{biz.PartnerAssignmentCustomerService, partnerassignmentent.RoleCUSTOMER_SERVICE},
-	} {
-		if _, ok := coveredRoles[check.entRole]; !ok {
-			missingRoles = append(missingRoles, check.role)
-		}
-	}
-	if len(missingRoles) > 0 {
-		return biz.NewPartnerCommissionAssignmentMissing(missingRoles)
-	}
-	builders := make([]*ent.OrderCommissionAttributionCreate, 0, len(assignments))
-	seenAttributions := make(map[string]struct{}, len(assignments))
-	for _, item := range assignments {
+	builders := make([]*ent.OrderCommissionAttributionCreate, 0, len(personnel))
+	seenAttributions := make(map[string]struct{}, len(personnel))
+	for _, item := range personnel {
 		role := ordercommissionattributionent.PersonnelRole(item.Role)
 		key := item.UserID.String() + ":" + string(role)
 		if _, exists := seenAttributions[key]; exists {

@@ -173,6 +173,78 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		fixture.requireDraftUpdateResult()
 	})
 
+	t.Run("草稿换客户仅同步归属行客户列", func(t *testing.T) {
+		fixture := newOrderPostgresFixture(t, data)
+		usecase := fixture.newUsecase()
+		ctx := context.Background()
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.validInput())
+		if err != nil {
+			t.Fatalf("创建草稿订单: %v", err)
+		}
+		replacement, err := data.db.Partner.Create().
+			SetOrganizationID(fixture.organizationID).
+			SetCode("CUSTOMER-REPLACED-"+fixture.suffix).
+			SetLegalName("换客户后客户-"+fixture.suffix).
+			SetNormalizedName("换客户后客户-"+fixture.suffix).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建换入客户失败: %v", err)
+		}
+		if _, err = data.db.PartnerRole.Create().
+			SetPartnerID(replacement.ID).
+			SetRoleType(partnerroleent.RoleTypeCustomer).
+			SetEnabled(true).
+			Save(ctx); err != nil {
+			t.Fatalf("创建换入客户角色失败: %v", err)
+		}
+		// 换入客户故意不配置任何责任人：客户档案不再影响归属行。
+		beforeAttributions, err := data.db.OrderCommissionAttribution.Query().
+			Where(ordercommissionattributionent.OrderIDEQ(created.ID)).All(ctx)
+		if err != nil || len(beforeAttributions) != 3 {
+			t.Fatalf("换客户前归属行数 = %d，期望 3，error=%v", len(beforeAttributions), err)
+		}
+		beforePersonnel, err := data.db.OrderPersonnel.Query().
+			Where(orderpersonnelent.OrderIDEQ(created.ID)).All(ctx)
+		if err != nil {
+			t.Fatalf("查询订单人员失败: %v", err)
+		}
+
+		update := fixture.validUpdateInput()
+		update.CustomerID = replacement.ID
+		if _, err := usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version, update); err != nil {
+			t.Fatalf("草稿换客户失败: %v", err)
+		}
+
+		afterAttributions, err := data.db.OrderCommissionAttribution.Query().
+			Where(ordercommissionattributionent.OrderIDEQ(created.ID)).All(ctx)
+		if err != nil || len(afterAttributions) != 3 {
+			t.Fatalf("换客户后归属行数 = %d，期望仍为 3，error=%v", len(afterAttributions), err)
+		}
+		beforeByRole := make(map[string]*ent.OrderCommissionAttribution, len(beforeAttributions))
+		for _, item := range beforeAttributions {
+			beforeByRole[string(item.PersonnelRole)] = item
+		}
+		for _, item := range afterAttributions {
+			before := beforeByRole[string(item.PersonnelRole)]
+			if before == nil {
+				t.Fatalf("换客户后出现新增归属岗位: %s", item.PersonnelRole)
+			}
+			// 人员未变：归属行仅 customer_id 冗余列同步为新客户。
+			if item.CustomerID != replacement.ID {
+				t.Fatalf("归属行客户列未更新: %#v", item)
+			}
+			if item.EmployeeID != before.EmployeeID || item.EmployeeName != before.EmployeeName ||
+				item.SourceAssignmentID != before.SourceAssignmentID || item.AttributedAt != before.AttributedAt {
+				t.Fatalf("归属行人员内容不应随换客户变化: before=%#v after=%#v", before, item)
+			}
+		}
+		afterPersonnel, err := data.db.OrderPersonnel.Query().
+			Where(orderpersonnelent.OrderIDEQ(created.ID)).All(ctx)
+		if err != nil || len(afterPersonnel) != len(beforePersonnel) {
+			t.Fatalf("换客户后订单人员数 = %d，期望仍为 %d，error=%v", len(afterPersonnel), len(beforePersonnel), err)
+		}
+	})
+
 	t.Run("海运主单匹配、确认关联与修改门禁全生命周期", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		usecase := fixture.newUsecase()
@@ -728,20 +800,7 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试成员关系: %v", err)
 	}
-	for _, role := range []partnerassignmentent.Role{
-		partnerassignmentent.RoleSALES,
-		partnerassignmentent.RoleOPERATOR,
-		partnerassignmentent.RoleCUSTOMER_SERVICE,
-	} {
-		if _, err = data.db.PartnerAssignment.Create().
-			SetPartnerID(partner.ID).
-			SetUserID(actor.ID).
-			SetOrganizationID(organization.ID).
-			SetRole(role).
-			Save(ctx); err != nil {
-			t.Fatalf("创建测试提成责任人 %s: %v", role, err)
-		}
-	}
+	// 提成归属快照取自订单人员而非客户档案责任人，夹具不再预置客户责任人。
 
 	if _, err = data.db.NumberRule.Create().
 		SetOrganizationID(organization.ID).
@@ -780,6 +839,13 @@ func (f *orderPostgresFixture) validInput() *biz.Order {
 		TradeDirection: biz.OrderTradeExport,
 		TradeTerm:      biz.OrderTradeFOB,
 		PaymentTerm:    biz.OrderPaymentPrepaid,
+		// 提成归属以订单人员为唯一真相：创建输入必须携带销售/操作/客服三岗
+		// （同一成员可兼任多岗），否则被 biz 层缺岗门禁拒绝。
+		PersonnelAssignments: []*biz.OrderPersonnel{
+			{Role: biz.OrderPersonnelRoleSales, UserID: f.actorID, OrganizationID: f.organizationID},
+			{Role: biz.OrderPersonnelRoleOperator, UserID: f.actorID, OrganizationID: f.organizationID},
+			{Role: biz.OrderPersonnelRoleCustomerService, UserID: f.actorID, OrganizationID: f.organizationID},
+		},
 		SeaDocumentInput: &biz.SeaOrderDocumentInput{
 			DocumentStructure: &structure,
 			HouseBill: &biz.SeaHouseBillInput{
@@ -838,8 +904,8 @@ func (f *orderPostgresFixture) requireCommittedOrders(wantOrders int, wantSequen
 		f.t.Fatalf("已提交订单审计数 = %d，期望 %d，error=%v", auditCount, wantOrders, err)
 	}
 	personnelCount, err := f.data.db.OrderPersonnel.Query().Where(orderpersonnelent.OrganizationIDEQ(f.organizationID)).Count(ctx)
-	if err != nil || personnelCount != wantOrders {
-		f.t.Fatalf("已提交订单人员数 = %d，期望 %d（仅创建人），error=%v", personnelCount, wantOrders, err)
+	if err != nil || personnelCount != wantOrders*4 {
+		f.t.Fatalf("已提交订单人员数 = %d，期望 %d（每单创建人 + 三岗提成人员），error=%v", personnelCount, wantOrders*4, err)
 	}
 	sequences, err := f.data.db.NumberSequence.Query().Where(numbersequenceent.HasRuleWith(numberruleent.OrganizationIDEQ(f.organizationID))).All(ctx)
 	if err != nil || len(sequences) != 1 || sequences[0].CurrentValue != wantSequence {
@@ -951,6 +1017,8 @@ func (f *orderPostgresFixture) cleanup() {
 			return err
 		}},
 		{name: "客户责任人", run: func() error {
+			// 用例内经由客商用例创建的往来单位仍会写入责任人行，删除先于用户以
+			// 满足外键顺序（夹具不再预置责任人，仅承担清理职责）。
 			_, err := f.data.db.PartnerAssignment.Delete().Where(partnerassignmentent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},

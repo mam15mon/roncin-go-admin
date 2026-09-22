@@ -295,11 +295,12 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 					return biz.ErrOrderCustomerChangeWithHouseBillBlocked
 				}
 			}
-			if _, deleteErr := tx.OrderCommissionAttribution.Delete().Where(ordercommissionattributionent.OrderIDEQ(id)).Exec(ctx); deleteErr != nil {
-				return deleteErr
-			}
-			if snapshotErr := snapshotOrderCommissionAttributions(ctx, tx, organizationID, id, input.CustomerID, existing.CreatedAt); snapshotErr != nil {
-				return snapshotErr
+			// 换客户不重拍归属：订单人员分工未变，归属行仅同步客户冗余列；
+			// 零行匹配（存量草稿无归属行）视为无操作。
+			if _, updateErr := tx.OrderCommissionAttribution.Update().
+				Where(ordercommissionattributionent.OrderIDEQ(id)).
+				SetCustomerID(input.CustomerID).Save(ctx); updateErr != nil {
+				return updateErr
 			}
 		}
 		if audit.Details == nil {

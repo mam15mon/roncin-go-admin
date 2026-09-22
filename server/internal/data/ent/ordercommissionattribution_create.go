@@ -433,6 +433,18 @@ func (u *OrderCommissionAttributionUpsert) UpdateUpdatedAt() *OrderCommissionAtt
 	return u
 }
 
+// SetCustomerID sets the "customer_id" field.
+func (u *OrderCommissionAttributionUpsert) SetCustomerID(v uuid.UUID) *OrderCommissionAttributionUpsert {
+	u.Set(ordercommissionattribution.FieldCustomerID, v)
+	return u
+}
+
+// UpdateCustomerID sets the "customer_id" field to the value that was provided on create.
+func (u *OrderCommissionAttributionUpsert) UpdateCustomerID() *OrderCommissionAttributionUpsert {
+	u.SetExcluded(ordercommissionattribution.FieldCustomerID)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -458,9 +470,6 @@ func (u *OrderCommissionAttributionUpsertOne) UpdateNewValues() *OrderCommission
 		}
 		if _, exists := u.create.mutation.OrderID(); exists {
 			s.SetIgnore(ordercommissionattribution.FieldOrderID)
-		}
-		if _, exists := u.create.mutation.CustomerID(); exists {
-			s.SetIgnore(ordercommissionattribution.FieldCustomerID)
 		}
 		if _, exists := u.create.mutation.SourceAssignmentID(); exists {
 			s.SetIgnore(ordercommissionattribution.FieldSourceAssignmentID)
@@ -519,6 +528,20 @@ func (u *OrderCommissionAttributionUpsertOne) SetUpdatedAt(v time.Time) *OrderCo
 func (u *OrderCommissionAttributionUpsertOne) UpdateUpdatedAt() *OrderCommissionAttributionUpsertOne {
 	return u.Update(func(s *OrderCommissionAttributionUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetCustomerID sets the "customer_id" field.
+func (u *OrderCommissionAttributionUpsertOne) SetCustomerID(v uuid.UUID) *OrderCommissionAttributionUpsertOne {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.SetCustomerID(v)
+	})
+}
+
+// UpdateCustomerID sets the "customer_id" field to the value that was provided on create.
+func (u *OrderCommissionAttributionUpsertOne) UpdateCustomerID() *OrderCommissionAttributionUpsertOne {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.UpdateCustomerID()
 	})
 }
 
@@ -714,9 +737,6 @@ func (u *OrderCommissionAttributionUpsertBulk) UpdateNewValues() *OrderCommissio
 			if _, exists := b.mutation.OrderID(); exists {
 				s.SetIgnore(ordercommissionattribution.FieldOrderID)
 			}
-			if _, exists := b.mutation.CustomerID(); exists {
-				s.SetIgnore(ordercommissionattribution.FieldCustomerID)
-			}
 			if _, exists := b.mutation.SourceAssignmentID(); exists {
 				s.SetIgnore(ordercommissionattribution.FieldSourceAssignmentID)
 			}
@@ -775,6 +795,20 @@ func (u *OrderCommissionAttributionUpsertBulk) SetUpdatedAt(v time.Time) *OrderC
 func (u *OrderCommissionAttributionUpsertBulk) UpdateUpdatedAt() *OrderCommissionAttributionUpsertBulk {
 	return u.Update(func(s *OrderCommissionAttributionUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetCustomerID sets the "customer_id" field.
+func (u *OrderCommissionAttributionUpsertBulk) SetCustomerID(v uuid.UUID) *OrderCommissionAttributionUpsertBulk {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.SetCustomerID(v)
+	})
+}
+
+// UpdateCustomerID sets the "customer_id" field to the value that was provided on create.
+func (u *OrderCommissionAttributionUpsertBulk) UpdateCustomerID() *OrderCommissionAttributionUpsertBulk {
+	return u.Update(func(s *OrderCommissionAttributionUpsert) {
+		s.UpdateCustomerID()
 	})
 }
 

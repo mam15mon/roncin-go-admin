@@ -17,40 +17,81 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
-func TestOrderCommissionSnapshotRejectsMissingRoles(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("创建 sqlmock 失败: %v", err)
+func TestOrderCommissionSnapshotReadsOrderPersonnels(t *testing.T) {
+	newTestClient := func(t *testing.T) (*ent.Client, sqlmock.Sqlmock) {
+		t.Helper()
+		db, mock, err := sqlmock.New()
+		if err != nil {
+			t.Fatalf("创建 sqlmock 失败: %v", err)
+		}
+		driver := entsql.OpenDB(dialect.Postgres, db)
+		client := ent.NewClient(ent.Driver(driver))
+		t.Cleanup(func() {
+			_ = client.Close()
+			_ = db.Close()
+		})
+		return client, mock
 	}
-	driver := entsql.OpenDB(dialect.Postgres, db)
-	client := ent.NewClient(ent.Driver(driver))
-	t.Cleanup(func() {
-		_ = client.Close()
-		_ = db.Close()
+	t.Run("无提成人员时为无操作且不再做缺配校验", func(t *testing.T) {
+		client, mock := newTestClient(t)
+		mock.ExpectBegin()
+		tx, err := client.Tx(t.Context())
+		if err != nil {
+			t.Fatalf("开启事务失败: %v", err)
+		}
+		mock.ExpectQuery(`SELECT .* FROM "order_personnels"`).
+			WillReturnRows(sqlmock.NewRows(orderpersonnel.Columns))
+		if err := snapshotOrderCommissionAttributions(t.Context(), tx, uuid.New(), uuid.New(), uuid.New(), time.Now()); err != nil {
+			t.Fatalf("无订单人员时快照应为无操作，实际: %v", err)
+		}
+		mock.ExpectRollback()
+		if err := tx.Rollback(); err != nil {
+			t.Fatalf("事务回滚失败: %v", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("快照查询未命中订单人员表: %v", err)
+		}
 	})
-	mock.ExpectBegin()
-	tx, err := client.Tx(t.Context())
-	if err != nil {
-		t.Fatalf("开启事务失败: %v", err)
-	}
-	mock.ExpectQuery(`SELECT .* FROM "partner_assignments"`).
-		WillReturnRows(sqlmock.NewRows(partnerassignment.Columns))
-	err = snapshotOrderCommissionAttributions(t.Context(), tx, uuid.New(), uuid.New(), uuid.New(), time.Now())
-	if err == nil || !strings.Contains(err.Error(), "销售、操作、客服") {
-		t.Fatalf("缺失全部提成岗位时应显式拒绝并列出岗位，实际: %v", err)
-	}
-	mock.ExpectRollback()
-	if err := tx.Rollback(); err != nil {
-		t.Fatalf("事务回滚失败: %v", err)
-	}
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Fatalf("快照查询及回滚未符合预期: %v", err)
-	}
+	t.Run("按订单人员三岗写入归属行", func(t *testing.T) {
+		client, mock := newTestClient(t)
+		organizationID, orderID, customerID := uuid.New(), uuid.New(), uuid.New()
+		salesUserID, operatorUserID := uuid.New(), uuid.New()
+		salesPersonnelID, operatorPersonnelID := uuid.New(), uuid.New()
+		now := time.Now().UTC()
+		mock.ExpectBegin()
+		tx, err := client.Tx(t.Context())
+		if err != nil {
+			t.Fatalf("开启事务失败: %v", err)
+		}
+		personnelRows := sqlmock.NewRows(orderpersonnel.Columns).
+			AddRow(salesPersonnelID, now, now, orderID, salesUserID, organizationID, "SALES", now).
+			AddRow(operatorPersonnelID, now, now, orderID, operatorUserID, organizationID, "OPERATOR", now)
+		mock.ExpectQuery(`SELECT .* FROM "order_personnels"`).
+			WillReturnRows(personnelRows)
+		userRows := sqlmock.NewRows(user.Columns).
+			AddRow(salesUserID, now, now, "", "销售专员", "", "", "", nil, nil, nil, nil, nil, nil, false, true, "").
+			AddRow(operatorUserID, now, now, "", "操作专员", "", "", "", nil, nil, nil, nil, nil, nil, false, true, "")
+		mock.ExpectQuery(`SELECT .* FROM "users" WHERE .*"id" IN`).
+			WillReturnRows(userRows)
+		mock.ExpectQuery(`INSERT INTO "order_commission_attributions"`).
+			WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(salesPersonnelID).AddRow(operatorPersonnelID))
+		if err := snapshotOrderCommissionAttributions(t.Context(), tx, organizationID, orderID, customerID, now); err != nil {
+			t.Fatalf("快照写入失败: %v", err)
+		}
+		mock.ExpectRollback()
+		if err := tx.Rollback(); err != nil {
+			t.Fatalf("事务回滚失败: %v", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Fatalf("快照未按订单人员取数写入: %v", err)
+		}
+	})
 }
 
 func TestOrderCreateRollsBackAllocatedNumberWhenValidationFails(t *testing.T) {

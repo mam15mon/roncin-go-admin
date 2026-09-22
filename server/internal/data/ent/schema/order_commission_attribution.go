@@ -8,7 +8,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// OrderCommissionAttribution 固化订单创建时客户档案中的提成人员归属。
+// OrderCommissionAttribution 固化订单创建时订单人员（销售/操作/客服）的提成
+// 归属；草稿换客户时仅 customer_id 冗余列随订单同步，人员归属不变。
 type OrderCommissionAttribution struct{ ent.Schema }
 
 func (OrderCommissionAttribution) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -17,7 +18,7 @@ func (OrderCommissionAttribution) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.UUID("order_id", uuid.Nil).Immutable(),
-		field.UUID("customer_id", uuid.Nil).Immutable(),
+		field.UUID("customer_id", uuid.Nil),
 		field.UUID("source_assignment_id", uuid.Nil).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
@@ -30,7 +31,7 @@ func (OrderCommissionAttribution) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("order_commission_attributions").Field("organization_id").Unique().Required().Immutable(),
 		edge.From("order", Order.Type).Ref("commission_attributions").Field("order_id").Unique().Required().Immutable(),
-		edge.From("customer", Partner.Type).Ref("order_commission_attributions").Field("customer_id").Unique().Required().Immutable(),
+			edge.From("customer", Partner.Type).Ref("order_commission_attributions").Field("customer_id").Unique().Required(),
 		edge.From("employee", User.Type).Ref("order_commission_attributions").Field("employee_id").Unique().Required().Immutable(),
 	}
 }

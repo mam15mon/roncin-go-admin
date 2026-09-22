@@ -402,6 +402,13 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		normalizedPersonnel = append(normalizedPersonnel, &normalizedAssignment)
 	}
 	output.PersonnelAssignments = normalizedPersonnel
+	if creating {
+		// 提成相关岗位（销售/操作/客服）创建时必须配齐：订单人员是提成归属快照
+		// 的唯一取数源，缺岗直接拒绝开单（创建者 CREATOR 岗位不计入）。
+		if err := validateOrderCommissionPersonnel(output.PersonnelAssignments); err != nil {
+			return nil, err
+		}
+	}
 	houseNumbers := make(map[string]struct{}, len(output.ShippingDocuments))
 	for index, document := range output.ShippingDocuments {
 		normalized, err := normalizeOrderShippingDocument(document)
@@ -493,6 +500,26 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 		}
 	}
 	return &output, nil
+}
+
+// validateOrderCommissionPersonnel 校验订单人员是否覆盖销售/操作/客服三岗，
+// 缺失岗位按固定顺序收集并构造缺岗错误；三岗齐全返回 nil。仅创建路径调用，
+// 草稿更新不携带人员字段，不施加该校验。
+func validateOrderCommissionPersonnel(assignments []*OrderPersonnel) error {
+	covered := make(map[OrderPersonnelRole]struct{}, len(assignments))
+	for _, assignment := range assignments {
+		covered[assignment.Role] = struct{}{}
+	}
+	missing := make([]OrderPersonnelRole, 0, len(orderCommissionPersonnelRoleOrder))
+	for _, role := range orderCommissionPersonnelRoleOrder {
+		if _, ok := covered[role]; !ok {
+			missing = append(missing, role)
+		}
+	}
+	if len(missing) == 0 {
+		return nil
+	}
+	return NewOrderCommissionPersonnelMissing(missing)
 }
 
 // sameOrderCreateIntent 判定幂等键命中的既有订单与本次创建请求是否同一意图：

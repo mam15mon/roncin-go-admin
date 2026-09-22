@@ -18,14 +18,20 @@ func (inlineTransactor) WithinTransaction(ctx context.Context, fn func(context.C
 func idempotentCreateInput(organizationID uuid.UUID) *Order {
 	shippingLineID := uuid.Must(uuid.NewV7())
 	directMode := SeaDocumentStructureDirect
+	commissionUserID := uuid.Must(uuid.NewV7())
 	return &Order{
 		OrganizationID: organizationID,
 		IdempotencyKey: "replay-key-001",
 		CustomerID:     uuid.Must(uuid.NewV7()), BusinessType: OrderBusinessSE,
 		ShippingLineID: &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
-		ServiceTypeIDs:     []uuid.UUID{uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())},
-		CargoCategoryIDs:   []uuid.UUID{uuid.Must(uuid.NewV7())},
+		ServiceTypeIDs: []uuid.UUID{uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())},
+		CargoCategoryIDs: []uuid.UUID{uuid.Must(uuid.NewV7())},
+		PersonnelAssignments: []*OrderPersonnel{
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleCustomerService},
+		},
 		Notes:              "重放保护",
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		SeaDocumentInput:   &SeaOrderDocumentInput{DocumentStructure: &directMode},
@@ -107,9 +113,9 @@ func TestOrderCreateRejectsSameKeyWithDriftedContent(t *testing.T) {
 	}
 
 	driftedPersonnel := *existing
-	driftedPersonnel.PersonnelAssignments = []*OrderPersonnel{{
-		UserID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, Role: OrderPersonnelRoleOperator,
-	}}
+	driftedSales := append([]*OrderPersonnel{}, existing.PersonnelAssignments...)
+	driftedSales[0] = &OrderPersonnel{UserID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, Role: OrderPersonnelRoleSales}
+	driftedPersonnel.PersonnelAssignments = driftedSales
 	_, err = usecase.Create(context.Background(), organizationID, uuid.Must(uuid.NewV7()), &driftedPersonnel)
 	if err != ErrOrderIdempotencyConflict {
 		t.Fatalf("同键仅改岗位人员应返回幂等冲突, got %v", err)

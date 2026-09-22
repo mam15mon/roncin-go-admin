@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -20,6 +21,39 @@ func NewOrderPartnerRoleBlacklisted(role PartnerRoleType) error {
 		label = "往来单位角色"
 	}
 	return errors.BadRequest("ORDER_PARTNER_ROLE_BLACKLISTED", fmt.Sprintf("所选%s已列入黑名单，不能新增业务关联", label))
+}
+
+// orderCommissionPersonnelRoleLabels 提成相关订单岗位的中文标签，用于开单缺岗
+// 错误提示。
+var orderCommissionPersonnelRoleLabels = map[OrderPersonnelRole]string{
+	OrderPersonnelRoleSales:           "销售",
+	OrderPersonnelRoleOperator:        "操作",
+	OrderPersonnelRoleCustomerService: "客服",
+}
+
+// orderCommissionPersonnelRoleOrder 缺岗错误提示中岗位的固定展示顺序。
+var orderCommissionPersonnelRoleOrder = []OrderPersonnelRole{
+	OrderPersonnelRoleSales,
+	OrderPersonnelRoleOperator,
+	OrderPersonnelRoleCustomerService,
+}
+
+// NewOrderCommissionPersonnelMissing 构造开单缺岗错误：订单人员为提成归属的
+// 唯一真相源，创建请求缺少销售/操作/客服任一岗位时拒绝创建订单，消息按固定
+// 顺序列出实际缺失的岗位（去重）。
+func NewOrderCommissionPersonnelMissing(missing []OrderPersonnelRole) error {
+	missingSet := make(map[OrderPersonnelRole]struct{}, len(missing))
+	for _, role := range missing {
+		missingSet[role] = struct{}{}
+	}
+	labels := make([]string, 0, len(missingSet))
+	for _, role := range orderCommissionPersonnelRoleOrder {
+		if _, ok := missingSet[role]; ok {
+			labels = append(labels, orderCommissionPersonnelRoleLabels[role])
+		}
+	}
+	return errors.BadRequest("ORDER_COMMISSION_PERSONNEL_MISSING",
+		"订单缺少"+strings.Join(labels, "、")+"人员，请在内部信息区补全后再开单")
 }
 
 var (

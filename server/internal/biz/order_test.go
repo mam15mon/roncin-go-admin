@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -162,10 +163,16 @@ func TestOrderCreateBlocksExceededCustomerInInterventionMode(t *testing.T) {
 	}}, NewFinanceCustomSettingUsecase(&interventionModeSettingRepo{allowSelection: false}))
 	usecase := NewOrderUsecase(&orderRepoStub{}, nil, &seaMasterBillRepoStub{}, nil, creditControl, nil)
 	directMode := SeaDocumentStructureDirect
+	commissionUserID := uuid.New()
 	input := &Order{
 		CustomerID: exceededCustomerID, BusinessType: OrderBusinessSE,
 		ShippingLineID: &exceededCustomerID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		PersonnelAssignments: []*OrderPersonnel{
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleCustomerService},
+		},
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		SeaDocumentInput:   &SeaOrderDocumentInput{DocumentStructure: &directMode},
 	}
@@ -201,9 +208,13 @@ func TestOrderCreateAudits(t *testing.T) {
 		ShippingLineID: &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ServiceTypeIDs: []uuid.UUID{uuid.New()}, CargoCategoryIDs: []uuid.UUID{uuid.New()},
-		PersonnelAssignments: []*OrderPersonnel{{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator}},
-		SeaMasterBillInput:   &SeaMasterBillInput{MasterNo: "COSCO123456"},
-		SeaDocumentInput:     &SeaOrderDocumentInput{DocumentStructure: &directMode},
+		PersonnelAssignments: []*OrderPersonnel{
+			{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+			{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
+			{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleCustomerService},
+		},
+		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
+		SeaDocumentInput:   &SeaOrderDocumentInput{DocumentStructure: &directMode},
 	})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
@@ -214,8 +225,13 @@ func TestOrderCreateAudits(t *testing.T) {
 	if repo.createdAudit == nil || repo.createdAudit.Action != "order.create" {
 		t.Fatalf("create audit = %#v", repo.createdAudit)
 	}
-	if len(repo.created.PersonnelAssignments) != 1 || repo.created.PersonnelAssignments[0].Notification == nil || repo.created.PersonnelAssignments[0].Notification.RecipientUserID != personnelUserID {
-		t.Fatalf("personnel notification = %#v", repo.created.PersonnelAssignments)
+	if len(repo.created.PersonnelAssignments) != 3 {
+		t.Fatalf("personnel assignments = %#v", repo.created.PersonnelAssignments)
+	}
+	for _, assignment := range repo.created.PersonnelAssignments {
+		if assignment.Notification == nil || assignment.Notification.RecipientUserID != personnelUserID {
+			t.Fatalf("personnel notification = %#v", repo.created.PersonnelAssignments)
+		}
 	}
 }
 
@@ -228,6 +244,11 @@ func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
 	_, err := usecase.Create(context.Background(), organizationID, actorID, &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		PersonnelAssignments: []*OrderPersonnel{
+			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
+			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleCustomerService},
+		},
 		CargoCategoryIDs:   []uuid.UUID{duplicateID, duplicateID},
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 	})
@@ -676,12 +697,19 @@ func TestCheckSeaVoyageConflicts(t *testing.T) {
 
 func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
 	shippingLineID := uuid.New()
+	organizationID := uuid.New()
+	commissionUserID := uuid.New()
 	input := &Order{
 		CustomerID:     uuid.New(),
 		BusinessType:   OrderBusinessSE,
 		TradeDirection: OrderTradeExport,
 		TradeTerm:      OrderTradeFOB,
 		PaymentTerm:    OrderPaymentPrepaid,
+		PersonnelAssignments: []*OrderPersonnel{
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
+			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleCustomerService},
+		},
 	}
 	if _, err := normalizeOrder(input, true); errors.Reason(err) != "SEA_MASTER_BILL_INVALID_ARGUMENT" {
 		t.Fatalf("缺少船公司 error = %v, want SEA_MASTER_BILL_INVALID_ARGUMENT", err)
@@ -738,3 +766,75 @@ func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
 
 var _ OrderRepo = (*orderRepoStub)(nil)
 var _ SeaMasterBillRepo = (*seaMasterBillRepoStub)(nil)
+
+func TestNewOrderCommissionPersonnelMissingListsOnlyMissingRoles(t *testing.T) {
+	err := NewOrderCommissionPersonnelMissing([]OrderPersonnelRole{
+		OrderPersonnelRoleCustomerService,
+		OrderPersonnelRoleSales,
+		OrderPersonnelRoleSales,
+	})
+	if err == nil || errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" {
+		t.Fatalf("缺岗错误码应为 ORDER_COMMISSION_PERSONNEL_MISSING，实际: %v", err)
+	}
+	if err == nil || !strings.Contains(err.Error(), "订单缺少销售、客服人员，请在内部信息区补全后再开单") || strings.Contains(err.Error(), "销售、销售") {
+		t.Fatalf("缺岗提示应去重且按固定顺序展示，实际: %v", err)
+	}
+}
+
+func TestNormalizeOrderRequiresCommissionPersonnelOnCreate(t *testing.T) {
+	organizationID := uuid.New()
+	commissionPersonnel := []*OrderPersonnel{
+		{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+		{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
+		{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleCustomerService},
+	}
+	buildInput := func(personnel []*OrderPersonnel) *Order {
+		shippingLineID := uuid.New()
+		directMode := SeaDocumentStructureDirect
+		return &Order{
+			CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
+			ShippingLineID: &shippingLineID,
+			TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+			PersonnelAssignments: personnel,
+			SeaMasterBillInput:  &SeaMasterBillInput{MasterNo: "COSCO123456"},
+			SeaDocumentInput:   &SeaOrderDocumentInput{DocumentStructure: &directMode},
+		}
+	}
+
+	t.Run("创建缺全三岗按固定顺序列出", func(t *testing.T) {
+		_, err := normalizeOrder(buildInput(nil), true)
+		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少销售、操作、客服人员，请在内部信息区补全后再开单") {
+			t.Fatalf("创建缺三岗错误 = %v", err)
+		}
+	})
+	t.Run("创建缺单岗仅列出缺失岗位", func(t *testing.T) {
+		_, err := normalizeOrder(buildInput([]*OrderPersonnel{
+			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
+		}), true)
+		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少客服人员") || strings.Contains(err.Error(), "销售") {
+			t.Fatalf("创建缺客服错误 = %v", err)
+		}
+	})
+	t.Run("三岗齐全创建通过", func(t *testing.T) {
+		if _, err := normalizeOrder(buildInput(commissionPersonnel), true); err != nil {
+			t.Fatalf("三岗齐全创建不应被拦截: %v", err)
+		}
+	})
+	t.Run("创建者岗位不计入三岗", func(t *testing.T) {
+		withCreator := append(append([]*OrderPersonnel{}, commissionPersonnel...),
+			&OrderPersonnel{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleCreator})
+		// 创建人由服务端注入，请求携带 CREATOR 属于非法输入，应被既有参数校验拒绝
+		// 而不是计入三岗覆盖。
+		if _, err := normalizeOrder(buildInput(withCreator), true); err != ErrOrderInvalidArgument {
+			t.Fatalf("请求携带 CREATOR 应返回 ErrOrderInvalidArgument，实际: %v", err)
+		}
+	})
+	t.Run("草稿更新不施加三岗校验", func(t *testing.T) {
+		input := buildInput(nil)
+		input.SeaDocumentInput = nil
+		if _, err := normalizeOrder(input, false); err != nil {
+			t.Fatalf("草稿更新不携带人员不应被三岗校验拦截: %v", err)
+		}
+	})
+}

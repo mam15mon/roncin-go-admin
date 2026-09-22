@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -34,9 +36,34 @@ func (_u *OrderCommissionAttributionUpdate) SetUpdatedAt(v time.Time) *OrderComm
 	return _u
 }
 
+// SetCustomerID sets the "customer_id" field.
+func (_u *OrderCommissionAttributionUpdate) SetCustomerID(v uuid.UUID) *OrderCommissionAttributionUpdate {
+	_u.mutation.SetCustomerID(v)
+	return _u
+}
+
+// SetNillableCustomerID sets the "customer_id" field if the given value is not nil.
+func (_u *OrderCommissionAttributionUpdate) SetNillableCustomerID(v *uuid.UUID) *OrderCommissionAttributionUpdate {
+	if v != nil {
+		_u.SetCustomerID(*v)
+	}
+	return _u
+}
+
+// SetCustomer sets the "customer" edge to the Partner entity.
+func (_u *OrderCommissionAttributionUpdate) SetCustomer(v *Partner) *OrderCommissionAttributionUpdate {
+	return _u.SetCustomerID(v.ID)
+}
+
 // Mutation returns the OrderCommissionAttributionMutation object of the builder.
 func (_u *OrderCommissionAttributionUpdate) Mutation() *OrderCommissionAttributionMutation {
 	return _u.mutation
+}
+
+// ClearCustomer clears the "customer" edge to the Partner entity.
+func (_u *OrderCommissionAttributionUpdate) ClearCustomer() *OrderCommissionAttributionUpdate {
+	_u.mutation.ClearCustomer()
+	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -107,6 +134,35 @@ func (_u *OrderCommissionAttributionUpdate) sqlSave(ctx context.Context) (_node 
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(ordercommissionattribution.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercommissionattribution.CustomerTable,
+			Columns: []string{ordercommissionattribution.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercommissionattribution.CustomerTable,
+			Columns: []string{ordercommissionattribution.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{ordercommissionattribution.Label}
@@ -133,9 +189,34 @@ func (_u *OrderCommissionAttributionUpdateOne) SetUpdatedAt(v time.Time) *OrderC
 	return _u
 }
 
+// SetCustomerID sets the "customer_id" field.
+func (_u *OrderCommissionAttributionUpdateOne) SetCustomerID(v uuid.UUID) *OrderCommissionAttributionUpdateOne {
+	_u.mutation.SetCustomerID(v)
+	return _u
+}
+
+// SetNillableCustomerID sets the "customer_id" field if the given value is not nil.
+func (_u *OrderCommissionAttributionUpdateOne) SetNillableCustomerID(v *uuid.UUID) *OrderCommissionAttributionUpdateOne {
+	if v != nil {
+		_u.SetCustomerID(*v)
+	}
+	return _u
+}
+
+// SetCustomer sets the "customer" edge to the Partner entity.
+func (_u *OrderCommissionAttributionUpdateOne) SetCustomer(v *Partner) *OrderCommissionAttributionUpdateOne {
+	return _u.SetCustomerID(v.ID)
+}
+
 // Mutation returns the OrderCommissionAttributionMutation object of the builder.
 func (_u *OrderCommissionAttributionUpdateOne) Mutation() *OrderCommissionAttributionMutation {
 	return _u.mutation
+}
+
+// ClearCustomer clears the "customer" edge to the Partner entity.
+func (_u *OrderCommissionAttributionUpdateOne) ClearCustomer() *OrderCommissionAttributionUpdateOne {
+	_u.mutation.ClearCustomer()
+	return _u
 }
 
 // Where appends a list predicates to the OrderCommissionAttributionUpdate builder.
@@ -235,6 +316,35 @@ func (_u *OrderCommissionAttributionUpdateOne) sqlSave(ctx context.Context) (_no
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(ordercommissionattribution.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercommissionattribution.CustomerTable,
+			Columns: []string{ordercommissionattribution.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   ordercommissionattribution.CustomerTable,
+			Columns: []string{ordercommissionattribution.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partner.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &OrderCommissionAttribution{config: _u.config}
 	_spec.Assign = _node.assignValues

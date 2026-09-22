@@ -34,7 +34,7 @@
 | 提成 | `FinanceCommission` / `...Line` | 计提引擎按核销/对冲来源生成的提成（金额、CNY 快照、来源指纹）；状态 DRAFT→CONFIRMED→PAID，可 Cancel | `data/finance_commission_calculation.go` |
 | 提成调整 | `FinanceCommissionAdjustment` | 提成的手工调整/冲减（补录场景产生冲减建议） | `finance_commission_adjustment.go` |
 | 月度提成申请 | `FinanceCommissionApplication` / `...Line` | 员工按完整自然月汇总申请全部未申请合格提成；财务整单批准/驳回（不做部分批准）；驳回原单显式重提（Resubmit） | `biz/finance_commission_application.go` |
-| 提成归属 | `OrderCommissionAttribution` | 订单经营归属（销售/操作等角色）锚点，计提依据 | 计提源解析见 `finance_commission_calculation.go` |
+| 提成归属 | `OrderCommissionAttribution` | 订单经营归属（销售/操作/客服三岗）锚点，计提依据；创建时按订单人员分工固化，客户档案责任人仅作表单带入默认值 | 计提源解析见 `finance_commission_calculation.go`，契约见 `server/backend/operating-company-commission-attribution.md` |
 | 结算单位 | Settlement Party | 费用/账单的往来结算对象（Partner） | `partner.go` |
 
 ## 往来单位域（Partner）

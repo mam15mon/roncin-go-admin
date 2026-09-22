@@ -162,7 +162,12 @@ func TestCompanyPersonnelWorkspacePostgres(t *testing.T) {
 	})
 	t.Run("订单创建拒绝下属公司人员并回滚", func(t *testing.T) {
 		input := fixture.validInput()
-		input.PersonnelAssignments = []*biz.OrderPersonnel{{UserID: outsider.ID, Role: biz.OrderPersonnelRoleOperator}}
+		// 三岗门禁要求销售/客服齐全，操作员换为下属公司人员以触发数据层成员校验。
+		input.PersonnelAssignments = []*biz.OrderPersonnel{
+			{UserID: fixture.actorID, OrganizationID: companyID, Role: biz.OrderPersonnelRoleSales},
+			{UserID: fixture.actorID, OrganizationID: companyID, Role: biz.OrderPersonnelRoleCustomerService},
+			{UserID: outsider.ID, OrganizationID: companyID, Role: biz.OrderPersonnelRoleOperator},
+		}
 		_, err := fixture.newUsecase().Create(ctx, companyID, fixture.actorID, input)
 		if !errors.Is(err, biz.ErrOrderPersonnelUserInvalid) {
 			t.Fatalf("应拒绝下属公司操作员: %v", err)
@@ -178,7 +183,9 @@ func TestCompanyPersonnelWorkspacePostgres(t *testing.T) {
 		if _, err := personnelUsecase.Assign(ctx, companyID, fixture.actorID, created.ID, outsider.ID, biz.OrderPersonnelRoleOperator); !errors.Is(err, biz.ErrOrderPersonnelUserInvalid) {
 			t.Fatalf("应拒绝下属公司操作员: %v", err)
 		}
-		assigned, err := personnelUsecase.Assign(ctx, companyID, fixture.actorID, created.ID, multiDepartment.ID, biz.OrderPersonnelRoleOperator)
+		// OPERATOR 已由创建输入占用（order_id+role 唯一索引），用空闲岗位验证
+		// 本公司部门成员可正常分配。
+		assigned, err := personnelUsecase.Assign(ctx, companyID, fixture.actorID, created.ID, multiDepartment.ID, biz.OrderPersonnelRoleDocument)
 		if err != nil {
 			t.Fatal(err)
 		}

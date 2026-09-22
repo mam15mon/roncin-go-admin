@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -28,17 +27,6 @@ func TestRequireOperatingCompany(t *testing.T) {
 			t.Fatalf("缺少主体时应返回原始鉴权错误，实际: %v", err)
 		}
 	})
-}
-
-func TestPartnerCommissionAssignmentMissingListsOnlyMissingRoles(t *testing.T) {
-	err := NewPartnerCommissionAssignmentMissing([]PartnerAssignmentRole{
-		PartnerAssignmentCustomerService,
-		PartnerAssignmentSales,
-		PartnerAssignmentSales,
-	})
-	if err == nil || !strings.Contains(err.Error(), "客户档案缺少销售、客服责任人") || strings.Contains(err.Error(), "销售、销售") {
-		t.Fatalf("缺配岗位提示应去重且按固定顺序展示，实际: %v", err)
-	}
 }
 
 // headquartersPrincipal 构造总部根节点身份且持有指定权限码集合的测试主体。

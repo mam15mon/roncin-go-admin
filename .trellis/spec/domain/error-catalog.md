@@ -55,6 +55,7 @@
 | ORDER_CLOSED | 409 Conflict | 订单已结案，不允许修改业务数据 | order.go | — |
 | ORDER_CLOSURE_BLOCKED | 409 Conflict | 订单尚未满足结案条件 | order.go | — |
 | ORDER_CLOSURE_INVALID | 400 Bad Request | 订单结案状态流转不合法 | order.go | — |
+| ORDER_COMMISSION_PERSONNEL_MISSING | 400 Bad Request | 订单缺少%s人员，请在内部信息区补全后再开单（销售/操作/客服三岗必配，按缺失岗位列出） | order_usecase.go | — |
 | ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID | 400 Bad Request | 仅拼箱订单可查看自拼汇总 | order.go | — |
 | ORDER_CONTAINER_EXISTS | 409 Conflict | 该箱号已存在于当前订单 | order_container.go | — |
 | ORDER_CONTAINER_INVALID_ARGUMENT | 400 Bad Request | 仅整箱(FCL)业务允许维护集装箱<br>订单集装箱参数不合法 | order_container.go | — |
@@ -311,7 +312,6 @@
 | PARTNER_BLACKLIST_REASON_REQUIRED | 400 Bad Request | 黑名单变更原因不能为空 | partner.go | — |
 | PARTNER_BLACKLIST_ROLE_REQUIRED | 400 Bad Request | 往来单位没有指定的黑名单角色 | partner.go | — |
 | PARTNER_CODE_EXISTS | 409 Conflict | 往来单位编码已存在 | partner.go | — |
-| PARTNER_COMMISSION_ASSIGNMENT_MISSING | 400 Bad Request | 客户档案缺少%s、%s责任人，请先到客户档案补全责任人员后再开单 | partner.go | — |
 | PARTNER_CONTRACT_INVALID_ARGUMENT | 400 Bad Request | 合同字段不合法 | partner_contract.go | — |
 | PARTNER_CONTRACT_NOT_FOUND | 404 Not Found | 合同不存在 | partner_contract.go | — |
 | PARTNER_CONTRACT_NO_EXISTS | 409 Conflict | 合同编号已存在 | partner_contract.go | — |

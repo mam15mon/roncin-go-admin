@@ -30,37 +30,6 @@ var (
 	ErrPartnerImportInvalidArgument   = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位导入参数不合法")
 )
 
-// partnerCommissionRoleLabels 提成相关责任岗位的中文标签，用于缺配开单错误提示。
-var partnerCommissionRoleLabels = map[PartnerAssignmentRole]string{
-	PartnerAssignmentSales:           "销售",
-	PartnerAssignmentOperator:        "操作",
-	PartnerAssignmentCustomerService: "客服",
-}
-
-// partnerCommissionAssignmentRoleOrder 缺配错误提示中岗位的固定展示顺序。
-var partnerCommissionAssignmentRoleOrder = []PartnerAssignmentRole{
-	PartnerAssignmentSales,
-	PartnerAssignmentOperator,
-	PartnerAssignmentCustomerService,
-}
-
-// NewPartnerCommissionAssignmentMissing 构造开单缺配错误：客户档案缺少提成相关
-// 责任人员时阻止创建订单/草稿更换客户，消息列出实际缺失的岗位。
-func NewPartnerCommissionAssignmentMissing(missing []PartnerAssignmentRole) error {
-	missingSet := make(map[PartnerAssignmentRole]struct{}, len(missing))
-	for _, role := range missing {
-		missingSet[role] = struct{}{}
-	}
-	labels := make([]string, 0, len(missingSet))
-	for _, role := range partnerCommissionAssignmentRoleOrder {
-		if _, ok := missingSet[role]; ok {
-			labels = append(labels, partnerCommissionRoleLabels[role])
-		}
-	}
-	return errors.BadRequest("PARTNER_COMMISSION_ASSIGNMENT_MISSING",
-		"客户档案缺少"+strings.Join(labels, "、")+"责任人，请先到客户档案补全责任人员后再开单")
-}
-
 type PartnerRoleType string
 
 const (

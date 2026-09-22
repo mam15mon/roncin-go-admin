@@ -5,8 +5,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
+	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 )
 
@@ -164,10 +166,22 @@ func TestPartnerMultiRoleOrderPostgres(t *testing.T) {
 	if len(snapshots) != 3 {
 		t.Fatalf("应保留三岗位提成快照，实际 %d", len(snapshots))
 	}
+	personnelIDs := make(map[uuid.UUID]struct{})
+	personnelRows, err := client.OrderPersonnel.Query().Where(orderpersonnelent.OrderIDEQ(order.ID)).All(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range personnelRows {
+		personnelIDs[row.ID] = struct{}{}
+	}
 	roles := make(map[string]bool)
 	for _, snapshot := range snapshots {
 		if snapshot.EmployeeID != fixture.actorID || snapshot.OrganizationID != fixture.organizationID || snapshot.CustomerID != partner.ID {
 			t.Fatalf("快照归属不正确: %+v", snapshot)
+		}
+		// source_assignment_id 语义为订单人员行 ID，快照取数源必须是订单人员。
+		if _, ok := personnelIDs[snapshot.SourceAssignmentID]; !ok {
+			t.Fatalf("快照来源行不在订单人员表中: %+v", snapshot)
 		}
 		roles[string(snapshot.PersonnelRole)] = true
 	}
