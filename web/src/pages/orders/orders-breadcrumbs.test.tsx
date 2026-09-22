@@ -229,8 +229,11 @@ describe('订单模块面包屑与异常路由校验', () => {
       </App>,
     );
 
-    // 1. 加载中状态
-    expect(screen.getByText('正在加载订单详情...')).toBeInTheDocument();
+    // 1. 加载中状态：分节骨架占位，页头不暴露原始订单 ID
+    expect(screen.getByText('业务基本信息')).toBeInTheDocument();
+    expect(screen.getByText('运输与订舱信息')).toBeInTheDocument();
+    expect(screen.getByText('订单详情')).toBeInTheDocument();
+    expect(screen.queryByText('ord-loading')).not.toBeInTheDocument();
     expect(screen.queryByText('订单管理')).not.toBeInTheDocument();
     expect(screen.getByText('海运出口')).toBeInTheDocument();
     expect(

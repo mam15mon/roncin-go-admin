@@ -7,7 +7,15 @@ import {
   PageContainer,
   type ProFormInstance,
 } from '@ant-design/pro-components';
-import { App, Button, Card, Empty, type MenuProps, Result, Spin } from 'antd';
+import {
+  App,
+  Button,
+  Card,
+  Empty,
+  type MenuProps,
+  Result,
+  Skeleton,
+} from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -19,6 +27,7 @@ import React, {
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
 import { resolveTabKey } from '@/components/layout/routeUtils';
+import { SectionCard } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
   OrderFormTemplateActions,
@@ -351,22 +360,23 @@ export default function OrderDetailPage() {
   }
 
   if (loading) {
+    // 加载态保持页面结构骨架（与 OrderFormTemplate 内置骨架一致），避免刷新时
+    // 整页坍缩成孤立 spinner；页头未取到订单号时兜底「订单详情」，不暴露原始 UUID。
     return (
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
           page="detail"
           orderKind={definition.kind}
           navigationTitle={definition.navigationTitle}
-          orderId={orderId}
           orderNo={order?.orderNo}
         />
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '120px 0',
-          }}
-        >
-          <Spin size="large" description="正在加载订单详情..." />
+        <div style={{ padding: 12 }}>
+          <SectionCard title="业务基本信息">
+            <Skeleton active paragraph={{ rows: 3 }} />
+          </SectionCard>
+          <SectionCard title="运输与订舱信息">
+            <Skeleton active paragraph={{ rows: 4 }} />
+          </SectionCard>
         </div>
       </div>
     );
