@@ -1,8 +1,9 @@
 import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Space, Tabs, Tag } from 'antd';
+import { Button, Space, Tag } from 'antd';
 import React, { useEffect, useRef } from 'react';
+import { SectionCard } from '@/components/ui';
 import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
 import { unwrapList } from '@/utils/api';
 import {
@@ -89,249 +90,250 @@ export default function OrderFeeTableTabs({
   }, []);
 
   return (
-    <Tabs
-      type="card"
-      defaultActiveKey="receivable"
-      items={[
-        {
-          key: 'receivable',
-          label: (
-            <Space>
-              <span>应收费用</span>
-              <Tag color="blue">{receivableSummary.count}</Tag>
-            </Space>
-          ),
-          children: (
-            <ProTable<API.OrderFee>
-              key={`receivable:${orderId}`}
-              actionRef={receivableActionRef}
-              rowKey="id"
-              search={false}
-              params={{ orderId }}
-              bordered
-              pagination={false}
-              rowSelection={{
-                selectedRowKeys: selectedReceivableFeeIds,
-                onChange: setSelectedReceivableFeeIds,
-                getCheckboxProps: (record) => ({
-                  disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
-                }),
-              }}
-              tableAlertRender={({ selectedRowKeys }) =>
-                `已选择 ${selectedRowKeys.length} 笔已确认应收费用`
-              }
-              toolBarRender={() =>
-                [
-                  canCreateFinanceBills && (
-                    <Button
-                      key="bill"
-                      icon={<FileDoneOutlined />}
-                      disabled={selectedReceivableFeeIds.length === 0}
-                      onClick={() =>
-                        onOpenBillWorkbench(
-                          selectedReceivableFeeIds.map(String),
-                        )
-                      }
-                    >
-                      生成账单（{selectedReceivableFeeIds.length}）
-                    </Button>
-                  ),
-                  <Button
-                    key="add"
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    disabled={feeWritesDisabled}
-                    onClick={() => onOpenFeeModal(RECEIVABLE)}
-                  >
-                    + 新增应收费用
-                  </Button>,
-                ].filter(Boolean)
-              }
-              request={async () => {
-                if (!orderId) return { data: [], success: true };
-                const requestedOrderId = orderId;
-                const requestSequence = ++receivableRequestSequenceRef.current;
-                try {
-                  const res = await orderFeeServiceListFees({ orderId });
-                  const rItems = unwrapList(res).filter(
-                    (f) => feeDirectionCode(f.direction) === RECEIVABLE,
-                  );
-                  const isCurrentRequest =
-                    mountedRef.current &&
-                    currentOrderIdRef.current === requestedOrderId &&
-                    receivableRequestSequenceRef.current === requestSequence;
-                  if (!isCurrentRequest) {
-                    const currentResult = latestReceivableResultRef.current;
-                    return {
-                      data:
-                        currentResult?.orderId === currentOrderIdRef.current
-                          ? currentResult.items
-                          : [],
-                      success: true,
-                    };
-                  }
-                  latestReceivableResultRef.current = {
-                    orderId: requestedOrderId,
-                    items: rItems,
-                  };
-                  setAllReceivableItems(rItems);
-                  const activeItems = rItems.filter(
-                    (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-                  );
-                  const total = activeItems.reduce(
-                    (acc, cur) =>
-                      acc +
-                      (cur.baseCurrencyAmount
-                        ? Number(cur.baseCurrencyAmount)
-                        : 0),
-                    0,
-                  );
-                  setReceivableSummary({
-                    totalAmount: total,
-                    count: rItems.length,
-                  });
-                  return { data: rItems, success: true };
-                } catch {
-                  const isCurrentRequest =
-                    mountedRef.current &&
-                    currentOrderIdRef.current === requestedOrderId &&
-                    receivableRequestSequenceRef.current === requestSequence;
-                  if (isCurrentRequest) {
-                    return { data: [], success: false };
-                  }
-                  const currentResult = latestReceivableResultRef.current;
-                  return {
-                    data:
-                      currentResult?.orderId === currentOrderIdRef.current
-                        ? currentResult.items
-                        : [],
-                    success: true,
-                  };
+    <>
+      <SectionCard
+        title={
+          <Space size={8} align="center">
+            <span>应收费用</span>
+            <Tag color="blue">{receivableSummary.count}</Tag>
+          </Space>
+        }
+        extra={
+          <Space size={8}>
+            {canCreateFinanceBills && (
+              <Button
+                key="bill"
+                icon={<FileDoneOutlined />}
+                disabled={selectedReceivableFeeIds.length === 0}
+                onClick={() =>
+                  onOpenBillWorkbench(
+                    selectedReceivableFeeIds.map(String),
+                  )
                 }
-              }}
-              columns={getTableColumns(RECEIVABLE)}
-            />
-          ),
-        },
-        {
-          key: 'payable',
-          label: `应付费用 (${payableSummary.count})`,
-          children: (
-            <ProTable<API.OrderFee>
-              key={`payable:${orderId}`}
-              actionRef={payableActionRef}
-              rowKey="id"
-              search={false}
-              params={{ orderId }}
-              bordered
-              size="small"
-              pagination={false}
-              rowSelection={{
-                selectedRowKeys: selectedPayableFeeIds,
-                onChange: setSelectedPayableFeeIds,
-                getCheckboxProps: (record) => ({
-                  disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
-                }),
-              }}
-              tableAlertRender={({ selectedRowKeys }) =>
-                `已选择 ${selectedRowKeys.length} 笔已确认应付费用`
+              >
+                生成账单（{selectedReceivableFeeIds.length}）
+              </Button>
+            )}
+            <Button
+              key="add"
+              type="primary"
+              icon={<PlusOutlined />}
+              disabled={feeWritesDisabled}
+              onClick={() => onOpenFeeModal(RECEIVABLE)}
+            >
+              新增应收费用
+            </Button>
+          </Space>
+        }
+      >
+        <ProTable<API.OrderFee>
+          key={`receivable:${orderId}`}
+          actionRef={receivableActionRef}
+          rowKey="id"
+          search={false}
+          params={{ orderId }}
+          bordered
+          size="small"
+          cardProps={false}
+          toolBarRender={false}
+          pagination={false}
+          scroll={{ x: 'max-content' }}
+          rowSelection={{
+            selectedRowKeys: selectedReceivableFeeIds,
+            onChange: setSelectedReceivableFeeIds,
+            getCheckboxProps: (record) => ({
+              disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
+            }),
+          }}
+          tableAlertRender={({ selectedRowKeys }) =>
+            `已选择 ${selectedRowKeys.length} 笔已确认应收费用`
+          }
+          request={async () => {
+            if (!orderId) return { data: [], success: true };
+            const requestedOrderId = orderId;
+            const requestSequence = ++receivableRequestSequenceRef.current;
+            try {
+              const res = await orderFeeServiceListFees({ orderId });
+              const rItems = unwrapList(res).filter(
+                (f) => feeDirectionCode(f.direction) === RECEIVABLE,
+              );
+              const isCurrentRequest =
+                mountedRef.current &&
+                currentOrderIdRef.current === requestedOrderId &&
+                receivableRequestSequenceRef.current === requestSequence;
+              if (!isCurrentRequest) {
+                const currentResult = latestReceivableResultRef.current;
+                return {
+                  data:
+                    currentResult?.orderId === currentOrderIdRef.current
+                      ? currentResult.items
+                      : [],
+                  success: true,
+                };
               }
-              toolBarRender={() =>
-                [
-                  canCreateFinanceBills && (
-                    <Button
-                      key="bill"
-                      icon={<FileDoneOutlined />}
-                      disabled={selectedPayableFeeIds.length === 0}
-                      onClick={() =>
-                        onOpenBillWorkbench(selectedPayableFeeIds.map(String))
-                      }
-                    >
-                      生成账单（{selectedPayableFeeIds.length}）
-                    </Button>
-                  ),
-                  <Button
-                    key="add"
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    disabled={feeWritesDisabled}
-                    style={{
-                      backgroundColor: '#fa8c16',
-                      borderColor: '#fa8c16',
-                    }}
-                    onClick={() => onOpenFeeModal(PAYABLE)}
-                  >
-                    + 新增应付费用
-                  </Button>,
-                ].filter(Boolean)
+              latestReceivableResultRef.current = {
+                orderId: requestedOrderId,
+                items: rItems,
+              };
+              setAllReceivableItems(rItems);
+              const activeItems = rItems.filter(
+                (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
+              );
+              const total = activeItems.reduce(
+                (acc, cur) =>
+                  acc +
+                  (cur.baseCurrencyAmount
+                    ? Number(cur.baseCurrencyAmount)
+                    : 0),
+                0,
+              );
+              setReceivableSummary({
+                totalAmount: total,
+                count: rItems.length,
+              });
+              return { data: rItems, success: true };
+            } catch {
+              const isCurrentRequest =
+                mountedRef.current &&
+                currentOrderIdRef.current === requestedOrderId &&
+                receivableRequestSequenceRef.current === requestSequence;
+              if (isCurrentRequest) {
+                return { data: [], success: false };
               }
-              request={async () => {
-                if (!orderId) return { data: [], success: true };
-                const requestedOrderId = orderId;
-                const requestSequence = ++payableRequestSequenceRef.current;
-                try {
-                  const res = await orderFeeServiceListFees({ orderId });
-                  const pItems = unwrapList(res).filter(
-                    (f) => feeDirectionCode(f.direction) === PAYABLE,
-                  );
-                  const isCurrentRequest =
-                    mountedRef.current &&
-                    currentOrderIdRef.current === requestedOrderId &&
-                    payableRequestSequenceRef.current === requestSequence;
-                  if (!isCurrentRequest) {
-                    const currentResult = latestPayableResultRef.current;
-                    return {
-                      data:
-                        currentResult?.orderId === currentOrderIdRef.current
-                          ? currentResult.items
-                          : [],
-                      success: true,
-                    };
-                  }
-                  latestPayableResultRef.current = {
-                    orderId: requestedOrderId,
-                    items: pItems,
-                  };
-                  setAllPayableItems(pItems);
-                  const activeItems = pItems.filter(
-                    (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-                  );
-                  const total = activeItems.reduce(
-                    (acc, cur) =>
-                      acc +
-                      (cur.baseCurrencyAmount
-                        ? Number(cur.baseCurrencyAmount)
-                        : 0),
-                    0,
-                  );
-                  setPayableSummary({
-                    totalAmount: total,
-                    count: pItems.length,
-                  });
-                  return { data: pItems, success: true };
-                } catch {
-                  const isCurrentRequest =
-                    mountedRef.current &&
-                    currentOrderIdRef.current === requestedOrderId &&
-                    payableRequestSequenceRef.current === requestSequence;
-                  if (isCurrentRequest) {
-                    return { data: [], success: false };
-                  }
-                  const currentResult = latestPayableResultRef.current;
-                  return {
-                    data:
-                      currentResult?.orderId === currentOrderIdRef.current
-                        ? currentResult.items
-                        : [],
-                    success: true,
-                  };
+              const currentResult = latestReceivableResultRef.current;
+              return {
+                data:
+                  currentResult?.orderId === currentOrderIdRef.current
+                    ? currentResult.items
+                    : [],
+                success: true,
+              };
+            }
+          }}
+          columns={getTableColumns(RECEIVABLE)}
+        />
+      </SectionCard>
+
+      <SectionCard
+        title={
+          <Space size={8} align="center">
+            <span>应付费用</span>
+            <Tag color="blue">{payableSummary.count}</Tag>
+          </Space>
+        }
+        extra={
+          <Space size={8}>
+            {canCreateFinanceBills && (
+              <Button
+                key="bill"
+                icon={<FileDoneOutlined />}
+                disabled={selectedPayableFeeIds.length === 0}
+                onClick={() =>
+                  onOpenBillWorkbench(selectedPayableFeeIds.map(String))
                 }
-              }}
-              columns={getTableColumns(PAYABLE)}
-            />
-          ),
-        },
-      ]}
-    />
+              >
+                生成账单（{selectedPayableFeeIds.length}）
+              </Button>
+            )}
+            <Button
+              key="add"
+              type="primary"
+              icon={<PlusOutlined />}
+              disabled={feeWritesDisabled}
+              onClick={() => onOpenFeeModal(PAYABLE)}
+            >
+              新增应付费用
+            </Button>
+          </Space>
+        }
+      >
+        <ProTable<API.OrderFee>
+          key={`payable:${orderId}`}
+          actionRef={payableActionRef}
+          rowKey="id"
+          search={false}
+          params={{ orderId }}
+          bordered
+          size="small"
+          cardProps={false}
+          toolBarRender={false}
+          pagination={false}
+          scroll={{ x: 'max-content' }}
+          rowSelection={{
+            selectedRowKeys: selectedPayableFeeIds,
+            onChange: setSelectedPayableFeeIds,
+            getCheckboxProps: (record) => ({
+              disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
+            }),
+          }}
+          tableAlertRender={({ selectedRowKeys }) =>
+            `已选择 ${selectedRowKeys.length} 笔已确认应付费用`
+          }
+          request={async () => {
+            if (!orderId) return { data: [], success: true };
+            const requestedOrderId = orderId;
+            const requestSequence = ++payableRequestSequenceRef.current;
+            try {
+              const res = await orderFeeServiceListFees({ orderId });
+              const pItems = unwrapList(res).filter(
+                (f) => feeDirectionCode(f.direction) === PAYABLE,
+              );
+              const isCurrentRequest =
+                mountedRef.current &&
+                currentOrderIdRef.current === requestedOrderId &&
+                payableRequestSequenceRef.current === requestSequence;
+              if (!isCurrentRequest) {
+                const currentResult = latestPayableResultRef.current;
+                return {
+                  data:
+                    currentResult?.orderId === currentOrderIdRef.current
+                      ? currentResult.items
+                      : [],
+                  success: true,
+                };
+              }
+              latestPayableResultRef.current = {
+                orderId: requestedOrderId,
+                items: pItems,
+              };
+              setAllPayableItems(pItems);
+              const activeItems = pItems.filter(
+                (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
+              );
+              const total = activeItems.reduce(
+                (acc, cur) =>
+                  acc +
+                  (cur.baseCurrencyAmount
+                    ? Number(cur.baseCurrencyAmount)
+                    : 0),
+                0,
+              );
+              setPayableSummary({
+                totalAmount: total,
+                count: pItems.length,
+              });
+              return { data: pItems, success: true };
+            } catch {
+              const isCurrentRequest =
+                mountedRef.current &&
+                currentOrderIdRef.current === requestedOrderId &&
+                payableRequestSequenceRef.current === requestSequence;
+              if (isCurrentRequest) {
+                return { data: [], success: false };
+              }
+              const currentResult = latestPayableResultRef.current;
+              return {
+                data:
+                  currentResult?.orderId === currentOrderIdRef.current
+                    ? currentResult.items
+                    : [],
+                success: true,
+              };
+            }
+          }}
+          columns={getTableColumns(PAYABLE)}
+        />
+      </SectionCard>
+    </>
   );
 }

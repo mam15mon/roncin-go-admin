@@ -1,7 +1,6 @@
 import type { ActionType } from '@ant-design/pro-components';
 import {
   act,
-  fireEvent,
   render,
   screen,
   waitFor,
@@ -78,6 +77,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       screen.getByRole('button', { name: /生成账单（1）/ }),
     ).not.toBeDisabled();
     expect(screen.getByRole('button', { name: /新增应收费用/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /新增应付费用/ })).toBeDisabled();
   });
 
   it('订单 A 的费用响应晚于订单 B 时，不得覆盖 B 的费用与汇总', async () => {
@@ -265,13 +265,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
   it('订单 A 的应付响应晚于订单 B 时，不得覆盖 B 的应付费用与汇总', async () => {
     const responseA = deferred<any>();
     const responseB = deferred<any>();
-    let orderACallCount = 0;
     listFees.mockImplementation(({ orderId }) => {
-      if (orderId === 'order-B') return responseB.promise;
-      orderACallCount += 1;
-      return orderACallCount === 1
-        ? Promise.resolve({ data: [] } as any)
-        : responseA.promise;
+      return orderId === 'order-A' ? responseA.promise : responseB.promise;
     });
 
     const props = makeProps('order-A');
@@ -281,9 +276,9 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       </App>,
     );
 
-    await waitFor(() => expect(listFees).toHaveBeenCalledTimes(1));
-    fireEvent.click(screen.getByRole('tab', { name: /应付费用/ }));
-    await waitFor(() => expect(listFees).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(listFees).toHaveBeenCalledWith({ orderId: 'order-A' }),
+    );
 
     const propsB = {
       ...props,
