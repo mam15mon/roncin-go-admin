@@ -83,4 +83,31 @@ describe('SearchFilterTemplate', () => {
 
     expect(screen.getByTestId('custom-content')).toBeInTheDocument();
   });
+
+  it('多字段网格表单模式下剩余栅格不足或含 extraRight 且剩余不足时，操作区自动换行独立成行 (span=24)', () => {
+    render(
+      <SearchFilterTemplate
+        layout="grid"
+        collapsible={false}
+        items={[
+          { name: 'field1', label: '字段1', span: 6 },
+          { name: 'field2', label: '字段2', span: 4 },
+          { name: 'field3', label: '字段3', span: 8 },
+          { name: 'field4', label: '字段4', span: 4 },
+        ]}
+        extraRight={<button type="button">导出数据</button>}
+      />,
+    );
+
+    // 4 个字段合计 22 栅格，剩余仅 2 栅格且有 extraRight，操作区应自动换行至 span=24
+    expect(screen.getByText('字段1')).toBeInTheDocument();
+    expect(screen.getByText('字段4')).toBeInTheDocument();
+    expect(screen.getByText('导出数据')).toBeInTheDocument();
+    expect(screen.getByText('查询')).toBeInTheDocument();
+    expect(screen.getByText('重置')).toBeInTheDocument();
+
+    const exportBtn = screen.getByText('导出数据');
+    const actionCol = exportBtn.closest('.ant-col-24');
+    expect(actionCol).toBeInTheDocument();
+  });
 });

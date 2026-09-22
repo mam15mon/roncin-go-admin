@@ -78,8 +78,14 @@ export function SearchFilterTemplate<
 
   const actionSpan = useMemo(() => {
     if (usedSpan === 0) return 24;
-    return 24 - usedSpan;
-  }, [usedSpan]);
+    const remaining = 24 - usedSpan;
+    // 若剩余栅格不足以容纳操作按钮（有 extraRight 时至少需要 8 栅格，仅查询重置时至少需要 4 栅格），换行独立占满一行（span=24）
+    const minRequiredSpan = extraRight ? 8 : 4;
+    if (remaining < minRequiredSpan) {
+      return 24;
+    }
+    return remaining;
+  }, [usedSpan, extraRight]);
 
   // 提交处理
   const handleFinish = (values: TValues) => {
@@ -321,13 +327,16 @@ export function SearchFilterTemplate<
             span={actionSpan}
             style={{
               display: 'flex',
-              justifyContent: actionSpan === 24 ? 'space-between' : 'flex-end',
+              justifyContent:
+                actionSpan === 24 && extraRight
+                  ? 'space-between'
+                  : 'flex-end',
               alignItems: 'center',
               marginBottom: 10,
               minHeight: 32,
             }}
           >
-            {actionSpan === 24 ? <div>{extraRight}</div> : null}
+            {actionSpan === 24 && extraRight ? <div>{extraRight}</div> : null}
             <Space size={8}>
               {actionSpan !== 24 && extraRight ? extraRight : null}
               <Button

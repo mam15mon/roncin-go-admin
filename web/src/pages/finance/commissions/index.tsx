@@ -675,7 +675,7 @@ export default function FinanceCommissionsPage() {
                 label: '所属公司',
                 type: 'select',
                 placeholder: '全部公司',
-                span: 4,
+                span: 6,
                 options: organizationOptions.map((item) => ({
                   value: item.id ?? '',
                   label: item.name ?? item.code ?? item.id ?? '',
