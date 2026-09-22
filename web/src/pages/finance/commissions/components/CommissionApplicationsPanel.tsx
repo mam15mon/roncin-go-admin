@@ -1,9 +1,9 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import { App, DatePicker, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
 import { FinanceCommissionApplicationStatus } from '@/enums.generated';
 import { getRequestErrorStatus } from '@/requestErrorConfig';
@@ -15,6 +15,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { formatDate } from '@/utils/format';
 import { decimalText } from '../types';
 import {
   APPLICATION_STATUS_FILTER_OPTIONS,
@@ -201,8 +202,7 @@ export default function CommissionApplicationsPanel() {
       title: '提交时间',
       dataIndex: 'submittedAt',
       width: 150,
-      renderText: (value) =>
-        value ? value.slice(0, 16).replace('T', ' ') : '-',
+      renderText: (value) => formatDate(value, 'minute'),
     },
     {
       title: '操作',

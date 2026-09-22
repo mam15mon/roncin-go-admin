@@ -1,10 +1,11 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { useParams } from 'react-router';
 import { Button, Descriptions, Result, Spin, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router';
 import { SectionCard } from '@/components/ui';
 import { FinanceCommissionStatus } from '@/enums.generated';
 import { settlementServiceGetMyFeeSupplementAdjustmentSource } from '@/services/roncin/settlementService';
+import { formatDate } from '@/utils/format';
 import { commissionDecreaseStatusMeta, decimalText } from './types';
 
 /**
@@ -96,9 +97,7 @@ export default function MySupplementSourcePage() {
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="生成时间">
-                {source.createdAt
-                  ? source.createdAt.slice(0, 16).replace('T', ' ')
-                  : '-'}
+                {formatDate(source.createdAt, 'minute')}
               </Descriptions.Item>
               <Descriptions.Item label="订单号">
                 {source.orderNo || '-'}

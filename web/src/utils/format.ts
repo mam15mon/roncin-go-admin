@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-type DateFormat = 'date' | 'datetime';
+type DateFormat = 'date' | 'minute' | 'datetime';
 
 export function formatDate(
   value?: string | number | Date | null,
@@ -9,9 +9,13 @@ export function formatDate(
   if (value === undefined || value === null || value === '') return '-';
   const parsed = dayjs(value);
   if (!parsed.isValid()) return '-';
-  return parsed.format(
-    format === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss',
-  );
+  const pattern =
+    format === 'date'
+      ? 'YYYY-MM-DD'
+      : format === 'minute'
+        ? 'YYYY-MM-DD HH:mm'
+        : 'YYYY-MM-DD HH:mm:ss';
+  return parsed.format(pattern);
 }
 
 export function formatAmount(

@@ -1,9 +1,9 @@
 import { CheckOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import { App, Button, Space, Tag, Tooltip } from 'antd';
 import React, { useRef } from 'react';
+import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
 import { FinanceCommissionStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
@@ -15,6 +15,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { formatDate } from '@/utils/format';
 import {
   commissionDecreaseStatusMeta,
   decimalText,
@@ -259,8 +260,7 @@ export default function PendingDecreasePanel({
       title: '发起时间',
       dataIndex: 'createdAt',
       width: 150,
-      renderText: (value) =>
-        value ? value.slice(0, 16).replace('T', ' ') : '-',
+      renderText: (value) => formatDate(value, 'minute'),
     },
     {
       title: '操作',

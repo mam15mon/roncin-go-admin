@@ -312,7 +312,7 @@ export default function FinanceNettingsPage() {
       dataIndex: 'createdAt',
       width: 170,
       search: false,
-      renderText: (value) => value || '-',
+      renderText: (value) => formatDate(value),
     },
     {
       title: '操作',

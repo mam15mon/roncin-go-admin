@@ -4,9 +4,10 @@ import {
   MinusCircleOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
-import { history } from '@/router/history';
 import { Button, Listy, Space, Tag, Typography } from 'antd';
 import React from 'react';
+import { history } from '@/router/history';
+import { formatDate } from '@/utils/format';
 import { amountWithCurrency } from './display';
 
 const { Text } = Typography;
@@ -84,7 +85,7 @@ export default function FinanceSummaryCard({ finance }: Props) {
                     </Text>
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       {item.requestedByName || '-'} 申请于{' '}
-                      {item.requestedAt || '-'}
+                      {formatDate(item.requestedAt, 'minute')}
                     </Text>
                   </Space>
                   <Button

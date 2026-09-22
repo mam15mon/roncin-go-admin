@@ -21,6 +21,7 @@ import {
   Tooltip,
 } from 'antd';
 import type { ColumnGroupType, ColumnType } from 'antd/es/table';
+import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
@@ -251,7 +252,7 @@ export function FinanceLedgerTemplate<
   primaryActionRequiresSelection = false,
   rowSelection,
   batchActions = [],
-  exportFileName = `财务明细导出_${new Date().toISOString().slice(0, 10)}.csv`,
+  exportFileName = `财务明细导出_${dayjs().format('YYYY-MM-DD')}.csv`,
   onExport,
   onImport,
   extraToolBarActions = [],

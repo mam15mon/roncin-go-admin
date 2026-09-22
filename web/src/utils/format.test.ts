@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { formatAmount, formatDate, trimDecimal } from './format';
 
 describe('展示格式化', () => {
-  it('按日期和日期时间两种口径格式化', () => {
+  it('按日期、分钟和日期时间三种口径格式化', () => {
     expect(formatDate('2026-08-30T12:34:56', 'date')).toBe('2026-08-30');
+    expect(formatDate('2026-08-30T12:34:56', 'minute')).toBe(
+      '2026-08-30 12:34',
+    );
     expect(formatDate('2026-08-30T12:34:56')).toBe('2026-08-30 12:34:56');
     expect(formatDate(undefined)).toBe('-');
     expect(formatDate('invalid')).toBe('-');

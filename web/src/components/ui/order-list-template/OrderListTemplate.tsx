@@ -17,6 +17,7 @@ import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import OrderListSearchFilter from './OrderListSearchFilter';
 import OrderListToolbar from './OrderListToolbar';
 import type {
@@ -175,7 +176,7 @@ export function OrderListTemplate({
         dataIndex: 'createdAt',
         width: 140,
         sorter: true,
-        renderText: (val) => (val ? val.slice(0, 16).replace('T', ' ') : '-'),
+        renderText: (val) => formatDate(val, 'minute'),
       },
 
       // 8. 航程与船运信息
@@ -381,7 +382,7 @@ export function OrderListTemplate({
         title: '订单锁定时间',
         dataIndex: 'lockedAt',
         width: 140,
-        renderText: (val) => (val ? val.slice(0, 16).replace('T', ' ') : '-'),
+        renderText: (val) => formatDate(val, 'minute'),
       },
 
       // 13. 右侧固定状态与异常
