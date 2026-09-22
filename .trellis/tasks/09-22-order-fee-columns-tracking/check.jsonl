@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端目录、状态与验证规范"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "复用入口与跨页面依赖边界"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "服务端状态与查询刷新"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "账单币种与有效核销对冲口径"}
+{"file": ".trellis/tasks/09-22-order-fee-columns-tracking/research/field-matrix.md", "reason": "37项对照及接口缺口、权限、账单粒度证据"}
