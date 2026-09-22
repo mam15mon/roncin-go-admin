@@ -9987,6 +9987,7 @@
           {
             "name": "reason",
             "in": "query",
+            "description": "reason 作废原因：选填，最长 500 字。",
             "schema": {
               "type": "string"
             }
@@ -29872,8 +29873,7 @@
         "required": [
           "orderId",
           "id",
-          "expectedVersion",
-          "reason"
+          "expectedVersion"
         ],
         "type": "object",
         "properties": {
@@ -29887,7 +29887,8 @@
             "type": "string"
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "description": "reason 撤回原因：选填，最长 500 字。"
           }
         }
       },

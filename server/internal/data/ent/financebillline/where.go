@@ -271,6 +271,16 @@ func OrderFeeIDNotIn(vs ...uuid.UUID) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldNotIn(FieldOrderFeeID, vs...))
 }
 
+// OrderFeeIDIsNil applies the IsNil predicate on the "order_fee_id" field.
+func OrderFeeIDIsNil() predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldIsNull(FieldOrderFeeID))
+}
+
+// OrderFeeIDNotNil applies the NotNil predicate on the "order_fee_id" field.
+func OrderFeeIDNotNil() predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(sql.FieldNotNull(FieldOrderFeeID))
+}
+
 // OrderIDEQ applies the EQ predicate on the "order_id" field.
 func OrderIDEQ(v uuid.UUID) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldEQ(FieldOrderID, v))

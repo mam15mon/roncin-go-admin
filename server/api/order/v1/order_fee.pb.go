@@ -1296,9 +1296,10 @@ type RemoveFeeRequest struct {
 	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	Reason          string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// reason 作废原因：选填，最长 500 字。
+	Reason        *string `protobuf:"bytes,4,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RemoveFeeRequest) Reset() {
@@ -1353,8 +1354,8 @@ func (x *RemoveFeeRequest) GetExpectedVersion() uint64 {
 }
 
 func (x *RemoveFeeRequest) GetReason() string {
-	if x != nil {
-		return x.Reason
+	if x != nil && x.Reason != nil {
+		return *x.Reason
 	}
 	return ""
 }
@@ -1424,9 +1425,10 @@ type ReopenFeeRequest struct {
 	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	Reason          string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// reason 撤回原因：选填，最长 500 字。
+	Reason        *string `protobuf:"bytes,4,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ReopenFeeRequest) Reset() {
@@ -1481,8 +1483,8 @@ func (x *ReopenFeeRequest) GetExpectedVersion() uint64 {
 }
 
 func (x *ReopenFeeRequest) GetReason() string {
-	if x != nil {
-		return x.Reason
+	if x != nil && x.Reason != nil {
+		return *x.Reason
 	}
 	return ""
 }
@@ -4040,21 +4042,23 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x17_exchange_rate_overrideB\x10\n" +
 	"\x0e_tax_inclusiveB\v\n" +
 	"\t_tax_rateB\v\n" +
-	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fR\bfee_codeR\fbilling_unit\"\x94\x01\n" +
+	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fR\bfee_codeR\fbilling_unit\"\x9f\x01\n" +
 	"\x10RemoveFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
-	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reason\"x\n" +
+	"\x06reason\x18\x04 \x01(\tH\x00R\x06reason\x88\x01\x01B\t\n" +
+	"\a_reason\"x\n" +
 	"\x11ConfirmFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
-	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\x94\x01\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\x9f\x01\n" +
 	"\x10ReopenFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
-	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reason\"\xc8\x01\n" +
+	"\x06reason\x18\x04 \x01(\tH\x00R\x06reason\x88\x01\x01B\t\n" +
+	"\a_reason\"\xc8\x01\n" +
 	"\x1dResolveFeeExchangeRateRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12\x1f\n" +
@@ -4467,6 +4471,8 @@ func file_order_v1_order_fee_proto_init() {
 	file_order_v1_order_fee_proto_msgTypes[7].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[8].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[9].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[10].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[12].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[14].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[27].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[28].OneofWrappers = []any{}

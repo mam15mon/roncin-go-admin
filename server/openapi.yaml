@@ -6054,6 +6054,7 @@ paths:
                     type: string
                 - name: reason
                   in: query
+                  description: reason 作废原因：选填，最长 500 字。
                   schema:
                     type: string
             responses:
@@ -19348,7 +19349,6 @@ components:
                 - orderId
                 - id
                 - expectedVersion
-                - reason
             type: object
             properties:
                 orderId:
@@ -19359,6 +19359,7 @@ components:
                     type: string
                 reason:
                     type: string
+                    description: reason 撤回原因：选填，最长 500 字。
         order.v1.ReopenFeeResponse:
             type: object
             properties:

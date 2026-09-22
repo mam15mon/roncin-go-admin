@@ -67,6 +67,14 @@ func (_c *FinanceBillLineCreate) SetOrderFeeID(v uuid.UUID) *FinanceBillLineCrea
 	return _c
 }
 
+// SetNillableOrderFeeID sets the "order_fee_id" field if the given value is not nil.
+func (_c *FinanceBillLineCreate) SetNillableOrderFeeID(v *uuid.UUID) *FinanceBillLineCreate {
+	if v != nil {
+		_c.SetOrderFeeID(*v)
+	}
+	return _c
+}
+
 // SetOrderID sets the "order_id" field.
 func (_c *FinanceBillLineCreate) SetOrderID(v uuid.UUID) *FinanceBillLineCreate {
 	_c.mutation.SetOrderID(v)
@@ -266,9 +274,6 @@ func (_c *FinanceBillLineCreate) check() error {
 	if _, ok := _c.mutation.BillID(); !ok {
 		return &ValidationError{Name: "bill_id", err: errors.New(`ent: missing required field "FinanceBillLine.bill_id"`)}
 	}
-	if _, ok := _c.mutation.OrderFeeID(); !ok {
-		return &ValidationError{Name: "order_fee_id", err: errors.New(`ent: missing required field "FinanceBillLine.order_fee_id"`)}
-	}
 	if _, ok := _c.mutation.OrderID(); !ok {
 		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "FinanceBillLine.order_id"`)}
 	}
@@ -338,9 +343,6 @@ func (_c *FinanceBillLineCreate) check() error {
 	}
 	if len(_c.mutation.BillIDs()) == 0 {
 		return &ValidationError{Name: "bill", err: errors.New(`ent: missing required edge "FinanceBillLine.bill"`)}
-	}
-	if len(_c.mutation.OrderFeeIDs()) == 0 {
-		return &ValidationError{Name: "order_fee", err: errors.New(`ent: missing required edge "FinanceBillLine.order_fee"`)}
 	}
 	if len(_c.mutation.OrderIDs()) == 0 {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required edge "FinanceBillLine.order"`)}

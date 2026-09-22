@@ -11,6 +11,8 @@ import (
 )
 
 // FinanceBillLine 保存费用进入账单时的快照；策略允许时可随草稿账单内费用同步修订，取消账单只停用关联，不删除历史。
+// 来源费用删除后历史行保留快照展示，order_fee_id 由外键置空（active 行因删除前
+// 的占用复核而始终存在来源费用）。
 type FinanceBillLine struct{ ent.Schema }
 
 func (FinanceBillLine) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -18,7 +20,7 @@ func (FinanceBillLine) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeM
 func (FinanceBillLine) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("bill_id", uuid.Nil).Immutable(),
-		field.UUID("order_fee_id", uuid.Nil).Immutable(),
+		field.UUID("order_fee_id", uuid.Nil).Optional().Immutable(),
 		field.UUID("order_id", uuid.Nil).Immutable(),
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("fee_code").NotEmpty().MaxLen(30),
@@ -40,7 +42,7 @@ func (FinanceBillLine) Fields() []ent.Field {
 func (FinanceBillLine) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("bill", FinanceBill.Type).Ref("lines").Field("bill_id").Unique().Required().Immutable(),
-		edge.From("order_fee", OrderFee.Type).Ref("finance_bill_lines").Field("order_fee_id").Unique().Required().Immutable(),
+		edge.From("order_fee", OrderFee.Type).Ref("finance_bill_lines").Field("order_fee_id").Unique().Immutable().Annotations(entsql.OnDelete(entsql.SetNull)),
 		edge.From("order", Order.Type).Ref("finance_bill_lines").Field("order_id").Unique().Required().Immutable(),
 	}
 }

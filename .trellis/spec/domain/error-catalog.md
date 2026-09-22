@@ -10,13 +10,13 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 370 个唯一错误码，372 条目录记录。
+- 当前共 371 个唯一错误码，373 条目录记录。
 
 ## 汇总
 
 | 业务域 | 错误码数 |
 | --- | --- |
-| 订单 | 101 |
+| 订单 | 102 |
 | 单证 | 29 |
 | 财务 | 85 |
 | 提成 | 37 |
@@ -63,6 +63,7 @@
 | ORDER_CONTAINER_SPEC_INVALID | 400 Bad Request | 集装箱规格不存在或已被禁用 | order_container.go | — |
 | ORDER_CUSTOMER_INVALID | 400 Bad Request | 订单客户必须是启用的客户角色 | order.go | — |
 | ORDER_FEE_BILLING_UNIT_INVALID | 400 Bad Request | 计费单位不存在、已停用或不属于当前组织 | order_fee.go | — |
+| ORDER_FEE_BILL_OCCUPIED | 409 Conflict | 费用已进入未取消的账单，请先取消对应账单后再删除 | order_fee.go | — |
 | ORDER_FEE_CURRENCY_INVALID | 400 Bad Request | 币种必须是启用的 ISO 币种 | order_fee.go | — |
 | ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN | 403 Forbidden | 无权手工覆盖费用汇率 | order_fee.go | — |
 | ORDER_FEE_FINANCE_LOCKED | 409 Conflict | 订单已因确认或发放提成进入财务锁定，请通过提成调整记录处理后续差异 | order_fee.go | — |

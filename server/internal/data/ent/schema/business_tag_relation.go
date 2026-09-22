@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -53,7 +54,8 @@ func (OrderFeeEnterpriseTag) Fields() []ent.Field {
 func (OrderFeeEnterpriseTag) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("order_fee_enterprise_tags").Field("organization_id").Unique().Required().Immutable(),
-		edge.From("order_fee", OrderFee.Type).Ref("enterprise_tag_links").Field("order_fee_id").Unique().Required().Immutable(),
+		// 费用删除时标签关联随外键级联清理，离开费用的标签关联无业务意义。
+		edge.From("order_fee", OrderFee.Type).Ref("enterprise_tag_links").Field("order_fee_id").Unique().Required().Immutable().Annotations(entsql.OnDelete(entsql.Cascade)),
 		edge.From("tag_resource", EnterpriseResource.Type).Ref("order_fee_tag_links").Field("tag_resource_id").Unique().Required().Immutable(),
 	}
 }

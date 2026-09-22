@@ -24,6 +24,7 @@ var (
 	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
 	ErrOrderFeeVersionConflict               = errors.Conflict("ORDER_FEE_VERSION_CONFLICT", "订单费用已被其他操作人修改，请刷新后重试")
 	ErrOrderFeeInvalidTransition             = errors.Conflict("ORDER_FEE_INVALID_TRANSITION", "当前费用状态不允许执行该操作")
+	ErrOrderFeeBillOccupied                  = errors.Conflict("ORDER_FEE_BILL_OCCUPIED", "费用已进入未取消的账单，请先取消对应账单后再删除")
 	ErrOrderFeeIdempotencyConflict           = errors.Conflict("ORDER_FEE_IDEMPOTENCY_CONFLICT", "费用请求幂等键已被使用")
 	ErrOrderFeeFinanceLocked                 = errors.Conflict("ORDER_FEE_FINANCE_LOCKED", "订单已因确认或发放提成进入财务锁定，请通过提成调整记录处理后续差异")
 )
@@ -506,33 +507,46 @@ func (uc *OrderFeeUsecase) Confirm(ctx context.Context, organizationID, actorID,
 
 func (uc *OrderFeeUsecase) Reopen(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) (*OrderFee, error) {
 	reason = strings.TrimSpace(reason)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || utf8.RuneCountInString(reason) > 500 {
 		return nil, ErrOrderFeeInvalidArgument
 	}
-	return uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeConfirmed, OrderFeeDraft, &reason, &AuditEvent{
+	var reasonPtr *string
+	details := map[string]string{"fee.id": id.String(), "order.id": orderID.String()}
+	if reason != "" {
+		reasonPtr = &reason
+		details["reason"] = reason
+	}
+	return uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeConfirmed, OrderFeeDraft, reasonPtr, &AuditEvent{
 		OrganizationID: &organizationID, UserID: &actorID, Action: "order.fee.reopen", Result: "success",
-		Details: map[string]string{"fee.id": id.String(), "order.id": orderID.String(), "reason": reason},
+		Details: details,
 	})
 }
 
+// Remove 按账单占用关系物理删除费用：费用未被未取消账单（含草稿账单）包含时
+// 可删除；被占用时仓储在事务内以事实复核并返回 ErrOrderFeeBillOccupied。已确认
+// 状态不阻止删除；历史账单与金额快照不受影响。reason 选填，仅写入审计明细。
 func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) error {
 	reason = strings.TrimSpace(reason)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || utf8.RuneCountInString(reason) > 500 {
 		return ErrOrderFeeInvalidArgument
 	}
-	// 费用草稿作废属于自动锁定重试触发；先读取当前状态用于判断触发类型。
+	// 删除草稿费用与原作废同属自动锁定重试触发；先读取当前状态用于判断触发类型。
 	current, err := uc.repo.Get(ctx, organizationID, orderID, id)
 	if err != nil {
 		return err
 	}
+	details := map[string]string{
+		"fee.id": id.String(), "order.id": orderID.String(),
+	}
+	if reason != "" {
+		details["reason"] = reason
+	}
 	if err := uc.repo.Remove(ctx, organizationID, orderID, id, actorID, expectedVersion, reason, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
-		Action:         "order.fee.remove",
+		Action:         "order.fee.delete",
 		Result:         "success",
-		Details: map[string]string{
-			"fee.id": id.String(), "order.id": orderID.String(), "reason": reason,
-		},
+		Details:        details,
 	}); err != nil {
 		return err
 	}

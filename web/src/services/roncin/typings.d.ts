@@ -5016,6 +5016,7 @@ declare namespace API {
     orderId: string;
     id: string;
     expectedVersion?: string;
+    /** reason 作废原因：选填，最长 500 字。 */
     reason?: string;
   };
 
@@ -6330,7 +6331,8 @@ declare namespace API {
     orderId: string;
     id: string;
     expectedVersion: string;
-    reason: string;
+    /** reason 撤回原因：选填，最长 500 字。 */
+    reason?: string;
   };
 
   type ReopenFeeResponse = {

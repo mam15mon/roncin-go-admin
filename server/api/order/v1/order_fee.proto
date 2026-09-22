@@ -303,7 +303,8 @@ message RemoveFeeRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
-  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+  // reason 作废原因：选填，最长 500 字。
+  optional string reason = 4;
 }
 
 message ConfirmFeeRequest {
@@ -316,7 +317,8 @@ message ReopenFeeRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
-  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+  // reason 撤回原因：选填，最长 500 字。
+  optional string reason = 4;
 }
 
 message ResolveFeeExchangeRateRequest {

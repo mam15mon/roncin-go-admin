@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -692,6 +691,10 @@ func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, 
 	return orderFeeToBiz(loaded)
 }
 
+// Remove 在事务内按账单占用关系物理删除费用：锁定订单与费用行并核对版本后，
+// 复核存在未取消账单的活动关联行则拒绝（须先取消对应账单）；通过后删除费用
+// 主记录。费用标签关联由外键级联清理；历史账单行的来源引用由外键置空，金额
+// 与科目快照保留在账单行上。reason 仅写入审计明细。
 func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
@@ -704,18 +707,25 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		if item.Version != expectedVersion {
 			return biz.ErrOrderFeeVersionConflict
 		}
-		if item.Status != orderfeeent.StatusDRAFT && item.Status != orderfeeent.StatusCONFIRMED {
-			return biz.ErrOrderFeeInvalidTransition
+		// 占用复核以事务内事实为准：存在活动账单行且所属账单未取消即占用。
+		// 草稿账单同样视为已建立；已取消账单的历史行 active=false，不再阻断。
+		// 与建账事务在费用行锁上串行：建账先提交则此处命中新活动行而拒绝；
+		// 删除先提交则建账的费用存在性校验失败，二者互斥不产生悬挂引用。
+		occupied, occupiedErr := tx.FinanceBillLine.Query().
+			Where(
+				financebilllineent.OrderFeeIDEQ(id),
+				financebilllineent.ActiveEQ(true),
+				financebilllineent.HasBillWith(financebillent.StatusNEQ(financebillent.StatusCANCELLED)),
+			).
+			Exist(ctx)
+		if occupiedErr != nil {
+			return occupiedErr
 		}
-		now := time.Now().UTC()
-		if _, updateErr := tx.OrderFee.UpdateOne(item).
-			SetStatus(orderfeeent.StatusCANCELLED).
-			SetVersion(item.Version + 1).
-			SetCancelledAt(now).
-			SetCancelledBy(actorID).
-			SetCancellationReason(reason).
-			Save(ctx); updateErr != nil {
-			return updateErr
+		if occupied {
+			return biz.ErrOrderFeeBillOccupied
+		}
+		if deleteErr := tx.OrderFee.DeleteOne(item).Exec(ctx); deleteErr != nil {
+			return deleteErr
 		}
 		audit.Details["fee.code"] = item.FeeCode
 		audit.Details["fee.direction"] = string(item.Direction)

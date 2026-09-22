@@ -33471,9 +33471,22 @@ func (m *FinanceBillLineMutation) OldOrderFeeID(ctx context.Context) (v uuid.UUI
 	return oldValue.OrderFeeID, nil
 }
 
+// ClearOrderFeeID clears the value of the "order_fee_id" field.
+func (m *FinanceBillLineMutation) ClearOrderFeeID() {
+	m.order_fee = nil
+	m.clearedFields[financebillline.FieldOrderFeeID] = struct{}{}
+}
+
+// OrderFeeIDCleared returns if the "order_fee_id" field was cleared in this mutation.
+func (m *FinanceBillLineMutation) OrderFeeIDCleared() bool {
+	_, ok := m.clearedFields[financebillline.FieldOrderFeeID]
+	return ok
+}
+
 // ResetOrderFeeID resets all changes to the "order_fee_id" field.
 func (m *FinanceBillLineMutation) ResetOrderFeeID() {
 	m.order_fee = nil
+	delete(m.clearedFields, financebillline.FieldOrderFeeID)
 }
 
 // SetOrderID sets the "order_id" field.
@@ -34064,7 +34077,7 @@ func (m *FinanceBillLineMutation) ClearOrderFee() {
 
 // OrderFeeCleared reports if the "order_fee" edge to the OrderFee entity was cleared.
 func (m *FinanceBillLineMutation) OrderFeeCleared() bool {
-	return m.clearedorder_fee
+	return m.OrderFeeIDCleared() || m.clearedorder_fee
 }
 
 // OrderFeeIDs returns the "order_fee" edge IDs in the mutation.
@@ -34467,6 +34480,9 @@ func (m *FinanceBillLineMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *FinanceBillLineMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(financebillline.FieldOrderFeeID) {
+		fields = append(fields, financebillline.FieldOrderFeeID)
+	}
 	if m.FieldCleared(financebillline.FieldTaxRate) {
 		fields = append(fields, financebillline.FieldTaxRate)
 	}
@@ -34484,6 +34500,9 @@ func (m *FinanceBillLineMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *FinanceBillLineMutation) ClearField(name string) error {
 	switch name {
+	case financebillline.FieldOrderFeeID:
+		m.ClearOrderFeeID()
+		return nil
 	case financebillline.FieldTaxRate:
 		m.ClearTaxRate()
 		return nil

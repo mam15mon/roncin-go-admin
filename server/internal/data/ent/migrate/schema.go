@@ -1516,7 +1516,7 @@ var (
 		{Name: "active", Type: field.TypeBool, Default: true},
 		{Name: "bill_id", Type: field.TypeUUID},
 		{Name: "order_id", Type: field.TypeUUID},
-		{Name: "order_fee_id", Type: field.TypeUUID},
+		{Name: "order_fee_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// FinanceBillLinesTable holds the schema information for the "finance_bill_lines" table.
 	FinanceBillLinesTable = &schema.Table{
@@ -1540,7 +1540,7 @@ var (
 				Symbol:     "finance_bill_lines_order_fees_finance_bill_lines",
 				Columns:    []*schema.Column{FinanceBillLinesColumns[19]},
 				RefColumns: []*schema.Column{OrderFeesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 		Indexes: []*schema.Index{

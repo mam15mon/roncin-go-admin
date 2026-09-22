@@ -269,9 +269,6 @@ func (_u *FinanceBillLineUpdate) check() error {
 	if _u.mutation.BillCleared() && len(_u.mutation.BillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.bill"`)
 	}
-	if _u.mutation.OrderFeeCleared() && len(_u.mutation.OrderFeeIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.order_fee"`)
-	}
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.order"`)
 	}
@@ -605,9 +602,6 @@ func (_u *FinanceBillLineUpdateOne) check() error {
 	}
 	if _u.mutation.BillCleared() && len(_u.mutation.BillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.bill"`)
-	}
-	if _u.mutation.OrderFeeCleared() && len(_u.mutation.OrderFeeIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.order_fee"`)
 	}
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "FinanceBillLine.order"`)
