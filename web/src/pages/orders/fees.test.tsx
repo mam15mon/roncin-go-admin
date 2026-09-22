@@ -16,6 +16,7 @@ const feeTestState = vi.hoisted(() => ({
   canCreateFee: true,
   canReadFee: true,
   canLock: true,
+  canReadFinanceFees: false,
   feeOptions: vi.fn(),
   canOperate: true,
 }));
@@ -29,12 +30,21 @@ vi.mock('@/app/access', () => ({
     canOperateOrganization: () => feeTestState.canOperate,
     canOperateBusiness: true,
     canCreateFinanceBills: true,
+    canReadFinanceFees: feeTestState.canReadFinanceFees,
     canOrder: (_: unknown, operation: string) =>
       operation === 'fee.read'
         ? feeTestState.canReadFee
         : operation === 'lock'
           ? feeTestState.canLock
           : feeTestState.canCreateFee,
+  }),
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: { id: 'user-1', currentOrganization: { id: 'org-1' } },
+    },
   }),
 }));
 

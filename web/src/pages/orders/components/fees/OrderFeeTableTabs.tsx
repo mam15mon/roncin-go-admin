@@ -2,10 +2,11 @@ import {
   EditOutlined,
   FileDoneOutlined,
   PlusOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { EditableProTable } from '@ant-design/pro-components';
-import { App, Button, Popconfirm, Space, Tag } from 'antd';
+import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { SectionCard } from '@/components/ui';
@@ -24,6 +25,17 @@ import { quantityOrPricePattern } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
+import FeeColumnSettingsModal from './FeeColumnSettingsModal';
+import {
+  clearFeeColumnPreference,
+  defaultFeeColumnPreference,
+  type FeeColumnPreference,
+  type FeeColumnPreferenceScope,
+  isDefaultFeeColumnPreference,
+  loadFeeColumnPreference,
+  resolveFeeColumnPreference,
+  saveFeeColumnPreference,
+} from './feeColumnPreference';
 import {
   FEE_BILLED,
   FEE_CANCELLED,
@@ -34,6 +46,10 @@ import {
   PAYABLE,
   RECEIVABLE,
 } from './feeConstants';
+import {
+  buildOptionalFeeColumns,
+  orderColumnsByPreference,
+} from './orderFeeOptionalColumns';
 
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
@@ -79,6 +95,8 @@ interface OrderFeeTableTabsProps {
   onConfirmFee?: (fee: API.OrderFee) => void;
   onReopenFee?: (fee: API.OrderFee) => void;
   onCancelFee?: (fee: API.OrderFee) => void;
+  /** 列偏好隔离范围（用户 + 当前组织）；缺省时设置仅当前页面会话内生效。 */
+  columnSettingScope?: FeeColumnPreferenceScope;
 }
 
 export default function OrderFeeTableTabs({
@@ -110,6 +128,7 @@ export default function OrderFeeTableTabs({
   onConfirmFee,
   onReopenFee,
   onCancelFee,
+  columnSettingScope,
 }: OrderFeeTableTabsProps) {
   const { message } = App.useApp();
   const currentOrderIdRef = useRef(orderId);
@@ -136,6 +155,55 @@ export default function OrderFeeTableTabs({
   >([]);
   const [payableEditableKeys, setPayableEditableKeys] = useState<React.Key[]>(
     [],
+  );
+
+  // 列设置状态：应收/应付共享同一份偏好；编辑进行中禁用入口，避免丢失未保存行。
+  const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
+  const [feeColumnPref, setFeeColumnPref] = useState<FeeColumnPreference>(() =>
+    defaultFeeColumnPreference(false),
+  );
+  const columnEditing =
+    receivableEditableKeys.length > 0 || payableEditableKeys.length > 0;
+
+  useEffect(() => {
+    setFeeColumnPref(
+      resolveFeeColumnPreference(
+        columnSettingScope ? loadFeeColumnPreference(columnSettingScope) : null,
+        false,
+      ),
+    );
+  }, [columnSettingScope?.userId, columnSettingScope?.organizationId]);
+
+  const handleColumnSettingsConfirm = (next: FeeColumnPreference) => {
+    setColumnSettingsOpen(false);
+    setFeeColumnPref(next);
+    const scope = columnSettingScope ?? {};
+    const persisted = isDefaultFeeColumnPreference(next, false)
+      ? clearFeeColumnPreference(scope)
+      : saveFeeColumnPreference(scope, next);
+    if (!persisted) {
+      message.warning('列设置未能保存到本地浏览器，本次设置仅当前页面生效');
+    }
+  };
+
+  const renderColumnToolbar = () => (
+    <Tooltip
+      title={
+        columnEditing
+          ? '请先保存或取消正在编辑的费用行'
+          : '设置费用表格列（应收/应付共用）'
+      }
+    >
+      <span>
+        <Button
+          icon={<SettingOutlined />}
+          disabled={columnEditing}
+          onClick={() => setColumnSettingsOpen(true)}
+        >
+          列设置
+        </Button>
+      </span>
+    </Tooltip>
   );
 
   currentOrderIdRef.current = orderId;
@@ -619,6 +687,7 @@ export default function OrderFeeTableTabs({
           placeholder: '备注（可选）',
         },
       },
+      ...buildOptionalFeeColumns(),
       {
         title: '操作',
         valueType: 'option',
@@ -694,6 +763,7 @@ export default function OrderFeeTableTabs({
         }
         extra={
           <Space size={8}>
+            {renderColumnToolbar()}
             {canCreateFinanceBills && (
               <Button
                 key="bill"
@@ -814,7 +884,14 @@ export default function OrderFeeTableTabs({
               };
             }
           }}
-          columns={buildColumns(RECEIVABLE)}
+          columns={
+            getTableColumns
+              ? buildColumns(RECEIVABLE)
+              : orderColumnsByPreference(
+                  buildColumns(RECEIVABLE),
+                  feeColumnPref,
+                )
+          }
         />
       </SectionCard>
 
@@ -827,6 +904,7 @@ export default function OrderFeeTableTabs({
         }
         extra={
           <Space size={8}>
+            {renderColumnToolbar()}
             {canCreateFinanceBills && (
               <Button
                 key="bill"
@@ -947,9 +1025,21 @@ export default function OrderFeeTableTabs({
               };
             }
           }}
-          columns={buildColumns(PAYABLE)}
+          columns={
+            getTableColumns
+              ? buildColumns(PAYABLE)
+              : orderColumnsByPreference(buildColumns(PAYABLE), feeColumnPref)
+          }
         />
       </SectionCard>
+
+      <FeeColumnSettingsModal
+        open={columnSettingsOpen}
+        financeAvailable={false}
+        value={feeColumnPref}
+        onCancel={() => setColumnSettingsOpen(false)}
+        onConfirm={handleColumnSettingsConfirm}
+      />
     </>
   );
 }

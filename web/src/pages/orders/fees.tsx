@@ -7,8 +7,9 @@ import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
 import { OrderFlowStatus, PartnerRoleType } from '@/enums.generated';
@@ -53,6 +54,16 @@ export default function OrderFeesPage() {
   const params = useParams<{ kind: string; id: string }>();
   const access = useAccess();
   const { message, modal } = App.useApp();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  // 列偏好按「用户 + 当前组织」在同一浏览器内隔离；组织切换后读取对应偏好。
+  const feeColumnSettingScope = useMemo(
+    () => ({
+      userId: currentUser?.id,
+      organizationId: currentUser?.currentOrganization?.id,
+    }),
+    [currentUser?.id, currentUser?.currentOrganization?.id],
+  );
 
   const kind = params.kind;
   const orderId = params.id;
@@ -609,6 +620,7 @@ export default function OrderFeesPage() {
           Boolean(access.canCreateFinanceBills)
         }
         feeWritesDisabled={feeWritesDisabled}
+        columnSettingScope={feeColumnSettingScope}
         onOpenBillWorkbench={(feeIds) => {
           if (!orderId) return;
           if (!order?.organizationId) {
