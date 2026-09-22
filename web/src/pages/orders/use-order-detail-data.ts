@@ -55,6 +55,11 @@ export function useOrderDetailData(
   // 身份参数全部进入 queryKey，组织/订单/配置切换即自然重查且互不串数据。
   const queryEnabled = Boolean(orderId && definition && organizationId);
 
+  // 海运出口单证已迁移到海运单证体系，后端对 SE 订单直接拒绝旧提单接口；
+  // 详情聚合不得再拉取旧列表，否则整个页面加载失败。
+  const usesLegacyShippingDocuments =
+    businessType !== OrderBusinessType.BUSINESS_TYPE_SE;
+
   const detailQuery = useQuery({
     queryKey: [
       ORDER_DETAIL_QUERY_PREFIX,
@@ -75,7 +80,9 @@ export function useOrderDetailData(
               ? getOrderPersonnelOptions(organizationId, businessType)
               : Promise.resolve([]),
             orderServiceGetOrder({ id: orderId }),
-            orderShippingDocumentServiceListShippingDocuments({ orderId }),
+            usesLegacyShippingDocuments
+              ? orderShippingDocumentServiceListShippingDocuments({ orderId })
+              : Promise.resolve(null),
             orderPersonnelServiceListPersonnel({ orderId }),
           ]);
 
@@ -87,9 +94,12 @@ export function useOrderDetailData(
 
         return {
           order: orderRes.data,
-          shippingDocs: unwrapList(
-            ensureListResponse(docsRes, '订单单证加载失败，请稍后重试'),
-          ),
+          shippingDocs:
+            docsRes === null
+              ? []
+              : unwrapList(
+                  ensureListResponse(docsRes, '订单单证加载失败，请稍后重试'),
+                ),
           personnel: unwrapList(
             ensureListResponse(personnelRes, '订单人员加载失败，请稍后重试'),
           ),

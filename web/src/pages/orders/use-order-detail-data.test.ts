@@ -141,18 +141,69 @@ describe('useOrderDetailData', () => {
     );
   });
 
-  it('单证列表请求 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
+  it('海运出口订单详情不调用旧提单列表接口，shippingDocs 为空且不影响加载', async () => {
     mockGetOrder.mockResolvedValueOnce({
       data: { id: 'ord-1', orderNo: 'SE001', version: '1' },
+    } as any);
+
+    const { wrapper } = createHookWrapper();
+    const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.order?.id).toBe('ord-1');
+    expect(result.current.shippingDocs).toEqual([]);
+    expect(mockListShippingDocuments).not.toHaveBeenCalled();
+  });
+
+  it('非海运出口订单继续拉取旧提单列表', async () => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: { id: 'ord-1', orderNo: 'AE001', version: '1' },
+    } as any);
+    mockListShippingDocuments.mockResolvedValueOnce({
+      data: [{ id: 'doc-1', houseNo: 'HBL001' }],
+    } as any);
+
+    const legacyConfig = {
+      ...config,
+      transportMode: 'air' as const,
+      businessType: (config.businessType + 1) as typeof config.businessType,
+    };
+    const { wrapper } = createHookWrapper();
+    const { result } = renderHook(
+      () => useOrderDetailData('ord-1', legacyConfig),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(mockListShippingDocuments).toHaveBeenCalledWith({
+      orderId: 'ord-1',
+    });
+    expect(result.current.shippingDocs).toEqual([
+      { id: 'doc-1', houseNo: 'HBL001' },
+    ]);
+  });
+
+  it('单证列表请求 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: { id: 'ord-1', orderNo: 'AE001', version: '1' },
     } as any);
     mockListShippingDocuments.mockResolvedValueOnce(
       undefined as unknown as any,
     );
 
+    // 旧提单列表仅非海运出口业务类型拉取；此处合成空运配置触发该分支。
+    const legacyConfig = {
+      ...config,
+      transportMode: 'air' as const,
+      businessType: (config.businessType + 1) as typeof config.businessType,
+    };
     const { queryClient, wrapper } = createHookWrapper();
-    const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
-      wrapper,
-    });
+    const { result } = renderHook(
+      () => useOrderDetailData('ord-1', legacyConfig),
+      { wrapper },
+    );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.order).toBeUndefined();
