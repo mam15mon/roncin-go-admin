@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/operating-company-commission-attribution.md", "reason": "本任务要修订的提成归属契约：快照函数签名、错误矩阵、组织归属不变量，改动必须与其保持一致并同步更新"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "领域模块地图：订单人员/客户责任人/提成归属三者的数据流描述口径需同步修订"}
+{"file": ".trellis/spec/domain/error-catalog.md", "reason": "错误目录：新增 ORDER_COMMISSION_PERSONNEL_MISSING、删除 PARTNER_COMMISSION_ASSIGNMENT_MISSING 需同步登记口径"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务与锁规范：快照重写与草稿换客户改动都在共享事务内，需遵循 WithTx/WithinTransaction 与加锁规范"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "业务错误构造规范：新错误构造器需按既有 Kratos errors.BadRequest 模式与中文文案规范实现"}
