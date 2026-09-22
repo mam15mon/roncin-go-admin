@@ -397,3 +397,25 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 95: 修复共享港口导致海运订单列表加载失败
+<!-- trellis-session: v=2 fp=932d4730ba68cdad -->
+
+**Date**: 2026-09-22
+**Task**: 修复共享港口导致海运订单列表加载失败
+**Branch**: `main`
+
+### Summary
+
+创建并完成 shared-location-order-fix：摘要按共享或本公司港口解析，订单港口机场写入复用候选范围及启用校验。真实 PostgreSQL 隔离回归、相邻路径及 check:fast 全部通过；只读核查17条运输执行和34个地点引用，未改业务数据。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f9b567a2` | fix: 修复共享港口导致海运订单列表加载失败 |
+
+### Status
+
+[OK] **Completed**
