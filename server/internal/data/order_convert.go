@@ -17,6 +17,7 @@ import (
 func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 	return query.
 		WithOrganization().
+		WithCustomer().
 		WithServiceTypes(func(q *ent.OrderServiceTypeQuery) { q.Order(orderserviceent.ByCreatedAt()) }).
 		WithCargoCategories(func(q *ent.OrderCargoCategoryQuery) { q.Order(ordercargoent.ByCreatedAt()) }).
 		WithShippingDocuments(func(q *ent.OrderShippingDocumentQuery) {
@@ -56,6 +57,10 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		SpecialRequirements: item.SpecialRequirements, OrderDate: item.OrderDate, Notes: item.Notes,
 		BookingNotes: item.BookingNotes, AllocationNotes: item.AllocationNotes, OperationNotes: item.OperationNotes,
 		CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
+	}
+	// 客户名称来自预加载边；仅列表/详情查询经 withOrderEdges 预载，未预载时保持空投影。
+	if item.Edges.Customer != nil {
+		result.CustomerName = item.Edges.Customer.LegalName
 	}
 	if item.ShipmentType != nil {
 		value := biz.OrderShipmentType(*item.ShipmentType)

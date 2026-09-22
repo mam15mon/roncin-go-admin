@@ -10,12 +10,14 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	airportent "github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	entpredicate "github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -157,9 +159,78 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 	if len(options.TagIDs) > 0 {
 		query.Where(orderent.HasEnterpriseTagLinksWith(ordertaglinkent.TagResourceIDIn(options.TagIDs...)))
 	}
-	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
+	result, err := paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
 		return withOrderEdges(query).Order(orderent.ByCreatedAt(entsql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(orderToBiz))
+	if err != nil {
+		return nil, err
+	}
+	if err := attachOrderLocationNames(ctx, client, result.Items); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// attachOrderLocationNames 批量解析订单起运/目的地点展示名；地点为港口/机场公共资料，
+// 每页最多两次 IN 查询补齐投影，避免前端本地候选缓存缺项时把原始 ID 当名称展示。
+func attachOrderLocationNames(ctx context.Context, client *ent.Client, orders []*biz.Order) error {
+	locationIDs := make([]uuid.UUID, 0, len(orders)*2)
+	seen := make(map[uuid.UUID]struct{}, len(orders)*2)
+	appendID := func(id *uuid.UUID) {
+		if id == nil {
+			return
+		}
+		if _, exists := seen[*id]; exists {
+			return
+		}
+		seen[*id] = struct{}{}
+		locationIDs = append(locationIDs, *id)
+	}
+	for _, order := range orders {
+		appendID(order.OriginLocationID)
+		appendID(order.DestinationLocationID)
+	}
+	if len(locationIDs) == 0 {
+		return nil
+	}
+	ports, err := client.Port.Query().Where(portent.IDIn(locationIDs...)).All(ctx)
+	if err != nil {
+		return err
+	}
+	airports, err := client.Airport.Query().Where(airportent.IDIn(locationIDs...)).All(ctx)
+	if err != nil {
+		return err
+	}
+	names := make(map[uuid.UUID]string, len(ports)+len(airports))
+	for _, p := range ports {
+		name := p.NameEn
+		if p.NameZh != nil && *p.NameZh != "" {
+			name = *p.NameZh
+		}
+		if p.UnLocode != "" {
+			name = name + " (" + p.UnLocode + ")"
+		}
+		names[p.ID] = name
+	}
+	for _, a := range airports {
+		name := a.NameEn
+		if a.NameZh != nil && *a.NameZh != "" {
+			name = *a.NameZh
+		}
+		if a.IataCode != "" {
+			name = name + " (" + a.IataCode + ")"
+		}
+		names[a.ID] = name
+	}
+	for _, order := range orders {
+		if order.OriginLocationID != nil {
+			order.OriginLocationName = names[*order.OriginLocationID]
+		}
+		if order.DestinationLocationID != nil {
+			order.DestinationLocationName = names[*order.DestinationLocationID]
+		}
+	}
+	return nil
 }
 
 func orderOrganizationScopePredicate(scopes []biz.OrderOrganizationScope) entpredicate.Order {

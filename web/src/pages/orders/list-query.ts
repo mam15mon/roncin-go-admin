@@ -92,11 +92,22 @@ export async function queryOrderList(
     );
 
     const originName =
-      originPort?.nameZh || originAirport?.nameZh || order.originLocationId;
-    const originCode = originPort?.unLocode || originAirport?.iataCode;
+      order.originLocationName ||
+      originPort?.nameZh ||
+      originAirport?.nameZh ||
+      '-';
+    // 服务端名称已含地点代码（如「上海港 (CNSHA)」），本地代码仅作缺失兜底。
+    const originCode = order.originLocationName
+      ? undefined
+      : originPort?.unLocode || originAirport?.iataCode;
     const destName =
-      destPort?.nameZh || destAirport?.nameZh || order.destinationLocationId;
-    const destCode = destPort?.unLocode || destAirport?.iataCode;
+      order.destinationLocationName ||
+      destPort?.nameZh ||
+      destAirport?.nameZh ||
+      '-';
+    const destCode = order.destinationLocationName
+      ? undefined
+      : destPort?.unLocode || destAirport?.iataCode;
 
     const containerSummary = (order.containerRequests ?? [])
       .map(
@@ -122,7 +133,9 @@ export async function queryOrderList(
               : order.hasActiveException
                 ? '异常挂起'
                 : '正常运作',
-      customerName: ctx.customerMap[order.customerId ?? ''] || order.customerId,
+      // 委托单位名称以服务端投影为准；本地候选缓存（前50启用客户）仅作缺失兜底，任何情况不展示原始 ID。
+      customerName:
+        order.customerName || ctx.customerMap[order.customerId ?? ''] || '-',
       customerReferenceNo: order.customerReferenceNo,
       createdAt: order.createdAt,
       vesselVoyage: order.vesselVoyage,

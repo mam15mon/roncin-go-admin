@@ -1222,8 +1222,12 @@ type Order struct {
 	// commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户
 	// 可见范围批量附加；普通员工视图不含他人提成事实。
 	CommissionSummary *OrderCommissionSummary `protobuf:"bytes,86,opt,name=commission_summary,json=commissionSummary,proto3,oneof" json:"commission_summary,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// 列表展示名称由服务端批量解析；前端本地候选缓存缺项时禁止回退展示原始 ID。
+	CustomerName            *string `protobuf:"bytes,87,opt,name=customer_name,json=customerName,proto3,oneof" json:"customer_name,omitempty"`
+	OriginLocationName      *string `protobuf:"bytes,88,opt,name=origin_location_name,json=originLocationName,proto3,oneof" json:"origin_location_name,omitempty"`
+	DestinationLocationName *string `protobuf:"bytes,89,opt,name=destination_location_name,json=destinationLocationName,proto3,oneof" json:"destination_location_name,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *Order) Reset() {
@@ -1842,6 +1846,27 @@ func (x *Order) GetCommissionSummary() *OrderCommissionSummary {
 		return x.CommissionSummary
 	}
 	return nil
+}
+
+func (x *Order) GetCustomerName() string {
+	if x != nil && x.CustomerName != nil {
+		return *x.CustomerName
+	}
+	return ""
+}
+
+func (x *Order) GetOriginLocationName() string {
+	if x != nil && x.OriginLocationName != nil {
+		return *x.OriginLocationName
+	}
+	return ""
+}
+
+func (x *Order) GetDestinationLocationName() string {
+	if x != nil && x.DestinationLocationName != nil {
+		return *x.DestinationLocationName
+	}
+	return ""
 }
 
 type OrderCargoMeasurement struct {
@@ -6436,7 +6461,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
 	"\vgroup_color\x18\x05 \x01(\tR\n" +
 	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xa7*\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x92,\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -6536,7 +6561,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14sea_document_summary\x18T \x01(\v2!.order.v1.SeaOrderDocumentSummaryH8R\x12seaDocumentSummary\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"booking_no\x18U \x01(\tH9R\tbookingNo\x88\x01\x01\x12T\n" +
-	"\x12commission_summary\x18V \x01(\v2 .order.v1.OrderCommissionSummaryH:R\x11commissionSummary\x88\x01\x01B\x13\n" +
+	"\x12commission_summary\x18V \x01(\v2 .order.v1.OrderCommissionSummaryH:R\x11commissionSummary\x88\x01\x01\x12(\n" +
+	"\rcustomer_name\x18W \x01(\tH;R\fcustomerName\x88\x01\x01\x125\n" +
+	"\x14origin_location_name\x18X \x01(\tH<R\x12originLocationName\x88\x01\x01\x12?\n" +
+	"\x19destination_location_name\x18Y \x01(\tH=R\x17destinationLocationName\x88\x01\x01B\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\r\n" +
 	"\v_trade_termB\x10\n" +
@@ -6600,7 +6628,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x1a_sea_document_link_versionB\x17\n" +
 	"\x15_sea_document_summaryB\r\n" +
 	"\v_booking_noB\x15\n" +
-	"\x13_commission_summaryJ\x04\b\x0f\x10\x10J\x04\b2\x103R\x12status_template_idR\rloading_terms\"z\n" +
+	"\x13_commission_summaryB\x10\n" +
+	"\x0e_customer_nameB\x17\n" +
+	"\x15_origin_location_nameB\x1c\n" +
+	"\x1a_destination_location_nameJ\x04\b\x0f\x10\x10J\x04\b2\x103R\x12status_template_idR\rloading_terms\"z\n" +
 	"\x15OrderCargoMeasurement\x12\x1a\n" +
 	"\bpackages\x18\x01 \x01(\x05R\bpackages\x12&\n" +
 	"\x0fgross_weight_kg\x18\x02 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +

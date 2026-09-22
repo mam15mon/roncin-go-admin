@@ -207,7 +207,9 @@ export function OrderListTemplate({
         ellipsis: true,
         render: (_, record) =>
           record.originPortName
-            ? `${record.originPortName} (${record.originPortCode || ''})`
+            ? record.originPortCode
+              ? `${record.originPortName} (${record.originPortCode})`
+              : record.originPortName
             : record.originPortCode || '-',
       },
       {
@@ -217,7 +219,9 @@ export function OrderListTemplate({
         ellipsis: true,
         render: (_, record) =>
           record.destinationPortName
-            ? `${record.destinationPortName} (${record.destinationPortCode || ''})`
+            ? record.destinationPortCode
+              ? `${record.destinationPortName} (${record.destinationPortCode})`
+              : record.destinationPortName
             : record.destinationPortCode || '-',
       },
       {

@@ -138,6 +138,59 @@ describe('queryOrderList', () => {
     });
   });
 
+  it('服务端名称投影优先，本地缓存缺失时兜底且任何情况不回退原始 ID', async () => {
+    listOrdersMock.mockResolvedValue({
+      data: [
+        {
+          id: 'order-1',
+          orderNo: 'SE-001',
+          customerId: 'customer-1',
+          customerName: '服务端客户名',
+          originLocationId: 'port-1',
+          originLocationName: '上海港 (CNSHA)',
+          destinationLocationId: 'port-2',
+          flowStatus: 2,
+        },
+        {
+          id: 'order-2',
+          orderNo: 'SE-002',
+          customerId: 'customer-2',
+          destinationLocationId: 'port-2',
+        },
+      ],
+      total: 2,
+      success: true,
+    });
+
+    const result = await queryOrderList(
+      { page: 1, pageSize: 20 },
+      seaExportDefinition,
+      {
+        ports: [{ id: 'port-2', nameZh: '青岛港', unLocode: 'CNTAO' }],
+        airports: [],
+        customerMap: { 'customer-2': '本地缓存客户' },
+        containerSpecMap: {},
+      },
+    );
+
+    const [serverRow, fallbackRow] = result.data;
+    expect(serverRow.customerName).toBe('服务端客户名');
+    expect(serverRow.originPortName).toBe('上海港 (CNSHA)');
+    // 服务端名称已含代码，不得再拼第二段代码。
+    expect(serverRow.originPortCode).toBeUndefined();
+    expect(fallbackRow.customerName).toBe('本地缓存客户');
+    expect(fallbackRow.destinationPortName).toBe('青岛港');
+    expect(fallbackRow.destinationPortCode).toBe('CNTAO');
+    // 全部行均不得出现原始 UUID。
+    expect(
+      result.data.some(
+        (row) =>
+          row.customerName === 'customer-2' ||
+          row.destinationPortName === 'port-2',
+      ),
+    ).toBe(false);
+  });
+
   it('业务类型列展示注册定义的导航标题而非页面主标题', async () => {
     listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
 
