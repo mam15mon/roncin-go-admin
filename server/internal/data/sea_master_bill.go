@@ -326,7 +326,7 @@ func (r *seaMasterBillRepo) populateLocationAndShippingLineNames(ctx context.Con
 	if len(locIDs) == 0 {
 		return nil
 	}
-	ports, err := client.Port.Query().Where(portent.OrganizationIDEQ(organizationID), portent.IDIn(locIDs...)).All(ctx)
+	ports, err := client.Port.Query().Where(portReferenceScope(organizationID), portent.IDIn(locIDs...)).All(ctx)
 	if err != nil {
 		return err
 	}

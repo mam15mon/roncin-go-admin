@@ -55,3 +55,9 @@ func airportBaselineScope(organizationID uuid.UUID) predicate.Airport {
 func feeSettingBaselineScope(organizationID uuid.UUID) predicate.FeeSetting {
 	return baselineShadowedByLocalWhere("fee_settings", feesetting.FieldOrganizationID, feesetting.FieldFeeCode, organizationID)
 }
+
+// portReferenceScope 按已保存 UUID 解析引用，保留被本地同码行遮蔽的共享基线。
+// 候选列表与新写入仍使用 portBaselineScope，其他公司的私有港口不可见。
+func portReferenceScope(organizationID uuid.UUID) predicate.Port {
+	return port.Or(port.OrganizationIDIsNil(), port.OrganizationIDEQ(organizationID))
+}
