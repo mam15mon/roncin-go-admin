@@ -38,6 +38,8 @@ export interface CurrencyAmountInputProps {
   maxLength?: number;
   /** 金额格式校验提示文案 */
   amountRuleMessage?: string;
+  /** 当已选币种但未填金额时是否强制报错，默认 false（即金额为空时忽略，仅当填写金额时才校验币种与格式） */
+  requireAmountWhenCurrency?: boolean;
   /** 填了币种但未填金额时的错误提示，默认 '请输入金额' */
   emptyAmountMessage?: string;
   /** 填了金额但未选币种时的错误提示，默认 '请选择币种' */

@@ -256,10 +256,22 @@ export function buildSeaExportCreatePayload(
     foreignAgentId: values.foreignAgentId || undefined,
     shippingAgentId: values.shippingAgentId || undefined,
     contractNo: values.contractNo?.trim() || undefined,
-    cargoValue: values.cargoValue?.trim() || undefined,
-    cargoCurrency: values.cargoCurrency || undefined,
-    insurancePremium: values.insurancePremium?.trim() || undefined,
-    insuranceCurrency: values.insuranceCurrency || undefined,
+    cargoValue:
+      values.cargoValue?.trim() && values.cargoCurrency
+        ? values.cargoValue.trim()
+        : undefined,
+    cargoCurrency:
+      values.cargoValue?.trim() && values.cargoCurrency
+        ? values.cargoCurrency
+        : undefined,
+    insurancePremium:
+      values.insurancePremium?.trim() && values.insuranceCurrency
+        ? values.insurancePremium.trim()
+        : undefined,
+    insuranceCurrency:
+      values.insurancePremium?.trim() && values.insuranceCurrency
+        ? values.insuranceCurrency
+        : undefined,
     unNumber: values.unNumber?.trim() || undefined,
     hazardClass: values.hazardClass?.trim() || undefined,
     factoryName: values.factoryName?.trim() || undefined,
@@ -472,10 +484,22 @@ export function buildSeaExportUpdatePayload(
     foreignAgentId: values.foreignAgentId || undefined,
     shippingAgentId: values.shippingAgentId || undefined,
     contractNo: values.contractNo?.trim() || undefined,
-    cargoValue: values.cargoValue?.trim() || undefined,
-    cargoCurrency: values.cargoCurrency || undefined,
-    insurancePremium: values.insurancePremium?.trim() || undefined,
-    insuranceCurrency: values.insuranceCurrency || undefined,
+    cargoValue:
+      values.cargoValue?.trim() && values.cargoCurrency
+        ? values.cargoValue.trim()
+        : undefined,
+    cargoCurrency:
+      values.cargoValue?.trim() && values.cargoCurrency
+        ? values.cargoCurrency
+        : undefined,
+    insurancePremium:
+      values.insurancePremium?.trim() && values.insuranceCurrency
+        ? values.insurancePremium.trim()
+        : undefined,
+    insuranceCurrency:
+      values.insurancePremium?.trim() && values.insuranceCurrency
+        ? values.insuranceCurrency
+        : undefined,
     unNumber: values.unNumber?.trim() || undefined,
     hazardClass: values.hazardClass?.trim() || undefined,
     factoryName: values.factoryName?.trim() || undefined,

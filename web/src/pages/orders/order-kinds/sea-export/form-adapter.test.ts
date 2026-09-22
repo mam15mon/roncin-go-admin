@@ -787,6 +787,46 @@ describe('SE 适配器完整固定夹具等价', () => {
     expect(result.insuranceCurrency).toBeUndefined();
   });
 
+  it('只有货值与币种两者均有值时创建与更新才记录，单边有值时忽略并输出 undefined', () => {
+    // 只有币种无金额
+    const createOnlyCurrency = buildSeaExportCreatePayload({
+      customerId: 'cust-1',
+      paymentTerm: 1,
+      cargoCurrency: 'USD',
+      insuranceCurrency: 'CNY',
+    });
+    expect(createOnlyCurrency.cargoValue).toBeUndefined();
+    expect(createOnlyCurrency.cargoCurrency).toBeUndefined();
+    expect(createOnlyCurrency.insurancePremium).toBeUndefined();
+    expect(createOnlyCurrency.insuranceCurrency).toBeUndefined();
+
+    // 只有金额无币种
+    const updateOnlyAmount = buildSeaExportUpdatePayload('order-1', '1', {
+      customerId: 'cust-1',
+      paymentTerm: 1,
+      cargoValue: '5000',
+      insurancePremium: '200',
+    });
+    expect(updateOnlyAmount.cargoValue).toBeUndefined();
+    expect(updateOnlyAmount.cargoCurrency).toBeUndefined();
+    expect(updateOnlyAmount.insurancePremium).toBeUndefined();
+    expect(updateOnlyAmount.insuranceCurrency).toBeUndefined();
+
+    // 两者均有值
+    const updateBoth = buildSeaExportUpdatePayload('order-1', '1', {
+      customerId: 'cust-1',
+      paymentTerm: 1,
+      cargoValue: '5000',
+      cargoCurrency: 'USD',
+      insurancePremium: '200',
+      insuranceCurrency: 'CNY',
+    });
+    expect(updateBoth.cargoValue).toBe('5000');
+    expect(updateBoth.cargoCurrency).toBe('USD');
+    expect(updateBoth.insurancePremium).toBe('200');
+    expect(updateBoth.insuranceCurrency).toBe('CNY');
+  });
+
   it('更新请求对空 receivedAt 显式输出 undefined，不误传默认日期', () => {
     const result = buildSeaExportUpdatePayload('order-1', '1', {
       customerId: 'customer-1',

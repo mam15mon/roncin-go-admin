@@ -110,7 +110,7 @@ describe('CurrencyAmountInput', () => {
     });
   });
 
-  it('只选币种未填金额时，校验抛出错误提示输入金额', async () => {
+  it('默认情况下只选币种未填金额时校验通过（被忽略）', async () => {
     let formRef: any;
     const TestComponent = () => {
       const [form] = Form.useForm();
@@ -121,6 +121,33 @@ describe('CurrencyAmountInput', () => {
             currencyName="testCurrency"
             amountName="testAmount"
             currencyOptions={mockCurrencies}
+            emptyAmountMessage="必须输入金额"
+          />
+        </Form>
+      );
+    };
+
+    render(<TestComponent />);
+    await act(async () => {
+      await expect(formRef.validateFields()).resolves.toEqual({
+        testCurrency: 'USD',
+        testAmount: undefined,
+      });
+    });
+  });
+
+  it('显式开启 requireAmountWhenCurrency 时只选币种未填金额抛出错误提示输入金额', async () => {
+    let formRef: any;
+    const TestComponent = () => {
+      const [form] = Form.useForm();
+      formRef = form;
+      return (
+        <Form form={form} initialValues={{ testCurrency: 'USD' }}>
+          <CurrencyAmountInput
+            currencyName="testCurrency"
+            amountName="testAmount"
+            currencyOptions={mockCurrencies}
+            requireAmountWhenCurrency
             emptyAmountMessage="必须输入金额"
           />
         </Form>

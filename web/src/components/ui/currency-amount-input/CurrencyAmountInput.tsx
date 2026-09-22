@@ -121,6 +121,7 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
   allowClear = true,
   maxLength = 23,
   amountRuleMessage = '请输入有效金额，最多 4 位小数',
+  requireAmountWhenCurrency = false,
   emptyAmountMessage = '请输入金额',
   emptyCurrencyMessage = '请选择币种',
   amountPattern = DEFAULT_AMOUNT_PATTERN,
@@ -143,7 +144,8 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
           ({ getFieldValue }) => ({
             validator: async (_, val) => {
               const amount = getFieldValue(amountName);
-              if (!amount || val) return;
+              const rawAmount = String(amount ?? '').trim();
+              if (!rawAmount || val) return;
               throw new Error(emptyCurrencyMessage);
             },
           }),
@@ -173,8 +175,12 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
             validator: async (_, val) => {
               const currency = getFieldValue(currencyName);
               const raw = String(val ?? '').trim();
-              if (!raw && !currency) return;
-              if (!raw) throw new Error(emptyAmountMessage);
+              if (!raw) {
+                if (currency && requireAmountWhenCurrency) {
+                  throw new Error(emptyAmountMessage);
+                }
+                return;
+              }
               if (!amountPattern.test(raw)) {
                 throw new Error(amountRuleMessage);
               }
