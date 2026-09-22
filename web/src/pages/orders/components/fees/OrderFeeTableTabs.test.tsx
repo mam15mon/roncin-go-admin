@@ -244,7 +244,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
         <OrderFeeTableTabs {...props} />
       </App>,
     );
-    await waitFor(() => expect(listFees).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(listFees).toHaveBeenCalledTimes(2));
     unmount();
 
     await act(async () => {
@@ -327,5 +327,57 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       count: 1,
     });
     expect(props.setAllPayableItems).not.toHaveBeenCalledWith([feeA]);
+  });
+
+  it('点击新增费用时在表格顶部插入可编辑新行，并默认填入 CNY、数量 1 及默认计费单位“票”', async () => {
+    const props = {
+      ...makeProps('order-1'),
+      feeWritesDisabled: false,
+      getTableColumns: undefined, // 使用内部完整可编辑列
+      billingUnits: [
+        { id: 'unit-box', code: 'BOX', name: '箱' },
+        { id: 'unit-piao', code: 'PIAO', name: '票' },
+      ],
+      feeSettings: [
+        { id: 'setting-of', feeCode: 'OF', nameZh: '海运费' },
+      ],
+      settlementParties: [
+        { id: 'customer-1', name: '测试客户' },
+        { id: 'agent-1', name: '测试订舱代理' },
+      ],
+      currencies: [{ code: 'CNY', name: '人民币' }],
+      order: {
+        id: 'order-1',
+        customerId: 'customer-1',
+        bookingAgentId: 'agent-1',
+      } as API.Order,
+      customerName: '测试客户',
+    };
+
+    render(
+      <App>
+        <OrderFeeTableTabs {...props} />
+      </App>,
+    );
+
+    await waitFor(() => expect(listFees).toHaveBeenCalled());
+
+    const addReceivableBtn = screen.getByRole('button', {
+      name: /新增应收费用/,
+    });
+    expect(addReceivableBtn).not.toBeDisabled();
+
+    await act(async () => {
+      addReceivableBtn.click();
+    });
+
+    await waitFor(() => {
+      expect(screen.getAllByText('CNY').length).toBeGreaterThan(0);
+      expect(screen.getByDisplayValue('1')).toBeInTheDocument();
+      expect(screen.getAllByText('票').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('测试客户').length).toBeGreaterThan(0);
+      expect(screen.getByText('保存')).toBeInTheDocument();
+      expect(screen.getByText('取消')).toBeInTheDocument();
+    });
   });
 });

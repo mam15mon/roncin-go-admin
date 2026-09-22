@@ -1,7 +1,6 @@
 import { LockOutlined, ReloadOutlined } from '@ant-design/icons';
 import type {
   ActionType,
-  ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
@@ -39,7 +38,6 @@ import {
 } from './components/fees/feeConstants';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
 import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
-import { getOrderFeeTableColumns } from './components/fees/orderFeeColumns';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import OrderPageHeader from './components/OrderPageHeader';
@@ -423,16 +421,6 @@ export default function OrderFeesPage() {
     });
   };
 
-  const getTableColumns = (direction: number): ProColumns<API.OrderFee>[] =>
-    getOrderFeeTableColumns({
-      direction,
-      feeWritesDisabled,
-      onOpenModal: openFeeModal,
-      onConfirmFee: handleConfirmFee,
-      onReopenFee: handleReopenFee,
-      onCancelFee: handleCancelFee,
-    });
-
   if (!definition) {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
@@ -617,13 +605,13 @@ export default function OrderFeesPage() {
         setReceivableSummary={setReceivableSummary}
         setPayableSummary={setPayableSummary}
         canCreateFinanceBills={
-          access.canOperateOrganization(order.organizationId) &&
+          access.canOperateOrganization(order?.organizationId) &&
           Boolean(access.canCreateFinanceBills)
         }
         feeWritesDisabled={feeWritesDisabled}
         onOpenBillWorkbench={(feeIds) => {
           if (!orderId) return;
-          if (!order.organizationId) {
+          if (!order?.organizationId) {
             message.warning('无法确定费用所属公司，不能创建账单');
             return;
           }
@@ -633,8 +621,18 @@ export default function OrderFeesPage() {
             organizationId: order.organizationId,
           });
         }}
+        feeSettings={feeSettings}
+        settlementParties={settlementParties}
+        currencies={currencies}
+        billingUnits={billingUnits}
+        order={order}
+        customerName={customerName}
+        onOpenQuickAddFee={handleOpenQuickAddFee}
+        onOpenQuickAddPartner={handleOpenQuickAddPartner}
+        onConfirmFee={handleConfirmFee}
+        onReopenFee={handleReopenFee}
+        onCancelFee={handleCancelFee}
         onOpenFeeModal={openFeeModal}
-        getTableColumns={getTableColumns}
       />
 
       {/* 3.1 锁后费用补录：订单身份变化时经 key 整体重建，清空申请、弹窗与异步状态 */}
