@@ -6,7 +6,6 @@ import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { formatAmount } from '@/utils/format';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import type { FeeColumnPreference } from './feeColumnPreference';
-import { FEE_CANCELLED, feeStatusCode } from './feeConstants';
 
 /** 未保存新行的派生金额提示：服务端尚未计算，前端不猜算。 */
 function pendingSaveCell() {
@@ -23,9 +22,6 @@ function trackingStateCell(tracking: FeeBillTrackingView) {
 
 function renderBillNoCell(record: API.OrderFee, tracking: FeeBillTrackingView) {
   if (tracking.state !== 'ready') return trackingStateCell(tracking);
-  if (feeStatusCode(record.status) === FEE_CANCELLED) {
-    return <span style={{ color: '#8c8c8c' }}>已作废</span>;
-  }
   const item = record.id ? tracking.byFeeId[record.id] : undefined;
   if (!item?.billNo) {
     return <span style={{ color: '#8c8c8c' }}>未建账</span>;
@@ -42,9 +38,6 @@ function renderFinancialProgressCell(
   tracking: FeeBillTrackingView,
 ) {
   if (tracking.state !== 'ready') return trackingStateCell(tracking);
-  if (feeStatusCode(record.status) === FEE_CANCELLED) {
-    return <span style={{ color: '#8c8c8c' }}>已作废</span>;
-  }
   const item = record.id ? tracking.byFeeId[record.id] : undefined;
   const progress = item?.financialProgress;
   if (

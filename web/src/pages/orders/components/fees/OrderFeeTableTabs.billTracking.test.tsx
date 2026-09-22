@@ -116,7 +116,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     updateFee.mockReset();
   });
 
-  it('就绪投影：展示活动账单号与整账单进度；未建账与已作废分别表达（A4/A5）', async () => {
+  it('就绪投影：展示活动账单号与整账单进度；已作废历史行不进入录入表（A4/A5）', async () => {
     listFees.mockResolvedValue({
       data: [
         {
@@ -146,10 +146,15 @@ describe('OrderFeeTableTabs 关联账单列', () => {
       ],
     } as any);
 
+    const props = {
+      ...makeProps('order-1'),
+      setAllReceivableItems: vi.fn(),
+      setReceivableSummary: vi.fn(),
+    };
     render(
       <App>
         <OrderFeeTableTabs
-          {...makeProps('order-1')}
+          {...props}
           feeBillTracking={trackingView('ready', {
             'fee-billed': {
               billNo: 'BILL-2026-001',
@@ -163,13 +168,25 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     );
     await screen.findByText('海运费');
 
+    // 已作废（历史软删除）行不进入录入表、父级集合与笔数统计
+    expect(screen.queryByText('报关费')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(props.setAllReceivableItems).toHaveBeenCalledWith([
+        expect.objectContaining({ id: 'fee-billed' }),
+        expect.objectContaining({ id: 'fee-unbilled' }),
+      ]),
+    );
+    expect(props.setReceivableSummary).toHaveBeenCalledWith({
+      totalAmount: 0,
+      count: 2,
+    });
+
     await enableTrackingColumns();
 
     expect(screen.getByText('BILL-2026-001')).toBeInTheDocument();
     expect(screen.getAllByText('已开票未核销')).toHaveLength(1);
-    // 未建账（账单号与进度两格）与已作废（费用已作废，含状态列标签共 3 处）分别表达
+    // 未建账在账单号与财务进度两格分别表达
     expect(screen.getAllByText('未建账')).toHaveLength(2);
-    expect(screen.getAllByText('已作废')).toHaveLength(3);
   });
 
   it('加载中与加载失败分别表达，失败提供重试入口且不显示成未建账（A7）', async () => {
@@ -305,6 +322,53 @@ describe('OrderFeeTableTabs 关联账单列', () => {
 
     await waitFor(() => expect(onFeeSaved).toHaveBeenCalledTimes(1));
     expect(updateFee).toHaveBeenCalledTimes(1);
+  });
+
+  it('删除入口仅对未建账费用展示并回调页面删除流程', async () => {
+    const onCancelFee = vi.fn();
+    listFees.mockResolvedValue({
+      data: [
+        {
+          id: 'fee-confirmed',
+          direction: RECEIVABLE,
+          status: FEE_CONFIRMED,
+          expenseDate: '2026-09-20',
+          version: '2',
+          feeName: '拖车费',
+        },
+        {
+          id: 'fee-billed',
+          direction: RECEIVABLE,
+          status: FEE_BILLED,
+          expenseDate: '2026-09-20',
+          version: '3',
+          feeName: '海运费',
+        },
+      ],
+    } as any);
+
+    render(
+      <App>
+        <OrderFeeTableTabs
+          {...makeProps('order-1')}
+          feeWritesDisabled={false}
+          onCancelFee={onCancelFee}
+        />
+      </App>,
+    );
+    await screen.findByText('拖车费');
+
+    const deleteButtons = screen.getAllByRole('button', { name: /删\s*除/ });
+    expect(deleteButtons).toHaveLength(1);
+    expect(
+      screen.queryByRole('button', { name: /作\s*废/ }),
+    ).not.toBeInTheDocument();
+    await act(async () => {
+      deleteButtons[0].click();
+    });
+    expect(onCancelFee).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'fee-confirmed' }),
+    );
   });
 
   it('有投影时提供订单财务详情入口（A3 入口）', async () => {

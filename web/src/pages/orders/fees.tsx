@@ -460,21 +460,28 @@ export default function OrderFeesPage() {
     const feeId = fee.id;
     const version = fee.version;
     if (!orderId || !feeId || !version) return;
-    confirmWithReason(
-      { modal, message },
-      '确认作废该笔费用？',
-      async (reason) => {
+    // 删除为物理删除且不再采集原因；被未取消账单占用时服务端拒绝并提示先取消账单。
+    modal.confirm({
+      title: '确认删除该笔费用？',
+      content: '删除后费用记录不再保留；已进入账单的费用需先取消对应账单。',
+      okText: '删除',
+      okButtonProps: { danger: true },
+      cancelText: '取消',
+      onOk: async () => {
         if (!ensureFeeWriteAllowed()) return;
-        await orderFeeServiceRemoveFee({
-          orderId,
-          id: feeId,
-          expectedVersion: version,
-          reason,
-        });
-        message.success('费用已作废并保留历史记录');
-        reloadFeeTables();
+        try {
+          await orderFeeServiceRemoveFee({
+            orderId,
+            id: feeId,
+            expectedVersion: version,
+          });
+          message.success('费用已删除');
+          reloadFeeTables();
+        } catch (error) {
+          message.error(getErrorMessage(error, '删除费用失败'));
+        }
       },
-    );
+    });
   };
 
   const handleConfirmFee = async (fee: API.OrderFee) => {

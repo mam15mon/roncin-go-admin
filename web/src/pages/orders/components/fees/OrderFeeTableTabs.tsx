@@ -783,7 +783,7 @@ export default function OrderFeeTableTabs({
                   danger
                   onClick={() => onCancelFee(record)}
                 >
-                  作废
+                  删除
                 </Button>
               ),
           ].filter(Boolean);
@@ -868,8 +868,12 @@ export default function OrderFeeTableTabs({
             const requestSequence = ++receivableRequestSequenceRef.current;
             try {
               const res = await orderFeeServiceListFees({ orderId });
+              // 录入表只保留有效费用：已作废（历史软删除）行不进入表格、
+              // 最近请求结果与父级集合，笔数与金额消费同一有效集合。
               const rItems = unwrapList(res).filter(
-                (f) => feeDirectionCode(f.direction) === RECEIVABLE,
+                (f) =>
+                  feeDirectionCode(f.direction) === RECEIVABLE &&
+                  feeStatusCode(f.status) !== FEE_CANCELLED,
               );
               const isCurrentRequest =
                 mountedRef.current &&
@@ -890,10 +894,7 @@ export default function OrderFeeTableTabs({
                 items: rItems,
               };
               setAllReceivableItems(rItems);
-              const activeItems = rItems.filter(
-                (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-              );
-              const total = activeItems.reduce(
+              const total = rItems.reduce(
                 (acc, cur) =>
                   acc +
                   (cur.baseCurrencyAmount
@@ -1009,8 +1010,12 @@ export default function OrderFeeTableTabs({
             const requestSequence = ++payableRequestSequenceRef.current;
             try {
               const res = await orderFeeServiceListFees({ orderId });
+              // 录入表只保留有效费用：已作废（历史软删除）行不进入表格、
+              // 最近请求结果与父级集合，笔数与金额消费同一有效集合。
               const pItems = unwrapList(res).filter(
-                (f) => feeDirectionCode(f.direction) === PAYABLE,
+                (f) =>
+                  feeDirectionCode(f.direction) === PAYABLE &&
+                  feeStatusCode(f.status) !== FEE_CANCELLED,
               );
               const isCurrentRequest =
                 mountedRef.current &&
@@ -1031,10 +1036,7 @@ export default function OrderFeeTableTabs({
                 items: pItems,
               };
               setAllPayableItems(pItems);
-              const activeItems = pItems.filter(
-                (f) => feeStatusCode(f.status) !== FEE_CANCELLED,
-              );
-              const total = activeItems.reduce(
+              const total = pItems.reduce(
                 (acc, cur) =>
                   acc +
                   (cur.baseCurrencyAmount
