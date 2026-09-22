@@ -574,34 +574,35 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 		code, name, uscc, role, contactName, phone string
 		isCust                                     bool
 		accCNY, accUSD                             string
-		salesRep                                   string
+		// 销售/操作/客服责任人：客户档案选填的带入默认值，三岗齐备便于演示开单带入。
+		salesRep, opRep, csRep string
 	}
 
 	seeds := []partnerSeedDef{
 		{
 			code: "CUST-HY-001", name: "上海宏远国际贸易进出口有限公司", uscc: "91310115MA1H789012",
 			role: "customer", contactName: "陈志高", phone: "13812345678", isCust: true,
-			accCNY: "3100661234567890", accUSD: "987654321001", salesRep: "zhangqiang",
+			accCNY: "3100661234567890", accUSD: "987654321001", salesRep: "zhangqiang", opRep: "liming", csRep: "chenhua",
 		},
 		{
 			code: "CUST-JS-002", name: "深圳市极速跨境智能实业有限公司", uscc: "91440300MA5F888999",
 			role: "customer", contactName: "林思捷", phone: "13988776655", isCust: true,
-			accCNY: "7559123488880001", accUSD: "888800029999", salesRep: "wangli",
+			accCNY: "7559123488880001", accUSD: "888800029999", salesRep: "wangli", opRep: "liming", csRep: "chenhua",
 		},
 		{
 			code: "CUST-ML-003", name: "浙江美林工艺家具有限公司", uscc: "91330100MA2B334455",
 			role: "customer", contactName: "汪建国", phone: "13766554433", isCust: true,
-			accCNY: "5719000122334455", accUSD: "665544332211", salesRep: "zhangqiang",
+			accCNY: "5719000122334455", accUSD: "665544332211", salesRep: "zhangqiang", opRep: "liming", csRep: "chenhua",
 		},
 		{
 			code: "CUST-HT-004", name: "宁波恒泰汽车零部件制造有限公司", uscc: "91330200MA28667788",
 			role: "customer", contactName: "周晓波", phone: "13611223344", isCust: true,
-			accCNY: "5749888811223344", accUSD: "112233445566", salesRep: "wangli",
+			accCNY: "5749888811223344", accUSD: "112233445566", salesRep: "wangli", opRep: "liming", csRep: "chenhua",
 		},
 		{
 			code: "CUST-TG-005", name: "TransGlobal Trading (HK) Co., Limited", uscc: "CR-78901234",
 			role: "customer", contactName: "Michael Wong", phone: "+852-98765432", isCust: true,
-			accCNY: "", accUSD: "012-888-12345678", salesRep: "zhangqiang",
+			accCNY: "", accUSD: "012-888-12345678", salesRep: "zhangqiang", opRep: "liming", csRep: "chenhua",
 		},
 		{
 			code: "SUPP-COSCO-01", name: "中远海运集装箱运输有限公司", uscc: "913100001322000111",
@@ -735,16 +736,26 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 				Save(ctx)
 		}
 
-		// 销售员指派
-		if s.salesRep != "" && sc.users[s.salesRep] != nil {
-			u := sc.users[s.salesRep]
-			aExists, _ := tx.PartnerAssignment.Query().Where(partnerassignmentent.PartnerIDEQ(p.ID), partnerassignmentent.RoleEQ(partnerassignmentent.RoleSALES)).Exist(ctx)
+		// 提成相关责任人指派（销售/操作/客服），按岗位幂等补挂
+		for _, assignment := range []struct {
+			rep  string
+			role partnerassignmentent.Role
+		}{
+			{s.salesRep, partnerassignmentent.RoleSALES},
+			{s.opRep, partnerassignmentent.RoleOPERATOR},
+			{s.csRep, partnerassignmentent.RoleCUSTOMER_SERVICE},
+		} {
+			if assignment.rep == "" || sc.users[assignment.rep] == nil {
+				continue
+			}
+			u := sc.users[assignment.rep]
+			aExists, _ := tx.PartnerAssignment.Query().Where(partnerassignmentent.PartnerIDEQ(p.ID), partnerassignmentent.RoleEQ(assignment.role)).Exist(ctx)
 			if !aExists {
 				_, _ = tx.PartnerAssignment.Create().
 					SetPartnerID(p.ID).
 					SetUserID(u.ID).
 					SetOrganizationID(co.ID).
-					SetRole(partnerassignmentent.RoleSALES).
+					SetRole(assignment.role).
 					Save(ctx)
 			}
 		}
