@@ -495,13 +495,6 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	return &output, nil
 }
 
-func stringPointerValue(value *string) string {
-	if value == nil {
-		return ""
-	}
-	return *value
-}
-
 // sameOrderCreateIntent 判定幂等键命中的既有订单与本次创建请求是否同一意图：
 // 采用全量请求哈希比对（对齐建账 RequestHash 口径），任何载体字段差异都判为
 // 不同意图返回冲突。不可纳入哈希的字段见 orderCreateIntentHash 注释中的排除

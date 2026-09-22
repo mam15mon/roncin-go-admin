@@ -479,31 +479,23 @@ func TestMatchSeaMasterBillCandidateUsesCurrentOrganizationSEReadScope(t *testin
 func TestOrderBusinessTypeMappingsCoverAllTypes(t *testing.T) {
 	cases := []struct {
 		api    orderv1.BusinessType
-		biz    biz.OrderBusinessType
 		access access.OrderBusinessType
 	}{
-		{api: orderv1.BusinessType_BUSINESS_TYPE_SE, biz: biz.OrderBusinessSE, access: access.OrderBusinessSE},
-		{api: orderv1.BusinessType_BUSINESS_TYPE_SI, biz: biz.OrderBusinessSI, access: access.OrderBusinessSI},
-		{api: orderv1.BusinessType_BUSINESS_TYPE_AE, biz: biz.OrderBusinessAE, access: access.OrderBusinessAE},
-		{api: orderv1.BusinessType_BUSINESS_TYPE_AI, biz: biz.OrderBusinessAI, access: access.OrderBusinessAI},
-		{api: orderv1.BusinessType_BUSINESS_TYPE_LAND, biz: biz.OrderBusinessLand, access: access.OrderBusinessLand},
-		{api: orderv1.BusinessType_BUSINESS_TYPE_RAIL, biz: biz.OrderBusinessRail, access: access.OrderBusinessRail},
+		{api: orderv1.BusinessType_BUSINESS_TYPE_SE, access: access.OrderBusinessSE},
+		{api: orderv1.BusinessType_BUSINESS_TYPE_SI, access: access.OrderBusinessSI},
+		{api: orderv1.BusinessType_BUSINESS_TYPE_AE, access: access.OrderBusinessAE},
+		{api: orderv1.BusinessType_BUSINESS_TYPE_AI, access: access.OrderBusinessAI},
+		{api: orderv1.BusinessType_BUSINESS_TYPE_LAND, access: access.OrderBusinessLand},
+		{api: orderv1.BusinessType_BUSINESS_TYPE_RAIL, access: access.OrderBusinessRail},
 	}
 	for _, tc := range cases {
 		gotAPI, ok := orderBusinessTypeFromAPI(tc.api)
 		if !ok || gotAPI != tc.access {
 			t.Errorf("API 业务类型 %s 映射 = %q, %v，期望 %q, true", tc.api, gotAPI, ok, tc.access)
 		}
-		gotBiz, ok := orderBusinessTypeFromBiz(tc.biz)
-		if !ok || gotBiz != tc.access {
-			t.Errorf("Biz 业务类型 %s 映射 = %q, %v，期望 %q, true", tc.biz, gotBiz, ok, tc.access)
-		}
 	}
 	if _, ok := orderBusinessTypeFromAPI(orderv1.BusinessType_BUSINESS_TYPE_UNSPECIFIED); ok {
 		t.Fatal("未指定 API 业务类型不得通过鉴权映射")
-	}
-	if _, ok := orderBusinessTypeFromBiz(""); ok {
-		t.Fatal("空 Biz 业务类型不得通过鉴权映射")
 	}
 }
 

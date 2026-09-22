@@ -357,6 +357,13 @@ func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testi
 	}
 }
 
+func stringPointerValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
 func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 	breakBulk := OrderShipmentBreakBulk
 	shippingLineID := uuid.New()

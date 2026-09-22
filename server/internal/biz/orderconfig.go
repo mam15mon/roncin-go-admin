@@ -219,13 +219,6 @@ func FormatAllocatedNumber(at time.Time, rule *NumberRule, sequence int64, busin
 	return rule.Prefix + businessCode + formatNumberDate(at.UTC(), rule.DateFormat) + fmt.Sprintf("%0*d", rule.SequenceLength, sequence), nil
 }
 
-func (uc *OrderConfigUsecase) NextOrderNumber(ctx context.Context, organizationID uuid.UUID, businessType OrderBusinessType) (string, error) {
-	if businessType != OrderBusinessSE {
-		return "", ErrMasterDataInvalidArgument
-	}
-	return uc.nextNumber(ctx, organizationID, DocumentTypeOrder, string(businessType))
-}
-
 func normalizeNumberRule(input *NumberRule, creating bool) (*NumberRule, error) {
 	if input == nil {
 		return nil, ErrMasterDataInvalidArgument

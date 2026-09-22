@@ -43,12 +43,6 @@ func Apply(ctx context.Context, db *sql.DB, dir string) error {
 	return ApplyWithOptions(ctx, db, dir, Options{})
 }
 
-// ApplyWithPostStep 在迁移锁释放前执行 postStep，用于保证依赖最新 Schema 的发版
-// 必要步骤不会与其他迁移进程并发。
-func ApplyWithPostStep(ctx context.Context, db *sql.DB, dir string, postStep func(*sql.Conn) error) error {
-	return ApplyWithOptions(ctx, db, dir, Options{PostStep: postStep})
-}
-
 // ApplyWithOptions 按选项校验并顺序执行尚未应用的 PostgreSQL 迁移。
 func ApplyWithOptions(ctx context.Context, db *sql.DB, dir string, opts Options) error {
 	files, err := readFiles(dir)

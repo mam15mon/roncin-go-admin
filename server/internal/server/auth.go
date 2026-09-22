@@ -421,25 +421,6 @@ func orderBusinessTypeFromAPI(value orderv1.BusinessType) (access.OrderBusinessT
 	}
 }
 
-func orderBusinessTypeFromBiz(value biz.OrderBusinessType) (access.OrderBusinessType, bool) {
-	switch value {
-	case biz.OrderBusinessSE:
-		return access.OrderBusinessSE, true
-	case biz.OrderBusinessSI:
-		return access.OrderBusinessSI, true
-	case biz.OrderBusinessAE:
-		return access.OrderBusinessAE, true
-	case biz.OrderBusinessAI:
-		return access.OrderBusinessAI, true
-	case biz.OrderBusinessLand:
-		return access.OrderBusinessLand, true
-	case biz.OrderBusinessRail:
-		return access.OrderBusinessRail, true
-	default:
-		return "", false
-	}
-}
-
 func cookieValue(rawHeader, name string) string {
 	request := &nethttp.Request{Header: nethttp.Header{"Cookie": []string{rawHeader}}}
 	cookie, err := request.Cookie(name)

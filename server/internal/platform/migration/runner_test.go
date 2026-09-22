@@ -68,7 +68,7 @@ func TestApplyExecutesNewMigrationInTransaction(t *testing.T) {
 	}
 }
 
-func TestApplyWithPostStepRunsBeforeUnlock(t *testing.T) {
+func TestApplyWithOptionsRunsPostStepBeforeUnlock(t *testing.T) {
 	dir := t.TempDir()
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -82,13 +82,15 @@ func TestApplyWithPostStepRunsBeforeUnlock(t *testing.T) {
 	mock.ExpectExec(regexp.QuoteMeta("SELECT pg_advisory_unlock($1)")).WithArgs(advisoryLockKey).WillReturnResult(sqlmock.NewResult(0, 1))
 
 	called := false
-	err = ApplyWithPostStep(context.Background(), db, dir, func(conn *sql.Conn) error {
-		called = true
-		_, execErr := conn.ExecContext(context.Background(), "SELECT post_step")
-		return execErr
+	err = ApplyWithOptions(context.Background(), db, dir, Options{
+		PostStep: func(conn *sql.Conn) error {
+			called = true
+			_, execErr := conn.ExecContext(context.Background(), "SELECT post_step")
+			return execErr
+		},
 	})
 	if err != nil {
-		t.Fatalf("ApplyWithPostStep() error = %v", err)
+		t.Fatalf("ApplyWithOptions() error = %v", err)
 	}
 	if !called {
 		t.Fatal("迁移后步骤未执行")

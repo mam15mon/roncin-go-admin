@@ -233,39 +233,6 @@ func TestOrderConfigNextNumberSequenceExhausted(t *testing.T) {
 	}
 }
 
-func TestOrderConfigNextOrderNumberUsesSupportedBusinessType(t *testing.T) {
-	for _, businessType := range []OrderBusinessType{OrderBusinessSE} {
-		t.Run(string(businessType), func(t *testing.T) {
-			repo := &orderConfigRepoStub{
-				allocatedRule:     &NumberRule{DateFormat: DateFormatNone, SequenceLength: 5},
-				allocatedSequence: 7,
-			}
-			usecase := NewOrderConfigUsecase(repo)
-
-			got, err := usecase.NextOrderNumber(context.Background(), uuid.New(), businessType)
-			if err != nil {
-				t.Fatalf("NextOrderNumber() error = %v, want nil", err)
-			}
-			if want := string(businessType) + "00007"; got != want {
-				t.Fatalf("NextOrderNumber() = %q, want %q", got, want)
-			}
-			if repo.lastAllocDocType != DocumentTypeOrder {
-				t.Fatalf("repo.lastAllocDocType = %q, want %q", repo.lastAllocDocType, DocumentTypeOrder)
-			}
-		})
-	}
-}
-
-func TestOrderConfigNextOrderNumberRejectsUnimplementedBusinessType(t *testing.T) {
-	usecase := NewOrderConfigUsecase(&orderConfigRepoStub{})
-
-	for _, businessType := range []OrderBusinessType{OrderBusinessSI, OrderBusinessAE, OrderBusinessAI, OrderBusinessLand, OrderBusinessRail} {
-		if _, err := usecase.NextOrderNumber(context.Background(), uuid.New(), businessType); err != ErrMasterDataInvalidArgument {
-			t.Fatalf("NextOrderNumber(%q) error = %v, want %v", businessType, err, ErrMasterDataInvalidArgument)
-		}
-	}
-}
-
 func TestOrderConfigNumberRuleValidationBoundaries(t *testing.T) {
 	usecase := NewOrderConfigUsecase(&orderConfigRepoStub{})
 	organizationID := uuid.New()
