@@ -115,8 +115,8 @@ func SyncPermissionManifest(ctx context.Context, database transactionStarter) (*
 			}
 			targetKeys = filteredKeys
 			if len(removeIDs) > 0 {
-				if _, err := client.Role.UpdateOneID(currentRole.ID).RemovePermissionIDs(removeIDs...).Save(ctx); err != nil {
-					return err
+				if err := detachRolePermissions(ctx, sqlTx, currentRole.ID, removeIDs); err != nil {
+					return fmt.Errorf("detach workspace-disallowed permissions from role %s: %w", currentRole.Code, err)
 				}
 			}
 			missingIDs := make([]uuid.UUID, 0, len(targetKeys))
@@ -163,5 +163,17 @@ func attachRolePermissions(ctx context.Context, tx *sql.Tx, roleID uuid.UUID, pe
 		args = append(args, permissionID)
 	}
 	_, err := tx.ExecContext(ctx, statement.String(), args...)
+	return err
+}
+
+// detachRolePermissions 与 attachRolePermissions 同款原生写入：本文件的 Ent 客户端
+// 绑定在 *sql.Tx 上，Ent 的多对多边删除会尝试自开事务并在类型断言处崩溃，
+// 不能改走 Role 实体更新。
+func detachRolePermissions(ctx context.Context, tx *sql.Tx, roleID uuid.UUID, permissionIDs []uuid.UUID) error {
+	ids := make([]string, 0, len(permissionIDs))
+	for _, id := range permissionIDs {
+		ids = append(ids, id.String())
+	}
+	_, err := tx.ExecContext(ctx, `DELETE FROM "role_permissions" WHERE "role_id" = $1::uuid AND "permission_id" = ANY($2::uuid[])`, roleID.String(), ids)
 	return err
 }

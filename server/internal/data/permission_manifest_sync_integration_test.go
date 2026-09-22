@@ -84,18 +84,55 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 		t.Fatalf("创建管理员角色: %v", err)
 	}
 
+	// 公司工作台角色持有系统专属权限（重置密码）：同步必须剥离工作台不允许的权限。
+	resetPassword, err := client.Permission.Query().Where(permissionent.KeyEQ(access.UserResetPassword)).Only(ctx)
+	if err != nil {
+		t.Fatalf("查询系统专属权限: %v", err)
+	}
+	company, err := client.Organization.Create().
+		SetCode("PERMISSION-SYNC-CO-" + suffix).
+		SetName("权限同步测试公司").
+		SetKind("company").
+		SetBaseCurrency("CNY").
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建测试公司: %v", err)
+	}
+	t.Cleanup(func() { cleanupPermissionSyncOrganization(t, client, company.ID) })
+	companyRole, err := client.Role.Create().
+		SetOrganizationID(company.ID).
+		SetCode("manager").
+		SetName("公司经理").
+		SetDataScope(roleent.DataScopeOrganization).
+		AddPermissions(resetPassword).
+		Save(ctx)
+	if err != nil {
+		t.Fatalf("创建持系统专属权限的公司角色: %v", err)
+	}
+
 	summary, err := SyncPermissionManifest(ctx, db)
 	if err != nil {
 		t.Fatalf("同步权限清单: %v", err)
 	}
+	// 系统工作台 administrator 只持系统侧权限；另加自定义角色补齐的依赖权限。
+	systemAllowed := 0
+	for _, definition := range access.Manifest() {
+		if access.PermissionAllowedInWorkspace(definition.Key, true) {
+			systemAllowed++
+		}
+	}
 	if summary.Removed < 1 {
 		t.Fatalf("移除清单外权限数 = %d, want >= 1", summary.Removed)
 	}
-	if summary.Attached < len(access.Manifest())+2 {
-		t.Fatalf("补齐角色权限数 = %d, want >= %d", summary.Attached, len(access.Manifest())+2)
+	if summary.Attached < systemAllowed+2 {
+		t.Fatalf("补齐角色权限数 = %d, want >= %d", summary.Attached, systemAllowed+2)
 	}
 	if exists, err := client.Permission.Query().Where(permissionent.KeyEQ(stale.Key)).Exist(ctx); err != nil || exists {
 		t.Fatalf("清单外权限仍然存在: exists=%v error=%v", exists, err)
+	}
+	companyHeld, err := companyRole.QueryPermissions().Where(permissionent.KeyEQ(access.UserResetPassword)).Exist(ctx)
+	if err != nil || companyHeld {
+		t.Fatalf("公司角色仍持有系统专属权限: held=%v error=%v", companyHeld, err)
 	}
 
 	customPermissions, err := customRole.QueryPermissions().All(ctx)
@@ -115,8 +152,8 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("查询管理员权限数: %v", err)
 	}
-	if adminPermissionCount != len(access.Manifest()) {
-		t.Fatalf("管理员权限数 = %d, want %d", adminPermissionCount, len(access.Manifest()))
+	if adminPermissionCount != systemAllowed {
+		t.Fatalf("管理员权限数 = %d, want %d", adminPermissionCount, systemAllowed)
 	}
 
 	second, err := SyncPermissionManifest(ctx, db)
