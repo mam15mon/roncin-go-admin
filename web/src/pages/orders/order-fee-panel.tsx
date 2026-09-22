@@ -1,7 +1,6 @@
 import { PlusOutlined, TagOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import React, {
@@ -11,6 +10,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { PartnerRoleType } from '@/enums.generated';
 import {
@@ -27,6 +27,7 @@ import {
 } from '@/services/roncin/orderFeeService';
 import { toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { normalizeDecimalInput } from '@/utils/decimal';
 import { generateUUID } from '@/utils/uuid';
 import FeeFormModal, {
   type FeeFormValues,
@@ -273,12 +274,13 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               orderId,
               id: feeId,
               expectedVersion: version,
-              reason,
+              reason: reason || undefined,
             },
           );
           message.success('费用已撤回为草稿');
           actionRef.current?.reload();
         },
+        { optional: true },
       );
     };
 
@@ -296,11 +298,12 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             orderId,
             id: feeId,
             expectedVersion: version,
-            reason,
+            reason: reason || undefined,
           });
           message.success('费用已作废并保留历史记录');
           actionRef.current?.reload();
         },
+        { optional: true },
       );
     };
 
@@ -333,8 +336,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               feeSettingId: values.feeSettingId,
               settlementPartyId: values.settlementPartyId,
               billingUnitId: values.billingUnitId,
-              quantity: values.quantity,
-              unitPrice: values.unitPrice,
+              quantity: normalizeDecimalInput(String(values.quantity ?? '')),
+              unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
               currency: values.currency,
               expenseDate,
               note: values.note?.trim() || undefined,
@@ -352,8 +355,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               feeSettingId: values.feeSettingId,
               settlementPartyId: values.settlementPartyId,
               billingUnitId: values.billingUnitId,
-              quantity: values.quantity,
-              unitPrice: values.unitPrice,
+              quantity: normalizeDecimalInput(String(values.quantity ?? '')),
+              unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
               currency: values.currency,
               expenseDate,
               note: values.note?.trim() || undefined,

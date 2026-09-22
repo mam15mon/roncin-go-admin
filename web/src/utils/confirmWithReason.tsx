@@ -6,9 +6,11 @@ export type ConfirmWithReasonOptions = {
   danger?: boolean;
   placeholder?: string;
   requiredMessage?: string;
+  /** 选填模式：留空可直接确认，回调收到空字符串。 */
+  optional?: boolean;
 };
 
-/** 弹出必填操作原因的确认框，确认后执行回调。 */
+/** 弹出操作原因确认框；默认必填，optional 模式下原因选填。 */
 export function confirmWithReason(
   app: Pick<AppInstance, 'modal' | 'message'>,
   title: string,
@@ -24,7 +26,12 @@ export function confirmWithReason(
         autoFocus
         maxLength={500}
         showCount
-        placeholder={options.placeholder ?? '请输入操作原因（必填）'}
+        placeholder={
+          options.placeholder ??
+          (options.optional
+            ? '请输入操作原因（选填）'
+            : '请输入操作原因（必填）')
+        }
         onChange={(event) => {
           reason = event.target.value.trim();
         }}
@@ -34,7 +41,7 @@ export function confirmWithReason(
     cancelText: '取消',
     okButtonProps: options.danger ? { danger: true } : undefined,
     onOk: (_close) => {
-      if (!reason) {
+      if (!reason && !options.optional) {
         app.message.warning(requiredMessage);
         return;
       }

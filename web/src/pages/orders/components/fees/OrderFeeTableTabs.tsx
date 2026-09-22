@@ -9,20 +9,26 @@ import { EditableProTable } from '@ant-design/pro-components';
 import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { SectionCard } from '@/components/ui';
+import { defaultSelectFilterOption, SectionCard } from '@/components/ui';
 import {
   normalizeOrderFeeStatus,
   orderFeeStatusMeta,
   statusTag,
 } from '@/constants/statusMeta';
+import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceListFees,
+  orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { unwrapList } from '@/utils/api';
-import { quantityOrPricePattern } from '@/utils/decimal';
+import {
+  calculateExactFeeTotal,
+  normalizeDecimalInput,
+  quantityOrPricePattern,
+} from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -56,12 +62,38 @@ import {
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
     if (!value) return Promise.resolve();
-    const trimmed = String(value).trim();
-    if (!pattern.test(trimmed) || Number(trimmed) <= 0) {
+    // 先去掉小数尾部零再匹配，避免 "211.04500" 这类合法输入被固定位数正则误拒。
+    const normalized = normalizeDecimalInput(String(value));
+    if (!pattern.test(normalized) || Number(normalized) <= 0) {
       return Promise.reject(new Error(messageText));
     }
     return Promise.resolve();
   };
+
+/** 行内编辑时汇率列的实时预览状态。 */
+type ExchangeRatePreview = {
+  status: 'loading' | 'resolved' | 'missing' | 'error';
+  rate?: string;
+  inheritedLastWeek?: boolean;
+};
+
+/** 行内编辑时总金额列的实时预览。 */
+type AmountPreview = {
+  total: string;
+  currency: string;
+};
+
+/** 单行编辑态的实时预览集合：汇率、总金额、费用代码，保存后以后端落库值为准。 */
+type RowEditPreview = {
+  rate?: ExchangeRatePreview;
+  amount?: AmountPreview;
+  feeCode?: string;
+};
+
+type FeeRequestError = Error & {
+  data?: { reason?: string };
+  response?: { data?: { reason?: string } };
+};
 
 interface OrderFeeTableTabsProps {
   orderId: string;
@@ -245,12 +277,21 @@ export default function OrderFeeTableTabs({
     </Space>
   );
 
+  // 行内编辑的实时预览：按行 key 记录汇率解析进度、总金额与费用代码，
+  // 币种/发生日期/单价/数量/费用项目变化即刷新，保存后以后端落库值为准。
+  const [rowPreviews, setRowPreviews] = useState<
+    Record<string, RowEditPreview>
+  >({});
+  const rateRequestSeqRef = useRef<Record<string, number>>({});
+
   currentOrderIdRef.current = orderId;
 
   useEffect(() => {
     mountedRef.current = true;
     setReceivableEditableKeys([]);
     setPayableEditableKeys([]);
+    setRowPreviews({});
+    rateRequestSeqRef.current = {};
     return () => {
       mountedRef.current = false;
       receivableRequestSequenceRef.current += 1;
@@ -258,11 +299,155 @@ export default function OrderFeeTableTabs({
     };
   }, []);
 
+  useEffect(() => {
+    setRowPreviews((prev) => {
+      const activeKeys = new Set(
+        [...receivableEditableKeys, ...payableEditableKeys].map(String),
+      );
+      const next: Record<string, RowEditPreview> = {};
+      let changed = false;
+      for (const [key, preview] of Object.entries(prev)) {
+        if (activeKeys.has(key)) {
+          next[key] = preview;
+        } else {
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [receivableEditableKeys, payableEditableKeys]);
+
+  useEffect(() => {
+    setRowPreviews({});
+    rateRequestSeqRef.current = {};
+  }, [orderId]);
+
   // 默认计费单位：优先查找“票”（PIAO / 包含票），否则选用首项
   const defaultBillingUnit =
     billingUnits?.find(
       (u) => u.code === 'PIAO' || u.name === '票' || u.name?.includes('票'),
     ) || billingUnits?.[0];
+
+  // 币种或发生日期变化时立即解析参考汇率，行内预览；保存后以后端落库值为准。
+  const resolveRowRatePreview = (
+    rowKey: React.Key | undefined,
+    direction: number,
+    currency?: string,
+    expenseDate?: string | dayjs.Dayjs | null,
+  ) => {
+    const key = String(rowKey ?? '');
+    const requestSequence = (rateRequestSeqRef.current[key] ?? 0) + 1;
+    rateRequestSeqRef.current[key] = requestSequence;
+    const patchRate = (rate: ExchangeRatePreview | undefined) => {
+      setRowPreviews((prev) => {
+        const current = prev[key];
+        if (!current) return rate ? { ...prev, [key]: { rate } } : prev;
+        const next = { ...current, rate };
+        if (!next.rate && !next.amount && next.feeCode === undefined) {
+          const { [key]: _removed, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [key]: next };
+      });
+    };
+    if (!currency || !expenseDate) {
+      patchRate(undefined);
+      return;
+    }
+    patchRate({ status: 'loading' });
+    orderFeeServiceResolveFeeExchangeRate(
+      {
+        orderId,
+        direction,
+        currency,
+        expenseDate: dayjs(expenseDate).format('YYYY-MM-DD'),
+      },
+      { skipErrorHandler: true },
+    )
+      .then((response) => {
+        if (rateRequestSeqRef.current[key] !== requestSequence) return;
+        if (response.exchangeRate) {
+          patchRate({
+            status: 'resolved',
+            rate: trimDecimal(response.exchangeRate),
+            inheritedLastWeek:
+              response.exchangeRateSource === 'INHERITED_LAST_WEEK',
+          });
+        } else {
+          patchRate({ status: 'error' });
+          message.error('汇率解析结果不完整');
+        }
+      })
+      .catch((error: FeeRequestError) => {
+        if (rateRequestSeqRef.current[key] !== requestSequence) return;
+        const reason = error.data?.reason ?? error.response?.data?.reason;
+        if (reason === financeErrorReasons.FEE_EXCHANGE_RATE_MISSING) {
+          patchRate({ status: 'missing' });
+          return;
+        }
+        patchRate({ status: 'error' });
+        message.error(error.message || '汇率解析失败');
+      });
+  };
+
+  // 单价/数量/币种变化后重算总金额预览；输入不完整时清除该行金额预览。
+  const refreshAmountPreview = (
+    rowKey: React.Key | undefined,
+    form?: {
+      getFieldValue: (name: [React.Key | undefined, string]) => unknown;
+    },
+  ) => {
+    const key = String(rowKey ?? '');
+    const quantity = form?.getFieldValue([rowKey, 'quantity']);
+    const unitPrice = form?.getFieldValue([rowKey, 'unitPrice']);
+    const currency = form?.getFieldValue([rowKey, 'currency']);
+    const total = calculateExactFeeTotal(
+      String(quantity ?? ''),
+      String(unitPrice ?? ''),
+    );
+    setRowPreviews((prev) => {
+      const current = prev[key];
+      if (!total) {
+        if (!current?.amount) return prev;
+        const next = { ...current };
+        delete next.amount;
+        if (!next.rate && next.feeCode === undefined) {
+          const { [key]: _removed, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [key]: next };
+      }
+      return {
+        ...prev,
+        [key]: {
+          ...current,
+          amount: { total, currency: String(currency || 'CNY') },
+        },
+      };
+    });
+  };
+
+  // 选择费用项目后同步预览费用代码列。
+  const setRowFeeCodePreview = (
+    rowKey: React.Key | undefined,
+    feeCode?: string,
+  ) => {
+    const key = String(rowKey ?? '');
+    setRowPreviews((prev) => {
+      const current = prev[key];
+      if (!feeCode) {
+        if (current?.feeCode === undefined) return prev;
+        const next = { ...current };
+        delete next.feeCode;
+        if (!next.rate && !next.amount) {
+          const { [key]: _removed, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [key]: next };
+      }
+      return { ...prev, [key]: { ...current, feeCode } };
+    });
+  };
 
   const handleAddReceivable = () => {
     if (feeWritesDisabled) return;
@@ -287,6 +472,7 @@ export default function OrderFeeTableTabs({
       },
       { position: 'top' },
     );
+    resolveRowRatePreview(newId, RECEIVABLE, 'CNY', dayjs());
   };
 
   const handleAddPayable = () => {
@@ -312,6 +498,7 @@ export default function OrderFeeTableTabs({
       },
       { position: 'top' },
     );
+    resolveRowRatePreview(newId, PAYABLE, 'CNY', dayjs());
   };
 
   const handleSaveFee = async (
@@ -340,7 +527,9 @@ export default function OrderFeeTableTabs({
     }
     if (
       !row.unitPrice ||
-      !quantityOrPricePattern.test(String(row.unitPrice).trim()) ||
+      !quantityOrPricePattern.test(
+        normalizeDecimalInput(String(row.unitPrice)),
+      ) ||
       Number(row.unitPrice) <= 0
     ) {
       message.error('单价必须为大于 0 的有效数值');
@@ -348,7 +537,9 @@ export default function OrderFeeTableTabs({
     }
     if (
       !row.quantity ||
-      !quantityOrPricePattern.test(String(row.quantity).trim()) ||
+      !quantityOrPricePattern.test(
+        normalizeDecimalInput(String(row.quantity)),
+      ) ||
       Number(row.quantity) <= 0
     ) {
       message.error('数量必须为大于 0 的有效数值');
@@ -368,8 +559,9 @@ export default function OrderFeeTableTabs({
       feeSettingId: row.feeSettingId,
       settlementPartyId: row.settlementPartyId,
       billingUnitId: row.billingUnitId,
-      quantity: String(row.quantity).trim(),
-      unitPrice: String(row.unitPrice).trim(),
+      // 提交前去掉小数尾部零，与后端固定位数十进制校验口径对齐。
+      quantity: normalizeDecimalInput(String(row.quantity)),
+      unitPrice: normalizeDecimalInput(String(row.unitPrice)),
       currency: row.currency,
       expenseDate: dayjs(row.expenseDate).format('YYYY-MM-DD'),
       note: row.note?.trim() || undefined,
@@ -431,7 +623,12 @@ export default function OrderFeeTableTabs({
         dataIndex: 'feeCode',
         width: 100,
         editable: false,
-        render: (_, record) => record.feeCode || '-',
+        // 行内编辑预览依赖外部状态，单元格需随组件重渲染刷新。
+        shouldCellUpdate: () => true,
+        render: (_, record) =>
+          rowPreviews[String(record.id ?? '')]?.feeCode ??
+          record.feeCode ??
+          '-',
       },
       {
         title: '费用名称',
@@ -453,14 +650,7 @@ export default function OrderFeeTableTabs({
             defaultCurrency: item.defaultCurrency,
             defaultBillingUnitId: item.defaultBillingUnitId,
           })),
-          filterOption: (
-            input: string,
-            option?: { label?: string; feeCode?: string },
-          ) =>
-            Boolean(
-              option?.label?.toLowerCase().includes(input.toLowerCase()) ||
-                option?.feeCode?.toLowerCase().includes(input.toLowerCase()),
-            ),
+          filterOption: defaultSelectFilterOption,
           onChange: (
             _: string,
             option?: {
@@ -473,11 +663,19 @@ export default function OrderFeeTableTabs({
             if (option) {
               form?.setFieldValue([rowKey, 'feeName'], option.nameZh);
               form?.setFieldValue([rowKey, 'feeCode'], option.feeCode);
+              setRowFeeCodePreview(rowKey, option.feeCode);
               if (option.defaultCurrency) {
                 form?.setFieldValue(
                   [rowKey, 'currency'],
                   option.defaultCurrency,
                 );
+                resolveRowRatePreview(
+                  rowKey,
+                  direction,
+                  option.defaultCurrency,
+                  form?.getFieldValue([rowKey, 'expenseDate']),
+                );
+                refreshAmountPreview(rowKey, form);
               }
               if (option.defaultBillingUnitId) {
                 const bu = billingUnits?.find(
@@ -540,14 +738,7 @@ export default function OrderFeeTableTabs({
             value: p.id ?? '',
             code: p.code,
           })),
-          filterOption: (
-            input: string,
-            option?: { label?: string; code?: string },
-          ) =>
-            Boolean(
-              option?.label?.toLowerCase().includes(input.toLowerCase()) ||
-                option?.code?.toLowerCase().includes(input.toLowerCase()),
-            ),
+          filterOption: defaultSelectFilterOption,
           onChange: (_: string, option?: { label?: string }) => {
             form?.setFieldValue([rowKey, 'settlementPartyName'], option?.label);
           },
@@ -589,12 +780,26 @@ export default function OrderFeeTableTabs({
         },
         render: (_, record) => <Tag color="blue">{record.currency}</Tag>,
         valueType: 'select',
-        fieldProps: {
+        fieldProps: (form, { rowKey }) => ({
+          showSearch: true,
+          filterOption: defaultSelectFilterOption,
+          placeholder: '请选择币种',
           options: (currencies || []).map((c) => ({
             label: c.code,
             value: c.code ?? '',
+            code: c.code,
+            name: c.name,
           })),
-        },
+          onChange: (val: string) => {
+            resolveRowRatePreview(
+              rowKey,
+              direction,
+              val,
+              form?.getFieldValue([rowKey, 'expenseDate']),
+            );
+            refreshAmountPreview(rowKey, form);
+          },
+        }),
       },
       {
         title: '单价',
@@ -613,10 +818,13 @@ export default function OrderFeeTableTabs({
           ],
         },
         render: (_, record) => trimDecimal(record.unitPrice),
-        fieldProps: {
+        fieldProps: (form, { rowKey }) => ({
           placeholder: '0.00',
           style: { textAlign: 'right' },
-        },
+          onChange: () => {
+            refreshAmountPreview(rowKey, form);
+          },
+        }),
       },
       {
         title: '数量',
@@ -635,10 +843,13 @@ export default function OrderFeeTableTabs({
           ],
         },
         render: (_, record) => trimDecimal(record.quantity),
-        fieldProps: {
+        fieldProps: (form, { rowKey }) => ({
           placeholder: '1',
           style: { textAlign: 'right' },
-        },
+          onChange: () => {
+            refreshAmountPreview(rowKey, form);
+          },
+        }),
       },
       {
         title: '计费单位',
@@ -650,10 +861,13 @@ export default function OrderFeeTableTabs({
         render: (_, record) => record.billingUnit || '-',
         valueType: 'select',
         fieldProps: (form, { rowKey }) => ({
+          showSearch: true,
+          filterOption: defaultSelectFilterOption,
           placeholder: '计费单位',
           options: (billingUnits || []).map((u) => ({
             label: u.name,
             value: u.id ?? '',
+            code: u.code,
           })),
           onChange: (_: string, option?: { label?: string }) => {
             form?.setFieldValue([rowKey, 'billingUnit'], option?.label);
@@ -666,7 +880,21 @@ export default function OrderFeeTableTabs({
         width: 120,
         align: 'right',
         editable: false,
+        shouldCellUpdate: () => true,
         render: (_, record) => {
+          const preview = rowPreviews[String(record.id ?? '')]?.amount;
+          if (preview) {
+            return (
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: isReceivable ? '#1677ff' : '#fa8c16',
+                }}
+              >
+                {`${preview.total} ${preview.currency}`}
+              </span>
+            );
+          }
           const calculated =
             record.unitPrice &&
             record.quantity &&
@@ -692,20 +920,42 @@ export default function OrderFeeTableTabs({
       {
         title: '汇率',
         dataIndex: 'exchangeRate',
-        width: 100,
+        width: 120,
         align: 'right',
         editable: false,
-        render: (_, record) => (
-          <Space size={4}>
-            <span>{trimDecimal(record.exchangeRate)}</span>
-            {record.exchangeRateSource === 'MANUAL' && (
-              <Tag color="gold">手工</Tag>
-            )}
-            {record.exchangeRateSource === 'SYSTEM' && (
-              <Tag color="blue">系统</Tag>
-            )}
-          </Space>
-        ),
+        shouldCellUpdate: () => true,
+        render: (_, record) => {
+          const preview = rowPreviews[String(record.id ?? '')]?.rate;
+          if (preview) {
+            if (preview.status === 'loading') {
+              return <span style={{ color: '#8c8c8c' }}>获取中…</span>;
+            }
+            if (preview.status === 'missing') {
+              return <span style={{ color: '#cf1322' }}>汇率缺失</span>;
+            }
+            if (preview.status === 'error') {
+              return <span style={{ color: '#cf1322' }}>汇率解析失败</span>;
+            }
+            return (
+              <Space size={4}>
+                <span>{preview.rate}</span>
+                <Tag color="processing">预览</Tag>
+                {preview.inheritedLastWeek && <Tag color="gold">沿用上周</Tag>}
+              </Space>
+            );
+          }
+          return (
+            <Space size={4}>
+              <span>{trimDecimal(record.exchangeRate)}</span>
+              {record.exchangeRateSource === 'MANUAL' && (
+                <Tag color="gold">手工</Tag>
+              )}
+              {record.exchangeRateSource === 'SYSTEM' && (
+                <Tag color="blue">系统</Tag>
+              )}
+            </Space>
+          );
+        },
       },
       {
         title: '发生日期',
@@ -716,6 +966,17 @@ export default function OrderFeeTableTabs({
           rules: [{ required: true, message: '请选择发生日期' }],
         },
         render: (_, record) => record.expenseDate || '-',
+        fieldProps: (form, { rowKey }) => ({
+          style: { width: '100%' },
+          onChange: (date: dayjs.Dayjs | null) => {
+            resolveRowRatePreview(
+              rowKey,
+              direction,
+              form?.getFieldValue([rowKey, 'currency']),
+              date,
+            );
+          },
+        }),
       },
       {
         title: '备注',
@@ -897,9 +1158,7 @@ export default function OrderFeeTableTabs({
               const total = rItems.reduce(
                 (acc, cur) =>
                   acc +
-                  (cur.baseCurrencyAmount
-                    ? Number(cur.baseCurrencyAmount)
-                    : 0),
+                  (cur.baseCurrencyAmount ? Number(cur.baseCurrencyAmount) : 0),
                 0,
               );
               setReceivableSummary({
@@ -1039,9 +1298,7 @@ export default function OrderFeeTableTabs({
               const total = pItems.reduce(
                 (acc, cur) =>
                   acc +
-                  (cur.baseCurrencyAmount
-                    ? Number(cur.baseCurrencyAmount)
-                    : 0),
+                  (cur.baseCurrencyAmount ? Number(cur.baseCurrencyAmount) : 0),
                 0,
               );
               setPayableSummary({

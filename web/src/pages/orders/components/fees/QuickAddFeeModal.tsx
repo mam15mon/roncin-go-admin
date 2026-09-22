@@ -1,6 +1,6 @@
 import { Col, Form, Input, Row, Select } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { MODAL_SIZE } from '@/components/ui';
+import { MODAL_SIZE, SearchableSelect } from '@/components/ui';
 import { QuickCreateModal } from '@/components/ui/quick-create-modal';
 import { MASTER_DATA_KINDS } from '@/pages/orders/common';
 import { feeCatalogServiceCreateFeeSetting } from '@/services/roncin/feeCatalogService';
@@ -96,7 +96,7 @@ export default function QuickAddFeeModal({
             label="费用大类"
             rules={[{ required: true, message: '请选择费用大类' }]}
           >
-            <Select
+            <SearchableSelect
               placeholder="请选择费用大类"
               options={chargeCategories.map((item) => ({
                 label: item.code
@@ -121,7 +121,7 @@ export default function QuickAddFeeModal({
             label="默认币种"
             rules={[{ required: true, message: '请选择币种' }]}
           >
-            <Select
+            <SearchableSelect
               options={currencies.map((c) => ({
                 label: `${c.code} (${c.name})`,
                 value: c.code ?? '',
@@ -135,7 +135,7 @@ export default function QuickAddFeeModal({
             label="默认计费单位"
             rules={[{ required: true, message: '请选择计费单位' }]}
           >
-            <Select
+            <SearchableSelect
               options={billingUnits.map((u) => ({
                 label: u.name ?? '',
                 value: u.id ?? '',
@@ -161,7 +161,7 @@ export default function QuickAddFeeModal({
         </Col>
         <Col span={24}>
           <Form.Item name="taxableServiceId" label="应税服务类别">
-            <Select
+            <SearchableSelect
               placeholder="选择税目分类"
               options={taxableServices.map((s) => ({
                 label: s.goodsCode

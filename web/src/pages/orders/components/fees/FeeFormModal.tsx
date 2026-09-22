@@ -13,13 +13,18 @@ import {
   ExchangeRatePreviewCard,
   ProFormSearchableSelect,
 } from '@/components/ui';
-import { exchangeRatePattern, quantityOrPricePattern } from '@/utils/decimal';
+import {
+  exchangeRatePattern,
+  normalizeDecimalInput,
+  quantityOrPricePattern,
+} from '@/utils/decimal';
 
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
     if (!value) return Promise.resolve();
-    const trimmed = value.trim();
-    if (!pattern.test(trimmed) || Number(trimmed) <= 0) {
+    // 先去掉小数尾部零再匹配，避免 "211.04500" 这类合法输入被固定位数正则误拒。
+    const normalized = normalizeDecimalInput(value);
+    if (!pattern.test(normalized) || Number(normalized) <= 0) {
       return Promise.reject(new Error(messageText));
     }
     return Promise.resolve();

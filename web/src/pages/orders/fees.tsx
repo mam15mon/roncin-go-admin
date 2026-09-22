@@ -1,8 +1,5 @@
 import { LockOutlined, ReloadOutlined } from '@ant-design/icons';
-import type {
-  ActionType,
-  ProFormInstance,
-} from '@ant-design/pro-components';
+import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
@@ -32,6 +29,7 @@ import {
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { normalizeDecimalInput } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -406,8 +404,8 @@ export default function OrderFeesPage() {
       feeSettingId: values.feeSettingId,
       settlementPartyId: values.settlementPartyId,
       billingUnitId: values.billingUnitId,
-      quantity: values.quantity,
-      unitPrice: values.unitPrice,
+      quantity: normalizeDecimalInput(String(values.quantity ?? '')),
+      unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
       currency: values.currency,
       expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD'),
       note: values.note,
@@ -502,15 +500,25 @@ export default function OrderFeesPage() {
     const feeId = fee.id;
     const version = fee.version;
     if (!orderId || !feeId || !version) return;
-    confirmWithReason({ modal, message }, '撤回费用确认？', async (reason) => {
-      if (!ensureFeeWriteAllowed()) return;
-      await orderFeeServiceReopenFee(
-        { orderId, id: feeId },
-        { orderId, id: feeId, expectedVersion: version, reason },
-      );
-      message.success('费用已撤回为草稿');
-      reloadFeeTables();
-    });
+    confirmWithReason(
+      { modal, message },
+      '撤回费用确认？',
+      async (reason) => {
+        if (!ensureFeeWriteAllowed()) return;
+        await orderFeeServiceReopenFee(
+          { orderId, id: feeId },
+          {
+            orderId,
+            id: feeId,
+            expectedVersion: version,
+            reason: reason || undefined,
+          },
+        );
+        message.success('费用已撤回为草稿');
+        reloadFeeTables();
+      },
+      { optional: true },
+    );
   };
 
   if (!definition) {

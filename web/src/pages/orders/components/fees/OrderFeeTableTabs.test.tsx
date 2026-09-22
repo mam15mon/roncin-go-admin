@@ -1,22 +1,49 @@
 import type { ActionType } from '@ant-design/pro-components';
 import {
   act,
+  fireEvent,
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { App } from 'antd';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { orderFeeServiceListFees } from '@/services/roncin/orderFeeService';
-import { FEE_CONFIRMED, PAYABLE, RECEIVABLE } from './feeConstants';
+import {
+  orderFeeServiceListFees,
+  orderFeeServiceResolveFeeExchangeRate,
+} from '@/services/roncin/orderFeeService';
+import { FEE_CONFIRMED, FEE_DRAFT, PAYABLE, RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceListFees: vi.fn(),
+  orderFeeServiceResolveFeeExchangeRate: vi.fn(),
 }));
 
 const listFees = vi.mocked(orderFeeServiceListFees);
+const resolveRate = vi.mocked(orderFeeServiceResolveFeeExchangeRate);
+
+/** 模拟 antd Select：点开下拉并选择可见选项。 */
+async function pickSelectOption(combobox: Element, name: string) {
+  fireEvent.mouseDown(combobox);
+  const option = await waitFor(() => {
+    const candidates = screen.getAllByText(name).filter((element) => {
+      const dropdown = element.closest('.ant-select-dropdown');
+      return (
+        dropdown !== null &&
+        !dropdown.className.includes('-hidden') &&
+        !dropdown.className.includes('ant-slide-up-leave')
+      );
+    });
+    if (candidates.length === 0) {
+      throw new Error(`选项 ${name} 未渲染`);
+    }
+    return candidates[0];
+  });
+  fireEvent.click(option);
+}
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -61,6 +88,11 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     listFees.mockResolvedValue({ items: [] } as Awaited<
       ReturnType<typeof listFees>
     >);
+    resolveRate.mockReset();
+    resolveRate.mockResolvedValue({
+      exchangeRate: '1.0000',
+      exchangeRateSource: 'SYSTEM',
+    } as Awaited<ReturnType<typeof resolveRate>>);
   });
 
   it('业务费用只读时禁用新增，但保留已确认费用的账单创建入口', async () => {
@@ -338,9 +370,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
         { id: 'unit-box', code: 'BOX', name: '箱' },
         { id: 'unit-piao', code: 'PIAO', name: '票' },
       ],
-      feeSettings: [
-        { id: 'setting-of', feeCode: 'OF', nameZh: '海运费' },
-      ],
+      feeSettings: [{ id: 'setting-of', feeCode: 'OF', nameZh: '海运费' }],
       settlementParties: [
         { id: 'customer-1', name: '测试客户' },
         { id: 'agent-1', name: '测试订舱代理' },
@@ -379,5 +409,291 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       expect(screen.getByText('保存')).toBeInTheDocument();
       expect(screen.getByText('取消')).toBeInTheDocument();
     });
+
+    // 新增行默认 CNY + 当天发生日期，应立即解析参考汇率
+    await waitFor(() =>
+      expect(resolveRate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'order-1',
+          direction: RECEIVABLE,
+          currency: 'CNY',
+        }),
+        expect.anything(),
+      ),
+    );
+    await waitFor(() => expect(screen.getByText('预览')).toBeInTheDocument());
+  });
+
+  it('行内编辑输入单价与数量后，总金额列实时预览计算结果', async () => {
+    const today = '2026-09-21';
+    listFees.mockResolvedValue({
+      data: [
+        {
+          id: 'fee-draft-3',
+          direction: RECEIVABLE,
+          status: FEE_DRAFT,
+          currency: 'CNY',
+          quantity: '1',
+          expenseDate: today,
+          version: '2',
+          feeSettingId: 'setting-of',
+          settlementPartyId: 'customer-1',
+          billingUnitId: 'unit-piao',
+        } as API.OrderFee,
+      ],
+    } as any);
+
+    const props = {
+      ...makeProps('order-1'),
+      selectedReceivableFeeIds: [],
+      feeWritesDisabled: false,
+      getTableColumns: undefined,
+      billingUnits: [{ id: 'unit-piao', code: 'PIAO', name: '票' }],
+      feeSettings: [{ id: 'setting-of', feeCode: 'OF', nameZh: '海运费' }],
+      settlementParties: [{ id: 'customer-1', name: '测试客户' }],
+      currencies: [{ code: 'CNY', name: '人民币' }],
+    };
+
+    render(
+      <App>
+        <OrderFeeTableTabs {...props} />
+      </App>,
+    );
+
+    await screen.findByText(today);
+    await act(async () => {
+      screen.getByRole('button', { name: /编\s*辑/ }).click();
+    });
+
+    const unitPriceInput = await waitFor(() => {
+      const input = screen.getByPlaceholderText('0.00');
+      expect(input).toBeInTheDocument();
+      return input;
+    });
+    await act(async () => {
+      fireEvent.change(unitPriceInput, { target: { value: '25.5' } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('25.5 CNY')).toBeInTheDocument();
+    });
+
+    const quantityInput = screen.getByDisplayValue('1');
+    await act(async () => {
+      fireEvent.change(quantityInput, { target: { value: '3' } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('76.5 CNY')).toBeInTheDocument();
+    });
+  });
+
+  it('选择费用项目后费用代码列实时预览所选科目代码', async () => {
+    const today = '2026-09-21';
+    listFees.mockResolvedValue({
+      data: [
+        {
+          id: 'fee-draft-4',
+          direction: RECEIVABLE,
+          status: FEE_DRAFT,
+          currency: 'CNY',
+          expenseDate: today,
+          version: '2',
+          feeSettingId: 'setting-of',
+          settlementPartyId: 'customer-1',
+          billingUnitId: 'unit-piao',
+        } as API.OrderFee,
+      ],
+    } as any);
+
+    const props = {
+      ...makeProps('order-1'),
+      selectedReceivableFeeIds: [],
+      feeWritesDisabled: false,
+      getTableColumns: undefined,
+      billingUnits: [{ id: 'unit-piao', code: 'PIAO', name: '票' }],
+      feeSettings: [
+        { id: 'setting-of', feeCode: 'OF', nameZh: '海运费' },
+        { id: 'setting-thc', feeCode: 'THC', nameZh: '码头操作费' },
+      ],
+      settlementParties: [{ id: 'customer-1', name: '测试客户' }],
+      currencies: [{ code: 'CNY', name: '人民币' }],
+    };
+
+    render(
+      <App>
+        <OrderFeeTableTabs {...props} />
+      </App>,
+    );
+
+    await screen.findByText(today);
+    await act(async () => {
+      screen.getByRole('button', { name: /编\s*辑/ }).click();
+    });
+
+    const comboboxes = await waitFor(() => {
+      const boxes = screen.getAllByRole('combobox');
+      expect(boxes.length).toBeGreaterThanOrEqual(4);
+      return boxes;
+    });
+    await pickSelectOption(comboboxes[0], '码头操作费 (THC)');
+
+    await waitFor(() => {
+      expect(screen.getAllByText('THC').length).toBeGreaterThan(0);
+    });
+  });
+
+  it('费用项目默认币种联动时立即解析并预览该币种参考汇率', async () => {
+    const today = '2026-09-21';
+    listFees.mockResolvedValue({
+      data: [
+        {
+          id: 'fee-draft-1',
+          direction: RECEIVABLE,
+          status: FEE_DRAFT,
+          currency: 'CNY',
+          expenseDate: today,
+          version: '3',
+          feeSettingId: 'setting-of',
+          settlementPartyId: 'customer-1',
+          billingUnitId: 'unit-piao',
+        } as API.OrderFee,
+      ],
+    } as any);
+
+    const props = {
+      ...makeProps('order-1'),
+      selectedReceivableFeeIds: [],
+      feeWritesDisabled: false,
+      getTableColumns: undefined,
+      billingUnits: [{ id: 'unit-piao', code: 'PIAO', name: '票' }],
+      feeSettings: [
+        { id: 'setting-of', feeCode: 'OF', nameZh: '海运费' },
+        {
+          id: 'setting-thc',
+          feeCode: 'THC',
+          nameZh: '码头操作费',
+          defaultCurrency: 'USD',
+        },
+      ],
+      settlementParties: [{ id: 'customer-1', name: '测试客户' }],
+      currencies: [
+        { code: 'CNY', name: '人民币' },
+        { code: 'USD', name: '美元' },
+      ],
+    };
+
+    render(
+      <App>
+        <OrderFeeTableTabs {...props} />
+      </App>,
+    );
+
+    await screen.findByText(today);
+    await act(async () => {
+      screen.getByRole('button', { name: /编\s*辑/ }).click();
+    });
+
+    const comboboxes = await waitFor(() => {
+      const boxes = screen.getAllByRole('combobox');
+      expect(boxes.length).toBeGreaterThanOrEqual(4);
+      return boxes;
+    });
+    resolveRate.mockResolvedValueOnce({
+      exchangeRate: '7.1234',
+      exchangeRateSource: 'INHERITED_LAST_WEEK',
+    } as any);
+    await pickSelectOption(comboboxes[0], '码头操作费 (THC)');
+
+    await waitFor(() =>
+      expect(resolveRate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'order-1',
+          direction: RECEIVABLE,
+          currency: 'USD',
+          expenseDate: today,
+        }),
+        expect.anything(),
+      ),
+    );
+    await waitFor(() => {
+      expect(screen.getByText('7.1234')).toBeInTheDocument();
+      expect(screen.getByText('预览')).toBeInTheDocument();
+      expect(screen.getByText('沿用上周')).toBeInTheDocument();
+    });
+  });
+
+  it('行内编辑的币种下拉支持按代码搜索过滤选项', async () => {
+    const today = '2026-09-21';
+    listFees.mockResolvedValue({
+      data: [
+        {
+          id: 'fee-draft-2',
+          direction: RECEIVABLE,
+          status: FEE_DRAFT,
+          currency: 'CNY',
+          expenseDate: today,
+          version: '2',
+          feeSettingId: 'setting-of',
+          settlementPartyId: 'customer-1',
+          billingUnitId: 'unit-piao',
+        } as API.OrderFee,
+      ],
+    } as any);
+
+    const props = {
+      ...makeProps('order-1'),
+      selectedReceivableFeeIds: [],
+      feeWritesDisabled: false,
+      getTableColumns: undefined,
+      billingUnits: [{ id: 'unit-piao', code: 'PIAO', name: '票' }],
+      feeSettings: [{ id: 'setting-of', feeCode: 'OF', nameZh: '海运费' }],
+      settlementParties: [{ id: 'customer-1', name: '测试客户' }],
+      currencies: [
+        { code: 'CNY', name: '人民币' },
+        { code: 'USD', name: '美元' },
+        { code: 'EUR', name: '欧元' },
+      ],
+    };
+
+    render(
+      <App>
+        <OrderFeeTableTabs {...props} />
+      </App>,
+    );
+
+    await screen.findByText(today);
+    await act(async () => {
+      screen.getByRole('button', { name: /编\s*辑/ }).click();
+    });
+
+    const comboboxes = await waitFor(() => {
+      const boxes = screen.getAllByRole('combobox');
+      expect(boxes.length).toBeGreaterThanOrEqual(4);
+      return boxes;
+    });
+    const currencyBox = comboboxes[2];
+    expect(currencyBox).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.mouseDown(currencyBox);
+    await waitFor(() => {
+      expect(currencyBox).toHaveAttribute('aria-expanded', 'true');
+    });
+    fireEvent.change(currencyBox, { target: { value: 'US' } });
+
+    const dropdown = await waitFor(() => {
+      const found = screen
+        .getAllByText('USD')
+        .map((element) => element.closest('.ant-select-dropdown'))
+        .filter(
+          (dropdownElement) =>
+            dropdownElement !== null &&
+            !dropdownElement.className.includes('-hidden'),
+        );
+      expect(found.length).toBeGreaterThan(0);
+      return found[0] as HTMLElement;
+    });
+    expect(within(dropdown).queryByText('EUR')).not.toBeInTheDocument();
+    expect(within(dropdown).queryByText('CNY')).not.toBeInTheDocument();
   });
 });
