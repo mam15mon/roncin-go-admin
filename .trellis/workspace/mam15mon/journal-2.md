@@ -467,3 +467,25 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 98: 清理数据库配置与测试库回退
+<!-- trellis-session: v=2 fp=62f3fcd12f124cd7 -->
+
+**Date**: 2026-09-22
+**Task**: 清理数据库配置与测试库回退
+**Branch**: `main`
+
+### Summary
+
+移除重复的 KRATOS_DATABASE_SOURCE 示例配置与三处订单锁集成测试的硬编码数据库回退；确认未配置专用数据库时六个测试入口明确 SKIP，Go vet 与差异检查通过，真实 PostgreSQL 路径未执行。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b16070cf` | fix(server): 移除集成测试数据库隐式回退 |
+
+### Status
+
+[OK] **Completed**
