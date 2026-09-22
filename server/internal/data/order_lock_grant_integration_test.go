@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -27,11 +26,6 @@ import (
 // 无权限用户与权限撤销后的旧候选回调。资格口径必须与候选快照、直接解锁、
 // 锁单命令和钉钉回调复核完全一致。
 func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		source = "postgresql://roncin:roncin_local_dev@127.0.0.1:5432/roncin_go_admin_integration?sslmode=disable"
-		t.Setenv("RONCIN_INTEGRATION_DATABASE_SOURCE", source)
-	}
 	ctx := context.Background()
 	data, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)

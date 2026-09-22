@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -32,11 +31,6 @@ import (
 )
 
 func TestOrderLock_PostgresFlows(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		source = "postgresql://roncin:roncin_local_dev@127.0.0.1:5432/roncin_go_admin_integration?sslmode=disable"
-		t.Setenv("RONCIN_INTEGRATION_DATABASE_SOURCE", source)
-	}
 	ctx := context.Background()
 	data, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)

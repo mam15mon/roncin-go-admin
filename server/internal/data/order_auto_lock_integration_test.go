@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"testing"
 	"time"
 
@@ -520,13 +519,8 @@ func scacLettersFromUUID() string {
 	return string(out)
 }
 
-// newAutoLockTestContext 准备集成测试数据库上下文（未注入专用连接串时使用本地兜底库）。
+// newAutoLockTestContext 准备使用专用连接串的集成测试数据库上下文。
 func newAutoLockTestContext(t *testing.T) (*Data, func()) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		source = "postgresql://roncin:roncin_local_dev@127.0.0.1:5432/roncin_go_admin_integration?sslmode=disable"
-		t.Setenv("RONCIN_INTEGRATION_DATABASE_SOURCE", source)
-	}
 	return getIntegrationData(t)
 }
 
