@@ -1226,8 +1226,20 @@ type Order struct {
 	CustomerName            *string `protobuf:"bytes,87,opt,name=customer_name,json=customerName,proto3,oneof" json:"customer_name,omitempty"`
 	OriginLocationName      *string `protobuf:"bytes,88,opt,name=origin_location_name,json=originLocationName,proto3,oneof" json:"origin_location_name,omitempty"`
 	DestinationLocationName *string `protobuf:"bytes,89,opt,name=destination_location_name,json=destinationLocationName,proto3,oneof" json:"destination_location_name,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	DischargeLocationName   *string `protobuf:"bytes,90,opt,name=discharge_location_name,json=dischargeLocationName,proto3,oneof" json:"discharge_location_name,omitempty"`
+	TransitLocationName     *string `protobuf:"bytes,91,opt,name=transit_location_name,json=transitLocationName,proto3,oneof" json:"transit_location_name,omitempty"`
+	BookingAgentName        *string `protobuf:"bytes,92,opt,name=booking_agent_name,json=bookingAgentName,proto3,oneof" json:"booking_agent_name,omitempty"`
+	ForeignAgentName        *string `protobuf:"bytes,93,opt,name=foreign_agent_name,json=foreignAgentName,proto3,oneof" json:"foreign_agent_name,omitempty"`
+	ShippingAgentName       *string `protobuf:"bytes,94,opt,name=shipping_agent_name,json=shippingAgentName,proto3,oneof" json:"shipping_agent_name,omitempty"`
+	// 操作/业务/创建人名称与所属分支：来自订单人员分配（含停用用户），列表与详情展示共用。
+	OperatorName     *string `protobuf:"bytes,95,opt,name=operator_name,json=operatorName,proto3,oneof" json:"operator_name,omitempty"`
+	OperatorBranch   *string `protobuf:"bytes,96,opt,name=operator_branch,json=operatorBranch,proto3,oneof" json:"operator_branch,omitempty"`
+	SalesName        *string `protobuf:"bytes,97,opt,name=sales_name,json=salesName,proto3,oneof" json:"sales_name,omitempty"`
+	SalesBranch      *string `protobuf:"bytes,98,opt,name=sales_branch,json=salesBranch,proto3,oneof" json:"sales_branch,omitempty"`
+	CreatorName      *string `protobuf:"bytes,99,opt,name=creator_name,json=creatorName,proto3,oneof" json:"creator_name,omitempty"`
+	ShippingLineName *string `protobuf:"bytes,100,opt,name=shipping_line_name,json=shippingLineName,proto3,oneof" json:"shipping_line_name,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Order) Reset() {
@@ -1865,6 +1877,83 @@ func (x *Order) GetOriginLocationName() string {
 func (x *Order) GetDestinationLocationName() string {
 	if x != nil && x.DestinationLocationName != nil {
 		return *x.DestinationLocationName
+	}
+	return ""
+}
+
+func (x *Order) GetDischargeLocationName() string {
+	if x != nil && x.DischargeLocationName != nil {
+		return *x.DischargeLocationName
+	}
+	return ""
+}
+
+func (x *Order) GetTransitLocationName() string {
+	if x != nil && x.TransitLocationName != nil {
+		return *x.TransitLocationName
+	}
+	return ""
+}
+
+func (x *Order) GetBookingAgentName() string {
+	if x != nil && x.BookingAgentName != nil {
+		return *x.BookingAgentName
+	}
+	return ""
+}
+
+func (x *Order) GetForeignAgentName() string {
+	if x != nil && x.ForeignAgentName != nil {
+		return *x.ForeignAgentName
+	}
+	return ""
+}
+
+func (x *Order) GetShippingAgentName() string {
+	if x != nil && x.ShippingAgentName != nil {
+		return *x.ShippingAgentName
+	}
+	return ""
+}
+
+func (x *Order) GetOperatorName() string {
+	if x != nil && x.OperatorName != nil {
+		return *x.OperatorName
+	}
+	return ""
+}
+
+func (x *Order) GetOperatorBranch() string {
+	if x != nil && x.OperatorBranch != nil {
+		return *x.OperatorBranch
+	}
+	return ""
+}
+
+func (x *Order) GetSalesName() string {
+	if x != nil && x.SalesName != nil {
+		return *x.SalesName
+	}
+	return ""
+}
+
+func (x *Order) GetSalesBranch() string {
+	if x != nil && x.SalesBranch != nil {
+		return *x.SalesBranch
+	}
+	return ""
+}
+
+func (x *Order) GetCreatorName() string {
+	if x != nil && x.CreatorName != nil {
+		return *x.CreatorName
+	}
+	return ""
+}
+
+func (x *Order) GetShippingLineName() string {
+	if x != nil && x.ShippingLineName != nil {
+		return *x.ShippingLineName
 	}
 	return ""
 }
@@ -6461,7 +6550,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
 	"\vgroup_color\x18\x05 \x01(\tR\n" +
 	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x92,\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"\x8c2\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -6564,7 +6653,19 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12commission_summary\x18V \x01(\v2 .order.v1.OrderCommissionSummaryH:R\x11commissionSummary\x88\x01\x01\x12(\n" +
 	"\rcustomer_name\x18W \x01(\tH;R\fcustomerName\x88\x01\x01\x125\n" +
 	"\x14origin_location_name\x18X \x01(\tH<R\x12originLocationName\x88\x01\x01\x12?\n" +
-	"\x19destination_location_name\x18Y \x01(\tH=R\x17destinationLocationName\x88\x01\x01B\x13\n" +
+	"\x19destination_location_name\x18Y \x01(\tH=R\x17destinationLocationName\x88\x01\x01\x12;\n" +
+	"\x17discharge_location_name\x18Z \x01(\tH>R\x15dischargeLocationName\x88\x01\x01\x127\n" +
+	"\x15transit_location_name\x18[ \x01(\tH?R\x13transitLocationName\x88\x01\x01\x121\n" +
+	"\x12booking_agent_name\x18\\ \x01(\tH@R\x10bookingAgentName\x88\x01\x01\x121\n" +
+	"\x12foreign_agent_name\x18] \x01(\tHAR\x10foreignAgentName\x88\x01\x01\x123\n" +
+	"\x13shipping_agent_name\x18^ \x01(\tHBR\x11shippingAgentName\x88\x01\x01\x12(\n" +
+	"\roperator_name\x18_ \x01(\tHCR\foperatorName\x88\x01\x01\x12,\n" +
+	"\x0foperator_branch\x18` \x01(\tHDR\x0eoperatorBranch\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"sales_name\x18a \x01(\tHER\tsalesName\x88\x01\x01\x12&\n" +
+	"\fsales_branch\x18b \x01(\tHFR\vsalesBranch\x88\x01\x01\x12&\n" +
+	"\fcreator_name\x18c \x01(\tHGR\vcreatorName\x88\x01\x01\x121\n" +
+	"\x12shipping_line_name\x18d \x01(\tHHR\x10shippingLineName\x88\x01\x01B\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\r\n" +
 	"\v_trade_termB\x10\n" +
@@ -6631,7 +6732,18 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x13_commission_summaryB\x10\n" +
 	"\x0e_customer_nameB\x17\n" +
 	"\x15_origin_location_nameB\x1c\n" +
-	"\x1a_destination_location_nameJ\x04\b\x0f\x10\x10J\x04\b2\x103R\x12status_template_idR\rloading_terms\"z\n" +
+	"\x1a_destination_location_nameB\x1a\n" +
+	"\x18_discharge_location_nameB\x18\n" +
+	"\x16_transit_location_nameB\x15\n" +
+	"\x13_booking_agent_nameB\x15\n" +
+	"\x13_foreign_agent_nameB\x16\n" +
+	"\x14_shipping_agent_nameB\x10\n" +
+	"\x0e_operator_nameB\x12\n" +
+	"\x10_operator_branchB\r\n" +
+	"\v_sales_nameB\x0f\n" +
+	"\r_sales_branchB\x0f\n" +
+	"\r_creator_nameB\x15\n" +
+	"\x13_shipping_line_nameJ\x04\b\x0f\x10\x10J\x04\b2\x103R\x12status_template_idR\rloading_terms\"z\n" +
 	"\x15OrderCargoMeasurement\x12\x1a\n" +
 	"\bpackages\x18\x01 \x01(\x05R\bpackages\x12&\n" +
 	"\x0fgross_weight_kg\x18\x02 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +

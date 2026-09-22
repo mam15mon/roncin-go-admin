@@ -242,25 +242,91 @@ export default function OrderDetailPage() {
   };
 
   // 3. 复用与新建页 100% 相同的一套分节构建器（传入 isDetail: true）
+  // 服务端已把当前订单各引用的展示名随聚合返回；将其注入各候选项入口，
+  // 保证首批候选缺失时 Select 仍显示名称而非原始 ID（与 SeaCarrierField 同范式）。
+  const currentOption = (id?: string, name?: string) =>
+    id && name ? { label: name, value: id } : undefined;
+  const customerOption = currentOption(order?.customerId, order?.customerName);
+  const bookingAgentOption = currentOption(
+    order?.bookingAgentId,
+    order?.bookingAgentName,
+  );
+  const foreignAgentOption = currentOption(
+    order?.foreignAgentId,
+    order?.foreignAgentName,
+  );
+  const shippingAgentOption = currentOption(
+    order?.shippingAgentId,
+    order?.shippingAgentName,
+  );
+  const shippingLineOption = currentOption(
+    order?.shippingLineId,
+    order?.shippingLineName,
+  );
+  const locationSeedOptions = [
+    currentOption(order?.originLocationId, order?.originLocationName),
+    currentOption(order?.destinationLocationId, order?.destinationLocationName),
+    currentOption(order?.dischargeLocationId, order?.dischargeLocationName),
+    currentOption(order?.transitLocationId, order?.transitLocationName),
+  ].filter(
+    (option): option is { label: string; value: string } =>
+      option !== undefined &&
+      !locationOptions.some((item) => item.value === option.value),
+  );
+  const seededLocationOptions = [...locationOptions, ...locationSeedOptions];
+  const withSeededOptions = <
+    T extends { label: string; value: string | number },
+  >(
+    search: (keyword?: string) => Promise<T[]>,
+    seeds: Array<{ label: string; value: string | number }>,
+  ) => {
+    if (seeds.length === 0) return search;
+    return async (keyword?: string) => {
+      const options = await search(keyword);
+      const existing = new Set(options.map((item) => item.value));
+      const missing = seeds.filter((seed) => !existing.has(seed.value));
+      return [...(missing as T[]), ...options];
+    };
+  };
+  const customerSeeds = customerOption ? [customerOption] : [];
+  const bookingAgentSeeds = bookingAgentOption ? [bookingAgentOption] : [];
+  const foreignAgentSeeds = foreignAgentOption ? [foreignAgentOption] : [];
+  const shippingAgentSeeds = shippingAgentOption ? [shippingAgentOption] : [];
+  const shippingLineSeeds = shippingLineOption ? [shippingLineOption] : [];
   const templateProps = useMemo(
     () => ({
       serviceTypeOptions,
       cargoCategoryOptions,
-      locationOptions,
-      searchLocations,
+      locationOptions: seededLocationOptions,
+      searchLocations: withSeededOptions(searchLocations, locationSeedOptions),
       currencyOptions,
       containerSpecOptions,
       isDetail: true,
       organizationId: order?.organizationId,
-      searchCustomers: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
-      searchShippingLines: searchShippingLineOptions,
-      searchBookingAgents: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
-      searchForeignAgents: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
-      searchShippingAgents: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+      searchCustomers: withSeededOptions(
+        (keyword?: string) =>
+          searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
+        customerSeeds,
+      ),
+      searchShippingLines: withSeededOptions(
+        searchShippingLineOptions,
+        shippingLineSeeds,
+      ),
+      searchBookingAgents: withSeededOptions(
+        (keyword?: string) =>
+          searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+        bookingAgentSeeds,
+      ),
+      searchForeignAgents: withSeededOptions(
+        (keyword?: string) =>
+          searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
+        foreignAgentSeeds,
+      ),
+      searchShippingAgents: withSeededOptions(
+        (keyword?: string) =>
+          searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+        shippingAgentSeeds,
+      ),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       checkCustomerReferenceNo: async () => {},
@@ -272,13 +338,19 @@ export default function OrderDetailPage() {
     [
       serviceTypeOptions,
       cargoCategoryOptions,
-      locationOptions,
+      seededLocationOptions,
+      locationSeedOptions,
       searchLocations,
       currencyOptions,
       containerSpecOptions,
       personnelOptions,
       effectiveReadonly,
       order?.organizationId,
+      customerSeeds,
+      bookingAgentSeeds,
+      foreignAgentSeeds,
+      shippingAgentSeeds,
+      shippingLineSeeds,
       loadData,
     ],
   );

@@ -364,6 +364,18 @@ message Order {
   optional string customer_name = 87;
   optional string origin_location_name = 88;
   optional string destination_location_name = 89;
+  optional string discharge_location_name = 90;
+  optional string transit_location_name = 91;
+  optional string booking_agent_name = 92;
+  optional string foreign_agent_name = 93;
+  optional string shipping_agent_name = 94;
+  // 操作/业务/创建人名称与所属分支：来自订单人员分配（含停用用户），列表与详情展示共用。
+  optional string operator_name = 95;
+  optional string operator_branch = 96;
+  optional string sales_name = 97;
+  optional string sales_branch = 98;
+  optional string creator_name = 99;
+  optional string shipping_line_name = 100;
 }
 
 message OrderCargoMeasurement {

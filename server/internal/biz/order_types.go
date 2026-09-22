@@ -229,11 +229,22 @@ type Order struct {
 	OrganizationName string
 	OrderNo          string
 	CustomerID       uuid.UUID
-	// CustomerName / OriginLocationName / DestinationLocationName 为列表展示投影，
-	// 由仓储批量解析；缺失时为空字符串，前端不得回退展示原始 ID。
+	// 以下 *Name / *Branch 为用户可见展示投影，由仓储批量解析；缺失时为空字符串，
+	// 前端不得把原始 ID 展示给用户（ID 仅在数据层隐式传递用于排障）。
 	CustomerName            string
 	OriginLocationName      string
 	DestinationLocationName string
+	DischargeLocationName   string
+	TransitLocationName     string
+	BookingAgentName        string
+	ForeignAgentName        string
+	ShippingAgentName       string
+	OperatorName            string
+	OperatorBranch          string
+	SalesName               string
+	SalesBranch             string
+	CreatorName             string
+	ShippingLineName        string
 	CustomerReferenceNo     string
 	InternalReferenceNo     string
 	ShipperShortName        string

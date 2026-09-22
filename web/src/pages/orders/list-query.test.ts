@@ -191,6 +191,40 @@ describe('queryOrderList', () => {
     ).toBe(false);
   });
 
+  it('人员三列映射服务端投影名称，未分配时为空由模板渲染占位', async () => {
+    listOrdersMock.mockResolvedValue({
+      data: [
+        {
+          id: 'order-1',
+          orderNo: 'SE-001',
+          flowStatus: 2,
+          operatorName: '张强',
+          operatorBranch: '上海分公司',
+          salesName: '王丽',
+          creatorName: '李明',
+        },
+        { id: 'order-2', orderNo: 'SE-002', flowStatus: 2 },
+      ],
+      total: 2,
+      success: true,
+    });
+
+    const result = await queryOrderList(
+      { page: 1, pageSize: 20 },
+      seaExportDefinition,
+      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+    );
+
+    const [assigned, unassigned] = result.data;
+    expect(assigned.operatorName).toBe('张强');
+    expect(assigned.operatorBranch).toBe('上海分公司');
+    expect(assigned.salesName).toBe('王丽');
+    expect(assigned.creatorName).toBe('李明');
+    expect(unassigned.operatorName).toBeUndefined();
+    expect(unassigned.salesName).toBeUndefined();
+    expect(unassigned.creatorName).toBeUndefined();
+  });
+
   it('业务类型列展示注册定义的导航标题而非页面主标题', async () => {
     listOrdersMock.mockResolvedValue({ data: [], total: 0, success: true });
 

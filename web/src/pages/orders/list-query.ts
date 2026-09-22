@@ -155,6 +155,12 @@ export async function queryOrderList(
       contractNo: order.contractNo,
       shipperName: order.shipperShortName,
       consigneeName: order.consigneeShortName,
+      // 人员名称同样来自服务端投影；未分配时保持 undefined，由模板渲染 '-'。
+      operatorName: order.operatorName || undefined,
+      operatorBranch: order.operatorBranch || undefined,
+      salesName: order.salesName || undefined,
+      salesBranch: order.salesBranch || undefined,
+      creatorName: order.creatorName || undefined,
       lockedAt: order.lockedAt,
       isLocked: Boolean(order.lockedAt),
       tags: order.tags,

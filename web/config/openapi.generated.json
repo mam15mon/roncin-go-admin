@@ -28045,6 +28045,40 @@
           },
           "destinationLocationName": {
             "type": "string"
+          },
+          "dischargeLocationName": {
+            "type": "string"
+          },
+          "transitLocationName": {
+            "type": "string"
+          },
+          "bookingAgentName": {
+            "type": "string"
+          },
+          "foreignAgentName": {
+            "type": "string"
+          },
+          "shippingAgentName": {
+            "type": "string"
+          },
+          "operatorName": {
+            "type": "string",
+            "description": "操作/业务/创建人名称与所属分支：来自订单人员分配（含停用用户），列表与详情展示共用。"
+          },
+          "operatorBranch": {
+            "type": "string"
+          },
+          "salesName": {
+            "type": "string"
+          },
+          "salesBranch": {
+            "type": "string"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "shippingLineName": {
+            "type": "string"
           }
         }
       },

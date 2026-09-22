@@ -17,6 +17,7 @@ import (
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	entpredicate "github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -33,7 +34,11 @@ func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
-	return orderToBiz(item), nil
+	result := orderToBiz(item)
+	if err := attachOrderDisplayNames(ctx, client, []*biz.Order{result}); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *orderRepo) FindAuthorized(ctx context.Context, id uuid.UUID, scopes []biz.OrderOrganizationScope) (*biz.Order, error) {
@@ -45,7 +50,11 @@ func (r *orderRepo) FindAuthorized(ctx context.Context, id uuid.UUID, scopes []b
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
-	return orderToBiz(item), nil
+	result := orderToBiz(item)
+	if err := attachOrderDisplayNames(ctx, client, []*biz.Order{result}); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScope, options biz.OrderListOptions) (*biz.OrderList, error) {
@@ -165,17 +174,17 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 	if err != nil {
 		return nil, err
 	}
-	if err := attachOrderLocationNames(ctx, client, result.Items); err != nil {
+	if err := attachOrderDisplayNames(ctx, client, result.Items); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-// attachOrderLocationNames 批量解析订单起运/目的地点展示名；地点为港口/机场公共资料，
-// 每页最多两次 IN 查询补齐投影，避免前端本地候选缓存缺项时把原始 ID 当名称展示。
-func attachOrderLocationNames(ctx context.Context, client *ent.Client, orders []*biz.Order) error {
-	locationIDs := make([]uuid.UUID, 0, len(orders)*2)
-	seen := make(map[uuid.UUID]struct{}, len(orders)*2)
+// attachOrderDisplayNames 为订单投影批量解析地点（港口/机场）与代理（客商）展示名，
+// 每类一次 IN 查询；详情与列表共用，保证用户可见位置不出现原始 ID。
+func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*biz.Order) error {
+	locationIDs := make([]uuid.UUID, 0, len(orders)*4)
+	seen := make(map[uuid.UUID]struct{}, len(orders)*4)
 	appendID := func(id *uuid.UUID) {
 		if id == nil {
 			return
@@ -186,48 +195,89 @@ func attachOrderLocationNames(ctx context.Context, client *ent.Client, orders []
 		seen[*id] = struct{}{}
 		locationIDs = append(locationIDs, *id)
 	}
+	partnerIDs := make([]uuid.UUID, 0, len(orders)*3)
+	seenPartner := make(map[uuid.UUID]struct{}, len(orders)*3)
+	appendPartnerID := func(id *uuid.UUID) {
+		if id == nil {
+			return
+		}
+		if _, exists := seenPartner[*id]; exists {
+			return
+		}
+		seenPartner[*id] = struct{}{}
+		partnerIDs = append(partnerIDs, *id)
+	}
 	for _, order := range orders {
 		appendID(order.OriginLocationID)
 		appendID(order.DestinationLocationID)
+		appendID(order.DischargeLocationID)
+		appendID(order.TransitLocationID)
+		appendPartnerID(order.BookingAgentID)
+		appendPartnerID(order.ForeignAgentID)
+		appendPartnerID(order.ShippingAgentID)
 	}
-	if len(locationIDs) == 0 {
-		return nil
-	}
-	ports, err := client.Port.Query().Where(portent.IDIn(locationIDs...)).All(ctx)
-	if err != nil {
-		return err
-	}
-	airports, err := client.Airport.Query().Where(airportent.IDIn(locationIDs...)).All(ctx)
-	if err != nil {
-		return err
-	}
-	names := make(map[uuid.UUID]string, len(ports)+len(airports))
-	for _, p := range ports {
-		name := p.NameEn
-		if p.NameZh != nil && *p.NameZh != "" {
-			name = *p.NameZh
+	locationNames := make(map[uuid.UUID]string)
+	if len(locationIDs) > 0 {
+		ports, err := client.Port.Query().Where(portent.IDIn(locationIDs...)).All(ctx)
+		if err != nil {
+			return err
 		}
-		if p.UnLocode != "" {
-			name = name + " (" + p.UnLocode + ")"
+		airports, err := client.Airport.Query().Where(airportent.IDIn(locationIDs...)).All(ctx)
+		if err != nil {
+			return err
 		}
-		names[p.ID] = name
+		for _, p := range ports {
+			name := p.NameEn
+			if p.NameZh != nil && *p.NameZh != "" {
+				name = *p.NameZh
+			}
+			if p.UnLocode != "" {
+				name = name + " (" + p.UnLocode + ")"
+			}
+			locationNames[p.ID] = name
+		}
+		for _, a := range airports {
+			name := a.NameEn
+			if a.NameZh != nil && *a.NameZh != "" {
+				name = *a.NameZh
+			}
+			if a.IataCode != "" {
+				name = name + " (" + a.IataCode + ")"
+			}
+			locationNames[a.ID] = name
+		}
 	}
-	for _, a := range airports {
-		name := a.NameEn
-		if a.NameZh != nil && *a.NameZh != "" {
-			name = *a.NameZh
+	partnerNames := make(map[uuid.UUID]string)
+	if len(partnerIDs) > 0 {
+		agents, err := client.Partner.Query().Where(partnerent.IDIn(partnerIDs...)).All(ctx)
+		if err != nil {
+			return err
 		}
-		if a.IataCode != "" {
-			name = name + " (" + a.IataCode + ")"
+		for _, agent := range agents {
+			partnerNames[agent.ID] = agent.LegalName
 		}
-		names[a.ID] = name
 	}
 	for _, order := range orders {
 		if order.OriginLocationID != nil {
-			order.OriginLocationName = names[*order.OriginLocationID]
+			order.OriginLocationName = locationNames[*order.OriginLocationID]
 		}
 		if order.DestinationLocationID != nil {
-			order.DestinationLocationName = names[*order.DestinationLocationID]
+			order.DestinationLocationName = locationNames[*order.DestinationLocationID]
+		}
+		if order.DischargeLocationID != nil {
+			order.DischargeLocationName = locationNames[*order.DischargeLocationID]
+		}
+		if order.TransitLocationID != nil {
+			order.TransitLocationName = locationNames[*order.TransitLocationID]
+		}
+		if order.BookingAgentID != nil {
+			order.BookingAgentName = partnerNames[*order.BookingAgentID]
+		}
+		if order.ForeignAgentID != nil {
+			order.ForeignAgentName = partnerNames[*order.ForeignAgentID]
+		}
+		if order.ShippingAgentID != nil {
+			order.ShippingAgentName = partnerNames[*order.ShippingAgentID]
 		}
 	}
 	return nil

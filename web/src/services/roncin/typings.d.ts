@@ -4704,6 +4704,18 @@ declare namespace API {
     customerName?: string;
     originLocationName?: string;
     destinationLocationName?: string;
+    dischargeLocationName?: string;
+    transitLocationName?: string;
+    bookingAgentName?: string;
+    foreignAgentName?: string;
+    shippingAgentName?: string;
+    /** 操作/业务/创建人名称与所属分支：来自订单人员分配（含停用用户），列表与详情展示共用。 */
+    operatorName?: string;
+    operatorBranch?: string;
+    salesName?: string;
+    salesBranch?: string;
+    creatorName?: string;
+    shippingLineName?: string;
   };
 
   type OrderAbnormalCase = {

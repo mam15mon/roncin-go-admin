@@ -10,6 +10,7 @@ import (
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
+	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
@@ -18,6 +19,11 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 	return query.
 		WithOrganization().
 		WithCustomer().
+		WithShippingLine().
+		WithPersonnel(func(q *ent.OrderPersonnelQuery) {
+			q.WithUser()
+			q.WithOrganization()
+		}).
 		WithServiceTypes(func(q *ent.OrderServiceTypeQuery) { q.Order(orderserviceent.ByCreatedAt()) }).
 		WithCargoCategories(func(q *ent.OrderCargoCategoryQuery) { q.Order(ordercargoent.ByCreatedAt()) }).
 		WithShippingDocuments(func(q *ent.OrderShippingDocumentQuery) {
@@ -61,6 +67,29 @@ func orderToBiz(item *ent.Order) *biz.Order {
 	// 客户名称来自预加载边；仅列表/详情查询经 withOrderEdges 预载，未预载时保持空投影。
 	if item.Edges.Customer != nil {
 		result.CustomerName = item.Edges.Customer.LegalName
+	}
+	if item.Edges.ShippingLine != nil {
+		result.ShippingLineName = item.Edges.ShippingLine.NameZh
+	}
+	// 人员展示投影：操作/业务/创建人名称与分配时所属分支，停用用户也如实展示。
+	for _, assignment := range item.Edges.Personnel {
+		if assignment.Edges.User == nil {
+			continue
+		}
+		branch := ""
+		if assignment.Edges.Organization != nil {
+			branch = assignment.Edges.Organization.Name
+		}
+		switch assignment.Role {
+		case orderpersonnelent.RoleOPERATOR:
+			result.OperatorName = assignment.Edges.User.DisplayName
+			result.OperatorBranch = branch
+		case orderpersonnelent.RoleSALES:
+			result.SalesName = assignment.Edges.User.DisplayName
+			result.SalesBranch = branch
+		case orderpersonnelent.RoleCREATOR:
+			result.CreatorName = assignment.Edges.User.DisplayName
+		}
 	}
 	if item.ShipmentType != nil {
 		value := biz.OrderShipmentType(*item.ShipmentType)
