@@ -9,7 +9,6 @@ import {
   LockOutlined,
   NodeIndexOutlined,
   PaperClipOutlined,
-  SwapOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
@@ -49,7 +48,6 @@ export function OrderListTemplate({
   onOpenPersonnel,
   onOpenConsolidations,
   onOpenAbnormal,
-  onTransitionStatus,
   options,
   readonly = false,
   showManageTags = true,
@@ -514,15 +512,6 @@ export function OrderListTemplate({
                     label: '异常情况登记',
                     onClick: () => onOpenAbnormal?.(record),
                   },
-                  {
-                    type: 'divider',
-                  },
-                  {
-                    key: 'status',
-                    icon: <SwapOutlined />,
-                    label: '流转状态',
-                    onClick: () => onTransitionStatus?.(record),
-                  },
                 ],
               }}
             >
@@ -548,7 +537,6 @@ export function OrderListTemplate({
       onOpenPersonnel,
       onOpenConsolidations,
       onOpenAbnormal,
-      onTransitionStatus,
       readonly,
     ],
   );

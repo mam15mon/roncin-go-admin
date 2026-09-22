@@ -300,7 +300,7 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 	if err != nil {
 		return nil, err
 	}
-	// 更新草稿更换/设定委托客户时同样执行直接干预拦截；口径与创建路径一致。
+	// 更新订单更换/设定委托客户时同样执行直接干预拦截；口径与创建路径一致。
 	if err := uc.creditControl.EnsurePartnerSelectionAllowed(ctx, organizationID, normalized.CustomerID); err != nil {
 		return nil, err
 	}
@@ -504,7 +504,7 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 
 // validateOrderCommissionPersonnel 校验订单人员是否覆盖销售/操作/客服三岗，
 // 缺失岗位按固定顺序收集并构造缺岗错误；三岗齐全返回 nil。仅创建路径调用，
-// 草稿更新不携带人员字段，不施加该校验。
+// 订单更新不携带人员字段，不施加该校验。
 func validateOrderCommissionPersonnel(assignments []*OrderPersonnel) error {
 	covered := make(map[OrderPersonnelRole]struct{}, len(assignments))
 	for _, assignment := range assignments {

@@ -92,8 +92,8 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
   ];
 
   return {
-    key: 'internalInfo',
-    title: '内部信息',
+    key: 'internalPersonnel',
+    title: '内部人员',
     content: (
       <FormRow cols={4}>
         <PersonnelAssignmentFields

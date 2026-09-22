@@ -1,70 +1,11 @@
-import {
-  DownloadOutlined,
-  SaveOutlined,
-  SwapOutlined,
-} from '@ant-design/icons';
-import {
-  ProFormDigit,
-  ProFormSelect,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Checkbox,
-  Col,
-  Form,
-  Modal,
-  Radio,
-  Row,
-  Segmented,
-  Space,
-  Table,
-  Tabs,
-  Tag,
-  Typography,
-} from 'antd';
-import { createStyles } from 'antd-style';
-import dayjs from 'dayjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useAccess } from '@/app/access';
-import {
-  FormRow,
-  PackageCountInput,
-  ProFormSearchableSelect,
-} from '@/components/ui';
+import { Alert, Form, Radio, Space, Table, Tag } from 'antd';
+import React, { useEffect, useRef } from 'react';
 
 import {
-  OrderBusinessType,
-  OrderReleasePodStatus,
   SeaDocumentStructure,
-  SeaDocumentType,
   SeaHouseBillIssuerSource,
-  SeaHouseBillStatus,
 } from '@/enums.generated';
-import { searchPartnerOptions } from '@/features/partners';
-import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
-import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
-import {
-  seaDocumentServiceExecuteChangeSeaDocumentMode,
-  seaDocumentServiceGetSeaOrderDocuments,
-  seaDocumentServicePreviewChangeSeaDocumentMode,
-  seaDocumentServiceUpdateSeaHouseBill,
-  seaDocumentServiceUpdateSeaMasterBillContent,
-} from '@/services/roncin/seaDocumentService';
-import { generateUUID } from '@/utils/uuid';
-import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
-import type { TemplateProps, TemplateSection } from '../../types';
-import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
-import SeaExternalConfirmationFields, {
-  buildSeaExternalConfirmation,
-  type SeaExternalConfirmationFormValues,
-} from './SeaExternalConfirmationFields';
-
-const { Text } = Typography;
+import type { SeaExternalConfirmationFormValues } from './SeaExternalConfirmationFields';
 
 import {
   DEFAULT_FREIGHT_TERMS,
@@ -198,16 +139,19 @@ export function SeaCreateDocumentModeField({
     });
 
     if (nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
-      form.setFieldValue('seaHouseBill', {
-        content: {
-          transportTerms: DEFAULT_TRANSPORT_TERMS,
-          freightTerms: DEFAULT_FREIGHT_TERMS,
-          ...cargoDefaults,
-        },
-      });
-    } else {
-      form.setFieldValue('seaHouseBill', undefined);
+      // 仅在尚未录入 HBL 时初始化默认内容；DIRECT 切回保留用户已填草稿。
+      if (!form.getFieldValue('seaHouseBill')) {
+        form.setFieldValue('seaHouseBill', {
+          content: {
+            transportTerms: DEFAULT_TRANSPORT_TERMS,
+            freightTerms: DEFAULT_FREIGHT_TERMS,
+            ...cargoDefaults,
+          },
+        });
+      }
     }
+    // DIRECT 下不清理 seaHouseBill：页签卸载使校验规则不注册，
+    // 提交载荷由 form-adapter 按当前模式过滤，草稿值原样保留待切回。
   };
 
   // 全员分单制下新建默认 HOUSE：初始渲染不经过 onChange 联动，这里补一次

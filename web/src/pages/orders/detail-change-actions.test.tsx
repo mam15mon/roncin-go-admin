@@ -8,7 +8,7 @@ import {
 import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderAllowedAction } from '@/enums.generated';
+import { OrderAllowedAction, OrderFlowStatus } from '@/enums.generated';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
 import OrderDetailPage from './detail';
 
@@ -62,6 +62,7 @@ vi.mock('./use-order-detail-data', () => ({
             id: orderId,
             orderNo: `ORDER-${orderId}`,
             version: '1',
+            flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
             customerReferenceNo: detailTestState.customerReferenceNo,
             allowedActions: detailTestState.allowedActions,
           }
@@ -266,7 +267,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
     },
   );
 
-  it('有编辑动作且未锁单时模板与分节均可编辑', async () => {
+  it('已订舱订单有编辑动作且未锁单时模板与分节均可编辑', async () => {
     mockGetChangeActions.mockResolvedValue({ data: {} } as never);
 
     render(

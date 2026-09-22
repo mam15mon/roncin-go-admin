@@ -21,6 +21,7 @@ import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import OrderPageHeader from './components/OrderPageHeader';
 import { getOrderKindDefinition } from './order-kinds/registry';
 import type { CreateOrderFormValues } from './order-kinds/sea-export/form-adapter';
+import { revealSeaFormErrors } from './templates';
 import { useOrderCreateOptions } from './use-order-create-options';
 
 export default function NewOrderPage() {
@@ -224,13 +225,23 @@ export default function NewOrderPage() {
   const handleFinish = async (values: CreateOrderFormValues) => {
     setSubmitting(true);
     try {
-      await orderServiceCreateOrder({
+      const response = await orderServiceCreateOrder({
         ...definition.form.buildCreatePayload(values),
         idempotencyKey: createIdempotencyKeyRef.current,
       });
+      // 创建结果必须以服务端返回的订单 ID 为准；空响应或缺失 ID 时
+      // 不提示成功、不跳转、不轮换幂等键，保留表单供同键重试确认，
+      // 避免响应丢失时重复建单。
+      const createdId = response?.data?.id;
+      if (!createdId) {
+        message.error(
+          '服务端未返回订单编号，创建结果待确认；表单已保留，请再次点击创建订单确认（不会重复建单）',
+        );
+        return false;
+      }
       createIdempotencyKeyRef.current = generateUUID();
       message.success('创建订单成功');
-      history.push(`/orders/${definition.kind}`);
+      history.push(`/orders/${definition.kind}/${createdId}`);
       return true;
     } catch (error: unknown) {
       const err = error as Error;
@@ -284,6 +295,7 @@ export default function NewOrderPage() {
         cargoCategoryOptions,
       })}
       onFinish={handleFinish}
+      onRevealError={({ errorFields }) => revealSeaFormErrors(errorFields)}
       submitter={false}
     />
   );

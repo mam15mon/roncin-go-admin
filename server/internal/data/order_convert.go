@@ -9,8 +9,8 @@ import (
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
-	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
@@ -181,7 +181,7 @@ func orderAllowedActions(order *biz.Order) []biz.OrderAllowedAction {
 	}
 	result := make([]biz.OrderAllowedAction, 0, 4)
 	if order.TerminationStatus == biz.OrderTerminationActive {
-		if order.FlowStatus == biz.OrderFlowDraft {
+		if order.ClosureStatus == biz.OrderClosureOpen && order.LockedAt == nil {
 			result = append(result, biz.OrderActionEdit)
 		}
 		if order.FlowStatus != biz.OrderFlowDocumentReleased {

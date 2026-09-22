@@ -1,41 +1,22 @@
-import {
-  DownloadOutlined,
-  SaveOutlined,
-  SwapOutlined,
-} from '@ant-design/icons';
-import {
-  ProFormDigit,
-  ProFormSelect,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { SaveOutlined, SwapOutlined } from '@ant-design/icons';
+import { ProFormTextArea } from '@ant-design/pro-components';
 import {
   Alert,
   App,
   Button,
   Card,
-  Checkbox,
   Col,
   Form,
   Modal,
-  Radio,
   Row,
-  Segmented,
   Space,
-  Table,
   Tabs,
   Tag,
   Typography,
 } from 'antd';
-import { createStyles } from 'antd-style';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-import {
-  FormRow,
-  PackageCountInput,
-  ProFormSearchableSelect,
-} from '@/components/ui';
 
 import {
   OrderBusinessType,
@@ -43,11 +24,8 @@ import {
   SeaDocumentStructure,
   SeaDocumentType,
   SeaHouseBillIssuerSource,
-  SeaHouseBillStatus,
 } from '@/enums.generated';
-import { searchPartnerOptions } from '@/features/partners';
 import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
-import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
@@ -57,11 +35,11 @@ import {
 } from '@/services/roncin/seaDocumentService';
 import { generateUUID } from '@/utils/uuid';
 import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
+import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
 import type { TemplateProps, TemplateSection } from '../../types';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
 import SeaExternalConfirmationFields, {
   buildSeaExternalConfirmation,
-  type SeaExternalConfirmationFormValues,
 } from './SeaExternalConfirmationFields';
 
 const { Text } = Typography;
@@ -77,18 +55,10 @@ import {
   isDocumentStructure,
   type ModeChangeFormValues,
   ModeChangePreviewResult,
-  SeaCreateDocumentModeField,
 } from './SeaCreateDocumentModeField';
 import {
-  DEFAULT_BILL_FORM,
   DEFAULT_FREIGHT_TERMS,
-  DEFAULT_RELEASE_TYPE,
   DEFAULT_TRANSPORT_TERMS,
-  SEA_BILL_FORM_OPTIONS,
-  SEA_DOCUMENT_CONTENT_FIELDS,
-  SEA_FREIGHT_TERM_OPTIONS,
-  SEA_RELEASE_TYPE_OPTIONS,
-  SEA_TRANSPORT_TERM_OPTIONS,
 } from './seaDocumentSectionConstants';
 
 export {
@@ -313,6 +283,22 @@ export function SeaDocumentSectionComponent({
       setActiveTabKey('mbl');
   }, [docStructure]);
 
+  // 提交校验失败前置链路：按首个错误字段把对应提单页签切到前台，
+  // 保证从未打开过的页签字段也能被滚动定位（页签 forceRender 常驻注册）。
+  useEffect(
+    () =>
+      onSeaFormErrorReveal((fields) => {
+        const [firstField] = fields;
+        if (!firstField) return;
+        if (firstField.name[0] === 'seaHouseBill') {
+          setActiveTabKey('hbl');
+        } else if (firstField.name[0] === 'seaMasterBillContent') {
+          setActiveTabKey('mbl');
+        }
+      }),
+    [],
+  );
+
   useEffect(() => {
     const handleChanged = (event: Event) => {
       const changedOrderId = (event as CustomEvent<{ orderId?: string }>).detail
@@ -524,16 +510,6 @@ export function SeaDocumentSectionComponent({
     }
   };
 
-  const renderStructureTag = () => {
-    if (docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT) {
-      return <Tag color="success">仅船公司主单（DIRECT）</Tag>;
-    }
-    if (docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
-      return <Tag color="processing">有货代分单（HOUSE）</Tag>;
-    }
-    return <Tag>请选择提单模式</Tag>;
-  };
-
   const masterBillTab = {
     key: 'mbl',
     label: (
@@ -597,6 +573,8 @@ export function SeaDocumentSectionComponent({
         <SeaBillContentFormFields
           namePathPrefix={['seaMasterBillContent']}
           disabled={disabled || mblDetail?.status === 'VOIDED'}
+          showCargoMeasurements={false}
+          measurementsTitle="MBL 实际件重尺"
         />
         {renderReleasePods(
           relatedReleasePods(
@@ -697,6 +675,7 @@ export function SeaDocumentSectionComponent({
           <SeaBillContentFormFields
             namePathPrefix={['seaHouseBill', 'content']}
             disabled={disabled || isTerminalHouseBill(houseBill?.status)}
+            showCargoMeasurements={false}
           />
         </div>
         {renderReleasePods(
@@ -732,6 +711,19 @@ export function SeaDocumentSectionComponent({
       !fetchError,
   );
 
+  const renderModeSwitchButton = () =>
+    canChangeMode ? (
+      <Button
+        icon={<SwapOutlined />}
+        disabled={!modeChangeReady}
+        onClick={openModeChange}
+      >
+        {docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+          ? '切换为仅船公司主单（DIRECT）'
+          : '切换为有货代分单（HOUSE）'}
+      </Button>
+    ) : null;
+
   return (
     <Col span={24}>
       {fetchError ? (
@@ -744,81 +736,40 @@ export function SeaDocumentSectionComponent({
         />
       ) : null}
 
-      <Card
-        size="small"
-        variant="outlined"
-        style={{ marginBottom: 16, borderColor: '#f0f0f0' }}
-      >
-        {isDetail ? (
-          <Row justify="space-between" align="middle" gutter={[12, 12]}>
-            <Col>
-              <Space size="middle">
-                <Text strong>提单模式：</Text>
-                {renderStructureTag()}
-                {linkVersion !== '0' ? (
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    (单证版本 v{linkVersion})
-                  </Text>
-                ) : null}
-              </Space>
-            </Col>
-            <Col>
-              {canChangeMode ? (
-                <Button
-                  icon={<SwapOutlined />}
-                  disabled={!modeChangeReady}
-                  onClick={openModeChange}
-                >
-                  {docStructure ===
-                  SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-                    ? '切换为仅船公司主单（DIRECT）'
-                    : '切换为有货代分单（HOUSE）'}
-                </Button>
-              ) : null}
-            </Col>
-          </Row>
-        ) : (
-          <SeaCreateDocumentModeField
-            disabled={disabled}
-            onModeChange={(nextMode) => {
-              setLoadedStructure(nextMode);
-              setActiveTabKey(
-                nextMode === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-                  ? 'hbl'
-                  : 'mbl',
-              );
-            }}
-          />
-        )}
-
-        {docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT ? (
-          <Alert
-            style={{ marginTop: 12 }}
-            type="info"
-            showIcon
-            title="仅船公司主单（DIRECT）"
-            description="直接使用船公司主单，无需填写分单。"
-          />
-        ) : null}
-        {!isDetail && !docStructure ? (
-          <Alert
-            style={{ marginTop: 12 }}
-            type="warning"
-            showIcon
-            title="请先选择提单模式"
-            description="HOUSE 必须随订单提交唯一 HBL；DIRECT 不提交 HBL。"
-          />
-        ) : null}
-      </Card>
+      {!isDetail && !docStructure ? (
+        <Alert
+          style={{ marginBottom: 16 }}
+          type="warning"
+          showIcon
+          title="请先选择提单模式"
+          description="HOUSE 必须随订单提交唯一 HBL；DIRECT 不提交 HBL。"
+        />
+      ) : null}
 
       <Tabs
         type="card"
         activeKey={activeTabKey}
         onChange={setActiveTabKey}
+        tabBarExtraContent={
+          isDetail
+            ? {
+                right: (
+                  <Space size="middle">
+                    {linkVersion !== '0' ? (
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        单证版本 v{linkVersion}
+                      </Text>
+                    ) : null}
+                    {renderModeSwitchButton()}
+                  </Space>
+                ),
+              }
+            : undefined
+        }
         items={[
-          masterBillTab,
+          { ...masterBillTab, forceRender: true },
           ...(docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-            ? [houseBillTab]
+            ? [{ ...houseBillTab, forceRender: true }]
             : []),
         ]}
       />
@@ -934,7 +885,7 @@ export function SeaDocumentSectionComponent({
 
 export function buildSeaDocumentSection(props: TemplateProps): TemplateSection {
   return {
-    key: 'sea-document',
+    key: 'seaDocument',
     title: '提单信息',
     content: (
       <SeaDocumentSectionComponent

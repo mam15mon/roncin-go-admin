@@ -2,6 +2,7 @@ import type { MenuProps } from 'antd';
 import type React from 'react';
 import type { OrderBusinessType, TradeDirection } from '@/enums.generated';
 import type { OrderPermissionOperation } from '@/permissions.generated';
+import type { OrderRecordTab } from '../components/detail/OrderAuditTimelineSection';
 import type {
   SelectOption,
   TemplateProps,
@@ -83,8 +84,8 @@ export interface OrderDetailFeatureContribution {
   headerActions?: React.ReactNode;
   /** 置于通用更多菜单项之前的菜单项。 */
   moreMenuItems?: MenuProps['items'];
-  /** 置于通用审计时间线之前的后置区块。 */
-  appendSections?: TemplateSection[];
+  /** 追加到「关联与记录」卡片操作记录之后的记录页签。 */
+  appendTabs?: OrderRecordTab[];
   /** 与通用费用、异常、放货面板并列挂载的覆盖层。 */
   overlays?: React.ReactNode;
   /** 锁状态同步或类型专属成功回调使用的普通刷新命令。 */

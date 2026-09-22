@@ -1,8 +1,8 @@
 import { LinkOutlined } from '@ant-design/icons';
-import { history } from '@/router/history';
 import { Alert, Button, Empty, Skeleton, Space, Table, Tag } from 'antd';
 import { useEffect, useState } from 'react';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
+import { history } from '@/router/history';
 import { orderServiceListSameBatchOrders } from '@/services/roncin/orderService';
 
 const matchSourceLabels: Record<string, string> = {
@@ -14,12 +14,18 @@ const matchSourceLabels: Record<string, string> = {
 type SameBatchOrdersSectionProps = {
   orderId: string;
   orderKind: string;
+  /**
+   * 向「关联与记录」页签角标暴露准确数量：加载中与失败时上报 undefined
+   * （不显示数字），成功时上报去重并排除当前订单后的结果条数。
+   */
+  onCountChange?: (count: number | undefined) => void;
 };
 
 /** 展示由客户业务号、订舱号或真实 MBL 关系命中的同批订单。 */
 export default function SameBatchOrdersSection({
   orderId,
   orderKind,
+  onCountChange,
 }: SameBatchOrdersSectionProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,29 +35,31 @@ export default function SameBatchOrdersSection({
     let active = true;
     setLoading(true);
     setError('');
+    onCountChange?.(undefined);
 
     orderServiceListSameBatchOrders({ id: orderId })
       .then((response) => {
         if (!active) return;
         const seen = new Set<string>();
-        setOrders(
-          (response.data ?? []).filter((item) => {
-            if (
-              !item.orderId ||
-              item.orderId === orderId ||
-              seen.has(item.orderId)
-            ) {
-              return false;
-            }
-            seen.add(item.orderId);
-            return true;
-          }),
-        );
+        const deduped = (response.data ?? []).filter((item) => {
+          if (
+            !item.orderId ||
+            item.orderId === orderId ||
+            seen.has(item.orderId)
+          ) {
+            return false;
+          }
+          seen.add(item.orderId);
+          return true;
+        });
+        setOrders(deduped);
+        onCountChange?.(deduped.length);
       })
       .catch((reason: unknown) => {
         if (!active) return;
         setOrders([]);
         setError(reason instanceof Error ? reason.message : '同批订单加载失败');
+        onCountChange?.(undefined);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -60,7 +68,7 @@ export default function SameBatchOrdersSection({
     return () => {
       active = false;
     };
-  }, [orderId]);
+  }, [orderId, onCountChange]);
 
   if (loading) return <Skeleton active paragraph={{ rows: 2 }} />;
   if (error) return <Alert type="warning" showIcon title={error} />;

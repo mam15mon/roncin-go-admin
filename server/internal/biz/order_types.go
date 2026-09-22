@@ -316,7 +316,7 @@ type Order struct {
 	PersonnelAssignments    []*OrderPersonnel
 	ShippingDocuments       []*OrderShippingDocument
 	ContainerRequests       []*OrderContainerRequest
-	// IdempotencyKey 为请求幂等键（创建/草稿更新可选输入，传入即启用幂等）；
+	// IdempotencyKey 为请求幂等键（创建/订单更新可选输入，传入即启用幂等）；
 	// 读取路径同时承载落库的最新键，供重放意图比对使用。
 	IdempotencyKey         string
 	SeaMasterBill          *SeaMasterBillSummary

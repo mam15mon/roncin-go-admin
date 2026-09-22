@@ -150,6 +150,30 @@ func TestReadOnlyResourceDoesNotExposeLockOrOrderActions(t *testing.T) {
 	}
 }
 
+func TestOrderActionsFiltersEditByUpdatePermissionAndWorkspace(t *testing.T) {
+	updatePermission := access.OrderPermission(access.OrderBusinessSE, access.OrderUpdate)
+	principal := companyPrincipal(updatePermission)
+	order := &Order{
+		OrganizationID: principal.Organization.ID,
+		BusinessType:   OrderBusinessSE,
+		AllowedActions: []OrderAllowedAction{OrderActionEdit},
+	}
+	if actions := principal.OrderActions(order); !slices.Equal(actions, []OrderAllowedAction{OrderActionEdit}) {
+		t.Fatalf("本公司具备更新权限时应保留 EDIT，实际: %v", actions)
+	}
+
+	principal.RoleGrants = nil
+	if actions := principal.OrderActions(order); len(actions) != 0 {
+		t.Fatalf("缺少订单更新权限时不应暴露 EDIT，实际: %v", actions)
+	}
+
+	principal = companyPrincipal(updatePermission)
+	order.OrganizationID = uuid.New()
+	if actions := principal.OrderActions(order); len(actions) != 0 {
+		t.Fatalf("非当前可写组织范围不应暴露 EDIT，实际: %v", actions)
+	}
+}
+
 type workspaceTaskRepo struct {
 	BackgroundTaskRepo
 	kind   BackgroundTaskKind

@@ -37,6 +37,7 @@ vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOrder: (_businessType: number | string, operation: string) =>
       operation === 'create' ? accessControl.canCreate : true,
+    canOperateOrganization: () => true,
   }),
 }));
 

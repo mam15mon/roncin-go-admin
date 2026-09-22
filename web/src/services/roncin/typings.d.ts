@@ -8436,8 +8436,8 @@ declare namespace API {
     seaMasterBill?: SeaMasterBillInput;
     seaDocument?: SeaOrderDocumentInput;
     bookingNo?: string;
-    /** idempotency_key 草稿更新幂等键：可选，传入即启用；同键 + 同 expected_version
- 的重放返回当前草稿，否则走既有乐观锁冲突。 */
+    /** idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version
+ 的重放返回当前订单，否则走既有乐观锁冲突。 */
     idempotencyKey?: string;
   };
 

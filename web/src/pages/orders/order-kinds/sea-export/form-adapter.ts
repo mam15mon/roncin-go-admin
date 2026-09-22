@@ -3,6 +3,7 @@ import {
   ContainerOwnership,
   OrderBusinessType,
   OrderPersonnelRole,
+  SeaDocumentStructure,
   ShipmentMode,
   ShipmentType,
   TradeDirection,
@@ -221,16 +222,19 @@ export function buildSeaExportCreatePayload(
   if (values.seaDocument) {
     seaDocument = values.seaDocument;
   } else {
-    const houseBill = values.seaHouseBill
-      ? {
-          id: values.seaHouseBill.id,
-          houseNo: values.seaHouseBill.houseNo ?? '',
-          issuerSource: values.seaHouseBill.issuerSource,
-          issuerPartnerId: values.seaHouseBill.issuerPartnerId || undefined,
-          note: values.seaHouseBill.note?.trim() || undefined,
-          content: values.seaHouseBill.content,
-        }
-      : undefined;
+    // DIRECT 不提交 HBL 隐藏草稿：切换模式保留的本地值只用于切回 HOUSE 时恢复。
+    const houseBill =
+      values.seaDocumentStructure ===
+        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE && values.seaHouseBill
+        ? {
+            id: values.seaHouseBill.id,
+            houseNo: values.seaHouseBill.houseNo ?? '',
+            issuerSource: values.seaHouseBill.issuerSource,
+            issuerPartnerId: values.seaHouseBill.issuerPartnerId || undefined,
+            note: values.seaHouseBill.note?.trim() || undefined,
+            content: values.seaHouseBill.content,
+          }
+        : undefined;
 
     seaDocument = {
       documentStructure: values.seaDocumentStructure,

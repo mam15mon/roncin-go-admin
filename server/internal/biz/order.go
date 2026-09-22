@@ -78,7 +78,7 @@ var (
 )
 
 // OrderUsecase 的领域错误与仓储接口集中在本文件；枚举与领域对象见
-// order_types.go，查询、创建、草稿更新用例见 order_usecase.go，状态流转
+// order_types.go，查询、创建、订单更新用例见 order_usecase.go，状态流转
 // 用例见 order_transition.go。
 type OrderRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Order, error)

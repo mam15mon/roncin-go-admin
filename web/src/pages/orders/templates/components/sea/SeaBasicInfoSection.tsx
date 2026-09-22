@@ -335,10 +335,7 @@ export function SeaCustomerField({
   );
 }
 
-export function getSeaBaseInfoFields(
-  props: TemplateProps,
-  createLayout = false,
-) {
+export function getSeaBaseInfoFields(props: TemplateProps) {
   const {
     serviceTypeOptions,
     cargoCategoryOptions,
@@ -520,37 +517,43 @@ export function getSeaBaseInfoFields(
         }
       />
     ),
+    contract: (
+      <Form.Item label="合约号">
+        <Form.Item noStyle name="contractNo">
+          <TooltipInput placeholder="请输入" maxLength={100} />
+        </Form.Item>
+      </Form.Item>
+    ),
+    cargoValue: (
+      <Form.Item label="货值">
+        <CurrencyAmountInput
+          currencyName="cargoCurrency"
+          amountName="cargoValue"
+          currencyOptions={currencyOptions}
+          disabled={props.readonly}
+          amountPlaceholder="金额"
+          amountRuleMessage="请输入正确的货值，最多 4 位小数"
+          emptyAmountMessage="请输入货值"
+          emptyCurrencyMessage="请选择币种"
+        />
+      </Form.Item>
+    ),
+    insurance: (
+      <Form.Item label="保费">
+        <CurrencyAmountInput
+          currencyName="insuranceCurrency"
+          amountName="insurancePremium"
+          currencyOptions={currencyOptions}
+          disabled={props.readonly}
+          amountPlaceholder="金额"
+          amountRuleMessage="请输入正确的保费，最多 4 位小数"
+          emptyAmountMessage="请输入保费"
+          emptyCurrencyMessage="请选择币种"
+        />
+      </Form.Item>
+    ),
     commercial: (
-      <FormRow cols={createLayout ? 3 : 6}>
-        <Form.Item label="合约号">
-          <Form.Item noStyle name="contractNo">
-            <TooltipInput placeholder="请输入" maxLength={100} />
-          </Form.Item>
-        </Form.Item>
-        <Form.Item label="货值">
-          <CurrencyAmountInput
-            currencyName="cargoCurrency"
-            amountName="cargoValue"
-            currencyOptions={currencyOptions}
-            disabled={props.readonly}
-            amountPlaceholder="金额"
-            amountRuleMessage="请输入正确的货值，最多 4 位小数"
-            emptyAmountMessage="请输入货值"
-            emptyCurrencyMessage="请选择币种"
-          />
-        </Form.Item>
-        <Form.Item label="保费">
-          <CurrencyAmountInput
-            currencyName="insuranceCurrency"
-            amountName="insurancePremium"
-            currencyOptions={currencyOptions}
-            disabled={props.readonly}
-            amountPlaceholder="金额"
-            amountRuleMessage="请输入正确的保费，最多 4 位小数"
-            emptyAmountMessage="请输入保费"
-            emptyCurrencyMessage="请选择币种"
-          />
-        </Form.Item>
+      <FormRow cols={6}>
         <ProFormDateTimePicker
           name="receivedAt"
           label="接单时间"
@@ -565,34 +568,6 @@ export function getSeaBaseInfoFields(
           <TooltipInput placeholder="请输入工厂" maxLength={200} />
         </Form.Item>
       </FormRow>
-    ),
-  };
-}
-
-export function buildSeaBaseInfoSection(props: TemplateProps) {
-  const fields = getSeaBaseInfoFields(props);
-  return {
-    key: 'basicInfo',
-    title: '业务信息',
-    content: (
-      <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-        {fields.orderIdentity}
-        {fields.customer}
-        {fields.services}
-        {fields.categories}
-        {fields.dangerous}
-        <FormRow cols={6}>
-          {fields.references}
-          {fields.booking}
-          {fields.trade}
-        </FormRow>
-        <FormRow cols={6}>
-          {fields.agents}
-          {fields.carrier}
-          {fields.shippingAgent}
-        </FormRow>
-        {fields.commercial}
-      </div>
     ),
   };
 }

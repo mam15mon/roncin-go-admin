@@ -215,8 +215,6 @@ export interface OrderListTemplateProps {
   onOpenConsolidations?: (record: OrderListItem) => void;
   /** 打开异常情况处理面板 */
   onOpenAbnormal?: (record: OrderListItem) => void;
-  /** 状态流转操作 */
-  onTransitionStatus?: (record: OrderListItem) => void;
 
   /** 基础主数据选项（用于筛选器下拉） */
   options?: OrderListFilterOptions;

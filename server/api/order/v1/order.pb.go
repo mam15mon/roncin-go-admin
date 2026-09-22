@@ -3847,7 +3847,7 @@ func (x *CreateOrderRequest) GetIdempotencyKey() string {
 	return ""
 }
 
-// UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
+// UpdateOrderRequest 更新订单请求（禁止修改 order_no 和生命周期状态）。
 type UpdateOrderRequest struct {
 	state                 protoimpl.MessageState        `protogen:"open.v1"`
 	Id                    string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -3908,8 +3908,8 @@ type UpdateOrderRequest struct {
 	SeaMasterBill         *SeaMasterBillInput           `protobuf:"bytes,57,opt,name=sea_master_bill,json=seaMasterBill,proto3,oneof" json:"sea_master_bill,omitempty"`
 	SeaDocument           *SeaOrderDocumentInput        `protobuf:"bytes,58,opt,name=sea_document,json=seaDocument,proto3,oneof" json:"sea_document,omitempty"`
 	BookingNo             *string                       `protobuf:"bytes,59,opt,name=booking_no,json=bookingNo,proto3,oneof" json:"booking_no,omitempty"`
-	// idempotency_key 草稿更新幂等键：可选，传入即启用；同键 + 同 expected_version
-	// 的重放返回当前草稿，否则走既有乐观锁冲突。
+	// idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version
+	// 的重放返回当前订单，否则走既有乐观锁冲突。
 	IdempotencyKey *string `protobuf:"bytes,60,opt,name=idempotency_key,json=idempotencyKey,proto3,oneof" json:"idempotency_key,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache

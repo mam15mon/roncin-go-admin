@@ -1,0 +1,5 @@
+{"file":".trellis/spec/domain/architecture-map.md","reason":"理解订单主流程、退关、结案、锁定与财务链路的领域边界"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"核对主流程推进、退关和结案各自的锁定与生命周期门禁"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"遵循订单详情分节与公共模板契约，统一新建及详情的五卡片字段归属与页签布局"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"遵循详情写操作与刷新、创建响应 ID 跳转、幂等重试及单证状态所有者约定"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"执行局部前端测试、Biome、类型检查及 antd 6 交互验证"}

@@ -37,9 +37,6 @@ import PersonnelDrawer, {
 import ShippingDocumentDrawer, {
   type ShippingDocumentDrawerRef,
 } from './components/drawers/ShippingDocumentDrawer';
-import TransitionModal, {
-  type TransitionModalRef,
-} from './components/modals/TransitionModal';
 import OrderCommissionSummaryCell from './components/OrderCommissionSummaryCell';
 import OrderCommissionSummaryModal from './components/OrderCommissionSummaryModal';
 import {
@@ -63,7 +60,6 @@ export default function OrderListPage() {
   const definition = getOrderKindDefinition(location.pathname);
 
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const transitionModalRef = useRef<TransitionModalRef | null>(null);
   const milestoneDrawerRef = useRef<MilestoneDrawerRef | null>(null);
   const attachmentDrawerRef = useRef<AttachmentDrawerRef | null>(null);
   const personnelDrawerRef = useRef<PersonnelDrawerRef | null>(null);
@@ -248,14 +244,6 @@ export default function OrderListPage() {
           setActiveOrder(item.rawRecord);
           item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord);
         }}
-        onTransitionStatus={(item) =>
-          item.rawRecord && transitionModalRef.current?.open(item.rawRecord)
-        }
-      />
-
-      <TransitionModal
-        ref={transitionModalRef}
-        onSuccess={() => actionRef.current?.reload()}
       />
       <BusinessTagModal
         open={tagModalOpen}

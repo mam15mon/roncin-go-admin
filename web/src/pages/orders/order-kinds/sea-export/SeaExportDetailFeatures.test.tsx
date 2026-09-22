@@ -9,6 +9,7 @@ import { App, type MenuProps } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
+import { buildOrderRecordsSection } from '../../components/detail/OrderAuditTimelineSection';
 import type { OrderDetailFeaturesContext } from '../types';
 import SeaExportDetailFeatures from './SeaExportDetailFeatures';
 
@@ -20,6 +21,12 @@ vi.mock('@/router/history', () => ({
 
 vi.mock('@/services/roncin/seaOrderChangeService', () => ({
   seaOrderChangeServiceGetSeaOrderChangeActions: vi.fn(),
+}));
+
+const mockListSameBatchOrders = vi.hoisted(() => vi.fn());
+
+vi.mock('@/services/roncin/orderService', () => ({
+  orderServiceListSameBatchOrders: mockListSameBatchOrders,
 }));
 
 vi.mock('../../components/drawers/SeaOrderReassignmentModal', () => ({
@@ -54,8 +61,21 @@ vi.mock('../../components/drawers/SeaOrderChangeHistoryDrawer', () => ({
   default: ({ open }: { open: boolean }) => (
     <div data-testid="history-drawer">{String(open)}</div>
   ),
-  SeaOrderChangeHistorySection: () => (
-    <div data-testid="history-section">拆票与改配记录区块</div>
+  SeaOrderChangeHistorySection: ({
+    onTotalChange,
+  }: {
+    onTotalChange?: (total: number | undefined) => void;
+  }) => (
+    <div data-testid="history-section">
+      拆票与改配记录区块
+      <button
+        type="button"
+        onClick={() => onTotalChange?.(7)}
+        data-testid="history-total-trigger"
+      >
+        上报总数
+      </button>
+    </div>
   ),
 }));
 
@@ -359,5 +379,88 @@ describe('SeaExportDetailFeatures', () => {
       await boundRefresh?.();
     });
     expect(mockGetChangeActions).toHaveBeenCalledTimes(2);
+  });
+
+  it('贡献关联与记录页签，角标只显示数据所有者的准确数量', async () => {
+    // 同批两条去重后排除当前订单，仅剩 1 条。
+    mockListSameBatchOrders.mockResolvedValue({
+      data: [
+        { orderId: 'ord-2', orderNo: 'SE-002' },
+        { orderId: 'ord-2', orderNo: 'SE-002' },
+        { orderId: 'ord-1', orderNo: 'SE-001' },
+      ],
+    } as never);
+
+    render(
+      <App>
+        <SeaExportDetailFeatures context={buildContext()}>
+          {(features) => (
+            <div>
+              {
+                buildOrderRecordsSection(
+                  { id: 'ord-1' } as API.Order,
+                  features.appendTabs,
+                ).content
+              }
+            </div>
+          )}
+        </SeaExportDetailFeatures>
+      </App>,
+    );
+
+    // 默认操作记录在前台；三页签齐备。
+    expect(screen.getByRole('tab', { name: '操作记录' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('初始建单成功')).toBeVisible();
+    expect(screen.getByRole('tab', { name: /同批订单/ })).toBeVisible();
+    expect(screen.getByRole('tab', { name: /拆票与改配记录/ })).toBeVisible();
+
+    // 同批订单去重并排除当前订单后的准确数量。
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: /同批订单/ })).toHaveTextContent(
+        '1',
+      ),
+    );
+    // 拆票与改配总数未知时不显示数字。
+    expect(
+      screen.getByRole('tab', { name: /拆票与改配记录/ }),
+    ).not.toHaveTextContent('7');
+
+    // 服务端 total 到达后才显示数字。
+    fireEvent.click(screen.getByTestId('history-total-trigger'));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('tab', { name: /拆票与改配记录/ }),
+      ).toHaveTextContent('7'),
+    );
+  });
+
+  it('同批订单加载失败时页签不显示角标数字', async () => {
+    mockListSameBatchOrders.mockRejectedValue(new Error('后端不可用'));
+
+    render(
+      <App>
+        <SeaExportDetailFeatures context={buildContext()}>
+          {(features) => (
+            <div>
+              {
+                buildOrderRecordsSection(
+                  { id: 'ord-1' } as API.Order,
+                  features.appendTabs,
+                ).content
+              }
+            </div>
+          )}
+        </SeaExportDetailFeatures>
+      </App>,
+    );
+
+    // 页签强制渲染：错误态在未激活页签内也应存在，但角标不显示数字。
+    await waitFor(() =>
+      expect(screen.getByText('后端不可用')).toBeInTheDocument(),
+    );
+    expect(screen.queryByText('.ant-badge-count')).toBeNull();
   });
 });

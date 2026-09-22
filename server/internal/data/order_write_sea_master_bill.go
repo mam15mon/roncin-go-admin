@@ -606,7 +606,10 @@ func optionalTimeEquals(left, right *time.Time) bool {
 }
 
 func ensureSeaMasterBillHasNoDownstreamFacts(ctx context.Context, tx *ent.Tx, order *ent.Order) error {
-	if order.LockedAt != nil || order.FlowStatus != orderent.FlowStatusDRAFT {
+	// 订单主流程状态本身不是下游业务事实。订单只要仍满足统一内容写门禁，
+	// 即使已经订舱或推进到后续节点，也允许在不存在真实下游事实时更正
+	// 单票主单身份或航程；锁定仍由这里及统一内容门禁双重兜底。
+	if order.LockedAt != nil {
 		return biz.ErrSeaMasterBillCorrectionBlocked
 	}
 	hasDownstreamFacts, err := tx.Order.Query().Where(

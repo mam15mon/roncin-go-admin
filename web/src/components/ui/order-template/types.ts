@@ -62,6 +62,14 @@ export interface OrderFormTemplateProps<T> {
   onValuesChange?: (changedValues: Partial<T>, allValues: T) => void;
   /** 表单重置回调 */
   onReset?: () => void;
+  /**
+   * 校验失败定位前置回调：在滚动定位首个错误前调用，供页面把落在
+   * 隐藏区域（页签、折叠备注）的首个错误字段变为可见；等待返回的
+   * Promise 完成后再执行滚动与聚焦。通用模板不感知具体业务区块。
+   */
+  onRevealError?: (errorInfo: {
+    errorFields: { name: (string | number)[]; errors?: string[] }[];
+  }) => void | Promise<void>;
   /** 是否显示右侧楼层导航与错误定位微标，默认为 true */
   showAnchorNav?: boolean;
 }

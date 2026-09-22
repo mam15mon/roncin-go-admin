@@ -83,6 +83,9 @@ describe('OrderListTemplate', () => {
       expect(screen.getByText('COSCO STAR / 024W')).toBeInTheDocument();
       expect(screen.getByText('COSU632189472')).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByRole('button', { name: /更多/ }));
+    expect(screen.queryByText('流转状态')).not.toBeInTheDocument();
   });
 });
 

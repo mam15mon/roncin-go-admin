@@ -157,18 +157,23 @@ err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
     if queryErr != nil {
         return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
     }
-    if existing.Version != expectedVersion {         // 2. 乐观锁版本比对
-        return biz.ErrOrderStatusConflict           //    → HTTP 409「已被更新，请刷新后重试」
+    if err := ensureOrderBusinessEditable(ctx, tx, existing); err != nil {
+        return err                                  // 2. 统一内容门禁：未退关、未结案、未锁定
     }
-    if existing.FlowStatus != orderent.FlowStatusDRAFT { // 3. 状态机检查后才允许变更
-        return biz.ErrOrderStatusConflict
+    if existing.Version != expectedVersion {        // 3. 乐观锁版本比对
+        return biz.ErrOrderStatusConflict           //    → HTTP 409「已被更新，请刷新后重试」
     }
     // ...校验引用...
     update := existing.Update().
-        SetVersion(existing.Version + 1).           // 4. 版本号 +1
+        SetVersion(existing.Version + 1).           // 4. 版本号 +1；主流程状态不限制内容编辑
         ...
 })
 ```
+
+订单内容编辑资格不按 `flow_status` 裁剪：`DRAFT`、`BOOKED` 及后续合法主流程状态
+在 `termination_status = ACTIVE`、`closure_status = OPEN` 且未业务锁定时均可更新。
+主单身份/航程仍需通过真实下游事实、共享成员与版本校验，但不得把主流程状态本身当作
+下游事实或恢复一套“仅草稿可编辑”的重复门禁。
 
 按实体分层取舍：
 

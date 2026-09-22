@@ -33,7 +33,11 @@ import type {
   OrderFormTemplateActions,
   OrderFormTemplateSection,
 } from '@/components/ui/order-template/types';
-import { OrderAllowedAction } from '@/enums.generated';
+import {
+  OrderAllowedAction,
+  OrderClosureStatus,
+  OrderTerminationStatus,
+} from '@/enums.generated';
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
 import { history } from '@/router/history';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
@@ -42,12 +46,13 @@ import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
-import { buildOrderAuditTimelineSection } from './components/detail/OrderAuditTimelineSection';
+import { buildOrderRecordsSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
 import OrderPageHeader from './components/OrderPageHeader';
 import {
   confirmOrderClosure,
+  confirmOrderFlow,
   confirmOrderTermination,
 } from './order-detail-transitions';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
@@ -58,6 +63,7 @@ import type {
   OrderDetailFeaturesProps,
 } from './order-kinds/types';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
+import { revealSeaFormErrors } from './templates';
 import { useOrderDetailData } from './use-order-detail-data';
 import {
   getOrderBusinessWritePolicy,
@@ -137,6 +143,7 @@ export default function OrderDetailPage() {
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
+  const statusTransitionConfirmOpenRef = useRef(false);
 
   const {
     state: lockState,
@@ -233,6 +240,8 @@ export default function OrderDetailPage() {
 
   const businessWritePolicyRef = useRef(lockWritePolicy);
   businessWritePolicyRef.current = lockWritePolicy;
+  const orderRef = useRef(order);
+  orderRef.current = order;
 
   const ensureBusinessWriteAllowed = () => {
     const currentPolicy = businessWritePolicyRef.current;
@@ -360,19 +369,7 @@ export default function OrderDetailPage() {
     [definition, templateProps],
   );
 
-  // 4. 海管家风格「订单状态」卡片（作为前置区块）
-  const prependSections: OrderFormTemplateSection[] = useMemo(
-    () => [buildOrderStatusSection(order)],
-    [order],
-  );
-
-  // 5. 通用后置区块：操作记录日志（类型专属区块由详情扩展贡献并置于其前）
-  const appendSections: OrderFormTemplateSection[] = useMemo(
-    () => [buildOrderAuditTimelineSection(order)],
-    [order],
-  );
-
-  // 6. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
+  // 5. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
   const handleSaveEdit = async (values: OrderDetailFormValues) => {
     if (!definition || !orderId || !ensureBusinessWriteAllowed()) return false;
     setSaving(true);
@@ -431,7 +428,8 @@ export default function OrderDetailPage() {
     );
   }
 
-  if (loading) {
+  // 已加载的订单刷新时保留表单实例，避免状态流转后的重查卸载未保存草稿。
+  if (loading && !order) {
     // 加载态保持页面结构骨架（与 OrderFormTemplate 内置骨架一致），避免刷新时
     // 整页坍缩成孤立 spinner；页头未取到订单号时兜底「订单详情」，不暴露原始 UUID。
     return (
@@ -440,7 +438,7 @@ export default function OrderDetailPage() {
           page="detail"
           orderKind={definition.kind}
           navigationTitle={definition.navigationTitle}
-          orderNo={order?.orderNo}
+          orderNo={undefined}
         />
         <div style={{ padding: 12 }}>
           <SectionCard title="业务基本信息">
@@ -517,31 +515,203 @@ export default function OrderDetailPage() {
     access.canOperateOrganization(order.organizationId) &&
     order.allowedActions?.includes(action) === true;
 
+  const ensureStatusActionAllowed = (
+    action: number,
+    options: {
+      requiresBusinessWrite?: boolean;
+      targetFlowStatus?: number;
+    } = {},
+  ) => {
+    const currentOrder = orderRef.current;
+    if (!currentOrder) {
+      message.warning('订单数据已失效，请刷新后重试');
+      return false;
+    }
+    if (!access.canOperateOrganization(currentOrder.organizationId)) {
+      message.warning('请切换至订单所属分公司工作台办理');
+      return false;
+    }
+    if (currentOrder.allowedActions?.includes(action) !== true) {
+      message.warning('订单状态已变化，请刷新后重试');
+      return false;
+    }
+    if (
+      options.targetFlowStatus !== undefined &&
+      currentOrder.allowedTargetFlowStatuses?.includes(
+        options.targetFlowStatus,
+      ) !== true
+    ) {
+      message.warning('该目标状态当前不可流转，请刷新后重试');
+      return false;
+    }
+    if (options.requiresBusinessWrite) {
+      return ensureBusinessWriteAllowed();
+    }
+    return true;
+  };
+
+  const refreshStatusState = async () => {
+    const results = await Promise.allSettled([loadData(), refreshLockState()]);
+    if (results.some((result) => result.status === 'rejected')) {
+      message.warning('状态已更新，但最新数据刷新失败，请手动刷新');
+    }
+  };
+
+  const openStatusConfirmation = (
+    open: (afterClose: () => void) => boolean,
+  ) => {
+    if (statusTransitionConfirmOpenRef.current) return;
+    statusTransitionConfirmOpenRef.current = true;
+    const opened = open(() => {
+      statusTransitionConfirmOpenRef.current = false;
+    });
+    if (!opened) statusTransitionConfirmOpenRef.current = false;
+  };
+
+  const confirmFlow = (targetStatus: number) => {
+    if (
+      !ensureStatusActionAllowed(
+        OrderAllowedAction.ORDER_ALLOWED_ACTION_TRANSITION_FLOW,
+        { requiresBusinessWrite: true, targetFlowStatus: targetStatus },
+      )
+    ) {
+      return;
+    }
+    openStatusConfirmation((afterClose) =>
+      confirmOrderFlow(
+        { modal, message },
+        order,
+        targetStatus,
+        refreshStatusState,
+        {
+          afterClose,
+          canSubmit: () =>
+            ensureStatusActionAllowed(
+              OrderAllowedAction.ORDER_ALLOWED_ACTION_TRANSITION_FLOW,
+              { requiresBusinessWrite: true, targetFlowStatus: targetStatus },
+            ),
+        },
+      ),
+    );
+  };
+
   const confirmTermination = (targetStatus: number) => {
-    if (!ensureBusinessWriteAllowed()) return;
-    confirmOrderTermination(
-      { modal, message },
-      order,
-      targetStatus,
-      async () => {
-        await Promise.all([loadData(), refreshLockState()]);
-      },
-      ensureBusinessWriteAllowed,
+    const action =
+      targetStatus ===
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING
+        ? OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION
+        : targetStatus ===
+            OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED
+          ? OrderAllowedAction.ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION
+          : OrderAllowedAction.ORDER_ALLOWED_ACTION_CANCEL_TERMINATION;
+    const requiresBusinessWrite =
+      action === OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION;
+    if (!ensureStatusActionAllowed(action, { requiresBusinessWrite })) return;
+    openStatusConfirmation((afterClose) =>
+      confirmOrderTermination(
+        { modal, message },
+        order,
+        targetStatus,
+        refreshStatusState,
+        {
+          afterClose,
+          canSubmit: () =>
+            ensureStatusActionAllowed(action, { requiresBusinessWrite }),
+        },
+      ),
     );
   };
 
   const confirmClosure = (targetStatus: number) => {
-    if (!ensureBusinessWriteAllowed()) return;
-    confirmOrderClosure(
-      { modal, message },
-      order,
-      targetStatus,
-      async () => {
-        await Promise.all([loadData(), refreshLockState()]);
-      },
-      ensureBusinessWriteAllowed,
+    const action =
+      targetStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
+        ? OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE
+        : OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN;
+    if (!ensureStatusActionAllowed(action)) return;
+    openStatusConfirmation((afterClose) =>
+      confirmOrderClosure(
+        { modal, message },
+        order,
+        targetStatus,
+        refreshStatusState,
+        {
+          afterClose,
+          canSubmit: () => ensureStatusActionAllowed(action),
+        },
+      ),
     );
   };
+
+  const canOperateOrderWorkspace = access.canOperateOrganization(
+    order.organizationId,
+  );
+  const hasServerAction = (action: number) =>
+    order.allowedActions?.includes(action) === true;
+  const canUseAction = (action: number) =>
+    canOperateOrderWorkspace && hasServerAction(action);
+  const flowDisabledReason = !canOperateOrderWorkspace
+    ? '请切换至订单所属分公司工作台办理'
+    : !hasServerAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_TRANSITION_FLOW)
+      ? '当前账号无状态流转权限'
+      : lockWritePolicy.reason;
+  const prependSections: OrderFormTemplateSection[] = [
+    buildOrderStatusSection(order, {
+      transitionFlow: canUseAction(
+        OrderAllowedAction.ORDER_ALLOWED_ACTION_TRANSITION_FLOW,
+      )
+        ? confirmFlow
+        : undefined,
+      flowDisabled: businessWritesDisabled,
+      flowDisabledReason,
+      startTermination: canUseAction(
+        OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION,
+      )
+        ? {
+            onClick: () =>
+              confirmTermination(
+                OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
+              ),
+            disabled: businessWritesDisabled,
+            disabledReason: lockWritePolicy.reason,
+          }
+        : undefined,
+      completeTermination: canUseAction(
+        OrderAllowedAction.ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION,
+      )
+        ? {
+            onClick: () =>
+              confirmTermination(
+                OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+              ),
+          }
+        : undefined,
+      cancelTermination: canUseAction(
+        OrderAllowedAction.ORDER_ALLOWED_ACTION_CANCEL_TERMINATION,
+      )
+        ? {
+            onClick: () =>
+              confirmTermination(
+                OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+              ),
+          }
+        : undefined,
+      close: canUseAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE)
+        ? {
+            onClick: () =>
+              confirmClosure(OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED),
+          }
+        : undefined,
+      closureDisabledReason: canOperateOrderWorkspace
+        ? '当前订单暂不可完结'
+        : '请切换至订单所属分公司工作台办理',
+      reopen: canUseAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN)
+        ? {
+            onClick: () =>
+              confirmClosure(OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN),
+          }
+        : undefined,
+    }),
+  ];
 
   // 类型详情扩展以同一订单身份重挂载：扩展持有自己的请求与本地状态，
   // 只通过 context 读取业务输入与通用刷新命令。
@@ -656,8 +826,6 @@ export default function OrderDetailPage() {
                   onReset={() =>
                     templateActionsRef.current?.resetTo(initialValues)
                   }
-                  onConfirmTermination={confirmTermination}
-                  onConfirmClosure={confirmClosure}
                   onOpenReleasePod={() => {
                     if (ensureBusinessWriteAllowed()) {
                       releasePodPanelRef.current?.open(order);
@@ -679,9 +847,11 @@ export default function OrderDetailPage() {
               }
               prependSections={prependSections}
               sections={formSections}
+              onRevealError={({ errorFields }) =>
+                revealSeaFormErrors(errorFields)
+              }
               appendSections={[
-                ...(features.appendSections ?? []),
-                ...appendSections,
+                buildOrderRecordsSection(order, features.appendTabs),
               ]}
             />
 

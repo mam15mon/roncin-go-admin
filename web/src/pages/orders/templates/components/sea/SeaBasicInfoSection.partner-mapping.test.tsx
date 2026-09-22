@@ -1,9 +1,11 @@
 import { ProForm } from '@ant-design/pro-components';
 import { act, render } from '@testing-library/react';
+import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PartnerRoleType } from '@/enums.generated';
-import { buildSeaBaseInfoSection } from './SeaBasicInfoSection';
+import { getSeaTemplateSections } from '../../sea-template';
+import type { TemplateProps } from '../../types';
 
 const quickAddCalls = vi.hoisted(() => [] as Array<Record<string, unknown>>);
 
@@ -14,31 +16,69 @@ vi.mock('../../../components/PartnerQuickAddSelect', () => ({
   },
 }));
 
-describe('SeaBasicInfoSection 伙伴快捷新增映射', () => {
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canOperateOrganization: () => false,
+    canOrder: () => true,
+  }),
+}));
+
+vi.mock('@/services/roncin/orderService', () => ({
+  orderServiceMatchSeaMasterBillCandidate: vi.fn(),
+}));
+
+vi.mock('@/services/roncin/seaDocumentService', () => ({
+  seaDocumentServiceGetSeaOrderDocuments: vi.fn(),
+  seaDocumentServicePreviewChangeSeaDocumentMode: vi.fn(),
+  seaDocumentServiceExecuteChangeSeaDocumentMode: vi.fn(),
+  seaDocumentServiceUpdateSeaHouseBill: vi.fn(),
+  seaDocumentServiceUpdateSeaMasterBillContent: vi.fn(),
+}));
+
+vi.mock('@/services/roncin/orderReleasePodService', () => ({
+  orderReleasePodServiceListReleasePods: vi
+    .fn()
+    .mockResolvedValue({ data: [] }),
+}));
+
+const baseProps: TemplateProps = {
+  serviceTypeOptions: [],
+  cargoCategoryOptions: [],
+  locationOptions: [],
+  searchLocations: vi.fn().mockResolvedValue([]),
+  currencyOptions: [],
+  containerSpecOptions: [],
+  searchCustomers: vi.fn().mockResolvedValue([]),
+  searchShippingLines: vi.fn().mockResolvedValue([]),
+  searchBookingAgents: vi.fn().mockResolvedValue([]),
+  searchForeignAgents: vi.fn().mockResolvedValue([]),
+  searchShippingAgents: vi.fn().mockResolvedValue([]),
+  setCustomerCode: vi.fn(),
+  checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
+  checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
+  personnelOptions: [],
+};
+
+describe('海运五卡片 伙伴快捷新增映射', () => {
   beforeEach(() => {
     quickAddCalls.length = 0;
   });
 
   it('委托单位、订舱代理和国外代理使用各自角色与完整档案路由', async () => {
-    const section = buildSeaBaseInfoSection({
-      serviceTypeOptions: [],
-      cargoCategoryOptions: [],
-      locationOptions: [],
-      searchLocations: vi.fn().mockResolvedValue([]),
-      currencyOptions: [],
-      containerSpecOptions: [],
-      searchCustomers: vi.fn().mockResolvedValue([]),
-      searchShippingLines: vi.fn().mockResolvedValue([]),
-      searchBookingAgents: vi.fn().mockResolvedValue([]),
-      searchForeignAgents: vi.fn().mockResolvedValue([]),
-      searchShippingAgents: vi.fn().mockResolvedValue([]),
-      setCustomerCode: vi.fn(),
-      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
-      personnelOptions: [],
-    });
+    // 委托单位在「业务与客户」卡，订舱代理与国外代理在「订舱与运输」卡。
+    const sections = getSeaTemplateSections(baseProps);
+    const contents = [
+      sections.find((section) => section.key === 'businessCustomer'),
+      sections.find((section) => section.key === 'bookingTransport'),
+    ]
+      .map((section) => section?.content)
+      .filter(Boolean);
 
-    render(<ProForm submitter={false}>{section.content}</ProForm>);
+    render(
+      <App>
+        <ProForm submitter={false}>{contents}</ProForm>
+      </App>,
+    );
 
     expect(
       quickAddCalls.map(({ name, role, createRoute }) => ({

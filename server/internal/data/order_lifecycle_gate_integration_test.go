@@ -164,6 +164,91 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		}
 	})
 
+	t.Run("所有主流程状态保持可编辑且非草稿仍校验版本", func(t *testing.T) {
+		fixture := newOrderPostgresFixture(t, data)
+		cleanupLifecycleGateSubresources(t, data, fixture)
+		ctx := context.Background()
+		usecase := fixture.newUsecase()
+		current, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.validInput())
+		if err != nil {
+			t.Fatalf("创建订单失败: %v", err)
+		}
+
+		for index, target := range []biz.OrderFlowStatus{
+			biz.OrderFlowBooked,
+			biz.OrderFlowSpaceAllocated,
+			biz.OrderFlowTruckingArranged,
+			biz.OrderFlowDocumentCutoff,
+			biz.OrderFlowCustomsDeclarationArranged,
+			biz.OrderFlowDocumentReleased,
+		} {
+			transitioned, transitionErr := usecase.TransitionStatus(
+				ctx,
+				fixture.organizationID,
+				fixture.actorID,
+				current.ID,
+				current.Version,
+				target,
+				"验证非草稿订单编辑",
+			)
+			if transitionErr != nil {
+				t.Fatalf("主流程推进到 %s 失败: %v", target, transitionErr)
+			}
+
+			update := fixture.validUpdateInput()
+			update.GoodsDescription = "主流程编辑-" + string(target)
+			if transitioned.SeaMasterBill == nil {
+				t.Fatalf("flow_status=%s 的订单缺少主单摘要", target)
+			}
+			// 详情表单每次刷新后都会提交最新主单候选版本；循环也必须同步
+			// 当前版本，不能把上一轮更新后的旧版本误当成业务状态阻断。
+			update.SeaMasterBillInput.ExpectedCandidateVersion = &transitioned.SeaMasterBill.Version
+			// BOOKED 至少覆盖一次真实表单中的共享航程修改，避免只放开普通
+			// 订单字段、却仍被旧的 DRAFT 专属主单门禁阻断。
+			if index == 0 {
+				update.VesselVoyage = "BOOKED VESSEL / 001"
+			}
+			updated, updateErr := usecase.UpdateDraft(
+				ctx,
+				fixture.organizationID,
+				fixture.actorID,
+				current.ID,
+				transitioned.Version,
+				update,
+			)
+			if updateErr != nil {
+				t.Fatalf("flow_status=%s 的 ACTIVE+OPEN+未锁定订单更新失败: %v", target, updateErr)
+			}
+			if updated.FlowStatus != target || updated.Version != transitioned.Version+1 || updated.GoodsDescription != update.GoodsDescription {
+				t.Fatalf("flow_status=%s 更新结果异常: %#v", target, updated)
+			}
+			if index == 0 && updated.VesselVoyage != update.VesselVoyage {
+				t.Fatalf("BOOKED 订单共享航程未更新: got=%q want=%q", updated.VesselVoyage, update.VesselVoyage)
+			}
+
+			if index == 0 {
+				staleUpdate := fixture.validUpdateInput()
+				staleUpdate.GoodsDescription = "旧版本不应写入"
+				_, staleErr := usecase.UpdateDraft(
+					ctx,
+					fixture.organizationID,
+					fixture.actorID,
+					current.ID,
+					transitioned.Version,
+					staleUpdate,
+				)
+				if !isOrderStatusConflict(staleErr) {
+					t.Fatalf("BOOKED 订单旧版本更新应返回 ORDER_STATUS_CONFLICT，实际: %v", staleErr)
+				}
+				stored, readErr := data.db.Order.Get(ctx, current.ID)
+				if readErr != nil || stored.Version != updated.Version || stored.GoodsDescription != update.GoodsDescription {
+					t.Fatalf("旧版本冲突后存在部分写入: order=%#v error=%v", stored, readErr)
+				}
+			}
+			current = updated
+		}
+	})
+
 	t.Run("锁定后的放单订单可结案且反结案不受历史业务锁阻断", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		cleanupLifecycleGateSubresources(t, data, fixture)

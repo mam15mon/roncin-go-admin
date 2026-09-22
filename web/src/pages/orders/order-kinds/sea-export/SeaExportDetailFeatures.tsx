@@ -5,8 +5,7 @@ import {
   ShareAltOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { App, Button, type MenuProps, Tooltip } from 'antd';
+import { App, Badge, Button, type MenuProps, Tooltip } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -14,7 +13,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { history } from '@/router/history';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
+import type { OrderRecordTab } from '../../components/detail/OrderAuditTimelineSection';
 import SameBatchOrdersSection from '../../components/detail/SameBatchOrdersSection';
 import SeaOrderChangeHistoryDrawer, {
   SeaOrderChangeHistorySection,
@@ -26,6 +27,22 @@ import type {
   OrderDetailFeatureContribution,
   OrderDetailFeaturesProps,
 } from '../types';
+
+/** 记录页签标签：仅在拿到准确数量时展示角标，未知时省略数字。 */
+function RecordTabLabel({
+  text,
+  count,
+}: {
+  text: string;
+  count: number | undefined;
+}) {
+  if (typeof count !== 'number') return <span>{text}</span>;
+  return (
+    <span>
+      {text} <Badge count={count} size="small" showZero overflowCount={999} />
+    </span>
+  );
+}
 
 /**
  * 海运出口详情扩展：以正常 React 组件持有拆票/改配动作资格、共享航次、
@@ -257,32 +274,47 @@ export default function SeaExportDetailFeatures({
     </>
   );
 
-  // —— 后置区块：同批订单与拆票/改配记录 ——
-  const appendSections = useMemo(
+  // —— 后置记录页签：同批订单与拆票/改配记录，并入「关联与记录」卡片 ——
+  // 角标数量只消费各数据所有者已取得的准确结果：未加载或失败时不显示数字，
+  // 确认无记录时显示 0，预览条数不冒充总数。
+  const [sameBatchCount, setSameBatchCount] = useState<number | undefined>();
+  const [changeHistoryTotal, setChangeHistoryTotal] = useState<
+    number | undefined
+  >();
+  const appendTabs = useMemo<OrderRecordTab[]>(
     () => [
       {
         key: 'same-batch-orders',
-        title: '同批订单',
-        content: <SameBatchOrdersSection orderId={orderId} orderKind={kind} />,
+        label: <RecordTabLabel text="同批订单" count={sameBatchCount} />,
+        content: (
+          <SameBatchOrdersSection
+            orderId={orderId}
+            orderKind={kind}
+            onCountChange={setSameBatchCount}
+          />
+        ),
       },
       {
         key: 'sea-order-change-history',
-        title: '拆票与改配记录',
+        label: (
+          <RecordTabLabel text="拆票与改配记录" count={changeHistoryTotal} />
+        ),
         content: (
           <SeaOrderChangeHistorySection
             orderId={orderId}
             onOpenAll={() => setHistoryDrawerOpen(true)}
+            onTotalChange={setChangeHistoryTotal}
           />
         ),
       },
     ],
-    [kind, orderId],
+    [kind, orderId, sameBatchCount, changeHistoryTotal],
   );
 
   const contribution: OrderDetailFeatureContribution = {
     headerActions: headerActionsNode,
     moreMenuItems,
-    appendSections,
+    appendTabs,
     refreshTypeState: loadChangeActions,
     overlays: (
       <>

@@ -71,6 +71,7 @@ export function OrderFormTemplate<T>({
   closeGuardMessage,
   onValuesChange,
   onReset,
+  onRevealError,
   showAnchorNav = true,
 }: OrderFormTemplateProps<T>) {
   const { message } = App.useApp();
@@ -186,10 +187,22 @@ export function OrderFormTemplate<T>({
     }
   };
 
-  // 校验失败处理：自动平滑滚动居中并高亮首个错误项，同时统计各分节错误供导航器使用
-  const handleFinishFailed = (
+  // 校验失败处理：先让页面把隐藏区域（页签/折叠备注）中的首个错误字段
+  // 变为可见，再自动平滑滚动居中并高亮首个错误项，同时统计各分节错误供导航器使用
+  const handleFinishFailed = async (
     errorInfo: Parameters<NonNullable<FormProps<T>['onFinishFailed']>>[0],
   ) => {
+    if (onRevealError) {
+      try {
+        await onRevealError(errorInfo);
+      } catch {
+        // 定位辅助失败不阻断默认错误处理
+      }
+      // 等待切换页签/展开折叠区引发的 React 渲染落地后再查 DOM。
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve()),
+      );
+    }
     const res = scrollToFirstFormError({
       errorFields: errorInfo?.errorFields,
       notify: (msg) => message.warning(msg),

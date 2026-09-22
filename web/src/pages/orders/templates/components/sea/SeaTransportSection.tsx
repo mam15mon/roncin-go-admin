@@ -613,10 +613,7 @@ export function SeaScheduleDateFields() {
   );
 }
 
-export function getSeaTransportFields(
-  props: TemplateProps,
-  createLayout = false,
-) {
+export function getSeaTransportFields(props: TemplateProps) {
   const { locationOptions, searchLocations, containerSpecOptions, isDetail } =
     props;
   return {
@@ -656,8 +653,8 @@ export function getSeaTransportFields(
       </div>
     ),
     ports: (
-      <FormRow cols={createLayout ? 4 : 6}>
-        <div style={{ gridColumn: createLayout ? undefined : 'span 2' }}>
+      <FormRow cols={6}>
+        <div style={{ gridColumn: 'span 2' }}>
           <ProFormSearchableSelect
             name="originLocationId"
             label="起运港"
@@ -667,7 +664,7 @@ export function getSeaTransportFields(
             placeholder="请选择起运港或地点"
           />
         </div>
-        <div style={{ gridColumn: createLayout ? undefined : 'span 2' }}>
+        <div style={{ gridColumn: 'span 2' }}>
           <ProFormSearchableSelect
             name="destinationLocationId"
             label="目的港"
@@ -683,7 +680,7 @@ export function getSeaTransportFields(
           options={locationOptions}
           request={async ({ keyWords }) => searchLocations(keyWords)}
           fieldProps={{ filterOption: false }}
-          placeholder="请选择卸货港"
+          placeholder="请选择卸货港或地点"
         />
         <ProFormSearchableSelect
           name="transitLocationId"
@@ -691,17 +688,13 @@ export function getSeaTransportFields(
           options={locationOptions}
           request={async ({ keyWords }) => searchLocations(keyWords)}
           fieldProps={{ filterOption: false }}
-          placeholder="请选择中转港"
+          placeholder="请选择中转港或地点"
         />
       </FormRow>
     ),
-    schedule: (
-      <FormRow cols={3}>
-        <SeaScheduleDateFields />
-      </FormRow>
-    ),
+    schedule: <SeaScheduleDateFields />,
     cutoffs: (
-      <FormRow cols={4}>
+      <>
         <ProFormDateTimePicker
           name="siCutoff"
           label="SI截关时间"
@@ -724,28 +717,7 @@ export function getSeaTransportFields(
           label="VGM截关时间"
           fieldProps={{ style: { width: '100%' } }}
         />
-      </FormRow>
-    ),
-  };
-}
-
-export function buildSeaTransportSection(props: TemplateProps) {
-  const fields = getSeaTransportFields(props);
-  return {
-    key: 'transportInfo',
-    title: '配舱信息',
-    content: (
-      <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-        {fields.containers}
-        <FormRow cols={6}>
-          {fields.master}
-          {fields.ownership}
-          {fields.vessel}
-        </FormRow>
-        {fields.ports}
-        {fields.schedule}
-        {fields.cutoffs}
-      </div>
+      </>
     ),
   };
 }

@@ -6,15 +6,11 @@ import {
   SaveOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
 import { Button, Dropdown, type MenuProps, Tooltip } from 'antd';
 import React, { type ReactNode } from 'react';
-import {
-  OrderAllowedAction,
-  OrderClosureStatus,
-  OrderTerminationStatus,
-} from '@/enums.generated';
+import { useAccess } from '@/app/access';
+import { OrderAllowedAction } from '@/enums.generated';
+import { history } from '@/router/history';
 import OrderPageHeader from '../OrderPageHeader';
 import OrderLockControl, { OrderLockStatusTag } from './OrderLockControl';
 
@@ -33,8 +29,6 @@ type OrderDetailHeaderProps = {
   hasAction: (action: number) => boolean;
   onSave: () => void;
   onReset?: () => void;
-  onConfirmTermination: (targetStatus: number) => void;
-  onConfirmClosure: (targetStatus: number) => void;
   onOpenReleasePod: () => void;
   onOpenAbnormalCase: () => void;
   lockState: API.OrderLockStateData | null;
@@ -60,8 +54,6 @@ export default function OrderDetailHeader({
   hasAction,
   onSave,
   onReset,
-  onConfirmTermination,
-  onConfirmClosure,
   onOpenReleasePod,
   onOpenAbnormalCase,
   lockState,
@@ -130,73 +122,6 @@ export default function OrderDetailHeader({
                 重置修改
               </Button>
             )}
-
-          {hasAction(
-            OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION,
-          ) && (
-            <Button
-              danger
-              disabled={businessWritesDisabled}
-              onClick={() =>
-                onConfirmTermination(
-                  OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
-                )
-              }
-            >
-              发起退关
-            </Button>
-          )}
-          {hasAction(
-            OrderAllowedAction.ORDER_ALLOWED_ACTION_COMPLETE_TERMINATION,
-          ) && (
-            <Button
-              danger
-              type="primary"
-              disabled={businessWritesDisabled}
-              onClick={() =>
-                onConfirmTermination(
-                  OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
-                )
-              }
-            >
-              完成退关
-            </Button>
-          )}
-          {hasAction(
-            OrderAllowedAction.ORDER_ALLOWED_ACTION_CANCEL_TERMINATION,
-          ) && (
-            <Button
-              disabled={businessWritesDisabled}
-              onClick={() =>
-                onConfirmTermination(
-                  OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
-                )
-              }
-            >
-              取消退关
-            </Button>
-          )}
-          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE) && (
-            <Button
-              type="primary"
-              disabled={businessWritesDisabled}
-              onClick={() =>
-                onConfirmClosure(OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED)
-              }
-            >
-              完结订单
-            </Button>
-          )}
-          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN) && (
-            <Button
-              disabled={businessWritesDisabled}
-              onClick={() =>
-                onConfirmClosure(OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN)
-              }
-            >
-              反结案
-            </Button>
-          )}
 
           {/* 费用录入（直达独立全屏费用工作台页面） */}
           {canManageFee && (

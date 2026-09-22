@@ -1,41 +1,13 @@
-import {
-  DownloadOutlined,
-  SaveOutlined,
-  SwapOutlined,
-} from '@ant-design/icons';
+import { DownloadOutlined, SwapOutlined } from '@ant-design/icons';
 import {
   ProFormDigit,
   ProFormSelect,
-  ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  Card,
-  Checkbox,
-  Col,
-  Form,
-  Modal,
-  Radio,
-  Row,
-  Segmented,
-  Space,
-  Table,
-  Tabs,
-  Tag,
-  Typography,
-} from 'antd';
+import { App, Button, Checkbox, Form, Segmented, Space, Tag } from 'antd';
 import { createStyles } from 'antd-style';
-import dayjs from 'dayjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useAccess } from '@/app/access';
-import {
-  FormRow,
-  PackageCountInput,
-  ProFormSearchableSelect,
-} from '@/components/ui';
+import React, { useState } from 'react';
+import { FormRow, PackageCountInput } from '@/components/ui';
 
 const useVerticalFormStyles = createStyles(({ css }) => ({
   verticalFields: css`
@@ -88,34 +60,7 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
   `,
 }));
 
-import {
-  OrderBusinessType,
-  OrderReleasePodStatus,
-  SeaDocumentStructure,
-  SeaDocumentType,
-  SeaHouseBillIssuerSource,
-  SeaHouseBillStatus,
-} from '@/enums.generated';
-import { searchPartnerOptions } from '@/features/partners';
-import { orderReleasePodServiceListReleasePods } from '@/services/roncin/orderReleasePodService';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
-import {
-  seaDocumentServiceExecuteChangeSeaDocumentMode,
-  seaDocumentServiceGetSeaOrderDocuments,
-  seaDocumentServicePreviewChangeSeaDocumentMode,
-  seaDocumentServiceUpdateSeaHouseBill,
-  seaDocumentServiceUpdateSeaMasterBillContent,
-} from '@/services/roncin/seaDocumentService';
-import { generateUUID } from '@/utils/uuid';
-import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
-import type { TemplateProps, TemplateSection } from '../../types';
-import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
-import SeaExternalConfirmationFields, {
-  buildSeaExternalConfirmation,
-  type SeaExternalConfirmationFormValues,
-} from './SeaExternalConfirmationFields';
-
-const { Text } = Typography;
 
 import {
   DEFAULT_BILL_FORM,
@@ -165,11 +110,15 @@ export function SeaBillContentFormFields({
   namePathPrefix,
   disabled = false,
   showCargoMeasurements = true,
+  measurementsTitle,
   createLayout = false,
 }: {
   namePathPrefix: (string | number)[];
   disabled?: boolean;
+  /** false 时隐藏委托侧对照列，仅展示实际件重尺录入。 */
   showCargoMeasurements?: boolean;
+  /** showCargoMeasurements=false 时的区块标题（默认 HBL 实际件重尺）。 */
+  measurementsTitle?: string;
   createLayout?: boolean;
 }) {
   const { styles } = useVerticalFormStyles();
@@ -893,7 +842,7 @@ export function SeaBillContentFormFields({
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
             {showCargoMeasurements
               ? '委托 vs 实际件重尺对照'
-              : 'HBL 实际件重尺'}
+              : (measurementsTitle ?? 'HBL 实际件重尺')}
           </span>
         </div>
         {!disabled && (

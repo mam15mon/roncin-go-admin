@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   OrderBusinessType,
   OrderPersonnelRole,
+  SeaDocumentStructure,
   ShipmentMode,
   ShipmentType,
   TradeDirection,
@@ -167,11 +168,12 @@ describe('buildSeaExportCreatePayload', () => {
     });
   });
 
-  it('不静默丢弃用户填写不完整的海运分单', () => {
+  it('HOUSE 下不静默丢弃用户填写不完整的海运分单', () => {
     const result = buildSeaExportCreatePayload({
       customerId: 'customer-1',
       tradeTerm: 3,
       paymentTerm: 1,
+      seaDocumentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
       seaHouseBill: { houseNo: '   ', issuerSource: 1 },
     });
 
@@ -179,6 +181,27 @@ describe('buildSeaExportCreatePayload', () => {
       houseNo: '   ',
       issuerSource: 1,
     });
+  });
+
+  it('DIRECT 不提交 HBL 隐藏草稿，切回 HOUSE 语义下才携带分单', () => {
+    const values = {
+      customerId: 'customer-1',
+      tradeTerm: 3,
+      paymentTerm: 1,
+      seaHouseBill: { houseNo: 'HBL-DRAFT', issuerSource: 1 },
+    } as const;
+
+    const directResult = buildSeaExportCreatePayload({
+      ...values,
+      seaDocumentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+    });
+    expect(directResult.seaDocument?.houseBill).toBeUndefined();
+
+    const houseResult = buildSeaExportCreatePayload({
+      ...values,
+      seaDocumentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+    });
+    expect(houseResult.seaDocument?.houseBill?.houseNo).toBe('HBL-DRAFT');
   });
 
   it('忽略空白可选字段并按人员装配岗位', () => {

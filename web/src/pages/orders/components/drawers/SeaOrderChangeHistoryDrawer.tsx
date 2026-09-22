@@ -1,4 +1,3 @@
-import { history } from '@/router/history';
 import {
   App,
   Button,
@@ -17,6 +16,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
 import { DRAWER_SIZE } from '@/components/ui';
+import { history } from '@/router/history';
 import {
   seaOrderChangeServiceGetSeaOrderChangeEvent,
   seaOrderChangeServiceListSeaOrderChangeEvents,
@@ -100,11 +100,16 @@ function renderEventSummary(record: API.SeaOrderChangeEventSummary) {
 interface SeaOrderChangeHistorySectionProps {
   orderId: string;
   onOpenAll: () => void;
+  /**
+   * 向「关联与记录」页签角标暴露服务端 total；未加载或失败时不上报，
+   * 预览返回的五条不冒充总数。
+   */
+  onTotalChange?: (total: number | undefined) => void;
 }
 
 export const SeaOrderChangeHistorySection: React.FC<
   SeaOrderChangeHistorySectionProps
-> = ({ orderId, onOpenAll }) => {
+> = ({ orderId, onOpenAll, onTotalChange }) => {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<API.SeaOrderChangeEventSummary[]>([]);
@@ -119,7 +124,11 @@ export const SeaOrderChangeHistorySection: React.FC<
       pageSize: 5,
     })
       .then((response) => {
-        if (active) setEvents(response?.data || []);
+        if (!active) return;
+        setEvents(response?.data || []);
+        if (active && typeof response?.total === 'number') {
+          onTotalChange?.(response.total);
+        }
       })
       .catch((error: unknown) => {
         if (active)
@@ -131,7 +140,7 @@ export const SeaOrderChangeHistorySection: React.FC<
     return () => {
       active = false;
     };
-  }, [message, orderId]);
+  }, [message, orderId, onTotalChange]);
 
   return (
     <Col span={24}>

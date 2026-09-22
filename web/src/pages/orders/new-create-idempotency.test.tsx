@@ -8,6 +8,7 @@ import {
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { history } from '@/router/history';
 import { orderServiceCreateOrder } from '@/services/roncin/orderService';
 import NewOrderPage from './new';
 
@@ -99,8 +100,12 @@ describe('订单新建页创建幂等键', () => {
 
   it('每次请求携带幂等键；失败重试沿用同键，成功后重新生成', async () => {
     mockCreateOrder.mockRejectedValueOnce(new Error('创建失败'));
-    mockCreateOrder.mockResolvedValueOnce({} as never);
-    mockCreateOrder.mockResolvedValueOnce({} as never);
+    mockCreateOrder.mockResolvedValueOnce({
+      data: { id: 'order-created-1' },
+    } as never);
+    mockCreateOrder.mockResolvedValueOnce({
+      data: { id: 'order-created-2' },
+    } as never);
 
     render(
       <App>
@@ -128,5 +133,55 @@ describe('订单新建页创建幂等键', () => {
     // 创建成功后重新生成，下一次提交意图使用新键。
     await waitFor(() => expect(sentKeys[2]).toBeTruthy());
     expect(sentKeys[2]).not.toBe(sentKeys[1]);
+  });
+
+  it('创建成功读取服务端返回订单 ID 并直接进入对应详情页', async () => {
+    const historyPush = vi.mocked(history.push);
+    mockCreateOrder.mockResolvedValueOnce({
+      data: { id: 'order-created-detail', orderNo: 'SE1' },
+    } as never);
+
+    render(
+      <App>
+        <NewOrderPage />
+      </App>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('创建订单'));
+    });
+
+    await waitFor(() =>
+      expect(historyPush).toHaveBeenCalledWith(
+        '/orders/sea-export/order-created-detail',
+      ),
+    );
+    // 不再返回订单列表。
+    expect(historyPush).not.toHaveBeenCalledWith('/orders/sea-export');
+  });
+
+  it('空响应或缺 ID 不提示成功、不跳转、不轮换幂等键', async () => {
+    const historyPush = vi.mocked(history.push);
+    mockCreateOrder.mockResolvedValue({} as never);
+
+    render(
+      <App>
+        <NewOrderPage />
+      </App>,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('创建订单'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('创建订单'));
+    });
+
+    const sentKeys = mockCreateOrder.mock.calls.map(
+      (call) => (call[0] as { idempotencyKey?: string }).idempotencyKey,
+    );
+    // 未确认创建结果前沿用同键，供同键重试取回已创建订单。
+    expect(sentKeys[1]).toBe(sentKeys[0]);
+    expect(historyPush).not.toHaveBeenCalled();
   });
 });

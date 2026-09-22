@@ -158,6 +158,93 @@ if (
 - 切到 DIRECT 后分单字段不参与必填校验，提交不携带 HBL；切回 HOUSE 后恢复分单表单与校验。详情模式切换仍遵循原有权限、预览与执行流程。
 - 回归验证覆盖初始 DIRECT、HOUSE → DIRECT → HOUSE、分节导航同步及提交数据；保留三个签发主体合法值，不因文案调整擅自设置默认签发方。
 
+## 海运出口订单三维状态卡
+
+### 1. Scope / Trigger
+
+- 海运出口订单详情的主流程、退关和结案统一在“订单状态”卡片操作；列表“更多”与详情页头
+  不得重复提供同一状态动作。
+- 新增或调整订单状态入口时必须遵循本节，避免前端复制状态机、误用业务锁门禁或后台刷新
+  卸载表单。
+
+### 2. Signatures
+
+状态卡只消费详情接口的权威投影：
+
+```ts
+type OrderStatusProjection = Pick<
+  API.Order,
+  | 'flowStatus'
+  | 'terminationStatus'
+  | 'closureStatus'
+  | 'allowedActions'
+  | 'allowedTargetFlowStatuses'
+  | 'version'
+>;
+```
+
+写入继续使用生成客户端：`orderServiceTransitionOrderStatus`、
+`orderServiceTransitionOrderTermination`、`orderServiceTransitionOrderClosure`；页面不得自行拼接
+URL 或新增平行请求封装。
+
+### 3. Contracts
+
+- 主流程可点击节点仅来自 `allowedTargetFlowStatuses`；`flowStatus` 的枚举顺序只用于展示已完成
+  节点，禁止用于推导迁移边。
+- 状态动作必须同时受当前工作台与 `allowedActions` 约束；主流程和
+  `ACTIVE → TERMINATING` 额外复用业务锁写策略。
+- `TERMINATING → TERMINATED/ACTIVE`、`TERMINATED → ACTIVE`、完结和反结案是生命周期命令，
+  不得因业务锁状态被前端禁用；服务端仍负责最终状态和 readiness 校验。
+- 主流程目标固定为用户点击的节点；确认框不得再提供目标状态下拉框。完结、反结案、退关和
+  恢复原因按服务端契约必填。
+- 生成客户端失败可能被统一请求层消费为 `undefined`；仅在 `response?.data` 存在时提示成功、
+  执行刷新或关闭确认流程。
+- 状态成功后普通刷新详情和锁状态，不调用 `OrderFormTemplate.actionsRef.resetTo`。已有订单数据的
+  React Query `isFetching` 期间必须保留当前表单实例；整页骨架只用于首次无数据加载。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 前端行为 |
+| --- | --- |
+| 目标不在 `allowedTargetFlowStatuses` | 只读节点，不发请求 |
+| 当前工作台不是订单所属公司 | 所有状态动作禁用并提示切换工作台 |
+| 订单已锁定 | 禁用主流程与发起退关；不误拦其他生命周期动作 |
+| `OPEN` 但无 `CLOSE` 动作 | 显示禁用的“未完结/完结订单”按钮和原因提示 |
+| `TERMINATING` 同时可完成或取消 | 使用明确菜单让用户选择，不默认执行任一动作 |
+| 请求返回空响应 | 不提示成功、不刷新、不伪造本地状态 |
+| 并发版本冲突 | 保留服务端稳定错误；刷新后由新版本重绘状态卡 |
+| 后台重查中已有订单数据 | 保留表单与未保存输入，不切换整页骨架 |
+
+### 5. Good / Base / Bad Cases
+
+- Good：`SPACE_ALLOCATED` 响应同时返回拖车和截单两个目标，状态卡同时开放两个节点。
+- Base：`DRAFT` 只开放“已订舱”；当前不满足结案条件时“未完结”按钮禁用。
+- Bad：前端写 `if (flowStatus === DRAFT) next = BOOKED`，或对所有生命周期动作统一套
+  `businessWritesDisabled`。
+- Bad：状态成功后 `isFetching=true` 就返回整页骨架，导致含未保存内容的表单卸载。
+
+### 6. Tests Required
+
+- 组件测试：单目标、已配舱双目标、未来节点只读、退关三态、结案两态及禁用原因。
+- 页面测试：工作台门禁；锁定时主流程/发起退关禁用，但完成/取消/恢复/完结/反结案不误拦；
+  弹窗打开后提交前再次复核动作。
+- 请求测试：携带当前 `version`；空响应不成功；完结/反结案空原因不发请求。
+- 刷新测试：成功后详情和锁状态均刷新；已有订单的重查期间用户未保存输入仍存在。
+- 收口测试：列表菜单和详情页头不再出现重复状态入口。
+
+### 7. Wrong vs Correct
+
+```tsx
+// 错误：复制状态机，并让后台刷新卸载表单。
+const next = order.flowStatus === DRAFT ? BOOKED : SPACE_ALLOCATED;
+if (isFetching) return <Skeleton />;
+
+// 正确：服务端投影决定动作；仅首次无数据时展示骨架。
+const targets = new Set(order.allowedTargetFlowStatuses ?? []);
+const canTransition = order.allowedActions?.includes(TRANSITION_FLOW);
+if (isFetching && !order) return <Skeleton />;
+```
+
 ## 快捷创建的失败结果
 
 统一请求层通知过的失败可能返回 `undefined`。快捷建档必须先检查响应再读取 `.data`；返回空结果时保留输入，不触发成功回调、不关闭弹窗，也不追加技术错误。`QuickCreateModal` 只在取得非空成功结果后重置表单；成功响应缺少业务 ID 仍须报错，不得伪装创建成功。

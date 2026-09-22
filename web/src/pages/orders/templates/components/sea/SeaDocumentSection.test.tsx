@@ -12,6 +12,7 @@ import {
   seaDocumentServiceGetSeaOrderDocuments,
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
+import { SeaCreateDocumentModeField } from './SeaCreateDocumentModeField';
 import { SeaDocumentSectionComponent } from './SeaDocumentSection';
 
 const workspaceAccess = vi.hoisted(() => ({ canOperate: true }));
@@ -91,11 +92,13 @@ function TestForm({
   initialValues,
   isDetail = false,
   disabled = false,
+  includeModeField = false,
   exposeForm,
 }: {
   initialValues?: Record<string, unknown>;
   isDetail?: boolean;
   disabled?: boolean;
+  includeModeField?: boolean;
   exposeForm?: (form: FormInstance) => void;
 }) {
   const [form] = Form.useForm();
@@ -103,6 +106,7 @@ function TestForm({
   return (
     <App>
       <Form form={form} initialValues={initialValues}>
+        {includeModeField ? <SeaCreateDocumentModeField /> : null}
         <SeaDocumentSectionComponent isDetail={isDetail} disabled={disabled} />
       </Form>
     </App>
@@ -166,10 +170,11 @@ describe('SeaDocumentSectionComponent', () => {
     executeMode.mockResolvedValue({ success: true });
   });
 
-  it('新建默认 HOUSE 分单制，切 DIRECT 清除 HBL，切回恢复', async () => {
+  it('新建默认 HOUSE 分单制，切 DIRECT 隐藏 HBL 但保留草稿，切回恢复', async () => {
     let form: FormInstance | undefined;
     render(
       <TestForm
+        includeModeField
         exposeForm={(value) => {
           form = value;
         }}
@@ -186,13 +191,9 @@ describe('SeaDocumentSectionComponent', () => {
       );
     });
     expect(screen.queryByText('请先选择提单模式')).not.toBeInTheDocument();
-    expect(screen.queryByText('未确定')).not.toBeInTheDocument();
 
-    // HBL 页签懒渲染，点击后展示唯一分单录入。
-    fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
-    await waitFor(() =>
-      expect(screen.getByPlaceholderText('请输入分单号')).toBeInTheDocument(),
-    );
+    // HBL 页签强制渲染，无需点击即可展示唯一分单录入。
+    expect(screen.getByPlaceholderText('请输入分单号')).toBeInTheDocument();
     expect(screen.queryByText(/添加分单/)).not.toBeInTheDocument();
     expect(screen.queryByText('删除分单')).not.toBeInTheDocument();
     expect(screen.queryByText('箱货分配')).not.toBeInTheDocument();
@@ -208,15 +209,19 @@ describe('SeaDocumentSectionComponent', () => {
         screen.queryByPlaceholderText('请输入分单号'),
       ).not.toBeInTheDocument(),
     );
-    expect(form?.getFieldValue('seaHouseBill')).toBeUndefined();
+    // 隐藏草稿保留在 Form store，仅页签与提交口径排除 HBL。
+    expect(form?.getFieldValue(['seaHouseBill', 'houseNo'])).toBe('HBL-NEW');
     expect(form?.getFieldValue('seaDocumentStructure')).toBe(
       SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
     );
 
-    // 切回 HOUSE 恢复分单录入。
+    // 切回 HOUSE 恢复分单录入与草稿。
     fireEvent.click(screen.getByRole('radio', { name: '有货代分单（HOUSE）' }));
+    fireEvent.click(await screen.findByRole('tab', { name: /分单 \(HBL\)/ }));
     await waitFor(() =>
-      expect(screen.getByPlaceholderText('请输入分单号')).toBeInTheDocument(),
+      expect(screen.getByPlaceholderText('请输入分单号')).toHaveValue(
+        'HBL-NEW',
+      ),
     );
   });
 

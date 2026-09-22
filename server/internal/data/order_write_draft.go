@@ -186,7 +186,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		}
 		// 幂等重放（可变最新键）：同键 + 同 expectedVersion 的请求若已成功写入
 		// 一轮（当前行版本 == expectedVersion + 1 且行上键为本次键），直接返回
-		// 当前草稿，不产生任何副作用；键不同或版本不匹配走下方既有乐观锁 409。
+		// 当前订单，不产生任何副作用；键不同或版本不匹配走下方既有乐观锁 409。
 		if input.IdempotencyKey != "" && existing.IdempotencyKey == input.IdempotencyKey && existing.Version == expectedVersion+1 {
 			return nil
 		}
@@ -194,9 +194,6 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			return err
 		}
 		if existing.Version != expectedVersion {
-			return biz.ErrOrderStatusConflict
-		}
-		if existing.FlowStatus != orderent.FlowStatusDRAFT || existing.TerminationStatus != orderent.TerminationStatusACTIVE || existing.ClosureStatus != orderent.ClosureStatusOPEN {
 			return biz.ErrOrderStatusConflict
 		}
 		if existing.BusinessType != orderent.BusinessType(input.BusinessType) {
@@ -296,7 +293,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 				}
 			}
 			// 换客户不重拍归属：订单人员分工未变，归属行仅同步客户冗余列；
-			// 零行匹配（存量草稿无归属行）视为无操作。
+			// 零行匹配（存量订单无归属行）视为无操作。
 			if _, updateErr := tx.OrderCommissionAttribution.Update().
 				Where(ordercommissionattributionent.OrderIDEQ(id)).
 				SetCustomerID(input.CustomerID).Save(ctx); updateErr != nil {

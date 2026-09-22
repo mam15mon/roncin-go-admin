@@ -21461,9 +21461,9 @@ components:
                 idempotencyKey:
                     type: string
                     description: |-
-                        idempotency_key 草稿更新幂等键：可选，传入即启用；同键 + 同 expected_version
-                         的重放返回当前草稿，否则走既有乐观锁冲突。
-            description: UpdateOrderRequest 更新草稿订单请求（禁止修改 order_no 和生命周期状态）。
+                        idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version
+                         的重放返回当前订单，否则走既有乐观锁冲突。
+            description: UpdateOrderRequest 更新订单请求（禁止修改 order_no 和生命周期状态）。
         order.v1.UpdateOrderResponse:
             type: object
             properties:
