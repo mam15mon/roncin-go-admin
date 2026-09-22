@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "工作台切换与会话成员资格"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "现有主数据归属，需按批准方案更新"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "分层、权限与生成物约束"}
+{"file": ".trellis/spec/adr/0003-ent-schema-and-sql-migrations.md", "reason": "正式迁移及Schema真相源"}
+{"file": ".trellis/tasks/09-22-system-company-data-boundaries/research/headquarters-dependencies.md", "reason": "总部依赖初查"}
