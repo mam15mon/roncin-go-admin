@@ -5,7 +5,9 @@
 -- 全部保持不变。
 
 -- 1) 放宽：移除旧状态 CHECK，允许写入目标值 UNBILLED。
-ALTER TABLE "order_fees" DROP CONSTRAINT "order_fees_status_check";
+--    IF EXISTS：正式迁移链建库时约束来自 20260826150000；早期由 Ent 运行期
+--    建库的开发环境从未创建该约束，缺省跳过后由第 3 步统一补建新约束。
+ALTER TABLE "order_fees" DROP CONSTRAINT IF EXISTS "order_fees_status_check";
 
 -- 2) 转数据：存量草稿与已确认费用统一归并为未建账。
 UPDATE "order_fees" SET "status" = 'UNBILLED' WHERE "status" IN ('DRAFT', 'CONFIRMED');

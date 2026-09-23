@@ -295,7 +295,7 @@
 | FINANCE_COMMISSION_SOURCE | 409 Conflict | 仅有效应收核销可计提，且必须存在可计算的已实现收入 | finance_commission.go | — |
 | FINANCE_COMMISSION_SOURCE_CHANGED | 409 Conflict | 提成来源数据已变化，请取消当前草稿并重新生成 | finance_commission.go | ERROR_REASON_FINANCE_COMMISSION_SOURCE_CHANGED |
 | FINANCE_COMMISSION_TRANSITION | 409 Conflict | 当前提成状态不允许该操作 | finance_commission.go | ERROR_REASON_FINANCE_COMMISSION_TRANSITION |
-| FINANCE_COMMISSION_UNCONFIRMED_FEES | 409 Conflict | 关联订单仍有草稿费用，请先确认或作废后再确认提成 | finance_commission.go | ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES |
+| FINANCE_COMMISSION_UNCONFIRMED_FEES | 409 Conflict | 关联订单仍有未建账费用，请先建账或删除后再确认提成 | finance_commission.go | ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES |
 
 ## 往来单位
 

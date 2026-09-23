@@ -14,7 +14,7 @@
 | 单证版本 | `SeaMasterBillVersion` 等 | 每次修订生成不可变版本快照（换单历史），含外部确认信息 | `sea_*_version.go` |
 | 共享箱 | `SeaSharedContainer` / `...Allocation` | 跨订单共用的集装箱；箱货分配必须件重尺守恒 | `sea_shared_container*.go` |
 | 货物分配 | `SeaCargoAllocation` | 货物项在各订单/结果票间的件数/毛重/体积切分 | `sea_cargo_allocation.go` |
-| 拆票 | Split, `SeaOrderSplitEvent/Result` | 一张订单拆为多票（原票+新票），独占箱整箱归属、货物件重尺零误差守恒、草稿费用整行转移；幂等键+请求指纹防重 | `data/sea_order_change_split*.go` |
+| 拆票 | Split, `SeaOrderSplitEvent/Result` | 一张订单拆为多票（原票+新票），独占箱整箱归属、货物件重尺零误差守恒、未建账费用整行转移；幂等键+请求指纹防重 | `data/sea_order_change_split*.go` |
 | 改配 | Reassignment | 订单换入其他 MBL/新建 MBL；产生内嵌外部确认要求 | `sea_order_change_reassignment.go` |
 | 单证变更 | `SeaDocumentChange` | 修订(amendment)/作废(void)/模式切换(mode change) 三类，全部先预览后执行 | `data/sea_document_change_*.go` |
 | 船司 | `ShippingLine` | 船公司主数据（含集装箱前缀规则） | `shipping_line.go` |
@@ -23,7 +23,7 @@
 
 | 术语 | 英文/代码 | 含义与要点 | 代码入口 |
 | --- | --- | --- | --- |
-| 费用 | `OrderFee` | 订单级应收(RECEIVABLE)/应付(PAYABLE)费用行；币种+结算单位+方向一致才可同账单 | `service/settlement.go`、biz `fee_catalog` |
+| 费用 | `OrderFee` | 订单级应收(RECEIVABLE)/应付(PAYABLE)费用行；状态为未建账(UNBILLED)/已建账(BILLED)/已作废(CANCELLED)，保存即未建账、无确认环节；币种+结算单位+方向一致才可同账单 | `service/settlement.go`、biz `fee_catalog` |
 | 费用补录 | Fee Supplement, `OrderFeeSupplementRequest` | 订单锁定后补录费用：锁证据→审批→生成费用+提成冲减建议；财务锁审批人资格 | `data/order_fee_supplement_*.go` |
 | 账单 | `FinanceBill` / `...Batch` / `...Line` | 费用汇成账单；支持单张与批量分组建账（分组策略/对冲模式）；状态机 含版本乐观锁 | `biz/finance_bill*.go` |
 | 对冲 | Netting, `FinanceNetting` / `...Allocation` | 同结算单位应收应付互抵；对冲配对在建账预览中生成 | `finance_netting*.go` |

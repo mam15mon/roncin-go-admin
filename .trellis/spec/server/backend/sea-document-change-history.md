@@ -75,7 +75,7 @@ type SeaHouseBillSwitchCommand struct {
   锁后必须重查成员集合。集合改变返回结构冲突，不允许用首次定位的旧集合执行财务门禁。
 - HBL 写入固定锁序为 `Order -> MBL -> Active Link -> HBL`，并重验组织、订单、当前 MBL、
   工作版本和当前不可变版本。
-- 下游门禁直接查询已确认费用、活动账单行、发票、核销、提成、提成调整；HBL 还查询箱货分配。
+- 下游门禁直接查询已建账费用、活动账单行、发票、核销、提成、提成调整；HBL 还查询箱货分配。
   不能假设发票或核销始终可由当前活动账单行间接覆盖。错误 metadata 至少含
   `blocked_count`、首个 `fact_type`、`reference_id`、`reference_no`。
 - 单改追加 `AMENDMENT` 版本；作废追加 `VOID` 版本和作废事件并把身份置为 `VOIDED`；Switch
