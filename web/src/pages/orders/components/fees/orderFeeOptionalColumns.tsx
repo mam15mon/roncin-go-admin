@@ -63,6 +63,7 @@ function renderFinancialProgressCell(
 export type FeeRowPreview = {
   feeCode?: string;
   taxRate?: string;
+  unitPrice?: string;
   amount?: { total: string; currency: string };
   rate?: { status: string; rate?: string };
 };
@@ -89,9 +90,56 @@ function computeTaxBreakdown(
 }
 
 /**
- * 可选只读列：税率、税金、不含税总额、折本币金额与费用标签。
+ * 不含税单价折算：含税单价 ÷ (1 + 税率/100)，两位小数 ROUND_HALF_UP；
+ * 单价或税率缺失、非法时返回 undefined（调用方显示占位）。
+ */
+function computeNetUnitPrice(
+  unitPrice: string,
+  taxRatePercent: string | undefined | null,
+): string | undefined {
+  if (
+    unitPrice === '' ||
+    taxRatePercent === undefined ||
+    taxRatePercent === null ||
+    taxRatePercent === '' ||
+    !Number.isFinite(Number(taxRatePercent)) ||
+    !Number.isFinite(Number(unitPrice))
+  ) {
+    return undefined;
+  }
+  const rate = new Decimal(taxRatePercent).div(100);
+  if (rate.isNegative()) return undefined;
+  return new Decimal(unitPrice)
+    .div(rate.plus(1))
+    .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+    .toString();
+}
+
+/** 等宽字体单元格样式：与税金、不含税总额列一致。 */
+function monoAmountCell(value: string) {
+  return (
+    <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+      {value}
+    </span>
+  );
+}
+
+/** 已保存行的不含税单价数值口径：不含税行直接取单价，含税行按税率反算。 */
+function netUnitPriceNumberOf(record: API.OrderFee): number | undefined {
+  if (!record.unitPrice || !Number.isFinite(Number(record.unitPrice))) {
+    return undefined;
+  }
+  // protojson 省略零值：wire 上非 true（含 undefined）即历史不含税行。
+  if (record.taxInclusive !== true) return Number(record.unitPrice);
+  const netUnit = computeNetUnitPrice(record.unitPrice, record.taxRate);
+  return netUnit === undefined ? undefined : Number(netUnit);
+}
+
+/**
+ * 可选只读列：不含税单价、税率、税金、不含税总额、折本币金额与费用标签。
  * 保存后金额与税率为服务端快照；行内编辑进行中（传入该行预览时）按
- * 单价×数量与所选费用项目默认税率实时折算，折本币金额乘实时解析汇率。
+ * 单价×数量与所选费用项目默认税率实时折算，折本币金额乘实时解析汇率，
+ * 不含税单价按预览单价与默认税率反算（编辑始终提交含税口径）。
  * 传入关联账单投影时（即具备财务费用读取权限）追加账单号与关联账单财务
  * 进度列；进度属于整张关联账单，多笔费用共用同一账单时显示相同进度。
  */
@@ -127,6 +175,50 @@ export function buildOptionalFeeColumns(
 
   return [
     {
+      title: '不含税单价',
+      dataIndex: 'netUnitPrice',
+      width: 110,
+      align: 'right',
+      editable: false,
+      shouldCellUpdate: () => true,
+      sorter: (a, b) => {
+        const valueA = netUnitPriceNumberOf(a);
+        const valueB = netUnitPriceNumberOf(b);
+        if (valueA === undefined && valueB === undefined) return 0;
+        if (valueA === undefined) return 1;
+        if (valueB === undefined) return -1;
+        return valueA - valueB;
+      },
+      render: (_, record) => {
+        const preview = previewOf(record);
+        if (preview?.unitPrice && preview.taxRate) {
+          const netUnit = computeNetUnitPrice(
+            preview.unitPrice,
+            preview.taxRate,
+          );
+          if (netUnit !== undefined)
+            return monoAmountCell(formatAmount(netUnit));
+        }
+        if (!record.version) return pendingSaveCell();
+        // 历史不含税行单价即不含税口径，直接展示；protojson 省略零值，
+        // wire 上非 true（含 undefined）即不含税行，禁止 === false 死分支。
+        if (record.taxInclusive !== true) {
+          const unit = record.unitPrice
+            ? new Decimal(record.unitPrice)
+                .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+                .toString()
+            : undefined;
+          return unit === undefined ? '-' : monoAmountCell(formatAmount(unit));
+        }
+        const netUnit = record.unitPrice
+          ? computeNetUnitPrice(record.unitPrice, record.taxRate)
+          : undefined;
+        return netUnit === undefined
+          ? '-'
+          : monoAmountCell(formatAmount(netUnit));
+      },
+    },
+    {
       title: '税率(%)',
       dataIndex: 'taxRate',
       width: 100,
@@ -146,11 +238,6 @@ export function buildOptionalFeeColumns(
               style={{ whiteSpace: 'nowrap' }}
             >{`${Number(taxRate)}%`}</span>
             {previewTaxRate ? <Tag color="processing">预览</Tag> : null}
-            {!previewTaxRate && record.taxInclusive === false && (
-              <Tooltip title="该行按不含税单价口径录入，单价不含税金">
-                <Tag>未税单价</Tag>
-              </Tooltip>
-            )}
           </Space>
         );
       },

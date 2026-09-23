@@ -488,7 +488,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
   });
 
-  it('选择费用项目并输入单价后，税率税金与不含税总额实时预览', async () => {
+  it('选择费用项目并输入单价后，税率税金与不含税总额/不含税单价实时预览', async () => {
     const today = '2026-09-21';
     listFees.mockResolvedValue({
       data: [
@@ -554,11 +554,73 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       fireEvent.change(unitPriceInput, { target: { value: '106' } });
     });
 
-    // 含税 106、税率 6%：不含税总额 100.00，税金 6.00
+    // 含税 106、税率 6%：不含税总额与不含税单价均为 100.00，税金 6.00
     await waitFor(() => {
-      expect(screen.getByText('100.00')).toBeInTheDocument();
+      expect(screen.getAllByText('100.00').length).toBe(2);
       expect(screen.getByText('6.00')).toBeInTheDocument();
     });
+  });
+
+  it('行内新增行：缺少单价输入时不含税单价列显示待保存，输入后实时折算（A3）', async () => {
+    listFees.mockResolvedValue({ data: [] } as any);
+
+    const props = {
+      ...makeProps('order-1'),
+      selectedReceivableFeeIds: [],
+      feeWritesDisabled: false,
+      getTableColumns: undefined,
+      billingUnits: [{ id: 'unit-piao', code: 'PIAO', name: '票' }],
+      feeSettings: [
+        {
+          id: 'setting-thc',
+          feeCode: 'THC',
+          nameZh: '码头操作费',
+          taxRate: '6.00',
+        },
+      ],
+      settlementParties: [{ id: 'customer-1', name: '测试客户' }],
+      currencies: [{ code: 'CNY', name: '人民币' }],
+    };
+
+    render(
+      <App>
+        <OrderFeeTableTabs {...props} />
+      </App>,
+    );
+
+    await act(async () => {
+      screen.getByRole('button', { name: /新增应收费用/ }).click();
+    });
+    await waitFor(() => expect(screen.getByText('保存')).toBeInTheDocument());
+
+    // 新行缺少单价与税率输入：税率、税金、不含税总额、折本币金额、
+    // 不含税单价五个只读列均显示待保存
+    await waitFor(() => expect(screen.getAllByText('待保存').length).toBe(5));
+
+    const comboboxes = await waitFor(() => {
+      const boxes = screen.getAllByRole('combobox');
+      expect(boxes.length).toBeGreaterThanOrEqual(4);
+      return boxes;
+    });
+    await pickSelectOption(comboboxes[0], '码头操作费 (THC)');
+
+    // 仅选择费用项目（含默认税率）补齐税率预览，其余四列仍缺单价输入
+    await waitFor(() => {
+      expect(screen.getAllByText('6%').length).toBeGreaterThan(0);
+    });
+    expect(screen.getAllByText('待保存').length).toBe(4);
+
+    const unitPriceInput = screen.getByPlaceholderText('0.00');
+    await act(async () => {
+      fireEvent.change(unitPriceInput, { target: { value: '106' } });
+    });
+
+    // 含税单价 106、税率 6%：不含税单价 100.00，与不含税总额预览同值
+    await waitFor(() => {
+      expect(screen.getAllByText('100.00').length).toBe(2);
+      expect(screen.getByText('6.00')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('待保存')).not.toBeInTheDocument();
   });
 
   it('费用项目默认币种联动时立即解析并预览该币种参考汇率', async () => {

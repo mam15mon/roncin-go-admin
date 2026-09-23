@@ -87,13 +87,15 @@ type AmountPreview = {
   currency: string;
 };
 
-/** 单行编辑态的实时预览集合：汇率、总金额、费用代码与税率，保存后以后端落库值为准。 */
+/** 单行编辑态的实时预览集合：汇率、总金额、费用代码、税率与单价，保存后以后端落库值为准。 */
 type RowEditPreview = {
   rate?: ExchangeRatePreview;
   amount?: AmountPreview;
   feeCode?: string;
   /** 所选费用项目默认税率（API 口径：百分数值字符串，如 "6.00" 表示 6%）。 */
   taxRate?: string;
+  /** 行内输入的单价（供不含税单价列实时折算；编辑始终提交含税口径）。 */
+  unitPrice?: string;
 };
 
 type FeeRequestError = Error & {
@@ -349,7 +351,13 @@ export default function OrderFeeTableTabs({
         const current = prev[key];
         if (!current) return rate ? { ...prev, [key]: { rate } } : prev;
         const next = { ...current, rate };
-        if (!next.rate && !next.amount && next.feeCode === undefined) {
+        if (
+          !next.rate &&
+          !next.amount &&
+          next.feeCode === undefined &&
+          next.taxRate === undefined &&
+          next.unitPrice === undefined
+        ) {
           const { [key]: _removed, ...rest } = prev;
           return rest;
         }
@@ -396,7 +404,8 @@ export default function OrderFeeTableTabs({
       });
   };
 
-  // 单价/数量/币种变化后重算总金额预览；输入不完整时清除该行金额预览。
+  // 单价/数量/币种变化后重算总金额预览，并同步行内单价供不含税单价列
+  // 实时折算；输入不完整时清除该行对应预览。
   const refreshAmountPreview = (
     rowKey: React.Key | undefined,
     form?: {
@@ -411,25 +420,41 @@ export default function OrderFeeTableTabs({
       String(quantity ?? ''),
       String(unitPrice ?? ''),
     );
+    const unitPriceInput = unitPrice
+      ? normalizeDecimalInput(String(unitPrice))
+      : '';
+    const hasUnitPrice =
+      unitPriceInput !== '' && Number.isFinite(Number(unitPriceInput));
     setRowPreviews((prev) => {
       const current = prev[key];
-      if (!total) {
-        if (!current?.amount) return prev;
+      if (!total && !hasUnitPrice) {
+        if (!current?.amount && current?.unitPrice === undefined) return prev;
         const next = { ...current };
         delete next.amount;
-        if (!next.rate && next.feeCode === undefined) {
+        delete next.unitPrice;
+        if (
+          !next.rate &&
+          next.feeCode === undefined &&
+          next.taxRate === undefined &&
+          next.unitPrice === undefined
+        ) {
           const { [key]: _removed, ...rest } = prev;
           return rest;
         }
         return { ...prev, [key]: next };
       }
-      return {
-        ...prev,
-        [key]: {
-          ...current,
-          amount: { total, currency: String(currency || 'CNY') },
-        },
-      };
+      const next: RowEditPreview = { ...current };
+      if (hasUnitPrice) {
+        next.unitPrice = unitPriceInput;
+      } else {
+        delete next.unitPrice;
+      }
+      if (total) {
+        next.amount = { total, currency: String(currency || 'CNY') };
+      } else {
+        delete next.amount;
+      }
+      return { ...prev, [key]: next };
     });
   };
 

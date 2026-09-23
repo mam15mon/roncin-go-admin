@@ -111,7 +111,9 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 比较永远不成立，构成死分支。
 
 **Why**：proto3 标量字段默认不序列化零值。已实际踩中：`can_modify`（订单
-「已锁单」标签死分支）与 `configuration_complete`（建账工作台三处配置守卫死分支）。
+「已锁单」标签死分支）、`configuration_complete`（建账工作台三处配置守卫死分支）
+与 `tax_inclusive`（订单费用「不含税单价」列初版 `=== false` 死分支，后按本规范
+改为 `!== true` 才能识别 wire 上字段缺失的历史不含税行）。
 
 **Example**：
 

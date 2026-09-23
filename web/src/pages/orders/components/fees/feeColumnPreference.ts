@@ -13,6 +13,7 @@ export const FEE_COLUMN_KEYS = [
   'settlementPartyId',
   'currency',
   'unitPrice',
+  'netUnitPrice',
   'quantity',
   'billingUnitId',
   'totalAmount',
@@ -42,7 +43,7 @@ export interface FeeColumnDef {
   financeOnly?: boolean;
 }
 
-/** 默认列保持当前表格相对顺序；费用标签与关联账单列默认隐藏，税额四列默认可见。 */
+/** 默认列保持当前表格相对顺序；费用标签与关联账单列默认隐藏，含税单价折算列与税额四列默认可见。 */
 export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   { key: 'status', title: '状态', lockVisible: false, defaultVisible: true },
   {
@@ -66,6 +67,12 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   },
   { key: 'currency', title: '币种', lockVisible: true, defaultVisible: true },
   { key: 'unitPrice', title: '单价', lockVisible: true, defaultVisible: true },
+  {
+    key: 'netUnitPrice',
+    title: '不含税单价',
+    lockVisible: false,
+    defaultVisible: true,
+  },
   { key: 'quantity', title: '数量', lockVisible: true, defaultVisible: true },
   {
     key: 'billingUnitId',

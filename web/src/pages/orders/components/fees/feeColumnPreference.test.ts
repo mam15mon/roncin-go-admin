@@ -35,6 +35,7 @@ describe('feeColumnPreference 列定义与默认值', () => {
     }
     expect(defaults.hidden).toEqual(expect.arrayContaining(['tags']));
     for (const key of [
+      'netUnitPrice',
       'taxRate',
       'taxAmount',
       'netAmount',
@@ -43,6 +44,21 @@ describe('feeColumnPreference 列定义与默认值', () => {
       expect(defaults.hidden).not.toContain(key);
     }
     expect(defaults.hidden).not.toContain('feeCode');
+  });
+
+  it('不含税单价列默认可见且默认顺序紧跟单价之后，偏好未提及按默认可见兜底', () => {
+    const defaults = defaultFeeColumnPreference(false);
+    expect(defaults.order[defaults.order.indexOf('unitPrice') + 1]).toBe(
+      'netUnitPrice',
+    );
+    // 老用户偏好存储未提及新列时，按 defaultVisible 兜底自动出现且不进 hidden
+    const stored: FeeColumnPreference = {
+      order: ['status', 'feeSettingId'],
+      hidden: [],
+    };
+    const resolved = resolveFeeColumnPreference(stored, false);
+    expect(resolved.order).toContain('netUnitPrice');
+    expect(resolved.hidden).not.toContain('netUnitPrice');
   });
 
   it('无财务权限时裁剪账单关联列，有权限时提供且默认隐藏', () => {
