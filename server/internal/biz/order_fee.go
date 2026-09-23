@@ -463,7 +463,25 @@ func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organization
 	if organizationID == uuid.Nil || orderID == uuid.Nil || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
 		return ResolvedRate{}, ErrOrderFeeInvalidArgument
 	}
-	return uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, expenseDate)
+	return uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, expenseDateDay(expenseDate))
+}
+
+// isValidExpenseDate 校验发生日期：纯日期（YYYY-MM-DD）或精确到分钟
+// （YYYY-MM-DD HH:mm）。汇率按自然周解析，时刻不参与校验。
+func isValidExpenseDate(value string) bool {
+	if parsed, err := time.Parse("2006-01-02", value); err == nil && parsed.Format("2006-01-02") == value {
+		return true
+	}
+	parsed, err := time.Parse("2006-01-02 15:04", value)
+	return err == nil && parsed.Format("2006-01-02 15:04") == value
+}
+
+// expenseDateDay 截取发生日期的日期部分，供按周匹配的汇率解析使用。
+func expenseDateDay(expenseDate string) string {
+	if day, _, found := strings.Cut(expenseDate, " "); found {
+		return day
+	}
+	return expenseDate
 }
 
 func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool) error {
@@ -477,13 +495,13 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		fee.ExchangeRateSettingID = nil
 		return nil
 	}
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, fee.ExpenseDate)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, expenseDateDay(fee.ExpenseDate))
 	if err != nil {
 		return err
 	}
 	fee.ExchangeRate = resolved.Rate
 	fee.ExchangeRateSource = resolved.Source
-	fee.ExchangeRateDate = fee.ExpenseDate
+	fee.ExchangeRateDate = expenseDateDay(fee.ExpenseDate)
 	fee.ExchangeRateSettingID = resolved.SettingID
 	return nil
 }
@@ -642,9 +660,9 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 		outputName := value
 		input.FeeNameOverride = &outputName
 	}
+	// 发生日期支持到分钟：接受纯日期或“日期 HH:mm”两种精确格式，秒级精度不收。
 	expenseDate := strings.TrimSpace(input.ExpenseDate)
-	parsedDate, err := time.Parse("2006-01-02", expenseDate)
-	if err != nil || parsedDate.Format("2006-01-02") != expenseDate {
+	if !isValidExpenseDate(expenseDate) {
 		return nil, ErrOrderFeeInvalidArgument
 	}
 	var note *string

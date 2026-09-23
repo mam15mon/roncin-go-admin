@@ -57,6 +57,37 @@ func TestNormalizeOrderFeePreservesEightDecimalProduct(t *testing.T) {
 	}
 }
 
+func TestNormalizeOrderFeeAcceptsMinutePrecisionExpenseDate(t *testing.T) {
+	fee := validOrderFeeForTest()
+	fee.ExpenseDate = "2026-08-24 14:30"
+
+	normalized, err := normalizeOrderFee(fee)
+	if err != nil {
+		t.Fatalf("分钟精度发生日期应被接受: %v", err)
+	}
+	if normalized.ExpenseDate != "2026-08-24 14:30" {
+		t.Fatalf("发生日期应原样保留，实际为 %s", normalized.ExpenseDate)
+	}
+}
+
+func TestNormalizeOrderFeeRejectsSecondPrecisionExpenseDate(t *testing.T) {
+	fee := validOrderFeeForTest()
+	fee.ExpenseDate = "2026-08-24 14:30:05"
+
+	if _, err := normalizeOrderFee(fee); err != ErrOrderFeeInvalidArgument {
+		t.Fatalf("秒级精度发生日期应被拒绝，实际错误为 %v", err)
+	}
+}
+
+func TestExpenseDateDayTrimsTimePart(t *testing.T) {
+	if got := expenseDateDay("2026-08-24 14:30"); got != "2026-08-24" {
+		t.Fatalf("带时刻的发生日期应截取日期部分，实际为 %s", got)
+	}
+	if got := expenseDateDay("2026-08-24"); got != "2026-08-24" {
+		t.Fatalf("纯日期应原样返回，实际为 %s", got)
+	}
+}
+
 func TestNormalizeOrderFeeRejectsExcessPrecision(t *testing.T) {
 	fee := validOrderFeeForTest()
 	fee.UnitPrice = decimal.RequireFromString("1.00001")
