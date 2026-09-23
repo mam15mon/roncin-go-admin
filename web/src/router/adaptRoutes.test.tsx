@@ -10,6 +10,7 @@ describe('adaptRoutes 路由适配', () => {
     interface FlatRoute {
       lazy?: () => Promise<unknown>;
       children?: FlatRoute[];
+      errorElement?: unknown;
     }
     const flat: FlatRoute[] = [];
     const walk = (routes: FlatRoute[]) => {
@@ -19,6 +20,8 @@ describe('adaptRoutes 路由适配', () => {
       }
     };
     walk(buildRouterConfig() as unknown as FlatRoute[]);
+
+    expect(flat.every((route) => route.errorElement)).toBe(true);
 
     const lazyRoutes = flat.filter((route) => typeof route.lazy === 'function');
     // 35 个页面组件 + 1 个 AppLayout 布局壳。

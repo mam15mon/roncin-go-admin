@@ -14,6 +14,7 @@ import type { RouteObject } from 'react-router';
 import { Navigate, Outlet } from 'react-router';
 import umiRoutes from '../../config/routes';
 import { AccessGuard } from './guard';
+import { RouteErrorPage } from './RouteErrorPage';
 import type { AccessState, UmiRoute } from './routeTypes';
 
 type PageLoader = () => Promise<{ default: ComponentType }>;
@@ -56,7 +57,7 @@ function normalizePath(path: string): string {
 
 function toRoute(route: UmiRoute): RouteObject {
   const children = route.routes?.map(toRoute);
-  const result: RouteObject = {};
+  const result: RouteObject = { errorElement: <RouteErrorPage /> };
   if (route.path !== undefined) {
     result.path = normalizePath(route.path);
   }
@@ -99,6 +100,7 @@ export function buildRouterConfig(): RouteObject[] {
     ...bare,
     {
       // 布局壳懒加载，同时切断 router → AppLayout → history → router 的模块环
+      errorElement: <RouteErrorPage />,
       lazy: async () => {
         const { AppLayout } = await import('../app/AppLayout');
         return { Component: AppLayout };
