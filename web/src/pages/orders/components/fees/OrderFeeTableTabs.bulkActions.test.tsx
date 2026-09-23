@@ -62,6 +62,18 @@ async function pickSelectOption(combobox: Element, name: string) {
   fireEvent.click(option);
 }
 
+/** 模拟在 Dropdown 菜单中点击批量操作项。 */
+async function triggerBulkAction(name: string | RegExp, tableIndex = 0) {
+  const bulkButtons = screen.getAllByRole('button', { name: /批量操作/ });
+  await act(async () => {
+    fireEvent.click(bulkButtons[tableIndex]);
+  });
+  const menuItem = await screen.findByText(name);
+  await act(async () => {
+    fireEvent.click(menuItem);
+  });
+}
+
 function makeFee(partial: Partial<API.OrderFee>): API.OrderFee {
   return {
     direction: RECEIVABLE,
@@ -230,14 +242,18 @@ describe('OrderFeeTableTabs 批量维护操作', () => {
     const listCallsBefore = listFees.mock.calls.length;
 
     // 应收入口可用；应付表未勾选时入口禁用
-    const partyButtons = screen.getAllByRole('button', {
-      name: /批量改结算单位/,
+    const bulkButtons = screen.getAllByRole('button', {
+      name: /批量操作/,
     });
-    expect(partyButtons[0]).not.toBeDisabled();
-    expect(partyButtons[1]).toBeDisabled();
+    expect(bulkButtons[0]).not.toBeDisabled();
+    expect(bulkButtons[1]).toBeDisabled();
 
     await act(async () => {
-      partyButtons[0].click();
+      fireEvent.click(bulkButtons[0]);
+    });
+    const partyMenuItem = await screen.findByText('批量改结算单位');
+    await act(async () => {
+      fireEvent.click(partyMenuItem);
     });
     await waitFor(() =>
       expect(
@@ -282,9 +298,7 @@ describe('OrderFeeTableTabs 批量维护操作', () => {
     await renderTabs(props);
     await screen.findByText('海运费');
 
-    await act(async () => {
-      screen.getAllByRole('button', { name: /批量删除/ })[0].click();
-    });
+    await triggerBulkAction('批量删除');
     await waitFor(() =>
       expect(
         screen.getByText('批量删除费用（已选 1 笔应收费用）'),
@@ -322,9 +336,7 @@ describe('OrderFeeTableTabs 批量维护操作', () => {
     await renderTabs(props);
     await screen.findByText('海运费');
 
-    await act(async () => {
-      screen.getAllByRole('button', { name: /批量改费用时间/ })[0].click();
-    });
+    await triggerBulkAction('批量改费用时间');
     await waitFor(() =>
       expect(
         screen.getByText('批量修改费用时间（已选 1 笔应收费用）'),
@@ -365,9 +377,7 @@ describe('OrderFeeTableTabs 批量维护操作', () => {
     await screen.findByText('海运费');
     const listCallsBefore = listFees.mock.calls.length;
 
-    await act(async () => {
-      screen.getAllByRole('button', { name: /批量改结算单位/ })[0].click();
-    });
+    await triggerBulkAction('批量改结算单位');
     await waitFor(() =>
       expect(
         screen.getByText('批量修改结算单位（已选 2 笔应收费用）'),
@@ -425,15 +435,13 @@ describe('OrderFeeTableTabs 批量维护操作', () => {
     await screen.findByText('海运费');
 
     // 应收入口可用；应付表未勾选时入口禁用
-    const addTagButtons = screen.getAllByRole('button', {
-      name: /添加标签/,
+    const bulkButtons = screen.getAllByRole('button', {
+      name: /批量操作/,
     });
-    expect(addTagButtons[0]).not.toBeDisabled();
-    expect(addTagButtons[1]).toBeDisabled();
+    expect(bulkButtons[0]).not.toBeDisabled();
+    expect(bulkButtons[1]).toBeDisabled();
 
-    await act(async () => {
-      addTagButtons[0].click();
-    });
+    await triggerBulkAction('添加标签');
     const dialog = getDialog();
     await waitFor(() =>
       expect(within(dialog).getByText('已选 2 个对象')).toBeInTheDocument(),
@@ -466,9 +474,7 @@ describe('OrderFeeTableTabs 批量维护操作', () => {
 
     // 「删除标签」入口以移除模式重新打开同一弹窗（重开可能重建内容节点，
     // 断言时需重查 dialog，避免持有失联的旧节点）
-    await act(async () => {
-      screen.getAllByRole('button', { name: /删除标签/ })[0].click();
-    });
+    await triggerBulkAction('删除标签');
     await waitFor(() => {
       const okButton = within(getDialog()).getByRole('button', {
         name: /移除标签/,

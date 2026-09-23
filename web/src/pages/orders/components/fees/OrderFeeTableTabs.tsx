@@ -1,6 +1,7 @@
 import {
   ClockCircleOutlined,
   DeleteOutlined,
+  DownOutlined,
   EditOutlined,
   FileDoneOutlined,
   PlusOutlined,
@@ -15,9 +16,18 @@ import {
   ProFormDatePicker,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Alert, App, Button, Space, Tag, Tooltip } from 'antd';
-import dayjs from 'dayjs';
+import {
+  Alert,
+  App,
+  Button,
+  Dropdown,
+  type MenuProps,
+  Space,
+  Tag,
+  Tooltip,
+} from 'antd';
 import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
@@ -375,189 +385,66 @@ export default function OrderFeeTableTabs({
     onOpenBillWorkbench(rows.map((row) => String(row.id)));
   };
 
+  type BulkActionType = 'settlementParty' | 'expenseDate' | 'remove';
+  const [bulkActionContext, setBulkActionContext] = useState<
+    { direction: number; type: BulkActionType } | undefined
+  >(undefined);
+
   const renderBulkToolbar = (direction: number) => {
     const isReceivable = direction === RECEIVABLE;
     const selectedIds = isReceivable
       ? selectedReceivableFeeIds
       : selectedPayableFeeIds;
-    const directionText = isReceivable ? '应收' : '应付';
     const bulkDisabled = feeWritesDisabled || selectedIds.length === 0;
 
+    const items: MenuProps['items'] = [
+      {
+        key: 'settlementParty',
+        icon: <SwapOutlined />,
+        label: '批量改结算单位',
+        onClick: () =>
+          setBulkActionContext({ direction, type: 'settlementParty' }),
+      },
+      {
+        key: 'expenseDate',
+        icon: <ClockCircleOutlined />,
+        label: '批量改费用时间',
+        onClick: () => setBulkActionContext({ direction, type: 'expenseDate' }),
+      },
+      {
+        key: 'addTags',
+        icon: <TagsOutlined />,
+        label: '添加标签',
+        onClick: () => setTagModalContext({ direction, mode: 'assign' }),
+      },
+      {
+        key: 'removeTags',
+        icon: <TagsOutlined />,
+        label: '删除标签',
+        onClick: () => setTagModalContext({ direction, mode: 'remove' }),
+      },
+      {
+        type: 'divider',
+      },
+      {
+        key: 'remove',
+        icon: <DeleteOutlined />,
+        danger: true,
+        label: '批量删除',
+        onClick: () => setBulkActionContext({ direction, type: 'remove' }),
+      },
+    ];
+
     return (
-      <>
-        <ModalForm<{ settlementPartyId: string }>
-          title={`批量修改结算单位（已选 ${selectedIds.length} 笔${directionText}费用）`}
-          width={480}
-          modalProps={{ destroyOnHidden: true }}
-          submitter={{
-            searchConfig: { submitText: '确定修改', resetText: '取消' },
-          }}
-          trigger={
-            <Button icon={<SwapOutlined />} disabled={bulkDisabled}>
-              批量改结算单位
-            </Button>
-          }
-          onFinish={async (values) => {
-            const rows = getSelectedRows(direction);
-            if (rows.length === 0) {
-              message.warning('请先勾选要修改的费用');
-              return false;
-            }
-            if (rejectBilledRows(rows, '批量修改结算单位')) return false;
-            try {
-              const response = await orderFeeServiceBulkUpdateOrderFees(
-                { orderId },
-                {
-                  orderId,
-                  targets: buildBulkTargets(rows),
-                  settlementPartyId: values.settlementPartyId,
-                },
-              );
-              message.success(
-                `已修改 ${response.updatedCount ?? rows.length} 笔费用的结算单位`,
-              );
-              handleBulkDone(direction);
-              return true;
-            } catch (error) {
-              message.error(getErrorMessage(error, '批量修改结算单位失败'));
-              return false;
-            }
-          }}
-        >
-          <ProFormSearchableSelect
-            name="settlementPartyId"
-            label="结算单位"
-            rules={[{ required: true, message: '请选择结算单位' }]}
-            placeholder="请选择新的结算单位"
-            options={(settlementParties || []).map((p) => ({
-              label: p.name ?? '',
-              value: p.id ?? '',
-              code: p.code,
-            }))}
-          />
-        </ModalForm>
-        <ModalForm<{ expenseDate: string | Dayjs }>
-          title={`批量修改费用时间（已选 ${selectedIds.length} 笔${directionText}费用）`}
-          width={480}
-          modalProps={{ destroyOnHidden: true }}
-          submitter={{
-            searchConfig: { submitText: '确定修改', resetText: '取消' },
-          }}
-          trigger={
-            <Button icon={<ClockCircleOutlined />} disabled={bulkDisabled}>
-              批量改费用时间
-            </Button>
-          }
-          onFinish={async (values) => {
-            const rows = getSelectedRows(direction);
-            if (rows.length === 0) {
-              message.warning('请先勾选要修改的费用');
-              return false;
-            }
-            if (rejectBilledRows(rows, '批量修改费用时间')) return false;
-            try {
-              const response = await orderFeeServiceBulkUpdateOrderFees(
-                { orderId },
-                {
-                  orderId,
-                  targets: buildBulkTargets(rows),
-                  // dayjs 同时兼容 Dayjs 对象与已格式化字符串两种表单值。
-                  expenseDate: dayjs(values.expenseDate).format(
-                    'YYYY-MM-DD HH:mm',
-                  ),
-                },
-              );
-              message.success(
-                `已修改 ${response.updatedCount ?? rows.length} 笔费用的费用时间`,
-              );
-              handleBulkDone(direction);
-              return true;
-            } catch (error) {
-              message.error(getErrorMessage(error, '批量修改费用时间失败'));
-              return false;
-            }
-          }}
-        >
-          <ProFormDatePicker
-            name="expenseDate"
-            label="费用发生时间"
-            rules={[{ required: true, message: '请选择费用发生时间' }]}
-            fieldProps={{
-              style: { width: '100%' },
-              placeholder: '请选择费用发生时间',
-              format: 'YYYY-MM-DD HH:mm',
-              showTime: { format: 'HH:mm' },
-            }}
-          />
-        </ModalForm>
-        <ModalForm<{ reason?: string }>
-          title={`批量删除费用（已选 ${selectedIds.length} 笔${directionText}费用）`}
-          width={520}
-          modalProps={{ destroyOnHidden: true }}
-          submitter={{
-            searchConfig: { submitText: '删除', resetText: '取消' },
-            submitButtonProps: { danger: true },
-          }}
-          trigger={
-            <Button icon={<DeleteOutlined />} danger disabled={bulkDisabled}>
-              批量删除
-            </Button>
-          }
-          onFinish={async (values) => {
-            const rows = getSelectedRows(direction);
-            if (rows.length === 0) {
-              message.warning('请先勾选要删除的费用');
-              return false;
-            }
-            if (rejectBilledRows(rows, '批量删除')) return false;
-            try {
-              const response = await orderFeeServiceBulkRemoveOrderFees(
-                { orderId },
-                {
-                  orderId,
-                  targets: buildBulkTargets(rows),
-                  reason: values.reason?.trim() || undefined,
-                },
-              );
-              message.success(
-                `已删除 ${response.removedCount ?? rows.length} 笔费用`,
-              );
-              handleBulkDone(direction);
-              return true;
-            } catch (error) {
-              message.error(getErrorMessage(error, '批量删除费用失败'));
-              return false;
-            }
-          }}
-        >
-          <Alert
-            type="warning"
-            showIcon
-            message={`将删除 ${selectedIds.length} 笔${directionText}费用`}
-            description="删除为物理删除且整批原子执行，任一笔失败则全部回滚；已进入账单的费用需先取消对应账单。"
-          />
-          <ProFormTextArea
-            name="reason"
-            label="删除原因（选填）"
-            placeholder="请输入删除原因，仅写入审计明细（最长 500 字）"
-            fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
-          />
-        </ModalForm>
-        <Button
-          icon={<TagsOutlined />}
-          disabled={bulkDisabled}
-          onClick={() => setTagModalContext({ direction, mode: 'assign' })}
-        >
-          添加标签
+      <Dropdown menu={{ items }} disabled={bulkDisabled} trigger={['click']}>
+        <Button disabled={bulkDisabled}>
+          <Space size={4}>
+            <span>批量操作</span>
+            {selectedIds.length > 0 && <span>({selectedIds.length})</span>}
+            <DownOutlined style={{ fontSize: 10 }} />
+          </Space>
         </Button>
-        <Button
-          icon={<TagsOutlined />}
-          disabled={bulkDisabled}
-          onClick={() => setTagModalContext({ direction, mode: 'remove' })}
-        >
-          删除标签
-        </Button>
-      </>
+      </Dropdown>
     );
   };
 
@@ -1765,6 +1652,189 @@ export default function OrderFeeTableTabs({
         }}
         onCancel={() => setTagModalContext(undefined)}
       />
+
+      {/* 批量修改结算单位 */}
+      <ModalForm<{ settlementPartyId: string }>
+        open={bulkActionContext?.type === 'settlementParty'}
+        onOpenChange={(open) => !open && setBulkActionContext(undefined)}
+        title={`批量修改结算单位（已选 ${
+          (bulkActionContext?.direction === RECEIVABLE
+            ? selectedReceivableFeeIds
+            : selectedPayableFeeIds
+          ).length
+        } 笔${bulkActionContext?.direction === RECEIVABLE ? '应收' : '应付'}费用）`}
+        width={480}
+        modalProps={{ destroyOnHidden: true }}
+        submitter={{
+          searchConfig: { submitText: '确定修改', resetText: '取消' },
+        }}
+        onFinish={async (values) => {
+          if (!bulkActionContext) return false;
+          const { direction } = bulkActionContext;
+          const rows = getSelectedRows(direction);
+          if (rows.length === 0) {
+            message.warning('请先勾选要修改的费用');
+            return false;
+          }
+          if (rejectBilledRows(rows, '批量修改结算单位')) return false;
+          try {
+            const response = await orderFeeServiceBulkUpdateOrderFees(
+              { orderId },
+              {
+                orderId,
+                targets: buildBulkTargets(rows),
+                settlementPartyId: values.settlementPartyId,
+              },
+            );
+            message.success(
+              `已修改 ${response.updatedCount ?? rows.length} 笔费用的结算单位`,
+            );
+            handleBulkDone(direction);
+            setBulkActionContext(undefined);
+            return true;
+          } catch (error) {
+            message.error(getErrorMessage(error, '批量修改结算单位失败'));
+            return false;
+          }
+        }}
+      >
+        <ProFormSearchableSelect
+          name="settlementPartyId"
+          label="结算单位"
+          rules={[{ required: true, message: '请选择结算单位' }]}
+          placeholder="请选择新的结算单位"
+          options={(settlementParties || []).map((p) => ({
+            label: p.name ?? '',
+            value: p.id ?? '',
+            code: p.code,
+          }))}
+        />
+      </ModalForm>
+
+      {/* 批量修改费用时间 */}
+      <ModalForm<{ expenseDate: string | Dayjs }>
+        open={bulkActionContext?.type === 'expenseDate'}
+        onOpenChange={(open) => !open && setBulkActionContext(undefined)}
+        title={`批量修改费用时间（已选 ${
+          (bulkActionContext?.direction === RECEIVABLE
+            ? selectedReceivableFeeIds
+            : selectedPayableFeeIds
+          ).length
+        } 笔${bulkActionContext?.direction === RECEIVABLE ? '应收' : '应付'}费用）`}
+        width={480}
+        modalProps={{ destroyOnHidden: true }}
+        submitter={{
+          searchConfig: { submitText: '确定修改', resetText: '取消' },
+        }}
+        onFinish={async (values) => {
+          if (!bulkActionContext) return false;
+          const { direction } = bulkActionContext;
+          const rows = getSelectedRows(direction);
+          if (rows.length === 0) {
+            message.warning('请先勾选要修改的费用');
+            return false;
+          }
+          if (rejectBilledRows(rows, '批量修改费用时间')) return false;
+          try {
+            const response = await orderFeeServiceBulkUpdateOrderFees(
+              { orderId },
+              {
+                orderId,
+                targets: buildBulkTargets(rows),
+                expenseDate: dayjs(values.expenseDate).format(
+                  'YYYY-MM-DD HH:mm',
+                ),
+              },
+            );
+            message.success(
+              `已修改 ${response.updatedCount ?? rows.length} 笔费用的费用时间`,
+            );
+            handleBulkDone(direction);
+            setBulkActionContext(undefined);
+            return true;
+          } catch (error) {
+            message.error(getErrorMessage(error, '批量修改费用时间失败'));
+            return false;
+          }
+        }}
+      >
+        <ProFormDatePicker
+          name="expenseDate"
+          label="费用发生时间"
+          rules={[{ required: true, message: '请选择费用发生时间' }]}
+          fieldProps={{
+            style: { width: '100%' },
+            placeholder: '请选择费用发生时间',
+            format: 'YYYY-MM-DD HH:mm',
+            showTime: { format: 'HH:mm' },
+          }}
+        />
+      </ModalForm>
+
+      {/* 批量删除费用 */}
+      <ModalForm<{ reason?: string }>
+        open={bulkActionContext?.type === 'remove'}
+        onOpenChange={(open) => !open && setBulkActionContext(undefined)}
+        title={`批量删除费用（已选 ${
+          (bulkActionContext?.direction === RECEIVABLE
+            ? selectedReceivableFeeIds
+            : selectedPayableFeeIds
+          ).length
+        } 笔${bulkActionContext?.direction === RECEIVABLE ? '应收' : '应付'}费用）`}
+        width={520}
+        modalProps={{ destroyOnHidden: true }}
+        submitter={{
+          searchConfig: { submitText: '删除', resetText: '取消' },
+          submitButtonProps: { danger: true },
+        }}
+        onFinish={async (values) => {
+          if (!bulkActionContext) return false;
+          const { direction } = bulkActionContext;
+          const rows = getSelectedRows(direction);
+          if (rows.length === 0) {
+            message.warning('请先勾选要删除的费用');
+            return false;
+          }
+          if (rejectBilledRows(rows, '批量删除')) return false;
+          try {
+            const response = await orderFeeServiceBulkRemoveOrderFees(
+              { orderId },
+              {
+                orderId,
+                targets: buildBulkTargets(rows),
+                reason: values.reason?.trim() || undefined,
+              },
+            );
+            message.success(
+              `已删除 ${response.removedCount ?? rows.length} 笔费用`,
+            );
+            handleBulkDone(direction);
+            setBulkActionContext(undefined);
+            return true;
+          } catch (error) {
+            message.error(getErrorMessage(error, '批量删除费用失败'));
+            return false;
+          }
+        }}
+      >
+        <Alert
+          type="warning"
+          showIcon
+          message={`将删除 ${
+            (bulkActionContext?.direction === RECEIVABLE
+              ? selectedReceivableFeeIds
+              : selectedPayableFeeIds
+            ).length
+          } 笔${bulkActionContext?.direction === RECEIVABLE ? '应收' : '应付'}费用`}
+          description="删除为物理删除且整批原子执行，任一笔失败则全部回滚；已进入账单的费用需先取消对应账单。"
+        />
+        <ProFormTextArea
+          name="reason"
+          label="删除原因（选填）"
+          placeholder="请输入删除原因，仅写入审计明细（最长 500 字）"
+          fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
+        />
+      </ModalForm>
     </>
   );
 }
