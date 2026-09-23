@@ -14,7 +14,7 @@ import {
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
 } from '@/services/roncin/orderFeeService';
-import { FEE_CONFIRMED, FEE_DRAFT, PAYABLE, RECEIVABLE } from './feeConstants';
+import { FEE_UNBILLED, PAYABLE, RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -95,7 +95,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     } as Awaited<ReturnType<typeof resolveRate>>);
   });
 
-  it('业务费用只读时禁用新增，但保留已确认费用的账单创建入口', async () => {
+  it('业务费用只读时禁用新增，但保留费用勾选的账单创建入口', async () => {
     const props = makeProps('order-1');
 
     render(
@@ -148,7 +148,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeB = {
       id: 'fee-B',
       direction: RECEIVABLE,
-      status: FEE_CONFIRMED,
+      status: FEE_UNBILLED,
       baseCurrencyAmount: '200',
     } as API.OrderFee;
     responseB.resolve({ data: [feeB] });
@@ -164,7 +164,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeA = {
       id: 'fee-A',
       direction: RECEIVABLE,
-      status: FEE_CONFIRMED,
+      status: FEE_UNBILLED,
       baseCurrencyAmount: '999',
     } as API.OrderFee;
     await act(async () => {
@@ -184,7 +184,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeA = {
       id: 'visible-fee-A',
       direction: RECEIVABLE,
-      status: FEE_CONFIRMED,
+      status: FEE_UNBILLED,
       baseCurrencyAmount: '100',
     } as API.OrderFee;
     listFees
@@ -249,7 +249,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeB = {
       id: 'visible-fee-B',
       direction: RECEIVABLE,
-      status: FEE_CONFIRMED,
+      status: FEE_UNBILLED,
       baseCurrencyAmount: '200',
     } as API.OrderFee;
     await act(async () => {
@@ -285,7 +285,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
           {
             id: 'fee-after-unmount',
             direction: RECEIVABLE,
-            status: FEE_CONFIRMED,
+            status: FEE_UNBILLED,
           },
         ],
       });
@@ -330,7 +330,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeB = {
       id: 'payable-B',
       direction: PAYABLE,
-      status: FEE_CONFIRMED,
+      status: FEE_UNBILLED,
       baseCurrencyAmount: '80',
     } as API.OrderFee;
     responseB.resolve({ data: [feeB] });
@@ -346,7 +346,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeA = {
       id: 'payable-A',
       direction: PAYABLE,
-      status: FEE_CONFIRMED,
+      status: FEE_UNBILLED,
       baseCurrencyAmount: '666',
     } as API.OrderFee;
     await act(async () => {
@@ -429,9 +429,9 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     listFees.mockResolvedValue({
       data: [
         {
-          id: 'fee-draft-3',
+          id: 'fee-unbilled-3',
           direction: RECEIVABLE,
-          status: FEE_DRAFT,
+          status: FEE_UNBILLED,
           currency: 'CNY',
           quantity: '1',
           expenseDate: today,
@@ -493,9 +493,9 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     listFees.mockResolvedValue({
       data: [
         {
-          id: 'fee-draft-4',
+          id: 'fee-unbilled-4',
           direction: RECEIVABLE,
-          status: FEE_DRAFT,
+          status: FEE_UNBILLED,
           currency: 'CNY',
           quantity: '1',
           expenseDate: today,
@@ -628,9 +628,9 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     listFees.mockResolvedValue({
       data: [
         {
-          id: 'fee-draft-1',
+          id: 'fee-unbilled-1',
           direction: RECEIVABLE,
-          status: FEE_DRAFT,
+          status: FEE_UNBILLED,
           currency: 'CNY',
           expenseDate: today,
           version: '3',
@@ -708,9 +708,9 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     listFees.mockResolvedValue({
       data: [
         {
-          id: 'fee-draft-2',
+          id: 'fee-unbilled-2',
           direction: RECEIVABLE,
-          status: FEE_DRAFT,
+          status: FEE_UNBILLED,
           currency: 'CNY',
           expenseDate: today,
           version: '2',

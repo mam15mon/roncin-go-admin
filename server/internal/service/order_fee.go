@@ -165,38 +165,6 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	return ok(ctx, &v1.UpdateFeeResponse{Data: orderFeeToAPI(updated)}), nil
 }
 
-func (s *OrderFeeService) ConfirmFee(ctx context.Context, request *v1.ConfirmFeeRequest) (*v1.ConfirmFeeResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, id, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
-	if err != nil || request.GetExpectedVersion() == 0 {
-		return nil, biz.ErrOrderFeeInvalidArgument
-	}
-	updated, err := s.usecase.Confirm(ctx, principal.Organization.ID, principal.UserID, orderID, id, request.GetExpectedVersion())
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.ConfirmFeeResponse{Data: orderFeeToAPI(updated)}), nil
-}
-
-func (s *OrderFeeService) ReopenFee(ctx context.Context, request *v1.ReopenFeeRequest) (*v1.ReopenFeeResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, id, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
-	if err != nil || request.GetExpectedVersion() == 0 {
-		return nil, biz.ErrOrderFeeInvalidArgument
-	}
-	updated, err := s.usecase.Reopen(ctx, principal.Organization.ID, principal.UserID, orderID, id, request.GetExpectedVersion(), request.GetReason())
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.ReopenFeeResponse{Data: orderFeeToAPI(updated)}), nil
-}
-
 func (s *OrderFeeService) RemoveFee(ctx context.Context, request *v1.RemoveFeeRequest) (*v1.RemoveFeeResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
@@ -375,10 +343,8 @@ func orderFeeDirectionToAPI(value biz.OrderFeeDirection) v1.OrderFeeDirection {
 
 func orderFeeStatusToAPI(value biz.OrderFeeStatus) v1.OrderFeeStatus {
 	switch value {
-	case biz.OrderFeeDraft:
-		return v1.OrderFeeStatus_ORDER_FEE_STATUS_DRAFT
-	case biz.OrderFeeConfirmed:
-		return v1.OrderFeeStatus_ORDER_FEE_STATUS_CONFIRMED
+	case biz.OrderFeeUnbilled:
+		return v1.OrderFeeStatus_ORDER_FEE_STATUS_UNBILLED
 	case biz.OrderFeeBilled:
 		return v1.OrderFeeStatus_ORDER_FEE_STATUS_BILLED
 	case biz.OrderFeeCancelled:

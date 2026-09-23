@@ -23,7 +23,6 @@ import {
   BillCreationWorkbench,
 } from '@/features/finance/bill-creation';
 import { history } from '@/router/history';
-import { orderFeeServiceConfirmFee } from '@/services/roncin/orderFeeService';
 import {
   settlementServiceBatchAssignFinanceFeeTags,
   settlementServiceBatchRemoveFinanceFeeTags,
@@ -86,7 +85,7 @@ export function feeRowsBelongToOrganization(
 const PREFERENCE_QUERY_KEY = ['finance', 'fee-ledger', 'preference'] as const;
 
 export default function FinanceFeeLedgerPage() {
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const queryClient = useQueryClient();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
@@ -150,73 +149,8 @@ export default function FinanceFeeLedgerPage() {
 
   const canCreateBill = (row: API.FeeLedgerItem) =>
     access.canOperateOrganization(row.organizationId) &&
-    row.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED &&
+    row.status === OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED &&
     !row.billNo;
-
-  const confirmDraftRows = async (
-    _keys: React.Key[],
-    rows: API.FeeLedgerItem[],
-  ) => {
-    if (
-      rows.some(
-        (row) =>
-          !access.canOperateOrganization(row.organizationId) ||
-          !access.canOrder(row.businessType ?? '', 'fee.update'),
-      )
-    ) {
-      message.warning(
-        '只能确认当前公司且具备费用修改权限的费用，请调整勾选记录',
-      );
-      return;
-    }
-    const draftRows = rows.filter(
-      (row) =>
-        row.status === OrderFeeStatus.ORDER_FEE_STATUS_DRAFT &&
-        row.orderId &&
-        row.id &&
-        row.version,
-    );
-    if (draftRows.length === 0) {
-      message.info('当前勾选中没有可确认的草稿费用');
-      return;
-    }
-    const results = await Promise.allSettled(
-      draftRows.map((row) =>
-        orderFeeServiceConfirmFee(
-          { orderId: row.orderId as string, id: row.id as string },
-          {
-            orderId: row.orderId as string,
-            id: row.id as string,
-            expectedVersion: row.version as string,
-          },
-          { skipErrorHandler: true },
-        ),
-      ),
-    );
-    const succeeded = results.filter(
-      (item) => item.status === 'fulfilled',
-    ).length;
-    const failed = results.length - succeeded;
-    if (succeeded > 0) {
-      message.success(
-        `已确认 ${succeeded} 笔费用${failed > 0 ? `，${failed} 笔失败` : ''}`,
-      );
-      actionRef.current?.reload();
-    } else {
-      message.error('费用确认失败，请检查费用版本或权限');
-    }
-  };
-
-  const handleBatchConfirm = (keys: React.Key[], rows: API.FeeLedgerItem[]) => {
-    const organizations = [
-      ...new Set(rows.map((row) => row.organizationName || '-')),
-    ];
-    modal.confirm({
-      title: '确认勾选费用？',
-      content: `所属公司：${organizations.join('、')}。费用确认仍按订单费用权限校验。`,
-      onOk: () => confirmDraftRows(keys, rows),
-    });
-  };
 
   const formatAmounts = (
     field: 'receivableBaseAmount' | 'payableBaseAmount' | 'profitBaseAmount',
@@ -424,7 +358,7 @@ export default function FinanceFeeLedgerPage() {
           const invalidRows = rows.filter((row) => !canCreateBill(row));
           if (invalidRows.length > 0) {
             message.warning(
-              '所选费用中包含不可建账的记录，请仅选择已确认且未入账单的费用',
+              '所选费用中包含不可建账的记录，请仅选择未建账且未入账单的费用',
             );
             return;
           }
@@ -446,15 +380,6 @@ export default function FinanceFeeLedgerPage() {
           setBillWorkbenchOpen(true);
         }}
         batchActions={[
-          ...(access.canConfirmAnyOrderFees
-            ? [
-                {
-                  key: 'batch-confirm',
-                  label: '批量确认勾选费用',
-                  onClick: handleBatchConfirm,
-                },
-              ]
-            : []),
           ...(access.canCreateFinanceNettings
             ? [
                 {
@@ -466,7 +391,7 @@ export default function FinanceFeeLedgerPage() {
                     );
                     if (invalidRows.length > 0) {
                       message.warning(
-                        '所选费用中包含不可建账的记录，请仅选择已确认且未入账单的费用',
+                        '所选费用中包含不可建账的记录，请仅选择未建账且未入账单的费用',
                       );
                       return;
                     }

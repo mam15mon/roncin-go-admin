@@ -1,12 +1,11 @@
 import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
-import { Button, Popconfirm, Space } from 'antd';
+import { Button, Space } from 'antd';
 import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import { feeBaseColumns } from './components/fees/feeBaseColumns';
 import {
   FEE_BILLED,
-  FEE_CONFIRMED,
-  FEE_DRAFT,
+  FEE_UNBILLED,
   feeStatusCode,
 } from './components/fees/feeConstants';
 
@@ -14,8 +13,6 @@ interface OrderFeePanelColumnsDeps {
   canUpdate: boolean;
   canDelete: boolean;
   onEdit: (fee: API.OrderFee) => void;
-  onConfirmFee: (fee: API.OrderFee) => void | Promise<void>;
-  onReopenFee: (fee: API.OrderFee) => void;
   onCancelFee: (fee: API.OrderFee) => void;
 }
 
@@ -24,8 +21,6 @@ export function buildOrderFeePanelColumns({
   canUpdate,
   canDelete,
   onEdit,
-  onConfirmFee,
-  onReopenFee,
   onCancelFee,
 }: OrderFeePanelColumnsDeps): ProColumns<API.OrderFee>[] {
   return [
@@ -44,7 +39,7 @@ export function buildOrderFeePanelColumns({
       render: (_, record) => (
         <Space size="small">
           {canUpdate &&
-            (feeStatusCode(record.status) === FEE_DRAFT ||
+            (feeStatusCode(record.status) === FEE_UNBILLED ||
               feeStatusCode(record.status) === FEE_BILLED) && (
               <Button
                 type="link"
@@ -55,39 +50,16 @@ export function buildOrderFeePanelColumns({
                 编辑
               </Button>
             )}
-          {canUpdate && feeStatusCode(record.status) === FEE_DRAFT && (
-            <Popconfirm
-              title="确认后该费用才能进入账单，确定继续？"
-              onConfirm={async () => {
-                await onConfirmFee(record);
-              }}
-            >
-              <Button type="link" size="small">
-                确认
-              </Button>
-            </Popconfirm>
-          )}
-          {canUpdate && feeStatusCode(record.status) === FEE_CONFIRMED && (
+          {canDelete && feeStatusCode(record.status) === FEE_UNBILLED && (
             <Button
               type="link"
+              danger
               size="small"
-              onClick={() => onReopenFee(record)}
+              onClick={() => onCancelFee(record)}
             >
-              撤回
+              作废
             </Button>
           )}
-          {canDelete &&
-            (feeStatusCode(record.status) === FEE_DRAFT ||
-              feeStatusCode(record.status) === FEE_CONFIRMED) && (
-              <Button
-                type="link"
-                danger
-                size="small"
-                onClick={() => onCancelFee(record)}
-              >
-                作废
-              </Button>
-            )}
         </Space>
       ),
     },

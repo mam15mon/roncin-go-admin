@@ -171,7 +171,7 @@ func TestSameFinanceBillCreateIntentRejectsChangedSettlementAccount(t *testing.T
 
 func TestBillCreationCandidatesNormalizeAndRejectInvalid(t *testing.T) {
 	repo := &billCreationCandidateRepoStub{}
-	uc := NewFinanceBillUsecase(repo, nil, nil)
+	uc := NewFinanceBillUsecase(repo, nil, nil, nil, nil)
 	org := uuid.New()
 	if _, err := uc.ListCreationCandidates(context.Background(), org, FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20, Keyword: "  海运  ", Direction: OrderFeeReceivable}); err != nil {
 		t.Fatal(err)
@@ -194,7 +194,7 @@ func financeBillableFeeForTest(partyID uuid.UUID, total, net, tax, base string) 
 	return &FinanceBillableFee{
 		OrderNo: "SE2026082600001", BusinessType: "SE",
 		Fee: &OrderFee{
-			ID: feeID, OrderID: uuid.Must(uuid.NewV7()), Direction: OrderFeeReceivable, Status: OrderFeeConfirmed,
+			ID: feeID, OrderID: uuid.Must(uuid.NewV7()), Direction: OrderFeeReceivable, Status: OrderFeeUnbilled,
 			SettlementPartyID: partyID, SettlementPartyName: "验收客户", Currency: "CNY", BaseCurrency: "CNY",
 			FeeCode: "OCEAN", FeeName: "海运费", TotalAmount: decimal.RequireFromString(total),
 			NetAmount: decimal.RequireFromString(net), TaxAmount: decimal.RequireFromString(tax),
@@ -245,7 +245,7 @@ func TestCalculateOverdueDays(t *testing.T) {
 }
 
 func TestFinanceBillListDueDateValidation(t *testing.T) {
-	uc := NewFinanceBillUsecase(nil, nil, nil)
+	uc := NewFinanceBillUsecase(nil, nil, nil, nil, nil)
 	org := uuid.New()
 	// 非法到期日格式
 	if _, err := uc.List(context.Background(), []uuid.UUID{org}, FinanceBillFilter{Page: 1, PageSize: 20, DueDateFrom: "invalid"}); err != ErrFinanceBillInvalidArgument {
@@ -377,7 +377,7 @@ func TestPreviewBatchEnrichesFormalTermsAndCreditWarning(t *testing.T) {
 		exceededClientID: {PartnerID: exceededClientID, CreditLimitBase: &exceededLimit, UnsettledReceivableBase: decimal.NewFromInt(150)},
 		casualClientID:   {PartnerID: casualClientID, CreditLimitBase: &casualLimit, UnsettledReceivableBase: decimal.Zero},
 	}}
-	uc := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(nil, nil), nil)
+	uc := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(nil, nil), nil, nil, nil)
 
 	input := PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
 	// 普通模式一次建账只允许单一方向；应收与应付分别预览。
@@ -505,7 +505,7 @@ func newDefaultTermsWriteUsecase(repo *defaultTermsWriteRepoStub) *FinanceBillUs
 	return NewFinanceBillUsecase(repo, NewExchangeRateUsecase(&exchangeRateRepoStub{
 		rateContext:    repo.rateContext,
 		rateByCurrency: repo.rateByCurrency,
-	}, nil), &financeBillTransactorStub{})
+	}, nil), &financeBillTransactorStub{}, nil, nil)
 }
 
 func defaultTermsWriteFees(partyID uuid.UUID, isCasual bool) []*FinanceBillableFee {

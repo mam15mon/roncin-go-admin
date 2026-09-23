@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// FinanceBill 将同一结算单位、收付方向和币种的已确认费用固化为结算账单。
+// FinanceBill 将同一结算单位、收付方向和币种的未建账费用固化为结算账单。
 type FinanceBill struct{ ent.Schema }
 
 func (FinanceBill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }

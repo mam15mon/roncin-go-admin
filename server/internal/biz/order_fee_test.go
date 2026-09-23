@@ -29,6 +29,64 @@ type orderFeeRepoStub struct {
 	OrderFeeRepo
 }
 
+// orderFeeAddCaptureRepoStub 捕获 Add 用例提交给仓储的费用，用于断言保存时状态。
+type orderFeeAddCaptureRepoStub struct {
+	OrderFeeRepo
+	added *OrderFee
+}
+
+func (r *orderFeeAddCaptureRepoStub) GetByIdempotencyKey(context.Context, uuid.UUID, uuid.UUID, string) (*OrderFee, error) {
+	return nil, nil
+}
+
+func (r *orderFeeAddCaptureRepoStub) ResolveCatalog(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*OrderFeeCatalogSnapshot, error) {
+	return &OrderFeeCatalogSnapshot{
+		FeeCode: "OCEAN_FREIGHT", FeeName: "海运费", BillingUnit: "票",
+		TaxRate: decimal.NewFromInt(0), TaxableServiceName: "国际货物运输代理服务",
+	}, nil
+}
+
+func (r *orderFeeAddCaptureRepoStub) Add(_ context.Context, _, _ uuid.UUID, input *OrderFee, _ *AuditEvent) (*OrderFee, error) {
+	r.added = input
+	return input, nil
+}
+
+// TestOrderFeeAddSavesAsUnbilledAndImmediatelyBillable 断言费用保存后即为未建账
+// 状态（不存在确认环节），且未建账费用直接构成建账候选，可立即进入账单。
+func TestOrderFeeAddSavesAsUnbilledAndImmediatelyBillable(t *testing.T) {
+	ctx := context.Background()
+	organizationID := uuid.Must(uuid.NewV7())
+	actorID := uuid.Must(uuid.NewV7())
+	orderID := uuid.Must(uuid.NewV7())
+	repo := &orderFeeAddCaptureRepoStub{}
+	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil, nil)
+
+	created, err := usecase.Add(ctx, organizationID, actorID, orderID, validOrderFeeForTest(), false)
+	if err != nil {
+		t.Fatalf("保存费用失败: %v", err)
+	}
+	if created.Status != OrderFeeUnbilled {
+		t.Fatalf("费用保存后状态 = %q，期望 UNBILLED（无需确认即可维护/建账）", created.Status)
+	}
+	if created.Version != 1 {
+		t.Fatalf("新费用版本 = %d，期望 1", created.Version)
+	}
+
+	// 未建账费用无需任何状态流转即可进入建账：单张建账构建直接接受该费用。
+	partyID := uuid.Must(uuid.NewV7())
+	billable := financeBillableFeeForTest(partyID, "100", "100", "0", "100")
+	billable.Fee.Status = OrderFeeUnbilled
+	bill, buildErr := buildFinanceBill(organizationID, []*FinanceBillableFee{billable}, CreateFinanceBillInput{
+		FeeIDs: []uuid.UUID{billable.Fee.ID}, BillDate: "2026-09-23", IdempotencyKey: "unbilled-bill-test", SettlementAccountID: uuid.Must(uuid.NewV7()),
+	})
+	if buildErr != nil {
+		t.Fatalf("未建账费用应可直接构建账单: %v", buildErr)
+	}
+	if len(bill.Lines) != 1 || bill.Lines[0].OrderFeeID != billable.Fee.ID {
+		t.Fatalf("账单应包含该未建账费用: %+v", bill.Lines)
+	}
+}
+
 func TestNormalizeOrderFeeCalculatesExactTotal(t *testing.T) {
 	fee := validOrderFeeForTest()
 	fee.Quantity = decimal.RequireFromString("0.1")

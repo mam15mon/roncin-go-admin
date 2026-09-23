@@ -974,8 +974,8 @@ type AutoLockTriggerType string
 const (
 	AutoLockTriggerTypeVERIFICATION AutoLockTriggerType = "VERIFICATION"
 	AutoLockTriggerTypeNETTING      AutoLockTriggerType = "NETTING"
-	AutoLockTriggerTypeFEE_CONFIRM  AutoLockTriggerType = "FEE_CONFIRM"
 	AutoLockTriggerTypeFEE_CANCEL   AutoLockTriggerType = "FEE_CANCEL"
+	AutoLockTriggerTypeFEE_BILLED   AutoLockTriggerType = "FEE_BILLED"
 )
 
 func (altt AutoLockTriggerType) String() string {
@@ -985,7 +985,7 @@ func (altt AutoLockTriggerType) String() string {
 // AutoLockTriggerTypeValidator is a validator for the "auto_lock_trigger_type" field enum values. It is called by the builders before save.
 func AutoLockTriggerTypeValidator(altt AutoLockTriggerType) error {
 	switch altt {
-	case AutoLockTriggerTypeVERIFICATION, AutoLockTriggerTypeNETTING, AutoLockTriggerTypeFEE_CONFIRM, AutoLockTriggerTypeFEE_CANCEL:
+	case AutoLockTriggerTypeVERIFICATION, AutoLockTriggerTypeNETTING, AutoLockTriggerTypeFEE_CANCEL, AutoLockTriggerTypeFEE_BILLED:
 		return nil
 	default:
 		return fmt.Errorf("order: invalid enum value for auto_lock_trigger_type field: %q", altt)

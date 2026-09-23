@@ -334,7 +334,7 @@ func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 	allowed, denied := uuid.New(), uuid.New()
 	p := &biz.Principal{Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}}}
 	repo := &billCreationCandidateServiceRepoStub{}
-	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, nil, nil)}
+	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, nil, nil, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), p)
 	permission, writable, ok := financeOrganizationPurposePermission(v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE)
 	if !ok || permission != access.FinanceBillCreate || !writable {
@@ -396,7 +396,7 @@ func TestBillSettlementAccountUpdateCandidatesRejectNonDraftBill(t *testing.T) {
 		Currency: "CNY", Status: biz.FinanceBillConfirmed,
 	}}
 	service := &SettlementService{
-		billUsecase:    biz.NewFinanceBillUsecase(billRepo, nil, nil),
+		billUsecase:    biz.NewFinanceBillUsecase(billRepo, nil, nil, nil, nil),
 		accountUsecase: biz.NewPartnerAccountUsecase(&billSettlementAccountRepoStub{}),
 	}
 	if _, err := service.ListBillSettlementAccountUpdateCandidates(biz.WithPrincipal(context.Background(), principal), &v1.ListBillSettlementAccountUpdateCandidatesRequest{BillId: billID.String()}); !errors.Is(err, biz.ErrFinanceBillInvalidTransition) {
@@ -421,7 +421,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		OrderNo:        "SE202609100001",
 		BusinessType:   "SE",
 		Fee: &biz.OrderFee{
-			ID: feeID, OrderID: orderID, Direction: biz.OrderFeeReceivable, Status: biz.OrderFeeConfirmed,
+			ID: feeID, OrderID: orderID, Direction: biz.OrderFeeReceivable, Status: biz.OrderFeeUnbilled,
 			SettlementPartyID: partyID, SettlementPartyName: "测试客户", FeeCode: "OCEAN", FeeName: "海运费",
 			Currency: "CNY", BaseCurrency: "CNY", TaxRate: &taxRate, ExchangeRate: decimal.NewFromInt(1),
 			Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100),
@@ -440,7 +440,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		rate:    decimal.NewFromInt(1),
 	}
 	accountID := uuid.New()
-	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo, nil), settlementServiceTransactorStub{})}
+	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo, nil), settlementServiceTransactorStub{}, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 
 	policy := &v1.BillGroupingPolicy{Mode: v1.BillGroupingMode_BILL_GROUPING_MODE_NORMAL}

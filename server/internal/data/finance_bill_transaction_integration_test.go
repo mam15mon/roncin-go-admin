@@ -90,7 +90,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("相同幂等键并发创建返回同一账单", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("same-key")
+		feeID := fixture.createUnbilledFee("same-key")
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		input := biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-same-key-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -113,7 +113,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("不同幂等键并发使用同一费用只有一个成功", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("different-key")
+		feeID := fixture.createUnbilledFee("different-key")
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		first := biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-first-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -142,7 +142,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("审计失败回滚账单费用状态和单号序列", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("rollback")
+		feeID := fixture.createUnbilledFee("rollback")
 		repo := &invalidAuditResultFinanceBillRepo{FinanceBillRepo: NewFinanceBillRepo(data)}
 		usecase := fixture.newUsecase(repo)
 
@@ -158,12 +158,12 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("并发修改汇率不改变事务内账单快照", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		settingID := fixture.createExchangeRateSetting("7.20000000")
-		feeID := fixture.createConfirmedFeeWithCurrency("rate-snapshot", "USD", "7.20000000", "720.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
+		feeID := fixture.createUnbilledFeeWithCurrency("rate-snapshot", "USD", "7.20000000", "720.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
 		exchangeRepo := &pausingExchangeRateRepo{
 			ExchangeRateRepo: NewExchangeRateRepo(data), resolved: make(chan struct{}), release: make(chan struct{}),
 		}
 		defer exchangeRepo.continueResolve()
-		usecase := biz.NewFinanceBillUsecase(NewFinanceBillRepo(data), biz.NewExchangeRateUsecase(exchangeRepo, nil), data)
+		usecase := biz.NewFinanceBillUsecase(NewFinanceBillRepo(data), biz.NewExchangeRateUsecase(exchangeRepo, nil), data, nil, nil)
 		billResult := make(chan financeBillCreateResult, 1)
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -223,7 +223,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("候选后账户停用会在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("account-disabled")
+		feeID := fixture.createUnbilledFee("account-disabled")
 		candidates, err := data.db.PartnerAccount.Query().
 			Where(partneraccountent.IDEQ(fixture.accountID), partneraccountent.EnabledEQ(true)).
 			All(context.Background())
@@ -244,7 +244,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("不存在的账户在创建事务内返回领域错误", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("missing-account")
+		feeID := fixture.createUnbilledFee("missing-account")
 		_, err := fixture.newUsecase(NewFinanceBillRepo(data)).Create(context.Background(), fixture.organizationID, fixture.actorID, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-missing-account-" + fixture.suffix, SettlementAccountID: uuid.New(),
 		})
@@ -256,7 +256,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("错误结算单位账户在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("account-wrong-party")
+		feeID := fixture.createUnbilledFee("account-wrong-party")
 		otherPartner, err := data.db.Partner.Create().
 			SetOrganizationID(fixture.organizationID).
 			SetCode("OTHER-" + fixture.suffix).
@@ -296,7 +296,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("错误币种账户在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("account-wrong-currency")
+		feeID := fixture.createUnbilledFee("account-wrong-currency")
 		_, err := fixture.newUsecase(NewFinanceBillRepo(data)).Create(context.Background(), fixture.organizationID, fixture.actorID, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-account-wrong-currency-" + fixture.suffix, SettlementAccountID: fixture.usdAccountID,
 		})
@@ -308,7 +308,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("错误用途账户在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("account-wrong-usage")
+		feeID := fixture.createUnbilledFee("account-wrong-usage")
 		account, err := data.db.PartnerAccount.Create().
 			SetPartnerID(fixture.partnerID).
 			SetName("应付用途账户").
@@ -333,7 +333,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 
 	t.Run("草稿换账户由事务重读并生成新快照", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
-		feeID := fixture.createConfirmedFee("account-update")
+		feeID := fixture.createUnbilledFee("account-update")
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		created, err := usecase.Create(context.Background(), fixture.organizationID, fixture.actorID, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-account-update-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -556,17 +556,17 @@ func newFinanceBillPostgresFixture(t *testing.T, data *Data) *financeBillPostgre
 	return fixture
 }
 
-func (f *financeBillPostgresFixture) createConfirmedFee(key string) uuid.UUID {
-	return f.createConfirmedFeeWithCurrency(key, "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
+func (f *financeBillPostgresFixture) createUnbilledFee(key string) uuid.UUID {
+	return f.createUnbilledFeeWithCurrency(key, "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
 }
 
-func (f *financeBillPostgresFixture) createConfirmedFeeWithCurrency(key, currency, rate, baseAmount string, source orderfeeent.ExchangeRateSource) uuid.UUID {
+func (f *financeBillPostgresFixture) createUnbilledFeeWithCurrency(key, currency, rate, baseAmount string, source orderfeeent.ExchangeRateSource) uuid.UUID {
 	f.t.Helper()
 	fee, err := f.data.db.OrderFee.Create().
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(orderfeeent.StatusCONFIRMED).
+		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(f.partnerID).
@@ -608,7 +608,7 @@ func (f *financeBillPostgresFixture) createExchangeRateSetting(rate string) uuid
 }
 
 func (f *financeBillPostgresFixture) newUsecase(repo biz.FinanceBillRepo) *biz.FinanceBillUsecase {
-	return biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), f.data)
+	return biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), f.data, nil, nil)
 }
 
 func createFinanceBillsConcurrently(usecase *biz.FinanceBillUsecase, organizationID, actorID uuid.UUID, inputs ...biz.CreateFinanceBillInput) []financeBillCreateResult {
@@ -677,8 +677,8 @@ func (f *financeBillPostgresFixture) requireRolledBackState(feeID uuid.UUID) {
 		f.t.Fatalf("回滚后账单序列数 = %d，期望 0，error=%v", sequenceCount, err)
 	}
 	fee, err := f.data.db.OrderFee.Get(ctx, feeID)
-	if err != nil || fee.Status != orderfeeent.StatusCONFIRMED || fee.Version != 1 {
-		f.t.Fatalf("回滚后费用状态 = %#v，期望 CONFIRMED/version 1，error=%v", fee, err)
+	if err != nil || fee.Status != orderfeeent.StatusUNBILLED || fee.Version != 1 {
+		f.t.Fatalf("回滚后费用状态 = %#v，期望 UNBILLED/version 1，error=%v", fee, err)
 	}
 }
 

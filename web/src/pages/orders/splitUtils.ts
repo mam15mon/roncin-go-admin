@@ -86,7 +86,7 @@ export function calculateFeeCurrencySummaries(
 
   for (const fee of fees) {
     if (!fee.id || !fee.direction || !fee.currency || !fee.totalAmount) {
-      throw new Error('草稿费用缺少 ID、方向、币种或金额，无法计算费用守恒');
+      throw new Error('未建账费用缺少 ID、方向、币种或金额，无法计算费用守恒');
     }
     const key = `${fee.direction}:${fee.currency}`;
     let summary = summaries.get(key);

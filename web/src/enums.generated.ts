@@ -500,10 +500,9 @@ export type OrderFeeDirection = (typeof OrderFeeDirection)[keyof typeof OrderFee
 
 export const OrderFeeStatus = {
   ORDER_FEE_STATUS_UNSPECIFIED: 0,
-  ORDER_FEE_STATUS_DRAFT: 1,
-  ORDER_FEE_STATUS_CONFIRMED: 2,
   ORDER_FEE_STATUS_BILLED: 3,
   ORDER_FEE_STATUS_CANCELLED: 4,
+  ORDER_FEE_STATUS_UNBILLED: 5,
 } as const;
 
 export type OrderFeeStatus = (typeof OrderFeeStatus)[keyof typeof OrderFeeStatus];

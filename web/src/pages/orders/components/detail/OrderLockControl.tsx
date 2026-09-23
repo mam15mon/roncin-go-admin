@@ -49,8 +49,8 @@ export function getOrderLockConfirmationDescription(
 const LOCK_TRIGGER_TYPE_TEXT: Record<string, string> = {
   VERIFICATION: '应收核销',
   NETTING: '应收对冲',
-  FEE_CONFIRM: '费用草稿确认',
-  FEE_CANCEL: '费用草稿作废',
+  FEE_BILLED: '费用进入账单',
+  FEE_CANCEL: '未建账费用删除',
 };
 
 export function getOrderLockTriggerTypeText(triggerType?: string): string {

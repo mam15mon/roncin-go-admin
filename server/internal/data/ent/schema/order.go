@@ -74,7 +74,7 @@ func (Order) Fields() []ent.Field {
 		field.UUID("locked_by", uuid.Nil).Optional().Nillable(),
 		field.Uint64("lock_generation").Default(0),
 		field.Enum("lock_source").Values("MANUAL", "AUTO_SETTLEMENT").Optional().Nillable(),
-		field.Enum("auto_lock_trigger_type").Values("VERIFICATION", "NETTING", "FEE_CONFIRM", "FEE_CANCEL").Optional().Nillable(),
+		field.Enum("auto_lock_trigger_type").Values("VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED").Optional().Nillable(),
 		field.UUID("auto_lock_trigger_resource_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("auto_lock_triggered_by", uuid.Nil).Optional().Nillable(),
 		field.Bool("is_shared").Default(false),

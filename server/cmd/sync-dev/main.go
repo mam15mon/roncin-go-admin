@@ -1344,7 +1344,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 					SetOrderID(ord.ID).
 					SetIdempotencyKey(feeKey).
 					SetDirection(dir).
-					SetStatus(orderfeeent.StatusCONFIRMED).
+					SetStatus(orderfeeent.StatusUNBILLED).
 					SetFeeSettingID(fSetting.ID).
 					SetFeeCode(f.code).
 					SetFeeName(f.name).
@@ -1443,6 +1443,12 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 		for _, k := range keys {
 			f := sc.orderFees[k]
 			if f != nil {
+				// 进入账单的费用同步标记 BILLED，保持“未建账费用才可编辑”的开发数据语义。
+				if f.Status != orderfeeent.StatusBILLED {
+					if _, err := tx.OrderFee.UpdateOneID(f.ID).SetStatus(orderfeeent.StatusBILLED).AddVersion(1).Save(ctx); err != nil {
+						return fmt.Errorf("标记建账费用 %s: %w", k, err)
+					}
+				}
 				lineExists, _ := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(b1.ID), financebilllineent.OrderFeeIDEQ(f.ID)).Exist(ctx)
 				if !lineExists {
 					_, _ = tx.FinanceBillLine.Create().
@@ -2241,7 +2247,7 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 		}
 		supp2 = createdSupp
 
-		// 审批通过后按快照生成的 CONFIRMED 费用（supplement_request_id 反向关联）
+		// 审批通过后按快照生成的 UNBILLED 费用（supplement_request_id 反向关联）
 		feeKey := "DEV-FEE-SE26090004-PAYABLE-STORAGE-SUPP"
 		feeExists, _ := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(ord4.ID), orderfeeent.IdempotencyKeyEQ(feeKey)).Exist(ctx)
 		if !feeExists {
@@ -2249,7 +2255,7 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 				SetOrderID(ord4.ID).
 				SetIdempotencyKey(feeKey).
 				SetDirection(orderfeeent.DirectionPAYABLE).
-				SetStatus(orderfeeent.StatusCONFIRMED).
+				SetStatus(orderfeeent.StatusUNBILLED).
 				SetFeeSettingID(sc.feeSettings["STORAGE"].ID).
 				SetFeeCode("STORAGE").
 				SetFeeName("码头堆存费(补录)").

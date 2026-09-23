@@ -96,13 +96,13 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
 }
 
 /**
- * 可靠作业待办：只统计本人协作订单上可由现有事实准确判定的草稿费用与
+ * 可靠作业待办：只统计本人协作订单上可由现有事实准确判定的未建账费用与
  * 进行中异常；无任何待办时不渲染本卡，不虚构未建模的责任与时限。
  */
 export function TodosCard({ todos }: { todos?: Todos }) {
-  const draftFeeCount = todos?.draftFeeCount ?? 0;
+  const unbilledFeeCount = todos?.unbilledFeeCount ?? 0;
   const openAbnormalCount = todos?.openAbnormalCount ?? 0;
-  if (draftFeeCount === 0 && openAbnormalCount === 0) {
+  if (unbilledFeeCount === 0 && openAbnormalCount === 0) {
     return null;
   }
   return (
@@ -118,11 +118,11 @@ export function TodosCard({ todos }: { todos?: Todos }) {
       data-testid="todos-card"
     >
       <Space orientation="vertical" size={8} style={{ width: '100%' }}>
-        {draftFeeCount > 0 ? (
+        {unbilledFeeCount > 0 ? (
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Text>协作订单上的费用草稿</Text>
+            <Text>协作订单上的未建账费用</Text>
             <Space size={8}>
-              <Tag color="warning">{draftFeeCount} 笔</Tag>
+              <Tag color="warning">{unbilledFeeCount} 笔</Tag>
               <Button
                 type="link"
                 size="small"

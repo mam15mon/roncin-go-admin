@@ -5758,7 +5758,7 @@ paths:
                 - OrderFeeService
             description: |-
                 ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-                 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+                 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
             operationId: OrderFeeService_ApproveOrderFeeSupplement
             parameters:
                 - name: orderId
@@ -5790,7 +5790,7 @@ paths:
                 - OrderFeeService
             description: |-
                 CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-                 CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+                 UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
                  关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
             operationId: OrderFeeService_CancelApprovedOrderFeeSupplement
             parameters:
@@ -6006,7 +6006,9 @@ paths:
         put:
             tags:
                 - OrderFeeService
-            description: UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
+            description: |-
+                UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+                 已建账费用仅允许按财务策略修改并同步草稿账单。
             operationId: OrderFeeService_UpdateFee
             parameters:
                 - name: orderId
@@ -6064,66 +6066,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.RemoveFeeResponse'
-    /api/v1/orders/{orderId}/fees/{id}/confirm:
-        post:
-            tags:
-                - OrderFeeService
-            description: ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
-            operationId: OrderFeeService_ConfirmFee
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.ConfirmFeeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.ConfirmFeeResponse'
-    /api/v1/orders/{orderId}/fees/{id}/reopen:
-        post:
-            tags:
-                - OrderFeeService
-            description: ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
-            operationId: OrderFeeService_ReopenFee
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.ReopenFeeRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.ReopenFeeResponse'
     /api/v1/orders/{orderId}/lock:
         post:
             tags:
@@ -16359,7 +16301,7 @@ components:
                 fee:
                     allOf:
                         - $ref: '#/components/schemas/order.v1.OrderFee'
-                    description: 审批生成的 CONFIRMED 补录费用。
+                    description: 审批生成的 UNBILLED 补录费用。
                 traceId:
                     type: string
         order.v1.AssignPersonnelRequest:
@@ -16560,33 +16502,6 @@ components:
                 traceId:
                     type: string
             description: CheckOrderReferenceResponse 订单业务编号查重响应。
-        order.v1.ConfirmFeeRequest:
-            required:
-                - orderId
-                - id
-                - expectedVersion
-            type: object
-            properties:
-                orderId:
-                    type: string
-                id:
-                    type: string
-                expectedVersion:
-                    type: string
-        order.v1.ConfirmFeeResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFee'
-                traceId:
-                    type: string
         order.v1.ConfirmSeaSharedContainerRequest:
             required:
                 - id
@@ -19344,36 +19259,6 @@ components:
                 traceId:
                     type: string
             description: RemoveShippingDocumentResponse 提单操作响应。
-        order.v1.ReopenFeeRequest:
-            required:
-                - orderId
-                - id
-                - expectedVersion
-            type: object
-            properties:
-                orderId:
-                    type: string
-                id:
-                    type: string
-                expectedVersion:
-                    type: string
-                reason:
-                    type: string
-                    description: reason 撤回原因：选填，最长 500 字。
-        order.v1.ReopenFeeResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFee'
-                traceId:
-                    type: string
         order.v1.RequestOrderUnlockRequest:
             required:
                 - orderId
@@ -23777,8 +23662,9 @@ components:
         workbench.v1.WorkbenchTodoSummary:
             type: object
             properties:
-                draftFeeCount:
+                unbilledFeeCount:
                     type: integer
+                    description: unbilled_fee_count 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。
                     format: int32
                 openAbnormalCount:
                     type: integer
@@ -23817,7 +23703,8 @@ tags:
     - name: OrderFeeService
       description: |-
         OrderFeeService 订单费用录入服务。
-         管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
+         管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，
+         进入账单后修改范围由财务自定义策略控制。
     - name: OrderLockService
       description: OrderLockService 订单业务锁与不可变单证版本服务。
     - name: OrderMilestoneService

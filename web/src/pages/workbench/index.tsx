@@ -45,7 +45,7 @@ function CompanyWorkbench() {
   const showCommission = data?.hasCommissionEligibility === true;
   const finance = data?.finance;
   const hasTodos =
-    (data?.todos?.draftFeeCount ?? 0) > 0 ||
+    (data?.todos?.unbilledFeeCount ?? 0) > 0 ||
     (data?.todos?.openAbnormalCount ?? 0) > 0;
 
   return (

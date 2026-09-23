@@ -521,7 +521,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			if item.Currency != input.Currency && billExchangeRate == nil {
 				return biz.ErrFinanceBillInvalidArgument
 			}
-		} else if item.Status != orderfeeent.StatusDRAFT {
+		} else if item.Status != orderfeeent.StatusUNBILLED {
 			return biz.ErrOrderFeeInvalidTransition
 		}
 		builder := tx.OrderFee.UpdateOne(item).
@@ -642,53 +642,6 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 	input.CreatedAt = updated.CreatedAt
 	input.UpdatedAt = updated.UpdatedAt
 	return input, nil
-}
-
-func (r *orderFeeRepo) Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to biz.OrderFeeStatus, reason *string, audit *biz.AuditEvent) (*biz.OrderFee, error) {
-	var updated *ent.OrderFee
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
-			return lockErr
-		}
-		item, queryErr := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
-		}
-		if item.Version != expectedVersion {
-			return biz.ErrOrderFeeVersionConflict
-		}
-		if item.Status != orderfeeent.Status(from) {
-			return biz.ErrOrderFeeInvalidTransition
-		}
-		builder := tx.OrderFee.UpdateOne(item).SetStatus(orderfeeent.Status(to)).SetVersion(item.Version + 1)
-		if to != biz.OrderFeeCancelled {
-			builder.ClearCancelledAt().ClearCancelledBy().ClearCancellationReason()
-		}
-		var updateErr error
-		updated, updateErr = builder.Save(ctx)
-		if updateErr != nil {
-			return updateErr
-		}
-		audit.Details["fee.from_status"] = string(from)
-		audit.Details["fee.to_status"] = string(to)
-		audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(expectedVersion)).String()
-		if reason != nil {
-			audit.Details["reason"] = *reason
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	loaded, err := client.OrderFee.Query().Where(orderfeeent.IDEQ(updated.ID)).WithSettlementParty().Only(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return orderFeeToBiz(loaded)
 }
 
 // Remove 在事务内按账单占用关系物理删除费用：锁定订单与费用行并核对版本后，

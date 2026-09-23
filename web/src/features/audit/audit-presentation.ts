@@ -277,18 +277,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'volcano',
     objectType: '订单',
   },
-  'order.fee.confirm': {
-    title: '确认订单费用',
-    category: '订单费用',
-    color: 'gold',
-    objectType: '订单',
-  },
-  'order.fee.reopen': {
-    title: '重新打开订单费用',
-    category: '订单费用',
-    color: 'gold',
-    objectType: '订单',
-  },
   'order.container.add': {
     title: '新增订单箱量',
     category: '订单管理',

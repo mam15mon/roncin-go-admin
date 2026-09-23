@@ -127,7 +127,7 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 	feeID := uuid.New()
 	repo := &financeBillTransactionRepoStub{fee: &FinanceBillableFee{
 		Fee: &OrderFee{
-			ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable, Status: OrderFeeConfirmed,
+			ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable, Status: OrderFeeUnbilled,
 			FeeCode: "OCEAN_FREIGHT", FeeName: "海运费", SettlementPartyID: uuid.New(), SettlementPartyName: "测试客户",
 			Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100),
 			NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, Currency: "USD", BaseCurrency: "CNY",
@@ -140,7 +140,7 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 		resolvedRate: decimal.RequireFromString("7.20"),
 	}
 	transactor := &financeBillTransactorStub{}
-	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), transactor)
+	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), transactor, nil, nil)
 
 	created, err := usecase.Create(context.Background(), organizationID, actorID, CreateFinanceBillInput{
 		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-08-30", IdempotencyKey: "bill-transaction-test", SettlementAccountID: uuid.New(),
@@ -166,3 +166,66 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 }
 
 var _ Transactor = (*financeBillTransactorStub)(nil)
+
+// autoLockRepoCaptureStub 捕获自动锁定重评触发，供断言建账提交后的触发事实。
+type autoLockRepoCaptureStub struct {
+	triggers []AutoOrderLockTrigger
+	err      error
+}
+
+func (s *autoLockRepoCaptureStub) RunAutoSettlementLockCheck(_ context.Context, trigger AutoOrderLockTrigger) error {
+	s.triggers = append(s.triggers, trigger)
+	return s.err
+}
+
+// TestFinanceBillCreateTriggersAutoLockReevaluation 断言建账事务成功提交后按新账单
+// 触发 FEE_BILLED 自动锁定重评（最后一笔未建账费用进入账单可能解除锁单阻断）；
+// 重评失败只记录告警，不得改变已提交的建账结果。
+func TestFinanceBillCreateTriggersAutoLockReevaluation(t *testing.T) {
+	organizationID := uuid.New()
+	actorID := uuid.New()
+	feeID := uuid.New()
+	newBillUsecase := func(autoLock *autoLockRepoCaptureStub) *FinanceBillUsecase {
+		repo := &financeBillTransactionRepoStub{fee: &FinanceBillableFee{
+			Fee: &OrderFee{
+				ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable, Status: OrderFeeUnbilled,
+				FeeCode: "OCEAN_FREIGHT", FeeName: "海运费", SettlementPartyID: uuid.New(), SettlementPartyName: "测试客户",
+				Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100),
+				NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, Currency: "USD", BaseCurrency: "CNY",
+				ExchangeRate: decimal.NewFromInt(7), BaseCurrencyAmount: decimal.NewFromInt(700),
+			},
+			OrderNo: "SE2026083000001", BusinessType: string(OrderBusinessSE),
+		}}
+		exchangeRepo := &financeBillExchangeRateTransactionStub{
+			rateContext:  &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
+			resolvedRate: decimal.RequireFromString("7.20"),
+		}
+		return NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{}, NewAutoOrderLockUsecase(autoLock), nil)
+	}
+
+	autoLock := &autoLockRepoCaptureStub{}
+	created, err := newBillUsecase(autoLock).Create(context.Background(), organizationID, actorID, CreateFinanceBillInput{
+		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-09-23", IdempotencyKey: "bill-autolock-test", SettlementAccountID: uuid.New(),
+	})
+	if err != nil {
+		t.Fatalf("创建账单失败: %v", err)
+	}
+	if len(autoLock.triggers) != 1 {
+		t.Fatalf("建账提交后自动锁定重评触发次数 = %d，期望 1", len(autoLock.triggers))
+	}
+	trigger := autoLock.triggers[0]
+	if trigger.Type != AutoLockTriggerFeeBilled || trigger.ResourceID != created.ID || trigger.OrganizationID != organizationID || trigger.TriggeredBy != actorID {
+		t.Fatalf("自动锁定重评触发事实不符: %+v", trigger)
+	}
+
+	// 重评失败不影响建账结果：触发错误被吞掉，Create 仍成功。
+	failing := &autoLockRepoCaptureStub{err: errors.New("auto lock unavailable")}
+	if _, err := newBillUsecase(failing).Create(context.Background(), organizationID, actorID, CreateFinanceBillInput{
+		FeeIDs: []uuid.UUID{feeID}, BillDate: "2026-09-23", IdempotencyKey: "bill-autolock-test-2", SettlementAccountID: uuid.New(),
+	}); err != nil {
+		t.Fatalf("自动锁定重评失败不得伪装成建账失败: %v", err)
+	}
+	if len(failing.triggers) != 1 {
+		t.Fatalf("失败路径也应完成一次触发: %d", len(failing.triggers))
+	}
+}

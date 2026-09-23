@@ -110,7 +110,7 @@ func newWorkbenchIntegrationFixture(t *testing.T) *workbenchIntegrationFixture {
 		SetOrderID(order.ID).
 		SetIdempotencyKey("wb-fee-rec-" + suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusUNBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(customer.ID).
@@ -137,7 +137,7 @@ func newWorkbenchIntegrationFixture(t *testing.T) *workbenchIntegrationFixture {
 		SetOrderID(order.ID).
 		SetIdempotencyKey("wb-fee-pay-" + suffix).
 		SetDirection(fee.DirectionPAYABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusUNBILLED).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
 		SetSettlementPartyID(customer.ID).

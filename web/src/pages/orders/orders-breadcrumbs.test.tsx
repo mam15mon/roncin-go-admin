@@ -19,7 +19,6 @@ vi.mock('@/app/access', () => ({
     canCreateFee: () => true,
     canEditFee: () => true,
     canDeleteFee: () => true,
-    canConfirmFee: () => true,
   }),
 }));
 
@@ -70,9 +69,7 @@ vi.mock('@/services/roncin/orderService', () => ({
 vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceListFeeOptions: vi.fn(),
   orderFeeServiceAddFee: vi.fn(),
-  orderFeeServiceConfirmFee: vi.fn(),
   orderFeeServiceRemoveFee: vi.fn(),
-  orderFeeServiceReopenFee: vi.fn(),
   orderFeeServiceUpdateFee: vi.fn(),
   orderFeeServiceListFees: vi.fn().mockResolvedValue({ data: [] }),
 }));

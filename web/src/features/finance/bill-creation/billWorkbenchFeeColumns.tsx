@@ -33,12 +33,12 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     dataIndex: 'status',
     width: 85,
     search: false,
-    // 与费用台账共用 orderFeeStatusMeta 统一展示映射（受控变更：
-    // 原「已开账」绿色改为标准「已进账单」蓝色，已确认 green、草稿 gold、已作废 default）。
+    // 与费用台账共用 orderFeeStatusMeta 统一展示映射（未建账 gold、
+    // 已进账单 blue、已作废 default）。
     render: (_, row) =>
       statusTag(
         orderFeeStatusMeta,
-        row.status ?? OrderFeeStatus.ORDER_FEE_STATUS_DRAFT,
+        row.status ?? OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
       ),
   },
   {

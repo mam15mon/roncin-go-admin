@@ -114,7 +114,7 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fca-fee-rec-" + suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(customer.ID).
@@ -140,7 +140,7 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fca-fee-pay-" + suffix).
 		SetDirection(fee.DirectionPAYABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusBILLED).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
 		SetSettlementPartyID(customer.ID).

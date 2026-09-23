@@ -178,8 +178,8 @@ type WorkbenchRecentOrder struct {
 
 // WorkbenchTodoSummary 只聚合现有事实可准确判定的作业待办。
 type WorkbenchTodoSummary struct {
-	// DraftFeeCount 是本人协作订单上状态为 DRAFT 的费用数量。
-	DraftFeeCount int
+	// UnbilledFeeCount 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。
+	UnbilledFeeCount int
 	// OpenAbnormalCount 是本人协作订单上未解决异常的数量。
 	OpenAbnormalCount int
 }

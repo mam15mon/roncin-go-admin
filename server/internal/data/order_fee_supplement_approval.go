@@ -165,7 +165,7 @@ func (r *orderFeeSupplementRepo) CreateApprovedFee(ctx context.Context, organiza
 			SetOrderID(fee.OrderID).
 			SetIdempotencyKey(fee.IdempotencyKey).
 			SetDirection(orderfeeent.Direction(fee.Direction)).
-			SetStatus(orderfeeent.StatusCONFIRMED).
+			SetStatus(orderfeeent.StatusUNBILLED).
 			SetFeeCode(fee.FeeCode).
 			SetFeeName(fee.FeeName).
 			SetSettlementPartyID(fee.SettlementPartyID).

@@ -932,9 +932,10 @@ func (x *WorkbenchRecentOrder) GetCreatedAt() string {
 // WorkbenchTodoSummary 只聚合能由现有事实准确判定的作业待办，不虚构未建模的
 // 责任与时限。
 type WorkbenchTodoSummary struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	DraftFeeCount     int32                  `protobuf:"varint,1,opt,name=draft_fee_count,json=draftFeeCount,proto3" json:"draft_fee_count,omitempty"`
-	OpenAbnormalCount int32                  `protobuf:"varint,2,opt,name=open_abnormal_count,json=openAbnormalCount,proto3" json:"open_abnormal_count,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// unbilled_fee_count 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。
+	UnbilledFeeCount  int32 `protobuf:"varint,6,opt,name=unbilled_fee_count,json=unbilledFeeCount,proto3" json:"unbilled_fee_count,omitempty"`
+	OpenAbnormalCount int32 `protobuf:"varint,2,opt,name=open_abnormal_count,json=openAbnormalCount,proto3" json:"open_abnormal_count,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -969,9 +970,9 @@ func (*WorkbenchTodoSummary) Descriptor() ([]byte, []int) {
 	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *WorkbenchTodoSummary) GetDraftFeeCount() int32 {
+func (x *WorkbenchTodoSummary) GetUnbilledFeeCount() int32 {
 	if x != nil {
-		return x.DraftFeeCount
+		return x.UnbilledFeeCount
 	}
 	return 0
 }
@@ -3264,10 +3265,10 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\n" +
 	"order_date\x18\a \x01(\tR\torderDate\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\b \x01(\tR\tcreatedAt\"n\n" +
-	"\x14WorkbenchTodoSummary\x12&\n" +
-	"\x0fdraft_fee_count\x18\x01 \x01(\x05R\rdraftFeeCount\x12.\n" +
-	"\x13open_abnormal_count\x18\x02 \x01(\x05R\x11openAbnormalCount\"\xf3\x03\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\"\x8b\x01\n" +
+	"\x14WorkbenchTodoSummary\x12,\n" +
+	"\x12unbilled_fee_count\x18\x06 \x01(\x05R\x10unbilledFeeCount\x12.\n" +
+	"\x13open_abnormal_count\x18\x02 \x01(\x05R\x11openAbnormalCountJ\x04\b\x01\x10\x02R\x0fdraft_fee_count\"\xf3\x03\n" +
 	"\x17WorkbenchFinanceSummary\x12.\n" +
 	"\x13can_read_commission\x18\x01 \x01(\bR\x11canReadCommission\x122\n" +
 	"\x15can_manage_commission\x18\x02 \x01(\bR\x13canManageCommission\x12<\n" +

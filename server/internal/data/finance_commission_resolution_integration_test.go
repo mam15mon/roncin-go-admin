@@ -96,7 +96,7 @@ func newCommissionResolutionFixture(t *testing.T) *commissionResolutionFixture {
 		SetOrderID(order.ID).
 		SetIdempotencyKey("rs-fee-rec-" + suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(customer.ID).
@@ -122,7 +122,7 @@ func newCommissionResolutionFixture(t *testing.T) *commissionResolutionFixture {
 		SetOrderID(order.ID).
 		SetIdempotencyKey("rs-fee-pay-" + suffix).
 		SetDirection(fee.DirectionPAYABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusBILLED).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
 		SetSettlementPartyID(customer.ID).

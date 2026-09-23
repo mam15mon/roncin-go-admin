@@ -157,7 +157,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderFeeService := service.NewOrderFeeService(orderFeeUsecase, businessTagUsecase, orderFeeSupplementUsecase)
 	settlementRepo := data.NewSettlementRepo(dataData)
 	settlementUsecase := biz.NewSettlementUsecase(settlementRepo)
-	financeBillUsecase := biz.NewFinanceBillUsecase(financeBillRepo, exchangeRateUsecase, dataData)
+	financeBillUsecase := biz.NewFinanceBillUsecase(financeBillRepo, exchangeRateUsecase, dataData, autoOrderLockUsecase, logger)
 	financeInvoiceRepo := data.NewFinanceInvoiceRepo(dataData)
 	financeInvoiceUsecase := biz.NewFinanceInvoiceUsecase(financeInvoiceRepo, orderConfigUsecase, exchangeRateUsecase)
 	financeCashflowRepo := data.NewFinanceCashflowRepo(dataData)

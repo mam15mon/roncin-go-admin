@@ -14,7 +14,7 @@ import {
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
 } from '@/services/roncin/orderFeeService';
-import { FEE_CONFIRMED, RECEIVABLE } from './feeConstants';
+import { FEE_UNBILLED, RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -58,7 +58,7 @@ function makeProps(orderId: string) {
 const taxFee = {
   id: 'fee-tax-1',
   direction: RECEIVABLE,
-  status: FEE_CONFIRMED,
+  status: FEE_UNBILLED,
   currency: 'USD',
   expenseDate: '2026-09-20',
   version: '3',

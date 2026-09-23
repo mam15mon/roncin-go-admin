@@ -42,7 +42,7 @@ func (OrderLockRecord) Fields() []ent.Field {
 		field.UUID("locked_by", uuid.Nil).Optional().Nillable().Immutable(),
 		field.Time("locked_at").Immutable(),
 		field.Uint64("order_version_at_lock").Immutable(),
-		field.Enum("trigger_type").Values("VERIFICATION", "NETTING", "FEE_CONFIRM", "FEE_CANCEL").Optional().Nillable().Immutable(),
+		field.Enum("trigger_type").Values("VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED").Optional().Nillable().Immutable(),
 		field.UUID("trigger_resource_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("triggered_by", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("master_bill_id", uuid.Nil).Optional().Nillable().Immutable(),

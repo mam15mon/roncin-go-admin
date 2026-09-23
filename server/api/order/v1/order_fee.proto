@@ -10,7 +10,8 @@ import "order/v1/order.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
 // OrderFeeService 订单费用录入服务。
-// 管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
+// 管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，
+// 进入账单后修改范围由财务自定义策略控制。
 service OrderFeeService {
   // ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
   rpc ListFeeOptions(ListFeeOptionsRequest) returns (ListFeeOptionsResponse) {
@@ -39,29 +40,12 @@ service OrderFeeService {
     };
   }
 
-  // UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
+  // UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+  // 已建账费用仅允许按财务策略修改并同步草稿账单。
   rpc UpdateFee(UpdateFeeRequest) returns (UpdateFeeResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
       put: "/api/v1/orders/{order_id}/fees/{id}"
-      body: "*"
-    };
-  }
-
-  // ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
-  rpc ConfirmFee(ConfirmFeeRequest) returns (ConfirmFeeResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/fees/{id}/confirm"
-      body: "*"
-    };
-  }
-
-  // ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
-  rpc ReopenFee(ReopenFeeRequest) returns (ReopenFeeResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/fees/{id}/reopen"
       body: "*"
     };
   }
@@ -92,7 +76,7 @@ service OrderFeeService {
   }
 
   // ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-  // 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+  // 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
   rpc ApproveOrderFeeSupplement(ApproveOrderFeeSupplementRequest) returns (ApproveOrderFeeSupplementResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -121,7 +105,7 @@ service OrderFeeService {
   }
 
   // CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-  // CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+  // UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
   // 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
   rpc CancelApprovedOrderFeeSupplement(CancelApprovedOrderFeeSupplementRequest) returns (CancelApprovedOrderFeeSupplementResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
@@ -153,10 +137,13 @@ enum OrderFeeDirection {
 
 enum OrderFeeStatus {
   ORDER_FEE_STATUS_UNSPECIFIED = 0;
-  ORDER_FEE_STATUS_DRAFT = 1;
-  ORDER_FEE_STATUS_CONFIRMED = 2;
+  // 历史值 1 (DRAFT) 与 2 (CONFIRMED) 已按用户决策合并为 UNBILLED，编号保留禁止复用。
+  reserved 1, 2;
+  reserved "ORDER_FEE_STATUS_DRAFT", "ORDER_FEE_STATUS_CONFIRMED";
   ORDER_FEE_STATUS_BILLED = 3;
   ORDER_FEE_STATUS_CANCELLED = 4;
+  // UNBILLED 未建账：费用保存后即进入该状态，可直接维护或建账。
+  ORDER_FEE_STATUS_UNBILLED = 5;
 }
 
 // OrderFee 是一条订单应收或应付费用。
@@ -307,20 +294,6 @@ message RemoveFeeRequest {
   optional string reason = 4;
 }
 
-message ConfirmFeeRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string id = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-message ReopenFeeRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string id = 2 [(google.api.field_behavior) = REQUIRED];
-  uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
-  // reason 撤回原因：选填，最长 500 字。
-  optional string reason = 4;
-}
-
 message ResolveFeeExchangeRateRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   OrderFeeDirection direction = 2 [(google.api.field_behavior) = REQUIRED];
@@ -368,22 +341,6 @@ message RemoveFeeResponse {
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
-}
-
-message ConfirmFeeResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  OrderFee data = 4;
-  string trace_id = 5;
-}
-
-message ReopenFeeResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  OrderFee data = 4;
-  string trace_id = 5;
 }
 
 message ListOrderFeeTagOptionsRequest {
@@ -546,7 +503,7 @@ message ApproveOrderFeeSupplementResponse {
   int32 code = 2;
   string message = 3;
   OrderFeeSupplementRequestData data = 4;
-  // 审批生成的 CONFIRMED 补录费用。
+  // 审批生成的 UNBILLED 补录费用。
   OrderFee fee = 5;
   string trace_id = 6;
 }

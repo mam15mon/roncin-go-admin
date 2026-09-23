@@ -239,7 +239,7 @@ type orderSummaryOpportunitySource struct {
 // appendOrderSummaryOpportunities 复用阶段 C 计提解析口径批量判断预计机会：
 // 来源（ACTIVE 应收核销 / CONFIRMED 对冲的 RECEIVABLE 有效分摊）经 CONFIRMED
 // 应收账单的有效行摊入页面订单；订单上须存在「员工 + 人员身份」提成归属，且
-// 订单有已确认/已开票的正数应收费用；来源归属日期须唯一命中「已启用方案 ∩
+// 订单有未建账/已建账的正数应收费用；来源归属日期须唯一命中「已启用方案 ∩
 // 未取消员工分配」；该「来源 + 员工 + 身份」尚无非取消基础提成单。机会数量
 // 按去重来源单计数，只给事实不给估算金额。
 func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, scope biz.OrderCommissionSummaryScope, aggregates map[uuid.UUID]*orderSummaryAggregate) error {
@@ -247,9 +247,9 @@ func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, sc
 	attributionPredicates := []predicate.OrderCommissionAttribution{
 		attribution.OrganizationIDEQ(scope.OrganizationID),
 		attribution.OrderIDIn(scope.OrderIDs...),
-		// 与候选发现同口径：订单须存在已确认/已开票的正数应收费用。
+		// 与候选发现同口径：订单须存在未建账/已建账的正数应收费用。
 		attribution.HasOrderWith(orderent.HasFeesWith(
-			fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED),
+			fee.StatusIn(fee.StatusUNBILLED, fee.StatusBILLED),
 			fee.DirectionEQ(fee.DirectionRECEIVABLE),
 			fee.BaseCurrencyAmountGT("0"),
 		)),

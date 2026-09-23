@@ -384,9 +384,6 @@ export default function access(
       result.canBlacklistPartners ||
       result.canImportPartners,
     canOrder,
-    canConfirmAnyOrderFees: [1, 2, 3, 4].some((businessType) =>
-      canOrder(businessType, 'fee.update'),
-    ),
     canReadAnyOrders: [1, 2, 3, 4].some((businessType) =>
       canOrder(businessType, 'read'),
     ),

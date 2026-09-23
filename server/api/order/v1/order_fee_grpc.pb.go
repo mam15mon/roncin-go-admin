@@ -24,8 +24,6 @@ const (
 	OrderFeeService_ResolveFeeExchangeRate_FullMethodName           = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
 	OrderFeeService_AddFee_FullMethodName                           = "/order.v1.OrderFeeService/AddFee"
 	OrderFeeService_UpdateFee_FullMethodName                        = "/order.v1.OrderFeeService/UpdateFee"
-	OrderFeeService_ConfirmFee_FullMethodName                       = "/order.v1.OrderFeeService/ConfirmFee"
-	OrderFeeService_ReopenFee_FullMethodName                        = "/order.v1.OrderFeeService/ReopenFee"
 	OrderFeeService_RemoveFee_FullMethodName                        = "/order.v1.OrderFeeService/RemoveFee"
 	OrderFeeService_CreateOrderFeeSupplement_FullMethodName         = "/order.v1.OrderFeeService/CreateOrderFeeSupplement"
 	OrderFeeService_ListOrderFeeSupplementRequests_FullMethodName   = "/order.v1.OrderFeeService/ListOrderFeeSupplementRequests"
@@ -43,7 +41,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // OrderFeeService 订单费用录入服务。
-// 管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
+// 管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，
+// 进入账单后修改范围由财务自定义策略控制。
 type OrderFeeServiceClient interface {
 	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error)
@@ -53,12 +52,9 @@ type OrderFeeServiceClient interface {
 	ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, in *AddFeeRequest, opts ...grpc.CallOption) (*AddFeeResponse, error)
-	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
+	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+	// 已建账费用仅允许按财务策略修改并同步草稿账单。
 	UpdateFee(ctx context.Context, in *UpdateFeeRequest, opts ...grpc.CallOption) (*UpdateFeeResponse, error)
-	// ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
-	ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...grpc.CallOption) (*ConfirmFeeResponse, error)
-	// ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
-	ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...grpc.CallOption) (*ReopenFeeResponse, error)
 	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(ctx context.Context, in *RemoveFeeRequest, opts ...grpc.CallOption) (*RemoveFeeResponse, error)
 	// CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
@@ -70,7 +66,7 @@ type OrderFeeServiceClient interface {
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(ctx context.Context, in *ListOrderFeeSupplementRequestsRequest, opts ...grpc.CallOption) (*ListOrderFeeSupplementRequestsResponse, error)
 	// ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
 	ApproveOrderFeeSupplement(ctx context.Context, in *ApproveOrderFeeSupplementRequest, opts ...grpc.CallOption) (*ApproveOrderFeeSupplementResponse, error)
 	// RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
 	RejectOrderFeeSupplement(ctx context.Context, in *RejectOrderFeeSupplementRequest, opts ...grpc.CallOption) (*RejectOrderFeeSupplementResponse, error)
@@ -78,7 +74,7 @@ type OrderFeeServiceClient interface {
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
 	WithdrawOrderFeeSupplement(ctx context.Context, in *WithdrawOrderFeeSupplementRequest, opts ...grpc.CallOption) (*WithdrawOrderFeeSupplementResponse, error)
 	// CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-	// CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+	// UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
 	// 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
 	CancelApprovedOrderFeeSupplement(ctx context.Context, in *CancelApprovedOrderFeeSupplementRequest, opts ...grpc.CallOption) (*CancelApprovedOrderFeeSupplementResponse, error)
 	ListOrderFeeTagOptions(ctx context.Context, in *ListOrderFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListOrderFeeTagOptionsResponse, error)
@@ -138,26 +134,6 @@ func (c *orderFeeServiceClient) UpdateFee(ctx context.Context, in *UpdateFeeRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateFeeResponse)
 	err := c.cc.Invoke(ctx, OrderFeeService_UpdateFee_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *orderFeeServiceClient) ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...grpc.CallOption) (*ConfirmFeeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConfirmFeeResponse)
-	err := c.cc.Invoke(ctx, OrderFeeService_ConfirmFee_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *orderFeeServiceClient) ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...grpc.CallOption) (*ReopenFeeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReopenFeeResponse)
-	err := c.cc.Invoke(ctx, OrderFeeService_ReopenFee_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -269,7 +245,8 @@ func (c *orderFeeServiceClient) BatchRemoveOrderFeeTags(ctx context.Context, in 
 // for forward compatibility.
 //
 // OrderFeeService 订单费用录入服务。
-// 管理订单费用明细；费用进入账单后，修改范围由财务自定义策略控制。
+// 管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，
+// 进入账单后修改范围由财务自定义策略控制。
 type OrderFeeServiceServer interface {
 	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
@@ -279,12 +256,9 @@ type OrderFeeServiceServer interface {
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
-	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
+	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+	// 已建账费用仅允许按财务策略修改并同步草稿账单。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
-	// ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
-	ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error)
-	// ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
-	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
 	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
 	// CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
@@ -296,7 +270,7 @@ type OrderFeeServiceServer interface {
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(context.Context, *ListOrderFeeSupplementRequestsRequest) (*ListOrderFeeSupplementRequestsResponse, error)
 	// ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
 	ApproveOrderFeeSupplement(context.Context, *ApproveOrderFeeSupplementRequest) (*ApproveOrderFeeSupplementResponse, error)
 	// RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
 	RejectOrderFeeSupplement(context.Context, *RejectOrderFeeSupplementRequest) (*RejectOrderFeeSupplementResponse, error)
@@ -304,7 +278,7 @@ type OrderFeeServiceServer interface {
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
 	WithdrawOrderFeeSupplement(context.Context, *WithdrawOrderFeeSupplementRequest) (*WithdrawOrderFeeSupplementResponse, error)
 	// CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-	// CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+	// UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
 	// 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
 	CancelApprovedOrderFeeSupplement(context.Context, *CancelApprovedOrderFeeSupplementRequest) (*CancelApprovedOrderFeeSupplementResponse, error)
 	ListOrderFeeTagOptions(context.Context, *ListOrderFeeTagOptionsRequest) (*ListOrderFeeTagOptionsResponse, error)
@@ -334,12 +308,6 @@ func (UnimplementedOrderFeeServiceServer) AddFee(context.Context, *AddFeeRequest
 }
 func (UnimplementedOrderFeeServiceServer) UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateFee not implemented")
-}
-func (UnimplementedOrderFeeServiceServer) ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ConfirmFee not implemented")
-}
-func (UnimplementedOrderFeeServiceServer) ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ReopenFee not implemented")
 }
 func (UnimplementedOrderFeeServiceServer) RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveFee not implemented")
@@ -478,42 +446,6 @@ func _OrderFeeService_UpdateFee_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderFeeServiceServer).UpdateFee(ctx, req.(*UpdateFeeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OrderFeeService_ConfirmFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfirmFeeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrderFeeServiceServer).ConfirmFee(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrderFeeService_ConfirmFee_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderFeeServiceServer).ConfirmFee(ctx, req.(*ConfirmFeeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OrderFeeService_ReopenFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReopenFeeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrderFeeServiceServer).ReopenFee(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrderFeeService_ReopenFee_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderFeeServiceServer).ReopenFee(ctx, req.(*ReopenFeeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -724,14 +656,6 @@ var OrderFeeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateFee",
 			Handler:    _OrderFeeService_UpdateFee_Handler,
-		},
-		{
-			MethodName: "ConfirmFee",
-			Handler:    _OrderFeeService_ConfirmFee_Handler,
-		},
-		{
-			MethodName: "ReopenFee",
-			Handler:    _OrderFeeService_ReopenFee_Handler,
 		},
 		{
 			MethodName: "RemoveFee",

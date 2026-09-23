@@ -477,7 +477,7 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
-	predicates := []predicate.OrderFee{orderfeeent.StatusEQ(orderfeeent.StatusCONFIRMED), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(financebilllineent.ActiveEQ(true)))}
+	predicates := []predicate.OrderFee{orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(financebilllineent.ActiveEQ(true)))}
 	if filter.Keyword != "" {
 		predicates = append(predicates, orderfeeent.Or(orderfeeent.FeeCodeContainsFold(filter.Keyword), orderfeeent.FeeNameContainsFold(filter.Keyword), orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(filter.Keyword)), orderfeeent.HasSettlementPartyWith(partnerent.Or(partnerent.CodeContainsFold(filter.Keyword), partnerent.LegalNameContainsFold(filter.Keyword), partnerent.SearchKeywordsContainsFold(filter.Keyword), partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(filter.Keyword), partneraliasent.SearchKeywordsContainsFold(filter.Keyword)))))))
 	}

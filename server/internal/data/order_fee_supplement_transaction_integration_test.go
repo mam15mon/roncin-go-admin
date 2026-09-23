@@ -610,8 +610,8 @@ func TestFeeSupplementDecisionPostgres(t *testing.T) {
 			t.Fatalf("审批必须生成且只生成一条费用，实际 %d", len(fees))
 		}
 		fee := fees[0]
-		if fee.Status != orderfeeent.StatusCONFIRMED || fee.Direction != orderfeeent.DirectionPAYABLE || fee.Version != 1 {
-			t.Fatalf("补录费用必须为 CONFIRMED 应付: %+v", fee)
+		if fee.Status != orderfeeent.StatusUNBILLED || fee.Direction != orderfeeent.DirectionPAYABLE || fee.Version != 1 {
+			t.Fatalf("补录费用必须为 UNBILLED 应付: %+v", fee)
 		}
 		if fee.IdempotencyKey != "fee-supplement:"+created.ID.String() {
 			t.Fatalf("补录费用幂等键必须由申请 ID 派生: %s", fee.IdempotencyKey)
@@ -926,7 +926,7 @@ func TestFeeSupplementImpactAndCancelPostgres(t *testing.T) {
 		if _, err := fixture.usecase.CancelApprovedFee(fixture.ctx, fixture.approverPrincipal(), fixture.organizationID, order.ID, first.ID, 1, "倒序校验"); err == nil || !strings.Contains(err.Error(), "更晚") {
 			t.Fatalf("存在更晚有效补录必须拒绝作废早期补录: %v", err)
 		}
-		if len(fixture.feesForRequest(first.ID)) != 1 || fixture.feesForRequest(first.ID)[0].Status != orderfeeent.StatusCONFIRMED {
+		if len(fixture.feesForRequest(first.ID)) != 1 || fixture.feesForRequest(first.ID)[0].Status != orderfeeent.StatusUNBILLED {
 			t.Fatalf("被拒绝的作废必须零写入: %+v", fixture.feesForRequest(first.ID))
 		}
 		// 版本竞争稳定拒绝。
@@ -941,8 +941,8 @@ func TestFeeSupplementImpactAndCancelPostgres(t *testing.T) {
 		if _, cancelErr := fixture.usecase.CancelApprovedFee(fixture.ctx, fixture.approverPrincipal(), fixture.organizationID, order.ID, second.ID, secondResult.Fee.Version, "已确认冲减"); cancelErr == nil || !strings.Contains(cancelErr.Error(), "已确认或已扣回") {
 			t.Fatalf("曾确认冲减必须禁止直接作废: %v", cancelErr)
 		}
-		if reloaded := fixture.feesForRequest(second.ID); reloaded[0].Status != orderfeeent.StatusCONFIRMED {
-			t.Fatalf("作废被拒绝后费用必须保持 CONFIRMED: %s", reloaded[0].Status)
+		if reloaded := fixture.feesForRequest(second.ID); reloaded[0].Status != orderfeeent.StatusUNBILLED {
+			t.Fatalf("作废被拒绝后费用必须保持 UNBILLED: %s", reloaded[0].Status)
 		}
 	})
 }
@@ -1226,7 +1226,7 @@ func TestFeeSupplementBillChainPostgres(t *testing.T) {
 		t.Fatalf("创建账单编号规则: %v", ruleErr)
 	}
 	exchangeRate := biz.NewExchangeRateUsecase(NewExchangeRateRepo(fixture.data), NewExchangeRateQuoteProvider())
-	billUsecase := biz.NewFinanceBillUsecase(NewFinanceBillRepo(fixture.data), exchangeRate, fixture.data)
+	billUsecase := biz.NewFinanceBillUsecase(NewFinanceBillRepo(fixture.data), exchangeRate, fixture.data, nil, nil)
 	bill, createErr := billUsecase.Create(fixture.ctx, fixture.organizationID, fixture.approverID, biz.CreateFinanceBillInput{
 		FeeIDs:              []uuid.UUID{feeID},
 		BillDate:            "2026-09-18",
@@ -1244,7 +1244,7 @@ func TestFeeSupplementBillChainPostgres(t *testing.T) {
 	if orderErr != nil || reloadedOrder.LockedAt == nil {
 		t.Fatalf("建账不得解锁订单: %v", orderErr)
 	}
-	// 符合现有取消条件的草稿账单取消后，费用恢复 CONFIRMED。
+	// 符合现有取消条件的草稿账单取消后，费用恢复 UNBILLED。
 	cancelled, cancelErr := billUsecase.Cancel(fixture.ctx, []uuid.UUID{fixture.organizationID}, fixture.approverID, bill.ID, bill.Version, "取消校验恢复链路")
 	if cancelErr != nil {
 		t.Fatalf("取消草稿账单: %v", cancelErr)
@@ -1253,8 +1253,8 @@ func TestFeeSupplementBillChainPostgres(t *testing.T) {
 		t.Fatalf("账单取消状态不符: %s", cancelled.Status)
 	}
 	restored, feeErr := fixture.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(feeID)).Only(fixture.ctx)
-	if feeErr != nil || restored.Status != orderfeeent.StatusCONFIRMED {
-		t.Fatalf("账单取消后补录费用必须恢复 CONFIRMED: %v %+v", feeErr, restored)
+	if feeErr != nil || restored.Status != orderfeeent.StatusUNBILLED {
+		t.Fatalf("账单取消后补录费用必须恢复 UNBILLED: %v %+v", feeErr, restored)
 	}
 	// 费用行保留补录来源关联。
 	if restored.SupplementRequestID == nil || *restored.SupplementRequestID != created.ID {
@@ -1295,7 +1295,7 @@ func TestFeeSupplementListAuthorizationPostgres(t *testing.T) {
 		if approvedView == nil || approvedView.CanWithdraw || approvedView.CanApprove || approvedView.CanCancel {
 			t.Fatalf("无 grant 发起人的 APPROVED 投影不符: %+v", approvedView)
 		}
-		if approvedView.FeeID == nil || approvedView.FeeStatus != "CONFIRMED" {
+		if approvedView.FeeID == nil || approvedView.FeeStatus != "UNBILLED" {
 			t.Fatalf("APPROVED 行应投影生成费用状态: %+v", approvedView)
 		}
 	})

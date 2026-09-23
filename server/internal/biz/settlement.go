@@ -194,7 +194,7 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationIDs 
 	if filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
-	if filter.Status != "" && filter.Status != OrderFeeDraft && filter.Status != OrderFeeConfirmed && filter.Status != OrderFeeBilled && filter.Status != OrderFeeCancelled {
+	if filter.Status != "" && filter.Status != OrderFeeUnbilled && filter.Status != OrderFeeBilled && filter.Status != OrderFeeCancelled {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.FinancialProgress != "" && !IsFeeLedgerFinancialProgress(filter.FinancialProgress) {

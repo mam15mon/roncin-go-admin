@@ -20,8 +20,8 @@ func TestParsePlainDecimalRejectsSignedValue(t *testing.T) {
 }
 
 func TestOrderFeeStatusAPIConversions(t *testing.T) {
-	status := v1.OrderFeeStatus_ORDER_FEE_STATUS_CONFIRMED
-	if got := orderFeeStatusFromAPI(&status); got != biz.OrderFeeConfirmed {
+	status := v1.OrderFeeStatus_ORDER_FEE_STATUS_UNBILLED
+	if got := orderFeeStatusFromAPI(&status); got != biz.OrderFeeUnbilled {
 		t.Fatalf("费用领域状态 = %q", got)
 	}
 	if got := orderFeeStatusToAPI(biz.OrderFeeBilled); got != v1.OrderFeeStatus_ORDER_FEE_STATUS_BILLED {

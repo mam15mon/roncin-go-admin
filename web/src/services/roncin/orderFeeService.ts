@@ -84,7 +84,7 @@ export async function orderFeeServiceCreateOrderFeeSupplement(
 }
 
 /** ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
- 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
+ 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
 export async function orderFeeServiceApproveOrderFeeSupplement(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceApproveOrderFeeSupplementParams,
@@ -107,7 +107,7 @@ export async function orderFeeServiceApproveOrderFeeSupplement(
 }
 
 /** CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
- CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+ UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
  关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/cancel-fee */
 export async function orderFeeServiceCancelApprovedOrderFeeSupplement(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -271,7 +271,8 @@ export async function orderFeeServiceAddFee(
   });
 }
 
-/** UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。 PUT /api/v1/orders/${param0}/fees/${param1} */
+/** UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+ 已建账费用仅允许按财务策略修改并同步草稿账单。 PUT /api/v1/orders/${param0}/fees/${param1} */
 export async function orderFeeServiceUpdateFee(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceUpdateFeeParams,
@@ -307,50 +308,6 @@ export async function orderFeeServiceRemoveFee(
       params: {
         ...queryParams,
       },
-      ...(options || {}),
-    }
-  );
-}
-
-/** ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。 POST /api/v1/orders/${param0}/fees/${param1}/confirm */
-export async function orderFeeServiceConfirmFee(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.OrderFeeServiceConfirmFeeParams,
-  body: API.ConfirmFeeRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.ConfirmFeeResponse>(
-    `/api/v1/orders/${param0}/fees/${param1}/confirm`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。 POST /api/v1/orders/${param0}/fees/${param1}/reopen */
-export async function orderFeeServiceReopenFee(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.OrderFeeServiceReopenFeeParams,
-  body: API.ReopenFeeRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, id: param1, ...queryParams } = params;
-  return request<API.ReopenFeeResponse>(
-    `/api/v1/orders/${param0}/fees/${param1}/reopen`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
       ...(options || {}),
     }
   );

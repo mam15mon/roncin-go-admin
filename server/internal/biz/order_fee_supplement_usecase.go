@@ -15,7 +15,7 @@ import (
 
 // OrderFeeSupplementUsecase 锁单后应付费用补录申请用例：负责状态机、锁依据
 // 复核、边际影响计算、双层封顶与共享事务编排。普通费用写入口的锁门禁不因本
-// 用例放宽；补录审批承担费用真实性确认，生成 CONFIRMED 费用。
+// 用例放宽；补录审批承担费用真实性确认，生成 UNBILLED 费用。
 type OrderFeeSupplementUsecase struct {
 	repo       OrderFeeSupplementRequestRepo
 	fee        *OrderFeeUsecase
@@ -399,7 +399,7 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 			return amountErr
 		}
 		fee.ID = uuid.Must(uuid.NewV7())
-		fee.Status = OrderFeeConfirmed
+		fee.Status = OrderFeeUnbilled
 		fee.Version = 1
 		fee.IdempotencyKey = "fee-supplement:" + request.ID.String()
 		// 5. 按父单 UUID 升序锁定提成父单、订单行与调整。
@@ -412,7 +412,7 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 		if computeErr != nil {
 			return computeErr
 		}
-		// 7. 创建 CONFIRMED 费用与 DECREASE+DRAFT 调整。
+		// 7. 创建 UNBILLED 费用与 DECREASE+DRAFT 调整。
 		approveAudit := uc.approveAudit(organizationID, caller.UserID, request, evidence, auditDetails)
 		createdFee, feeCreateErr := uc.repo.CreateApprovedFee(txCtx, organizationID, request.ID, fee, approveAudit)
 		if feeCreateErr != nil {

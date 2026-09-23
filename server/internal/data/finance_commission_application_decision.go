@@ -34,7 +34,7 @@ func lockApplicationHeaderForDecision(ctx context.Context, client *ent.Client, o
 //     只有一个事务成功，其余稳定冲突；
 //  2. 按 commission_id 升序锁定申请明细，交由共享事务内的整批确认辅助
 //     （confirmCommissionsForApplicationApproval）按「来源订单 → 提成父单」
-//     固定锁序逐笔重算指纹、阻断草稿费用并把 DRAFT 提成整批转为 CONFIRMED；
+//     固定锁序逐笔重算指纹、阻断未建账费用并把 DRAFT 提成整批转为 CONFIRMED；
 //  3. 更新申请头为 APPROVED、记录决策人/时间、递增版本并写决策审计。
 //     任一步失败整体回滚，不产生部分批准。
 func (r *financeCommissionApplicationRepo) Approve(ctx context.Context, organizationIDs []uuid.UUID, decisionMaker, id uuid.UUID, expectedVersion uint64) (*biz.FinanceCommissionApplication, error) {

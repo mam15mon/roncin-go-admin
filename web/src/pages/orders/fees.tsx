@@ -21,14 +21,11 @@ import { history } from '@/router/history';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import {
   orderFeeServiceAddFee,
-  orderFeeServiceConfirmFee,
   orderFeeServiceRemoveFee,
-  orderFeeServiceReopenFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
-import { confirmWithReason } from '@/utils/confirmWithReason';
 import { normalizeDecimalInput } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
@@ -482,45 +479,6 @@ export default function OrderFeesPage() {
     });
   };
 
-  const handleConfirmFee = async (fee: API.OrderFee) => {
-    if (!ensureFeeWriteAllowed() || !orderId || !fee.id || !fee.version) return;
-    try {
-      await orderFeeServiceConfirmFee(
-        { orderId, id: fee.id },
-        { orderId, id: fee.id, expectedVersion: fee.version },
-      );
-      message.success('费用已确认，可以进入账单');
-      reloadFeeTables();
-    } catch (error) {
-      message.error(getErrorMessage(error, '确认费用失败'));
-    }
-  };
-
-  const handleReopenFee = (fee: API.OrderFee) => {
-    const feeId = fee.id;
-    const version = fee.version;
-    if (!orderId || !feeId || !version) return;
-    confirmWithReason(
-      { modal, message },
-      '撤回费用确认？',
-      async (reason) => {
-        if (!ensureFeeWriteAllowed()) return;
-        await orderFeeServiceReopenFee(
-          { orderId, id: feeId },
-          {
-            orderId,
-            id: feeId,
-            expectedVersion: version,
-            reason: reason || undefined,
-          },
-        );
-        message.success('费用已撤回为草稿');
-        reloadFeeTables();
-      },
-      { optional: true },
-    );
-  };
-
   if (!definition) {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
@@ -733,8 +691,6 @@ export default function OrderFeesPage() {
         customerName={customerName}
         onOpenQuickAddFee={handleOpenQuickAddFee}
         onOpenQuickAddPartner={handleOpenQuickAddPartner}
-        onConfirmFee={handleConfirmFee}
-        onReopenFee={handleReopenFee}
         onCancelFee={handleCancelFee}
         onOpenFeeModal={openFeeModal}
       />

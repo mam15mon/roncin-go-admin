@@ -187,7 +187,8 @@ describe('OrderLockControl', () => {
       '触发单据：VR-2026-001',
       '触发操作人：李四',
     ]);
-    expect(getOrderLockTriggerTypeText('FEE_CONFIRM')).toBe('费用草稿确认');
+    expect(getOrderLockTriggerTypeText('FEE_BILLED')).toBe('费用进入账单');
+    expect(getOrderLockTriggerTypeText('FEE_CANCEL')).toBe('未建账费用删除');
     expect(getOrderLockTriggerTypeText('UNKNOWN_KIND')).toBe('UNKNOWN_KIND');
     expect(getOrderLockTriggerTypeText(undefined)).toBe('-');
   });

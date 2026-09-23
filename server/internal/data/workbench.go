@@ -273,13 +273,13 @@ func workbenchSumCommissions(ctx context.Context, client *ent.Client, predicates
 }
 
 // workbenchReceivableOrderPredicates 是「本人提成归属 + 有效应收费用」的订单
-// 谓词：与计提候选发现保持同一口径（存在本人提成归属，且订单存在 CONFIRMED/
+// 谓词：与计提候选发现保持同一口径（存在本人提成归属，且订单存在 UNBILLED/
 // BILLED 应收费用），复用现有计提来源校验语义。
 func workbenchAttributedOrderPredicate(scope biz.WorkbenchScope) predicate.Order {
 	return orderent.And(
 		orderent.HasCommissionAttributionsWith(attribution.EmployeeIDEQ(scope.UserID)),
 		orderent.HasFeesWith(
-			fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED),
+			fee.StatusIn(fee.StatusUNBILLED, fee.StatusBILLED),
 			fee.DirectionEQ(fee.DirectionRECEIVABLE),
 			fee.BaseCurrencyAmountGT("0"),
 		),
@@ -533,7 +533,7 @@ func workbenchRecentOrderToBiz(item *ent.Order) *biz.WorkbenchRecentOrder {
 	}
 }
 
-// workbenchTodoSummary 统计本人协作订单上的可靠作业待办：草稿费用与未解决异常。
+// workbenchTodoSummary 统计本人协作订单上的可靠作业待办：未建账费用与未解决异常。
 // 两条计数均由 order_id + status 复合索引驱动，语义等价于「订单在当前组织且
 // 本人存在于协作人员」，order_id 集合由 workbenchMyOrderIDs 统一解析。
 func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope, myOrderIDs []uuid.UUID) (*biz.WorkbenchTodoSummary, error) {
@@ -541,14 +541,14 @@ func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Cl
 	if len(myOrderIDs) == 0 {
 		return summary, nil
 	}
-	draftFeeCount, err := client.OrderFee.Query().Where(
-		fee.StatusEQ(fee.StatusDRAFT),
+	unbilledFeeCount, err := client.OrderFee.Query().Where(
+		fee.StatusEQ(fee.StatusUNBILLED),
 		fee.OrderIDIn(myOrderIDs...),
 	).Count(ctx)
 	if err != nil {
 		return nil, err
 	}
-	summary.DraftFeeCount = draftFeeCount
+	summary.UnbilledFeeCount = unbilledFeeCount
 	openAbnormalCount, err := client.OrderAbnormalCase.Query().Where(
 		orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE),
 		orderabnormalcaseent.OrderIDIn(myOrderIDs...),

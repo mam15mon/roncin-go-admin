@@ -89,7 +89,7 @@ export default function FeeSupplementModal({
       <Alert
         type="info"
         showIcon
-        title="补录仅用于锁定订单追加真实发生的应付成本；审批通过后生成一条新的已确认应付费用，不会修改原有费用。应收方向不支持补录。"
+        title="补录仅用于锁定订单追加真实发生的应付成本；审批通过后生成一条新的未建账应付费用，不会修改原有费用。应收方向不支持补录。"
         style={{ marginBottom: 16 }}
       />
       <Row gutter={16}>

@@ -66,7 +66,7 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 	groupsByRawKey := make(map[string]*FinanceBillBatchPreviewGroup)
 	rawKeys := make([]string, 0)
 	for _, item := range ordered {
-		if item == nil || item.Fee == nil || item.Fee.ID == uuid.Nil || item.Fee.OrderID == uuid.Nil || item.Fee.Status != OrderFeeConfirmed || item.Fee.TaxRate == nil || !financeBillCurrencyPattern.MatchString(item.Fee.Currency) || !financeBillCurrencyPattern.MatchString(item.Fee.BaseCurrency) {
+		if item == nil || item.Fee == nil || item.Fee.ID == uuid.Nil || item.Fee.OrderID == uuid.Nil || item.Fee.Status != OrderFeeUnbilled || item.Fee.TaxRate == nil || !financeBillCurrencyPattern.MatchString(item.Fee.Currency) || !financeBillCurrencyPattern.MatchString(item.Fee.BaseCurrency) {
 			return nil, ErrFinanceBillFeeInvalid
 		}
 		fee := item.Fee
@@ -629,7 +629,11 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 		return transactionErr
 	})
 	if err == nil {
-		return uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
+		createdBatch, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
+		if lookupErr == nil && createdBatch != nil {
+			uc.triggerAutoLockForBills(ctx, organizationID, actorID, createdBatch.Bills)
+		}
+		return createdBatch, lookupErr
 	}
 	if existing, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); lookupErr == nil && existing != nil && existing.RequestHash == requestHash {
 		return existing, nil

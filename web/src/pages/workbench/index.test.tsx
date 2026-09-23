@@ -169,7 +169,7 @@ describe('工作台提成门禁', () => {
             orderDate: '2026-09-01',
           },
         ],
-        todos: { draftFeeCount: 2, openAbnormalCount: 0 },
+        todos: { unbilledFeeCount: 2, openAbnormalCount: 0 },
       }) as never,
     );
 

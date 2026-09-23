@@ -3,6 +3,8 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -15,12 +17,22 @@ type OrderFee struct{ ent.Schema }
 
 func (OrderFee) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 
+// Annotations 与正式迁移同名同表达式声明状态 CHECK：DRAFT/CONFIRMED 已按用户
+// 决策合并为 UNBILLED，允许值收紧为未建账、已建账、已作废三种。
+func (OrderFee) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entsql.Checks(map[string]string{
+			"order_fees_status_check": "status IN ('UNBILLED', 'BILLED', 'CANCELLED')",
+		}),
+	}
+}
+
 func (OrderFee) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("order_id", uuid.Nil),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
 		field.Enum("direction").Values("RECEIVABLE", "PAYABLE"),
-		field.Enum("status").Values("DRAFT", "CONFIRMED", "BILLED", "CANCELLED").Default("DRAFT"),
+		field.Enum("status").Values("UNBILLED", "BILLED", "CANCELLED").Default("UNBILLED"),
 		field.UUID("fee_setting_id", uuid.Nil).Optional().Nillable(),
 		field.String("fee_code").NotEmpty().MaxLen(30),
 		field.String("fee_name").NotEmpty().MaxLen(80),

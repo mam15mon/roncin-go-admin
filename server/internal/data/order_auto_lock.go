@@ -74,24 +74,28 @@ func (r *orderAutoLockRepo) RunAutoSettlementLockCheck(ctx context.Context, trig
 		return nil
 	}
 
-	// 费用草稿确认/作废触发：只在该订单已存在有效应收结清事实时重试；
+	// 未建账费用删除/费用进入账单触发：只对已存在有效应收结清事实的订单重试；
 	// 纯成本、从未产生应收或仅有作废应收的订单不因余额为零进入检查。
-	if trigger.Type == biz.AutoLockTriggerFeeConfirm || trigger.Type == biz.AutoLockTriggerFeeCancel {
-		if len(orderIDs) != 1 {
-			return fmt.Errorf("费用触发受影响订单数量异常: %d", len(orderIDs))
-		}
-		hasSettlement, err := orderHasValidReceivableSettlement(ctx, client, autoLockOrderScope{
-			organizationID: trigger.OrganizationID,
-			orderID:        orderIDs[0],
-		})
-		if err != nil {
-			return r.writeCheckAudit(ctx, trigger, &autoLockCheckOutcome{
-				targetOrderID: orderIDs[0],
-				reasonCode:    biz.AutoLockReasonExecutionFailed,
-				detail:        "预检有效结清事实失败: " + err.Error(),
+	if trigger.Type == biz.AutoLockTriggerFeeCancel || trigger.Type == biz.AutoLockTriggerFeeBilled {
+		qualified := make([]uuid.UUID, 0, len(orderIDs))
+		for _, orderID := range orderIDs {
+			hasSettlement, err := orderHasValidReceivableSettlement(ctx, client, autoLockOrderScope{
+				organizationID: trigger.OrganizationID,
+				orderID:        orderID,
 			})
+			if err != nil {
+				return r.writeCheckAudit(ctx, trigger, &autoLockCheckOutcome{
+					targetOrderID: orderID,
+					reasonCode:    biz.AutoLockReasonExecutionFailed,
+					detail:        "预检有效结清事实失败: " + err.Error(),
+				})
+			}
+			if hasSettlement {
+				qualified = append(qualified, orderID)
+			}
 		}
-		if !hasSettlement {
+		orderIDs = qualified
+		if len(orderIDs) == 0 {
 			return nil
 		}
 	}
@@ -175,7 +179,7 @@ func (r *orderAutoLockRepo) planCheck(ctx context.Context, client *ent.Client, o
 }
 
 // runSingleCheck 单票自动锁定检查：Order 行锁内重验生命周期、有效结清事实、
-// 订单级未结清应收、费用草稿与现有锁定条件后写入锁定事实。
+// 订单级未结清应收、未建账费用与现有锁定条件后写入锁定事实。
 func (r *orderAutoLockRepo) runSingleCheck(ctx context.Context, trigger biz.AutoOrderLockTrigger, orderID uuid.UUID) *autoLockCheckOutcome {
 	outcome := &autoLockCheckOutcome{
 		targetOrderID:  orderID,
@@ -482,8 +486,11 @@ func (r *orderAutoLockRepo) resolveAffectedOrderIDs(ctx context.Context, client 
 			billIDs = append(billIDs, allocation.BillID)
 		}
 		return orderIDsForBills(ctx, client, billIDs)
-	case biz.AutoLockTriggerFeeConfirm, biz.AutoLockTriggerFeeCancel:
+	case biz.AutoLockTriggerFeeCancel:
 		return []uuid.UUID{trigger.OrderID}, nil
+	case biz.AutoLockTriggerFeeBilled:
+		// ResourceID 为新账单 ID：按账单行解析全部受影响订单（跨订单账单）。
+		return orderIDsForBills(ctx, client, []uuid.UUID{trigger.ResourceID})
 	default:
 		return nil, nil
 	}
@@ -553,38 +560,24 @@ func autoLockLifecycleBlockReason(order *ent.Order) string {
 }
 
 // evaluateAutoLockEligibility 评估订单的自动锁定财务资格：
+//   - 任意方向存在未建账费用即阻止（未建账应收同时构成未结清应收，
+//     未建账应付不再因原已确认身份绕过阻断）；
 //   - 至少一笔有效应收结清事实（有效核销或已确认对冲分摊命中本订单应收账单）；
 //   - 订单级未结清已确认应收为零（应收账单行合计 − 有效核销分摊 − 已确认对冲
-//     分摊推导；未建账已确认应收视为未结清；已反转/已取消/失效分摊不计入）；
-//   - 不存在费用草稿。
+//     分摊推导；已反转/已取消/失效分摊不计入）。
 func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.UUID) (eligible bool, reasonCode string, err error) {
-	// 1) 任意方向的费用草稿都阻止自动锁定。
-	draftExists, err := tx.OrderFee.Query().
-		Where(orderfeeent.OrderIDEQ(orderID), orderfeeent.StatusEQ(orderfeeent.StatusDRAFT)).
+	// 1) 任意方向的未建账费用都阻止自动锁定。
+	unbilledFeeExists, err := tx.OrderFee.Query().
+		Where(orderfeeent.OrderIDEQ(orderID), orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED)).
 		Exist(ctx)
 	if err != nil {
 		return false, "", err
 	}
-	if draftExists {
-		return false, biz.AutoLockReasonDraftFee, nil
+	if unbilledFeeExists {
+		return false, biz.AutoLockReasonUnbilledFee, nil
 	}
 
-	// 2) 未建账已确认应收视为未结清。
-	unbilledReceivableExists, err := tx.OrderFee.Query().
-		Where(
-			orderfeeent.OrderIDEQ(orderID),
-			orderfeeent.DirectionEQ(orderfeeent.DirectionRECEIVABLE),
-			orderfeeent.StatusEQ(orderfeeent.StatusCONFIRMED),
-		).
-		Exist(ctx)
-	if err != nil {
-		return false, "", err
-	}
-	if unbilledReceivableExists {
-		return false, biz.AutoLockReasonUnbilledReceivable, nil
-	}
-
-	// 3) 订单关联的应收账单行（含未确认账单的行，仍是未结清应收事实）。
+	// 2) 订单关联的应收账单行（含未确认账单的行，仍是未结清应收事实）。
 	lines, err := tx.FinanceBillLine.Query().
 		Where(
 			financebilllineent.OrderIDEQ(orderID),
@@ -612,7 +605,7 @@ func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.U
 		lineSum = lineSum.Add(amount)
 	}
 
-	// 4) 有效核销分摊：分摊有效且核销单仍然 ACTIVE。
+	// 3) 有效核销分摊：分摊有效且核销单仍然 ACTIVE。
 	verifications, err := tx.FinanceVerificationAllocation.Query().
 		Where(
 			financeverificationallocationent.BillIDIn(billIDs...),
@@ -623,7 +616,7 @@ func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.U
 	if err != nil {
 		return false, "", err
 	}
-	// 5) 已确认对冲分摊：分摊有效且对冲单处于 CONFIRMED。
+	// 4) 已确认对冲分摊：分摊有效且对冲单处于 CONFIRMED。
 	nettings, err := tx.FinanceNettingAllocation.Query().
 		Where(
 			financenettingallocationent.BillIDIn(billIDs...),
@@ -665,7 +658,7 @@ func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.U
 }
 
 // orderHasValidReceivableSettlement 判断订单是否已存在有效应收结清事实，
-// 作为费用草稿确认/作废触发的重试预检。
+// 作为未建账费用删除/建账触发的重试预检。
 func orderHasValidReceivableSettlement(ctx context.Context, client *ent.Client, scope autoLockOrderScope) (bool, error) {
 	billPredicates := []predicate.FinanceBill{
 		financebillent.DirectionEQ(financebillent.DirectionRECEIVABLE),

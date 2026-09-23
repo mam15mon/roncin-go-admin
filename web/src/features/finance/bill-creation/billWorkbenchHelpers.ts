@@ -43,7 +43,7 @@ export function requestMessage(error: RequestError, fallback: string) {
   if (msg) return msg;
   const reason = requestReason(error);
   if (reason === financeErrorReasons.FINANCE_BILL_FEE_INVALID) {
-    return '所选费用必须为已确认状态且尚未进入其他账单';
+    return '所选费用必须为未建账状态且尚未进入其他账单';
   }
   if (reason === financeErrorReasons.FINANCE_BILL_PREVIEW_STALE) {
     return '费用已发生变化，请重新预览后再生成账单';

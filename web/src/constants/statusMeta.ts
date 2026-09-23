@@ -58,10 +58,9 @@ export const orderFlowStatusMeta: Record<number, StatusMeta> = {
 };
 
 export const orderFeeStatusMeta: Record<number, StatusMeta> = {
-  [OrderFeeStatus.ORDER_FEE_STATUS_DRAFT]: { text: '草稿', color: 'gold' },
-  [OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED]: {
-    text: '已确认',
-    color: 'green',
+  [OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED]: {
+    text: '未建账',
+    color: 'gold',
   },
   [OrderFeeStatus.ORDER_FEE_STATUS_BILLED]: {
     text: '已进账单',
@@ -198,12 +197,10 @@ const businessTypeCodes: Record<string, number> = {
 };
 
 const orderFeeStatusCodes: Record<string, number> = {
-  DRAFT: OrderFeeStatus.ORDER_FEE_STATUS_DRAFT,
-  CONFIRMED: OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
+  UNBILLED: OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
   BILLED: OrderFeeStatus.ORDER_FEE_STATUS_BILLED,
   CANCELLED: OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
-  ORDER_FEE_STATUS_DRAFT: OrderFeeStatus.ORDER_FEE_STATUS_DRAFT,
-  ORDER_FEE_STATUS_CONFIRMED: OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
+  ORDER_FEE_STATUS_UNBILLED: OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
   ORDER_FEE_STATUS_BILLED: OrderFeeStatus.ORDER_FEE_STATUS_BILLED,
   ORDER_FEE_STATUS_CANCELLED: OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
 };

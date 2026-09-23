@@ -39,7 +39,7 @@ export default function BillCandidateSelectionStep({
       <Alert
         type="info"
         showIcon
-        title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔已确认费用`}
+        title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔未建账费用`}
         description="费用状态、结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
       />
       <div style={{ marginTop: 12 }}>
@@ -80,20 +80,20 @@ export default function BillCandidateSelectionStep({
           onChange: onSelectedFeeIdsChange,
           getCheckboxProps: (record) => {
             const isSelectable =
-              record.status === OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED &&
+              record.status === OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED &&
               !record.billNo;
             return {
               disabled: !isSelectable,
               title: !isSelectable
                 ? record.billNo
                   ? `已进入账单 ${record.billNo}`
-                  : '只有已确认且未入账单的费用方可创建账单'
+                  : '只有未建账且未入账单的费用方可创建账单'
                 : undefined,
             };
           },
         }}
         tableAlertRender={({ selectedRowKeys }) => (
-          <Text>已选择 {selectedRowKeys.length} 笔已确认费用</Text>
+          <Text>已选择 {selectedRowKeys.length} 笔未建账费用</Text>
         )}
         request={async (params) => {
           if (!organizationId) return { data: [], success: true, total: 0 };

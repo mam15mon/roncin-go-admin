@@ -223,7 +223,7 @@ var manifest = append([]Permission{
 	{Key: FinanceFeeTag, Name: "维护费用标签", Group: "费用管理 · 费用总台账", Description: "在费用总台账批量添加或移除业务标签", Requires: []string{FinanceFeeRead}},
 	{Key: FinanceBillConfigure, Name: "配置公司账单策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
-	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合已确认费用创建账单", Requires: []string{FinanceBillRead}},
+	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合未建账费用创建账单", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillConfirm, Name: "确认账单", Group: "费用管理 · 账单", Description: "确认账单并锁定账单费用", Requires: []string{FinanceBillRead}},
 	{Key: FinanceInvoiceRead, Name: "查看开票记录", Group: "费用管理 · 开票", Description: "查看销项和进项发票台账"},

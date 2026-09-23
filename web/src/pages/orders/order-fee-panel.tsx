@@ -17,12 +17,10 @@ import {
   orderFeeServiceAddFee,
   orderFeeServiceBatchAssignOrderFeeTags,
   orderFeeServiceBatchRemoveOrderFeeTags,
-  orderFeeServiceConfirmFee,
   orderFeeServiceListFeeOptions,
   orderFeeServiceListFees,
   orderFeeServiceListOrderFeeTagOptions,
   orderFeeServiceRemoveFee,
-  orderFeeServiceReopenFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { toTableRequest } from '@/utils/api';
@@ -242,48 +240,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       businessType !== undefined &&
       access.canOrder(businessType, 'fee.delete');
 
-    const handleConfirmFee = async (record: API.OrderFee) => {
-      const orderId = order?.id;
-      if (!ensureFeeWriteAllowed() || !orderId || !record.id || !record.version)
-        return;
-      await orderFeeServiceConfirmFee(
-        { orderId, id: record.id },
-        {
-          orderId,
-          id: record.id,
-          expectedVersion: record.version,
-        },
-      );
-      message.success('费用已确认');
-      actionRef.current?.reload();
-    };
-
-    const handleReopenFee = (record: API.OrderFee) => {
-      const orderId = order?.id;
-      const feeId = record.id;
-      const version = record.version;
-      if (!orderId || !feeId || !version) return;
-      confirmWithReason(
-        { modal, message },
-        '撤回费用确认？',
-        async (reason) => {
-          if (!ensureFeeWriteAllowed()) return;
-          await orderFeeServiceReopenFee(
-            { orderId, id: feeId },
-            {
-              orderId,
-              id: feeId,
-              expectedVersion: version,
-              reason: reason || undefined,
-            },
-          );
-          message.success('费用已撤回为草稿');
-          actionRef.current?.reload();
-        },
-        { optional: true },
-      );
-    };
-
     const handleCancelFee = (record: API.OrderFee) => {
       const orderId = order?.id;
       const feeId = record.id;
@@ -311,8 +267,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       canUpdate,
       canDelete,
       onEdit: openEdit,
-      onConfirmFee: handleConfirmFee,
-      onReopenFee: handleReopenFee,
       onCancelFee: handleCancelFee,
     });
 

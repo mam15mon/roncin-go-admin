@@ -103,9 +103,7 @@ vi.mock('@/services/roncin/feeCatalogService', () => ({
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceAddFee: vi.fn(),
-  orderFeeServiceConfirmFee: vi.fn(),
   orderFeeServiceRemoveFee: vi.fn(),
-  orderFeeServiceReopenFee: vi.fn(),
   orderFeeServiceUpdateFee: vi.fn(),
   orderFeeServiceListOrderFeeSupplementRequests: vi
     .fn()

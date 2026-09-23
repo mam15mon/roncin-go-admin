@@ -277,13 +277,12 @@ func DirectionValidator(d Direction) error {
 // Status defines the type for the "status" enum field.
 type Status string
 
-// StatusDRAFT is the default value of the Status enum.
-const DefaultStatus = StatusDRAFT
+// StatusUNBILLED is the default value of the Status enum.
+const DefaultStatus = StatusUNBILLED
 
 // Status values.
 const (
-	StatusDRAFT     Status = "DRAFT"
-	StatusCONFIRMED Status = "CONFIRMED"
+	StatusUNBILLED  Status = "UNBILLED"
 	StatusBILLED    Status = "BILLED"
 	StatusCANCELLED Status = "CANCELLED"
 )
@@ -295,7 +294,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusDRAFT, StatusCONFIRMED, StatusBILLED, StatusCANCELLED:
+	case StatusUNBILLED, StatusBILLED, StatusCANCELLED:
 		return nil
 	default:
 		return fmt.Errorf("orderfee: invalid enum value for status field: %q", s)

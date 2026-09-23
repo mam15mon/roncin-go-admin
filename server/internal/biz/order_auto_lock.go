@@ -5,16 +5,18 @@ import (
 	"github.com/google/uuid"
 )
 
-// 自动业务锁定的稳定触发类型：只由有效应收结清事件与费用草稿终态事件驱动。
+// 自动业务锁定的稳定触发类型：只由有效应收结清事件、未建账费用终态事件
+// 与费用进入账单事件驱动。
 const (
 	// AutoLockTriggerVerification 应收核销创建生效。
 	AutoLockTriggerVerification AutoLockTriggerSource = "VERIFICATION"
 	// AutoLockTriggerNetting 应收对冲确认生效。
 	AutoLockTriggerNetting AutoLockTriggerSource = "NETTING"
-	// AutoLockTriggerFeeConfirm 费用草稿确认。
-	AutoLockTriggerFeeConfirm AutoLockTriggerSource = "FEE_CONFIRM"
-	// AutoLockTriggerFeeCancel 费用草稿作废。
+	// AutoLockTriggerFeeCancel 未建账费用删除（阻断解除方向之一）。
 	AutoLockTriggerFeeCancel AutoLockTriggerSource = "FEE_CANCEL"
+	// AutoLockTriggerFeeBilled 费用进入账单（UNBILLED→BILLED，最后一笔未建账
+	// 费用建账后订单可能转为可锁定）。
+	AutoLockTriggerFeeBilled AutoLockTriggerSource = "FEE_BILLED"
 )
 
 // 自动锁定检查的结构化审计原因码。
@@ -23,8 +25,7 @@ const (
 	AutoLockReasonAlreadyLocked       = "ALREADY_LOCKED"
 	AutoLockReasonNoSettlement        = "NOT_ELIGIBLE_NO_SETTLEMENT"
 	AutoLockReasonUnsettledReceivable = "NOT_ELIGIBLE_UNSETTLED_RECEIVABLE"
-	AutoLockReasonUnbilledReceivable  = "NOT_ELIGIBLE_UNBILLED_RECEIVABLE"
-	AutoLockReasonDraftFee            = "NOT_ELIGIBLE_DRAFT_FEE"
+	AutoLockReasonUnbilledFee         = "NOT_ELIGIBLE_UNBILLED_FEE"
 	AutoLockReasonLifecycle           = "NOT_ELIGIBLE_LIFECYCLE"
 	AutoLockReasonNoActiveLink        = "NOT_ELIGIBLE_NO_ACTIVE_LINK"
 	AutoLockReasonMemberSetChanged    = "NOT_ELIGIBLE_MEMBER_SET_CHANGED"
@@ -41,8 +42,9 @@ type AutoOrderLockTrigger struct {
 	ResourceID     uuid.UUID
 	OrganizationID uuid.UUID
 	TriggeredBy    uuid.UUID
-	// OrderID 供 FEE_CONFIRM/FEE_CANCEL 触发直接给出目标订单；
-	// VERIFICATION/NETTING 触发由仓储按有效分摊解析全部受影响订单。
+	// OrderID 供 FEE_CANCEL 触发直接给出目标订单；VERIFICATION/NETTING 触发由
+	// 仓储按有效分摊解析全部受影响订单；FEE_BILLED 以 ResourceID 给出账单，
+	// 由仓储按账单行解析全部受影响订单。
 	OrderID uuid.UUID
 }
 
@@ -52,7 +54,7 @@ type AutoLockTriggerSource string
 // Valid 校验触发类型是否为已登记的取值。
 func (t AutoLockTriggerSource) Valid() bool {
 	switch t {
-	case AutoLockTriggerVerification, AutoLockTriggerNetting, AutoLockTriggerFeeConfirm, AutoLockTriggerFeeCancel:
+	case AutoLockTriggerVerification, AutoLockTriggerNetting, AutoLockTriggerFeeCancel, AutoLockTriggerFeeBilled:
 		return true
 	default:
 		return false
@@ -87,8 +89,8 @@ func (uc *AutoOrderLockUsecase) RunSettlementLockCheck(ctx context.Context, trig
 		return ErrOrderInvalidArgument
 	}
 	switch trigger.Type {
-	case AutoLockTriggerVerification, AutoLockTriggerNetting:
-	case AutoLockTriggerFeeConfirm, AutoLockTriggerFeeCancel:
+	case AutoLockTriggerVerification, AutoLockTriggerNetting, AutoLockTriggerFeeBilled:
+	case AutoLockTriggerFeeCancel:
 		if trigger.OrderID == uuid.Nil {
 			return ErrOrderInvalidArgument
 		}

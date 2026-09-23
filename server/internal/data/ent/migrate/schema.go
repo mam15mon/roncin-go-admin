@@ -3306,7 +3306,7 @@ var (
 		{Name: "locked_at", Type: field.TypeTime, Nullable: true},
 		{Name: "lock_generation", Type: field.TypeUint64, Default: 0},
 		{Name: "lock_source", Type: field.TypeEnum, Nullable: true, Enums: []string{"MANUAL", "AUTO_SETTLEMENT"}},
-		{Name: "auto_lock_trigger_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"VERIFICATION", "NETTING", "FEE_CONFIRM", "FEE_CANCEL"}},
+		{Name: "auto_lock_trigger_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED"}},
 		{Name: "auto_lock_trigger_resource_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "auto_lock_triggered_by", Type: field.TypeUUID, Nullable: true},
 		{Name: "is_shared", Type: field.TypeBool, Default: false},
@@ -3922,7 +3922,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "BILLED", "CANCELLED"}, Default: "DRAFT"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"UNBILLED", "BILLED", "CANCELLED"}, Default: "UNBILLED"},
 		{Name: "fee_code", Type: field.TypeString, Size: 30},
 		{Name: "fee_name", Type: field.TypeString, Size: 80},
 		{Name: "fee_name_en", Type: field.TypeString, Nullable: true, Size: 128},
@@ -4298,7 +4298,7 @@ var (
 		{Name: "lock_source", Type: field.TypeEnum, Enums: []string{"MANUAL", "AUTO_SETTLEMENT"}, Default: "MANUAL"},
 		{Name: "locked_at", Type: field.TypeTime},
 		{Name: "order_version_at_lock", Type: field.TypeUint64},
-		{Name: "trigger_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"VERIFICATION", "NETTING", "FEE_CONFIRM", "FEE_CANCEL"}},
+		{Name: "trigger_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED"}},
 		{Name: "trigger_resource_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "unlocked_at", Type: field.TypeTime, Nullable: true},
 		{Name: "order_version_at_unlock", Type: field.TypeUint64, Nullable: true},
@@ -7431,6 +7431,10 @@ func init() {
 	OrderFeesTable.ForeignKeys[3].RefTable = OrderFeeSupplementRequestsTable
 	OrderFeesTable.ForeignKeys[4].RefTable = PartnersTable
 	OrderFeesTable.ForeignKeys[5].RefTable = UsersTable
+	OrderFeesTable.Annotation = &entsql.Annotation{}
+	OrderFeesTable.Annotation.Checks = map[string]string{
+		"order_fees_status_check": "status IN ('UNBILLED', 'BILLED', 'CANCELLED')",
+	}
 	OrderFeeEnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[1].RefTable = OrderFeesTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[2].RefTable = OrganizationsTable

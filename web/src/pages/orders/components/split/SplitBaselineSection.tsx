@@ -6,7 +6,7 @@ interface SplitBaselineSectionProps {
   splitContext: API.SeaOrderSplitContextData | null;
 }
 
-/** 拆票页区块 1：原始订单基线汇总（件重尺、箱数、货物项、草稿费用统计）。 */
+/** 拆票页区块 1：原始订单基线汇总（件重尺、箱数、货物项、未建账费用统计）。 */
 export default function SplitBaselineSection({
   previewData,
   splitContext,
@@ -51,7 +51,7 @@ export default function SplitBaselineSection({
         </Col>
         <Col span={4}>
           <Statistic
-            title="可分配草稿费用"
+            title="可分配未建账费用"
             value={splitContext?.draftFees?.length || 0}
             suffix="笔"
           />

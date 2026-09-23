@@ -293,8 +293,8 @@ type TriggerType string
 const (
 	TriggerTypeVERIFICATION TriggerType = "VERIFICATION"
 	TriggerTypeNETTING      TriggerType = "NETTING"
-	TriggerTypeFEE_CONFIRM  TriggerType = "FEE_CONFIRM"
 	TriggerTypeFEE_CANCEL   TriggerType = "FEE_CANCEL"
+	TriggerTypeFEE_BILLED   TriggerType = "FEE_BILLED"
 )
 
 func (tt TriggerType) String() string {
@@ -304,7 +304,7 @@ func (tt TriggerType) String() string {
 // TriggerTypeValidator is a validator for the "trigger_type" field enum values. It is called by the builders before save.
 func TriggerTypeValidator(tt TriggerType) error {
 	switch tt {
-	case TriggerTypeVERIFICATION, TriggerTypeNETTING, TriggerTypeFEE_CONFIRM, TriggerTypeFEE_CANCEL:
+	case TriggerTypeVERIFICATION, TriggerTypeNETTING, TriggerTypeFEE_CANCEL, TriggerTypeFEE_BILLED:
 		return nil
 	default:
 		return fmt.Errorf("orderlockrecord: invalid enum value for trigger_type field: %q", tt)

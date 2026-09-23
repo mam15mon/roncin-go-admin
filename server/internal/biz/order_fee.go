@@ -42,10 +42,11 @@ type OrderFeeStatus string
 const (
 	OrderFeeReceivable OrderFeeDirection = "RECEIVABLE"
 	OrderFeePayable    OrderFeeDirection = "PAYABLE"
-	OrderFeeDraft      OrderFeeStatus    = "DRAFT"
-	OrderFeeConfirmed  OrderFeeStatus    = "CONFIRMED"
-	OrderFeeBilled     OrderFeeStatus    = "BILLED"
-	OrderFeeCancelled  OrderFeeStatus    = "CANCELLED"
+	// OrderFeeUnbilled 未建账：费用保存后即进入该状态，可直接维护或建账；
+	// 历史 DRAFT/CONFIRMED 区分已按用户决策合并，不设确认环节。
+	OrderFeeUnbilled  OrderFeeStatus = "UNBILLED"
+	OrderFeeBilled    OrderFeeStatus = "BILLED"
+	OrderFeeCancelled OrderFeeStatus = "CANCELLED"
 )
 
 type OrderFee struct {
@@ -160,7 +161,6 @@ type OrderFeeRepo interface {
 	GetByIdempotencyKey(ctx context.Context, organizationID, orderID uuid.UUID, idempotencyKey string) (*OrderFee, error)
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
 	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, billExchangeRate *ResolvedRate, audit *AuditEvent) (*OrderFee, error)
-	Transition(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, from, to OrderFeeStatus, reason *string, audit *AuditEvent) (*OrderFee, error)
 	Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) error
 }
 
@@ -217,7 +217,7 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 		return nil, err
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
-	normalized.Status = OrderFeeDraft
+	normalized.Status = OrderFeeUnbilled
 	normalized.Version = 1
 	if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, normalized); err != nil {
 		return nil, err
@@ -293,14 +293,14 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err != nil {
 		return nil, err
 	}
-	// 仅草稿费用可更换结算单位；已建账费用的结算单位不可变，无需重复校验。
-	if current.Status == OrderFeeDraft {
+	// 仅未建账费用可更换结算单位；已建账费用的结算单位不可变，无需重复校验。
+	if current.Status == OrderFeeUnbilled {
 		if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, normalized); err != nil {
 			return nil, err
 		}
 	}
 	switch current.Status {
-	case OrderFeeDraft:
+	case OrderFeeUnbilled:
 		if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
 			return nil, err
 		}
@@ -334,7 +334,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	}
 	var billExchangeRate *ResolvedRate
 	switch current.Status {
-	case OrderFeeDraft:
+	case OrderFeeUnbilled:
 		if requestedTaxRate != nil || input.FeeNameOverride != nil {
 			return nil, ErrOrderFeeInvalidArgument
 		}
@@ -506,49 +506,15 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 	return nil
 }
 
-func (uc *OrderFeeUsecase) Confirm(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64) (*OrderFee, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
-		return nil, ErrOrderFeeInvalidArgument
-	}
-	fee, err := uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeDraft, OrderFeeConfirmed, nil, &AuditEvent{
-		OrganizationID: &organizationID, UserID: &actorID, Action: "order.fee.confirm", Result: "success",
-		Details: map[string]string{"fee.id": id.String(), "order.id": orderID.String()},
-	})
-	if err != nil {
-		return nil, err
-	}
-	// 费用草稿确认成功后重试一次结清自动锁定检查：独立事务，锁定失败不回滚
-	// 或改变已提交的费用状态，也不伪装成本接口失败。
-	uc.triggerAutoLock(ctx, organizationID, actorID, id, orderID, AutoLockTriggerFeeConfirm)
-	return fee, nil
-}
-
-func (uc *OrderFeeUsecase) Reopen(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) (*OrderFee, error) {
-	reason = strings.TrimSpace(reason)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || utf8.RuneCountInString(reason) > 500 {
-		return nil, ErrOrderFeeInvalidArgument
-	}
-	var reasonPtr *string
-	details := map[string]string{"fee.id": id.String(), "order.id": orderID.String()}
-	if reason != "" {
-		reasonPtr = &reason
-		details["reason"] = reason
-	}
-	return uc.repo.Transition(ctx, organizationID, orderID, id, actorID, expectedVersion, OrderFeeConfirmed, OrderFeeDraft, reasonPtr, &AuditEvent{
-		OrganizationID: &organizationID, UserID: &actorID, Action: "order.fee.reopen", Result: "success",
-		Details: details,
-	})
-}
-
 // Remove 按账单占用关系物理删除费用：费用未被未取消账单（含草稿账单）包含时
-// 可删除；被占用时仓储在事务内以事实复核并返回 ErrOrderFeeBillOccupied。已确认
+// 可删除；被占用时仓储在事务内以事实复核并返回 ErrOrderFeeBillOccupied。未建账
 // 状态不阻止删除；历史账单与金额快照不受影响。reason 选填，仅写入审计明细。
 func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) error {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || utf8.RuneCountInString(reason) > 500 {
 		return ErrOrderFeeInvalidArgument
 	}
-	// 删除草稿费用与原作废同属自动锁定重试触发；先读取当前状态用于判断触发类型。
+	// 删除未建账费用与作废同属自动锁定重试触发；先读取当前状态用于判断触发类型。
 	current, err := uc.repo.Get(ctx, organizationID, orderID, id)
 	if err != nil {
 		return err
@@ -568,13 +534,13 @@ func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, 
 	}); err != nil {
 		return err
 	}
-	if current.Status == OrderFeeDraft {
+	if current.Status == OrderFeeUnbilled {
 		uc.triggerAutoLock(ctx, organizationID, actorID, id, orderID, AutoLockTriggerFeeCancel)
 	}
 	return nil
 }
 
-// triggerAutoLock 在费用草稿确认/作废成功提交后触发结清自动锁定检查。
+// triggerAutoLock 在未建账费用作废成功提交后触发结清自动锁定检查。
 // 触发失败只记录警告日志；纯成本等无有效结清事实的订单由仓储预检静默跳过。
 func (uc *OrderFeeUsecase) triggerAutoLock(ctx context.Context, organizationID, actorID, feeID, orderID uuid.UUID, triggerType AutoLockTriggerSource) {
 	if uc.autoLock == nil {

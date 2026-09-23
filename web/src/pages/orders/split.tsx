@@ -864,7 +864,7 @@ export default function SeaOrderSplitPage() {
           navigationTitle="海运出口"
           orderId={orderId}
           orderNo={splitContext?.orderNo}
-          subTitle="支持整单部分拆票、HBL/箱货零误差守恒切分、草稿费用整行归属及多票并行派生"
+          subTitle="支持整单部分拆票、HBL/箱货零误差守恒切分、未建账费用整行归属及多票并行派生"
           tags={<Tag color="blue">海运出口 (HOUSE)</Tag>}
           extra={
             <Button

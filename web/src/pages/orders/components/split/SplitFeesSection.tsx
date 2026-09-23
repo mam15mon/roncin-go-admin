@@ -18,7 +18,7 @@ interface SplitFeesSectionProps {
   feeCurrencySummaries: FeeCurrencySummary[];
 }
 
-/** 拆票页区块 4：草稿费用整行归属与各币种费用实时守恒。 */
+/** 拆票页区块 4：未建账费用整行归属与各币种费用实时守恒。 */
 export default function SplitFeesSection({
   splitContext,
   results,
@@ -86,9 +86,9 @@ export default function SplitFeesSection({
     <SectionCard
       title={
         <Space>
-          <Text strong>草稿费用整行归属</Text>
+          <Text strong>未建账费用整行归属</Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            （仅未确认/未账单化的草稿费用可整行转移，税费与汇率快照全量保留）
+            （仅未建账费用可整行转移，税费与汇率快照全量保留）
           </Text>
         </Space>
       }

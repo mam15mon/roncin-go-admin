@@ -303,7 +303,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fee-rec-" + suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(customer.ID).
@@ -330,7 +330,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fee-pay-" + suffix).
 		SetDirection(fee.DirectionPAYABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusBILLED).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
 		SetSettlementPartyID(customer.ID).
@@ -601,9 +601,9 @@ func (f *commissionPostgresFixture) requireRolledBackState() {
 	if _, err = f.data.db.Order.Query().Where(orderent.IDEQ(f.orderID), orderent.OrganizationIDEQ(f.organizationID)).Only(ctx); err != nil {
 		f.t.Fatalf("回滚后订单来源不可读: %v", err)
 	}
-	feeCount, err := f.data.db.OrderFee.Query().Where(fee.OrderIDEQ(f.orderID), fee.StatusEQ(fee.StatusCONFIRMED)).Count(ctx)
+	feeCount, err := f.data.db.OrderFee.Query().Where(fee.OrderIDEQ(f.orderID), fee.StatusEQ(fee.StatusBILLED)).Count(ctx)
 	if err != nil || feeCount != 2 {
-		f.t.Fatalf("回滚后已确认订单费用数 = %d，期望 2，error=%v", feeCount, err)
+		f.t.Fatalf("回滚后已建账订单费用数 = %d，期望 2，error=%v", feeCount, err)
 	}
 }
 

@@ -131,21 +131,21 @@ func (r *seaOrderChangeRepo) GetChangeActions(ctx context.Context, organizationI
 		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, msg)
 	}
 
-	// 费用是否全为草稿或已作废
-	nonDraftFeeCount, err := client.OrderFee.Query().
+	// 费用是否全为未建账或已作废（已建账费用构成不可改写的财务事实）
+	billedFeeCount, err := client.OrderFee.Query().
 		Where(
 			orderfeeent.OrderIDEQ(orderID),
-			orderfeeent.StatusNEQ(orderfeeent.StatusDRAFT),
+			orderfeeent.StatusNEQ(orderfeeent.StatusUNBILLED),
 			orderfeeent.StatusNEQ(orderfeeent.StatusCANCELLED),
 		).
 		Count(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if nonDraftFeeCount > 0 {
+	if billedFeeCount > 0 {
 		actions.CanSplit = false
 		actions.CanReassign = false
-		msg := "存在已确认或已结算的费用，不允许拆票或改配"
+		msg := "存在已建账的费用，不允许拆票或改配"
 		actions.SplitBlockedReasons = append(actions.SplitBlockedReasons, msg)
 		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, msg)
 	}

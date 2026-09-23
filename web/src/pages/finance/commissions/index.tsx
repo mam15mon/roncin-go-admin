@@ -317,8 +317,8 @@ export default function FinanceCommissionsPage() {
             reason === financeErrorReasons.FINANCE_COMMISSION_UNCONFIRMED_FEES
           ) {
             modal.warning({
-              title: '关联订单存在草稿费用',
-              content: '请先确认或作废草稿费用，再确认提成。',
+              title: '关联订单存在未建账费用',
+              content: '请先建账或删除未建账费用，再确认提成。',
             });
             return;
           }

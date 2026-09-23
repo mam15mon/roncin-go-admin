@@ -131,12 +131,8 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       type: 'select',
       placeholder: '全部状态',
       options: [
-        { label: '草稿', value: OrderFeeStatus.ORDER_FEE_STATUS_DRAFT },
-        {
-          label: '已确认',
-          value: OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
-        },
-        { label: '已开账', value: OrderFeeStatus.ORDER_FEE_STATUS_BILLED },
+        { label: '未建账', value: OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED },
+        { label: '已进账单', value: OrderFeeStatus.ORDER_FEE_STATUS_BILLED },
         {
           label: '已作废',
           value: OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,

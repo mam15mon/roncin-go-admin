@@ -102,7 +102,7 @@ type FeeSupplementSectionProps = FeeSupplementOptions & {
   canCreate: boolean;
   /** 订单处于业务锁或财务锁下才开放补录申请入口。 */
   lockActive: boolean;
-  /** 审批通过生成已确认费用后，调用方刷新费用表格。 */
+  /** 审批通过生成未建账费用后，调用方刷新费用表格。 */
   onFeeTablesReload: () => void;
 };
 
@@ -207,7 +207,7 @@ export default function FeeSupplementSection({
     modal.confirm({
       title: `通过补录申请并生成应付费用？`,
       content:
-        '通过后将按申请快照原样生成一条已确认应付费用，可能同时生成提成冲减建议；审批不会修改订单锁定状态。',
+        '通过后将按申请快照原样生成一条未建账应付费用，可能同时生成提成冲减建议；审批不会修改订单锁定状态。',
       okText: '通过',
       onOk: async () => {
         await runGuarded(async (requestSequence) => {

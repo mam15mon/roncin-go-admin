@@ -617,10 +617,10 @@ func TestAutoOrderLock_SettlementTriggerPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("纯成本订单不因费用状态流转进入自动锁定", func(t *testing.T) {
+	t.Run("纯成本订单不因费用触发进入自动锁定", func(t *testing.T) {
 		fixture := newAutoLockPostgresFixture(t, data)
 		order := fixture.createSEOrder("SE-" + fixture.suffix + "-P")
-		if err := fixture.triggerFee(biz.AutoLockTriggerFeeConfirm, order); err != nil {
+		if err := fixture.triggerFee(biz.AutoLockTriggerFeeCancel, order); err != nil {
 			t.Fatalf("费用触发检查失败: %v", err)
 		}
 		if reloaded := fixture.reload(order.ID); reloaded.LockedAt != nil {
@@ -631,18 +631,18 @@ func TestAutoOrderLock_SettlementTriggerPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("费用草稿与未建账应收阻止自动锁定且费用确认后重试锁定", func(t *testing.T) {
+	t.Run("未建账应付阻止自动锁定且删除阻断后重试锁定", func(t *testing.T) {
 		fixture := newAutoLockPostgresFixture(t, data)
 		order := fixture.createSEOrder("SE-" + fixture.suffix + "-D")
 		fixture.createReceivableBill([]*ent.Order{order}, "100.00000000")
 		verificationID := fixture.settle(order, "100.00000000")
 
-		// 应付方向费用草稿存在时阻止自动锁定。
-		draftFee, err := fixture.data.db.OrderFee.Create().
+		// 应付方向未建账费用存在时阻止自动锁定。
+		payableFee, err := fixture.data.db.OrderFee.Create().
 			SetOrderID(order.ID).
-			SetIdempotencyKey("fee-draft-" + fixture.suffix).
+			SetIdempotencyKey("fee-unbilled-" + fixture.suffix).
 			SetDirection(orderfeeent.DirectionPAYABLE).
-			SetStatus(orderfeeent.StatusDRAFT).
+			SetStatus(orderfeeent.StatusUNBILLED).
 			SetFeeCode("TRUCKING").
 			SetFeeName("拖车费").
 			SetSettlementPartyID(fixture.partnerID).
@@ -662,29 +662,140 @@ func TestAutoOrderLock_SettlementTriggerPostgres(t *testing.T) {
 			SetVersion(1).
 			Save(fixture.ctx)
 		if err != nil {
-			t.Fatalf("创建应付费用草稿: %v", err)
+			t.Fatalf("创建未建账应付费用: %v", err)
 		}
 		if err := fixture.triggerVerification(verificationID); err != nil {
 			t.Fatalf("自动锁定检查失败: %v", err)
 		}
 		if reloaded := fixture.reload(order.ID); reloaded.LockedAt != nil {
-			t.Fatal("存在费用草稿时订单被错误锁定")
+			t.Fatal("存在未建账应付费用时订单被错误锁定")
 		}
-		if reason := fixture.auditReason(order); reason != biz.AutoLockReasonDraftFee {
-			t.Fatalf("审计原因码 = %q，期望 %s", reason, biz.AutoLockReasonDraftFee)
+		if reason := fixture.auditReason(order); reason != biz.AutoLockReasonUnbilledFee {
+			t.Fatalf("审计原因码 = %q，期望 %s", reason, biz.AutoLockReasonUnbilledFee)
 		}
 
-		// 费用草稿确认生效后，FEE_CONFIRM 事件重试并完成自动锁定。
+		// 未建账费用删除（阻断解除）后，FEE_CANCEL 事件重试并完成自动锁定。
 		feeRepo := NewOrderFeeRepo(fixture.data)
-		if _, err := feeRepo.Transition(fixture.ctx, fixture.organizationID, order.ID, draftFee.ID, fixture.triggerUserID, 1,
-			biz.OrderFeeDraft, biz.OrderFeeConfirmed, nil, &biz.AuditEvent{Action: "order.fee.confirm", Result: "success", Details: map[string]string{}}); err != nil {
-			t.Fatalf("确认费用草稿: %v", err)
+		if err := feeRepo.Remove(fixture.ctx, fixture.organizationID, order.ID, payableFee.ID, fixture.triggerUserID, 1, "", &biz.AuditEvent{
+			OrganizationID: &fixture.organizationID,
+			UserID:         &fixture.triggerUserID,
+			Action:         "order.fee.delete",
+			Result:         "success",
+			Details:        map[string]string{"fee.id": payableFee.ID.String()},
+		}); err != nil {
+			t.Fatalf("删除未建账费用: %v", err)
 		}
-		if err := fixture.triggerFee(biz.AutoLockTriggerFeeConfirm, order); err != nil {
-			t.Fatalf("费用确认触发检查失败: %v", err)
+		if err := fixture.triggerFee(biz.AutoLockTriggerFeeCancel, order); err != nil {
+			t.Fatalf("费用删除触发检查失败: %v", err)
+		}
+		if reloaded := fixture.reload(order.ID); reloaded.LockedAt == nil || len(fixture.lockRecords(order.ID)) != 1 {
+			t.Fatalf("未建账费用删除后订单未被自动锁定: %+v", reloaded)
+		}
+	})
+
+	t.Run("最后一笔未建账应付进入账单后重试自动锁定", func(t *testing.T) {
+		fixture := newAutoLockPostgresFixture(t, data)
+		order := fixture.createSEOrder("SE-" + fixture.suffix + "-BLD")
+		fixture.createReceivableBill([]*ent.Order{order}, "100.00000000")
+		verificationID := fixture.settle(order, "100.00000000")
+
+		payableFee, err := fixture.data.db.OrderFee.Create().
+			SetOrderID(order.ID).
+			SetIdempotencyKey("fee-unbilled-bill-" + fixture.suffix).
+			SetDirection(orderfeeent.DirectionPAYABLE).
+			SetStatus(orderfeeent.StatusUNBILLED).
+			SetFeeCode("TRUCKING").
+			SetFeeName("拖车费").
+			SetSettlementPartyID(fixture.partnerID).
+			SetBillingUnit("票").
+			SetQuantity("1.0000").
+			SetUnitPrice("50.0000").
+			SetTotalAmount("50.00000000").
+			SetNetAmount("50.00000000").
+			SetTaxAmount("0.00000000").
+			SetCurrency("USD").
+			SetExchangeRate("7.20000000").
+			SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
+			SetExchangeRateDate(financeBillIntegrationDate).
+			SetBaseCurrency("CNY").
+			SetBaseCurrencyAmount("360.00000000").
+			SetExpenseDate(financeBillIntegrationDate).
+			SetVersion(1).
+			Save(fixture.ctx)
+		if err != nil {
+			t.Fatalf("创建未建账应付费用: %v", err)
+		}
+		if err := fixture.triggerVerification(verificationID); err != nil {
+			t.Fatalf("自动锁定检查失败: %v", err)
+		}
+		if reloaded := fixture.reload(order.ID); reloaded.LockedAt != nil {
+			t.Fatal("存在未建账应付费用时订单被错误锁定")
+		}
+
+		// 未建账应付进入账单（UNBILLED→BILLED）构成阻断解除事实。
+		billNo := "BILL-AL-PAY-" + uuid.NewString()[:8]
+		payableBillCreate := fixture.data.db.FinanceBill.Create().
+			SetOrganizationID(fixture.organizationID).
+			SetBillNo(billNo).
+			SetIdempotencyKey("bill-" + billNo).
+			SetDirection(financebillent.DirectionPAYABLE).
+			SetStatus(financebillent.StatusDRAFT).
+			SetSettlementPartyID(fixture.partnerID).
+			SetSettlementPartyName("自动锁定测试客户").
+			SetCurrency("USD").
+			SetBaseCurrency("CNY").
+			SetExchangeRate("7.20000000").
+			SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
+			SetExchangeRateDate(financeBillIntegrationDate).
+			SetTotalAmount("50.00000000").
+			SetNetAmount("50.00000000").
+			SetTaxAmount("0.00000000").
+			SetBaseCurrencyAmount("360.00000000").
+			SetFeeCount(1).
+			SetBillDate(financeBillIntegrationDate).
+			SetVersion(1)
+		payableBill, billErr := withTestFinanceBillSettlementAccountSnapshot(payableBillCreate, fixture.usdAccountOrCreate(), "USD").Save(fixture.ctx)
+		if billErr != nil {
+			t.Fatalf("创建应付账单 %s: %v", billNo, billErr)
+		}
+		if _, lineErr := fixture.data.db.FinanceBillLine.Create().
+			SetBillID(payableBill.ID).
+			SetOrderFeeID(payableFee.ID).
+			SetOrderID(order.ID).
+			SetOrderNo(order.OrderNo).
+			SetFeeCode("TRUCKING").
+			SetFeeName("拖车费").
+			SetQuantity("1.0000").
+			SetUnitPrice("50.0000").
+			SetTotalAmount("50.00000000").
+			SetNetAmount("50.00000000").
+			SetTaxAmount("0.00000000").
+			SetCurrency("USD").
+			SetExchangeRate("7.20000000").
+			SetBaseCurrency("CNY").
+			SetBaseCurrencyAmount("360.00000000").
+			SetActive(true).
+			Save(fixture.ctx); lineErr != nil {
+			t.Fatalf("创建应付账单行: %v", lineErr)
+		}
+		if _, feeErr := fixture.data.db.OrderFee.UpdateOneID(payableFee.ID).
+			SetStatus(orderfeeent.StatusBILLED).
+			SetVersion(2).
+			Save(fixture.ctx); feeErr != nil {
+			t.Fatalf("更新费用为已建账: %v", feeErr)
+		}
+
+		// FEE_BILLED 触发按账单行解析订单并重评：应收已结清且无未建账费用，完成锁定。
+		if err := fixture.repo.RunAutoSettlementLockCheck(fixture.ctx, biz.AutoOrderLockTrigger{
+			Type:           biz.AutoLockTriggerFeeBilled,
+			ResourceID:     payableBill.ID,
+			OrganizationID: fixture.organizationID,
+			TriggeredBy:    fixture.triggerUserID,
+		}); err != nil {
+			t.Fatalf("建账触发自动锁定检查失败: %v", err)
 		}
 		if reloaded := fixture.reload(order.ID); reloaded.LockedAt == nil {
-			t.Fatal("费用草稿确认后订单未被自动锁定")
+			t.Fatal("最后一笔未建账应付进入账单后订单未被自动锁定")
 		}
 	})
 

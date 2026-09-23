@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"log/slog"
 	"regexp"
 	"sort"
 	"strings"
@@ -18,7 +19,7 @@ import (
 var (
 	ErrFinanceBillNotFound                 = errors.NotFound("FINANCE_BILL_NOT_FOUND", "账单不存在")
 	ErrFinanceBillInvalidArgument          = errors.BadRequest("FINANCE_BILL_INVALID_ARGUMENT", "账单字段不合法")
-	ErrFinanceBillFeeInvalid               = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_FEE_INVALID), "所选费用必须为已确认状态且尚未进入其他账单")
+	ErrFinanceBillFeeInvalid               = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_FEE_INVALID), "所选费用必须为未建账状态且尚未进入其他账单")
 	ErrFinanceBillFeeMismatch              = errors.BadRequest("FINANCE_BILL_FEE_MISMATCH", "同一账单的费用必须具有相同收付方向、结算单位、币种和本币")
 	ErrFinanceBillVersionConflict          = errors.Conflict("FINANCE_BILL_VERSION_CONFLICT", "账单已被其他操作人修改，请刷新后重试")
 	ErrFinanceBillInvalidTransition        = errors.Conflict("FINANCE_BILL_INVALID_TRANSITION", "当前账单状态不允许执行该操作")
@@ -37,10 +38,38 @@ type FinanceBillUsecase struct {
 	repo         FinanceBillRepo
 	exchangeRate *ExchangeRateUsecase
 	transactor   Transactor
+	autoLock     *AutoOrderLockUsecase
+	logger       *slog.Logger
 }
 
-func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor) *FinanceBillUsecase {
-	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor}
+func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor, autoLock *AutoOrderLockUsecase, logger *slog.Logger) *FinanceBillUsecase {
+	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor, autoLock: autoLock, logger: logger}
+}
+
+// triggerAutoLockForBills 在建账事务成功提交后触发结清自动锁定重评：费用
+// UNBILLED→BILLED 可能解除“存在未建账费用”的阻断（如最后一笔未建账应付进入
+// 账单）。触发失败只记录警告日志，不得改变已提交的账单事实，也不伪装成建账失败。
+func (uc *FinanceBillUsecase) triggerAutoLockForBills(ctx context.Context, organizationID, actorID uuid.UUID, bills []*FinanceBill) {
+	if uc.autoLock == nil {
+		return
+	}
+	for _, bill := range bills {
+		if bill == nil || bill.ID == uuid.Nil {
+			continue
+		}
+		trigger := AutoOrderLockTrigger{
+			Type:           AutoLockTriggerFeeBilled,
+			ResourceID:     bill.ID,
+			OrganizationID: organizationID,
+			TriggeredBy:    actorID,
+		}
+		if err := uc.autoLock.RunSettlementLockCheck(ctx, trigger); err != nil && uc.logger != nil {
+			uc.logger.WarnContext(ctx, "建账触发的自动锁定重评失败",
+				slog.String("bill_id", bill.ID.String()),
+				slog.String("organization_id", organizationID.String()),
+				slog.String("error", err.Error()))
+		}
+	}
 }
 
 func (uc *FinanceBillUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
@@ -193,6 +222,7 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 		return transactionErr
 	})
 	if err == nil {
+		uc.triggerAutoLockForBills(ctx, organizationID, actorID, []*FinanceBill{created})
 		return uc.repo.Get(ctx, []uuid.UUID{organizationID}, created.ID)
 	}
 	existing, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey)
@@ -393,7 +423,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 		return nil, ErrFinanceBillFeeInvalid
 	}
 	first := fees[0]
-	if first == nil || first.Fee == nil || first.Fee.Status != OrderFeeConfirmed {
+	if first == nil || first.Fee == nil || first.Fee.Status != OrderFeeUnbilled {
 		return nil, ErrFinanceBillFeeInvalid
 	}
 	billID := uuid.Must(uuid.NewV7())
@@ -408,7 +438,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 		bill.StatementTitle = &bill.SettlementPartyName
 	}
 	for _, item := range fees {
-		if item == nil || item.Fee == nil || item.Fee.Status != OrderFeeConfirmed {
+		if item == nil || item.Fee == nil || item.Fee.Status != OrderFeeUnbilled {
 			return nil, ErrFinanceBillFeeInvalid
 		}
 		fee := item.Fee

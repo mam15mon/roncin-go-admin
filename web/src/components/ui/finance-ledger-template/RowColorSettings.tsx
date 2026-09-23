@@ -34,13 +34,13 @@ const COLOR_STATUS_ITEMS: {
     key: 'unbilled',
     tagColor: 'gold',
     label: '账单未建立',
-    desc: '（草稿/未出账单）',
+    desc: '（费用未建账）',
   },
   {
     key: 'unverifiedUninvoiced',
     tagColor: 'orange',
     label: '未核销未开票',
-    desc: '（已确认待处理）',
+    desc: '（已进账单待处理）',
   },
   {
     key: 'invoicedUnverified',

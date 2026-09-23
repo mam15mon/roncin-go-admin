@@ -136,7 +136,7 @@ func TestApplyBillExchangeRatePropagatesDerivedSource(t *testing.T) {
 		"USD": decimal.RequireFromString("7.20"),
 		"CAD": decimal.RequireFromString("5.20"),
 	}, nil)
-	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(repo, nil), nil)
+	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(repo, nil), nil, nil, nil)
 	organizationID := uuid.New()
 	bill := &FinanceBill{
 		Direction:    OrderFeeReceivable,

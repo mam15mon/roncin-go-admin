@@ -171,11 +171,11 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 		sharedAllocList = append(sharedAllocList, item)
 	}
 
-	// 查询草稿费用 (排除已作废)
+	// 查询未建账费用 (排除已作废)
 	fees, err := client.OrderFee.Query().
 		Where(
 			orderfeeent.OrderIDEQ(orderID),
-			orderfeeent.StatusEQ(orderfeeent.StatusDRAFT),
+			orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED),
 		).
 		Order(orderfeeent.ByFeeCode(), orderfeeent.ByID()).
 		All(ctx)
@@ -820,7 +820,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		}
 	}
 
-	// 8. 校验草稿费用：每笔费用必须恰好分配到 1 个结果票
+	// 8. 校验未建账费用：每笔费用必须恰好分配到 1 个结果票
 	feeMap := make(map[uuid.UUID]*biz.SeaOrderSplitDraftFeeItem)
 	for _, f := range splitCtx.DraftFees {
 		feeMap[f.ID] = f
@@ -832,7 +832,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 				preview.IsValid = false
 				preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
 					Reason:          "FEE_NOT_FOUND",
-					Message:         fmt.Sprintf("费用 %s 不属于当前订单或非草稿状态", feeID),
+					Message:         fmt.Sprintf("费用 %s 不属于当前订单或非未建账状态", feeID),
 					ClientResultKey: res.ClientResultKey,
 					FeeID:           feeID.String(),
 				})
@@ -855,7 +855,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 			preview.IsValid = false
 			preview.ValidationErrors = append(preview.ValidationErrors, &biz.SeaOrderSplitValidationError{
 				Reason:  "FEE_UNASSIGNED",
-				Message: fmt.Sprintf("草稿费用 %s 未被分配到任何结果票", feeID),
+				Message: fmt.Sprintf("未建账费用 %s 未被分配到任何结果票", feeID),
 				FeeID:   feeID.String(),
 			})
 		}

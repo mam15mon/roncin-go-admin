@@ -69,7 +69,7 @@ func (r *commissionRepo) ListCandidates(ctx context.Context, org uuid.UUID, f bi
 		attribution.OrganizationIDEQ(org),
 		attribution.OrderIDIn(source.orderIDs...),
 		attribution.HasOrderWith(orderent.HasFeesWith(
-			fee.StatusIn(fee.StatusCONFIRMED, fee.StatusBILLED),
+			fee.StatusIn(fee.StatusUNBILLED, fee.StatusBILLED),
 			fee.DirectionEQ(fee.DirectionRECEIVABLE),
 			fee.BaseCurrencyAmountGT("0"),
 		)),

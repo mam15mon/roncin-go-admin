@@ -559,21 +559,21 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			return err
 		}
 		lockedFeesMap := make(map[uuid.UUID]*ent.OrderFee, len(fees))
-		draftFeeCount := 0
+		unbilledFeeCount := 0
 		for _, f := range fees {
-			if f.Status != orderfeeent.StatusDRAFT && f.Status != orderfeeent.StatusCANCELLED {
+			if f.Status != orderfeeent.StatusUNBILLED && f.Status != orderfeeent.StatusCANCELLED {
 				return biz.ErrSeaOrderSplitBlocked
 			}
-			if f.Status == orderfeeent.StatusDRAFT {
-				draftFeeCount++
+			if f.Status == orderfeeent.StatusUNBILLED {
+				unbilledFeeCount++
 				lockedFeesMap[f.ID] = f
 			}
 		}
-		if input.ExpectedVersions.FeeVersions == nil || len(input.ExpectedVersions.FeeVersions) != draftFeeCount {
+		if input.ExpectedVersions.FeeVersions == nil || len(input.ExpectedVersions.FeeVersions) != unbilledFeeCount {
 			return biz.ErrSeaOrderSplitVersionConflict
 		}
 		for _, f := range fees {
-			if f.Status == orderfeeent.StatusDRAFT {
+			if f.Status == orderfeeent.StatusUNBILLED {
 				expV, ok := input.ExpectedVersions.FeeVersions[f.ID]
 				if !ok || expV == 0 || f.Version != expV {
 					return biz.ErrSeaOrderSplitVersionConflict
@@ -834,7 +834,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
-		// 4. 草稿费用分配完整性与唯一性
+		// 4. 未建账费用分配完整性与唯一性
 		assignedFees := make(map[uuid.UUID]string)
 		for _, res := range input.Results {
 			for _, fID := range res.DraftFeeIDs {
@@ -855,9 +855,9 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				assignedFees[fID] = res.ClientResultKey
 			}
 		}
-		if len(assignedFees) != draftFeeCount {
+		if len(assignedFees) != unbilledFeeCount {
 			return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
-				"reason":  "DRAFT_FEE_ALLOCATION_INCOMPLETE",
+				"reason":  "UNBILLED_FEE_ALLOCATION_INCOMPLETE",
 				"message": "所有未取消费用必须分配且只能属于一个结果",
 			})
 		}
@@ -991,7 +991,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			"house_bills_count":                  len(hbls),
 			"containers_count":                   len(containers),
 			"shared_container_allocations_count": len(sharedAllocs),
-			"draft_fees_count":                   draftFeeCount,
+			"unbilled_fees_count":                unbilledFeeCount,
 		}
 		conservationSnapshotBytes, err := json.Marshal(conservationSnapshotMap)
 		if err != nil {
@@ -1875,7 +1875,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
-		// A.8: 迁移草稿费用：整行克隆到新订单，记录每个结果自己的 fee old->new ID 映射
+		// A.8: 迁移未建账费用：整行克隆到新订单，记录每个结果自己的 fee old->new ID 映射
 		resultFeeOldNewMap := make(map[string]map[string]string)
 		for _, res := range input.Results {
 			resultFeeOldNewMap[res.ClientResultKey] = make(map[string]string)

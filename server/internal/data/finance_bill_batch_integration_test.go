@@ -46,7 +46,7 @@ func TestFinanceBillBatchCreatePostgres(t *testing.T) {
 
 	t.Run("不同幂等键并发抢占同一组费用只有一个批次成功", func(t *testing.T) {
 		fixture := newFinanceBillBatchPostgresFixture(t, data)
-		feeIDs := []uuid.UUID{fixture.createBatchConfirmedFee("race-first"), fixture.createBatchConfirmedFee("race-second")}
+		feeIDs := []uuid.UUID{fixture.createBatchUnbilledFee("race-first"), fixture.createBatchUnbilledFee("race-second")}
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		first := fixture.buildBatchInput(t, usecase, "batch-race-first-"+fixture.suffix, feeIDs)
 		second := first
@@ -72,7 +72,7 @@ func TestFinanceBillBatchCreatePostgres(t *testing.T) {
 
 	t.Run("陈旧预览令牌返回冲突且批次账单零写入", func(t *testing.T) {
 		fixture := newFinanceBillBatchPostgresFixture(t, data)
-		feeIDs := []uuid.UUID{fixture.createBatchConfirmedFee("stale-token")}
+		feeIDs := []uuid.UUID{fixture.createBatchUnbilledFee("stale-token")}
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		input := fixture.buildBatchInput(t, usecase, "batch-stale-"+fixture.suffix, feeIDs)
 
@@ -95,7 +95,7 @@ func TestFinanceBillBatchCreatePostgres(t *testing.T) {
 
 	t.Run("相同幂等键并发重放返回同一批次且无重复账单", func(t *testing.T) {
 		fixture := newFinanceBillBatchPostgresFixture(t, data)
-		feeIDs := []uuid.UUID{fixture.createBatchConfirmedFee("replay-first"), fixture.createBatchConfirmedFee("replay-second")}
+		feeIDs := []uuid.UUID{fixture.createBatchUnbilledFee("replay-first"), fixture.createBatchUnbilledFee("replay-second")}
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		input := fixture.buildBatchInput(t, usecase, "batch-replay-"+fixture.suffix, feeIDs)
 
@@ -171,14 +171,14 @@ func newFinanceBillBatchPostgresFixture(t *testing.T, data *Data) *financeBillBa
 	return fixture
 }
 
-// createBatchConfirmedFee 创建带税率（分组必填）的已确认应收费用；批量分组路径要求税率非空。
-func (f *financeBillBatchPostgresFixture) createBatchConfirmedFee(key string) uuid.UUID {
+// createBatchUnbilledFee 创建带税率（分组必填）的未建账应收费用；批量分组路径要求税率非空。
+func (f *financeBillBatchPostgresFixture) createBatchUnbilledFee(key string) uuid.UUID {
 	f.t.Helper()
 	fee, err := f.data.db.OrderFee.Create().
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("batch-fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(orderfeeent.StatusCONFIRMED).
+		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(f.partnerID).
@@ -303,20 +303,20 @@ func (f *financeBillBatchPostgresFixture) requireRolledBackBatchState(feeID uuid
 		f.t.Fatalf("零写入校验：账单明细数 = %d，期望 0，error=%v", lineCount, err)
 	}
 	fee, err := f.data.db.OrderFee.Get(ctx, feeID)
-	if err != nil || fee.Status != orderfeeent.StatusCONFIRMED {
-		f.t.Fatalf("零写入校验：费用状态 = %#v，期望 CONFIRMED（未被部分改成 BILLED），error=%v", fee, err)
+	if err != nil || fee.Status != orderfeeent.StatusUNBILLED {
+		f.t.Fatalf("零写入校验：费用状态 = %#v，期望 UNBILLED（未被部分改成 BILLED），error=%v", fee, err)
 	}
 }
 
-// createBatchConfirmedPayableFee 创建同结算单位、同币种、同税率的已确认应付费用，
-// 与 createBatchConfirmedFee 组成对冲建账所需的双向费用事实。
-func (f *financeBillBatchPostgresFixture) createBatchConfirmedPayableFee(key string) uuid.UUID {
+// createBatchUnbilledPayableFee 创建同结算单位、同币种、同税率的未建账应付费用，
+// 与 createBatchUnbilledFee 组成对冲建账所需的双向费用事实。
+func (f *financeBillBatchPostgresFixture) createBatchUnbilledPayableFee(key string) uuid.UUID {
 	f.t.Helper()
 	fee, err := f.data.db.OrderFee.Create().
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("batch-payable-fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionPAYABLE).
-		SetStatus(orderfeeent.StatusCONFIRMED).
+		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("AGENT_FREIGHT").
 		SetFeeName("代理费").
 		SetSettlementPartyID(f.partnerID).
@@ -410,8 +410,8 @@ func TestFinanceBillBatchNettingCreatePostgres(t *testing.T) {
 			t.Fatalf("创建测试对冲编号规则: %v", err)
 		}
 		t.Cleanup(fixture.cleanupNettingRows)
-		receivableFeeID := fixture.createBatchConfirmedFee("netting-receivable")
-		payableFeeID := fixture.createBatchConfirmedPayableFee("netting-payable")
+		receivableFeeID := fixture.createBatchUnbilledFee("netting-receivable")
+		payableFeeID := fixture.createBatchUnbilledPayableFee("netting-payable")
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		input := fixture.buildNettingBatchInput(t, usecase, "batch-netting-"+fixture.suffix, []uuid.UUID{receivableFeeID, payableFeeID})
 
@@ -497,7 +497,7 @@ func TestFinanceBillBatchNettingCreatePostgres(t *testing.T) {
 	t.Run("对冲批次拒绝单方向费用", func(t *testing.T) {
 		fixture := newFinanceBillBatchPostgresFixture(t, data)
 		t.Cleanup(fixture.cleanupNettingRows)
-		feeIDs := []uuid.UUID{fixture.createBatchConfirmedFee("netting-single")}
+		feeIDs := []uuid.UUID{fixture.createBatchUnbilledFee("netting-single")}
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		_, err := usecase.PreviewBatch(context.Background(), fixture.organizationID, biz.PreviewFinanceBillBatchInput{
 			FeeIDs: feeIDs, GroupingPolicy: biz.FinanceBillGroupingPolicy{Mode: "NETTING", SplitByOrder: true},

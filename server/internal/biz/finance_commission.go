@@ -26,7 +26,7 @@ var (
 	ErrCommissionRuleConflict         = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_RULE_CONFLICT), "提成规则名称已存在或版本已变化")
 	ErrCommissionEmployeeRole         = errors.Conflict("FINANCE_COMMISSION_EMPLOYEE_ROLE", "所选员工未在客户档案中担任规则指定角色")
 	ErrCommissionSourceChanged        = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_SOURCE_CHANGED), "提成来源数据已变化，请取消当前草稿并重新生成")
-	ErrCommissionUnconfirmedFees      = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES), "关联订单仍有草稿费用，请先确认或作废后再确认提成")
+	ErrCommissionUnconfirmedFees      = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_UNCONFIRMED_FEES), "关联订单仍有未建账费用，请先建账或删除后再确认提成")
 	ErrCommissionAdjustmentNotFound   = errors.NotFound("FINANCE_COMMISSION_ADJUSTMENT_NOT_FOUND", "提成调整记录不存在")
 	ErrCommissionAdjustmentInvalid    = errors.BadRequest("FINANCE_COMMISSION_ADJUSTMENT_INVALID", "提成调整参数不合法")
 	ErrCommissionAdjustmentTransition = errors.Conflict(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_TRANSITION), "当前提成调整状态不允许该操作")

@@ -129,11 +129,11 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 				return orderIDErr
 			}
 			lineOrderIDs := orderUUIDsFromLines(orderIDs)
-			hasDraftFees, draftErr := tx.OrderFee.Query().Where(fee.OrderIDIn(lineOrderIDs...), fee.StatusEQ(fee.StatusDRAFT)).Exist(ctx)
-			if draftErr != nil {
-				return draftErr
+			hasUnbilledFees, unbilledErr := tx.OrderFee.Query().Where(fee.OrderIDIn(lineOrderIDs...), fee.StatusEQ(fee.StatusUNBILLED)).Exist(ctx)
+			if unbilledErr != nil {
+				return unbilledErr
 			}
-			if hasDraftFees {
+			if hasUnbilledFees {
 				return biz.ErrCommissionUnconfirmedFees
 			}
 		}
@@ -192,7 +192,7 @@ func valueOrNilUUID(value *uuid.UUID) uuid.UUID {
 // confirmCommissionsForApplicationApproval 是月度申请整单批准在共享事务内的
 // 整批确认辅助（design §5.2）：对申请明细对应的 DRAFT 提成保持与 Transition
 // CONFIRMED 分支完全一致的复核与写入语义——逐笔重算来源指纹（方案员工分配
-// 唯一命中、同员工/身份/方案快照一致）、草稿费用阻断、状态检查，确认时版本
+// 唯一命中、同员工/身份/方案快照一致）、未建账费用阻断、状态检查，确认时版本
 // 递增并写 CONFIRMED + confirmed_at/by + 逐笔确认审计，保持订单财务锁净额
 // 联动口径不变。本函数不开启独立事务、不做部分批准：任一明细复核失败立即
 // 返回领域错误，由调用方整体回滚。调用方必须已锁定申请头（expected_version
@@ -237,11 +237,11 @@ func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, o
 		}
 	}
 	orderIDs := orderUUIDsFromLines(lineRows)
-	hasDraftFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusEQ(fee.StatusDRAFT)).Exist(ctx)
+	hasUnbilledFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusEQ(fee.StatusUNBILLED)).Exist(ctx)
 	if err != nil {
 		return err
 	}
-	if hasDraftFees {
+	if hasUnbilledFees {
 		return biz.ErrCommissionUnconfirmedFees
 	}
 	now := time.Now()

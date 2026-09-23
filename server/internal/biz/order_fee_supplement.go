@@ -287,7 +287,7 @@ type OrderFeeSupplementRequestRepo interface {
 	// 的 CONFIRMED/PAID 提成父单、目标订单行与会影响余额的调整，返回边际影响
 	// 计算上下文（含此前未作废补录应付本位币合计）。
 	LockCommissionImpactContext(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementImpactContext, error)
-	// CreateApprovedFee 在审批事务内创建与申请一对一关联的 CONFIRMED 补录费用；
+	// CreateApprovedFee 在审批事务内创建与申请一对一关联的 UNBILLED 补录费用；
 	// 幂等键由申请 ID 派生，supplement_request_id 反向关联。
 	CreateApprovedFee(ctx context.Context, organizationID, requestID uuid.UUID, fee *OrderFee, audit *AuditEvent) (*OrderFee, error)
 	// CreateDecreaseSuggestion 在审批事务内创建 DECREASE+DRAFT+LOCKED_FEE_SUPPLEMENT

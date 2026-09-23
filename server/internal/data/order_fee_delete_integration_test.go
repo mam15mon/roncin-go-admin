@@ -65,20 +65,17 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		return fee.Version
 	}
 
-	t.Run("草稿与已确认费用未建账时可删除且记录消失", func(t *testing.T) {
-		confirmedID := fixture.createConfirmedFee("del-confirmed")
-		draftID := fixture.createConfirmedFee("del-draft")
-		if _, err := data.db.OrderFee.UpdateOneID(draftID).SetStatus(orderfeeent.StatusDRAFT).Save(context.Background()); err != nil {
-			t.Fatalf("置为草稿: %v", err)
-		}
+	t.Run("未建账费用可直接删除且记录消失", func(t *testing.T) {
+		firstID := fixture.createUnbilledFee("del-unbilled-1")
+		secondID := fixture.createUnbilledFee("del-unbilled-2")
 
-		if err := deleteFee(t, confirmedID, 1); err != nil {
-			t.Fatalf("删除已确认费用被拒绝: %v", err)
+		if err := deleteFee(t, firstID, 1); err != nil {
+			t.Fatalf("删除未建账费用被拒绝: %v", err)
 		}
-		if err := deleteFee(t, draftID, 1); err != nil {
-			t.Fatalf("删除草稿费用被拒绝: %v", err)
+		if err := deleteFee(t, secondID, 1); err != nil {
+			t.Fatalf("删除未建账费用被拒绝: %v", err)
 		}
-		count, err := data.db.OrderFee.Query().Where(orderfeeent.IDIn(confirmedID, draftID)).Count(context.Background())
+		count, err := data.db.OrderFee.Query().Where(orderfeeent.IDIn(firstID, secondID)).Count(context.Background())
 		if err != nil || count != 0 {
 			t.Fatalf("删除后费用记录仍存在: count=%d err=%v", count, err)
 		}
@@ -90,7 +87,7 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		}
 		matched := false
 		for _, event := range audits {
-			if strings.Contains(string(event.Details), confirmedID.String()) {
+			if strings.Contains(string(event.Details), firstID.String()) {
 				matched = true
 			}
 		}
@@ -100,8 +97,8 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 	})
 
 	t.Run("草稿账单占用即拒绝，其他费用建账不影响本行", func(t *testing.T) {
-		occupiedID := fixture.createConfirmedFee("del-occupied")
-		freeID := fixture.createConfirmedFee("del-free")
+		occupiedID := fixture.createUnbilledFee("del-occupied")
+		freeID := fixture.createUnbilledFee("del-free")
 		bill, err := billUsecase.Create(context.Background(), fixture.organizationID, actor, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{occupiedID}, BillDate: financeBillIntegrationDate,
 			IdempotencyKey: "bill-occupy-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -126,7 +123,7 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 	})
 
 	t.Run("取消账单后可删除且历史行快照保留、来源置空", func(t *testing.T) {
-		feeID := fixture.createConfirmedFee("del-after-cancel")
+		feeID := fixture.createUnbilledFee("del-after-cancel")
 		bill, err := billUsecase.Create(context.Background(), fixture.organizationID, actor, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate,
 			IdempotencyKey: "bill-cancel-del-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -154,7 +151,7 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 	})
 
 	t.Run("取消后重新建账则再次拒绝", func(t *testing.T) {
-		feeID := fixture.createConfirmedFee("del-rebill")
+		feeID := fixture.createUnbilledFee("del-rebill")
 		first, err := billUsecase.Create(context.Background(), fixture.organizationID, actor, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate,
 			IdempotencyKey: "bill-rebill-1-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -181,7 +178,7 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 	})
 
 	t.Run("费用标签关联随删除级联清理", func(t *testing.T) {
-		feeID := fixture.createConfirmedFee("del-tags")
+		feeID := fixture.createUnbilledFee("del-tags")
 		resource, err := data.db.EnterpriseResource.Create().
 			SetOrganizationID(fixture.organizationID).
 			SetResourceType(enterpriseresourceent.ResourceTypeTAG).
@@ -212,7 +209,7 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 	})
 
 	t.Run("版本冲突拒绝且不删除", func(t *testing.T) {
-		feeID := fixture.createConfirmedFee("del-version")
+		feeID := fixture.createUnbilledFee("del-version")
 		if err := deleteFee(t, feeID, 99); !errors.Is(err, biz.ErrOrderFeeVersionConflict) {
 			t.Fatalf("版本冲突删除错误 = %v，期望 ErrOrderFeeVersionConflict", err)
 		}
@@ -223,7 +220,7 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 	})
 
 	t.Run("删除与建账并发互斥且不产生悬挂引用", func(t *testing.T) {
-		feeID := fixture.createConfirmedFee("del-race")
+		feeID := fixture.createUnbilledFee("del-race")
 		start := make(chan struct{})
 		var wg sync.WaitGroup
 		deleteErr := make(chan error, 1)

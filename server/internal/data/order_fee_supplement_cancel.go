@@ -105,8 +105,8 @@ func evaluateCancelCapability(ctx context.Context, client *ent.Client, organizat
 	if activeLine || fee.Status == orderfeeent.StatusBILLED {
 		return blocked("FEE_BILLED", "补录费用已建账，需先按现有财务链路取消账单")
 	}
-	if fee.Status != orderfeeent.StatusCONFIRMED {
-		return blocked("FEE_STATUS_INVALID", "仅 CONFIRMED 状态的补录费用可专用作废")
+	if fee.Status != orderfeeent.StatusUNBILLED {
+		return blocked("FEE_STATUS_INVALID", "仅 UNBILLED 状态的补录费用可专用作废")
 	}
 	// 更晚生效且未作废的补录存在时，必须按批准时间倒序逐笔作废，避免撤销早期
 	// 成本后让后续边际冲减失真。比较键为批准时间 + 申请 ID。

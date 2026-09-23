@@ -140,7 +140,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 				SetOrderID(order.ID).
 				SetIdempotencyKey("nt-fee-" + suffix + "-" + strconv.Itoa(index) + "-" + string(feeSpec.direction)).
 				SetDirection(feeSpec.direction).
-				SetStatus(fee.StatusCONFIRMED).
+				SetStatus(fee.StatusBILLED).
 				SetFeeCode("OCEAN_FREIGHT").
 				SetFeeName("海运费").
 				SetSettlementPartyID(customer.ID).
@@ -610,7 +610,7 @@ func (f *commissionNettingPostgresFixture) createVerificationSource(ctx context.
 		SetOrderID(f.orderIDs[0]).
 		SetIdempotencyKey("nt-verify-fee-" + f.suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusCONFIRMED).
+		SetStatus(fee.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(f.customerID).

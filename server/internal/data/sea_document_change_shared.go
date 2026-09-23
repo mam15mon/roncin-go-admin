@@ -117,12 +117,12 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, nil
 	}
 	impacts := make([]*biz.SeaDocumentDownstreamImpact, 0)
-	fees, err := client.OrderFee.Query().Where(orderfeeent.OrderIDIn(orderIDs...), orderfeeent.StatusNotIn(orderfeeent.StatusDRAFT, orderfeeent.StatusCANCELLED)).Order(orderfeeent.ByID()).All(ctx)
+	fees, err := client.OrderFee.Query().Where(orderfeeent.OrderIDIn(orderIDs...), orderfeeent.StatusNotIn(orderfeeent.StatusUNBILLED, orderfeeent.StatusCANCELLED)).Order(orderfeeent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	for _, fee := range fees {
-		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "ORDER_FEE", ReferenceID: fee.ID.String(), ReferenceNo: fee.FeeCode, Message: "费用 " + fee.FeeCode + " 已确认或进入结算，变更不会改写该事实", BlocksExecution: true})
+		impacts = append(impacts, &biz.SeaDocumentDownstreamImpact{FactType: "ORDER_FEE", ReferenceID: fee.ID.String(), ReferenceNo: fee.FeeCode, Message: "费用 " + fee.FeeCode + " 已建账，变更不会改写该事实", BlocksExecution: true})
 	}
 	lines, err := client.FinanceBillLine.Query().Where(financebilllineent.OrderIDIn(orderIDs...), financebilllineent.ActiveEQ(true)).WithBill().Order(financebilllineent.ByID()).All(ctx)
 	if err != nil {

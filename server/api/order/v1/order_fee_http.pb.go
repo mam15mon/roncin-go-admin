@@ -22,7 +22,6 @@ const OperationOrderFeeServiceApproveOrderFeeSupplement = "/order.v1.OrderFeeSer
 const OperationOrderFeeServiceBatchAssignOrderFeeTags = "/order.v1.OrderFeeService/BatchAssignOrderFeeTags"
 const OperationOrderFeeServiceBatchRemoveOrderFeeTags = "/order.v1.OrderFeeService/BatchRemoveOrderFeeTags"
 const OperationOrderFeeServiceCancelApprovedOrderFeeSupplement = "/order.v1.OrderFeeService/CancelApprovedOrderFeeSupplement"
-const OperationOrderFeeServiceConfirmFee = "/order.v1.OrderFeeService/ConfirmFee"
 const OperationOrderFeeServiceCreateOrderFeeSupplement = "/order.v1.OrderFeeService/CreateOrderFeeSupplement"
 const OperationOrderFeeServiceListFeeOptions = "/order.v1.OrderFeeService/ListFeeOptions"
 const OperationOrderFeeServiceListFees = "/order.v1.OrderFeeService/ListFees"
@@ -30,7 +29,6 @@ const OperationOrderFeeServiceListOrderFeeSupplementRequests = "/order.v1.OrderF
 const OperationOrderFeeServiceListOrderFeeTagOptions = "/order.v1.OrderFeeService/ListOrderFeeTagOptions"
 const OperationOrderFeeServiceRejectOrderFeeSupplement = "/order.v1.OrderFeeService/RejectOrderFeeSupplement"
 const OperationOrderFeeServiceRemoveFee = "/order.v1.OrderFeeService/RemoveFee"
-const OperationOrderFeeServiceReopenFee = "/order.v1.OrderFeeService/ReopenFee"
 const OperationOrderFeeServiceResolveFeeExchangeRate = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
 const OperationOrderFeeServiceUpdateFee = "/order.v1.OrderFeeService/UpdateFee"
 const OperationOrderFeeServiceWithdrawOrderFeeSupplement = "/order.v1.OrderFeeService/WithdrawOrderFeeSupplement"
@@ -39,16 +37,14 @@ type OrderFeeServiceHTTPServer interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
 	// ApproveOrderFeeSupplement ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
 	ApproveOrderFeeSupplement(context.Context, *ApproveOrderFeeSupplementRequest) (*ApproveOrderFeeSupplementResponse, error)
 	BatchAssignOrderFeeTags(context.Context, *BatchAssignOrderFeeTagsRequest) (*BatchAssignOrderFeeTagsResponse, error)
 	BatchRemoveOrderFeeTags(context.Context, *BatchRemoveOrderFeeTagsRequest) (*BatchRemoveOrderFeeTagsResponse, error)
 	// CancelApprovedOrderFeeSupplement CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-	// CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+	// UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
 	// 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
 	CancelApprovedOrderFeeSupplement(context.Context, *CancelApprovedOrderFeeSupplementRequest) (*CancelApprovedOrderFeeSupplementResponse, error)
-	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
-	ConfirmFee(context.Context, *ConfirmFeeRequest) (*ConfirmFeeResponse, error)
 	// CreateOrderFeeSupplement CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
 	// 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
 	// 稳定拒绝并引导普通费用新增。
@@ -66,11 +62,10 @@ type OrderFeeServiceHTTPServer interface {
 	RejectOrderFeeSupplement(context.Context, *RejectOrderFeeSupplementRequest) (*RejectOrderFeeSupplementResponse, error)
 	// RemoveFee RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
-	// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
-	ReopenFee(context.Context, *ReopenFeeRequest) (*ReopenFeeResponse, error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
-	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
+	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+	// 已建账费用仅允许按财务策略修改并同步草稿账单。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
 	// WithdrawOrderFeeSupplement WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
@@ -84,8 +79,6 @@ func RegisterOrderFeeServiceHTTPServer(s *http.Server, srv OrderFeeServiceHTTPSe
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-exchange-rate", _OrderFeeService_ResolveFeeExchangeRate0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees", _OrderFeeService_AddFee0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_UpdateFee0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/fees/{id}/confirm", _OrderFeeService_ConfirmFee0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/fees/{id}/reopen", _OrderFeeService_ReopenFee0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_RemoveFee0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/fee-supplement-requests", _OrderFeeService_CreateOrderFeeSupplement0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-supplement-requests", _OrderFeeService_ListOrderFeeSupplementRequests0_HTTP_Handler(srv))
@@ -204,50 +197,6 @@ func _OrderFeeService_UpdateFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) fun
 			return err
 		}
 		reply := out.(*UpdateFeeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _OrderFeeService_ConfirmFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ConfirmFeeRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderFeeServiceConfirmFee)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ConfirmFee(ctx, req.(*ConfirmFeeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ConfirmFeeResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _OrderFeeService_ReopenFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ReopenFeeRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderFeeServiceReopenFee)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ReopenFee(ctx, req.(*ReopenFeeRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ReopenFeeResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -476,16 +425,14 @@ type OrderFeeServiceHTTPClient interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, req *AddFeeRequest, opts ...http.CallOption) (rsp *AddFeeResponse, err error)
 	// ApproveOrderFeeSupplement ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
 	ApproveOrderFeeSupplement(ctx context.Context, req *ApproveOrderFeeSupplementRequest, opts ...http.CallOption) (rsp *ApproveOrderFeeSupplementResponse, err error)
 	BatchAssignOrderFeeTags(ctx context.Context, req *BatchAssignOrderFeeTagsRequest, opts ...http.CallOption) (rsp *BatchAssignOrderFeeTagsResponse, err error)
 	BatchRemoveOrderFeeTags(ctx context.Context, req *BatchRemoveOrderFeeTagsRequest, opts ...http.CallOption) (rsp *BatchRemoveOrderFeeTagsResponse, err error)
 	// CancelApprovedOrderFeeSupplement CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-	// CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+	// UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
 	// 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
 	CancelApprovedOrderFeeSupplement(ctx context.Context, req *CancelApprovedOrderFeeSupplementRequest, opts ...http.CallOption) (rsp *CancelApprovedOrderFeeSupplementResponse, err error)
-	// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
-	ConfirmFee(ctx context.Context, req *ConfirmFeeRequest, opts ...http.CallOption) (rsp *ConfirmFeeResponse, err error)
 	// CreateOrderFeeSupplement CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
 	// 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
 	// 稳定拒绝并引导普通费用新增。
@@ -503,11 +450,10 @@ type OrderFeeServiceHTTPClient interface {
 	RejectOrderFeeSupplement(ctx context.Context, req *RejectOrderFeeSupplementRequest, opts ...http.CallOption) (rsp *RejectOrderFeeSupplementResponse, err error)
 	// RemoveFee RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
 	RemoveFee(ctx context.Context, req *RemoveFeeRequest, opts ...http.CallOption) (rsp *RemoveFeeResponse, err error)
-	// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
-	ReopenFee(ctx context.Context, req *ReopenFeeRequest, opts ...http.CallOption) (rsp *ReopenFeeResponse, err error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(ctx context.Context, req *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (rsp *ResolveFeeExchangeRateResponse, err error)
-	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
+	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+	// 已建账费用仅允许按财务策略修改并同步草稿账单。
 	UpdateFee(ctx context.Context, req *UpdateFeeRequest, opts ...http.CallOption) (rsp *UpdateFeeResponse, err error)
 	// WithdrawOrderFeeSupplement WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
@@ -541,7 +487,7 @@ func (c *OrderFeeServiceHTTPClientImpl) AddFee(ctx context.Context, in *AddFeeRe
 }
 
 // ApproveOrderFeeSupplement ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-// 在同一事务创建 CONFIRMED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+// 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
 func (c *OrderFeeServiceHTTPClientImpl) ApproveOrderFeeSupplement(ctx context.Context, in *ApproveOrderFeeSupplementRequest, opts ...http.CallOption) (*ApproveOrderFeeSupplementResponse, error) {
 	var out ApproveOrderFeeSupplementResponse
 	pattern := "/api/v1/orders/{order_id}/fee-supplement-requests/{id}/approve"
@@ -594,7 +540,7 @@ func (c *OrderFeeServiceHTTPClientImpl) BatchRemoveOrderFeeTags(ctx context.Cont
 }
 
 // CancelApprovedOrderFeeSupplement CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-// CONFIRMED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
+// UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
 // 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
 func (c *OrderFeeServiceHTTPClientImpl) CancelApprovedOrderFeeSupplement(ctx context.Context, in *CancelApprovedOrderFeeSupplementRequest, opts ...http.CallOption) (*CancelApprovedOrderFeeSupplementResponse, error) {
 	var out CancelApprovedOrderFeeSupplementResponse
@@ -604,24 +550,6 @@ func (c *OrderFeeServiceHTTPClientImpl) CancelApprovedOrderFeeSupplement(ctx con
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationOrderFeeServiceCancelApprovedOrderFeeSupplement),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// ConfirmFee ConfirmFee 确认费用；确认后方可进入账单，未建账单时修改前必须先撤回确认。
-func (c *OrderFeeServiceHTTPClientImpl) ConfirmFee(ctx context.Context, in *ConfirmFeeRequest, opts ...http.CallOption) (*ConfirmFeeResponse, error) {
-	var out ConfirmFeeResponse
-	pattern := "/api/v1/orders/{order_id}/fees/{id}/confirm"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationOrderFeeServiceConfirmFee),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
@@ -755,24 +683,6 @@ func (c *OrderFeeServiceHTTPClientImpl) RemoveFee(ctx context.Context, in *Remov
 	return &out, nil
 }
 
-// ReopenFee ReopenFee 撤回尚未进入账单的已确认费用，使其重新可编辑。
-func (c *OrderFeeServiceHTTPClientImpl) ReopenFee(ctx context.Context, in *ReopenFeeRequest, opts ...http.CallOption) (*ReopenFeeResponse, error) {
-	var out ReopenFeeResponse
-	pattern := "/api/v1/orders/{order_id}/fees/{id}/reopen"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationOrderFeeServiceReopenFee),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 func (c *OrderFeeServiceHTTPClientImpl) ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (*ResolveFeeExchangeRateResponse, error) {
 	var out ResolveFeeExchangeRateResponse
@@ -790,7 +700,8 @@ func (c *OrderFeeServiceHTTPClientImpl) ResolveFeeExchangeRate(ctx context.Conte
 	return &out, nil
 }
 
-// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；已建账单费用仅允许按策略修改并同步草稿账单。
+// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
+// 已建账费用仅允许按财务策略修改并同步草稿账单。
 func (c *OrderFeeServiceHTTPClientImpl) UpdateFee(ctx context.Context, in *UpdateFeeRequest, opts ...http.CallOption) (*UpdateFeeResponse, error) {
 	var out UpdateFeeResponse
 	pattern := "/api/v1/orders/{order_id}/fees/{id}"

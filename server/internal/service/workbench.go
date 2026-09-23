@@ -114,7 +114,7 @@ func workbenchOverviewToAPI(overview *biz.WorkbenchOverview) *workbenchv1.GetWor
 		BaseCurrency:             overview.BaseCurrency,
 		RecentOrders:             make([]*workbenchv1.WorkbenchRecentOrder, 0, len(overview.RecentOrders)),
 		Todos: &workbenchv1.WorkbenchTodoSummary{
-			DraftFeeCount:     int32(overview.Todos.DraftFeeCount),
+			UnbilledFeeCount:  int32(overview.Todos.UnbilledFeeCount),
 			OpenAbnormalCount: int32(overview.Todos.OpenAbnormalCount),
 		},
 	}

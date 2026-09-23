@@ -619,7 +619,7 @@ func ensureSeaMasterBillHasNoDownstreamFacts(ctx context.Context, tx *ent.Tx, or
 			orderent.HasReleasePodsWith(orderreleasepodent.OrderIDEQ(order.ID)),
 			orderent.HasContainersWith(ordercontainerent.OrderIDEQ(order.ID)),
 			orderent.HasMilestonesWith(ordermilestoneent.OccurredAtNotNil()),
-			orderent.HasFeesWith(orderfeeent.StatusIn(orderfeeent.StatusCONFIRMED, orderfeeent.StatusBILLED)),
+			orderent.HasFeesWith(orderfeeent.StatusEQ(orderfeeent.StatusBILLED)),
 			orderent.HasFinanceBillLinesWith(financebilllineent.OrderIDEQ(order.ID)),
 			orderent.HasFinanceCommissionLinesWith(financecommissionlineent.OrderIDEQ(order.ID)),
 			orderent.HasFinanceCommissionAdjustmentsWith(financecommissionadjustmentent.OrderIDEQ(order.ID)),

@@ -357,18 +357,19 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 	}
 	assertApplicationUntouched(t, driftFixture, driftApplication.ID, "指纹漂移")
 
-	// 场景二：批准时来源订单仍有草稿费用 → 整单失败（指纹未变化）。
+	// 场景二：批准时来源订单仍有未建账费用 → 整单失败（指纹未变化）。
+	// 未建账费用必须在计提之前就存在：计提来源集合包含未建账费用，事后新增
+	// 会先触发指纹漂移而非费用门禁。
 	draftFixture := newCommissionApplicationFixture(t)
 	draftUsecase := draftFixture.usecase()
 	draftScope := []uuid.UUID{draftFixture.organizationID}
-	_, draftApplication := draftFixture.submitSingleLineApplication(t, "draftfee")
 	if _, err := draftFixture.data.db.OrderFee.Create().
 		SetOrderID(draftFixture.orderID).
-		SetIdempotencyKey("fca-draft-block-" + draftFixture.suffix).
+		SetIdempotencyKey("fca-unbilled-block-" + draftFixture.suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusDRAFT).
+		SetStatus(fee.StatusUNBILLED).
 		SetFeeCode("DOCUMENT").
-		SetFeeName("未确认杂费").
+		SetFeeName("未建账杂费").
 		SetSettlementPartyID(draftFixture.customerID).
 		SetBillingUnit("票").
 		SetQuantity("1.0000").
@@ -385,12 +386,13 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 		SetExpenseDate(draftFixture.historicalDate).
 		SetVersion(1).
 		Save(ctx); err != nil {
-		t.Fatalf("创建草稿阻断费用失败: %v", err)
+		t.Fatalf("创建未建账阻断费用失败: %v", err)
 	}
+	_, draftApplication := draftFixture.submitSingleLineApplication(t, "draftfee")
 	if _, err := draftUsecase.Approve(ctx, draftScope, draftFixture.actorID, draftApplication.ID, 1); !errors.Is(err, biz.ErrCommissionUnconfirmedFees) {
-		t.Fatalf("草稿费用阻断的批准应返回未确认费用: %v", err)
+		t.Fatalf("未建账费用阻断的批准应返回未确认费用: %v", err)
 	}
-	assertApplicationUntouched(t, draftFixture, draftApplication.ID, "草稿费用")
+	assertApplicationUntouched(t, draftFixture, draftApplication.ID, "未建账费用")
 }
 
 // assertApplicationUntouched 断言批准失败后整体回滚：提成仍为 DRAFT、申请头

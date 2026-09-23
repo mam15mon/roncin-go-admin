@@ -125,7 +125,7 @@ func (f *orderSummaryFixture) newOrderWithSource(org *orderSummaryOrg, label, su
 		SetOrderID(order.ID).
 		SetIdempotencyKey("os-fee-rec-" + label + "-" + suffix).
 		SetDirection(feeent.DirectionRECEIVABLE).
-		SetStatus(feeent.StatusCONFIRMED).
+		SetStatus(feeent.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(org.customerID).
@@ -151,7 +151,7 @@ func (f *orderSummaryFixture) newOrderWithSource(org *orderSummaryOrg, label, su
 		SetOrderID(order.ID).
 		SetIdempotencyKey("os-fee-pay-" + label + "-" + suffix).
 		SetDirection(feeent.DirectionPAYABLE).
-		SetStatus(feeent.StatusCONFIRMED).
+		SetStatus(feeent.StatusBILLED).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
 		SetSettlementPartyID(org.customerID).
@@ -287,7 +287,7 @@ func (f *orderSummaryFixture) addVerificationSource(org *orderSummaryOrg, orderI
 		SetOrderID(orderID).
 		SetIdempotencyKey("os-fee2-" + label + "-" + suffix).
 		SetDirection(feeent.DirectionRECEIVABLE).
-		SetStatus(feeent.StatusCONFIRMED).
+		SetStatus(feeent.StatusBILLED).
 		SetFeeCode("DOCUMENTATION").
 		SetFeeName("文件费").
 		SetSettlementPartyID(org.customerID).

@@ -143,7 +143,7 @@ func (f *feeLedgerPostgresFixture) createLedgerFeeWithStatus(key, total string, 
 
 func (f *feeLedgerPostgresFixture) createLedgerFee(key, total string) uuid.UUID {
 	f.t.Helper()
-	return f.createLedgerFeeWithStatus(key, total, orderfeeent.StatusCONFIRMED)
+	return f.createLedgerFeeWithStatus(key, total, orderfeeent.StatusUNBILLED)
 }
 
 func (f *feeLedgerPostgresFixture) createConfirmedBill(key, total, billDate string) *ent.FinanceBill {

@@ -523,7 +523,7 @@ func TestSeaDocumentDownstreamFactsBlockExecution(t *testing.T) {
 	f := newSeaDocumentChangeFixture(t)
 	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 	suffix := uuid.NewString()[:8]
-	fee := f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey("historical-fee-" + suffix).SetDirection(orderfeeent.DirectionRECEIVABLE).SetStatus(orderfeeent.StatusCONFIRMED).SetFeeCode("HIS-FEE-" + suffix).SetFeeName("历史财务事实费用").SetSettlementPartyID(f.partnerID).SetBillingUnit("BILL").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-09-04").SaveX(ctx)
+	fee := f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey("historical-fee-" + suffix).SetDirection(orderfeeent.DirectionRECEIVABLE).SetStatus(orderfeeent.StatusBILLED).SetFeeCode("HIS-FEE-" + suffix).SetFeeName("历史财务事实费用").SetSettlementPartyID(f.partnerID).SetBillingUnit("BILL").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-09-04").SaveX(ctx)
 	billCreate := f.data.db.FinanceBill.Create().SetOrganizationID(f.orgID).SetBillNo("HIS-BILL-" + suffix).SetIdempotencyKey("historical-bill-" + suffix).SetDirection(financebillent.DirectionRECEIVABLE).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(f.partnerID).SetSettlementPartyName("单证变更测试合作伙伴").SetCurrency("CNY").SetBaseCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-09-04").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetBaseCurrencyAmount("100").SetFeeCount(1).SetBillDate("2026-09-04")
 	bill := withTestFinanceBillSettlementAccountSnapshot(billCreate, uuid.New(), "CNY").SaveX(ctx)
 	f.data.db.FinanceBillLine.Create().SetBillID(bill.ID).SetOrderID(f.orderID).SetOrderFeeID(fee.ID).SetOrderNo("HISTORICAL").SetFeeCode(fee.FeeCode).SetFeeName(fee.FeeName).SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetBaseCurrencyAmount("100").SetBaseCurrency("CNY").SetActive(true).SaveX(ctx)
@@ -564,7 +564,7 @@ func TestSeaDocumentDownstreamFactsBlockExecution(t *testing.T) {
 		t.Fatalf("被阻断的作废改写了工作实体: %+v", mblAfter)
 	}
 	feeAfter := f.data.db.OrderFee.GetX(ctx, fee.ID)
-	if feeAfter.OrderID != f.orderID || feeAfter.Status != orderfeeent.StatusCONFIRMED {
+	if feeAfter.OrderID != f.orderID || feeAfter.Status != orderfeeent.StatusBILLED {
 		t.Fatalf("阻断路径改写了财务事实: %+v", feeAfter)
 	}
 }
@@ -574,7 +574,7 @@ func TestSeaDocumentModeChangeBlockedByDownstreamFacts(t *testing.T) {
 	f := newSeaDocumentChangeFixture(t)
 	uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 	suffix := uuid.NewString()[:8]
-	f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey("mode-block-fee-" + suffix).SetDirection(orderfeeent.DirectionRECEIVABLE).SetStatus(orderfeeent.StatusCONFIRMED).SetFeeCode("MODE-FEE-" + suffix).SetFeeName("模式切换阻断费用").SetSettlementPartyID(f.partnerID).SetBillingUnit("BILL").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-09-04").SaveX(ctx)
+	f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey("mode-block-fee-" + suffix).SetDirection(orderfeeent.DirectionRECEIVABLE).SetStatus(orderfeeent.StatusBILLED).SetFeeCode("MODE-FEE-" + suffix).SetFeeName("模式切换阻断费用").SetSettlementPartyID(f.partnerID).SetBillingUnit("BILL").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-09-04").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-09-04").SaveX(ctx)
 
 	hbl := f.data.db.SeaHouseBill.GetX(ctx, f.hblID)
 	order := f.data.db.Order.GetX(ctx, f.orderID)

@@ -5,6 +5,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { App } from 'antd';
 import type React from 'react';
@@ -24,7 +25,7 @@ import type { FeeBillTrackingView } from './feeBillTracking';
 import {
   FEE_BILLED,
   FEE_CANCELLED,
-  FEE_CONFIRMED,
+  FEE_UNBILLED,
   PAYABLE,
   RECEIVABLE,
 } from './feeConstants';
@@ -130,7 +131,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-unbilled',
           direction: RECEIVABLE,
-          status: FEE_CONFIRMED,
+          status: FEE_UNBILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '拖车费',
@@ -185,8 +186,8 @@ describe('OrderFeeTableTabs 关联账单列', () => {
 
     expect(screen.getByText('BILL-2026-001')).toBeInTheDocument();
     expect(screen.getAllByText('已开票未核销')).toHaveLength(1);
-    // 未建账在账单号与财务进度两格分别表达
-    expect(screen.getAllByText('未建账')).toHaveLength(2);
+    // 未建账在状态、账单号与财务进度三格分别表达
+    expect(screen.getAllByText('未建账')).toHaveLength(3);
   });
 
   it('加载中与加载失败分别表达，失败提供重试入口且不显示成未建账（A7）', async () => {
@@ -242,7 +243,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-1',
           direction: RECEIVABLE,
-          status: FEE_CONFIRMED,
+          status: FEE_UNBILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '海运费',
@@ -329,9 +330,9 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     listFees.mockResolvedValue({
       data: [
         {
-          id: 'fee-confirmed',
+          id: 'fee-unbilled',
           direction: RECEIVABLE,
-          status: FEE_CONFIRMED,
+          status: FEE_UNBILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '拖车费',
@@ -367,8 +368,69 @@ describe('OrderFeeTableTabs 关联账单列', () => {
       deleteButtons[0].click();
     });
     expect(onCancelFee).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'fee-confirmed' }),
+      expect.objectContaining({ id: 'fee-unbilled' }),
     );
+  });
+
+  it('未建账与已建账费用均可勾选，操作列不再提供确认/撤回入口（A1/R2）', async () => {
+    const setSelectedReceivableFeeIds = vi.fn();
+    listFees.mockResolvedValue({
+      data: [
+        {
+          id: 'fee-unbilled',
+          direction: RECEIVABLE,
+          status: FEE_UNBILLED,
+          expenseDate: '2026-09-20',
+          version: '2',
+          feeName: '拖车费',
+        },
+        {
+          id: 'fee-billed',
+          direction: RECEIVABLE,
+          status: FEE_BILLED,
+          expenseDate: '2026-09-20',
+          version: '3',
+          feeName: '海运费',
+        },
+      ],
+    } as any);
+
+    const props = {
+      ...makeProps('order-1'),
+      feeWritesDisabled: false,
+      setSelectedReceivableFeeIds,
+    };
+    render(
+      <App>
+        <OrderFeeTableTabs {...props} />
+      </App>,
+    );
+    await screen.findByText('拖车费');
+
+    const rowCheckbox = (rowText: string) => {
+      const row = screen.getByText(rowText).closest(
+        'tr',
+      ) as HTMLTableRowElement;
+      return within(row).getByRole('checkbox') as HTMLInputElement;
+    };
+    // 已保存的未建账与已建账费用都可直接勾选，无需先行确认
+    expect(rowCheckbox('拖车费')).not.toBeDisabled();
+    expect(rowCheckbox('海运费')).not.toBeDisabled();
+
+    await act(async () => {
+      fireEvent.click(rowCheckbox('拖车费'));
+    });
+    // rowSelection.onChange 首参为选中行 key 集合
+    expect(setSelectedReceivableFeeIds.mock.calls[0]?.[0]).toEqual([
+      'fee-unbilled',
+    ]);
+
+    // 确认/撤回按钮及其 Popconfirm 文案已随费用确认流程退役
+    expect(screen.queryByRole('button', { name: /^确\s*认$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /撤\s*回/ })).toBeNull();
+    expect(
+      screen.queryByText('确认后该费用才能进入账单，确定继续？'),
+    ).not.toBeInTheDocument();
   });
 
   it('有投影时提供订单财务详情入口（A3 入口）', async () => {

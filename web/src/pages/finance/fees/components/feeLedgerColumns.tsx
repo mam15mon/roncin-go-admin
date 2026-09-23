@@ -23,8 +23,7 @@ const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
 
 const feeLedgerStatusValueEnum = Object.fromEntries(
   [
-    OrderFeeStatus.ORDER_FEE_STATUS_DRAFT,
-    OrderFeeStatus.ORDER_FEE_STATUS_CONFIRMED,
+    OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
     OrderFeeStatus.ORDER_FEE_STATUS_BILLED,
     OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
   ].map((status) => [

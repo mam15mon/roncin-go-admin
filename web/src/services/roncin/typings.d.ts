@@ -385,7 +385,7 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFeeSupplementRequestData;
-    /** 审批生成的 CONFIRMED 补录费用。 */
+    /** 审批生成的 UNBILLED 补录费用。 */
     fee?: OrderFee;
     traceId?: string;
   };
@@ -1075,20 +1075,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateImportBatch;
-    traceId?: string;
-  };
-
-  type ConfirmFeeRequest = {
-    orderId: string;
-    id: string;
-    expectedVersion: string;
-  };
-
-  type ConfirmFeeResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFee;
     traceId?: string;
   };
 
@@ -4977,11 +4963,6 @@ declare namespace API {
     id: string;
   };
 
-  type OrderFeeServiceConfirmFeeParams = {
-    orderId: string;
-    id: string;
-  };
-
   type OrderFeeServiceCreateOrderFeeSupplementParams = {
     orderId: string;
   };
@@ -5018,11 +4999,6 @@ declare namespace API {
     expectedVersion?: string;
     /** reason 作废原因：选填，最长 500 字。 */
     reason?: string;
-  };
-
-  type OrderFeeServiceReopenFeeParams = {
-    orderId: string;
-    id: string;
   };
 
   type OrderFeeServiceResolveFeeExchangeRateParams = {
@@ -6324,22 +6300,6 @@ declare namespace API {
     success?: boolean;
     code?: number;
     message?: string;
-    traceId?: string;
-  };
-
-  type ReopenFeeRequest = {
-    orderId: string;
-    id: string;
-    expectedVersion: string;
-    /** reason 撤回原因：选填，最长 500 字。 */
-    reason?: string;
-  };
-
-  type ReopenFeeResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFee;
     traceId?: string;
   };
 
@@ -9048,7 +9008,8 @@ declare namespace API {
   };
 
   type WorkbenchTodoSummary = {
-    draftFeeCount?: number;
+    /** unbilled_fee_count 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。 */
+    unbilledFeeCount?: number;
     openAbnormalCount?: number;
   };
 }

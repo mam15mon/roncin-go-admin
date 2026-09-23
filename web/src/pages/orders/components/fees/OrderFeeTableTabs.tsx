@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { EditableProTable } from '@ant-design/pro-components';
-import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
+import { App, Button, Space, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -51,8 +51,7 @@ import {
 import {
   FEE_BILLED,
   FEE_CANCELLED,
-  FEE_CONFIRMED,
-  FEE_DRAFT,
+  FEE_UNBILLED,
   feeDirectionCode,
   feeStatusCode,
   PAYABLE,
@@ -134,8 +133,6 @@ interface OrderFeeTableTabsProps {
   customerName?: string;
   onOpenQuickAddFee?: () => void;
   onOpenQuickAddPartner?: () => void;
-  onConfirmFee?: (fee: API.OrderFee) => void;
-  onReopenFee?: (fee: API.OrderFee) => void;
   onCancelFee?: (fee: API.OrderFee) => void;
   /** 列偏好隔离范围（用户 + 当前组织）；缺省时设置仅当前页面会话内生效。 */
   columnSettingScope?: FeeColumnPreferenceScope;
@@ -171,8 +168,6 @@ export default function OrderFeeTableTabs({
   customerName,
   onOpenQuickAddFee,
   onOpenQuickAddPartner,
-  onConfirmFee,
-  onReopenFee,
   onCancelFee,
   columnSettingScope,
   feeBillTracking,
@@ -500,7 +495,7 @@ export default function OrderFeeTableTabs({
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
         expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
-        status: 1, // FEE_DRAFT
+        status: FEE_UNBILLED,
       },
       { position: 'top' },
     );
@@ -526,7 +521,7 @@ export default function OrderFeeTableTabs({
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
         expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
-        status: 1, // FEE_DRAFT
+        status: FEE_UNBILLED,
       },
       { position: 'top' },
     );
@@ -1124,7 +1119,7 @@ export default function OrderFeeTableTabs({
         render: (_, record, __, action) => {
           if (feeWritesDisabled) return [];
           return [
-            (feeStatusCode(record.status) === FEE_DRAFT ||
+            (feeStatusCode(record.status) === FEE_UNBILLED ||
               feeStatusCode(record.status) === FEE_BILLED) && (
               <Button
                 key="edit"
@@ -1140,29 +1135,7 @@ export default function OrderFeeTableTabs({
                 编辑
               </Button>
             ),
-            feeStatusCode(record.status) === FEE_DRAFT && onConfirmFee && (
-              <Popconfirm
-                key="confirm"
-                title="确认后该费用才能进入账单，确定继续？"
-                onConfirm={() => onConfirmFee(record)}
-              >
-                <Button type="link" size="small">
-                  确认
-                </Button>
-              </Popconfirm>
-            ),
-            feeStatusCode(record.status) === FEE_CONFIRMED && onReopenFee && (
-              <Button
-                key="reopen"
-                type="link"
-                size="small"
-                onClick={() => onReopenFee(record)}
-              >
-                撤回
-              </Button>
-            ),
-            (feeStatusCode(record.status) === FEE_DRAFT ||
-              feeStatusCode(record.status) === FEE_CONFIRMED) &&
+            feeStatusCode(record.status) === FEE_UNBILLED &&
               onCancelFee && (
                 <Button
                   key="cancel"
@@ -1242,11 +1215,16 @@ export default function OrderFeeTableTabs({
             selectedRowKeys: selectedReceivableFeeIds,
             onChange: setSelectedReceivableFeeIds,
             getCheckboxProps: (record) => ({
-              disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
+              // 所有已保存有效费用（含已建账）均可勾选；行内新增或
+              // 缺少版本的未保存行不参与选择，避免提交不存在的事实。
+              disabled:
+                !record.id ||
+                String(record.id).startsWith('new_') ||
+                !record.version,
             }),
           }}
           tableAlertRender={({ selectedRowKeys }) =>
-            `已选择 ${selectedRowKeys.length} 笔已确认应收费用`
+            `已选择 ${selectedRowKeys.length} 笔有效应收费用`
           }
           request={async () => {
             if (!orderId) return { data: [], success: true };
@@ -1380,11 +1358,16 @@ export default function OrderFeeTableTabs({
             selectedRowKeys: selectedPayableFeeIds,
             onChange: setSelectedPayableFeeIds,
             getCheckboxProps: (record) => ({
-              disabled: feeStatusCode(record.status) !== FEE_CONFIRMED,
+              // 所有已保存有效费用（含已建账）均可勾选；行内新增或
+              // 缺少版本的未保存行不参与选择，避免提交不存在的事实。
+              disabled:
+                !record.id ||
+                String(record.id).startsWith('new_') ||
+                !record.version,
             }),
           }}
           tableAlertRender={({ selectedRowKeys }) =>
-            `已选择 ${selectedRowKeys.length} 笔已确认应付费用`
+            `已选择 ${selectedRowKeys.length} 笔有效应付费用`
           }
           request={async () => {
             if (!orderId) return { data: [], success: true };

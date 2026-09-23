@@ -241,7 +241,7 @@ export default function BillCreationWorkbench({
         return false;
       }
       if (ids.length === 0) {
-        message.warning('请至少选择一笔已确认且未建立账单的费用');
+        message.warning('请至少选择一笔未建账且未建立账单的费用');
         return false;
       }
       const policy = policyOverride ?? {
@@ -417,7 +417,7 @@ export default function BillCreationWorkbench({
         return;
       }
       if (selectedIds.length === 0) {
-        message.warning('请至少选择一笔已确认且未建立账单的费用');
+        message.warning('请至少选择一笔未建账且未建立账单的费用');
         return;
       }
       setCurrent(1);
@@ -532,7 +532,7 @@ export default function BillCreationWorkbench({
         clearPreviewSnapshot();
         setCurrent(1);
       } else if (requestReason(error) === 'FINANCE_BILL_FEE_INVALID') {
-        message.error('所选费用必须为已确认状态且尚未进入其他账单');
+        message.error('所选费用必须为未建账状态且尚未进入其他账单');
       } else {
         message.error(requestMessage(error, '批量生成账单失败'));
       }

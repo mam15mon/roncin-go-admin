@@ -333,7 +333,7 @@ func (u *FinanceCommissionApplicationUsecase) GetForOrganization(ctx context.Con
 }
 
 // Approve 整单批准：申请头 expected_version 防并发覆盖，决策人取自当前会话；
-// 锁序、指纹复核、草稿费用阻断与整批状态迁移由仓储事务实现承担。
+// 锁序、指纹复核、未建账费用阻断与整批状态迁移由仓储事务实现承担。
 func (u *FinanceCommissionApplicationUsecase) Approve(ctx context.Context, organizationIDs []uuid.UUID, decisionMaker, id uuid.UUID, expectedVersion uint64) (*FinanceCommissionApplication, error) {
 	if !validCommissionOrganizationIDs(organizationIDs) || decisionMaker == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
 		return nil, ErrCommissionApplicationInvalid

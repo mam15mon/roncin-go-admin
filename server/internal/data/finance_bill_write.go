@@ -37,7 +37,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		}
 		for _, fee := range fees {
 			line := expected[fee.ID]
-			if line == nil || fee.Status != orderfeeent.StatusCONFIRMED || string(fee.Direction) != string(bill.Direction) || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
+			if line == nil || fee.Status != orderfeeent.StatusUNBILLED || string(fee.Direction) != string(bill.Direction) || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
 				return biz.ErrFinanceBillFeeInvalid
 			}
 		}
@@ -84,7 +84,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		if _, err = tx.FinanceBillLine.CreateBulk(builders...).Save(ctx); err != nil {
 			return mapEntError(err, nil, biz.ErrFinanceBillFeeInvalid)
 		}
-		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusCONFIRMED)).SetStatus(orderfeeent.StatusBILLED).AddVersion(1).Save(ctx)
+		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED)).SetStatus(orderfeeent.StatusBILLED).AddVersion(1).Save(ctx)
 		if err != nil {
 			return err
 		}
@@ -267,7 +267,7 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 				return biz.ErrFinanceBillFeeInvalid
 			}
 		}
-		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusBILLED)).SetStatus(orderfeeent.StatusCONFIRMED).AddVersion(1).Save(ctx)
+		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusBILLED)).SetStatus(orderfeeent.StatusUNBILLED).AddVersion(1).Save(ctx)
 		if err != nil {
 			return err
 		}
