@@ -134,6 +134,9 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 	if uc.exchangeRate == nil {
 		return nil, ErrFinanceCashflowInvalidArgument
 	}
+	if in.ExchangeRateOverride != nil && !canOverrideExchangeRate {
+		return nil, ErrFinanceCashflowRateOverrideForbidden
+	}
 	if old, err := uc.repo.GetByIdempotencyKey(ctx, org, in.IdempotencyKey); err != nil {
 		return nil, err
 	} else if old != nil {
@@ -145,20 +148,22 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 		}
 		return nil, ErrFinanceCashflowIdempotencyConflict
 	}
-	// 收款流水折应收汇率（ar_rate），付款流水折应付汇率（ap_rate）。
-	systemRate, err := uc.exchangeRate.ResolveRate(ctx, org, in.Direction, in.Currency, in.TransactionDate)
-	if err != nil {
-		return nil, err
-	}
-	resolvedRate, resolvedSource, resolvedSettingID := systemRate.Rate, systemRate.Source, systemRate.SettingID
-	if in.ExchangeRateOverride != nil && !in.ExchangeRateOverride.Equal(systemRate.Rate) {
-		if !canOverrideExchangeRate {
-			return nil, ErrFinanceCashflowRateOverrideForbidden
-		}
+	// 显式手工汇率不依赖该周已有配置；提交前仍必须通过公司范围与权限校验。
+	var resolvedRate decimal.Decimal
+	var resolvedSource string
+	var resolvedSettingID *uuid.UUID
+	if in.ExchangeRateOverride != nil {
 		if !validExchangeRate(*in.ExchangeRateOverride) {
 			return nil, ErrFinanceCashflowInvalidArgument
 		}
 		resolvedRate, resolvedSource, resolvedSettingID = *in.ExchangeRateOverride, ExchangeRateSourceManual, nil
+	} else {
+		// 收款折应收汇率（ar_rate），付款折应付汇率（ap_rate）。
+		weeklyRate, err := uc.exchangeRate.ResolveRate(ctx, org, in.Direction, in.Currency, in.TransactionDate)
+		if err != nil {
+			return nil, err
+		}
+		resolvedRate, resolvedSource, resolvedSettingID = weeklyRate.Rate, weeklyRate.Source, weeklyRate.SettingID
 	}
 	baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, org)
 	if err != nil {

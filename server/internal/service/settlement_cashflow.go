@@ -83,7 +83,7 @@ func (s *SettlementService) CreateCashflow(ctx context.Context, r *v1.CreateCash
 	}
 	canOverrideRate := false
 	if rateOverride != nil {
-		overrideOrganizationIDs, overrideScopeErr := organizationIDsForPermission(p, access.FinanceExchangeRateOverride, true)
+		overrideOrganizationIDs, overrideScopeErr := organizationIDsForPermission(p, access.FinanceExchangeRateUpdate, true)
 		if overrideScopeErr != nil || !uuidIn(organizationID, overrideOrganizationIDs) {
 			return nil, biz.ErrPermissionDenied
 		}

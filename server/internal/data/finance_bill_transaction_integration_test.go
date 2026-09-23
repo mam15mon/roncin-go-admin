@@ -59,8 +59,8 @@ func (r *invalidAuditResultFinanceBillRepo) Create(ctx context.Context, bill *bi
 	return r.FinanceBillRepo.Create(ctx, bill, audit)
 }
 
-func (r *pausingExchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
-	rate, err := r.ExchangeRateRepo.ResolveRate(ctx, organizationID, direction, fromCurrency, toCurrency, pivotCurrency, rateDate)
+func (r *pausingExchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (biz.ResolvedRate, error) {
+	rate, err := r.ExchangeRateRepo.ResolveRate(ctx, organizationID, direction, fromCurrency, toCurrency, rateDate)
 	if err != nil {
 		return biz.ResolvedRate{}, err
 	}

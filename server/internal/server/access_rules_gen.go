@@ -75,7 +75,7 @@ var operationAccessRules = map[string]accessRule{
 	"/finance.v1.ExchangeRateService/CreateExchangeRateSetting":                                 {mode: accessModePermission, permission: "system.finance.exchange_rate.create", scope: biz.DataScopeOrganization},
 	"/finance.v1.ExchangeRateService/DisableExchangeRateSetting":                                {mode: accessModePermission, permission: "system.finance.exchange_rate.disable", scope: biz.DataScopeOrganization},
 	"/finance.v1.ExchangeRateService/DownloadExchangeRateImportTemplate":                        {mode: accessModePermission, permission: "system.finance.exchange_rate.read", scope: biz.DataScopeOrganization},
-	"/finance.v1.ExchangeRateService/FetchExchangeRates":                                        {mode: accessModePermission, permission: "system.finance.exchange_rate.read", scope: biz.DataScopeOrganization},
+	"/finance.v1.ExchangeRateService/FetchExchangeRates":                                        {mode: accessModePermission, permission: "system.finance.exchange_rate.create", scope: biz.DataScopeOrganization},
 	"/finance.v1.ExchangeRateService/GetExchangeRateImport":                                     {mode: accessModePermission, permission: "system.finance.exchange_rate.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.ExchangeRateService/ListExchangeRateSettings":                                  {mode: accessModePermission, permission: "system.finance.exchange_rate.read", scope: biz.DataScopeOrganization},
 	"/finance.v1.ExchangeRateService/PreviewExchangeRateImport":                                 {mode: accessModePermission, permission: "system.finance.exchange_rate.create", scope: biz.DataScopeOrganization},

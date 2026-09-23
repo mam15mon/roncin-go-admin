@@ -35,7 +35,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。
+// ExchangeRateService 维护各分公司本币口径的周汇率主数据（应收/应付双轨点差）。
 type ExchangeRateServiceClient interface {
 	ListExchangeRateSettings(ctx context.Context, in *ListExchangeRateSettingsRequest, opts ...grpc.CallOption) (*ListExchangeRateSettingsResponse, error)
 	CreateExchangeRateSetting(ctx context.Context, in *CreateExchangeRateSettingRequest, opts ...grpc.CallOption) (*CreateExchangeRateSettingResponse, error)
@@ -167,7 +167,7 @@ func (c *exchangeRateServiceClient) SyncExchangeRates(ctx context.Context, in *S
 // All implementations must embed UnimplementedExchangeRateServiceServer
 // for forward compatibility.
 //
-// ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。
+// ExchangeRateService 维护各分公司本币口径的周汇率主数据（应收/应付双轨点差）。
 type ExchangeRateServiceServer interface {
 	ListExchangeRateSettings(context.Context, *ListExchangeRateSettingsRequest) (*ListExchangeRateSettingsResponse, error)
 	CreateExchangeRateSetting(context.Context, *CreateExchangeRateSettingRequest) (*CreateExchangeRateSettingResponse, error)

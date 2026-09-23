@@ -681,7 +681,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
     resolveRate.mockResolvedValueOnce({
       exchangeRate: '7.1234',
-      exchangeRateSource: 'INHERITED_LAST_WEEK',
+      exchangeRateSource: 'WEEKLY',
     } as any);
     await pickSelectOption(comboboxes[0], '码头操作费 (THC)');
 
@@ -699,7 +699,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     await waitFor(() => {
       expect(screen.getByText('7.1234')).toBeInTheDocument();
       expect(screen.getByText('预览')).toBeInTheDocument();
-      expect(screen.getByText('沿用上周')).toBeInTheDocument();
+      expect(screen.queryByText('沿用上周')).not.toBeInTheDocument();
     });
   });
 

@@ -9,8 +9,6 @@ export interface ExchangeRatePreviewCardProps {
   amountColor?: string;
   status: 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
   ratePreview?: string;
-  /** 漏配容灾：当周汇率未配置、回溯沿用最近历史周行时为 true。 */
-  inherited?: boolean;
   onEnableManual?: () => void;
   extra?: ReactNode;
 }
@@ -21,7 +19,6 @@ export function ExchangeRatePreviewCard({
   amountColor = '#1677ff',
   status,
   ratePreview,
-  inherited = false,
   onEnableManual,
   extra,
 }: ExchangeRatePreviewCardProps) {
@@ -50,16 +47,21 @@ export function ExchangeRatePreviewCard({
               <Text strong style={{ color: '#52c41a' }}>
                 {ratePreview}
               </Text>
-              {inherited && (
-                <Tag color="warning" style={{ margin: 0, fontSize: 11 }}>
-                  暂沿用上周汇率
-                </Tag>
+              {onEnableManual && (
+                <Button
+                  type="link"
+                  size="small"
+                  onClick={onEnableManual}
+                  style={{ padding: 0 }}
+                >
+                  手动输入
+                </Button>
               )}
             </Space>
           )}
           {status === 'missing' && (
             <Space size={4}>
-              <Tag color="error">汇率未配置</Tag>
+              <Tag color="error">请先维护汇率</Tag>
               {onEnableManual && (
                 <Button
                   type="link"

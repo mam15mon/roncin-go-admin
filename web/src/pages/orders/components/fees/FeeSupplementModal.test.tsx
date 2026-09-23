@@ -1,29 +1,27 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { App } from 'antd';
+import { renderWithApp } from '@root/tests/renderWithApp';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import FeeSupplementModal from './FeeSupplementModal';
 
 function renderModal(onSubmit: (values: unknown) => Promise<boolean>) {
-  return render(
-    <App>
-      <FeeSupplementModal
-        orderId="order-1"
-        open
-        onOpenChange={vi.fn()}
-        feeSettings={[
-          {
-            id: 'fs-1',
-            feeCode: 'OCEAN',
-            nameZh: '海运费',
-            defaultCurrency: 'CNY',
-          },
-        ]}
-        settlementParties={[{ id: 'sp-1', name: '某供应商', code: 'SUP' }]}
-        currencies={[{ code: 'CNY', name: '人民币' }]}
-        billingUnits={[{ id: 'bu-1', name: '票', code: 'SHPT' }]}
-        onSubmit={onSubmit}
-      />
-    </App>,
+  return renderWithApp(
+    <FeeSupplementModal
+      orderId="order-1"
+      open
+      onOpenChange={vi.fn()}
+      feeSettings={[
+        {
+          id: 'fs-1',
+          feeCode: 'OCEAN',
+          nameZh: '海运费',
+          defaultCurrency: 'CNY',
+        },
+      ]}
+      settlementParties={[{ id: 'sp-1', name: '某供应商', code: 'SUP' }]}
+      currencies={[{ code: 'CNY', name: '人民币' }]}
+      billingUnits={[{ id: 'bu-1', name: '票', code: 'SHPT' }]}
+      onSubmit={onSubmit}
+    />,
   );
 }
 
@@ -39,7 +37,7 @@ describe('FeeSupplementModal', () => {
     const onSubmit = vi.fn().mockResolvedValue(true);
     renderModal(onSubmit);
 
-    fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
+    fireEvent.click(screen.getByRole('button', { name: /确\s*定/ }));
     // 各字段校验错误在不同微任务中渲染，必须逐个异步等待，避免并发负载下抖动。
     expect(await screen.findByText('请填写补录原因')).toBeInTheDocument();
     expect(await screen.findByText('请选择费用项目')).toBeInTheDocument();
@@ -59,7 +57,7 @@ describe('FeeSupplementModal', () => {
     fireEvent.change(screen.getByLabelText('数量'), {
       target: { value: '2' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
+    fireEvent.click(screen.getByRole('button', { name: /确\s*定/ }));
 
     expect(await screen.findByText('请选择费用项目')).toBeInTheDocument();
     expect(await screen.findByText('请选择结算单位')).toBeInTheDocument();

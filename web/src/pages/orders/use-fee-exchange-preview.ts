@@ -29,8 +29,6 @@ export function useFeeExchangePreview(
   const [exchangeRateStatus, setExchangeRateStatus] =
     useState<ExchangeRateStatus>('idle');
   const [manualExchangeRate, setManualExchangeRate] = useState(false);
-  // 漏配容灾：命中最近历史周行时置位，供费用表单展示「暂沿用上周汇率」黄色提示。
-  const [inheritedLastWeek, setInheritedLastWeek] = useState(false);
 
   const resetPreview = () => {
     exchangeRateRequestRef.current += 1;
@@ -38,7 +36,6 @@ export function useFeeExchangePreview(
     setExchangeRatePreview(undefined);
     setExchangeRateStatus('idle');
     setManualExchangeRate(false);
-    setInheritedLastWeek(false);
   };
 
   const seedFromFee = (fee: API.OrderFee) => {
@@ -59,7 +56,6 @@ export function useFeeExchangePreview(
     setExchangeRateStatus('loading');
     setExchangeRatePreview(undefined);
     setManualExchangeRate(false);
-    setInheritedLastWeek(false);
     formRef?.current?.setFieldValue('exchangeRateOverride', undefined);
     void orderFeeServiceResolveFeeExchangeRate(
       { orderId: currentOrderId, direction, currency, expenseDate },
@@ -74,16 +70,13 @@ export function useFeeExchangePreview(
         }
         setExchangeRatePreview(trimDecimal(response.exchangeRate));
         setExchangeRateStatus('resolved');
-        setInheritedLastWeek(
-          response.exchangeRateSource === 'INHERITED_LAST_WEEK',
-        );
       })
       .catch((error: FeeRequestError) => {
         if (requestSequence !== exchangeRateRequestRef.current) return;
         const code = error.data?.reason || error.response?.data?.reason;
         if (code === 'FEE_EXCHANGE_RATE_MISSING') {
           setExchangeRateStatus('missing');
-          setManualExchangeRate(true);
+          message.error('请先维护汇率');
           return;
         }
         setExchangeRateStatus('error');
@@ -121,7 +114,6 @@ export function useFeeExchangePreview(
     exchangeRateStatus,
     manualExchangeRate,
     setManualExchangeRate,
-    inheritedLastWeek,
     resetPreview,
     seedFromFee,
     handleValuesChange,

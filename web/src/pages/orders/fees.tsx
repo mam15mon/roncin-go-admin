@@ -123,7 +123,6 @@ export default function OrderFeesPage() {
     exchangeRateStatus,
     manualExchangeRate,
     setManualExchangeRate,
-    inheritedLastWeek,
     resetPreview,
     seedFromFee,
     handleValuesChange,
@@ -396,6 +395,22 @@ export default function OrderFeesPage() {
 
   const handleModalSubmit = async (values: FeeFormValues) => {
     if (!orderId || !ensureFeeWriteAllowed()) return false;
+    const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm');
+    const preservesManualSnapshot =
+      editingFee?.exchangeRateSource === 'MANUAL' &&
+      !manualExchangeRate &&
+      values.currency === editingFee.currency &&
+      expenseDate ===
+        dayjs(editingFee.expenseDate).format('YYYY-MM-DD HH:mm') &&
+      (values.direction ?? modalDirection) === editingFee.direction;
+    if (
+      exchangeRateStatus === 'missing' &&
+      !manualExchangeRate &&
+      !preservesManualSnapshot
+    ) {
+      message.error('请先维护汇率');
+      return false;
+    }
     const body = {
       direction: values.direction ?? modalDirection,
       feeSettingId: values.feeSettingId,
@@ -404,7 +419,7 @@ export default function OrderFeesPage() {
       quantity: normalizeDecimalInput(String(values.quantity ?? '')),
       unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
       currency: values.currency,
-      expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm'),
+      expenseDate,
       note: values.note,
       exchangeRateOverride: manualExchangeRate
         ? values.exchangeRateOverride
@@ -756,7 +771,6 @@ export default function OrderFeesPage() {
         totalPreview={totalPreview}
         exchangeRateStatus={exchangeRateStatus}
         exchangeRatePreview={exchangeRatePreview}
-        inheritedLastWeek={inheritedLastWeek}
         manualExchangeRate={manualExchangeRate}
         setManualExchangeRate={setManualExchangeRate}
         onOpenQuickAddFee={handleOpenQuickAddFee}

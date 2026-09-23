@@ -171,7 +171,7 @@ func (s *OrderFeeService) CreateOrderFeeSupplement(ctx context.Context, request 
 	if strings.TrimSpace(input.Reason) == "" || strings.TrimSpace(input.IdempotencyKey) == "" {
 		return nil, biz.ErrFeeSupplementInvalidArgument
 	}
-	created, err := s.supplement.Create(ctx, principal, principal.Organization.ID, orderID, input, principal.HasPermission(access.FinanceExchangeRateOverride))
+	created, err := s.supplement.Create(ctx, principal, principal.Organization.ID, orderID, input, principal.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}

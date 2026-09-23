@@ -46,7 +46,7 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 	ctx := context.Background()
-	hqID, branchID := newCrossCalcOrgTree(t, data)
+	_, branchID := newCrossCalcOrgTree(t, data)
 	repo := NewExchangeRateRepo(data)
 
 	// 当周（2026-09-14 ~ 2026-09-20）与上一周（2026-09-07 ~ 2026-09-13）。
@@ -69,7 +69,7 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("创建 EUR 基线行: %v", err)
 	}
-	// 三级兜底的第二腿（KRW→CNY 基线行）。
+	// 公共交叉腿仅用于证明新业务不会再套算。
 	if _, err := data.db.ExchangeRateSetting.Create().
 		SetFromCurrency("KRW").SetToCurrency("CNY").
 		SetEffectiveFrom(baselineWeek).SetEffectiveTo(weekEndForTest(baselineWeek)).
@@ -77,10 +77,9 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("创建 KRW 基线行: %v", err)
 	}
-	_ = hqID
 
 	t.Run("一级命中本组织当周行且按应收方向取 ar_rate", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", "CNY", weeklyDate)
+		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", weeklyDate)
 		if err != nil {
 			t.Fatalf("当周应收解析失败: %v", err)
 		}
@@ -92,7 +91,7 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 		}
 	})
 	t.Run("一级命中本组织当周行且按应付方向取 ap_rate", func(t *testing.T) {
-		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeePayable, "USD", "CNY", "CNY", weeklyDate)
+		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeePayable, "USD", "CNY", weeklyDate)
 		if err != nil {
 			t.Fatalf("当周应付解析失败: %v", err)
 		}
@@ -100,40 +99,26 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 			t.Fatalf("应付应命中当周 ap_rate/BOC_SYNC，实际 %s/%s", resolved.Rate, resolved.Source)
 		}
 	})
-	t.Run("二级回溯最近历史周标记 INHERITED_LAST_WEEK", func(t *testing.T) {
-		// JPY 只配了上周行；当周三开单自动继承（绝不阻断保存）。
-		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "JPY", "CNY", "CNY", weeklyDate)
-		if err != nil {
-			t.Fatalf("跨周继承解析失败: %v", err)
-		}
-		if resolved.Rate.StringFixed(4) != "0.0510" || resolved.Source != biz.ExchangeRateSourceInheritedLastWeek {
-			t.Fatalf("跨周继承应取最近历史周 ar_rate/INHERITED_LAST_WEEK，实际 %s/%s", resolved.Rate, resolved.Source)
+	t.Run("上周公司行不能继承", func(t *testing.T) {
+		if _, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "JPY", "CNY", weeklyDate); err != biz.ErrExchangeRateMissing {
+			t.Fatalf("上周行不能代替本周配置，实际 %v", err)
 		}
 	})
-	t.Run("三级无组织行时直连 NULL 基线行并回落 rate 列", func(t *testing.T) {
-		// 基线行只有 rate 基准价（无 ar/ap），应收/应付均回落基准价，来源 SYSTEM。
-		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "EUR", "CNY", "CNY", weeklyDate)
-		if err != nil {
-			t.Fatalf("基线直连解析失败: %v", err)
-		}
-		if resolved.Rate.StringFixed(8) != "7.85000000" || resolved.Source != biz.ExchangeRateSourceSystem {
-			t.Fatalf("基线直连应为 7.85000000/SYSTEM，实际 %s/%s", resolved.Rate, resolved.Source)
+	t.Run("公共直连行不能兜底", func(t *testing.T) {
+		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "EUR", "CNY", weeklyDate)
+		if err != biz.ErrExchangeRateMissing {
+			t.Fatalf("公共直连不能兜底，实际 %+v err=%v", resolved, err)
 		}
 	})
-	t.Run("四级经 NULL 基线 pivot 交叉套算标记 DERIVED", func(t *testing.T) {
-		// KRW→EUR 无直连行（组织行与基线行均无该货币对），经 KRW、EUR→CNY 基线腿套算。
-		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "KRW", "EUR", "CNY", weeklyDate)
-		if err != nil {
-			t.Fatalf("基线交叉套算失败: %v", err)
-		}
-		expected := decimal.RequireFromString("0.00520000").Div(decimal.RequireFromString("7.85000000")).RoundBank(8)
-		if !resolved.Rate.Equal(expected) || resolved.Source != biz.ExchangeRateSourceDerived {
-			t.Fatalf("四级套算应为 %s/DERIVED，实际 %s/%s", expected, resolved.Rate, resolved.Source)
+	t.Run("公共交叉腿不能套算", func(t *testing.T) {
+		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "KRW", "EUR", weeklyDate)
+		if err != biz.ErrExchangeRateMissing {
+			t.Fatalf("公共交叉腿不能套算，实际 %+v err=%v", resolved, err)
 		}
 	})
 	t.Run("全链缺失时 fail-closed", func(t *testing.T) {
 		// GBP 无任何行：直接缺失返回业务错误（由现场手工覆盖兜底）。
-		if _, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "GBP", "CNY", "CNY", weeklyDate); err == nil {
+		if _, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "GBP", "CNY", weeklyDate); err == nil {
 			t.Fatal("GBP 全链缺失应返回业务错误")
 		}
 	})
@@ -142,7 +127,7 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 		if updated.ID != current.ID {
 			t.Fatalf("同周重复发布应覆盖同一行: old=%s new=%s", current.ID, updated.ID)
 		}
-		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", "CNY", weeklyDate)
+		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", weeklyDate)
 		if err != nil || resolved.Rate.StringFixed(4) != "6.8800" {
 			t.Fatalf("覆盖更新后应收应取新值，实际 %s err=%v", resolved.Rate, err)
 		}
@@ -150,11 +135,11 @@ func TestExchangeRateWeeklyDisasterChainPostgres(t *testing.T) {
 	t.Run("跨周预设下周行不影响当周解析", func(t *testing.T) {
 		nextWeek := currentWeek.AddDate(0, 0, 7)
 		createWeeklyRate(t, data, &branchID, biz.ExchangeRateSettingSourceManual, "USD", nextWeek, "7.0500", "6.9800")
-		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", "CNY", weeklyDate)
+		resolved, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", weeklyDate)
 		if err != nil || resolved.Rate.StringFixed(4) != "6.8800" {
 			t.Fatalf("预设下周不应影响当周解析: %s err=%v", resolved.Rate, err)
 		}
-		future, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", "CNY", "2026-09-23")
+		future, err := repo.ResolveRate(ctx, branchID, biz.OrderFeeReceivable, "USD", "CNY", "2026-09-23")
 		if err != nil || future.Rate.StringFixed(4) != "7.0500" || future.Source != biz.ExchangeRateSourceWeekly {
 			t.Fatalf("下周应命中预设行 WEEKLY: %s/%s err=%v", future.Rate, future.Source, err)
 		}

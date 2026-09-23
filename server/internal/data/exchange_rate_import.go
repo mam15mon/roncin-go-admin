@@ -108,13 +108,9 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 	if err != nil {
 		return nil, err
 	}
-	// 导入按当前组织落地：系统管理写 NULL 基线行，公司写本组织行；与页面写入、
-	// 牌价同步共用作用域级 advisory 锁。
-	scope := organizationID.String()
-	if biz.IsSystemWorkspace(ctx) {
-		scope = "baseline"
-	}
-	lockKey := "exchange-rate-weekly:" + scope
+	// 导入按所属公司落地（汇率完全下沉分公司，公共基线写入入口已移除）；
+	// 与页面写入、牌价同步共用公司作用域级 advisory 锁。
+	lockKey := "exchange-rate-weekly:" + organizationID.String()
 	connection, err := r.data.sqlDB.Conn(ctx)
 	if err != nil {
 		return nil, err
@@ -161,12 +157,9 @@ func (r *exchangeRateRepo) ConfirmImport(ctx context.Context, organizationID, ow
 		if validateErr := validateExchangeRateImportRowsInTx(ctx, tx, rows); validateErr != nil {
 			return validateErr
 		}
-		// 行归属与组织身份一致：系统管理导入基线行，公司导入本组织行；
+		// 行归属恒为调用公司（服务端从 principal 解析所属公司，不写 NULL 基线行）；
 		// 同周重复导入按幂等 Upsert 覆盖更新，不抛唯一键冲突。
-		var organizationScope *uuid.UUID
-		if !biz.IsSystemWorkspace(ctx) {
-			organizationScope = &organizationID
-		}
+		organizationScope := &organizationID
 		for _, row := range rows {
 			arRate, arErr := decimal.NewFromString(row.ARRate)
 			apRate, apErr := decimal.NewFromString(row.APRate)

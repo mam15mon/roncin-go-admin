@@ -76,11 +76,12 @@ func (ExchangeRateSyncTarget) EnumDescriptor() ([]byte, []int) {
 }
 
 type ExchangeRateSetting struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	FromCurrency   string                 `protobuf:"bytes,4,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
-	ToCurrency     string                 `protobuf:"bytes,5,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 新配置的组织归属恒为所属分公司。
+	OrganizationId string `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	FromCurrency   string `protobuf:"bytes,4,opt,name=from_currency,json=fromCurrency,proto3" json:"from_currency,omitempty"`
+	ToCurrency     string `protobuf:"bytes,5,opt,name=to_currency,json=toCurrency,proto3" json:"to_currency,omitempty"`
 	// effective_from 为带时区且精确到秒的 RFC 3339 时间（自然周周一 00:00:00，Asia/Shanghai），区间左边界包含该时刻。
 	EffectiveFrom string `protobuf:"bytes,7,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
 	// effective_to 为带时区且精确到秒的 RFC 3339 时间（同一自然周周日 23:59:59，Asia/Shanghai），区间右边界包含该时刻。
@@ -2299,7 +2300,7 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\x16ExchangeRateSyncTarget\x12)\n" +
 	"%EXCHANGE_RATE_SYNC_TARGET_UNSPECIFIED\x10\x00\x12*\n" +
 	"&EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK\x10\x01\x12'\n" +
-	"#EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK\x10\x022\xf8\x10\n" +
+	"#EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK\x10\x022\xfa\x10\n" +
 	"\x13ExchangeRateService\x12\xc8\x01\n" +
 	"\x18ListExchangeRateSettings\x12+.finance.v1.ListExchangeRateSettingsRequest\x1a,.finance.v1.ListExchangeRateSettingsResponse\"Q\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/finance/exchange-rates\x12\xd0\x01\n" +
 	"\x19CreateExchangeRateSetting\x12,.finance.v1.CreateExchangeRateSettingRequest\x1a-.finance.v1.CreateExchangeRateSettingResponse\"V\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/api/v1/finance/exchange-rates\x12\xd5\x01\n" +
@@ -2308,8 +2309,8 @@ const file_finance_v1_exchange_rate_proto_rawDesc = "" +
 	"\"DownloadExchangeRateImportTemplate\x125.finance.v1.DownloadExchangeRateImportTemplateRequest\x1a6.finance.v1.DownloadExchangeRateImportTemplateResponse\"`\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02/\x12-/api/v1/finance/exchange-rate-import-template\x12\xdf\x01\n" +
 	"\x19PreviewExchangeRateImport\x12,.finance.v1.PreviewExchangeRateImportRequest\x1a-.finance.v1.PreviewExchangeRateImportResponse\"e\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x022:\x01*\"-/api/v1/finance/exchange-rate-imports/preview\x12\xd7\x01\n" +
 	"\x19ConfirmExchangeRateImport\x12,.finance.v1.ConfirmExchangeRateImportRequest\x1a-.finance.v1.ConfirmExchangeRateImportResponse\"]\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/finance/exchange-rate-imports\x12\xcb\x01\n" +
-	"\x15GetExchangeRateImport\x12(.finance.v1.GetExchangeRateImportRequest\x1a).finance.v1.GetExchangeRateImportResponse\"]\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02,\x12*/api/v1/finance/exchange-rate-imports/{id}\x12\xc4\x01\n" +
-	"\x12FetchExchangeRates\x12%.finance.v1.FetchExchangeRatesRequest\x1a&.finance.v1.FetchExchangeRatesResponse\"_\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/finance/exchange-rate-syncs/fetch\x12\xbd\x01\n" +
+	"\x15GetExchangeRateImport\x12(.finance.v1.GetExchangeRateImportRequest\x1a).finance.v1.GetExchangeRateImportResponse\"]\x82\xb5\x18'\b\x03\x12!system.finance.exchange_rate.read \x02\x82\xd3\xe4\x93\x02,\x12*/api/v1/finance/exchange-rate-imports/{id}\x12\xc6\x01\n" +
+	"\x12FetchExchangeRates\x12%.finance.v1.FetchExchangeRatesRequest\x1a&.finance.v1.FetchExchangeRatesResponse\"a\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/finance/exchange-rate-syncs/fetch\x12\xbd\x01\n" +
 	"\x11SyncExchangeRates\x12$.finance.v1.SyncExchangeRatesRequest\x1a%.finance.v1.SyncExchangeRatesResponse\"[\x82\xb5\x18)\b\x03\x12#system.finance.exchange_rate.create \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/finance/exchange-rate-syncsB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (

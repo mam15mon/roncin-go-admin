@@ -17,12 +17,12 @@ import (
 var (
 	ErrExchangeRateNotFound            = errors.NotFound("EXCHANGE_RATE_NOT_FOUND", "汇率设置不存在")
 	ErrExchangeRateInvalidArgument     = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
-	ErrExchangeRateMissing             = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FEE_EXCHANGE_RATE_MISSING), "汇率日期未命中生效汇率")
+	ErrExchangeRateMissing             = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FEE_EXCHANGE_RATE_MISSING), "汇率日期未命中生效汇率，请先维护汇率")
 	ErrExchangeRateOverlap             = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效周与现有设置冲突，请刷新后重试")
 	ErrExchangeRateConflict            = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "汇率日期命中多条生效汇率")
 	ErrExchangeRateCurrencyInvalid     = errors.BadRequest("EXCHANGE_RATE_CURRENCY_INVALID", "汇率币种必须是启用的 ISO 币种")
-	ErrExchangeRateOrganizationInvalid = errors.BadRequest("EXCHANGE_RATE_ORGANIZATION_INVALID", "当前组织未配置有效本币")
-	ErrExchangeRatePermissionDenied    = errors.Forbidden("EXCHANGE_RATE_PERMISSION_DENIED", "无权维护当前组织汇率")
+	ErrExchangeRateOrganizationInvalid = errors.BadRequest("EXCHANGE_RATE_ORGANIZATION_INVALID", "当前组织无法解析公司本币，汇率仅由公司工作台维护")
+	ErrExchangeRatePermissionDenied    = errors.Forbidden("EXCHANGE_RATE_PERMISSION_DENIED", "无权维护当前公司汇率")
 	ErrExchangeRateQuoteUnavailable    = errors.BadRequest("EXCHANGE_RATE_QUOTE_UNAVAILABLE", "外汇牌价抓取失败，请稍后重试或手工录入汇率")
 	ErrExchangeRateSyncTargetInvalid   = errors.BadRequest("EXCHANGE_RATE_SYNC_TARGET_INVALID", "汇率同步目标周不合法")
 	ErrExchangeRateSyncRowsInvalid     = errors.BadRequest("EXCHANGE_RATE_SYNC_ROWS_INVALID", "汇率同步数据不合法")
@@ -43,8 +43,10 @@ const (
 )
 
 // 汇率快照来源；费用/账单/流水/发票的 exchange_rate_source 如实记录。
-// 解析链：本组织当周行（WEEKLY/BOC_SYNC）→ 回溯最近历史周（INHERITED_LAST_WEEK）
-// → NULL 基线行直连（SYSTEM）→ 基线交叉套算（DERIVED）；现场手工覆盖为 MANUAL。
+// 解析链（汇率下沉分公司后）：仅匹配业务日期所在自然周的本公司行
+// （WEEKLY/BOC_SYNC），未命中返回缺失错误；现场手工覆盖为 MANUAL。
+// SYSTEM 保留用于同币种恒等折算；INHERITED_LAST_WEEK 与 DERIVED 已退役，
+// 仅存在于历史快照中，不再参与新取值。
 const (
 	ExchangeRateSourceSystem            = "SYSTEM"
 	ExchangeRateSourceDerived           = "DERIVED"
@@ -87,11 +89,12 @@ func ExchangeRateWeekWindow(t time.Time) (time.Time, time.Time) {
 	return monday, sunday
 }
 
-// ExchangeRateSetting 是折本币周汇率：NULL 组织为公共参考行（系统管理维护的公共兜底），
-// 非空为本组织行（各核算组织面向自身本币自治维护）。区间恒为单自然周。
+// ExchangeRateSetting 是折本币周汇率：汇率完全下沉分公司，行恒归属某家公司
+// （OrganizationID 非空），区间恒为单自然周。
 type ExchangeRateSetting struct {
 	ID uuid.UUID
-	// OrganizationID 为空表示公共参考行（NULL），非空表示本组织行。
+	// OrganizationID 为行归属公司；存量 NULL 公共基线行仅作为历史事实保留，
+	// 运行时不再读取与写入。
 	OrganizationID *uuid.UUID
 	FromCurrency   string
 	ToCurrency     string
@@ -108,17 +111,14 @@ type ExchangeRateSetting struct {
 	UpdatedAt time.Time
 }
 
-// ExchangeRateContext 携带调用组织基准币种与系统管理本位币；BaseCurrency 是当前核算
-// 组织的本币（汇率行 to_currency 必须等于它），PivotCurrency 是 NULL 基线行
-// 交叉套算的基准币（系统管理本币）。
+// ExchangeRateContext 携带调用方所属公司及本币；BaseCurrency 是公司本币
+// （汇率行 to_currency 必须等于它）。
 type ExchangeRateContext struct {
 	OwnerOrganizationID uuid.UUID
 	BaseCurrency        string
-	PivotCurrency       string
 }
 
-// ResolvedRate 是汇率解析结果：值携带来源与命中行，供消费方快照区分
-// 周行命中、跨周继承、基线兜底与手工覆盖。
+// ResolvedRate 是汇率解析结果：值携带来源与命中行，供消费方保存快照。
 type ResolvedRate struct {
 	Rate      decimal.Decimal
 	Source    string
@@ -132,20 +132,18 @@ type ExchangeRateListOptions struct {
 }
 
 type ExchangeRateRepo interface {
+	// ResolveContext 沿组织父链解析调用方所属公司及本币；系统节点与异常链显式失败。
 	ResolveContext(ctx context.Context, organizationID uuid.UUID) (*ExchangeRateContext, error)
 	List(ctx context.Context, organizationID uuid.UUID, options ExchangeRateListOptions) ([]*ExchangeRateSetting, int64, error)
-	// UpsertWeeklyBatch 按自然周幂等写入汇率行（同作用域同货币对同周命中即覆盖更新，
-	// 不报唯一键冲突），source 标记行写入来源。
+	// UpsertWeeklyBatch 按自然周幂等写入公司汇率行（同公司同货币对同周命中即覆盖
+	// 更新，不报唯一键冲突），source 标记行写入来源；全部行必须归属同一家公司。
 	UpsertWeeklyBatch(ctx context.Context, source string, inputs []*ExchangeRateSetting, audit *AuditEvent) ([]*ExchangeRateSetting, error)
-	// UpdateScoped 按 ID 更新汇率行；allowBaseline 时可命中 NULL 基线行（系统管理），
-	// 否则仅限调用组织自己的组织行。
-	UpdateScoped(ctx context.Context, callerOrganizationID uuid.UUID, input *ExchangeRateSetting, allowBaseline bool, audit *AuditEvent) (*ExchangeRateSetting, error)
-	// DisableScoped 停用汇率行，作用域语义同 UpdateScoped。
-	DisableScoped(ctx context.Context, callerOrganizationID, id uuid.UUID, allowBaseline bool, audit *AuditEvent) error
-	// ResolveRate 四级容灾解析：本组织当周行（WEEKLY/BOC_SYNC）→ 回溯最近历史周
-	// （INHERITED_LAST_WEEK）→ NULL 基线直连（SYSTEM）→ 基线交叉套算（DERIVED）；
-	// 任一级都绝不阻断单据保存，全部未命中返回 ErrExchangeRateMissing。
-	ResolveRate(ctx context.Context, organizationID uuid.UUID, direction OrderFeeDirection, fromCurrency, toCurrency, pivotCurrency, rateDate string) (ResolvedRate, error)
+	// UpdateScoped 按 ID 更新调用公司自己的汇率行。
+	UpdateScoped(ctx context.Context, callerOrganizationID uuid.UUID, input *ExchangeRateSetting, audit *AuditEvent) (*ExchangeRateSetting, error)
+	// DisableScoped 停用调用公司自己的汇率行。
+	DisableScoped(ctx context.Context, callerOrganizationID, id uuid.UUID, audit *AuditEvent) error
+	// ResolveRate 只匹配业务日期所在自然周的公司行；未命中返回 ErrExchangeRateMissing。
+	ResolveRate(ctx context.Context, organizationID uuid.UUID, direction OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (ResolvedRate, error)
 	EnabledCurrencyCodes(ctx context.Context) ([]string, error)
 	InspectImport(ctx context.Context, ownerOrganizationID uuid.UUID, rows []*ExchangeRateImportRow) (map[int][]string, error)
 	CreateImportPreview(ctx context.Context, batch *ExchangeRateImportBatch, audit *AuditEvent) (*ExchangeRateImportBatch, error)
@@ -200,8 +198,11 @@ func (uc *ExchangeRateUsecase) List(ctx context.Context, organizationID uuid.UUI
 	if err != nil {
 		return nil, "", err
 	}
+	if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateRead) {
+		return nil, "", ErrExchangeRatePermissionDenied
+	}
 	options.FromCurrency = strings.ToUpper(strings.TrimSpace(options.FromCurrency))
-	items, total, err := uc.repo.List(ctx, organizationID, options)
+	items, total, err := uc.repo.List(ctx, rateContext.OwnerOrganizationID, options)
 	if err != nil {
 		return nil, "", err
 	}
@@ -219,12 +220,13 @@ func (uc *ExchangeRateUsecase) Create(ctx context.Context, organizationID, actor
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
-	if err := uc.ensureOrganizationScope(ctx, organizationID, normalized, access.FinanceExchangeRateCreate); err != nil {
+	ownerOrganizationID, err := uc.ensureOrganizationScope(ctx, organizationID, normalized, access.FinanceExchangeRateCreate)
+	if err != nil {
 		return nil, err
 	}
 	normalized.IsActive = true
 	normalized.Source = ExchangeRateSettingSourceManual
-	saved, err := uc.repo.UpsertWeeklyBatch(ctx, normalized.Source, []*ExchangeRateSetting{normalized}, exchangeRateAudit(organizationID, actorID, normalized.ID, "finance.exchange_rate.create"))
+	saved, err := uc.repo.UpsertWeeklyBatch(ctx, normalized.Source, []*ExchangeRateSetting{normalized}, exchangeRateAudit(ownerOrganizationID, actorID, normalized.ID, "finance.exchange_rate.create"))
 	if err != nil {
 		return nil, err
 	}
@@ -237,50 +239,43 @@ func (uc *ExchangeRateUsecase) Update(ctx context.Context, organizationID, actor
 		return nil, ErrExchangeRateInvalidArgument
 	}
 	normalized.ID = id
-	if err := uc.ensureOrganizationScope(ctx, organizationID, normalized, access.FinanceExchangeRateUpdate); err != nil {
+	ownerOrganizationID, err := uc.ensureOrganizationScope(ctx, organizationID, normalized, access.FinanceExchangeRateUpdate)
+	if err != nil {
 		return nil, err
 	}
-	return uc.repo.UpdateScoped(ctx, organizationID, normalized, IsSystemWorkspace(ctx), exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.update"))
+	return uc.repo.UpdateScoped(ctx, ownerOrganizationID, normalized, exchangeRateAudit(ownerOrganizationID, actorID, id, "finance.exchange_rate.update"))
 }
 
 func (uc *ExchangeRateUsecase) Disable(ctx context.Context, organizationID, actorID uuid.UUID, id uuid.UUID) error {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
 		return ErrExchangeRateInvalidArgument
 	}
-	var permissionKey = access.FinanceExchangeRateDisable
-	if IsSystemWorkspace(ctx) {
-		// 系统管理可停用 NULL 基线行（权限码 + 系统管理身份双重校验）。
-		if err := RequireBaselineWrite(ctx, permissionKey); err != nil {
-			return err
-		}
-	} else if !requireExchangeRatePermission(ctx, permissionKey) {
-		return ErrExchangeRatePermissionDenied
-	}
-	return uc.repo.DisableScoped(ctx, organizationID, id, IsSystemWorkspace(ctx), exchangeRateAudit(organizationID, actorID, id, "finance.exchange_rate.disable"))
-}
-
-// ensureOrganizationScope 校验 to_currency 必须等于组织本币，并按组织身份决定行
-// 归属：系统管理写 NULL 基线行（RequireBaselineWrite 双重校验），公司写本组织行。
-func (uc *ExchangeRateUsecase) ensureOrganizationScope(ctx context.Context, organizationID uuid.UUID, normalized *ExchangeRateSetting, permissionKey string) error {
 	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
 	if err != nil {
 		return err
 	}
-	if normalized.ToCurrency != rateContext.BaseCurrency {
-		return ErrExchangeRateCurrencyInvalid
-	}
-	if IsSystemWorkspace(ctx) {
-		if err := RequireBaselineWrite(ctx, permissionKey); err != nil {
-			return err
-		}
-		normalized.OrganizationID = nil
-		return nil
-	}
-	if !requireExchangeRatePermission(ctx, permissionKey) {
+	if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateDisable) {
 		return ErrExchangeRatePermissionDenied
 	}
-	normalized.OrganizationID = &organizationID
-	return nil
+	return uc.repo.DisableScoped(ctx, rateContext.OwnerOrganizationID, id, exchangeRateAudit(rateContext.OwnerOrganizationID, actorID, id, "finance.exchange_rate.disable"))
+}
+
+// ensureOrganizationScope 校验 to_currency 必须等于所属公司本币，并把行归属解析到
+// 公司（部门沿父链归入所属公司）；系统工作台在 ResolveContext 处显式失败，
+// 无任何公共基线写入分支。返回实际写入的目标公司 ID。
+func (uc *ExchangeRateUsecase) ensureOrganizationScope(ctx context.Context, organizationID uuid.UUID, normalized *ExchangeRateSetting, permissionKey string) (uuid.UUID, error) {
+	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if normalized.ToCurrency != rateContext.BaseCurrency {
+		return uuid.Nil, ErrExchangeRateCurrencyInvalid
+	}
+	if !requireExchangeRatePermission(ctx, permissionKey) {
+		return uuid.Nil, ErrExchangeRatePermissionDenied
+	}
+	normalized.OrganizationID = &rateContext.OwnerOrganizationID
+	return rateContext.OwnerOrganizationID, nil
 }
 
 func requireExchangeRatePermission(ctx context.Context, permissionKey string) bool {
@@ -288,13 +283,14 @@ func requireExchangeRatePermission(ctx context.Context, permissionKey string) bo
 	if err != nil {
 		return false
 	}
-	return principal.HasPermission(permissionKey)
+	return principal.HasPermissionInScope(permissionKey, DataScopeOrganization)
 }
 
 // ResolveRate 按目标日期与费用收支方向（RECEIVABLE→ar_rate，PAYABLE→ap_rate）
-// 解析 currency 折组织本币的周汇率；currency 即本币时恒为 1（来源 SYSTEM）。
-// 解析链四级容灾，绝不阻断单据保存；全链未命中返回 ErrExchangeRateMissing，
-// 由前端引导现场手工覆盖（MANUAL）。
+// 解析 currency 折所属公司本币的周汇率；currency 即本币时恒为 1（来源 SYSTEM）。
+// 汇率下沉分公司后只匹配业务日期所在自然周的本公司行，不回溯历史周、不兜底
+// 公共基线；未命中返回 ErrExchangeRateMissing，由前端提示「请先维护汇率」
+// 或按权限手工覆盖（MANUAL）。
 func (uc *ExchangeRateUsecase) ResolveRate(ctx context.Context, organizationID uuid.UUID, direction OrderFeeDirection, currency, targetDate string) (ResolvedRate, error) {
 	currency = strings.ToUpper(strings.TrimSpace(currency))
 	if organizationID == uuid.Nil || !currencyPattern.MatchString(currency) || !validExchangeRateDirection(direction) {
@@ -310,7 +306,7 @@ func (uc *ExchangeRateUsecase) ResolveRate(ctx context.Context, organizationID u
 	if currency == rateContext.BaseCurrency {
 		return ResolvedRate{Rate: decimal.NewFromInt(1), Source: ExchangeRateSourceSystem}, nil
 	}
-	return uc.repo.ResolveRate(ctx, organizationID, direction, currency, rateContext.BaseCurrency, rateContext.PivotCurrency, targetDate)
+	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, direction, currency, rateContext.BaseCurrency, targetDate)
 }
 
 func validExchangeRateDirection(direction OrderFeeDirection) bool {
@@ -371,6 +367,9 @@ func (uc *ExchangeRateUsecase) FetchExchangeRates(ctx context.Context, organizat
 	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
 	if err != nil {
 		return nil, err
+	}
+	if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateCreate) {
+		return nil, ErrExchangeRatePermissionDenied
 	}
 	currencies, err := uc.repo.EnabledCurrencyCodes(ctx)
 	if err != nil {
@@ -481,17 +480,10 @@ func (uc *ExchangeRateUsecase) SyncExchangeRates(ctx context.Context, organizati
 	if err != nil {
 		return 0, "", "", err
 	}
-	// 行归属与组织身份一致（与页面维护同款判定）：系统管理写 NULL 基线行（权限码 +
-	// 系统管理身份双重校验），公司写本组织 org 行——公司一键同步严禁覆盖全网基线。
-	var organizationScope *uuid.UUID
-	if IsSystemWorkspace(ctx) {
-		if err := RequireBaselineWrite(ctx, access.FinanceExchangeRateCreate); err != nil {
-			return 0, "", "", err
-		}
-	} else if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateCreate) {
+	// 行归属恒为所属公司（部门沿父链归入公司，系统工作台已被 ResolveContext 拒绝）：
+	// 先校验公司维护权限，再按公司本币整批落行。
+	if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateCreate) {
 		return 0, "", "", ErrExchangeRatePermissionDenied
-	} else {
-		organizationScope = &organizationID
 	}
 	enabled, err := uc.repo.EnabledCurrencyCodes(ctx)
 	if err != nil {
@@ -522,13 +514,13 @@ func (uc *ExchangeRateUsecase) SyncExchangeRates(ctx context.Context, organizati
 			rate = row.ARRate.Add(row.APRate).Div(decimal.NewFromInt(2)).RoundBank(8)
 		}
 		inputs = append(inputs, &ExchangeRateSetting{
-			ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationScope,
+			ID: uuid.Must(uuid.NewV7()), OrganizationID: &rateContext.OwnerOrganizationID,
 			FromCurrency: code, ToCurrency: rateContext.BaseCurrency,
 			EffectiveFrom: from.Format(time.RFC3339), EffectiveTo: strPtr(to.Format(time.RFC3339)),
 			ARRate: decimalPtr(row.ARRate), APRate: decimalPtr(row.APRate), Rate: rate,
 		})
 	}
-	saved, err := uc.repo.UpsertWeeklyBatch(ctx, ExchangeRateSettingSourceBOCSync, inputs, exchangeRateSyncAudit(organizationID, actorID, target, from, to, len(inputs)))
+	saved, err := uc.repo.UpsertWeeklyBatch(ctx, ExchangeRateSettingSourceBOCSync, inputs, exchangeRateSyncAudit(rateContext.OwnerOrganizationID, actorID, target, from, to, len(inputs)))
 	if err != nil {
 		return 0, "", "", err
 	}

@@ -22,6 +22,9 @@ type exchangeRateRepo struct{ data *Data }
 
 func NewExchangeRateRepo(data *Data) biz.ExchangeRateRepo { return &exchangeRateRepo{data: data} }
 
+// ResolveContext 沿组织父链解析调用方所属公司及本币：汇率完全下沉分公司后仅公司根
+// 可持有业务汇率，部门共享所属公司配置；系统节点、禁用组织、无本币公司及异常链
+// 一律显式失败（系统工作台不读取、不维护业务汇率）。
 func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uuid.UUID) (*biz.ExchangeRateContext, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -42,23 +45,14 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrExchangeRateOrganizationInvalid, nil)
 		}
-		if item.Kind == organizationent.KindCompany || item.Kind == organizationent.KindSystem {
+		if item.Kind == organizationent.KindSystem {
+			return nil, biz.ErrExchangeRateOrganizationInvalid
+		}
+		if item.Kind == organizationent.KindCompany {
 			if item.ParentID != nil || item.BaseCurrency == nil || strings.TrimSpace(*item.BaseCurrency) == "" {
 				return nil, biz.ErrExchangeRateOrganizationInvalid
 			}
-			// 公司拥有业务汇率；公共参考汇率的交叉币种独立取系统配置，不依赖组织祖先。
-			systemQuery := client.Organization.Query().Where(organizationent.KindEQ(organizationent.KindSystem), organizationent.EnabledEQ(true))
-			if _, transactional := transactionFromContext(ctx); transactional {
-				systemQuery.ForShare()
-			}
-			system, err := systemQuery.Only(ctx)
-			if err != nil {
-				return nil, mapEntError(err, biz.ErrExchangeRateOrganizationInvalid, nil)
-			}
-			if system.BaseCurrency == nil || strings.TrimSpace(*system.BaseCurrency) == "" {
-				return nil, biz.ErrExchangeRateOrganizationInvalid
-			}
-			return &biz.ExchangeRateContext{OwnerOrganizationID: item.ID, BaseCurrency: *item.BaseCurrency, PivotCurrency: *system.BaseCurrency}, nil
+			return &biz.ExchangeRateContext{OwnerOrganizationID: item.ID, BaseCurrency: *item.BaseCurrency}, nil
 		}
 		if item.ParentID == nil {
 			return nil, biz.ErrExchangeRateOrganizationInvalid
@@ -67,7 +61,7 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 	}
 }
 
-// List 返回调用方组织行 + 公共参考行；维护入口按行归属呈现（基线行对公司工作台只读）。
+// List 返回调用公司自己的周汇率行；公共基线行已退役，不再返回也不再展示。
 // 分页按最新生效周降序优先，便于财务首屏查看最新汇率。
 func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID, options biz.ExchangeRateListOptions) ([]*biz.ExchangeRateSetting, int64, error) {
 	client, err := r.data.client(ctx)
@@ -75,10 +69,7 @@ func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID, o
 		return nil, 0, err
 	}
 	predicates := []predicate.ExchangeRateSetting{
-		exchangerateent.Or(
-			exchangerateent.OrganizationIDEQ(organizationID),
-			exchangerateent.OrganizationIDIsNil(),
-		),
+		exchangerateent.OrganizationIDEQ(organizationID),
 	}
 	if options.FromCurrency != "" {
 		predicates = append(predicates, exchangerateent.FromCurrencyEQ(options.FromCurrency))
@@ -111,25 +102,25 @@ func (r *exchangeRateRepo) List(ctx context.Context, organizationID uuid.UUID, o
 	return result, int64(total), nil
 }
 
-// UpsertWeeklyBatch 按自然周幂等写入汇率行：同作用域同货币对同周（effective_from
-// 锚定周一）命中即覆盖更新，不抛唯一键冲突；行归属由 input.OrganizationID 决定
-// （NULL=基线行，非空=组织行），重叠校验同域化（基线行只与基线行比对）。
+// UpsertWeeklyBatch 按自然周幂等写入公司汇率行：同公司同货币对同周（effective_from
+// 锚定周一）命中即覆盖更新，不抛唯一键冲突；全部行必须归属同一家公司，缺失或
+// 跨公司混写一律拒绝。
 func (r *exchangeRateRepo) UpsertWeeklyBatch(ctx context.Context, source string, inputs []*biz.ExchangeRateSetting, audit *biz.AuditEvent) ([]*biz.ExchangeRateSetting, error) {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil || inputs[0].OrganizationID == nil || *inputs[0].OrganizationID == uuid.Nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
+	scopeID := *inputs[0].OrganizationID
 	for _, input := range inputs {
+		if input == nil || input.OrganizationID == nil || *input.OrganizationID != scopeID {
+			return nil, biz.ErrExchangeRateInvalidArgument
+		}
 		if err := r.validateCurrencies(ctx, input.FromCurrency, input.ToCurrency); err != nil {
 			return nil, err
 		}
 	}
-	// 作用域级 advisory 锁：同一作用域（基线/组织）的周写入串行化，避免并发
-	// Upsert 与唯一索引冲突竞争。
-	scope := "baseline"
-	if inputs[0].OrganizationID != nil {
-		scope = inputs[0].OrganizationID.String()
-	}
-	lockKey := fmt.Sprintf("exchange-rate-weekly:%s", scope)
+	// 公司作用域级 advisory 锁：同一公司的周写入串行化，避免并发 Upsert 与唯一
+	// 索引冲突竞争。
+	lockKey := fmt.Sprintf("exchange-rate-weekly:%s", scopeID)
 	connection, err := r.data.sqlDB.Conn(ctx)
 	if err != nil {
 		return nil, err
@@ -175,7 +166,7 @@ func (r *exchangeRateRepo) UpsertWeeklyBatch(ctx context.Context, source string,
 	return result, nil
 }
 
-// upsertWeeklyExchangeRate 在事务内按（作用域, 货币对, 当周周一）命中即覆盖更新，
+// upsertWeeklyExchangeRate 在事务内按（公司, 货币对, 当周周一）命中即覆盖更新，
 // 未命中则插入新行；命中行（含已停用）恢复启用并刷新周窗口与三轨汇率。
 func upsertWeeklyExchangeRate(ctx context.Context, tx *ent.Tx, input *biz.ExchangeRateSetting, source string) (*ent.ExchangeRateSetting, error) {
 	effectiveFrom, err := parseExchangeRateStorageTime(input.EffectiveFrom)
@@ -186,10 +177,9 @@ func upsertWeeklyExchangeRate(ctx context.Context, tx *ent.Tx, input *biz.Exchan
 	if err != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
 	}
-	scopePredicate := scopePredicateFor(input.OrganizationID)
 	existing, queryErr := tx.ExchangeRateSetting.Query().
 		Where(
-			scopePredicate,
+			exchangerateent.OrganizationIDEQ(*input.OrganizationID),
 			exchangerateent.FromCurrencyEQ(input.FromCurrency), exchangerateent.ToCurrencyEQ(input.ToCurrency),
 			exchangerateent.EffectiveFromEQ(effectiveFrom),
 		).
@@ -229,17 +219,9 @@ func upsertWeeklyExchangeRate(ctx context.Context, tx *ent.Tx, input *biz.Exchan
 	return created, nil
 }
 
-// scopePredicateFor 行作用域谓词：NULL 输入限定基线行，非空限定对应组织行。
-func scopePredicateFor(organizationID *uuid.UUID) predicate.ExchangeRateSetting {
-	if organizationID == nil {
-		return exchangerateent.OrganizationIDIsNil()
-	}
-	return exchangerateent.OrganizationIDEQ(*organizationID)
-}
-
-// UpdateScoped 按 ID 更新汇率行；allowBaseline 时系统工作台可命中 NULL 基线行，
-// 否则仅限调用组织自己的组织行。周窗口与三轨汇率整体覆盖。
-func (r *exchangeRateRepo) UpdateScoped(ctx context.Context, callerOrganizationID uuid.UUID, input *biz.ExchangeRateSetting, allowBaseline bool, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
+// UpdateScoped 按 ID 更新本公司汇率行；仅命中调用公司自己的行，周窗口与三轨汇率
+// 整体覆盖。
+func (r *exchangeRateRepo) UpdateScoped(ctx context.Context, callerOrganizationID uuid.UUID, input *biz.ExchangeRateSetting, audit *biz.AuditEvent) (*biz.ExchangeRateSetting, error) {
 	effectiveFrom, err := parseExchangeRateStorageTime(input.EffectiveFrom)
 	if err != nil {
 		return nil, biz.ErrExchangeRateInvalidArgument
@@ -250,14 +232,7 @@ func (r *exchangeRateRepo) UpdateScoped(ctx context.Context, callerOrganizationI
 	}
 	var saved *ent.ExchangeRateSetting
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		scope := exchangerateent.Or(
-			exchangerateent.OrganizationIDEQ(callerOrganizationID),
-			exchangerateent.OrganizationIDIsNil(),
-		)
-		if !allowBaseline {
-			scope = exchangerateent.OrganizationIDEQ(callerOrganizationID)
-		}
-		current, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(input.ID), scope, exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
+		current, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(input.ID), exchangerateent.OrganizationIDEQ(callerOrganizationID), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrExchangeRateNotFound, nil)
 		}
@@ -281,17 +256,10 @@ func (r *exchangeRateRepo) UpdateScoped(ctx context.Context, callerOrganizationI
 	return exchangeRateToBiz(saved)
 }
 
-// DisableScoped 停用汇率行，作用域语义同 UpdateScoped。
-func (r *exchangeRateRepo) DisableScoped(ctx context.Context, callerOrganizationID, id uuid.UUID, allowBaseline bool, audit *biz.AuditEvent) error {
+// DisableScoped 停用本公司汇率行。
+func (r *exchangeRateRepo) DisableScoped(ctx context.Context, callerOrganizationID, id uuid.UUID, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		scope := exchangerateent.Or(
-			exchangerateent.OrganizationIDEQ(callerOrganizationID),
-			exchangerateent.OrganizationIDIsNil(),
-		)
-		if !allowBaseline {
-			scope = exchangerateent.OrganizationIDEQ(callerOrganizationID)
-		}
-		item, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), scope, exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
+		item, queryErr := tx.ExchangeRateSetting.Query().Where(exchangerateent.IDEQ(id), exchangerateent.OrganizationIDEQ(callerOrganizationID), exchangerateent.IsActiveEQ(true)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrExchangeRateNotFound, nil)
 		}
@@ -302,15 +270,11 @@ func (r *exchangeRateRepo) DisableScoped(ctx context.Context, callerOrganization
 	})
 }
 
-// ResolveRate 四级容灾解析（绝不阻断单据保存）：
-//  1. 本组织当周行（自然周窗口覆盖目标日期）：快照源 WEEKLY / BOC_SYNC（按行 source）；
-//  2. 回溯最近一个有效历史周的组织行：快照源 INHERITED_LAST_WEEK；
-//  3. NULL 基线行直连（当周 → 回溯最近历史基线周，公共兜底同样不卡单）：快照源 SYSTEM；
-//  4. NULL 基线行经基准币交叉套算（每腿按三级同款基线解析）：快照源 DERIVED。
-//
-// 汇率值按费用收支方向取列：RECEIVABLE→coalesce(ar_rate, rate)，PAYABLE→coalesce(ap_rate, rate)。
-// 全链未命中返回 ErrExchangeRateMissing，由现场手工覆盖（MANUAL）兜底。
-func (r *exchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency, pivotCurrency, rateDate string) (biz.ResolvedRate, error) {
+// ResolveRate 只匹配业务日期所在自然周的本公司启用行（汇率完全下沉分公司，
+// 不再回溯历史周、不再兜底公共基线）：RECEIVABLE→coalesce(ar_rate, rate)，
+// PAYABLE→coalesce(ap_rate, rate)。未命中（含上周、未来周、历史开口行与公共行）
+// 返回 ErrExchangeRateMissing，由前端提示「请先维护汇率」或按权限手工覆盖（MANUAL）。
+func (r *exchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (biz.ResolvedRate, error) {
 	if fromCurrency == toCurrency {
 		return biz.ResolvedRate{Rate: decimal.NewFromInt(1), Source: biz.ExchangeRateSourceSystem}, nil
 	}
@@ -318,65 +282,17 @@ func (r *exchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.
 	if err != nil {
 		return biz.ResolvedRate{}, biz.ErrExchangeRateInvalidArgument
 	}
-	// 一级：本组织当周行。
-	rate, settingID, rowSource, found, err := r.resolveWeeklyRow(ctx, &organizationID, direction, fromCurrency, toCurrency, lookup)
+	rate, settingID, rowSource, found, err := r.resolveWeeklyRow(ctx, organizationID, direction, fromCurrency, toCurrency, lookup)
 	if err != nil {
 		return biz.ResolvedRate{}, err
-	}
-	if found {
-		return biz.ResolvedRate{Rate: rate, Source: weeklySnapshotSource(rowSource), SettingID: settingID}, nil
-	}
-	// 二级：回溯最近一个有效历史周（继承上周，不阻断保存）。
-	rate, settingID, _, found, err = r.resolveInheritedWeeklyRow(ctx, &organizationID, direction, fromCurrency, toCurrency, lookup)
-	if err != nil {
-		return biz.ResolvedRate{}, err
-	}
-	if found {
-		return biz.ResolvedRate{Rate: rate, Source: biz.ExchangeRateSourceInheritedLastWeek, SettingID: settingID}, nil
-	}
-	// 三级：NULL 基线行直连（覆盖行缺失时同样回溯最近历史基线周），快照携带命中行。
-	rate, settingID, found, err = r.resolveBaselineRowWithHistory(ctx, direction, fromCurrency, toCurrency, lookup)
-	if err != nil {
-		return biz.ResolvedRate{}, err
-	}
-	if found {
-		return biz.ResolvedRate{Rate: rate, Source: biz.ExchangeRateSourceSystem, SettingID: settingID}, nil
-	}
-	// 四级：NULL 基线行经基准币交叉套算，每腿按三级同款基线解析（当周 → 回溯历史）。
-	legFrom := decimal.NewFromInt(1)
-	if fromCurrency != pivotCurrency {
-		legFrom, err = r.resolveBaselineLeg(ctx, direction, fromCurrency, pivotCurrency, lookup)
-		if err != nil {
-			return biz.ResolvedRate{}, err
-		}
-	}
-	legTo := decimal.NewFromInt(1)
-	if toCurrency != pivotCurrency {
-		legTo, err = r.resolveBaselineLeg(ctx, direction, toCurrency, pivotCurrency, lookup)
-		if err != nil {
-			return biz.ResolvedRate{}, err
-		}
-	}
-	if !legTo.IsPositive() {
-		return biz.ResolvedRate{}, biz.ErrExchangeRateMissing
-	}
-	return biz.ResolvedRate{Rate: legFrom.Div(legTo).RoundBank(8), Source: biz.ExchangeRateSourceDerived}, nil
-}
-
-// resolveBaselineLeg 解析套算单腿：NULL 基线覆盖行 → 回溯最近历史基线周；均缺失
-// 返回 ErrExchangeRateMissing（fail-closed，不做静默 1）。
-func (r *exchangeRateRepo) resolveBaselineLeg(ctx context.Context, direction biz.OrderFeeDirection, fromCurrency, toCurrency string, lookup time.Time) (decimal.Decimal, error) {
-	rate, _, found, err := r.resolveBaselineRowWithHistory(ctx, direction, fromCurrency, toCurrency, lookup)
-	if err != nil {
-		return decimal.Decimal{}, err
 	}
 	if !found {
-		return decimal.Decimal{}, biz.ErrExchangeRateMissing
+		return biz.ResolvedRate{}, biz.ErrExchangeRateMissing
 	}
-	return rate, nil
+	return biz.ResolvedRate{Rate: rate, Source: weeklySnapshotSource(rowSource), SettingID: settingID}, nil
 }
 
-// weeklySnapshotSource 当周组织行的快照来源：牌价同步行标记 BOC_SYNC，其余标记 WEEKLY。
+// weeklySnapshotSource 当周公司行的快照来源：牌价同步行标记 BOC_SYNC，其余标记 WEEKLY。
 func weeklySnapshotSource(rowSource string) string {
 	if rowSource == biz.ExchangeRateSettingSourceBOCSync {
 		return biz.ExchangeRateSourceBOCSync
@@ -384,22 +300,22 @@ func weeklySnapshotSource(rowSource string) string {
 	return biz.ExchangeRateSourceWeekly
 }
 
-// resolveWeeklyRow 解析单条覆盖目标时刻的汇率行（作用域限定：orgID 非空为组织行，
-// nil 为基线行）。命中至多一行——部分唯一索引按周生效，同作用域同周多行视为
-// 脏数据冲突（fail-closed）。事务内读取加 ForShare 共享锁，保证并发修改汇率
-// 不影响同事务内已解析的账单快照。
-func (r *exchangeRateRepo) resolveWeeklyRow(ctx context.Context, organizationID *uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency string, lookup time.Time) (decimal.Decimal, *uuid.UUID, string, bool, error) {
+// resolveWeeklyRow 解析业务日期所在自然周的单条公司汇率行。行只在其自身自然周内
+// 生效：写入路径恒把 effective_from 锚定到周一 00:00:00，历史开口行不得跨周命中，
+// 因此按 effective_from == 业务日期所在周周一精确匹配，与周幂等写入键一致。
+// 命中至多一行——部分唯一索引按周生效，同周多行视为脏数据冲突（fail-closed）。
+// 事务内读取加 ForShare 共享锁，保证并发修改汇率不影响同事务内已解析的账单快照。
+func (r *exchangeRateRepo) resolveWeeklyRow(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency string, lookup time.Time) (decimal.Decimal, *uuid.UUID, string, bool, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return decimal.Decimal{}, nil, "", false, err
 	}
+	weekFrom, _ := biz.ExchangeRateWeekWindow(lookup)
 	query := client.ExchangeRateSetting.Query().Where(
-		scopePredicateFor(organizationID),
+		exchangerateent.OrganizationIDEQ(organizationID),
 		exchangerateent.FromCurrencyEQ(fromCurrency), exchangerateent.ToCurrencyEQ(toCurrency),
 		exchangerateent.IsActiveEQ(true),
-		// 周窗口为闭区间：周一 00:00:00 ≤ lookup ≤ 周日 23:59:59（兼容历史开口行）。
-		exchangerateent.EffectiveFromLTE(lookup),
-		exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToGTE(lookup)),
+		exchangerateent.EffectiveFromEQ(weekFrom),
 	).Limit(2)
 	if _, transactional := transactionFromContext(ctx); transactional {
 		query.ForShare()
@@ -420,50 +336,6 @@ func (r *exchangeRateRepo) resolveWeeklyRow(ctx context.Context, organizationID 
 	}
 	settingID := items[0].ID
 	return rate, &settingID, string(items[0].Source), true, nil
-}
-
-// resolveInheritedWeeklyRow 回溯最近一个有效历史周的汇率行（整周已结束于目标时刻
-// 之前，按 effective_from 倒序取最近一周）；作用域限定同 resolveWeeklyRow，
-// 事务内读取加 ForShare。
-func (r *exchangeRateRepo) resolveInheritedWeeklyRow(ctx context.Context, organizationID *uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency string, lookup time.Time) (decimal.Decimal, *uuid.UUID, string, bool, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return decimal.Decimal{}, nil, "", false, err
-	}
-	query := client.ExchangeRateSetting.Query().Where(
-		scopePredicateFor(organizationID),
-		exchangerateent.FromCurrencyEQ(fromCurrency), exchangerateent.ToCurrencyEQ(toCurrency),
-		exchangerateent.IsActiveEQ(true),
-		exchangerateent.EffectiveFromLT(lookup),
-		exchangerateent.Or(exchangerateent.EffectiveToIsNil(), exchangerateent.EffectiveToLT(lookup)),
-	).Order(exchangerateent.ByEffectiveFrom(entsql.OrderDesc()))
-	if _, transactional := transactionFromContext(ctx); transactional {
-		query.ForShare()
-	}
-	item, err := query.First(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return decimal.Decimal{}, nil, "", false, nil
-		}
-		return decimal.Decimal{}, nil, "", false, err
-	}
-	rate, err := directionalRate(item, direction)
-	if err != nil {
-		return decimal.Decimal{}, nil, "", false, err
-	}
-	settingID := item.ID
-	return rate, &settingID, string(item.Source), true, nil
-}
-
-// resolveBaselineRowWithHistory NULL 基线行兜底解析：先取覆盖目标时刻的行，
-// 缺失时回溯最近一个有效历史基线周（公共兜底与组织行同享容灾，不卡单据）。
-func (r *exchangeRateRepo) resolveBaselineRowWithHistory(ctx context.Context, direction biz.OrderFeeDirection, fromCurrency, toCurrency string, lookup time.Time) (decimal.Decimal, *uuid.UUID, bool, error) {
-	rate, settingID, _, found, err := r.resolveWeeklyRow(ctx, nil, direction, fromCurrency, toCurrency, lookup)
-	if err != nil || found {
-		return rate, settingID, found, err
-	}
-	rate, settingID, _, found, err = r.resolveInheritedWeeklyRow(ctx, nil, direction, fromCurrency, toCurrency, lookup)
-	return rate, settingID, found, err
 }
 
 // directionalRate 按收支方向取汇率值：应收取 ar_rate（缺省回落 rate 基准价），

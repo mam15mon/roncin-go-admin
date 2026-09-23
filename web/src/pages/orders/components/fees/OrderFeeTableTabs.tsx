@@ -105,7 +105,6 @@ const positiveDecimalRule =
 type ExchangeRatePreview = {
   status: 'loading' | 'resolved' | 'missing' | 'error';
   rate?: string;
-  inheritedLastWeek?: boolean;
 };
 
 /** 行内编辑时总金额列的实时预览。 */
@@ -548,8 +547,6 @@ export default function OrderFeeTableTabs({
           patchRate({
             status: 'resolved',
             rate: trimDecimal(response.exchangeRate),
-            inheritedLastWeek:
-              response.exchangeRateSource === 'INHERITED_LAST_WEEK',
           });
         } else {
           patchRate({ status: 'error' });
@@ -1276,7 +1273,7 @@ export default function OrderFeeTableTabs({
               return <span style={{ color: '#8c8c8c' }}>获取中…</span>;
             }
             if (preview.status === 'missing') {
-              return <span style={{ color: '#cf1322' }}>汇率缺失</span>;
+              return <span style={{ color: '#cf1322' }}>请先维护汇率</span>;
             }
             if (preview.status === 'error') {
               return <span style={{ color: '#cf1322' }}>汇率解析失败</span>;
@@ -1285,7 +1282,6 @@ export default function OrderFeeTableTabs({
               <Space size={4}>
                 <span>{preview.rate}</span>
                 <Tag color="processing">预览</Tag>
-                {preview.inheritedLastWeek && <Tag color="gold">沿用上周</Tag>}
               </Space>
             );
           }

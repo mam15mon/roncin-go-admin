@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/shopspring/decimal"
 )
 
@@ -87,7 +88,10 @@ func (uc *ExchangeRateUsecase) PreviewImport(ctx context.Context, organizationID
 	if err != nil {
 		return nil, "", err
 	}
-	// 汇率导入按当前组织落地：系统管理落 NULL 基线行，公司落本组织行。
+	if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateCreate) {
+		return nil, "", ErrExchangeRatePermissionDenied
+	}
+	// 汇率导入恒按所属公司落地（部门沿父链归入公司，系统工作台被拒绝）。
 	rows := normalizeExchangeRateImportRows(input.Rows, rateContext.BaseCurrency)
 	inspectionErrors, err := uc.repo.InspectImport(ctx, rateContext.OwnerOrganizationID, rows)
 	if err != nil {
@@ -105,7 +109,7 @@ func (uc *ExchangeRateUsecase) PreviewImport(ctx context.Context, organizationID
 	}
 	now := time.Now().UTC()
 	batch := &ExchangeRateImportBatch{
-		ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, OwnerOrganizationID: rateContext.OwnerOrganizationID,
+		ID: uuid.Must(uuid.NewV7()), OrganizationID: rateContext.OwnerOrganizationID, OwnerOrganizationID: rateContext.OwnerOrganizationID,
 		CreatedBy: actorID, FileName: input.FileName, FileChecksum: input.FileChecksum,
 		TemplateVersion: input.TemplateVersion, Status: ExchangeRateImportPreviewReady,
 		PreviewTokenHash: tokenHash, ExpiresAt: now.Add(ExchangeRateImportPreviewTTL), Rows: rows,
@@ -121,7 +125,7 @@ func (uc *ExchangeRateUsecase) PreviewImport(ctx context.Context, organizationID
 	if batch.InvalidCount > 0 {
 		batch.Status = ExchangeRateImportPreviewInvalid
 	}
-	created, err := uc.repo.CreateImportPreview(ctx, batch, exchangeRateImportAudit(organizationID, actorID, batch.ID, "finance.exchange_rate.import.preview", input.FileChecksum))
+	created, err := uc.repo.CreateImportPreview(ctx, batch, exchangeRateImportAudit(rateContext.OwnerOrganizationID, actorID, batch.ID, "finance.exchange_rate.import.preview", input.FileChecksum))
 	if err != nil {
 		return nil, "", err
 	}
@@ -138,16 +142,26 @@ func (uc *ExchangeRateUsecase) ConfirmImport(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
+	if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateCreate) {
+		return nil, ErrExchangeRatePermissionDenied
+	}
 	tokenHash := hashExchangeRateImportPreviewToken(previewToken)
-	audit := exchangeRateImportAudit(organizationID, actorID, uuid.Nil, "finance.exchange_rate.import.confirm", "")
-	return uc.repo.ConfirmImport(ctx, organizationID, rateContext.OwnerOrganizationID, actorID, tokenHash, idempotencyKey, time.Now().UTC(), audit)
+	audit := exchangeRateImportAudit(rateContext.OwnerOrganizationID, actorID, uuid.Nil, "finance.exchange_rate.import.confirm", "")
+	return uc.repo.ConfirmImport(ctx, rateContext.OwnerOrganizationID, rateContext.OwnerOrganizationID, actorID, tokenHash, idempotencyKey, time.Now().UTC(), audit)
 }
 
 func (uc *ExchangeRateUsecase) GetImport(ctx context.Context, organizationID, id uuid.UUID) (*ExchangeRateImportBatch, error) {
 	if organizationID == uuid.Nil || id == uuid.Nil {
 		return nil, ErrExchangeRateInvalidArgument
 	}
-	return uc.repo.GetImport(ctx, organizationID, id)
+	rateContext, err := uc.repo.ResolveContext(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if !requireExchangeRatePermission(ctx, access.FinanceExchangeRateRead) {
+		return nil, ErrExchangeRatePermissionDenied
+	}
+	return uc.repo.GetImport(ctx, rateContext.OwnerOrganizationID, id)
 }
 
 func normalizeExchangeRateImportRows(input []*ExchangeRateImportRow, baseCurrency string) []*ExchangeRateImportRow {

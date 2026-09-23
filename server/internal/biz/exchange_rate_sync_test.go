@@ -27,7 +27,7 @@ func (s *quoteProviderStub) FetchDirectQuotes(context.Context, string, []string)
 }
 
 func newSyncUsecaseForTest(provider ExchangeRateQuoteProvider, now time.Time) (*ExchangeRateUsecase, *exchangeRateRepoStub) {
-	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY", PivotCurrency: "CNY"}}
+	repo := &exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}}
 	uc := NewExchangeRateUsecase(repo, provider)
 	uc.now = func() time.Time { return now }
 	return uc, repo
@@ -40,7 +40,7 @@ func TestFetchExchangeRatesRoutesCNYBaseToBankQuotes(t *testing.T) {
 	}}}
 	uc, repo := newSyncUsecaseForTest(provider, now)
 	repo.rateContext.BaseCurrency = "CNY"
-	preview, err := uc.FetchExchangeRates(context.Background(), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetCurrentWeek)
+	preview, err := uc.FetchExchangeRates(principalContext(companyPrincipal("system.finance.exchange_rate.create")), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetCurrentWeek)
 	if err != nil {
 		t.Fatalf("CNY 本币抓取失败: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestFetchExchangeRatesPrefersDirectQuotesForNonCNYBase(t *testing.T) {
 	}}}
 	uc, repo := newSyncUsecaseForTest(provider, now)
 	repo.rateContext.BaseCurrency = "HKD"
-	preview, err := uc.FetchExchangeRates(context.Background(), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetCurrentWeek)
+	preview, err := uc.FetchExchangeRates(principalContext(companyPrincipal("system.finance.exchange_rate.create")), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetCurrentWeek)
 	if err != nil {
 		t.Fatalf("非 CNY 本币抓取失败: %v", err)
 	}
@@ -79,7 +79,7 @@ func TestFetchExchangeRatesFallsBackToBOCCrossQuotes(t *testing.T) {
 	}
 	uc, repo := newSyncUsecaseForTest(provider, now)
 	repo.rateContext.BaseCurrency = "HKD"
-	preview, err := uc.FetchExchangeRates(context.Background(), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetNextWeek)
+	preview, err := uc.FetchExchangeRates(principalContext(companyPrincipal("system.finance.exchange_rate.create")), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetNextWeek)
 	if err != nil {
 		t.Fatalf("交叉盘兜底失败: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestFetchExchangeRatesFailsClosedWhenAllSourcesUnavailable(t *testing.T) {
 	provider := &quoteProviderStub{directErr: errors.New("down"), cnyErr: errors.New("down")}
 	uc, repo := newSyncUsecaseForTest(provider, now)
 	repo.rateContext.BaseCurrency = "HKD"
-	if _, err := uc.FetchExchangeRates(context.Background(), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetCurrentWeek); !errors.Is(err, ErrExchangeRateQuoteUnavailable) {
+	if _, err := uc.FetchExchangeRates(principalContext(companyPrincipal("system.finance.exchange_rate.create")), uuid.Must(uuid.NewV7()), ExchangeRateSyncTargetCurrentWeek); !errors.Is(err, ErrExchangeRateQuoteUnavailable) {
 		t.Fatalf("全部数据源失败应返回业务错误，实际 %v", err)
 	}
 }
@@ -121,7 +121,7 @@ func TestSyncExchangeRatesValidatesAndUpserts(t *testing.T) {
 		{FromCurrency: "USD", ARRate: decimal.RequireFromString("6.7500"), APRate: decimal.RequireFromString("6.7000")},
 		{FromCurrency: "eur", ARRate: decimal.RequireFromString("7.9000"), APRate: decimal.RequireFromString("7.8000"), Rate: decimal.RequireFromString("7.85")},
 	}
-	ctx := principalContext(headquartersPrincipal("system.finance.exchange_rate.create"))
+	ctx := principalContext(companyPrincipal("system.finance.exchange_rate.create"))
 	count, from, to, err := uc.SyncExchangeRates(ctx, orgID, actorID, ExchangeRateSyncTargetCurrentWeek, rows)
 	if err != nil {
 		t.Fatalf("同步发布失败: %v", err)
@@ -140,9 +140,8 @@ func TestSyncExchangeRatesValidatesAndUpserts(t *testing.T) {
 			t.Fatalf("同步行 to_currency 必须是组织本币且锚定当周周一: %#v", input)
 		}
 	}
-	// 总部同步落 NULL 基线行（公共兜底）。
-	if repo.savedSettings[0].OrganizationID != nil {
-		t.Fatalf("总部同步应写 NULL 基线行，实际 %v", repo.savedSettings[0].OrganizationID)
+	if repo.savedSettings[0].OrganizationID == nil || *repo.savedSettings[0].OrganizationID != repo.rateContext.OwnerOrganizationID {
+		t.Fatalf("同步必须写所属公司行，实际 %v", repo.savedSettings[0].OrganizationID)
 	}
 }
 
@@ -152,7 +151,7 @@ func TestSyncExchangeRatesWritesOrganizationRowForBranch(t *testing.T) {
 	now := time.Date(2026, 9, 18, 9, 0, 0, 0, ExchangeRateBusinessLocation())
 	uc, repo := newSyncUsecaseForTest(&quoteProviderStub{}, now)
 	branchOrg, actorID := uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())
-	repo.rateContext = &ExchangeRateContext{OwnerOrganizationID: branchOrg, BaseCurrency: "HKD", PivotCurrency: "CNY"}
+	repo.rateContext = &ExchangeRateContext{OwnerOrganizationID: branchOrg, BaseCurrency: "HKD"}
 	rows := []*ExchangeRateSyncRow{
 		{FromCurrency: "USD", ARRate: decimal.RequireFromString("7.8226"), APRate: decimal.RequireFromString("7.8222")},
 	}

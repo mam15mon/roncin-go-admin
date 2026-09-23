@@ -79,7 +79,7 @@ func TestRenderExchangeRateWeeklyReminder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("渲染督办通知失败: %v", err)
 	}
-	for _, fragment := range []string{"深圳分公司", "CNY 2026-09-14~2026-09-20", "暂沿用上周汇率"} {
+	for _, fragment := range []string{"深圳分公司", "CNY 2026-09-14~2026-09-20", "请先在「财务 · 汇率」页维护汇率"} {
 		if !strings.Contains(content, fragment) {
 			t.Fatalf("督办通知缺少内容 %q: %s", fragment, content)
 		}

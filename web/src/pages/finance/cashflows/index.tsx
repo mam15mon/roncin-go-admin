@@ -609,25 +609,27 @@ export default function FinanceCashflowsPage() {
           label="发生金额"
           rules={[{ required: true }, decimalRule]}
         />
-        <ProFormText
-          name="exchangeRate"
-          label="结算汇率（可选）"
-          placeholder="留空默认根据交易日期自动获取系统结算汇率"
-          extra="外币流水若不填则自动按交易日期匹配 SETTLEMENT 汇率；手动输入需具备财务汇率覆盖权限"
-          rules={[
-            {
-              validator: (_, val) => {
-                if (!val) return Promise.resolve();
-                if (!decimalRule.pattern.test(val)) {
-                  return Promise.reject(
-                    new Error('请输入大于 0 且最多 8 位小数的汇率'),
-                  );
-                }
-                return Promise.resolve();
+        {access.canOverrideFeeExchangeRate && (
+          <ProFormText
+            name="exchangeRate"
+            label="结算汇率（可选）"
+            placeholder="留空按交易日期匹配本公司周汇率"
+            extra="手动输入的汇率仅用于本笔流水，不修改公司周汇率"
+            rules={[
+              {
+                validator: (_, val) => {
+                  if (!val) return Promise.resolve();
+                  if (!decimalRule.pattern.test(val)) {
+                    return Promise.reject(
+                      new Error('请输入大于 0 且最多 8 位小数的汇率'),
+                    );
+                  }
+                  return Promise.resolve();
+                },
               },
-            },
-          ]}
-        />
+            ]}
+          />
+        )}
         <ProFormDatePicker
           name="transactionDate"
           label="交易日期"

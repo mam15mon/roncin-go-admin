@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/shopspring/decimal"
 )
@@ -97,8 +98,15 @@ func (s *ExchangeRateService) DisableExchangeRateSetting(ctx context.Context, re
 }
 
 func (s *ExchangeRateService) DownloadExchangeRateImportTemplate(ctx context.Context, _ *v1.DownloadExchangeRateImportTemplateRequest) (*v1.DownloadExchangeRateImportTemplateResponse, error) {
-	if _, principalErr := biz.RequirePrincipal(ctx); principalErr != nil {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
 		return nil, principalErr
+	}
+	if !principal.HasPermission(access.FinanceExchangeRateRead) {
+		return nil, biz.ErrExchangeRatePermissionDenied
+	}
+	if _, err := s.usecase.BaseCurrency(ctx, principal.Organization.ID); err != nil {
+		return nil, err
 	}
 	content, err := buildExchangeRateImportTemplate()
 	if err != nil {
@@ -262,7 +270,7 @@ func exchangeRateInputFromAPI(fromCurrency, toCurrency, effectiveFrom string, ar
 }
 
 func exchangeRateToAPI(value *biz.ExchangeRateSetting) *v1.ExchangeRateSetting {
-	// 基线行 OrganizationID 为 nil，先判空再取 String()，契约上落空串。
+	// 存量公共行可能为空归属；新配置恒返回所属公司 ID。
 	organizationID := ""
 	if value.OrganizationID != nil {
 		organizationID = value.OrganizationID.String()

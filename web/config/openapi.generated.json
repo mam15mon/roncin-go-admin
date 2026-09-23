@@ -19013,7 +19013,8 @@
             "type": "string"
           },
           "organizationId": {
-            "type": "string"
+            "type": "string",
+            "description": "新配置的组织归属恒为所属分公司。"
           },
           "fromCurrency": {
             "type": "string"
@@ -36393,7 +36394,7 @@
     },
     {
       "name": "ExchangeRateService",
-      "description": "ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。"
+      "description": "ExchangeRateService 维护各分公司本币口径的周汇率主数据（应收/应付双轨点差）。"
     },
     {
       "name": "FeeCatalogService",

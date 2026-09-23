@@ -19,7 +19,7 @@ func (r *orderFeeExchangeRateRepoStub) ResolveContext(context.Context, uuid.UUID
 	return &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}, nil
 }
 
-func (r *orderFeeExchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _ OrderFeeDirection, _, _, _, rateDate string) (ResolvedRate, error) {
+func (r *orderFeeExchangeRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _ OrderFeeDirection, _, _, rateDate string) (ResolvedRate, error) {
 	r.resolveCalls++
 	r.resolveDates = append(r.resolveDates, rateDate)
 	return ResolvedRate{Rate: r.rate, Source: ExchangeRateSourceSystem}, nil
@@ -33,6 +33,21 @@ type orderFeeRepoStub struct {
 type orderFeeAddCaptureRepoStub struct {
 	OrderFeeRepo
 	added *OrderFee
+}
+
+type orderFeeUpdateCaptureRepoStub struct {
+	orderFeeAddCaptureRepoStub
+	current *OrderFee
+	updated *OrderFee
+}
+
+func (r *orderFeeUpdateCaptureRepoStub) Get(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*OrderFee, error) {
+	return r.current, nil
+}
+
+func (r *orderFeeUpdateCaptureRepoStub) Update(_ context.Context, _, _, _ uuid.UUID, input *OrderFee, _ *ResolvedRate, _ *AuditEvent) (*OrderFee, error) {
+	r.updated = input
+	return input, nil
 }
 
 func (r *orderFeeAddCaptureRepoStub) GetByIdempotencyKey(context.Context, uuid.UUID, uuid.UUID, string) (*OrderFee, error) {
@@ -84,6 +99,54 @@ func TestOrderFeeAddSavesAsUnbilledAndImmediatelyBillable(t *testing.T) {
 	}
 	if len(bill.Lines) != 1 || bill.Lines[0].OrderFeeID != billable.Fee.ID {
 		t.Fatalf("账单应包含该未建账费用: %+v", bill.Lines)
+	}
+}
+
+func TestOrderFeeUpdatePreservesOldRateSnapshotWithoutManualRequest(t *testing.T) {
+	for _, source := range []string{ExchangeRateSourceManual, ExchangeRateSourceSystem} {
+		t.Run(source, func(t *testing.T) {
+			current := validOrderFeeForTest()
+			current.ID = uuid.Must(uuid.NewV7())
+			current.Status = OrderFeeUnbilled
+			current.Version = 1
+			current.ExchangeRate = decimal.RequireFromString("7.3")
+			current.ExchangeRateSource = source
+			current.ExchangeRateDate = current.ExpenseDate
+			settingID := uuid.Must(uuid.NewV7())
+			if source == ExchangeRateSourceSystem {
+				current.ExchangeRateSettingID = &settingID
+			}
+			repo := &orderFeeUpdateCaptureRepoStub{current: current}
+			rateRepo := &orderFeeExchangeRateRepoStub{rate: decimal.RequireFromString("7.4")}
+			usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+			input := *current
+			note := "仅修改备注"
+			input.Note = &note
+			input.ExchangeRateOverride = nil
+			_, err := usecase.Update(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), current.ID, &input, false)
+			if err != nil {
+				t.Fatalf("非汇率字段更新失败: %v", err)
+			}
+			if repo.updated == nil || repo.updated.ExchangeRateSource != source || !repo.updated.ExchangeRate.Equal(current.ExchangeRate) || !uuidPointersEqual(repo.updated.ExchangeRateSettingID, current.ExchangeRateSettingID) || rateRepo.resolveCalls != 0 {
+				t.Fatalf("旧汇率快照被重算或篡改: updated=%+v, resolveCalls=%d", repo.updated, rateRepo.resolveCalls)
+			}
+		})
+	}
+}
+
+func TestOrderFeeUpdateRejectsForgedManualRate(t *testing.T) {
+	current := validOrderFeeForTest()
+	current.ID = uuid.Must(uuid.NewV7())
+	current.Status = OrderFeeUnbilled
+	current.Version = 1
+	repo := &orderFeeUpdateCaptureRepoStub{current: current}
+	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil, nil)
+	input := *current
+	manualRate := decimal.RequireFromString("7.2")
+	input.ExchangeRateOverride = &manualRate
+	_, err := usecase.Update(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), current.ID, &input, false)
+	if err != ErrOrderFeeExchangeRateOverrideForbidden || repo.updated != nil {
+		t.Fatalf("无权限伪造手工汇率应拒绝，实际 err=%v updated=%+v", err, repo.updated)
 	}
 }
 

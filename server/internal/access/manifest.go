@@ -38,7 +38,6 @@ const (
 	FinanceExchangeRateCreate    = "system.finance.exchange_rate.create"
 	FinanceExchangeRateUpdate    = "system.finance.exchange_rate.update"
 	FinanceExchangeRateDisable   = "system.finance.exchange_rate.disable"
-	FinanceExchangeRateOverride  = "system.finance.exchange_rate.override"
 	FinanceFeeSettingRead        = "system.finance.fee_setting.read"
 	FinanceFeeSettingCreate      = "system.finance.fee_setting.create"
 	FinanceFeeSettingUpdate      = "system.finance.fee_setting.update"
@@ -211,11 +210,10 @@ var manifest = append([]Permission{
 	{Key: EnterpriseResourceCreate, Name: "新建资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "新建资源及标签组", Requires: []string{EnterpriseResourceRead}},
 	{Key: EnterpriseResourceUpdate, Name: "编辑资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "编辑资源、标签组和企业关联", Requires: []string{EnterpriseResourceRead}},
 	{Key: EnterpriseResourceDelete, Name: "删除资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "删除资源及空标签组", Requires: []string{EnterpriseResourceRead}},
-	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "费用管理 · 汇率", Description: "查看公共参考与公司业务汇率"},
-	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "费用管理 · 汇率", Description: "新建公共参考与公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
-	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改公共参考与公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
-	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "费用管理 · 汇率", Description: "停用公共参考与公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
-	{Key: FinanceExchangeRateOverride, Name: "覆盖财务汇率", Group: "费用管理 · 汇率", Description: "在订单费用或资金流水中手工覆盖系统汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "费用管理 · 汇率", Description: "查看本公司业务汇率"},
+	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "费用管理 · 汇率", Description: "新建本公司业务汇率（含导入与一键同步）", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改本公司业务汇率及在业务单据中手工输入汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "费用管理 · 汇率", Description: "停用本公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "费用管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "费用管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "费用管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
@@ -503,12 +501,14 @@ func isBusinessOperationPermissionDefinition(key string) bool {
 }
 
 // IsCompanyBusinessPermission 包含经营读取、办理和公司财务配置，系统工作台不授予。
+// 汇率完全下沉分公司：汇率读写全部属于公司业务权限；费用设置保持系统模板与
+// 公司配置的双工作台授权不变。
 func IsCompanyBusinessPermission(key string) bool {
 	if strings.HasPrefix(key, "business.") {
 		return true
 	}
 	if strings.HasPrefix(key, "system.finance.") {
-		return !strings.HasPrefix(key, "system.finance.exchange_rate.") && !strings.HasPrefix(key, "system.finance.fee_setting.") || key == FinanceExchangeRateOverride
+		return !strings.HasPrefix(key, "system.finance.fee_setting.")
 	}
 	return strings.HasPrefix(key, "system.master_data.number_rule.")
 }

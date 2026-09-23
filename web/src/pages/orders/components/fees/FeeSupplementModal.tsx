@@ -7,6 +7,7 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, Col, Row } from 'antd';
 import React, { useRef } from 'react';
+import { useAccess } from '@/app/access';
 import {
   ExchangeRatePreviewCard,
   ProFormSearchableSelect,
@@ -46,6 +47,7 @@ export default function FeeSupplementModal({
   billingUnits,
   onSubmit,
 }: FeeSupplementModalProps) {
+  const access = useAccess();
   const internalFormRef =
     useRef<ProFormInstance<FeeSupplementFormValues>>(undefined);
   const {
@@ -54,7 +56,6 @@ export default function FeeSupplementModal({
     exchangeRateStatus,
     manualExchangeRate,
     setManualExchangeRate,
-    inheritedLastWeek,
     resetPreview,
     handleValuesChange,
   } = useFeeExchangePreview(
@@ -220,12 +221,15 @@ export default function FeeSupplementModal({
             amountColor="#fa8c16"
             status={exchangeRateStatus}
             ratePreview={exchangeRatePreview}
-            inherited={inheritedLastWeek}
-            onEnableManual={() => setManualExchangeRate(true)}
+            onEnableManual={
+              access.canOverrideFeeExchangeRate
+                ? () => setManualExchangeRate(true)
+                : undefined
+            }
           />
         </Col>
 
-        {manualExchangeRate && (
+        {manualExchangeRate && access.canOverrideFeeExchangeRate && (
           <Col span={24}>
             <ProFormText
               name="exchangeRateOverride"

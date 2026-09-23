@@ -22,7 +22,7 @@ func (r *orderFeeBulkRateRepoStub) ResolveContext(context.Context, uuid.UUID) (*
 	return &ExchangeRateContext{OwnerOrganizationID: uuid.Must(uuid.NewV7()), BaseCurrency: "CNY"}, nil
 }
 
-func (r *orderFeeBulkRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _ OrderFeeDirection, from, _, _, rateDate string) (ResolvedRate, error) {
+func (r *orderFeeBulkRateRepoStub) ResolveRate(_ context.Context, _ uuid.UUID, _ OrderFeeDirection, from, _, rateDate string) (ResolvedRate, error) {
 	r.requests = append(r.requests, from+"@"+rateDate)
 	if r.missing {
 		return ResolvedRate{}, ErrExchangeRateMissing

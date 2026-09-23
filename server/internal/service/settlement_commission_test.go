@@ -129,7 +129,7 @@ func (s *exchangeRateStub) ResolveContext(context.Context, uuid.UUID) (*biz.Exch
 	return s.context, nil
 }
 
-func (s *exchangeRateStub) ResolveRate(context.Context, uuid.UUID, biz.OrderFeeDirection, string, string, string, string) (biz.ResolvedRate, error) {
+func (s *exchangeRateStub) ResolveRate(context.Context, uuid.UUID, biz.OrderFeeDirection, string, string, string) (biz.ResolvedRate, error) {
 	return biz.ResolvedRate{Rate: s.rate, Source: biz.ExchangeRateSourceSystem}, nil
 }
 

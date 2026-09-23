@@ -1,98 +1,73 @@
-# 汇率周汇率双轨点差与组织自治契约
+# 公司周汇率契约
 
-## 1. Scope / Trigger
+## 1. 适用范围
 
-本规范适用于汇率主数据的 Schema、解析、写入、导入、同步抓取，以及所有按业务日期折算
-本位币的消费方（订单费用、账单、资金流水、发票）。新增或修改任何汇率字段、解析入口或
-消费方调用时必须遵循。
+本规范约束公司汇率的维护、导入、同步、解析，以及订单费用、账单、资金流水、发票等折本币调用。汇率归属公司，部门共享所属公司配置；系统工作台不维护业务汇率。旧公共基线行与单据快照保留为历史事实，不参与新业务取值。
 
-现行模型（2026-09-15 治理重构，迁移 `20260914231000` + `20260915093000`）：
-**B 型存储 + 自然周窗口 + 应收/应付双轨点差 + 各核算组织自治**。单一基准价模型
-（2026-09-11 曾把收付双轨推平为单 `rate`）已被再次演进：`receivable_rate`/`payable_rate`
-的 proto reserved 已解除，正式定义为 `ar_rate`(9)/`ap_rate`(10)，`rate`(14) 降级为基准价
-（中行折算价，审计口径）。
-
-## 2. Signatures
+## 2. 签名
 
 ```go
 // internal/biz/exchange_rate.go
-ResolveRate(ctx, orgID, currency, direction, targetDate) (ResolvedRate, error)
-// direction: RECEIVABLE→ar_rate / PAYABLE→ap_rate；ResolvedRate 携带 Rate/Source/SettingID
-// ResolveBaseRate 已退役——跨组织资金流按原币记账，禁止系统折算
-FetchExchangeRates(ctx, orgID, target) (预览, error)  // target: 本周/预设下周
-SyncExchangeRates(ctx, principal, source, inputs, audit) error  // 同周幂等 Upsert
+ResolveRate(ctx context.Context, organizationID uuid.UUID,
+    direction OrderFeeDirection, currency, targetDate string) (ResolvedRate, error)
+FetchExchangeRates(ctx context.Context, organizationID uuid.UUID,
+    target ExchangeRateSyncTarget) (*ExchangeRateSyncPreview, error)
+SyncExchangeRates(ctx context.Context, organizationID, actorID uuid.UUID,
+    target ExchangeRateSyncTarget, rows []*ExchangeRateSyncRow) (int, string, string, error)
 
-// internal/data/exchange_rate.go —— 四级解析链（均不阻断单据保存）
-// ① 本组织当周行 WEEKLY/BOC_SYNC
-// ② 回溯最近一个有效历史自然周 INHERITED_LAST_WEEK
-// ③ NULL 基线行直连 SYSTEM → 基线 pivot 交叉套算 DERIVED（仅兜底路径存在 DERIVED）
-// ④ 现场手工 MANUAL；全链未命中才 ErrExchangeRateMissing
-// 事务内汇率行读取必须 ForShare()（账单快照并发一致性依赖此锁）
+// internal/data/exchange_rate.go
+ResolveContext(ctx context.Context, organizationID uuid.UUID) (*ExchangeRateContext, error)
+ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirection,
+    fromCurrency, toCurrency, rateDate string) (ResolvedRate, error)
 ```
 
-## 3. Contracts
+`ExchangeRateContext` 只含 `OwnerOrganizationID` 与 `BaseCurrency`，不含公共 pivot 币种。业务用例先校验单据访问权，再按单据所属组织解析公司；不能把当前会话组织当成单据归属。事务内汇率读取使用 `Data.client(ctx)` 与 `ForShare()`。
 
-```text
-Table: exchange_rate_settings（B 型，organization_id 可空）
-  organization_id  -- NULL=系统管理兜底基线行；非 NULL=核算组织自维护行
-  from_currency / to_currency  -- to_currency 恒为行归属组织的本币
-  effective_from  -- 即当周周一 00:00:00（Asia/Shanghai）；区间由服务端派生，写契约不含 effective_to
-  ar_rate / ap_rate  -- 中行现汇卖出价（收高）/ 现汇买入价（付低），numeric(18,8)
-  rate  -- 中行折算价（基准/审计口径）；新浪 JSON 与直盘源无此价时取 (ar+ap)/2
-  唯一性：(organization_id, from, to, effective_from)；同周二次同步=幂等覆盖，禁止唯一冲突报错
-快照：order_fees/finance_bill_lines 落命中汇率值 + exchange_rate_setting_id + source
-  （WEEKLY / INHERITED_LAST_WEEK / MANUAL / BOC_SYNC；DERIVED/BASE_CURRENCY 已退役）
-同步：FetchExchangeRates 按组织本币路由——CNY：新浪中行专线 JSON 主源 + 中行牌价页 HTML
-  兜底（/100）；非 CNY：国际直盘（Ask→ar、Bid→ap）首选 + 中行交叉盘备选（银行交叉商法
-  ar=卖出腿÷买入腿，保证 ar>ap）；来源在预览中明示，fail-closed 引导手工录入。
-督办：周一 10:00 起 24h 补发窗口检测当周未同步的 kind=company 组织，notification_delivery
-  确定性 ID 幂等入队。
-```
+## 3. 存储与接口契约
 
-## 4. Validation & Error Matrix
+`exchange_rate_settings.organization_id` 对新写入必须是公司 ID；可空列和旧 NULL 行暂时保留，不新增公共行。`from_currency` 是业务原币，`to_currency` 是公司本币。`effective_from` 锚定业务日期所在自然周周一 00:00:00（Asia/Shanghai）。同公司、同币种对、同周重复导入或同步按现有幂等 Upsert 处理。`rate` 是基准价，`ar_rate`/`ap_rate` 分别用于应收/应付，均按既有精度规则保存。
 
-| 条件 | 行为 |
+维护 API 从服务端 principal 取得组织并解析所属公司，列表只返回公司行；按记录 ID 编辑、停用、读取导入批次时仍需公司范围校验。`system.finance.exchange_rate.read` 用于查看，`create` 用于新建、导入和同步，`update` 用于编辑配置及单据显式手工输入，`disable` 用于停用。独立 `override` 权限退役，旧授权不能代替 `update`。系统工作台即使直接请求 API 也不得读写业务汇率。
+
+新解析仅查目标自然周的本公司启用行。相同币种返回 `rate=1`、来源 `SYSTEM`；应收取 `ar_rate`、应付取 `ap_rate`，空值沿用 `rate`。命中行快照携带设置 ID，来源为 `WEEKLY` 或 `BOC_SYNC`。不存在上周继承、公共直连、公共历史回溯或公共交叉套算。外部牌价预览可计算交叉报价，它不读取数据库公共行。跨组织资金流仍按原币记账。
+
+`MANUAL` 只代表有 `update` 权限者显式输入；不能静默生成公司周配置。保留既有单据的手工快照不等于新手工输入，更新其他字段时不得因此要求重新输入，也不得允许借旧来源改价。旧 `INHERITED_LAST_WEEK`、`DERIVED`、公共行 `SYSTEM` 来源仅供已有快照展示；不删除枚举或历史 SQL 约束，也不重算已保存金额。
+
+## 4. 校验与错误矩阵
+
+| 条件 | 结果 |
 | --- | --- |
-| 非系统管理写 NULL 基线行 / 无权限写 org 行 | 403（拦截器双校验） |
-| 同组织同货币对同周重复 | 幂等 Upsert 覆盖（唯一索引兜底），不报唯一冲突 |
-| 全链未命中且无手工覆盖 | `ErrExchangeRateMissing`（仅此时允许阻断） |
-| 跨组织提成/往来 | 原币记账恒等快照（rate=1/BASE_CURRENCY），禁止二次折算 |
-| 历史已存盘费用 | 快照绝对冻结，周中重同步不穿透 |
+| 系统节点、禁用公司或异常组织链解析汇率 | `ErrExchangeRateOrganizationInvalid` |
+| 无维护权限或目标不属于本公司 | 拒绝读写；记录 ID、批次 ID、预览 token 均需校验 |
+| 新写入的组织为空、非公司或批量混公司 | 拒绝写入，不产生 NULL 公共行 |
+| 当周本公司有效行缺失，只有过去、未来或公共行 | `ErrExchangeRateMissing`，提示「请先维护汇率」，依赖自动折算的提交停止 |
+| 当周同公司同币种对命中多条 | `ErrExchangeRateConflict`，不得任选一条 |
+| 无 `update` 权限却提交手工汇率 | 服务端拒绝；仅有旧 `override` 权限同样拒绝 |
+| 已固化单据汇率快照 | 保留原值与来源，不随周配置修改而重算 |
 
-## 5. Good / Base / Bad Cases
+## 5. 正常、边界与错误场景
 
-- Good：香港公司（本币 HKD）一键同步，直盘预填 USD→HKD 双轨价，财务微调后当周生效。
-- Base：新组织当周未同步，费用录入自动继承上周（黄色 Tag「暂沿用上周汇率」），单据不卡死。
-- Bad：跨组织结算用任一方本地汇率折算记账——必须原币对账。
-- Bad：解析链跳过 ForShare——账单事务内并发改汇率会撕裂快照一致性。
+- 正常：两家公司在同一周配置不同报价，各自单据按归属公司取值。
+- 边界：部门成员在获授权的公司业务范围使用公司汇率；历史业务按其业务日期所在周取值。
+- 错误：目标周缺失但上周、未来周或旧 NULL 公共行有价，仍返回缺失，不继承、不套算。
+- 错误：无 `update` 权限者伪造 `MANUAL`；只隐藏前端输入框不足以构成授权。
 
-## 6. Tests Required
+## 6. 必要验证
 
-- 真实库集成 `TestExchangeRateWeeklyDisasterChainPostgres`：四级链全分支、同周幂等、
-  跨周预设、方向取列、快照行 ID。
-- `TestFinanceBillCreateSharedTransactionPostgres`：并发修改汇率不改变事务内账单快照。
-- 抓取解析单测：新浪 JSON（已归一化）/ 中行 HTML（/100）/ 直盘 Bid/Ask、交叉盘换算、
-  fail-closed；`isBOCBankEntry` 精确匹配（bocom 不误中）。
-- 迁移陷阱：改来源枚举值集必须同步重建四张财务表 `*_exchange_rate_source_check` 约束
-  （阶段二实测踩坑）。
+- 公司 A/B、部门和系统工作台覆盖查询、维护、导入批次与同步预览的范围隔离。
+- 自然周精确命中、历史开口行不跨周、应收/应付方向、同币种恒等、非 CNY 公司。
+- 当周缺失但存在前后周或公共直连/交叉价时，断言缺失错误及前端提示。
+- 无权限伪造手工值、有权限显式输入、旧 `MANUAL` 快照保留、事务内并发改价。
+- 导入和同步重复执行仍幂等；旧单据快照不被重算；跨组织结算继续原币记账。
 
-## 7. Wrong vs Correct
-
-### Wrong
+## 7. 错误与正确写法
 
 ```go
-// 跨组织折算 + 同步行硬编码归属
-rate, _ := uc.ResolveBaseRate(ctx, orgID, from, to, date)      // 已退役
-rows[i].OrganizationID = nil                                    // 公司同步越权写基线行
+// 错误：用会话组织取业务单据的汇率。
+resolved, err := uc.ResolveRate(ctx, sessionOrganizationID, direction, currency, date)
+
+// 正确：先验证单据访问权，使用其所属组织；用例解析到公司和公司本币。
+resolved, err := uc.ResolveRate(ctx, document.OrganizationID, direction, currency, date)
 ```
 
-### Correct
-
-```go
-// 组织内按方向解析；同步按组织身份落行（系统管理→基线，公司→org 行）
-resolved, _ := uc.ResolveRate(ctx, orgID, currency, direction, date)
-scope := ensureOrganizationScope(principal) // 系统管理→RequireBaselineWrite+nil；公司→org 行
-```
-
-## 独立公司上下文
-公司汇率OwnerOrganizationID取本公司，BaseCurrency取公司本币；公共参考PivotCurrency单独读取系统管理节点本币，不要求公司父节点为系统。部门团队可向上定位所属公司，不能把系统节点当作公司业务汇率归属。
+写入时同样应以 principal 解析出的公司为归属，不接受客户端传来的公司 ID 直接决定目标。维护、导入和同步复用现有事务、锁和审计机制，不引入新的回退分支。

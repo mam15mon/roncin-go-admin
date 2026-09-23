@@ -18,7 +18,7 @@ describe('useOrderFeePanelExchangeRate', () => {
     vi.clearAllMocks();
   });
 
-  it('汇率未配置时允许手工录入', async () => {
+  it('汇率未配置时提示维护且不自动切换手工录入', async () => {
     resolveExchangeRate.mockRejectedValueOnce({
       message: '汇率未配置',
       data: { reason: 'FEE_EXCHANGE_RATE_MISSING' },
@@ -32,8 +32,8 @@ describe('useOrderFeePanelExchangeRate', () => {
     await waitFor(() =>
       expect(result.current.exchangeRateStatus).toBe('missing'),
     );
-    expect(result.current.manualExchangeRate).toBe(true);
-    expect(messageError).not.toHaveBeenCalled();
+    expect(result.current.manualExchangeRate).toBe(false);
+    expect(messageError).toHaveBeenCalledWith('请先维护汇率');
   });
 
   it('服务异常时不自动回退到手工汇率', async () => {

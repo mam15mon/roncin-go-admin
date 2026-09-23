@@ -89,7 +89,7 @@ func TestSameFinanceCashflowIntent(t *testing.T) {
 
 func TestCreateFinanceCashflowUsesTransactionDateRateSnapshot(t *testing.T) {
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY", PivotCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
 	repo := &financeCashflowRepoStub{}
@@ -107,7 +107,7 @@ func TestCreateFinanceCashflowUsesTransactionDateRateSnapshot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("按到账日汇率创建资金流水失败: %v", err)
 	}
-	if item.ExchangeRate.StringFixed(8) != "7.25000000" || item.BaseCurrency != "CNY" || item.BaseAmount.StringFixed(8) != "725.00000000" || item.ExchangeRateSource != "SYSTEM" || item.ExchangeRateDate != "2026-08-27" || item.ExchangeRateSettingID != nil {
+	if item.ExchangeRate.StringFixed(8) != "7.25000000" || item.BaseCurrency != "CNY" || item.BaseAmount.StringFixed(8) != "725.00000000" || item.ExchangeRateSource != ExchangeRateSourceWeekly || item.ExchangeRateDate != "2026-08-27" || item.ExchangeRateSettingID != nil {
 		t.Fatalf("资金流水汇率快照不完整: %#v", item)
 	}
 	if len(exchangeRepo.resolveDates) != 1 || exchangeRepo.resolveDates[0] != "2026-08-27" {
@@ -117,7 +117,7 @@ func TestCreateFinanceCashflowUsesTransactionDateRateSnapshot(t *testing.T) {
 
 func TestCreateFinanceCashflowRejectsUnauthorizedRateOverride(t *testing.T) {
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY", PivotCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: uuid.New(), BaseCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.25")},
 	}
 	usecase := NewFinanceCashflowUsecase(&financeCashflowRepoStub{}, NewExchangeRateUsecase(exchangeRepo, nil))
@@ -135,6 +135,21 @@ func TestCreateFinanceCashflowRejectsUnauthorizedRateOverride(t *testing.T) {
 	}, false)
 	if err != ErrFinanceCashflowRateOverrideForbidden {
 		t.Fatalf("无权限覆盖资金汇率应被拒绝，实际错误为 %v", err)
+	}
+}
+
+func TestCreateFinanceCashflowAllowsAuthorizedManualRateWithoutWeeklyRow(t *testing.T) {
+	companyID := uuid.New()
+	repo := &financeCashflowRepoStub{}
+	rates := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: companyID, BaseCurrency: "CNY"}}, nil)
+	usecase := NewFinanceCashflowUsecase(repo, rates)
+	manualRate := decimal.RequireFromString("7.30")
+	item, err := usecase.Create(context.Background(), companyID, uuid.New(), CreateFinanceCashflowInput{
+		Direction: OrderFeeReceivable, SettlementPartyID: uuid.New(), Currency: "USD", Amount: decimal.RequireFromString("100"),
+		ExchangeRateOverride: &manualRate, TransactionDate: "2026-08-27", OurAccount: "基本户", PaymentMethod: "银行转账", IdempotencyKey: "cashflow-manual-without-week",
+	}, true)
+	if err != nil || item.ExchangeRateSource != ExchangeRateSourceManual || !item.ExchangeRate.Equal(manualRate) || item.ExchangeRateSettingID != nil || repo.created != item {
+		t.Fatalf("有权限手工汇率应无需周配置并保存 MANUAL 快照: item=%+v err=%v", item, err)
 	}
 }
 
@@ -170,11 +185,16 @@ func TestCreateFinanceCashflowReplaysBeforeResolvingCurrentRate(t *testing.T) {
 		PaymentMethod:        "银行转账",
 		IdempotencyKey:       "cashflow-rate-replay",
 	}, false)
-	if err != nil {
-		t.Fatalf("相同流水请求应直接幂等重放: %v", err)
+	if err != ErrFinanceCashflowRateOverrideForbidden || replayed != nil {
+		t.Fatalf("无权限手工汇率即使幂等重放也应拒绝: item=%v err=%v", replayed, err)
 	}
-	if replayed != existing {
-		t.Fatal("幂等重放应返回原资金流水")
+	replayed, err = usecase.Create(context.Background(), organizationID, actorID, CreateFinanceCashflowInput{
+		Direction: OrderFeeReceivable, SettlementPartyID: partyID, Currency: "USD",
+		Amount: decimal.RequireFromString("100"), ExchangeRateOverride: &override,
+		TransactionDate: "2026-08-27", OurAccount: "基本户", PaymentMethod: "银行转账", IdempotencyKey: "cashflow-rate-replay",
+	}, true)
+	if err != nil || replayed != existing {
+		t.Fatalf("有权限的等值请求应直接幂等重放: item=%v err=%v", replayed, err)
 	}
 }
 

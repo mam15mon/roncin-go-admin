@@ -36,15 +36,20 @@ var currencyCols = []struct {
 func main() {
 	filePath := flag.String("file", "/tmp/dinotty/汇率更新表-26.3.2-汇率，每周一更新12：00之前更新(1)(1).xlsx", "历史汇率 Excel 文件路径")
 	apply := flag.Bool("apply", false, "是否真正写入数据库（默认 false，仅执行解析校验与预览）")
+	companyID := flag.String("company-id", "", "目标分公司 UUID，必填")
 	flag.Parse()
 
-	if err := run(*filePath, *apply); err != nil {
+	if err := run(*filePath, *apply, *companyID); err != nil {
 		fmt.Fprintf(os.Stderr, "执行失败: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(filePath string, apply bool) error {
+func run(filePath string, apply bool, companyIDText string) error {
+	companyID, err := uuid.Parse(strings.TrimSpace(companyIDText))
+	if err != nil || companyID == uuid.Nil {
+		return fmt.Errorf("必须通过 -company-id 指定合法目标分公司 UUID")
+	}
 	absPath, err := filepath.Abs(filePath)
 	if err != nil {
 		return err
@@ -115,15 +120,16 @@ func run(filePath string, apply bool) error {
 			rateDec := arDec
 
 			settings = append(settings, &biz.ExchangeRateSetting{
-				ID:            uuid.Must(uuid.NewV7()),
-				FromCurrency:  item.Code,
-				ToCurrency:    "CNY",
-				EffectiveFrom: mondayStr,
-				EffectiveTo:   &sundayStr,
-				ARRate:        &arDec,
-				APRate:        &apDec,
-				Rate:          rateDec,
-				Source:        "IMPORT",
+				ID:             uuid.Must(uuid.NewV7()),
+				OrganizationID: &companyID,
+				FromCurrency:   item.Code,
+				ToCurrency:     "CNY",
+				EffectiveFrom:  mondayStr,
+				EffectiveTo:    &sundayStr,
+				ARRate:         &arDec,
+				APRate:         &apDec,
+				Rate:           rateDec,
+				Source:         "IMPORT",
 			})
 		}
 
@@ -154,7 +160,7 @@ func run(filePath string, apply bool) error {
 
 	if !apply {
 		fmt.Println("\n【预览模式】未指定 -apply 参数，未向数据库写入任何数据。如需正式入库，请执行：")
-		fmt.Println("pnpm run sync:exchange-rates-history")
+		fmt.Printf("pnpm run sync:exchange-rates-history -company-id %s\n", companyID)
 		return nil
 	}
 
@@ -170,12 +176,17 @@ func run(filePath string, apply bool) error {
 
 	repo := data.NewExchangeRateRepo(storage)
 	ctx := context.Background()
+	rateContext, err := repo.ResolveContext(ctx, companyID)
+	if err != nil || rateContext.OwnerOrganizationID != companyID || rateContext.BaseCurrency != "CNY" {
+		return fmt.Errorf("目标组织必须是启用且本币为 CNY 的分公司: %w", biz.ErrExchangeRateOrganizationInvalid)
+	}
 
 	audit := &biz.AuditEvent{
-		Action:       "finance.exchange_rate.import_history",
-		Result:       "success",
-		ResourceType: "exchange_rate_setting",
-		Details:      map[string]string{"source": "excel_legacy_history", "weeks": strconv.Itoa(len(batches))},
+		OrganizationID: &companyID,
+		Action:         "finance.exchange_rate.import_history",
+		Result:         "success",
+		ResourceType:   "exchange_rate_setting",
+		Details:        map[string]string{"source": "excel_legacy_history", "weeks": strconv.Itoa(len(batches))},
 	}
 
 	savedTotal := 0
@@ -187,7 +198,7 @@ func run(filePath string, apply bool) error {
 		savedTotal += len(saved)
 	}
 
-	fmt.Printf("\n【入库成功】全量 34 周历史汇率已全部幂等写入 PostgreSQL 数据库！共写入/更新 %d 条集团基线汇率行。\n", savedTotal)
+	fmt.Printf("\n【入库成功】已为分公司 %s 幂等写入/更新 %d 条历史汇率行。\n", companyID, savedTotal)
 	return nil
 }
 

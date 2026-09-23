@@ -113,7 +113,7 @@ func (s *financeBillExchangeRateTransactionStub) ResolveContext(ctx context.Cont
 	return s.rateContext, nil
 }
 
-func (s *financeBillExchangeRateTransactionStub) ResolveRate(ctx context.Context, _ uuid.UUID, _ OrderFeeDirection, _, _, _, _ string) (ResolvedRate, error) {
+func (s *financeBillExchangeRateTransactionStub) ResolveRate(ctx context.Context, _ uuid.UUID, _ OrderFeeDirection, _, _, _ string) (ResolvedRate, error) {
 	if err := requireFinanceBillTransaction(ctx); err != nil {
 		return ResolvedRate{}, err
 	}

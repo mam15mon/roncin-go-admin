@@ -215,7 +215,7 @@ func renderNotification(delivery *NotificationDelivery) (string, error) {
 		if delivery.ResourceType != "ORGANIZATION" || organizationName == "" || weekScope == "" {
 			return "", fmt.Errorf("通知明细不完整")
 		}
-		return fmt.Sprintf("【周汇率同步督办】\n组织：%s\n本周汇率尚未同步（%s），费用折算正暂沿用上周汇率。\n请尽快在「财务 · 汇率」页完成一键同步或手工维护。", organizationName, weekScope), nil
+		return fmt.Sprintf("【周汇率同步督办】\n组织：%s\n本周汇率尚未同步（%s），缺少本周配置的业务折算将被阻止。\n请先在「财务 · 汇率」页维护汇率。", organizationName, weekScope), nil
 	case NotificationTemplateFeeSupplementApprovalPending:
 		// 只链接目标申请的审批最小详情；Parameter 携带经长度限制的订单号与金额摘要。
 		orderNo := strings.TrimSpace(delivery.ReferenceCode)

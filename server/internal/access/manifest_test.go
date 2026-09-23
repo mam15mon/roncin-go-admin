@@ -28,6 +28,7 @@ func TestManifestDoesNotContainLegacyManagePermissions(t *testing.T) {
 		"system.master_data.manage",
 		"business.order.manage",
 		"system.task.manage",
+		"system.finance.exchange_rate.override",
 	}
 
 	keys := make(map[string]struct{}, len(manifest))
@@ -38,6 +39,17 @@ func TestManifestDoesNotContainLegacyManagePermissions(t *testing.T) {
 		if _, exists := keys[legacyKey]; exists {
 			t.Fatalf("权限清单仍包含旧权限码: %s", legacyKey)
 		}
+	}
+}
+
+func TestExchangeRatePermissionsBelongToCompanyWorkspace(t *testing.T) {
+	for _, key := range []string{FinanceExchangeRateRead, FinanceExchangeRateCreate, FinanceExchangeRateUpdate, FinanceExchangeRateDisable} {
+		if !IsCompanyBusinessPermission(key) || PermissionAllowedInWorkspace(key, true) || !PermissionAllowedInWorkspace(key, false) {
+			t.Fatalf("汇率权限 %s 应只属于公司工作台", key)
+		}
+	}
+	if !PermissionAllowedInWorkspace(FinanceFeeSettingRead, true) || !PermissionAllowedInWorkspace(FinanceFeeSettingRead, false) {
+		t.Fatal("费用设置双工作台权限不得受汇率归属调整影响")
 	}
 }
 

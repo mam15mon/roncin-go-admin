@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	billingunitent "github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
@@ -532,8 +533,9 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 		sc.feeSettings[f.code] = found
 	}
 
-	// 汇率
-	effFrom := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	// 开发样例为交易周和当前周分别维护公司汇率，不依赖历史开口行继承。
+	transactionWeek := time.Date(2026, 9, 14, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())
+	currentWeek, _ := biz.ExchangeRateWeekWindow(time.Now())
 	rates := []struct {
 		from, to, rate, ar, ap string
 	}{
@@ -541,13 +543,18 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 		{"EUR", "CNY", "7.85000000", "7.87000000", "7.83000000"},
 		{"HKD", "CNY", "0.92500000", "0.92800000", "0.92200000"},
 	}
-	for _, r := range rates {
-		rFound, _ := tx.ExchangeRateSetting.Query().Where(
-			exchangeratesettingent.OrganizationIDEQ(co.ID),
-			exchangeratesettingent.FromCurrencyEQ(r.from),
-			exchangeratesettingent.ToCurrencyEQ(r.to),
-		).First(ctx)
-		if rFound == nil {
+	for _, week := range []time.Time{transactionWeek, currentWeek} {
+		weekEnd := week.AddDate(0, 0, 6).Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+		for _, r := range rates {
+			rFound, _ := tx.ExchangeRateSetting.Query().Where(
+				exchangeratesettingent.OrganizationIDEQ(co.ID),
+				exchangeratesettingent.FromCurrencyEQ(r.from),
+				exchangeratesettingent.ToCurrencyEQ(r.to),
+				exchangeratesettingent.EffectiveFromEQ(week),
+			).First(ctx)
+			if rFound != nil {
+				continue
+			}
 			_, err := tx.ExchangeRateSetting.Create().
 				SetOrganizationID(co.ID).
 				SetFromCurrency(r.from).
@@ -555,11 +562,12 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 				SetRate(r.rate).
 				SetArRate(r.ar).
 				SetApRate(r.ap).
-				SetEffectiveFrom(effFrom).
+				SetEffectiveFrom(week).
+				SetEffectiveTo(weekEnd).
 				SetIsActive(true).
 				Save(ctx)
 			if err != nil {
-				return fmt.Errorf("创建基准汇率 %s/%s: %w", r.from, r.to, err)
+				return fmt.Errorf("创建公司周汇率 %s/%s: %w", r.from, r.to, err)
 			}
 		}
 	}

@@ -64,7 +64,7 @@ func (s *financeBillTargetExchangeRateRepoStub) ResolveContext(_ context.Context
 	return &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, nil
 }
 
-func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, organizationID uuid.UUID, _ OrderFeeDirection, _, _, _, rateDate string) (ResolvedRate, error) {
+func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, organizationID uuid.UUID, _ OrderFeeDirection, _, _, rateDate string) (ResolvedRate, error) {
 	s.resolvedRateOrganizationID = organizationID
 	s.resolveDates = append(s.resolveDates, rateDate)
 	return ResolvedRate{Rate: s.resolvedRate, Source: ExchangeRateSourceSystem}, nil
@@ -73,7 +73,7 @@ func (s *financeBillTargetExchangeRateRepoStub) ResolveRate(_ context.Context, o
 func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 	organizationID := uuid.New()
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.20")},
 	}
 	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{}, nil, nil)
@@ -88,7 +88,7 @@ func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 	if err := usecase.applyBillExchangeRate(context.Background(), organizationID, bill); err != nil {
 		t.Fatalf("应用账单日汇率失败: %v", err)
 	}
-	if bill.ExchangeRate.StringFixed(8) != "7.20000000" || bill.BaseCurrencyAmount.StringFixed(8) != "720.00000000" || bill.ExchangeRateSource != "SYSTEM" || bill.ExchangeRateDate != "2026-08-26" || bill.ExchangeRateSettingID != nil {
+	if bill.ExchangeRate.StringFixed(8) != "7.20000000" || bill.BaseCurrencyAmount.StringFixed(8) != "720.00000000" || bill.ExchangeRateSource != ExchangeRateSourceWeekly || bill.ExchangeRateDate != "2026-08-26" || bill.ExchangeRateSettingID != nil {
 		t.Fatalf("账单汇率快照不完整: %#v", bill)
 	}
 	if len(exchangeRepo.resolveDates) != 1 || exchangeRepo.resolveDates[0] != "2026-08-26" {
@@ -100,7 +100,7 @@ func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
 	organizationID := uuid.New()
 	// 超过 8 位小数的汇率必须先固化到 8 位，头本位币金额按已固化汇率计算。
 	exchangeRepo := &exchangeRateRepoStub{
-		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.1234567891")},
 	}
 	usecase := NewFinanceBillUsecase(nil, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{}, nil, nil)

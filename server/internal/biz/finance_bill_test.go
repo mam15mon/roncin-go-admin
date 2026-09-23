@@ -547,7 +547,7 @@ func TestCreateBatchInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		repo := &defaultTermsWriteRepoStub{
 			fees:           defaultTermsWriteFees(partyID, false),
 			summaries:      map[uuid.UUID]*PartnerCreditSummary{partyID: {PartnerID: partyID, DefaultPaymentTermsDays: &terms}},
-			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 			rateByCurrency: map[string]decimal.Decimal{},
 		}
 		created := runCreateBatch(t, repo, []uuid.UUID{repo.fees[0].Fee.ID}, CreateFinanceBillBatchGroupInput{StatementTitle: "测试结算单位", BillDate: billDate, SettlementAccountID: accountID})
@@ -568,7 +568,7 @@ func TestCreateBatchInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		partyID := uuid.Must(uuid.NewV7())
 		repo := &defaultTermsWriteRepoStub{
 			fees:           defaultTermsWriteFees(partyID, true),
-			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 			rateByCurrency: map[string]decimal.Decimal{},
 		}
 		created := runCreateBatch(t, repo, []uuid.UUID{repo.fees[0].Fee.ID}, CreateFinanceBillBatchGroupInput{StatementTitle: "测试结算单位", BillDate: billDate, SettlementAccountID: accountID})
@@ -591,7 +591,7 @@ func TestCreateBatchInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		repo := &defaultTermsWriteRepoStub{
 			fees:           defaultTermsWriteFees(partyID, false),
 			summaries:      map[uuid.UUID]*PartnerCreditSummary{partyID: {PartnerID: partyID, DefaultPaymentTermsDays: &terms}},
-			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 			rateByCurrency: map[string]decimal.Decimal{},
 		}
 		feeIDs := []uuid.UUID{repo.fees[0].Fee.ID}
@@ -639,7 +639,7 @@ func TestCreateInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		repo := &defaultTermsWriteRepoStub{
 			fees:           defaultTermsWriteFees(partyID, false),
 			summaries:      map[uuid.UUID]*PartnerCreditSummary{partyID: {PartnerID: partyID, DefaultPaymentTermsDays: &terms}},
-			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 			rateByCurrency: map[string]decimal.Decimal{},
 		}
 		created := runCreate(t, repo)
@@ -658,7 +658,7 @@ func TestCreateInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		partyID := uuid.Must(uuid.NewV7())
 		repo := &defaultTermsWriteRepoStub{
 			fees:           defaultTermsWriteFees(partyID, true),
-			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 			rateByCurrency: map[string]decimal.Decimal{},
 		}
 		runCreate(t, repo)
@@ -676,7 +676,7 @@ func TestCreateInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		explicitZero := 0
 		repo := &defaultTermsWriteRepoStub{
 			fees:           defaultTermsWriteFees(partyID, false),
-			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 			rateByCurrency: map[string]decimal.Decimal{},
 		}
 		// 无规则正式客户：摘要无该往来户，注入 nil，账期与到期日保持空。
@@ -704,7 +704,7 @@ func TestCreateInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		repo := &defaultTermsWriteRepoStub{
 			fees:           defaultTermsWriteFees(partyID, false),
 			summaries:      map[uuid.UUID]*PartnerCreditSummary{partyID: {PartnerID: partyID, DefaultPaymentTermsDays: &terms}},
-			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"},
+			rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 			rateByCurrency: map[string]decimal.Decimal{},
 		}
 		uc := newDefaultTermsWriteUsecase(repo)

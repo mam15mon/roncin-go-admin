@@ -38,7 +38,7 @@ func TestConfiguredFinanceBillPreviewSplitsByFeeCurrencyAndUsesBillBaseRate(t *t
 	usdFee := financeBillableFeeForTest(partyID, "10", "8", "2", "72")
 	usdFee.Fee.Currency, usdFee.Fee.ExchangeRate, usdFee.Fee.BaseCurrencyAmount = "USD", decimal.RequireFromString("7.2"), decimal.RequireFromString("72")
 	fees := []*FinanceBillableFee{usdFee, cnyFee}
-	rates := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY", PivotCurrency: "CNY"}, rateByCurrency: map[string]decimal.Decimal{
+	rates := NewExchangeRateUsecase(&exchangeRateRepoStub{rateContext: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}, rateByCurrency: map[string]decimal.Decimal{
 		"USD": decimal.RequireFromString("7.2"),
 	}}, nil)
 	uc := NewFinanceBillUsecase(&configuredFinanceBillRepoStub{fees: fees}, rates, nil, nil, nil)

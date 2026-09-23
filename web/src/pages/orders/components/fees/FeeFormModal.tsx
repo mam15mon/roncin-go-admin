@@ -9,6 +9,7 @@ import {
 import { App, Col, Row } from 'antd';
 import type { Dayjs } from 'dayjs';
 import React, { useRef } from 'react';
+import { useAccess } from '@/app/access';
 import {
   ExchangeRatePreviewCard,
   ProFormSearchableSelect,
@@ -59,8 +60,6 @@ type FeeFormModalProps = {
   totalPreview?: string;
   exchangeRateStatus: 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
   exchangeRatePreview?: string;
-  /** 漏配容灾：当周汇率未配置、回溯沿用最近历史周行时展示黄色提示。 */
-  inheritedLastWeek?: boolean;
   manualExchangeRate: boolean;
   setManualExchangeRate: (val: boolean) => void;
   onOpenQuickAddFee: () => void;
@@ -84,7 +83,6 @@ export default function FeeFormModal({
   totalPreview,
   exchangeRateStatus,
   exchangeRatePreview,
-  inheritedLastWeek = false,
   manualExchangeRate,
   setManualExchangeRate,
   onOpenQuickAddFee,
@@ -93,6 +91,7 @@ export default function FeeFormModal({
   onFeeSettingSelect,
   onSubmit,
 }: FeeFormModalProps) {
+  const access = useAccess();
   const internalFormRef = useRef<ProFormInstance<FeeFormValues> | undefined>(
     undefined,
   );
@@ -329,12 +328,15 @@ export default function FeeFormModal({
             amountColor={modalDirection === 1 ? '#1677ff' : '#fa8c16'}
             status={exchangeRateStatus}
             ratePreview={exchangeRatePreview}
-            inherited={inheritedLastWeek}
-            onEnableManual={() => setManualExchangeRate(true)}
+            onEnableManual={
+              access.canOverrideFeeExchangeRate
+                ? () => setManualExchangeRate(true)
+                : undefined
+            }
           />
         </Col>
 
-        {manualExchangeRate && (
+        {manualExchangeRate && access.canOverrideFeeExchangeRate && (
           <Col span={24}>
             <ProFormText
               name="exchangeRateOverride"

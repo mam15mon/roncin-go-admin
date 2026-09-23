@@ -29,7 +29,6 @@ const permissions = {
   financeExchangeRateCreate: 'system.finance.exchange_rate.create',
   financeExchangeRateUpdate: 'system.finance.exchange_rate.update',
   financeExchangeRateDisable: 'system.finance.exchange_rate.disable',
-  financeExchangeRateOverride: 'system.finance.exchange_rate.override',
   financeFeeSettingRead: 'system.finance.fee_setting.read',
   financeFeeSettingCreate: 'system.finance.fee_setting.create',
   financeFeeSettingUpdate: 'system.finance.fee_setting.update',
@@ -201,12 +200,16 @@ export default function access(
     canDeleteRoles: has(permissions.roleDelete),
     canReadPermissions: has(permissions.permissionRead),
     canReadAudit: has(permissions.auditRead),
-    canReadExchangeRates: has(permissions.financeExchangeRateRead),
-    canCreateExchangeRates: has(permissions.financeExchangeRateCreate),
-    canUpdateExchangeRates: has(permissions.financeExchangeRateUpdate),
-    canDisableExchangeRates: has(permissions.financeExchangeRateDisable),
+    canReadExchangeRates:
+      canOperateBusiness && has(permissions.financeExchangeRateRead),
+    canCreateExchangeRates:
+      canOperateBusiness && has(permissions.financeExchangeRateCreate),
+    canUpdateExchangeRates:
+      canOperateBusiness && has(permissions.financeExchangeRateUpdate),
+    canDisableExchangeRates:
+      canOperateBusiness && has(permissions.financeExchangeRateDisable),
     canOverrideFeeExchangeRate:
-      canOperateBusiness && has(permissions.financeExchangeRateOverride),
+      canOperateBusiness && has(permissions.financeExchangeRateUpdate),
     canReadFeeSettings: has(permissions.financeFeeSettingRead),
     canCreateFeeSettings: has(permissions.financeFeeSettingCreate),
     canUpdateFeeSettings: has(permissions.financeFeeSettingUpdate),

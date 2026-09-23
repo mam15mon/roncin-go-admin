@@ -87,6 +87,34 @@ describe('系统管理与分公司有效业务能力', () => {
     expect(headquarters.canOrder(1, 'create')).toBe(false);
     expect(headquarters.canReadSEOrders).toBe(false);
   });
+
+  it('汇率维护和单据手工输入仅在授权公司工作台可用', () => {
+    const permissions = [
+      'system.finance.exchange_rate.read',
+      'system.finance.exchange_rate.update',
+    ];
+    const company = workspace(
+      AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+      'company-a',
+      permissions,
+    );
+    const system = workspace(
+      AuthOrganizationKind.ORGANIZATION_KIND_SYSTEM,
+      'hq',
+      permissions,
+    );
+    expect(company.canReadExchangeRates).toBe(true);
+    expect(company.canUpdateExchangeRates).toBe(true);
+    expect(company.canOverrideFeeExchangeRate).toBe(true);
+    expect(system.canReadExchangeRates).toBe(false);
+    expect(system.canOverrideFeeExchangeRate).toBe(false);
+    const legacyOnly = workspace(
+      AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
+      'company-a',
+      ['system.finance.exchange_rate.override'],
+    );
+    expect(legacyOnly.canOverrideFeeExchangeRate).toBe(false);
+  });
 });
 
 describe('后台任务重试按用途区分', () => {

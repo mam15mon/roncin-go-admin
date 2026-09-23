@@ -89,7 +89,7 @@ func TestPreviewExchangeRateImportPersistsNormalizedSnapshot(t *testing.T) {
 	organizationID, actorID := uuid.New(), uuid.New()
 	repo := &exchangeRateImportRepoStub{context: &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"}}
 	usecase := NewExchangeRateUsecase(repo, nil)
-	batch, token, err := usecase.PreviewImport(context.Background(), organizationID, actorID, PreviewExchangeRateImportInput{
+	batch, token, err := usecase.PreviewImport(principalContext(companyPrincipal("system.finance.exchange_rate.create")), organizationID, actorID, PreviewExchangeRateImportInput{
 		FileName: "汇率.xlsx", FileChecksum: strings.Repeat("a", 64), TemplateVersion: ExchangeRateImportTemplateVersion,
 		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.3", APRate: "7.1", Rate: "7.2", EffectiveFrom: "2026-08-27 09:30:01"}},
 	})
@@ -108,7 +108,7 @@ func TestPreviewExchangeRateImportMarksDatabaseConflict(t *testing.T) {
 		inspectionErrors: map[int][]string{2: {"原币或本币不是启用的 ISO 币种"}},
 	}
 	usecase := NewExchangeRateUsecase(repo, nil)
-	batch, _, err := usecase.PreviewImport(context.Background(), organizationID, uuid.New(), PreviewExchangeRateImportInput{
+	batch, _, err := usecase.PreviewImport(principalContext(companyPrincipal("system.finance.exchange_rate.create")), organizationID, uuid.New(), PreviewExchangeRateImportInput{
 		FileName: "汇率.xlsx", FileChecksum: strings.Repeat("b", 64), TemplateVersion: ExchangeRateImportTemplateVersion,
 		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.3", APRate: "7.1", EffectiveFrom: "2026-08-27 09:30:01"}},
 	})
@@ -120,22 +120,20 @@ func TestPreviewExchangeRateImportMarksDatabaseConflict(t *testing.T) {
 	}
 }
 
-// TestPreviewExchangeRateImportAllowsBranchOrganization 验证导入按当前组织落地：
-// 分公司导入不再被总部门禁拦截（总部导基线行、分公司导本组织行由确认导入按
-// 组织身份判定）。
+// TestPreviewExchangeRateImportAllowsBranchOrganization 验证部门导入归属所属公司。
 func TestPreviewExchangeRateImportAllowsBranchOrganization(t *testing.T) {
 	branchID, ownerID := uuid.New(), uuid.New()
 	repo := &exchangeRateImportRepoStub{context: &ExchangeRateContext{OwnerOrganizationID: ownerID, BaseCurrency: "CNY"}}
 	usecase := NewExchangeRateUsecase(repo, nil)
-	batch, _, err := usecase.PreviewImport(context.Background(), branchID, uuid.New(), PreviewExchangeRateImportInput{
+	batch, _, err := usecase.PreviewImport(principalContext(companyPrincipal("system.finance.exchange_rate.create")), branchID, uuid.New(), PreviewExchangeRateImportInput{
 		FileName: "汇率.xlsx", FileChecksum: strings.Repeat("c", 64), TemplateVersion: ExchangeRateImportTemplateVersion,
 		Rows: []*ExchangeRateImportRow{{RowNumber: 2, FromCurrency: "USD", ToCurrency: "CNY", ARRate: "7.3", APRate: "7.1", EffectiveFrom: "2026-08-27 09:30:01"}},
 	})
 	if err != nil {
 		t.Fatalf("分支机构导入汇率不应被拒绝: %v", err)
 	}
-	if batch == nil || batch.OrganizationID != branchID || repo.created == nil {
-		t.Fatalf("分支机构导入应创建本组织预检批次: %#v", batch)
+	if batch == nil || batch.OrganizationID != ownerID || repo.created == nil {
+		t.Fatalf("部门导入应创建所属公司预检批次: %#v", batch)
 	}
 }
 

@@ -127,7 +127,7 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input, principal.HasPermission(access.FinanceExchangeRateOverride))
+	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input, principal.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	if request.FeeName != nil {
 		input.FeeNameOverride = request.FeeName
 	}
-	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input, principal.HasPermission(access.FinanceExchangeRateOverride))
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input, principal.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}

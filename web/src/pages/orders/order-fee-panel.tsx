@@ -140,7 +140,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       exchangeRateStatus,
       manualExchangeRate,
       setManualExchangeRate,
-      inheritedLastWeek,
       resetPreview,
       seedFromFee,
       resolveExchangeRate,
@@ -273,10 +272,25 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const handleModalSubmit = async (values: FeeFormValues) => {
       if (!order?.id || !ensureFeeWriteAllowed()) return false;
       const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm');
+      const direction = values.direction ?? RECEIVABLE;
+      const preservesManualSnapshot =
+        editingFee?.exchangeRateSource === 'MANUAL' &&
+        !manualExchangeRate &&
+        values.currency === editingFee.currency &&
+        expenseDate ===
+          dayjs(editingFee.expenseDate).format('YYYY-MM-DD HH:mm') &&
+        direction === editingFee.direction;
+      if (
+        exchangeRateStatus === 'missing' &&
+        !manualExchangeRate &&
+        !preservesManualSnapshot
+      ) {
+        message.error('请先维护汇率');
+        return false;
+      }
       const exchangeRateOverride = manualExchangeRate
         ? values.exchangeRateOverride?.trim() || undefined
         : undefined;
-      const direction = values.direction ?? RECEIVABLE;
 
       try {
         if (editingFee?.id) {
@@ -509,7 +523,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           totalPreview={totalPreview}
           exchangeRateStatus={exchangeRateStatus}
           exchangeRatePreview={exchangeRatePreview}
-          inheritedLastWeek={inheritedLastWeek}
           manualExchangeRate={manualExchangeRate}
           setManualExchangeRate={setManualExchangeRate}
           onOpenQuickAddFee={() => {

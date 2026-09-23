@@ -359,7 +359,9 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	default:
 		return nil, ErrOrderFeeInvalidTransition
 	}
-	if current.Status == OrderFeeBilled && normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency {
+	if normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency && normalized.Direction == current.Direction && normalized.ExpenseDate == current.ExpenseDate {
+		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
+	} else if current.Status == OrderFeeBilled && normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency {
 		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
 	} else {
 		if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
@@ -511,6 +513,9 @@ func ValidateFeeQuantityForUnit(quantity decimal.Decimal, mustBeInteger bool) er
 func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (ResolvedRate, error) {
 	if organizationID == uuid.Nil || orderID == uuid.Nil || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
 		return ResolvedRate{}, ErrOrderFeeInvalidArgument
+	}
+	if _, err := uc.repo.Options(ctx, organizationID, orderID); err != nil {
+		return ResolvedRate{}, err
 	}
 	return uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, expenseDateDay(expenseDate))
 }
@@ -681,7 +686,7 @@ func (uc *OrderFeeUsecase) BulkUpdate(ctx context.Context, organizationID, actor
 			resolved, resolveErr := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, rateDate)
 			if resolveErr != nil {
 				if errors.Is(resolveErr, ErrExchangeRateMissing) {
-					return BulkOrderFeeError(ErrExchangeRateMissing, fee.ID, fmt.Sprintf("按新费用时间 %s 未命中 %s 折本币汇率，请先维护汇率或改用手工汇率", rateDate, fee.Currency))
+					return BulkOrderFeeError(ErrExchangeRateMissing, fee.ID, fmt.Sprintf("按新费用时间 %s 未命中 %s 折本币汇率，请先维护汇率", rateDate, fee.Currency))
 				}
 				return resolveErr
 			}

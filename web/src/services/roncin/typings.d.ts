@@ -2257,6 +2257,7 @@ declare namespace API {
 
   type ExchangeRateSetting = {
     id?: string;
+    /** 新配置的组织归属恒为所属分公司。 */
     organizationId?: string;
     fromCurrency?: string;
     toCurrency?: string;

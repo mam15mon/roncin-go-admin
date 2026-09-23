@@ -14,7 +14,7 @@
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
 | [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、Switch、财务门禁与不可变历史 | ✅ |
 | [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定费用币种边界、账单日汇率、核销/对冲本位币口径与预计开票快照 | ✅ |
-| [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 周汇率双轨点差（ar/ap）与组织自治：本币口径、四级容灾链、跨组织原币记账、NULL 基线兜底 | ✅ |
+| [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 公司周汇率双轨点差：当周精确命中、权限与手工输入、跨组织原币记账 | ✅ |
 | [Finance Commission Lock](./finance-commission-lock.md) | 提成净额财务锁：Clawback 冲减、净额归零释放、双落点同口径 | ✅ |
 | [Commission Scheme Assignment](./commission-scheme-assignment.md) | 提成方案与员工分配：实际区间唯一、Membership 固定锁序、legacy_readonly、工作台资格门禁与订单摘要隐私投影 | ✅ |
 | [Billing Unit Quantity Rule](./billing-unit-quantity-rule.md) | 计费单位整数/小数规则、初始化与费用更新语义 | ✅ |

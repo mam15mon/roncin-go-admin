@@ -8,7 +8,7 @@ import "google/api/field_behavior.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
 
-// ExchangeRateService 维护各核算组织本币口径的周汇率主数据（应收/应付双轨点差）。
+// ExchangeRateService 维护各分公司本币口径的周汇率主数据（应收/应付双轨点差）。
 service ExchangeRateService {
   rpc ListExchangeRateSettings(ListExchangeRateSettingsRequest) returns (ListExchangeRateSettingsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -56,7 +56,7 @@ service ExchangeRateService {
   // FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，
   // 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。
   rpc FetchExchangeRates(FetchExchangeRatesRequest) returns (FetchExchangeRatesResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.exchange_rate.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/finance/exchange-rate-syncs/fetch" body: "*"};
   }
 
@@ -78,6 +78,7 @@ enum ExchangeRateSyncTarget {
 
 message ExchangeRateSetting {
   string id = 1;
+  // 新配置的组织归属恒为所属分公司。
   string organization_id = 2;
   reserved 3;
   reserved "rate_type";
