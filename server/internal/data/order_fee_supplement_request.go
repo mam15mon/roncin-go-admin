@@ -141,6 +141,8 @@ func (r *orderFeeSupplementRepo) ListByOrder(ctx context.Context, organizationID
 	}
 	items, err := client.OrderFeeSupplementRequest.Query().
 		Where(orderfeesupplementent.OrganizationIDEQ(organizationID), orderfeesupplementent.OrderIDEQ(orderID)).
+		WithRequestedByUser().
+		WithDecidedByUser().
 		Order(orderfeesupplementent.ByRequestedAt(), orderfeesupplementent.ByID()).
 		All(ctx)
 	if err != nil {

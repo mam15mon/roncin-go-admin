@@ -1291,12 +1291,18 @@ func TestFeeSupplementListAuthorizationPostgres(t *testing.T) {
 		if pendingView == nil || !pendingView.CanWithdraw || pendingView.CanApprove || pendingView.CanCancel || pendingView.ApproverAvailable {
 			t.Fatalf("本人 PENDING 投影不符: %+v", pendingView)
 		}
+		if pendingView.Request.RequestedByName == "" || pendingView.Request.DecidedByName != nil {
+			t.Fatalf("待审批申请应带发起人姓名且无决策人: %+v", pendingView.Request)
+		}
 		approvedView := byID[approved.ID]
 		if approvedView == nil || approvedView.CanWithdraw || approvedView.CanApprove || approvedView.CanCancel {
 			t.Fatalf("无 grant 发起人的 APPROVED 投影不符: %+v", approvedView)
 		}
 		if approvedView.FeeID == nil || approvedView.FeeStatus != "UNBILLED" {
 			t.Fatalf("APPROVED 行应投影生成费用状态: %+v", approvedView)
+		}
+		if approvedView.Request.DecidedByName == nil || *approvedView.Request.DecidedByName == "" {
+			t.Fatalf("已审批申请应带决策人姓名: %+v", approvedView.Request)
 		}
 	})
 

@@ -100,6 +100,13 @@ func supplementRequestToBiz(item *ent.OrderFeeSupplementRequest) (*biz.OrderFeeS
 		CreatedAt:          item.CreatedAt,
 		UpdatedAt:          item.UpdatedAt,
 	}
+	if user := item.Edges.RequestedByUser; user != nil {
+		result.RequestedByName = user.DisplayName
+	}
+	if user := item.Edges.DecidedByUser; user != nil {
+		name := user.DisplayName
+		result.DecidedByName = &name
+	}
 	if item.BusinessLockGeneration != nil {
 		generation := *item.BusinessLockGeneration
 		result.BusinessLockGeneration = &generation

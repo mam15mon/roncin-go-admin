@@ -448,7 +448,7 @@ export default function FeeSupplementSection({
       render: (_, record) => (
         <Space orientation="vertical" size={0}>
           <Typography.Text style={{ fontSize: 12 }} ellipsis>
-            {record.requestedBy || '-'}
+            {record.requestedByName || '-'}
           </Typography.Text>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
             {record.requestedAt
@@ -475,7 +475,7 @@ export default function FeeSupplementSection({
         return (
           <Space orientation="vertical" size={0}>
             <Typography.Text style={{ fontSize: 12 }} ellipsis>
-              {record.decidedBy || '-'}
+              {record.decidedByName || '-'}
             </Typography.Text>
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
               {record.decidedAt

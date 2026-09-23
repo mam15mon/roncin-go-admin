@@ -5145,6 +5145,9 @@ declare namespace API {
     /** 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
  PENDING 并投影 false，发起人仍可撤回。 */
     approverAvailable?: boolean;
+    /** 展示姓名；requested_by / decided_by 仍用于身份与权限判断。 */
+    requestedByName?: string;
+    decidedByName?: string;
   };
 
   type OrderLockHouseBillSnapshotData = {

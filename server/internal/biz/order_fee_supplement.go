@@ -165,10 +165,12 @@ type OrderFeeSupplementRequest struct {
 	Fee                          OrderFeeSupplementFeeSnapshot
 	Reason                       string
 	RequestedBy                  uuid.UUID
+	RequestedByName              string
 	RequestedAt                  time.Time
 	Status                       OrderFeeSupplementStatus
 	Version                      uint64
 	DecidedBy                    *uuid.UUID
+	DecidedByName                *string
 	DecidedAt                    *time.Time
 	DecisionReason               *string
 	CreatedAt, UpdatedAt         time.Time

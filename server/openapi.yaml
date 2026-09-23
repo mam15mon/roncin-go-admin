@@ -18655,6 +18655,11 @@ components:
                     description: |-
                         当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
                          PENDING 并投影 false，发起人仍可撤回。
+                requestedByName:
+                    type: string
+                    description: 展示姓名；requested_by / decided_by 仍用于身份与权限判断。
+                decidedByName:
+                    type: string
             description: |-
                 OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。
                  锁依据字段由服务端在 Order 行锁内判定固化，客户端传入值一律被忽略。

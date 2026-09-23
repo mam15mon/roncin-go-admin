@@ -2580,8 +2580,11 @@ type OrderFeeSupplementRequestData struct {
 	// 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
 	// PENDING 并投影 false，发起人仍可撤回。
 	ApproverAvailable bool `protobuf:"varint,48,opt,name=approver_available,json=approverAvailable,proto3" json:"approver_available,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// 展示姓名；requested_by / decided_by 仍用于身份与权限判断。
+	RequestedByName string  `protobuf:"bytes,49,opt,name=requested_by_name,json=requestedByName,proto3" json:"requested_by_name,omitempty"`
+	DecidedByName   *string `protobuf:"bytes,50,opt,name=decided_by_name,json=decidedByName,proto3,oneof" json:"decided_by_name,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *OrderFeeSupplementRequestData) Reset() {
@@ -2948,6 +2951,20 @@ func (x *OrderFeeSupplementRequestData) GetApproverAvailable() bool {
 		return x.ApproverAvailable
 	}
 	return false
+}
+
+func (x *OrderFeeSupplementRequestData) GetRequestedByName() string {
+	if x != nil {
+		return x.RequestedByName
+	}
+	return ""
+}
+
+func (x *OrderFeeSupplementRequestData) GetDecidedByName() string {
+	if x != nil && x.DecidedByName != nil {
+		return *x.DecidedByName
+	}
+	return ""
 }
 
 type CreateOrderFeeSupplementRequest struct {
@@ -4199,7 +4216,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\atag_ids\x18\x03 \x03(\tB\x03\xe0A\x02R\x06tagIds\"a\n" +
 	"\x1fBatchRemoveOrderFeeTagsResponse\x12#\n" +
 	"\rremoved_count\x18\x01 \x01(\x05R\fremovedCount\x12\x19\n" +
-	"\btrace_id\x18\x02 \x01(\tR\atraceId\"\xf3\x11\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId\"\xe0\x12\n" +
 	"\x1dOrderFeeSupplementRequestData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x1d\n" +
@@ -4259,7 +4276,9 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x06fee_id\x18. \x01(\tH\x0fR\x05feeId\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"fee_status\x18/ \x01(\tH\x10R\tfeeStatus\x88\x01\x01\x12-\n" +
-	"\x12approver_available\x180 \x01(\bR\x11approverAvailableB\x1b\n" +
+	"\x12approver_available\x180 \x01(\bR\x11approverAvailable\x12*\n" +
+	"\x11requested_by_name\x181 \x01(\tR\x0frequestedByName\x12+\n" +
+	"\x0fdecided_by_name\x182 \x01(\tH\x11R\rdecidedByName\x88\x01\x01B\x1b\n" +
 	"\x19_business_lock_generationB\"\n" +
 	" _financial_lock_evidence_versionB\x1f\n" +
 	"\x1d_financial_lock_evidence_hashB\x1c\n" +
@@ -4276,7 +4295,8 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x10_decision_reasonB\x18\n" +
 	"\x16_cancel_blocked_reasonB\t\n" +
 	"\a_fee_idB\r\n" +
-	"\v_fee_status\"\x9b\x05\n" +
+	"\v_fee_statusB\x12\n" +
+	"\x10_decided_by_name\"\x9b\x05\n" +
 	"\x1fCreateOrderFeeSupplementRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12)\n" +

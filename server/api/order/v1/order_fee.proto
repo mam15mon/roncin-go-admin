@@ -503,6 +503,9 @@ message OrderFeeSupplementRequestData {
   // 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
   // PENDING 并投影 false，发起人仍可撤回。
   bool approver_available = 48;
+  // 展示姓名；requested_by / decided_by 仍用于身份与权限判断。
+  string requested_by_name = 49;
+  optional string decided_by_name = 50;
 }
 
 message CreateOrderFeeSupplementRequest {

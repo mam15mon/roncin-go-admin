@@ -40,6 +40,7 @@ func orderFeeSupplementToAPI(value *biz.OrderFeeSupplementRequest) *v1.OrderFeeS
 		BaseCurrencyAmount: value.Fee.BaseCurrencyAmount.StringFixed(8),
 		Reason:             value.Reason,
 		RequestedBy:        value.RequestedBy.String(),
+		RequestedByName:    value.RequestedByName,
 		RequestedAt:        value.RequestedAt.UTC().Format(time.RFC3339),
 	}
 	if value.BusinessLockGeneration != nil {
@@ -80,6 +81,7 @@ func orderFeeSupplementToAPI(value *biz.OrderFeeSupplementRequest) *v1.OrderFeeS
 		decidedBy := value.DecidedBy.String()
 		result.DecidedBy = &decidedBy
 	}
+	result.DecidedByName = value.DecidedByName
 	if value.DecidedAt != nil {
 		decidedAt := value.DecidedAt.UTC().Format(time.RFC3339)
 		result.DecidedAt = &decidedAt

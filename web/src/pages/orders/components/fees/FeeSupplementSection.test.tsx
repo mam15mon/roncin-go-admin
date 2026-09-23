@@ -78,6 +78,7 @@ function supplementRow(
     expenseDate: '2026-09-01',
     reason: '漏录拖车费',
     requestedBy: 'user-a',
+    requestedByName: '张发起',
     requestedAt: '2026-09-01T10:00:00Z',
     canApprove: false,
     canWithdraw: false,
@@ -267,6 +268,8 @@ describe('FeeSupplementSection', () => {
 
     expect(await screen.findByText('通过')).toBeInTheDocument();
     expect(screen.getByText('驳回')).toBeInTheDocument();
+    expect(screen.getByText('张发起')).toBeInTheDocument();
+    expect(screen.queryByText('user-other')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('通过'));
     fireEvent.click(await screen.findByRole('button', { name: /通\s*过/ }));
@@ -343,6 +346,8 @@ describe('FeeSupplementSection', () => {
         supplementRow({
           id: 'sup-cancelable',
           status: 'APPROVED',
+          decidedBy: 'user-approver',
+          decidedByName: '李审批',
           feeId: 'fee-1',
           feeStatus: 'CONFIRMED',
           canCancel: true,
@@ -367,6 +372,8 @@ describe('FeeSupplementSection', () => {
     expect(await screen.findByText('作废补录费用')).toBeInTheDocument();
     expect(screen.getByText('不可作废')).toBeInTheDocument();
     expect(screen.getByText('已进账单')).toBeInTheDocument();
+    expect(screen.getByText('李审批')).toBeInTheDocument();
+    expect(screen.queryByText('user-approver')).not.toBeInTheDocument();
     // 阻断原因只展示服务端文案，不引导普通删除。
     expect(screen.queryByText(/^普通删除/)).not.toBeInTheDocument();
     expect(cancelApproved).not.toHaveBeenCalled();
