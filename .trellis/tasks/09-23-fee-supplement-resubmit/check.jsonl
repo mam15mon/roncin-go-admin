@@ -1,0 +1,2 @@
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"核对前端定向验证和提交门禁"}
+{"file":".trellis/spec/web/frontend/type-safety.md","reason":"核对生成类型与页面字段使用的类型安全"}

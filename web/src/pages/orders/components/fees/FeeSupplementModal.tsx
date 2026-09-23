@@ -5,8 +5,9 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Alert, Col, Row } from 'antd';
-import React, { useRef } from 'react';
+import { Alert, Checkbox, Col, Row, Typography } from 'antd';
+import dayjs from 'dayjs';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import {
   ExchangeRatePreviewCard,
@@ -34,6 +35,7 @@ type FeeSupplementModalProps = FeeSupplementOptions & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: FeeSupplementFormValues) => Promise<boolean>;
+  initialRequest?: API.OrderFeeSupplementRequestData;
 };
 
 /** 锁后费用补录表单：复用普通费用字段，固定应付方向并要求补录原因。 */
@@ -46,8 +48,13 @@ export default function FeeSupplementModal({
   currencies,
   billingUnits,
   onSubmit,
+  initialRequest,
 }: FeeSupplementModalProps) {
   const access = useAccess();
+  const [confirmSystemRate, setConfirmSystemRate] = useState(false);
+  const [showRateConfirmationError, setShowRateConfirmationError] =
+    useState(false);
+  const [manualRateCleared, setManualRateCleared] = useState(false);
   const internalFormRef =
     useRef<ProFormInstance<FeeSupplementFormValues>>(undefined);
   const {
@@ -65,27 +72,129 @@ export default function FeeSupplementModal({
     >,
   );
 
+  const unavailable: string[] = [];
+  const availableValue = (
+    value: string | undefined,
+    valid: boolean,
+    label: string,
+  ) => {
+    if (initialRequest && value && !valid) {
+      unavailable.push(label);
+      return undefined;
+    }
+    return value;
+  };
+  const feeSettingId = availableValue(
+    initialRequest?.feeSettingId,
+    feeSettings.some((item) => item.id === initialRequest?.feeSettingId),
+    '费用项目',
+  );
+  const settlementPartyId = availableValue(
+    initialRequest?.settlementPartyId,
+    settlementParties.some(
+      (item) => item.id === initialRequest?.settlementPartyId,
+    ),
+    '结算单位',
+  );
+  const billingUnitId = availableValue(
+    initialRequest?.billingUnitId,
+    billingUnits.some((item) => item.id === initialRequest?.billingUnitId),
+    '计费单位',
+  );
+  const currency = availableValue(
+    initialRequest?.currency,
+    currencies.some((item) => item.code === initialRequest?.currency),
+    '币种',
+  );
+  const manualRate = initialRequest?.exchangeRateSource === 'MANUAL';
+  const canReuseManualRate = manualRate && access.canOverrideFeeExchangeRate;
+  const requiresSystemRateConfirmation =
+    manualRate && !access.canOverrideFeeExchangeRate;
+  const prefill: Partial<FeeSupplementFormValues> = initialRequest
+    ? {
+        direction: PAYABLE,
+        feeSettingId,
+        settlementPartyId,
+        billingUnitId,
+        currency,
+        quantity: initialRequest.quantity,
+        unitPrice: initialRequest.unitPrice,
+        expenseDate: initialRequest.expenseDate
+          ? dayjs(initialRequest.expenseDate)
+          : undefined,
+        reason: initialRequest.reason,
+        note: initialRequest.note,
+        exchangeRateOverride: canReuseManualRate
+          ? initialRequest.exchangeRate
+          : undefined,
+      }
+    : { direction: PAYABLE, currency: 'CNY', quantity: '1' };
+
+  useEffect(() => {
+    if (!open) return;
+    setConfirmSystemRate(false);
+    setShowRateConfirmationError(false);
+    setManualRateCleared(false);
+    setManualExchangeRate(Boolean(canReuseManualRate));
+    if (requiresSystemRateConfirmation) {
+      internalFormRef.current?.setFieldValue('exchangeRateOverride', undefined);
+    }
+  }, [
+    open,
+    initialRequest?.id,
+    canReuseManualRate,
+    requiresSystemRateConfirmation,
+    setManualExchangeRate,
+  ]);
+
   return (
     <ModalForm<FeeSupplementFormValues>
       title="补录费用（应付）"
       open={open}
       formRef={internalFormRef}
+      initialValues={prefill}
       onOpenChange={(next) => {
         if (next) {
-          internalFormRef.current?.setFieldsValue({
-            direction: PAYABLE,
-            currency: 'CNY',
-            quantity: '1',
-            expenseDate: undefined,
-          });
+          internalFormRef.current?.resetFields();
+          internalFormRef.current?.setFieldsValue(prefill);
         } else {
           resetPreview();
         }
         onOpenChange(next);
       }}
-      onFinish={onSubmit}
-      onValuesChange={() => {
-        handleValuesChange();
+      onFinish={(values) => {
+        if (requiresSystemRateConfirmation && !confirmSystemRate) {
+          setShowRateConfirmationError(true);
+          return Promise.resolve(false);
+        }
+        return onSubmit(values);
+      }}
+      onValuesChange={(changedValues) => {
+        const rateBasisChanged =
+          'feeSettingId' in changedValues ||
+          'currency' in changedValues ||
+          'expenseDate' in changedValues;
+        if (rateBasisChanged && manualExchangeRate) {
+          setManualRateCleared(true);
+        }
+        if (
+          rateBasisChanged ||
+          'quantity' in changedValues ||
+          'unitPrice' in changedValues
+        ) {
+          const retainedManualRate =
+            manualExchangeRate && !rateBasisChanged
+              ? internalFormRef.current?.getFieldValue('exchangeRateOverride')
+              : undefined;
+          handleValuesChange();
+          if (retainedManualRate !== undefined) {
+            internalFormRef.current?.setFieldValue(
+              'exchangeRateOverride',
+              retainedManualRate,
+            );
+            setManualExchangeRate(true);
+          }
+        }
         if (internalFormRef.current?.getFieldValue('quantity')) {
           void internalFormRef.current
             .validateFields(['quantity'])
@@ -101,6 +210,59 @@ export default function FeeSupplementModal({
         title="补录仅用于锁定订单追加真实发生的应付成本；审批通过后生成一条新的未建账应付费用，不会修改原有费用。应收方向不支持补录。"
         style={{ marginBottom: 16 }}
       />
+      {initialRequest && (
+        <Alert
+          type="info"
+          showIcon
+          title="已预填撤回申请，请核对后作为新申请提交"
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      {unavailable.length > 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          title={`${unavailable.join('、')}已不可用`}
+          description="原值未带入新申请，请重新选择后再提交。"
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      {requiresSystemRateConfirmation && (
+        <Alert
+          type="warning"
+          showIcon
+          title="原申请使用手动汇率，当前已无覆盖权限"
+          description={
+            <div>
+              <p>原手动汇率不会沿用；新申请将按当前系统汇率重新计算。</p>
+              <Checkbox
+                checked={confirmSystemRate}
+                onChange={(event) => {
+                  setConfirmSystemRate(event.target.checked);
+                  setShowRateConfirmationError(false);
+                }}
+              >
+                我确认改用当前系统汇率
+              </Checkbox>
+              {showRateConfirmationError && (
+                <Typography.Text type="danger" style={{ display: 'block' }}>
+                  请先确认汇率变化
+                </Typography.Text>
+              )}
+            </div>
+          }
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      {manualRateCleared && (
+        <Alert
+          type="warning"
+          showIcon
+          title="费用项目、币种或发生日期已变化，原手动汇率已清除"
+          description="请重新指定手动汇率，或核对当前系统汇率后提交。"
+          style={{ marginBottom: 16 }}
+        />
+      )}
       <Row gutter={16}>
         <Col span={12}>
           <ProFormSearchableSelect
@@ -223,7 +385,10 @@ export default function FeeSupplementModal({
             ratePreview={exchangeRatePreview}
             onEnableManual={
               access.canOverrideFeeExchangeRate
-                ? () => setManualExchangeRate(true)
+                ? () => {
+                    setManualRateCleared(false);
+                    setManualExchangeRate(true);
+                  }
                 : undefined
             }
           />

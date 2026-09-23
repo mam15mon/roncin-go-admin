@@ -1,0 +1,29 @@
+{
+  "id": "fee-supplement-resubmit-profit-preview",
+  "name": "fee-supplement-resubmit-profit-preview",
+  "title": "费用补录重提与审批毛利预览",
+  "description": "待审批补录申请撤回后预填重提，并在审批确认前预览订单毛利变化",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-23",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-23-fee-supplement-resubmit",
+    "09-23-fee-supplement-profit-preview"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

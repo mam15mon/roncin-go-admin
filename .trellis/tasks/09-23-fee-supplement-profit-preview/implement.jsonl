@@ -1,0 +1,5 @@
+{"file":".trellis/spec/domain/glossary.md","reason":"确认费用补录和财务锁术语"}
+{"file":".trellis/spec/domain/architecture-map.md","reason":"确认费用、审批、提成的跨层链路"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"核对 proto 到服务端及页面的契约一致性"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"核对预览请求与审批提交的异步状态管理"}
+{"file":".trellis/spec/server/backend/billing-unit-quantity-rule.md","reason":"确认补录申请快照与审批重解析的既有约束"}

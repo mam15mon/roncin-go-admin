@@ -1,0 +1,4 @@
+{"file":".trellis/spec/domain/glossary.md","reason":"确认费用补录及订单锁定业务术语和不可变边界"}
+{"file":".trellis/spec/domain/architecture-map.md","reason":"确认订单费用与补录的核心数据流"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"遵循费用页模态表单和高密度操作 UI 约定"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"遵循现有请求状态与竞态处理规范"}

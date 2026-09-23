@@ -2,7 +2,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { App, Button, Input, Space, Tag, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { orderFeeStatusMeta } from '@/constants/statusMeta';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
@@ -119,10 +119,24 @@ export default function FeeSupplementSection({
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const requestSequenceRef = useRef(0);
+  const listRequestSequenceRef = useRef(0);
   const activeOrderIdRef = useRef(orderId);
   activeOrderIdRef.current = orderId;
+  const canResubmitRef = useRef(canCreate && lockActive);
+  canResubmitRef.current = canCreate && lockActive;
+  const previousOrderIdRef = useRef(orderId);
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalOrderId, setModalOrderId] = useState<string>();
+  const [resubmitRequest, setResubmitRequest] = useState<SupplementRequest>();
   const idempotencyKeyRef = useRef(generateUUID());
+
+  useEffect(() => {
+    if (previousOrderIdRef.current === orderId) return;
+    previousOrderIdRef.current = orderId;
+    setModalOpen(false);
+    setResubmitRequest(undefined);
+    setModalOrderId(undefined);
+  }, [orderId]);
 
   const reloadList = () => actionRef.current?.reload();
 
@@ -333,6 +347,66 @@ export default function FeeSupplementSection({
     });
   };
 
+  const handleWithdrawAndResubmit = (record: SupplementRequest) => {
+    const targetOrderId = orderId;
+    if (
+      !targetOrderId ||
+      !record.id ||
+      !record.version ||
+      !record.canWithdraw ||
+      !canCreate ||
+      !lockActive
+    )
+      return;
+    modal.confirm({
+      title: '撤回并重新提交补录申请？',
+      content:
+        '原申请撤回后将成为不可修改的历史记录。撤回成功才会打开预填表单；关闭表单不会恢复原申请，也不会自动提交新申请。',
+      okText: '撤回并重提',
+      onOk: async () => {
+        await runGuarded(async (requestSequence) => {
+          try {
+            await orderFeeServiceWithdrawOrderFeeSupplement(
+              { orderId: targetOrderId, id: record.id as string },
+              {
+                orderId: targetOrderId,
+                id: record.id as string,
+                expectedVersion: record.version as string,
+              },
+            );
+            if (isStaleResponse(requestSequence, targetOrderId)) return;
+            if (!canResubmitRef.current) {
+              message.warning('原申请已撤回，当前订单已不符合重提条件');
+              reloadList();
+              return;
+            }
+            idempotencyKeyRef.current = generateUUID();
+            setResubmitRequest(record);
+            setModalOrderId(targetOrderId);
+            setModalOpen(true);
+            message.success('原申请已撤回，请核对并提交新申请');
+            reloadList();
+          } catch (error: unknown) {
+            if (isStaleResponse(requestSequence, targetOrderId)) return;
+            const { kind, text } = describeFeeSupplementError(
+              reasonOf(error),
+              textOf(error),
+            );
+            if (kind === 'transition') {
+              modal.warning({
+                title: '申请状态已变化',
+                content: '该申请已被其他人员处理，列表已刷新。',
+              });
+            } else {
+              message.error(text || '撤回失败，未打开重提表单');
+            }
+            reloadList();
+          }
+        });
+      },
+    });
+  };
+
   const handleCancelFee = (record: SupplementRequest) => {
     const targetOrderId = orderId;
     if (!targetOrderId || !record.id || !record.feeId) return;
@@ -521,6 +595,16 @@ export default function FeeSupplementSection({
               撤回申请
             </a>,
           );
+          if (canCreate && lockActive) {
+            actions.push(
+              <a
+                key="withdraw-resubmit"
+                onClick={() => handleWithdrawAndResubmit(record)}
+              >
+                撤回并重提
+              </a>,
+            );
+          }
         }
         if (record.status === 'APPROVED') {
           if (record.canCancel) {
@@ -552,6 +636,8 @@ export default function FeeSupplementSection({
             type="primary"
             onClick={() => {
               idempotencyKeyRef.current = generateUUID();
+              setResubmitRequest(undefined);
+              setModalOrderId(orderId);
               setModalOpen(true);
             }}
           >
@@ -574,13 +660,16 @@ export default function FeeSupplementSection({
         request={async (params) => {
           const targetOrderId =
             (params as { orderId?: string }).orderId || orderId;
-          const requestSequence = ++requestSequenceRef.current;
+          const requestSequence = ++listRequestSequenceRef.current;
           const response = await orderFeeServiceListOrderFeeSupplementRequests({
             orderId: targetOrderId,
             page: params.current ?? 1,
             pageSize: params.pageSize ?? 10,
           });
-          if (isStaleResponse(requestSequence, targetOrderId)) {
+          if (
+            requestSequence !== listRequestSequenceRef.current ||
+            targetOrderId !== activeOrderIdRef.current
+          ) {
             return { data: [], success: true };
           }
           const data = response.data?.items ?? [];
@@ -593,9 +682,14 @@ export default function FeeSupplementSection({
         locale={{ emptyText: '暂无补录申请' }}
       />
       <FeeSupplementModal
+        key={resubmitRequest?.id ?? 'new'}
         orderId={orderId}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
+        open={modalOpen && modalOrderId === orderId}
+        onOpenChange={(next) => {
+          setModalOpen(next);
+          if (!next) setResubmitRequest(undefined);
+        }}
+        initialRequest={resubmitRequest}
         feeSettings={feeSettings}
         settlementParties={settlementParties}
         currencies={currencies}
