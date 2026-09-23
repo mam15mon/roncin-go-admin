@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/domain/glossary.md", "reason": "订单费用、账单及锁定领域边界"}
+{"file": ".trellis/spec/adr/0004-unified-transaction-wrapper.md", "reason": "整批事务封装"}
+{"file": ".trellis/spec/adr/0005-pessimistic-plus-optimistic-locking.md", "reason": "固定锁序及版本并发"}
+{"file": ".trellis/spec/adr/0003-ent-schema-and-sql-migrations.md", "reason": "正式状态迁移"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "复用已有标签和建账能力"}
+{"file": ".trellis/tasks/09-23-order-fee-bulk-actions/prd.md", "reason": "已批准范围及验收"}
+{"file": ".trellis/tasks/09-23-order-fee-bulk-actions/design.md", "reason": "状态与批量接口设计"}
