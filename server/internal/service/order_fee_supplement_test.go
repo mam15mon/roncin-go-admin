@@ -12,6 +12,7 @@ func TestOrderFeeSupplementToAPIIncludesActorNames(t *testing.T) {
 	decidedBy := uuid.New()
 	decidedByName := "李审批"
 	request := &biz.OrderFeeSupplementRequest{
+		Fee:             biz.OrderFeeSupplementFeeSnapshot{SettlementPartyName: "示例供应商"},
 		RequestedBy:     uuid.New(),
 		RequestedByName: "张发起",
 		RequestedAt:     time.Date(2026, 9, 21, 22, 44, 0, 0, time.UTC),
@@ -20,6 +21,9 @@ func TestOrderFeeSupplementToAPIIncludesActorNames(t *testing.T) {
 	}
 
 	result := orderFeeSupplementToAPI(request)
+	if result.SettlementPartyName != "示例供应商" {
+		t.Fatalf("审核所需结算单位名称映射不符: %+v", result)
+	}
 	if result.RequestedByName != "张发起" || result.RequestedBy != request.RequestedBy.String() {
 		t.Fatalf("发起人 ID 与姓名映射不符: %+v", result)
 	}

@@ -5038,6 +5038,12 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type OrderFeeServicePreviewOrderFeeSupplementApprovalParams = {
+    orderId: string;
+    id: string;
+    expectedVersion?: string;
+  };
+
   type OrderFeeServiceRejectOrderFeeSupplementParams = {
     orderId: string;
     id: string;
@@ -6094,6 +6100,29 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceNettingPreview;
+    traceId?: string;
+  };
+
+  type PreviewOrderFeeSupplementApprovalData = {
+    baseCurrency?: string;
+    currentReceivable?: string;
+    currentPayable?: string;
+    currentProfit?: string;
+    /** 应收为零时为空，页面展示「不可计算」。 */
+    currentProfitRate?: string;
+    supplementCost?: string;
+    projectedReceivable?: string;
+    projectedPayable?: string;
+    projectedProfit?: string;
+    projectedProfitRate?: string;
+    profitChange?: string;
+  };
+
+  type PreviewOrderFeeSupplementApprovalResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PreviewOrderFeeSupplementApprovalData;
     traceId?: string;
   };
 

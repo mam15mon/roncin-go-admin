@@ -94,11 +94,28 @@ func lockOrderForSupplementInternal(ctx context.Context, tx *ent.Tx, organizatio
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
+	return supplementLockEvidenceForOrder(ctx, tx.Client(), organizationID, orderID, order)
+}
+
+// ReadLockEvidence 使用与审批相同的证据计算，但不打开写事务或获取行锁。
+func (r *orderFeeSupplementRepo) ReadLockEvidence(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeSupplementLockEvidence, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	order, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
+	}
+	return supplementLockEvidenceForOrder(ctx, client, organizationID, orderID, order)
+}
+
+func supplementLockEvidenceForOrder(ctx context.Context, client *ent.Client, organizationID, orderID uuid.UUID, order *ent.Order) (*biz.OrderFeeSupplementLockEvidence, error) {
 	businessType, err := orderAccessBusinessType(order.BusinessType)
 	if err != nil {
 		return nil, err
 	}
-	components, err := loadFinancialLockEvidence(ctx, tx.Client(), organizationID, orderID)
+	components, err := loadFinancialLockEvidence(ctx, client, organizationID, orderID)
 	if err != nil {
 		return nil, err
 	}

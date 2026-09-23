@@ -52,6 +52,106 @@ type OrderFeeSupplementApproveResult struct {
 	Suggestions []OrderFeeSupplementDecreaseSuggestion
 }
 
+// OrderFeeSupplementApprovalPreview 是审批时点的本币费用毛利估算。
+type OrderFeeSupplementApprovalPreview struct {
+	BaseCurrency                                           string
+	CurrentReceivable, CurrentPayable, CurrentProfit       decimal.Decimal
+	CurrentProfitRate                                      *decimal.Decimal
+	SupplementCost                                         decimal.Decimal
+	ProjectedReceivable, ProjectedPayable, ProjectedProfit decimal.Decimal
+	ProjectedProfitRate                                    *decimal.Decimal
+	ProfitChange                                           decimal.Decimal
+}
+
+// PreviewApproval 只读复核审批资格和锁依据，按审批相同的费用事实解析链估算毛利。
+func (uc *OrderFeeSupplementUsecase) PreviewApproval(ctx context.Context, caller *Principal, organizationID, orderID, requestID uuid.UUID, expectedVersion uint64) (*OrderFeeSupplementApprovalPreview, error) {
+	if caller == nil || !caller.CanOperateBusiness() || caller.Organization.ID != organizationID {
+		return nil, ErrOperatingCompanyRequired
+	}
+	if !validSupplementCaller(caller, organizationID, orderID) || requestID == uuid.Nil || expectedVersion == 0 {
+		return nil, ErrFeeSupplementInvalidArgument
+	}
+	request, err := uc.repo.Get(ctx, organizationID, requestID)
+	if err != nil {
+		return nil, err
+	}
+	if request.OrderID != orderID {
+		return nil, ErrFeeSupplementNotFound
+	}
+	if request.Version != expectedVersion || request.Status != OrderFeeSupplementPending {
+		return nil, ErrFeeSupplementTransition
+	}
+	qualified, err := uc.repo.HasRealtimeLockGrant(ctx, organizationID, orderID, caller.UserID, caller.IsBootstrapAdmin)
+	if err != nil {
+		return nil, err
+	}
+	if !qualified {
+		return nil, ErrPermissionDenied
+	}
+	evidence, err := uc.repo.ReadLockEvidence(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if err = verifyLockBasis(request, evidence); err != nil {
+		return nil, err
+	}
+	fee, err := uc.repo.ResolveFeeFactsForApproval(ctx, organizationID, orderID, &request.Fee)
+	if err != nil {
+		return nil, err
+	}
+	if request.Fee.ExchangeRateSource != ExchangeRateSourceManual {
+		if err = uc.fee.resolveExchangeRate(ctx, organizationID, orderID, fee, false); err != nil {
+			return nil, err
+		}
+	}
+	if err = uc.fee.calculateAmounts(ctx, organizationID, fee); err != nil {
+		return nil, err
+	}
+	fees, err := uc.fee.List(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	return calculateSupplementApprovalPreview(fees, fee)
+}
+
+func calculateSupplementApprovalPreview(fees []*OrderFee, fee *OrderFee) (*OrderFeeSupplementApprovalPreview, error) {
+	if fee == nil || fee.BaseCurrency == "" || fee.Direction != OrderFeePayable || fee.BaseCurrencyAmount.Sign() <= 0 {
+		return nil, ErrOrderFeeInvalidArgument
+	}
+	result := &OrderFeeSupplementApprovalPreview{BaseCurrency: fee.BaseCurrency, SupplementCost: fee.BaseCurrencyAmount}
+	for _, current := range fees {
+		if current == nil {
+			return nil, ErrOrderFeeInvalidArgument
+		}
+		if current.Status == OrderFeeCancelled {
+			continue
+		}
+		if current.BaseCurrency != result.BaseCurrency {
+			return nil, ErrOrderFeeInvalidArgument
+		}
+		switch current.Direction {
+		case OrderFeeReceivable:
+			result.CurrentReceivable = result.CurrentReceivable.Add(current.BaseCurrencyAmount)
+		case OrderFeePayable:
+			result.CurrentPayable = result.CurrentPayable.Add(current.BaseCurrencyAmount)
+		default:
+			return nil, ErrOrderFeeInvalidArgument
+		}
+	}
+	result.CurrentProfit = result.CurrentReceivable.Sub(result.CurrentPayable)
+	result.ProjectedReceivable = result.CurrentReceivable
+	result.ProjectedPayable = result.CurrentPayable.Add(result.SupplementCost)
+	result.ProjectedProfit = result.ProjectedReceivable.Sub(result.ProjectedPayable)
+	result.ProfitChange = result.ProjectedProfit.Sub(result.CurrentProfit)
+	if result.CurrentReceivable.Sign() != 0 {
+		currentRate := result.CurrentProfit.DivRound(result.CurrentReceivable, 6).Mul(decimal.NewFromInt(100))
+		projectedRate := result.ProjectedProfit.DivRound(result.ProjectedReceivable, 6).Mul(decimal.NewFromInt(100))
+		result.CurrentProfitRate = &currentRate
+		result.ProjectedProfitRate = &projectedRate
+	}
+	return result, nil
+}
+
 // OrderFeeSupplementListView 是补录申请列表的逐行授权结果。
 type OrderFeeSupplementListView struct {
 	Items []*OrderFeeSupplementRequestView

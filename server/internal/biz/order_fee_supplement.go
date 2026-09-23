@@ -118,6 +118,7 @@ type OrderFeeSupplementFeeSnapshot struct {
 	FeeName               string
 	FeeNameEN             *string
 	SettlementPartyID     uuid.UUID
+	SettlementPartyName   string
 	BillingUnitID         *uuid.UUID
 	BillingUnit           string
 	TaxRate               *decimal.Decimal
@@ -269,6 +270,8 @@ type OrderFeeSupplementRequestRepo interface {
 	// 业务锁与财务锁事实。补录是锁单的受控例外：本方法不执行普通费用写入口的
 	// 内容门禁与财务锁拒绝，但锁依据计算必须复用财务锁净额口径。
 	LockOrderForSupplement(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementLockEvidence, error)
+	// ReadLockEvidence 只读计算当前锁依据，供审批预览复核。
+	ReadLockEvidence(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementLockEvidence, error)
 	// GetOrderRef 读取订单号与业务类型，供权限判定与通知摘要使用。
 	GetOrderRef(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementOrderRef, error)
 	// ListLockGrantApprovers 解析当前实时具备目标订单直接解锁资格的审批候选人

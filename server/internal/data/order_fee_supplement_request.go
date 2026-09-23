@@ -9,6 +9,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 )
 
 // Create 幂等创建申请：同组织同幂等键同指纹返回既有申请，同键不同指纹返回
@@ -148,12 +149,31 @@ func (r *orderFeeSupplementRepo) ListByOrder(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
+	partyIDs := make([]uuid.UUID, 0, len(items))
+	partySeen := make(map[uuid.UUID]struct{}, len(items))
+	for _, item := range items {
+		if _, exists := partySeen[item.SettlementPartyID]; !exists {
+			partySeen[item.SettlementPartyID] = struct{}{}
+			partyIDs = append(partyIDs, item.SettlementPartyID)
+		}
+	}
+	partyNames := make(map[uuid.UUID]string, len(partyIDs))
+	if len(partyIDs) > 0 {
+		parties, partyErr := client.Partner.Query().Where(partnerent.OrganizationIDEQ(organizationID), partnerent.IDIn(partyIDs...)).All(ctx)
+		if partyErr != nil {
+			return nil, partyErr
+		}
+		for _, party := range parties {
+			partyNames[party.ID] = party.LegalName
+		}
+	}
 	result := make([]*biz.OrderFeeSupplementRequest, 0, len(items))
 	for _, item := range items {
 		converted, convertErr := supplementRequestToBiz(item)
 		if convertErr != nil {
 			return nil, convertErr
 		}
+		converted.Fee.SettlementPartyName = partyNames[item.SettlementPartyID]
 		result = append(result, converted)
 	}
 	// 列表按发起时间倒序展示（最新申请在前）。

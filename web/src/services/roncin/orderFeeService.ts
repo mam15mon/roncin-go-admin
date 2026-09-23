@@ -83,6 +83,25 @@ export async function orderFeeServiceCreateOrderFeeSupplement(
   );
 }
 
+/** PreviewOrderFeeSupplementApproval 只读复核申请及审批资格，估算通过后的订单费用毛利。 GET /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approval-preview */
+export async function orderFeeServicePreviewOrderFeeSupplementApproval(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServicePreviewOrderFeeSupplementApprovalParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.PreviewOrderFeeSupplementApprovalResponse>(
+    `/api/v1/orders/${param0}/fee-supplement-requests/${param1}/approval-preview`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
  在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
 export async function orderFeeServiceApproveOrderFeeSupplement(

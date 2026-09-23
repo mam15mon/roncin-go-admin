@@ -15,33 +15,34 @@ import (
 // OrderFee 对齐使用普通十进制字符串。能力投影由调用方按列表用例结果填充。
 func orderFeeSupplementToAPI(value *biz.OrderFeeSupplementRequest) *v1.OrderFeeSupplementRequestData {
 	result := &v1.OrderFeeSupplementRequestData{
-		Id:                 value.ID.String(),
-		OrderId:            value.OrderID.String(),
-		LockBasis:          string(value.LockBasis),
-		Status:             string(value.Status),
-		Version:            value.Version,
-		Direction:          orderFeeDirectionToAPI(value.Fee.Direction),
-		FeeCode:            value.Fee.FeeCode,
-		FeeName:            value.Fee.FeeName,
-		SettlementPartyId:  value.Fee.SettlementPartyID.String(),
-		BillingUnit:        value.Fee.BillingUnit,
-		Quantity:           value.Fee.Quantity.StringFixed(4),
-		UnitPrice:          value.Fee.UnitPrice.StringFixed(4),
-		TotalAmount:        value.Fee.TotalAmount.StringFixed(8),
-		TaxInclusive:       value.Fee.TaxInclusive,
-		NetAmount:          value.Fee.NetAmount.StringFixed(8),
-		TaxAmount:          value.Fee.TaxAmount.StringFixed(8),
-		Currency:           value.Fee.Currency,
-		ExchangeRate:       value.Fee.ExchangeRate.StringFixed(8),
-		ExchangeRateSource: value.Fee.ExchangeRateSource,
-		ExchangeRateDate:   value.Fee.ExchangeRateDate,
-		ExpenseDate:        value.Fee.ExpenseDate,
-		BaseCurrency:       value.Fee.BaseCurrency,
-		BaseCurrencyAmount: value.Fee.BaseCurrencyAmount.StringFixed(8),
-		Reason:             value.Reason,
-		RequestedBy:        value.RequestedBy.String(),
-		RequestedByName:    value.RequestedByName,
-		RequestedAt:        value.RequestedAt.UTC().Format(time.RFC3339),
+		Id:                  value.ID.String(),
+		OrderId:             value.OrderID.String(),
+		LockBasis:           string(value.LockBasis),
+		Status:              string(value.Status),
+		Version:             value.Version,
+		Direction:           orderFeeDirectionToAPI(value.Fee.Direction),
+		FeeCode:             value.Fee.FeeCode,
+		FeeName:             value.Fee.FeeName,
+		SettlementPartyId:   value.Fee.SettlementPartyID.String(),
+		SettlementPartyName: value.Fee.SettlementPartyName,
+		BillingUnit:         value.Fee.BillingUnit,
+		Quantity:            value.Fee.Quantity.StringFixed(4),
+		UnitPrice:           value.Fee.UnitPrice.StringFixed(4),
+		TotalAmount:         value.Fee.TotalAmount.StringFixed(8),
+		TaxInclusive:        value.Fee.TaxInclusive,
+		NetAmount:           value.Fee.NetAmount.StringFixed(8),
+		TaxAmount:           value.Fee.TaxAmount.StringFixed(8),
+		Currency:            value.Fee.Currency,
+		ExchangeRate:        value.Fee.ExchangeRate.StringFixed(8),
+		ExchangeRateSource:  value.Fee.ExchangeRateSource,
+		ExchangeRateDate:    value.Fee.ExchangeRateDate,
+		ExpenseDate:         value.Fee.ExpenseDate,
+		BaseCurrency:        value.Fee.BaseCurrency,
+		BaseCurrencyAmount:  value.Fee.BaseCurrencyAmount.StringFixed(8),
+		Reason:              value.Reason,
+		RequestedBy:         value.RequestedBy.String(),
+		RequestedByName:     value.RequestedByName,
+		RequestedAt:         value.RequestedAt.UTC().Format(time.RFC3339),
 	}
 	if value.BusinessLockGeneration != nil {
 		result.BusinessLockGeneration = value.BusinessLockGeneration
@@ -208,6 +209,42 @@ func (s *OrderFeeService) ListOrderFeeSupplementRequests(ctx context.Context, re
 	return okList(ctx, &v1.ListOrderFeeSupplementRequestsResponse{
 		Data: &v1.ListOrderFeeSupplementRequestsData{Items: items, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.Size)},
 	}), nil
+}
+
+// PreviewOrderFeeSupplementApproval 返回只读毛利估算。
+func (s *OrderFeeService) PreviewOrderFeeSupplementApproval(ctx context.Context, request *v1.PreviewOrderFeeSupplementApprovalRequest) (*v1.PreviewOrderFeeSupplementApprovalResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orderID, requestID, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
+	if err != nil || request.GetExpectedVersion() == 0 {
+		return nil, biz.ErrFeeSupplementInvalidArgument
+	}
+	preview, err := s.supplement.PreviewApproval(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	data := &v1.PreviewOrderFeeSupplementApprovalData{
+		BaseCurrency:        preview.BaseCurrency,
+		CurrentReceivable:   preview.CurrentReceivable.StringFixed(8),
+		CurrentPayable:      preview.CurrentPayable.StringFixed(8),
+		CurrentProfit:       preview.CurrentProfit.StringFixed(8),
+		SupplementCost:      preview.SupplementCost.StringFixed(8),
+		ProjectedReceivable: preview.ProjectedReceivable.StringFixed(8),
+		ProjectedPayable:    preview.ProjectedPayable.StringFixed(8),
+		ProjectedProfit:     preview.ProjectedProfit.StringFixed(8),
+		ProfitChange:        preview.ProfitChange.StringFixed(8),
+	}
+	if preview.CurrentProfitRate != nil {
+		value := preview.CurrentProfitRate.StringFixed(4)
+		data.CurrentProfitRate = &value
+	}
+	if preview.ProjectedProfitRate != nil {
+		value := preview.ProjectedProfitRate.StringFixed(4)
+		data.ProjectedProfitRate = &value
+	}
+	return ok(ctx, &v1.PreviewOrderFeeSupplementApprovalResponse{Data: data}), nil
 }
 
 // ApproveOrderFeeSupplement 审批通过补录申请；九步事务由领域层编排。

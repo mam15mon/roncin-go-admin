@@ -8,6 +8,7 @@ import {
   orderFeeServiceCancelApprovedOrderFeeSupplement,
   orderFeeServiceCreateOrderFeeSupplement,
   orderFeeServiceListOrderFeeSupplementRequests,
+  orderFeeServicePreviewOrderFeeSupplementApproval,
   orderFeeServiceRejectOrderFeeSupplement,
   orderFeeServiceWithdrawOrderFeeSupplement,
 } from '@/services/roncin/orderFeeService';
@@ -15,6 +16,7 @@ import FeeSupplementSection from './FeeSupplementSection';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceListOrderFeeSupplementRequests: vi.fn(),
+  orderFeeServicePreviewOrderFeeSupplementApproval: vi.fn(),
   orderFeeServiceCreateOrderFeeSupplement: vi.fn(),
   orderFeeServiceApproveOrderFeeSupplement: vi.fn(),
   orderFeeServiceRejectOrderFeeSupplement: vi.fn(),
@@ -53,6 +55,9 @@ const listSupplements = vi.mocked(
 );
 const createSupplement = vi.mocked(orderFeeServiceCreateOrderFeeSupplement);
 const approveSupplement = vi.mocked(orderFeeServiceApproveOrderFeeSupplement);
+const previewSupplement = vi.mocked(
+  orderFeeServicePreviewOrderFeeSupplementApproval,
+);
 const rejectSupplement = vi.mocked(orderFeeServiceRejectOrderFeeSupplement);
 const withdrawSupplement = vi.mocked(orderFeeServiceWithdrawOrderFeeSupplement);
 const cancelApproved = vi.mocked(
@@ -120,6 +125,21 @@ describe('FeeSupplementSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     listSupplements.mockResolvedValue(listResponse([]));
+    previewSupplement.mockResolvedValue({
+      data: {
+        baseCurrency: 'USD',
+        currentReceivable: '1000.00000000',
+        currentPayable: '600.00000000',
+        currentProfit: '400.00000000',
+        currentProfitRate: '40.0000',
+        supplementCost: '100.00000000',
+        projectedReceivable: '1000.00000000',
+        projectedPayable: '700.00000000',
+        projectedProfit: '300.00000000',
+        projectedProfitRate: '30.0000',
+        profitChange: '-100.00000000',
+      },
+    } as Awaited<ReturnType<typeof previewSupplement>>);
   });
 
   it('锁定且具备 fee.create 时显示补录入口并固定应付方向发起申请', async () => {
@@ -360,7 +380,7 @@ describe('FeeSupplementSection', () => {
     expect(createSupplement).not.toHaveBeenCalled();
   });
 
-  it('具备审批能力时展示通过/驳回；通过后生成费用并刷新费用表', async () => {
+  it('具备审批能力时先审核毛利，再通过并刷新费用表', async () => {
     approveSupplement.mockResolvedValue({
       success: true,
     } as Awaited<ReturnType<typeof approveSupplement>>);
@@ -377,13 +397,17 @@ describe('FeeSupplementSection', () => {
       </App>,
     );
 
-    expect(await screen.findByText('通过')).toBeInTheDocument();
-    expect(screen.getByText('驳回')).toBeInTheDocument();
+    expect(await screen.findByText('审核')).toBeInTheDocument();
     expect(screen.getByText('张发起')).toBeInTheDocument();
     expect(screen.queryByText('user-other')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('通过'));
-    fireEvent.click(await screen.findByRole('button', { name: /通\s*过/ }));
+    fireEvent.click(screen.getByText('审核'));
+    expect(await screen.findByText('40.0000% → 30.0000%')).toBeInTheDocument();
+    expect(previewSupplement).toHaveBeenCalledWith(
+      { orderId: 'order-1', id: 'sup-1' },
+      { expectedVersion: '3' },
+    );
+    fireEvent.click(await screen.findByRole('button', { name: '确认通过' }));
 
     await waitFor(() => expect(approveSupplement).toHaveBeenCalledTimes(1));
     const [, body] = approveSupplement.mock.calls[0];
@@ -392,6 +416,58 @@ describe('FeeSupplementSection', () => {
     expect(
       await screen.findByText('补录申请已通过，费用已生成'),
     ).toBeInTheDocument();
+  });
+
+  it('预览失败时禁止通过，但仍可按原流程驳回', async () => {
+    previewSupplement.mockRejectedValue(new Error('汇率不可用'));
+    rejectSupplement.mockResolvedValue({ success: true } as Awaited<
+      ReturnType<typeof rejectSupplement>
+    >);
+    listSupplements.mockResolvedValue(
+      listResponse([supplementRow({ canApprove: true })]),
+    );
+    render(
+      <App>
+        <FeeSupplementSection {...makeProps('order-1')} />
+      </App>,
+    );
+    fireEvent.click(await screen.findByText('审核'));
+    expect(await screen.findByText('无法预览毛利变化')).toBeInTheDocument();
+    expect(screen.getByText('确认通过').closest('button')).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /驳\s*回/ }));
+    const reasonInput = await screen.findByPlaceholderText(
+      '请输入驳回原因（必填）',
+    );
+    fireEvent.change(reasonInput, { target: { value: '费用依据不足' } });
+    fireEvent.click(screen.getByRole('button', { name: /^确\s*认$/ }));
+    await waitFor(() => expect(rejectSupplement).toHaveBeenCalledTimes(1));
+    expect(approveSupplement).not.toHaveBeenCalled();
+  });
+
+  it('零应收时显示毛利率不可计算', async () => {
+    previewSupplement.mockResolvedValue({
+      data: {
+        baseCurrency: 'CNY',
+        currentReceivable: '0.00000000',
+        currentPayable: '20.00000000',
+        currentProfit: '-20.00000000',
+        supplementCost: '10.00000000',
+        projectedReceivable: '0.00000000',
+        projectedPayable: '30.00000000',
+        projectedProfit: '-30.00000000',
+        profitChange: '-10.00000000',
+      },
+    } as Awaited<ReturnType<typeof previewSupplement>>);
+    listSupplements.mockResolvedValue(
+      listResponse([supplementRow({ canApprove: true })]),
+    );
+    render(
+      <App>
+        <FeeSupplementSection {...makeProps('order-1')} />
+      </App>,
+    );
+    fireEvent.click(await screen.findByText('审核'));
+    expect(await screen.findByText('不可计算 → 不可计算')).toBeInTheDocument();
   });
 
   it('锁依据全部失效时按服务端 next_action 引导提示', async () => {
@@ -411,12 +487,14 @@ describe('FeeSupplementSection', () => {
       </App>,
     );
 
-    fireEvent.click(await screen.findByText('通过'));
-    fireEvent.click(await screen.findByRole('button', { name: /通\s*过/ }));
+    fireEvent.click(await screen.findByText('审核'));
+    expect(await screen.findByText('40.0000% → 30.0000%')).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: '确认通过' }));
 
     expect(
       await screen.findByText(/请改走普通费用新增入口/),
     ).toBeInTheDocument();
+    expect(screen.getByText('确认通过').closest('button')).toBeDisabled();
   });
 
   it('驳回原因为必填并随请求提交', async () => {
@@ -433,17 +511,18 @@ describe('FeeSupplementSection', () => {
       </App>,
     );
 
-    fireEvent.click(await screen.findByText('驳回'));
+    fireEvent.click(await screen.findByText('审核'));
+    fireEvent.click(await screen.findByRole('button', { name: /驳\s*回/ }));
     const reasonInput = await screen.findByPlaceholderText(
       '请输入驳回原因（必填）',
     );
     // 不填原因直接确认会被拦截。
-    fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^确\s*认$/ }));
     expect(await screen.findByText('请输入驳回原因')).toBeInTheDocument();
     expect(rejectSupplement).not.toHaveBeenCalled();
 
     fireEvent.change(reasonInput, { target: { value: '金额与实际不符' } });
-    fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^确\s*认$/ }));
 
     await waitFor(() => expect(rejectSupplement).toHaveBeenCalledTimes(1));
     const [, body] = rejectSupplement.mock.calls[0];

@@ -5752,6 +5752,34 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.CreateOrderFeeSupplementResponse'
+    /api/v1/orders/{orderId}/fee-supplement-requests/{id}/approval-preview:
+        get:
+            tags:
+                - OrderFeeService
+            description: PreviewOrderFeeSupplementApproval 只读复核申请及审批资格，估算通过后的订单费用毛利。
+            operationId: OrderFeeService_PreviewOrderFeeSupplementApproval
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: expectedVersion
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.PreviewOrderFeeSupplementApprovalResponse'
     /api/v1/orders/{orderId}/fee-supplement-requests/{id}/approve:
         post:
             tags:
@@ -19057,6 +19085,46 @@ components:
                 traceId:
                     type: string
             description: PreviewChangeSeaDocumentModeResponse 预览模式切换响应。
+        order.v1.PreviewOrderFeeSupplementApprovalData:
+            type: object
+            properties:
+                baseCurrency:
+                    type: string
+                currentReceivable:
+                    type: string
+                currentPayable:
+                    type: string
+                currentProfit:
+                    type: string
+                currentProfitRate:
+                    type: string
+                    description: 应收为零时为空，页面展示「不可计算」。
+                supplementCost:
+                    type: string
+                projectedReceivable:
+                    type: string
+                projectedPayable:
+                    type: string
+                projectedProfit:
+                    type: string
+                projectedProfitRate:
+                    type: string
+                profitChange:
+                    type: string
+        order.v1.PreviewOrderFeeSupplementApprovalResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.PreviewOrderFeeSupplementApprovalData'
+                traceId:
+                    type: string
         order.v1.PreviewSeaDocumentAmendmentRequest:
             required:
                 - orderId

@@ -1,6 +1,7 @@
 package biz
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -8,6 +9,93 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
+
+type supplementPreviewRepoStub struct {
+	OrderFeeSupplementRequestRepo
+	request                   *OrderFeeSupplementRequest
+	grant                     bool
+	evidence                  *OrderFeeSupplementLockEvidence
+	grantCalls, evidenceCalls int
+}
+
+func (r *supplementPreviewRepoStub) Get(context.Context, uuid.UUID, uuid.UUID) (*OrderFeeSupplementRequest, error) {
+	return r.request, nil
+}
+func (r *supplementPreviewRepoStub) HasRealtimeLockGrant(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, bool) (bool, error) {
+	r.grantCalls++
+	return r.grant, nil
+}
+func (r *supplementPreviewRepoStub) ReadLockEvidence(context.Context, uuid.UUID, uuid.UUID) (*OrderFeeSupplementLockEvidence, error) {
+	r.evidenceCalls++
+	return r.evidence, nil
+}
+
+func TestSupplementPreviewRejectsStaleOrUnauthorizedRequest(t *testing.T) {
+	organizationID, orderID, requestID := uuid.New(), uuid.New(), uuid.New()
+	principal := &Principal{UserID: uuid.New(), Organization: Organization{ID: organizationID, Kind: OrganizationKindCompany}, OrganizationNodes: []OrganizationScopeNode{{ID: organizationID, Kind: OrganizationKindCompany}}}
+	generation := uint64(1)
+	request := &OrderFeeSupplementRequest{OrderID: orderID, Version: 2, Status: OrderFeeSupplementPending, LockBasis: SupplementLockBasisBusiness, BusinessLockGeneration: &generation}
+	repo := &supplementPreviewRepoStub{request: request, evidence: &OrderFeeSupplementLockEvidence{BusinessLocked: true, BusinessLockGeneration: 2}}
+	uc := NewOrderFeeSupplementUsecase(repo, nil, nil)
+	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, uuid.New(), requestID, 2); err != ErrFeeSupplementNotFound {
+		t.Fatalf("跨订单申请应拒绝: %v", err)
+	}
+	if repo.grantCalls != 0 {
+		t.Fatal("跨订单申请不得继续读取审批资格")
+	}
+	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, orderID, requestID, 1); err != ErrFeeSupplementTransition {
+		t.Fatalf("旧版本应拒绝: %v", err)
+	}
+	if repo.grantCalls != 0 {
+		t.Fatal("旧版本不得继续读取审批资格")
+	}
+	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, orderID, requestID, 2); err != ErrPermissionDenied {
+		t.Fatalf("无资格应拒绝: %v", err)
+	}
+	if repo.evidenceCalls != 0 {
+		t.Fatal("无资格不得读取锁依据")
+	}
+	repo.grant = true
+	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, orderID, requestID, 2); err == nil {
+		t.Fatal("锁代次变化应拒绝")
+	}
+}
+
+func TestCalculateSupplementApprovalPreview(t *testing.T) {
+	amount := func(s string) decimal.Decimal { return decimal.RequireFromString(s) }
+	fee := &OrderFee{Direction: OrderFeePayable, BaseCurrency: "USD", BaseCurrencyAmount: amount("12.34567890")}
+	rows := []*OrderFee{
+		{Direction: OrderFeeReceivable, Status: OrderFeeUnbilled, BaseCurrency: "USD", BaseCurrencyAmount: amount("100.00000001")},
+		{Direction: OrderFeePayable, Status: OrderFeeBilled, BaseCurrency: "USD", BaseCurrencyAmount: amount("40.00000002")},
+		{Direction: OrderFeePayable, Status: OrderFeeCancelled, BaseCurrency: "EUR", BaseCurrencyAmount: amount("900")},
+	}
+	preview, err := calculateSupplementApprovalPreview(rows, fee)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !preview.ProjectedPayable.Equal(amount("52.34567892")) || !preview.ProfitChange.Equal(amount("-12.34567890")) {
+		t.Fatalf("有效费用折本币合计错误: %+v", preview)
+	}
+	if preview.CurrentProfitRate == nil || preview.ProjectedProfitRate == nil {
+		t.Fatal("有应收时毛利率应可计算")
+	}
+	zero, err := calculateSupplementApprovalPreview(nil, fee)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if zero.CurrentProfitRate != nil || zero.ProjectedProfitRate != nil {
+		t.Fatal("零应收时毛利率应为空")
+	}
+	rows[0].BaseCurrency = "CNY"
+	if _, err := calculateSupplementApprovalPreview(rows, fee); err == nil {
+		t.Fatal("不同本币不得混算")
+	}
+	rows[0].BaseCurrency = "USD"
+	rows[0].Direction = OrderFeeDirection("UNKNOWN")
+	if _, err := calculateSupplementApprovalPreview(rows, fee); err == nil {
+		t.Fatal("未知费用方向不得静默遗漏")
+	}
+}
 
 func supplementFeeSnapshotFixture() OrderFeeSupplementFeeSnapshot {
 	settingID := uuid.New()
