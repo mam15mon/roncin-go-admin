@@ -169,10 +169,13 @@ export default function FeeSupplementSection({
     setReviewPreview(undefined);
     setReviewError('');
     setReviewLoading(true);
-    orderFeeServicePreviewOrderFeeSupplementApproval(
-      { orderId: targetOrderId, id: record.id },
-      { expectedVersion: record.version },
-    )
+    orderFeeServicePreviewOrderFeeSupplementApproval({
+      orderId: targetOrderId,
+      id: record.id,
+      // expectedVersion 必须位于 params 槽位（生成客户端第二参是请求配置对象），
+      // 否则服务端收不到 expected_version 直接按参数无效拒绝。
+      expectedVersion: record.version as string,
+    })
       .then((response) => {
         if (
           sequence !== reviewSequenceRef.current ||

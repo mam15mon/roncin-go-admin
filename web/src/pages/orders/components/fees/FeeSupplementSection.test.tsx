@@ -403,10 +403,13 @@ describe('FeeSupplementSection', () => {
 
     fireEvent.click(screen.getByText('审核'));
     expect(await screen.findByText('40.0000% → 30.0000%')).toBeInTheDocument();
-    expect(previewSupplement).toHaveBeenCalledWith(
-      { orderId: 'order-1', id: 'sup-1' },
-      { expectedVersion: '3' },
-    );
+    // expectedVersion 必须与 orderId/id 同处 params 槽位（生成客户端第二参是
+    // 请求配置对象，放进去会被静默丢弃，服务端按参数无效拒绝）。
+    expect(previewSupplement).toHaveBeenCalledWith({
+      orderId: 'order-1',
+      id: 'sup-1',
+      expectedVersion: '3',
+    });
     fireEvent.click(await screen.findByRole('button', { name: '确认通过' }));
 
     await waitFor(() => expect(approveSupplement).toHaveBeenCalledTimes(1));
