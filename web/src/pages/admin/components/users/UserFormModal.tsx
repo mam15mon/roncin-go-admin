@@ -102,6 +102,13 @@ export default function UserFormModal({
       // 按锚定成员关系所在组织拉取角色选项；保存传出的 roleIds 即该组织角色。
       const anchorOrganizationId = resolveAnchorOrganizationId(list);
       setAnchorOrganizationId(anchorOrganizationId);
+      const anchorMembership = list.find(
+        (membership) => membership.organizationId === anchorOrganizationId,
+      );
+      formRef.current?.setFieldValue(
+        'roleIds',
+        anchorMembership?.roleIds ?? [],
+      );
       if (anchorOrganizationId) {
         const rolesResponse = await adminServiceListOrganizationRoles({
           organizationId: anchorOrganizationId,

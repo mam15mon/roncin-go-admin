@@ -1,4 +1,5 @@
-import { act, render } from '@testing-library/react';
+import type { ProFormInstance } from '@ant-design/pro-components';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -19,6 +20,9 @@ const modalState = vi.hoisted(() => ({
 const searchableSelectState = vi.hoisted(
   () => new Map<string, Record<string, unknown>>(),
 );
+const formState = vi.hoisted(() => ({
+  setFieldValue: vi.fn(),
+}));
 
 vi.mock('@ant-design/pro-components', () => ({
   ModalForm: (props: Record<string, unknown>) => {
@@ -41,9 +45,44 @@ vi.mock('antd', () => ({
   Button: ({ children }: { children: React.ReactNode }) => (
     <button type="button">{children}</button>
   ),
-  Popconfirm: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  Popconfirm: ({
+    children,
+    onConfirm,
+  }: {
+    children: React.ReactNode;
+    onConfirm: () => Promise<void>;
+  }) => (
+    <div>
+      {children}
+      <button type="button" onClick={() => void onConfirm()}>
+        确认移除
+      </button>
+    </div>
+  ),
   Space: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Table: () => null,
+  Table: ({
+    dataSource,
+    columns,
+  }: {
+    dataSource: API.AdminUserMembership[];
+    columns: {
+      key?: string;
+      render?: (
+        _: unknown,
+        membership: API.AdminUserMembership,
+      ) => React.ReactNode;
+    }[];
+  }) => (
+    <div>
+      {dataSource.map((membership) => (
+        <div key={membership.id}>
+          {columns
+            .find((column) => column.key === 'actions')
+            ?.render?.(undefined, membership)}
+        </div>
+      ))}
+    </div>
+  ),
   Tag: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
   Typography: {
     Text: ({ children }: { children?: React.ReactNode }) => (
@@ -96,7 +135,7 @@ function renderModal(
       open
       onOpenChange={vi.fn()}
       editing={editing}
-      formRef={{ current: undefined }}
+      formRef={{ current: formState as unknown as ProFormInstance }}
       roles={currentOrgRoles}
       organizations={[{ id: 'org-1', name: '天津分公司', code: 'TJ' }]}
       canReadUserMemberships={false}
@@ -136,6 +175,7 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
   beforeEach(() => {
     modalState.props = undefined;
     searchableSelectState.clear();
+    formState.setFieldValue.mockReset();
     for (const mock of Object.values(serviceMocks)) {
       mock.mockReset();
       mock.mockResolvedValue({ data: [] });
@@ -177,9 +217,73 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
     expect(roleSelect.options).toEqual([
       expect.objectContaining({ value: 'role-9' }),
     ]);
+    expect(formState.setFieldValue).toHaveBeenCalledWith('roleIds', []);
 
     await submitForm({ displayName: '张三', roleIds: ['role-9'] });
     expect(serviceMocks.updateUser).toHaveBeenCalled();
+  });
+
+  it('移出当前锚定组织后，外层表单改用剩余组织的角色', async () => {
+    serviceMocks.listUserMemberships
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 'm-system',
+            organizationId: 'org-system',
+            primary: true,
+            enabled: true,
+            roleIds: ['role-system'],
+          },
+          {
+            id: 'm-company',
+            organizationId: 'org-company',
+            primary: false,
+            enabled: true,
+            roleIds: ['role-company'],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 'm-system',
+            organizationId: 'org-system',
+            primary: false,
+            enabled: false,
+            roleIds: [],
+          },
+          {
+            id: 'm-company',
+            organizationId: 'org-company',
+            primary: true,
+            enabled: true,
+            roleIds: ['role-company'],
+          },
+        ],
+      });
+
+    renderModal(normalUser, {
+      canReadUserMemberships: true,
+      canManageUserMemberships: true,
+    });
+    await act(async () => {});
+    expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
+      'role-system',
+    ]);
+
+    await act(async () => {
+      screen.getAllByRole('button', { name: '确认移除' })[0].click();
+    });
+    expect(serviceMocks.deleteUserMembership).toHaveBeenCalledWith({
+      userId: normalUser.id,
+      id: 'm-system',
+    });
+    expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
+      'role-company',
+    ]);
+    expect(serviceMocks.listOrganizationRoles).toHaveBeenLastCalledWith({
+      organizationId: 'org-company',
+    });
   });
 
   it('编辑时无 primary 成员关系则取第一条启用关系的组织', async () => {
