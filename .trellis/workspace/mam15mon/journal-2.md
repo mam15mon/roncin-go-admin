@@ -556,3 +556,27 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 102: 订单费用状态简化与批量维护交付
+<!-- trellis-session: v=2 fp=6bdf85dfd2b43c0f -->
+
+**Date**: 2026-09-23
+**Task**: 订单费用状态简化与批量维护交付
+**Branch**: `main`
+
+### Summary
+
+完成任务 09-23-order-fee-bulk-actions：阶段一取消费用确认环节，DRAFT/CONFIRMED 合并为 UNBILLED（proto reserved+UNBILLED=5、Ent 收紧、迁移 20260923090000 双路径幂等、建账/取消/补录/拆票/计提/自动锁单全链路同步，自动锁单改任意方向未建账阻断并新增 FEE_BILLED 触发）；阶段二新增整批事务的批量改结算单位/费用时间/删除与标签批量操作（迁移 20260923110000 修复发生日期分钟精度落库缺陷），前端五项批量入口与建账资格显式拒绝。四个实施子代理分阶段交付，trellis-check 全项 PASS，check:fast 全过，开发库已迁移（UNBILLED 44/CANCELLED 2）。spec 术语三处同步未建账口径。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ce8e6e6b` | feat: 订单费用状态简化为未建账/已进账单，取消费用确认环节 |
+| `2c215d5b` | feat: 订单费用批量维护：整批改结算单位/费用时间、批量删除与标签批量操作 |
+| `25698810` | fix: 费用状态迁移 DROP CONSTRAINT 幂等化，同步领域术语为未建账口径 |
+
+### Status
+
+[OK] **Completed**

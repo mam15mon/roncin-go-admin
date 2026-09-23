@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 101
+- **Total Sessions**: 102
 - **Last Active**: 2026-09-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~558 | Active |
+| `journal-2.md` | ~582 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 102 | 2026-09-23 | 订单费用状态简化与批量维护交付 | `ce8e6e6b`, `2c215d5b`, `25698810` | `main` |
 | 101 | 2026-09-23 | 订单费用不含税单价列交付 | `d6fcf1af` | `main` |
 | 98 | 2026-09-22 | 清理数据库配置与测试库回退 | `b16070cf` | `main` |
 | 97 | 2026-09-22 | 订单提成归属真相源切换为订单人员分工 | `f59fae24`, `6643334b`, `b6709633`, `1305610b` | `main` |
