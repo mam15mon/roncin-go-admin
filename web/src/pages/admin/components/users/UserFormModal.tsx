@@ -6,6 +6,7 @@ import {
   App,
   Button,
   Popconfirm,
+  Segmented,
   Space,
   Table,
   Tag,
@@ -71,6 +72,9 @@ export default function UserFormModal({
   const [approvalRoles, setApprovalRoles] = useState<API.AdminRole[]>([]);
   const [memberships, setMemberships] = useState<API.AdminUserMembership[]>([]);
   const [membershipsLoading, setMembershipsLoading] = useState(false);
+  const [membershipView, setMembershipView] = useState<'active' | 'inactive'>(
+    'active',
+  );
   const [membershipModalOpen, setMembershipModalOpen] = useState(false);
   const [membershipEditing, setMembershipEditing] =
     useState<API.AdminUserMembership>();
@@ -92,6 +96,16 @@ export default function UserFormModal({
   const pendingProvider = canAuthorizeExternalProvider
     ? externalProvider
     : undefined;
+  const activeMemberships = memberships.filter(
+    (membership) => membership.enabled,
+  );
+  const inactiveMemberships = memberships.filter(
+    (membership) => !membership.enabled,
+  );
+
+  useEffect(() => {
+    if (open) setMembershipView('active');
+  }, [open, editing?.id]);
 
   const loadMemberships = async (userId: string) => {
     setMembershipsLoading(true);
@@ -372,12 +386,28 @@ export default function UserFormModal({
               </Button>
             )}
           </Space>
+          <Segmented<'active' | 'inactive'>
+            value={membershipView}
+            onChange={setMembershipView}
+            options={[
+              { label: `当前 (${activeMemberships.length})`, value: 'active' },
+              {
+                label: `已停用 (${inactiveMemberships.length})`,
+                value: 'inactive',
+              },
+            ]}
+            style={{ marginBottom: 12 }}
+          />
           <Table<API.AdminUserMembership>
             rowKey="id"
             size="small"
             loading={membershipsLoading}
             pagination={false}
-            dataSource={memberships}
+            dataSource={
+              membershipView === 'active'
+                ? activeMemberships
+                : inactiveMemberships
+            }
             columns={[
               {
                 title: '组织',
@@ -444,32 +474,35 @@ export default function UserFormModal({
                       >
                         编辑
                       </Button>
-                      <Popconfirm
-                        title={`确定从“${membership.organizationName || '该组织'}”移除？`}
-                        description="移出后会停用并保留该组织关系、清除该组织角色并撤销在线会话，其他组织不受影响。在职用户不能移出最后一个有效组织。"
-                        okText="移除"
-                        cancelText="取消"
-                        okButtonProps={{ danger: true }}
-                        disabled={editing.id === currentUserId}
-                        onConfirm={async () => {
-                          if (!editing.id || !membership.id) return;
-                          await adminServiceDeleteUserMembership({
-                            userId: editing.id,
-                            id: membership.id,
-                          });
-                          message.success('已从组织移除该用户');
-                          await loadMemberships(editing.id);
-                        }}
-                      >
-                        <Button
-                          type="link"
-                          danger
-                          size="small"
+                      {membership.enabled && (
+                        <Popconfirm
+                          title={`确定从“${membership.organizationName || '该组织'}”移除？`}
+                          description="移出后会停用并保留该组织关系、清除该组织角色并撤销在线会话，其他组织不受影响。在职用户不能移出最后一个有效组织。"
+                          okText="移除"
+                          cancelText="取消"
+                          okButtonProps={{ danger: true }}
                           disabled={editing.id === currentUserId}
+                          onConfirm={async () => {
+                            if (!editing.id || !membership.id) return;
+                            await adminServiceDeleteUserMembership({
+                              userId: editing.id,
+                              id: membership.id,
+                            });
+                            message.success('已从组织移除该用户');
+                            await loadMemberships(editing.id);
+                            onReload();
+                          }}
                         >
-                          移除
-                        </Button>
-                      </Popconfirm>
+                          <Button
+                            type="link"
+                            danger
+                            size="small"
+                            disabled={editing.id === currentUserId}
+                          >
+                            移除
+                          </Button>
+                        </Popconfirm>
+                      )}
                     </Space>
                   ) : null,
               },
@@ -489,6 +522,7 @@ export default function UserFormModal({
         currentUserId={currentUserId}
         onSaved={async () => {
           if (editing?.id) await loadMemberships(editing.id);
+          onReload();
         }}
       />
     </ModalForm>

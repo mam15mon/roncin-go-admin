@@ -59,6 +59,28 @@ vi.mock('antd', () => ({
       </button>
     </div>
   ),
+  Segmented: ({
+    options,
+    value,
+    onChange,
+  }: {
+    options: { label: string; value: string }[];
+    value: string;
+    onChange: (value: string) => void;
+  }) => (
+    <div>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={value === option.value}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  ),
   Space: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Table: ({
     dataSource,
@@ -75,7 +97,7 @@ vi.mock('antd', () => ({
   }) => (
     <div>
       {dataSource.map((membership) => (
-        <div key={membership.id}>
+        <div key={membership.id} data-testid={`membership-${membership.id}`}>
           {columns
             .find((column) => column.key === 'actions')
             ?.render?.(undefined, membership)}
@@ -224,6 +246,7 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
   });
 
   it('移出当前锚定组织后，外层表单改用剩余组织的角色', async () => {
+    const onReload = vi.fn();
     serviceMocks.listUserMemberships
       .mockResolvedValueOnce({
         data: [
@@ -265,11 +288,14 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
     renderModal(normalUser, {
       canReadUserMemberships: true,
       canManageUserMemberships: true,
+      onReload,
     });
     await act(async () => {});
     expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
       'role-system',
     ]);
+    expect(screen.getByTestId('membership-m-system')).toBeInTheDocument();
+    expect(screen.getByTestId('membership-m-company')).toBeInTheDocument();
 
     await act(async () => {
       screen.getAllByRole('button', { name: '确认移除' })[0].click();
@@ -278,12 +304,31 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
       userId: normalUser.id,
       id: 'm-system',
     });
+    expect(onReload).toHaveBeenCalledOnce();
     expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
       'role-company',
     ]);
     expect(serviceMocks.listOrganizationRoles).toHaveBeenLastCalledWith({
       organizationId: 'org-company',
     });
+    expect(screen.queryByTestId('membership-m-system')).not.toBeInTheDocument();
+    expect(screen.getByTestId('membership-m-company')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '当前 (1)' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await act(async () => {
+      screen.getByRole('button', { name: '已停用 (1)' }).click();
+    });
+    expect(screen.getByTestId('membership-m-system')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('membership-m-company'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '确认移除' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '编辑' })).toBeInTheDocument();
   });
 
   it('编辑时无 primary 成员关系则取第一条启用关系的组织', async () => {
