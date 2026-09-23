@@ -646,7 +646,9 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string
 		}
 		return nil, err
 	}
-	if credential.PasswordHash == nil {
+	// 列为 NOT NULL，历史数据以空串表示未设密码；与 nil 同样按无效凭证处理，
+	// 避免「invalid password hash format」进入 Verify 变成内部错误。
+	if credential.PasswordHash == nil || *credential.PasswordHash == "" {
 		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
 	matched, err := password.Verify(plainPassword, *credential.PasswordHash)

@@ -130,6 +130,28 @@ func TestAuthUsecaseSuccessfulLoginClearsOnlyAccountBucket(t *testing.T) {
 	}
 }
 
+func TestAuthUsecaseEmptyPasswordHashRecordsFailure(t *testing.T) {
+	_, keys := loginRateLimitKeys("zhaofang", "127.0.0.1")
+	emptyHash := ""
+	repo := &loginRateLimitRepoStub{
+		loginCredential: &Credential{UserID: uuid.New(), PasswordHash: &emptyHash, PrimaryOrganizationID: uuid.New()},
+		counts:          make(map[string]int),
+	}
+
+	_, err := newLoginRateLimitUsecase(repo).Login(context.Background(), "zhaofang", "whatever-password", uuid.Nil, "test", "127.0.0.1")
+	if err != ErrInvalidCredentials {
+		t.Fatalf("Login() error = %v, want ErrInvalidCredentials", err)
+	}
+	for _, key := range keys {
+		if repo.counts[key] != 1 {
+			t.Fatalf("bucket %s attempts = %d, want 1", key, repo.counts[key])
+		}
+	}
+	if len(repo.auditActions) != 1 || repo.auditActions[0] != "auth.login" {
+		t.Fatalf("auditActions = %v, want [auth.login]", repo.auditActions)
+	}
+}
+
 func TestAuthUsecaseUnknownAccountRecordsFailure(t *testing.T) {
 	_, keys := loginRateLimitKeys("missing", "127.0.0.1")
 	repo := &loginRateLimitRepoStub{credentialErr: ErrInvalidCredentials, counts: make(map[string]int)}
