@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "迁移事务、锁、主数据种子相关规范"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "总部模板与公司本地科目的共享主数据边界"}
+{"file": ".trellis/spec/domain/glossary.md", "reason": "费用/账单领域术语"}

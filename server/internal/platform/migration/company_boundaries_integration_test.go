@@ -77,6 +77,30 @@ func assertBoundaryCount(t *testing.T, db *sql.DB, q string, want int) {
 	}
 }
 
+// boundaryOnlyDir 复制全部既有迁移但排除后续种子迁移（费用科目 20260923 之后），
+// 供需要排除追加影响的用例隔离应用：目录保留完整历史以满足迁移版本完整性校验。
+func boundaryOnlyDir(t *testing.T, dir string) string {
+	t.Helper()
+	only := t.TempDir()
+	files, err := filepath.Glob(filepath.Join(dir, "*.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range files {
+		if filepath.Base(file) >= "20260923120000" {
+			continue
+		}
+		b, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(only, filepath.Base(file)), b, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return only
+}
+
 func TestCompanyBoundaryMigrationCopiesPoliciesAndPreservesRoots(t *testing.T) {
 	db, dir := companyBoundaryFixture(t)
 	mustBoundarySQL(t, db, `INSERT INTO users(id,created_at,updated_at,username,display_name,password_hash) VALUES('20000000-0000-0000-0000-000000000001',now(),now(),'migration-user','管理员','unused');
@@ -197,7 +221,9 @@ func TestCompanyBoundaryMigrationConvertsSystemPrivateFeeOnlyToTemplate(t *testi
 	if err := db.QueryRow(`SELECT jsonb_build_object('fee',to_jsonb(f),'tax',to_jsonb(t))::text FROM fee_settings f JOIN taxable_services t ON t.id=f.taxable_service_id WHERE f.id='60000000-0000-0000-0000-000000000002'`).Scan(&before); err != nil {
 		t.Fatal(err)
 	}
-	if err := Apply(context.Background(), db, dir); err != nil {
+	// 本用例的全表计数断言只对边界迁移自身成立；后续种子迁移（费用科目 20260923）
+	// 会向各公司追加模板副本，因此这里隔离应用边界迁移文件。
+	if err := Apply(context.Background(), db, boundaryOnlyDir(t, dir)); err != nil {
 		t.Fatal(err)
 	}
 	var after string

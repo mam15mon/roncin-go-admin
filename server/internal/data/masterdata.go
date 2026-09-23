@@ -17,9 +17,18 @@ type masterDataRepo struct{ data *Data }
 func NewMasterDataRepo(data *Data) biz.MasterDataRepo { return &masterDataRepo{data: data} }
 
 // CreateDefaultOrderOptions 为空库写入订单默认选项种子。A 型主数据全局唯一，
-// 不再挂载组织，种子随迁移幂等补齐。
+// 不再挂载组织；迁移种子可能已落部分行，按 kind+code 幂等跳过已存在项。
 func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx) error {
 	for _, item := range biz.DefaultOrderOptions() {
+		exists, err := tx.MasterDataItem.Query().
+			Where(masterdataent.KindEQ(masterdataent.Kind(item.Kind)), masterdataent.CodeEQ(item.Code)).
+			Exist(ctx)
+		if err != nil {
+			return fmt.Errorf("检查订单默认选项 %s/%s: %w", item.Kind, item.Code, err)
+		}
+		if exists {
+			continue
+		}
 		if _, err := tx.MasterDataItem.Create().
 			SetKind(masterdataent.Kind(item.Kind)).
 			SetCode(item.Code).
@@ -35,9 +44,19 @@ func CreateDefaultOrderOptions(ctx context.Context, tx *ent.Tx) error {
 	return nil
 }
 
-// CreateDefaultCountries 为空库写入默认国家种子。A 型主数据全局唯一，不再挂载组织。
+// CreateDefaultCountries 为空库写入默认国家种子。A 型主数据全局唯一，不再挂载组织；
+// 迁移种子可能已落部分行，按 kind+code 幂等跳过已存在项。
 func CreateDefaultCountries(ctx context.Context, tx *ent.Tx) error {
 	for _, item := range biz.DefaultCountryOptions() {
+		exists, err := tx.MasterDataItem.Query().
+			Where(masterdataent.KindEQ(masterdataent.Kind(item.Kind)), masterdataent.CodeEQ(item.Code)).
+			Exist(ctx)
+		if err != nil {
+			return fmt.Errorf("检查默认国家 %s: %w", item.Code, err)
+		}
+		if exists {
+			continue
+		}
 		if _, err := tx.MasterDataItem.Create().
 			SetKind(masterdataent.Kind(item.Kind)).
 			SetCode(item.Code).
