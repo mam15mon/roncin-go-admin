@@ -655,3 +655,26 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 106: 费用补录重提与审批毛利预览
+<!-- trellis-session: v=2 fp=1bec573880396c9f -->
+
+**Date**: 2026-09-23
+**Task**: 费用补录重提与审批毛利预览
+**Branch**: `fix/hide-system-org-chart`
+
+### Summary
+
+费用补录支持撤回后预填重提；审批改为审核视图，服务端只读预览本币毛利和毛利率变化，正式审批仍实时复核。定向与全栈门禁通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d7d968f6` | feat(web): 支持费用补录撤回后预填重提 |
+| `eed5e0a5` | feat: 补录审批前预览订单毛利变化 |
+
+### Status
+
+[OK] **Completed**
