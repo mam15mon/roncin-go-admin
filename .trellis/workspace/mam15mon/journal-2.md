@@ -633,3 +633,25 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Next Steps
 
 - 费用科目模板种子任务已实现并提交，尚待单独归档。
+
+
+## Session 105: 费用科目系统模板种子丰富交付
+<!-- trellis-session: v=2 fp=30a3b9bcfb7b0eb1 -->
+
+**Date**: 2026-09-23
+**Task**: 费用科目系统模板种子丰富交付
+**Branch**: `main`
+
+### Summary
+
+完成任务 09-23-fee-catalog-seed：新增迁移 20260923120000 将系统费用模板目录从 10 条丰富至 122 条（清洗用户参考清单，同码冲突拆码、乱码改语义码、同义科目并别名），配套补种费用类别 +5、异常情况 +5、计费单位 DAY，THC/STORAGE 模板类别改挂港口操作，并按同码跳过把模板追加到每个既有公司（应税劳务按公司+名称复用或创建）；search_keywords 由一次性生成器按 searchtext.Build 预计算，生成器未提交。迁移集成测试覆盖全新库计数、公司追加与同码跳过；bootstrap/建组织默认种子改为按 kind+code 幂等跳过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8c2d90ad` | feat(server): 费用科目系统模板种子丰富至 122 条并追加既有公司 |
+
+### Status
+
+[OK] **Completed**
