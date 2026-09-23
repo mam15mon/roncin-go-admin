@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "核对普通费用与补录写入链路没有遗漏"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "按项目质量规范审查前端类型与代码"}
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端分层及契约规范"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "Schema、迁移与事务一致性"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "公共单位管理权限与种子约束"}

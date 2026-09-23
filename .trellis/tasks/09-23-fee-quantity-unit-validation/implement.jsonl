@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/domain/glossary.md", "reason": "确认订单费用与锁后补录的业务语义"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "确认费用从订单到账单的路径及分层边界"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "遵守订单费用页面的前端模块与类型约束"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "沿用现有表单与组件交互规范"}
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端分层及契约规范"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "Schema、迁移与事务一致性"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "公共单位管理权限与种子约束"}
