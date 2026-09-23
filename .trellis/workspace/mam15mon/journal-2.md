@@ -534,3 +534,25 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 101: 订单费用不含税单价列交付
+<!-- trellis-session: v=2 fp=12970c51980933d0 -->
+
+**Date**: 2026-09-23
+**Task**: 订单费用不含税单价列交付
+**Branch**: `main`
+
+### Summary
+
+完成任务 09-23-order-fee-net-unit-price-and-lock-columns：订单费用表新增「不含税单价」默认可见可排序可选列（紧跟单价），含税行按税率反算两位小数 ROUND_HALF_UP，历史不含税行依 type-safety.md 零值省略规范以 !== true 判定直取单价，行内编辑实时折算预览，移除税率列未税单价 Tag；定向 39 用例、lint/tsc/biome/architecture 全过，任务已归档。发现并修复新代码 === false 死分支（protojson 省略零值，wire 缺失即 DB false），spec 已补记实例。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d6fcf1af` | feat(web): 订单费用新增不含税单价列并移除税率列未税单价标签 |
+
+### Status
+
+[OK] **Completed**
