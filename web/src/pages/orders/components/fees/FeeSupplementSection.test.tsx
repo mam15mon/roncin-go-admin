@@ -402,7 +402,7 @@ describe('FeeSupplementSection', () => {
     expect(screen.queryByText('user-other')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('审核'));
-    expect(await screen.findByText('40.0000% → 30.0000%')).toBeInTheDocument();
+    expect(await screen.findByText('40.00% → 30.00%')).toBeInTheDocument();
     // expectedVersion 必须与 orderId/id 同处 params 槽位（生成客户端第二参是
     // 请求配置对象，放进去会被静默丢弃，服务端按参数无效拒绝）。
     expect(previewSupplement).toHaveBeenCalledWith({
@@ -491,7 +491,7 @@ describe('FeeSupplementSection', () => {
     );
 
     fireEvent.click(await screen.findByText('审核'));
-    expect(await screen.findByText('40.0000% → 30.0000%')).toBeInTheDocument();
+    expect(await screen.findByText('40.00% → 30.00%')).toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: '确认通过' }));
 
     expect(

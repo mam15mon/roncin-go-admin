@@ -27,6 +27,7 @@ import {
   orderFeeServiceWithdrawOrderFeeSupplement,
 } from '@/services/roncin/orderFeeService';
 import { confirmWithReason } from '@/utils/confirmWithReason';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import FeeSupplementModal, {
   type FeeSupplementFormValues,
@@ -810,7 +811,7 @@ export default function FeeSupplementSection({
                 {
                   key: 'amount',
                   label: '申请金额',
-                  children: `${reviewRequest.quantity} × ${reviewRequest.unitPrice} = ${reviewRequest.totalAmount} ${reviewRequest.currency}`,
+                  children: `${trimDecimal(reviewRequest.quantity)} × ${trimDecimal(reviewRequest.unitPrice)} = ${trimDecimal(reviewRequest.totalAmount)} ${reviewRequest.currency}`,
                 },
                 {
                   key: 'date',
@@ -860,7 +861,7 @@ export default function FeeSupplementSection({
                       level={3}
                       style={{ margin: '4px 0 0', color: '#cf1322' }}
                     >
-                      {`${reviewPreview.currentProfitRate == null ? '不可计算' : `${reviewPreview.currentProfitRate}%`} → ${reviewPreview.projectedProfitRate == null ? '不可计算' : `${reviewPreview.projectedProfitRate}%`}`}
+                      {`${reviewPreview.currentProfitRate == null ? '不可计算' : `${formatAmount(reviewPreview.currentProfitRate, 2)}%`} → ${reviewPreview.projectedProfitRate == null ? '不可计算' : `${formatAmount(reviewPreview.projectedProfitRate, 2)}%`}`}
                     </Typography.Title>
                   </div>
                   <Descriptions
@@ -871,23 +872,23 @@ export default function FeeSupplementSection({
                       {
                         key: 'cost',
                         label: '本次补录成本',
-                        children: reviewPreview.supplementCost,
+                        children: formatAmount(reviewPreview.supplementCost),
                         span: 2,
                       },
                       {
                         key: 'receivable',
                         label: '应收 当前 → 预计',
-                        children: `${reviewPreview.currentReceivable} → ${reviewPreview.projectedReceivable}`,
+                        children: `${formatAmount(reviewPreview.currentReceivable)} → ${formatAmount(reviewPreview.projectedReceivable)}`,
                       },
                       {
                         key: 'payable',
                         label: '应付 当前 → 预计',
-                        children: `${reviewPreview.currentPayable} → ${reviewPreview.projectedPayable}`,
+                        children: `${formatAmount(reviewPreview.currentPayable)} → ${formatAmount(reviewPreview.projectedPayable)}`,
                       },
                       {
                         key: 'profit',
                         label: '毛利 当前 → 预计',
-                        children: `${reviewPreview.currentProfit} → ${reviewPreview.projectedProfit}`,
+                        children: `${formatAmount(reviewPreview.currentProfit)} → ${formatAmount(reviewPreview.projectedProfit)}`,
                         span: 2,
                       },
                       {
@@ -895,7 +896,7 @@ export default function FeeSupplementSection({
                         label: '毛利变化',
                         children: (
                           <Typography.Text strong type="danger">
-                            {reviewPreview.profitChange}{' '}
+                            {formatAmount(reviewPreview.profitChange)}{' '}
                             {reviewPreview.baseCurrency}
                           </Typography.Text>
                         ),
