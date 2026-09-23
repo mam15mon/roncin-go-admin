@@ -49,6 +49,7 @@ import (
 	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
+	orderservicetypeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -262,7 +263,12 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 		{"liumin", "刘敏 (财务结算出纳)"},
 	}
 
-	pwdHash, _ := password.Hash("Dev123456!")
+	// 密码哈希要求明文 ≥12 位；此前 11 位密码令 Hash 报错被忽略后落库空哈希，
+	// 全部测试账号无法密码登录。此处显式处理错误，并对存量空哈希幂等补齐。
+	pwdHash, hashErr := password.Hash("Dev@12345678")
+	if hashErr != nil {
+		return fmt.Errorf("生成测试员工密码哈希: %w", hashErr)
+	}
 	for _, s := range staffList {
 		u, err := tx.User.Query().Where(userent.UsernameEQ(s.username)).First(ctx)
 		if err != nil && !ent.IsNotFound(err) {
@@ -279,6 +285,11 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 				return fmt.Errorf("创建测试员工 %s: %w", s.username, err)
 			}
 			u = created
+		} else if u.PasswordHash == nil || *u.PasswordHash == "" {
+			// 只补齐空哈希，不覆盖开发者手动改过的密码。
+			if _, updErr := tx.User.UpdateOne(u).SetPasswordHash(pwdHash).Save(ctx); updErr != nil {
+				return fmt.Errorf("修复测试员工 %s 密码哈希: %w", s.username, updErr)
+			}
 		}
 		sc.users[s.username] = u
 
@@ -1174,6 +1185,28 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			ord = created
 		}
 		sc.orders[o.orderNo] = ord
+
+		// 订单服务类型（即费用大类）：费用项适用性按「订单服务类型 ⊇ 费用设置
+		// 大类」校验（feeSettingApplies），种子订单必须挂全种子费用科目涉及的
+		// 大类，否则费用录入与补录链路会被 ORDER_FEE_SETTING_INVALID 全量拒绝。
+		for _, catCode := range []string{"BOOKING", "TRUCKING", "CUSTOMS_EXPORT"} {
+			cat := sc.chargeCats[catCode]
+			exists, existErr := tx.OrderServiceType.Query().
+				Where(orderservicetypeent.OrderIDEQ(ord.ID), orderservicetypeent.MasterDataItemIDEQ(cat.ID)).
+				Exist(ctx)
+			if existErr != nil {
+				return fmt.Errorf("查询订单 %s 服务类型 %s: %w", o.orderNo, catCode, existErr)
+			}
+			if exists {
+				continue
+			}
+			if _, err := tx.OrderServiceType.Create().
+				SetOrderID(ord.ID).
+				SetMasterDataItemID(cat.ID).
+				Save(ctx); err != nil {
+				return fmt.Errorf("创建订单 %s 服务类型 %s: %w", o.orderNo, catCode, err)
+			}
+		}
 
 		// 订单协作人员
 		assigns := []struct {
