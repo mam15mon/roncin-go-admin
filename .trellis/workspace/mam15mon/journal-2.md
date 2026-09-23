@@ -678,3 +678,25 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 107: 组织架构隐藏系统管理节点并完成分支验收
+<!-- trellis-session: v=2 fp=dbe98eab950942f9 -->
+
+**Date**: 2026-09-23
+**Task**: 组织架构隐藏系统管理节点并完成分支验收
+**Branch**: `fix/hide-system-org-chart`
+
+### Summary
+
+组织架构拓扑图和树表只展示公司、部门、团队，统一节点统计和默认选中；新增页面回归测试并通过全量门禁。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `47df6a14` | fix(web): 组织架构隐藏系统管理节点 |
+
+### Status
+
+[OK] **Completed**

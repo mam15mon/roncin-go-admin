@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 106
+- **Total Sessions**: 107
 - **Last Active**: 2026-09-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~680 | Active |
+| `journal-2.md` | ~702 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 107 | 2026-09-23 | 组织架构隐藏系统管理节点并完成分支验收 | `47df6a14` | `fix/hide-system-org-chart` |
 | 106 | 2026-09-23 | 费用补录重提与审批毛利预览 | `d7d968f6`, `eed5e0a5` | `fix/hide-system-org-chart` |
 | 105 | 2026-09-23 | 费用科目系统模板种子丰富交付 | `8c2d90ad` | `main` |
 | 104 | 2026-09-23 | 汇率管理下沉分公司 | `6bf0ba57` | `main` |
