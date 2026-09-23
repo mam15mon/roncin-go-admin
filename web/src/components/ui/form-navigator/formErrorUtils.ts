@@ -1,4 +1,9 @@
-import type { ScrollToErrorOptions, ScrollToErrorResult } from './types';
+import type {
+  ScrollToErrorOptions,
+  ScrollToErrorResult,
+  ScrollToTableErrorOptions,
+  ScrollToTableErrorResult,
+} from './types';
 
 /**
  * antd Form 校验失败态的容器类名。
@@ -354,4 +359,118 @@ export async function locateSectionError(
   } else {
     scrollToSectionWithStickyOffset(sectionEl, fallbackOffset);
   }
+}
+
+/**
+ * 表格行内编辑场景的错误导航核心方法：
+ * 横向 + 纵向平滑居中滚动至首个错误单元格，自动聚焦输入控件并触发红光脉冲动效。
+ */
+export function scrollToFirstTableError(
+  options: ScrollToTableErrorOptions = {},
+): ScrollToTableErrorResult {
+  const {
+    rowKey,
+    errorFields = [],
+    container = document.body,
+    headerOffset = 100,
+    notify,
+  } = options;
+
+  const root = container || document;
+
+  // 1. 如果指定了 rowKey，优先锁定该行的 DOM 容器（tr）
+  let searchScope: HTMLElement | Document = root;
+  if (rowKey !== undefined && rowKey !== '') {
+    const safeKey = String(rowKey).replace(/["\\]/g, '\\$&');
+    const rowEl =
+      root.querySelector<HTMLElement>(`tr[data-row-key="${safeKey}"]`) ||
+      root.querySelector<HTMLElement>(`tr[key="${safeKey}"]`);
+    if (rowEl) {
+      searchScope = rowEl;
+    }
+  }
+
+  // 2. 查找目标错误元素
+  let targetEl: HTMLElement | null = null;
+  let firstErrorMessage = '';
+
+  if (errorFields.length > 0) {
+    const firstError = errorFields[0];
+    if (firstError?.name) {
+      targetEl = findFieldDomElement(firstError.name, searchScope);
+    }
+    if (firstError?.errors && firstError.errors.length > 0) {
+      firstErrorMessage = firstError.errors[0];
+    }
+  }
+
+  if (!targetEl) {
+    targetEl = searchScope.querySelector<HTMLElement>(
+      ANT_FORM_ITEM_ERROR_SELECTOR,
+    );
+  }
+
+  const allErrors = searchScope.querySelectorAll(ANT_FORM_ITEM_ERROR_SELECTOR);
+  const totalErrors = allErrors.length || (targetEl ? 1 : 0);
+
+  if (!targetEl) {
+    return {
+      success: false,
+      totalErrors: 0,
+    };
+  }
+
+  // 3. 提取错误文案与字段中文 Label
+  if (!firstErrorMessage) {
+    const explainEl = targetEl.querySelector<HTMLElement>(
+      '.ant-form-item-explain-error, .ant-form-item-explain',
+    );
+    if (explainEl?.textContent) {
+      firstErrorMessage = explainEl.textContent.trim();
+    }
+  }
+
+  const fieldLabel = getFormItemLabel(targetEl);
+
+  // 4. 定位所在的单元格（td）或元素本身
+  const targetCell = targetEl.closest<HTMLElement>('td') || targetEl;
+
+  // 5. 双向居中平滑滚动（重点解决表格水平滚动条被卷在可视区外的痛点）
+  if (typeof targetCell.scrollIntoView === 'function') {
+    targetCell.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+  }
+
+  // 6. 避开吸顶固定头部遮挡
+  if (typeof targetCell.getBoundingClientRect === 'function') {
+    const rect = targetCell.getBoundingClientRect();
+    if (rect.top < headerOffset && typeof window.scrollBy === 'function') {
+      window.scrollBy({
+        top: rect.top - headerOffset - 16,
+        behavior: 'smooth',
+      });
+    }
+  }
+
+  // 7. 脉冲呼吸动效与聚焦
+  pulseHighlightElement(targetEl);
+  focusFieldInput(targetEl);
+
+  // 8. 触发友好 Toast 提示
+  if (notify) {
+    const messageText =
+      firstErrorMessage ||
+      (fieldLabel ? `请完善：${fieldLabel}` : '请完善费用必填项');
+    notify(messageText);
+  }
+
+  return {
+    success: true,
+    errorMessage: firstErrorMessage,
+    fieldLabel,
+    totalErrors,
+  };
 }

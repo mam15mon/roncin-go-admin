@@ -56,3 +56,27 @@ export interface ScrollToErrorResult {
   /** 各分节错误数统计映射 */
   errorsBySection: Record<string, number>;
 }
+
+export interface ScrollToTableErrorOptions {
+  /** 发生错误的行 key，若提供则优先在该行对应范围内查找 */
+  rowKey?: React.Key;
+  /** 表单校验失败时返回的 errorFields 列表 */
+  errorFields?: Array<{ name: (string | number)[]; errors: string[] }>;
+  /** 表格或表单容器，默认 document */
+  container?: HTMLElement | null;
+  /** 顶栏吸顶偏移量（像素），默认 100 */
+  headerOffset?: number;
+  /** 消息提示回调，若提供则在定位至首个错误时调用 */
+  notify?: (message: string) => void;
+}
+
+export interface ScrollToTableErrorResult {
+  /** 是否成功找到并滚动到首个错误项 */
+  success: boolean;
+  /** 错误提示文案 */
+  errorMessage?: string;
+  /** 字段的中文显示名称 */
+  fieldLabel?: string;
+  /** 错误总数 */
+  totalErrors: number;
+}

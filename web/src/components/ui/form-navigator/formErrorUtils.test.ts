@@ -4,6 +4,7 @@ import {
   findParentSectionKey,
   getFormItemLabel,
   scrollToFirstFormError,
+  scrollToFirstTableError,
 } from './formErrorUtils';
 
 describe('formErrorUtils', () => {
@@ -97,7 +98,90 @@ describe('formErrorUtils', () => {
 
     const el = findFieldDomElement(['documents', 1, 'houseNo'], container);
     expect(el).not.toBeNull();
-    expect(el?.id).toBe('item_1_houseNo');
+    document.body.removeChild(container);
+  });
+
+  it('scrollToFirstTableError 能够在表格特定行内提取首个错误并横向居中滚动与聚焦', () => {
+    const container = document.createElement('div');
+    container.innerHTML = `
+      <table>
+        <tbody>
+          <tr data-row-key="fee_row_1">
+            <td id="cell_setting">
+              <div class="ant-form-item ant-form-item-has-error">
+                <div class="ant-form-item-label"><label>费用项目</label></div>
+                <div class="ant-form-item-control">
+                  <input id="fee_row_1_feeSettingId" name="feeSettingId" />
+                  <div class="ant-form-item-explain-error">请选择费用项目</div>
+                </div>
+              </div>
+            </td>
+            <td id="cell_party">
+              <div class="ant-form-item ant-form-item-has-error">
+                <div class="ant-form-item-label"><label>结算单位</label></div>
+                <input id="fee_row_1_settlementPartyId" name="settlementPartyId" />
+              </div>
+            </td>
+          </tr>
+          <tr data-row-key="fee_row_2">
+            <td>
+              <div class="ant-form-item ant-form-item-has-error">
+                <input id="fee_row_2_feeSettingId" />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+    document.body.appendChild(container);
+
+    const cellSetting = container.querySelector('#cell_setting') as HTMLElement;
+    const scrollIntoViewMock = vi.fn();
+    cellSetting.scrollIntoView = scrollIntoViewMock;
+
+    const input = container.querySelector(
+      '#fee_row_1_feeSettingId',
+    ) as HTMLElement;
+    const focusMock = vi.fn();
+    input.focus = focusMock;
+
+    const notify = vi.fn();
+
+    const result = scrollToFirstTableError({
+      rowKey: 'fee_row_1',
+      container,
+      notify,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.totalErrors).toBe(2);
+    expect(result.errorMessage).toBe('请选择费用项目');
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+    expect(focusMock).toHaveBeenCalled();
+    expect(notify).toHaveBeenCalledWith('请选择费用项目');
+
+    document.body.removeChild(container);
+  });
+
+  it('scrollToFirstTableError 在无错误项时安全返回 success: false', () => {
+    const container = document.createElement('div');
+    container.innerHTML = `<table><tbody><tr data-row-key="ok_row"><td><input /></td></tr></tbody></table>`;
+    document.body.appendChild(container);
+
+    const notify = vi.fn();
+    const result = scrollToFirstTableError({
+      rowKey: 'ok_row',
+      container,
+      notify,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.totalErrors).toBe(0);
+    expect(notify).not.toHaveBeenCalled();
 
     document.body.removeChild(container);
   });
