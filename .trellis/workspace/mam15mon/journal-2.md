@@ -602,3 +602,34 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 104: 汇率管理下沉分公司
+<!-- trellis-session: v=2 fp=5765fe817c316eed -->
+
+**Date**: 2026-09-23
+**Task**: 汇率管理下沉分公司
+**Branch**: `main`
+
+### Summary
+
+公司独立维护并按业务周解析汇率，移除公共基线与历史周继承；同步权限、手工输入、前端提示、生成物和规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6bf0ba57` | feat: 汇率管理下沉分公司并按业务周取值 |
+
+### Testing
+
+- [OK] pnpm run check:fast 通过；Web 1041 通过、12 跳过；Go 测试、vet、Proto、分层与漏洞检查通过。
+- [OK] 真实 PostgreSQL 集成测试未运行：未配置 RONCIN_INTEGRATION_DATABASE_SOURCE。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 费用科目模板种子任务已实现并提交，尚待单独归档。

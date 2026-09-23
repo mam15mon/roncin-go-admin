@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 103
+- **Total Sessions**: 104
 - **Last Active**: 2026-09-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~604 | Active |
+| `journal-2.md` | ~635 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 104 | 2026-09-23 | 汇率管理下沉分公司 | `6bf0ba57` | `main` |
 | 103 | 2026-09-23 | 计费单位数量规则实施与验收 | `997f8a79` | `main` |
 | 102 | 2026-09-23 | 订单费用状态简化与批量维护交付 | `ce8e6e6b`, `2c215d5b`, `25698810` | `main` |
 | 101 | 2026-09-23 | 订单费用不含税单价列交付 | `d6fcf1af` | `main` |
