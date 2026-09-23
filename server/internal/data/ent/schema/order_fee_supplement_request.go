@@ -79,7 +79,7 @@ func (OrderFeeSupplementRequest) Fields() []ent.Field {
 		field.UUID("exchange_rate_setting_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		field.String("expense_date").NotEmpty().MinLen(10).MaxLen(10).Immutable(),
+		field.String("expense_date").NotEmpty().MinLen(10).MaxLen(16).Immutable(),
 		field.String("note").Optional().MaxLen(500).Immutable(),
 		// 补录原因必填，随快照一起参与 request_fingerprint。
 		field.String("reason").NotEmpty().MaxLen(500).Immutable(),

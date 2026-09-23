@@ -56,6 +56,27 @@ service OrderFeeService {
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/fees/{id}"};
   }
 
+  // BulkUpdateOrderFees 批量定向修改订单未建账费用：每次仅修改结算单位或
+  // 费用发生时间之一，整批单一事务，任一行版本冲突、状态不符、越订单或
+  // 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。
+  rpc BulkUpdateOrderFees(BulkUpdateOrderFeesRequest) returns (BulkUpdateOrderFeesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fees/bulk-update"
+      body: "*"
+    };
+  }
+
+  // BulkRemoveOrderFees 批量删除订单未建账费用：整批单一事务，被未取消账单
+  // 占用、版本冲突或越订单任一不满足时整批回滚，费用标签关联随删除级联清理。
+  rpc BulkRemoveOrderFees(BulkRemoveOrderFeesRequest) returns (BulkRemoveOrderFeesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.delete" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_id}/fees/bulk-remove"
+      body: "*"
+    };
+  }
+
   // CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
   // 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
   // 稳定拒绝并引导普通费用新增。
@@ -341,6 +362,45 @@ message RemoveFeeResponse {
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
+}
+
+// BulkOrderFeeTarget 批量操作的单一费用目标：费用 ID 与乐观锁版本。
+message BulkOrderFeeTarget {
+  string fee_id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message BulkUpdateOrderFeesRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated BulkOrderFeeTarget targets = 2 [(google.api.field_behavior) = REQUIRED];
+  // 目标值二选一：settlement_party_id（改为该结算单位）或 expense_date
+  //（改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），
+  // 必须恰好提供一个。
+  optional string settlement_party_id = 3;
+  optional string expense_date = 4;
+}
+
+message BulkUpdateOrderFeesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  int32 updated_count = 4;
+  string trace_id = 5;
+}
+
+message BulkRemoveOrderFeesRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated BulkOrderFeeTarget targets = 2 [(google.api.field_behavior) = REQUIRED];
+  // reason 删除原因：选填，最长 500 字，仅写入审计明细。
+  optional string reason = 3;
+}
+
+message BulkRemoveOrderFeesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  int32 removed_count = 4;
+  string trace_id = 5;
 }
 
 message ListOrderFeeTagOptionsRequest {

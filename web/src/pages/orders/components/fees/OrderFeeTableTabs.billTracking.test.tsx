@@ -359,7 +359,10 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     );
     await screen.findByText('拖车费');
 
-    const deleteButtons = screen.getAllByRole('button', { name: /删\s*除/ });
+    // 行内「删除」操作锚定整名匹配，避开工具栏批量维护新增的「批量删除」入口
+    const deleteButtons = screen.getAllByRole('button', {
+      name: /^删\s*除$/,
+    });
     expect(deleteButtons).toHaveLength(1);
     expect(
       screen.queryByRole('button', { name: /作\s*废/ }),
@@ -408,9 +411,9 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     await screen.findByText('拖车费');
 
     const rowCheckbox = (rowText: string) => {
-      const row = screen.getByText(rowText).closest(
-        'tr',
-      ) as HTMLTableRowElement;
+      const row = screen
+        .getByText(rowText)
+        .closest('tr') as HTMLTableRowElement;
       return within(row).getByRole('checkbox') as HTMLInputElement;
     };
     // 已保存的未建账与已建账费用都可直接勾选，无需先行确认

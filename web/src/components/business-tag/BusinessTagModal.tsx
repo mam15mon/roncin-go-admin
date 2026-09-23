@@ -21,6 +21,8 @@ export type BusinessTagModalMode = 'assign' | 'remove';
 
 interface BusinessTagModalProps {
   open: boolean;
+  /** 打开弹窗时的初始模式；订单费用页用独立入口区分“添加/移除”时传入，缺省 assign。 */
+  defaultMode?: BusinessTagModalMode;
   /** 选中待操作的业务对象数量 */
   targetCount: number;
   /** 业务对象已有标签（含停用），移除模式展示用 */
@@ -55,6 +57,7 @@ function tagColorStyle(
 /** 业务标签选择弹窗：订单、费用和账单页面共用。 */
 export function BusinessTagModal({
   open,
+  defaultMode = 'assign',
   targetCount,
   existingTags,
   canQuickCreate,
@@ -98,11 +101,11 @@ export function BusinessTagModal({
 
   useEffect(() => {
     if (!open) return;
-    setMode('assign');
+    setMode(defaultMode);
     setSelectedTagIds([]);
     setQuickCreateOpen(false);
     void loadTagOptionsRef.current();
-  }, [open]);
+  }, [open, defaultMode]);
 
   const mergedOptions = useMemo(() => {
     if (mode !== 'remove') return tagOptions;

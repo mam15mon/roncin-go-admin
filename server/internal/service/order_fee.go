@@ -180,6 +180,82 @@ func (s *OrderFeeService) RemoveFee(ctx context.Context, request *v1.RemoveFeeRe
 	return ok(ctx, &v1.RemoveFeeResponse{}), nil
 }
 
+func (s *OrderFeeService) BulkUpdateOrderFees(ctx context.Context, request *v1.BulkUpdateOrderFeesRequest) (*v1.BulkUpdateOrderFeesResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	orderID, targets, err := parseOrderFeeBulkTargets(request.GetOrderId(), request.GetTargets())
+	if err != nil {
+		return nil, err
+	}
+	settlementPartyID, expenseDate, err := parseOrderFeeBulkUpdateValue(request.SettlementPartyId, request.ExpenseDate)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.usecase.BulkUpdate(ctx, principal.Organization.ID, principal.UserID, orderID, targets, settlementPartyID, expenseDate); err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.BulkUpdateOrderFeesResponse{UpdatedCount: int32(len(targets))}), nil
+}
+
+func (s *OrderFeeService) BulkRemoveOrderFees(ctx context.Context, request *v1.BulkRemoveOrderFeesRequest) (*v1.BulkRemoveOrderFeesResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	orderID, targets, err := parseOrderFeeBulkTargets(request.GetOrderId(), request.GetTargets())
+	if err != nil {
+		return nil, err
+	}
+	if err := s.usecase.BulkRemove(ctx, principal.Organization.ID, principal.UserID, orderID, targets, request.GetReason()); err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.BulkRemoveOrderFeesResponse{RemovedCount: int32(len(targets))}), nil
+}
+
+// parseOrderFeeBulkTargets 解析并结构校验批量目标集合：订单与费用 ID 必须是
+// 合法 UUID、目标非空且费用 ID 不重复、乐观锁版本非零。
+func parseOrderFeeBulkTargets(orderIDText string, requestTargets []*v1.BulkOrderFeeTarget) (uuid.UUID, []biz.OrderFeeBulkTarget, error) {
+	orderID, err := uuid.Parse(orderIDText)
+	if err != nil {
+		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	if len(requestTargets) == 0 {
+		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	targets := make([]biz.OrderFeeBulkTarget, 0, len(requestTargets))
+	seen := make(map[uuid.UUID]struct{}, len(requestTargets))
+	for _, item := range requestTargets {
+		feeID, parseErr := uuid.Parse(item.GetFeeId())
+		if parseErr != nil || item.GetExpectedVersion() == 0 {
+			return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+		}
+		if _, exists := seen[feeID]; exists {
+			return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
+		}
+		seen[feeID] = struct{}{}
+		targets = append(targets, biz.OrderFeeBulkTarget{FeeID: feeID, ExpectedVersion: item.GetExpectedVersion()})
+	}
+	return orderID, targets, nil
+}
+
+// parseOrderFeeBulkUpdateValue 解析批量修改的目标值：结算单位 ID 或费用时间
+// 二选一，必须恰好提供一个且结算单位 ID 是合法 UUID；日期格式由领域层校验。
+func parseOrderFeeBulkUpdateValue(settlementPartyIDText, expenseDateText *string) (*uuid.UUID, *string, error) {
+	if (settlementPartyIDText == nil) == (expenseDateText == nil) {
+		return nil, nil, biz.ErrOrderFeeInvalidArgument
+	}
+	if settlementPartyIDText != nil {
+		partyID, err := uuid.Parse(*settlementPartyIDText)
+		if err != nil || partyID == uuid.Nil {
+			return nil, nil, biz.ErrOrderFeeInvalidArgument
+		}
+		return &partyID, nil, nil
+	}
+	return nil, expenseDateText, nil
+}
+
 func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 	result := &v1.OrderFee{
 		Id:                  value.ID.String(),

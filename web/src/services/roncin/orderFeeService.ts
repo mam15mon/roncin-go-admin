@@ -312,3 +312,50 @@ export async function orderFeeServiceRemoveFee(
     }
   );
 }
+
+/** BulkRemoveOrderFees 批量删除订单未建账费用：整批单一事务，被未取消账单
+ 占用、版本冲突或越订单任一不满足时整批回滚，费用标签关联随删除级联清理。 POST /api/v1/orders/${param0}/fees/bulk-remove */
+export async function orderFeeServiceBulkRemoveOrderFees(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceBulkRemoveOrderFeesParams,
+  body: API.BulkRemoveOrderFeesRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.BulkRemoveOrderFeesResponse>(
+    `/api/v1/orders/${param0}/fees/bulk-remove`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** BulkUpdateOrderFees 批量定向修改订单未建账费用：每次仅修改结算单位或
+ 费用发生时间之一，整批单一事务，任一行版本冲突、状态不符、越订单或
+ 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。 POST /api/v1/orders/${param0}/fees/bulk-update */
+export async function orderFeeServiceBulkUpdateOrderFees(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceBulkUpdateOrderFeesParams,
+  body: API.BulkUpdateOrderFeesRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.BulkUpdateOrderFeesResponse>(
+    `/api/v1/orders/${param0}/fees/bulk-update`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}

@@ -6002,6 +6002,61 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.AddFeeResponse'
+    /api/v1/orders/{orderId}/fees/bulk-remove:
+        post:
+            tags:
+                - OrderFeeService
+            description: |-
+                BulkRemoveOrderFees 批量删除订单未建账费用：整批单一事务，被未取消账单
+                 占用、版本冲突或越订单任一不满足时整批回滚，费用标签关联随删除级联清理。
+            operationId: OrderFeeService_BulkRemoveOrderFees
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.BulkRemoveOrderFeesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.BulkRemoveOrderFeesResponse'
+    /api/v1/orders/{orderId}/fees/bulk-update:
+        post:
+            tags:
+                - OrderFeeService
+            description: |-
+                BulkUpdateOrderFees 批量定向修改订单未建账费用：每次仅修改结算单位或
+                 费用发生时间之一，整批单一事务，任一行版本冲突、状态不符、越订单或
+                 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。
+            operationId: OrderFeeService_BulkUpdateOrderFees
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.BulkUpdateOrderFeesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.BulkUpdateOrderFeesResponse'
     /api/v1/orders/{orderId}/fees/{id}:
         put:
             tags:
@@ -16432,6 +16487,82 @@ components:
             type: object
             properties:
                 removedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        order.v1.BulkOrderFeeTarget:
+            required:
+                - feeId
+                - expectedVersion
+            type: object
+            properties:
+                feeId:
+                    type: string
+                expectedVersion:
+                    type: string
+            description: BulkOrderFeeTarget 批量操作的单一费用目标：费用 ID 与乐观锁版本。
+        order.v1.BulkRemoveOrderFeesRequest:
+            required:
+                - orderId
+                - targets
+            type: object
+            properties:
+                orderId:
+                    type: string
+                targets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.BulkOrderFeeTarget'
+                reason:
+                    type: string
+                    description: reason 删除原因：选填，最长 500 字，仅写入审计明细。
+        order.v1.BulkRemoveOrderFeesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                removedCount:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        order.v1.BulkUpdateOrderFeesRequest:
+            required:
+                - orderId
+                - targets
+            type: object
+            properties:
+                orderId:
+                    type: string
+                targets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.BulkOrderFeeTarget'
+                settlementPartyId:
+                    type: string
+                    description: |-
+                        目标值二选一：settlement_party_id（改为该结算单位）或 expense_date
+                        （改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），
+                         必须恰好提供一个。
+                expenseDate:
+                    type: string
+        order.v1.BulkUpdateOrderFeesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                updatedCount:
                     type: integer
                     format: int32
                 traceId:

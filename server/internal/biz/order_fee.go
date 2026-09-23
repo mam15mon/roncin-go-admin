@@ -162,6 +162,40 @@ type OrderFeeRepo interface {
 	Add(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFee, audit *AuditEvent) (*OrderFee, error)
 	Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *OrderFee, billExchangeRate *ResolvedRate, audit *AuditEvent) (*OrderFee, error)
 	Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) error
+	BulkUpdate(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFeeBulkUpdateInput, audits map[uuid.UUID]*AuditEvent) error
+	BulkRemove(ctx context.Context, organizationID, orderID uuid.UUID, targets []OrderFeeBulkTarget, audits map[uuid.UUID]*AuditEvent) error
+}
+
+// OrderFeeBulkTarget 批量维护操作的单一费用目标：费用 ID 与乐观锁版本。
+type OrderFeeBulkTarget struct {
+	FeeID           uuid.UUID
+	ExpectedVersion uint64
+}
+
+// OrderFeeBulkRatePlan 批量改费用时间时系统来源汇率的逐行重解析结果：
+// 总额、数量与单价保持不变，折本币金额 = 总额 × 新汇率。
+type OrderFeeBulkRatePlan struct {
+	Rate       decimal.Decimal
+	Source     string
+	RateDate   string
+	SettingID  *uuid.UUID
+	BaseAmount decimal.Decimal
+}
+
+// OrderFeeBulkUpdateInput 批量定向修改计划：SettlementPartyID 与 ExpenseDate
+// 二选一；RatePlans 仅包含系统来源汇率行，手工来源行保持原汇率、来源与折本币。
+type OrderFeeBulkUpdateInput struct {
+	Targets           []OrderFeeBulkTarget
+	SettlementPartyID *uuid.UUID
+	ExpenseDate       *string
+	RatePlans         map[uuid.UUID]*OrderFeeBulkRatePlan
+}
+
+// BulkOrderFeeError 为批量维护构造携带具体费用定位的业务错误：保持与单条
+// 操作相同的 reason 与 HTTP 语义（errors.Is 仍命中对应哨兵错误），message
+// 额外指明费用 ID，便于界面定位失败行。
+func BulkOrderFeeError(base *errors.Error, feeID uuid.UUID, message string) *errors.Error {
+	return errors.Newf(int(base.Code), base.Reason, "费用 %s：%s", feeID, message)
 }
 
 type OrderFeeUsecase struct {
@@ -489,11 +523,12 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		if !canOverrideExchangeRate {
 			return ErrOrderFeeExchangeRateOverrideForbidden
 		}
-		fee.ExchangeRate = *fee.ExchangeRateOverride
-		fee.ExchangeRateSource = ExchangeRateSourceManual
-		fee.ExchangeRateDate = fee.ExpenseDate
-		fee.ExchangeRateSettingID = nil
-		return nil
+	fee.ExchangeRate = *fee.ExchangeRateOverride
+	fee.ExchangeRateSource = ExchangeRateSourceManual
+	// 汇率日期列恒存日期部分（10 字符）：发生日期支持分钟精度后不能整串落库。
+	fee.ExchangeRateDate = expenseDateDay(fee.ExpenseDate)
+	fee.ExchangeRateSettingID = nil
+	return nil
 	}
 	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, expenseDateDay(fee.ExpenseDate))
 	if err != nil {
@@ -538,6 +573,213 @@ func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, 
 		uc.triggerAutoLock(ctx, organizationID, actorID, id, orderID, AutoLockTriggerFeeCancel)
 	}
 	return nil
+}
+
+// validateOrderFeeBulkTargets 校验批量目标集合：非空、费用 ID 非空且不重复、
+// 乐观锁版本非零。
+func validateOrderFeeBulkTargets(targets []OrderFeeBulkTarget) error {
+	if len(targets) == 0 {
+		return ErrOrderFeeInvalidArgument
+	}
+	seen := make(map[uuid.UUID]struct{}, len(targets))
+	for _, target := range targets {
+		if target.FeeID == uuid.Nil || target.ExpectedVersion == 0 {
+			return ErrOrderFeeInvalidArgument
+		}
+		if _, exists := seen[target.FeeID]; exists {
+			return ErrOrderFeeInvalidArgument
+		}
+		seen[target.FeeID] = struct{}{}
+	}
+	return nil
+}
+
+// BulkUpdate 批量定向修改未建账费用：结算单位或费用时间二选一，整批单一事务。
+// 用例层先读取目标费用并完成逐行汇率重解析（系统来源按新日期解析，任一缺失
+// 整批拒绝）与应收信用校验，再交由仓储在订单锁与费用行锁内复核归属、版本与
+// 状态后统一写入；任一行失败整批回滚，错误携带具体费用定位。
+func (uc *OrderFeeUsecase) BulkUpdate(ctx context.Context, organizationID, actorID, orderID uuid.UUID, targets []OrderFeeBulkTarget, settlementPartyID *uuid.UUID, expenseDate *string) error {
+	if err := validateOrderFeeBulkTargets(targets); err != nil {
+		return err
+	}
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
+		return ErrOrderFeeInvalidArgument
+	}
+	// 目标值必须恰好提供一个。
+	if (settlementPartyID == nil) == (expenseDate == nil) {
+		return ErrOrderFeeInvalidArgument
+	}
+	if settlementPartyID != nil && *settlementPartyID == uuid.Nil {
+		return ErrOrderFeeInvalidArgument
+	}
+	newExpenseDate := ""
+	if expenseDate != nil {
+		newExpenseDate = strings.TrimSpace(*expenseDate)
+		if !isValidExpenseDate(newExpenseDate) {
+			return ErrOrderFeeInvalidArgument
+		}
+	}
+	fees, err := uc.repo.List(ctx, organizationID, orderID)
+	if err != nil {
+		return err
+	}
+	feeByID := make(map[uuid.UUID]*OrderFee, len(fees))
+	for _, fee := range fees {
+		feeByID[fee.ID] = fee
+	}
+	targetFees := make([]*OrderFee, 0, len(targets))
+	for _, target := range targets {
+		fee, ok := feeByID[target.FeeID]
+		if !ok {
+			return BulkOrderFeeError(ErrOrderFeeNotFound, target.FeeID, "不存在或不属于该订单")
+		}
+		targetFees = append(targetFees, fee)
+	}
+	input := &OrderFeeBulkUpdateInput{Targets: targets, SettlementPartyID: settlementPartyID}
+	if expenseDate != nil {
+		input.ExpenseDate = &newExpenseDate
+	}
+	if settlementPartyID != nil {
+		// 批量目标共用同一结算单位：存在应收目标行时信用控制整批只需校验一次；
+		// 全应付批次与单条修改同口径不占用客户信用，直接放行。
+		anyReceivable := false
+		for _, fee := range targetFees {
+			if fee.Direction == OrderFeeReceivable {
+				anyReceivable = true
+				break
+			}
+		}
+		if anyReceivable {
+			probe := &OrderFee{Direction: OrderFeeReceivable, SettlementPartyID: *settlementPartyID}
+			if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, probe); err != nil {
+				return err
+			}
+		}
+	} else {
+		plans := make(map[uuid.UUID]*OrderFeeBulkRatePlan, len(targetFees))
+		for _, fee := range targetFees {
+			// 手工来源汇率保持原值、来源与折本币不动，不参与重解析。
+			if fee.ExchangeRateSource == ExchangeRateSourceManual {
+				continue
+			}
+			rateDate := expenseDateDay(newExpenseDate)
+			resolved, resolveErr := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, rateDate)
+			if resolveErr != nil {
+				if errors.Is(resolveErr, ErrExchangeRateMissing) {
+					return BulkOrderFeeError(ErrExchangeRateMissing, fee.ID, fmt.Sprintf("按新费用时间 %s 未命中 %s 折本币汇率，请先维护汇率或改用手工汇率", rateDate, fee.Currency))
+				}
+				return resolveErr
+			}
+			baseAmount := fee.TotalAmount.Mul(resolved.Rate).RoundBank(8)
+			if !totalAmountPattern.MatchString(baseAmount.String()) {
+				return BulkOrderFeeError(ErrOrderFeeInvalidArgument, fee.ID, "按新汇率重算折本币金额超出允许精度")
+			}
+			plans[fee.ID] = &OrderFeeBulkRatePlan{
+				Rate: resolved.Rate, Source: resolved.Source, RateDate: rateDate,
+				SettingID: resolved.SettingID, BaseAmount: baseAmount,
+			}
+		}
+		input.RatePlans = plans
+	}
+	audits := make(map[uuid.UUID]*AuditEvent, len(targetFees))
+	for _, fee := range targetFees {
+		audits[fee.ID] = orderFeeBulkUpdateAudit(organizationID, actorID, orderID, fee, input)
+	}
+	return uc.repo.BulkUpdate(ctx, organizationID, orderID, input, audits)
+}
+
+// BulkRemove 批量删除未建账费用：整批单一事务，被未取消账单占用、版本冲突
+// 或越订单任一不满足时整批回滚。删除成功后按单条删除同款语义对每个未建账
+// 目标触发结清自动锁定重评（幂等）。
+func (uc *OrderFeeUsecase) BulkRemove(ctx context.Context, organizationID, actorID, orderID uuid.UUID, targets []OrderFeeBulkTarget, reason string) error {
+	if err := validateOrderFeeBulkTargets(targets); err != nil {
+		return err
+	}
+	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
+		return ErrOrderFeeInvalidArgument
+	}
+	reason = strings.TrimSpace(reason)
+	if utf8.RuneCountInString(reason) > 500 {
+		return ErrOrderFeeInvalidArgument
+	}
+	fees, err := uc.repo.List(ctx, organizationID, orderID)
+	if err != nil {
+		return err
+	}
+	feeByID := make(map[uuid.UUID]*OrderFee, len(fees))
+	for _, fee := range fees {
+		feeByID[fee.ID] = fee
+	}
+	targetFees := make([]*OrderFee, 0, len(targets))
+	for _, target := range targets {
+		fee, ok := feeByID[target.FeeID]
+		if !ok {
+			return BulkOrderFeeError(ErrOrderFeeNotFound, target.FeeID, "不存在或不属于该订单")
+		}
+		targetFees = append(targetFees, fee)
+	}
+	audits := make(map[uuid.UUID]*AuditEvent, len(targetFees))
+	for _, fee := range targetFees {
+		details := map[string]string{
+			"fee.id":   fee.ID.String(),
+			"order.id": orderID.String(),
+			"fee.bulk": "true",
+		}
+		if reason != "" {
+			details["reason"] = reason
+		}
+		audits[fee.ID] = &AuditEvent{
+			OrganizationID: &organizationID,
+			UserID:         &actorID,
+			Action:         "order.fee.delete",
+			Result:         "success",
+			Details:        details,
+		}
+	}
+	if err := uc.repo.BulkRemove(ctx, organizationID, orderID, targets, audits); err != nil {
+		return err
+	}
+	for _, fee := range targetFees {
+		if fee.Status == OrderFeeUnbilled {
+			uc.triggerAutoLock(ctx, organizationID, actorID, fee.ID, orderID, AutoLockTriggerFeeCancel)
+		}
+	}
+	return nil
+}
+
+// orderFeeBulkUpdateAudit 为批量定向修改构建逐行审计事件：记录修改维度的
+// from→to、重解析汇率的 from→to 与批量来源标识；行内权威事实由仓储锁内补充。
+func orderFeeBulkUpdateAudit(organizationID, actorID, orderID uuid.UUID, fee *OrderFee, input *OrderFeeBulkUpdateInput) *AuditEvent {
+	details := map[string]string{
+		"fee.id":        fee.ID.String(),
+		"order.id":      orderID.String(),
+		"fee.code":      fee.FeeCode,
+		"fee.direction": string(fee.Direction),
+		"fee.amount":    fee.TotalAmount.StringFixed(8),
+		"fee.currency":  fee.Currency,
+		"fee.bulk":      "true",
+	}
+	if input.SettlementPartyID != nil {
+		details["fee.settlement_party.from"] = fee.SettlementPartyID.String()
+		details["fee.settlement_party_name.from"] = fee.SettlementPartyName
+		details["fee.settlement_party.to"] = input.SettlementPartyID.String()
+	} else {
+		details["fee.expense_date.from"] = fee.ExpenseDate
+		details["fee.expense_date.to"] = *input.ExpenseDate
+		if plan := input.RatePlans[fee.ID]; plan != nil {
+			details["fee.exchange_rate.from"] = fee.ExchangeRate.StringFixed(8)
+			details["fee.exchange_rate.to"] = plan.Rate.StringFixed(8)
+			details["fee.base_currency_amount.from"] = fee.BaseCurrencyAmount.StringFixed(8)
+			details["fee.base_currency_amount.to"] = plan.BaseAmount.StringFixed(8)
+		}
+	}
+	return &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &actorID,
+		Action:         "order.fee.update",
+		Result:         "success",
+		Details:        details,
+	}
 }
 
 // triggerAutoLock 在未建账费用作废成功提交后触发结清自动锁定检查。

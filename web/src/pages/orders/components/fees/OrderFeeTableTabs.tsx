@@ -1,16 +1,28 @@
 import {
+  ClockCircleOutlined,
+  DeleteOutlined,
   EditOutlined,
   FileDoneOutlined,
   PlusOutlined,
   SettingOutlined,
+  SwapOutlined,
+  TagsOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { EditableProTable } from '@ant-design/pro-components';
-import { App, Button, Space, Tag, Tooltip } from 'antd';
+import {
+  EditableProTable,
+  ModalForm,
+  ProFormDatePicker,
+  ProFormTextArea,
+} from '@ant-design/pro-components';
+import { Alert, App, Button, Space, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   defaultSelectFilterOption,
+  ProFormSearchableSelect,
   SectionCard,
   scrollToFirstTableError,
 } from '@/components/ui';
@@ -23,7 +35,12 @@ import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
 import {
   orderFeeServiceAddFee,
+  orderFeeServiceBatchAssignOrderFeeTags,
+  orderFeeServiceBatchRemoveOrderFeeTags,
+  orderFeeServiceBulkRemoveOrderFees,
+  orderFeeServiceBulkUpdateOrderFees,
   orderFeeServiceListFees,
+  orderFeeServiceListOrderFeeTagOptions,
   orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
@@ -279,6 +296,270 @@ export default function OrderFeeTableTabs({
       </Tooltip>
     </Space>
   );
+
+  // ===== 批量维护（阶段二）：应收/应付两表各自一套入口，作用于该表勾选行 =====
+
+  // 标签弹窗上下文：记录触发表格方向与入口模式（添加/移除标签）。
+  const [tagModalContext, setTagModalContext] = useState<
+    { direction: number; mode: 'assign' | 'remove' } | undefined
+  >(undefined);
+
+  /** 按方向取该表最近一次成功加载的有效费用行（版本号快照来源）。 */
+  const getDirectionItems = (direction: number): API.OrderFee[] => {
+    const result =
+      direction === RECEIVABLE
+        ? latestReceivableResultRef.current
+        : latestPayableResultRef.current;
+    return result?.orderId === orderId ? result.items : [];
+  };
+
+  /** 由选中 ID 解析可执行批量操作的目标行：仅已保存且带版本的行。 */
+  const getSelectedRows = (direction: number): API.OrderFee[] => {
+    const selectedIds = new Set(
+      (direction === RECEIVABLE
+        ? selectedReceivableFeeIds
+        : selectedPayableFeeIds
+      ).map(String),
+    );
+    return getDirectionItems(direction).filter(
+      (row) => row.id && selectedIds.has(String(row.id)) && row.version,
+    );
+  };
+
+  /** 构造批量契约目标：费用 ID + 勾选时的版本快照，按 ID 排序保持固定顺序。 */
+  const buildBulkTargets = (rows: API.OrderFee[]): API.BulkOrderFeeTarget[] =>
+    [...rows]
+      .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+      .map((row) => ({
+        feeId: String(row.id),
+        expectedVersion: String(row.version),
+      }));
+
+  /** 已建账行不参与改结算单位/改时间/删除/再次建账；显式报错，禁止静默过滤。 */
+  const rejectBilledRows = (rows: API.OrderFee[], actionText: string) => {
+    const billedRows = rows.filter(
+      (row) => feeStatusCode(row.status) !== FEE_UNBILLED,
+    );
+    if (billedRows.length === 0) return false;
+    const names = billedRows
+      .map((row) => row.feeName || row.feeCode || row.id || '')
+      .filter(Boolean);
+    const brief =
+      names.slice(0, 3).join('、') + (names.length > 3 ? ' 等' : '');
+    message.warning(
+      `选中费用中有 ${billedRows.length} 笔已建账，不能${actionText}（${brief}），请取消勾选后重试`,
+    );
+    return true;
+  };
+
+  /** 批量操作成功后：清空该表选择，刷新两表与关联账单/汇总链路；失败不调用以保留核对上下文。 */
+  const handleBulkDone = (direction: number) => {
+    if (direction === RECEIVABLE) {
+      setSelectedReceivableFeeIds([]);
+    } else {
+      setSelectedPayableFeeIds([]);
+    }
+    receivableActionRef.current?.reload();
+    payableActionRef.current?.reload();
+    onFeeSaved?.();
+  };
+
+  /** 建账入口显式资格校验：仅未建账费用可生成账单，混合勾选时明确拒绝。 */
+  const handleOpenBill = (direction: number) => {
+    const rows = getSelectedRows(direction);
+    if (rows.length === 0) {
+      message.warning('未找到勾选的费用，请刷新后重试');
+      return;
+    }
+    if (rejectBilledRows(rows, '生成账单')) return;
+    onOpenBillWorkbench(rows.map((row) => String(row.id)));
+  };
+
+  const renderBulkToolbar = (direction: number) => {
+    const isReceivable = direction === RECEIVABLE;
+    const selectedIds = isReceivable
+      ? selectedReceivableFeeIds
+      : selectedPayableFeeIds;
+    const directionText = isReceivable ? '应收' : '应付';
+    const bulkDisabled = feeWritesDisabled || selectedIds.length === 0;
+
+    return (
+      <>
+        <ModalForm<{ settlementPartyId: string }>
+          title={`批量修改结算单位（已选 ${selectedIds.length} 笔${directionText}费用）`}
+          width={480}
+          modalProps={{ destroyOnHidden: true }}
+          submitter={{
+            searchConfig: { submitText: '确定修改', resetText: '取消' },
+          }}
+          trigger={
+            <Button icon={<SwapOutlined />} disabled={bulkDisabled}>
+              批量改结算单位
+            </Button>
+          }
+          onFinish={async (values) => {
+            const rows = getSelectedRows(direction);
+            if (rows.length === 0) {
+              message.warning('请先勾选要修改的费用');
+              return false;
+            }
+            if (rejectBilledRows(rows, '批量修改结算单位')) return false;
+            try {
+              const response = await orderFeeServiceBulkUpdateOrderFees(
+                { orderId },
+                {
+                  orderId,
+                  targets: buildBulkTargets(rows),
+                  settlementPartyId: values.settlementPartyId,
+                },
+              );
+              message.success(
+                `已修改 ${response.updatedCount ?? rows.length} 笔费用的结算单位`,
+              );
+              handleBulkDone(direction);
+              return true;
+            } catch (error) {
+              message.error(getErrorMessage(error, '批量修改结算单位失败'));
+              return false;
+            }
+          }}
+        >
+          <ProFormSearchableSelect
+            name="settlementPartyId"
+            label="结算单位"
+            rules={[{ required: true, message: '请选择结算单位' }]}
+            placeholder="请选择新的结算单位"
+            options={(settlementParties || []).map((p) => ({
+              label: p.name ?? '',
+              value: p.id ?? '',
+              code: p.code,
+            }))}
+          />
+        </ModalForm>
+        <ModalForm<{ expenseDate: string | Dayjs }>
+          title={`批量修改费用时间（已选 ${selectedIds.length} 笔${directionText}费用）`}
+          width={480}
+          modalProps={{ destroyOnHidden: true }}
+          submitter={{
+            searchConfig: { submitText: '确定修改', resetText: '取消' },
+          }}
+          trigger={
+            <Button icon={<ClockCircleOutlined />} disabled={bulkDisabled}>
+              批量改费用时间
+            </Button>
+          }
+          onFinish={async (values) => {
+            const rows = getSelectedRows(direction);
+            if (rows.length === 0) {
+              message.warning('请先勾选要修改的费用');
+              return false;
+            }
+            if (rejectBilledRows(rows, '批量修改费用时间')) return false;
+            try {
+              const response = await orderFeeServiceBulkUpdateOrderFees(
+                { orderId },
+                {
+                  orderId,
+                  targets: buildBulkTargets(rows),
+                  // dayjs 同时兼容 Dayjs 对象与已格式化字符串两种表单值。
+                  expenseDate: dayjs(values.expenseDate).format(
+                    'YYYY-MM-DD HH:mm',
+                  ),
+                },
+              );
+              message.success(
+                `已修改 ${response.updatedCount ?? rows.length} 笔费用的费用时间`,
+              );
+              handleBulkDone(direction);
+              return true;
+            } catch (error) {
+              message.error(getErrorMessage(error, '批量修改费用时间失败'));
+              return false;
+            }
+          }}
+        >
+          <ProFormDatePicker
+            name="expenseDate"
+            label="费用发生时间"
+            rules={[{ required: true, message: '请选择费用发生时间' }]}
+            fieldProps={{
+              style: { width: '100%' },
+              placeholder: '请选择费用发生时间',
+              format: 'YYYY-MM-DD HH:mm',
+              showTime: { format: 'HH:mm' },
+            }}
+          />
+        </ModalForm>
+        <ModalForm<{ reason?: string }>
+          title={`批量删除费用（已选 ${selectedIds.length} 笔${directionText}费用）`}
+          width={520}
+          modalProps={{ destroyOnHidden: true }}
+          submitter={{
+            searchConfig: { submitText: '删除', resetText: '取消' },
+            submitButtonProps: { danger: true },
+          }}
+          trigger={
+            <Button icon={<DeleteOutlined />} danger disabled={bulkDisabled}>
+              批量删除
+            </Button>
+          }
+          onFinish={async (values) => {
+            const rows = getSelectedRows(direction);
+            if (rows.length === 0) {
+              message.warning('请先勾选要删除的费用');
+              return false;
+            }
+            if (rejectBilledRows(rows, '批量删除')) return false;
+            try {
+              const response = await orderFeeServiceBulkRemoveOrderFees(
+                { orderId },
+                {
+                  orderId,
+                  targets: buildBulkTargets(rows),
+                  reason: values.reason?.trim() || undefined,
+                },
+              );
+              message.success(
+                `已删除 ${response.removedCount ?? rows.length} 笔费用`,
+              );
+              handleBulkDone(direction);
+              return true;
+            } catch (error) {
+              message.error(getErrorMessage(error, '批量删除费用失败'));
+              return false;
+            }
+          }}
+        >
+          <Alert
+            type="warning"
+            showIcon
+            message={`将删除 ${selectedIds.length} 笔${directionText}费用`}
+            description="删除为物理删除且整批原子执行，任一笔失败则全部回滚；已进入账单的费用需先取消对应账单。"
+          />
+          <ProFormTextArea
+            name="reason"
+            label="删除原因（选填）"
+            placeholder="请输入删除原因，仅写入审计明细（最长 500 字）"
+            fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
+          />
+        </ModalForm>
+        <Button
+          icon={<TagsOutlined />}
+          disabled={bulkDisabled}
+          onClick={() => setTagModalContext({ direction, mode: 'assign' })}
+        >
+          添加标签
+        </Button>
+        <Button
+          icon={<TagsOutlined />}
+          disabled={bulkDisabled}
+          onClick={() => setTagModalContext({ direction, mode: 'remove' })}
+        >
+          删除标签
+        </Button>
+      </>
+    );
+  };
 
   // 行内编辑的实时预览：按行 key 记录汇率解析进度、总金额与费用代码，
   // 币种/发生日期/单价/数量/费用项目变化即刷新，保存后以后端落库值为准。
@@ -1135,23 +1416,27 @@ export default function OrderFeeTableTabs({
                 编辑
               </Button>
             ),
-            feeStatusCode(record.status) === FEE_UNBILLED &&
-              onCancelFee && (
-                <Button
-                  key="cancel"
-                  type="link"
-                  size="small"
-                  danger
-                  onClick={() => onCancelFee(record)}
-                >
-                  删除
-                </Button>
-              ),
+            feeStatusCode(record.status) === FEE_UNBILLED && onCancelFee && (
+              <Button
+                key="cancel"
+                type="link"
+                size="small"
+                danger
+                onClick={() => onCancelFee(record)}
+              >
+                删除
+              </Button>
+            ),
           ].filter(Boolean);
         },
       },
     ];
   };
+
+  // 标签弹窗打开时解析目标行快照（含已建账行；标签维护不受账单占用限制）。
+  const tagModalRows = tagModalContext
+    ? getSelectedRows(tagModalContext.direction)
+    : [];
 
   return (
     <>
@@ -1163,16 +1448,15 @@ export default function OrderFeeTableTabs({
           </Space>
         }
         extra={
-          <Space size={8}>
+          <Space size={8} wrap>
             {renderColumnToolbar()}
+            {renderBulkToolbar(RECEIVABLE)}
             {canCreateFinanceBills && (
               <Button
                 key="bill"
                 icon={<FileDoneOutlined />}
                 disabled={selectedReceivableFeeIds.length === 0}
-                onClick={() =>
-                  onOpenBillWorkbench(selectedReceivableFeeIds.map(String))
-                }
+                onClick={() => handleOpenBill(RECEIVABLE)}
               >
                 生成账单（{selectedReceivableFeeIds.length}）
               </Button>
@@ -1306,16 +1590,15 @@ export default function OrderFeeTableTabs({
           </Space>
         }
         extra={
-          <Space size={8}>
+          <Space size={8} wrap>
             {renderColumnToolbar()}
+            {renderBulkToolbar(PAYABLE)}
             {canCreateFinanceBills && (
               <Button
                 key="bill"
                 icon={<FileDoneOutlined />}
                 disabled={selectedPayableFeeIds.length === 0}
-                onClick={() =>
-                  onOpenBillWorkbench(selectedPayableFeeIds.map(String))
-                }
+                onClick={() => handleOpenBill(PAYABLE)}
               >
                 生成账单（{selectedPayableFeeIds.length}）
               </Button>
@@ -1444,6 +1727,43 @@ export default function OrderFeeTableTabs({
         value={feeColumnPref}
         onCancel={() => setColumnSettingsOpen(false)}
         onConfirm={handleColumnSettingsConfirm}
+      />
+
+      {/* 批量标签维护：两个表共用一个弹窗，打开时按入口锁定添加/移除模式。 */}
+      <BusinessTagModal
+        open={Boolean(tagModalContext)}
+        defaultMode={tagModalContext?.mode}
+        targetCount={tagModalRows.length}
+        existingTags={tagModalRows.flatMap((row) => row.tags ?? [])}
+        canQuickCreate={false}
+        loadOptions={(params) =>
+          orderFeeServiceListOrderFeeTagOptions({ orderId, ...params })
+        }
+        onSubmit={async (mode, tagIds) => {
+          const direction = tagModalContext?.direction ?? RECEIVABLE;
+          const rows = getSelectedRows(direction);
+          const feeIds = rows.map((row) => String(row.id));
+          if (feeIds.length === 0 || tagIds.length === 0) return;
+          try {
+            if (mode === 'assign') {
+              await orderFeeServiceBatchAssignOrderFeeTags(
+                { orderId },
+                { orderId, feeIds, tagIds },
+              );
+              message.success(`已为 ${feeIds.length} 笔费用添加标签`);
+            } else {
+              await orderFeeServiceBatchRemoveOrderFeeTags(
+                { orderId },
+                { orderId, feeIds, tagIds },
+              );
+              message.success(`已从 ${feeIds.length} 笔费用移除标签`);
+            }
+            handleBulkDone(direction);
+          } catch (error) {
+            message.error(getErrorMessage(error, '维护费用标签失败'));
+          }
+        }}
+        onCancel={() => setTagModalContext(undefined)}
       />
     </>
   );

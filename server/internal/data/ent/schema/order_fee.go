@@ -59,7 +59,8 @@ func (OrderFee) Fields() []ent.Field {
 		field.UUID("exchange_rate_setting_id", uuid.Nil).Optional().Nillable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
-		field.String("expense_date").NotEmpty().MinLen(10).MaxLen(10),
+		// 发生日期支持分钟精度（YYYY-MM-DD HH:mm），纯日期仍为 10 字符。
+		field.String("expense_date").NotEmpty().MinLen(10).MaxLen(16),
 		field.String("note").Optional().MaxLen(500),
 		// 补录申请来源：审批通过时由专用事务反向关联生成的费用；一对一且创建后
 		// 不可变，普通费用入口不得携带该来源。

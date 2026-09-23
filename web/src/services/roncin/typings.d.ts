@@ -733,6 +733,44 @@ declare namespace API {
     isContainerUnit?: boolean;
   };
 
+  type BulkOrderFeeTarget = {
+    feeId: string;
+    expectedVersion: string;
+  };
+
+  type BulkRemoveOrderFeesRequest = {
+    orderId: string;
+    targets: BulkOrderFeeTarget[];
+    /** reason 删除原因：选填，最长 500 字，仅写入审计明细。 */
+    reason?: string;
+  };
+
+  type BulkRemoveOrderFeesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    removedCount?: number;
+    traceId?: string;
+  };
+
+  type BulkUpdateOrderFeesRequest = {
+    orderId: string;
+    targets: BulkOrderFeeTarget[];
+    /** 目标值二选一：settlement_party_id（改为该结算单位）或 expense_date
+（改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），
+ 必须恰好提供一个。 */
+    settlementPartyId?: string;
+    expenseDate?: string;
+  };
+
+  type BulkUpdateOrderFeesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    updatedCount?: number;
+    traceId?: string;
+  };
+
   type BusinessTagSummary = {
     id?: string;
     name?: string;
@@ -4955,6 +4993,14 @@ declare namespace API {
   };
 
   type OrderFeeServiceBatchRemoveOrderFeeTagsParams = {
+    orderId: string;
+  };
+
+  type OrderFeeServiceBulkRemoveOrderFeesParams = {
+    orderId: string;
+  };
+
+  type OrderFeeServiceBulkUpdateOrderFeesParams = {
     orderId: string;
   };
 

@@ -2,6 +2,8 @@ package data
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -687,6 +689,190 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		audit.Details["fee.previous_status"] = string(item.Status)
 		audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+}
+
+// bulkOrderFeeTargetsDigest 提取批量目标的费用 ID 与版本映射。
+func bulkOrderFeeTargetsDigest(targets []biz.OrderFeeBulkTarget) ([]uuid.UUID, map[uuid.UUID]uint64) {
+	feeIDs := make([]uuid.UUID, 0, len(targets))
+	versions := make(map[uuid.UUID]uint64, len(targets))
+	for _, target := range targets {
+		feeIDs = append(feeIDs, target.FeeID)
+		versions[target.FeeID] = target.ExpectedVersion
+	}
+	return feeIDs, versions
+}
+
+// lockOrderFeesForBulk 按费用主键固定排序锁定订单内全部目标费用行（与建账的
+// 费用锁同款锁序），并完成归属与版本校验；返回锁定行。任一行不满足即返回
+// 携带费用定位的业务错误，调用方整批回滚。状态资格由调用方按操作语义校验。
+func lockOrderFeesForBulk(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, targets []biz.OrderFeeBulkTarget) ([]*ent.OrderFee, error) {
+	feeIDs, versions := bulkOrderFeeTargetsDigest(targets)
+	items, queryErr := tx.OrderFee.Query().
+		Where(orderfeeent.OrderIDEQ(orderID), orderfeeent.IDIn(feeIDs...)).
+		Order(orderfeeent.ByID()).
+		ForUpdate().
+		All(ctx)
+	if queryErr != nil {
+		return nil, queryErr
+	}
+	if len(items) != len(feeIDs) {
+		found := make(map[uuid.UUID]struct{}, len(items))
+		for _, item := range items {
+			found[item.ID] = struct{}{}
+		}
+		for _, id := range feeIDs {
+			if _, ok := found[id]; !ok {
+				return nil, biz.BulkOrderFeeError(biz.ErrOrderFeeNotFound, id, "不存在或不属于该订单")
+			}
+		}
+	}
+	for _, item := range items {
+		if item.Version != versions[item.ID] {
+			return nil, biz.BulkOrderFeeError(biz.ErrOrderFeeVersionConflict, item.ID, "已被其他操作人修改，请刷新后重试")
+		}
+	}
+	return items, nil
+}
+
+// ensureOrderFeeBulkUpdatable 校验批量定向修改的状态资格：仅未建账费用可改
+// 结算单位/费用时间，与单条修改对已建账费用这两个字段的锁定口径一致。
+func ensureOrderFeeBulkUpdatable(item *ent.OrderFee) error {
+	switch item.Status {
+	case orderfeeent.StatusUNBILLED:
+		return nil
+	case orderfeeent.StatusBILLED:
+		return biz.BulkOrderFeeError(biz.ErrBilledFeeFieldForbidden, item.ID, "已进账单费用不可修改结算单位/费用时间")
+	default:
+		return biz.BulkOrderFeeError(biz.ErrOrderFeeInvalidTransition, item.ID, "当前状态不允许批量维护")
+	}
+}
+
+// BulkUpdate 批量定向修改未建账费用：整批单一事务，先锁订单行，再按费用主键
+// 固定排序锁全部目标行并完成全部校验，校验通过后才逐行定向写入并同事务写入
+// 逐行审计；任一行失败整批回滚。仅更新目标字段：改结算单位不动金额与汇率；
+// 改费用时间仅重写系统来源行的汇率快照与折本币（手工来源保持原汇率与来源），
+// 禁止整 DTO 回写重算税率、名称与金额快照。
+func (r *orderFeeRepo) BulkUpdate(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderFeeBulkUpdateInput, audits map[uuid.UUID]*biz.AuditEvent) error {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
+			return lockErr
+		}
+		if input.SettlementPartyID != nil {
+			// 结算单位法定名称不落费用行（经结算单位关联实时取数），此处仅复核
+			// 档案存在、组织归属与启用状态，与单条修改同口径。
+			if _, partyErr := tx.Partner.Query().
+				Where(partnerent.IDEQ(*input.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).
+				Only(ctx); partyErr != nil {
+				return mapEntError(partyErr, biz.ErrOrderFeePartyInvalid, nil)
+			}
+		}
+		items, lockErr := lockOrderFeesForBulk(ctx, tx, orderID, input.Targets)
+		if lockErr != nil {
+			return lockErr
+		}
+		for _, item := range items {
+			if statusErr := ensureOrderFeeBulkUpdatable(item); statusErr != nil {
+				return statusErr
+			}
+		}
+		for _, item := range items {
+			builder := tx.OrderFee.UpdateOne(item).SetVersion(item.Version + 1)
+			if input.SettlementPartyID != nil {
+				builder.SetSettlementPartyID(*input.SettlementPartyID)
+			} else {
+				newExpenseDate := *input.ExpenseDate
+				builder.SetExpenseDate(newExpenseDate)
+				if plan := input.RatePlans[item.ID]; plan != nil {
+					builder.
+						SetExchangeRate(plan.Rate.StringFixed(8)).
+						SetExchangeRateSource(orderfeeent.ExchangeRateSource(plan.Source)).
+						SetExchangeRateDate(plan.RateDate).
+						SetBaseCurrencyAmount(plan.BaseAmount.StringFixed(8))
+					if plan.SettingID != nil {
+						builder.SetExchangeRateSettingID(*plan.SettingID)
+					} else {
+						builder.ClearExchangeRateSettingID()
+					}
+				} else {
+					// 手工来源：汇率、来源与折本币保持原值，汇率日期同步新发生日期的日期部分。
+					rateDate, _, _ := strings.Cut(newExpenseDate, " ")
+					builder.SetExchangeRateDate(rateDate)
+				}
+			}
+			if _, updateErr := builder.Save(ctx); updateErr != nil {
+				return updateErr
+			}
+			if audit := audits[item.ID]; audit != nil {
+				audit.Details["fee.previous_status"] = string(item.Status)
+				audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
+				audit.Details["fee.version"] = decimal.NewFromInt(int64(item.Version + 1)).String()
+				audit.Details["fee.status"] = string(item.Status)
+				if writeErr := writeAudit(ctx, tx.AuditLog, audit); writeErr != nil {
+					return writeErr
+				}
+			}
+		}
+		return nil
+	})
+}
+
+// BulkRemove 批量删除未建账费用：整批单一事务，锁订单行后按费用主键固定排序
+// 锁全部目标行，逐行复核归属、版本、账单占用与状态（占用错误携带账单号便于
+// 界面定位），全部通过后统一物理删除并逐行写审计；任一行失败整批回滚。费用
+// 标签关联随删除级联清理，历史账单行的来源引用由外键置空，金额与科目快照
+// 保留在账单行上。
+func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID uuid.UUID, targets []biz.OrderFeeBulkTarget, audits map[uuid.UUID]*biz.AuditEvent) error {
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
+			return lockErr
+		}
+		items, lockErr := lockOrderFeesForBulk(ctx, tx, orderID, targets)
+		if lockErr != nil {
+			return lockErr
+		}
+		// 占用复核以事务内事实为准（与单条删除同款谓词）：存在活动账单行且所属
+		// 账单未取消即占用；与建账事务在费用行锁上串行，二者互斥不产生悬挂引用。
+		for _, item := range items {
+			line, lineErr := tx.FinanceBillLine.Query().
+				Where(
+					financebilllineent.OrderFeeIDEQ(item.ID),
+					financebilllineent.ActiveEQ(true),
+					financebilllineent.HasBillWith(financebillent.StatusNEQ(financebillent.StatusCANCELLED)),
+				).
+				WithBill().
+				First(ctx)
+			if lineErr != nil && !ent.IsNotFound(lineErr) {
+				return lineErr
+			}
+			if line != nil {
+				bill, billErr := line.Edges.BillOrErr()
+				if billErr != nil {
+					return billErr
+				}
+				return biz.BulkOrderFeeError(biz.ErrOrderFeeBillOccupied, item.ID, fmt.Sprintf("已进入未取消的账单 %s，请先取消对应账单后再删除", bill.BillNo))
+			}
+			if item.Status != orderfeeent.StatusUNBILLED {
+				return biz.BulkOrderFeeError(biz.ErrOrderFeeInvalidTransition, item.ID, "仅未建账费用可批量删除")
+			}
+		}
+		for _, item := range items {
+			if deleteErr := tx.OrderFee.DeleteOne(item).Exec(ctx); deleteErr != nil {
+				return deleteErr
+			}
+			if audit := audits[item.ID]; audit != nil {
+				audit.Details["fee.code"] = item.FeeCode
+				audit.Details["fee.direction"] = string(item.Direction)
+				audit.Details["fee.amount"] = item.TotalAmount
+				audit.Details["fee.currency"] = item.Currency
+				audit.Details["fee.previous_status"] = string(item.Status)
+				audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
+				if writeErr := writeAudit(ctx, tx.AuditLog, audit); writeErr != nil {
+					return writeErr
+				}
+			}
+		}
+		return nil
 	})
 }
 
