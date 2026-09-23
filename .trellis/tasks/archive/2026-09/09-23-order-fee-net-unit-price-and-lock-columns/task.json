@@ -1,0 +1,28 @@
+{
+  "id": "order-fee-net-unit-price-and-lock-columns",
+  "name": "order-fee-net-unit-price-and-lock-columns",
+  "title": "订单费用列：不含税单价独立列与账单锁定状态列",
+  "description": "参考竞品费用列配置，为订单费用录入页新增「不含税单价」独立可选列，并新增不依赖财务权限的「账单锁定」状态列，让操作员一眼看出费用行是否已进入账单而不可删/受限修改",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-23",
+  "completedAt": "2026-09-23",
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "knownLimitations": "protojson 省略零值：tax_inclusive=false 在响应中以字段缺失到达；本列按规范用 !== true 判定历史不含税行（wire 缺失 ⇔ DB false），分支可达且正确。测试覆盖字段缺失与显式 false 两种载荷。详见 type-safety.md「服务端布尔响应的零值省略陷阱」。"
+  }
+}
