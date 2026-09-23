@@ -26,6 +26,8 @@ const (
 	FieldName = "name"
 	// FieldIsContainerUnit holds the string denoting the is_container_unit field in the database.
 	FieldIsContainerUnit = "is_container_unit"
+	// FieldQuantityMustBeInteger holds the string denoting the quantity_must_be_integer field in the database.
+	FieldQuantityMustBeInteger = "quantity_must_be_integer"
 	// FieldSortOrder holds the string denoting the sort_order field in the database.
 	FieldSortOrder = "sort_order"
 	// FieldEnabled holds the string denoting the enabled field in the database.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldCode,
 	FieldName,
 	FieldIsContainerUnit,
+	FieldQuantityMustBeInteger,
 	FieldSortOrder,
 	FieldEnabled,
 	FieldSearchKeywords,
@@ -96,6 +99,8 @@ var (
 	NameValidator func(string) error
 	// DefaultIsContainerUnit holds the default value on creation for the "is_container_unit" field.
 	DefaultIsContainerUnit bool
+	// DefaultQuantityMustBeInteger holds the default value on creation for the "quantity_must_be_integer" field.
+	DefaultQuantityMustBeInteger bool
 	// DefaultSortOrder holds the default value on creation for the "sort_order" field.
 	DefaultSortOrder int
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
@@ -137,6 +142,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByIsContainerUnit orders the results by the is_container_unit field.
 func ByIsContainerUnit(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsContainerUnit, opts...).ToFunc()
+}
+
+// ByQuantityMustBeInteger orders the results by the quantity_must_be_integer field.
+func ByQuantityMustBeInteger(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQuantityMustBeInteger, opts...).ToFunc()
 }
 
 // BySortOrder orders the results by the sort_order field.

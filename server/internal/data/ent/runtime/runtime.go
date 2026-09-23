@@ -689,16 +689,20 @@ func init() {
 	billingunitDescIsContainerUnit := billingunitFields[2].Descriptor()
 	// billingunit.DefaultIsContainerUnit holds the default value on creation for the is_container_unit field.
 	billingunit.DefaultIsContainerUnit = billingunitDescIsContainerUnit.Default.(bool)
+	// billingunitDescQuantityMustBeInteger is the schema descriptor for quantity_must_be_integer field.
+	billingunitDescQuantityMustBeInteger := billingunitFields[3].Descriptor()
+	// billingunit.DefaultQuantityMustBeInteger holds the default value on creation for the quantity_must_be_integer field.
+	billingunit.DefaultQuantityMustBeInteger = billingunitDescQuantityMustBeInteger.Default.(bool)
 	// billingunitDescSortOrder is the schema descriptor for sort_order field.
-	billingunitDescSortOrder := billingunitFields[3].Descriptor()
+	billingunitDescSortOrder := billingunitFields[4].Descriptor()
 	// billingunit.DefaultSortOrder holds the default value on creation for the sort_order field.
 	billingunit.DefaultSortOrder = billingunitDescSortOrder.Default.(int)
 	// billingunitDescEnabled is the schema descriptor for enabled field.
-	billingunitDescEnabled := billingunitFields[4].Descriptor()
+	billingunitDescEnabled := billingunitFields[5].Descriptor()
 	// billingunit.DefaultEnabled holds the default value on creation for the enabled field.
 	billingunit.DefaultEnabled = billingunitDescEnabled.Default.(bool)
 	// billingunitDescSearchKeywords is the schema descriptor for search_keywords field.
-	billingunitDescSearchKeywords := billingunitFields[5].Descriptor()
+	billingunitDescSearchKeywords := billingunitFields[6].Descriptor()
 	// billingunit.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	billingunit.DefaultSearchKeywords = billingunitDescSearchKeywords.Default.(string)
 	// billingunitDescID is the schema descriptor for id field.

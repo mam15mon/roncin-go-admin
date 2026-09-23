@@ -84,6 +84,7 @@ import {
   PAYABLE,
   RECEIVABLE,
 } from './feeConstants';
+import { feeQuantityRuleError } from './feeQuantityRule';
 import {
   buildOptionalFeeColumns,
   orderColumnsByPreference,
@@ -798,6 +799,25 @@ export default function OrderFeeTableTabs({
       });
       return false;
     }
+    const quantityRuleError = feeQuantityRuleError(
+      row.quantity,
+      row.billingUnitId,
+      billingUnits ?? [],
+      isNew ? undefined : originRow,
+    );
+    if (quantityRuleError) {
+      message.error(quantityRuleError);
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'quantity'],
+            errors: [quantityRuleError],
+          },
+        ],
+      });
+      return false;
+    }
     if (!row.expenseDate) {
       message.error('请选择发生日期');
       scrollToFirstTableError({
@@ -970,6 +990,19 @@ export default function OrderFeeTableTabs({
                 if (bu) {
                   form?.setFieldValue([rowKey, 'billingUnit'], bu.name);
                 }
+                const baseline = [
+                  ...(latestReceivableResultRef.current?.items ?? []),
+                  ...(latestPayableResultRef.current?.items ?? []),
+                ].find((item) => item.id === rowKey);
+                const error = feeQuantityRuleError(
+                  form?.getFieldValue([rowKey, 'quantity']),
+                  option.defaultBillingUnitId,
+                  billingUnits ?? [],
+                  baseline,
+                );
+                form?.setFields([
+                  { name: [rowKey, 'quantity'], errors: error ? [error] : [] },
+                ]);
               }
             }
           },
@@ -1134,6 +1167,19 @@ export default function OrderFeeTableTabs({
           styles: { input: { textAlign: 'right' } },
           onChange: () => {
             refreshAmountPreview(rowKey, form);
+            const baseline = [
+              ...(latestReceivableResultRef.current?.items ?? []),
+              ...(latestPayableResultRef.current?.items ?? []),
+            ].find((item) => item.id === rowKey);
+            const error = feeQuantityRuleError(
+              form?.getFieldValue([rowKey, 'quantity']),
+              form?.getFieldValue([rowKey, 'billingUnitId']),
+              billingUnits ?? [],
+              baseline,
+            );
+            form?.setFields([
+              { name: [rowKey, 'quantity'], errors: error ? [error] : [] },
+            ]);
           },
         }),
       },
@@ -1157,6 +1203,19 @@ export default function OrderFeeTableTabs({
           })),
           onChange: (_: string, option?: { label?: string }) => {
             form?.setFieldValue([rowKey, 'billingUnit'], option?.label);
+            const baseline = [
+              ...(latestReceivableResultRef.current?.items ?? []),
+              ...(latestPayableResultRef.current?.items ?? []),
+            ].find((item) => item.id === rowKey);
+            const error = feeQuantityRuleError(
+              form?.getFieldValue([rowKey, 'quantity']),
+              form?.getFieldValue([rowKey, 'billingUnitId']),
+              billingUnits ?? [],
+              baseline,
+            );
+            form?.setFields([
+              { name: [rowKey, 'quantity'], errors: error ? [error] : [] },
+            ]);
           },
         }),
       },

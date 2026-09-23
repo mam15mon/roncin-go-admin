@@ -204,7 +204,7 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		result.Currencies = append(result.Currencies, biz.OrderFeeCurrencyOption{Code: currency.Code, Name: currency.Name, MinorUnit: currency.MinorUnit})
 	}
 	for _, billingUnit := range billingUnits {
-		result.BillingUnits = append(result.BillingUnits, biz.OrderFeeBillingUnitOption{ID: billingUnit.ID, Code: billingUnit.Code, Name: billingUnit.Name})
+		result.BillingUnits = append(result.BillingUnits, biz.OrderFeeBillingUnitOption{ID: billingUnit.ID, Code: billingUnit.Code, Name: billingUnit.Name, QuantityMustBeInteger: billingUnit.QuantityMustBeInteger})
 	}
 	for _, feeSetting := range feeSettings {
 		billingUnit, billingErr := feeSetting.Edges.BillingUnitOrErr()
@@ -295,7 +295,7 @@ func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, or
 	return nil
 }
 
-func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID) (*biz.OrderFeeCatalogSnapshot, error) {
+func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*biz.OrderFeeCatalogSnapshot, error) {
 	applicability, err := r.loadApplicability(ctx, organizationID, orderID)
 	if err != nil {
 		return nil, err
@@ -316,13 +316,16 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 	if err != nil {
 		return nil, err
 	}
-	if billingErr != nil || taxableErr != nil || !defaultBillingUnit.Enabled || !taxableService.Enabled || !defaultCurrencyEnabled || !feeSettingApplies(feeSetting, applicability) {
+	if billingErr != nil || taxableErr != nil || (!defaultBillingUnit.Enabled && !(allowDisabledUnit && defaultBillingUnit.ID == billingUnitID)) || !taxableService.Enabled || !defaultCurrencyEnabled || !feeSettingApplies(feeSetting, applicability) {
 		return nil, biz.ErrOrderFeeSettingInvalid
 	}
 	billingUnit, err := client.BillingUnit.Query().
-		Where(billingunitent.IDEQ(billingUnitID), billingunitent.EnabledEQ(true)).Only(ctx)
+		Where(billingunitent.IDEQ(billingUnitID)).ForShare().Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeBillingUnitInvalid, nil)
+	}
+	if !billingUnit.Enabled && !allowDisabledUnit {
+		return nil, biz.ErrOrderFeeBillingUnitInvalid
 	}
 	taxRate, err := decimalOf(feeSetting.TaxRate)
 	if err != nil {
@@ -330,7 +333,7 @@ func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, order
 	}
 	return &biz.OrderFeeCatalogSnapshot{
 		FeeCode: feeSetting.FeeCode, FeeName: feeSetting.NameZh, FeeNameEN: feeSetting.NameEn,
-		BillingUnit: billingUnit.Name, TaxRate: taxRate, TaxableServiceName: taxableService.Name,
+		BillingUnit: billingUnit.Name, QuantityMustBeInteger: billingUnit.QuantityMustBeInteger, TaxRate: taxRate, TaxableServiceName: taxableService.Name,
 	}, nil
 }
 
@@ -378,6 +381,19 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
 			return lockErr
+		}
+		if input.BillingUnitID == nil {
+			return biz.ErrOrderFeeBillingUnitInvalid
+		}
+		unit, unitErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(*input.BillingUnitID)).ForShare().Only(ctx)
+		if unitErr != nil {
+			return mapEntError(unitErr, biz.ErrOrderFeeBillingUnitInvalid, nil)
+		}
+		if !unit.Enabled {
+			return biz.ErrOrderFeeBillingUnitInvalid
+		}
+		if err := biz.ValidateFeeQuantityForUnit(input.Quantity, unit.QuantityMustBeInteger); err != nil {
+			return err
 		}
 		party, queryErr := tx.Partner.Query().Where(partnerent.IDEQ(input.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID), partnerent.EnabledEQ(true)).Only(ctx)
 		if queryErr != nil {
@@ -479,6 +495,22 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		}
 		if item.Version != input.Version {
 			return biz.ErrOrderFeeVersionConflict
+		}
+		currentQuantity, quantityErr := decimalOf(item.Quantity)
+		if quantityErr != nil {
+			return quantityErr
+		}
+		if input.BillingUnitID == nil {
+			return biz.ErrOrderFeeBillingUnitInvalid
+		}
+		if !currentQuantity.Equal(input.Quantity) || item.BillingUnitID == nil || *item.BillingUnitID != *input.BillingUnitID {
+			unit, unitErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(*input.BillingUnitID)).ForShare().Only(ctx)
+			if unitErr != nil {
+				return mapEntError(unitErr, biz.ErrOrderFeeBillingUnitInvalid, nil)
+			}
+			if err := biz.ValidateFeeQuantityForUnit(input.Quantity, unit.QuantityMustBeInteger); err != nil {
+				return err
+			}
 		}
 		party, queryErr = tx.Partner.Query().Where(partnerent.IDEQ(input.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID)).Only(ctx)
 		if queryErr != nil {

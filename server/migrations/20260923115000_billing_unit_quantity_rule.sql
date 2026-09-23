@@ -1,4 +1,4 @@
--- 费用目录种子完成后初始化系统已知离散单位。
+-- 初始化既有离散单位，随后费用目录种子按同一规则写入新单位。
 ALTER TABLE "billing_units"
   ADD COLUMN "quantity_must_be_integer" boolean NOT NULL DEFAULT false;
 

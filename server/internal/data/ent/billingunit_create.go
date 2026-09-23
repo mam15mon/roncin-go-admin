@@ -80,6 +80,20 @@ func (_c *BillingUnitCreate) SetNillableIsContainerUnit(v *bool) *BillingUnitCre
 	return _c
 }
 
+// SetQuantityMustBeInteger sets the "quantity_must_be_integer" field.
+func (_c *BillingUnitCreate) SetQuantityMustBeInteger(v bool) *BillingUnitCreate {
+	_c.mutation.SetQuantityMustBeInteger(v)
+	return _c
+}
+
+// SetNillableQuantityMustBeInteger sets the "quantity_must_be_integer" field if the given value is not nil.
+func (_c *BillingUnitCreate) SetNillableQuantityMustBeInteger(v *bool) *BillingUnitCreate {
+	if v != nil {
+		_c.SetQuantityMustBeInteger(*v)
+	}
+	return _c
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (_c *BillingUnitCreate) SetSortOrder(v int) *BillingUnitCreate {
 	_c.mutation.SetSortOrder(v)
@@ -221,6 +235,10 @@ func (_c *BillingUnitCreate) defaults() error {
 		v := billingunit.DefaultIsContainerUnit
 		_c.mutation.SetIsContainerUnit(v)
 	}
+	if _, ok := _c.mutation.QuantityMustBeInteger(); !ok {
+		v := billingunit.DefaultQuantityMustBeInteger
+		_c.mutation.SetQuantityMustBeInteger(v)
+	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		v := billingunit.DefaultSortOrder
 		_c.mutation.SetSortOrder(v)
@@ -269,6 +287,9 @@ func (_c *BillingUnitCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsContainerUnit(); !ok {
 		return &ValidationError{Name: "is_container_unit", err: errors.New(`ent: missing required field "BillingUnit.is_container_unit"`)}
+	}
+	if _, ok := _c.mutation.QuantityMustBeInteger(); !ok {
+		return &ValidationError{Name: "quantity_must_be_integer", err: errors.New(`ent: missing required field "BillingUnit.quantity_must_be_integer"`)}
 	}
 	if _, ok := _c.mutation.SortOrder(); !ok {
 		return &ValidationError{Name: "sort_order", err: errors.New(`ent: missing required field "BillingUnit.sort_order"`)}
@@ -334,6 +355,10 @@ func (_c *BillingUnitCreate) createSpec() (*BillingUnit, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsContainerUnit(); ok {
 		_spec.SetField(billingunit.FieldIsContainerUnit, field.TypeBool, value)
 		_node.IsContainerUnit = value
+	}
+	if value, ok := _c.mutation.QuantityMustBeInteger(); ok {
+		_spec.SetField(billingunit.FieldQuantityMustBeInteger, field.TypeBool, value)
+		_node.QuantityMustBeInteger = value
 	}
 	if value, ok := _c.mutation.SortOrder(); ok {
 		_spec.SetField(billingunit.FieldSortOrder, field.TypeInt, value)
@@ -476,6 +501,18 @@ func (u *BillingUnitUpsert) SetIsContainerUnit(v bool) *BillingUnitUpsert {
 // UpdateIsContainerUnit sets the "is_container_unit" field to the value that was provided on create.
 func (u *BillingUnitUpsert) UpdateIsContainerUnit() *BillingUnitUpsert {
 	u.SetExcluded(billingunit.FieldIsContainerUnit)
+	return u
+}
+
+// SetQuantityMustBeInteger sets the "quantity_must_be_integer" field.
+func (u *BillingUnitUpsert) SetQuantityMustBeInteger(v bool) *BillingUnitUpsert {
+	u.Set(billingunit.FieldQuantityMustBeInteger, v)
+	return u
+}
+
+// UpdateQuantityMustBeInteger sets the "quantity_must_be_integer" field to the value that was provided on create.
+func (u *BillingUnitUpsert) UpdateQuantityMustBeInteger() *BillingUnitUpsert {
+	u.SetExcluded(billingunit.FieldQuantityMustBeInteger)
 	return u
 }
 
@@ -625,6 +662,20 @@ func (u *BillingUnitUpsertOne) SetIsContainerUnit(v bool) *BillingUnitUpsertOne 
 func (u *BillingUnitUpsertOne) UpdateIsContainerUnit() *BillingUnitUpsertOne {
 	return u.Update(func(s *BillingUnitUpsert) {
 		s.UpdateIsContainerUnit()
+	})
+}
+
+// SetQuantityMustBeInteger sets the "quantity_must_be_integer" field.
+func (u *BillingUnitUpsertOne) SetQuantityMustBeInteger(v bool) *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetQuantityMustBeInteger(v)
+	})
+}
+
+// UpdateQuantityMustBeInteger sets the "quantity_must_be_integer" field to the value that was provided on create.
+func (u *BillingUnitUpsertOne) UpdateQuantityMustBeInteger() *BillingUnitUpsertOne {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateQuantityMustBeInteger()
 	})
 }
 
@@ -948,6 +999,20 @@ func (u *BillingUnitUpsertBulk) SetIsContainerUnit(v bool) *BillingUnitUpsertBul
 func (u *BillingUnitUpsertBulk) UpdateIsContainerUnit() *BillingUnitUpsertBulk {
 	return u.Update(func(s *BillingUnitUpsert) {
 		s.UpdateIsContainerUnit()
+	})
+}
+
+// SetQuantityMustBeInteger sets the "quantity_must_be_integer" field.
+func (u *BillingUnitUpsertBulk) SetQuantityMustBeInteger(v bool) *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.SetQuantityMustBeInteger(v)
+	})
+}
+
+// UpdateQuantityMustBeInteger sets the "quantity_must_be_integer" field to the value that was provided on create.
+func (u *BillingUnitUpsertBulk) UpdateQuantityMustBeInteger() *BillingUnitUpsertBulk {
+	return u.Update(func(s *BillingUnitUpsert) {
+		s.UpdateQuantityMustBeInteger()
 	})
 }
 

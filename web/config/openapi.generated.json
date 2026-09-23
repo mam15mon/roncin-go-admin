@@ -17106,6 +17106,9 @@
           },
           "isContainerUnit": {
             "type": "boolean"
+          },
+          "quantityMustBeInteger": {
+            "type": "boolean"
           }
         }
       },
@@ -18230,6 +18233,9 @@
             "format": "int32"
           },
           "isContainerUnit": {
+            "type": "boolean"
+          },
+          "quantityMustBeInteger": {
             "type": "boolean"
           }
         }
@@ -23213,6 +23219,9 @@
             "type": "boolean"
           },
           "isContainerUnit": {
+            "type": "boolean"
+          },
+          "quantityMustBeInteger": {
             "type": "boolean"
           }
         }
@@ -28610,6 +28619,9 @@
           },
           "name": {
             "type": "string"
+          },
+          "quantityMustBeInteger": {
+            "type": "boolean"
           }
         }
       },

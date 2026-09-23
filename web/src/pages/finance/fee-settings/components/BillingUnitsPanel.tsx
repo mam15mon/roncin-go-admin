@@ -1,10 +1,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import {
   ProFormDigit,
+  ProFormRadio,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
-import { Alert, Tag } from 'antd';
+import { useQueryClient } from '@tanstack/react-query';
+import { Alert, Form, Tag } from 'antd';
 import React, { useState } from 'react';
 import { useAccess } from '@/app/access';
 import { SettingTableTemplate } from '@/components/ui';
@@ -20,12 +22,46 @@ type BillingUnitFormValues = {
   code: string;
   name: string;
   isContainerUnit: boolean;
+  quantityMustBeInteger: boolean;
   enabled: boolean;
   sortOrder: number;
 };
 
+function BillingUnitRuleFields({ editing }: { editing: boolean }) {
+  const form = Form.useFormInstance<BillingUnitFormValues>();
+  return (
+    <>
+      <ProFormSwitch
+        name="isContainerUnit"
+        label="是否为箱型单位"
+        extra="开启后该单位将作为 20GP/40HQ 等集装箱计量基准"
+        fieldProps={{
+          onChange: (checked) => {
+            if (
+              !editing &&
+              checked &&
+              !form.isFieldTouched('quantityMustBeInteger')
+            ) {
+              form.setFieldValue('quantityMustBeInteger', true);
+            }
+          },
+        }}
+      />
+      <ProFormRadio.Group
+        name="quantityMustBeInteger"
+        label="数量规则"
+        options={[
+          { label: '允许小数', value: false },
+          { label: '整数', value: true },
+        ]}
+      />
+    </>
+  );
+}
+
 export function BillingUnitsPanel() {
   const access = useAccess();
+  const queryClient = useQueryClient();
   // A 型全局主数据：全员同权可见，仅系统管理可维护（权限码 + 组织身份双重收敛）。
   const isSystemWorkspace = access.isSystemWorkspace;
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -52,6 +88,13 @@ export function BillingUnitsPanel() {
         </Tag>
       ),
     },
+    {
+      title: '数量规则',
+      dataIndex: 'quantityMustBeInteger',
+      width: 110,
+      render: (_, record) =>
+        record.quantityMustBeInteger ? '整数' : '允许小数',
+    },
   ];
 
   return (
@@ -76,27 +119,37 @@ export function BillingUnitsPanel() {
           selectedRowKeys,
           onChange: (keys) => setSelectedRowKeys(keys),
         }}
-        createItem={(values) =>
-          feeCatalogServiceCreateBillingUnit({
+        createItem={async (values) => {
+          const response = await feeCatalogServiceCreateBillingUnit({
             code: values.code.trim().toUpperCase(),
             name: values.name.trim(),
             isContainerUnit: values.isContainerUnit,
+            quantityMustBeInteger: values.quantityMustBeInteger,
             sortOrder: values.sortOrder ?? 100,
-          })
-        }
-        updateItem={(record, values) => {
+          });
+          if (!response) throw new Error('创建计费单位失败');
+          await queryClient.invalidateQueries({
+            queryKey: ['orders', 'fee-options'],
+          });
+        }}
+        updateItem={async (record, values) => {
           if (!record.id) return Promise.resolve();
-          return feeCatalogServiceUpdateBillingUnit(
+          const response = await feeCatalogServiceUpdateBillingUnit(
             { id: record.id },
             {
               id: record.id,
               code: values.code.trim().toUpperCase(),
               name: values.name.trim(),
               isContainerUnit: values.isContainerUnit,
+              quantityMustBeInteger: values.quantityMustBeInteger,
               sortOrder: values.sortOrder ?? 100,
               enabled: values.enabled,
             },
           );
+          if (!response) throw new Error('更新计费单位失败');
+          await queryClient.invalidateQueries({
+            queryKey: ['orders', 'fee-options'],
+          });
         }}
         initialValues={(editing) =>
           editing
@@ -104,10 +157,16 @@ export function BillingUnitsPanel() {
                 code: editing.code,
                 name: editing.name,
                 isContainerUnit: editing.isContainerUnit ?? false,
+                quantityMustBeInteger: editing.quantityMustBeInteger ?? false,
                 sortOrder: editing.sortOrder ?? 100,
                 enabled: editing.enabled ?? true,
               }
-            : { isContainerUnit: false, sortOrder: 100, enabled: true }
+            : {
+                isContainerUnit: false,
+                quantityMustBeInteger: false,
+                sortOrder: 100,
+                enabled: true,
+              }
         }
         renderFormItems={(editing) => (
           <>
@@ -135,11 +194,7 @@ export function BillingUnitsPanel() {
               min={0}
               fieldProps={{ precision: 0 }}
             />
-            <ProFormSwitch
-              name="isContainerUnit"
-              label="是否为箱型单位"
-              extra="开启后该单位将作为 20GP/40HQ 等集装箱计量基准"
-            />
+            <BillingUnitRuleFields editing={Boolean(editing)} />
             {editing && <ProFormSwitch name="enabled" label="启用状态" />}
           </>
         )}

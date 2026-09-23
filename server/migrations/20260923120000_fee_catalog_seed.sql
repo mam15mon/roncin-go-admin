@@ -13,7 +13,7 @@ VALUES
   (gen_random_uuid(),CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'TON','吨',40,true,false,false,'吨 DUN D'),
   (gen_random_uuid(),CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'SET','套',50,true,false,true,'套 TAO T'),
   (gen_random_uuid(),CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'DOC','份',60,true,false,true,'份 FEN F'),
-  (gen_random_uuid(),CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'DAY','天',70,true,false,true,'天 TIAN T')
+  (gen_random_uuid(),CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,'DAY','天',70,true,false,false,'天 TIAN T')
 ON CONFLICT ("code") DO NOTHING;
 
 -- 2. 费用类别：幂等补种 19 个基础类别（与 data.CreateDefaultOrderOptions 同值）+ 新增 5 个。

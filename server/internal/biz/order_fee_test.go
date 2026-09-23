@@ -39,7 +39,7 @@ func (r *orderFeeAddCaptureRepoStub) GetByIdempotencyKey(context.Context, uuid.U
 	return nil, nil
 }
 
-func (r *orderFeeAddCaptureRepoStub) ResolveCatalog(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*OrderFeeCatalogSnapshot, error) {
+func (r *orderFeeAddCaptureRepoStub) ResolveCatalog(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID, bool) (*OrderFeeCatalogSnapshot, error) {
 	return &OrderFeeCatalogSnapshot{
 		FeeCode: "OCEAN_FREIGHT", FeeName: "海运费", BillingUnit: "票",
 		TaxRate: decimal.NewFromInt(0), TaxableServiceName: "国际货物运输代理服务",

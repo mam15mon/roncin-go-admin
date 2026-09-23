@@ -776,12 +776,13 @@ func (x *OrderFeeSettingOption) GetTaxableServiceName() string {
 }
 
 type OrderFeeBillingUnitOption struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code                  string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name                  string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	QuantityMustBeInteger bool                   `protobuf:"varint,4,opt,name=quantity_must_be_integer,json=quantityMustBeInteger,proto3" json:"quantity_must_be_integer,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *OrderFeeBillingUnitOption) Reset() {
@@ -833,6 +834,13 @@ func (x *OrderFeeBillingUnitOption) GetName() string {
 		return x.Name
 	}
 	return ""
+}
+
+func (x *OrderFeeBillingUnitOption) GetQuantityMustBeInteger() bool {
+	if x != nil {
+		return x.QuantityMustBeInteger
+	}
+	return false
 }
 
 type ListFeeOptionsResponse struct {
@@ -4029,11 +4037,12 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	" \x01(\tR\x12taxableServiceNameB\n" +
 	"\n" +
 	"\b_name_enB\r\n" +
-	"\v_alias_name\"S\n" +
+	"\v_alias_name\"\x8c\x01\n" +
 	"\x19OrderFeeBillingUnitOption\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"\xc1\x05\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x127\n" +
+	"\x18quantity_must_be_integer\x18\x04 \x01(\bR\x15quantityMustBeInteger\"\xc1\x05\n" +
 	"\x16ListFeeOptionsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

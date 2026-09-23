@@ -245,6 +245,7 @@ message OrderFeeBillingUnitOption {
   string id = 1;
   string code = 2;
   string name = 3;
+  bool quantity_must_be_integer = 4;
 }
 
 message ListFeeOptionsResponse {

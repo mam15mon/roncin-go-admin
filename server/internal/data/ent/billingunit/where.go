@@ -81,6 +81,11 @@ func IsContainerUnit(v bool) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldEQ(FieldIsContainerUnit, v))
 }
 
+// QuantityMustBeInteger applies equality check predicate on the "quantity_must_be_integer" field. It's identical to QuantityMustBeIntegerEQ.
+func QuantityMustBeInteger(v bool) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldEQ(FieldQuantityMustBeInteger, v))
+}
+
 // SortOrder applies equality check predicate on the "sort_order" field. It's identical to SortOrderEQ.
 func SortOrder(v int) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldEQ(FieldSortOrder, v))
@@ -314,6 +319,16 @@ func IsContainerUnitEQ(v bool) predicate.BillingUnit {
 // IsContainerUnitNEQ applies the NEQ predicate on the "is_container_unit" field.
 func IsContainerUnitNEQ(v bool) predicate.BillingUnit {
 	return predicate.BillingUnit(sql.FieldNEQ(FieldIsContainerUnit, v))
+}
+
+// QuantityMustBeIntegerEQ applies the EQ predicate on the "quantity_must_be_integer" field.
+func QuantityMustBeIntegerEQ(v bool) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldEQ(FieldQuantityMustBeInteger, v))
+}
+
+// QuantityMustBeIntegerNEQ applies the NEQ predicate on the "quantity_must_be_integer" field.
+func QuantityMustBeIntegerNEQ(v bool) predicate.BillingUnit {
+	return predicate.BillingUnit(sql.FieldNEQ(FieldQuantityMustBeInteger, v))
 }
 
 // SortOrderEQ applies the EQ predicate on the "sort_order" field.

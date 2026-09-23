@@ -731,6 +731,7 @@ declare namespace API {
     createdAt?: string;
     updatedAt?: string;
     isContainerUnit?: boolean;
+    quantityMustBeInteger?: boolean;
   };
 
   type BulkOrderFeeTarget = {
@@ -1239,6 +1240,7 @@ declare namespace API {
     name: string;
     sortOrder?: number;
     isContainerUnit?: boolean;
+    quantityMustBeInteger?: boolean;
   };
 
   type CreateBillingUnitResponse = {
@@ -4971,6 +4973,7 @@ declare namespace API {
     id?: string;
     code?: string;
     name?: string;
+    quantityMustBeInteger?: boolean;
   };
 
   type OrderFeeCurrencyOption = {
@@ -8115,6 +8118,7 @@ declare namespace API {
     sortOrder?: number;
     enabled?: boolean;
     isContainerUnit?: boolean;
+    quantityMustBeInteger?: boolean;
   };
 
   type UpdateBillingUnitResponse = {

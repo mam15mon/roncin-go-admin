@@ -18,6 +18,7 @@ func (BillingUnit) Fields() []ent.Field {
 		field.String("code").NotEmpty().MaxLen(32),
 		field.String("name").NotEmpty().MaxLen(64),
 		field.Bool("is_container_unit").Default(false),
+		field.Bool("quantity_must_be_integer").Default(false),
 		field.Int("sort_order").Default(100),
 		field.Bool("enabled").Default(true),
 		searchKeywordsField(),

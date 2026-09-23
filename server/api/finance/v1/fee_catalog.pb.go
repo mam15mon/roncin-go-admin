@@ -24,17 +24,18 @@ const (
 )
 
 type BillingUnit struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Code            string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Name            string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	SortOrder       int32                  `protobuf:"varint,5,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	Enabled         bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt       string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt       string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	IsContainerUnit bool                   `protobuf:"varint,9,opt,name=is_container_unit,json=isContainerUnit,proto3" json:"is_container_unit,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code                  string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	Name                  string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	SortOrder             int32                  `protobuf:"varint,5,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled               bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt             string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt             string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	IsContainerUnit       bool                   `protobuf:"varint,9,opt,name=is_container_unit,json=isContainerUnit,proto3" json:"is_container_unit,omitempty"`
+	QuantityMustBeInteger bool                   `protobuf:"varint,10,opt,name=quantity_must_be_integer,json=quantityMustBeInteger,proto3" json:"quantity_must_be_integer,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *BillingUnit) Reset() {
@@ -119,6 +120,13 @@ func (x *BillingUnit) GetUpdatedAt() string {
 func (x *BillingUnit) GetIsContainerUnit() bool {
 	if x != nil {
 		return x.IsContainerUnit
+	}
+	return false
+}
+
+func (x *BillingUnit) GetQuantityMustBeInteger() bool {
+	if x != nil {
+		return x.QuantityMustBeInteger
 	}
 	return false
 }
@@ -984,13 +992,14 @@ func (x *UpdateFeeSettingRequest) GetSortOrder() int32 {
 }
 
 type CreateBillingUnitRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Code            string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	SortOrder       int32                  `protobuf:"varint,3,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	IsContainerUnit bool                   `protobuf:"varint,4,opt,name=is_container_unit,json=isContainerUnit,proto3" json:"is_container_unit,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Code                  string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name                  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	SortOrder             int32                  `protobuf:"varint,3,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	IsContainerUnit       bool                   `protobuf:"varint,4,opt,name=is_container_unit,json=isContainerUnit,proto3" json:"is_container_unit,omitempty"`
+	QuantityMustBeInteger bool                   `protobuf:"varint,5,opt,name=quantity_must_be_integer,json=quantityMustBeInteger,proto3" json:"quantity_must_be_integer,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreateBillingUnitRequest) Reset() {
@@ -1051,16 +1060,24 @@ func (x *CreateBillingUnitRequest) GetIsContainerUnit() bool {
 	return false
 }
 
+func (x *CreateBillingUnitRequest) GetQuantityMustBeInteger() bool {
+	if x != nil {
+		return x.QuantityMustBeInteger
+	}
+	return false
+}
+
 type UpdateBillingUnitRequest struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Code            string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	Name            string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	SortOrder       int32                  `protobuf:"varint,4,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
-	Enabled         bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	IsContainerUnit bool                   `protobuf:"varint,6,opt,name=is_container_unit,json=isContainerUnit,proto3" json:"is_container_unit,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Code                  string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name                  string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	SortOrder             int32                  `protobuf:"varint,4,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	Enabled               bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	IsContainerUnit       bool                   `protobuf:"varint,6,opt,name=is_container_unit,json=isContainerUnit,proto3" json:"is_container_unit,omitempty"`
+	QuantityMustBeInteger bool                   `protobuf:"varint,7,opt,name=quantity_must_be_integer,json=quantityMustBeInteger,proto3" json:"quantity_must_be_integer,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdateBillingUnitRequest) Reset() {
@@ -1131,6 +1148,13 @@ func (x *UpdateBillingUnitRequest) GetEnabled() bool {
 func (x *UpdateBillingUnitRequest) GetIsContainerUnit() bool {
 	if x != nil {
 		return x.IsContainerUnit
+	}
+	return false
+}
+
+func (x *UpdateBillingUnitRequest) GetQuantityMustBeInteger() bool {
+	if x != nil {
+		return x.QuantityMustBeInteger
 	}
 	return false
 }
@@ -2981,7 +3005,7 @@ var File_finance_v1_fee_catalog_proto protoreflect.FileDescriptor
 const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"\x1cfinance/v1/fee_catalog.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xff\x01\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xb8\x02\n" +
 	"\vBillingUnit\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12\x12\n" +
@@ -2993,7 +3017,9 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\b \x01(\tR\tupdatedAt\x12*\n" +
-	"\x11is_container_unit\x18\t \x01(\bR\x0fisContainerUnitJ\x04\b\x02\x10\x03R\x0forganization_id\"\xc5\x02\n" +
+	"\x11is_container_unit\x18\t \x01(\bR\x0fisContainerUnit\x127\n" +
+	"\x18quantity_must_be_integer\x18\n" +
+	" \x01(\bR\x15quantityMustBeIntegerJ\x04\b\x02\x10\x03R\x0forganization_id\"\xc5\x02\n" +
 	"\x0eTaxableService\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
@@ -3096,13 +3122,14 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"\b_name_enB\r\n" +
 	"\v_alias_nameB\x13\n" +
-	"\x11_abnormal_case_id\"\x97\x01\n" +
+	"\x11_abnormal_case_id\"\xd0\x01\n" +
 	"\x18CreateBillingUnitRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\x03 \x01(\x05R\tsortOrder\x12*\n" +
-	"\x11is_container_unit\x18\x04 \x01(\bR\x0fisContainerUnit\"\xc6\x01\n" +
+	"\x11is_container_unit\x18\x04 \x01(\bR\x0fisContainerUnit\x127\n" +
+	"\x18quantity_must_be_integer\x18\x05 \x01(\bR\x15quantityMustBeInteger\"\xff\x01\n" +
 	"\x18UpdateBillingUnitRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
 	"\x04code\x18\x02 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
@@ -3110,7 +3137,8 @@ const file_finance_v1_fee_catalog_proto_rawDesc = "" +
 	"\n" +
 	"sort_order\x18\x04 \x01(\x05R\tsortOrder\x12\x18\n" +
 	"\aenabled\x18\x05 \x01(\bR\aenabled\x12*\n" +
-	"\x11is_container_unit\x18\x06 \x01(\bR\x0fisContainerUnit\"\xcb\x01\n" +
+	"\x11is_container_unit\x18\x06 \x01(\bR\x0fisContainerUnit\x127\n" +
+	"\x18quantity_must_be_integer\x18\a \x01(\bR\x15quantityMustBeInteger\"\xcb\x01\n" +
 	"\x1bCreateTaxableServiceRequest\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12\"\n" +
 	"\n" +

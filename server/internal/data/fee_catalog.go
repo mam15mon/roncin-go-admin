@@ -191,7 +191,7 @@ func (r *feeCatalogRepo) CreateBillingUnit(ctx context.Context, input *biz.Billi
 	var saved *ent.BillingUnit
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		var saveErr error
-		saved, saveErr = tx.BillingUnit.Create().SetID(input.ID).SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
+		saved, saveErr = tx.BillingUnit.Create().SetID(input.ID).SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetQuantityMustBeInteger(input.QuantityMustBeInteger).SetSortOrder(input.SortOrder).SetEnabled(true).Save(ctx)
 		if saveErr != nil {
 			return mapEntError(saveErr, nil, biz.ErrBillingUnitCodeExists)
 		}
@@ -211,7 +211,7 @@ func (r *feeCatalogRepo) UpdateBillingUnit(ctx context.Context, input *biz.Billi
 			return mapEntError(queryErr, biz.ErrBillingUnitNotFound, nil)
 		}
 		var saveErr error
-		saved, saveErr = current.Update().SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
+		saved, saveErr = current.Update().SetCode(input.Code).SetName(input.Name).SetIsContainerUnit(input.IsContainerUnit).SetQuantityMustBeInteger(input.QuantityMustBeInteger).SetSortOrder(input.SortOrder).SetEnabled(input.Enabled).Save(ctx)
 		if saveErr != nil {
 			return mapEntError(saveErr, nil, biz.ErrBillingUnitCodeExists)
 		}
@@ -310,7 +310,7 @@ func feeSettingToBiz(item *ent.FeeSetting) (*biz.FeeSetting, error) {
 }
 
 func billingUnitToBiz(item *ent.BillingUnit) *biz.BillingUnit {
-	return &biz.BillingUnit{ID: item.ID, Code: item.Code, Name: item.Name, IsContainerUnit: item.IsContainerUnit, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	return &biz.BillingUnit{ID: item.ID, Code: item.Code, Name: item.Name, IsContainerUnit: item.IsContainerUnit, QuantityMustBeInteger: item.QuantityMustBeInteger, SortOrder: item.SortOrder, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
 func taxableServiceToBiz(item *ent.TaxableService) (*biz.TaxableService, error) {

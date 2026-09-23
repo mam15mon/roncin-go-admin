@@ -28,6 +28,8 @@ type BillingUnit struct {
 	Name string `json:"name,omitempty"`
 	// IsContainerUnit holds the value of the "is_container_unit" field.
 	IsContainerUnit bool `json:"is_container_unit,omitempty"`
+	// QuantityMustBeInteger holds the value of the "quantity_must_be_integer" field.
+	QuantityMustBeInteger bool `json:"quantity_must_be_integer,omitempty"`
 	// SortOrder holds the value of the "sort_order" field.
 	SortOrder int `json:"sort_order,omitempty"`
 	// Enabled holds the value of the "enabled" field.
@@ -74,7 +76,7 @@ func (*BillingUnit) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case billingunit.FieldIsContainerUnit, billingunit.FieldEnabled:
+		case billingunit.FieldIsContainerUnit, billingunit.FieldQuantityMustBeInteger, billingunit.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case billingunit.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
@@ -134,6 +136,12 @@ func (_m *BillingUnit) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_container_unit", values[i])
 			} else if value.Valid {
 				_m.IsContainerUnit = value.Bool
+			}
+		case billingunit.FieldQuantityMustBeInteger:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field quantity_must_be_integer", values[i])
+			} else if value.Valid {
+				_m.QuantityMustBeInteger = value.Bool
 			}
 		case billingunit.FieldSortOrder:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -213,6 +221,9 @@ func (_m *BillingUnit) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_container_unit=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsContainerUnit))
+	builder.WriteString(", ")
+	builder.WriteString("quantity_must_be_integer=")
+	builder.WriteString(fmt.Sprintf("%v", _m.QuantityMustBeInteger))
 	builder.WriteString(", ")
 	builder.WriteString("sort_order=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SortOrder))

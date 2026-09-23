@@ -14,6 +14,7 @@ import {
 import { useFeeExchangePreview } from '../../use-fee-exchange-preview';
 import type { FeeFormValues } from './FeeFormModal';
 import { PAYABLE } from './feeConstants';
+import { feeQuantityRuleError } from './feeQuantityRule';
 
 export type FeeSupplementFormValues = FeeFormValues & {
   /** 补录原因必填，参与服务端 request_fingerprint。 */
@@ -82,7 +83,14 @@ export default function FeeSupplementModal({
         onOpenChange(next);
       }}
       onFinish={onSubmit}
-      onValuesChange={handleValuesChange}
+      onValuesChange={() => {
+        handleValuesChange();
+        if (internalFormRef.current?.getFieldValue('quantity')) {
+          void internalFormRef.current
+            .validateFields(['quantity'])
+            .catch(() => undefined);
+        }
+      }}
       width={680}
       modalProps={{ destroyOnHidden: true }}
     >
@@ -112,6 +120,9 @@ export default function FeeSupplementModal({
                     'billingUnitId',
                     setting.defaultBillingUnitId,
                   );
+                  void internalFormRef.current
+                    ?.validateFields(['quantity'])
+                    .catch(() => undefined);
                 }
                 if (setting?.defaultCurrency) {
                   internalFormRef.current?.setFieldValue(
@@ -162,7 +173,21 @@ export default function FeeSupplementModal({
           <ProFormText
             name="quantity"
             label="数量"
-            rules={[{ required: true, message: '请输入数量' }]}
+            rules={[
+              { required: true, message: '请输入数量' },
+              {
+                validator: (_, value) => {
+                  const error = feeQuantityRuleError(
+                    value,
+                    internalFormRef.current?.getFieldValue('billingUnitId'),
+                    billingUnits,
+                  );
+                  return error
+                    ? Promise.reject(new Error(error))
+                    : Promise.resolve();
+                },
+              },
+            ]}
             placeholder="1"
           />
         </Col>

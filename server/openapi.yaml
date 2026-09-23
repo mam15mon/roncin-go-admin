@@ -10651,6 +10651,8 @@ components:
                     type: string
                 isContainerUnit:
                     type: boolean
+                quantityMustBeInteger:
+                    type: boolean
         finance.v1.BusinessTagSummary:
             type: object
             properties:
@@ -11421,6 +11423,8 @@ components:
                     type: integer
                     format: int32
                 isContainerUnit:
+                    type: boolean
+                quantityMustBeInteger:
                     type: boolean
         finance.v1.CreateBillingUnitResponse:
             type: object
@@ -14788,6 +14792,8 @@ components:
                 enabled:
                     type: boolean
                 isContainerUnit:
+                    type: boolean
+                quantityMustBeInteger:
                     type: boolean
         finance.v1.UpdateBillingUnitResponse:
             type: object
@@ -18494,6 +18500,8 @@ components:
                     type: string
                 name:
                     type: string
+                quantityMustBeInteger:
+                    type: boolean
         order.v1.OrderFeeCurrencyOption:
             type: object
             properties:

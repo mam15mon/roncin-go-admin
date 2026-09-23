@@ -19,6 +19,7 @@ import {
   normalizeDecimalInput,
   quantityOrPricePattern,
 } from '@/utils/decimal';
+import { feeQuantityRuleError } from './feeQuantityRule';
 
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
@@ -109,7 +110,14 @@ export default function FeeFormModal({
       formRef={activeFormRef}
       onOpenChange={onOpenChange}
       onFinish={onSubmit}
-      onValuesChange={onValuesChange}
+      onValuesChange={() => {
+        onValuesChange();
+        if (activeFormRef.current?.getFieldValue('quantity')) {
+          void activeFormRef.current
+            .validateFields(['quantity'])
+            .catch(() => undefined);
+        }
+      }}
       onFinishFailed={(errorInfo) => {
         scrollToFirstFormError({
           errorFields: errorInfo?.errorFields,
@@ -166,6 +174,9 @@ export default function FeeFormModal({
                     'billingUnitId',
                     setting.defaultBillingUnitId,
                   );
+                  void activeFormRef.current
+                    ?.validateFields(['quantity'])
+                    .catch(() => undefined);
                 }
                 if (setting?.defaultCurrency) {
                   activeFormRef.current?.setFieldValue(
@@ -259,6 +270,24 @@ export default function FeeFormModal({
                   quantityOrPricePattern,
                   '数量格式不正确',
                 ),
+              },
+              {
+                validator: (_, value) => {
+                  const error = feeQuantityRuleError(
+                    value,
+                    activeFormRef.current?.getFieldValue('billingUnitId'),
+                    billingUnits,
+                    editingFee
+                      ? {
+                          billingUnitId: editingFee.billingUnitId,
+                          quantity: editingFee.quantity,
+                        }
+                      : undefined,
+                  );
+                  return error
+                    ? Promise.reject(new Error(error))
+                    : Promise.resolve();
+                },
               },
             ]}
             placeholder="1"

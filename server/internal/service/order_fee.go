@@ -59,7 +59,7 @@ func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFe
 	}
 	billingUnits := make([]*v1.OrderFeeBillingUnitOption, 0, len(options.BillingUnits))
 	for _, item := range options.BillingUnits {
-		billingUnits = append(billingUnits, &v1.OrderFeeBillingUnitOption{Id: item.ID.String(), Code: item.Code, Name: item.Name})
+		billingUnits = append(billingUnits, &v1.OrderFeeBillingUnitOption{Id: item.ID.String(), Code: item.Code, Name: item.Name, QuantityMustBeInteger: item.QuantityMustBeInteger})
 	}
 	response := okList(ctx, &v1.ListFeeOptionsResponse{SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, BaseCurrency: options.BaseCurrency, FinanceLocked: options.FinanceLocked, FinanceLockCommissionNos: options.FinanceLockCommissionNos, CustomerId: options.CustomerID.String(), CustomerName: options.CustomerName})
 	if options.FinanceLockReason != "" {

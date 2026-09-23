@@ -273,6 +273,7 @@ var (
 		{Name: "code", Type: field.TypeString, Size: 32},
 		{Name: "name", Type: field.TypeString, Size: 64},
 		{Name: "is_container_unit", Type: field.TypeBool, Default: false},
+		{Name: "quantity_must_be_integer", Type: field.TypeBool, Default: false},
 		{Name: "sort_order", Type: field.TypeInt, Default: 100},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
@@ -296,7 +297,7 @@ var (
 			{
 				Name:    "billingunit_enabled_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{BillingUnitsColumns[7], BillingUnitsColumns[6]},
+				Columns: []*schema.Column{BillingUnitsColumns[8], BillingUnitsColumns[7]},
 			},
 		},
 	}

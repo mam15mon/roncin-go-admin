@@ -12,7 +12,7 @@
 - 明确整数代码：PIAO、BL、CONT、SET、DOC、CHE，以及正式种子箱型 12GP、20GP、20HC、20OT、20FR、20RF、20TK、20HT、20RH、40GP、40HC、40HQ、40FR、40PF、40RF、40OT、40RH、45HC。
 - CBM、KG、TON、RT、HOUR、DAY 保持 false。其他已有代码包括 BILL、SHIP、SHIPMENT、BOARDS、PLYWOOD_PALLETS 缺乏已确认的数量语义，本期按未知单位保持 false，由管理员配置；不按名称批量猜测。
 - 不按所有 is_container_unit=true 无差别回填自定义单位，仅初始化上述已知种子。以后管理员新建箱型通过 UI 默认值获得整数设置。
-- 另一项费用种子任务当前有未提交的 20260923100000_fee_catalog_seed.sql，新增本任务迁移必须排在最终费用种子迁移之后，保证新插入的 CONT/BL/SET/DOC 得到初始化。实施前重查排序，禁止改写其他任务文件。
+- 集成现已提交的费用种子任务 8c2d90ad：20260923115000_billing_unit_quantity_rule.sql 先增加字段并回填现有记录；20260923120000_fee_catalog_seed.sql 后插入新单位并显式提供规则。修正该种子 DAY 为 false，保持天允许小数。开发库已应用中间 DAY=true 状态，因此新增 20260923121000_billing_unit_day_quantity_rule.sql 一次性纠正 DAY=false；三份迁移顺序共同验证。
 - sync:dev 仅在新建已知单位时设置初值；已存在单位保留管理员设置。全新库、现有库均走正式有序迁移验证。
 
 ## 校验边界

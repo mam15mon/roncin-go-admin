@@ -79,6 +79,20 @@ func (_u *BillingUnitUpdate) SetNillableIsContainerUnit(v *bool) *BillingUnitUpd
 	return _u
 }
 
+// SetQuantityMustBeInteger sets the "quantity_must_be_integer" field.
+func (_u *BillingUnitUpdate) SetQuantityMustBeInteger(v bool) *BillingUnitUpdate {
+	_u.mutation.SetQuantityMustBeInteger(v)
+	return _u
+}
+
+// SetNillableQuantityMustBeInteger sets the "quantity_must_be_integer" field if the given value is not nil.
+func (_u *BillingUnitUpdate) SetNillableQuantityMustBeInteger(v *bool) *BillingUnitUpdate {
+	if v != nil {
+		_u.SetQuantityMustBeInteger(*v)
+	}
+	return _u
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (_u *BillingUnitUpdate) SetSortOrder(v int) *BillingUnitUpdate {
 	_u.mutation.ResetSortOrder()
@@ -286,6 +300,9 @@ func (_u *BillingUnitUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.IsContainerUnit(); ok {
 		_spec.SetField(billingunit.FieldIsContainerUnit, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.QuantityMustBeInteger(); ok {
+		_spec.SetField(billingunit.FieldQuantityMustBeInteger, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(billingunit.FieldSortOrder, field.TypeInt, value)
 	}
@@ -452,6 +469,20 @@ func (_u *BillingUnitUpdateOne) SetIsContainerUnit(v bool) *BillingUnitUpdateOne
 func (_u *BillingUnitUpdateOne) SetNillableIsContainerUnit(v *bool) *BillingUnitUpdateOne {
 	if v != nil {
 		_u.SetIsContainerUnit(*v)
+	}
+	return _u
+}
+
+// SetQuantityMustBeInteger sets the "quantity_must_be_integer" field.
+func (_u *BillingUnitUpdateOne) SetQuantityMustBeInteger(v bool) *BillingUnitUpdateOne {
+	_u.mutation.SetQuantityMustBeInteger(v)
+	return _u
+}
+
+// SetNillableQuantityMustBeInteger sets the "quantity_must_be_integer" field if the given value is not nil.
+func (_u *BillingUnitUpdateOne) SetNillableQuantityMustBeInteger(v *bool) *BillingUnitUpdateOne {
+	if v != nil {
+		_u.SetQuantityMustBeInteger(*v)
 	}
 	return _u
 }
@@ -692,6 +723,9 @@ func (_u *BillingUnitUpdateOne) sqlSave(ctx context.Context) (_node *BillingUnit
 	}
 	if value, ok := _u.mutation.IsContainerUnit(); ok {
 		_spec.SetField(billingunit.FieldIsContainerUnit, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.QuantityMustBeInteger(); ok {
+		_spec.SetField(billingunit.FieldQuantityMustBeInteger, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.SortOrder(); ok {
 		_spec.SetField(billingunit.FieldSortOrder, field.TypeInt, value)

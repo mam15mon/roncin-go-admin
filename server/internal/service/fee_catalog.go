@@ -131,7 +131,7 @@ func (s *FeeCatalogService) CreateBillingUnit(ctx context.Context, request *v1.C
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	created, err := s.usecase.CreateBillingUnit(ctx, principal.Organization.ID, principal.UserID, &biz.BillingUnit{Code: request.GetCode(), Name: request.GetName(), IsContainerUnit: request.GetIsContainerUnit(), SortOrder: int(request.GetSortOrder())})
+	created, err := s.usecase.CreateBillingUnit(ctx, principal.Organization.ID, principal.UserID, &biz.BillingUnit{Code: request.GetCode(), Name: request.GetName(), IsContainerUnit: request.GetIsContainerUnit(), QuantityMustBeInteger: request.GetQuantityMustBeInteger(), SortOrder: int(request.GetSortOrder())})
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (s *FeeCatalogService) UpdateBillingUnit(ctx context.Context, request *v1.U
 	if err != nil {
 		return nil, biz.ErrFeeCatalogInvalidArgument
 	}
-	updated, err := s.usecase.UpdateBillingUnit(ctx, principal.Organization.ID, principal.UserID, id, &biz.BillingUnit{Code: request.GetCode(), Name: request.GetName(), IsContainerUnit: request.GetIsContainerUnit(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
+	updated, err := s.usecase.UpdateBillingUnit(ctx, principal.Organization.ID, principal.UserID, id, &biz.BillingUnit{Code: request.GetCode(), Name: request.GetName(), IsContainerUnit: request.GetIsContainerUnit(), QuantityMustBeInteger: request.GetQuantityMustBeInteger(), SortOrder: int(request.GetSortOrder()), Enabled: request.GetEnabled()})
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func feeSettingToAPI(value *biz.FeeSetting) *v1.FeeSetting {
 }
 
 func billingUnitToAPI(value *biz.BillingUnit) *v1.BillingUnit {
-	return &v1.BillingUnit{Id: value.ID.String(), Code: value.Code, Name: value.Name, IsContainerUnit: value.IsContainerUnit, SortOrder: int32(value.SortOrder), Enabled: value.Enabled, CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
+	return &v1.BillingUnit{Id: value.ID.String(), Code: value.Code, Name: value.Name, IsContainerUnit: value.IsContainerUnit, QuantityMustBeInteger: value.QuantityMustBeInteger, SortOrder: int32(value.SortOrder), Enabled: value.Enabled, CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
 }
 
 func taxableServiceToAPI(value *biz.TaxableService) *v1.TaxableService {

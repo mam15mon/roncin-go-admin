@@ -400,6 +400,7 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 				SetCode(u.code).
 				SetName(u.name).
 				SetIsContainerUnit(u.isContainer).
+				SetQuantityMustBeInteger(u.code == "CONT" || u.code == "BL" || u.code == "SET" || u.code == "DOC").
 				SetSortOrder((idx + 1) * 10).
 				SetEnabled(true).
 				Save(ctx)

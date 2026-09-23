@@ -6,7 +6,7 @@
 
 ## 背景与已确定决定
 
-- 用户认可在计费单位档案配置规则，并要求按“常用单位预设好、管理员只处理例外”的方案编写计划。本任务保持规划状态，本轮不实施。
+- 用户认可在计费单位档案配置规则，并要求按“常用单位预设好、管理员只处理例外”的方案编写计划。用户随后批准实施，已由实施与检查子代理完成。
 - 实际单位是可维护的公共主数据，来自 billing_units 表全部启用记录，并非固定枚举（server/internal/data/order_fee.go:163；web/src/pages/orders/use-order-fee-options.ts:72）。
 - 当前单位只含箱型标记，未含数量规则（server/internal/data/ent/schema/billing_unit.go:16）。管理员通过 BillingUnitsPanel 维护（web/src/pages/finance/fee-settings/components/BillingUnitsPanel.tsx:64）。
 - 现有费用数量要求正数且最多 4 位小数，前后端尚未按单位校验（web/src/pages/orders/components/fees/FeeFormModal.tsx:253；OrderFeeTableTabs.tsx:767；server/internal/biz/order_fee.go:843）。

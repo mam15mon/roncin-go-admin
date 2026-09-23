@@ -6068,28 +6068,29 @@ func (m *BackgroundTaskMutation) ResetEdge(name string) error {
 // BillingUnitMutation represents an operation that mutates the BillingUnit nodes in the graph.
 type BillingUnitMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	code                *string
-	name                *string
-	is_container_unit   *bool
-	sort_order          *int
-	addsort_order       *int
-	enabled             *bool
-	search_keywords     *string
-	clearedFields       map[string]struct{}
-	fee_settings        map[uuid.UUID]struct{}
-	removedfee_settings map[uuid.UUID]struct{}
-	clearedfee_settings bool
-	order_fees          map[uuid.UUID]struct{}
-	removedorder_fees   map[uuid.UUID]struct{}
-	clearedorder_fees   bool
-	done                bool
-	oldValue            func(context.Context) (*BillingUnit, error)
-	predicates          []predicate.BillingUnit
+	op                       Op
+	typ                      string
+	id                       *uuid.UUID
+	created_at               *time.Time
+	updated_at               *time.Time
+	code                     *string
+	name                     *string
+	is_container_unit        *bool
+	quantity_must_be_integer *bool
+	sort_order               *int
+	addsort_order            *int
+	enabled                  *bool
+	search_keywords          *string
+	clearedFields            map[string]struct{}
+	fee_settings             map[uuid.UUID]struct{}
+	removedfee_settings      map[uuid.UUID]struct{}
+	clearedfee_settings      bool
+	order_fees               map[uuid.UUID]struct{}
+	removedorder_fees        map[uuid.UUID]struct{}
+	clearedorder_fees        bool
+	done                     bool
+	oldValue                 func(context.Context) (*BillingUnit, error)
+	predicates               []predicate.BillingUnit
 }
 
 var _ ent.Mutation = (*BillingUnitMutation)(nil)
@@ -6376,6 +6377,42 @@ func (m *BillingUnitMutation) ResetIsContainerUnit() {
 	m.is_container_unit = nil
 }
 
+// SetQuantityMustBeInteger sets the "quantity_must_be_integer" field.
+func (m *BillingUnitMutation) SetQuantityMustBeInteger(b bool) {
+	m.quantity_must_be_integer = &b
+}
+
+// QuantityMustBeInteger returns the value of the "quantity_must_be_integer" field in the mutation.
+func (m *BillingUnitMutation) QuantityMustBeInteger() (r bool, exists bool) {
+	v := m.quantity_must_be_integer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantityMustBeInteger returns the old "quantity_must_be_integer" field's value of the BillingUnit entity.
+// If the BillingUnit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BillingUnitMutation) OldQuantityMustBeInteger(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantityMustBeInteger is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantityMustBeInteger requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantityMustBeInteger: %w", err)
+	}
+	return oldValue.QuantityMustBeInteger, nil
+}
+
+// ResetQuantityMustBeInteger resets all changes to the "quantity_must_be_integer" field.
+func (m *BillingUnitMutation) ResetQuantityMustBeInteger() {
+	m.quantity_must_be_integer = nil
+}
+
 // SetSortOrder sets the "sort_order" field.
 func (m *BillingUnitMutation) SetSortOrder(i int) {
 	m.sort_order = &i
@@ -6646,7 +6683,7 @@ func (m *BillingUnitMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BillingUnitMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, billingunit.FieldCreatedAt)
 	}
@@ -6661,6 +6698,9 @@ func (m *BillingUnitMutation) Fields() []string {
 	}
 	if m.is_container_unit != nil {
 		fields = append(fields, billingunit.FieldIsContainerUnit)
+	}
+	if m.quantity_must_be_integer != nil {
+		fields = append(fields, billingunit.FieldQuantityMustBeInteger)
 	}
 	if m.sort_order != nil {
 		fields = append(fields, billingunit.FieldSortOrder)
@@ -6689,6 +6729,8 @@ func (m *BillingUnitMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case billingunit.FieldIsContainerUnit:
 		return m.IsContainerUnit()
+	case billingunit.FieldQuantityMustBeInteger:
+		return m.QuantityMustBeInteger()
 	case billingunit.FieldSortOrder:
 		return m.SortOrder()
 	case billingunit.FieldEnabled:
@@ -6714,6 +6756,8 @@ func (m *BillingUnitMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldName(ctx)
 	case billingunit.FieldIsContainerUnit:
 		return m.OldIsContainerUnit(ctx)
+	case billingunit.FieldQuantityMustBeInteger:
+		return m.OldQuantityMustBeInteger(ctx)
 	case billingunit.FieldSortOrder:
 		return m.OldSortOrder(ctx)
 	case billingunit.FieldEnabled:
@@ -6763,6 +6807,13 @@ func (m *BillingUnitMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsContainerUnit(v)
+		return nil
+	case billingunit.FieldQuantityMustBeInteger:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantityMustBeInteger(v)
 		return nil
 	case billingunit.FieldSortOrder:
 		v, ok := value.(int)
@@ -6863,6 +6914,9 @@ func (m *BillingUnitMutation) ResetField(name string) error {
 		return nil
 	case billingunit.FieldIsContainerUnit:
 		m.ResetIsContainerUnit()
+		return nil
+	case billingunit.FieldQuantityMustBeInteger:
+		m.ResetQuantityMustBeInteger()
 		return nil
 	case billingunit.FieldSortOrder:
 		m.ResetSortOrder()

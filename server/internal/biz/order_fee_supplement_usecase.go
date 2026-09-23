@@ -154,7 +154,7 @@ func (uc *OrderFeeSupplementUsecase) Create(ctx context.Context, caller *Princip
 			TaxInclusive:         normalized.TaxInclusive,
 			ExchangeRateOverride: normalized.ExchangeRateOverride,
 		}
-		if catalogErr := uc.fee.resolveCatalog(txCtx, organizationID, orderID, fee); catalogErr != nil {
+		if catalogErr := uc.fee.resolveCatalog(txCtx, organizationID, orderID, fee, true, false); catalogErr != nil {
 			return catalogErr
 		}
 		if rateErr := uc.fee.resolveExchangeRate(txCtx, organizationID, orderID, fee, canOverrideExchangeRate); rateErr != nil {

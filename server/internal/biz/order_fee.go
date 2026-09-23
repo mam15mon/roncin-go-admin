@@ -21,6 +21,7 @@ var (
 	ErrOrderFeeCurrencyInvalid               = errors.BadRequest("ORDER_FEE_CURRENCY_INVALID", "币种必须是启用的 ISO 币种")
 	ErrOrderFeeSettingInvalid                = errors.BadRequest("ORDER_FEE_SETTING_INVALID", "费用设置不存在、已停用或不适用于当前订单")
 	ErrOrderFeeBillingUnitInvalid            = errors.BadRequest("ORDER_FEE_BILLING_UNIT_INVALID", "计费单位不存在、已停用或不属于当前组织")
+	ErrOrderFeeQuantityMustBeInteger         = errors.BadRequest("ORDER_FEE_QUANTITY_MUST_BE_INTEGER", "该计费单位的数量必须为正整数")
 	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
 	ErrOrderFeeVersionConflict               = errors.Conflict("ORDER_FEE_VERSION_CONFLICT", "订单费用已被其他操作人修改，请刷新后重试")
 	ErrOrderFeeInvalidTransition             = errors.Conflict("ORDER_FEE_INVALID_TRANSITION", "当前费用状态不允许执行该操作")
@@ -125,18 +126,20 @@ type OrderFeeSettingOption struct {
 }
 
 type OrderFeeBillingUnitOption struct {
-	ID   uuid.UUID
-	Code string
-	Name string
+	ID                    uuid.UUID
+	Code                  string
+	Name                  string
+	QuantityMustBeInteger bool
 }
 
 type OrderFeeCatalogSnapshot struct {
-	FeeCode            string
-	FeeName            string
-	FeeNameEN          *string
-	BillingUnit        string
-	TaxRate            decimal.Decimal
-	TaxableServiceName string
+	FeeCode               string
+	FeeName               string
+	FeeNameEN             *string
+	BillingUnit           string
+	QuantityMustBeInteger bool
+	TaxRate               decimal.Decimal
+	TaxableServiceName    string
 }
 
 type OrderFeeOptions struct {
@@ -154,7 +157,7 @@ type OrderFeeOptions struct {
 
 type OrderFeeRepo interface {
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
-	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID) (*OrderFeeCatalogSnapshot, error)
+	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)
 	Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*OrderFee, error)
 	BilledBillContext(ctx context.Context, organizationID, orderID, id uuid.UUID) (*BilledFeeBillContext, error)
@@ -256,7 +259,7 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 	if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, normalized); err != nil {
 		return nil, err
 	}
-	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
+	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, true, false); err != nil {
 		return nil, err
 	}
 	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
@@ -335,7 +338,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	}
 	switch current.Status {
 	case OrderFeeUnbilled:
-		if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized); err != nil {
+		if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, false, uuidPointersEqual(current.BillingUnitID, normalized.BillingUnitID)); err != nil {
 			return nil, err
 		}
 	case OrderFeeBilled:
@@ -477,10 +480,15 @@ func (uc *OrderFeeUsecase) calculateAmounts(ctx context.Context, organizationID 
 	return nil
 }
 
-func (uc *OrderFeeUsecase) resolveCatalog(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee) error {
-	snapshot, err := uc.repo.ResolveCatalog(ctx, organizationID, orderID, *fee.FeeSettingID, *fee.BillingUnitID)
+func (uc *OrderFeeUsecase) resolveCatalog(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, validateQuantity, allowDisabledUnit bool) error {
+	snapshot, err := uc.repo.ResolveCatalog(ctx, organizationID, orderID, *fee.FeeSettingID, *fee.BillingUnitID, allowDisabledUnit)
 	if err != nil {
 		return err
+	}
+	if validateQuantity {
+		if err := ValidateFeeQuantityForUnit(fee.Quantity, snapshot.QuantityMustBeInteger); err != nil {
+			return err
+		}
 	}
 	fee.FeeCode = snapshot.FeeCode
 	fee.FeeName = snapshot.FeeName
@@ -488,6 +496,13 @@ func (uc *OrderFeeUsecase) resolveCatalog(ctx context.Context, organizationID, o
 	fee.BillingUnit = snapshot.BillingUnit
 	fee.TaxRate = &snapshot.TaxRate
 	fee.TaxableServiceName = &snapshot.TaxableServiceName
+	return nil
+}
+
+func ValidateFeeQuantityForUnit(quantity decimal.Decimal, mustBeInteger bool) error {
+	if mustBeInteger && (!quantity.IsPositive() || !quantity.Equal(quantity.Truncate(0))) {
+		return ErrOrderFeeQuantityMustBeInteger
+	}
 	return nil
 }
 
@@ -523,12 +538,12 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		if !canOverrideExchangeRate {
 			return ErrOrderFeeExchangeRateOverrideForbidden
 		}
-	fee.ExchangeRate = *fee.ExchangeRateOverride
-	fee.ExchangeRateSource = ExchangeRateSourceManual
-	// 汇率日期列恒存日期部分（10 字符）：发生日期支持分钟精度后不能整串落库。
-	fee.ExchangeRateDate = expenseDateDay(fee.ExpenseDate)
-	fee.ExchangeRateSettingID = nil
-	return nil
+		fee.ExchangeRate = *fee.ExchangeRateOverride
+		fee.ExchangeRateSource = ExchangeRateSourceManual
+		// 汇率日期列恒存日期部分（10 字符）：发生日期支持分钟精度后不能整串落库。
+		fee.ExchangeRateDate = expenseDateDay(fee.ExpenseDate)
+		fee.ExchangeRateSettingID = nil
+		return nil
 	}
 	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, expenseDateDay(fee.ExpenseDate))
 	if err != nil {
