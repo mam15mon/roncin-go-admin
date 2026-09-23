@@ -73,10 +73,12 @@ export default function OrganizationsPanel() {
       setLoading(true);
       try {
         const response = await adminServiceListOrganizations();
-        const list = unwrapList(response).map((organization) => ({
-          ...organization,
-          kind: normalizeOrganizationKind(organization.kind),
-        }));
+        const list = unwrapList(response)
+          .map((organization) => ({
+            ...organization,
+            kind: normalizeOrganizationKind(organization.kind),
+          }))
+          .filter((organization) => [2, 3, 4].includes(organization.kind));
         setOrganizations(list);
 
         const targetId = selectIdAfterLoad || selectedId;
@@ -85,6 +87,8 @@ export default function OrganizationsPanel() {
         } else if (list.length > 0) {
           const rootOrg = list.find((o) => !o.parentId);
           setSelectedId(rootOrg ? (rootOrg.id ?? '') : (list[0].id ?? ''));
+        } else {
+          setSelectedId('');
         }
       } catch {
         // Handled by service
