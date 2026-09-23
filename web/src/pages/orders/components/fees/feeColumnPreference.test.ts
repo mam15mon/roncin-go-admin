@@ -16,7 +16,7 @@ const lockedKeys = DEFAULT_FEE_COLUMN_DEFS.filter((def) => def.lockVisible).map(
 );
 
 describe('feeColumnPreference 列定义与默认值', () => {
-  it('录入必备列与操作列必显，税额、本币、标签、关联账单列默认隐藏', () => {
+  it('录入必备列与操作列必显，税额四列默认可见，标签与关联账单列默认隐藏', () => {
     const defaults = defaultFeeColumnPreference(false);
     expect(lockedKeys).toEqual(
       expect.arrayContaining([
@@ -33,15 +33,15 @@ describe('feeColumnPreference 列定义与默认值', () => {
     for (const key of lockedKeys) {
       expect(defaults.hidden).not.toContain(key);
     }
-    expect(defaults.hidden).toEqual(
-      expect.arrayContaining([
-        'taxRate',
-        'taxAmount',
-        'netAmount',
-        'baseCurrencyAmount',
-        'tags',
-      ]),
-    );
+    expect(defaults.hidden).toEqual(expect.arrayContaining(['tags']));
+    for (const key of [
+      'taxRate',
+      'taxAmount',
+      'netAmount',
+      'baseCurrencyAmount',
+    ] as const) {
+      expect(defaults.hidden).not.toContain(key);
+    }
     expect(defaults.hidden).not.toContain('feeCode');
   });
 
@@ -68,9 +68,9 @@ describe('resolveFeeColumnPreference 存储合并', () => {
     const resolved = resolveFeeColumnPreference(stored, false);
     expect(resolved.order).not.toContain('ghost-column' as never);
     expect(resolved.hidden).not.toContain('unknown-hidden' as never);
-    // 未提及的可选列（如 taxRate）按默认隐藏兜底，不会因升级突然出现
-    expect(resolved.hidden).toContain('taxRate');
-    expect(resolved.hidden).toContain('netAmount');
+    // 未提及的可选列（如 tags）按默认隐藏兜底，不会因升级突然出现
+    expect(resolved.hidden).toContain('tags');
+    expect(resolved.hidden).not.toContain('taxRate');
   });
 
   it('必显列无论存储内容如何都不可隐藏', () => {

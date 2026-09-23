@@ -488,7 +488,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
   });
 
-  it('选择费用项目后费用代码列实时预览所选科目代码', async () => {
+  it('选择费用项目并输入单价后，税率税金与不含税总额实时预览', async () => {
     const today = '2026-09-21';
     listFees.mockResolvedValue({
       data: [
@@ -497,6 +497,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
           direction: RECEIVABLE,
           status: FEE_DRAFT,
           currency: 'CNY',
+          quantity: '1',
           expenseDate: today,
           version: '2',
           feeSettingId: 'setting-of',
@@ -513,8 +514,13 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       getTableColumns: undefined,
       billingUnits: [{ id: 'unit-piao', code: 'PIAO', name: '票' }],
       feeSettings: [
-        { id: 'setting-of', feeCode: 'OF', nameZh: '海运费' },
-        { id: 'setting-thc', feeCode: 'THC', nameZh: '码头操作费' },
+        { id: 'setting-of', feeCode: 'OF', nameZh: '海运费', taxRate: '0.00' },
+        {
+          id: 'setting-thc',
+          feeCode: 'THC',
+          nameZh: '码头操作费',
+          taxRate: '6.00',
+        },
       ],
       settlementParties: [{ id: 'customer-1', name: '测试客户' }],
       currencies: [{ code: 'CNY', name: '人民币' }],
@@ -540,6 +546,18 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
 
     await waitFor(() => {
       expect(screen.getAllByText('THC').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('6%').length).toBeGreaterThan(0);
+    });
+
+    const unitPriceInput = screen.getByPlaceholderText('0.00');
+    await act(async () => {
+      fireEvent.change(unitPriceInput, { target: { value: '106' } });
+    });
+
+    // 含税 106、税率 6%：不含税总额 100.00，税金 6.00
+    await waitFor(() => {
+      expect(screen.getByText('100.00')).toBeInTheDocument();
+      expect(screen.getByText('6.00')).toBeInTheDocument();
     });
   });
 

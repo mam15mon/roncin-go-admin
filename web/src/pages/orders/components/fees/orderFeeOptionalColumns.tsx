@@ -1,16 +1,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag, Tooltip } from 'antd';
+import Decimal from 'decimal.js';
 import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { formatAmount } from '@/utils/format';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import type { FeeColumnPreference } from './feeColumnPreference';
-
-/** 未保存新行的派生金额提示：服务端尚未计算，前端不猜算。 */
-function pendingSaveCell() {
-  return <span style={{ color: '#8c8c8c' }}>待保存</span>;
-}
 
 /** 关联账单查询的整体状态文案：加载中/失败不得显示成未建账。 */
 function trackingStateCell(tracking: FeeBillTrackingView) {
@@ -61,14 +57,50 @@ function renderFinancialProgressCell(
 }
 
 /**
+ * 行内编辑实时预览投影：由 OrderFeeTableTabs 维护，结构与 RowEditPreview 对齐。
+ * taxRate 为费用项目默认税率（API 口径：百分数值字符串，如 "6.00" 表示 6%）。
+ */
+export type FeeRowPreview = {
+  feeCode?: string;
+  taxRate?: string;
+  amount?: { total: string; currency: string };
+  rate?: { status: string; rate?: string };
+};
+
+/** 按行 key 索引的编辑预览集合。 */
+export type FeeRowPreviewMap = Record<string, FeeRowPreview>;
+
+/** 未保存或缺少计算输入时的占位：服务端尚未计算，前端暂无实时预览。 */
+function pendingSaveCell() {
+  return <span style={{ color: '#8c8c8c' }}>待保存</span>;
+}
+
+/** 税额实时计算：含税总价、税率（百分数值）推不含税总额与税金，两位小数。 */
+function computeTaxBreakdown(
+  total: string,
+  taxRatePercent: string,
+): { netAmount: string; taxAmount: string } | undefined {
+  const rate = new Decimal(taxRatePercent).div(100);
+  if (rate.isNegative()) return undefined;
+  const gross = new Decimal(total);
+  const net = gross.div(rate.plus(1)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+  const tax = gross.minus(net).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+  return { netAmount: net.toString(), taxAmount: tax.toString() };
+}
+
+/**
  * 可选只读列：税率、税金、不含税总额、折本币金额与费用标签。
- * 金额与税率均为保存后服务端快照，前端不重算；未保存新行显示“待保存”。
+ * 保存后金额与税率为服务端快照；行内编辑进行中（传入该行预览时）按
+ * 单价×数量与所选费用项目默认税率实时折算，折本币金额乘实时解析汇率。
  * 传入关联账单投影时（即具备财务费用读取权限）追加账单号与关联账单财务
  * 进度列；进度属于整张关联账单，多笔费用共用同一账单时显示相同进度。
  */
 export function buildOptionalFeeColumns(
   feeBillTracking?: FeeBillTrackingView,
+  rowPreviews?: FeeRowPreviewMap,
 ): ProColumns<API.OrderFee>[] {
+  const previewOf = (record: API.OrderFee): FeeRowPreview | undefined =>
+    rowPreviews?.[String(record.id ?? '')];
   const financeColumns: ProColumns<API.OrderFee>[] = feeBillTracking
     ? [
         {
@@ -100,21 +132,21 @@ export function buildOptionalFeeColumns(
       width: 100,
       align: 'right',
       editable: false,
+      shouldCellUpdate: () => true,
       render: (_, record) => {
-        if (!record.version) return pendingSaveCell();
-        if (
-          record.taxRate === undefined ||
-          record.taxRate === null ||
-          record.taxRate === ''
-        ) {
+        const previewTaxRate = previewOf(record)?.taxRate;
+        const taxRate = previewTaxRate ?? record.taxRate;
+        if (!previewTaxRate && !record.version) return pendingSaveCell();
+        if (taxRate === undefined || taxRate === null || taxRate === '') {
           return '-';
         }
         return (
           <Space size={4}>
             <span
               style={{ whiteSpace: 'nowrap' }}
-            >{`${Number(record.taxRate)}%`}</span>
-            {record.taxInclusive === false && (
+            >{`${Number(taxRate)}%`}</span>
+            {previewTaxRate ? <Tag color="processing">预览</Tag> : null}
+            {!previewTaxRate && record.taxInclusive === false && (
               <Tooltip title="该行按不含税单价口径录入，单价不含税金">
                 <Tag>未税单价</Tag>
               </Tooltip>
@@ -129,14 +161,29 @@ export function buildOptionalFeeColumns(
       width: 100,
       align: 'right',
       editable: false,
-      render: (_, record) =>
-        record.version ? (
+      shouldCellUpdate: () => true,
+      render: (_, record) => {
+        const preview = previewOf(record);
+        if (preview?.amount && preview.taxRate) {
+          const breakdown = computeTaxBreakdown(
+            preview.amount.total,
+            preview.taxRate,
+          );
+          if (breakdown) {
+            return (
+              <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                {formatAmount(breakdown.taxAmount)}
+              </span>
+            );
+          }
+        }
+        if (!record.version) return pendingSaveCell();
+        return (
           <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
             {formatAmount(record.taxAmount)}
           </span>
-        ) : (
-          pendingSaveCell()
-        ),
+        );
+      },
     },
     {
       title: '不含税总额',
@@ -144,14 +191,29 @@ export function buildOptionalFeeColumns(
       width: 110,
       align: 'right',
       editable: false,
-      render: (_, record) =>
-        record.version ? (
+      shouldCellUpdate: () => true,
+      render: (_, record) => {
+        const preview = previewOf(record);
+        if (preview?.amount && preview.taxRate) {
+          const breakdown = computeTaxBreakdown(
+            preview.amount.total,
+            preview.taxRate,
+          );
+          if (breakdown) {
+            return (
+              <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                {formatAmount(breakdown.netAmount)}
+              </span>
+            );
+          }
+        }
+        if (!record.version) return pendingSaveCell();
+        return (
           <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
             {formatAmount(record.netAmount)}
           </span>
-        ) : (
-          pendingSaveCell()
-        ),
+        );
+      },
     },
     {
       title: '折本币金额',
@@ -159,16 +221,26 @@ export function buildOptionalFeeColumns(
       width: 140,
       align: 'right',
       editable: false,
+      shouldCellUpdate: () => true,
       render: (_, record) => {
-        if (!record.version) return pendingSaveCell();
-        const amount = formatAmount(record.baseCurrencyAmount);
-        if (amount === '-') return '-';
+        const preview = previewOf(record);
+        const previewBase =
+          preview?.amount && preview.rate?.status === 'resolved'
+            ? new Decimal(preview.amount.total)
+                .mul(new Decimal(preview.rate.rate ?? '1'))
+                .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
+                .toString()
+            : undefined;
+        const amount = formatAmount(previewBase ?? record.baseCurrencyAmount);
+        if (amount === '-') {
+          return !record.version && !previewBase ? pendingSaveCell() : '-';
+        }
         return (
           <Space size={4}>
             <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
               {amount}
             </span>
-            <Tag>{record.baseCurrency || '-'}</Tag>
+            <Tag>{record.baseCurrency || 'CNY'}</Tag>
           </Space>
         );
       },

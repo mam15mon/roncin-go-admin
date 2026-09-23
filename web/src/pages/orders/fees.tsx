@@ -407,7 +407,7 @@ export default function OrderFeesPage() {
       quantity: normalizeDecimalInput(String(values.quantity ?? '')),
       unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
       currency: values.currency,
-      expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD'),
+      expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm'),
       note: values.note,
       exchangeRateOverride: manualExchangeRate
         ? values.exchangeRateOverride

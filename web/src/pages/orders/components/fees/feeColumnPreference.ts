@@ -42,7 +42,7 @@ export interface FeeColumnDef {
   financeOnly?: boolean;
 }
 
-/** 默认列保持当前表格相对顺序；费用代码与税额、本币、标签、关联账单列默认隐藏。 */
+/** 默认列保持当前表格相对顺序；费用标签与关联账单列默认隐藏，税额四列默认可见。 */
 export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   { key: 'status', title: '状态', lockVisible: false, defaultVisible: true },
   {
@@ -96,25 +96,25 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
     key: 'taxRate',
     title: '税率(%)',
     lockVisible: false,
-    defaultVisible: false,
+    defaultVisible: true,
   },
   {
     key: 'taxAmount',
     title: '税金',
     lockVisible: false,
-    defaultVisible: false,
+    defaultVisible: true,
   },
   {
     key: 'netAmount',
     title: '不含税总额',
     lockVisible: false,
-    defaultVisible: false,
+    defaultVisible: true,
   },
   {
     key: 'baseCurrencyAmount',
     title: '折本币金额',
     lockVisible: false,
-    defaultVisible: false,
+    defaultVisible: true,
   },
   {
     key: 'tags',

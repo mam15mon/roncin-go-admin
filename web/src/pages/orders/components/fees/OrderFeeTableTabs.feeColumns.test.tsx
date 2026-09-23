@@ -123,7 +123,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     } as Awaited<ReturnType<typeof resolveRate>>);
   });
 
-  it('默认隐藏税额与本币列；列设置勾选后展示后端快照并持久化（A1/A3）', async () => {
+  it('税额四列默认可见展示后端快照；列设置取消勾选后隐藏并持久化（A1/A3）', async () => {
     render(
       <App>
         <OrderFeeTableTabs {...makeProps('order-1')} />
@@ -131,21 +131,22 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     );
 
     await screen.findByText('海运费');
-    expect(tableHeaderCount('税率(%)')).toBe(0);
-    expect(tableHeaderCount('税金')).toBe(0);
-
-    await toggleColumnsAndConfirm(['税率(%)', '税金', '不含税总额']);
-
     await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(2));
     expect(tableHeaderCount('税金')).toBe(2);
     expect(screen.getByText('6%')).toBeInTheDocument();
     expect(screen.getByText('5.66')).toBeInTheDocument();
     expect(screen.getByText('94.34')).toBeInTheDocument();
+    expect(screen.getByText('700.00')).toBeInTheDocument();
+
+    await toggleColumnsAndConfirm(['税率(%)', '税金']);
+
+    await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(0));
+    expect(tableHeaderCount('税金')).toBe(0);
 
     const stored = window.localStorage.getItem(STORAGE_KEY);
     expect(stored).not.toBeNull();
-    expect(JSON.parse(stored as string).hidden).not.toContain('taxRate');
-    expect(JSON.parse(stored as string).hidden).not.toContain('taxAmount');
+    expect(JSON.parse(stored as string).hidden).toContain('taxRate');
+    expect(JSON.parse(stored as string).hidden).toContain('taxAmount');
   });
 
   it('取消不改变表格且不写偏好；重新挂载读取已保存偏好（A1）', async () => {
@@ -166,11 +167,11 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
       screen.getByRole('button', { name: /取\s*消/ }).click();
     });
 
-    expect(tableHeaderCount('税金')).toBe(0);
+    expect(tableHeaderCount('税金')).toBe(2);
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
     unmount();
 
-    // 预置偏好后重新挂载：税金列直接可见，税率列按偏好保持隐藏
+    // 预置偏好后重新挂载：税率列按偏好隐藏，税金列保持默认可见
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -189,10 +190,10 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     await waitFor(() => expect(screen.getByText('5.66')).toBeInTheDocument());
   });
 
-  it('恢复默认清除场景偏好并还原隐藏列（A1）', async () => {
+  it('恢复默认清除场景偏好并还原默认可见列（A1）', async () => {
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ order: ['taxRate', 'status'], hidden: [] }),
+      JSON.stringify({ order: ['status', 'taxRate'], hidden: ['taxRate'] }),
     );
     render(
       <App>
@@ -200,7 +201,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
       </App>,
     );
     await screen.findByText('海运费');
-    expect(tableHeaderCount('税率(%)')).toBe(2);
+    expect(tableHeaderCount('税率(%)')).toBe(0);
 
     await openColumnSettings();
     await act(async () => {
@@ -210,7 +211,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
       screen.getByRole('button', { name: /确\s*定/ }).click();
     });
 
-    await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(0));
+    await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(2));
     expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
@@ -226,8 +227,6 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     );
     await screen.findByText('海运费');
 
-    await toggleColumnsAndConfirm(['税率(%)']);
-
     await waitFor(() => expect(screen.getByText('0%')).toBeInTheDocument());
     expect(screen.getByText('未税单价')).toBeInTheDocument();
   });
@@ -239,8 +238,6 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
       </App>,
     );
     await screen.findByText('海运费');
-
-    await toggleColumnsAndConfirm(['折本币金额']);
 
     await waitFor(() => expect(tableHeaderCount('折本币金额')).toBe(2));
     expect(screen.getByText('700.00')).toBeInTheDocument();

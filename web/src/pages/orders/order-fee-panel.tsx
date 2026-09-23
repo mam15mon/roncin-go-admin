@@ -318,7 +318,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const handleModalSubmit = async (values: FeeFormValues) => {
       if (!order?.id || !ensureFeeWriteAllowed()) return false;
-      const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
+      const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm');
       const exchangeRateOverride = manualExchangeRate
         ? values.exchangeRateOverride?.trim() || undefined
         : undefined;

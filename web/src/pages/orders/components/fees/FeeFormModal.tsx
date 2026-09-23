@@ -6,12 +6,13 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Col, Row } from 'antd';
+import { App, Col, Row } from 'antd';
 import type { Dayjs } from 'dayjs';
 import React, { useRef } from 'react';
 import {
   ExchangeRatePreviewCard,
   ProFormSearchableSelect,
+  scrollToFirstFormError,
 } from '@/components/ui';
 import {
   exchangeRatePattern,
@@ -95,6 +96,7 @@ export default function FeeFormModal({
     undefined,
   );
   const activeFormRef = formRef ?? internalFormRef;
+  const { message } = App.useApp();
 
   return (
     <ModalForm<FeeFormValues>
@@ -108,6 +110,12 @@ export default function FeeFormModal({
       onOpenChange={onOpenChange}
       onFinish={onSubmit}
       onValuesChange={onValuesChange}
+      onFinishFailed={(errorInfo) => {
+        scrollToFirstFormError({
+          errorFields: errorInfo?.errorFields,
+          notify: (msg) => message.warning(msg),
+        });
+      }}
       width={680}
       modalProps={{ destroyOnHidden: true }}
     >
@@ -276,7 +284,11 @@ export default function FeeFormModal({
             label="发生日期"
             rules={[{ required: true, message: '请选择发生日期' }]}
             disabled={isFeeBilled}
-            fieldProps={{ style: { width: '100%' } }}
+            fieldProps={{
+              style: { width: '100%' },
+              format: 'YYYY-MM-DD HH:mm',
+              showTime: { format: 'HH:mm' },
+            }}
           />
         </Col>
 

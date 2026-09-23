@@ -9,7 +9,11 @@ import { EditableProTable } from '@ant-design/pro-components';
 import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
-import { defaultSelectFilterOption, SectionCard } from '@/components/ui';
+import {
+  defaultSelectFilterOption,
+  SectionCard,
+  scrollToFirstTableError,
+} from '@/components/ui';
 import {
   normalizeOrderFeeStatus,
   orderFeeStatusMeta,
@@ -30,7 +34,7 @@ import {
   quantityOrPricePattern,
 } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { trimDecimal } from '@/utils/format';
+import { formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import FeeColumnSettingsModal from './FeeColumnSettingsModal';
 import type { FeeBillTrackingView } from './feeBillTracking';
@@ -83,11 +87,13 @@ type AmountPreview = {
   currency: string;
 };
 
-/** 单行编辑态的实时预览集合：汇率、总金额、费用代码，保存后以后端落库值为准。 */
+/** 单行编辑态的实时预览集合：汇率、总金额、费用代码与税率，保存后以后端落库值为准。 */
 type RowEditPreview = {
   rate?: ExchangeRatePreview;
   amount?: AmountPreview;
   feeCode?: string;
+  /** 所选费用项目默认税率（API 口径：百分数值字符串，如 "6.00" 表示 6%）。 */
+  taxRate?: string;
 };
 
 type FeeRequestError = Error & {
@@ -427,25 +433,26 @@ export default function OrderFeeTableTabs({
     });
   };
 
-  // 选择费用项目后同步预览费用代码列。
-  const setRowFeeCodePreview = (
+  // 选择费用项目后同步预览费用代码与默认税率列。
+  const setRowFeeOptionPreview = (
     rowKey: React.Key | undefined,
-    feeCode?: string,
+    option?: { feeCode?: string; taxRate?: string },
   ) => {
     const key = String(rowKey ?? '');
     setRowPreviews((prev) => {
       const current = prev[key];
-      if (!feeCode) {
-        if (current?.feeCode === undefined) return prev;
-        const next = { ...current };
-        delete next.feeCode;
-        if (!next.rate && !next.amount) {
-          const { [key]: _removed, ...rest } = prev;
-          return rest;
-        }
-        return { ...prev, [key]: next };
+      const next: RowEditPreview = { ...current };
+      let changed = false;
+      if (option?.feeCode !== undefined) {
+        next.feeCode = option.feeCode;
+        changed = true;
       }
-      return { ...prev, [key]: { ...current, feeCode } };
+      if (option?.taxRate !== undefined) {
+        next.taxRate = option.taxRate;
+        changed = true;
+      }
+      if (!changed) return prev;
+      return { ...prev, [key]: next };
     });
   };
 
@@ -467,7 +474,7 @@ export default function OrderFeeTableTabs({
         billingUnit: defaultBillingUnit?.name,
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
-        expenseDate: dayjs().format('YYYY-MM-DD'),
+        expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
         status: 1, // FEE_DRAFT
       },
       { position: 'top' },
@@ -493,7 +500,7 @@ export default function OrderFeeTableTabs({
         billingUnit: defaultBillingUnit?.name,
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
-        expenseDate: dayjs().format('YYYY-MM-DD'),
+        expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
         status: 1, // FEE_DRAFT
       },
       { position: 'top' },
@@ -515,14 +522,41 @@ export default function OrderFeeTableTabs({
 
     if (!row.feeSettingId) {
       message.error('请选择费用项目');
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'feeSettingId'],
+            errors: ['请选择费用项目'],
+          },
+        ],
+      });
       return false;
     }
     if (!row.settlementPartyId) {
       message.error('请选择结算单位');
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'settlementPartyId'],
+            errors: ['请选择结算单位'],
+          },
+        ],
+      });
       return false;
     }
     if (!row.currency) {
       message.error('请选择币种');
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'currency'],
+            errors: ['请选择币种'],
+          },
+        ],
+      });
       return false;
     }
     if (
@@ -533,6 +567,15 @@ export default function OrderFeeTableTabs({
       Number(row.unitPrice) <= 0
     ) {
       message.error('单价必须为大于 0 的有效数值');
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'unitPrice'],
+            errors: ['单价必须为大于 0 的有效数值'],
+          },
+        ],
+      });
       return false;
     }
     if (
@@ -543,14 +586,41 @@ export default function OrderFeeTableTabs({
       Number(row.quantity) <= 0
     ) {
       message.error('数量必须为大于 0 的有效数值');
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'quantity'],
+            errors: ['数量必须为大于 0 的有效数值'],
+          },
+        ],
+      });
       return false;
     }
     if (!row.billingUnitId) {
       message.error('请选择计费单位');
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'billingUnitId'],
+            errors: ['请选择计费单位'],
+          },
+        ],
+      });
       return false;
     }
     if (!row.expenseDate) {
       message.error('请选择发生日期');
+      scrollToFirstTableError({
+        rowKey: singleKey,
+        errorFields: [
+          {
+            name: [String(singleKey), 'expenseDate'],
+            errors: ['请选择发生日期'],
+          },
+        ],
+      });
       return false;
     }
 
@@ -563,7 +633,7 @@ export default function OrderFeeTableTabs({
       quantity: normalizeDecimalInput(String(row.quantity)),
       unitPrice: normalizeDecimalInput(String(row.unitPrice)),
       currency: row.currency,
-      expenseDate: dayjs(row.expenseDate).format('YYYY-MM-DD'),
+      expenseDate: dayjs(row.expenseDate).format('YYYY-MM-DD HH:mm'),
       note: row.note?.trim() || undefined,
       taxInclusive: true,
     };
@@ -602,6 +672,28 @@ export default function OrderFeeTableTabs({
       return false;
     }
   };
+
+  // 渲染行内编辑操作列：为保存操作接入错误捕获与平滑导航
+  const renderEditableActions = (
+    rowKey: React.Key,
+    defaultDom: { save: React.ReactNode; cancel: React.ReactNode },
+  ) => [
+    <span
+      key={`save-action-${String(rowKey)}`}
+      onClickCapture={() => {
+        // 等待 Ant Design ProTable 表单校验执行完毕并完成 DOM 错误渲染
+        window.setTimeout(() => {
+          scrollToFirstTableError({
+            rowKey,
+            notify: (msg) => message.warning(msg),
+          });
+        }, 60);
+      }}
+    >
+      {defaultDom.save}
+    </span>,
+    defaultDom.cancel,
+  ];
 
   const buildColumns = (direction: number): ProColumns<API.OrderFee>[] => {
     if (getTableColumns) {
@@ -647,6 +739,7 @@ export default function OrderFeeTableTabs({
             value: item.id ?? '',
             nameZh: item.nameZh,
             feeCode: item.feeCode,
+            taxRate: item.taxRate,
             defaultCurrency: item.defaultCurrency,
             defaultBillingUnitId: item.defaultBillingUnitId,
           })),
@@ -656,6 +749,7 @@ export default function OrderFeeTableTabs({
             option?: {
               nameZh?: string;
               feeCode?: string;
+              taxRate?: string;
               defaultCurrency?: string;
               defaultBillingUnitId?: string;
             },
@@ -663,7 +757,7 @@ export default function OrderFeeTableTabs({
             if (option) {
               form?.setFieldValue([rowKey, 'feeName'], option.nameZh);
               form?.setFieldValue([rowKey, 'feeCode'], option.feeCode);
-              setRowFeeCodePreview(rowKey, option.feeCode);
+              setRowFeeOptionPreview(rowKey, option);
               if (option.defaultCurrency) {
                 form?.setFieldValue(
                   [rowKey, 'currency'],
@@ -960,14 +1054,22 @@ export default function OrderFeeTableTabs({
       {
         title: '发生日期',
         dataIndex: 'expenseDate',
-        width: 130,
+        width: 150,
         valueType: 'date',
         formItemProps: {
           rules: [{ required: true, message: '请选择发生日期' }],
         },
-        render: (_, record) => record.expenseDate || '-',
+        render: (_, record) =>
+          record.expenseDate
+            ? formatDate(
+                record.expenseDate,
+                record.expenseDate.includes(' ') ? 'minute' : 'date',
+              )
+            : '-',
         fieldProps: (form, { rowKey }) => ({
           style: { width: '100%' },
+          format: 'YYYY-MM-DD HH:mm',
+          showTime: { format: 'HH:mm' },
           onChange: (date: dayjs.Dayjs | null) => {
             resolveRowRatePreview(
               rowKey,
@@ -988,7 +1090,7 @@ export default function OrderFeeTableTabs({
           placeholder: '备注（可选）',
         },
       },
-      ...buildOptionalFeeColumns(feeBillTracking),
+      ...buildOptionalFeeColumns(feeBillTracking, rowPreviews),
       {
         title: '操作',
         valueType: 'option',
@@ -1108,10 +1210,8 @@ export default function OrderFeeTableTabs({
             onChange: setReceivableEditableKeys,
             onSave: (key, row, originRow, newLine) =>
               handleSaveFee(key, row, originRow, Boolean(newLine)),
-            actionRender: (_row, _config, defaultDom) => [
-              defaultDom.save,
-              defaultDom.cancel,
-            ],
+            actionRender: (row, _config, defaultDom) =>
+              renderEditableActions(row.id ?? '', defaultDom),
           }}
           rowSelection={{
             selectedRowKeys: selectedReceivableFeeIds,
@@ -1248,10 +1348,8 @@ export default function OrderFeeTableTabs({
             onChange: setPayableEditableKeys,
             onSave: (key, row, originRow, newLine) =>
               handleSaveFee(key, row, originRow, Boolean(newLine)),
-            actionRender: (_row, _config, defaultDom) => [
-              defaultDom.save,
-              defaultDom.cancel,
-            ],
+            actionRender: (row, _config, defaultDom) =>
+              renderEditableActions(row.id ?? '', defaultDom),
           }}
           rowSelection={{
             selectedRowKeys: selectedPayableFeeIds,
