@@ -1102,7 +1102,9 @@ export default function OrderFeeTableTabs({
         render: (_, record) => trimDecimal(record.unitPrice),
         fieldProps: (form, { rowKey }) => ({
           placeholder: '0.00',
+          allowClear: false,
           style: { textAlign: 'right' },
+          styles: { input: { textAlign: 'right' } },
           onChange: () => {
             refreshAmountPreview(rowKey, form);
           },
@@ -1127,7 +1129,9 @@ export default function OrderFeeTableTabs({
         render: (_, record) => trimDecimal(record.quantity),
         fieldProps: (form, { rowKey }) => ({
           placeholder: '1',
+          allowClear: false,
           style: { textAlign: 'right' },
+          styles: { input: { textAlign: 'right' } },
           onChange: () => {
             refreshAmountPreview(rowKey, form);
           },
