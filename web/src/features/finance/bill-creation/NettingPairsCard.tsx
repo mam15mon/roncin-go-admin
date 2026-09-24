@@ -1,6 +1,7 @@
-import { Card, Table, Tag, Typography } from 'antd';
 import type { TableColumnsType } from 'antd';
+import { Card, Table, Tag, Typography } from 'antd';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -9,7 +10,7 @@ export type NettingPairsCardProps = {
 };
 
 function amount(value: string | undefined, currency: string | undefined) {
-  return `${value || '0'} ${currency || ''}`.trim();
+  return `${formatAmount(value ?? '0')} ${currency || ''}`.trim();
 }
 
 // NettingPairsCard 展示对冲建账预览中每个“结算单位 + 账单币种”组合的毛额、
@@ -83,11 +84,12 @@ export default function NettingPairsCard({ pairs }: NettingPairsCardProps) {
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<TableColumnsType<API.BillBatchNettingPair>[number]>({
-      tableKey: 'finance:bill-netting-pairs',
-      columns,
-    });
+  const columnSettings = useColumnSettings<
+    TableColumnsType<API.BillBatchNettingPair>[number]
+  >({
+    tableKey: 'finance:bill-netting-pairs',
+    columns,
+  });
 
   if (!pairs.length) return null;
   return (
@@ -107,7 +109,9 @@ export default function NettingPairsCard({ pairs }: NettingPairsCardProps) {
         </Tag>
       }
     >
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
+      >
         {columnSettings.entry}
       </div>
       <Table<API.BillBatchNettingPair>

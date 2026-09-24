@@ -1,6 +1,7 @@
 import { Card, Tree, Typography } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import React, { useMemo } from 'react';
+import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -16,7 +17,8 @@ type BillGroupNavigatorProps = {
 type NavigatorBranch = DataNode & { children?: NavigatorBranch[] };
 
 function groupLeafTitle(group: API.BillBatchPreviewGroup, invalid: boolean) {
-  const amount = `${group.totalAmount || '-'} ${group.currency || ''}`.trim();
+  const amount =
+    `${formatAmount(group.totalAmount)} ${group.currency || ''}`.trim();
   return `${invalid ? '⚠ ' : ''}${group.settlementPartyName || group.settlementPartyId || '未命名结算单位'} · ${amount}`;
 }
 

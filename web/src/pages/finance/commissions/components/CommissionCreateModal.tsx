@@ -154,7 +154,7 @@ export default function CommissionCreateModal({
             : {}),
         });
       return unwrapList(response).map((item) => ({
-        label: `${item.verificationNo}｜${item.settlementPartyName}｜${item.amount} ${item.currency}`,
+        label: `${item.verificationNo}｜${item.settlementPartyName}｜${formatAmount(item.amount)} ${item.currency}`,
         value: item.id as string,
       }));
     },

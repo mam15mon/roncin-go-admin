@@ -410,7 +410,9 @@ export default function VerificationWorkbench({
             onClick={() => void submit()}
           >
             提交核销{' '}
-            {allocationAmount.isPositive() ? allocationAmount.toFixed(2) : ''}
+            {allocationAmount.isPositive()
+              ? formatAmount(allocationAmount.toFixed(2))
+              : ''}
           </Button>
         </Space>
       }

@@ -477,7 +477,9 @@ describe('提成预览 CNY 快照', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: '选择公司 B' }));
-    expect(await screen.findByText('VR-B｜B单位｜100 CNY')).toBeInTheDocument();
+    expect(
+      await screen.findByText('VR-B｜B单位｜100.00 CNY'),
+    ).toBeInTheDocument();
 
     await act(async () => {
       resolveA({
@@ -493,7 +495,9 @@ describe('提成预览 CNY 快照', () => {
       });
       await slowA;
     });
-    expect(screen.queryByText('VR-A｜A单位｜200 CNY')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('VR-A｜A单位｜200.00 CNY'),
+    ).not.toBeInTheDocument();
   });
 
   it('核销候选输入关键字后防抖携带 keyword 重新拉取', async () => {
@@ -516,7 +520,9 @@ describe('提成预览 CNY 快照', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
-    expect(await screen.findByText('VR-A｜A单位｜200 CNY')).toBeInTheDocument();
+    expect(
+      await screen.findByText('VR-A｜A单位｜200.00 CNY'),
+    ).toBeInTheDocument();
     expect(
       serviceMocks.listCommissionVerificationCandidates,
     ).toHaveBeenCalledWith({
@@ -544,7 +550,7 @@ describe('提成预览 CNY 快照', () => {
       }),
     );
     expect(
-      await screen.findByText('VR-A-MATCH｜A单位｜200 CNY'),
+      await screen.findByText('VR-A-MATCH｜A单位｜200.00 CNY'),
     ).toBeInTheDocument();
   });
 

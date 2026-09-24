@@ -32,12 +32,12 @@ describe('对冲抵销预览卡片', () => {
     );
 
     expect(screen.getAllByText('验收同行')).toHaveLength(2);
-    expect(screen.getByText('100.00000000 CNY')).toBeInTheDocument();
+    expect(screen.getByText('100.00 CNY')).toBeInTheDocument();
     // 应付毛额与抵销额同为 70：毛额、抵销各出现一次
-    expect(screen.getAllByText('70.00000000 CNY')).toHaveLength(2);
+    expect(screen.getAllByText('70.00 CNY')).toHaveLength(2);
     // 净应收为正数展示金额，另一边为零时显示占位符
-    expect(screen.getByText('30.00000000 CNY')).toBeInTheDocument();
-    expect(screen.getByText('15.00000000 USD')).toBeInTheDocument();
+    expect(screen.getByText('30.00 CNY')).toBeInTheDocument();
+    expect(screen.getByText('15.00 USD')).toBeInTheDocument();
     // 抵销额 = 双方毛额较小值提示存在
     expect(screen.getByText('抵销额 = 双方毛额较小值')).toBeInTheDocument();
   });
