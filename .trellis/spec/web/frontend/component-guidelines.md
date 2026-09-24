@@ -66,6 +66,25 @@
 **Related**：`web/src/utils/format.ts`（唯一真相源）；AGENTS.md「金额显示规范」；
 导出金额参考 `src/pages/finance/commissions/commissionExport.ts`。
 
+## 表格列设置（全站统一）
+
+- **唯一入口**：所有表格（ProTable、EditableProTable、普通 Table、抽屉/弹窗/嵌套表、
+  导入预览）的列设置一律经 `@/components/ui/column-settings` 的 `useColumnSettings`
+  接入；ProTable 原生 `options.setting` 必须关闭（`setting: false`），同一表格只保留
+  一个齿轮图标「列设置」入口。无工具栏的表格把入口放表格上方右侧。
+- **两种容量**：标准版覆盖普通列表；财务费用台账等宽表在 `advanced` 插槽承载
+  分页/默认排序/行配色等高级设置（见 `finance-ledger-template/TableColumnConfigModal`）。
+- **交互契约**：草稿式编辑（取消/关闭丢弃），「恢复默认」只重置草稿、保存后生效；
+  搜索只筛选列表，搜索中禁用排序；必显列与「至少保留一列」由组件强制；
+  保存失败保留弹窗草稿并明确报错，不得声称已持久化。
+- **偏好存储**：本地偏好 key 为 `roncin:column-settings:v1:<表格标识>:<用户>:<组织>`；
+  表格标识按业务视图命名（如 `orders:list`、`finance:bills`），禁止包含实体 ID，
+  同一业务视图跨实体复用。财务费用台账继续使用服务端偏好，订单费用沿用其既有
+  本地存储键。
+- **列元数据**：稳定 key 取列的 `key ?? dataIndex`；两者皆缺或 `hideInTable` 的列
+  视为结构列（操作/选择等），始终渲染且不进设置；ReactNode 标题需用
+  `titleOverrides` 提供纯文本名，不得把 render 结果当设置名称。
+
 ## 侧边栏
 
 - 折叠收起宽度基准 48px，菜单项固定 36px 居中圆角卡片；折叠时彻底隐藏文本与

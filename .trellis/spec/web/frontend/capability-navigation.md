@@ -9,6 +9,7 @@
 | 场景 | 入口 | 职责 | 不可放入内容 |
 |------|------|------|--------------|
 | 页面骨架、分节表单/详情、CRUD 列表 | [`web/src/components/ui/index.ts`](../../../../web/src/components/ui/index.ts) | `PageHeaderShell`/`SectionCard`/`StickyFooterBar`、`OrderFormTemplate`、`MasterDataTemplate`、`FinanceLedgerTemplate`、`OrderListTemplate` 等视觉与结构模板 | 领域请求、领域状态映射；模板内不发起新领域请求 |
+| 表格列设置 | [`web/src/components/ui/column-settings/index.ts`](../../../../web/src/components/ui/column-settings/index.ts) | `useColumnSettings`/`ColumnSettingsModal`/`ColumnSettingsEntry`：统一列显隐排序入口（标准版+`advanced` 增强版），偏好按用户+组织+表格标识本地持久化 | 业务请求与数据流；服务端偏好（财务费用台账经 `TableColumnConfigModal` 适配）；各页面另造第二套设置弹窗 |
 | 业务状态标签/文案 | [`web/src/constants/statusMeta.ts`](../../../../web/src/constants/statusMeta.ts) | `orderFeeStatusMeta` 等各实体状态元数据与通用 `statusTag`/`statusText`/`makeValueEnum` | 页面自写「状态→颜色/文字」映射；不新建平行的全局状态渲染体系 |
 | 账单状态映射 | [`web/src/features/finance/bill-status/index.ts`](../../../../web/src/features/finance/bill-status/index.ts) | `billStatusMeta`（账单列表、抽屉、建账结果表共用） | 与费用状态合并；账单语义只归本能力 |
 | 财务进度文案映射 | [`web/src/features/finance/fee-progress/index.ts`](../../../../web/src/features/finance/fee-progress/index.ts) | `feeLedgerProgressLabels`：整张关联账单开票与核销综合进度的文字/颜色（财务费用台账与订单费用关联账单列共用） | 行配色 key、台账请求与列配置逻辑（留在各调用方）；不得另建第二套进度文案 |
