@@ -88,7 +88,7 @@ async function enableTrackingColumns() {
     });
   }
   await act(async () => {
-    screen.getByRole('button', { name: /确\s*定/ }).click();
+    screen.getByRole('button', { name: /保\s*存/ }).click();
   });
   await waitFor(() =>
     expect(

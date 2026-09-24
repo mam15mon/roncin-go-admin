@@ -5,7 +5,6 @@ import {
   EditOutlined,
   FileDoneOutlined,
   PlusOutlined,
-  SettingOutlined,
   SwapOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
@@ -24,17 +23,19 @@ import {
   type MenuProps,
   Space,
   Tag,
-  Tooltip,
 } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
+  ColumnSettingsEntry,
+  ColumnSettingsModal,
   defaultSelectFilterOption,
   ProFormSearchableSelect,
   SectionCard,
   scrollToFirstTableError,
+  type ColumnSettingsField,
 } from '@/components/ui';
 import {
   normalizeOrderFeeStatus,
@@ -63,11 +64,11 @@ import {
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
-import FeeColumnSettingsModal from './FeeColumnSettingsModal';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import {
   clearFeeColumnPreference,
   defaultFeeColumnPreference,
+  effectiveFeeColumnDefs,
   type FeeColumnPreference,
   type FeeColumnPreferenceScope,
   isDefaultFeeColumnPreference,
@@ -250,17 +251,25 @@ export default function OrderFeeTableTabs({
     financeAvailable,
   ]);
 
-  const handleColumnSettingsConfirm = (next: FeeColumnPreference) => {
-    setColumnSettingsOpen(false);
+  /** 统一列设置保存：应收/应付共享；恢复默认等价偏好时清空本地存储。 */
+  const handleColumnSettingsSave = (next: FeeColumnPreference) => {
     setFeeColumnPref(next);
     const scope = columnSettingScope ?? {};
     const persisted = isDefaultFeeColumnPreference(next, financeAvailable)
       ? clearFeeColumnPreference(scope)
       : saveFeeColumnPreference(scope, next);
-    if (!persisted) {
-      message.warning('列设置未能保存到本地浏览器，本次设置仅当前页面生效');
+    if (persisted) {
+      setColumnSettingsOpen(false);
+    } else {
+      // 存储失败保持弹窗打开：表格已应用本次设置，可重试或取消。
+      message.error('列设置保存到本地浏览器失败，本次设置仅当前页面生效');
     }
   };
+
+  /** 订单费用列设置元数据：含权限裁剪与必显标记，供统一弹窗消费。 */
+  const feeColumnFields: ColumnSettingsField[] = effectiveFeeColumnDefs(
+    financeAvailable,
+  ).map(({ key, title, lockVisible }) => ({ key, title, lockVisible }));
 
   const renderColumnToolbar = () => (
     <Space size={8}>
@@ -287,23 +296,11 @@ export default function OrderFeeTableTabs({
           财务详情
         </Button>
       )}
-      <Tooltip
-        title={
-          columnEditing
-            ? '请先保存或取消正在编辑的费用行'
-            : '设置费用表格列（应收/应付共用）'
-        }
-      >
-        <span>
-          <Button
-            icon={<SettingOutlined />}
-            disabled={columnEditing}
-            onClick={() => setColumnSettingsOpen(true)}
-          >
-            列设置
-          </Button>
-        </span>
-      </Tooltip>
+      <ColumnSettingsEntry
+        disabled={columnEditing}
+        disabledReason="请先保存或取消正在编辑的费用行"
+        onClick={() => setColumnSettingsOpen(true)}
+      />
     </Space>
   );
 
@@ -1667,12 +1664,13 @@ export default function OrderFeeTableTabs({
         />
       </SectionCard>
 
-      <FeeColumnSettingsModal
+      <ColumnSettingsModal
         open={columnSettingsOpen}
-        financeAvailable={financeAvailable}
+        fields={feeColumnFields}
         value={feeColumnPref}
+        defaultValue={defaultFeeColumnPreference(financeAvailable)}
         onCancel={() => setColumnSettingsOpen(false)}
-        onConfirm={handleColumnSettingsConfirm}
+        onSave={handleColumnSettingsSave}
       />
 
       {/* 批量标签维护：两个表共用一个弹窗，打开时按入口锁定添加/移除模式。 */}

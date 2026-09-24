@@ -106,7 +106,7 @@ async function toggleColumnsAndConfirm(titles: string[]) {
     });
   }
   await act(async () => {
-    screen.getByRole('button', { name: /确\s*定/ }).click();
+    screen.getByRole('button', { name: /保\s*存/ }).click();
   });
 }
 
@@ -230,7 +230,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
       screen.getByRole('button', { name: /恢复默认/ }).click();
     });
     await act(async () => {
-      screen.getByRole('button', { name: /确\s*定/ }).click();
+      screen.getByRole('button', { name: /保\s*存/ }).click();
     });
 
     await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(2));
