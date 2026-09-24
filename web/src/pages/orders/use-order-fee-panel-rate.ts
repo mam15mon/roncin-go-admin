@@ -2,7 +2,7 @@ import { App } from 'antd';
 import { useRef, useState } from 'react';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
-import { trimDecimal } from '@/utils/format';
+import { formatAmount, trimDecimal } from '@/utils/format';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 
@@ -29,7 +29,7 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
   };
 
   const seedFromFee = (fee: API.OrderFee) => {
-    setTotalPreview(trimDecimal(fee.totalAmount));
+    setTotalPreview(formatAmount(fee.totalAmount));
     setExchangeRatePreview(
       fee.exchangeRate ? trimDecimal(fee.exchangeRate) : undefined,
     );

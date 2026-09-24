@@ -11,6 +11,7 @@ import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import { makeValueEnum, statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
 import { billStatusMeta } from '@/features/finance/bill-status';
+import { formatAmount, trimDecimal } from '@/utils/format';
 
 interface GetFinanceBillColumnsParams {
   access: {
@@ -123,7 +124,7 @@ export function getFinanceBillColumns({
       search: false,
       render: (_, row) => (
         <strong style={{ color: '#262626' }}>
-          {row.totalAmount} {row.currency}
+          {formatAmount(row.totalAmount)} {row.currency}
         </strong>
       ),
     },
@@ -145,7 +146,7 @@ export function getFinanceBillColumns({
           row.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
         return (
           <Space size={4}>
-            <span>{row.exchangeRate}</span>
+            <span>{trimDecimal(row.exchangeRate)}</span>
             <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
               {sourceLabel}
             </Tag>
@@ -165,7 +166,7 @@ export function getFinanceBillColumns({
             color: row.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
           }}
         >
-          {row.baseCurrencyAmount} {row.baseCurrency}
+          {formatAmount(row.baseCurrencyAmount)} {row.baseCurrency}
         </strong>
       ),
     },
@@ -176,7 +177,7 @@ export function getFinanceBillColumns({
       align: 'right',
       search: false,
       render: (_, row) =>
-        `${row.verifiedAmount || '0.00000000'} ${row.currency}`,
+        `${formatAmount(row.verifiedAmount ?? '0')} ${row.currency}`,
     },
     {
       title: '未核销',
@@ -191,7 +192,7 @@ export function getFinanceBillColumns({
               Number(row.unverifiedAmount || 0) > 0 ? '#cf1322' : '#389e0d',
           }}
         >
-          {row.unverifiedAmount || '0.00000000'} {row.currency}
+          {formatAmount(row.unverifiedAmount ?? '0')} {row.currency}
         </strong>
       ),
     },

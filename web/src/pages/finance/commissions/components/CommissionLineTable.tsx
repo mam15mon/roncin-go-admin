@@ -1,6 +1,6 @@
 import { Space, Table, Tag, Typography } from 'antd';
 import React from 'react';
-import { formatDate } from '@/utils/format';
+import { formatDate, trimDecimal } from '@/utils/format';
 import { decimalText, personnelRoleText } from '../types';
 
 export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
@@ -55,7 +55,7 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
       key: 'exchangeRate',
       align: 'right' as const,
       width: 90,
-      render: (val?: string) => decimalText(val),
+      render: (val?: string) => trimDecimal(val),
     },
     {
       title: '折本币金额',

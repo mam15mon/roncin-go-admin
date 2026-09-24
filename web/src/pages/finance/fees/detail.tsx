@@ -1,10 +1,12 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { history } from '@/router/history';
-import { useParams } from 'react-router';
-import { App, Descriptions, Table, Tag } from 'antd';
+import { App, Descriptions, Table, type TableColumnsType, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
 import { PageHeaderShell, SectionCard } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
+import { history } from '@/router/history';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
+import { formatAmount } from '@/utils/format';
 
 export default function FinanceFeeDetailPage() {
   const { orderId = '' } = useParams<{ orderId: string }>();
@@ -30,6 +32,36 @@ export default function FinanceFeeDetailPage() {
       cancelled = true;
     };
   }, [message, orderId]);
+
+  const feeColumns: TableColumnsType<API.FeeLedgerItem> = [
+    { title: '费用名称', dataIndex: 'feeName' },
+    {
+      title: '方向',
+      dataIndex: 'direction',
+      render: (value) => (value === 'RECEIVABLE' ? '应收' : '应付'),
+    },
+    { title: '结算单位', dataIndex: 'settlementPartyName' },
+    {
+      title: '原币金额',
+      key: 'amount',
+      render: (_, row) =>
+        `${formatAmount(row.totalAmount)} ${row.currency || ''}`,
+    },
+    {
+      title: '折本币',
+      key: 'base',
+      render: (_, row) =>
+        `${formatAmount(row.baseCurrencyAmount)} ${row.baseCurrency || ''}`,
+    },
+    { title: '发生日期', dataIndex: 'expenseDate' },
+  ];
+
+  const feeColumnSettings = useColumnSettings<
+    TableColumnsType<API.FeeLedgerItem>[number]
+  >({
+    tableKey: 'finance:fee-detail-lines',
+    columns: feeColumns,
+  });
 
   return (
     <PageContainer
@@ -74,41 +106,31 @@ export default function FinanceFeeDetailPage() {
       <SectionCard title="按本位币汇总" style={{ marginTop: 16 }}>
         {(detail?.amountsByBaseCurrency ?? []).map((item) => (
           <Tag key={item.baseCurrency} color="blue">
-            {item.baseCurrency || '-'}：应收 {item.receivableBaseAmount || '0'}{' '}
-            / 应付 {item.payableBaseAmount || '0'} / 毛利{' '}
-            {item.profitBaseAmount || '0'}
+            {item.baseCurrency || '-'}：应收{' '}
+            {formatAmount(item.receivableBaseAmount ?? '0')} / 应付{' '}
+            {formatAmount(item.payableBaseAmount ?? '0')} / 毛利{' '}
+            {formatAmount(item.profitBaseAmount ?? '0')}
           </Tag>
         ))}
       </SectionCard>
       <SectionCard title="费用明细" style={{ marginTop: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
+          {feeColumnSettings.entry}
+        </div>
         <Table<API.FeeLedgerItem>
           rowKey="id"
           loading={loading}
           pagination={false}
           dataSource={detail?.fees ?? []}
-          columns={[
-            { title: '费用名称', dataIndex: 'feeName' },
-            {
-              title: '方向',
-              dataIndex: 'direction',
-              render: (value) => (value === 'RECEIVABLE' ? '应收' : '应付'),
-            },
-            { title: '结算单位', dataIndex: 'settlementPartyName' },
-            {
-              title: '原币金额',
-              key: 'amount',
-              render: (_, row) =>
-                `${row.totalAmount || '0'} ${row.currency || ''}`,
-            },
-            {
-              title: '折本币',
-              key: 'base',
-              render: (_, row) =>
-                `${row.baseCurrencyAmount || '0'} ${row.baseCurrency || ''}`,
-            },
-            { title: '发生日期', dataIndex: 'expenseDate' },
-          ]}
+          columns={feeColumnSettings.columns}
         />
+        {feeColumnSettings.modal}
       </SectionCard>
     </PageContainer>
   );

@@ -2,6 +2,8 @@ import { Card, Col, Row, Select, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import Decimal from 'decimal.js';
 import { SectionCard } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
+import { formatAmount } from '@/utils/format';
 import type { FeeCurrencySummary, ResultConfig } from '../../splitUtils';
 
 const { Text } = Typography;
@@ -48,14 +50,16 @@ export default function SplitFeesSection({
     },
     {
       title: '费用金额',
+      key: 'amount',
       render: (_, f) => (
         <Text strong>
-          {f.currency} {f.totalAmount}
+          {f.currency} {formatAmount(f.totalAmount)}
         </Text>
       ),
     },
     {
       title: '整行归属结果票',
+      key: 'assignment',
       width: 260,
       render: (_, fee) => (
         <Select
@@ -82,6 +86,12 @@ export default function SplitFeesSection({
     },
   ];
 
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.SeaOrderSplitDraftFeeItem>[number]>({
+      tableKey: 'orders:split-fees',
+      columns: feeColumns,
+    });
+
   return (
     <SectionCard
       title={
@@ -93,13 +103,17 @@ export default function SplitFeesSection({
         </Space>
       }
     >
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        {columnSettings.entry}
+      </div>
       <Table<API.SeaOrderSplitDraftFeeItem>
-        columns={feeColumns}
+        columns={columnSettings.columns}
         dataSource={splitContext?.draftFees || []}
         rowKey="id"
         pagination={false}
         size="middle"
       />
+      {columnSettings.modal}
       {feeCurrencySummaries.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <Text strong>各币种费用实时守恒：</Text>

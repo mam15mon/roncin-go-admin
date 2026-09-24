@@ -7,10 +7,10 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { useAccess } from '@/app/access';
 import { App, Form, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -31,6 +31,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import InvoiceCancelModal from './components/InvoiceCancelModal';
 import InvoiceCreateModal from './components/InvoiceCreateModal';
@@ -133,7 +134,10 @@ export default function FinanceInvoicesPage() {
     field: 'receivableBaseAmount' | 'payableBaseAmount',
   ) =>
     metricStats.amountsByBaseCurrency
-      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .map(
+        (item) =>
+          `${formatAmount(item[field] ?? '0')} ${item.baseCurrency ?? '-'}`,
+      )
       .join(' / ') || '-';
   const reload = () => actionRef.current?.reload();
 
@@ -349,7 +353,7 @@ export default function FinanceInvoicesPage() {
       search: false,
       render: (_, r) => (
         <strong style={{ color: '#262626' }}>
-          {r.totalAmount} {r.currency}
+          {formatAmount(r.totalAmount)} {r.currency}
         </strong>
       ),
     },
@@ -378,7 +382,7 @@ export default function FinanceInvoicesPage() {
           r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
         return (
           <Space size={4}>
-            <span>{r.exchangeRate}</span>
+            <span>{trimDecimal(r.exchangeRate)}</span>
             <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
               {sourceLabel}
             </Tag>
@@ -399,7 +403,7 @@ export default function FinanceInvoicesPage() {
               color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
             }}
           >
-            {r.baseCurrencyAmount} {r.baseCurrency}
+            {formatAmount(r.baseCurrencyAmount)} {r.baseCurrency}
           </strong>
         ) : (
           '-'
@@ -411,6 +415,7 @@ export default function FinanceInvoicesPage() {
       width: 120,
       align: 'right',
       search: false,
+      render: (_, r) => formatAmount(r.taxAmount),
     },
     {
       title: '税务发票号',
@@ -541,6 +546,7 @@ export default function FinanceInvoicesPage() {
         headerTitle="发票明细列表"
         actionRef={actionRef}
         columns={columns}
+        columnSettingsKey="finance:invoices"
         metricCards={metricCards}
         scrollX={1600}
         primaryActionText={

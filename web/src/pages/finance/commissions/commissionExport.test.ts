@@ -98,7 +98,8 @@ describe('提成 CSV', () => {
     expect(content).toContain('华北公司');
     expect(content).toContain('"规则,""甲""\r\n第二行"');
     expect(content).toContain(',-2.5000,');
-    expect(content).toContain(',-10.00000000,-20.00000000,');
+    // 金额列统一两位小数（csvAmount），比例列维持原值。
+    expect(content).toContain(',-10.00,-20.00,');
   });
 
   it('保护带前导空白的业务文本公式', () => {

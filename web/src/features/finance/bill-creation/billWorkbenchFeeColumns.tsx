@@ -4,6 +4,7 @@ import { Button, Popconfirm, Tag, Typography } from 'antd';
 import React from 'react';
 import { orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
 import { OrderFeeStatus } from '@/enums.generated';
+import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -65,7 +66,7 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     search: false,
     render: (_, row) => (
       <Text strong>
-        {row.totalAmount} {row.currency}
+        {formatAmount(row.totalAmount)} {row.currency}
       </Text>
     ),
   },

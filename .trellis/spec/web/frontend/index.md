@@ -10,7 +10,7 @@
 | [Capability Navigation](./capability-navigation.md) | 复用能力导航：场景→入口→职责，开发前先查 | ✅ |
 | [Duplicate Report](./duplicate-report.md) | 前后端疑似重复函数扫描、证据与审查限制 | ✅ |
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
-| [Component Guidelines](./component-guidelines.md) | UI 模板规范与公共组件 | ✅ |
+| [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
 | [Hook Guidelines](./hook-guidelines.md) | 数据获取与自定义 Hook | ✅ |
 | [Type Safety](./type-safety.md) | 生成物类型与权限键对齐 | ✅ |

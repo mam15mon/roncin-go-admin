@@ -5,7 +5,7 @@ import {
   orderFeeStatusMeta,
   statusTag,
 } from '@/constants/statusMeta';
-import { trimDecimal } from '@/utils/format';
+import { trimDecimal, formatAmount } from '@/utils/format';
 import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
 
 type FeeBaseColumnsOptions =
@@ -100,7 +100,7 @@ export function feeBaseColumns(
     render: (_, record) =>
       panel ? (
         <strong>
-          {trimDecimal(record.totalAmount)} {record.currency}
+          {formatAmount(record.totalAmount)} {record.currency}
         </strong>
       ) : (
         <span
@@ -109,7 +109,7 @@ export function feeBaseColumns(
             color: options.direction === RECEIVABLE ? '#1677ff' : '#fa8c16',
           }}
         >
-          {trimDecimal(record.totalAmount)} {record.currency}
+          {formatAmount(record.totalAmount)} {record.currency}
         </span>
       ),
   };

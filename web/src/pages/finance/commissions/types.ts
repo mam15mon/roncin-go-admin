@@ -1,5 +1,6 @@
 import type { Dayjs } from 'dayjs';
 import { FinanceCommissionStatus } from '@/enums.generated';
+import { formatAmount } from '@/utils/format';
 
 export type CreateValues = {
   // 来源二选一：核销与对冲恰好提供一个，与后端契约一致。
@@ -87,10 +88,8 @@ export const cnyExchangeRateSourceText = (value?: string) => {
   return value || '-';
 };
 
-export const decimalText = (value?: string) => {
-  if (!value) return '0';
-  return value.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
-};
+/** 提成金额展示文案：全站统一保留两位小数（含千分位），委托公共 formatAmount。 */
+export const decimalText = (value?: string) => formatAmount(value ?? '0');
 
 export const calculationSignature = (values: Partial<CreateValues>) =>
   [values.verificationId, values.nettingId, values.candidateKey].join('|');

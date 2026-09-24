@@ -23,6 +23,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { useEffect, useMemo, useState } from 'react';
 import { MODAL_SIZE } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
   disableCreditExceededOptions,
@@ -38,6 +39,7 @@ import {
 } from '@/services/roncin/settlementService';
 import type { SelectOption } from '@/types/select-option';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { formatAmount } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import {
   buildVerificationAllocations,
@@ -324,7 +326,7 @@ export default function VerificationWorkbench({
       title: '未核销余额',
       dataIndex: 'unverifiedAmount',
       align: 'right',
-      render: (value) => `${value} ${scope.currency}`,
+      render: (value) => `${formatAmount(value)} ${scope.currency}`,
     },
   ];
   const billColumns: ColumnsType<API.FinanceBill> = [
@@ -334,7 +336,7 @@ export default function VerificationWorkbench({
       title: '未核销余额',
       dataIndex: 'unverifiedAmount',
       align: 'right',
-      render: (value) => `${value} ${scope.currency}`,
+      render: (value) => `${formatAmount(value)} ${scope.currency}`,
     },
   ];
   const allocationColumns: ColumnsType<VerificationAllocationDraft> = [
@@ -370,6 +372,25 @@ export default function VerificationWorkbench({
       ),
     },
   ];
+
+  const cashflowColumnSettings = useColumnSettings<
+    ColumnsType<API.FinanceCashflow>[number]
+  >({
+    tableKey: 'finance:verification-cashflow-candidates',
+    columns: cashflowColumns,
+  });
+  const billColumnSettings = useColumnSettings<
+    ColumnsType<API.FinanceBill>[number]
+  >({
+    tableKey: 'finance:verification-bill-candidates',
+    columns: billColumns,
+  });
+  const allocationColumnSettings = useColumnSettings<
+    ColumnsType<VerificationAllocationDraft>[number]
+  >({
+    tableKey: 'finance:verification-allocations',
+    columns: allocationColumns,
+  });
 
   return (
     <Modal
@@ -518,11 +539,20 @@ export default function VerificationWorkbench({
         <Row gutter={12}>
           <Col span={12}>
             <Card size="small" title={`待核销资金（${cashflows.length}）`}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginBottom: 8,
+                }}
+              >
+                {cashflowColumnSettings.entry}
+              </div>
               <Table
                 size="small"
                 loading={candidateLoading}
                 rowKey="id"
-                columns={cashflowColumns}
+                columns={cashflowColumnSettings.columns}
                 dataSource={cashflows}
                 pagination={{ pageSize: 6, showSizeChanger: false }}
                 rowSelection={{
@@ -531,15 +561,25 @@ export default function VerificationWorkbench({
                   onChange: setSelectedCashflowIds,
                 }}
               />
+              {cashflowColumnSettings.modal}
             </Card>
           </Col>
           <Col span={12}>
             <Card size="small" title={`待核销账单（${bills.length}）`}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginBottom: 8,
+                }}
+              >
+                {billColumnSettings.entry}
+              </div>
               <Table
                 size="small"
                 loading={candidateLoading}
                 rowKey="id"
-                columns={billColumns}
+                columns={billColumnSettings.columns}
                 dataSource={bills}
                 pagination={{ pageSize: 6, showSizeChanger: false }}
                 rowSelection={{
@@ -548,6 +588,7 @@ export default function VerificationWorkbench({
                   onChange: setSelectedBillIds,
                 }}
               />
+              {billColumnSettings.modal}
             </Card>
           </Col>
         </Row>
@@ -570,17 +611,17 @@ export default function VerificationWorkbench({
             {
               key: 'cash',
               label: '已选资金余额',
-              children: `${selectedCashAmount.toFixed(8)} ${scope.currency}`,
+              children: `${formatAmount(selectedCashAmount.toFixed(2))} ${scope.currency}`,
             },
             {
               key: 'allocation',
               label: '本次分配',
-              children: `${allocationAmount.toFixed(8)} ${scope.currency}`,
+              children: `${formatAmount(allocationAmount.toFixed(2))} ${scope.currency}`,
             },
             {
               key: 'bill',
               label: '已选账单余额',
-              children: `${selectedBillAmount.toFixed(8)} ${scope.currency}`,
+              children: `${formatAmount(selectedBillAmount.toFixed(2))} ${scope.currency}`,
             },
           ]}
         />
@@ -592,14 +633,24 @@ export default function VerificationWorkbench({
             style={{ marginBottom: 12 }}
           />
         ) : null}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
+          {allocationColumnSettings.entry}
+        </div>
         <Table
           size="small"
           rowKey={(item) => `${item.cashflowId}:${item.billId}`}
-          columns={allocationColumns}
+          columns={allocationColumnSettings.columns}
           dataSource={allocations}
           pagination={false}
           locale={{ emptyText: '选择资金和账单后，点击“按余额自动分配”' }}
         />
+        {allocationColumnSettings.modal}
         <Input.TextArea
           aria-label="核销备注"
           value={scope.note}

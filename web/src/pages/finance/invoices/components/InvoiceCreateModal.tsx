@@ -1,4 +1,4 @@
-import { ProTable } from '@ant-design/pro-components';
+import { type ProColumns, ProTable } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
@@ -12,6 +12,7 @@ import {
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { MODAL_SIZE } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
   settlementServiceListFinanceOrganizationOptions,
@@ -20,6 +21,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -131,6 +133,30 @@ export default function InvoiceCreateModal({
     createForm.setFieldValue('invoiceProfileId', undefined);
   };
 
+  const columns: ProColumns<API.FinanceBill>[] = [
+    { title: '账单编号', dataIndex: 'billNo' },
+    {
+      title: '方向',
+      dataIndex: 'direction',
+      renderText: (v) => (v === 'RECEIVABLE' ? '销项' : '进项'),
+    },
+    { title: '结算单位', dataIndex: 'settlementPartyName' },
+    {
+      title: '金额',
+      render: (_, r) => `${formatAmount(r.totalAmount)} ${r.currency}`,
+    },
+    {
+      title: '税额',
+      dataIndex: 'taxAmount',
+      render: (_, r) => formatAmount(r.taxAmount),
+    },
+  ];
+
+  const columnSettings = useColumnSettings<ProColumns<API.FinanceBill>>({
+    tableKey: 'finance:invoice-candidate-bills',
+    columns,
+  });
+
   return (
     <Modal
       title="从已确认账单创建开票记录"
@@ -229,23 +255,11 @@ export default function InvoiceCreateModal({
       <ProTable<API.FinanceBill>
         key={organizationID || 'no-organization'}
         rowKey="id"
-        options={false}
+        options={{ reload: true, density: true, setting: false }}
         size="small"
         bordered
-        columns={[
-          { title: '账单编号', dataIndex: 'billNo' },
-          {
-            title: '方向',
-            dataIndex: 'direction',
-            renderText: (v) => (v === 'RECEIVABLE' ? '销项' : '进项'),
-          },
-          { title: '结算单位', dataIndex: 'settlementPartyName' },
-          {
-            title: '金额',
-            render: (_, r) => `${r.totalAmount} ${r.currency}`,
-          },
-          { title: '税额', dataIndex: 'taxAmount' },
-        ]}
+        columns={columnSettings.columns}
+        toolBarRender={() => [columnSettings.entry]}
         rowSelection={{
           selectedRowKeys: selectedIDs,
           preserveSelectedRowKeys: true,

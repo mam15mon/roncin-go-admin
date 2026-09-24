@@ -26,6 +26,46 @@
 - **模态表单生命周期一律走 `ModalForm.onFinish`**：异步提交必须返回 Promise，由 ProComponents 自动接管提交中 loading 态与成功关闭，严禁在外部手工维护 `confirmLoading` 镜像状态。
 - **自定义 Hook 依赖防护**：在封装涉及异步请求的 Hook 时，纯动作型回调（如 api 函数、数据转换 map 函数）必须使用 `useRef` 保障引用稳定性，严禁将未 memoize 的内联函数作为 `useCallback` 依赖引发渲染死循环（`Maximum update depth exceeded`）。
 
+## 金额与数量显示规范 (Amount Display Standards)
+
+### Convention: 金额展示统一 `formatAmount`，比率/数量统一 `trimDecimal`
+
+**What**：后端 decimal 字符串固定 8 位小数（如 `15362.50000000`），展示层一律经
+`web/src/utils/format.ts` 格式化，禁止原串渲染：
+
+- **金额类**（费用金额、折本币、已核销/未核销、汇兑损益、提成、税额、信用额度、
+  余额等）：`formatAmount`（千分位 + 固定两位小数）。
+- **比率与数量类**（汇率、提成比例 %、数量、单价）：`trimDecimal`（去尾零、
+  变长小数）；`6.7183` 强制两位会失真。
+- **CSV/Excel 导出金额单元格**：两位小数但**不带千分位**（`Number(v).toFixed(2)`，
+  参考 `commissionExport.ts` 的 `csvAmount`），避免逗号被表格软件按文本解析。
+- **表单输入框与提交载荷**保持原始字符串；展示格式化只作用于渲染层，预览文案
+  （如「数量 × 单价 = 金额」）中金额同样走 `formatAmount`。
+- **空值口径**：`formatAmount(null/undefined)` → `-`；汇总统计需要显式零时用
+  `formatAmount(value ?? '0')` → `0.00`。同一实体在列表、详情、导出入口口径一致。
+- 提成模块 `decimalText` 已委托 `formatAmount`（2026-09 全站统一），仅是展示别名，
+  不得再用于汇率、比例等非金额字段。
+
+**Why**：金额直接渲染后端串会出现 `15362.50000000` 式尾零；各页自写 `toFixed(8)`、
+正则去尾零或 `decimalText` 会产生 `15362.5` 与 `15,362.50` 并存的口径漂移。
+
+**Wrong vs Correct**：
+
+```tsx
+// 错误：后端 decimal 原串直接渲染（8 位尾零），或手写 toFixed/正则冒充格式化
+{row.totalAmount} {row.currency}
+`${selectedCashAmount.toFixed(8)} ${scope.currency}`
+`${trimDecimal(record.totalAmount)} ${record.currency}`
+
+// 正确：金额走 formatAmount，比率/数量走 trimDecimal
+{formatAmount(row.totalAmount)} {row.currency}
+`${formatAmount(selectedCashAmount.toFixed(2))} ${scope.currency}`
+{trimDecimal(row.exchangeRate)}
+```
+
+**Related**：`web/src/utils/format.ts`（唯一真相源）；AGENTS.md「金额显示规范」；
+导出金额参考 `src/pages/finance/commissions/commissionExport.ts`。
+
 ## 侧边栏
 
 - 折叠收起宽度基准 48px，菜单项固定 36px 居中圆角卡片；折叠时彻底隐藏文本与

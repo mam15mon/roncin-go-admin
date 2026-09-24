@@ -1,6 +1,7 @@
 import { Alert, Card, Col, Row, Statistic, Typography } from 'antd';
 import Decimal from 'decimal.js';
 import React from 'react';
+import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -44,7 +45,11 @@ export default function BillBatchSummary({
         <Col xs={12} md={6}>
           <Statistic
             title="当前叶子账单金额"
-            value={currentGroup?.totalAmount || '-'}
+            value={
+              currentGroup?.totalAmount
+                ? formatAmount(currentGroup.totalAmount)
+                : '-'
+            }
             suffix={currentGroup?.currency || ''}
           />
         </Col>
@@ -58,7 +63,7 @@ export default function BillBatchSummary({
           <Text>
             {Object.entries(totalsByCurrency).map(([currency, amount]) => (
               <span key={currency} style={{ marginRight: 12 }}>
-                {amount.toString()} {currency}
+                {formatAmount(amount.toFixed(2))} {currency}
               </span>
             ))}
           </Text>

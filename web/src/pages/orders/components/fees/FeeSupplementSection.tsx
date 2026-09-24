@@ -15,6 +15,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderFeeStatusMeta } from '@/constants/statusMeta';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
@@ -589,7 +590,7 @@ export default function FeeSupplementSection({
         <Space orientation="vertical" size={0}>
           <span>{record.feeName || record.feeCode || '-'}</span>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            {`${record.quantity || '-'} × ${record.unitPrice || '-'} = ${record.totalAmount || '-'} ${record.currency || ''} · 发生日期 ${record.expenseDate || '-'}`}
+            {`${record.quantity || '-'} × ${record.unitPrice || '-'} = ${formatAmount(record.totalAmount)} ${record.currency || ''} · 发生日期 ${record.expenseDate || '-'}`}
           </Typography.Text>
         </Space>
       ),
@@ -711,6 +712,11 @@ export default function FeeSupplementSection({
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<SupplementRequest>>({
+    tableKey: 'orders:fee-supplements',
+    columns,
+  });
+
   return (
     <>
       {canCreate && lockActive && (
@@ -734,10 +740,11 @@ export default function FeeSupplementSection({
       <ProTable<SupplementRequest>
         actionRef={actionRef}
         rowKey="id"
-        columns={columns}
+        columns={columnSettings.columns}
         size="small"
         search={false}
-        options={false}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [columnSettings.entry]}
         params={{ orderId }}
         pagination={{ pageSize: 10, hideOnSinglePage: true }}
         request={async (params) => {
@@ -811,7 +818,7 @@ export default function FeeSupplementSection({
                 {
                   key: 'amount',
                   label: '申请金额',
-                  children: `${trimDecimal(reviewRequest.quantity)} × ${trimDecimal(reviewRequest.unitPrice)} = ${trimDecimal(reviewRequest.totalAmount)} ${reviewRequest.currency}`,
+                  children: `${trimDecimal(reviewRequest.quantity)} × ${trimDecimal(reviewRequest.unitPrice)} = ${formatAmount(reviewRequest.totalAmount)} ${reviewRequest.currency}`,
                 },
                 {
                   key: 'date',

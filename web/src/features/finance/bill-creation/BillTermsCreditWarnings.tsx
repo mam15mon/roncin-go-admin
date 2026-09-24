@@ -1,5 +1,6 @@
 import { Alert } from 'antd';
 import React from 'react';
+import { formatAmount } from '@/utils/format';
 
 export type BillTermsCreditWarningsProps = {
   direction?: string;
@@ -52,7 +53,7 @@ export default function BillTermsCreditWarnings({
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
-          description={`该客户应收未核销余额（本币）${currentUnsettledAmount ?? '-'} 已超出约定信用额度 ${creditLimitAmount ?? '-'}${creditCurrency ? ` ${creditCurrency}` : ''}；本单金额 ${billAmount ?? '-'}${billCurrency ? ` ${billCurrency}` : ''}。录入后请注意资金回款风险。`}
+          description={`该客户应收未核销余额（本币）${currentUnsettledAmount ? formatAmount(currentUnsettledAmount) : '-'} 已超出约定信用额度 ${creditLimitAmount ? formatAmount(creditLimitAmount) : '-'}${creditCurrency ? ` ${creditCurrency}` : ''}；本单金额 ${billAmount ? formatAmount(billAmount) : '-'}${billCurrency ? ` ${billCurrency}` : ''}。录入后请注意资金回款风险。`}
         />
       ) : null}
     </>

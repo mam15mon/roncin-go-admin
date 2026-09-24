@@ -1,9 +1,11 @@
-import { Descriptions, Space, Table, Tag } from 'antd';
+import { Descriptions, Space, Table, type TableColumnsType, Tag } from 'antd';
 import React from 'react';
 import { DescriptionsDetailDrawer, DItem } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
 import { billStatusMeta } from '@/features/finance/bill-status';
+import { formatAmount, trimDecimal } from '@/utils/format';
 
 interface BillDetailDrawerProps {
   open: boolean;
@@ -18,6 +20,62 @@ export default function BillDetailDrawer({
   detail,
   onClose,
 }: BillDetailDrawerProps) {
+  const lineColumns: TableColumnsType<API.FinanceBillLine> = [
+    { title: '订单编号', dataIndex: 'orderNo', width: 150 },
+    { title: '费用代码', dataIndex: 'feeCode', width: 100 },
+    { title: '费用名称', dataIndex: 'feeName', width: 130 },
+    {
+      title: '税率',
+      dataIndex: 'taxRate',
+      align: 'right',
+      width: 80,
+      render: (value) => (value == null ? '-' : `${Number(value)}%`),
+    },
+    {
+      title: '不含税金额',
+      dataIndex: 'netAmount',
+      align: 'right',
+      render: (val, row) =>
+        val ? `${formatAmount(val)} ${row.currency}` : '-',
+    },
+    {
+      title: '税额',
+      dataIndex: 'taxAmount',
+      align: 'right',
+      render: (val, row) =>
+        val ? `${formatAmount(val)} ${row.currency}` : '-',
+    },
+    {
+      title: '含税金额',
+      dataIndex: 'totalAmount',
+      render: (_, row) => (
+        <strong>
+          {formatAmount(row.totalAmount)} {row.currency}
+        </strong>
+      ),
+      align: 'right',
+    },
+    {
+      title: '费用折本币',
+      render: (_, row) =>
+        `${formatAmount(row.baseCurrencyAmount)} ${row.baseCurrency}`,
+      align: 'right',
+    },
+    {
+      title: '关联状态',
+      render: (_, row) =>
+        row.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
+      width: 85,
+    },
+  ];
+
+  const lineColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceBillLine>[number]
+  >({
+    tableKey: 'finance:bill-lines',
+    columns: lineColumns,
+  });
+
   return (
     <DescriptionsDetailDrawer
       title={(current) => `账单详情 ${current?.billNo || ''}`}
@@ -70,21 +128,23 @@ export default function BillDetailDrawer({
           <DItem label="对账抬头">{detail.statementTitle}</DItem>
           <Descriptions.Item label="含税总额">
             <strong style={{ color: '#262626' }}>
-              {detail.totalAmount} {detail.currency}
+              {formatAmount(detail.totalAmount)} {detail.currency}
             </strong>
           </Descriptions.Item>
           <Descriptions.Item label="不含税金额">
-            {detail.netAmount ? `${detail.netAmount} ${detail.currency}` : '-'}
+            {detail.netAmount
+              ? `${formatAmount(detail.netAmount)} ${detail.currency}`
+              : '-'}
           </Descriptions.Item>
           <Descriptions.Item label="税额汇总">
             {detail.taxAmount
-              ? `${detail.taxAmount} ${detail.currency}`
+              ? `${formatAmount(detail.taxAmount)} ${detail.currency}`
               : '0.00'}
           </Descriptions.Item>
           <Descriptions.Item label="账单汇率">
             {detail.exchangeRate ? (
               <Space size={4}>
-                <span>{detail.exchangeRate}</span>
+                <span>{trimDecimal(detail.exchangeRate)}</span>
                 <Tag
                   color={
                     detail.exchangeRateSource === 'MANUAL'
@@ -107,7 +167,7 @@ export default function BillDetailDrawer({
           </Descriptions.Item>
           <Descriptions.Item label="折本币总额">
             <strong style={{ color: '#1677ff' }}>
-              {detail.baseCurrencyAmount} {detail.baseCurrency}
+              {formatAmount(detail.baseCurrencyAmount)} {detail.baseCurrency}
             </strong>
           </Descriptions.Item>
           <Descriptions.Item label="汇率生效日期">
@@ -131,11 +191,13 @@ export default function BillDetailDrawer({
             {detail.estimatedInvoiceCurrency || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="预计开票汇率">
-            {detail.estimatedInvoiceRate || '-'}
+            {detail.estimatedInvoiceRate
+              ? trimDecimal(detail.estimatedInvoiceRate)
+              : '-'}
           </Descriptions.Item>
           <Descriptions.Item label="预计开票金额">
             {detail.estimatedInvoiceAmount
-              ? `${detail.estimatedInvoiceAmount} ${detail.estimatedInvoiceCurrency || ''}`.trim()
+              ? `${formatAmount(detail.estimatedInvoiceAmount)} ${detail.estimatedInvoiceCurrency || ''}`.trim()
               : '-'}
           </Descriptions.Item>
           {/* column=3 下「预计开票金额」独占新行首列，备注补满剩余两列，避免行合计超出 column */}
@@ -151,59 +213,26 @@ export default function BillDetailDrawer({
       )}
     >
       {(detail) => (
-        <Table<API.FinanceBillLine>
-          rowKey="id"
-          size="small"
-          bordered
-          pagination={false}
-          dataSource={detail.lines || []}
-          columns={[
-            { title: '订单编号', dataIndex: 'orderNo', width: 150 },
-            { title: '费用代码', dataIndex: 'feeCode', width: 100 },
-            { title: '费用名称', dataIndex: 'feeName', width: 130 },
-            {
-              title: '税率',
-              dataIndex: 'taxRate',
-              align: 'right',
-              width: 80,
-              render: (value) => (value == null ? '-' : `${Number(value)}%`),
-            },
-            {
-              title: '不含税金额',
-              dataIndex: 'netAmount',
-              align: 'right',
-              render: (val, row) => (val ? `${val} ${row.currency}` : '-'),
-            },
-            {
-              title: '税额',
-              dataIndex: 'taxAmount',
-              align: 'right',
-              render: (val, row) => (val ? `${val} ${row.currency}` : '-'),
-            },
-            {
-              title: '含税金额',
-              dataIndex: 'totalAmount',
-              render: (_, row) => (
-                <strong>
-                  {row.totalAmount} {row.currency}
-                </strong>
-              ),
-              align: 'right',
-            },
-            {
-              title: '费用折本币',
-              render: (_, row) =>
-                `${row.baseCurrencyAmount} ${row.baseCurrency}`,
-              align: 'right',
-            },
-            {
-              title: '关联状态',
-              render: (_, row) =>
-                row.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
-              width: 85,
-            },
-          ]}
-        />
+        <>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
+            {lineColumnSettings.entry}
+          </div>
+          <Table<API.FinanceBillLine>
+            rowKey="id"
+            size="small"
+            bordered
+            pagination={false}
+            dataSource={detail.lines || []}
+            columns={lineColumnSettings.columns}
+          />
+          {lineColumnSettings.modal}
+        </>
       )}
     </DescriptionsDetailDrawer>
   );

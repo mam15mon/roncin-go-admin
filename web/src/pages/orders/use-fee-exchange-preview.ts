@@ -7,7 +7,7 @@ import {
   calculateExactFeeTotal,
   quantityOrPricePattern,
 } from '@/utils/decimal';
-import { trimDecimal } from '@/utils/format';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import type { FeeFormValues } from './components/fees/FeeFormModal';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
@@ -39,7 +39,8 @@ export function useFeeExchangePreview(
   };
 
   const seedFromFee = (fee: API.OrderFee) => {
-    setTotalPreview(calculateExactFeeTotal(fee.quantity, fee.unitPrice));
+    const seededTotal = calculateExactFeeTotal(fee.quantity, fee.unitPrice);
+    setTotalPreview(seededTotal ? formatAmount(seededTotal) : undefined);
     setExchangeRatePreview(
       fee.exchangeRate ? trimDecimal(fee.exchangeRate) : undefined,
     );
@@ -94,7 +95,8 @@ export function useFeeExchangePreview(
       quantityOrPricePattern.test(quantity) &&
       quantityOrPricePattern.test(unitPrice)
     ) {
-      setTotalPreview(calculateExactFeeTotal(quantity, unitPrice));
+      const liveTotal = calculateExactFeeTotal(quantity, unitPrice);
+      setTotalPreview(liveTotal ? formatAmount(liveTotal) : undefined);
     } else {
       setTotalPreview(undefined);
     }

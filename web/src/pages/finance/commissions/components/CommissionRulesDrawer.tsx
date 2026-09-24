@@ -9,6 +9,7 @@ import { App, Button, Drawer, Select, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DRAWER_SIZE } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
@@ -21,10 +22,10 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { trimDecimal } from '@/utils/format';
 import {
   calculationBasisMeta,
   calculationBasisText,
-  decimalText,
   getBusinessReason,
   personnelRoleMeta,
   personnelRoleText,
@@ -314,7 +315,7 @@ export default function CommissionRulesDrawer({
       align: 'right',
       width: 90,
       search: false,
-      renderText: (value) => `${decimalText(value)}%`,
+      renderText: (value) => `${trimDecimal(value)}%`,
     },
     {
       title: '生效区间',
@@ -410,6 +411,13 @@ export default function CommissionRulesDrawer({
     },
   ];
 
+  const ruleColumnSettings = useColumnSettings<
+    ProColumns<API.FinanceCommissionRule>
+  >({
+    tableKey: 'finance:commission-rules',
+    columns: ruleColumns,
+  });
+
   return (
     <>
       <Drawer
@@ -455,12 +463,14 @@ export default function CommissionRulesDrawer({
         <ProTable<API.FinanceCommissionRule>
           actionRef={ruleActionRef}
           rowKey="id"
-          columns={ruleColumns}
+          columns={ruleColumnSettings.columns}
           bordered
           size="small"
           search={{ defaultCollapsed: false }}
-          toolBarRender={() =>
-            canManage
+          options={{ reload: true, density: true, setting: false }}
+          toolBarRender={() => [
+            ruleColumnSettings.entry,
+            ...(canManage
               ? [
                   <Button
                     key="new-rule"
@@ -475,8 +485,8 @@ export default function CommissionRulesDrawer({
                     新建方案
                   </Button>,
                 ]
-              : []
-          }
+              : []),
+          ]}
           request={async (params) => {
             const response = await settlementServiceListCommissionRules({
               page: params.current ?? 1,

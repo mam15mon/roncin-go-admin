@@ -1,4 +1,5 @@
 import { Tag } from 'antd';
+import { formatAmount } from '@/utils/format';
 
 type ExchangeGainLossTagProps = {
   value: string | number | null | undefined;
@@ -17,14 +18,14 @@ export function ExchangeGainLossTag({
   if (numeric > 0) {
     return (
       <Tag color="green">
-        +{value} {baseCurrency} (收益)
+        +{formatAmount(value)} {baseCurrency} (收益)
       </Tag>
     );
   }
   if (numeric < 0) {
     return (
       <Tag color="red">
-        {value} {baseCurrency} (损失)
+        {formatAmount(value)} {baseCurrency} (损失)
       </Tag>
     );
   }

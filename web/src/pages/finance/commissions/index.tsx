@@ -10,7 +10,6 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { useAccess } from '@/app/access';
 import {
   App,
   Button,
@@ -21,7 +20,9 @@ import {
   Typography,
 } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   FinanceCommissionStatus,
   FinanceOrganizationPurpose,
@@ -41,6 +42,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { trimDecimal } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 import {
   buildCommissionExportFileName,
@@ -478,7 +480,7 @@ export default function FinanceCommissionsPage() {
       width: 80,
       align: 'right',
       search: false,
-      renderText: (value) => `${decimalText(value)}%`,
+      renderText: (value) => `${trimDecimal(value)}%`,
     },
     {
       title: '原始/有效提成',
@@ -587,6 +589,11 @@ export default function FinanceCommissionsPage() {
       },
     },
   ];
+
+  const columnSettings = useColumnSettings<ProColumns<API.FinanceCommission>>({
+    tableKey: 'finance:commission-list',
+    columns,
+  });
 
   return (
     <PageContainer
@@ -728,7 +735,7 @@ export default function FinanceCommissionsPage() {
             headerTitle="提成结算列表"
             actionRef={actionRef}
             rowKey="id"
-            columns={columns}
+            columns={columnSettings.columns}
             cardProps={{
               style: {
                 borderRadius: 8,
@@ -738,7 +745,8 @@ export default function FinanceCommissionsPage() {
             size="small"
             scroll={{ x: 1900 }}
             search={false}
-            toolBarRender={false}
+            toolBarRender={() => [columnSettings.entry]}
+            options={{ reload: true, density: true, setting: false }}
             request={async (params) => {
               const response = await settlementServiceListCommissions({
                 page: params.current ?? 1,

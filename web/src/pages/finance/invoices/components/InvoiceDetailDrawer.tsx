@@ -1,7 +1,9 @@
-import { Descriptions, Space, Table, Tag } from 'antd';
+import { Descriptions, Space, Table, type TableColumnsType, Tag } from 'antd';
 import React from 'react';
 import { DescriptionsDetailDrawer, DItem } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceInvoiceStatus } from '@/enums.generated';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import {
   invoiceIssueDateLabel,
   invoiceIssueVerb,
@@ -19,6 +21,72 @@ export default function InvoiceDetailDrawer({
   detail,
   onClose,
 }: InvoiceDetailDrawerProps) {
+  const lineColumns: TableColumnsType<API.FinanceInvoiceLine> = [
+    { title: '行号', dataIndex: 'lineNo', width: 65 },
+    { title: '费用代码', dataIndex: 'itemCode', width: 110 },
+    { title: '开票项目', dataIndex: 'itemName' },
+    {
+      title: '税率',
+      dataIndex: 'taxRate',
+      align: 'right',
+      render: (value) => `${Number(value)}%`,
+    },
+    {
+      title: '未税金额',
+      dataIndex: 'netAmount',
+      align: 'right',
+      render: (val) => formatAmount(val),
+    },
+    {
+      title: '税额',
+      dataIndex: 'taxAmount',
+      align: 'right',
+      render: (val) => formatAmount(val),
+    },
+    {
+      title: '含税金额',
+      dataIndex: 'totalAmount',
+      align: 'right',
+      render: (val) => formatAmount(val),
+    },
+    { title: '来源行数', dataIndex: 'sourceLineCount', width: 90 },
+  ];
+
+  const billLinkColumns: TableColumnsType<API.FinanceInvoiceBill> = [
+    { title: '账单编号', dataIndex: 'billNo' },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      align: 'right',
+      render: (val) => formatAmount(val),
+    },
+    {
+      title: '税额',
+      dataIndex: 'taxAmount',
+      align: 'right',
+      render: (val) => formatAmount(val),
+    },
+    {
+      title: '关联',
+      render: (_, r) =>
+        r.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
+    },
+  ];
+
+  const lineColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceInvoiceLine>[number]
+  >({
+    tableKey: 'finance:invoice-lines',
+    columns: lineColumns,
+  });
+
+  const billLinkColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceInvoiceBill>[number]
+  >({
+    tableKey: 'finance:invoice-records',
+    columns: billLinkColumns,
+  });
+
   return (
     <DescriptionsDetailDrawer
       title={(current) =>
@@ -62,22 +130,24 @@ export default function InvoiceDetailDrawer({
             {detail.invoiceDate || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="未税金额">
-            {detail.netAmount ? `${detail.netAmount} ${detail.currency}` : '-'}
+            {detail.netAmount
+              ? `${formatAmount(detail.netAmount)} ${detail.currency}`
+              : '-'}
           </Descriptions.Item>
           <Descriptions.Item label="税额汇总">
             {detail.taxAmount
-              ? `${detail.taxAmount} ${detail.currency}`
+              ? `${formatAmount(detail.taxAmount)} ${detail.currency}`
               : '0.00'}
           </Descriptions.Item>
           <Descriptions.Item label="含税总额">
             <strong style={{ color: '#262626' }}>
-              {detail.totalAmount} {detail.currency}
+              {formatAmount(detail.totalAmount)} {detail.currency}
             </strong>
           </Descriptions.Item>
           <Descriptions.Item label="开票汇率">
             {detail.exchangeRate ? (
               <Space size={4}>
-                <span>{detail.exchangeRate}</span>
+                <span>{trimDecimal(detail.exchangeRate)}</span>
                 <Tag
                   color={
                     detail.exchangeRateSource === 'MANUAL'
@@ -103,7 +173,7 @@ export default function InvoiceDetailDrawer({
           <Descriptions.Item label="发票折本币">
             {detail.baseCurrencyAmount ? (
               <strong style={{ color: '#1677ff' }}>
-                {detail.baseCurrencyAmount} {detail.baseCurrency}
+                {formatAmount(detail.baseCurrencyAmount)} {detail.baseCurrency}
               </strong>
             ) : (
               '-'
@@ -138,6 +208,9 @@ export default function InvoiceDetailDrawer({
     >
       {(detail) => (
         <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {lineColumnSettings.entry}
+          </div>
           <Table<API.FinanceInvoiceLine>
             rowKey="id"
             size="small"
@@ -145,39 +218,21 @@ export default function InvoiceDetailDrawer({
             pagination={false}
             style={{ marginTop: 16 }}
             dataSource={detail.lines || []}
-            columns={[
-              { title: '行号', dataIndex: 'lineNo', width: 65 },
-              { title: '费用代码', dataIndex: 'itemCode', width: 110 },
-              { title: '开票项目', dataIndex: 'itemName' },
-              {
-                title: '税率',
-                dataIndex: 'taxRate',
-                align: 'right',
-                render: (value) => `${Number(value)}%`,
-              },
-              { title: '未税金额', dataIndex: 'netAmount', align: 'right' },
-              { title: '税额', dataIndex: 'taxAmount', align: 'right' },
-              { title: '含税金额', dataIndex: 'totalAmount', align: 'right' },
-              { title: '来源行数', dataIndex: 'sourceLineCount', width: 90 },
-            ]}
+            columns={lineColumnSettings.columns}
           />
+          {lineColumnSettings.modal}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {billLinkColumnSettings.entry}
+          </div>
           <Table
             rowKey="id"
             size="small"
             pagination={false}
             style={{ marginTop: 16 }}
             dataSource={detail.billLinks || []}
-            columns={[
-              { title: '账单编号', dataIndex: 'billNo' },
-              { title: '金额', dataIndex: 'amount', align: 'right' },
-              { title: '税额', dataIndex: 'taxAmount', align: 'right' },
-              {
-                title: '关联',
-                render: (_, r: API.FinanceInvoiceBill) =>
-                  r.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
-              },
-            ]}
+            columns={billLinkColumnSettings.columns}
           />
+          {billLinkColumnSettings.modal}
         </>
       )}
     </DescriptionsDetailDrawer>

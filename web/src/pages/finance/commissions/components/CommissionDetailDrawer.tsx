@@ -6,13 +6,15 @@ import {
   Drawer,
   Space,
   Table,
+  type TableColumnsType,
   Tag,
   Typography,
 } from 'antd';
 import React from 'react';
 import { DRAWER_SIZE } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceCommissionStatus } from '@/enums.generated';
-import { formatDate } from '@/utils/format';
+import { formatDate, trimDecimal } from '@/utils/format';
 import {
   calculationBasisText,
   cnyExchangeRateSourceText,
@@ -159,6 +161,20 @@ export default function CommissionDetailDrawer({
     },
   ];
 
+  const lineColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceCommissionLine>[number]
+  >({
+    tableKey: 'finance:commission-lines',
+    columns: previewColumns,
+  });
+
+  const adjustmentColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceCommissionAdjustment>[number]
+  >({
+    tableKey: 'finance:commission-adjustments',
+    columns: adjustmentColumns,
+  });
+
   return (
     <Drawer
       title={`提成明细${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
@@ -251,7 +267,7 @@ export default function CommissionDetailDrawer({
               {
                 key: 'rate',
                 label: '比例',
-                children: `${decimalText(detail.ratePercent)}%`,
+                children: `${trimDecimal(detail.ratePercent)}%`,
               },
               {
                 key: 'coverage',
@@ -324,7 +340,7 @@ export default function CommissionDetailDrawer({
               {
                 key: 'cnyExchangeRate',
                 label: 'CNY 折算率',
-                children: decimalText(detail.cnyExchangeRate),
+                children: trimDecimal(detail.cnyExchangeRate),
               },
               {
                 key: 'cnyExchangeRateDate',
@@ -371,7 +387,7 @@ export default function CommissionDetailDrawer({
             bordered
             pagination={false}
             rowKey={(line) => line.id || line.orderId || ''}
-            columns={previewColumns}
+            columns={lineColumnSettings.columns}
             dataSource={detail.lines || []}
             scroll={{ x: 1080 }}
             expandable={{
@@ -380,24 +396,29 @@ export default function CommissionDetailDrawer({
                 Boolean(record.fees && record.fees.length > 0),
             }}
           />
+          {lineColumnSettings.modal}
           <Space style={{ width: '100%', justifyContent: 'space-between' }}>
             <Typography.Title level={5} style={{ margin: 0 }}>
               提成调整记录
             </Typography.Title>
-            <Typography.Text type="secondary">
-              草稿不计入有效提成，确认后计入；已发放或已扣回调整不可取消。
-            </Typography.Text>
+            <Space size={12}>
+              <Typography.Text type="secondary">
+                草稿不计入有效提成，确认后计入；已发放或已扣回调整不可取消。
+              </Typography.Text>
+              {adjustmentColumnSettings.entry}
+            </Space>
           </Space>
           <Table<API.FinanceCommissionAdjustment>
             size="small"
             bordered
             pagination={false}
             rowKey={(item) => item.id || item.adjustmentNo || ''}
-            columns={adjustmentColumns}
+            columns={adjustmentColumnSettings.columns}
             dataSource={detail.adjustments || []}
             scroll={{ x: 1040 }}
             locale={{ emptyText: '暂无调整，当前有效提成等于原始提成' }}
           />
+          {adjustmentColumnSettings.modal}
         </Space>
       ) : null}
     </Drawer>

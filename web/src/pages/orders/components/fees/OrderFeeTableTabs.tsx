@@ -36,6 +36,7 @@ import {
   SectionCard,
   scrollToFirstTableError,
   type ColumnSettingsField,
+  type ColumnSettingsValue,
 } from '@/components/ui';
 import {
   normalizeOrderFeeStatus,
@@ -62,7 +63,7 @@ import {
   quantityOrPricePattern,
 } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { formatDate, trimDecimal } from '@/utils/format';
+import { formatDate, formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import {
@@ -252,12 +253,17 @@ export default function OrderFeeTableTabs({
   ]);
 
   /** 统一列设置保存：应收/应付共享；恢复默认等价偏好时清空本地存储。 */
-  const handleColumnSettingsSave = (next: FeeColumnPreference) => {
-    setFeeColumnPref(next);
+  const handleColumnSettingsSave = (next: ColumnSettingsValue) => {
+    // 字段清单来自 feeColumnPreference 域定义，运行时 key 必然属于该联合类型。
+    const preference: FeeColumnPreference = {
+      order: next.order as FeeColumnPreference['order'],
+      hidden: next.hidden as FeeColumnPreference['hidden'],
+    };
+    setFeeColumnPref(preference);
     const scope = columnSettingScope ?? {};
-    const persisted = isDefaultFeeColumnPreference(next, financeAvailable)
+    const persisted = isDefaultFeeColumnPreference(preference, financeAvailable)
       ? clearFeeColumnPreference(scope)
-      : saveFeeColumnPreference(scope, next);
+      : saveFeeColumnPreference(scope, preference);
     if (persisted) {
       setColumnSettingsOpen(false);
     } else {
@@ -1230,7 +1236,7 @@ export default function OrderFeeTableTabs({
                   color: isReceivable ? '#1677ff' : '#fa8c16',
                 }}
               >
-                {`${preview.total} ${preview.currency}`}
+                {`${formatAmount(preview.total)} ${preview.currency}`}
               </span>
             );
           }
@@ -1250,7 +1256,7 @@ export default function OrderFeeTableTabs({
               }}
             >
               {displayVal
-                ? `${trimDecimal(displayVal)} ${record.currency || 'CNY'}`
+                ? `${formatAmount(displayVal)} ${record.currency || 'CNY'}`
                 : '-'}
             </span>
           );

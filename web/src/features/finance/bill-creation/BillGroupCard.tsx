@@ -18,10 +18,12 @@ import {
 import type { NamePath } from 'antd/es/form/interface';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
 import type { SelectOption } from '@/types/select-option';
 import { unwrapList } from '@/utils/api';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 
 const { Text } = Typography;
@@ -205,6 +207,11 @@ export default function BillGroupCard({
     };
   }, []);
 
+  const feeColumnSettings = useColumnSettings<ProColumns<API.FeeLedgerItem>>({
+    tableKey: 'finance:bill-group-fees',
+    columns: feeColumns,
+  });
+
   return (
     <Card
       size="small"
@@ -225,7 +232,7 @@ export default function BillGroupCard({
       }
       extra={
         <Text strong style={{ color: '#1677ff', fontSize: 14 }}>
-          {group.totalAmount} {group.currency || '未配置币种'}
+          {formatAmount(group.totalAmount)} {group.currency || '未配置币种'}
         </Text>
       }
     >
@@ -331,21 +338,29 @@ export default function BillGroupCard({
         style={{ marginBottom: 16 }}
       >
         <Descriptions.Item label="账单金额">
-          {group.totalAmount || '-'} {group.currency || '-'}
+          {group.totalAmount
+            ? `${formatAmount(group.totalAmount)} ${group.currency || '-'}`
+            : '-'}
         </Descriptions.Item>
         <Descriptions.Item label="组织本位币金额">
           {group.isTemporaryBillDate
             ? '选择账单日期后计算'
-            : `${group.baseCurrencyAmount || '服务端未提供'} ${group.baseCurrency || ''}`.trim()}
+            : group.baseCurrencyAmount
+              ? `${formatAmount(group.baseCurrencyAmount)} ${group.baseCurrency || ''}`.trim()
+              : '服务端未提供'}
         </Descriptions.Item>
         <Descriptions.Item label="预计开票币种">
           {group.estimatedInvoiceCurrency || '服务端未提供'}
         </Descriptions.Item>
         <Descriptions.Item label="预计开票汇率">
-          {group.estimatedInvoiceRate || '服务端未提供'}
+          {group.estimatedInvoiceRate
+            ? trimDecimal(group.estimatedInvoiceRate)
+            : '服务端未提供'}
         </Descriptions.Item>
         <Descriptions.Item label="预计开票金额">
-          {group.estimatedInvoiceAmount || '服务端未提供'}
+          {group.estimatedInvoiceAmount
+            ? formatAmount(group.estimatedInvoiceAmount)
+            : '服务端未提供'}
         </Descriptions.Item>
       </Descriptions>
       <Card
@@ -426,10 +441,10 @@ export default function BillGroupCard({
         size="small"
         bordered
         search={false}
-        options={false}
-        toolBarRender={false}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [feeColumnSettings.entry]}
         pagination={false}
-        columns={feeColumns}
+        columns={feeColumnSettings.columns}
         dataSource={group.fees || []}
         scroll={{ x: 880 }}
       />

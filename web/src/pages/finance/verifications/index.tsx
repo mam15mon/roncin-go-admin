@@ -1,12 +1,22 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { App, Descriptions, Drawer, Select, Space, Table, Tag } from 'antd';
+import {
+  App,
+  Descriptions,
+  Drawer,
+  Select,
+  Space,
+  Table,
+  type TableColumnsType,
+  Tag,
+} from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
 } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   FinanceOrganizationPurpose,
   FinanceVerificationStatus,
@@ -18,7 +28,7 @@ import {
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
-import { formatDate } from '@/utils/format';
+import { formatAmount, formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 import VerificationWorkbench from './VerificationWorkbench';
 
@@ -51,7 +61,10 @@ export default function FinanceVerificationsPage() {
     field: 'receivableBaseAmount' | 'payableBaseAmount',
   ) =>
     metricStats.amountsByBaseCurrency
-      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .map(
+        (item) =>
+          `${formatAmount(item[field] ?? '0')} ${item.baseCurrency ?? '-'}`,
+      )
       .join(' / ') || '-';
 
   const reload = () => actionRef.current?.reload();
@@ -175,7 +188,7 @@ export default function FinanceVerificationsPage() {
       search: false,
       render: (_, r) => (
         <strong style={{ color: '#262626' }}>
-          {r.amount} {r.currency}
+          {formatAmount(r.amount)} {r.currency}
         </strong>
       ),
     },
@@ -192,7 +205,7 @@ export default function FinanceVerificationsPage() {
               color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
             }}
           >
-            {r.baseAmount} {r.baseCurrency}
+            {formatAmount(r.baseAmount)} {r.baseCurrency}
           </strong>
         ) : (
           '-'
@@ -209,14 +222,14 @@ export default function FinanceVerificationsPage() {
         if (val > 0) {
           return (
             <Tag color="green">
-              +{r.exchangeGainLoss} {r.baseCurrency || 'CNY'}
+              +{formatAmount(r.exchangeGainLoss)} {r.baseCurrency || 'CNY'}
             </Tag>
           );
         }
         if (val < 0) {
           return (
             <Tag color="red">
-              {r.exchangeGainLoss} {r.baseCurrency || 'CNY'}
+              {formatAmount(r.exchangeGainLoss)} {r.baseCurrency || 'CNY'}
             </Tag>
           );
         }
@@ -247,7 +260,9 @@ export default function FinanceVerificationsPage() {
       ellipsis: true,
       render: (_, r) =>
         (r.allocations || [])
-          .map((x) => `${x.cashflowNo} → ${x.billNo}: ${x.amount}`)
+          .map(
+            (x) => `${x.cashflowNo} → ${x.billNo}: ${formatAmount(x.amount)}`,
+          )
           .join('；'),
     },
     {
@@ -274,6 +289,62 @@ export default function FinanceVerificationsPage() {
       ],
     },
   ];
+
+  const allocationColumns: TableColumnsType<API.FinanceVerificationAllocation> =
+    [
+      { title: '资金流水号', dataIndex: 'cashflowNo', width: 160 },
+      { title: '对账单号', dataIndex: 'billNo', width: 160 },
+      {
+        title: '原币分摊金额',
+        dataIndex: 'amount',
+        align: 'right',
+        render: (val) => (
+          <strong>
+            {formatAmount(val)} {detail?.currency}
+          </strong>
+        ),
+      },
+      {
+        title: '账单账面本币',
+        dataIndex: 'billBaseAmount',
+        align: 'right',
+        render: (val) =>
+          val ? `${formatAmount(val)} ${detail?.baseCurrency ?? ''}` : '-',
+      },
+      {
+        title: '资金实收付本币',
+        dataIndex: 'cashflowBaseAmount',
+        align: 'right',
+        render: (val) =>
+          val ? `${formatAmount(val)} ${detail?.baseCurrency ?? ''}` : '-',
+      },
+      {
+        title: '分摊汇兑损益',
+        dataIndex: 'exchangeGainLoss',
+        align: 'right',
+        render: (val) => {
+          const num = Number(val || 0);
+          if (num > 0)
+            return <Tag color="green">+{formatAmount(val)} (收益)</Tag>;
+          if (num < 0) return <Tag color="red">{formatAmount(val)} (损失)</Tag>;
+          return <span style={{ color: '#8c8c8c' }}>0.00</span>;
+        },
+      },
+      {
+        title: '状态',
+        render: (_, r) =>
+          r.active ? <Tag color="blue">有效</Tag> : <Tag>已冲销</Tag>,
+        width: 80,
+        align: 'center',
+      },
+    ];
+
+  const allocationColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceVerificationAllocation>[number]
+  >({
+    tableKey: 'finance:verification-allocation-list',
+    columns: allocationColumns,
+  });
 
   return (
     <>
@@ -307,6 +378,7 @@ export default function FinanceVerificationsPage() {
         headerTitle="核销记录列表"
         actionRef={actionRef}
         columns={columns}
+        columnSettingsKey="finance:verifications"
         metricCards={metricCards}
         scrollX={1770}
         primaryActionText="新建核销"
@@ -376,22 +448,22 @@ export default function FinanceVerificationsPage() {
               </Descriptions.Item>
               <Descriptions.Item label="核销原币总额">
                 <strong style={{ color: '#262626' }}>
-                  {detail.amount} {detail.currency}
+                  {formatAmount(detail.amount)} {detail.currency}
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="流水本位币合计">
                 <strong style={{ color: '#1677ff' }}>
-                  {detail.baseAmount} {detail.baseCurrency}
+                  {formatAmount(detail.baseAmount)} {detail.baseCurrency}
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="账单账面本币">
                 {detail.billBaseAmount
-                  ? `${detail.billBaseAmount} ${detail.baseCurrency}`
+                  ? `${formatAmount(detail.billBaseAmount)} ${detail.baseCurrency}`
                   : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="资金折算本币">
                 {detail.cashflowBaseAmount
-                  ? `${detail.cashflowBaseAmount} ${detail.baseCurrency}`
+                  ? `${formatAmount(detail.cashflowBaseAmount)} ${detail.baseCurrency}`
                   : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="已实现汇兑损益">
@@ -419,59 +491,24 @@ export default function FinanceVerificationsPage() {
             <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13 }}>
               核销分摊明细
             </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: 8,
+              }}
+            >
+              {allocationColumnSettings.entry}
+            </div>
             <Table<API.FinanceVerificationAllocation>
               rowKey="id"
               size="small"
               bordered
               pagination={false}
               dataSource={detail.allocations || []}
-              columns={[
-                { title: '资金流水号', dataIndex: 'cashflowNo', width: 160 },
-                { title: '对账单号', dataIndex: 'billNo', width: 160 },
-                {
-                  title: '原币分摊金额',
-                  dataIndex: 'amount',
-                  align: 'right',
-                  render: (val) => (
-                    <strong>
-                      {val} {detail.currency}
-                    </strong>
-                  ),
-                },
-                {
-                  title: '账单账面本币',
-                  dataIndex: 'billBaseAmount',
-                  align: 'right',
-                  render: (val) =>
-                    val ? `${val} ${detail.baseCurrency}` : '-',
-                },
-                {
-                  title: '资金实收付本币',
-                  dataIndex: 'cashflowBaseAmount',
-                  align: 'right',
-                  render: (val) =>
-                    val ? `${val} ${detail.baseCurrency}` : '-',
-                },
-                {
-                  title: '分摊汇兑损益',
-                  dataIndex: 'exchangeGainLoss',
-                  align: 'right',
-                  render: (val) => {
-                    const num = Number(val || 0);
-                    if (num > 0) return <Tag color="green">+{val} (收益)</Tag>;
-                    if (num < 0) return <Tag color="red">{val} (损失)</Tag>;
-                    return <span style={{ color: '#8c8c8c' }}>0.00</span>;
-                  },
-                },
-                {
-                  title: '状态',
-                  render: (_, r) =>
-                    r.active ? <Tag color="blue">有效</Tag> : <Tag>已冲销</Tag>,
-                  width: 80,
-                  align: 'center',
-                },
-              ]}
+              columns={allocationColumnSettings.columns}
             />
+            {allocationColumnSettings.modal}
           </>
         )}
       </Drawer>

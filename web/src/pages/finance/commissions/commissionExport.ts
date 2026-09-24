@@ -6,6 +6,12 @@ import {
   personnelRoleText,
 } from './types';
 
+/** CSV 金额单元格：不带千分位的固定两位小数，保证表格软件按数值解析。 */
+const csvAmount = (value?: string) =>
+  value === undefined || value === null || value === ''
+    ? ''
+    : Number(value).toFixed(2);
+
 export type CommissionMonthRange = [Dayjs | null, Dayjs | null] | null;
 
 export type CommissionSearchValues = {
@@ -114,32 +120,32 @@ const csvColumns: CsvColumn[] = [
   {
     header: '原始提成(本位币)',
     kind: 'controlled',
-    value: (item) => item.commissionAmount ?? '',
+    value: (item) => csvAmount(item.commissionAmount),
   },
   {
     header: '原始提成(CNY)',
     kind: 'controlled',
-    value: (item) => item.cnyCommissionAmount ?? '',
+    value: (item) => csvAmount(item.cnyCommissionAmount),
   },
   {
     header: '调整金额(本位币)',
     kind: 'controlled',
-    value: (item) => item.adjustmentAmount ?? '',
+    value: (item) => csvAmount(item.adjustmentAmount),
   },
   {
     header: '调整金额(CNY)',
     kind: 'controlled',
-    value: (item) => item.cnyAdjustmentAmount ?? '',
+    value: (item) => csvAmount(item.cnyAdjustmentAmount),
   },
   {
     header: '有效提成(本位币)',
     kind: 'controlled',
-    value: (item) => item.effectiveCommissionAmount ?? '',
+    value: (item) => csvAmount(item.effectiveCommissionAmount),
   },
   {
     header: '有效提成(CNY)',
     kind: 'controlled',
-    value: (item) => item.cnyEffectiveCommissionAmount ?? '',
+    value: (item) => csvAmount(item.cnyEffectiveCommissionAmount),
   },
 ];
 

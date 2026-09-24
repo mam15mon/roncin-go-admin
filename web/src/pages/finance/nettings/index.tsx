@@ -8,6 +8,7 @@ import {
   Select,
   Space,
   Table,
+  type TableColumnsType,
   Tag,
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
@@ -16,6 +17,7 @@ import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
 } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   FinanceNettingStatus,
   FinanceOrganizationPurpose,
@@ -29,7 +31,7 @@ import {
   settlementServiceReverseNetting,
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
-import { formatDate } from '@/utils/format';
+import { formatAmount, formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
@@ -147,7 +149,7 @@ export default function FinanceNettingsPage() {
     metricStats.amountsByBaseCurrency
       .map(
         (item) =>
-          `${item.nettingBaseAmount ?? '0'} ${item.baseCurrency ?? '-'}`,
+          `${formatAmount(item.nettingBaseAmount ?? '0')} ${item.baseCurrency ?? '-'}`,
       )
       .join(' / ') || '-';
 
@@ -238,7 +240,7 @@ export default function FinanceNettingsPage() {
       search: false,
       render: (_, record) => (
         <strong style={{ color: '#262626' }}>
-          {record.amount} {record.currency}
+          {formatAmount(record.amount)} {record.currency}
         </strong>
       ),
     },
@@ -250,7 +252,7 @@ export default function FinanceNettingsPage() {
       search: false,
       render: (_, record) => (
         <strong style={{ color: '#52c41a' }}>
-          {record.baseCurrencyAmount} {record.baseCurrency}
+          {formatAmount(record.baseCurrencyAmount)} {record.baseCurrency}
         </strong>
       ),
     },
@@ -262,7 +264,7 @@ export default function FinanceNettingsPage() {
       search: false,
       render: (_, record) => (
         <strong style={{ color: '#fa8c16' }}>
-          {record.payableBaseAmount} {record.baseCurrency}
+          {formatAmount(record.payableBaseAmount)} {record.baseCurrency}
         </strong>
       ),
     },
@@ -277,14 +279,14 @@ export default function FinanceNettingsPage() {
         if (val > 0) {
           return (
             <Tag color="green" style={{ margin: 0 }}>
-              +{record.exchangeGainLoss} {record.baseCurrency}
+              +{formatAmount(record.exchangeGainLoss)} {record.baseCurrency}
             </Tag>
           );
         }
         if (val < 0) {
           return (
             <Tag color="red" style={{ margin: 0 }}>
-              {record.exchangeGainLoss} {record.baseCurrency}
+              {formatAmount(record.exchangeGainLoss)} {record.baseCurrency}
             </Tag>
           );
         }
@@ -353,6 +355,63 @@ export default function FinanceNettingsPage() {
     },
   ];
 
+  const allocationColumns: TableColumnsType<API.FinanceNettingAllocation> = [
+    { title: '账单编号', dataIndex: 'billNo', width: 180 },
+    {
+      title: '方向',
+      dataIndex: 'direction',
+      width: 80,
+      render: (value) =>
+        value === 'RECEIVABLE' ? (
+          <Tag color="blue" style={{ margin: 0 }}>
+            应收
+          </Tag>
+        ) : (
+          <Tag color="orange" style={{ margin: 0 }}>
+            应付
+          </Tag>
+        ),
+    },
+    {
+      title: '抵销金额',
+      dataIndex: 'amount',
+      align: 'right',
+      render: (value) => (
+        <strong>
+          {formatAmount(value)} {detail?.currency}
+        </strong>
+      ),
+    },
+    {
+      title: '本币抵销额',
+      dataIndex: 'baseCurrencyAmount',
+      align: 'right',
+      render: (value) =>
+        `${formatAmount(value ?? '0')} ${detail?.baseCurrency ?? ''}`,
+    },
+    {
+      title: '有效',
+      dataIndex: 'active',
+      width: 80,
+      align: 'center',
+      render: (value) =>
+        value ? (
+          <Tag color="green" style={{ margin: 0 }}>
+            有效
+          </Tag>
+        ) : (
+          <Tag style={{ margin: 0 }}>失效</Tag>
+        ),
+    },
+  ];
+
+  const allocationColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceNettingAllocation>[number]
+  >({
+    tableKey: 'finance:netting-allocation-list',
+    columns: allocationColumns,
+  });
+
   return (
     <>
       <Card
@@ -391,6 +450,7 @@ export default function FinanceNettingsPage() {
         headerTitle="对冲结算单列表"
         actionRef={actionRef}
         columns={columns}
+        columnSettingsKey="finance:nettings"
         metricCards={metricCards}
         scrollX={1980}
         request={async (params) => {
@@ -437,7 +497,7 @@ export default function FinanceNettingsPage() {
               </Descriptions.Item>
               <Descriptions.Item label="抵销金额">
                 <strong style={{ color: '#262626' }}>
-                  {detail.amount} {detail.currency}
+                  {formatAmount(detail.amount)} {detail.currency}
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="本位币">
@@ -445,12 +505,13 @@ export default function FinanceNettingsPage() {
               </Descriptions.Item>
               <Descriptions.Item label="应收本币抵销额">
                 <strong style={{ color: '#52c41a' }}>
-                  {detail.baseCurrencyAmount} {detail.baseCurrency}
+                  {formatAmount(detail.baseCurrencyAmount)}{' '}
+                  {detail.baseCurrency}
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="应付本币抵销额">
                 <strong style={{ color: '#fa8c16' }}>
-                  {detail.payableBaseAmount} {detail.baseCurrency}
+                  {formatAmount(detail.payableBaseAmount)} {detail.baseCurrency}
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="对冲汇差（应付 − 应收）">
@@ -510,61 +571,24 @@ export default function FinanceNettingsPage() {
                 : ''}
               ）
             </div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: 8,
+              }}
+            >
+              {allocationColumnSettings.entry}
+            </div>
             <Table<API.FinanceNettingAllocation>
               rowKey="id"
               size="small"
               bordered
               pagination={false}
               dataSource={detail.allocations || []}
-              columns={[
-                { title: '账单编号', dataIndex: 'billNo', width: 180 },
-                {
-                  title: '方向',
-                  dataIndex: 'direction',
-                  width: 80,
-                  render: (value) =>
-                    value === 'RECEIVABLE' ? (
-                      <Tag color="blue" style={{ margin: 0 }}>
-                        应收
-                      </Tag>
-                    ) : (
-                      <Tag color="orange" style={{ margin: 0 }}>
-                        应付
-                      </Tag>
-                    ),
-                },
-                {
-                  title: '抵销金额',
-                  dataIndex: 'amount',
-                  align: 'right',
-                  render: (value) => (
-                    <strong>
-                      {value} {detail.currency}
-                    </strong>
-                  ),
-                },
-                {
-                  title: '本币抵销额',
-                  dataIndex: 'baseCurrencyAmount',
-                  align: 'right',
-                  render: (value) => `${value || '0'} ${detail.baseCurrency}`,
-                },
-                {
-                  title: '有效',
-                  dataIndex: 'active',
-                  width: 80,
-                  align: 'center',
-                  render: (value) =>
-                    value ? (
-                      <Tag color="green" style={{ margin: 0 }}>
-                        有效
-                      </Tag>
-                    ) : (
-                      <Tag style={{ margin: 0 }}>失效</Tag>
-                    ),
-                },
-              ]}
+              columns={allocationColumnSettings.columns}
             />
+            {allocationColumnSettings.modal}
             <Space style={{ marginTop: 8 }}>
               <span style={{ color: '#8c8c8c', fontSize: 12 }}>
                 只有有效分摊参与账单可用余额；反转后分摊失效并保留审计。

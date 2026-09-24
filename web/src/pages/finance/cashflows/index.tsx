@@ -40,6 +40,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 
@@ -156,7 +157,10 @@ export default function FinanceCashflowsPage() {
       | 'unverifiedBaseAmount',
   ) =>
     metricStats.amountsByBaseCurrency
-      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .map(
+        (item) =>
+          `${formatAmount(item[field] ?? '0')} ${item.baseCurrency ?? '-'}`,
+      )
       .join(' / ') || '-';
 
   const reload = () => actionRef.current?.reload();
@@ -294,7 +298,7 @@ export default function FinanceCashflowsPage() {
       search: false,
       render: (_, r) => (
         <strong style={{ color: '#262626' }}>
-          {r.amount} {r.currency}
+          {formatAmount(r.amount)} {r.currency}
         </strong>
       ),
     },
@@ -316,7 +320,7 @@ export default function FinanceCashflowsPage() {
           r.exchangeRateSource === 'MANUAL' ? 'purple' : 'default';
         return (
           <Space size={4}>
-            <span>{r.exchangeRate}</span>
+            <span>{trimDecimal(r.exchangeRate)}</span>
             <Tag color={sourceColor} style={{ margin: 0, fontSize: 10 }}>
               {sourceLabel}
             </Tag>
@@ -336,7 +340,7 @@ export default function FinanceCashflowsPage() {
             color: r.direction === 'RECEIVABLE' ? '#1677ff' : '#fa8c16',
           }}
         >
-          {r.baseAmount} {r.baseCurrency}
+          {formatAmount(r.baseAmount)} {r.baseCurrency}
         </strong>
       ),
     },
@@ -346,7 +350,8 @@ export default function FinanceCashflowsPage() {
       width: 135,
       align: 'right',
       search: false,
-      render: (_, r) => `${r.verifiedAmount || '0.00000000'} ${r.currency}`,
+      render: (_, r) =>
+        `${formatAmount(r.verifiedAmount ?? '0')} ${r.currency}`,
     },
     {
       title: '未核销',
@@ -360,7 +365,7 @@ export default function FinanceCashflowsPage() {
             color: Number(r.unverifiedAmount || 0) > 0 ? '#cf1322' : '#389e0d',
           }}
         >
-          {r.unverifiedAmount || '0.00000000'} {r.currency}
+          {formatAmount(r.unverifiedAmount ?? '0')} {r.currency}
         </strong>
       ),
     },
@@ -453,6 +458,7 @@ export default function FinanceCashflowsPage() {
         headerTitle="资金流水列表"
         actionRef={actionRef}
         columns={columns}
+        columnSettingsKey="finance:cashflows"
         metricCards={metricCards}
         scrollX={1900}
         primaryActionText="登记流水"

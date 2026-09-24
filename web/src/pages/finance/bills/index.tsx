@@ -30,6 +30,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { formatAmount } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
@@ -139,7 +140,10 @@ export default function FinanceBillsPage() {
       | 'overdueReceivableBaseAmount',
   ) =>
     metricStats.amountsByBaseCurrency
-      .map((item) => `${item[field] ?? '0'} ${item.baseCurrency ?? '-'}`)
+      .map(
+        (item) =>
+          `${formatAmount(item[field] ?? '0')} ${item.baseCurrency ?? '-'}`,
+      )
       .join(' / ') || '-';
 
   const [searchParams, setSearchParams] = useState<BillSearchParams>({});
@@ -419,6 +423,7 @@ export default function FinanceBillsPage() {
         headerTitle="账单列表"
         actionRef={actionRef}
         columns={columns}
+        columnSettingsKey="finance:bills"
         metricCards={metricCards}
         scrollX={2000}
         search={false}

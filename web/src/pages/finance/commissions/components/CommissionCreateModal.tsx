@@ -5,7 +5,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { TableProps } from 'antd';
+import type { TableColumnsType } from 'antd';
 import {
   Alert,
   App,
@@ -20,6 +20,7 @@ import {
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
   settlementServiceCreateCommission,
@@ -31,7 +32,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { formatDate } from '@/utils/format';
+import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import {
   type CreateValues,
@@ -64,7 +65,7 @@ type CandidateSource = {
 const candidateKeyOf = (employeeId?: string, personnelRole?: string) =>
   employeeId && personnelRole ? `${employeeId}|${personnelRole}` : undefined;
 
-const nettingCandidateColumns: TableProps<API.FinanceNetting>['columns'] = [
+const nettingCandidateColumns: TableColumnsType<API.FinanceNetting> = [
   { title: '对冲单号', dataIndex: 'nettingNo', width: 170 },
   { title: '结算单位', dataIndex: 'settlementPartyName', ellipsis: true },
   { title: '币种', dataIndex: 'currency', width: 70 },
@@ -74,7 +75,7 @@ const nettingCandidateColumns: TableProps<API.FinanceNetting>['columns'] = [
     width: 130,
     align: 'right',
     render: (value: string, record) =>
-      `${value ?? '0'} ${record.currency ?? ''}`,
+      `${formatAmount(value ?? '0')} ${record.currency ?? ''}`,
   },
   {
     title: '确认时间',
@@ -248,6 +249,20 @@ export default function CommissionCreateModal({
     return () => window.clearTimeout(timer);
   }, [nettingKeyword]);
 
+  const nettingCandidateColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceNetting>[number]
+  >({
+    tableKey: 'finance:commission-candidate-nettings',
+    columns: nettingCandidateColumns,
+  });
+
+  const previewColumnSettings = useColumnSettings<
+    TableColumnsType<API.FinanceCommissionLine>[number]
+  >({
+    tableKey: 'finance:commission-candidate-lines',
+    columns: previewColumns,
+  });
+
   const resetSourceSelection = () => {
     setSelectedNetting(undefined);
     formRef.current?.setFieldsValue({
@@ -420,6 +435,15 @@ export default function CommissionCreateModal({
             onChange={(event) => setNettingKeyword(event.target.value)}
             style={{ marginBottom: 8 }}
           />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
+            {nettingCandidateColumnSettings.entry}
+          </div>
           <Table<API.FinanceNetting>
             size="small"
             bordered
@@ -427,7 +451,7 @@ export default function CommissionCreateModal({
             loading={nettingQuery.isFetching}
             pagination={false}
             dataSource={nettingQuery.data ?? []}
-            columns={nettingCandidateColumns}
+            columns={nettingCandidateColumnSettings.columns}
             scroll={{ y: 260 }}
             rowSelection={{
               type: 'radio',
@@ -450,6 +474,7 @@ export default function CommissionCreateModal({
                 : '请先选择所属公司',
             }}
           />
+          {nettingCandidateColumnSettings.modal}
         </Form.Item>
       )}
       <ProFormDependency
@@ -529,6 +554,9 @@ export default function CommissionCreateModal({
                 />
               ) : (
                 <>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {previewColumnSettings.entry}
+                  </div>
                   <Descriptions
                     size="small"
                     bordered
@@ -557,7 +585,7 @@ export default function CommissionCreateModal({
                       {
                         key: 'rate',
                         label: '比例',
-                        children: `${decimalText(preview.ratePercent)}%`,
+                        children: `${trimDecimal(preview.ratePercent)}%`,
                       },
                       {
                         key: 'coverage',
@@ -600,7 +628,7 @@ export default function CommissionCreateModal({
                       {
                         key: 'cnyRate',
                         label: 'CNY 折算率',
-                        children: decimalText(preview.cnyExchangeRate),
+                        children: trimDecimal(preview.cnyExchangeRate),
                       },
                       {
                         key: 'cnyRateDate',
@@ -627,7 +655,7 @@ export default function CommissionCreateModal({
                     bordered
                     pagination={false}
                     rowKey={(line) => line.orderId || line.orderNo || ''}
-                    columns={previewColumns}
+                    columns={previewColumnSettings.columns}
                     dataSource={preview.lines || []}
                     scroll={{ x: 1080 }}
                     expandable={{
@@ -636,6 +664,7 @@ export default function CommissionCreateModal({
                         Boolean(record.fees && record.fees.length > 0),
                     }}
                   />
+                  {previewColumnSettings.modal}
                 </>
               )}
             </Space>
