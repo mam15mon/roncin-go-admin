@@ -2504,11 +2504,6 @@ declare namespace API {
     profitBaseAmount?: string;
   };
 
-  type FeeLedgerColumnPreference = {
-    fieldKey: string;
-    visible?: boolean;
-  };
-
   type FeeLedgerItem = {
     id?: string;
     orderId?: string;
@@ -2555,27 +2550,6 @@ declare namespace API {
     organizationName?: string;
     fees?: FeeLedgerItem[];
     amountsByBaseCurrency?: FeeLedgerBaseCurrencyAmount[];
-  };
-
-  type FeeLedgerPreference = {
-    columns?: FeeLedgerColumnPreference[];
-    pageSize?: number;
-    sortField?: string;
-    sortDirection?: string;
-    rowColors?: FeeLedgerRowColors;
-    version?: string;
-    customized?: boolean;
-    updatedAt?: string;
-  };
-
-  type FeeLedgerRowColors = {
-    unbilled: string;
-    unverifiedUninvoiced: string;
-    invoicedUnverified: string;
-    verifiedUninvoiced: string;
-    completed: string;
-    invoicedPartiallyVerified: string;
-    partiallyVerifiedUninvoiced: string;
   };
 
   type FeeLedgerSummary = {
@@ -3314,14 +3288,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FeeLedgerOrderDetail;
-    traceId?: string;
-  };
-
-  type GetFeeLedgerPreferenceResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FeeLedgerPreference;
     traceId?: string;
   };
 
@@ -6412,14 +6378,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ResetFeeLedgerPreferenceResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FeeLedgerPreference;
-    traceId?: string;
-  };
-
   type ResetUserPasswordRequest = {
     id: string;
     password: string;
@@ -7893,10 +7851,6 @@ declare namespace API {
     id: string;
   };
 
-  type SettlementServiceResetFeeLedgerPreferenceParams = {
-    version?: string;
-  };
-
   type SettlementServiceReverseNettingParams = {
     id: string;
   };
@@ -8297,23 +8251,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: ExchangeRateSetting;
-    traceId?: string;
-  };
-
-  type UpdateFeeLedgerPreferenceRequest = {
-    columns: FeeLedgerColumnPreference[];
-    pageSize: number;
-    sortField?: string;
-    sortDirection?: string;
-    rowColors: FeeLedgerRowColors;
-    version?: string;
-  };
-
-  type UpdateFeeLedgerPreferenceResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FeeLedgerPreference;
     traceId?: string;
   };
 

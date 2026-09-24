@@ -92,3 +92,21 @@ settlementPartyId、orgName→organizationName（弹窗与列应用两侧同步�
 教训：迁移验证清单里「保存成功」只在单测 mock 层验证过调用发生，没验证
 载荷与服务端校验规则逐条对齐；涉及服务端契约校验的提交路径，联调验收
 必须真实请求一次。
+
+## 追加：台账偏好去服务端化（2026-09-24 第三轮，用户决策）
+
+用户决策：台账偏好不再做服务端存储，与其他表格统一为浏览器本地。
+
+- 服务端契约整体移除：settlement.proto 删除 Get/Update/ResetFeeLedgerPreference
+  三个 RPC 与偏好消息组；biz/service/data 层用例、仓储、Ent Schema
+  （FinanceFeeLedgerPreference 及 user/organization 边）删除；新增迁移
+  20260924100000_drop_finance_fee_ledger_preferences.sql 删表（dev 库已应用）。
+- 前端：新增 `pages/finance/fees/feeLedgerViewPreference.ts` 本地存取
+  （key `roncin:fee-ledger-view:v1:<用户>:<组织>`），列显隐顺序与行配色
+  按 FinanceLedgerViewConfig 形状存储；TableColumnConfigModal 改为回调保存
+  （写入失败保持弹窗并报错）；buildUserOrderedColumns 改消费 {order, hidden}。
+- 顺带清理死设置：高级页原「分页大小/默认排序」保存后从未被任何代码消费
+  （ListFeeLedger 契约无排序参数，模板分页硬编码 40），本次一并移除，
+  高级页只留行配色。存量服务端偏好不迁移（无兼容契约要求）。
+- 模板 rowColors/getRowStatusColorKey 类型从 API.FeeLedgerRowColors（已删）
+  切换为 RowColorsConfig。

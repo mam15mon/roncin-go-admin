@@ -68,7 +68,6 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("finance_commission_applications", FinanceCommissionApplication.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("finance_commission_application_lines", FinanceCommissionApplicationLine.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("order_commission_attributions", OrderCommissionAttribution.Type),
-		edge.To("finance_fee_ledger_preferences", FinanceFeeLedgerPreference.Type),
 		edge.To("finance_custom_setting", FinanceCustomSetting.Type),
 		edge.To("enterprise_resources", EnterpriseResource.Type),
 		edge.To("enterprise_tag_groups", EnterpriseTagGroup.Type),

@@ -22,24 +22,6 @@ service SettlementService {
     option (google.api.http) = {get: "/api/v1/finance/fees/orders/{order_id}"};
   }
 
-  // GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
-  rpc GetFeeLedgerPreference(GetFeeLedgerPreferenceRequest) returns (GetFeeLedgerPreferenceResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/finance/fees/preference"};
-  }
-
-  // UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
-  rpc UpdateFeeLedgerPreference(UpdateFeeLedgerPreferenceRequest) returns (UpdateFeeLedgerPreferenceResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {put: "/api/v1/finance/fees/preference" body: "*"};
-  }
-
-  // ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
-  rpc ResetFeeLedgerPreference(ResetFeeLedgerPreferenceRequest) returns (ResetFeeLedgerPreferenceResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.fee.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {delete: "/api/v1/finance/fees/preference"};
-  }
-
   // GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
   rpc GetBilledFeeEditPolicy(GetBilledFeeEditPolicyRequest) returns (GetBilledFeeEditPolicyResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -365,71 +347,6 @@ message ListFeeLedgerResponse {
 message GetFeeLedgerOrderDetailRequest { string order_id = 1 [(google.api.field_behavior) = REQUIRED]; }
 message FeeLedgerOrderDetail { string order_id = 1; string order_no = 2; string business_type = 3; string customer_name = 4; string organization_id = 5; string organization_name = 6; repeated FeeLedgerItem fees = 7; repeated FeeLedgerBaseCurrencyAmount amounts_by_base_currency = 8; }
 message GetFeeLedgerOrderDetailResponse { bool success = 1; int32 code = 2; string message = 3; FeeLedgerOrderDetail data = 4; string trace_id = 5; }
-
-message GetFeeLedgerPreferenceRequest {}
-
-message FeeLedgerColumnPreference {
-  string field_key = 1 [(google.api.field_behavior) = REQUIRED];
-  bool visible = 2;
-}
-
-message FeeLedgerRowColors {
-  string unbilled = 1 [(google.api.field_behavior) = REQUIRED];
-  string unverified_uninvoiced = 2 [(google.api.field_behavior) = REQUIRED];
-  string invoiced_unverified = 3 [(google.api.field_behavior) = REQUIRED];
-  string verified_uninvoiced = 4 [(google.api.field_behavior) = REQUIRED];
-  string completed = 5 [(google.api.field_behavior) = REQUIRED];
-  string invoiced_partially_verified = 6 [(google.api.field_behavior) = REQUIRED];
-  string partially_verified_uninvoiced = 7 [(google.api.field_behavior) = REQUIRED];
-}
-
-message FeeLedgerPreference {
-  repeated FeeLedgerColumnPreference columns = 1;
-  int32 page_size = 2;
-  optional string sort_field = 3;
-  optional string sort_direction = 4;
-  FeeLedgerRowColors row_colors = 5;
-  uint64 version = 6;
-  bool customized = 7;
-  optional string updated_at = 8;
-}
-
-message GetFeeLedgerPreferenceResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  FeeLedgerPreference data = 4;
-  string trace_id = 5;
-}
-
-message UpdateFeeLedgerPreferenceRequest {
-  repeated FeeLedgerColumnPreference columns = 1 [(google.api.field_behavior) = REQUIRED];
-  int32 page_size = 2 [(google.api.field_behavior) = REQUIRED];
-  optional string sort_field = 3;
-  optional string sort_direction = 4;
-  FeeLedgerRowColors row_colors = 5 [(google.api.field_behavior) = REQUIRED];
-  uint64 version = 6;
-}
-
-message UpdateFeeLedgerPreferenceResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  FeeLedgerPreference data = 4;
-  string trace_id = 5;
-}
-
-message ResetFeeLedgerPreferenceRequest {
-  uint64 version = 1;
-}
-
-message ResetFeeLedgerPreferenceResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  FeeLedgerPreference data = 4;
-  string trace_id = 5;
-}
 
 enum BilledFeeEditableField {
   BILLED_FEE_EDITABLE_FIELD_UNSPECIFIED = 0;

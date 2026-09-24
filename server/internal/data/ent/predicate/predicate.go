@@ -120,9 +120,6 @@ type FinanceCommissionRuleAssignment func(*sql.Selector)
 // FinanceCustomSetting is the predicate function for financecustomsetting builders.
 type FinanceCustomSetting func(*sql.Selector)
 
-// FinanceFeeLedgerPreference is the predicate function for financefeeledgerpreference builders.
-type FinanceFeeLedgerPreference func(*sql.Selector)
-
 // FinanceInvoice is the predicate function for financeinvoice builders.
 type FinanceInvoice func(*sql.Selector)
 

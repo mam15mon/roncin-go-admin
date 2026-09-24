@@ -107,8 +107,6 @@ const (
 	EdgeFinanceCommissionApplicationLines = "finance_commission_application_lines"
 	// EdgeOrderCommissionAttributions holds the string denoting the order_commission_attributions edge name in mutations.
 	EdgeOrderCommissionAttributions = "order_commission_attributions"
-	// EdgeFinanceFeeLedgerPreferences holds the string denoting the finance_fee_ledger_preferences edge name in mutations.
-	EdgeFinanceFeeLedgerPreferences = "finance_fee_ledger_preferences"
 	// EdgeFinanceCustomSetting holds the string denoting the finance_custom_setting edge name in mutations.
 	EdgeFinanceCustomSetting = "finance_custom_setting"
 	// EdgeEnterpriseResources holds the string denoting the enterprise_resources edge name in mutations.
@@ -400,13 +398,6 @@ const (
 	OrderCommissionAttributionsInverseTable = "order_commission_attributions"
 	// OrderCommissionAttributionsColumn is the table column denoting the order_commission_attributions relation/edge.
 	OrderCommissionAttributionsColumn = "organization_id"
-	// FinanceFeeLedgerPreferencesTable is the table that holds the finance_fee_ledger_preferences relation/edge.
-	FinanceFeeLedgerPreferencesTable = "finance_fee_ledger_preferences"
-	// FinanceFeeLedgerPreferencesInverseTable is the table name for the FinanceFeeLedgerPreference entity.
-	// It exists in this package in order to avoid circular dependency with the "financefeeledgerpreference" package.
-	FinanceFeeLedgerPreferencesInverseTable = "finance_fee_ledger_preferences"
-	// FinanceFeeLedgerPreferencesColumn is the table column denoting the finance_fee_ledger_preferences relation/edge.
-	FinanceFeeLedgerPreferencesColumn = "organization_id"
 	// FinanceCustomSettingTable is the table that holds the finance_custom_setting relation/edge.
 	FinanceCustomSettingTable = "finance_custom_settings"
 	// FinanceCustomSettingInverseTable is the table name for the FinanceCustomSetting entity.
@@ -1197,20 +1188,6 @@ func ByOrderCommissionAttributions(term sql.OrderTerm, terms ...sql.OrderTerm) O
 	}
 }
 
-// ByFinanceFeeLedgerPreferencesCount orders the results by finance_fee_ledger_preferences count.
-func ByFinanceFeeLedgerPreferencesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newFinanceFeeLedgerPreferencesStep(), opts...)
-	}
-}
-
-// ByFinanceFeeLedgerPreferences orders the results by finance_fee_ledger_preferences terms.
-func ByFinanceFeeLedgerPreferences(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newFinanceFeeLedgerPreferencesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByFinanceCustomSettingCount orders the results by finance_custom_setting count.
 func ByFinanceCustomSettingCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1803,13 +1780,6 @@ func newOrderCommissionAttributionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderCommissionAttributionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderCommissionAttributionsTable, OrderCommissionAttributionsColumn),
-	)
-}
-func newFinanceFeeLedgerPreferencesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(FinanceFeeLedgerPreferencesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, FinanceFeeLedgerPreferencesTable, FinanceFeeLedgerPreferencesColumn),
 	)
 }
 func newFinanceCustomSettingStep() *sqlgraph.Step {

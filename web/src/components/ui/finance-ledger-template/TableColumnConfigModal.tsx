@@ -1,4 +1,4 @@
-import { App, Card, Col, Radio, Row, Select } from 'antd';
+import { App } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import type {
   ColumnSettingsField,
@@ -8,70 +8,33 @@ import {
   ColumnSettingsModal,
   defaultColumnSettingsValue,
 } from '@/components/ui/column-settings';
-import { settlementServiceUpdateFeeLedgerPreference } from '@/services/roncin/settlementService';
 import { FEE_LEDGER_FIELDS, getDefaultRowColors } from './fields-meta';
 import RowColorSettings, { type RowColorsConfig } from './RowColorSettings';
+import type { FinanceLedgerViewConfig } from './types';
 
 export interface TableColumnConfigModalProps {
   open: boolean;
   onClose: () => void;
-  currentPreference?: API.FeeLedgerPreference;
-  onSaved: (preference: API.FeeLedgerPreference) => void;
-}
-
-/** 历史偏好中的字段 key 规范化：与表格列应用逻辑保持同一映射。 */
-function normalizeFieldKey(key: string): string {
-  if (key === 'financial_progress') return 'financialProgress';
-  if (key === 'customerName') return 'customerId';
-  if (key === 'settlementPartyName') return 'settlementPartyId';
-  if (key === 'orgName') return 'organizationName';
-  return key;
-}
-
-/** 由服务端偏好构建统一列配置：忽略未知 key，未提及列按默认显隐兜底。 */
-function preferenceToColumnValue(
-  preference?: API.FeeLedgerPreference,
-): ColumnSettingsValue | null {
-  const columns = preference?.columns ?? [];
-  if (columns.length === 0) return null;
-  const known = new Set(FEE_LEDGER_FIELDS.map((field) => field.key));
-  const order: string[] = [];
-  const hidden: string[] = [];
-  const seen = new Set<string>();
-  for (const item of columns) {
-    if (!item.fieldKey) continue;
-    const key = normalizeFieldKey(item.fieldKey);
-    if (!known.has(key) || seen.has(key)) continue;
-    order.push(key);
-    seen.add(key);
-    if (!item.visible) hidden.push(key);
-  }
-  for (const field of FEE_LEDGER_FIELDS) {
-    if (!seen.has(field.key)) {
-      order.push(field.key);
-      if (!field.defaultVisible) hidden.push(field.key);
-    }
-  }
-  return { order, hidden };
+  /** 当前生效的本地视图配置；缺省时使用默认列与默认配色。 */
+  currentConfig?: FinanceLedgerViewConfig;
+  /**
+   * 持久化到浏览器本地；返回 false 表示写入失败，弹窗保持打开并保留草稿，
+   * 不得声称已保存。
+   */
+  onSave: (config: FinanceLedgerViewConfig) => boolean;
 }
 
 /**
- * 财务费用台账列设置（增强版）：统一弹窗 + 「高级设置」页签。
- * 高级页承载分页、默认排序与 7 类行配色；列配置沿用统一交互，
- * 全部草稿式编辑，保存时一并提交服务端，失败保留弹窗草稿。
+ * 费用台账列设置（增强版）：统一弹窗 + 「高级设置」页签（行配色）。
+ * 全部草稿式编辑，保存时由调用方写入浏览器本地偏好，失败保留弹窗草稿。
  */
 export function TableColumnConfigModal({
   open,
   onClose,
-  currentPreference,
-  onSaved,
+  currentConfig,
+  onSave,
 }: TableColumnConfigModalProps) {
   const { message } = App.useApp();
-
-  const [saving, setSaving] = useState(false);
-  const [pageSize, setPageSize] = useState<number>(40);
-  const [sortField, setSortField] = useState<string>('');
-  const [sortDirection, setSortDirection] = useState<'ASC' | 'DESC'>('DESC');
   const [rowColors, setRowColors] = useState<RowColorsConfig>(
     getDefaultRowColors(),
   );
@@ -86,157 +49,50 @@ export function TableColumnConfigModal({
   );
 
   const defaultValue = useMemo(
-    () =>
-      defaultColumnSettingsValue(
-        fields,
-        FEE_LEDGER_FIELDS.filter((field) => !field.defaultVisible).map(
-          (field) => field.key,
-        ),
-      ),
+    () => defaultColumnSettingsValue(fields),
     [fields],
   );
 
+  // 打开弹窗时同步配色草稿；编辑期间外部刷新不重置。
+  useEffect(() => {
+    if (!open) return;
+    if (currentConfig?.rowColors) {
+      setRowColors({
+        ...getDefaultRowColors(),
+        ...currentConfig.rowColors,
+      });
+    } else {
+      setRowColors(getDefaultRowColors());
+    }
+  }, [open, currentConfig]);
+
+  // 存量配置按当前字段元数据解析：忽略未知 key，未提及列按默认顺序补齐。
   const value = useMemo(() => {
-    const resolved = preferenceToColumnValue(currentPreference);
-    if (!resolved) return defaultValue;
-    // 存量偏好按当前字段元数据解析，未知 key 与必显约束在此收敛。
-    const order = resolved.order.filter((key) =>
-      fields.some((field) => field.key === key),
-    );
+    const base = currentConfig?.columns;
+    if (!base || base.order.length === 0) return defaultValue;
+    const known = new Set(fields.map((field) => field.key));
+    const order = base.order.filter((key) => known.has(key));
     for (const field of fields) {
       if (!order.includes(field.key)) order.push(field.key);
     }
     return {
       order,
-      hidden: resolved.hidden.filter((key) => order.includes(key)),
+      hidden: base.hidden.filter((key) => order.includes(key)),
     };
-  }, [currentPreference, defaultValue, fields]);
+  }, [currentConfig, defaultValue, fields]);
 
-  // 打开弹窗时同步高级设置草稿；编辑期间外部刷新不重置。
-  // 存量偏好的排序字段可能指向已删除或不再提交的字段（旧扩展字段、
-  // 钉住列、旧 key），加载时按当前字段清单清洗，避免保存被服务端拒绝。
-  useEffect(() => {
-    if (!open) return;
-    if (currentPreference?.rowColors) {
-      setRowColors({
-        ...getDefaultRowColors(),
-        ...(currentPreference.rowColors as RowColorsConfig),
-      });
-    } else {
-      setRowColors(getDefaultRowColors());
+  const handleSave = (next: ColumnSettingsValue) => {
+    const persisted = onSave({ columns: next, rowColors });
+    if (persisted === false) {
+      // 写入失败：配置已在弹窗草稿中生效，保持打开便于重试或取消。
+      message.error('列设置保存到本地浏览器失败，本次设置仅当前页面生效');
+      return;
     }
-    setPageSize(currentPreference?.pageSize ?? 40);
-    const prefSortField = normalizeFieldKey(
-      (currentPreference?.sortField ?? '').trim(),
-    );
-    setSortField(
-      FEE_LEDGER_FIELDS.some((field) => field.key === prefSortField)
-        ? prefSortField
-        : '',
-    );
-    setSortDirection(
-      (currentPreference?.sortDirection as 'ASC' | 'DESC') ?? 'DESC',
-    );
-  }, [open, currentPreference]);
-
-  const visibleKeys = useMemo(
-    () => value.order.filter((key) => !value.hidden.includes(key)),
-    [value],
-  );
-
-  const handleSave = async (next: ColumnSettingsValue) => {
-    setSaving(true);
-    try {
-      const response = await settlementServiceUpdateFeeLedgerPreference({
-        columns: next.order.map((key) => ({
-          fieldKey: key,
-          visible: !next.hidden.includes(key),
-        })),
-        rowColors,
-        pageSize,
-        // 已有偏好必须回传版本号，否则服务端乐观锁判冲突。
-        version: currentPreference?.version,
-        sortField: sortField || undefined,
-        // 服务端契约：排序字段为空时不得携带排序方向。
-        sortDirection: sortField ? sortDirection : undefined,
-      });
-      if (!response.data) {
-        message.error('保存偏好配置失败');
-        return;
-      }
-      message.success('表格字段偏好与视图配置已保存');
-      onSaved(response.data);
-      onClose();
-    } catch {
-      // 保存失败保持弹窗打开，草稿保留供修正后重试。
-      message.error('保存偏好配置失败');
-    } finally {
-      setSaving(false);
-    }
+    onClose();
   };
 
   const advanced = (
     <div style={{ paddingTop: 8 }}>
-      <Card
-        size="small"
-        title="基础分页与排序设置"
-        style={{ marginBottom: 16, background: '#fafafa' }}
-      >
-        <Row gutter={24} align="middle">
-          <Col span={8}>
-            <div style={{ marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-              每页展示行数：
-            </div>
-            <Select
-              value={pageSize}
-              onChange={setPageSize}
-              style={{ width: '100%' }}
-              options={[
-                { label: '40 行 / 页 (默认推荐)', value: 40 },
-                { label: '60 行 / 页 (高密度)', value: 60 },
-                { label: '100 行 / 页 (大屏宽表)', value: 100 },
-                { label: '200 行 / 页 (全量极限)', value: 200 },
-              ]}
-            />
-          </Col>
-          <Col span={10}>
-            <div style={{ marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-              默认排序字段：
-            </div>
-            <Select
-              value={sortField}
-              onChange={setSortField}
-              style={{ width: '100%' }}
-              allowClear
-              placeholder="请选择默认排序字段（默认费用时间）"
-              options={[
-                { label: '无特定排序（按录入与费用时间）', value: '' },
-                ...FEE_LEDGER_FIELDS.filter((field) =>
-                  visibleKeys.includes(field.key),
-                ).map((field) => ({
-                  label: `${field.name} (${field.key})`,
-                  value: field.key,
-                })),
-              ]}
-            />
-          </Col>
-          <Col span={6}>
-            <div style={{ marginBottom: 6, fontWeight: 500, fontSize: 13 }}>
-              排序方式：
-            </div>
-            <Radio.Group
-              value={sortDirection}
-              onChange={(event) => setSortDirection(event.target.value)}
-              optionType="button"
-              buttonStyle="solid"
-              options={[
-                { label: '降序 DESC', value: 'DESC' },
-                { label: '升序 ASC', value: 'ASC' },
-              ]}
-            />
-          </Col>
-        </Row>
-      </Card>
       <RowColorSettings
         rowColors={rowColors}
         onColorChange={(key, color) =>
@@ -258,7 +114,6 @@ export function TableColumnConfigModal({
       defaultValue={defaultValue}
       title="列设置"
       advanced={advanced}
-      saving={saving}
       width={960}
       onSave={handleSave}
       onCancel={onClose}

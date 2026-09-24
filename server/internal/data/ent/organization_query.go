@@ -32,7 +32,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -117,7 +116,6 @@ type OrganizationQuery struct {
 	withFinanceCommissionApplications     *FinanceCommissionApplicationQuery
 	withFinanceCommissionApplicationLines *FinanceCommissionApplicationLineQuery
 	withOrderCommissionAttributions       *OrderCommissionAttributionQuery
-	withFinanceFeeLedgerPreferences       *FinanceFeeLedgerPreferenceQuery
 	withFinanceCustomSetting              *FinanceCustomSettingQuery
 	withEnterpriseResources               *EnterpriseResourceQuery
 	withEnterpriseTagGroups               *EnterpriseTagGroupQuery
@@ -950,28 +948,6 @@ func (_q *OrganizationQuery) QueryOrderCommissionAttributions() *OrderCommission
 	return query
 }
 
-// QueryFinanceFeeLedgerPreferences chains the current query on the "finance_fee_ledger_preferences" edge.
-func (_q *OrganizationQuery) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
-	query := (&FinanceFeeLedgerPreferenceClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(organization.Table, organization.FieldID, selector),
-			sqlgraph.To(financefeeledgerpreference.Table, financefeeledgerpreference.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceFeeLedgerPreferencesTable, organization.FinanceFeeLedgerPreferencesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryFinanceCustomSetting chains the current query on the "finance_custom_setting" edge.
 func (_q *OrganizationQuery) QueryFinanceCustomSetting() *FinanceCustomSettingQuery {
 	query := (&FinanceCustomSettingClient{config: _q.config}).Query()
@@ -1749,7 +1725,6 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withFinanceCommissionApplications:     _q.withFinanceCommissionApplications.Clone(),
 		withFinanceCommissionApplicationLines: _q.withFinanceCommissionApplicationLines.Clone(),
 		withOrderCommissionAttributions:       _q.withOrderCommissionAttributions.Clone(),
-		withFinanceFeeLedgerPreferences:       _q.withFinanceFeeLedgerPreferences.Clone(),
 		withFinanceCustomSetting:              _q.withFinanceCustomSetting.Clone(),
 		withEnterpriseResources:               _q.withEnterpriseResources.Clone(),
 		withEnterpriseTagGroups:               _q.withEnterpriseTagGroups.Clone(),
@@ -2166,17 +2141,6 @@ func (_q *OrganizationQuery) WithOrderCommissionAttributions(opts ...func(*Order
 	return _q
 }
 
-// WithFinanceFeeLedgerPreferences tells the query-builder to eager-load the nodes that are connected to
-// the "finance_fee_ledger_preferences" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrganizationQuery) WithFinanceFeeLedgerPreferences(opts ...func(*FinanceFeeLedgerPreferenceQuery)) *OrganizationQuery {
-	query := (&FinanceFeeLedgerPreferenceClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withFinanceFeeLedgerPreferences = query
-	return _q
-}
-
 // WithFinanceCustomSetting tells the query-builder to eager-load the nodes that are connected to
 // the "finance_custom_setting" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithFinanceCustomSetting(opts ...func(*FinanceCustomSettingQuery)) *OrganizationQuery {
@@ -2530,7 +2494,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [61]bool{
+		loadedTypes = [60]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -2566,7 +2530,6 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withFinanceCommissionApplications != nil,
 			_q.withFinanceCommissionApplicationLines != nil,
 			_q.withOrderCommissionAttributions != nil,
-			_q.withFinanceFeeLedgerPreferences != nil,
 			_q.withFinanceCustomSetting != nil,
 			_q.withEnterpriseResources != nil,
 			_q.withEnterpriseTagGroups != nil,
@@ -2889,15 +2852,6 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.OrderCommissionAttributions = []*OrderCommissionAttribution{} },
 			func(n *Organization, e *OrderCommissionAttribution) {
 				n.Edges.OrderCommissionAttributions = append(n.Edges.OrderCommissionAttributions, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withFinanceFeeLedgerPreferences; query != nil {
-		if err := _q.loadFinanceFeeLedgerPreferences(ctx, query, nodes,
-			func(n *Organization) { n.Edges.FinanceFeeLedgerPreferences = []*FinanceFeeLedgerPreference{} },
-			func(n *Organization, e *FinanceFeeLedgerPreference) {
-				n.Edges.FinanceFeeLedgerPreferences = append(n.Edges.FinanceFeeLedgerPreferences, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4173,36 +4127,6 @@ func (_q *OrganizationQuery) loadOrderCommissionAttributions(ctx context.Context
 	}
 	query.Where(predicate.OrderCommissionAttribution(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.OrderCommissionAttributionsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrganizationID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *OrganizationQuery) loadFinanceFeeLedgerPreferences(ctx context.Context, query *FinanceFeeLedgerPreferenceQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *FinanceFeeLedgerPreference)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Organization)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(financefeeledgerpreference.FieldOrganizationID)
-	}
-	query.Where(predicate.FinanceFeeLedgerPreference(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(organization.FinanceFeeLedgerPreferencesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

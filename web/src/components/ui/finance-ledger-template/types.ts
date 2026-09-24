@@ -6,6 +6,14 @@ import type {
 import type { TableProps } from 'antd';
 import type React from 'react';
 import type { ReactNode } from 'react';
+import type { ColumnSettingsValue } from '@/components/ui/column-settings';
+import type { RowColorsConfig } from './RowColorSettings';
+
+/** 台账本地视图配置：受管列显隐顺序 + 行背景配色，持久化在浏览器本地。 */
+export interface FinanceLedgerViewConfig {
+  columns: ColumnSettingsValue;
+  rowColors: RowColorsConfig;
+}
 
 /** ProTable 注入到 request 参数中的分页与关键字字段（与筛选表单字段合并） */
 export interface FinanceLedgerRequestParams {
@@ -111,10 +119,8 @@ export interface FinanceLedgerTemplateProps<
   columnSettingsKey?: string;
 
   // 7 类业务状态行背景高亮颜色配置
-  rowColors?: API.FeeLedgerRowColors;
-  getRowStatusColorKey?: (
-    record: T,
-  ) => keyof API.FeeLedgerRowColors | undefined;
+  rowColors?: RowColorsConfig;
+  getRowStatusColorKey?: (record: T) => keyof RowColorsConfig | undefined;
 
   // 整行点击事件（如点击行跳转详情）
   onRowClick?: (record: T, event: React.MouseEvent) => void;

@@ -1692,29 +1692,6 @@ func HasCancelledFinanceCommissionAdjustmentsWith(preds ...predicate.FinanceComm
 	})
 }
 
-// HasFinanceFeeLedgerPreferences applies the HasEdge predicate on the "finance_fee_ledger_preferences" edge.
-func HasFinanceFeeLedgerPreferences() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, FinanceFeeLedgerPreferencesTable, FinanceFeeLedgerPreferencesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasFinanceFeeLedgerPreferencesWith applies the HasEdge predicate on the "finance_fee_ledger_preferences" edge with a given conditions (other predicates).
-func HasFinanceFeeLedgerPreferencesWith(preds ...predicate.FinanceFeeLedgerPreference) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := newFinanceFeeLedgerPreferencesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasUpdatedFinanceCustomSettings applies the HasEdge predicate on the "updated_finance_custom_settings" edge.
 func HasUpdatedFinanceCustomSettings() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

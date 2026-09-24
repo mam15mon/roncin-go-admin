@@ -1,6 +1,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Tag } from 'antd';
 import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
+import type { RowColorsConfig } from '@/components/ui/finance-ledger-template';
 import {
   businessTypeMeta,
   normalizeBusinessType,
@@ -35,7 +36,7 @@ const feeLedgerStatusValueEnum = Object.fromEntries(
 );
 
 /** 行配色 key 与财务进度枚举一一对应；文案与颜色以共享映射为唯一真相源。 */
-const progressRowColorKeys: Record<number, keyof API.FeeLedgerRowColors> = {
+const progressRowColorKeys: Record<number, keyof RowColorsConfig> = {
   [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED]:
     'unbilled',
   [FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED]:
@@ -54,7 +55,7 @@ const progressRowColorKeys: Record<number, keyof API.FeeLedgerRowColors> = {
 
 export const financialProgressLabels: Record<
   number,
-  { text: string; color: string; key: keyof API.FeeLedgerRowColors }
+  { text: string; color: string; key: keyof RowColorsConfig }
 > = Object.fromEntries(
   Object.entries(feeLedgerProgressLabels).map(([progress, label]) => [
     Number(progress),
@@ -516,79 +517,50 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
   ];
 }
 
+/** 台账本地列配置：完整顺序（含隐藏列）+ 隐藏 key 集合。 */
+export interface FeeLedgerColumnSetting {
+  order: string[];
+  hidden: string[];
+}
+
+/** 台账钉住列：综合搜索、序号与属性固定在表头前部，不参与列设置。 */
+function isPinnedLedgerColumn(col: ProColumns<API.FeeLedgerItem>): boolean {
+  return (
+    col.dataIndex === 'keyword' ||
+    col.valueType === 'index' ||
+    col.dataIndex === 'direction'
+  );
+}
+
 export function buildUserOrderedColumns(
   baseColumns: ProColumns<API.FeeLedgerItem>[],
-  preference?: API.FeeLedgerPreference,
+  setting?: FeeLedgerColumnSetting,
 ): ProColumns<API.FeeLedgerItem>[] {
-  if (!preference?.columns || preference.columns.length === 0) {
+  if (!setting || setting.order.length === 0) {
     return baseColumns;
   }
-  const normalizeKey = (k: string) => {
-    if (k === 'financial_progress') return 'financialProgress';
-    if (k === 'customerName') return 'customerId';
-    if (k === 'settlementPartyName') return 'settlementPartyId';
-    if (k === 'orgName') return 'organizationName';
-    return k;
-  };
 
-  const orderMap = new Map<string, { visible: boolean; order: number }>();
-  preference.columns.forEach((c, idx) => {
-    if (c.fieldKey) {
-      const normKey = normalizeKey(c.fieldKey);
-      orderMap.set(normKey, {
-        visible: Boolean(c.visible),
-        order: idx + 1,
-      });
-    }
-  });
-
-  const colMap = new Map<string, ProColumns<API.FeeLedgerItem>>();
-  let indexCol: ProColumns<API.FeeLedgerItem> | undefined;
-  let directionCol: ProColumns<API.FeeLedgerItem> | undefined;
-
+  const managed = new Map<string, ProColumns<API.FeeLedgerItem>>();
+  const pinned: ProColumns<API.FeeLedgerItem>[] = [];
   baseColumns.forEach((col) => {
-    if (col.valueType === 'index') {
-      indexCol = col;
-    } else if (col.dataIndex === 'direction') {
-      directionCol = col;
-    } else {
-      const key = String(col.dataIndex || '');
-      if (key) colMap.set(key, col);
+    const key = String(col.dataIndex || col.key || '');
+    if (isPinnedLedgerColumn(col)) {
+      pinned.push(col);
+      return;
     }
+    if (key && !managed.has(key)) managed.set(key, col);
   });
 
-  // 1. 全局搜索项、序号与属性列保持稳定
-  const result: ProColumns<API.FeeLedgerItem>[] = [];
-  const keywordCol = baseColumns.find((c) => c.dataIndex === 'keyword');
-  if (keywordCol) result.push(keywordCol);
-  if (indexCol) result.push(indexCol);
-  if (directionCol) result.push(directionCol);
+  const hidden = new Set(setting.hidden);
+  const orderedKeys = setting.order.filter((key) => managed.has(key));
+  for (const key of managed.keys()) {
+    if (!orderedKeys.includes(key)) orderedKeys.push(key);
+  }
 
-  // 2. 其余可见列按照用户设置的 order 顺序插入
-  const userOrdered: ProColumns<API.FeeLedgerItem>[] = [];
-  preference.columns.forEach((c) => {
-    if (c.fieldKey) {
-      const normKey = normalizeKey(c.fieldKey);
-      if (orderMap.get(normKey)?.visible) {
-        const matched = colMap.get(normKey);
-        if (matched && !userOrdered.includes(matched)) {
-          userOrdered.push(matched);
-        }
-      }
-    }
-  });
-
-  result.push(...userOrdered);
-
-  // 3. 补充可能在 baseColumns 中存在但在 preference 中未定义的列（如有）
-  baseColumns.forEach((col) => {
-    if (col !== indexCol && col !== directionCol) {
-      const key = String(col.dataIndex || '');
-      if (key && !orderMap.has(key) && !result.includes(col)) {
-        result.push(col);
-      }
-    }
-  });
-
+  const result: ProColumns<API.FeeLedgerItem>[] = [...pinned];
+  for (const key of orderedKeys) {
+    const column = managed.get(key);
+    if (column && !hidden.has(key)) result.push(column);
+  }
   return result;
 }

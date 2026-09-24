@@ -28,7 +28,6 @@ type SettlementService struct {
 	nettingUsecase               *biz.FinanceNettingUsecase
 	commissionUsecase            *biz.CommissionUsecase
 	commissionApplicationUsecase *biz.FinanceCommissionApplicationUsecase
-	preferenceUsecase            *biz.FeeLedgerPreferenceUsecase
 	customSettingUsecase         *biz.FinanceCustomSettingUsecase
 	tagUsecase                   *biz.BusinessTagUsecase
 	accountUsecase               *biz.PartnerAccountUsecase
@@ -122,8 +121,8 @@ func financeOrganizationPurposePermission(purpose v1.FinanceOrganizationPurpose)
 	}
 }
 
-func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, nettingUsecase *biz.FinanceNettingUsecase, commissionUsecase *biz.CommissionUsecase, commissionApplicationUsecase *biz.FinanceCommissionApplicationUsecase, preferenceUsecase *biz.FeeLedgerPreferenceUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase, accountUsecase *biz.PartnerAccountUsecase) *SettlementService {
-	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, nettingUsecase: nettingUsecase, commissionUsecase: commissionUsecase, commissionApplicationUsecase: commissionApplicationUsecase, preferenceUsecase: preferenceUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase, accountUsecase: accountUsecase}
+func NewSettlementService(usecase *biz.SettlementUsecase, billUsecase *biz.FinanceBillUsecase, invoiceUsecase *biz.FinanceInvoiceUsecase, cashflowUsecase *biz.FinanceCashflowUsecase, verificationUsecase *biz.VerificationUsecase, nettingUsecase *biz.FinanceNettingUsecase, commissionUsecase *biz.CommissionUsecase, commissionApplicationUsecase *biz.FinanceCommissionApplicationUsecase, customSettingUsecase *biz.FinanceCustomSettingUsecase, tagUsecase *biz.BusinessTagUsecase, accountUsecase *biz.PartnerAccountUsecase) *SettlementService {
+	return &SettlementService{usecase: usecase, billUsecase: billUsecase, invoiceUsecase: invoiceUsecase, cashflowUsecase: cashflowUsecase, verificationUsecase: verificationUsecase, nettingUsecase: nettingUsecase, commissionUsecase: commissionUsecase, commissionApplicationUsecase: commissionApplicationUsecase, customSettingUsecase: customSettingUsecase, tagUsecase: tagUsecase, accountUsecase: accountUsecase}
 }
 
 func financePrincipalAndID(ctx context.Context, rawID string) (*biz.Principal, uuid.UUID, error) {

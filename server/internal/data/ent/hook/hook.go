@@ -465,18 +465,6 @@ func (f FinanceCustomSettingFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceCustomSettingMutation", m)
 }
 
-// The FinanceFeeLedgerPreferenceFunc type is an adapter to allow the use of ordinary
-// function as FinanceFeeLedgerPreference mutator.
-type FinanceFeeLedgerPreferenceFunc func(context.Context, *ent.FinanceFeeLedgerPreferenceMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FinanceFeeLedgerPreferenceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FinanceFeeLedgerPreferenceMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceFeeLedgerPreferenceMutation", m)
-}
-
 // The FinanceInvoiceFunc type is an adapter to allow the use of ordinary
 // function as FinanceInvoice mutator.
 type FinanceInvoiceFunc func(context.Context, *ent.FinanceInvoiceMutation) (ent.Value, error)

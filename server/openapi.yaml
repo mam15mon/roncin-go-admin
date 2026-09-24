@@ -3429,54 +3429,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.GetFeeLedgerOrderDetailResponse'
-    /api/v1/finance/fees/preference:
-        get:
-            tags:
-                - SettlementService
-            description: GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
-            operationId: SettlementService_GetFeeLedgerPreference
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/finance.v1.GetFeeLedgerPreferenceResponse'
-        put:
-            tags:
-                - SettlementService
-            description: UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
-            operationId: SettlementService_UpdateFeeLedgerPreference
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/finance.v1.UpdateFeeLedgerPreferenceRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/finance.v1.UpdateFeeLedgerPreferenceResponse'
-        delete:
-            tags:
-                - SettlementService
-            description: ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
-            operationId: SettlementService_ResetFeeLedgerPreference
-            parameters:
-                - name: version
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/finance.v1.ResetFeeLedgerPreferenceResponse'
     /api/v1/finance/invoices:
         get:
             tags:
@@ -12082,15 +12034,6 @@ components:
                     type: string
                 profitBaseAmount:
                     type: string
-        finance.v1.FeeLedgerColumnPreference:
-            required:
-                - fieldKey
-            type: object
-            properties:
-                fieldKey:
-                    type: string
-                visible:
-                    type: boolean
         finance.v1.FeeLedgerItem:
             type: object
             properties:
@@ -12189,53 +12132,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/finance.v1.FeeLedgerBaseCurrencyAmount'
-        finance.v1.FeeLedgerPreference:
-            type: object
-            properties:
-                columns:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/finance.v1.FeeLedgerColumnPreference'
-                pageSize:
-                    type: integer
-                    format: int32
-                sortField:
-                    type: string
-                sortDirection:
-                    type: string
-                rowColors:
-                    $ref: '#/components/schemas/finance.v1.FeeLedgerRowColors'
-                version:
-                    type: string
-                customized:
-                    type: boolean
-                updatedAt:
-                    type: string
-        finance.v1.FeeLedgerRowColors:
-            required:
-                - unbilled
-                - unverifiedUninvoiced
-                - invoicedUnverified
-                - verifiedUninvoiced
-                - completed
-                - invoicedPartiallyVerified
-                - partiallyVerifiedUninvoiced
-            type: object
-            properties:
-                unbilled:
-                    type: string
-                unverifiedUninvoiced:
-                    type: string
-                invoicedUnverified:
-                    type: string
-                verifiedUninvoiced:
-                    type: string
-                completed:
-                    type: string
-                invoicedPartiallyVerified:
-                    type: string
-                partiallyVerifiedUninvoiced:
-                    type: string
         finance.v1.FeeLedgerSummary:
             type: object
             properties:
@@ -13540,20 +13436,6 @@ components:
                     $ref: '#/components/schemas/finance.v1.FeeLedgerOrderDetail'
                 traceId:
                     type: string
-        finance.v1.GetFeeLedgerPreferenceResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FeeLedgerPreference'
-                traceId:
-                    type: string
         finance.v1.GetInvoiceResponse:
             type: object
             properties:
@@ -14518,20 +14400,6 @@ components:
                     $ref: '#/components/schemas/finance.v1.FinanceCommissionRule'
                 traceId:
                     type: string
-        finance.v1.ResetFeeLedgerPreferenceResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FeeLedgerPreference'
-                traceId:
-                    type: string
         finance.v1.ReverseNettingRequest:
             required:
                 - id
@@ -14930,42 +14798,6 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/finance.v1.ExchangeRateSetting'
-                traceId:
-                    type: string
-        finance.v1.UpdateFeeLedgerPreferenceRequest:
-            required:
-                - columns
-                - pageSize
-                - rowColors
-            type: object
-            properties:
-                columns:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/finance.v1.FeeLedgerColumnPreference'
-                pageSize:
-                    type: integer
-                    format: int32
-                sortField:
-                    type: string
-                sortDirection:
-                    type: string
-                rowColors:
-                    $ref: '#/components/schemas/finance.v1.FeeLedgerRowColors'
-                version:
-                    type: string
-        finance.v1.UpdateFeeLedgerPreferenceResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FeeLedgerPreference'
                 traceId:
                     type: string
         finance.v1.UpdateFeeSettingRequest:

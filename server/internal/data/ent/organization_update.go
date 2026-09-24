@@ -31,7 +31,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -706,21 +705,6 @@ func (_u *OrganizationUpdate) AddOrderCommissionAttributions(v ...*OrderCommissi
 		ids[i] = v[i].ID
 	}
 	return _u.AddOrderCommissionAttributionIDs(ids...)
-}
-
-// AddFinanceFeeLedgerPreferenceIDs adds the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by IDs.
-func (_u *OrganizationUpdate) AddFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.AddFinanceFeeLedgerPreferenceIDs(ids...)
-	return _u
-}
-
-// AddFinanceFeeLedgerPreferences adds the "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
-func (_u *OrganizationUpdate) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
 // AddFinanceCustomSettingIDs adds the "finance_custom_setting" edge to the FinanceCustomSetting entity by IDs.
@@ -1821,27 +1805,6 @@ func (_u *OrganizationUpdate) RemoveOrderCommissionAttributions(v ...*OrderCommi
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderCommissionAttributionIDs(ids...)
-}
-
-// ClearFinanceFeeLedgerPreferences clears all "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
-func (_u *OrganizationUpdate) ClearFinanceFeeLedgerPreferences() *OrganizationUpdate {
-	_u.mutation.ClearFinanceFeeLedgerPreferences()
-	return _u
-}
-
-// RemoveFinanceFeeLedgerPreferenceIDs removes the "finance_fee_ledger_preferences" edge to FinanceFeeLedgerPreference entities by IDs.
-func (_u *OrganizationUpdate) RemoveFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *OrganizationUpdate {
-	_u.mutation.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
-	return _u
-}
-
-// RemoveFinanceFeeLedgerPreferences removes "finance_fee_ledger_preferences" edges to FinanceFeeLedgerPreference entities.
-func (_u *OrganizationUpdate) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *OrganizationUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
 // ClearFinanceCustomSetting clears all "finance_custom_setting" edges to the FinanceCustomSetting entity.
@@ -4026,51 +3989,6 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.FinanceFeeLedgerPreferencesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.FinanceFeeLedgerPreferencesTable,
-			Columns: []string{organization.FinanceFeeLedgerPreferencesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedFinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 && !_u.mutation.FinanceFeeLedgerPreferencesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.FinanceFeeLedgerPreferencesTable,
-			Columns: []string{organization.FinanceFeeLedgerPreferencesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.FinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.FinanceFeeLedgerPreferencesTable,
-			Columns: []string{organization.FinanceFeeLedgerPreferencesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.FinanceCustomSettingCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -5837,21 +5755,6 @@ func (_u *OrganizationUpdateOne) AddOrderCommissionAttributions(v ...*OrderCommi
 	return _u.AddOrderCommissionAttributionIDs(ids...)
 }
 
-// AddFinanceFeeLedgerPreferenceIDs adds the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by IDs.
-func (_u *OrganizationUpdateOne) AddFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.AddFinanceFeeLedgerPreferenceIDs(ids...)
-	return _u
-}
-
-// AddFinanceFeeLedgerPreferences adds the "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
-func (_u *OrganizationUpdateOne) AddFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddFinanceFeeLedgerPreferenceIDs(ids...)
-}
-
 // AddFinanceCustomSettingIDs adds the "finance_custom_setting" edge to the FinanceCustomSetting entity by IDs.
 func (_u *OrganizationUpdateOne) AddFinanceCustomSettingIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddFinanceCustomSettingIDs(ids...)
@@ -6950,27 +6853,6 @@ func (_u *OrganizationUpdateOne) RemoveOrderCommissionAttributions(v ...*OrderCo
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveOrderCommissionAttributionIDs(ids...)
-}
-
-// ClearFinanceFeeLedgerPreferences clears all "finance_fee_ledger_preferences" edges to the FinanceFeeLedgerPreference entity.
-func (_u *OrganizationUpdateOne) ClearFinanceFeeLedgerPreferences() *OrganizationUpdateOne {
-	_u.mutation.ClearFinanceFeeLedgerPreferences()
-	return _u
-}
-
-// RemoveFinanceFeeLedgerPreferenceIDs removes the "finance_fee_ledger_preferences" edge to FinanceFeeLedgerPreference entities by IDs.
-func (_u *OrganizationUpdateOne) RemoveFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
-	_u.mutation.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
-	return _u
-}
-
-// RemoveFinanceFeeLedgerPreferences removes "finance_fee_ledger_preferences" edges to FinanceFeeLedgerPreference entities.
-func (_u *OrganizationUpdateOne) RemoveFinanceFeeLedgerPreferences(v ...*FinanceFeeLedgerPreference) *OrganizationUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveFinanceFeeLedgerPreferenceIDs(ids...)
 }
 
 // ClearFinanceCustomSetting clears all "finance_custom_setting" edges to the FinanceCustomSetting entity.
@@ -9178,51 +9060,6 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.FinanceFeeLedgerPreferencesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.FinanceFeeLedgerPreferencesTable,
-			Columns: []string{organization.FinanceFeeLedgerPreferencesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedFinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 && !_u.mutation.FinanceFeeLedgerPreferencesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.FinanceFeeLedgerPreferencesTable,
-			Columns: []string{organization.FinanceFeeLedgerPreferencesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.FinanceFeeLedgerPreferencesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.FinanceFeeLedgerPreferencesTable,
-			Columns: []string{organization.FinanceFeeLedgerPreferencesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financefeeledgerpreference.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

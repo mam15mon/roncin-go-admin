@@ -21,9 +21,6 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	SettlementService_ListFeeLedger_FullMethodName                             = "/finance.v1.SettlementService/ListFeeLedger"
 	SettlementService_GetFeeLedgerOrderDetail_FullMethodName                   = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
-	SettlementService_GetFeeLedgerPreference_FullMethodName                    = "/finance.v1.SettlementService/GetFeeLedgerPreference"
-	SettlementService_UpdateFeeLedgerPreference_FullMethodName                 = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
-	SettlementService_ResetFeeLedgerPreference_FullMethodName                  = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
 	SettlementService_GetBilledFeeEditPolicy_FullMethodName                    = "/finance.v1.SettlementService/GetBilledFeeEditPolicy"
 	SettlementService_UpdateBilledFeeEditPolicy_FullMethodName                 = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
 	SettlementService_GetCreditLimitControlPolicy_FullMethodName               = "/finance.v1.SettlementService/GetCreditLimitControlPolicy"
@@ -112,12 +109,6 @@ type SettlementServiceClient interface {
 	// ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, in *ListFeeLedgerRequest, opts ...grpc.CallOption) (*ListFeeLedgerResponse, error)
 	GetFeeLedgerOrderDetail(ctx context.Context, in *GetFeeLedgerOrderDetailRequest, opts ...grpc.CallOption) (*GetFeeLedgerOrderDetailResponse, error)
-	// GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
-	GetFeeLedgerPreference(ctx context.Context, in *GetFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*GetFeeLedgerPreferenceResponse, error)
-	// UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
-	UpdateFeeLedgerPreference(ctx context.Context, in *UpdateFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*UpdateFeeLedgerPreferenceResponse, error)
-	// ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
-	ResetFeeLedgerPreference(ctx context.Context, in *ResetFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*ResetFeeLedgerPreferenceResponse, error)
 	// GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(ctx context.Context, in *GetBilledFeeEditPolicyRequest, opts ...grpc.CallOption) (*GetBilledFeeEditPolicyResponse, error)
 	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
@@ -249,36 +240,6 @@ func (c *settlementServiceClient) GetFeeLedgerOrderDetail(ctx context.Context, i
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFeeLedgerOrderDetailResponse)
 	err := c.cc.Invoke(ctx, SettlementService_GetFeeLedgerOrderDetail_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) GetFeeLedgerPreference(ctx context.Context, in *GetFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*GetFeeLedgerPreferenceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetFeeLedgerPreferenceResponse)
-	err := c.cc.Invoke(ctx, SettlementService_GetFeeLedgerPreference_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) UpdateFeeLedgerPreference(ctx context.Context, in *UpdateFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*UpdateFeeLedgerPreferenceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateFeeLedgerPreferenceResponse)
-	err := c.cc.Invoke(ctx, SettlementService_UpdateFeeLedgerPreference_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) ResetFeeLedgerPreference(ctx context.Context, in *ResetFeeLedgerPreferenceRequest, opts ...grpc.CallOption) (*ResetFeeLedgerPreferenceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ResetFeeLedgerPreferenceResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ResetFeeLedgerPreference_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1064,12 +1025,6 @@ type SettlementServiceServer interface {
 	// ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
 	GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error)
-	// GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
-	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
-	// UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
-	UpdateFeeLedgerPreference(context.Context, *UpdateFeeLedgerPreferenceRequest) (*UpdateFeeLedgerPreferenceResponse, error)
-	// ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
-	ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error)
 	// GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。
 	GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error)
 	// UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
@@ -1192,15 +1147,6 @@ func (UnimplementedSettlementServiceServer) ListFeeLedger(context.Context, *List
 }
 func (UnimplementedSettlementServiceServer) GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFeeLedgerOrderDetail not implemented")
-}
-func (UnimplementedSettlementServiceServer) GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetFeeLedgerPreference not implemented")
-}
-func (UnimplementedSettlementServiceServer) UpdateFeeLedgerPreference(context.Context, *UpdateFeeLedgerPreferenceRequest) (*UpdateFeeLedgerPreferenceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method UpdateFeeLedgerPreference not implemented")
-}
-func (UnimplementedSettlementServiceServer) ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ResetFeeLedgerPreference not implemented")
 }
 func (UnimplementedSettlementServiceServer) GetBilledFeeEditPolicy(context.Context, *GetBilledFeeEditPolicyRequest) (*GetBilledFeeEditPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBilledFeeEditPolicy not implemented")
@@ -1486,60 +1432,6 @@ func _SettlementService_GetFeeLedgerOrderDetail_Handler(srv interface{}, ctx con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).GetFeeLedgerOrderDetail(ctx, req.(*GetFeeLedgerOrderDetailRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_GetFeeLedgerPreference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFeeLedgerPreferenceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).GetFeeLedgerPreference(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_GetFeeLedgerPreference_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).GetFeeLedgerPreference(ctx, req.(*GetFeeLedgerPreferenceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_UpdateFeeLedgerPreference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateFeeLedgerPreferenceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).UpdateFeeLedgerPreference(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_UpdateFeeLedgerPreference_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).UpdateFeeLedgerPreference(ctx, req.(*UpdateFeeLedgerPreferenceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_ResetFeeLedgerPreference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResetFeeLedgerPreferenceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ResetFeeLedgerPreference(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ResetFeeLedgerPreference_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ResetFeeLedgerPreference(ctx, req.(*ResetFeeLedgerPreferenceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2944,18 +2836,6 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFeeLedgerOrderDetail",
 			Handler:    _SettlementService_GetFeeLedgerOrderDetail_Handler,
-		},
-		{
-			MethodName: "GetFeeLedgerPreference",
-			Handler:    _SettlementService_GetFeeLedgerPreference_Handler,
-		},
-		{
-			MethodName: "UpdateFeeLedgerPreference",
-			Handler:    _SettlementService_UpdateFeeLedgerPreference_Handler,
-		},
-		{
-			MethodName: "ResetFeeLedgerPreference",
-			Handler:    _SettlementService_ResetFeeLedgerPreference_Handler,
 		},
 		{
 			MethodName: "GetBilledFeeEditPolicy",

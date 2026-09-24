@@ -99,7 +99,7 @@ func commissionApplicationPrincipalContext(permission string, organizationID uui
 
 func newCommissionApplicationServiceForTest(repo *commissionApplicationRepoStub) *SettlementService {
 	return NewSettlementService(nil, nil, nil, nil, nil, nil, nil,
-		biz.NewFinanceCommissionApplicationUsecase(repo), nil, nil, nil, nil)
+		biz.NewFinanceCommissionApplicationUsecase(repo), nil, nil, nil)
 }
 
 // TestCommissionApplicationServicePermissionGate 验证服务层权限解析：只持有

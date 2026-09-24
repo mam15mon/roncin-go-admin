@@ -27,7 +27,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -92,7 +91,6 @@ type UserQuery struct {
 	withConfirmedFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
 	withPaidFinanceCommissionAdjustments           *FinanceCommissionAdjustmentQuery
 	withCancelledFinanceCommissionAdjustments      *FinanceCommissionAdjustmentQuery
-	withFinanceFeeLedgerPreferences                *FinanceFeeLedgerPreferenceQuery
 	withUpdatedFinanceCustomSettings               *FinanceCustomSettingQuery
 	withCreatedEnterpriseResources                 *EnterpriseResourceQuery
 	withUpdatedEnterpriseResources                 *EnterpriseResourceQuery
@@ -752,28 +750,6 @@ func (_q *UserQuery) QueryCancelledFinanceCommissionAdjustments() *FinanceCommis
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledFinanceCommissionAdjustmentsTable, user.CancelledFinanceCommissionAdjustmentsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryFinanceFeeLedgerPreferences chains the current query on the "finance_fee_ledger_preferences" edge.
-func (_q *UserQuery) QueryFinanceFeeLedgerPreferences() *FinanceFeeLedgerPreferenceQuery {
-	query := (&FinanceFeeLedgerPreferenceClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(financefeeledgerpreference.Table, financefeeledgerpreference.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.FinanceFeeLedgerPreferencesTable, user.FinanceFeeLedgerPreferencesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1770,7 +1746,6 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withConfirmedFinanceCommissionAdjustments:      _q.withConfirmedFinanceCommissionAdjustments.Clone(),
 		withPaidFinanceCommissionAdjustments:           _q.withPaidFinanceCommissionAdjustments.Clone(),
 		withCancelledFinanceCommissionAdjustments:      _q.withCancelledFinanceCommissionAdjustments.Clone(),
-		withFinanceFeeLedgerPreferences:                _q.withFinanceFeeLedgerPreferences.Clone(),
 		withUpdatedFinanceCustomSettings:               _q.withUpdatedFinanceCustomSettings.Clone(),
 		withCreatedEnterpriseResources:                 _q.withCreatedEnterpriseResources.Clone(),
 		withUpdatedEnterpriseResources:                 _q.withUpdatedEnterpriseResources.Clone(),
@@ -2106,17 +2081,6 @@ func (_q *UserQuery) WithCancelledFinanceCommissionAdjustments(opts ...func(*Fin
 		opt(query)
 	}
 	_q.withCancelledFinanceCommissionAdjustments = query
-	return _q
-}
-
-// WithFinanceFeeLedgerPreferences tells the query-builder to eager-load the nodes that are connected to
-// the "finance_fee_ledger_preferences" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithFinanceFeeLedgerPreferences(opts ...func(*FinanceFeeLedgerPreferenceQuery)) *UserQuery {
-	query := (&FinanceFeeLedgerPreferenceClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withFinanceFeeLedgerPreferences = query
 	return _q
 }
 
@@ -2583,7 +2547,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [63]bool{
+		loadedTypes = [62]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2611,7 +2575,6 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withConfirmedFinanceCommissionAdjustments != nil,
 			_q.withPaidFinanceCommissionAdjustments != nil,
 			_q.withCancelledFinanceCommissionAdjustments != nil,
-			_q.withFinanceFeeLedgerPreferences != nil,
 			_q.withUpdatedFinanceCustomSettings != nil,
 			_q.withCreatedEnterpriseResources != nil,
 			_q.withUpdatedEnterpriseResources != nil,
@@ -2901,15 +2864,6 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.CancelledFinanceCommissionAdjustments = []*FinanceCommissionAdjustment{} },
 			func(n *User, e *FinanceCommissionAdjustment) {
 				n.Edges.CancelledFinanceCommissionAdjustments = append(n.Edges.CancelledFinanceCommissionAdjustments, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withFinanceFeeLedgerPreferences; query != nil {
-		if err := _q.loadFinanceFeeLedgerPreferences(ctx, query, nodes,
-			func(n *User) { n.Edges.FinanceFeeLedgerPreferences = []*FinanceFeeLedgerPreference{} },
-			func(n *User, e *FinanceFeeLedgerPreference) {
-				n.Edges.FinanceFeeLedgerPreferences = append(n.Edges.FinanceFeeLedgerPreferences, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4088,36 +4042,6 @@ func (_q *UserQuery) loadCancelledFinanceCommissionAdjustments(ctx context.Conte
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *UserQuery) loadFinanceFeeLedgerPreferences(ctx context.Context, query *FinanceFeeLedgerPreferenceQuery, nodes []*User, init func(*User), assign func(*User, *FinanceFeeLedgerPreference)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(financefeeledgerpreference.FieldUserID)
-	}
-	query.Where(predicate.FinanceFeeLedgerPreference(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.FinanceFeeLedgerPreferencesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.UserID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

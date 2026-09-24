@@ -52,7 +52,6 @@ const OperationSettlementServiceGetCommission = "/finance.v1.SettlementService/G
 const OperationSettlementServiceGetCommissionApplication = "/finance.v1.SettlementService/GetCommissionApplication"
 const OperationSettlementServiceGetCreditLimitControlPolicy = "/finance.v1.SettlementService/GetCreditLimitControlPolicy"
 const OperationSettlementServiceGetFeeLedgerOrderDetail = "/finance.v1.SettlementService/GetFeeLedgerOrderDetail"
-const OperationSettlementServiceGetFeeLedgerPreference = "/finance.v1.SettlementService/GetFeeLedgerPreference"
 const OperationSettlementServiceGetInvoice = "/finance.v1.SettlementService/GetInvoice"
 const OperationSettlementServiceGetMyFeeSupplementAdjustmentSource = "/finance.v1.SettlementService/GetMyFeeSupplementAdjustmentSource"
 const OperationSettlementServiceGetNetting = "/finance.v1.SettlementService/GetNetting"
@@ -91,14 +90,12 @@ const OperationSettlementServicePreviewNetting = "/finance.v1.SettlementService/
 const OperationSettlementServiceRedFlushInvoice = "/finance.v1.SettlementService/RedFlushInvoice"
 const OperationSettlementServiceRejectCommissionApplication = "/finance.v1.SettlementService/RejectCommissionApplication"
 const OperationSettlementServiceRemoveCommissionRuleEmployees = "/finance.v1.SettlementService/RemoveCommissionRuleEmployees"
-const OperationSettlementServiceResetFeeLedgerPreference = "/finance.v1.SettlementService/ResetFeeLedgerPreference"
 const OperationSettlementServiceReverseNetting = "/finance.v1.SettlementService/ReverseNetting"
 const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 const OperationSettlementServiceUpdateBilledFeeEditPolicy = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
 const OperationSettlementServiceUpdateCommissionRule = "/finance.v1.SettlementService/UpdateCommissionRule"
 const OperationSettlementServiceUpdateCreditLimitControlPolicy = "/finance.v1.SettlementService/UpdateCreditLimitControlPolicy"
-const OperationSettlementServiceUpdateFeeLedgerPreference = "/finance.v1.SettlementService/UpdateFeeLedgerPreference"
 
 type SettlementServiceHTTPServer interface {
 	// ApproveCommissionApplication ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只
@@ -146,8 +143,6 @@ type SettlementServiceHTTPServer interface {
 	// GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
 	GetCreditLimitControlPolicy(context.Context, *GetCreditLimitControlPolicyRequest) (*GetCreditLimitControlPolicyResponse, error)
 	GetFeeLedgerOrderDetail(context.Context, *GetFeeLedgerOrderDetailRequest) (*GetFeeLedgerOrderDetailResponse, error)
-	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
-	GetFeeLedgerPreference(context.Context, *GetFeeLedgerPreferenceRequest) (*GetFeeLedgerPreferenceResponse, error)
 	GetInvoice(context.Context, *GetInvoiceRequest) (*GetInvoiceResponse, error)
 	// GetMyFeeSupplementAdjustmentSource GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
 	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
@@ -205,8 +200,6 @@ type SettlementServiceHTTPServer interface {
 	// 不产生同月替代申请。
 	RejectCommissionApplication(context.Context, *RejectCommissionApplicationRequest) (*RejectCommissionApplicationResponse, error)
 	RemoveCommissionRuleEmployees(context.Context, *RemoveCommissionRuleEmployeesRequest) (*RemoveCommissionRuleEmployeesResponse, error)
-	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
-	ResetFeeLedgerPreference(context.Context, *ResetFeeLedgerPreferenceRequest) (*ResetFeeLedgerPreferenceResponse, error)
 	ReverseNetting(context.Context, *ReverseNettingRequest) (*ReverseNettingResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
@@ -215,17 +208,12 @@ type SettlementServiceHTTPServer interface {
 	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error)
 	// UpdateCreditLimitControlPolicy UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
 	UpdateCreditLimitControlPolicy(context.Context, *UpdateCreditLimitControlPolicyRequest) (*UpdateCreditLimitControlPolicyResponse, error)
-	// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
-	UpdateFeeLedgerPreference(context.Context, *UpdateFeeLedgerPreferenceRequest) (*UpdateFeeLedgerPreferenceResponse, error)
 }
 
 func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/finance/fees", _SettlementService_ListFeeLedger0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/fees/orders/{order_id}", _SettlementService_GetFeeLedgerOrderDetail0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/finance/fees/preference", _SettlementService_GetFeeLedgerPreference0_HTTP_Handler(srv))
-	r.Handle("PUT", "/api/v1/finance/fees/preference", _SettlementService_UpdateFeeLedgerPreference0_HTTP_Handler(srv))
-	r.Handle("DELETE", "/api/v1/finance/fees/preference", _SettlementService_ResetFeeLedgerPreference0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_GetBilledFeeEditPolicy0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/custom-settings/billed-fee-edit-policy", _SettlementService_UpdateBilledFeeEditPolicy0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/custom-settings/credit-limit-control-policy", _SettlementService_GetCreditLimitControlPolicy0_HTTP_Handler(srv))
@@ -342,63 +330,6 @@ func _SettlementService_GetFeeLedgerOrderDetail0_HTTP_Handler(srv SettlementServ
 			return err
 		}
 		reply := out.(*GetFeeLedgerOrderDetailResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _SettlementService_GetFeeLedgerPreference0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetFeeLedgerPreferenceRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSettlementServiceGetFeeLedgerPreference)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetFeeLedgerPreference(ctx, req.(*GetFeeLedgerPreferenceRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetFeeLedgerPreferenceResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _SettlementService_UpdateFeeLedgerPreference0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in UpdateFeeLedgerPreferenceRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSettlementServiceUpdateFeeLedgerPreference)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.UpdateFeeLedgerPreference(ctx, req.(*UpdateFeeLedgerPreferenceRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*UpdateFeeLedgerPreferenceResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _SettlementService_ResetFeeLedgerPreference0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ResetFeeLedgerPreferenceRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSettlementServiceResetFeeLedgerPreference)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ResetFeeLedgerPreference(ctx, req.(*ResetFeeLedgerPreferenceRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ResetFeeLedgerPreferenceResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -2008,8 +1939,6 @@ type SettlementServiceHTTPClient interface {
 	// GetCreditLimitControlPolicy GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。
 	GetCreditLimitControlPolicy(ctx context.Context, req *GetCreditLimitControlPolicyRequest, opts ...http.CallOption) (rsp *GetCreditLimitControlPolicyResponse, err error)
 	GetFeeLedgerOrderDetail(ctx context.Context, req *GetFeeLedgerOrderDetailRequest, opts ...http.CallOption) (rsp *GetFeeLedgerOrderDetailResponse, err error)
-	// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
-	GetFeeLedgerPreference(ctx context.Context, req *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *GetFeeLedgerPreferenceResponse, err error)
 	GetInvoice(ctx context.Context, req *GetInvoiceRequest, opts ...http.CallOption) (rsp *GetInvoiceResponse, err error)
 	// GetMyFeeSupplementAdjustmentSource GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回
 	// employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、
@@ -2067,8 +1996,6 @@ type SettlementServiceHTTPClient interface {
 	// 不产生同月替代申请。
 	RejectCommissionApplication(ctx context.Context, req *RejectCommissionApplicationRequest, opts ...http.CallOption) (rsp *RejectCommissionApplicationResponse, err error)
 	RemoveCommissionRuleEmployees(ctx context.Context, req *RemoveCommissionRuleEmployeesRequest, opts ...http.CallOption) (rsp *RemoveCommissionRuleEmployeesResponse, err error)
-	// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
-	ResetFeeLedgerPreference(ctx context.Context, req *ResetFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *ResetFeeLedgerPreferenceResponse, err error)
 	ReverseNetting(ctx context.Context, req *ReverseNettingRequest, opts ...http.CallOption) (rsp *ReverseNettingResponse, err error)
 	ReverseVerification(ctx context.Context, req *ReverseVerificationRequest, opts ...http.CallOption) (rsp *ReverseVerificationResponse, err error)
 	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
@@ -2077,8 +2004,6 @@ type SettlementServiceHTTPClient interface {
 	UpdateCommissionRule(ctx context.Context, req *UpdateCommissionRuleRequest, opts ...http.CallOption) (rsp *UpdateCommissionRuleResponse, err error)
 	// UpdateCreditLimitControlPolicy UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。
 	UpdateCreditLimitControlPolicy(ctx context.Context, req *UpdateCreditLimitControlPolicyRequest, opts ...http.CallOption) (rsp *UpdateCreditLimitControlPolicyResponse, err error)
-	// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
-	UpdateFeeLedgerPreference(ctx context.Context, req *UpdateFeeLedgerPreferenceRequest, opts ...http.CallOption) (rsp *UpdateFeeLedgerPreferenceResponse, err error)
 }
 
 type SettlementServiceHTTPClientImpl struct {
@@ -2678,23 +2603,6 @@ func (c *SettlementServiceHTTPClientImpl) GetFeeLedgerOrderDetail(ctx context.Co
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceGetFeeLedgerOrderDetail),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetFeeLedgerPreference GetFeeLedgerPreference 获取当前用户的费用明细表头、分页、排序与颜色设置。
-func (c *SettlementServiceHTTPClientImpl) GetFeeLedgerPreference(ctx context.Context, in *GetFeeLedgerPreferenceRequest, opts ...http.CallOption) (*GetFeeLedgerPreferenceResponse, error) {
-	var out GetFeeLedgerPreferenceResponse
-	pattern := "/api/v1/finance/fees/preference"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationSettlementServiceGetFeeLedgerPreference),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -3340,23 +3248,6 @@ func (c *SettlementServiceHTTPClientImpl) RemoveCommissionRuleEmployees(ctx cont
 	return &out, nil
 }
 
-// ResetFeeLedgerPreference ResetFeeLedgerPreference 删除当前用户的个性化设置并恢复系统默认值。
-func (c *SettlementServiceHTTPClientImpl) ResetFeeLedgerPreference(ctx context.Context, in *ResetFeeLedgerPreferenceRequest, opts ...http.CallOption) (*ResetFeeLedgerPreferenceResponse, error) {
-	var out ResetFeeLedgerPreferenceResponse
-	pattern := "/api/v1/finance/fees/preference"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationSettlementServiceResetFeeLedgerPreference),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 func (c *SettlementServiceHTTPClientImpl) ReverseNetting(ctx context.Context, in *ReverseNettingRequest, opts ...http.CallOption) (*ReverseNettingResponse, error) {
 	var out ReverseNettingResponse
 	pattern := "/api/v1/finance/nettings/{id}/reverse"
@@ -3452,24 +3343,6 @@ func (c *SettlementServiceHTTPClientImpl) UpdateCreditLimitControlPolicy(ctx con
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceUpdateCreditLimitControlPolicy),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// UpdateFeeLedgerPreference UpdateFeeLedgerPreference 保存当前用户的费用明细个性化设置。
-func (c *SettlementServiceHTTPClientImpl) UpdateFeeLedgerPreference(ctx context.Context, in *UpdateFeeLedgerPreferenceRequest, opts ...http.CallOption) (*UpdateFeeLedgerPreferenceResponse, error) {
-	var out UpdateFeeLedgerPreferenceResponse
-	pattern := "/api/v1/finance/fees/preference"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationSettlementServiceUpdateFeeLedgerPreference),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

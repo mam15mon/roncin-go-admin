@@ -5,7 +5,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { App, Select, Space } from 'antd';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
@@ -26,7 +27,6 @@ import { history } from '@/router/history';
 import {
   settlementServiceBatchAssignFinanceFeeTags,
   settlementServiceBatchRemoveFinanceFeeTags,
-  settlementServiceGetFeeLedgerPreference,
   settlementServiceListFeeLedger,
   settlementServiceListFinanceFeeTagAssignmentOptions,
   settlementServiceListFinanceFeeTagOptions,
@@ -43,6 +43,10 @@ import {
   financialProgressLabels,
   getBaseFeeLedgerColumns,
 } from './components/feeLedgerColumns';
+import {
+  loadFeeLedgerViewConfig,
+  saveFeeLedgerViewConfig,
+} from './feeLedgerViewPreference';
 
 export function resolveSingleBillCreationOrganization(
   rows: API.FeeLedgerItem[],
@@ -81,13 +85,28 @@ export function feeRowsBelongToOrganization(
   );
 }
 
-/** 表头偏好查询 key：加载与保存共用，保存后直接回写缓存。 */
-const PREFERENCE_QUERY_KEY = ['finance', 'fee-ledger', 'preference'] as const;
+/** 表头偏好为本浏览器本地配置，按「用户 + 当前组织」隔离。 */
 
 export default function FinanceFeeLedgerPage() {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const actionRef = useRef<ActionType | undefined>(undefined);
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const viewConfigScope = useMemo(
+    () => ({
+      userId: currentUser?.id,
+      organizationId: currentUser?.currentOrganization?.id,
+    }),
+    [currentUser?.id, currentUser?.currentOrganization?.id],
+  );
+  const [viewConfig, setViewConfig] = useState<
+    ReturnType<typeof loadFeeLedgerViewConfig>
+  >(() => loadFeeLedgerViewConfig(viewConfigScope));
+  // 登录用户与组织就绪后重新解析对应隔离范围的本地偏好。
+  useEffect(() => {
+    setViewConfig(loadFeeLedgerViewConfig(viewConfigScope));
+  }, [viewConfigScope]);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
   const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
   const [billWorkbenchMode, setBillWorkbenchMode] =
@@ -119,23 +138,6 @@ export default function FinanceFeeLedgerPage() {
     },
   });
   const organizationOptions = organizationQuery.data ?? [];
-
-  // 当前用户云端表头偏好：历史加载无卸载保护，竞态与卸载由库收敛。
-  const preferenceQuery = useQuery({
-    queryKey: PREFERENCE_QUERY_KEY,
-    meta: { errorMessage: '费用表格偏好加载失败，当前未应用个人配置' },
-    queryFn: async () => {
-      const response = await settlementServiceGetFeeLedgerPreference({});
-      return response.data;
-    },
-  });
-  const preference = preferenceQuery.data;
-  const savePreference = useCallback(
-    (updated: API.FeeLedgerPreference) => {
-      queryClient.setQueryData(PREFERENCE_QUERY_KEY, updated);
-    },
-    [queryClient],
-  );
 
   const handleSearch = (values: FeeLedgerFilterParams) => {
     setFilterParams(values);
@@ -268,8 +270,8 @@ export default function FinanceFeeLedgerPage() {
 
   // 根据当前用户的个性化列偏好动态过滤显示并按用户拖拽顺序重排
   const columns = useMemo(
-    () => buildUserOrderedColumns(baseColumns, preference),
-    [baseColumns, preference],
+    () => buildUserOrderedColumns(baseColumns, viewConfig?.columns),
+    [baseColumns, viewConfig],
   );
 
   // 根据费用财务进度映射对应的行高亮背景 key（支持 7 状态）
@@ -433,7 +435,7 @@ export default function FinanceFeeLedgerPage() {
         ]}
         onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}
         onOpenColumnConfig={() => setColumnConfigOpen(true)}
-        rowColors={preference?.rowColors}
+        rowColors={viewConfig?.rowColors}
         getRowStatusColorKey={getRowStatusColorKey}
         onRowClick={(row) => {
           if (row.orderId) history.push(`/finance/fees/detail/${row.orderId}`);
@@ -513,14 +515,15 @@ export default function FinanceFeeLedgerPage() {
         }}
       />
 
-      {/* 表头排序与 153 字段/颜色配置弹窗 */}
+      {/* 列显隐排序与行配色配置弹窗（浏览器本地偏好） */}
       <TableColumnConfigModal
         open={columnConfigOpen}
         onClose={() => setColumnConfigOpen(false)}
-        currentPreference={preference}
-        onSaved={(updated) => {
-          savePreference(updated);
-          actionRef.current?.reload();
+        currentConfig={viewConfig ?? undefined}
+        onSave={(config) => {
+          const persisted = saveFeeLedgerViewConfig(viewConfigScope, config);
+          if (persisted) setViewConfig(config);
+          return persisted;
         }}
       />
       <BusinessTagModal

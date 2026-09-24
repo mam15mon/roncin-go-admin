@@ -51,7 +51,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financefeeledgerpreference"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
@@ -175,7 +174,6 @@ const (
 	TypeFinanceCommissionRule            = "FinanceCommissionRule"
 	TypeFinanceCommissionRuleAssignment  = "FinanceCommissionRuleAssignment"
 	TypeFinanceCustomSetting             = "FinanceCustomSetting"
-	TypeFinanceFeeLedgerPreference       = "FinanceFeeLedgerPreference"
 	TypeFinanceInvoice                   = "FinanceInvoice"
 	TypeFinanceInvoiceBill               = "FinanceInvoiceBill"
 	TypeFinanceInvoiceLine               = "FinanceInvoiceLine"
@@ -52977,1066 +52975,6 @@ func (m *FinanceCustomSettingMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceCustomSetting edge %s", name)
-}
-
-// FinanceFeeLedgerPreferenceMutation represents an operation that mutates the FinanceFeeLedgerPreference nodes in the graph.
-type FinanceFeeLedgerPreferenceMutation struct {
-	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	columns             *json.RawMessage
-	appendcolumns       json.RawMessage
-	page_size           *int
-	addpage_size        *int
-	sort_field          *string
-	sort_direction      *financefeeledgerpreference.SortDirection
-	row_colors          *json.RawMessage
-	appendrow_colors    json.RawMessage
-	version             *uint64
-	addversion          *int64
-	clearedFields       map[string]struct{}
-	organization        *uuid.UUID
-	clearedorganization bool
-	user                *uuid.UUID
-	cleareduser         bool
-	done                bool
-	oldValue            func(context.Context) (*FinanceFeeLedgerPreference, error)
-	predicates          []predicate.FinanceFeeLedgerPreference
-}
-
-var _ ent.Mutation = (*FinanceFeeLedgerPreferenceMutation)(nil)
-
-// financefeeledgerpreferenceOption allows management of the mutation configuration using functional options.
-type financefeeledgerpreferenceOption func(*FinanceFeeLedgerPreferenceMutation)
-
-// newFinanceFeeLedgerPreferenceMutation creates new mutation for the FinanceFeeLedgerPreference entity.
-func newFinanceFeeLedgerPreferenceMutation(c config, op Op, opts ...financefeeledgerpreferenceOption) *FinanceFeeLedgerPreferenceMutation {
-	m := &FinanceFeeLedgerPreferenceMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeFinanceFeeLedgerPreference,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withFinanceFeeLedgerPreferenceID sets the ID field of the mutation.
-func withFinanceFeeLedgerPreferenceID(id uuid.UUID) financefeeledgerpreferenceOption {
-	return func(m *FinanceFeeLedgerPreferenceMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *FinanceFeeLedgerPreference
-		)
-		m.oldValue = func(ctx context.Context) (*FinanceFeeLedgerPreference, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().FinanceFeeLedgerPreference.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withFinanceFeeLedgerPreference sets the old FinanceFeeLedgerPreference of the mutation.
-func withFinanceFeeLedgerPreference(node *FinanceFeeLedgerPreference) financefeeledgerpreferenceOption {
-	return func(m *FinanceFeeLedgerPreferenceMutation) {
-		m.oldValue = func(context.Context) (*FinanceFeeLedgerPreference, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m FinanceFeeLedgerPreferenceMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m FinanceFeeLedgerPreferenceMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of FinanceFeeLedgerPreference entities.
-func (m *FinanceFeeLedgerPreferenceMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *FinanceFeeLedgerPreferenceMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().FinanceFeeLedgerPreference.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetOrganizationID sets the "organization_id" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetOrganizationID(u uuid.UUID) {
-	m.organization = &u
-}
-
-// OrganizationID returns the value of the "organization_id" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) OrganizationID() (r uuid.UUID, exists bool) {
-	v := m.organization
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOrganizationID returns the old "organization_id" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
-	}
-	return oldValue.OrganizationID, nil
-}
-
-// ResetOrganizationID resets all changes to the "organization_id" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetOrganizationID() {
-	m.organization = nil
-}
-
-// SetUserID sets the "user_id" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetUserID(u uuid.UUID) {
-	m.user = &u
-}
-
-// UserID returns the value of the "user_id" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) UserID() (r uuid.UUID, exists bool) {
-	v := m.user
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserID returns the old "user_id" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
-	}
-	return oldValue.UserID, nil
-}
-
-// ResetUserID resets all changes to the "user_id" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetUserID() {
-	m.user = nil
-}
-
-// SetColumns sets the "columns" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetColumns(jm json.RawMessage) {
-	m.columns = &jm
-	m.appendcolumns = nil
-}
-
-// Columns returns the value of the "columns" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) Columns() (r json.RawMessage, exists bool) {
-	v := m.columns
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldColumns returns the old "columns" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldColumns(ctx context.Context) (v json.RawMessage, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldColumns is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldColumns requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldColumns: %w", err)
-	}
-	return oldValue.Columns, nil
-}
-
-// AppendColumns adds jm to the "columns" field.
-func (m *FinanceFeeLedgerPreferenceMutation) AppendColumns(jm json.RawMessage) {
-	m.appendcolumns = append(m.appendcolumns, jm...)
-}
-
-// AppendedColumns returns the list of values that were appended to the "columns" field in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) AppendedColumns() (json.RawMessage, bool) {
-	if len(m.appendcolumns) == 0 {
-		return nil, false
-	}
-	return m.appendcolumns, true
-}
-
-// ResetColumns resets all changes to the "columns" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetColumns() {
-	m.columns = nil
-	m.appendcolumns = nil
-}
-
-// SetPageSize sets the "page_size" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetPageSize(i int) {
-	m.page_size = &i
-	m.addpage_size = nil
-}
-
-// PageSize returns the value of the "page_size" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) PageSize() (r int, exists bool) {
-	v := m.page_size
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPageSize returns the old "page_size" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldPageSize(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPageSize is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPageSize requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPageSize: %w", err)
-	}
-	return oldValue.PageSize, nil
-}
-
-// AddPageSize adds i to the "page_size" field.
-func (m *FinanceFeeLedgerPreferenceMutation) AddPageSize(i int) {
-	if m.addpage_size != nil {
-		*m.addpage_size += i
-	} else {
-		m.addpage_size = &i
-	}
-}
-
-// AddedPageSize returns the value that was added to the "page_size" field in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) AddedPageSize() (r int, exists bool) {
-	v := m.addpage_size
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetPageSize resets all changes to the "page_size" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetPageSize() {
-	m.page_size = nil
-	m.addpage_size = nil
-}
-
-// SetSortField sets the "sort_field" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetSortField(s string) {
-	m.sort_field = &s
-}
-
-// SortField returns the value of the "sort_field" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) SortField() (r string, exists bool) {
-	v := m.sort_field
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSortField returns the old "sort_field" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldSortField(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSortField is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSortField requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSortField: %w", err)
-	}
-	return oldValue.SortField, nil
-}
-
-// ClearSortField clears the value of the "sort_field" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearSortField() {
-	m.sort_field = nil
-	m.clearedFields[financefeeledgerpreference.FieldSortField] = struct{}{}
-}
-
-// SortFieldCleared returns if the "sort_field" field was cleared in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) SortFieldCleared() bool {
-	_, ok := m.clearedFields[financefeeledgerpreference.FieldSortField]
-	return ok
-}
-
-// ResetSortField resets all changes to the "sort_field" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetSortField() {
-	m.sort_field = nil
-	delete(m.clearedFields, financefeeledgerpreference.FieldSortField)
-}
-
-// SetSortDirection sets the "sort_direction" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetSortDirection(fd financefeeledgerpreference.SortDirection) {
-	m.sort_direction = &fd
-}
-
-// SortDirection returns the value of the "sort_direction" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) SortDirection() (r financefeeledgerpreference.SortDirection, exists bool) {
-	v := m.sort_direction
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSortDirection returns the old "sort_direction" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldSortDirection(ctx context.Context) (v *financefeeledgerpreference.SortDirection, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSortDirection is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSortDirection requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSortDirection: %w", err)
-	}
-	return oldValue.SortDirection, nil
-}
-
-// ClearSortDirection clears the value of the "sort_direction" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearSortDirection() {
-	m.sort_direction = nil
-	m.clearedFields[financefeeledgerpreference.FieldSortDirection] = struct{}{}
-}
-
-// SortDirectionCleared returns if the "sort_direction" field was cleared in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) SortDirectionCleared() bool {
-	_, ok := m.clearedFields[financefeeledgerpreference.FieldSortDirection]
-	return ok
-}
-
-// ResetSortDirection resets all changes to the "sort_direction" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetSortDirection() {
-	m.sort_direction = nil
-	delete(m.clearedFields, financefeeledgerpreference.FieldSortDirection)
-}
-
-// SetRowColors sets the "row_colors" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetRowColors(jm json.RawMessage) {
-	m.row_colors = &jm
-	m.appendrow_colors = nil
-}
-
-// RowColors returns the value of the "row_colors" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) RowColors() (r json.RawMessage, exists bool) {
-	v := m.row_colors
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRowColors returns the old "row_colors" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldRowColors(ctx context.Context) (v json.RawMessage, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRowColors is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRowColors requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRowColors: %w", err)
-	}
-	return oldValue.RowColors, nil
-}
-
-// AppendRowColors adds jm to the "row_colors" field.
-func (m *FinanceFeeLedgerPreferenceMutation) AppendRowColors(jm json.RawMessage) {
-	m.appendrow_colors = append(m.appendrow_colors, jm...)
-}
-
-// AppendedRowColors returns the list of values that were appended to the "row_colors" field in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) AppendedRowColors() (json.RawMessage, bool) {
-	if len(m.appendrow_colors) == 0 {
-		return nil, false
-	}
-	return m.appendrow_colors, true
-}
-
-// ResetRowColors resets all changes to the "row_colors" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetRowColors() {
-	m.row_colors = nil
-	m.appendrow_colors = nil
-}
-
-// SetVersion sets the "version" field.
-func (m *FinanceFeeLedgerPreferenceMutation) SetVersion(u uint64) {
-	m.version = &u
-	m.addversion = nil
-}
-
-// Version returns the value of the "version" field in the mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) Version() (r uint64, exists bool) {
-	v := m.version
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldVersion returns the old "version" field's value of the FinanceFeeLedgerPreference entity.
-// If the FinanceFeeLedgerPreference object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceFeeLedgerPreferenceMutation) OldVersion(ctx context.Context) (v uint64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldVersion requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
-	}
-	return oldValue.Version, nil
-}
-
-// AddVersion adds u to the "version" field.
-func (m *FinanceFeeLedgerPreferenceMutation) AddVersion(u int64) {
-	if m.addversion != nil {
-		*m.addversion += u
-	} else {
-		m.addversion = &u
-	}
-}
-
-// AddedVersion returns the value that was added to the "version" field in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) AddedVersion() (r int64, exists bool) {
-	v := m.addversion
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetVersion resets all changes to the "version" field.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetVersion() {
-	m.version = nil
-	m.addversion = nil
-}
-
-// ClearOrganization clears the "organization" edge to the Organization entity.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearOrganization() {
-	m.clearedorganization = true
-	m.clearedFields[financefeeledgerpreference.FieldOrganizationID] = struct{}{}
-}
-
-// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
-func (m *FinanceFeeLedgerPreferenceMutation) OrganizationCleared() bool {
-	return m.clearedorganization
-}
-
-// OrganizationIDs returns the "organization" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// OrganizationID instead. It exists only for internal usage by the builders.
-func (m *FinanceFeeLedgerPreferenceMutation) OrganizationIDs() (ids []uuid.UUID) {
-	if id := m.organization; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetOrganization resets all changes to the "organization" edge.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetOrganization() {
-	m.organization = nil
-	m.clearedorganization = false
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearUser() {
-	m.cleareduser = true
-	m.clearedFields[financefeeledgerpreference.FieldUserID] = struct{}{}
-}
-
-// UserCleared reports if the "user" edge to the User entity was cleared.
-func (m *FinanceFeeLedgerPreferenceMutation) UserCleared() bool {
-	return m.cleareduser
-}
-
-// UserIDs returns the "user" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserID instead. It exists only for internal usage by the builders.
-func (m *FinanceFeeLedgerPreferenceMutation) UserIDs() (ids []uuid.UUID) {
-	if id := m.user; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetUser resets all changes to the "user" edge.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetUser() {
-	m.user = nil
-	m.cleareduser = false
-}
-
-// Where appends a list predicates to the FinanceFeeLedgerPreferenceMutation builder.
-func (m *FinanceFeeLedgerPreferenceMutation) Where(ps ...predicate.FinanceFeeLedgerPreference) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the FinanceFeeLedgerPreferenceMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *FinanceFeeLedgerPreferenceMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.FinanceFeeLedgerPreference, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *FinanceFeeLedgerPreferenceMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *FinanceFeeLedgerPreferenceMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (FinanceFeeLedgerPreference).
-func (m *FinanceFeeLedgerPreferenceMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *FinanceFeeLedgerPreferenceMutation) Fields() []string {
-	fields := make([]string, 0, 10)
-	if m.created_at != nil {
-		fields = append(fields, financefeeledgerpreference.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, financefeeledgerpreference.FieldUpdatedAt)
-	}
-	if m.organization != nil {
-		fields = append(fields, financefeeledgerpreference.FieldOrganizationID)
-	}
-	if m.user != nil {
-		fields = append(fields, financefeeledgerpreference.FieldUserID)
-	}
-	if m.columns != nil {
-		fields = append(fields, financefeeledgerpreference.FieldColumns)
-	}
-	if m.page_size != nil {
-		fields = append(fields, financefeeledgerpreference.FieldPageSize)
-	}
-	if m.sort_field != nil {
-		fields = append(fields, financefeeledgerpreference.FieldSortField)
-	}
-	if m.sort_direction != nil {
-		fields = append(fields, financefeeledgerpreference.FieldSortDirection)
-	}
-	if m.row_colors != nil {
-		fields = append(fields, financefeeledgerpreference.FieldRowColors)
-	}
-	if m.version != nil {
-		fields = append(fields, financefeeledgerpreference.FieldVersion)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *FinanceFeeLedgerPreferenceMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case financefeeledgerpreference.FieldCreatedAt:
-		return m.CreatedAt()
-	case financefeeledgerpreference.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case financefeeledgerpreference.FieldOrganizationID:
-		return m.OrganizationID()
-	case financefeeledgerpreference.FieldUserID:
-		return m.UserID()
-	case financefeeledgerpreference.FieldColumns:
-		return m.Columns()
-	case financefeeledgerpreference.FieldPageSize:
-		return m.PageSize()
-	case financefeeledgerpreference.FieldSortField:
-		return m.SortField()
-	case financefeeledgerpreference.FieldSortDirection:
-		return m.SortDirection()
-	case financefeeledgerpreference.FieldRowColors:
-		return m.RowColors()
-	case financefeeledgerpreference.FieldVersion:
-		return m.Version()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *FinanceFeeLedgerPreferenceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case financefeeledgerpreference.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case financefeeledgerpreference.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case financefeeledgerpreference.FieldOrganizationID:
-		return m.OldOrganizationID(ctx)
-	case financefeeledgerpreference.FieldUserID:
-		return m.OldUserID(ctx)
-	case financefeeledgerpreference.FieldColumns:
-		return m.OldColumns(ctx)
-	case financefeeledgerpreference.FieldPageSize:
-		return m.OldPageSize(ctx)
-	case financefeeledgerpreference.FieldSortField:
-		return m.OldSortField(ctx)
-	case financefeeledgerpreference.FieldSortDirection:
-		return m.OldSortDirection(ctx)
-	case financefeeledgerpreference.FieldRowColors:
-		return m.OldRowColors(ctx)
-	case financefeeledgerpreference.FieldVersion:
-		return m.OldVersion(ctx)
-	}
-	return nil, fmt.Errorf("unknown FinanceFeeLedgerPreference field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *FinanceFeeLedgerPreferenceMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case financefeeledgerpreference.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case financefeeledgerpreference.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case financefeeledgerpreference.FieldOrganizationID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOrganizationID(v)
-		return nil
-	case financefeeledgerpreference.FieldUserID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserID(v)
-		return nil
-	case financefeeledgerpreference.FieldColumns:
-		v, ok := value.(json.RawMessage)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetColumns(v)
-		return nil
-	case financefeeledgerpreference.FieldPageSize:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPageSize(v)
-		return nil
-	case financefeeledgerpreference.FieldSortField:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSortField(v)
-		return nil
-	case financefeeledgerpreference.FieldSortDirection:
-		v, ok := value.(financefeeledgerpreference.SortDirection)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSortDirection(v)
-		return nil
-	case financefeeledgerpreference.FieldRowColors:
-		v, ok := value.(json.RawMessage)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRowColors(v)
-		return nil
-	case financefeeledgerpreference.FieldVersion:
-		v, ok := value.(uint64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetVersion(v)
-		return nil
-	}
-	return fmt.Errorf("unknown FinanceFeeLedgerPreference field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) AddedFields() []string {
-	var fields []string
-	if m.addpage_size != nil {
-		fields = append(fields, financefeeledgerpreference.FieldPageSize)
-	}
-	if m.addversion != nil {
-		fields = append(fields, financefeeledgerpreference.FieldVersion)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *FinanceFeeLedgerPreferenceMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case financefeeledgerpreference.FieldPageSize:
-		return m.AddedPageSize()
-	case financefeeledgerpreference.FieldVersion:
-		return m.AddedVersion()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *FinanceFeeLedgerPreferenceMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case financefeeledgerpreference.FieldPageSize:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddPageSize(v)
-		return nil
-	case financefeeledgerpreference.FieldVersion:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddVersion(v)
-		return nil
-	}
-	return fmt.Errorf("unknown FinanceFeeLedgerPreference numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(financefeeledgerpreference.FieldSortField) {
-		fields = append(fields, financefeeledgerpreference.FieldSortField)
-	}
-	if m.FieldCleared(financefeeledgerpreference.FieldSortDirection) {
-		fields = append(fields, financefeeledgerpreference.FieldSortDirection)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearField(name string) error {
-	switch name {
-	case financefeeledgerpreference.FieldSortField:
-		m.ClearSortField()
-		return nil
-	case financefeeledgerpreference.FieldSortDirection:
-		m.ClearSortDirection()
-		return nil
-	}
-	return fmt.Errorf("unknown FinanceFeeLedgerPreference nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetField(name string) error {
-	switch name {
-	case financefeeledgerpreference.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case financefeeledgerpreference.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case financefeeledgerpreference.FieldOrganizationID:
-		m.ResetOrganizationID()
-		return nil
-	case financefeeledgerpreference.FieldUserID:
-		m.ResetUserID()
-		return nil
-	case financefeeledgerpreference.FieldColumns:
-		m.ResetColumns()
-		return nil
-	case financefeeledgerpreference.FieldPageSize:
-		m.ResetPageSize()
-		return nil
-	case financefeeledgerpreference.FieldSortField:
-		m.ResetSortField()
-		return nil
-	case financefeeledgerpreference.FieldSortDirection:
-		m.ResetSortDirection()
-		return nil
-	case financefeeledgerpreference.FieldRowColors:
-		m.ResetRowColors()
-		return nil
-	case financefeeledgerpreference.FieldVersion:
-		m.ResetVersion()
-		return nil
-	}
-	return fmt.Errorf("unknown FinanceFeeLedgerPreference field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.organization != nil {
-		edges = append(edges, financefeeledgerpreference.EdgeOrganization)
-	}
-	if m.user != nil {
-		edges = append(edges, financefeeledgerpreference.EdgeUser)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case financefeeledgerpreference.EdgeOrganization:
-		if id := m.organization; id != nil {
-			return []ent.Value{*id}
-		}
-	case financefeeledgerpreference.EdgeUser:
-		if id := m.user; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedorganization {
-		edges = append(edges, financefeeledgerpreference.EdgeOrganization)
-	}
-	if m.cleareduser {
-		edges = append(edges, financefeeledgerpreference.EdgeUser)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *FinanceFeeLedgerPreferenceMutation) EdgeCleared(name string) bool {
-	switch name {
-	case financefeeledgerpreference.EdgeOrganization:
-		return m.clearedorganization
-	case financefeeledgerpreference.EdgeUser:
-		return m.cleareduser
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *FinanceFeeLedgerPreferenceMutation) ClearEdge(name string) error {
-	switch name {
-	case financefeeledgerpreference.EdgeOrganization:
-		m.ClearOrganization()
-		return nil
-	case financefeeledgerpreference.EdgeUser:
-		m.ClearUser()
-		return nil
-	}
-	return fmt.Errorf("unknown FinanceFeeLedgerPreference unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *FinanceFeeLedgerPreferenceMutation) ResetEdge(name string) error {
-	switch name {
-	case financefeeledgerpreference.EdgeOrganization:
-		m.ResetOrganization()
-		return nil
-	case financefeeledgerpreference.EdgeUser:
-		m.ResetUser()
-		return nil
-	}
-	return fmt.Errorf("unknown FinanceFeeLedgerPreference edge %s", name)
 }
 
 // FinanceInvoiceMutation represents an operation that mutates the FinanceInvoice nodes in the graph.
@@ -107739,9 +106677,6 @@ type OrganizationMutation struct {
 	order_commission_attributions               map[uuid.UUID]struct{}
 	removedorder_commission_attributions        map[uuid.UUID]struct{}
 	clearedorder_commission_attributions        bool
-	finance_fee_ledger_preferences              map[uuid.UUID]struct{}
-	removedfinance_fee_ledger_preferences       map[uuid.UUID]struct{}
-	clearedfinance_fee_ledger_preferences       bool
 	finance_custom_setting                      map[uuid.UUID]struct{}
 	removedfinance_custom_setting               map[uuid.UUID]struct{}
 	clearedfinance_custom_setting               bool
@@ -110204,60 +109139,6 @@ func (m *OrganizationMutation) ResetOrderCommissionAttributions() {
 	m.removedorder_commission_attributions = nil
 }
 
-// AddFinanceFeeLedgerPreferenceIDs adds the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by ids.
-func (m *OrganizationMutation) AddFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) {
-	if m.finance_fee_ledger_preferences == nil {
-		m.finance_fee_ledger_preferences = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.finance_fee_ledger_preferences[ids[i]] = struct{}{}
-	}
-}
-
-// ClearFinanceFeeLedgerPreferences clears the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity.
-func (m *OrganizationMutation) ClearFinanceFeeLedgerPreferences() {
-	m.clearedfinance_fee_ledger_preferences = true
-}
-
-// FinanceFeeLedgerPreferencesCleared reports if the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity was cleared.
-func (m *OrganizationMutation) FinanceFeeLedgerPreferencesCleared() bool {
-	return m.clearedfinance_fee_ledger_preferences
-}
-
-// RemoveFinanceFeeLedgerPreferenceIDs removes the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by IDs.
-func (m *OrganizationMutation) RemoveFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) {
-	if m.removedfinance_fee_ledger_preferences == nil {
-		m.removedfinance_fee_ledger_preferences = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.finance_fee_ledger_preferences, ids[i])
-		m.removedfinance_fee_ledger_preferences[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedFinanceFeeLedgerPreferences returns the removed IDs of the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity.
-func (m *OrganizationMutation) RemovedFinanceFeeLedgerPreferencesIDs() (ids []uuid.UUID) {
-	for id := range m.removedfinance_fee_ledger_preferences {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// FinanceFeeLedgerPreferencesIDs returns the "finance_fee_ledger_preferences" edge IDs in the mutation.
-func (m *OrganizationMutation) FinanceFeeLedgerPreferencesIDs() (ids []uuid.UUID) {
-	for id := range m.finance_fee_ledger_preferences {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetFinanceFeeLedgerPreferences resets all changes to the "finance_fee_ledger_preferences" edge.
-func (m *OrganizationMutation) ResetFinanceFeeLedgerPreferences() {
-	m.finance_fee_ledger_preferences = nil
-	m.clearedfinance_fee_ledger_preferences = false
-	m.removedfinance_fee_ledger_preferences = nil
-}
-
 // AddFinanceCustomSettingIDs adds the "finance_custom_setting" edge to the FinanceCustomSetting entity by ids.
 func (m *OrganizationMutation) AddFinanceCustomSettingIDs(ids ...uuid.UUID) {
 	if m.finance_custom_setting == nil {
@@ -111915,7 +110796,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 61)
+	edges := make([]string, 0, 60)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -112020,9 +110901,6 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.order_commission_attributions != nil {
 		edges = append(edges, organization.EdgeOrderCommissionAttributions)
-	}
-	if m.finance_fee_ledger_preferences != nil {
-		edges = append(edges, organization.EdgeFinanceFeeLedgerPreferences)
 	}
 	if m.finance_custom_setting != nil {
 		edges = append(edges, organization.EdgeFinanceCustomSetting)
@@ -112314,12 +111192,6 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case organization.EdgeFinanceFeeLedgerPreferences:
-		ids := make([]ent.Value, 0, len(m.finance_fee_ledger_preferences))
-		for id := range m.finance_fee_ledger_preferences {
-			ids = append(ids, id)
-		}
-		return ids
 	case organization.EdgeFinanceCustomSetting:
 		ids := make([]ent.Value, 0, len(m.finance_custom_setting))
 		for id := range m.finance_custom_setting {
@@ -112476,7 +111348,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 61)
+	edges := make([]string, 0, 60)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -112578,9 +111450,6 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedorder_commission_attributions != nil {
 		edges = append(edges, organization.EdgeOrderCommissionAttributions)
-	}
-	if m.removedfinance_fee_ledger_preferences != nil {
-		edges = append(edges, organization.EdgeFinanceFeeLedgerPreferences)
 	}
 	if m.removedfinance_custom_setting != nil {
 		edges = append(edges, organization.EdgeFinanceCustomSetting)
@@ -112868,12 +111737,6 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case organization.EdgeFinanceFeeLedgerPreferences:
-		ids := make([]ent.Value, 0, len(m.removedfinance_fee_ledger_preferences))
-		for id := range m.removedfinance_fee_ledger_preferences {
-			ids = append(ids, id)
-		}
-		return ids
 	case organization.EdgeFinanceCustomSetting:
 		ids := make([]ent.Value, 0, len(m.removedfinance_custom_setting))
 		for id := range m.removedfinance_custom_setting {
@@ -113030,7 +111893,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 61)
+	edges := make([]string, 0, 60)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -113135,9 +111998,6 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedorder_commission_attributions {
 		edges = append(edges, organization.EdgeOrderCommissionAttributions)
-	}
-	if m.clearedfinance_fee_ledger_preferences {
-		edges = append(edges, organization.EdgeFinanceFeeLedgerPreferences)
 	}
 	if m.clearedfinance_custom_setting {
 		edges = append(edges, organization.EdgeFinanceCustomSetting)
@@ -113291,8 +112151,6 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedfinance_commission_application_lines
 	case organization.EdgeOrderCommissionAttributions:
 		return m.clearedorder_commission_attributions
-	case organization.EdgeFinanceFeeLedgerPreferences:
-		return m.clearedfinance_fee_ledger_preferences
 	case organization.EdgeFinanceCustomSetting:
 		return m.clearedfinance_custom_setting
 	case organization.EdgeEnterpriseResources:
@@ -113466,9 +112324,6 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeOrderCommissionAttributions:
 		m.ResetOrderCommissionAttributions()
-		return nil
-	case organization.EdgeFinanceFeeLedgerPreferences:
-		m.ResetFinanceFeeLedgerPreferences()
 		return nil
 	case organization.EdgeFinanceCustomSetting:
 		m.ResetFinanceCustomSetting()
@@ -164522,9 +163377,6 @@ type UserMutation struct {
 	cancelled_finance_commission_adjustments              map[uuid.UUID]struct{}
 	removedcancelled_finance_commission_adjustments       map[uuid.UUID]struct{}
 	clearedcancelled_finance_commission_adjustments       bool
-	finance_fee_ledger_preferences                        map[uuid.UUID]struct{}
-	removedfinance_fee_ledger_preferences                 map[uuid.UUID]struct{}
-	clearedfinance_fee_ledger_preferences                 bool
 	updated_finance_custom_settings                       map[uuid.UUID]struct{}
 	removedupdated_finance_custom_settings                map[uuid.UUID]struct{}
 	clearedupdated_finance_custom_settings                bool
@@ -166902,60 +165754,6 @@ func (m *UserMutation) ResetCancelledFinanceCommissionAdjustments() {
 	m.removedcancelled_finance_commission_adjustments = nil
 }
 
-// AddFinanceFeeLedgerPreferenceIDs adds the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by ids.
-func (m *UserMutation) AddFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) {
-	if m.finance_fee_ledger_preferences == nil {
-		m.finance_fee_ledger_preferences = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.finance_fee_ledger_preferences[ids[i]] = struct{}{}
-	}
-}
-
-// ClearFinanceFeeLedgerPreferences clears the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity.
-func (m *UserMutation) ClearFinanceFeeLedgerPreferences() {
-	m.clearedfinance_fee_ledger_preferences = true
-}
-
-// FinanceFeeLedgerPreferencesCleared reports if the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity was cleared.
-func (m *UserMutation) FinanceFeeLedgerPreferencesCleared() bool {
-	return m.clearedfinance_fee_ledger_preferences
-}
-
-// RemoveFinanceFeeLedgerPreferenceIDs removes the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity by IDs.
-func (m *UserMutation) RemoveFinanceFeeLedgerPreferenceIDs(ids ...uuid.UUID) {
-	if m.removedfinance_fee_ledger_preferences == nil {
-		m.removedfinance_fee_ledger_preferences = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.finance_fee_ledger_preferences, ids[i])
-		m.removedfinance_fee_ledger_preferences[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedFinanceFeeLedgerPreferences returns the removed IDs of the "finance_fee_ledger_preferences" edge to the FinanceFeeLedgerPreference entity.
-func (m *UserMutation) RemovedFinanceFeeLedgerPreferencesIDs() (ids []uuid.UUID) {
-	for id := range m.removedfinance_fee_ledger_preferences {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// FinanceFeeLedgerPreferencesIDs returns the "finance_fee_ledger_preferences" edge IDs in the mutation.
-func (m *UserMutation) FinanceFeeLedgerPreferencesIDs() (ids []uuid.UUID) {
-	for id := range m.finance_fee_ledger_preferences {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetFinanceFeeLedgerPreferences resets all changes to the "finance_fee_ledger_preferences" edge.
-func (m *UserMutation) ResetFinanceFeeLedgerPreferences() {
-	m.finance_fee_ledger_preferences = nil
-	m.clearedfinance_fee_ledger_preferences = false
-	m.removedfinance_fee_ledger_preferences = nil
-}
-
 // AddUpdatedFinanceCustomSettingIDs adds the "updated_finance_custom_settings" edge to the FinanceCustomSetting entity by ids.
 func (m *UserMutation) AddUpdatedFinanceCustomSettingIDs(ids ...uuid.UUID) {
 	if m.updated_finance_custom_settings == nil {
@@ -169270,7 +168068,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 63)
+	edges := make([]string, 0, 62)
 	if m.memberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -169351,9 +168149,6 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.cancelled_finance_commission_adjustments != nil {
 		edges = append(edges, user.EdgeCancelledFinanceCommissionAdjustments)
-	}
-	if m.finance_fee_ledger_preferences != nil {
-		edges = append(edges, user.EdgeFinanceFeeLedgerPreferences)
 	}
 	if m.updated_finance_custom_settings != nil {
 		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
@@ -169629,12 +168424,6 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeFinanceFeeLedgerPreferences:
-		ids := make([]ent.Value, 0, len(m.finance_fee_ledger_preferences))
-		for id := range m.finance_fee_ledger_preferences {
-			ids = append(ids, id)
-		}
-		return ids
 	case user.EdgeUpdatedFinanceCustomSettings:
 		ids := make([]ent.Value, 0, len(m.updated_finance_custom_settings))
 		for id := range m.updated_finance_custom_settings {
@@ -169849,7 +168638,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 63)
+	edges := make([]string, 0, 62)
 	if m.removedmemberships != nil {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -169930,9 +168719,6 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedcancelled_finance_commission_adjustments != nil {
 		edges = append(edges, user.EdgeCancelledFinanceCommissionAdjustments)
-	}
-	if m.removedfinance_fee_ledger_preferences != nil {
-		edges = append(edges, user.EdgeFinanceFeeLedgerPreferences)
 	}
 	if m.removedupdated_finance_custom_settings != nil {
 		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
@@ -170205,12 +168991,6 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case user.EdgeFinanceFeeLedgerPreferences:
-		ids := make([]ent.Value, 0, len(m.removedfinance_fee_ledger_preferences))
-		for id := range m.removedfinance_fee_ledger_preferences {
-			ids = append(ids, id)
-		}
-		return ids
 	case user.EdgeUpdatedFinanceCustomSettings:
 		ids := make([]ent.Value, 0, len(m.removedupdated_finance_custom_settings))
 		for id := range m.removedupdated_finance_custom_settings {
@@ -170421,7 +169201,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 63)
+	edges := make([]string, 0, 62)
 	if m.clearedmemberships {
 		edges = append(edges, user.EdgeMemberships)
 	}
@@ -170502,9 +169282,6 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedcancelled_finance_commission_adjustments {
 		edges = append(edges, user.EdgeCancelledFinanceCommissionAdjustments)
-	}
-	if m.clearedfinance_fee_ledger_preferences {
-		edges = append(edges, user.EdgeFinanceFeeLedgerPreferences)
 	}
 	if m.clearedupdated_finance_custom_settings {
 		edges = append(edges, user.EdgeUpdatedFinanceCustomSettings)
@@ -170672,8 +169449,6 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedpaid_finance_commission_adjustments
 	case user.EdgeCancelledFinanceCommissionAdjustments:
 		return m.clearedcancelled_finance_commission_adjustments
-	case user.EdgeFinanceFeeLedgerPreferences:
-		return m.clearedfinance_fee_ledger_preferences
 	case user.EdgeUpdatedFinanceCustomSettings:
 		return m.clearedupdated_finance_custom_settings
 	case user.EdgeCreatedEnterpriseResources:
@@ -170843,9 +169618,6 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgeCancelledFinanceCommissionAdjustments:
 		m.ResetCancelledFinanceCommissionAdjustments()
-		return nil
-	case user.EdgeFinanceFeeLedgerPreferences:
-		m.ResetFinanceFeeLedgerPreferences()
 		return nil
 	case user.EdgeUpdatedFinanceCustomSettings:
 		m.ResetUpdatedFinanceCustomSettings()

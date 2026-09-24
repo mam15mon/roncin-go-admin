@@ -125,83 +125,6 @@ func feeLedgerAmountsByBaseCurrencyToAPI(items []biz.FeeLedgerBaseCurrencyAmount
 	return result
 }
 
-func (s *SettlementService) GetFeeLedgerPreference(ctx context.Context, request *v1.GetFeeLedgerPreferenceRequest) (*v1.GetFeeLedgerPreferenceResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceFeeRead, false); err != nil {
-		return nil, err
-	}
-	preference, err := s.preferenceUsecase.Get(ctx, principal.Organization.ID, principal.UserID)
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.GetFeeLedgerPreferenceResponse{
-		Data: feeLedgerPreferenceToAPI(preference),
-	}), nil
-}
-
-func (s *SettlementService) UpdateFeeLedgerPreference(ctx context.Context, request *v1.UpdateFeeLedgerPreferenceRequest) (*v1.UpdateFeeLedgerPreferenceResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	columns := make([]biz.FeeLedgerColumnPreference, 0, len(request.GetColumns()))
-	for _, column := range request.GetColumns() {
-		if column == nil {
-			return nil, biz.ErrFeeLedgerPreferenceInvalidArgument
-		}
-		columns = append(columns, biz.FeeLedgerColumnPreference{FieldKey: column.GetFieldKey(), Visible: column.GetVisible()})
-	}
-	colors := request.GetRowColors()
-	if colors == nil {
-		return nil, biz.ErrFeeLedgerPreferenceInvalidArgument
-	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceFeeRead, false); err != nil {
-		return nil, err
-	}
-	preference, err := s.preferenceUsecase.Save(ctx, principal.Organization.ID, principal.UserID, &biz.FeeLedgerPreference{
-		Columns:       columns,
-		PageSize:      int(request.GetPageSize()),
-		SortField:     financeOptionalString(request.SortField),
-		SortDirection: financeOptionalString(request.SortDirection),
-		RowColors: biz.FeeLedgerRowColors{
-			Unbilled:                    colors.GetUnbilled(),
-			UnverifiedUninvoiced:        colors.GetUnverifiedUninvoiced(),
-			InvoicedUnverified:          colors.GetInvoicedUnverified(),
-			VerifiedUninvoiced:          colors.GetVerifiedUninvoiced(),
-			InvoicedPartiallyVerified:   colors.GetInvoicedPartiallyVerified(),
-			PartiallyVerifiedUninvoiced: colors.GetPartiallyVerifiedUninvoiced(),
-			Completed:                   colors.GetCompleted(),
-		},
-		Version: request.GetVersion(),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.UpdateFeeLedgerPreferenceResponse{
-		Data: feeLedgerPreferenceToAPI(preference),
-	}), nil
-}
-
-func (s *SettlementService) ResetFeeLedgerPreference(ctx context.Context, request *v1.ResetFeeLedgerPreferenceRequest) (*v1.ResetFeeLedgerPreferenceResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	if err := currentOrganizationAllowedForPermission(principal, access.FinanceFeeRead, false); err != nil {
-		return nil, err
-	}
-	preference, err := s.preferenceUsecase.Reset(ctx, principal.Organization.ID, principal.UserID, request.GetVersion())
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.ResetFeeLedgerPreferenceResponse{
-		Data: feeLedgerPreferenceToAPI(preference),
-	}), nil
-}
-
 func (s *SettlementService) GetBilledFeeEditPolicy(ctx context.Context, _ *v1.GetBilledFeeEditPolicyRequest) (*v1.GetBilledFeeEditPolicyResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
@@ -372,29 +295,6 @@ func billedFeeEditPolicyToAPI(policy *biz.BilledFeeEditPolicy) *v1.BilledFeeEdit
 	if policy.UpdatedByName != "" {
 		value := policy.UpdatedByName
 		result.UpdatedByName = &value
-	}
-	return result
-}
-
-func feeLedgerPreferenceToAPI(preference *biz.FeeLedgerPreference) *v1.FeeLedgerPreference {
-	columns := make([]*v1.FeeLedgerColumnPreference, 0, len(preference.Columns))
-	for _, column := range preference.Columns {
-		columns = append(columns, &v1.FeeLedgerColumnPreference{FieldKey: column.FieldKey, Visible: column.Visible})
-	}
-	result := &v1.FeeLedgerPreference{
-		Columns:    columns,
-		PageSize:   int32(preference.PageSize),
-		RowColors:  &v1.FeeLedgerRowColors{Unbilled: preference.RowColors.Unbilled, UnverifiedUninvoiced: preference.RowColors.UnverifiedUninvoiced, InvoicedUnverified: preference.RowColors.InvoicedUnverified, VerifiedUninvoiced: preference.RowColors.VerifiedUninvoiced, InvoicedPartiallyVerified: preference.RowColors.InvoicedPartiallyVerified, PartiallyVerifiedUninvoiced: preference.RowColors.PartiallyVerifiedUninvoiced, Completed: preference.RowColors.Completed},
-		Version:    preference.Version,
-		Customized: preference.Customized,
-	}
-	if preference.SortField != "" {
-		result.SortField = &preference.SortField
-		result.SortDirection = &preference.SortDirection
-	}
-	if !preference.UpdatedAt.IsZero() {
-		updatedAt := preference.UpdatedAt.UTC().Format(time.RFC3339)
-		result.UpdatedAt = &updatedAt
 	}
 	return result
 }
