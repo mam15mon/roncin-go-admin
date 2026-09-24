@@ -739,3 +739,15 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
   不写 key 时声明形同虚设——模板层统一「操作列带 key + 显式声明」。
 - 验证：tsc / test:changed（603 用例）/ Biome / git diff --check 通过；
   check:fast 结果见下一条日志。
+
+## 2026-09-24 台账偏好保存 400 修复（09-24-unified-table-headers）
+
+**Completed**
+
+- 用户实测保存列设置报「费用明细表头设置不合法」。根因两个：服务端要求
+  sortField 为空时不携带 sortDirection，弹窗却始终发 DESC（默认路径必 400）；
+  存量 sortField 指向已删字段/钉住列/旧 key 未清洗。顺带发现不传 version
+  会导致第二次保存 409。三处均在 TableColumnConfigModal 修复，新增 4 用例
+  定向测试锁定保存载荷。
+- 教训：单测 mock 只断言「服务被调用」不断言载荷契约，等于没验证契约；凡
+  有服务端 normalize/校验规则的提交路径，验收必须打一次真实请求。

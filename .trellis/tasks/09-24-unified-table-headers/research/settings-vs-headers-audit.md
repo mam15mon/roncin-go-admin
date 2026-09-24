@@ -71,3 +71,24 @@ settlementPartyId、orgName→organizationName（弹窗与列应用两侧同步�
 - `pnpm --dir web tsc` 通过；`pnpm --dir web test:changed` 603 通过；
 - 改动文件 Biome 检查通过；`git diff --check` 干净；
 - 全栈门禁 `pnpm run check:fast` 见任务日志。
+
+## 追加：保存偏好 400 修复（2026-09-24 第二轮）
+
+用户保存台账列设置报「费用明细表头设置不合法」。服务端
+`normalizeFeeLedgerPreference` 有两条契约被前端违反：
+
+1. 排序字段为空时不得携带排序方向（biz L172-175），而弹窗保存始终发送
+   `sortDirection: 'DESC'`——默认不选排序字段时保存必然 400；
+2. 存量偏好的 `sortField` 指向已删除扩展字段、钉住列或旧 key 时，过不了
+   「sortField 须在提交列内」校验。
+
+另发现同路径隐患：仓储层乐观锁要求「已存在偏好时 version 必须匹配」，
+弹窗从不传 version，第二次保存起必然 409。
+
+修复（TableColumnConfigModal）：`sortDirection` 跟随 `sortField` 有无；
+打开弹窗时按当前字段清单清洗存量 sortField（含旧 key 规范化）；保存
+载荷回传 `version`。新增保存载荷定向测试（4 用例）锁住全部路径。
+
+教训：迁移验证清单里「保存成功」只在单测 mock 层验证过调用发生，没验证
+载荷与服务端校验规则逐条对齐；涉及服务端契约校验的提交路径，联调验收
+必须真实请求一次。
