@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "遵循公共 UI 与 ProTable 交互约束"}
+{"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "遵守公共 UI 与领域适配的依赖边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "实施与回归验证规范"}
+{"file": ".trellis/tasks/09-24-unified-table-headers/design.md", "reason": "统一列设置界面设计与迁移风险"}
