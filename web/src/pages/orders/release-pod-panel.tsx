@@ -27,6 +27,7 @@ import {
   useState,
 } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   makeValueEnum,
   orderReleasePodStatusMeta,
@@ -363,6 +364,11 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
       },
     ];
 
+    const columnSettings = useColumnSettings<ProColumns<API.OrderReleasePod>>({
+      tableKey: 'orders:release-pod',
+      columns,
+    });
+
     return (
       <>
         <Drawer
@@ -401,10 +407,11 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
               }
               actionRef={actionRef}
               rowKey="id"
-              columns={columns}
+              columns={columnSettings.columns}
               bordered
               search={false}
               pagination={false}
+              options={{ reload: true, density: true, setting: false }}
               request={async () => {
                 const response = await orderReleasePodServiceListReleasePods({
                   orderId: order.id as string,
@@ -412,6 +419,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
                 return toTableRequest(response);
               }}
               toolBarRender={() => [
+                columnSettings.entry,
                 canManage && (
                   <Button
                     key="create"

@@ -14,8 +14,10 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
+import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   OrderBusinessType,
   SeaDocumentEventType,
@@ -109,6 +111,39 @@ function documentModeText(mode?: number) {
 function PreviewResult({ preview }: { preview: ChangePreview }) {
   const differences = preview.differences ?? [];
   const impacts = preview.impacts ?? [];
+
+  const differenceColumns: ColumnsType<API.SeaDocumentFieldDifference> = [
+    { title: '字段', dataIndex: 'label', width: 140 },
+    { title: '变更前', dataIndex: 'beforeValue' },
+    { title: '变更后', dataIndex: 'afterValue' },
+  ];
+  const differenceSettings =
+    useColumnSettings<ColumnsType<API.SeaDocumentFieldDifference>[number]>({
+      tableKey: 'orders:doc-field-differences',
+      columns: differenceColumns,
+    });
+
+  const impactColumns: ColumnsType<API.SeaDocumentDownstreamImpact> = [
+    { title: '事实类型', dataIndex: 'factType', width: 130 },
+    { title: '编号', dataIndex: 'referenceNo', width: 160 },
+    { title: '影响', dataIndex: 'message' },
+    {
+      title: '结论',
+      dataIndex: 'blocksExecution',
+      width: 90,
+      render: (blocked: boolean) => (
+        <Tag color={blocked ? 'error' : 'success'}>
+          {blocked ? '阻断' : '可执行'}
+        </Tag>
+      ),
+    },
+  ];
+  const impactSettings =
+    useColumnSettings<ColumnsType<API.SeaDocumentDownstreamImpact>[number]>({
+      tableKey: 'orders:doc-downstream-impacts',
+      columns: impactColumns,
+    });
+
   return (
     <Space orientation="vertical" size={12} style={{ width: '100%' }}>
       <Alert
@@ -119,39 +154,31 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
         }
         description={`基线：${preview.baseVersion?.documentNo ?? '-'} / v${preview.baseVersion?.versionNo ?? '-'}`}
       />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        {differenceSettings.entry}
+      </div>
       <Table<API.SeaDocumentFieldDifference>
         size="small"
         rowKey={(row) => `${row.field ?? ''}-${row.label ?? ''}`}
         pagination={false}
         dataSource={differences}
-        columns={[
-          { title: '字段', dataIndex: 'label', width: 140 },
-          { title: '变更前', dataIndex: 'beforeValue' },
-          { title: '变更后', dataIndex: 'afterValue' },
-        ]}
+        columns={differenceSettings.columns}
       />
+      {differenceSettings.modal}
       {impacts.length > 0 ? (
-        <Table<API.SeaDocumentDownstreamImpact>
-          size="small"
-          rowKey={(row) => `${row.factType}-${row.referenceId}`}
-          pagination={false}
-          dataSource={impacts}
-          columns={[
-            { title: '事实类型', dataIndex: 'factType', width: 130 },
-            { title: '编号', dataIndex: 'referenceNo', width: 160 },
-            { title: '影响', dataIndex: 'message' },
-            {
-              title: '结论',
-              dataIndex: 'blocksExecution',
-              width: 90,
-              render: (blocked: boolean) => (
-                <Tag color={blocked ? 'error' : 'success'}>
-                  {blocked ? '阻断' : '可执行'}
-                </Tag>
-              ),
-            },
-          ]}
-        />
+        <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            {impactSettings.entry}
+          </div>
+          <Table<API.SeaDocumentDownstreamImpact>
+            size="small"
+            rowKey={(row) => `${row.factType}-${row.referenceId}`}
+            pagination={false}
+            dataSource={impacts}
+            columns={impactSettings.columns}
+          />
+          {impactSettings.modal}
+        </>
       ) : null}
     </Space>
   );
@@ -422,6 +449,63 @@ export default function SeaDocumentHistoryActions({
   const modeTitle =
     mode === 'amendment' ? `改单：${documentNo}` : `作废：${documentNo}`;
 
+  const versionColumns: ColumnsType<API.SeaDocumentVersion> = [
+    {
+      title: '版本',
+      dataIndex: 'versionNo',
+      width: 72,
+      render: (v) => `v${v}`,
+    },
+    {
+      title: '来源',
+      dataIndex: 'source',
+      width: 110,
+      render: (v) => sourceText[v] ?? '-',
+    },
+    { title: '状态', dataIndex: 'status', width: 100 },
+    { title: '原因', dataIndex: 'reason' },
+    {
+      title: '形成时间',
+      dataIndex: 'createdAt',
+      width: 190,
+      render: (v: string) => formatDate(v),
+    },
+  ];
+  const versionSettings = useColumnSettings<ColumnsType<API.SeaDocumentVersion>[number]>({
+    tableKey: 'orders:doc-versions',
+    columns: versionColumns,
+  });
+
+  const eventColumns: ColumnsType<API.SeaDocumentEvent> = [
+    {
+      title: '类型',
+      dataIndex: 'eventType',
+      width: 110,
+      render: (v) => eventText[v] ?? '-',
+    },
+    { title: '单证', dataIndex: 'documentNo', width: 150 },
+    {
+      title: '模式变化',
+      key: 'modeChange',
+      width: 200,
+      render: (_, row) =>
+        row.previousMode !== undefined && row.targetMode !== undefined
+          ? `${documentModeText(row.previousMode)} → ${documentModeText(row.targetMode)}`
+          : '-',
+    },
+    { title: '原因', dataIndex: 'reason' },
+    {
+      title: '时间',
+      dataIndex: 'createdAt',
+      width: 190,
+      render: (v: string) => formatDate(v),
+    },
+  ];
+  const eventSettings = useColumnSettings<ColumnsType<API.SeaDocumentEvent>[number]>({
+    tableKey: 'orders:doc-events',
+    columns: eventColumns,
+  });
+
   return (
     <>
       <Space wrap>
@@ -457,34 +541,16 @@ export default function SeaDocumentHistoryActions({
         onClose={() => setDrawerOpen(false)}
       >
         <Typography.Title level={5}>版本历史</Typography.Title>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          {versionSettings.entry}
+        </div>
         <Table<API.SeaDocumentVersion>
           loading={historyLoading}
           size="small"
           rowKey="id"
           pagination={false}
           dataSource={versions}
-          columns={[
-            {
-              title: '版本',
-              dataIndex: 'versionNo',
-              width: 72,
-              render: (v) => `v${v}`,
-            },
-            {
-              title: '来源',
-              dataIndex: 'source',
-              width: 110,
-              render: (v) => sourceText[v] ?? '-',
-            },
-            { title: '状态', dataIndex: 'status', width: 100 },
-            { title: '原因', dataIndex: 'reason' },
-            {
-              title: '形成时间',
-              dataIndex: 'createdAt',
-              width: 190,
-              render: (v: string) => formatDate(v),
-            },
-          ]}
+          columns={versionSettings.columns}
           expandable={{
             expandedRowRender: (row) => (
               <Descriptions size="small" column={2} bordered>
@@ -529,41 +595,23 @@ export default function SeaDocumentHistoryActions({
             {`加载更多（共 ${versionsTotal} 条）`}
           </Button>
         ) : null}
+        {versionSettings.modal}
 
         <Typography.Title level={5} style={{ marginTop: 24 }}>
           业务事件
         </Typography.Title>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          {eventSettings.entry}
+        </div>
         <Table<API.SeaDocumentEvent>
           loading={historyLoading}
           size="small"
           rowKey="id"
           pagination={false}
           dataSource={events}
-          columns={[
-            {
-              title: '类型',
-              dataIndex: 'eventType',
-              width: 110,
-              render: (v) => eventText[v] ?? '-',
-            },
-            { title: '单证', dataIndex: 'documentNo', width: 150 },
-            {
-              title: '模式变化',
-              width: 200,
-              render: (_, row) =>
-                row.previousMode !== undefined && row.targetMode !== undefined
-                  ? `${documentModeText(row.previousMode)} → ${documentModeText(row.targetMode)}`
-                  : '-',
-            },
-            { title: '原因', dataIndex: 'reason' },
-            {
-              title: '时间',
-              dataIndex: 'createdAt',
-              width: 190,
-              render: (v: string) => formatDate(v),
-            },
-          ]}
+          columns={eventSettings.columns}
         />
+        {eventSettings.modal}
         {eventsLoadedCount < eventsTotal ? (
           <Button
             size="small"

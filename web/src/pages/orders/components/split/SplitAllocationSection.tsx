@@ -14,6 +14,7 @@ import type { ColumnsType } from 'antd/es/table';
 import Decimal from 'decimal.js';
 import type { Dispatch, SetStateAction } from 'react';
 import { SectionCard } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import type { ResultConfig } from '../../splitUtils';
 
 const { Text } = Typography;
@@ -63,6 +64,7 @@ export default function SplitAllocationSection({
     },
     {
       title: '货物统计 (件/重/尺)',
+      key: 'cargoSummary',
       render: (_, c) => (
         <span>
           {c.packageCount ?? 0} 件 / {c.grossWeightKg ?? 0} KGS /{' '}
@@ -72,6 +74,7 @@ export default function SplitAllocationSection({
     },
     {
       title: '整箱归属结果票',
+      key: 'assignment',
       width: 260,
       render: (_, c) => (
         <Select
@@ -101,6 +104,12 @@ export default function SplitAllocationSection({
     },
   ];
 
+  const containerSettings =
+    useColumnSettings<ColumnsType<API.SeaOrderSplitContainerItem>[number]>({
+      tableKey: 'orders:split-containers',
+      columns: containerColumns,
+    });
+
   return (
     <SectionCard
       title={
@@ -117,13 +126,17 @@ export default function SplitAllocationSection({
           <Text strong style={{ marginBottom: 8, display: 'block' }}>
             独占集装箱整箱归属：
           </Text>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            {containerSettings.entry}
+          </div>
           <Table<API.SeaOrderSplitContainerItem>
-            columns={containerColumns}
+            columns={containerSettings.columns}
             dataSource={splitContext.containers}
             rowKey="id"
             pagination={false}
             size="small"
           />
+          {containerSettings.modal}
         </div>
       )}
 
@@ -236,117 +249,34 @@ export default function SplitAllocationSection({
                   )
                 }
               >
-                <Table
-                  dataSource={results}
-                  rowKey="key"
-                  pagination={false}
-                  size="small"
-                  columns={[
-                    {
-                      title: '结果票',
-                      width: 200,
-                      render: (_, r) => (
-                        <span>
-                          <Tag
-                            color={r.role === 'ORIGINAL' ? 'default' : 'blue'}
-                          >
-                            {r.role === 'ORIGINAL' ? '原' : '新'}
-                          </Tag>
-                          {r.title}
-                        </span>
-                      ),
-                    },
-                    {
-                      title: '分配件数',
-                      width: 160,
-                      render: (_, r) => (
-                        <InputNumber
-                          min={0}
-                          max={baselinePkg}
-                          value={currentAllocMap[r.key]?.packageCount ?? 0}
-                          onChange={(val) => {
-                            setCargoAllocations((prev) => ({
-                              ...prev,
-                              [ci.id as string]: {
-                                ...(prev[ci.id as string] || {}),
-                                [r.key]: {
-                                  packageCount: Number(val) || 0,
-                                  grossWeightKg:
-                                    currentAllocMap[r.key]?.grossWeightKg ??
-                                    '0',
-                                  volumeCbm:
-                                    currentAllocMap[r.key]?.volumeCbm ?? '0',
-                                },
-                              },
-                            }));
-                          }}
-                        />
-                      ),
-                    },
-                    {
-                      title: '分配毛重 (KGS)',
-                      width: 180,
-                      render: (_, r) => (
-                        <Input
-                          value={currentAllocMap[r.key]?.grossWeightKg ?? '0'}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCargoAllocations((prev) => ({
-                              ...prev,
-                              [ci.id as string]: {
-                                ...(prev[ci.id as string] || {}),
-                                [r.key]: {
-                                  packageCount:
-                                    currentAllocMap[r.key]?.packageCount ?? 0,
-                                  grossWeightKg: val,
-                                  volumeCbm:
-                                    currentAllocMap[r.key]?.volumeCbm ?? '0',
-                                },
-                              },
-                            }));
-                          }}
-                        />
-                      ),
-                    },
-                    {
-                      title: '分配体积 (CBM)',
-                      width: 180,
-                      render: (_, r) => (
-                        <Input
-                          value={currentAllocMap[r.key]?.volumeCbm ?? '0'}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCargoAllocations((prev) => ({
-                              ...prev,
-                              [ci.id as string]: {
-                                ...(prev[ci.id as string] || {}),
-                                [r.key]: {
-                                  packageCount:
-                                    currentAllocMap[r.key]?.packageCount ?? 0,
-                                  grossWeightKg:
-                                    currentAllocMap[r.key]?.grossWeightKg ??
-                                    '0',
-                                  volumeCbm: val,
-                                },
-                              },
-                            }));
-                          }}
-                        />
-                      ),
-                    },
-                    {
-                      title: '快捷操作',
-                      render: (_, r) => (
-                        <Button
-                          size="small"
-                          type="link"
-                          onClick={() => fillRemaining(r.key)}
-                        >
-                          填入剩余
-                        </Button>
-                      ),
-                    },
-                  ]}
+                <SplitResultAllocationTable
+                  tableKey="orders:split-allocations"
+                  results={results}
+                  allocMap={currentAllocMap}
+                  baselinePkg={baselinePkg}
+                  onChangeAllocation={(resultKey, patch) => {
+                    setCargoAllocations((prev) => ({
+                      ...prev,
+                      [ci.id as string]: {
+                        ...(prev[ci.id as string] || {}),
+                        [resultKey]: {
+                          packageCount:
+                            patch.packageCount ??
+                            currentAllocMap[resultKey]?.packageCount ??
+                            0,
+                          grossWeightKg:
+                            patch.grossWeightKg ??
+                            currentAllocMap[resultKey]?.grossWeightKg ??
+                            '0',
+                          volumeCbm:
+                            patch.volumeCbm ??
+                            currentAllocMap[resultKey]?.volumeCbm ??
+                            '0',
+                        },
+                      },
+                    }));
+                  }}
+                  onFillRemaining={fillRemaining}
                 />
               </Card>
             );
@@ -477,125 +407,34 @@ export default function SplitAllocationSection({
                       )
                     }
                   >
-                    <Table
-                      dataSource={results}
-                      rowKey="key"
-                      pagination={false}
-                      size="small"
-                      columns={[
-                        {
-                          title: '结果票',
-                          width: 200,
-                          render: (_, r) => (
-                            <span>
-                              <Tag
-                                color={
-                                  r.role === 'ORIGINAL' ? 'default' : 'blue'
-                                }
-                              >
-                                {r.role === 'ORIGINAL' ? '原' : '新'}
-                              </Tag>
-                              {r.title}
-                            </span>
-                          ),
-                        },
-                        {
-                          title: '分配件数',
-                          width: 160,
-                          render: (_, r) => (
-                            <InputNumber
-                              min={0}
-                              max={baselinePkg}
-                              value={currentAllocMap[r.key]?.packageCount ?? 0}
-                              onChange={(val) => {
-                                setSharedAllocations((prev) => ({
-                                  ...prev,
-                                  [sa.allocationId as string]: {
-                                    ...(prev[sa.allocationId as string] || {}),
-                                    [r.key]: {
-                                      packageCount: Number(val) || 0,
-                                      grossWeightKg:
-                                        currentAllocMap[r.key]?.grossWeightKg ??
-                                        '0',
-                                      volumeCbm:
-                                        currentAllocMap[r.key]?.volumeCbm ??
-                                        '0',
-                                    },
-                                  },
-                                }));
-                              }}
-                            />
-                          ),
-                        },
-                        {
-                          title: '分配毛重 (KGS)',
-                          width: 180,
-                          render: (_, r) => (
-                            <Input
-                              value={
-                                currentAllocMap[r.key]?.grossWeightKg ?? '0'
-                              }
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setSharedAllocations((prev) => ({
-                                  ...prev,
-                                  [sa.allocationId as string]: {
-                                    ...(prev[sa.allocationId as string] || {}),
-                                    [r.key]: {
-                                      packageCount:
-                                        currentAllocMap[r.key]?.packageCount ??
-                                        0,
-                                      grossWeightKg: val,
-                                      volumeCbm:
-                                        currentAllocMap[r.key]?.volumeCbm ??
-                                        '0',
-                                    },
-                                  },
-                                }));
-                              }}
-                            />
-                          ),
-                        },
-                        {
-                          title: '分配体积 (CBM)',
-                          width: 180,
-                          render: (_, r) => (
-                            <Input
-                              value={currentAllocMap[r.key]?.volumeCbm ?? '0'}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setSharedAllocations((prev) => ({
-                                  ...prev,
-                                  [sa.allocationId as string]: {
-                                    ...(prev[sa.allocationId as string] || {}),
-                                    [r.key]: {
-                                      packageCount:
-                                        currentAllocMap[r.key]?.packageCount ??
-                                        0,
-                                      grossWeightKg:
-                                        currentAllocMap[r.key]?.grossWeightKg ??
-                                        '0',
-                                      volumeCbm: val,
-                                    },
-                                  },
-                                }));
-                              }}
-                            />
-                          ),
-                        },
-                        {
-                          title: '快捷操作',
-                          render: (_, r) => (
-                            <Button
-                              size="small"
-                              type="link"
-                              onClick={() => fillSharedRemaining(r.key)}
-                            >
-                              填入剩余
-                            </Button>
-                          ),
-                        },
-                      ]}
+                    <SplitResultAllocationTable
+                      tableKey="orders:split-result"
+                      results={results}
+                      allocMap={currentAllocMap}
+                      baselinePkg={baselinePkg}
+                      onChangeAllocation={(resultKey, patch) => {
+                        setSharedAllocations((prev) => ({
+                          ...prev,
+                          [sa.allocationId as string]: {
+                            ...(prev[sa.allocationId as string] || {}),
+                            [resultKey]: {
+                              packageCount:
+                                patch.packageCount ??
+                                currentAllocMap[resultKey]?.packageCount ??
+                                0,
+                              grossWeightKg:
+                                patch.grossWeightKg ??
+                                currentAllocMap[resultKey]?.grossWeightKg ??
+                                '0',
+                              volumeCbm:
+                                patch.volumeCbm ??
+                                currentAllocMap[resultKey]?.volumeCbm ??
+                                '0',
+                            },
+                          },
+                        }));
+                      }}
+                      onFillRemaining={fillSharedRemaining}
                     />
                   </Card>
                 );
@@ -604,5 +443,122 @@ export default function SplitAllocationSection({
           </div>
         )}
     </SectionCard>
+  );
+}
+
+interface SplitResultAllocationTableProps {
+  /** 列设置表格标识：货物项与共享箱分配表按语义分别隔离。 */
+  tableKey: string;
+  results: ResultConfig[];
+  allocMap: Record<
+    string,
+    { packageCount: number; grossWeightKg: string; volumeCbm: string }
+  >;
+  baselinePkg: number;
+  onChangeAllocation: (
+    resultKey: string,
+    patch: { packageCount?: number; grossWeightKg?: string; volumeCbm?: string },
+  ) => void;
+  onFillRemaining: (resultKey: string) => void;
+}
+
+/** 结果票件重尺分配表：各货物项与共享箱按行渲染，列设置在同结构表间共享。 */
+function SplitResultAllocationTable({
+  tableKey,
+  results,
+  allocMap,
+  baselinePkg,
+  onChangeAllocation,
+  onFillRemaining,
+}: SplitResultAllocationTableProps) {
+  const columns: ColumnsType<ResultConfig> = [
+    {
+      title: '结果票',
+      key: 'result',
+      width: 200,
+      render: (_, r) => (
+        <span>
+          <Tag color={r.role === 'ORIGINAL' ? 'default' : 'blue'}>
+            {r.role === 'ORIGINAL' ? '原' : '新'}
+          </Tag>
+          {r.title}
+        </span>
+      ),
+    },
+    {
+      title: '分配件数',
+      key: 'packageCount',
+      width: 160,
+      render: (_, r) => (
+        <InputNumber
+          min={0}
+          max={baselinePkg}
+          value={allocMap[r.key]?.packageCount ?? 0}
+          onChange={(val) => {
+            onChangeAllocation(r.key, { packageCount: Number(val) || 0 });
+          }}
+        />
+      ),
+    },
+    {
+      title: '分配毛重 (KGS)',
+      key: 'grossWeightKg',
+      width: 180,
+      render: (_, r) => (
+        <Input
+          value={allocMap[r.key]?.grossWeightKg ?? '0'}
+          onChange={(e) => {
+            onChangeAllocation(r.key, { grossWeightKg: e.target.value });
+          }}
+        />
+      ),
+    },
+    {
+      title: '分配体积 (CBM)',
+      key: 'volumeCbm',
+      width: 180,
+      render: (_, r) => (
+        <Input
+          value={allocMap[r.key]?.volumeCbm ?? '0'}
+          onChange={(e) => {
+            onChangeAllocation(r.key, { volumeCbm: e.target.value });
+          }}
+        />
+      ),
+    },
+    {
+      title: '快捷操作',
+      key: 'quickFill',
+      render: (_, r) => (
+        <Button
+          size="small"
+          type="link"
+          onClick={() => onFillRemaining(r.key)}
+        >
+          填入剩余
+        </Button>
+      ),
+    },
+  ];
+
+  const columnSettings = useColumnSettings<ColumnsType<ResultConfig>[number]>({
+    tableKey,
+    columns,
+  });
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        {columnSettings.entry}
+      </div>
+      <Table
+        dataSource={results}
+        rowKey="key"
+        pagination={false}
+        size="small"
+        columns={columnSettings.columns}
+      />
+      {columnSettings.modal}
+    </>
   );
 }

@@ -2,6 +2,7 @@ import type { FormInstance } from 'antd';
 import { Checkbox, Form, Input, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { SectionCard } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import type { ResultConfig } from '../../splitUtils';
 import SeaExternalConfirmationFields from '../../templates/components/sea/SeaExternalConfirmationFields';
 
@@ -54,6 +55,7 @@ export default function SplitAttachmentsAndNotesSection({
     },
     {
       title: '共享引用至结果票',
+      key: 'shareTargets',
       render: (_, att) => {
         if (!att.id) return null;
         const currentKeys = attAssignments[att.id] || [];
@@ -86,6 +88,12 @@ export default function SplitAttachmentsAndNotesSection({
     },
   ];
 
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.SeaOrderSplitAttachmentItem>[number]>({
+      tableKey: 'orders:split-attachments',
+      columns: attColumns,
+    });
+
   return (
     <>
       <SectionCard
@@ -98,13 +106,17 @@ export default function SplitAttachmentsAndNotesSection({
           </Space>
         }
       >
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          {columnSettings.entry}
+        </div>
         <Table<API.SeaOrderSplitAttachmentItem>
-          columns={attColumns}
+          columns={columnSettings.columns}
           dataSource={splitContext?.attachments || []}
           rowKey="id"
           pagination={false}
           size="middle"
         />
+        {columnSettings.modal}
       </SectionCard>
 
       <SectionCard title="拆票说明（可选）">

@@ -16,6 +16,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
 import { DRAWER_SIZE } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { history } from '@/router/history';
 import {
   seaOrderChangeServiceGetSeaOrderChangeEvent,
@@ -301,6 +302,12 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
     },
   ];
 
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.SeaOrderChangeEventSummary>[number]>({
+      tableKey: 'orders:change-history',
+      columns,
+    });
+
   return (
     <>
       <Drawer
@@ -310,8 +317,11 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
         size={DRAWER_SIZE.MD}
         destroyOnHidden
       >
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          {columnSettings.entry}
+        </div>
         <Table<API.SeaOrderChangeEventSummary>
-          columns={columns}
+          columns={columnSettings.columns}
           dataSource={events}
           rowKey="id"
           loading={loading}
@@ -326,6 +336,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
             },
           }}
         />
+        {columnSettings.modal}
       </Drawer>
 
       <Modal

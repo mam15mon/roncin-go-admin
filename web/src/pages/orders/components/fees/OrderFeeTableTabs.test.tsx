@@ -475,7 +475,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('25.5 CNY')).toBeInTheDocument();
+      expect(screen.getByText('25.50 CNY')).toBeInTheDocument();
     });
 
     const quantityInput = screen.getByDisplayValue('1');
@@ -484,7 +484,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('76.5 CNY')).toBeInTheDocument();
+      expect(screen.getByText('76.50 CNY')).toBeInTheDocument();
     });
   });
 

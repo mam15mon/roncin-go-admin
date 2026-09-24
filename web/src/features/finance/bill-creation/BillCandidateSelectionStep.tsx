@@ -1,6 +1,8 @@
 import { ProTable } from '@ant-design/pro-components';
+import type { ProColumns } from '@ant-design/pro-components';
 import { Alert, Card, Select, Typography } from 'antd';
 import React from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { OrderFeeStatus } from '@/enums.generated';
 import { settlementServiceListBillCreationCandidates } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
@@ -34,6 +36,12 @@ export default function BillCandidateSelectionStep({
   organizationOptions,
   onOrganizationChange,
 }: BillCandidateSelectionStepProps) {
+  const candidateSettings =
+    useColumnSettings<ProColumns<API.FeeLedgerItem>>({
+      tableKey: 'finance:bill-candidate-fees',
+      columns: selectionFeeColumns,
+    });
+
   return fixedSelection ? (
     <Card>
       <Alert
@@ -69,10 +77,11 @@ export default function BillCandidateSelectionStep({
         key={organizationId || 'no-organization'}
         rowKey="id"
         headerTitle="选择待结算费用"
-        columns={selectionFeeColumns}
+        columns={candidateSettings.columns}
         size="small"
         bordered
-        options={false}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [candidateSettings.entry]}
         pagination={{ defaultPageSize: 15, showSizeChanger: true }}
         rowSelection={{
           selectedRowKeys: selectedFeeIds,

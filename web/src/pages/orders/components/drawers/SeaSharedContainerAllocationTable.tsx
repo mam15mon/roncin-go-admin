@@ -11,6 +11,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   CANDIDATE_PAGE_SIZE,
   type CargoAllocationItem,
@@ -78,6 +79,7 @@ export default function SeaSharedContainerAllocationTable({
     },
     {
       title: '货物基准总量',
+      key: 'cargoBaseline',
       width: 160,
       render: (_, record) => (
         <div style={{ fontSize: 12 }}>
@@ -89,6 +91,7 @@ export default function SeaSharedContainerAllocationTable({
     },
     {
       title: '分配至本共享箱件数 (PCS)',
+      key: 'allocPackageCount',
       width: 140,
       render: (_, record) => (
         <InputNumber
@@ -103,6 +106,7 @@ export default function SeaSharedContainerAllocationTable({
     },
     {
       title: '分配毛重 (KG)',
+      key: 'allocGrossWeightKg',
       width: 150,
       render: (_, record) => (
         <Input
@@ -117,6 +121,7 @@ export default function SeaSharedContainerAllocationTable({
     },
     {
       title: '分配体积 (CBM)',
+      key: 'allocVolumeCbm',
       width: 150,
       render: (_, record) => (
         <Input
@@ -131,6 +136,7 @@ export default function SeaSharedContainerAllocationTable({
     },
     {
       title: '快捷操作',
+      key: 'quickActions',
       width: 110,
       render: (_, record) =>
         !isConfirmed && canUpdate ? (
@@ -146,6 +152,11 @@ export default function SeaSharedContainerAllocationTable({
         ),
     },
   ];
+
+  const columnSettings = useColumnSettings<ColumnsType<CargoAllocationItem>[number]>({
+    tableKey: 'orders:shared-container-allocation',
+    columns,
+  });
 
   return (
     <Card
@@ -171,14 +182,18 @@ export default function SeaSharedContainerAllocationTable({
         />
       ) : (
         <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            {columnSettings.entry}
+          </div>
           <Table
-            columns={columns}
+            columns={columnSettings.columns}
             dataSource={flatCargoList}
             rowKey={(r) => r.key}
             pagination={false}
             size="small"
             bordered
           />
+          {columnSettings.modal}
           <div
             style={{
               display: 'flex',

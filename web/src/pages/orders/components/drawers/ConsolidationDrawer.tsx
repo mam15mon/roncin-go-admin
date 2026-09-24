@@ -1,6 +1,7 @@
-import { ProTable } from '@ant-design/pro-components';
+import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import { Drawer } from 'antd';
 import { forwardRef, useImperativeHandle, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderServiceListOrderConsolidations } from '@/services/roncin/orderService';
 import { toTableRequest } from '@/utils/api';
 
@@ -24,6 +25,56 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
       },
     }));
 
+    const summaryColumns: ProColumns<API.OrderConsolidationSummary>[] = [
+      { title: '主单号', dataIndex: 'masterNo', copyable: true },
+      { title: '成员票数', dataIndex: 'memberCount', width: 100 },
+      {
+        title: '委托合计',
+        dataIndex: 'entrusted',
+        render: (_, record) => formatCargoMeasurement(record.entrusted),
+      },
+      {
+        title: '实际合计',
+        dataIndex: 'actual',
+        render: (_, record) => formatCargoMeasurement(record.actual),
+      },
+    ];
+
+    const memberColumns: ProColumns<API.OrderConsolidationMember>[] = [
+      { title: '订单编号', dataIndex: 'orderNo', copyable: true },
+      {
+        title: '客户业务编号',
+        dataIndex: 'customerReferenceNo',
+        renderText: (value) => value || '-',
+      },
+      {
+        title: '分单号',
+        dataIndex: 'houseNos',
+        renderText: (value: string[]) => value?.join('、') || '-',
+      },
+      {
+        title: '委托件重尺',
+        dataIndex: 'entrusted',
+        render: (_, record) => formatCargoMeasurement(record.entrusted),
+      },
+      {
+        title: '实际件重尺',
+        dataIndex: 'actual',
+        render: (_, record) => formatCargoMeasurement(record.actual),
+      },
+    ];
+
+    const summarySettings =
+      useColumnSettings<ProColumns<API.OrderConsolidationSummary>>({
+        tableKey: 'orders:consolidation-summary',
+        columns: summaryColumns,
+      });
+    const memberSettings =
+      useColumnSettings<ProColumns<API.OrderConsolidationMember>>({
+        tableKey: 'orders:consolidation-members',
+        columns: memberColumns,
+      });
+
     return (
       <Drawer
         title={
@@ -43,26 +94,15 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
             bordered
             search={false}
             pagination={false}
+            options={{ reload: true, density: true, setting: false }}
+            toolBarRender={() => [summarySettings.entry]}
             request={async () => {
               const response = await orderServiceListOrderConsolidations({
                 id: order.id as string,
               });
               return toTableRequest(response);
             }}
-            columns={[
-              { title: '主单号', dataIndex: 'masterNo', copyable: true },
-              { title: '成员票数', dataIndex: 'memberCount', width: 100 },
-              {
-                title: '委托合计',
-                dataIndex: 'entrusted',
-                render: (_, record) => formatCargoMeasurement(record.entrusted),
-              },
-              {
-                title: '实际合计',
-                dataIndex: 'actual',
-                render: (_, record) => formatCargoMeasurement(record.actual),
-              },
-            ]}
+            columns={summarySettings.columns}
             expandable={{
               expandedRowRender: (summary) => (
                 <ProTable<API.OrderConsolidationMember>
@@ -70,33 +110,10 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
                   bordered
                   search={false}
                   pagination={false}
-                  options={false}
+                  options={{ reload: true, density: true, setting: false }}
+                  toolBarRender={() => [memberSettings.entry]}
                   dataSource={summary.members ?? []}
-                  columns={[
-                    { title: '订单编号', dataIndex: 'orderNo', copyable: true },
-                    {
-                      title: '客户业务编号',
-                      dataIndex: 'customerReferenceNo',
-                      renderText: (value) => value || '-',
-                    },
-                    {
-                      title: '分单号',
-                      dataIndex: 'houseNos',
-                      renderText: (value: string[]) => value?.join('、') || '-',
-                    },
-                    {
-                      title: '委托件重尺',
-                      dataIndex: 'entrusted',
-                      render: (_, record) =>
-                        formatCargoMeasurement(record.entrusted),
-                    },
-                    {
-                      title: '实际件重尺',
-                      dataIndex: 'actual',
-                      render: (_, record) =>
-                        formatCargoMeasurement(record.actual),
-                    },
-                  ]}
+                  columns={memberSettings.columns}
                 />
               ),
             }}

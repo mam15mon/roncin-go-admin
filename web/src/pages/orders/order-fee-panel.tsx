@@ -1,5 +1,5 @@
 import { PlusOutlined, TagOutlined } from '@ant-design/icons';
-import type { ActionType } from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
@@ -12,6 +12,7 @@ import React, {
 } from 'react';
 import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerRoleType } from '@/enums.generated';
 import {
   orderFeeServiceAddFee,
@@ -269,6 +270,11 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       onCancelFee: handleCancelFee,
     });
 
+    const columnSettings = useColumnSettings<ProColumns<API.OrderFee>>({
+      tableKey: 'orders:fee-panel',
+      columns,
+    });
+
     const handleModalSubmit = async (values: FeeFormValues) => {
       if (!order?.id || !ensureFeeWriteAllowed()) return false;
       const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm');
@@ -426,7 +432,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             <ProTable<API.OrderFee>
               actionRef={actionRef}
               rowKey="id"
-              columns={columns}
+              columns={columnSettings.columns}
               rowSelection={{
                 selectedRowKeys: selectedFeeIds,
                 onChange: (keys, rows) => {
@@ -438,6 +444,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               search={false}
               pagination={false}
               scroll={{ x: 1500 }}
+              options={{ reload: true, density: true, setting: false }}
               request={async () => {
                 const response = await orderFeeServiceListFees({
                   orderId: order.id as string,
@@ -445,6 +452,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
                 return toTableRequest(response);
               }}
               toolBarRender={() => [
+                columnSettings.entry,
                 canCreate && (
                   <Button
                     key="create"

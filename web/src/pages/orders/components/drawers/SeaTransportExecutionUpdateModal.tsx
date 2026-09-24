@@ -12,8 +12,10 @@ import {
   Typography,
 } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
+import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   seaOrderChangeServiceExecuteSeaTransportExecutionUpdate,
   seaOrderChangeServicePreviewSeaTransportExecutionUpdate,
@@ -198,6 +200,18 @@ export default function SeaTransportExecutionUpdateModal({
     </Form.Item>
   );
 
+  const differenceColumns: ColumnsType<API.VoyageDifferenceItem> = [
+    { title: '字段', dataIndex: 'label' },
+    { title: '调整前', dataIndex: 'currentValue' },
+    { title: '调整后', dataIndex: 'targetValue' },
+  ];
+
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.VoyageDifferenceItem>[number]>({
+      tableKey: 'orders:voyage-difference',
+      columns: differenceColumns,
+    });
+
   return (
     <Modal
       width={920}
@@ -275,17 +289,17 @@ export default function SeaTransportExecutionUpdateModal({
           <Text strong>
             本次将影响 {preview.memberOrderIds?.length ?? 0} 张关联订单
           </Text>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            {columnSettings.entry}
+          </div>
           <Table<API.VoyageDifferenceItem>
             size="small"
             pagination={false}
             rowKey={(row) => row.fieldName || row.label || ''}
             dataSource={preview.differences ?? []}
-            columns={[
-              { title: '字段', dataIndex: 'label' },
-              { title: '调整前', dataIndex: 'currentValue' },
-              { title: '调整后', dataIndex: 'targetValue' },
-            ]}
+            columns={columnSettings.columns}
           />
+          {columnSettings.modal}
           {(preview.impacts ?? []).map((impact) => (
             <Tag
               key={`${impact.factType}-${impact.referenceId}`}

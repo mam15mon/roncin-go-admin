@@ -20,6 +20,7 @@ import type { DefaultOptionType } from 'antd/es/select';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import {
   seaOrderChangeServiceExecuteSeaOrderReassignment,
@@ -470,6 +471,7 @@ export const SeaOrderReassignmentModal: React.FC<
     },
     {
       title: '变更状态',
+      key: 'diffStatus',
       width: 90,
       render: (_, record) => {
         if (record.isDifferent) {
@@ -479,6 +481,12 @@ export const SeaOrderReassignmentModal: React.FC<
       },
     },
   ];
+
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.VoyageDifferenceItem>[number]>({
+      tableKey: 'orders:reassignment-voyage-difference',
+      columns: diffColumns,
+    });
 
   return (
     <Modal
@@ -772,14 +780,20 @@ export const SeaOrderReassignmentModal: React.FC<
             <Spin description="计算比对差异..." />
           </div>
         ) : (
-          <Table<API.VoyageDifferenceItem>
-            columns={diffColumns}
-            dataSource={previewData?.differences || []}
-            rowKey="fieldName"
-            pagination={false}
-            size="small"
-            bordered
-          />
+          <>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+              {columnSettings.entry}
+            </div>
+            <Table<API.VoyageDifferenceItem>
+              columns={columnSettings.columns}
+              dataSource={previewData?.differences || []}
+              rowKey="fieldName"
+              pagination={false}
+              size="small"
+              bordered
+            />
+            {columnSettings.modal}
+          </>
         )}
       </div>
     </Modal>

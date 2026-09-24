@@ -1,6 +1,8 @@
 import { LinkOutlined } from '@ant-design/icons';
 import { Alert, Button, Empty, Skeleton, Space, Table, Tag } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { useEffect, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
 import { history } from '@/router/history';
 import { orderServiceListSameBatchOrders } from '@/services/roncin/orderService';
@@ -70,6 +72,56 @@ export default function SameBatchOrdersSection({
     };
   }, [orderId, onCountChange]);
 
+  const columns: TableColumnsType<API.SameBatchOrderSummary> = [
+    {
+      title: '订单号',
+      dataIndex: 'orderNo',
+      render: (value: string, record) => (
+        <Button
+          type="link"
+          size="small"
+          icon={<LinkOutlined />}
+          onClick={() =>
+            history.push(`/orders/${orderKind}/${record.orderId}`)
+          }
+        >
+          {value || '-'}
+        </Button>
+      ),
+    },
+    {
+      title: '匹配依据',
+      dataIndex: 'matchSources',
+      render: (sources: string[] | undefined) => (
+        <Space size={[4, 4]} wrap>
+          {(sources ?? []).map((source) => (
+            <Tag key={source} color="blue">
+              {matchSourceLabels[source] || source}
+            </Tag>
+          ))}
+        </Space>
+      ),
+    },
+    { title: '客户业务号', dataIndex: 'customerReferenceNo' },
+    { title: '订舱号', dataIndex: 'bookingNo' },
+    { title: 'MBL', dataIndex: 'masterNo' },
+    { title: 'HBL', dataIndex: 'houseNo' },
+    {
+      title: '状态',
+      dataIndex: 'flowStatus',
+      render: (value: number | undefined) =>
+        value === undefined
+          ? '-'
+          : statusText(orderFlowStatusMeta, value, '未知状态'),
+    },
+  ];
+
+  const columnSettings =
+    useColumnSettings<TableColumnsType<API.SameBatchOrderSummary>[number]>({
+      tableKey: 'orders:same-batch',
+      columns,
+    });
+
   if (loading) return <Skeleton active paragraph={{ rows: 2 }} />;
   if (error) return <Alert type="warning" showIcon title={error} />;
   if (orders.length === 0) {
@@ -79,54 +131,18 @@ export default function SameBatchOrdersSection({
   }
 
   return (
-    <Table<API.SameBatchOrderSummary>
-      rowKey={(record) => record.orderId || record.orderNo || ''}
-      size="small"
-      pagination={false}
-      dataSource={orders}
-      columns={[
-        {
-          title: '订单号',
-          dataIndex: 'orderNo',
-          render: (value: string, record) => (
-            <Button
-              type="link"
-              size="small"
-              icon={<LinkOutlined />}
-              onClick={() =>
-                history.push(`/orders/${orderKind}/${record.orderId}`)
-              }
-            >
-              {value || '-'}
-            </Button>
-          ),
-        },
-        {
-          title: '匹配依据',
-          dataIndex: 'matchSources',
-          render: (sources: string[] | undefined) => (
-            <Space size={[4, 4]} wrap>
-              {(sources ?? []).map((source) => (
-                <Tag key={source} color="blue">
-                  {matchSourceLabels[source] || source}
-                </Tag>
-              ))}
-            </Space>
-          ),
-        },
-        { title: '客户业务号', dataIndex: 'customerReferenceNo' },
-        { title: '订舱号', dataIndex: 'bookingNo' },
-        { title: 'MBL', dataIndex: 'masterNo' },
-        { title: 'HBL', dataIndex: 'houseNo' },
-        {
-          title: '状态',
-          dataIndex: 'flowStatus',
-          render: (value: number | undefined) =>
-            value === undefined
-              ? '-'
-              : statusText(orderFlowStatusMeta, value, '未知状态'),
-        },
-      ]}
-    />
+    <>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        {columnSettings.entry}
+      </div>
+      <Table<API.SameBatchOrderSummary>
+        rowKey={(record) => record.orderId || record.orderNo || ''}
+        size="small"
+        pagination={false}
+        dataSource={orders}
+        columns={columnSettings.columns}
+      />
+      {columnSettings.modal}
+    </>
   );
 }

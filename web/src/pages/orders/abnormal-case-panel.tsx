@@ -14,6 +14,7 @@ import {
   useState,
 } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   makeValueEnum,
   orderAbnormalCaseStatusMeta,
@@ -214,6 +215,11 @@ const AbnormalCasePanel = forwardRef<
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.OrderAbnormalCase>>({
+    tableKey: 'orders:abnormal-cases',
+    columns,
+  });
+
   return (
     <>
       <Drawer
@@ -238,10 +244,11 @@ const AbnormalCasePanel = forwardRef<
             }
             actionRef={actionRef}
             rowKey="id"
-            columns={columns}
+            columns={columnSettings.columns}
             bordered
             search={false}
             pagination={false}
+            options={{ reload: true, density: true, setting: false }}
             request={async () => {
               const response = await orderAbnormalCaseServiceListAbnormalCases({
                 orderId: order.id as string,
@@ -249,6 +256,7 @@ const AbnormalCasePanel = forwardRef<
               return toTableRequest(response);
             }}
             toolBarRender={() => [
+              columnSettings.entry,
               canManage && (
                 <Button
                   key="create"

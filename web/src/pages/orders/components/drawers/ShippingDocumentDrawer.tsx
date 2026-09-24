@@ -17,6 +17,7 @@ import {
   MODAL_SIZE,
   ProFormSearchableSelect,
 } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
   orderShippingDocumentServiceAddShippingDocument,
@@ -261,6 +262,12 @@ const ShippingDocumentDrawer = forwardRef<
     },
   ];
 
+  const columnSettings =
+    useColumnSettings<ProColumns<API.OrderShippingDocument>>({
+      tableKey: 'orders:shipping-documents',
+      columns,
+    });
+
   return (
     <>
       <Drawer
@@ -296,10 +303,11 @@ const ShippingDocumentDrawer = forwardRef<
           <ProTable<API.OrderShippingDocument>
             actionRef={actionRef}
             rowKey="id"
-            columns={columns}
+            columns={columnSettings.columns}
             bordered
             search={false}
             pagination={false}
+            options={{ reload: true, density: true, setting: false }}
             request={async () => {
               const response =
                 await orderShippingDocumentServiceListShippingDocuments({
@@ -308,6 +316,7 @@ const ShippingDocumentDrawer = forwardRef<
               return toTableRequest(response);
             }}
             toolBarRender={() => [
+              columnSettings.entry,
               canManage && (
                 <Button
                   key="create"
