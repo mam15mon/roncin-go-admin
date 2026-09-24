@@ -51,6 +51,6 @@ describe('BillDetailDrawer 结算账户快照', () => {
     );
     expect(screen.getByText('CNY')).toBeInTheDocument();
     expect(screen.getByText('7.12345679')).toBeInTheDocument();
-    expect(screen.getByText('712.34567900 CNY')).toBeInTheDocument();
+    expect(screen.getByText('712.35 CNY')).toBeInTheDocument();
   });
 });

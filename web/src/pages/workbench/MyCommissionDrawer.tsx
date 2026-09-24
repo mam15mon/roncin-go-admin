@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import type { TableColumnsType } from 'antd';
 import { Button, Drawer, Select, Space, Table, Tag, Tooltip } from 'antd';
 import React, { useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { workbenchServiceListMyCommissions } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
@@ -166,6 +167,16 @@ export default function MyCommissionDrawer({
     },
   ];
 
+  const columnSettings = useColumnSettings<TableColumnsType<MyCommission>[number]>({
+    tableKey: 'workbench:my-commissions',
+    columns,
+  });
+
+  /** 冲减调整金额列依赖所在提成单的本位币口径，按行提取为子组件。 */
+  const renderAdjustmentTable = (record: MyCommission) => (
+    <AdjustmentTable record={record} currency={currency} />
+  );
+
   return (
     <Drawer
       open={open}
@@ -193,11 +204,14 @@ export default function MyCommissionDrawer({
             金额为当前组织本位币口径；已取消提成不计入。
           </span>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          {columnSettings.entry}
+        </div>
         <Table<MyCommission>
           rowKey={(record) => record.id || record.commissionNo || ''}
           size="small"
           loading={isFetching}
-          columns={columns}
+          columns={columnSettings.columns}
           dataSource={items}
           pagination={{
             current: query.page,
@@ -210,66 +224,88 @@ export default function MyCommissionDrawer({
           }}
           expandable={{
             rowExpandable: (record) => (record.adjustments?.length ?? 0) > 0,
-            expandedRowRender: (record) => (
-              <Table<MyAdjustment>
-                rowKey={(item) => item.id || item.adjustmentNo || ''}
-                size="small"
-                pagination={false}
-                dataSource={record.adjustments ?? []}
-                columns={[
-                  {
-                    title: '调整单号',
-                    dataIndex: 'adjustmentNo',
-                    width: 170,
-                    render: (_, item) => item.adjustmentNo || '-',
-                  },
-                  {
-                    title: '阶段',
-                    dataIndex: 'status',
-                    width: 190,
-                    render: (_, item) => adjustmentStatusTag(item.status),
-                  },
-                  {
-                    title: '金额',
-                    dataIndex: 'amount',
-                    width: 140,
-                    align: 'right',
-                    render: (_, item) =>
-                      amountWithCurrency(
-                        item.amount,
-                        record.baseCurrency || currency,
-                      ),
-                  },
-                  {
-                    title: '原因',
-                    dataIndex: 'reason',
-                    render: (_, item) => item.reason || '-',
-                  },
-                  {
-                    title: '操作',
-                    key: 'actions',
-                    width: 130,
-                    render: (_, item) =>
-                      item.direction === 'DECREASE' && item.id ? (
-                        <Tooltip title="查看锁后补录来源详情">
-                          <Link
-                            to={`/commission-adjustments/${item.id}/my-supplement-source`}
-                          >
-                            补录来源
-                          </Link>
-                        </Tooltip>
-                      ) : (
-                        <Button type="link" size="small" disabled>
-                          -
-                        </Button>
-                      ),
-                  },
-                ]}
-              />
-            ),
+            expandedRowRender: renderAdjustmentTable,
           }}
         />
+        {columnSettings.modal}
       </Space>
     </Drawer>
+  );
+}
+
+function AdjustmentTable({
+  record,
+  currency,
+}: {
+  record: MyCommission;
+  currency?: string;
+}) {
+  const adjustmentColumns: TableColumnsType<MyAdjustment> = [
+    {
+      title: '调整单号',
+      dataIndex: 'adjustmentNo',
+      width: 170,
+      render: (_, item) => item.adjustmentNo || '-',
+    },
+    {
+      title: '阶段',
+      dataIndex: 'status',
+      width: 190,
+      render: (_, item) => adjustmentStatusTag(item.status),
+    },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      width: 140,
+      align: 'right',
+      render: (_, item) =>
+        amountWithCurrency(item.amount, record.baseCurrency || currency),
+    },
+    {
+      title: '原因',
+      dataIndex: 'reason',
+      render: (_, item) => item.reason || '-',
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 130,
+      render: (_, item) =>
+        item.direction === 'DECREASE' && item.id ? (
+          <Tooltip title="查看锁后补录来源详情">
+            <Link
+              to={`/commission-adjustments/${item.id}/my-supplement-source`}
+            >
+              补录来源
+            </Link>
+          </Tooltip>
+        ) : (
+          <Button type="link" size="small" disabled>
+            -
+          </Button>
+        ),
+    },
+  ];
+
+  const adjustmentSettings =
+    useColumnSettings<TableColumnsType<MyAdjustment>[number]>({
+      tableKey: 'workbench:my-adjustments',
+      columns: adjustmentColumns,
+    });
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        {adjustmentSettings.entry}
+      </div>
+      <Table<MyAdjustment>
+        rowKey={(item) => item.id || item.adjustmentNo || ''}
+        size="small"
+        pagination={false}
+        dataSource={record.adjustments ?? []}
+        columns={adjustmentSettings.columns}
+      />
+      {adjustmentSettings.modal}
+    </>
   );
 }

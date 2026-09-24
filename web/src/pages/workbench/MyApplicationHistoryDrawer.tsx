@@ -17,6 +17,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 import {
   workbenchServiceGetMyCommissionApplication,
@@ -237,6 +238,11 @@ export default function MyApplicationHistoryDrawer({
     },
   ];
 
+  const lineSettings = useColumnSettings<TableColumnsType<ApplicationLine>[number]>({
+    tableKey: 'workbench:application-history-lines',
+    columns: lineColumns,
+  });
+
   const columns: TableColumnsType<Application> = [
     {
       title: '申请月份',
@@ -302,6 +308,11 @@ export default function MyApplicationHistoryDrawer({
       ),
     },
   ];
+
+  const listSettings = useColumnSettings<TableColumnsType<Application>[number]>({
+    tableKey: 'workbench:application-history',
+    columns,
+  });
 
   return (
     <Drawer
@@ -376,14 +387,18 @@ export default function MyApplicationHistoryDrawer({
               {`驳回原因：${application.decisionReason}`}
             </Tag>
           ) : null}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            {lineSettings.entry}
+          </div>
           <Table<ApplicationLine>
             rowKey={(record) => record.id || record.commissionId || ''}
             size="small"
             loading={detailFetching}
-            columns={lineColumns}
+            columns={lineSettings.columns}
             dataSource={detail.lines ?? []}
             pagination={false}
           />
+          {lineSettings.modal}
         </Space>
       ) : (
         <Space orientation="vertical" size={12} style={{ width: '100%' }}>
@@ -405,11 +420,14 @@ export default function MyApplicationHistoryDrawer({
               金额与明细为提交时固化的快照；被驳回的申请可在原申请上按最新上游数据重新提交。
             </span>
           </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            {listSettings.entry}
+          </div>
           <Table<Application>
             rowKey={(record) => record.id || record.applicationMonth || ''}
             size="small"
             loading={listFetching}
-            columns={columns}
+            columns={listSettings.columns}
             dataSource={items}
             pagination={{
               current: query.page,
@@ -421,6 +439,7 @@ export default function MyApplicationHistoryDrawer({
                 setQuery((prev) => ({ ...prev, page, pageSize })),
             }}
           />
+          {listSettings.modal}
         </Space>
       )}
     </Drawer>

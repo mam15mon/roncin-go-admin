@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Drawer, Select, Space, Table } from 'antd';
 import React, { useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { workbenchServiceListMyApplicationCandidates } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
 import {
@@ -131,6 +132,11 @@ export default function MyApplicationCandidatesDrawer({
     },
   ];
 
+  const columnSettings = useColumnSettings<TableColumnsType<Candidate>[number]>({
+    tableKey: 'workbench:application-candidates',
+    columns,
+  });
+
   return (
     <Drawer
       open={open}
@@ -162,6 +168,9 @@ export default function MyApplicationCandidatesDrawer({
             展示截至上一自然月末、尚未进入任何申请的合格提成。
           </span>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          {columnSettings.entry}
+        </div>
         <Table<Candidate>
           rowKey={(record) =>
             record.verificationId ||
@@ -171,7 +180,7 @@ export default function MyApplicationCandidatesDrawer({
           }
           size="small"
           loading={isFetching}
-          columns={columns}
+          columns={columnSettings.columns}
           dataSource={items}
           pagination={{
             current: query.page,
@@ -183,6 +192,7 @@ export default function MyApplicationCandidatesDrawer({
               setQuery((prev) => ({ ...prev, page, pageSize })),
           }}
         />
+        {columnSettings.modal}
       </Space>
     </Drawer>
   );

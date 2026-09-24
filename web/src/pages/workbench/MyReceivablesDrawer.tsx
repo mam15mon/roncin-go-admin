@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Alert, Drawer, Space, Table, Tag } from 'antd';
 import React, { useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { workbenchServiceListMyReceivables } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';
 import { amountWithCurrency } from './display';
@@ -114,6 +115,11 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
     },
   ];
 
+  const columnSettings = useColumnSettings<TableColumnsType<MyReceivable>[number]>({
+    tableKey: 'workbench:my-receivables',
+    columns,
+  });
+
   return (
     <Drawer
       open={open}
@@ -128,11 +134,14 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
           showIcon
           title="未核销余额按账单原币展示，不同币种不合并计算；对应潜在提成仅为预计，非应发承诺，尚未回款核销、费用或规则变化都会影响结果。"
         />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          {columnSettings.entry}
+        </div>
         <Table<MyReceivable>
           rowKey={(record) => record.billId || record.billNo || ''}
           size="small"
           loading={isFetching}
-          columns={columns}
+          columns={columnSettings.columns}
           dataSource={items}
           pagination={{
             current: query.page,
@@ -144,6 +153,7 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
               setQuery((prev) => ({ ...prev, page, pageSize })),
           }}
         />
+        {columnSettings.modal}
       </Space>
     </Drawer>
   );
