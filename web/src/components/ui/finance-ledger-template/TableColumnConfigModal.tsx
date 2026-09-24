@@ -1,20 +1,15 @@
 import { App, Card, Col, Radio, Row, Select } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ColumnSettingsModal,
-  defaultColumnSettingsValue,
-} from '@/components/ui/column-settings';
 import type {
   ColumnSettingsField,
   ColumnSettingsValue,
 } from '@/components/ui/column-settings';
 import {
-  settlementServiceUpdateFeeLedgerPreference,
-} from '@/services/roncin/settlementService';
-import {
-  ALL_153_FINANCE_FIELDS,
-  getDefaultRowColors,
-} from './fields-meta';
+  ColumnSettingsModal,
+  defaultColumnSettingsValue,
+} from '@/components/ui/column-settings';
+import { settlementServiceUpdateFeeLedgerPreference } from '@/services/roncin/settlementService';
+import { FEE_LEDGER_FIELDS, getDefaultRowColors } from './fields-meta';
 import RowColorSettings, { type RowColorsConfig } from './RowColorSettings';
 
 export interface TableColumnConfigModalProps {
@@ -28,6 +23,8 @@ export interface TableColumnConfigModalProps {
 function normalizeFieldKey(key: string): string {
   if (key === 'financial_progress') return 'financialProgress';
   if (key === 'customerName') return 'customerId';
+  if (key === 'settlementPartyName') return 'settlementPartyId';
+  if (key === 'orgName') return 'organizationName';
   return key;
 }
 
@@ -37,7 +34,7 @@ function preferenceToColumnValue(
 ): ColumnSettingsValue | null {
   const columns = preference?.columns ?? [];
   if (columns.length === 0) return null;
-  const known = new Set(ALL_153_FINANCE_FIELDS.map((field) => field.key));
+  const known = new Set(FEE_LEDGER_FIELDS.map((field) => field.key));
   const order: string[] = [];
   const hidden: string[] = [];
   const seen = new Set<string>();
@@ -49,7 +46,7 @@ function preferenceToColumnValue(
     seen.add(key);
     if (!item.visible) hidden.push(key);
   }
-  for (const field of ALL_153_FINANCE_FIELDS) {
+  for (const field of FEE_LEDGER_FIELDS) {
     if (!seen.has(field.key)) {
       order.push(field.key);
       if (!field.defaultVisible) hidden.push(field.key);
@@ -81,7 +78,7 @@ export function TableColumnConfigModal({
 
   const fields: ColumnSettingsField[] = useMemo(
     () =>
-      ALL_153_FINANCE_FIELDS.map((field) => ({
+      FEE_LEDGER_FIELDS.map((field) => ({
         key: field.key,
         title: field.name,
       })),
@@ -92,7 +89,7 @@ export function TableColumnConfigModal({
     () =>
       defaultColumnSettingsValue(
         fields,
-        ALL_153_FINANCE_FIELDS.filter((field) => !field.defaultVisible).map(
+        FEE_LEDGER_FIELDS.filter((field) => !field.defaultVisible).map(
           (field) => field.key,
         ),
       ),
@@ -202,7 +199,7 @@ export function TableColumnConfigModal({
               placeholder="请选择默认排序字段（默认费用时间）"
               options={[
                 { label: '无特定排序（按录入与费用时间）', value: '' },
-                ...ALL_153_FINANCE_FIELDS.filter((field) =>
+                ...FEE_LEDGER_FIELDS.filter((field) =>
                   visibleKeys.includes(field.key),
                 ).map((field) => ({
                   label: `${field.name} (${field.key})`,

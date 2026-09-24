@@ -526,6 +526,8 @@ export function buildUserOrderedColumns(
   const normalizeKey = (k: string) => {
     if (k === 'financial_progress') return 'financialProgress';
     if (k === 'customerName') return 'customerId';
+    if (k === 'settlementPartyName') return 'settlementPartyId';
+    if (k === 'orgName') return 'organizationName';
     return k;
   };
 
