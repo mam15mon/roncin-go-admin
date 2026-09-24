@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/server/backend/exchange-rate-single-rate.md", "reason": "汇率领域契约与单汇率口径，收紧精度前必读"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "校验失败的业务错误映射规范"}

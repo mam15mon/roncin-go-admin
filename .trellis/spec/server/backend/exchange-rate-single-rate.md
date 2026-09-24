@@ -27,6 +27,8 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 
 `exchange_rate_settings.organization_id` 对新写入必须是公司 ID；可空列和旧 NULL 行暂时保留，不新增公共行。`from_currency` 是业务原币，`to_currency` 是公司本币。`effective_from` 锚定业务日期所在自然周周一 00:00:00（Asia/Shanghai）。同公司、同币种对、同周重复导入或同步按现有幂等 Upsert 处理。`rate` 是基准价，`ar_rate`/`ap_rate` 分别用于应收/应付，均按既有精度规则保存。
 
+**汇率精度口径固定 4 位小数**：人工输入、Excel 导入、牌价同步落库的校验正则，中间价与交叉盘推导（`RoundBank(4)`），账单/批量账单快照固化统一按 4 位收敛；存储列保持 `numeric(18,8)` 字符串透传，不做列迁移。折本币金额（`BaseCurrencyAmount` 等）仍按 8 位金额口径舍入，与本约束无关。
+
 维护 API 从服务端 principal 取得组织并解析所属公司，列表只返回公司行；按记录 ID 编辑、停用、读取导入批次时仍需公司范围校验。`system.finance.exchange_rate.read` 用于查看，`create` 用于新建、导入和同步，`update` 用于编辑配置及单据显式手工输入，`disable` 用于停用。独立 `override` 权限退役，旧授权不能代替 `update`。系统工作台即使直接请求 API 也不得读写业务汇率。
 
 新解析仅查目标自然周的本公司启用行。相同币种返回 `rate=1`、来源 `SYSTEM`；应收取 `ar_rate`、应付取 `ap_rate`，空值沿用 `rate`。命中行快照携带设置 ID，来源为 `WEEKLY` 或 `BOC_SYNC`。不存在上周继承、公共直连、公共历史回溯或公共交叉套算。外部牌价预览可计算交叉报价，它不读取数据库公共行。跨组织资金流仍按原币记账。
