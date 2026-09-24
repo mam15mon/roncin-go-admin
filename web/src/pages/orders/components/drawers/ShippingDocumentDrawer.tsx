@@ -262,11 +262,12 @@ const ShippingDocumentDrawer = forwardRef<
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ProColumns<API.OrderShippingDocument>>({
-      tableKey: 'orders:shipping-documents',
-      columns,
-    });
+  const columnSettings = useColumnSettings<
+    ProColumns<API.OrderShippingDocument>
+  >({
+    tableKey: 'orders:shipping-documents',
+    columns,
+  });
 
   return (
     <>
@@ -331,6 +332,8 @@ const ShippingDocumentDrawer = forwardRef<
           />
         )}
       </Drawer>
+
+      {columnSettings.modal}
 
       <ModalForm<ShippingDocumentFormValues>
         title={editingShippingDocument ? '编辑分单 (HBL)' : '添加分单 (HBL)'}

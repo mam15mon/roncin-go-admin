@@ -1,4 +1,4 @@
-import { ProTable, type ProColumns } from '@ant-design/pro-components';
+import { type ProColumns, ProTable } from '@ant-design/pro-components';
 import { Drawer } from 'antd';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -64,16 +64,18 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
       },
     ];
 
-    const summarySettings =
-      useColumnSettings<ProColumns<API.OrderConsolidationSummary>>({
-        tableKey: 'orders:consolidation-summary',
-        columns: summaryColumns,
-      });
-    const memberSettings =
-      useColumnSettings<ProColumns<API.OrderConsolidationMember>>({
-        tableKey: 'orders:consolidation-members',
-        columns: memberColumns,
-      });
+    const summarySettings = useColumnSettings<
+      ProColumns<API.OrderConsolidationSummary>
+    >({
+      tableKey: 'orders:consolidation-summary',
+      columns: summaryColumns,
+    });
+    const memberSettings = useColumnSettings<
+      ProColumns<API.OrderConsolidationMember>
+    >({
+      tableKey: 'orders:consolidation-members',
+      columns: memberColumns,
+    });
 
     return (
       <Drawer
@@ -119,6 +121,9 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
             }}
           />
         )}
+
+        {summarySettings.modal}
+        {memberSettings.modal}
       </Drawer>
     );
   },

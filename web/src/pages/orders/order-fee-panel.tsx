@@ -479,6 +479,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           )}
         </Drawer>
 
+        {columnSettings.modal}
+
         <BusinessTagModal
           open={tagModalOpen}
           loadOptions={(params) =>

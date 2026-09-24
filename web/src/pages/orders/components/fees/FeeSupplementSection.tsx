@@ -771,6 +771,7 @@ export default function FeeSupplementSection({
         }}
         locale={{ emptyText: '暂无补录申请' }}
       />
+      {columnSettings.modal}
       <Modal
         title="审核补录费用"
         open={!!reviewRequest && reviewRequest.orderId === orderId}
