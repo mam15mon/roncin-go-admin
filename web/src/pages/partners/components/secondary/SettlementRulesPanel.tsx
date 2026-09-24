@@ -14,6 +14,7 @@ import {
 } from '@ant-design/pro-components';
 import { App, Button, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   PartnerRoleType,
   PartnerSettlementBase,
@@ -276,6 +277,11 @@ export default function SettlementRulesPanel({
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<SettlementRuleItem>>({
+    tableKey: 'partners:settlement-rules',
+    columns,
+  });
+
   return (
     <>
       <ProTable<SettlementRuleItem>
@@ -287,10 +293,11 @@ export default function SettlementRulesPanel({
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         search={false}
         pagination={false}
+        options={{ reload: true, density: true, setting: false }}
         request={async () => {
           if (!partner?.id) return { data: [], success: true };
           const partnerId = partner.id;
@@ -311,8 +318,9 @@ export default function SettlementRulesPanel({
           );
           return { data: results.flat(), success: true };
         }}
-        toolBarRender={() =>
-          canManage
+        toolBarRender={() => [
+          columnSettings.entry,
+          ...(canManage
             ? [
                 <Button
                   key="create"
@@ -323,8 +331,8 @@ export default function SettlementRulesPanel({
                   新增结算规则
                 </Button>,
               ]
-            : []
-        }
+            : []),
+        ]}
       />
 
       <ModalForm<SettlementRuleFormValues>

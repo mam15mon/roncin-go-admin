@@ -39,6 +39,7 @@ import {
 import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { SearchFilterTemplate } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerRoleType } from '@/enums.generated';
 import {
   partnerServiceExportPartners,
@@ -474,6 +475,11 @@ export default function Partners() {
 
   const [searchParams, setSearchParams] = useState<PartnerSearchParams>({});
 
+  const columnSettings = useColumnSettings<ProColumns<API.Partner>>({
+    tableKey: 'partners:list',
+    columns,
+  });
+
   return (
     <PageContainer
       title={false}
@@ -586,7 +592,7 @@ export default function Partners() {
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         cardProps={{
           style: {
             borderRadius: 8,
@@ -608,7 +614,8 @@ export default function Partners() {
           return toTableRequest(response);
         }}
         search={false}
-        options={false}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [columnSettings.entry]}
       />
 
       <PartnerExcelImportModal

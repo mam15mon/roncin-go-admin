@@ -14,6 +14,7 @@ import {
 } from '@ant-design/pro-components';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerAccountUsage } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerAccount,
@@ -146,6 +147,11 @@ export default function AccountsPanel({
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.PartnerAccount>>({
+    tableKey: 'partners:accounts',
+    columns,
+  });
+
   if (!canRead) {
     return <Text type="secondary">暂无结算账户查看权限。</Text>;
   }
@@ -161,10 +167,11 @@ export default function AccountsPanel({
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         search={false}
         pagination={false}
+        options={{ reload: true, density: true, setting: false }}
         request={async () => {
           if (!partner?.id) return { data: [], success: true };
           const response = await partnerServiceListPartnerAccounts({
@@ -172,8 +179,9 @@ export default function AccountsPanel({
           });
           return toTableRequest(response);
         }}
-        toolBarRender={() =>
-          canCreate
+        toolBarRender={() => [
+          columnSettings.entry,
+          ...(canCreate
             ? [
                 <Button
                   key="create"
@@ -184,8 +192,8 @@ export default function AccountsPanel({
                   新增结算账户
                 </Button>,
               ]
-            : []
-        }
+            : []),
+        ]}
       />
 
       <ModalForm<API.PartnerAccountInput>

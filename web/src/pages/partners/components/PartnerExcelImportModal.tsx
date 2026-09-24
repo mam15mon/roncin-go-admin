@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import React, { useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import * as XLSX from 'xlsx';
 import { PartnerImportMode, PartnerRoleType } from '@/enums.generated';
 import { partnerServiceImportPartners } from '@/services/roncin/partnerService';
@@ -286,9 +287,7 @@ export default function PartnerExcelImportModal({
       title: '单位编码',
       dataIndex: 'code',
       width: 120,
-      render: (v: string) => (
-        <Text style={{ fontFamily: 'monospace' }}>{v}</Text>
-      ),
+      render: (v: string) => <Text style={{ fontFamily: 'monospace' }}>{v}</Text>,
     },
     {
       title: '企业名称',
@@ -309,8 +308,7 @@ export default function PartnerExcelImportModal({
       render: (roles?: API.PartnerRoleInput[]) => (
         <Space size={4} wrap>
           {(roles ?? []).map((r) => {
-            const label =
-              r.type === 1 ? '客户' : r.type === 2 ? '供应商' : '国外代理';
+            const label = r.type === 1 ? '客户' : r.type === 2 ? '供应商' : '国外代理';
             return (
               <Tag key={r.type} color="blue">
                 {label}
@@ -327,6 +325,11 @@ export default function PartnerExcelImportModal({
       render: (v?: string) => v || <Text type="secondary">-</Text>,
     },
   ];
+
+  const columnSettings = useColumnSettings<(typeof previewColumns)[number]>({
+    tableKey: 'partners:excel-import-preview',
+    columns: previewColumns,
+  });
 
   return (
     <Modal
@@ -453,21 +456,30 @@ export default function PartnerExcelImportModal({
 
         {parsedItems.length > 0 && (
           <div>
-            <div style={{ marginBottom: 8 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 8,
+              }}
+            >
               <Text strong>
                 数据预览 (前 5 条 / 共 {parsedItems.length} 条)：
               </Text>
+              {columnSettings.entry}
             </div>
             <Table
               dataSource={parsedItems.slice(0, 5).map((item, i) => ({
                 key: item.code || i,
                 ...item,
               }))}
-              columns={previewColumns}
+              columns={columnSettings.columns}
               pagination={false}
               size="small"
               bordered
             />
+            {columnSettings.modal}
           </div>
         )}
       </div>

@@ -1,5 +1,9 @@
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
-import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import {
   ModalForm,
   ProFormDependency,
@@ -10,6 +14,7 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   partnerServiceCreatePartnerInvoiceProfile,
   partnerServiceListPartnerInvoiceProfiles,
@@ -55,6 +60,63 @@ export default function InvoiceProfilesPanel({
     setModalOpen(true);
   };
 
+  const columns: ProColumns<API.PartnerInvoiceProfile>[] = [
+    {
+      title: '发票抬头',
+      dataIndex: 'invoiceTitle',
+      width: 220,
+      ellipsis: true,
+    },
+    {
+      title: '纳税人识别号',
+      dataIndex: 'taxpayerIdentificationNo',
+      width: 190,
+      render: (_, row) => <Text copyable>{row.taxpayerIdentificationNo}</Text>,
+    },
+    {
+      title: '默认票种',
+      dataIndex: 'defaultInvoiceType',
+      width: 100,
+      renderText: (value) => (value === 'SPECIAL' ? '专用发票' : '普通发票'),
+    },
+    {
+      title: '默认',
+      dataIndex: 'isDefault',
+      width: 70,
+      render: (_, row) => (row.isDefault ? <Tag color="blue">默认</Tag> : '-'),
+    },
+    {
+      title: '状态',
+      dataIndex: 'enabled',
+      width: 70,
+      render: (_, row) => (
+        <Tag color={row.enabled ? 'success' : 'default'}>
+          {row.enabled ? '启用' : '停用'}
+        </Tag>
+      ),
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      width: 80,
+      render: (_, row) =>
+        canManage
+          ? [
+              <a key="edit" onClick={() => openForm(row)}>
+                <EditOutlined /> 编辑
+              </a>,
+            ]
+          : [],
+    },
+  ];
+
+  const columnSettings = useColumnSettings<
+    ProColumns<API.PartnerInvoiceProfile>
+  >({
+    tableKey: 'partners:invoice-profiles',
+    columns,
+  });
+
   return (
     <>
       <Alert
@@ -71,59 +133,7 @@ export default function InvoiceProfilesPanel({
         pagination={false}
         bordered
         size="small"
-        columns={[
-          {
-            title: '发票抬头',
-            dataIndex: 'invoiceTitle',
-            width: 220,
-            ellipsis: true,
-          },
-          {
-            title: '纳税人识别号',
-            dataIndex: 'taxpayerIdentificationNo',
-            width: 190,
-            render: (_, row) => (
-              <Text copyable>{row.taxpayerIdentificationNo}</Text>
-            ),
-          },
-          {
-            title: '默认票种',
-            dataIndex: 'defaultInvoiceType',
-            width: 100,
-            renderText: (value) =>
-              value === 'SPECIAL' ? '专用发票' : '普通发票',
-          },
-          {
-            title: '默认',
-            dataIndex: 'isDefault',
-            width: 70,
-            render: (_, row) =>
-              row.isDefault ? <Tag color="blue">默认</Tag> : '-',
-          },
-          {
-            title: '状态',
-            dataIndex: 'enabled',
-            width: 70,
-            render: (_, row) => (
-              <Tag color={row.enabled ? 'success' : 'default'}>
-                {row.enabled ? '启用' : '停用'}
-              </Tag>
-            ),
-          },
-          {
-            title: '操作',
-            valueType: 'option',
-            width: 80,
-            render: (_, row) =>
-              canManage
-                ? [
-                    <a key="edit" onClick={() => openForm(row)}>
-                      <EditOutlined /> 编辑
-                    </a>,
-                  ]
-                : [],
-          },
-        ]}
+        columns={columnSettings.columns}
         request={async () => {
           if (!partner?.id) return { data: [], success: true };
           const response = await partnerServiceListPartnerInvoiceProfiles({
@@ -131,8 +141,9 @@ export default function InvoiceProfilesPanel({
           });
           return toTableRequest(response);
         }}
-        toolBarRender={() =>
-          canManage
+        toolBarRender={() => [
+          columnSettings.entry,
+          ...(canManage
             ? [
                 <Button
                   key="create"
@@ -143,8 +154,8 @@ export default function InvoiceProfilesPanel({
                   新增开票抬头
                 </Button>,
               ]
-            : []
-        }
+            : []),
+        ]}
       />
 
       <ModalForm<InvoiceProfileFormValues>

@@ -12,6 +12,7 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Space, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   partnerServiceListPartnerAttachments,
   partnerServiceRegisterPartnerAttachment,
@@ -91,6 +92,11 @@ export default function AttachmentsPanel({
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.PartnerAttachment>>({
+    tableKey: 'partners:attachments',
+    columns,
+  });
+
   return (
     <>
       <ProTable<API.PartnerAttachment>
@@ -102,10 +108,11 @@ export default function AttachmentsPanel({
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         search={false}
         pagination={false}
+        options={{ reload: true, density: true, setting: false }}
         request={async () => {
           if (!partner?.id) return { data: [], success: true };
           const response = await partnerServiceListPartnerAttachments({
@@ -113,8 +120,9 @@ export default function AttachmentsPanel({
           });
           return toTableRequest(response);
         }}
-        toolBarRender={() =>
-          canManage
+        toolBarRender={() => [
+          columnSettings.entry,
+          ...(canManage
             ? [
                 <Button
                   key="create"
@@ -125,8 +133,8 @@ export default function AttachmentsPanel({
                   登记新附件
                 </Button>,
               ]
-            : []
-        }
+            : []),
+        ]}
       />
 
       <ModalForm<AttachmentFormValues>

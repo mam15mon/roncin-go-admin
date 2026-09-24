@@ -19,6 +19,7 @@ import {
 import { App, Button, Space, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { partnerContractStatusMeta, statusTag } from '@/constants/statusMeta';
 import { PartnerContractStatus } from '@/enums.generated';
 import {
@@ -132,6 +133,11 @@ export default function ContractsPanel({
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.PartnerContract>>({
+    tableKey: 'partners:contracts',
+    columns,
+  });
+
   return (
     <>
       <ProTable<API.PartnerContract>
@@ -143,10 +149,11 @@ export default function ContractsPanel({
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         search={false}
         pagination={false}
+        options={{ reload: true, density: true, setting: false }}
         request={async () => {
           if (!partner?.id) return { data: [], success: true };
           const response = await partnerServiceListPartnerContracts({
@@ -154,8 +161,9 @@ export default function ContractsPanel({
           });
           return toTableRequest(response);
         }}
-        toolBarRender={() =>
-          canManage
+        toolBarRender={() => [
+          columnSettings.entry,
+          ...(canManage
             ? [
                 <Button
                   key="create"
@@ -166,8 +174,8 @@ export default function ContractsPanel({
                   新增合同
                 </Button>,
               ]
-            : []
-        }
+            : []),
+        ]}
       />
 
       <ModalForm<ContractFormValues>
