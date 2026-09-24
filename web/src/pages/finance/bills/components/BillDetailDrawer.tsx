@@ -57,12 +57,14 @@ export default function BillDetailDrawer({
     },
     {
       title: '费用折本币',
+      key: 'baseCurrencyAmount',
       render: (_, row) =>
         `${formatAmount(row.baseCurrencyAmount)} ${row.baseCurrency}`,
       align: 'right',
     },
     {
       title: '关联状态',
+      key: 'active',
       render: (_, row) =>
         row.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
       width: 85,

@@ -68,6 +68,7 @@ export default function InvoiceDetailDrawer({
     },
     {
       title: '关联',
+      key: 'active',
       render: (_, r) =>
         r.active ? <Tag color="blue">有效</Tag> : <Tag>已释放</Tag>,
     },

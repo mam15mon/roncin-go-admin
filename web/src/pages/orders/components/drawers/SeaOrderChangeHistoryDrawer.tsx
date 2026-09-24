@@ -281,6 +281,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
     },
     {
       title: '变更内容摘要',
+      key: 'changeSummary',
       render: (_, record) => renderEventSummary(record),
     },
     {
@@ -302,11 +303,12 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.SeaOrderChangeEventSummary>[number]>({
-      tableKey: 'orders:change-history',
-      columns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.SeaOrderChangeEventSummary>[number]
+  >({
+    tableKey: 'orders:change-history',
+    columns,
+  });
 
   return (
     <>
@@ -317,7 +319,13 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
         size={DRAWER_SIZE.MD}
         destroyOnHidden
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
           {columnSettings.entry}
         </div>
         <Table<API.SeaOrderChangeEventSummary>

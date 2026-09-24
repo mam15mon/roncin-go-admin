@@ -143,6 +143,7 @@ export default function InvoiceCreateModal({
     { title: '结算单位', dataIndex: 'settlementPartyName' },
     {
       title: '金额',
+      key: 'totalAmount',
       render: (_, r) => `${formatAmount(r.totalAmount)} ${r.currency}`,
     },
     {

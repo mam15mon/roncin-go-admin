@@ -8,9 +8,6 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useSearchParams } from 'react-router';
 import type { UploadFile } from 'antd';
 import { App, Button, Form, Popconfirm, Tabs, Tag } from 'antd';
 import React, {
@@ -20,7 +17,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSearchParams } from 'react-router';
+import { useAccess } from '@/app/access';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { history } from '@/router/history';
 import {
   enterpriseResourceServiceBatchAssignAddressTypes,
   enterpriseResourceServiceBatchAssignAssignees,
@@ -324,6 +324,7 @@ const EnterpriseResourcesPage: React.FC = () => {
       detailColumns.push(
         {
           title: '备注类型',
+          key: 'remarkType',
           render: (_, record) =>
             remarkTypes.find((item) => item.value === record.remark?.remarkType)
               ?.label ?? '-',
@@ -343,6 +344,7 @@ const EnterpriseResourcesPage: React.FC = () => {
     if (active.type === 4)
       detailColumns.push({
         title: '标签组',
+        key: 'tagGroupId',
         render: (_, record) =>
           tagGroups.find((group) => group.id === record.tag?.groupId)?.name ??
           '-',
@@ -351,6 +353,7 @@ const EnterpriseResourcesPage: React.FC = () => {
       detailColumns.push(
         {
           title: '文件',
+          key: 'fileName',
           render: (_, record) => (
             <Button
               type="link"
@@ -370,6 +373,7 @@ const EnterpriseResourcesPage: React.FC = () => {
         },
         {
           title: '大小',
+          key: 'fileSize',
           render: (_, record) =>
             record.image?.fileSize
               ? `${(Number(record.image.fileSize) / 1024 / 1024).toFixed(2)} MiB`
@@ -522,7 +526,8 @@ const EnterpriseResourcesPage: React.FC = () => {
   ]);
 
   const columnSettings = useColumnSettings<ProColumns<API.EnterpriseResource>>({
-    tableKey: 'enterprise-resources:list',
+    // 各页签列集合不同，偏好按页签隔离，避免跨页签套用错位。
+    tableKey: `enterprise-resources:list:${activeTab}`,
     columns,
   });
 

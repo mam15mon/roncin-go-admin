@@ -678,6 +678,8 @@ export function ExchangeRateSyncModal({
   >({
     tableKey: 'finance:exchange-sync-preview',
     columns,
+    // 「买卖点差」表头是 Tooltip 包裹的 ReactNode，设置面板用纯文本名。
+    titleOverrides: { spread: '买卖点差' },
   });
 
   return (

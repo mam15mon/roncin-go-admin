@@ -105,6 +105,7 @@ export default function AccountsPanel({
     },
     {
       title: '默认用途',
+      key: 'defaultUsage',
       width: 135,
       render: (_, record) => (
         <Space size={4} wrap>

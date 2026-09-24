@@ -242,6 +242,7 @@ export default function FinanceVerificationsPage() {
     },
     {
       title: '分配数',
+      key: 'allocationCount',
       search: false,
       render: (_, r) => r.allocations?.length || 0,
       width: 75,
@@ -255,6 +256,7 @@ export default function FinanceVerificationsPage() {
     },
     {
       title: '关联明细',
+      key: 'allocationSummary',
       search: false,
       width: 260,
       ellipsis: true,
@@ -332,6 +334,7 @@ export default function FinanceVerificationsPage() {
       },
       {
         title: '状态',
+        key: 'active',
         render: (_, r) =>
           r.active ? <Tag color="blue">有效</Tag> : <Tag>已冲销</Tag>,
         width: 80,

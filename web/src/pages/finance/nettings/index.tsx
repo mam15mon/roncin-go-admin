@@ -297,6 +297,7 @@ export default function FinanceNettingsPage() {
     },
     {
       title: '分摊数',
+      key: 'allocationCount',
       search: false,
       width: 75,
       align: 'center',
