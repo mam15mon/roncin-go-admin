@@ -3,7 +3,6 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useAccess } from '@/app/access';
 import type { TableColumnsType } from 'antd';
 import {
   App,
@@ -17,6 +16,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useState } from 'react';
+import { useAccess } from '@/app/access';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 import {
@@ -238,7 +238,9 @@ export default function MyApplicationHistoryDrawer({
     },
   ];
 
-  const lineSettings = useColumnSettings<TableColumnsType<ApplicationLine>[number]>({
+  const lineSettings = useColumnSettings<
+    TableColumnsType<ApplicationLine>[number]
+  >({
     tableKey: 'workbench:application-history-lines',
     columns: lineColumns,
   });
@@ -309,10 +311,13 @@ export default function MyApplicationHistoryDrawer({
     },
   ];
 
-  const listSettings = useColumnSettings<TableColumnsType<Application>[number]>({
-    tableKey: 'workbench:application-history',
-    columns,
-  });
+  const listSettings = useColumnSettings<TableColumnsType<Application>[number]>(
+    {
+      tableKey: 'workbench:application-history',
+      columns,
+      structuralKeys: ['actions'],
+    },
+  );
 
   return (
     <Drawer
@@ -387,7 +392,13 @@ export default function MyApplicationHistoryDrawer({
               {`驳回原因：${application.decisionReason}`}
             </Tag>
           ) : null}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
             {lineSettings.entry}
           </div>
           <Table<ApplicationLine>
@@ -420,7 +431,13 @@ export default function MyApplicationHistoryDrawer({
               金额与明细为提交时固化的快照；被驳回的申请可在原申请上按最新上游数据重新提交。
             </span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
             {listSettings.entry}
           </div>
           <Table<Application>

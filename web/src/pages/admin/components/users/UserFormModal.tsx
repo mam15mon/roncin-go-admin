@@ -279,11 +279,13 @@ export default function UserFormModal({
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.AdminUserMembership>[number]>({
-      tableKey: 'admin:user-memberships',
-      columns: membershipColumns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.AdminUserMembership>[number]
+  >({
+    tableKey: 'admin:user-memberships',
+    columns: membershipColumns,
+    structuralKeys: ['actions'],
+  });
 
   return (
     <ModalForm<UserFormValues>

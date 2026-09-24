@@ -133,6 +133,7 @@ export default function InvoiceProfilesPanel({
         pagination={false}
         bordered
         size="small"
+        options={{ setting: false }}
         columns={columnSettings.columns}
         request={async () => {
           if (!partner?.id) return { data: [], success: true };

@@ -145,6 +145,7 @@ export function SubEntityDrawerTemplateInner<
 
     const actionCol: ProColumns<TItem> = {
       title: '操作',
+      key: 'action',
       valueType: 'option',
       width: actionColumnWidth,
       fixed: 'right',
@@ -193,6 +194,7 @@ export function SubEntityDrawerTemplateInner<
   const columnSettings = useColumnSettings<ProColumns<TItem>>({
     tableKey: columnSettingsKey ?? `orders:sub-entity:${entityName}`,
     columns: resolvedColumns,
+    structuralKeys: ['action'],
   });
 
   const computedTitle = React.useMemo(() => {

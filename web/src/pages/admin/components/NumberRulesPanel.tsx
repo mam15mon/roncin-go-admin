@@ -346,6 +346,7 @@ export function NumberRulesPanel() {
     {
       tableKey: 'admin:number-rules',
       columns,
+      structuralKeys: ['action'],
     },
   );
 

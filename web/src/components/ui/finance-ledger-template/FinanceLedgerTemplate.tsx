@@ -8,7 +8,7 @@ import {
 import {
   type ActionType,
   PageContainer,
-  ProColumns,
+  type ProColumns,
   ProTable,
 } from '@ant-design/pro-components';
 import {
@@ -23,9 +23,9 @@ import {
 } from 'antd';
 import type { ColumnGroupType, ColumnType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import { useColumnSettings } from '../column-settings';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toTableRequest, unwrapPage } from '@/utils/api';
+import { useColumnSettings } from '../column-settings';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
 import type {
   FinanceLedgerGlobalSummary,
@@ -323,10 +323,13 @@ export function FinanceLedgerTemplate<
 
   // 统一列设置：未提供外部增强入口（财务费用服务端偏好）时内置标准版；
   // 表格标识由调用方按业务视图传入，不使用实体 ID。
-  const enableColumnSettings = Boolean(columnSettingsKey) && !onOpenColumnConfig;
+  const enableColumnSettings =
+    Boolean(columnSettingsKey) && !onOpenColumnConfig;
   const columnSettings = useColumnSettings<ProColumns<T>>({
     tableKey: columnSettingsKey ?? 'finance-ledger:unset',
     columns: resizableColumns,
+    // 消费者的序号列（dataIndex: 'index'）属结构列，不进入设置。
+    structuralKeys: ['index'],
   });
   const ledgerColumns = enableColumnSettings
     ? columnSettings.columns
@@ -343,8 +346,8 @@ export function FinanceLedgerTemplate<
       onExport(selectedRows, currentData);
       return;
     }
-    // 通用 CSV 导出逻辑
-    const exportableCols = columns.filter(
+    // 通用 CSV 导出逻辑（与列设置后的生效列保持一致）
+    const exportableCols = ledgerColumns.filter(
       (col) =>
         col.dataIndex &&
         !col.hideInTable &&

@@ -418,6 +418,7 @@ export function OrderListTemplate({
       // 14. 操作列
       {
         title: '操作',
+        key: 'option',
         valueType: 'option',
         width: 180,
         fixed: 'right',

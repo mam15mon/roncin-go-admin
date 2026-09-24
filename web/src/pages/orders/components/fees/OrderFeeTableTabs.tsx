@@ -15,28 +15,20 @@ import {
   ProFormDatePicker,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  Dropdown,
-  type MenuProps,
-  Space,
-  Tag,
-} from 'antd';
+import { Alert, App, Button, Dropdown, type MenuProps, Space, Tag } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   ColumnSettingsEntry,
+  type ColumnSettingsField,
   ColumnSettingsModal,
+  type ColumnSettingsValue,
   defaultSelectFilterOption,
   ProFormSearchableSelect,
   SectionCard,
   scrollToFirstTableError,
-  type ColumnSettingsField,
-  type ColumnSettingsValue,
 } from '@/components/ui';
 import {
   normalizeOrderFeeStatus,
@@ -63,7 +55,7 @@ import {
   quantityOrPricePattern,
 } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { formatDate, formatAmount, trimDecimal } from '@/utils/format';
+import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import {
@@ -303,8 +295,12 @@ export default function OrderFeeTableTabs({
         </Button>
       )}
       <ColumnSettingsEntry
-        disabled={columnEditing}
-        disabledReason="请先保存或取消正在编辑的费用行"
+        disabled={columnEditing || Boolean(getTableColumns)}
+        disabledReason={
+          columnEditing
+            ? '请先保存或取消正在编辑的费用行'
+            : '外部自定义列模式下不支持列设置'
+        }
         onClick={() => setColumnSettingsOpen(true)}
       />
     </Space>
@@ -1670,14 +1666,17 @@ export default function OrderFeeTableTabs({
         />
       </SectionCard>
 
-      <ColumnSettingsModal
-        open={columnSettingsOpen}
-        fields={feeColumnFields}
-        value={feeColumnPref}
-        defaultValue={defaultFeeColumnPreference(financeAvailable)}
-        onCancel={() => setColumnSettingsOpen(false)}
-        onSave={handleColumnSettingsSave}
-      />
+      {/* 外部注入列时偏好不参与渲染，设置弹窗一并隐藏避免与表头脱钩。 */}
+      {!getTableColumns && (
+        <ColumnSettingsModal
+          open={columnSettingsOpen}
+          fields={feeColumnFields}
+          value={feeColumnPref}
+          defaultValue={defaultFeeColumnPreference(financeAvailable)}
+          onCancel={() => setColumnSettingsOpen(false)}
+          onSave={handleColumnSettingsSave}
+        />
+      )}
 
       {/* 批量标签维护：两个表共用一个弹窗，打开时按入口锁定添加/移除模式。 */}
       <BusinessTagModal

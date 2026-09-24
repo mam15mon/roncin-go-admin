@@ -58,6 +58,7 @@ export function SettingTableTemplate<
 
     const actionColumn: ProColumns<TRecord> = {
       title: '操作',
+      key: 'action',
       valueType: 'option',
       width: 90,
       fixed: 'right',
@@ -84,6 +85,7 @@ export function SettingTableTemplate<
   const columnSettings = useColumnSettings<ProColumns<TRecord>>({
     tableKey: columnSettingsKey ?? `setting:${entityName}`,
     columns: tableColumns,
+    structuralKeys: ['action'],
   });
 
   // 2. 初始表单值

@@ -1,8 +1,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router';
 import type { TableColumnsType } from 'antd';
 import { Button, Drawer, Select, Space, Table, Tag, Tooltip } from 'antd';
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { workbenchServiceListMyCommissions } from '@/services/roncin/workbenchService';
@@ -167,7 +167,9 @@ export default function MyCommissionDrawer({
     },
   ];
 
-  const columnSettings = useColumnSettings<TableColumnsType<MyCommission>[number]>({
+  const columnSettings = useColumnSettings<
+    TableColumnsType<MyCommission>[number]
+  >({
     tableKey: 'workbench:my-commissions',
     columns,
   });
@@ -204,7 +206,13 @@ export default function MyCommissionDrawer({
             金额为当前组织本位币口径；已取消提成不计入。
           </span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
           {columnSettings.entry}
         </div>
         <Table<MyCommission>
@@ -287,15 +295,19 @@ function AdjustmentTable({
     },
   ];
 
-  const adjustmentSettings =
-    useColumnSettings<TableColumnsType<MyAdjustment>[number]>({
-      tableKey: 'workbench:my-adjustments',
-      columns: adjustmentColumns,
-    });
+  const adjustmentSettings = useColumnSettings<
+    TableColumnsType<MyAdjustment>[number]
+  >({
+    tableKey: 'workbench:my-adjustments',
+    columns: adjustmentColumns,
+    structuralKeys: ['actions'],
+  });
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
+      >
         {adjustmentSettings.entry}
       </div>
       <Table<MyAdjustment>

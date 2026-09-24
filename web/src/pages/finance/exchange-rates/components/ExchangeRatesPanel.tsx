@@ -241,6 +241,7 @@ export function ExchangeRatesPanel() {
     {
       tableKey: 'finance:exchange-rates',
       columns,
+      structuralKeys: ['index'],
     },
   );
 

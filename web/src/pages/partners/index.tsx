@@ -23,9 +23,6 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useLocation } from 'react-router';
 import {
   App,
   Button,
@@ -37,10 +34,13 @@ import {
   Typography,
 } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useLocation } from 'react-router';
 import * as XLSX from 'xlsx';
+import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerRoleType } from '@/enums.generated';
+import { history } from '@/router/history';
 import {
   partnerServiceExportPartners,
   partnerServiceListPartners,
@@ -476,7 +476,10 @@ export default function Partners() {
   const [searchParams, setSearchParams] = useState<PartnerSearchParams>({});
 
   const columnSettings = useColumnSettings<ProColumns<API.Partner>>({
-    tableKey: 'partners:list',
+    // 客户/供应商/国外代理与黑名单口径的列集合不同，偏好按业务视图隔离。
+    tableKey: `partners:list:${currentView.roleType}${
+      blacklistView ? ':blacklist' : ''
+    }`,
     columns,
   });
 

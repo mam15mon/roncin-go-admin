@@ -122,11 +122,13 @@ export default function OrgDetailCard({
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.AdminOrganization>[number]>({
-      tableKey: 'admin:org-detail',
-      columns: childColumns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.AdminOrganization>[number]
+  >({
+    tableKey: 'admin:org-detail',
+    columns: childColumns,
+    structuralKeys: ['action'],
+  });
 
   return (
     <ProCard

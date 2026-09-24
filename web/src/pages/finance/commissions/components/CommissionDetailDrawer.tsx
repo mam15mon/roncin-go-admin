@@ -173,6 +173,7 @@ export default function CommissionDetailDrawer({
   >({
     tableKey: 'finance:commission-adjustments',
     columns: adjustmentColumns,
+    structuralKeys: ['action'],
   });
 
   return (
