@@ -48,26 +48,36 @@ vi.mock('@/components/ui', () => ({
   ),
 }));
 
-vi.mock('antd', () => ({
-  App: { useApp: () => ({ message: { error: vi.fn(), success: vi.fn() } }) },
-  Button: ({
-    children,
-    disabled,
-    onClick,
-  }: {
-    children: React.ReactNode;
-    disabled?: boolean;
-    onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  }) => (
-    <button type="button" disabled={disabled} onClick={onClick}>
-      {children}
-    </button>
-  ),
-  Popconfirm: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  Space: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Tag: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-  Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('antd')>();
+  return {
+    ...actual,
+    App: { useApp: () => ({ message: { error: vi.fn(), success: vi.fn() } }) },
+    Button: ({
+      children,
+      disabled,
+      onClick,
+    }: {
+      children?: React.ReactNode;
+      disabled?: boolean;
+      onClick?: React.MouseEventHandler<HTMLButtonElement>;
+    }) => (
+      <button type="button" disabled={disabled} onClick={onClick}>
+        {children}
+      </button>
+    ),
+    Popconfirm: ({ children }: { children: React.ReactNode }) => (
+      <>{children}</>
+    ),
+    Space: ({ children }: { children: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    Tag: ({ children }: { children: React.ReactNode }) => (
+      <span>{children}</span>
+    ),
+    Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  };
+});
 
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceDeleteRole: vi.fn(),

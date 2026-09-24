@@ -85,37 +85,45 @@ vi.mock('@/components/ui', () => ({
   SearchFilterTemplate: () => <div />,
 }));
 
-vi.mock('antd', () => ({
-  App: { useApp: () => ({ message: { success: vi.fn() } }) },
-  Button: ({ children }: { children: React.ReactNode }) => (
-    <button type="button">{children}</button>
-  ),
-  Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Space: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Typography: { Text: ({ children }: any) => <span>{children}</span> },
-  Tabs: ({
-    items,
-    activeKey,
-    onChange,
-  }: {
-    items: { key: string; label: React.ReactNode }[];
-    activeKey?: string;
-    onChange?: (key: string) => void;
-  }) => (
-    <div>
-      {items.map((item) => (
-        <button
-          key={item.key}
-          type="button"
-          data-active={item.key === activeKey}
-          onClick={() => onChange?.(item.key)}
-        >
-          {item.label}
-        </button>
-      ))}
-    </div>
-  ),
-}));
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('antd')>();
+  return {
+    ...actual,
+    App: { useApp: () => ({ message: { success: vi.fn() } }) },
+    Button: ({ children }: { children: React.ReactNode }) => (
+      <button type="button">{children}</button>
+    ),
+    Card: ({ children }: { children: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    Space: ({ children }: { children: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    Typography: { Text: ({ children }: any) => <span>{children}</span> },
+    Tabs: ({
+      items,
+      activeKey,
+      onChange,
+    }: {
+      items: { key: string; label: React.ReactNode }[];
+      activeKey?: string;
+      onChange?: (key: string) => void;
+    }) => (
+      <div>
+        {items.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            data-active={item.key === activeKey}
+            onClick={() => onChange?.(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+    ),
+  };
+});
 
 vi.mock('./dingtalk-invitations', () => ({
   default: () => (

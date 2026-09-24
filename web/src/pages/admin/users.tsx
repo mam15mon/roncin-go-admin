@@ -5,7 +5,11 @@ import {
   ReloadOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { App, Button, Card, Space, Tabs } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,6 +17,7 @@ import { useLocation } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { history } from '@/router/history';
 import {
   adminServiceListOrganizations,
@@ -106,6 +111,11 @@ function UserMembersView() {
     onTerminate: handleTerminate,
   });
 
+  const columnSettings = useColumnSettings<ProColumns<API.AdminUser>>({
+    tableKey: 'admin:users',
+    columns,
+  });
+
   return (
     <>
       <SearchFilterTemplate<UserSearchParams>
@@ -170,7 +180,7 @@ function UserMembersView() {
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         pagination={{
           defaultPageSize: 20,
@@ -188,8 +198,11 @@ function UserMembersView() {
           return toTableRequest(response);
         }}
         search={false}
-        toolBarRender={false}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [columnSettings.entry]}
       />
+
+      {columnSettings.modal}
 
       <UserFormModal
         open={modalOpen}

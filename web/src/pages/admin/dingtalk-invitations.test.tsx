@@ -54,30 +54,34 @@ vi.mock('@ant-design/pro-components', () => ({
   },
 }));
 
-vi.mock('antd', () => ({
-  App: { useApp: () => ({ message: { success: vi.fn() } }) },
-  Button: ({ children }: { children?: React.ReactNode }) => (
-    <button type="button">{children}</button>
-  ),
-  Popconfirm: ({
-    children,
-    onConfirm,
-  }: {
-    children?: React.ReactNode;
-    onConfirm?: () => void;
-  }) => <span onClick={() => onConfirm?.()}>{children}</span>,
-  Space: ({ children }: { children?: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  Tag: ({ children }: { children?: React.ReactNode }) => (
-    <span>{children}</span>
-  ),
-  Typography: {
-    Text: ({ children }: { children?: React.ReactNode }) => (
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('antd')>();
+  return {
+    ...actual,
+    App: { useApp: () => ({ message: { success: vi.fn() } }) },
+    Button: ({ children }: { children?: React.ReactNode }) => (
+      <button type="button">{children}</button>
+    ),
+    Popconfirm: ({
+      children,
+      onConfirm,
+    }: {
+      children?: React.ReactNode;
+      onConfirm?: () => void;
+    }) => <span onClick={() => onConfirm?.()}>{children}</span>,
+    Space: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    Tag: ({ children }: { children?: React.ReactNode }) => (
       <span>{children}</span>
     ),
-  },
-}));
+    Typography: {
+      Text: ({ children }: { children?: React.ReactNode }) => (
+        <span>{children}</span>
+      ),
+    },
+  };
+});
 
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceGetDingTalkInvitation: serviceMocks.getInvitation,

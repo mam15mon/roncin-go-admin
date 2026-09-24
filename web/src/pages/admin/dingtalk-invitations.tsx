@@ -11,6 +11,7 @@ import type {
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@/app/access';
 import { useInitialState } from '@/app/AppProvider';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -275,6 +276,13 @@ export default function DingTalkInvitationsPanel() {
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.DingTalkInvitation>>(
+    {
+      tableKey: 'admin:dingtalk-invitations',
+      columns,
+    },
+  );
+
   return (
     <>
       <ProTable<API.DingTalkInvitation>
@@ -289,7 +297,7 @@ export default function DingTalkInvitationsPanel() {
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         pagination={{
           defaultPageSize: 20,
@@ -309,7 +317,9 @@ export default function DingTalkInvitationsPanel() {
           });
           return toTableRequest(response);
         }}
+        options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [
+          columnSettings.entry,
           <Button
             key="create"
             type="primary"
@@ -320,6 +330,8 @@ export default function DingTalkInvitationsPanel() {
           </Button>,
         ]}
       />
+
+      {columnSettings.modal}
 
       <InvitationFormModal
         open={createOpen}

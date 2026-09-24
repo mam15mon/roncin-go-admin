@@ -4,6 +4,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, Descriptions, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   auditActionPresentation,
   auditActorName,
@@ -105,115 +106,125 @@ export default function AuditPanel() {
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.AdminAuditLog>>({
+    tableKey: 'admin:audit',
+    columns,
+  });
+
   return (
-    <ProTable<API.AdminAuditLog>
-      headerTitle={
-        <Space size={10}>
-          <HistoryOutlined style={{ color: '#1677ff' }} />
-          <Space orientation="vertical" size={0}>
-            <Text strong>操作与安全记录</Text>
-            <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>
-              查看人员登录、权限和业务资料变更
-            </Text>
+    <>
+      <ProTable<API.AdminAuditLog>
+        headerTitle={
+          <Space size={10}>
+            <HistoryOutlined style={{ color: '#1677ff' }} />
+            <Space orientation="vertical" size={0}>
+              <Text strong>操作与安全记录</Text>
+              <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>
+                查看人员登录、权限和业务资料变更
+              </Text>
+            </Space>
           </Space>
-        </Space>
-      }
-      rowKey="id"
-      actionRef={actionRef}
-      columns={columns}
-      bordered
-      pagination={{
-        defaultPageSize: 20,
-        showSizeChanger: true,
-        showQuickJumper: true,
-      }}
-      request={async (params) => {
-        const range = params.timeRange as [string, string] | undefined;
-        const response = await adminServiceListAuditLogs({
-          page: params.current,
-          pageSize: params.pageSize,
-          startTime: range?.[0]
-            ? dayjs(range[0]).startOf('day').toISOString()
-            : undefined,
-          endTime: range?.[1]
-            ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
-            : undefined,
-        });
-        return toTableRequest(response);
-      }}
-      expandable={{
-        expandedRowRender: (record) => {
-          const presentation = auditActionPresentation(record.action);
-          const target = auditBusinessObject(record);
-          const details = Object.entries(record.details ?? {});
-          return (
-            <Descriptions
-              title="技术详情"
-              size="small"
-              bordered
-              column={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
-              items={[
-                {
-                  key: 'summary',
-                  label: '业务说明',
-                  children: `${auditActorName(record)} · ${presentation.title} · ${target.name}`,
-                  span: 'filled',
-                },
-                {
-                  key: 'action',
-                  label: '原始动作码',
-                  children: technicalText(record.action),
-                },
-                {
-                  key: 'actor',
-                  label: '操作人用户 ID',
-                  children: technicalText(record.userId),
-                },
-                {
-                  key: 'audit',
-                  label: '审计记录 ID',
-                  children: technicalText(record.id),
-                },
-                {
-                  key: 'resourceType',
-                  label: '资源类型',
-                  children: technicalText(record.resourceType),
-                },
-                {
-                  key: 'resourceId',
-                  label: '资源 ID',
-                  children: technicalText(record.resourceId),
-                },
-                {
-                  key: 'request',
-                  label: '请求编号',
-                  children: technicalText(record.requestId),
-                },
-                {
-                  key: 'trace',
-                  label: '追踪编号',
-                  children: technicalText(record.traceId),
-                },
-                ...details.map(([key, value]) => ({
-                  key: `detail-${key}`,
-                  label: auditDetailLabel(key),
-                  children: technicalText(auditDetailValue(key, value)),
-                })),
-              ]}
-            />
-          );
-        },
-      }}
-      toolBarRender={() => [
-        <Button
-          key="refresh"
-          icon={<ReloadOutlined />}
-          onClick={() => actionRef.current?.reload()}
-        >
-          刷新
-        </Button>,
-      ]}
-      search={{ labelWidth: 80, defaultCollapsed: false }}
-    />
+        }
+        rowKey="id"
+        actionRef={actionRef}
+        columns={columnSettings.columns}
+        bordered
+        pagination={{
+          defaultPageSize: 20,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        request={async (params) => {
+          const range = params.timeRange as [string, string] | undefined;
+          const response = await adminServiceListAuditLogs({
+            page: params.current,
+            pageSize: params.pageSize,
+            startTime: range?.[0]
+              ? dayjs(range[0]).startOf('day').toISOString()
+              : undefined,
+            endTime: range?.[1]
+              ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
+              : undefined,
+          });
+          return toTableRequest(response);
+        }}
+        expandable={{
+          expandedRowRender: (record) => {
+            const presentation = auditActionPresentation(record.action);
+            const target = auditBusinessObject(record);
+            const details = Object.entries(record.details ?? {});
+            return (
+              <Descriptions
+                title="技术详情"
+                size="small"
+                bordered
+                column={{ xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 2 }}
+                items={[
+                  {
+                    key: 'summary',
+                    label: '业务说明',
+                    children: `${auditActorName(record)} · ${presentation.title} · ${target.name}`,
+                    span: 'filled',
+                  },
+                  {
+                    key: 'action',
+                    label: '原始动作码',
+                    children: technicalText(record.action),
+                  },
+                  {
+                    key: 'actor',
+                    label: '操作人用户 ID',
+                    children: technicalText(record.userId),
+                  },
+                  {
+                    key: 'audit',
+                    label: '审计记录 ID',
+                    children: technicalText(record.id),
+                  },
+                  {
+                    key: 'resourceType',
+                    label: '资源类型',
+                    children: technicalText(record.resourceType),
+                  },
+                  {
+                    key: 'resourceId',
+                    label: '资源 ID',
+                    children: technicalText(record.resourceId),
+                  },
+                  {
+                    key: 'request',
+                    label: '请求编号',
+                    children: technicalText(record.requestId),
+                  },
+                  {
+                    key: 'trace',
+                    label: '追踪编号',
+                    children: technicalText(record.traceId),
+                  },
+                  ...details.map(([key, value]) => ({
+                    key: `detail-${key}`,
+                    label: auditDetailLabel(key),
+                    children: technicalText(auditDetailValue(key, value)),
+                  })),
+                ]}
+              />
+            );
+          },
+        }}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [
+          columnSettings.entry,
+          <Button
+            key="refresh"
+            icon={<ReloadOutlined />}
+            onClick={() => actionRef.current?.reload()}
+          >
+            刷新
+          </Button>,
+        ]}
+        search={{ labelWidth: 80, defaultCollapsed: false }}
+      />
+      {columnSettings.modal}
+    </>
   );
 }

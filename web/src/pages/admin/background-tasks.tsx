@@ -10,6 +10,7 @@ import type {
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useAccess } from '@/app/access';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   App,
   Button,
@@ -259,116 +260,130 @@ export default function BackgroundTasksPanel() {
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.BackgroundTask>>({
+    tableKey: 'admin:background-tasks',
+    columns,
+  });
+
   return (
-    <ProTable<API.BackgroundTask>
-      headerTitle={
-        <div>
-          <Space size={8}>
-            <ClockCircleOutlined style={{ color: '#1677ff' }} />
-            <span>后台任务</span>
-            <Text type="secondary">系统自动执行的导入、通知和集成记录</Text>
-          </Space>
-          <Tabs
-            activeKey={String(taskPhase)}
-            items={[
-              {
-                key: String(BackgroundTaskPhase.BACKGROUND_TASK_PHASE_ACTIVE),
-                label: '正在进行',
-              },
-              {
-                key: String(BackgroundTaskPhase.BACKGROUND_TASK_PHASE_HISTORY),
-                label: '历史记录',
-              },
-            ]}
-            onChange={(key) => {
-              formRef.current?.setFieldValue('status', undefined);
-              setTaskPhase(Number(key) as BackgroundTaskPhase);
-            }}
-            size="small"
-            tabBarStyle={{ margin: '8px 0 0' }}
-          />
-        </div>
-      }
-      rowKey="id"
-      actionRef={actionRef}
-      formRef={formRef}
-      params={{ phase: taskPhase }}
-      columns={columns}
-      bordered
-      expandable={{
-        expandedRowRender: (record) => (
-          <Descriptions
-            size="small"
-            column={{ xs: 1, sm: 2, lg: 3 }}
-            items={[
-              {
-                key: 'id',
-                label: '任务 ID',
-                children: (
-                  <Text copyable={{ text: record.id }}>{record.id || '-'}</Text>
-                ),
-              },
-              {
-                key: 'idempotencyKey',
-                label: '幂等标识',
-                children: (
-                  <Text copyable={{ text: record.idempotencyKey }}>
-                    {record.idempotencyKey || '-'}
-                  </Text>
-                ),
-              },
-              {
-                key: 'attemptLimit',
-                label: '失败次数上限',
-                children: record.maxAttempts ?? '-',
-              },
-              {
-                key: 'updatedAt',
-                label: '最近更新时间',
-                children: formatDate(record.updatedAt),
-              },
-            ]}
-          />
-        ),
-      }}
-      pagination={{
-        defaultPageSize: 20,
-        showSizeChanger: true,
-        showQuickJumper: true,
-      }}
-      request={async (params) => {
-        const range = params.timeRange as [string, string] | undefined;
-        const response = await backgroundTaskServiceListBackgroundTasks({
-          page: params.current,
-          pageSize: params.pageSize,
-          phase: taskPhase,
-          status:
-            params.status !== undefined && params.status !== ''
-              ? Number(params.status)
+    <>
+      <ProTable<API.BackgroundTask>
+        headerTitle={
+          <div>
+            <Space size={8}>
+              <ClockCircleOutlined style={{ color: '#1677ff' }} />
+              <span>后台任务</span>
+              <Text type="secondary">系统自动执行的导入、通知和集成记录</Text>
+            </Space>
+            <Tabs
+              activeKey={String(taskPhase)}
+              items={[
+                {
+                  key: String(BackgroundTaskPhase.BACKGROUND_TASK_PHASE_ACTIVE),
+                  label: '正在进行',
+                },
+                {
+                  key: String(
+                    BackgroundTaskPhase.BACKGROUND_TASK_PHASE_HISTORY,
+                  ),
+                  label: '历史记录',
+                },
+              ]}
+              onChange={(key) => {
+                formRef.current?.setFieldValue('status', undefined);
+                setTaskPhase(Number(key) as BackgroundTaskPhase);
+              }}
+              size="small"
+              tabBarStyle={{ margin: '8px 0 0' }}
+            />
+          </div>
+        }
+        rowKey="id"
+        actionRef={actionRef}
+        formRef={formRef}
+        params={{ phase: taskPhase }}
+        columns={columnSettings.columns}
+        bordered
+        expandable={{
+          expandedRowRender: (record) => (
+            <Descriptions
+              size="small"
+              column={{ xs: 1, sm: 2, lg: 3 }}
+              items={[
+                {
+                  key: 'id',
+                  label: '任务 ID',
+                  children: (
+                    <Text copyable={{ text: record.id }}>
+                      {record.id || '-'}
+                    </Text>
+                  ),
+                },
+                {
+                  key: 'idempotencyKey',
+                  label: '幂等标识',
+                  children: (
+                    <Text copyable={{ text: record.idempotencyKey }}>
+                      {record.idempotencyKey || '-'}
+                    </Text>
+                  ),
+                },
+                {
+                  key: 'attemptLimit',
+                  label: '失败次数上限',
+                  children: record.maxAttempts ?? '-',
+                },
+                {
+                  key: 'updatedAt',
+                  label: '最近更新时间',
+                  children: formatDate(record.updatedAt),
+                },
+              ]}
+            />
+          ),
+        }}
+        pagination={{
+          defaultPageSize: 20,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
+        request={async (params) => {
+          const range = params.timeRange as [string, string] | undefined;
+          const response = await backgroundTaskServiceListBackgroundTasks({
+            page: params.current,
+            pageSize: params.pageSize,
+            phase: taskPhase,
+            status:
+              params.status !== undefined && params.status !== ''
+                ? Number(params.status)
+                : undefined,
+            kind:
+              params.kind !== undefined && params.kind !== ''
+                ? Number(params.kind)
+                : undefined,
+            startTime: range?.[0]
+              ? dayjs(range[0]).startOf('day').toISOString()
               : undefined,
-          kind:
-            params.kind !== undefined && params.kind !== ''
-              ? Number(params.kind)
+            endTime: range?.[1]
+              ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
               : undefined,
-          startTime: range?.[0]
-            ? dayjs(range[0]).startOf('day').toISOString()
-            : undefined,
-          endTime: range?.[1]
-            ? dayjs(range[1]).add(1, 'day').startOf('day').toISOString()
-            : undefined,
-        });
-        return toTableRequest(response);
-      }}
-      toolBarRender={() => [
-        <Button
-          key="refresh"
-          icon={<ReloadOutlined />}
-          onClick={() => actionRef.current?.reload()}
-        >
-          刷新
-        </Button>,
-      ]}
-      search={{ labelWidth: 80, defaultCollapsed: false }}
-    />
+          });
+          return toTableRequest(response);
+        }}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [
+          columnSettings.entry,
+          <Button
+            key="refresh"
+            icon={<ReloadOutlined />}
+            onClick={() => actionRef.current?.reload()}
+          >
+            刷新
+          </Button>,
+        ]}
+        search={{ labelWidth: 80, defaultCollapsed: false }}
+      />
+      {columnSettings.modal}
+    </>
   );
 }

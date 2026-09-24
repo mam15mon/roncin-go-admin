@@ -10,6 +10,7 @@ import { Avatar, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   adminServiceListDingTalkRegistrations,
   adminServiceListTransferOrganizations,
@@ -131,6 +132,12 @@ export default function DingTalkRegistrationsPanel() {
     },
   ];
 
+  const columnSettings =
+    useColumnSettings<ProColumns<API.DingTalkRegistration>>({
+      tableKey: 'admin:dingtalk-registrations',
+      columns,
+    });
+
   return (
     <>
       <ProTable<API.DingTalkRegistration>
@@ -145,7 +152,7 @@ export default function DingTalkRegistrationsPanel() {
         }
         rowKey="userId"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         search={false}
         pagination={{
@@ -160,8 +167,11 @@ export default function DingTalkRegistrationsPanel() {
           });
           return toTableRequest(response);
         }}
-        toolBarRender={false}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [columnSettings.entry]}
       />
+
+      {columnSettings.modal}
 
       <RegistrationApproveModal
         registration={approving}

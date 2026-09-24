@@ -15,6 +15,7 @@ import { useAccess } from '@/app/access';
 import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchFilterTemplate } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   adminServiceDeleteRole,
   adminServiceListPermissions,
@@ -273,6 +274,11 @@ export default function RolesPanel() {
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.AdminRole>>({
+    tableKey: 'admin:roles',
+    columns,
+  });
+
   return (
     <>
       <SearchFilterTemplate<RoleSearchParams>
@@ -329,7 +335,7 @@ export default function RolesPanel() {
         }
         rowKey="id"
         actionRef={actionRef}
-        columns={columns}
+        columns={columnSettings.columns}
         bordered
         search={false}
         pagination={false}
@@ -349,8 +355,11 @@ export default function RolesPanel() {
           }
           return toTableRequest({ ...response, data: list });
         }}
-        toolBarRender={false}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [columnSettings.entry]}
       />
+
+      {columnSettings.modal}
 
       {/* Role Create/Edit Modal */}
       <RoleFormModal

@@ -26,6 +26,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   masterDataServiceCreateNumberRule,
   masterDataServiceListNumberRules,
@@ -341,6 +342,13 @@ export function NumberRulesPanel() {
     },
   ];
 
+  const columnSettings = useColumnSettings<ColumnsType<API.NumberRule>[number]>(
+    {
+      tableKey: 'admin:number-rules',
+      columns,
+    },
+  );
+
   return (
     <div>
       {/* 1. Header Toolbar */}
@@ -497,13 +505,24 @@ export function NumberRulesPanel() {
             }}
             styles={{ body: { padding: 0 } }}
           >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                padding: '12px 16px 0',
+                marginBottom: 8,
+              }}
+            >
+              {columnSettings.entry}
+            </div>
             <Table
-              columns={columns}
+              columns={columnSettings.columns}
               dataSource={data}
               rowKey="id"
               pagination={false}
               size="middle"
             />
+            {columnSettings.modal}
           </Card>
         )}
       </Spin>

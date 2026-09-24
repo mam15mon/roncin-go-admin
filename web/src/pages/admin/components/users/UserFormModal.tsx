@@ -12,8 +12,10 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   adminServiceAuthorizeDingTalkUser,
   adminServiceAuthorizeWeComUser,
@@ -177,6 +179,111 @@ export default function UserFormModal({
       setMembershipRoles(unwrapList(response));
     }
   };
+
+  const membershipColumns: ColumnsType<API.AdminUserMembership> = [
+    {
+      title: '组织',
+      key: 'organization',
+      render: (_, membership) => {
+        const org = organizations.find(
+          (item) => item.id === membership.organizationId,
+        );
+        const fullName =
+          formatOrganizationHierarchyName(org, organizations) ||
+          membership.organizationName ||
+          '-';
+        return (
+          <div>
+            <Space size={6}>
+              <Text strong>{fullName}</Text>
+              {membership.primary && <Tag color="blue">主要</Tag>}
+            </Space>
+            <div>
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {organizationKindLabels[membership.organizationKind ?? 0] ??
+                  '组织'}{' '}
+                · {membership.organizationCode || '-'}
+              </Text>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      title: '角色',
+      dataIndex: 'roleNames',
+      render: (_, membership) =>
+        membership.roleNames?.length ? (
+          <Space wrap size={[4, 4]}>
+            {membership.roleNames.map((name) => (
+              <Tag key={name}>{name}</Tag>
+            ))}
+          </Space>
+        ) : (
+          <Text type="secondary">未分配</Text>
+        ),
+    },
+    {
+      title: '状态',
+      dataIndex: 'enabled',
+      width: 72,
+      render: (enabled) =>
+        enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 110,
+      align: 'right',
+      render: (_, membership) =>
+        canManageUserMemberships ? (
+          <Space size={4}>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => void openEditMembership(membership)}
+            >
+              编辑
+            </Button>
+            {membership.enabled && (
+              <Popconfirm
+                title={`确定从“${membership.organizationName || '该组织'}”移除？`}
+                description="移出后会停用并保留该组织关系、清除该组织角色并撤销在线会话，其他组织不受影响。在职用户不能移出最后一个有效组织。"
+                okText="移除"
+                cancelText="取消"
+                okButtonProps={{ danger: true }}
+                disabled={editing?.id === currentUserId}
+                onConfirm={async () => {
+                  if (!editing?.id || !membership.id) return;
+                  await adminServiceDeleteUserMembership({
+                    userId: editing.id,
+                    id: membership.id,
+                  });
+                  message.success('已从组织移除该用户');
+                  await loadMemberships(editing.id);
+                  onReload();
+                }}
+              >
+                <Button
+                  type="link"
+                  danger
+                  size="small"
+                  disabled={editing?.id === currentUserId}
+                >
+                  移除
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+        ) : null,
+    },
+  ];
+
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.AdminUserMembership>[number]>({
+      tableKey: 'admin:user-memberships',
+      columns: membershipColumns,
+    });
 
   return (
     <ModalForm<UserFormValues>
@@ -376,15 +483,18 @@ export default function UserFormModal({
                 </Text>
               </div>
             </div>
-            {canManageUserMemberships && (
-              <Button
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={openCreateMembership}
-              >
-                加入组织
-              </Button>
-            )}
+            <Space size={8}>
+              {columnSettings.entry}
+              {canManageUserMemberships && (
+                <Button
+                  size="small"
+                  icon={<PlusOutlined />}
+                  onClick={openCreateMembership}
+                >
+                  加入组织
+                </Button>
+              )}
+            </Space>
           </Space>
           <Segmented<'active' | 'inactive'>
             value={membershipView}
@@ -408,106 +518,9 @@ export default function UserFormModal({
                 ? activeMemberships
                 : inactiveMemberships
             }
-            columns={[
-              {
-                title: '组织',
-                key: 'organization',
-                render: (_, membership) => {
-                  const org = organizations.find(
-                    (item) => item.id === membership.organizationId,
-                  );
-                  const fullName =
-                    formatOrganizationHierarchyName(org, organizations) ||
-                    membership.organizationName ||
-                    '-';
-                  return (
-                    <div>
-                      <Space size={6}>
-                        <Text strong>{fullName}</Text>
-                        {membership.primary && <Tag color="blue">主要</Tag>}
-                      </Space>
-                      <div>
-                        <Text type="secondary" style={{ fontSize: 11 }}>
-                          {organizationKindLabels[
-                            membership.organizationKind ?? 0
-                          ] ?? '组织'}{' '}
-                          · {membership.organizationCode || '-'}
-                        </Text>
-                      </div>
-                    </div>
-                  );
-                },
-              },
-              {
-                title: '角色',
-                dataIndex: 'roleNames',
-                render: (_, membership) =>
-                  membership.roleNames?.length ? (
-                    <Space wrap size={[4, 4]}>
-                      {membership.roleNames.map((name) => (
-                        <Tag key={name}>{name}</Tag>
-                      ))}
-                    </Space>
-                  ) : (
-                    <Text type="secondary">未分配</Text>
-                  ),
-              },
-              {
-                title: '状态',
-                dataIndex: 'enabled',
-                width: 72,
-                render: (enabled) =>
-                  enabled ? <Tag color="success">启用</Tag> : <Tag>停用</Tag>,
-              },
-              {
-                title: '操作',
-                key: 'actions',
-                width: 110,
-                align: 'right',
-                render: (_, membership) =>
-                  canManageUserMemberships ? (
-                    <Space size={4}>
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => void openEditMembership(membership)}
-                      >
-                        编辑
-                      </Button>
-                      {membership.enabled && (
-                        <Popconfirm
-                          title={`确定从“${membership.organizationName || '该组织'}”移除？`}
-                          description="移出后会停用并保留该组织关系、清除该组织角色并撤销在线会话，其他组织不受影响。在职用户不能移出最后一个有效组织。"
-                          okText="移除"
-                          cancelText="取消"
-                          okButtonProps={{ danger: true }}
-                          disabled={editing.id === currentUserId}
-                          onConfirm={async () => {
-                            if (!editing.id || !membership.id) return;
-                            await adminServiceDeleteUserMembership({
-                              userId: editing.id,
-                              id: membership.id,
-                            });
-                            message.success('已从组织移除该用户');
-                            await loadMemberships(editing.id);
-                            onReload();
-                          }}
-                        >
-                          <Button
-                            type="link"
-                            danger
-                            size="small"
-                            disabled={editing.id === currentUserId}
-                          >
-                            移除
-                          </Button>
-                        </Popconfirm>
-                      )}
-                    </Space>
-                  ) : null,
-              },
-            ]}
+            columns={columnSettings.columns}
           />
+          {columnSettings.modal}
         </div>
       )}
       <UserMembershipModal

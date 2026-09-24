@@ -20,6 +20,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   enterpriseResourceServiceBatchAssignAddressTypes,
   enterpriseResourceServiceBatchAssignAssignees,
@@ -520,6 +521,11 @@ const EnterpriseResourcesPage: React.FC = () => {
     tagGroups,
   ]);
 
+  const columnSettings = useColumnSettings<ProColumns<API.EnterpriseResource>>({
+    tableKey: 'enterprise-resources:list',
+    columns,
+  });
+
   const submitAssociation = async () => {
     if (!selectedKeys.length || !associationPartners.length) return;
     const body = {
@@ -664,7 +670,7 @@ const EnterpriseResourcesPage: React.FC = () => {
       <ProTable<API.EnterpriseResource>
         actionRef={actionRef}
         rowKey="id"
-        columns={columns}
+        columns={columnSettings.columns}
         search={{ labelWidth: 'auto' }}
         cardProps={{ style: { borderRadius: 8, border: '1px solid #f0f0f0' } }}
         rowSelection={{
@@ -713,7 +719,9 @@ const EnterpriseResourcesPage: React.FC = () => {
         }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
         scroll={{ x: 1100 }}
+        options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [
+          columnSettings.entry,
           active.type === 4 && access.canCreateEnterpriseResources && (
             <Button
               key="groups"

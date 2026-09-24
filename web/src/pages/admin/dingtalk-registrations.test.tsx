@@ -46,33 +46,38 @@ vi.mock('@ant-design/pro-components', () => ({
   },
 }));
 
-vi.mock('antd', () => ({
-  Avatar: ({ children }: { children?: React.ReactNode }) => (
-    <span>{children}</span>
-  ),
-  Button: ({
-    children,
-    onClick,
-  }: {
-    children?: React.ReactNode;
-    onClick?: () => void;
-  }) => (
-    <button type="button" onClick={onClick}>
-      {children}
-    </button>
-  ),
-  Space: ({ children }: { children?: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  Tag: ({ children }: { children?: React.ReactNode }) => (
-    <span>{children}</span>
-  ),
-  Typography: {
-    Text: ({ children }: { children?: React.ReactNode }) => (
+vi.mock('antd', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('antd')>();
+  return {
+    ...actual,
+    App: { useApp: () => ({ message: { success: vi.fn() } }) },
+    Avatar: ({ children }: { children?: React.ReactNode }) => (
       <span>{children}</span>
     ),
-  },
-}));
+    Button: ({
+      children,
+      onClick,
+    }: {
+      children?: React.ReactNode;
+      onClick?: () => void;
+    }) => (
+      <button type="button" onClick={onClick}>
+        {children}
+      </button>
+    ),
+    Space: ({ children }: { children?: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
+    Tag: ({ children }: { children?: React.ReactNode }) => (
+      <span>{children}</span>
+    ),
+    Typography: {
+      Text: ({ children }: { children?: React.ReactNode }) => (
+        <span>{children}</span>
+      ),
+    },
+  };
+});
 
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceListDingTalkRegistrations: serviceMocks.listRegistrations,

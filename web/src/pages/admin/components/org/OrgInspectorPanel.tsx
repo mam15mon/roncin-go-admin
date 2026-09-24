@@ -16,7 +16,9 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import React from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { getChildOrganizationKind, getOrganizationKindMeta } from './types';
 
 const { Text } = Typography;
@@ -50,12 +52,59 @@ export default function OrgInspectorPanel({
   onSelectNode,
   onLocateNode,
 }: OrgInspectorPanelProps) {
-  if (!open) return null;
-
   const handleJumpToNode = (id: string) => {
     onSelectNode(id);
     onLocateNode?.(id);
   };
+
+  const childColumns: ColumnsType<API.AdminOrganization> = [
+    {
+      title: '名称',
+      dataIndex: 'name',
+      render: (name, record) => (
+        <Button
+          type="link"
+          size="small"
+          style={{ padding: 0, height: 'auto', fontSize: 12 }}
+          onClick={() => handleJumpToNode(record.id ?? '')}
+        >
+          {name}
+        </Button>
+      ),
+    },
+    {
+      title: '编码',
+      dataIndex: 'code',
+      render: (code) => (
+        <Text style={{ fontFamily: 'monospace', fontSize: 11 }}>{code}</Text>
+      ),
+    },
+    {
+      title: '类型',
+      dataIndex: 'kind',
+      width: 70,
+      render: (kind) => {
+        const meta = getOrganizationKindMeta(kind);
+        return meta ? (
+          <Tag
+            color={meta.color}
+            variant="filled"
+            style={{ margin: 0, fontSize: 10, padding: '0 4px' }}
+          >
+            {meta.label}
+          </Tag>
+        ) : null;
+      },
+    },
+  ];
+
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.AdminOrganization>[number]>({
+      tableKey: 'admin:org-inspector',
+      columns: childColumns,
+    });
+
+  if (!open) return null;
 
   return (
     <div
@@ -281,54 +330,14 @@ export default function OrgInspectorPanel({
               }
               styles={{ body: { padding: 0 } }}
               style={{ border: '1px solid #f1f5f9' }}
+              extra={columnSettings.entry}
             >
               <Table<API.AdminOrganization>
                 rowKey="id"
                 size="small"
                 pagination={false}
                 dataSource={directChildren}
-                columns={[
-                  {
-                    title: '名称',
-                    dataIndex: 'name',
-                    render: (name, record) => (
-                      <Button
-                        type="link"
-                        size="small"
-                        style={{ padding: 0, height: 'auto', fontSize: 12 }}
-                        onClick={() => handleJumpToNode(record.id ?? '')}
-                      >
-                        {name}
-                      </Button>
-                    ),
-                  },
-                  {
-                    title: '编码',
-                    dataIndex: 'code',
-                    render: (code) => (
-                      <Text style={{ fontFamily: 'monospace', fontSize: 11 }}>
-                        {code}
-                      </Text>
-                    ),
-                  },
-                  {
-                    title: '类型',
-                    dataIndex: 'kind',
-                    width: 70,
-                    render: (kind) => {
-                      const meta = getOrganizationKindMeta(kind);
-                      return meta ? (
-                        <Tag
-                          color={meta.color}
-                          variant="filled"
-                          style={{ margin: 0, fontSize: 10, padding: '0 4px' }}
-                        >
-                          {meta.label}
-                        </Tag>
-                      ) : null;
-                    },
-                  },
-                ]}
+                columns={columnSettings.columns}
                 locale={{
                   emptyText: (
                     <Empty
@@ -339,6 +348,7 @@ export default function OrgInspectorPanel({
                   ),
                 }}
               />
+              {columnSettings.modal}
             </Card>
 
             {/* Helpful Tip */}

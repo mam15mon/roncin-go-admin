@@ -3,6 +3,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Space, Tag, Typography } from 'antd';
 import React, { useRef } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { adminServiceListPermissions } from '@/services/roncin/adminService';
 import { toTableRequest } from '@/utils/api';
 
@@ -53,33 +54,43 @@ export default function PermissionsPanel() {
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<API.AdminPermission>>({
+    tableKey: 'admin:permissions',
+    columns,
+  });
+
   return (
-    <ProTable<API.AdminPermission>
-      headerTitle={
-        <Space size={8}>
-          <KeyOutlined style={{ color: '#1677ff' }} />
-          <span>系统功能权限字典清单</span>
-        </Space>
-      }
-      rowKey="key"
-      actionRef={actionRef}
-      columns={columns}
-      bordered
-      search={false}
-      pagination={false}
-      request={async () => {
-        const response = await adminServiceListPermissions();
-        return toTableRequest(response);
-      }}
-      toolBarRender={() => [
-        <Button
-          key="refresh"
-          icon={<ReloadOutlined />}
-          onClick={() => actionRef.current?.reload()}
-        >
-          刷新
-        </Button>,
-      ]}
-    />
+    <>
+      <ProTable<API.AdminPermission>
+        headerTitle={
+          <Space size={8}>
+            <KeyOutlined style={{ color: '#1677ff' }} />
+            <span>系统功能权限字典清单</span>
+          </Space>
+        }
+        rowKey="key"
+        actionRef={actionRef}
+        columns={columnSettings.columns}
+        bordered
+        search={false}
+        pagination={false}
+        request={async () => {
+          const response = await adminServiceListPermissions();
+          return toTableRequest(response);
+        }}
+        options={{ reload: true, density: true, setting: false }}
+        toolBarRender={() => [
+          columnSettings.entry,
+          <Button
+            key="refresh"
+            icon={<ReloadOutlined />}
+            onClick={() => actionRef.current?.reload()}
+          >
+            刷新
+          </Button>,
+        ]}
+      />
+      {columnSettings.modal}
+    </>
   );
 }

@@ -10,7 +10,9 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 import React from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { getChildOrganizationKind, getOrganizationKindMeta } from './types';
 
 const { Text, Title } = Typography;
@@ -38,6 +40,94 @@ export default function OrgDetailCard({
   onOpenEdit,
   onSelectOrg,
 }: OrgDetailCardProps) {
+  const childColumns: ColumnsType<API.AdminOrganization> = [
+    {
+      title: '组织名称',
+      dataIndex: 'name',
+      render: (name, record) => (
+        <Button
+          type="link"
+          size="small"
+          style={{
+            padding: 0,
+            height: 'auto',
+            fontWeight: 500,
+          }}
+          onClick={() => onSelectOrg(record.id ?? '')}
+        >
+          {name}
+        </Button>
+      ),
+    },
+    {
+      title: '组织编码',
+      dataIndex: 'code',
+      render: (code) => (
+        <Text copyable style={{ fontFamily: 'monospace', fontSize: 12 }}>
+          {code}
+        </Text>
+      ),
+    },
+    {
+      title: '组织类型',
+      dataIndex: 'kind',
+      render: (kind) => {
+        const meta = getOrganizationKindMeta(kind);
+        return meta ? <Tag color={meta.color}>{meta.label}</Tag> : '-';
+      },
+    },
+    {
+      title: '本币',
+      dataIndex: 'baseCurrency',
+      render: (cur) => <Tag color="blue">{cur}</Tag>,
+    },
+    {
+      title: '状态',
+      dataIndex: 'enabled',
+      render: (enabled) =>
+        enabled ? (
+          <Tag color="success">启用</Tag>
+        ) : (
+          <Tag color="default">停用</Tag>
+        ),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 140,
+      render: (_, record) => (
+        <Space size={8}>
+          {canCreate && getChildOrganizationKind(record.kind) && (
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: 0 }}
+              onClick={() => onOpenCreateChild(record)}
+            >
+              新增下级
+            </Button>
+          )}
+          {canUpdate && (
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: 0 }}
+              onClick={() => onOpenEdit(record)}
+            >
+              编辑
+            </Button>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  const columnSettings =
+    useColumnSettings<ColumnsType<API.AdminOrganization>[number]>({
+      tableKey: 'admin:org-detail',
+      columns: childColumns,
+    });
+
   return (
     <ProCard
       title={
@@ -172,16 +262,19 @@ export default function OrgDetailCard({
             }
             size="small"
             extra={
-              canCreate ? (
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={() => onOpenCreateChild(selectedOrg)}
-                >
-                  添加下级组织
-                </Button>
-              ) : null
+              <Space size={8}>
+                {canCreate && (
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    onClick={() => onOpenCreateChild(selectedOrg)}
+                  >
+                    添加下级组织
+                  </Button>
+                )}
+                {columnSettings.entry}
+              </Space>
             }
           >
             <Table<API.AdminOrganization>
@@ -193,94 +286,7 @@ export default function OrgDetailCard({
                   : false
               }
               dataSource={directChildren}
-              columns={[
-                {
-                  title: '组织名称',
-                  dataIndex: 'name',
-                  render: (name, record) => (
-                    <Button
-                      type="link"
-                      size="small"
-                      style={{
-                        padding: 0,
-                        height: 'auto',
-                        fontWeight: 500,
-                      }}
-                      onClick={() => onSelectOrg(record.id ?? '')}
-                    >
-                      {name}
-                    </Button>
-                  ),
-                },
-                {
-                  title: '组织编码',
-                  dataIndex: 'code',
-                  render: (code) => (
-                    <Text
-                      copyable
-                      style={{ fontFamily: 'monospace', fontSize: 12 }}
-                    >
-                      {code}
-                    </Text>
-                  ),
-                },
-                {
-                  title: '组织类型',
-                  dataIndex: 'kind',
-                  render: (kind) => {
-                    const meta = getOrganizationKindMeta(kind);
-                    return meta ? (
-                      <Tag color={meta.color}>{meta.label}</Tag>
-                    ) : (
-                      '-'
-                    );
-                  },
-                },
-                {
-                  title: '本币',
-                  dataIndex: 'baseCurrency',
-                  render: (cur) => <Tag color="blue">{cur}</Tag>,
-                },
-                {
-                  title: '状态',
-                  dataIndex: 'enabled',
-                  render: (enabled) =>
-                    enabled ? (
-                      <Tag color="success">启用</Tag>
-                    ) : (
-                      <Tag color="default">停用</Tag>
-                    ),
-                },
-                {
-                  title: '操作',
-                  key: 'action',
-                  width: 140,
-                  render: (_, record) => (
-                    <Space size={8}>
-                      {canCreate && getChildOrganizationKind(record.kind) && (
-                        <Button
-                          type="link"
-                          size="small"
-                          style={{ padding: 0 }}
-                          onClick={() => onOpenCreateChild(record)}
-                        >
-                          新增下级
-                        </Button>
-                      )}
-                      {canUpdate && (
-                        <Button
-                          type="link"
-                          size="small"
-                          style={{ padding: 0 }}
-                          onClick={() => onOpenEdit(record)}
-                        >
-                          编辑
-                        </Button>
-                      )}
-                    </Space>
-                  ),
-                },
-              ]}
+              columns={columnSettings.columns}
               locale={{
                 emptyText: (
                   <Empty
@@ -291,6 +297,7 @@ export default function OrgDetailCard({
                 ),
               }}
             />
+            {columnSettings.modal}
           </Card>
         </Space>
       ) : (
