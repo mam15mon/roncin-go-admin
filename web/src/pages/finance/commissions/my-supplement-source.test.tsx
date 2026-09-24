@@ -65,7 +65,7 @@ describe('MySupplementSourcePage 员工本人冲减来源详情', () => {
     expect(await screen.findByText('COM-ADJ-001')).toBeInTheDocument();
     expect(screen.getByText('SE20260901001')).toBeInTheDocument();
     expect(screen.getByText('COM-2026-001')).toBeInTheDocument();
-    expect(screen.getByText('-88.5 CNY')).toBeInTheDocument();
+    expect(screen.getByText('-88.50 CNY')).toBeInTheDocument();
     expect(screen.getByText('拖车费')).toBeInTheDocument();
     expect(screen.getByText('漏录拖车费')).toBeInTheDocument();
     expect(screen.getByText('待处理')).toBeInTheDocument();

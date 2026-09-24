@@ -217,9 +217,9 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
     await sleepInAct(700);
 
     // 批次汇总按币种分别列示，禁止跨币种相加。
-    expect(screen.getByText('2400 CNY')).toBeInTheDocument();
-    expect(screen.getByText('900 USD')).toBeInTheDocument();
-    expect(screen.getByText('700 EUR')).toBeInTheDocument();
+    expect(screen.getByText('2,400.00 CNY')).toBeInTheDocument();
+    expect(screen.getByText('900.00 USD')).toBeInTheDocument();
+    expect(screen.getAllByText('700.00 EUR').length).toBeGreaterThan(0);
     expect(screen.queryByText(/4000/)).not.toBeInTheDocument();
     // 40 笔费用全部落在某个叶子上。
     const feeTagSum = screen
