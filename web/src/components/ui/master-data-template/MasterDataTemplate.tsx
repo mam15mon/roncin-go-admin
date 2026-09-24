@@ -39,6 +39,7 @@ import {
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { formatDate } from '@/utils/format';
+import { useColumnSettings } from '../column-settings';
 import type {
   BaseMasterDataItem,
   MasterDataStatItem,
@@ -52,6 +53,7 @@ export function MasterDataTemplate<
   TFormValues = Record<string, unknown>,
 >({
   title,
+  columnSettingsKey,
   subtitle,
   icon,
   codeLabel = '代码',
@@ -464,6 +466,13 @@ export function MasterDataTemplate<
     ],
   );
 
+  // 统一列设置：表格标识默认由页面标题派生（业务视图级，不含实体 ID）。
+  const columnSettings = useColumnSettings<ProColumns<T>>({
+    tableKey: columnSettingsKey ?? `master-data:${title}`,
+    columns: proColumns,
+    structuralKeys: ['action'],
+  });
+
   // Unified Statistics Items (Custom or Base + Extra)
   const allStats: MasterDataStatItem[] = useMemo(() => {
     if (customStats && customStats.length > 0) {
@@ -567,7 +576,7 @@ export function MasterDataTemplate<
         <ProTable<T>
           actionRef={actionRef}
           rowKey="id"
-          columns={proColumns}
+          columns={columnSettings.columns}
           dataSource={isRequestMode ? undefined : displayDataSource}
           request={
             isRequestMode
@@ -699,6 +708,7 @@ export function MasterDataTemplate<
               >
                 共 {filteredTotal} 条
               </Tag>,
+              columnSettings.entry,
               onSync && (
                 <Button
                   key="sync"
@@ -741,7 +751,7 @@ export function MasterDataTemplate<
             },
             density: true,
             fullScreen: true,
-            setting: true,
+            setting: false,
           }}
           pagination={
             isRequestMode
@@ -767,8 +777,9 @@ export function MasterDataTemplate<
                     }
                   },
                 }
-          }
+                }
         />
+        {columnSettings.modal}
       </Card>
 
       {/* 3. Dynamic Create / Edit Modal Form */}

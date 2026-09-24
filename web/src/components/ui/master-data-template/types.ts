@@ -108,6 +108,9 @@ export interface MasterDataTemplateProps<
   onSync?: () => Promise<void> | void;
   onExport?: () => void;
 
+  /** 统一列设置表格标识（业务视图级）；缺省由页面标题派生。 */
+  columnSettingsKey?: string;
+
   // Extra Quick Stats or Custom Full Stats
   customStats?: MasterDataStatItem[];
   extraStats?: MasterDataStatItem[];

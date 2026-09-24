@@ -159,6 +159,8 @@ export type BatchActionKey =
 export interface OrderListTemplateProps {
   /** 是否显示标签管理入口 */
   showManageTags?: boolean;
+  /** 统一列设置表格标识（业务视图级）；缺省 `orders:list`。 */
+  columnSettingsKey?: string;
   /** 页面/工作台主标题，如 "海运出口订单" */
   title?: string;
   /** 表格动作 Ref（支持外部受控刷新） */

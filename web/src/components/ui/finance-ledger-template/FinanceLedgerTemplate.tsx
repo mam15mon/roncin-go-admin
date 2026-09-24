@@ -8,6 +8,7 @@ import {
 import {
   type ActionType,
   PageContainer,
+  ProColumns,
   ProTable,
 } from '@ant-design/pro-components';
 import {
@@ -22,6 +23,7 @@ import {
 } from 'antd';
 import type { ColumnGroupType, ColumnType } from 'antd/es/table';
 import dayjs from 'dayjs';
+import { useColumnSettings } from '../column-settings';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
@@ -259,6 +261,7 @@ export function FinanceLedgerTemplate<
   request,
   showSummaryBoard = true,
   onOpenColumnConfig,
+  columnSettingsKey,
   rowColors,
   getRowStatusColorKey,
   onRowClick,
@@ -317,6 +320,17 @@ export function FinanceLedgerTemplate<
       };
     });
   }, [columns, colWidths, handleAutoFit, handleResize]);
+
+  // 统一列设置：未提供外部增强入口（财务费用服务端偏好）时内置标准版；
+  // 表格标识由调用方按业务视图传入，不使用实体 ID。
+  const enableColumnSettings = Boolean(columnSettingsKey) && !onOpenColumnConfig;
+  const columnSettings = useColumnSettings<ProColumns<T>>({
+    tableKey: columnSettingsKey ?? 'finance-ledger:unset',
+    columns: resizableColumns,
+  });
+  const ledgerColumns = enableColumnSettings
+    ? columnSettings.columns
+    : resizableColumns;
 
   // 默认导出 CSV 处理
   const handleDefaultExport = () => {
@@ -437,7 +451,7 @@ export function FinanceLedgerTemplate<
           headerTitle={headerTitle}
           actionRef={actionRef}
           rowKey={rowKey}
-          columns={resizableColumns}
+          columns={ledgerColumns}
           components={{
             header: {
               cell: ResizableHeaderCell,
@@ -561,7 +575,7 @@ export function FinanceLedgerTemplate<
                 </Tooltip>
               ),
               onOpenColumnConfig && (
-                <Tooltip key="col-config" title="列设置与表头排序">
+                <Tooltip key="col-config" title="列设置">
                   <Button
                     type="text"
                     icon={
@@ -573,6 +587,11 @@ export function FinanceLedgerTemplate<
                     style={{ padding: '4px 6px' }}
                   />
                 </Tooltip>
+              ),
+              !onOpenColumnConfig && enableColumnSettings && (
+                <React.Fragment key="col-settings">
+                  {columnSettings.entry}
+                </React.Fragment>
               ),
               ...extraToolBarActions,
             ].filter(Boolean)
@@ -616,6 +635,7 @@ export function FinanceLedgerTemplate<
             return toTableRequest(res);
           }}
         />
+        {enableColumnSettings && columnSettings.modal}
 
         {/* 3. 底部双层多币种动态汇总底栏 */}
         {showSummaryBoard && (

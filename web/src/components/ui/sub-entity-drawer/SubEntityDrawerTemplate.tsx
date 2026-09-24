@@ -14,6 +14,7 @@ import React, {
   useState,
 } from 'react';
 import { toTableRequest } from '@/utils/api';
+import { useColumnSettings } from '../column-settings';
 
 export type SubEntityDrawerRef<
   TParent extends { id?: string | number } = { id?: string | number },
@@ -62,6 +63,8 @@ export interface SubEntityDrawerTemplateProps<
     parent?: TParent,
     actionRef?: React.RefObject<ActionType | undefined>,
   ) => ReactNode[];
+  /** 统一列设置表格标识（业务视图级）；缺省由实体名派生。 */
+  columnSettingsKey?: string;
 }
 
 export function SubEntityDrawerTemplateInner<
@@ -88,6 +91,7 @@ export function SubEntityDrawerTemplateInner<
     modalWidth = 560,
     onOpen,
     extraToolbar,
+    columnSettingsKey,
   }: SubEntityDrawerTemplateProps<TItem, TParent, TFormValues>,
   ref: React.ForwardedRef<SubEntityDrawerRef<TParent>>,
 ) {
@@ -185,6 +189,12 @@ export function SubEntityDrawerTemplateInner<
     message,
   ]);
 
+  // 统一列设置：同一业务视图在不同订单间共享偏好，不按实体 ID 隔离。
+  const columnSettings = useColumnSettings<ProColumns<TItem>>({
+    tableKey: columnSettingsKey ?? `orders:sub-entity:${entityName}`,
+    columns: resolvedColumns,
+  });
+
   const computedTitle = React.useMemo(() => {
     if (typeof drawerTitle === 'function') {
       return drawerTitle(parentRecord);
@@ -209,15 +219,21 @@ export function SubEntityDrawerTemplateInner<
           <ProTable<TItem>
             actionRef={actionRef}
             rowKey="id"
-            columns={resolvedColumns}
+            columns={columnSettings.columns}
             bordered
             search={false}
             pagination={false}
+            options={{
+              reload: true,
+              density: true,
+              setting: false,
+            }}
             request={async () => {
               const response = await fetchList(parentRecord);
               return toTableRequest(response);
             }}
             toolBarRender={() => [
+              columnSettings.entry,
               ...(extraToolbar ? extraToolbar(parentRecord, actionRef) : []),
               canCreate && createItem && (
                 <Button
@@ -230,7 +246,9 @@ export function SubEntityDrawerTemplateInner<
                 </Button>
               ),
             ]}
-          />
+          >
+            {columnSettings.modal}
+          </ProTable>
         )}
       </Drawer>
 

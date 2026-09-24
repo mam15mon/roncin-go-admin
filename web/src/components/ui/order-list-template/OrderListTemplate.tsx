@@ -17,6 +17,7 @@ import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
+import { useColumnSettings } from '../column-settings';
 import OrderListSearchFilter from './OrderListSearchFilter';
 import OrderListToolbar from './OrderListToolbar';
 import type {
@@ -51,6 +52,7 @@ export function OrderListTemplate({
   options,
   readonly = false,
   showManageTags = true,
+  columnSettingsKey = 'orders:list',
 }: OrderListTemplateProps) {
   const internalActionRef = useRef<ActionType | undefined>(undefined);
   const actionRef =
@@ -543,6 +545,13 @@ export function OrderListTemplate({
 
   const columns = customColumns || defaultColumns;
 
+  // 统一列设置：订单列表各业务视图共享同一业务标识。
+  const columnSettings = useColumnSettings<ProColumns<OrderListItem>>({
+    tableKey: columnSettingsKey,
+    columns,
+    structuralKeys: ['option'],
+  });
+
   return (
     <PageContainer
       breadcrumbRender={false}
@@ -595,8 +604,14 @@ export function OrderListTemplate({
         <ProTable<OrderListItem>
           actionRef={actionRef}
           rowKey="id"
-          columns={columns}
+          columns={columnSettings.columns}
           search={false}
+          toolBarRender={() => [columnSettings.entry]}
+          options={{
+            reload: true,
+            density: true,
+            setting: false,
+          }}
           pagination={{
             defaultPageSize: 20,
             showSizeChanger: true,
@@ -627,6 +642,7 @@ export function OrderListTemplate({
             return toTableRequest(res);
           }}
         />
+        {columnSettings.modal}
       </Card>
     </PageContainer>
   );

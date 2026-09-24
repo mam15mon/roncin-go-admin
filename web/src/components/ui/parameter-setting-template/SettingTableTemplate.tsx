@@ -4,6 +4,7 @@ import { ModalForm, ProTable } from '@ant-design/pro-components';
 import { App, Button, Card } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
+import { useColumnSettings } from '../column-settings';
 import type { SettingTableTemplateProps } from './types';
 
 export function SettingTableTemplate<
@@ -37,6 +38,7 @@ export function SettingTableTemplate<
   extraToolBarButtons = [],
   cardStyle,
   actionRef: externalActionRef,
+  columnSettingsKey,
 }: SettingTableTemplateProps<TRecord, TFormValues>) {
   const { message } = App.useApp();
   const internalActionRef = useRef<ActionType | undefined>(undefined);
@@ -77,6 +79,12 @@ export function SettingTableTemplate<
 
     return [...columns, actionColumn];
   }, [columns, canUpdate, canEditRecord, updateItem]);
+
+  // 统一列设置：表格标识默认由实体名派生（业务视图级，不含实体 ID）。
+  const columnSettings = useColumnSettings<ProColumns<TRecord>>({
+    tableKey: columnSettingsKey ?? `setting:${entityName}`,
+    columns: tableColumns,
+  });
 
   // 2. 初始表单值
   const currentInitialValues = useMemo<Partial<TFormValues>>(() => {
@@ -150,8 +158,13 @@ export function SettingTableTemplate<
         tableAlertOptionRender={false}
         actionRef={actionRef}
         rowKey={rowKey}
-        columns={tableColumns}
+        columns={columnSettings.columns}
         search={search ? undefined : false}
+        options={{
+          reload: true,
+          density: true,
+          setting: false,
+        }}
         pagination={
           pagination === false
             ? false
@@ -166,6 +179,7 @@ export function SettingTableTemplate<
           return toTableRequest(res);
         }}
         toolBarRender={() => [
+          columnSettings.entry,
           ...extraToolBarButtons,
           ...(canCreate && createItem
             ? [
@@ -184,6 +198,7 @@ export function SettingTableTemplate<
             : []),
         ]}
       />
+      {columnSettings.modal}
 
       <ModalForm<TFormValues>
         title={editingRecord ? `编辑${entityName}` : `新建${entityName}`}

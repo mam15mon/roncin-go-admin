@@ -111,6 +111,9 @@ export interface SettingTableTemplateProps<
   scroll?: { x?: number | string; y?: number | string };
   /** 顶部工具栏额外按钮 */
   extraToolBarButtons?: ReactNode[];
+
+  /** 统一列设置表格标识（业务视图级）；缺省由实体名派生。 */
+  columnSettingsKey?: string;
   /** 卡片外层自定义样式 */
   cardStyle?: React.CSSProperties;
   /** 自定义 ActionRef 暴露 */

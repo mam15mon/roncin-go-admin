@@ -107,6 +107,9 @@ export interface FinanceLedgerTemplateProps<
   // 表头排序/设置弹窗入口
   onOpenColumnConfig?: () => void;
 
+  /** 统一列设置表格标识（业务视图级）；提供且无 onOpenColumnConfig 时启用内置标准列设置。 */
+  columnSettingsKey?: string;
+
   // 7 类业务状态行背景高亮颜色配置
   rowColors?: API.FeeLedgerRowColors;
   getRowStatusColorKey?: (
