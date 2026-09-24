@@ -136,16 +136,24 @@ vi.mock('antd', async () => {
     Modal: ({
       children,
       footer,
+      open,
     }: {
       children?: React.ReactNode;
       footer?: React.ReactNode;
-    }) => React.createElement(React.Fragment, null, children, footer),
+      open?: boolean;
+    }) =>
+      open ? React.createElement(React.Fragment, null, children, footer) : null,
     Row: passthrough,
     Select,
     Space: passthrough,
     Table,
     Tag: passthrough,
+    Tooltip: passthrough,
     Typography: { Text: passthrough },
+    // 统一列设置弹窗内容在组件渲染期即会取用以下导出（弹窗关闭时不实际展示）。
+    Checkbox: passthrough,
+    Radio: Object.assign(passthrough, { Group: passthrough }),
+    Tabs: () => null,
   };
 });
 

@@ -200,7 +200,7 @@ describe('提成预览 CNY 快照', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '计算并核对预览' }));
 
-    expect(await screen.findByText('400 CNY')).toBeInTheDocument();
+    expect(await screen.findByText('400.00 CNY')).toBeInTheDocument();
     expect(screen.getByText('7.14285714')).toBeInTheDocument();
     expect(screen.getByText('2026-08-31')).toBeInTheDocument();
     expect(screen.getByText('倒数派生')).toBeInTheDocument();
@@ -223,7 +223,7 @@ describe('提成预览 CNY 快照', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: '选择公司 A' }));
     fireEvent.click(screen.getByRole('button', { name: '计算并核对预览' }));
-    await screen.findByText('400 CNY');
+    await screen.findByText('400.00 CNY');
 
     await act(async () => {
       await modalState.props?.onFinish({
@@ -276,7 +276,7 @@ describe('提成预览 CNY 快照', () => {
     );
     expect(
       await screen.findByText(
-        '张三｜业务人员｜销售提成方案（v3）｜预计 60 CNY',
+        '张三｜业务人员｜销售提成方案（v3）｜预计 60.00 CNY',
       ),
     ).toBeInTheDocument();
   });

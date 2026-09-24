@@ -1,8 +1,9 @@
-import { useAccess } from '@/app/access';
 import type { TableColumnsType } from 'antd';
 import { Button, Descriptions, Drawer, Space, Spin, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { DRAWER_SIZE } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceCommissionApplicationStatus } from '@/enums.generated';
 import { settlementServiceGetCommissionApplication } from '@/services/roncin/settlementService';
 import { formatDate } from '@/utils/format';
@@ -133,6 +134,11 @@ export default function CommissionApplicationDetailDrawer({
     },
   ];
 
+  const columnSettings = useColumnSettings<TableColumnsType<Line>[number]>({
+    tableKey: 'finance:commission-application-lines',
+    columns,
+  });
+
   return (
     <Drawer
       open={open}
@@ -219,14 +225,18 @@ export default function CommissionApplicationDetailDrawer({
               },
             ]}
           />
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {columnSettings.entry}
+          </div>
           <Table<Line>
             rowKey={(record) => record.id || record.commissionId || ''}
             size="small"
-            columns={columns}
+            columns={columnSettings.columns}
             dataSource={detail?.lines ?? []}
             pagination={false}
             scroll={{ x: 1000 }}
           />
+          {columnSettings.modal}
         </Space>
       </Spin>
     </Drawer>

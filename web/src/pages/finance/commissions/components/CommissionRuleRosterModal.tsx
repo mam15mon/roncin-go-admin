@@ -1,7 +1,18 @@
-import { App, Button, DatePicker, Form, Modal, Select, Table, Tag } from 'antd';
+import {
+  App,
+  Button,
+  DatePicker,
+  Form,
+  Modal,
+  Select,
+  Table,
+  type TableColumnsType,
+  Tag,
+} from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
 import { MODAL_SIZE } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   settlementServiceAssignCommissionRuleEmployees,
   settlementServiceRemoveCommissionRuleEmployees,
@@ -47,6 +58,43 @@ export default function CommissionRuleRosterModal({
   onChanged,
   onError,
 }: CommissionRuleRosterModalProps) {
+  const rosterColumns: TableColumnsType<API.CommissionRuleAssignmentProjection> =
+    [
+      {
+        title: '员工',
+        dataIndex: 'employeeName',
+        render: (_, record) => record.employeeName || '-',
+      },
+      {
+        title: '有效区间',
+        key: 'range',
+        render: (_, record) =>
+          `${record.effectiveFrom || '-'} ~ ${record.effectiveTo || '长期'}`,
+      },
+      {
+        title: '状态',
+        key: 'status',
+        width: 90,
+        render: (_, record) => {
+          const status = assignmentStatus(record);
+          return <Tag color={status.color}>{status.text}</Tag>;
+        },
+      },
+      {
+        title: '记录时间',
+        key: 'recordedAt',
+        width: 110,
+        render: (_, record) => formatDate(record.effectiveFrom),
+      },
+    ];
+
+  const rosterColumnSettings = useColumnSettings<
+    TableColumnsType<API.CommissionRuleAssignmentProjection>[number]
+  >({
+    tableKey: 'finance:commission-rule-roster',
+    columns: rosterColumns,
+  });
+
   return (
     <Modal
       title={`名单管理 - ${rosterRule?.name ?? ''}`}
@@ -58,43 +106,20 @@ export default function CommissionRuleRosterModal({
     >
       {rosterRule && (
         <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {rosterColumnSettings.entry}
+          </div>
           <Table<API.CommissionRuleAssignmentProjection>
             size="small"
             bordered
             rowKey="id"
             pagination={false}
             dataSource={rosterRule.assignments ?? []}
-            columns={[
-              {
-                title: '员工',
-                dataIndex: 'employeeName',
-                render: (_, record) => record.employeeName || '-',
-              },
-              {
-                title: '有效区间',
-                key: 'range',
-                render: (_, record) =>
-                  `${record.effectiveFrom || '-'} ~ ${record.effectiveTo || '长期'}`,
-              },
-              {
-                title: '状态',
-                key: 'status',
-                width: 90,
-                render: (_, record) => {
-                  const status = assignmentStatus(record);
-                  return <Tag color={status.color}>{status.text}</Tag>;
-                },
-              },
-              {
-                title: '记录时间',
-                key: 'recordedAt',
-                width: 110,
-                render: (_, record) => formatDate(record.effectiveFrom),
-              },
-            ]}
+            columns={rosterColumnSettings.columns}
             locale={{ emptyText: '暂无员工分配' }}
             style={{ marginBottom: 16 }}
           />
+          {rosterColumnSettings.modal}
           <RosterChangeForms
             rosterRule={rosterRule}
             employeeOptions={employeeOptions}

@@ -172,7 +172,7 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     // 两行同月同额：申请月份、覆盖截止日与金额各出现两次。
     expect(screen.getAllByText('2026-08')).toHaveLength(2);
     expect(screen.getAllByText('2026-08-31')).toHaveLength(2);
-    expect(screen.getAllByText('3580.5 CNY')).toHaveLength(2);
+    expect(screen.getAllByText('3,580.50 CNY')).toHaveLength(2);
     expect(screen.getByText('待审批')).toBeInTheDocument();
     expect(screen.getByText('已批准')).toBeInTheDocument();
   });
@@ -331,9 +331,9 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     expect(screen.getByText('销售方案A')).toBeInTheDocument();
     expect(screen.getByText('v2')).toBeInTheDocument();
     // 原币与 CNY 金额带币种并列展示，不裸相加；首行原币与 CNY 同值。
-    expect(screen.getAllByText('120 CNY')).toHaveLength(2);
-    expect(screen.getByText('80 USD')).toBeInTheDocument();
-    expect(screen.getByText('570 CNY')).toBeInTheDocument();
+    expect(screen.getAllByText('120.00 CNY')).toHaveLength(2);
+    expect(screen.getByText('80.00 USD')).toBeInTheDocument();
+    expect(screen.getByText('570.00 CNY')).toBeInTheDocument();
     // 页面不提供任何部分批准、剔除明细或拆分入口。
     expect(screen.queryByText(/部分批准/)).not.toBeInTheDocument();
   });

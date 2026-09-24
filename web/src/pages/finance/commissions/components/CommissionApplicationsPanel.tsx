@@ -5,6 +5,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceCommissionApplicationStatus } from '@/enums.generated';
 import { getRequestErrorStatus } from '@/requestErrorConfig';
 import {
@@ -235,6 +236,11 @@ export default function CommissionApplicationsPanel() {
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<Application>>({
+    tableKey: 'finance:commission-applications',
+    columns,
+  });
+
   return (
     <>
       <SearchFilterTemplate<ApplicationFilterValues>
@@ -302,10 +308,11 @@ export default function CommissionApplicationsPanel() {
         headerTitle="月度提成申请批次"
         actionRef={actionRef}
         rowKey="id"
-        columns={columns}
+        columns={columnSettings.columns}
         size="small"
         search={false}
-        toolBarRender={false}
+        toolBarRender={() => [columnSettings.entry]}
+        options={{ reload: true, density: true, setting: false }}
         cardProps={{
           style: { borderRadius: 8, border: '1px solid #f0f0f0' },
         }}

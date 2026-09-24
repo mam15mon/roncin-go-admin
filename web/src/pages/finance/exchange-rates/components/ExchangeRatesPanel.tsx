@@ -18,6 +18,7 @@ import { App, Button, Card, Form, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { getCurrencies } from '@/features/master-data/currencies';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
@@ -236,6 +237,13 @@ export function ExchangeRatesPanel() {
       }
     : { toCurrency: baseCurrency, effectiveFrom: dayjs() };
 
+  const columnSettings = useColumnSettings<ProColumns<API.ExchangeRateSetting>>(
+    {
+      tableKey: 'finance:exchange-rates',
+      columns,
+    },
+  );
+
   return (
     <Card
       variant="borderless"
@@ -249,7 +257,7 @@ export function ExchangeRatesPanel() {
       <ProTable<API.ExchangeRateSetting>
         actionRef={actionRef}
         rowKey="id"
-        columns={columns}
+        columns={columnSettings.columns}
         search={false}
         pagination={{
           defaultPageSize: 20,
@@ -260,6 +268,7 @@ export function ExchangeRatesPanel() {
         cardProps={false}
         tableAlertRender={false}
         tableAlertOptionRender={false}
+        options={{ reload: true, density: true, setting: false }}
         request={async (params) => {
           const [rateResponse, currencyResponse] = await Promise.all([
             exchangeRateServiceListExchangeRateSettings({
@@ -277,6 +286,7 @@ export function ExchangeRatesPanel() {
           return toTableRequest(rateResponse);
         }}
         toolBarRender={() => [
+          columnSettings.entry,
           ...(access.canCreateExchangeRates
             ? [
                 <Tooltip

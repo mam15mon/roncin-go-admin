@@ -40,10 +40,10 @@ describe('提成详情双口径', () => {
     );
 
     expect(await screen.findByText('原始提成（CNY）')).toBeInTheDocument();
-    expect(screen.getByText('400 CNY')).toBeInTheDocument();
-    expect(screen.getByText('快照 57 USD，不计入应发')).toBeInTheDocument();
+    expect(screen.getByText('400.00 CNY')).toBeInTheDocument();
+    expect(screen.getByText('快照 57.00 USD，不计入应发')).toBeInTheDocument();
     expect(
-      screen.getByText('快照 407.14285714 CNY，不计入应发'),
+      screen.getByText('快照 407.14 CNY，不计入应发'),
     ).toBeInTheDocument();
     expect(screen.getByText('倒数派生')).toBeInTheDocument();
     expect(screen.getAllByText('2026-08-31')).toHaveLength(2);

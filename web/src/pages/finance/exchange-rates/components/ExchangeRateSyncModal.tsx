@@ -5,7 +5,7 @@ import {
   SyncOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import type { TableProps } from 'antd';
+import type { TableColumnsType } from 'antd';
 import {
   Alert,
   App,
@@ -21,6 +21,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { ExchangeRateSyncTarget } from '@/enums.generated';
 import {
   exchangeRateServiceFetchExchangeRates,
@@ -407,7 +408,7 @@ export function ExchangeRateSyncModal({
     return sign;
   };
 
-  const columns: TableProps<ExchangeRateSyncDraftRow>['columns'] = [
+  const columns: TableColumnsType<ExchangeRateSyncDraftRow> = [
     {
       title: '币种',
       dataIndex: 'fromCurrency',
@@ -672,6 +673,13 @@ export function ExchangeRateSyncModal({
     },
   ];
 
+  const columnSettings = useColumnSettings<
+    TableColumnsType<ExchangeRateSyncDraftRow>[number]
+  >({
+    tableKey: 'finance:exchange-sync-preview',
+    columns,
+  });
+
   return (
     <Modal
       title={
@@ -775,14 +783,18 @@ export function ExchangeRateSyncModal({
                   : '请核对各币种建议值。支持直接修改或「套用上次微调」加点，系统会自动记住本次微调幅度。确认无误后点击「确认发布」生效。'
               }
             />
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              {columnSettings.entry}
+            </div>
             <Table<ExchangeRateSyncDraftRow>
               rowKey="fromCurrency"
               size="small"
               pagination={false}
               dataSource={draftRows}
               scroll={{ y: 400, x: 920 }}
-              columns={columns}
+              columns={columnSettings.columns}
             />
+            {columnSettings.modal}
           </>
         )}
       </Flex>

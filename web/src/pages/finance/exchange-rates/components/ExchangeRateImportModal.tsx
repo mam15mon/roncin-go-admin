@@ -6,9 +6,11 @@ import {
   InboxOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
+import type { TableColumnsType } from 'antd';
 import { Alert, App, Button, Modal, Space, Table, Tag, Upload } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import React, { useState } from 'react';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { isRequestTimeoutError } from '@/requestErrorConfig';
 import {
   exchangeRateServiceConfirmExchangeRateImport,
@@ -139,6 +141,95 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
     }
   };
 
+  const previewColumns: TableColumnsType<API.ExchangeRateImportRow> = [
+    {
+      title: '行号',
+      dataIndex: 'rowNumber',
+      width: 65,
+      align: 'center',
+      render: (val) => `#${val}`,
+    },
+    {
+      title: '原币',
+      dataIndex: 'fromCurrency',
+      width: 75,
+      align: 'center',
+    },
+    {
+      title: '本币',
+      dataIndex: 'toCurrency',
+      width: 75,
+      align: 'center',
+    },
+    {
+      title: '应收汇率（卖出价）',
+      dataIndex: 'arRate',
+      width: 140,
+      align: 'right',
+      render: (val) => (
+        <span style={{ fontWeight: 600, color: '#1677ff' }}>{val || '-'}</span>
+      ),
+    },
+    {
+      title: '应付汇率（买入价）',
+      dataIndex: 'apRate',
+      width: 140,
+      align: 'right',
+      render: (val) => (
+        <span style={{ fontWeight: 600, color: '#52c41a' }}>{val || '-'}</span>
+      ),
+    },
+    {
+      title: '基准汇率',
+      dataIndex: 'rate',
+      width: 105,
+      align: 'right',
+      render: (val) => <span style={{ color: '#8c8c8c' }}>{val || '-'}</span>,
+    },
+    {
+      title: '生效周',
+      dataIndex: 'effectiveFrom',
+      width: 190,
+      render: (_, r) =>
+        `${formatDate(r.effectiveFrom)} ~ ${formatDate(r.effectiveTo)}`,
+    },
+    {
+      title: '预检状态',
+      dataIndex: 'status',
+      width: 90,
+      align: 'center',
+      render: (val) =>
+        val === 'VALID' ? (
+          <Tag color="green">合格</Tag>
+        ) : (
+          <Tag color="red">异常</Tag>
+        ),
+    },
+    {
+      title: '校验说明 / 错误原因',
+      dataIndex: 'errors',
+      render: (errors: string[] | undefined, r) => {
+        if (r.status === 'VALID' || !errors || errors.length === 0) {
+          return <span style={{ color: '#52c41a' }}>校验通过</span>;
+        }
+        return (
+          <div style={{ color: '#ff4d4f' }}>
+            {errors.map((err) => (
+              <div key={err}>• {err}</div>
+            ))}
+          </div>
+        );
+      },
+    },
+  ];
+
+  const columnSettings = useColumnSettings<
+    TableColumnsType<API.ExchangeRateImportRow>[number]
+  >({
+    tableKey: 'finance:exchange-import-preview',
+    columns: previewColumns,
+  });
+
   return (
     <Modal
       title={
@@ -256,100 +347,24 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
             </Tag>
           </div>
 
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
+            {columnSettings.entry}
+          </div>
           <Table<API.ExchangeRateImportRow>
             rowKey={(r) => `${r.rowNumber}-${r.fromCurrency}-${r.toCurrency}`}
             size="small"
             bordered
             pagination={{ pageSize: 10, showSizeChanger: false }}
             dataSource={batch.rows || []}
-            columns={[
-              {
-                title: '行号',
-                dataIndex: 'rowNumber',
-                width: 65,
-                align: 'center',
-                render: (val) => `#${val}`,
-              },
-              {
-                title: '原币',
-                dataIndex: 'fromCurrency',
-                width: 75,
-                align: 'center',
-              },
-              {
-                title: '本币',
-                dataIndex: 'toCurrency',
-                width: 75,
-                align: 'center',
-              },
-              {
-                title: '应收汇率（卖出价）',
-                dataIndex: 'arRate',
-                width: 140,
-                align: 'right',
-                render: (val) => (
-                  <span style={{ fontWeight: 600, color: '#1677ff' }}>
-                    {val || '-'}
-                  </span>
-                ),
-              },
-              {
-                title: '应付汇率（买入价）',
-                dataIndex: 'apRate',
-                width: 140,
-                align: 'right',
-                render: (val) => (
-                  <span style={{ fontWeight: 600, color: '#52c41a' }}>
-                    {val || '-'}
-                  </span>
-                ),
-              },
-              {
-                title: '基准汇率',
-                dataIndex: 'rate',
-                width: 105,
-                align: 'right',
-                render: (val) => (
-                  <span style={{ color: '#8c8c8c' }}>{val || '-'}</span>
-                ),
-              },
-              {
-                title: '生效周',
-                dataIndex: 'effectiveFrom',
-                width: 190,
-                render: (_, r) =>
-                  `${formatDate(r.effectiveFrom)} ~ ${formatDate(r.effectiveTo)}`,
-              },
-              {
-                title: '预检状态',
-                dataIndex: 'status',
-                width: 90,
-                align: 'center',
-                render: (val) =>
-                  val === 'VALID' ? (
-                    <Tag color="green">合格</Tag>
-                  ) : (
-                    <Tag color="red">异常</Tag>
-                  ),
-              },
-              {
-                title: '校验说明 / 错误原因',
-                dataIndex: 'errors',
-                render: (errors: string[] | undefined, r) => {
-                  if (r.status === 'VALID' || !errors || errors.length === 0) {
-                    return <span style={{ color: '#52c41a' }}>校验通过</span>;
-                  }
-                  return (
-                    <div style={{ color: '#ff4d4f' }}>
-                      {errors.map((err) => (
-                        <div key={err}>• {err}</div>
-                      ))}
-                    </div>
-                  );
-                },
-              },
-            ]}
+            columns={columnSettings.columns}
           />
+          {columnSettings.modal}
         </div>
       )}
     </Modal>

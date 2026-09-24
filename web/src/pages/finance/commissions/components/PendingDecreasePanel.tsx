@@ -5,6 +5,7 @@ import { App, Button, Space, Tag, Tooltip } from 'antd';
 import React, { useRef } from 'react';
 import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceCommissionStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
@@ -311,6 +312,11 @@ export default function PendingDecreasePanel({
     },
   ];
 
+  const columnSettings = useColumnSettings<ProColumns<Adjustment>>({
+    tableKey: 'finance:commission-pending-decrease',
+    columns,
+  });
+
   return (
     <>
       <SearchFilterTemplate<DecreaseFilterValues>
@@ -358,10 +364,11 @@ export default function PendingDecreasePanel({
         headerTitle="锁后费用补录冲减建议"
         actionRef={actionRef}
         rowKey="id"
-        columns={columns}
+        columns={columnSettings.columns}
         size="small"
         search={false}
-        toolBarRender={false}
+        toolBarRender={() => [columnSettings.entry]}
+        options={{ reload: true, density: true, setting: false }}
         cardProps={{
           style: { borderRadius: 8, border: '1px solid #f0f0f0' },
         }}
