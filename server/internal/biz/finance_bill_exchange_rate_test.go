@@ -98,7 +98,7 @@ func TestApplyBillExchangeRateUsesBillDateSnapshot(t *testing.T) {
 
 func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
 	organizationID := uuid.New()
-	// 超过 8 位小数的汇率必须先固化到 8 位，头本位币金额按已固化汇率计算。
+	// 超过 4 位小数（业务口径）的汇率必须先固化到 4 位，头本位币金额按已固化汇率计算。
 	exchangeRepo := &exchangeRateRepoStub{
 		rateContext:    &ExchangeRateContext{OwnerOrganizationID: organizationID, BaseCurrency: "CNY"},
 		rateByCurrency: map[string]decimal.Decimal{"USD": decimal.RequireFromString("7.1234567891")},
@@ -120,14 +120,14 @@ func TestApplyBillExchangeRateUsesRoundedRateForBaseAmount(t *testing.T) {
 	if err := usecase.applyBillExchangeRate(context.Background(), organizationID, bill); err != nil {
 		t.Fatalf("应用超长小数汇率失败: %v", err)
 	}
-	if bill.ExchangeRate.StringFixed(8) != "7.12345679" {
-		t.Fatalf("账单汇率未按 8 位固化: %s", bill.ExchangeRate.StringFixed(8))
+	if bill.ExchangeRate.StringFixed(4) != "7.1235" {
+		t.Fatalf("账单汇率未按 4 位固化: %s", bill.ExchangeRate.StringFixed(4))
 	}
-	// 100 × 7.12345679 = 712.34567900；不得使用未舍入汇率得出 712.34567891。
-	if bill.BaseCurrencyAmount.StringFixed(8) != "712.34567900" {
+	// 100 × 7.1235 = 712.35；不得使用未舍入汇率得出 712.34567891。
+	if bill.BaseCurrencyAmount.StringFixed(8) != "712.35000000" {
 		t.Fatalf("头本位币金额必须等于账单金额 × 已固化汇率: %s", bill.BaseCurrencyAmount.StringFixed(8))
 	}
-	if bill.Lines[0].BaseCurrencyAmount.StringFixed(8) != "712.34567900" {
+	if bill.Lines[0].BaseCurrencyAmount.StringFixed(8) != "712.35000000" {
 		t.Fatalf("明细本位币金额未与头金额保持一致: %s", bill.Lines[0].BaseCurrencyAmount.StringFixed(8))
 	}
 }

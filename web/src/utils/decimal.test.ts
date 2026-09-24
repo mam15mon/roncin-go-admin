@@ -28,12 +28,8 @@ describe('订单费用十进制计算', () => {
     expect(calculateExactFeeTotal('1', '1.00001')).toBeUndefined();
   });
 
-  it('接受八位小数汇率且拒绝第九位', () => {
-    expect(isPositiveExactDecimal('0.12345678', exchangeRatePattern)).toBe(
-      true,
-    );
-    expect(isPositiveExactDecimal('0.123456789', exchangeRatePattern)).toBe(
-      false,
-    );
+  it('汇率口径固定四位小数：接受四位且拒绝第五位', () => {
+    expect(isPositiveExactDecimal('0.1234', exchangeRatePattern)).toBe(true);
+    expect(isPositiveExactDecimal('0.12345', exchangeRatePattern)).toBe(false);
   });
 });

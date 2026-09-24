@@ -29,7 +29,9 @@ var (
 	ErrExchangeRateSyncRowsEmpty       = errors.BadRequest("EXCHANGE_RATE_SYNC_ROWS_EMPTY", "汇率同步数据为空")
 )
 
-var exchangeRateValuePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$`)
+// 汇率业务口径固定 4 位小数（中行牌价源头精度）；存储列仍为 numeric(18,8)，
+// 仅输入与校验收紧，不做列迁移。
+var exchangeRateValuePattern = regexp.MustCompile(`^(0|[1-9][0-9]{0,9})(\.[0-9]{1,4})?$`)
 var exchangeRateBusinessLocation = time.FixedZone("Asia/Shanghai", 8*60*60)
 
 func ExchangeRateBusinessLocation() *time.Location { return exchangeRateBusinessLocation }
@@ -454,9 +456,9 @@ func DeriveCrossQuotes(baseCurrency string, currencies []string, cnyQuotes map[s
 			continue
 		}
 		result[code] = ExchangeRateQuote{
-			ARRate: leg.ARRate.Div(baseLeg.APRate).RoundBank(8),
-			APRate: leg.APRate.Div(baseLeg.ARRate).RoundBank(8),
-			Rate:   leg.Rate.Div(baseLeg.Rate).RoundBank(8),
+			ARRate: leg.ARRate.Div(baseLeg.APRate).RoundBank(4),
+			APRate: leg.APRate.Div(baseLeg.ARRate).RoundBank(4),
+			Rate:   leg.Rate.Div(baseLeg.Rate).RoundBank(4),
 			Detail: fmt.Sprintf("中行交叉盘 %s→CNY ÷ %s→CNY", code, baseCurrency),
 		}
 	}
@@ -511,7 +513,7 @@ func (uc *ExchangeRateUsecase) SyncExchangeRates(ctx context.Context, organizati
 		// 基准价缺省按应收/应付中间价记录（与手工维护口径一致）。
 		rate := row.Rate
 		if !validExchangeRate(rate) {
-			rate = row.ARRate.Add(row.APRate).Div(decimal.NewFromInt(2)).RoundBank(8)
+			rate = row.ARRate.Add(row.APRate).Div(decimal.NewFromInt(2)).RoundBank(4)
 		}
 		inputs = append(inputs, &ExchangeRateSetting{
 			ID: uuid.Must(uuid.NewV7()), OrganizationID: &rateContext.OwnerOrganizationID,
@@ -552,7 +554,7 @@ func normalizeExchangeRateSetting(input *ExchangeRateSetting) (*ExchangeRateSett
 	rate := input.Rate
 	// 基准价缺省按应收/应付中间价记录（中行折算价口径的工程近似，用于审计基线）。
 	if !validExchangeRate(rate) {
-		rate = input.ARRate.Add(*input.APRate).Div(decimal.NewFromInt(2)).RoundBank(8)
+		rate = input.ARRate.Add(*input.APRate).Div(decimal.NewFromInt(2)).RoundBank(4)
 	}
 	output := *input
 	output.FromCurrency = fromCurrency

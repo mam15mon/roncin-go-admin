@@ -95,9 +95,9 @@ func TestFetchExchangeRatesFallsBackToBOCCrossQuotes(t *testing.T) {
 	if row.ConversionPath != "中行交叉盘 USD→CNY ÷ HKD→CNY" {
 		t.Fatalf("换算路径应明示交叉算法: %s", row.ConversionPath)
 	}
-	// 银行交叉商法：ar = 卖出价腿 ÷ 买入价腿 = 6.75 ÷ 0.85。
-	expectedAR := decimal.RequireFromString("6.75").Div(decimal.RequireFromString("0.85")).RoundBank(8)
-	expectedAP := decimal.RequireFromString("6.70").Div(decimal.RequireFromString("0.87")).RoundBank(8)
+	// 银行交叉商法：ar = 卖出价腿 ÷ 买入价腿 = 6.75 ÷ 0.85，按业务口径固化为 4 位。
+	expectedAR := decimal.RequireFromString("6.75").Div(decimal.RequireFromString("0.85")).RoundBank(4)
+	expectedAP := decimal.RequireFromString("6.70").Div(decimal.RequireFromString("0.87")).RoundBank(4)
 	if !row.ARRate.Equal(expectedAR) || !row.APRate.Equal(expectedAP) {
 		t.Fatalf("交叉报价应为 ar=(6.75÷0.85)=%s ap=(6.70÷0.87)=%s，实际 %s/%s", expectedAR, expectedAP, row.ARRate, row.APRate)
 	}
@@ -212,8 +212,8 @@ func TestDeriveCrossQuotesPreservesSpreadDirection(t *testing.T) {
 	if !quote.ARRate.GreaterThan(quote.APRate) {
 		t.Fatalf("交叉报价应保留买卖点差方向: ar=%s ap=%s", quote.ARRate, quote.APRate)
 	}
-	expectedAR := decimal.RequireFromString("6.75").Div(decimal.RequireFromString("5.00")).RoundBank(8)
-	expectedAP := decimal.RequireFromString("6.70").Div(decimal.RequireFromString("5.10")).RoundBank(8)
+	expectedAR := decimal.RequireFromString("6.75").Div(decimal.RequireFromString("5.00")).RoundBank(4)
+	expectedAP := decimal.RequireFromString("6.70").Div(decimal.RequireFromString("5.10")).RoundBank(4)
 	if !quote.ARRate.Equal(expectedAR) || !quote.APRate.Equal(expectedAP) {
 		t.Fatalf("交叉报价应为 ar=(6.75÷5.00)=%s ap=(6.70÷5.10)=%s，实际 %s/%s", expectedAR, expectedAP, quote.ARRate, quote.APRate)
 	}

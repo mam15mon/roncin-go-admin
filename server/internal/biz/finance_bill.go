@@ -247,11 +247,11 @@ func (uc *FinanceBillUsecase) applyBillExchangeRate(ctx context.Context, organiz
 	if baseCurrency != bill.BaseCurrency {
 		return ErrFinanceBillFeeMismatch
 	}
-	bill.ExchangeRate = resolved.Rate.RoundBank(8)
+	bill.ExchangeRate = resolved.Rate.RoundBank(4)
 	bill.ExchangeRateSource = resolved.Source
 	bill.ExchangeRateDate = bill.BillDate
 	bill.ExchangeRateSettingID = resolved.SettingID
-	// 头本位币金额必须使用已固化（舍入到 8 位）的账单汇率，与批量内核口径一致。
+	// 头本位币金额必须使用已固化（舍入到 4 位）的账单汇率，与批量内核口径一致。
 	bill.BaseCurrencyAmount = bill.TotalAmount.Mul(bill.ExchangeRate).RoundBank(8)
 	allocated := decimal.Zero
 	for index, line := range bill.Lines {

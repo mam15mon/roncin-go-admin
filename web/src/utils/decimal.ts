@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 
 export const quantityOrPricePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,4})?$/;
-export const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
+export const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,4})?$/;
 
 /** 去掉首尾空白与小数尾部多余的零（如 "211.04500" → "211.045"），便于与固定位数正则兼容。 */
 export function normalizeDecimalInput(value: string): string {

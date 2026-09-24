@@ -12,7 +12,7 @@ import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { searchPartnerOptions } from '@/features/partners';
 import { history } from '@/router/history';
-import { formatAmount } from '@/utils/format';
+import { formatAmount, trimDecimal } from '@/utils/format';
 
 const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
   ['SE', 'SI', 'AE', 'AI', 'LAND', 'RAIL'].map((code) => [
@@ -66,11 +66,9 @@ export function amount(value?: string | number) {
   return Number(value || 0);
 }
 
+/** 汇率展示统一 trimDecimal 口径：去尾零变长小数（业务口径 ≤4 位）。 */
 export function formatRate(value?: string | number | null): string {
-  if (value === undefined || value === null || value === '') return '-';
-  const num = Number(value);
-  if (Number.isNaN(num)) return String(value);
-  return Number(num.toFixed(4)).toString();
+  return trimDecimal(value);
 }
 
 export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {

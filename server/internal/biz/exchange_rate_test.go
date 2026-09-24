@@ -139,6 +139,42 @@ func TestNormalizeExchangeRateSettingAcceptsExplicitBaselineRate(t *testing.T) {
 	}
 }
 
+func TestNormalizeExchangeRateSettingRejectsOverFourDecimalRates(t *testing.T) {
+	// 汇率业务口径固定 4 位小数：第 5 位起拒绝，不静默截断。
+	cases := map[string]*ExchangeRateSetting{
+		"应收汇率五位小数": {
+			FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-05T00:00:00+08:00",
+			ARRate: decimalPtr(decimal.RequireFromString("6.75001")), APRate: decimalPtr(decimal.RequireFromString("6.7000")),
+		},
+		"应付汇率五位小数": {
+			FromCurrency: "USD", ToCurrency: "CNY", EffectiveFrom: "2026-08-05T00:00:00+08:00",
+			ARRate: decimalPtr(decimal.RequireFromString("6.7500")), APRate: decimalPtr(decimal.RequireFromString("6.70001")),
+		},
+	}
+	for name, input := range cases {
+		if _, err := normalizeExchangeRateSetting(input); err != ErrExchangeRateInvalidArgument {
+			t.Fatalf("%s 应被拒绝，实际错误为 %v", name, err)
+		}
+	}
+}
+
+func TestNormalizeExchangeRateSettingDerivesMidpointAtFourDecimals(t *testing.T) {
+	// 两个 4 位应收/应付的中间价可能出现第 5 位（6.72505），推导按业务口径舍入到 4 位。
+	input := &ExchangeRateSetting{
+		FromCurrency: "USD", ToCurrency: "CNY",
+		EffectiveFrom: "2026-08-05T00:00:00+08:00",
+		ARRate:        decimalPtr(decimal.RequireFromString("6.7501")),
+		APRate:        decimalPtr(decimal.RequireFromString("6.7000")),
+	}
+	value, err := normalizeExchangeRateSetting(input)
+	if err != nil {
+		t.Fatalf("规范化汇率失败: %v", err)
+	}
+	if value.Rate.StringFixed(4) != "6.7250" {
+		t.Fatalf("基准价中间价推导应固化为 4 位 6.7250，实际 %s", value.Rate)
+	}
+}
+
 func TestNormalizeExchangeRateSettingRejectsInvalidInterval(t *testing.T) {
 	arRate, apRate := validDualRateForTest("6.7500", "6.7000")
 	input := &ExchangeRateSetting{

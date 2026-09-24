@@ -33,7 +33,7 @@ import { ExchangeRateImportModal } from './ExchangeRateImportModal';
 import { ExchangeRateSyncModal } from './ExchangeRateSyncModal';
 import { downloadExchangeRateImportTemplate } from './exchangeRateTemplate';
 
-const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,8})?$/;
+const exchangeRatePattern = /^(0|[1-9][0-9]{0,9})(\.[0-9]{1,4})?$/;
 
 type ExchangeRateFormValues = {
   fromCurrency: string;
@@ -51,7 +51,7 @@ const rateRule =
       return;
     }
     if (!isPositiveExactDecimal(value, exchangeRatePattern)) {
-      throw new Error(`${label}必须大于 0，最多 10 位整数、8 位小数`);
+      throw new Error(`${label}必须大于 0，最多 10 位整数、4 位小数`);
     }
   };
 
