@@ -3,9 +3,9 @@
 ## 实施前
 
 - [x] 用户确认：没有设置入口的表格也全部补齐。
-- [ ] 盘点所有 Table、ProTable、EditableProTable 与封装模板，完善 research/entry-inventory.md，逐项记录页面／入口、能力、存储、稳定标识、必显规则、分组／合并单元格、迁移结果；清单已附静态扫描初稿，不能将调用点数当作运行时表格总数。
-- [ ] 查阅当前安装的 Ant Design／ProComponents API；读取 roncin-web-stack、trellis-before-dev 及相关前端规范。
-- [ ] 用户评审最终方案后才运行 task.py start；本轮仅写任务，不执行本清单。
+- [x] 盘点所有 Table、ProTable、EditableProTable 与封装模板，完善 research/entry-inventory.md，逐项记录页面／入口、能力、存储、稳定标识、必显规则、分组／合并单元格、迁移结果；清单已附静态扫描初稿，不能将调用点数当作运行时表格总数。
+- [x] 查阅当前安装的 Ant Design／ProComponents API；读取 roncin-web-stack、trellis-before-dev 及相关前端规范。
+- [x] 用户评审最终方案后才运行 task.py start（用户已批准实施）。
 
 ## 实施顺序
 

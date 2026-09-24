@@ -120,3 +120,39 @@
 | `web/src/pages/finance/commissions/components/CommissionRuleRosterModal.tsx` | 61 | `<Table<API.CommissionRuleAssignmentProjection>` |
 | `web/src/pages/finance/commissions/components/CommissionApplicationDetailDrawer.tsx` | 222 | `<Table<Line>` |
 | `web/src/pages/finance/commissions/components/CommissionApplicationsPanel.tsx` | 301 | `<ProTable<Application>` |
+
+## 迁移结果（2026-09-24 实施完成）
+
+全部 108 个静态调用点已按「表格标识」收敛到统一列设置；共享模板内部接入后，
+其消费者自动获得入口，无需逐页修改。存储一律为浏览器本地偏好
+（`roncin:column-settings:v1:<表格标识>:<用户>:<组织>`），财务费用台账保留服务端偏好。
+
+| 表格标识 | 覆盖调用点 | 版本 | 入口形态 |
+| --- | --- | --- | --- |
+| `finance:fees-ledger`（服务端偏好） | fees/index → FinanceLedgerTemplate(onOpenColumnConfig) | 增强版 | 模板工具栏齿轮 → 统一弹窗 + 高级页签 |
+| `finance:bills` / `finance:invoices` / `finance:verifications` / `finance:cashflows` / `finance:nettings` | 5 个台账页 | 标准版 | FinanceLedgerTemplate 内置入口 |
+| `master-data:<标题>` | 7 个主数据面板（Cities/Countries/Ports/ShippingLines/Airports/Currencies/Airlines） | 标准版 | MasterDataTemplate 内置入口 |
+| `orders:list` | orders/list → OrderListTemplate | 标准版 | ProTable 工具栏 |
+| `setting:<实体名>` | 4 个参数设置面板 + AbnormalCasesPanel | 标准版 | SettingTableTemplate 内置入口 |
+| `orders:sub-entity:<实体名>` | 5 个订单子实体抽屉（里程碑/货物/附件/人员/箱） | 标准版 | SubEntityDrawerTemplate 内置入口 |
+| `orders:fee-tabs`（既有键 `roncin:order-fee-columns:v1:*` 不变） | OrderFeeTableTabs 应收/应付两表 | 标准版 | 统一弹窗（保留必显/权限/编辑保护） |
+| `admin:users` / `admin:roles` / `admin:permissions` / `admin:audit` / `admin:background-tasks` / `admin:dingtalk-invitations` / `admin:dingtalk-registrations` | admin 7 个 ProTable | 标准版 | ProTable 工具栏 |
+| `admin:number-rules` / `admin:user-memberships` / `admin:org-inspector` / `admin:org-detail` | admin 4 个普通 Table | 标准版 | 表格上方右侧 |
+| `partners:list` / `partners:accounts` / `partners:attachments` / `partners:contracts` / `partners:invoice-profiles` / `partners:settlement-rules` / `partners:excel-import-preview` | 客商主列表 + 5 二级面板 + 导入预览 | 标准版 | 工具栏 / 表格上方右侧 |
+| `enterprise-resources:list` | 企业资源列表 | 标准版 | ProTable 工具栏 |
+| `finance:commission-list` / `finance:commission-applications` / `finance:commission-pending-decrease` / `finance:commission-rules` | 提成域 ProTable | 标准版 | ProTable 工具栏 |
+| `finance:exchange-rates` / `finance:exchange-import-preview` / `finance:exchange-sync-preview` | 汇率面板与导入/同步预览 | 标准版 | 工具栏 / 表格上方右侧 |
+| `finance:verification-*`（3 表） / `finance:verification-allocation-list` / `finance:netting-allocation-list` | 核销工作台与分配明细 | 标准版 | 表格上方右侧 |
+| `finance:bill-lines` / `finance:invoice-lines` / `finance:invoice-records` / `finance:invoice-candidate-bills` / `finance:fee-detail-lines` | 账单/发票/费用明细弹层 | 标准版 | 工具栏 / 表格上方右侧 |
+| `finance:commission-candidate-*` / `finance:commission-lines` / `finance:commission-adjustments` / `finance:commission-rule-roster` / `finance:commission-application-lines` | 提成弹层明细 | 标准版 | 表格上方右侧 |
+| `orders:abnormal-cases` / `orders:release-pod` / `orders:fee-panel` / `orders:shipping-documents` / `orders:consolidation-summary` / `orders:consolidation-members` / `orders:fee-supplements` | 订单面板与抽屉 ProTable | 标准版 | ProTable 工具栏 |
+| `orders:same-batch` / `orders:change-history` / `orders:split-*`（5 表） / `orders:shared-container-allocation` / `orders:voyage-difference` / `orders:reassignment-voyage-difference` / `orders:doc-*`（4 表） | 订单普通 Table 与嵌套表 | 标准版 | 表格上方右侧 |
+| `workbench:application-candidates` / `workbench:application-history(-lines)` / `workbench:my-commissions` / `workbench:my-adjustments` / `workbench:my-receivables` | 工作台抽屉 | 标准版 | 表格上方右侧 |
+| `finance:bill-group-fees` / `finance:bill-candidate-fees` / `finance:bill-netting-pairs` / `finance:bill-creation-results` / `finance:bill-creation-nettings` | 建账工作台 | 标准版 | 工具栏 / 表格上方右侧 |
+
+说明：
+- 操作列（无 key/dataIndex 或显式结构列）不进设置列表且保持在原位置；
+  固定列仅在原固定区域内排序，不跨区。
+- 旧 `FeeColumnSettingsModal` 已删除；旧 `FieldConfigCard` 已删除；
+  `TableColumnConfigModal` 重写为统一弹窗增强版适配层（外部 Props 不变）。
+- 未接入例外：登录/回调页无业务表格；`WorkbenchSideCards` 无表格（Listy 卡片）。
