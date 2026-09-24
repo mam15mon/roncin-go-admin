@@ -113,6 +113,8 @@ export function TableColumnConfigModal({
   }, [currentPreference, defaultValue, fields]);
 
   // 打开弹窗时同步高级设置草稿；编辑期间外部刷新不重置。
+  // 存量偏好的排序字段可能指向已删除或不再提交的字段（旧扩展字段、
+  // 钉住列、旧 key），加载时按当前字段清单清洗，避免保存被服务端拒绝。
   useEffect(() => {
     if (!open) return;
     if (currentPreference?.rowColors) {
@@ -124,7 +126,14 @@ export function TableColumnConfigModal({
       setRowColors(getDefaultRowColors());
     }
     setPageSize(currentPreference?.pageSize ?? 40);
-    setSortField(currentPreference?.sortField ?? '');
+    const prefSortField = normalizeFieldKey(
+      (currentPreference?.sortField ?? '').trim(),
+    );
+    setSortField(
+      FEE_LEDGER_FIELDS.some((field) => field.key === prefSortField)
+        ? prefSortField
+        : '',
+    );
     setSortDirection(
       (currentPreference?.sortDirection as 'ASC' | 'DESC') ?? 'DESC',
     );
@@ -145,8 +154,11 @@ export function TableColumnConfigModal({
         })),
         rowColors,
         pageSize,
+        // 已有偏好必须回传版本号，否则服务端乐观锁判冲突。
+        version: currentPreference?.version,
         sortField: sortField || undefined,
-        sortDirection,
+        // 服务端契约：排序字段为空时不得携带排序方向。
+        sortDirection: sortField ? sortDirection : undefined,
       });
       if (!response.data) {
         message.error('保存偏好配置失败');
