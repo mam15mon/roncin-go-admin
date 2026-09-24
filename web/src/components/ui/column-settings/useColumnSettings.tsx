@@ -240,12 +240,15 @@ export function useColumnSettings<C = Record<string, unknown>>(
     setOpen(false);
   };
 
+  // 包一层带 key 的 Fragment：entry 常被直接放进 toolBarRender 数组。
   const entry = (
-    <ColumnSettingsEntry
-      onClick={() => setOpen(true)}
-      disabled={disabled}
-      disabledReason={disabledReason}
-    />
+    <React.Fragment key="column-settings-entry">
+      <ColumnSettingsEntry
+        onClick={() => setOpen(true)}
+        disabled={disabled}
+        disabledReason={disabledReason}
+      />
+    </React.Fragment>
   );
 
   const modal = (
