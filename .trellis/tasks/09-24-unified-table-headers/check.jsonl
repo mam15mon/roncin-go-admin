@@ -2,3 +2,4 @@
 {"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "遵守公共 UI 与领域适配的依赖边界"}
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "实施与回归验证规范"}
 {"file": ".trellis/tasks/09-24-unified-table-headers/design.md", "reason": "统一列设置界面设计与迁移风险"}
+{"file": ".trellis/tasks/09-24-unified-table-headers/research/entry-inventory.md", "reason": "全站已有与缺失列设置入口盘点基线，防止遗漏普通与嵌套表格"}

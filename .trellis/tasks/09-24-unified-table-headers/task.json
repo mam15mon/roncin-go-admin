@@ -2,7 +2,7 @@
   "id": "unified-table-headers",
   "name": "unified-table-headers",
   "title": "全站表头设置界面统一",
-  "description": "统一全站表格的列设置入口、配置界面与交互，采用公共标准版及财务增强版设计。",
+  "description": "统一全站表格列设置界面，并为所有缺少入口的表格补齐设置能力；形成标准版与财务增强版的设计、迁移及验收方案。",
   "status": "planning",
   "dev_type": "frontend",
   "scope": "web",
