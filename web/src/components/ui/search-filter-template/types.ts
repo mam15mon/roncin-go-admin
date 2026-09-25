@@ -1,4 +1,5 @@
 import type { FormInstance } from 'antd';
+import type { DefaultOptionType } from 'antd/es/select';
 import type { ReactNode } from 'react';
 import type { SearchableSelectProps } from '../searchable-select';
 
@@ -22,10 +23,8 @@ export interface SearchFilterFieldItem {
   placeholder?: string | [string, string];
   /** 下拉候选项列表（当 type 为 select 或 searchable-select 时） */
   options?: SearchableSelectProps['options'];
-  /** 异步请求获取候选项（当 type 为 select 或 searchable-select 时） */
-  request?: (params: {
-    keyWords?: string;
-  }) => Promise<{ label: string; value: unknown; [k: string]: unknown }[]>;
+  /** 异步请求获取候选项（当 type 为 select 或 searchable-select 时）：按关键字服务端过滤，配置后渲染远程搜索下拉 */
+  request?: (params: { keyWords?: string }) => Promise<DefaultOptionType[]>;
   /** 栅格跨度（默认 6，即 24 栅格下一行 4 列） */
   span?: number;
   /** 自定义渲染组件（当 type 为 'custom' 时） */

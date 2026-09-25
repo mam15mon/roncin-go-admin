@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SearchFilterTemplate } from './SearchFilterTemplate';
@@ -109,5 +115,34 @@ describe('SearchFilterTemplate', () => {
     const exportBtn = screen.getByText('导出数据');
     const actionCol = exportBtn.closest('.ant-col-24');
     expect(actionCol).toBeInTheDocument();
+  });
+
+  it('searchable-select 配置 request 时渲染远程搜索下拉：挂载加载首屏、关键字联想服务端过滤', async () => {
+    const request = vi
+      .fn()
+      .mockResolvedValue([{ label: '测试合作方 (TP)', value: 'p-1' }]);
+
+    render(
+      <SearchFilterTemplate
+        layout="grid"
+        items={[
+          {
+            name: 'settlementPartyId',
+            label: '结算单位',
+            type: 'searchable-select',
+            placeholder: '输入名称/全拼搜索结算单位',
+            request,
+          },
+        ]}
+      />,
+    );
+
+    // 挂载即以空关键字加载首屏候选
+    await waitFor(() =>
+      expect(request).toHaveBeenCalledWith({ keyWords: undefined }),
+    );
+
+    fireEvent.mouseDown(screen.getByLabelText('结算单位'));
+    expect(await screen.findByText('测试合作方 (TP)')).toBeInTheDocument();
   });
 });

@@ -17,7 +17,7 @@ import {
 } from 'antd';
 import React, { useMemo, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
-import { SearchableSelect } from '../searchable-select';
+import { RemoteSearchSelect, SearchableSelect } from '../searchable-select';
 import './SearchFilterTemplate.less';
 import type { SearchFilterFieldItem, SearchFilterTemplateProps } from './types';
 
@@ -104,6 +104,7 @@ export function SearchFilterTemplate<
       type = 'input',
       placeholder,
       options,
+      request,
       allowClear = true,
       fieldProps,
     } = item;
@@ -111,6 +112,18 @@ export function SearchFilterTemplate<
     switch (type) {
       case 'select':
       case 'searchable-select':
+        // 配置了 request 的字段走远程搜索下拉：候选项按关键字服务端过滤
+        if (request) {
+          return (
+            <RemoteSearchSelect
+              allowClear={allowClear}
+              placeholder={placeholder as string}
+              style={{ width: '100%' }}
+              request={(keyWords) => request({ keyWords })}
+              {...fieldProps}
+            />
+          );
+        }
         return (
           <SearchableSelect
             allowClear={allowClear}
@@ -328,9 +341,7 @@ export function SearchFilterTemplate<
             style={{
               display: 'flex',
               justifyContent:
-                actionSpan === 24 && extraRight
-                  ? 'space-between'
-                  : 'flex-end',
+                actionSpan === 24 && extraRight ? 'space-between' : 'flex-end',
               alignItems: 'center',
               marginBottom: 10,
               minHeight: 32,

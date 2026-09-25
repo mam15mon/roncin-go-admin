@@ -1,6 +1,14 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
+import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import { FeeLedgerSearchFilter } from './FeeLedgerSearchFilter';
 
 // Mock partnerService
@@ -13,8 +21,15 @@ vi.mock('@/services/roncin/partnerService', () => ({
   }),
 }));
 
+// 展开后计价币种字段会挂载远程下拉并真实请求币种服务，这里 mock 掉
+vi.mock('@/services/roncin/masterDataService', () => ({
+  masterDataServiceListCurrencies: vi.fn().mockResolvedValue({
+    data: [{ code: 'CNY', name: '人民币', enabled: true }],
+  }),
+}));
+
 describe('FeeLedgerSearchFilter', () => {
-  it('正确基于 SearchFilterTemplate 渲染首屏 5 项高密度行内搜索与展开按钮', () => {
+  it('正确基于 SearchFilterTemplate 渲染首屏 5 项高密度行内搜索与展开按钮', async () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
@@ -26,9 +41,17 @@ describe('FeeLedgerSearchFilter', () => {
     expect(screen.getByText('费用状态')).not.toBeNull();
     expect(screen.getByText('结算单位')).not.toBeNull();
     expect(screen.getByText(/展开/)).not.toBeNull();
+
+    // 结算单位远程下拉挂载请求收敛，避免异步状态更新落到 act 之外
+    await waitFor(() => expect(partnerServiceListPartners).toHaveBeenCalled());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 
-  it('点击展开时展现全维 33 项业务字段', () => {
+  it('点击展开时展现全维 33 项业务字段', async () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
@@ -47,6 +70,16 @@ describe('FeeLedgerSearchFilter', () => {
     expect(screen.getByText('因提成已锁定')).not.toBeNull();
     expect(screen.getByText('未锁定')).not.toBeNull();
     expect(screen.getByText(/收起/)).not.toBeNull();
+
+    // 展开后挂载的结算单位/委托单位/计价币种远程下拉请求收敛
+    await waitFor(() =>
+      expect(masterDataServiceListCurrencies).toHaveBeenCalled(),
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 
   it('点击查询和重置正常触发回调', async () => {
@@ -57,5 +90,28 @@ describe('FeeLedgerSearchFilter', () => {
 
     fireEvent.click(screen.getByText('重置'));
     expect(onReset).toHaveBeenCalled();
+
+    // 挂载的结算单位远程下拉请求收敛，避免异步状态更新落到 act 之外
+    await waitFor(() => expect(partnerServiceListPartners).toHaveBeenCalled());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  });
+
+  it('结算单位筛选渲染远程搜索下拉并展示服务端候选项', async () => {
+    render(<FeeLedgerSearchFilter onSearch={vi.fn()} onReset={vi.fn()} />);
+
+    // 挂载即触发结算单位候选请求（首屏 50 条，服务端关键字过滤）
+    await waitFor(() =>
+      expect(partnerServiceListPartners).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, pageSize: 50 }),
+      ),
+    );
+
+    fireEvent.mouseDown(screen.getByLabelText('结算单位'));
+    expect(await screen.findByText('宁波中远海运 (COSCO)')).toBeInTheDocument();
+    expect(screen.getByText('上海美森轮船 (MATSON)')).toBeInTheDocument();
   });
 });
