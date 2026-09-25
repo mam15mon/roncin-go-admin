@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "pnpm 校验命令最小集与禁令，检查阶段对照执行"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "组件规范符合性检查：视觉规范、时间显示口径"}
