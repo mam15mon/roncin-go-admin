@@ -30,7 +30,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { formatAmount } from '@/utils/format';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
@@ -232,7 +232,10 @@ export default function FinanceBillsPage() {
       note: bill.note,
       settlementAccountId: bill.settlementAccountId,
       estimatedInvoiceCurrency: bill.estimatedInvoiceCurrency || bill.currency,
-      estimatedInvoiceRate: bill.estimatedInvoiceRate,
+      // 服务端 decimal 原串带 8 位尾零，预填输入框前收敛为变长小数
+      estimatedInvoiceRate: bill.estimatedInvoiceRate
+        ? trimDecimal(bill.estimatedInvoiceRate)
+        : undefined,
     });
     setEditOpen(true);
   };

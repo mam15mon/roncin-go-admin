@@ -21,6 +21,7 @@ import {
 } from '@/services/roncin/settlementService';
 import { unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import { trimDecimal } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import { generateUUID } from '@/utils/uuid';
 import BillCandidateSelectionStep from './BillCandidateSelectionStep';
@@ -599,7 +600,10 @@ export default function BillCreationWorkbench({
         settlementAccountId: undefined,
         estimatedInvoiceCurrency:
           group.estimatedInvoiceCurrency || group.currency || undefined,
-        estimatedInvoiceRate: group.estimatedInvoiceRate || undefined,
+        // 服务端 decimal 原串带 8 位尾零，预填输入框前收敛为变长小数
+        estimatedInvoiceRate: group.estimatedInvoiceRate
+          ? trimDecimal(group.estimatedInvoiceRate)
+          : undefined,
       };
       if (existing) {
         nextGroups[group.groupKey] = {
@@ -618,7 +622,9 @@ export default function BillCreationWorkbench({
           estimatedInvoiceRate:
             existing.estimatedInvoiceRate !== undefined
               ? existing.estimatedInvoiceRate
-              : group.estimatedInvoiceRate || undefined,
+              : group.estimatedInvoiceRate
+                ? trimDecimal(group.estimatedInvoiceRate)
+                : undefined,
         };
       }
     }

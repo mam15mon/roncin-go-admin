@@ -588,6 +588,36 @@ describe('BillCreationWorkbench 预览触发边界', () => {
     await sleepInAct(500);
     expect(mocks.preview).toHaveBeenCalledTimes(6);
   });
+
+  it('预览种子的预计开票汇率预填时收敛服务端尾零（1.00000000 → 1）', async () => {
+    mocks.preview.mockResolvedValue({
+      previewToken: 'token',
+      data: [
+        {
+          ...singlePreviewGroup,
+          estimatedInvoiceRate: '1.00000000',
+        },
+      ],
+    });
+    renderWithClient(
+      <App>
+        <BillCreationWorkbench
+          open
+          initialFeeIds={['fee-A']}
+          initialOrganizationId="A"
+          onClose={vi.fn()}
+        />
+      </App>,
+    );
+
+    // 输入框预填值为去尾零后的变长小数，而非服务端 decimal 原串
+    expect(await screen.findByDisplayValue('1')).toBeInTheDocument();
+    // 等默认账户回填的防抖预览在用例内触发并收敛，避免溢出到后续用例
+    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
+    await sleepInAct(700);
+    expect(mocks.preview).toHaveBeenCalledTimes(2);
+    expect(screen.queryByDisplayValue('1.00000000')).not.toBeInTheDocument();
+  });
 });
 
 describe('BillCreationWorkbench 预览竞态与规模', () => {
