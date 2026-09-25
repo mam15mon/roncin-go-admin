@@ -85,3 +85,22 @@ Step 1 本身以定向测试与 biome 通过为门槛）。
 - Step 1 完成后：组件 API 形态确认（对照 design.md 的 API 表）。
 - Step 3 完成后：费用台账接线与偏好存储收窄确认。
 - Step 4：check:fast 通过后才进入 Phase 3（spec 更新 + 收尾）。
+
+## 执行记录（2026-09-25）
+
+- Steps 1–3 已全部完成，**合并为单提交**
+  `refactor(web): 列设置改为齿轮锚定浮层并即时生效`：各步在同一工作批次内
+  交错落地，中间切分会产生不可编译提交，故放弃四段切分，整体一组验证。
+- 关键实现修正：Entry 外层结构在禁用切换时保持稳定（Popover > span >
+  Tooltip > Button），避免禁用态切换时触发按钮 DOM 重建导致引用失效。
+- 测试适配：`OrderFeeTableTabs.feeColumns/billTracking` 改浮层断言
+  （`.ant-popover` 内勾选、即时生效、无保存按钮）；
+  `VerificationWorkbench`/`UserFormModal` 的 antd 部分 mock 补 `Popover: () => null`。
+- 验证结果：定向测试（column-settings 18 例 + 台账/费用相关）全绿；
+  `pnpm test:changed` 102 文件 658 例全绿；`pnpm run check:fast` 全栈门禁通过
+  （前端 183 文件 1073 例 + 后端）；tsc、biome、`git diff --check` 干净；
+  残留 grep 终检为零（仅 `.umi-production` 旧构建缓存命中，未入 git）。
+- 偏差：`FinanceLedgerTemplate.test.tsx` 未新增 advancedSettings 专项用例
+  （透传为类型化 prop，「更多设置」二级弹窗行为已由 column-settings 用例覆盖）；
+  浏览器人工冒烟未执行（本会话无浏览器后端），由用户在 dev 页面上确认。
+- spec 同步：`capability-navigation.md` 列设置条目更新为新契约与交互形态约束。
