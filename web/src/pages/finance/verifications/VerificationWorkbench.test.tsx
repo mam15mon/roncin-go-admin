@@ -150,10 +150,11 @@ vi.mock('antd', async () => {
     Tag: passthrough,
     Tooltip: passthrough,
     Typography: { Text: passthrough },
-    // 统一列设置弹窗内容在组件渲染期即会取用以下导出（弹窗关闭时不实际展示）。
+    // 统一列设置浮层内容在组件渲染期即会取用以下导出（浮层关闭时不实际展示）。
     Checkbox: passthrough,
     Radio: Object.assign(passthrough, { Group: passthrough }),
     Tabs: () => null,
+    Popover: () => null,
   };
 });
 

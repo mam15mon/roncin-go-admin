@@ -221,7 +221,6 @@ export default function InvoiceDetailDrawer({
             dataSource={detail.lines || []}
             columns={lineColumnSettings.columns}
           />
-          {lineColumnSettings.modal}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             {billLinkColumnSettings.entry}
           </div>
@@ -233,7 +232,6 @@ export default function InvoiceDetailDrawer({
             dataSource={detail.billLinks || []}
             columns={billLinkColumnSettings.columns}
           />
-          {billLinkColumnSettings.modal}
         </>
       )}
     </DescriptionsDetailDrawer>

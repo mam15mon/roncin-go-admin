@@ -233,7 +233,6 @@ export default function BillDetailDrawer({
             dataSource={detail.lines || []}
             columns={lineColumnSettings.columns}
           />
-          {lineColumnSettings.modal}
         </>
       )}
     </DescriptionsDetailDrawer>

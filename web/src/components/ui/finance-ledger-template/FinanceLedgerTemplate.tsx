@@ -3,7 +3,6 @@ import {
   DownloadOutlined,
   DownOutlined,
   FileDoneOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
 import {
   type ActionType,
@@ -260,8 +259,10 @@ export function FinanceLedgerTemplate<
   extraToolBarActions = [],
   request,
   showSummaryBoard = true,
-  onOpenColumnConfig,
   columnSettingsKey,
+  columnSettingsStructuralKeys,
+  advancedSettings,
+  advancedSettingsTitle,
   rowColors,
   getRowStatusColorKey,
   onRowClick,
@@ -321,15 +322,15 @@ export function FinanceLedgerTemplate<
     });
   }, [columns, colWidths, handleAutoFit, handleResize]);
 
-  // 统一列设置：未提供外部增强入口（财务费用服务端偏好）时内置标准版；
-  // 表格标识由调用方按业务视图传入，不使用实体 ID。
-  const enableColumnSettings =
-    Boolean(columnSettingsKey) && !onOpenColumnConfig;
+  // 统一列设置：表格标识由调用方按业务视图传入，不使用实体 ID。
+  const enableColumnSettings = Boolean(columnSettingsKey);
   const columnSettings = useColumnSettings<ProColumns<T>>({
     tableKey: columnSettingsKey ?? 'finance-ledger:unset',
     columns: resizableColumns,
     // 消费者的序号列（dataIndex: 'index'）属结构列，不进入设置。
-    structuralKeys: ['index'],
+    structuralKeys: ['index', ...(columnSettingsStructuralKeys ?? [])],
+    advanced: advancedSettings,
+    advancedTitle: advancedSettingsTitle,
   });
   const ledgerColumns = enableColumnSettings
     ? columnSettings.columns
@@ -577,21 +578,7 @@ export function FinanceLedgerTemplate<
                   </Button>
                 </Tooltip>
               ),
-              onOpenColumnConfig && (
-                <Tooltip key="col-config" title="列设置">
-                  <Button
-                    type="text"
-                    icon={
-                      <SettingOutlined
-                        style={{ fontSize: 16, color: '#595959' }}
-                      />
-                    }
-                    onClick={onOpenColumnConfig}
-                    style={{ padding: '4px 6px' }}
-                  />
-                </Tooltip>
-              ),
-              !onOpenColumnConfig && enableColumnSettings && (
+              enableColumnSettings && (
                 <React.Fragment key="col-settings">
                   {columnSettings.entry}
                 </React.Fragment>
@@ -638,7 +625,6 @@ export function FinanceLedgerTemplate<
             return toTableRequest(res);
           }}
         />
-        {enableColumnSettings && columnSettings.modal}
 
         {/* 3. 底部双层多币种动态汇总底栏 */}
         {showSummaryBoard && (

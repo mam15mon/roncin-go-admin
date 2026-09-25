@@ -132,10 +132,12 @@ export default function MyApplicationCandidatesDrawer({
     },
   ];
 
-  const columnSettings = useColumnSettings<TableColumnsType<Candidate>[number]>({
-    tableKey: 'workbench:application-candidates',
-    columns,
-  });
+  const columnSettings = useColumnSettings<TableColumnsType<Candidate>[number]>(
+    {
+      tableKey: 'workbench:application-candidates',
+      columns,
+    },
+  );
 
   return (
     <Drawer
@@ -168,7 +170,13 @@ export default function MyApplicationCandidatesDrawer({
             展示截至上一自然月末、尚未进入任何申请的合格提成。
           </span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
           {columnSettings.entry}
         </div>
         <Table<Candidate>
@@ -192,7 +200,6 @@ export default function MyApplicationCandidatesDrawer({
               setQuery((prev) => ({ ...prev, page, pageSize })),
           }}
         />
-        {columnSettings.modal}
       </Space>
     </Drawer>
   );

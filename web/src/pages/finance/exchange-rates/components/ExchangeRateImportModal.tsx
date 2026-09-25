@@ -364,7 +364,6 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
             dataSource={batch.rows || []}
             columns={columnSettings.columns}
           />
-          {columnSettings.modal}
         </div>
       )}
     </Modal>

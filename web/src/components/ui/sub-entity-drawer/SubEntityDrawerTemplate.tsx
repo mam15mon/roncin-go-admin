@@ -248,9 +248,7 @@ export function SubEntityDrawerTemplateInner<
                 </Button>
               ),
             ]}
-          >
-            {columnSettings.modal}
-          </ProTable>
+          ></ProTable>
         )}
       </Drawer>
 

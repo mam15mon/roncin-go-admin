@@ -344,7 +344,6 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
             },
           }}
         />
-        {columnSettings.modal}
       </Drawer>
 
       <Modal

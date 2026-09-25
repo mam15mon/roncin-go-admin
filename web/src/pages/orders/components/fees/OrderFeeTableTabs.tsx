@@ -23,7 +23,6 @@ import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   ColumnSettingsEntry,
   type ColumnSettingsField,
-  ColumnSettingsModal,
   type ColumnSettingsValue,
   defaultSelectFilterOption,
   ProFormSearchableSelect,
@@ -222,7 +221,6 @@ export default function OrderFeeTableTabs({
   );
 
   // 列设置状态：应收/应付共享同一份偏好；编辑进行中禁用入口，避免丢失未保存行。
-  const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
   const [feeColumnPref, setFeeColumnPref] = useState<FeeColumnPreference>(() =>
     defaultFeeColumnPreference(false),
   );
@@ -244,8 +242,8 @@ export default function OrderFeeTableTabs({
     financeAvailable,
   ]);
 
-  /** 统一列设置保存：应收/应付共享；恢复默认等价偏好时清空本地存储。 */
-  const handleColumnSettingsSave = (next: ColumnSettingsValue) => {
+  /** 统一列设置变更：应收/应付共享；恢复默认等价偏好时清空本地存储。 */
+  const handleColumnSettingsChange = (next: ColumnSettingsValue) => {
     // 字段清单来自 feeColumnPreference 域定义，运行时 key 必然属于该联合类型。
     const preference: FeeColumnPreference = {
       order: next.order as FeeColumnPreference['order'],
@@ -256,15 +254,13 @@ export default function OrderFeeTableTabs({
     const persisted = isDefaultFeeColumnPreference(preference, financeAvailable)
       ? clearFeeColumnPreference(scope)
       : saveFeeColumnPreference(scope, preference);
-    if (persisted) {
-      setColumnSettingsOpen(false);
-    } else {
-      // 存储失败保持弹窗打开：表格已应用本次设置，可重试或取消。
+    if (!persisted) {
+      // 存储失败：表格已应用本次设置，提示未持久化。
       message.error('列设置保存到本地浏览器失败，本次设置仅当前页面生效');
     }
   };
 
-  /** 订单费用列设置元数据：含权限裁剪与必显标记，供统一弹窗消费。 */
+  /** 订单费用列设置元数据：含权限裁剪与必显标记，供统一浮层消费。 */
   const feeColumnFields: ColumnSettingsField[] = effectiveFeeColumnDefs(
     financeAvailable,
   ).map(({ key, title, lockVisible }) => ({ key, title, lockVisible }));
@@ -295,13 +291,20 @@ export default function OrderFeeTableTabs({
         </Button>
       )}
       <ColumnSettingsEntry
+        fields={feeColumnFields}
+        value={feeColumnPref}
+        onChange={handleColumnSettingsChange}
+        onReset={() =>
+          handleColumnSettingsChange(
+            defaultFeeColumnPreference(financeAvailable),
+          )
+        }
         disabled={columnEditing || Boolean(getTableColumns)}
         disabledReason={
           columnEditing
             ? '请先保存或取消正在编辑的费用行'
             : '外部自定义列模式下不支持列设置'
         }
-        onClick={() => setColumnSettingsOpen(true)}
       />
     </Space>
   );
@@ -1665,18 +1668,6 @@ export default function OrderFeeTableTabs({
           }
         />
       </SectionCard>
-
-      {/* 外部注入列时偏好不参与渲染，设置弹窗一并隐藏避免与表头脱钩。 */}
-      {!getTableColumns && (
-        <ColumnSettingsModal
-          open={columnSettingsOpen}
-          fields={feeColumnFields}
-          value={feeColumnPref}
-          defaultValue={defaultFeeColumnPreference(financeAvailable)}
-          onCancel={() => setColumnSettingsOpen(false)}
-          onSave={handleColumnSettingsSave}
-        />
-      )}
 
       {/* 批量标签维护：两个表共用一个弹窗，打开时按入口锁定添加/移除模式。 */}
       <BusinessTagModal

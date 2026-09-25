@@ -11,9 +11,9 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
 import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { SearchFilterTemplate } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
@@ -358,8 +358,6 @@ export default function RolesPanel() {
         options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [columnSettings.entry]}
       />
-
-      {columnSettings.modal}
 
       {/* Role Create/Edit Modal */}
       <RoleFormModal

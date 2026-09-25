@@ -397,7 +397,6 @@ export default function CommissionDetailDrawer({
                 Boolean(record.fees && record.fees.length > 0),
             }}
           />
-          {lineColumnSettings.modal}
           <Space style={{ width: '100%', justifyContent: 'space-between' }}>
             <Typography.Title level={5} style={{ margin: 0 }}>
               提成调整记录
@@ -419,7 +418,6 @@ export default function CommissionDetailDrawer({
             scroll={{ x: 1040 }}
             locale={{ emptyText: '暂无调整，当前有效提成等于原始提成' }}
           />
-          {adjustmentColumnSettings.modal}
         </Space>
       ) : null}
     </Drawer>

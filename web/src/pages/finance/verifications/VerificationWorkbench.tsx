@@ -563,7 +563,6 @@ export default function VerificationWorkbench({
                   onChange: setSelectedCashflowIds,
                 }}
               />
-              {cashflowColumnSettings.modal}
             </Card>
           </Col>
           <Col span={12}>
@@ -590,7 +589,6 @@ export default function VerificationWorkbench({
                   onChange: setSelectedBillIds,
                 }}
               />
-              {billColumnSettings.modal}
             </Card>
           </Col>
         </Row>
@@ -652,7 +650,6 @@ export default function VerificationWorkbench({
           pagination={false}
           locale={{ emptyText: '选择资金和账单后，点击“按余额自动分配”' }}
         />
-        {allocationColumnSettings.modal}
         <Input.TextArea
           aria-label="核销备注"
           value={scope.note}

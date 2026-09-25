@@ -115,7 +115,9 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
     },
   ];
 
-  const columnSettings = useColumnSettings<TableColumnsType<MyReceivable>[number]>({
+  const columnSettings = useColumnSettings<
+    TableColumnsType<MyReceivable>[number]
+  >({
     tableKey: 'workbench:my-receivables',
     columns,
   });
@@ -134,7 +136,13 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
           showIcon
           title="未核销余额按账单原币展示，不同币种不合并计算；对应潜在提成仅为预计，非应发承诺，尚未回款核销、费用或规则变化都会影响结果。"
         />
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
           {columnSettings.entry}
         </div>
         <Table<MyReceivable>
@@ -153,7 +161,6 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
               setQuery((prev) => ({ ...prev, page, pageSize })),
           }}
         />
-        {columnSettings.modal}
       </Space>
     </Drawer>
   );

@@ -59,11 +59,12 @@ export function ModeChangePreviewResult({
     { title: '变更前', dataIndex: 'beforeValue' },
     { title: '变更后', dataIndex: 'afterValue' },
   ];
-  const differenceSettings =
-    useColumnSettings<ColumnsType<API.SeaDocumentFieldDifference>[number]>({
-      tableKey: 'orders:doc-field-differences',
-      columns: differenceColumns,
-    });
+  const differenceSettings = useColumnSettings<
+    ColumnsType<API.SeaDocumentFieldDifference>[number]
+  >({
+    tableKey: 'orders:doc-field-differences',
+    columns: differenceColumns,
+  });
 
   const impactColumns: ColumnsType<API.SeaDocumentDownstreamImpact> = [
     { title: '事实类型', dataIndex: 'factType', width: 130 },
@@ -80,11 +81,12 @@ export function ModeChangePreviewResult({
       ),
     },
   ];
-  const impactSettings =
-    useColumnSettings<ColumnsType<API.SeaDocumentDownstreamImpact>[number]>({
-      tableKey: 'orders:doc-downstream-impacts',
-      columns: impactColumns,
-    });
+  const impactSettings = useColumnSettings<
+    ColumnsType<API.SeaDocumentDownstreamImpact>[number]
+  >({
+    tableKey: 'orders:doc-downstream-impacts',
+    columns: impactColumns,
+  });
 
   return (
     <Space orientation="vertical" size={12} style={{ width: '100%' }}>
@@ -94,7 +96,9 @@ export function ModeChangePreviewResult({
         title={preview.executable ? '预览通过，可以执行' : '当前变更不可执行'}
         description="离港时间、财务和放货事实只作为影响提示；执行不会自动改写这些下游事实。"
       />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
+      >
         {differenceSettings.entry}
       </div>
       <Table<API.SeaDocumentFieldDifference>
@@ -104,10 +108,15 @@ export function ModeChangePreviewResult({
         dataSource={preview.differences ?? []}
         columns={differenceSettings.columns}
       />
-      {differenceSettings.modal}
       {(preview.impacts?.length ?? 0) > 0 ? (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
             {impactSettings.entry}
           </div>
           <Table<API.SeaDocumentDownstreamImpact>
@@ -119,7 +128,6 @@ export function ModeChangePreviewResult({
             dataSource={preview.impacts ?? []}
             columns={impactSettings.columns}
           />
-          {impactSettings.modal}
         </>
       ) : null}
     </Space>

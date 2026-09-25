@@ -299,7 +299,6 @@ export default function OrgDetailCard({
                 ),
               }}
             />
-            {columnSettings.modal}
           </Card>
         </Space>
       ) : (

@@ -275,8 +275,6 @@ const AbnormalCasePanel = forwardRef<
         )}
       </Drawer>
 
-      {columnSettings.modal}
-
       <ModalForm<AbnormalCaseFormValues>
         title="标记订单异常"
         open={modalOpen}

@@ -643,7 +643,6 @@ export function OrderListTemplate({
             return toTableRequest(res);
           }}
         />
-        {columnSettings.modal}
       </Card>
     </PageContainer>
   );

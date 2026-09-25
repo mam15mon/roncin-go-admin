@@ -236,7 +236,6 @@ export default function CommissionApplicationDetailDrawer({
             pagination={false}
             scroll={{ x: 1000 }}
           />
-          {columnSettings.modal}
         </Space>
       </Spin>
     </Drawer>

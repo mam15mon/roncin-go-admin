@@ -130,7 +130,6 @@ export default function FinanceFeeDetailPage() {
           dataSource={detail?.fees ?? []}
           columns={feeColumnSettings.columns}
         />
-        {feeColumnSettings.modal}
       </SectionCard>
     </PageContainer>
   );

@@ -80,15 +80,15 @@ async function openColumnSettings() {
   await act(async () => {
     screen.getAllByRole('button', { name: /列设置/ })[0].click();
   });
-  await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+  await screen.findByPlaceholderText('搜索列名');
 }
 
-/** 在列设置弹窗中找到指定列的复选框输入。 */
+/** 在列设置浮层中找到指定列的复选框输入。 */
 async function columnCheckbox(title: string) {
   return waitFor(() => {
     const label = screen
       .getAllByText(title)
-      .find((element) => element.closest('.ant-modal'));
+      .find((element) => element.closest('.ant-popover'));
     expect(label).not.toBeUndefined();
     const input = label?.closest('label')?.querySelector('input');
     expect(input).not.toBeNull();
@@ -96,8 +96,8 @@ async function columnCheckbox(title: string) {
   });
 }
 
-/** 打开列设置、切换若干列的勾选状态后确定。 */
-async function toggleColumnsAndConfirm(titles: string[]) {
+/** 打开列设置、取消若干列的勾选；浮层内操作即时生效并持久化。 */
+async function hideColumns(titles: string[]) {
   await openColumnSettings();
   for (const title of titles) {
     const checkbox = await columnCheckbox(title);
@@ -105,9 +105,6 @@ async function toggleColumnsAndConfirm(titles: string[]) {
       fireEvent.click(checkbox);
     });
   }
-  await act(async () => {
-    screen.getByRole('button', { name: /保\s*存/ }).click();
-  });
 }
 
 describe('OrderFeeTableTabs 列设置与只读金额列', () => {
@@ -140,7 +137,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     expect(screen.getByText('94.34')).toBeInTheDocument();
     expect(screen.getByText('700.00')).toBeInTheDocument();
 
-    await toggleColumnsAndConfirm(['税率(%)', '税金', '不含税单价']);
+    await hideColumns(['税率(%)', '税金', '不含税单价']);
 
     await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(0));
     expect(tableHeaderCount('税金')).toBe(0);
@@ -171,7 +168,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     expect(headerTitles[headerTitles.indexOf('单价') + 1]).toBe('不含税单价');
   });
 
-  it('取消不改变表格且不写偏好；重新挂载读取已保存偏好（A1）', async () => {
+  it('取消勾选即时隐藏列并写入偏好；重新挂载读取已保存偏好（A1）', async () => {
     const props = makeProps('order-1');
     const { unmount } = render(
       <App>
@@ -185,12 +182,11 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     await act(async () => {
       fireEvent.click(checkbox);
     });
-    await act(async () => {
-      screen.getByRole('button', { name: /取\s*消/ }).click();
-    });
 
-    expect(tableHeaderCount('税金')).toBe(2);
-    expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(tableHeaderCount('税金')).toBe(0);
+    expect(
+      JSON.parse(window.localStorage.getItem(STORAGE_KEY) as string).hidden,
+    ).toContain('taxAmount');
     unmount();
 
     // 预置偏好后重新挂载：税率列按偏好隐藏，税金列保持默认可见
@@ -228,9 +224,6 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     await openColumnSettings();
     await act(async () => {
       screen.getByRole('button', { name: /恢复默认/ }).click();
-    });
-    await act(async () => {
-      screen.getByRole('button', { name: /保\s*存/ }).click();
     });
 
     await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(2));

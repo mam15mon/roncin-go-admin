@@ -1,6 +1,6 @@
 import { LinkOutlined } from '@ant-design/icons';
-import { Alert, Button, Empty, Skeleton, Space, Table, Tag } from 'antd';
 import type { TableColumnsType } from 'antd';
+import { Alert, Button, Empty, Skeleton, Space, Table, Tag } from 'antd';
 import { useEffect, useState } from 'react';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
@@ -81,9 +81,7 @@ export default function SameBatchOrdersSection({
           type="link"
           size="small"
           icon={<LinkOutlined />}
-          onClick={() =>
-            history.push(`/orders/${orderKind}/${record.orderId}`)
-          }
+          onClick={() => history.push(`/orders/${orderKind}/${record.orderId}`)}
         >
           {value || '-'}
         </Button>
@@ -116,11 +114,12 @@ export default function SameBatchOrdersSection({
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<TableColumnsType<API.SameBatchOrderSummary>[number]>({
-      tableKey: 'orders:same-batch',
-      columns,
-    });
+  const columnSettings = useColumnSettings<
+    TableColumnsType<API.SameBatchOrderSummary>[number]
+  >({
+    tableKey: 'orders:same-batch',
+    columns,
+  });
 
   if (loading) return <Skeleton active paragraph={{ rows: 2 }} />;
   if (error) return <Alert type="warning" showIcon title={error} />;
@@ -132,7 +131,9 @@ export default function SameBatchOrdersSection({
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
+      >
         {columnSettings.entry}
       </div>
       <Table<API.SameBatchOrderSummary>
@@ -142,7 +143,6 @@ export default function SameBatchOrdersSection({
         dataSource={orders}
         columns={columnSettings.columns}
       />
-      {columnSettings.modal}
     </>
   );
 }

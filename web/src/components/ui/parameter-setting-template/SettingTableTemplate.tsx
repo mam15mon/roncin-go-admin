@@ -200,7 +200,6 @@ export function SettingTableTemplate<
             : []),
         ]}
       />
-      {columnSettings.modal}
 
       <ModalForm<TFormValues>
         title={editingRecord ? `编辑${entityName}` : `新建${entityName}`}

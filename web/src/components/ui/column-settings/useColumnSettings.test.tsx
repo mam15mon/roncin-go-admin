@@ -2,11 +2,11 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { App, Table } from 'antd';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { useColumnSettings } from './useColumnSettings';
 import {
   clearColumnSettingsPreference,
   saveColumnSettingsPreference,
 } from './preference';
+import { useColumnSettings } from './useColumnSettings';
 
 const BASE_COLUMNS = [
   { title: '业务单号', dataIndex: 'code', key: 'code' },
@@ -22,8 +22,8 @@ function Inner(props: {
   structuralKeys?: string[];
   lockVisibleKeys?: string[];
   defaultHiddenKeys?: string[];
-  persist?: false;
   scope?: typeof SCOPE | undefined;
+  advanced?: React.ReactNode;
 }) {
   const settings = useColumnSettings({
     tableKey: props.tableKey,
@@ -32,7 +32,7 @@ function Inner(props: {
     lockVisibleKeys: props.lockVisibleKeys,
     defaultHiddenKeys: props.defaultHiddenKeys,
     scope: props.scope,
-    persist: props.persist,
+    advanced: props.advanced,
   });
   return (
     <>
@@ -44,19 +44,11 @@ function Inner(props: {
         dataSource={[{ code: 'A1', customer: '客户甲', note: '备注' }]}
         rowKey="code"
       />
-      {settings.modal}
     </>
   );
 }
 
-function Harness(props: {
-  tableKey: string;
-  structuralKeys?: string[];
-  lockVisibleKeys?: string[];
-  defaultHiddenKeys?: string[];
-  persist?: false;
-  scope?: typeof SCOPE | undefined;
-}) {
+function Harness(props: Parameters<typeof Inner>[0]) {
   return (
     <App>
       <Inner {...props} />
@@ -68,12 +60,13 @@ function renderHarness(props: Parameters<typeof Harness>[0]) {
   return render(<Harness {...props} />);
 }
 
-function openSettings() {
+async function openSettings() {
   fireEvent.click(screen.getByRole('button', { name: '列设置' }));
+  await screen.findByPlaceholderText('搜索列名');
 }
 
-function save() {
-  fireEvent.click(screen.getByRole('button', { name: /^保\s*存$/ }));
+function readHeaders() {
+  return screen.getAllByRole('columnheader').map((node) => node.textContent);
 }
 
 describe('useColumnSettings', () => {
@@ -82,28 +75,39 @@ describe('useColumnSettings', () => {
     window.localStorage.clear();
   });
 
-  it('默认全部可见，隐藏列与排序保存后生效并持久化', () => {
+  it('勾选隐藏即时生效并自动持久化', async () => {
     const storageSpy = vi.spyOn(window.localStorage, 'setItem');
     renderHarness({ tableKey: 'test:demo', scope: SCOPE });
-    openSettings();
+    await openSettings();
     fireEvent.click(screen.getByRole('checkbox', { name: '客户名称' }));
-    fireEvent.click(screen.getByRole('button', { name: '下移业务单号' }));
-    save();
-    // 客户名称被隐藏，备注上移到第二列：业务单号、备注、操作
-    const headers = screen
-      .getAllByRole('columnheader')
-      .map((node) => node.textContent);
-    expect(headers).toEqual(['业务单号', '备注', '操作']);
+    // 无需保存确认：表格立即少一列
+    expect(readHeaders()).toEqual(['业务单号', '备注', '操作']);
     expect(storageSpy).toHaveBeenCalled();
     const stored = window.localStorage.getItem(
       'roncin:column-settings:v1:test:demo:u1:o1',
     );
-    expect(stored).not.toBeNull();
     expect(JSON.parse(stored as string)).toEqual({
-      order: ['customer', 'code', 'note', 'option'],
+      order: ['code', 'customer', 'note', 'option'],
       hidden: ['customer'],
     });
     storageSpy.mockRestore();
+  });
+
+  it('上下移排序即时生效并持久化完整顺序', async () => {
+    renderHarness({ tableKey: 'test:move', scope: SCOPE });
+    await openSettings();
+    fireEvent.click(screen.getByRole('button', { name: '下移业务单号' }));
+    expect(readHeaders()).toEqual(['客户名称', '业务单号', '备注', '操作']);
+    expect(
+      JSON.parse(
+        window.localStorage.getItem(
+          'roncin:column-settings:v1:test:move:u1:o1',
+        ) as string,
+      ),
+    ).toEqual({
+      order: ['customer', 'code', 'note', 'option'],
+      hidden: [],
+    });
   });
 
   it('重挂载后恢复已保存的偏好', () => {
@@ -114,26 +118,23 @@ describe('useColumnSettings', () => {
     const first = renderHarness({ tableKey: 'test:restore', scope: SCOPE });
     first.unmount();
     renderHarness({ tableKey: 'test:restore', scope: SCOPE });
-    const headers = screen
-      .getAllByRole('columnheader')
-      .map((node) => node.textContent);
-    expect(headers).toEqual(['业务单号', '客户名称', '操作']);
+    expect(readHeaders()).toEqual(['业务单号', '客户名称', '操作']);
   });
 
-  it('结构列不进入设置且保持在原锚点位置', () => {
+  it('结构列不进入设置且保持在原锚点位置', async () => {
     renderHarness({
       tableKey: 'test:structural',
       structuralKeys: ['option'],
     });
-    openSettings();
-    expect(screen.getByRole('checkbox', { name: '业务单号' })).toBeInTheDocument();
+    await openSettings();
+    expect(
+      screen.getByRole('checkbox', { name: '业务单号' }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('checkbox', { name: '操作' }),
     ).not.toBeInTheDocument();
-    save();
-    const headers = screen
-      .getAllByRole('columnheader')
-      .map((node) => node.textContent);
+    fireEvent.click(screen.getByRole('checkbox', { name: '备注' }));
+    const headers = readHeaders();
     expect(headers[headers.length - 1]).toBe('操作');
   });
 
@@ -143,29 +144,10 @@ describe('useColumnSettings', () => {
       '{"order":"bad","hidden":null}',
     );
     renderHarness({ tableKey: 'test:broken', scope: SCOPE });
-    const headers = screen
-      .getAllByRole('columnheader')
-      .map((node) => node.textContent);
-    expect(headers).toEqual(['业务单号', '客户名称', '备注', '操作']);
+    expect(readHeaders()).toEqual(['业务单号', '客户名称', '备注', '操作']);
   });
 
-  it('persist=false 时不读写本地存储', () => {
-    renderHarness({ tableKey: 'test:nopersist', persist: false });
-    openSettings();
-    fireEvent.click(screen.getByRole('checkbox', { name: '备注' }));
-    save();
-    const headers = screen
-      .getAllByRole('columnheader')
-      .map((node) => node.textContent);
-    expect(headers).toEqual(['业务单号', '客户名称', '操作']);
-    expect(
-      window.localStorage.getItem(
-        'roncin:column-settings:v1:test:nopersist:anonymous:default',
-      ),
-    ).toBeNull();
-  });
-
-  it('存储写入失败时报错且弹窗保持打开', async () => {
+  it('存储写入失败时提示一次且页面内保持生效、浮层不关闭', async () => {
     const setItemSpy = vi
       .spyOn(window.localStorage, 'setItem')
       .mockImplementation(() => {
@@ -173,37 +155,40 @@ describe('useColumnSettings', () => {
       });
     try {
       renderHarness({ tableKey: 'test:failure', scope: SCOPE });
-      openSettings();
+      await openSettings();
       fireEvent.click(screen.getByRole('checkbox', { name: '备注' }));
-      save();
       expect(
         await screen.findByText(
           '列设置保存到本地浏览器失败，本次设置仅当前页面生效',
         ),
       ).toBeInTheDocument();
-      // 弹窗未关闭，草稿仍可继续调整
-      expect(
-        screen.getByRole('button', { name: /^保\s*存$/ }),
-      ).toBeInTheDocument();
       // 表格已应用本次设置
-      const headers = screen
-        .getAllByRole('columnheader')
-        .map((node) => node.textContent);
-      expect(headers).toEqual(['业务单号', '客户名称', '操作']);
+      expect(readHeaders()).toEqual(['业务单号', '客户名称', '操作']);
+      // 浮层保持打开，可继续调整
+      expect(
+        screen.getByRole('checkbox', { name: '客户名称' }),
+      ).toBeInTheDocument();
+      // 连续失败只提示一次
+      fireEvent.click(screen.getByRole('checkbox', { name: '客户名称' }));
+      expect(
+        screen.getAllByText(
+          '列设置保存到本地浏览器失败，本次设置仅当前页面生效',
+        ),
+      ).toHaveLength(1);
     } finally {
       setItemSpy.mockRestore();
     }
   });
 
-  it('恢复默认后保存写回默认配置', () => {
+  it('恢复默认即时生效并持久化默认配置', async () => {
     saveColumnSettingsPreference('test:clear', SCOPE, {
       order: ['note', 'code', 'customer', 'option'],
       hidden: [],
     });
     renderHarness({ tableKey: 'test:clear', scope: SCOPE });
-    openSettings();
+    await openSettings();
     fireEvent.click(screen.getByRole('button', { name: '恢复默认' }));
-    save();
+    expect(readHeaders()).toEqual(['业务单号', '客户名称', '备注', '操作']);
     expect(
       JSON.parse(
         window.localStorage.getItem(
@@ -216,9 +201,17 @@ describe('useColumnSettings', () => {
     });
     clearColumnSettingsPreference('test:clear', SCOPE);
     expect(
-      window.localStorage.getItem(
-        'roncin:column-settings:v1:test:clear:u1:o1',
-      ),
+      window.localStorage.getItem('roncin:column-settings:v1:test:clear:u1:o1'),
     ).toBeNull();
+  });
+
+  it('提供高级内容时浮层出现「更多设置」并打开二级弹窗', async () => {
+    renderHarness({
+      tableKey: 'test:advanced',
+      advanced: <div>行配色设置内容</div>,
+    });
+    await openSettings();
+    fireEvent.click(screen.getByRole('button', { name: '更多设置' }));
+    expect(await screen.findByText('行配色设置内容')).toBeInTheDocument();
   });
 });

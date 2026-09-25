@@ -98,11 +98,12 @@ export default function OrgInspectorPanel({
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.AdminOrganization>[number]>({
-      tableKey: 'admin:org-inspector',
-      columns: childColumns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.AdminOrganization>[number]
+  >({
+    tableKey: 'admin:org-inspector',
+    columns: childColumns,
+  });
 
   if (!open) return null;
 
@@ -348,7 +349,6 @@ export default function OrgInspectorPanel({
                   ),
                 }}
               />
-              {columnSettings.modal}
             </Card>
 
             {/* Helpful Tip */}

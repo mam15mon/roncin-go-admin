@@ -474,7 +474,6 @@ export default function CommissionCreateModal({
                 : '请先选择所属公司',
             }}
           />
-          {nettingCandidateColumnSettings.modal}
         </Form.Item>
       )}
       <ProFormDependency
@@ -664,7 +663,6 @@ export default function CommissionCreateModal({
                         Boolean(record.fees && record.fees.length > 0),
                     }}
                   />
-                  {previewColumnSettings.modal}
                 </>
               )}
             </Space>

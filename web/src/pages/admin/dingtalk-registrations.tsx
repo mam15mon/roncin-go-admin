@@ -132,11 +132,12 @@ export default function DingTalkRegistrationsPanel() {
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ProColumns<API.DingTalkRegistration>>({
-      tableKey: 'admin:dingtalk-registrations',
-      columns,
-    });
+  const columnSettings = useColumnSettings<
+    ProColumns<API.DingTalkRegistration>
+  >({
+    tableKey: 'admin:dingtalk-registrations',
+    columns,
+  });
 
   return (
     <>
@@ -170,8 +171,6 @@ export default function DingTalkRegistrationsPanel() {
         options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [columnSettings.entry]}
       />
-
-      {columnSettings.modal}
 
       <RegistrationApproveModal
         registration={approving}

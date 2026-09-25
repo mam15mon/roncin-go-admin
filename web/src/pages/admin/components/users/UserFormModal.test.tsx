@@ -43,11 +43,14 @@ vi.mock('antd', () => ({
   Alert: () => null,
   Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   Modal: () => null,
-  ConfigProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  ConfigProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   Checkbox: () => null,
   Input: () => null,
   Radio: { Group: () => null },
   Tabs: () => null,
+  Popover: () => null,
   Empty: () => null,
   App: { useApp: () => ({ message: { success: vi.fn(), error: vi.fn() } }) },
   Button: ({ children }: { children: React.ReactNode }) => (

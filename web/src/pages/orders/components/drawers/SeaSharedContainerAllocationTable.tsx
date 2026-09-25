@@ -153,7 +153,9 @@ export default function SeaSharedContainerAllocationTable({
     },
   ];
 
-  const columnSettings = useColumnSettings<ColumnsType<CargoAllocationItem>[number]>({
+  const columnSettings = useColumnSettings<
+    ColumnsType<CargoAllocationItem>[number]
+  >({
     tableKey: 'orders:shared-container-allocation',
     columns,
   });
@@ -182,7 +184,13 @@ export default function SeaSharedContainerAllocationTable({
         />
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
             {columnSettings.entry}
           </div>
           <Table
@@ -193,7 +201,6 @@ export default function SeaSharedContainerAllocationTable({
             size="small"
             bordered
           />
-          {columnSettings.modal}
           <div
             style={{
               display: 'flex',

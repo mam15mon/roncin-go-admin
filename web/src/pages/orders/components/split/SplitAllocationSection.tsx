@@ -104,11 +104,12 @@ export default function SplitAllocationSection({
     },
   ];
 
-  const containerSettings =
-    useColumnSettings<ColumnsType<API.SeaOrderSplitContainerItem>[number]>({
-      tableKey: 'orders:split-containers',
-      columns: containerColumns,
-    });
+  const containerSettings = useColumnSettings<
+    ColumnsType<API.SeaOrderSplitContainerItem>[number]
+  >({
+    tableKey: 'orders:split-containers',
+    columns: containerColumns,
+  });
 
   return (
     <SectionCard
@@ -126,7 +127,13 @@ export default function SplitAllocationSection({
           <Text strong style={{ marginBottom: 8, display: 'block' }}>
             独占集装箱整箱归属：
           </Text>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
             {containerSettings.entry}
           </div>
           <Table<API.SeaOrderSplitContainerItem>
@@ -136,7 +143,6 @@ export default function SplitAllocationSection({
             pagination={false}
             size="small"
           />
-          {containerSettings.modal}
         </div>
       )}
 
@@ -290,7 +296,11 @@ export default function SplitAllocationSection({
             <Text strong style={{ marginBottom: 8, display: 'block' }}>
               跨订单共享箱分配切分：
             </Text>
-            <Space orientation="vertical" style={{ width: '100%' }} size="middle">
+            <Space
+              orientation="vertical"
+              style={{ width: '100%' }}
+              size="middle"
+            >
               {splitContext.sharedContainerAllocations.map((sa) => {
                 if (!sa.allocationId) return null;
                 const currentAllocMap =
@@ -457,7 +467,11 @@ interface SplitResultAllocationTableProps {
   baselinePkg: number;
   onChangeAllocation: (
     resultKey: string,
-    patch: { packageCount?: number; grossWeightKg?: string; volumeCbm?: string },
+    patch: {
+      packageCount?: number;
+      grossWeightKg?: string;
+      volumeCbm?: string;
+    },
   ) => void;
   onFillRemaining: (resultKey: string) => void;
 }
@@ -530,11 +544,7 @@ function SplitResultAllocationTable({
       title: '快捷操作',
       key: 'quickFill',
       render: (_, r) => (
-        <Button
-          size="small"
-          type="link"
-          onClick={() => onFillRemaining(r.key)}
-        >
+        <Button size="small" type="link" onClick={() => onFillRemaining(r.key)}>
           填入剩余
         </Button>
       ),
@@ -548,7 +558,9 @@ function SplitResultAllocationTable({
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
+      >
         {columnSettings.entry}
       </div>
       <Table
@@ -558,7 +570,6 @@ function SplitResultAllocationTable({
         size="small"
         columns={columnSettings.columns}
       />
-      {columnSettings.modal}
     </>
   );
 }

@@ -511,7 +511,6 @@ export default function FinanceVerificationsPage() {
               dataSource={detail.allocations || []}
               columns={allocationColumnSettings.columns}
             />
-            {allocationColumnSettings.modal}
           </>
         )}
       </Drawer>

@@ -13,8 +13,8 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import dayjs from 'dayjs';
 import type { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
 import React, { useCallback, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -117,11 +117,12 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
     { title: '变更前', dataIndex: 'beforeValue' },
     { title: '变更后', dataIndex: 'afterValue' },
   ];
-  const differenceSettings =
-    useColumnSettings<ColumnsType<API.SeaDocumentFieldDifference>[number]>({
-      tableKey: 'orders:doc-field-differences',
-      columns: differenceColumns,
-    });
+  const differenceSettings = useColumnSettings<
+    ColumnsType<API.SeaDocumentFieldDifference>[number]
+  >({
+    tableKey: 'orders:doc-field-differences',
+    columns: differenceColumns,
+  });
 
   const impactColumns: ColumnsType<API.SeaDocumentDownstreamImpact> = [
     { title: '事实类型', dataIndex: 'factType', width: 130 },
@@ -138,11 +139,12 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
       ),
     },
   ];
-  const impactSettings =
-    useColumnSettings<ColumnsType<API.SeaDocumentDownstreamImpact>[number]>({
-      tableKey: 'orders:doc-downstream-impacts',
-      columns: impactColumns,
-    });
+  const impactSettings = useColumnSettings<
+    ColumnsType<API.SeaDocumentDownstreamImpact>[number]
+  >({
+    tableKey: 'orders:doc-downstream-impacts',
+    columns: impactColumns,
+  });
 
   return (
     <Space orientation="vertical" size={12} style={{ width: '100%' }}>
@@ -154,7 +156,9 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
         }
         description={`基线：${preview.baseVersion?.documentNo ?? '-'} / v${preview.baseVersion?.versionNo ?? '-'}`}
       />
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
+      >
         {differenceSettings.entry}
       </div>
       <Table<API.SeaDocumentFieldDifference>
@@ -164,10 +168,15 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
         dataSource={differences}
         columns={differenceSettings.columns}
       />
-      {differenceSettings.modal}
       {impacts.length > 0 ? (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
             {impactSettings.entry}
           </div>
           <Table<API.SeaDocumentDownstreamImpact>
@@ -177,7 +186,6 @@ function PreviewResult({ preview }: { preview: ChangePreview }) {
             dataSource={impacts}
             columns={impactSettings.columns}
           />
-          {impactSettings.modal}
         </>
       ) : null}
     </Space>
@@ -471,7 +479,9 @@ export default function SeaDocumentHistoryActions({
       render: (v: string) => formatDate(v),
     },
   ];
-  const versionSettings = useColumnSettings<ColumnsType<API.SeaDocumentVersion>[number]>({
+  const versionSettings = useColumnSettings<
+    ColumnsType<API.SeaDocumentVersion>[number]
+  >({
     tableKey: 'orders:doc-versions',
     columns: versionColumns,
   });
@@ -501,7 +511,9 @@ export default function SeaDocumentHistoryActions({
       render: (v: string) => formatDate(v),
     },
   ];
-  const eventSettings = useColumnSettings<ColumnsType<API.SeaDocumentEvent>[number]>({
+  const eventSettings = useColumnSettings<
+    ColumnsType<API.SeaDocumentEvent>[number]
+  >({
     tableKey: 'orders:doc-events',
     columns: eventColumns,
   });
@@ -541,7 +553,13 @@ export default function SeaDocumentHistoryActions({
         onClose={() => setDrawerOpen(false)}
       >
         <Typography.Title level={5}>版本历史</Typography.Title>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
           {versionSettings.entry}
         </div>
         <Table<API.SeaDocumentVersion>
@@ -595,12 +613,17 @@ export default function SeaDocumentHistoryActions({
             {`加载更多（共 ${versionsTotal} 条）`}
           </Button>
         ) : null}
-        {versionSettings.modal}
 
         <Typography.Title level={5} style={{ marginTop: 24 }}>
           业务事件
         </Typography.Title>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
           {eventSettings.entry}
         </div>
         <Table<API.SeaDocumentEvent>
@@ -611,7 +634,6 @@ export default function SeaDocumentHistoryActions({
           dataSource={events}
           columns={eventSettings.columns}
         />
-        {eventSettings.modal}
         {eventsLoadedCount < eventsTotal ? (
           <Button
             size="small"

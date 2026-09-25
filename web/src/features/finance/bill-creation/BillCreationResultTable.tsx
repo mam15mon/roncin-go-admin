@@ -172,7 +172,6 @@ export default function BillCreationResultTable({
         dataSource={result.bills || []}
         columns={billSettings.columns}
       />
-      {billSettings.modal}
       {result.nettings?.length ? (
         <>
           <Alert
@@ -201,7 +200,6 @@ export default function BillCreationResultTable({
             dataSource={result.nettings}
             columns={nettingSettings.columns}
           />
-          {nettingSettings.modal}
         </>
       ) : null}
     </>

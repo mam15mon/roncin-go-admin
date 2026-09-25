@@ -9,11 +9,11 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { useAccess } from '@/app/access';
-import { useInitialState } from '@/app/AppProvider';
-import { useColumnSettings } from '@/components/ui/column-settings';
 import { App, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
+import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   dingTalkInvitationStatusMeta,
   makeValueEnum,
@@ -276,12 +276,10 @@ export default function DingTalkInvitationsPanel() {
     },
   ];
 
-  const columnSettings = useColumnSettings<ProColumns<API.DingTalkInvitation>>(
-    {
-      tableKey: 'admin:dingtalk-invitations',
-      columns,
-    },
-  );
+  const columnSettings = useColumnSettings<ProColumns<API.DingTalkInvitation>>({
+    tableKey: 'admin:dingtalk-invitations',
+    columns,
+  });
 
   return (
     <>
@@ -330,8 +328,6 @@ export default function DingTalkInvitationsPanel() {
           </Button>,
         ]}
       />
-
-      {columnSettings.modal}
 
       <InvitationFormModal
         open={createOpen}

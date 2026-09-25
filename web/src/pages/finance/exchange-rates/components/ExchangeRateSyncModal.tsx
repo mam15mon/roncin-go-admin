@@ -796,7 +796,6 @@ export function ExchangeRateSyncModal({
               scroll={{ y: 400, x: 920 }}
               columns={columnSettings.columns}
             />
-            {columnSettings.modal}
           </>
         )}
       </Flex>

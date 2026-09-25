@@ -235,7 +235,6 @@ export default function MyCommissionDrawer({
             expandedRowRender: renderAdjustmentTable,
           }}
         />
-        {columnSettings.modal}
       </Space>
     </Drawer>
   );
@@ -317,7 +316,6 @@ function AdjustmentTable({
         dataSource={record.adjustments ?? []}
         columns={adjustmentSettings.columns}
       />
-      {adjustmentSettings.modal}
     </>
   );
 }

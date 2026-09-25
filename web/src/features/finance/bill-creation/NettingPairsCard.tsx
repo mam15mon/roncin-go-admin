@@ -122,7 +122,6 @@ export default function NettingPairsCard({ pairs }: NettingPairsCardProps) {
         dataSource={pairs}
         columns={columnSettings.columns}
       />
-      {columnSettings.modal}
       <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
         原始应收、应付账单仍分别生成并承担发票与毛额审计；对冲结算单只表达抵销事实。
       </Text>

@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "UI 模板与公共组件规范，浮层/弹窗组件须遵循全站视觉与模板约束"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "自定义 Hook 规范：回调引用稳定性、防渲染死循环，useColumnSettings 改造直接相关"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "复用能力导航：确认 column-settings 是唯一列设置能力入口，不另起炉灶"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "pnpm 与定向测试/门禁命令口径"}

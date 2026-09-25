@@ -12,7 +12,9 @@ import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
-  TableColumnConfigModal,
+  getDefaultRowColors,
+  RowColorSettings,
+  type RowColorsConfig,
 } from '@/components/ui';
 import {
   FeeLedgerFinancialProgress,
@@ -39,13 +41,12 @@ import {
 } from './components/FeeLedgerSearchFilter';
 import {
   amount,
-  buildUserOrderedColumns,
   financialProgressLabels,
   getBaseFeeLedgerColumns,
 } from './components/feeLedgerColumns';
 import {
-  loadFeeLedgerViewConfig,
-  saveFeeLedgerViewConfig,
+  loadFeeLedgerRowColors,
+  saveFeeLedgerRowColors,
 } from './feeLedgerViewPreference';
 
 export function resolveSingleBillCreationOrganization(
@@ -93,20 +94,22 @@ export default function FinanceFeeLedgerPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const { initialState } = useInitialState();
   const currentUser = initialState?.currentUser;
-  const viewConfigScope = useMemo(
+  const rowColorScope = useMemo(
     () => ({
       userId: currentUser?.id,
       organizationId: currentUser?.currentOrganization?.id,
     }),
     [currentUser?.id, currentUser?.currentOrganization?.id],
   );
-  const [viewConfig, setViewConfig] = useState<
-    ReturnType<typeof loadFeeLedgerViewConfig>
-  >(() => loadFeeLedgerViewConfig(viewConfigScope));
-  // 登录用户与组织就绪后重新解析对应隔离范围的本地偏好。
+  const [rowColors, setRowColors] = useState<RowColorsConfig>(() =>
+    getDefaultRowColors(),
+  );
+  // 登录用户与组织就绪后重新解析对应隔离范围的本地行配色偏好。
   useEffect(() => {
-    setViewConfig(loadFeeLedgerViewConfig(viewConfigScope));
-  }, [viewConfigScope]);
+    setRowColors(
+      loadFeeLedgerRowColors(rowColorScope) ?? getDefaultRowColors(),
+    );
+  }, [rowColorScope]);
   const [summary, setSummary] = useState<API.FeeLedgerSummary>();
   const [billWorkbenchOpen, setBillWorkbenchOpen] = useState(false);
   const [billWorkbenchMode, setBillWorkbenchMode] =
@@ -114,7 +117,6 @@ export default function FinanceFeeLedgerPage() {
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
   const [selectedBillOrganizationId, setSelectedBillOrganizationId] =
     useState<string>();
-  const [columnConfigOpen, setColumnConfigOpen] = useState(false);
   const [filterParams, setFilterParams] = useState<FeeLedgerFilterParams>({});
   const [organizationId, setOrganizationId] = useState<string>();
 
@@ -268,11 +270,26 @@ export default function FinanceFeeLedgerPage() {
 
   const baseColumns = useMemo(() => getBaseFeeLedgerColumns(), []);
 
-  // 根据当前用户的个性化列偏好动态过滤显示并按用户拖拽顺序重排
-  const columns = useMemo(
-    () => buildUserOrderedColumns(baseColumns, viewConfig?.columns),
-    [baseColumns, viewConfig],
-  );
+  // 列显隐与排序由统一列设置浮层按 columnSettingsKey 即时应用与持久化。
+
+  // 行配色即时生效并持久化到浏览器本地；存储失败明确提示且不声称已保存。
+  const handleRowColorChange = (key: keyof RowColorsConfig, color: string) => {
+    const next = { ...rowColors, [key]: color };
+    setRowColors(next);
+    if (!saveFeeLedgerRowColors(rowColorScope, next)) {
+      message.error('行配色保存到本地浏览器失败，本次设置仅当前页面生效');
+    }
+  };
+
+  const handleResetRowColors = () => {
+    const next = getDefaultRowColors();
+    setRowColors(next);
+    if (!saveFeeLedgerRowColors(rowColorScope, next)) {
+      message.error('行配色保存到本地浏览器失败，本次设置仅当前页面生效');
+      return;
+    }
+    message.success('行背景高亮颜色已重置为默认值');
+  };
 
   // 根据费用财务进度映射对应的行高亮背景 key（支持 7 状态）
   const getRowStatusColorKey = (row: API.FeeLedgerItem) => {
@@ -342,7 +359,7 @@ export default function FinanceFeeLedgerPage() {
         }
         headerTitle="费用明细台账"
         actionRef={actionRef}
-        columns={columns}
+        columns={baseColumns}
         metricCards={metricCards}
         customSearch={
           <FeeLedgerSearchFilter
@@ -434,8 +451,17 @@ export default function FinanceFeeLedgerPage() {
             : []),
         ]}
         onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}
-        onOpenColumnConfig={() => setColumnConfigOpen(true)}
-        rowColors={viewConfig?.rowColors}
+        columnSettingsKey="finance-fees:ledger"
+        columnSettingsStructuralKeys={['direction']}
+        advancedSettings={
+          <RowColorSettings
+            rowColors={rowColors}
+            onColorChange={handleRowColorChange}
+            onResetColors={handleResetRowColors}
+          />
+        }
+        advancedSettingsTitle="行背景配色设置"
+        rowColors={rowColors}
         getRowStatusColorKey={getRowStatusColorKey}
         onRowClick={(row) => {
           if (row.orderId) history.push(`/finance/fees/detail/${row.orderId}`);
@@ -515,17 +541,7 @@ export default function FinanceFeeLedgerPage() {
         }}
       />
 
-      {/* 列显隐排序与行配色配置弹窗（浏览器本地偏好） */}
-      <TableColumnConfigModal
-        open={columnConfigOpen}
-        onClose={() => setColumnConfigOpen(false)}
-        currentConfig={viewConfig ?? undefined}
-        onSave={(config) => {
-          const persisted = saveFeeLedgerViewConfig(viewConfigScope, config);
-          if (persisted) setViewConfig(config);
-          return persisted;
-        }}
-      />
+      {/* 行配色经列设置浮层「更多设置」进入，配色即时生效并持久化 */}
       <BusinessTagModal
         open={tagModalOpen}
         targetCount={tagFeeIds.length}

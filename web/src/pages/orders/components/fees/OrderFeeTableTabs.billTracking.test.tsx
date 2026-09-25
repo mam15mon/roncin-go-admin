@@ -67,17 +67,17 @@ function makeProps(orderId: string) {
   };
 }
 
-/** 勾选关联账单两列后确定。 */
+/** 勾选关联账单两列；浮层内操作即时生效。 */
 async function enableTrackingColumns() {
   await act(async () => {
     screen.getAllByRole('button', { name: /列设置/ })[0].click();
   });
-  await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+  await screen.findByPlaceholderText('搜索列名');
   for (const title of ['账单号', '关联账单财务进度']) {
     const label = await waitFor(() => {
       const found = screen
         .getAllByText(title)
-        .find((element) => element.closest('.ant-modal'));
+        .find((element) => element.closest('.ant-popover'));
       expect(found).not.toBeUndefined();
       return found as HTMLElement;
     });
@@ -87,9 +87,6 @@ async function enableTrackingColumns() {
       fireEvent.click(input as HTMLInputElement);
     });
   }
-  await act(async () => {
-    screen.getByRole('button', { name: /保\s*存/ }).click();
-  });
   await waitFor(() =>
     expect(
       screen.queryAllByRole('columnheader', { name: '账单号' }).length,
@@ -268,7 +265,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     await act(async () => {
       screen.getAllByRole('button', { name: /列设置/ })[0].click();
     });
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
+    await screen.findByPlaceholderText('搜索列名');
     expect(screen.queryByText('账单号')).not.toBeInTheDocument();
     expect(screen.queryByText('关联账单财务进度')).not.toBeInTheDocument();
   });

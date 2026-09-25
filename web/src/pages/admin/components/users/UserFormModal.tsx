@@ -522,7 +522,6 @@ export default function UserFormModal({
             }
             columns={columnSettings.columns}
           />
-          {columnSettings.modal}
         </div>
       )}
       <UserMembershipModal

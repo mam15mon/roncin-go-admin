@@ -86,11 +86,12 @@ export default function SplitFeesSection({
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.SeaOrderSplitDraftFeeItem>[number]>({
-      tableKey: 'orders:split-fees',
-      columns: feeColumns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.SeaOrderSplitDraftFeeItem>[number]
+  >({
+    tableKey: 'orders:split-fees',
+    columns: feeColumns,
+  });
 
   return (
     <SectionCard
@@ -103,7 +104,9 @@ export default function SplitFeesSection({
         </Space>
       }
     >
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
+      >
         {columnSettings.entry}
       </div>
       <Table<API.SeaOrderSplitDraftFeeItem>
@@ -113,7 +116,6 @@ export default function SplitFeesSection({
         pagination={false}
         size="middle"
       />
-      {columnSettings.modal}
       {feeCurrencySummaries.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <Text strong>各币种费用实时守恒：</Text>

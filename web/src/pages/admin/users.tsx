@@ -202,8 +202,6 @@ function UserMembersView() {
         toolBarRender={() => [columnSettings.entry]}
       />
 
-      {columnSettings.modal}
-
       <UserFormModal
         open={modalOpen}
         onOpenChange={setModalOpen}

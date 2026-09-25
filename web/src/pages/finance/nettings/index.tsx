@@ -589,7 +589,6 @@ export default function FinanceNettingsPage() {
               dataSource={detail.allocations || []}
               columns={allocationColumnSettings.columns}
             />
-            {allocationColumnSettings.modal}
             <Space style={{ marginTop: 8 }}>
               <span style={{ color: '#8c8c8c', fontSize: 12 }}>
                 只有有效分摊参与账单可用余额；反转后分摊失效并保留审计。

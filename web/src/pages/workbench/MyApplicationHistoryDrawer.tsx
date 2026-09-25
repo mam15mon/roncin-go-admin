@@ -409,7 +409,6 @@ export default function MyApplicationHistoryDrawer({
             dataSource={detail.lines ?? []}
             pagination={false}
           />
-          {lineSettings.modal}
         </Space>
       ) : (
         <Space orientation="vertical" size={12} style={{ width: '100%' }}>
@@ -456,7 +455,6 @@ export default function MyApplicationHistoryDrawer({
                 setQuery((prev) => ({ ...prev, page, pageSize })),
             }}
           />
-          {listSettings.modal}
         </Space>
       )}
     </Drawer>

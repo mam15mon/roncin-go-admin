@@ -435,8 +435,6 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
           )}
         </Drawer>
 
-        {columnSettings.modal}
-
         <ModalForm<ReleasePodFormValues>
           title={editingRecord ? '编辑放货凭证' : '添加放货凭证'}
           open={modalOpen}

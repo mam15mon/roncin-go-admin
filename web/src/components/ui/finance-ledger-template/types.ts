@@ -6,14 +6,7 @@ import type {
 import type { TableProps } from 'antd';
 import type React from 'react';
 import type { ReactNode } from 'react';
-import type { ColumnSettingsValue } from '@/components/ui/column-settings';
 import type { RowColorsConfig } from './RowColorSettings';
-
-/** 台账本地视图配置：受管列显隐顺序 + 行背景配色，持久化在浏览器本地。 */
-export interface FinanceLedgerViewConfig {
-  columns: ColumnSettingsValue;
-  rowColors: RowColorsConfig;
-}
 
 /** ProTable 注入到 request 参数中的分页与关键字字段（与筛选表单字段合并） */
 export interface FinanceLedgerRequestParams {
@@ -112,11 +105,17 @@ export interface FinanceLedgerTemplateProps<
   // 是否展示底部双层多币种动态汇总底栏（默认 true）
   showSummaryBoard?: boolean;
 
-  // 表头排序/设置弹窗入口
-  onOpenColumnConfig?: () => void;
-
-  /** 统一列设置表格标识（业务视图级）；提供且无 onOpenColumnConfig 时启用内置标准列设置。 */
+  // 统一列设置表格标识（业务视图级）；提供时启用内置统一列设置浮层。
   columnSettingsKey?: string;
+
+  /** 额外结构列 key（如费用台账「属性」列）：始终渲染，不进入设置列表。 */
+  columnSettingsStructuralKeys?: string[];
+
+  /** 高级设置内容（如行配色）：提供时列设置浮层底部出现「更多设置」。 */
+  advancedSettings?: ReactNode;
+
+  /** 高级设置二级弹窗标题，默认「高级设置」。 */
+  advancedSettingsTitle?: string;
 
   // 7 类业务状态行背景高亮颜色配置
   rowColors?: RowColorsConfig;

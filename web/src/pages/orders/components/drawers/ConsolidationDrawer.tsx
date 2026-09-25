@@ -121,9 +121,6 @@ const ConsolidationDrawer = forwardRef<ConsolidationDrawerRef>(
             }}
           />
         )}
-
-        {summarySettings.modal}
-        {memberSettings.modal}
       </Drawer>
     );
   },

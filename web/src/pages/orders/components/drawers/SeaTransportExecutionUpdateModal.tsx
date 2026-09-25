@@ -206,11 +206,12 @@ export default function SeaTransportExecutionUpdateModal({
     { title: '调整后', dataIndex: 'targetValue' },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.VoyageDifferenceItem>[number]>({
-      tableKey: 'orders:voyage-difference',
-      columns: differenceColumns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.VoyageDifferenceItem>[number]
+  >({
+    tableKey: 'orders:voyage-difference',
+    columns: differenceColumns,
+  });
 
   return (
     <Modal
@@ -289,7 +290,13 @@ export default function SeaTransportExecutionUpdateModal({
           <Text strong>
             本次将影响 {preview.memberOrderIds?.length ?? 0} 张关联订单
           </Text>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: 8,
+            }}
+          >
             {columnSettings.entry}
           </div>
           <Table<API.VoyageDifferenceItem>
@@ -299,7 +306,6 @@ export default function SeaTransportExecutionUpdateModal({
             dataSource={preview.differences ?? []}
             columns={columnSettings.columns}
           />
-          {columnSettings.modal}
           {(preview.impacts ?? []).map((impact) => (
             <Tag
               key={`${impact.factType}-${impact.referenceId}`}

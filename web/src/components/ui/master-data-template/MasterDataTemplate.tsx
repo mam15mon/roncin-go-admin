@@ -777,9 +777,8 @@ export function MasterDataTemplate<
                     }
                   },
                 }
-                }
+          }
         />
-        {columnSettings.modal}
       </Card>
 
       {/* 3. Dynamic Create / Edit Modal Form */}

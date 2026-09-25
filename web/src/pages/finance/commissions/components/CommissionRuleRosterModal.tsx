@@ -119,7 +119,6 @@ export default function CommissionRuleRosterModal({
             locale={{ emptyText: '暂无员工分配' }}
             style={{ marginBottom: 16 }}
           />
-          {rosterColumnSettings.modal}
           <RosterChangeForms
             rosterRule={rosterRule}
             employeeOptions={employeeOptions}

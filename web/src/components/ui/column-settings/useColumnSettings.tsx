@@ -1,7 +1,6 @@
 import { App } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ColumnSettingsEntry } from './ColumnSettingsEntry';
-import ColumnSettingsModal from './ColumnSettingsModal';
 import {
   defaultColumnSettingsValue,
   loadColumnSettingsPreference,
@@ -41,12 +40,13 @@ export interface UseColumnSettingsOptions {
   /** 禁用入口（如编辑进行中），配合 disabledReason 提示原因。 */
   disabled?: boolean;
   disabledReason?: string;
-  /** 弹窗标题，默认「列设置」。 */
-  title?: string;
-  /** 增强版高级设置页签内容；偏好由外部保存时通常配合 persist=false。 */
+  /**
+   * 增强版高级设置内容（如行配色）：提供时浮层底部出现「更多设置」，
+   * 点击打开二级弹窗展示该内容；内容状态由调用方自行维护与持久化。
+   */
   advanced?: React.ReactNode;
-  /** 关闭本地持久化：设置仅当前页面生效，由调用方自行保存。 */
-  persist?: false;
+  /** 高级设置二级弹窗标题，默认「高级设置」。 */
+  advancedTitle?: string;
 }
 
 function zoneOf(fixed: ColumnLike['fixed']): 'left' | 'right' | undefined {
@@ -82,7 +82,10 @@ function columnTitle(column: ColumnLike): string {
 /** 派生设置元数据：可命名、可隐藏的普通列进入设置，其余按结构列处理。 */
 function deriveFields(
   columns: unknown[],
-  options: Pick<UseColumnSettingsOptions, 'structuralKeys' | 'lockVisibleKeys' | 'titleOverrides'>,
+  options: Pick<
+    UseColumnSettingsOptions,
+    'structuralKeys' | 'lockVisibleKeys' | 'titleOverrides'
+  >,
 ): ColumnSettingsField[] {
   const structural = new Set(options.structuralKeys ?? []);
   const locked = new Set(options.lockVisibleKeys ?? []);
@@ -159,16 +162,15 @@ function applyColumnSettings<C>(
 export interface UseColumnSettingsResult<C> {
   /** 应用显隐与排序后的列定义，直接传给 Table/ProTable。 */
   columns: C[];
-  /** 统一列设置入口按钮；放入工具栏或表格上方右侧。 */
+  /** 统一列设置入口按钮（含锚定浮层）；放入工具栏或表格上方右侧。 */
   entry: React.ReactNode;
-  /** 统一列设置弹窗；置于页面任意位置即可。 */
-  modal: React.ReactNode;
 }
 
 /**
  * 全站统一列设置钩子：对列数组做显隐过滤与排序，对普通 Table 与
- * ProTable 一致适用；偏好按「表格标识 + 用户 + 组织」持久化到浏览器，
- * 写入失败时明确报错并保持弹窗打开，不静默降级。
+ * ProTable 一致适用。浮层内每次显隐、排序操作即时生效并自动持久化到
+ * 浏览器本地（按「表格标识 + 用户 + 组织」隔离）；写入失败时明确提示
+ * 且页面内设置保持生效，不静默降级。
  */
 export function useColumnSettings<C = Record<string, unknown>>(
   options: UseColumnSettingsOptions,
@@ -184,15 +186,23 @@ export function useColumnSettings<C = Record<string, unknown>>(
     titleOverrides,
     disabled,
     disabledReason,
-    title,
     advanced,
-    persist,
+    advancedTitle,
   } = options;
 
-  const [open, setOpen] = useState(false);
   const [value, setValue] = useState<ColumnSettingsValue | null>(null);
+  // 存储连续失败时只提示一次，写入成功后复位，避免连续操作刷屏。
+  const persistFailedRef = useRef(false);
 
-  const fields = useMemo(() => deriveFields(columns, { structuralKeys, lockVisibleKeys, titleOverrides }), [columns, structuralKeys, lockVisibleKeys, titleOverrides]);
+  const fields = useMemo(
+    () =>
+      deriveFields(columns, {
+        structuralKeys,
+        lockVisibleKeys,
+        titleOverrides,
+      }),
+    [columns, structuralKeys, lockVisibleKeys, titleOverrides],
+  );
   const defaultValue = useMemo(
     () => defaultColumnSettingsValue(fields, defaultHiddenKeys),
     [fields, defaultHiddenKeys],
@@ -201,15 +211,15 @@ export function useColumnSettings<C = Record<string, unknown>>(
   // 字段集合（key + 约束 + 固定区域）或隔离范围变化时重新解析偏好，
   // 用签名字符串做依赖，避免调用方每次渲染传入新数组引用导致循环。
   const fieldsSignature = fields
-    .map((field) => `${field.key}:${field.lockVisible ? 1 : 0}:${field.fixed ?? ''}`)
+    .map(
+      (field) =>
+        `${field.key}:${field.lockVisible ? 1 : 0}:${field.fixed ?? ''}`,
+    )
     .join('|');
   const hiddenSignature = (defaultHiddenKeys ?? []).join('|');
-  const persistFlag = persist !== false;
 
   useEffect(() => {
-    const stored = persistFlag
-      ? loadColumnSettingsPreference(tableKey, scope ?? {})
-      : null;
+    const stored = loadColumnSettingsPreference(tableKey, scope ?? {});
     setValue(
       resolveColumnSettingsValue(
         // 签名一致时字段内容等价，仅引用不同
@@ -218,51 +228,52 @@ export function useColumnSettings<C = Record<string, unknown>>(
         stored,
       ),
     );
-  }, [fieldsSignature, hiddenSignature, tableKey, scope?.userId, scope?.organizationId, persistFlag]);
+  }, [
+    fieldsSignature,
+    hiddenSignature,
+    tableKey,
+    scope?.userId,
+    scope?.organizationId,
+  ]);
 
   const effectiveColumns = useMemo(() => {
     if (!value) return columns as C[];
     return applyColumnSettings<C>(columns, value, structuralKeys);
   }, [columns, value, structuralKeys]);
 
-  const handleSave = (next: ColumnSettingsValue) => {
+  const handleValueChange = (next: ColumnSettingsValue) => {
     setValue(next);
-    if (!persistFlag) {
-      setOpen(false);
-      return;
-    }
     const persisted = saveColumnSettingsPreference(tableKey, scope ?? {}, next);
     if (!persisted) {
-      // 存储失败：表格已应用本次设置，保持弹窗打开便于重试或取消。
-      message.error('列设置保存到本地浏览器失败，本次设置仅当前页面生效');
+      // 存储失败：表格已应用本次设置，提示一次便于感知未持久化。
+      if (!persistFailedRef.current) {
+        persistFailedRef.current = true;
+        message.error('列设置保存到本地浏览器失败，本次设置仅当前页面生效');
+      }
       return;
     }
-    setOpen(false);
+    persistFailedRef.current = false;
+  };
+
+  const handleReset = () => {
+    handleValueChange(defaultValue);
   };
 
   // 包一层带 key 的 Fragment：entry 常被直接放进 toolBarRender 数组。
   const entry = (
     <React.Fragment key="column-settings-entry">
       <ColumnSettingsEntry
-        onClick={() => setOpen(true)}
+        fields={fields}
+        value={value ?? defaultValue}
+        onChange={handleValueChange}
+        onReset={handleReset}
+        advanced={advanced}
+        advancedTitle={advancedTitle}
         disabled={disabled}
         disabledReason={disabledReason}
       />
     </React.Fragment>
   );
 
-  const modal = (
-    <ColumnSettingsModal
-      open={open}
-      fields={fields}
-      value={value ?? defaultValue}
-      defaultValue={defaultValue}
-      title={title}
-      advanced={advanced}
-      onCancel={() => setOpen(false)}
-      onSave={handleSave}
-    />
-  );
-
-  return { columns: effectiveColumns, entry, modal };
+  return { columns: effectiveColumns, entry };
 }

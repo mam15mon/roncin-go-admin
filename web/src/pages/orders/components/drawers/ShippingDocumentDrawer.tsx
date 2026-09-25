@@ -333,8 +333,6 @@ const ShippingDocumentDrawer = forwardRef<
         )}
       </Drawer>
 
-      {columnSettings.modal}
-
       <ModalForm<ShippingDocumentFormValues>
         title={editingShippingDocument ? '编辑分单 (HBL)' : '添加分单 (HBL)'}
         open={modalOpen && !isUnimplementedTransportMode(transportMode)}

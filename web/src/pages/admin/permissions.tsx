@@ -60,37 +60,34 @@ export default function PermissionsPanel() {
   });
 
   return (
-    <>
-      <ProTable<API.AdminPermission>
-        headerTitle={
-          <Space size={8}>
-            <KeyOutlined style={{ color: '#1677ff' }} />
-            <span>系统功能权限字典清单</span>
-          </Space>
-        }
-        rowKey="key"
-        actionRef={actionRef}
-        columns={columnSettings.columns}
-        bordered
-        search={false}
-        pagination={false}
-        request={async () => {
-          const response = await adminServiceListPermissions();
-          return toTableRequest(response);
-        }}
-        options={{ reload: true, density: true, setting: false }}
-        toolBarRender={() => [
-          columnSettings.entry,
-          <Button
-            key="refresh"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-          >
-            刷新
-          </Button>,
-        ]}
-      />
-      {columnSettings.modal}
-    </>
+    <ProTable<API.AdminPermission>
+      headerTitle={
+        <Space size={8}>
+          <KeyOutlined style={{ color: '#1677ff' }} />
+          <span>系统功能权限字典清单</span>
+        </Space>
+      }
+      rowKey="key"
+      actionRef={actionRef}
+      columns={columnSettings.columns}
+      bordered
+      search={false}
+      pagination={false}
+      request={async () => {
+        const response = await adminServiceListPermissions();
+        return toTableRequest(response);
+      }}
+      options={{ reload: true, density: true, setting: false }}
+      toolBarRender={() => [
+        columnSettings.entry,
+        <Button
+          key="refresh"
+          icon={<ReloadOutlined />}
+          onClick={() => actionRef.current?.reload()}
+        >
+          刷新
+        </Button>,
+      ]}
+    />
   );
 }

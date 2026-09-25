@@ -88,11 +88,12 @@ export default function SplitAttachmentsAndNotesSection({
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.SeaOrderSplitAttachmentItem>[number]>({
-      tableKey: 'orders:split-attachments',
-      columns: attColumns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.SeaOrderSplitAttachmentItem>[number]
+  >({
+    tableKey: 'orders:split-attachments',
+    columns: attColumns,
+  });
 
   return (
     <>
@@ -106,7 +107,13 @@ export default function SplitAttachmentsAndNotesSection({
           </Space>
         }
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginBottom: 8,
+          }}
+        >
           {columnSettings.entry}
         </div>
         <Table<API.SeaOrderSplitAttachmentItem>
@@ -116,7 +123,6 @@ export default function SplitAttachmentsAndNotesSection({
           pagination={false}
           size="middle"
         />
-        {columnSettings.modal}
       </SectionCard>
 
       <SectionCard title="拆票说明（可选）">

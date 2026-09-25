@@ -523,7 +523,6 @@ export function NumberRulesPanel() {
               pagination={false}
               size="middle"
             />
-            {columnSettings.modal}
           </Card>
         )}
       </Spin>

@@ -482,11 +482,12 @@ export const SeaOrderReassignmentModal: React.FC<
     },
   ];
 
-  const columnSettings =
-    useColumnSettings<ColumnsType<API.VoyageDifferenceItem>[number]>({
-      tableKey: 'orders:reassignment-voyage-difference',
-      columns: diffColumns,
-    });
+  const columnSettings = useColumnSettings<
+    ColumnsType<API.VoyageDifferenceItem>[number]
+  >({
+    tableKey: 'orders:reassignment-voyage-difference',
+    columns: diffColumns,
+  });
 
   return (
     <Modal
@@ -781,7 +782,13 @@ export const SeaOrderReassignmentModal: React.FC<
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: 8,
+              }}
+            >
               {columnSettings.entry}
             </div>
             <Table<API.VoyageDifferenceItem>
@@ -792,7 +799,6 @@ export const SeaOrderReassignmentModal: React.FC<
               size="small"
               bordered
             />
-            {columnSettings.modal}
           </>
         )}
       </div>
