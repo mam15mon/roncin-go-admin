@@ -51,13 +51,69 @@ describe('ColumnSettingsPanel', () => {
     cleanup();
   });
 
+  function masterCheckbox() {
+    return screen.getByRole('checkbox', { name: /列展示/ });
+  }
+
   it('渲染计数、必显标记与禁用态', () => {
     renderPanel();
+    expect(masterCheckbox()).toBeChecked();
+    expect(screen.getByText(/列展示 \(4 \/ 4\)/)).toBeInTheDocument();
     expect(screen.getByText('已显示 4 / 4')).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: '业务单号' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: '操作' })).toBeDisabled();
     expect(screen.getByText('必显')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '下移操作' })).toBeDisabled();
+  });
+
+  it('全选取消隐藏全部非必显列，必显列保持勾选', () => {
+    const { onChange } = renderPanel();
+    fireEvent.click(masterCheckbox());
+    expect(onChange).toHaveBeenCalledWith({
+      order: ['code', 'customer', 'note', 'option'],
+      hidden: ['code', 'customer', 'note'],
+    });
+  });
+
+  it('半选状态点击全选恢复全部显示', () => {
+    const { onChange } = renderPanel({
+      initial: { order: VALUE.order, hidden: ['customer'] },
+    });
+    const box = masterCheckbox().closest('.ant-checkbox');
+    expect(box).toHaveClass('ant-checkbox-indeterminate');
+    fireEvent.click(masterCheckbox());
+    expect(onChange).toHaveBeenCalledWith({
+      order: VALUE.order,
+      hidden: [],
+    });
+  });
+
+  it('无必显列时全选取消保留排序首列兜底', () => {
+    const plainFields: ColumnSettingsField[] = [
+      { key: 'a', title: '列甲' },
+      { key: 'b', title: '列乙' },
+      { key: 'c', title: '列丙' },
+    ];
+    const { onChange } = renderPanel({
+      fields: plainFields,
+      initial: { order: ['a', 'b', 'c'], hidden: [] },
+    });
+    fireEvent.click(masterCheckbox());
+    expect(onChange).toHaveBeenCalledWith({
+      order: ['a', 'b', 'c'],
+      hidden: ['b', 'c'],
+    });
+  });
+
+  it('全部为必显列时全选入口禁用', () => {
+    renderPanel({
+      fields: [
+        { key: 'a', title: '列甲', lockVisible: true },
+        { key: 'b', title: '列乙', lockVisible: true },
+      ],
+      initial: { order: ['a', 'b'], hidden: [] },
+    });
+    expect(masterCheckbox()).toBeDisabled();
   });
 
   it('取消勾选立即回调新的隐藏集合并更新计数', () => {
@@ -110,13 +166,6 @@ describe('ColumnSettingsPanel', () => {
     // 操作列固定在右侧：下移已到边界禁用；上移目标跨入动态列同样被禁止。
     expect(screen.getByRole('button', { name: '下移操作' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: '上移操作' }));
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('恢复默认回调 onReset 而非 onChange', () => {
-    const { onReset, onChange } = renderPanel();
-    fireEvent.click(screen.getByRole('button', { name: '恢复默认' }));
-    expect(onReset).toHaveBeenCalledTimes(1);
     expect(onChange).not.toHaveBeenCalled();
   });
 

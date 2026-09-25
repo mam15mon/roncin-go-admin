@@ -1,0 +1,66 @@
+.roncin-column-settings-row {
+  display: flex;
+  align-items: center;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+
+  // 右侧上下移微操作常态隐藏，悬浮该行时轻柔淡入，消除箭头瀑布噪音。
+  .roncin-column-settings-actions {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .roncin-column-settings-handle {
+    margin-right: 6px;
+    color: #bfbfbf;
+    cursor: grab;
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+  }
+
+  &:hover {
+    background-color: #fafafa;
+
+    .roncin-column-settings-actions {
+      opacity: 1;
+    }
+
+    .roncin-column-settings-handle {
+      color: #595959;
+    }
+  }
+
+  // 拖拽投放目标行的轻量高亮边界。
+  &.roncin-column-settings-drop-target {
+    box-shadow: inset 0 2px 0 #1677ff;
+  }
+
+  .ant-checkbox-wrapper {
+    flex: 1;
+    min-width: 0;
+    margin-right: 6px;
+  }
+
+  .roncin-column-settings-title {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+
+  .roncin-column-settings-lock {
+    margin-left: 4px;
+    padding: 0 4px;
+    border-radius: 2px;
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    color: #8c8c8c;
+    font-size: 12px;
+    line-height: 16px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}

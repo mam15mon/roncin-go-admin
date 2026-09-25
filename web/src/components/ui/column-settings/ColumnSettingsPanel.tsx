@@ -1,23 +1,18 @@
-import { DownOutlined, SearchOutlined, UpOutlined } from '@ant-design/icons';
 import {
-  Button,
-  Checkbox,
-  Empty,
-  Input,
-  Radio,
-  Space,
-  Tag,
-  Tooltip,
-} from 'antd';
+  DownOutlined,
+  HolderOutlined,
+  SearchOutlined,
+  UpOutlined,
+} from '@ant-design/icons';
+import { Button, Checkbox, Empty, Input, Tooltip } from 'antd';
 import React, { useMemo, useState } from 'react';
+import './ColumnSettingsPanel.less';
 import type { ColumnSettingsField, ColumnSettingsValue } from './types';
 
 /** 受控渲染条目：字段元数据 + 当前可见性。 */
 interface PanelItem extends ColumnSettingsField {
   visible: boolean;
 }
-
-type FieldFilterType = 'all' | 'shown' | 'hidden';
 
 /** 由当前生效配置构建展示条目：偏好顺序优先，未提及的新字段按可见兜底。 */
 function buildDraft(
@@ -71,9 +66,9 @@ export interface ColumnSettingsPanelProps {
 }
 
 /**
- * 统一列设置浮层内容：搜索列名、显隐勾选、排序（拖拽 + 上下移按钮）与
- * 恢复默认；全部操作即时回调生效。搜索中禁用顺序调整并提示清空搜索后
- * 排序，避免以筛选后序号操作完整顺序。
+ * 统一列设置浮层内容：顶部全选/统计与恢复默认、全宽搜索、带拖拽手柄的
+ * 分区列表（上下移仅悬浮显现）与底栏计数摘要；全部操作即时回调生效。
+ * 搜索中禁用顺序调整并提示清空搜索后排序，避免以筛选后序号操作完整顺序。
  */
 export default function ColumnSettingsPanel({
   fields,
@@ -83,8 +78,8 @@ export default function ColumnSettingsPanel({
   onOpenAdvanced,
 }: ColumnSettingsPanelProps) {
   const [keyword, setKeyword] = useState('');
-  const [filterType, setFilterType] = useState<FieldFilterType>('all');
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
 
   const draft = useMemo(() => buildDraft(fields, value), [fields, value]);
 
@@ -93,16 +88,13 @@ export default function ColumnSettingsPanel({
 
   const matchesKeyword = (item: PanelItem) =>
     !searching || item.title.toLowerCase().includes(trimmedKeyword);
-  const matchesFilter = (item: PanelItem) => {
-    if (filterType === 'shown') return item.visible;
-    if (filterType === 'hidden') return !item.visible;
-    return true;
-  };
-  const matchesView = (item: PanelItem) =>
-    matchesKeyword(item) && matchesFilter(item);
 
   const visibleCount = draft.filter((item) => item.visible).length;
-  const shownCount = draft.filter(matchesView).length;
+  const totalCount = draft.length;
+  // 可切换列：全选/清空只作用于非必显列；无必显列时清空需保留首列兜底。
+  const toggleableCount = draft.filter((item) => !item.lockVisible).length;
+  const masterChecked = totalCount > 0 && visibleCount === totalCount;
+  const masterIndeterminate = !masterChecked && visibleCount > 0;
 
   // 分区展示：左固定 / 动态列 / 右固定，排序只在同侧区域内进行。
   const zones = useMemo(
@@ -128,13 +120,30 @@ export default function ColumnSettingsPanel({
 
   const emit = (next: PanelItem[]) => onChange(draftToValue(next));
 
+  /** 全选/清空：必显列始终保留；无必显列时清空保留排序首列兜底。 */
+  const handleToggleAll = () => {
+    if (masterChecked) {
+      const hasLocked = draft.some((item) => item.lockVisible);
+      const keepKey = hasLocked ? null : draft[0]?.key;
+      emit(
+        draft.map((item) => {
+          if (item.lockVisible) return item;
+          if (keepKey && item.key === keepKey) return item;
+          return { ...item, visible: false };
+        }),
+      );
+      return;
+    }
+    emit(draft.map((item) => ({ ...item, visible: true })));
+  };
+
   const moveWithinZone = (key: string, direction: -1 | 1) => {
     if (searching) return;
     const index = draft.findIndex((item) => item.key === key);
     if (index < 0) return;
     const zone = zoneOf(draft[index].fixed);
     const canTarget = (item: PanelItem) =>
-      zoneOf(item.fixed) === zone && matchesView(item);
+      zoneOf(item.fixed) === zone && matchesKeyword(item);
     let target = index + direction;
     while (target >= 0 && target < draft.length && !canTarget(draft[target])) {
       target += direction;
@@ -158,7 +167,6 @@ export default function ColumnSettingsPanel({
     const [item] = next.splice(sourceIndex, 1);
     next.splice(targetIndex, 0, item);
     emit(next);
-    setDraggingKey(null);
   };
 
   const toggleVisible = (key: string, visible: boolean) => {
@@ -182,41 +190,53 @@ export default function ColumnSettingsPanel({
         ? '至少保留一列显示'
         : undefined;
     const moveDisabled = searching;
+    const dropping =
+      !searching &&
+      draggingKey !== null &&
+      dragOverKey === item.key &&
+      draggingKey !== item.key;
     return (
       <div
         key={item.key}
+        className={`roncin-column-settings-row${
+          dropping ? ' roncin-column-settings-drop-target' : ''
+        }`}
         draggable={!searching}
         onDragStart={() => setDraggingKey(item.key)}
-        onDragEnd={() => setDraggingKey(null)}
-        onDragOver={(event) => {
-          if (!searching) event.preventDefault();
+        onDragEnd={() => {
+          setDraggingKey(null);
+          setDragOverKey(null);
         }}
-        onDrop={() => handleDrop(item.key)}
+        onDragOver={(event) => {
+          if (searching) return;
+          event.preventDefault();
+          setDragOverKey(item.key);
+        }}
+        onDrop={() => {
+          handleDrop(item.key);
+          setDragOverKey(null);
+        }}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '5px 8px',
-          borderBottom: '1px solid #f0f0f0',
-          opacity: draggingKey === item.key ? 0.5 : 1,
+          opacity: draggingKey === item.key ? 0.4 : 1,
           cursor: searching ? 'default' : 'grab',
         }}
       >
+        <HolderOutlined className="roncin-column-settings-handle" />
         <Tooltip title={checkboxTooltip}>
           <Checkbox
             checked={item.visible}
             disabled={checkboxDisabled}
             onChange={(event) => toggleVisible(item.key, event.target.checked)}
           >
-            {item.title}
+            <Tooltip title={item.title}>
+              <span className="roncin-column-settings-title">{item.title}</span>
+            </Tooltip>
           </Checkbox>
         </Tooltip>
         {item.lockVisible && (
-          <Tag color="blue" style={{ marginRight: 8 }}>
-            必显
-          </Tag>
+          <span className="roncin-column-settings-lock">必显</span>
         )}
-        <Space size={2}>
+        <span className="roncin-column-settings-actions">
           <Button
             type="text"
             size="small"
@@ -233,49 +253,49 @@ export default function ColumnSettingsPanel({
             disabled={moveDisabled || zoneIndex >= zoneItems.length - 1}
             onClick={() => moveWithinZone(item.key, 1)}
           />
-        </Space>
+        </span>
       </div>
     );
   };
 
   return (
-    <div style={{ width: 320 }}>
+    <div style={{ width: 300 }}>
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          gap: 12,
-          flexWrap: 'wrap',
-          marginBottom: 12,
+          marginBottom: 8,
         }}
       >
-        <Input
-          allowClear
-          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-          placeholder="搜索列名"
-          value={keyword}
-          onChange={(event) => setKeyword(event.target.value)}
-          style={{ width: 140 }}
-        />
-        <Radio.Group
-          size="small"
-          value={filterType}
-          optionType="button"
-          buttonStyle="solid"
-          onChange={(event) =>
-            setFilterType(event.target.value as FieldFilterType)
-          }
-          options={[
-            { label: `全部 (${draft.length})`, value: 'all' },
-            { label: `已显示 (${visibleCount})`, value: 'shown' },
-            {
-              label: `已隐藏 (${draft.length - visibleCount})`,
-              value: 'hidden',
-            },
-          ]}
-        />
+        <Checkbox
+          checked={masterChecked}
+          indeterminate={masterIndeterminate}
+          disabled={toggleableCount === 0}
+          onChange={handleToggleAll}
+        >
+          列展示 ({visibleCount} / {totalCount})
+        </Checkbox>
+        <Tooltip title="恢复默认列显隐与顺序，立即生效">
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0 }}
+            onClick={onReset}
+          >
+            恢复默认
+          </Button>
+        </Tooltip>
       </div>
+      <Input
+        allowClear
+        size="small"
+        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+        placeholder="搜索列名"
+        value={keyword}
+        onChange={(event) => setKeyword(event.target.value)}
+        style={{ marginBottom: 8 }}
+      />
       {searching && (
         <div style={{ marginBottom: 8, color: '#8c8c8c', fontSize: 12 }}>
           搜索中无法调整顺序，清空搜索后可拖拽或使用箭头排序
@@ -283,14 +303,14 @@ export default function ColumnSettingsPanel({
       )}
       <div style={{ maxHeight: 420, overflowY: 'auto', paddingRight: 2 }}>
         {zones.map((zone) => {
-          const zoneItems = zone.items.filter(matchesView);
+          const zoneItems = zone.items.filter(matchesKeyword);
           if (zoneItems.length === 0) return null;
           return (
             <div key={zone.key}>
               {zone.label && (
                 <div
                   style={{
-                    padding: '6px 8px 4px',
+                    padding: '6px 6px 4px',
                     color: '#8c8c8c',
                     fontSize: 12,
                   }}
@@ -302,7 +322,7 @@ export default function ColumnSettingsPanel({
             </div>
           );
         })}
-        {shownCount === 0 && (
+        {draft.filter(matchesKeyword).length === 0 && (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="未找到匹配的列"
@@ -320,26 +340,19 @@ export default function ColumnSettingsPanel({
           borderTop: '1px solid #f0f0f0',
         }}
       >
-        <Tag style={{ marginInlineEnd: 0 }}>
-          已显示 {visibleCount} / {draft.length}
-        </Tag>
-        <Space size={4}>
-          {onOpenAdvanced && (
-            <Button
-              type="link"
-              size="small"
-              style={{ paddingInline: 4 }}
-              onClick={onOpenAdvanced}
-            >
-              更多设置
-            </Button>
-          )}
-          <Tooltip title="恢复默认列显隐与顺序，立即生效">
-            <Button size="small" onClick={onReset}>
-              恢复默认
-            </Button>
-          </Tooltip>
-        </Space>
+        <span style={{ color: '#8c8c8c', fontSize: 12 }}>
+          已显示 {visibleCount} / {totalCount}
+        </span>
+        {onOpenAdvanced && (
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0 }}
+            onClick={onOpenAdvanced}
+          >
+            更多设置
+          </Button>
+        )}
       </div>
     </div>
   );
