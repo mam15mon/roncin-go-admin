@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"errors"
+	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"os"
 	"strings"
 	"testing"
@@ -37,7 +38,6 @@ func createBulkFee(t *testing.T, data *Data, orderID, settlementPartyID uuid.UUI
 		SetOrderID(orderID).
 		SetIdempotencyKey("bulk-" + key + "-" + uuid.NewString()[:8]).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(settlementPartyID).
@@ -159,7 +159,7 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 			SetOrganizationID(organizationID).
 			SetFromCurrency("USD").
 			SetToCurrency("CNY").
-			SetEffectiveFrom(time.Date(2026, 9, 1, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).
+			SetEffectiveFrom(time.Date(2026, 9, 14, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).
 			SetRate("7.25000000").
 			SetIsActive(true).
 			Save(context.Background())
@@ -366,31 +366,68 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("已作废行混入批量维护整批拒绝", func(t *testing.T) {
-		cancelled := fixture.createUnbilledFee("bulk-cancelled")
-		free := fixture.createUnbilledFee("bulk-cancelled-free")
-		if _, err := data.db.OrderFee.UpdateOneID(cancelled).
-			SetStatus(orderfeeent.StatusCANCELLED).
-			SetCancelledAt(time.Now()).
-			SetCancelledBy(actor).
-			SetCancellationReason("批量维护测试作废").
+	t.Run("已建账费用混入批量删除整批拒绝", func(t *testing.T) {
+		billedFee := fixture.createUnbilledFee("bulk-billed-remove")
+		free := fixture.createUnbilledFee("bulk-billed-remove-free")
+		// 有效账单关联（活动账单行且所属账单未取消）即占用事实；占用行混入批量
+		// 删除时整批拒绝且零写入。补录来源拒绝由补录事务集成测试的
+		// TestFeeSupplementGeneratedFeePlainDeleteForbiddenPostgres 覆盖。
+		// 直接以 ent 构造账单关联，避免建账用例的汇率解析等环境依赖。
+		billID := uuid.Must(uuid.NewV7())
+		billCreate := data.db.FinanceBill.Create().
+			SetID(billID).
+			SetOrganizationID(organizationID).
+			SetBillNo("BULK-REMOVE-" + fixture.suffix).
+			SetIdempotencyKey("bulk-remove-bill-" + fixture.suffix).
+			SetDirection(financebillent.DirectionRECEIVABLE).
+			SetStatus(financebillent.StatusCONFIRMED).
+			SetSettlementPartyID(fixture.partnerID).
+			SetSettlementPartyName("批量删除占用客户-" + fixture.suffix).
+			SetCurrency("CNY").
+			SetBaseCurrency("CNY").
+			SetExchangeRate("1.00000000").
+			SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
+			SetExchangeRateDate(financeBillIntegrationDate).
+			SetTotalAmount("100.00000000").
+			SetNetAmount("100.00000000").
+			SetTaxAmount("0.00000000").
+			SetBaseCurrencyAmount("100.00000000").
+			SetFeeCount(1).
+			SetBillDate(financeBillIntegrationDate).
+			SetVersion(1)
+		if _, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, fixture.accountID, "CNY").Save(context.Background()); err != nil {
+			t.Fatalf("建立账单失败: %v", err)
+		}
+		if _, err := data.db.FinanceBillLine.Create().
+			SetBillID(billID).
+			SetOrderFeeID(billedFee).
+			SetOrderID(orderID).
+			SetOrderNo("BULK-REMOVE").
+			SetFeeCode("OCEAN_FREIGHT").
+			SetFeeName("海运费").
+			SetQuantity("1.0000").
+			SetUnitPrice("100.0000").
+			SetTotalAmount("100.00000000").
+			SetNetAmount("100.00000000").
+			SetTaxAmount("0.00000000").
+			SetCurrency("CNY").
+			SetExchangeRate("1.00000000").
+			SetBaseCurrency("CNY").
+			SetBaseCurrencyAmount("100.00000000").
+			SetActive(true).
 			Save(context.Background()); err != nil {
-			t.Fatalf("置为已作废费用失败: %v", err)
+			t.Fatalf("建立账单明细失败: %v", err)
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		updateErr := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targetsOf(cancelled, free), &newParty.ID, nil)
-		if !errors.Is(updateErr, biz.ErrOrderFeeInvalidTransition) || !strings.Contains(updateErr.Error(), cancelled.String()) {
-			t.Fatalf("已作废行修改应携带定位拒绝，实际 %v", updateErr)
-		}
-		removeErr := usecase.BulkRemove(ctx, organizationID, actor, orderID, targetsOf(cancelled, free), "")
-		if !errors.Is(removeErr, biz.ErrOrderFeeInvalidTransition) {
-			t.Fatalf("已作废行删除应整批拒绝，实际 %v", removeErr)
+		removeErr := usecase.BulkRemove(ctx, organizationID, actor, orderID, targetsOf(billedFee, free), "")
+		if !errors.Is(removeErr, biz.ErrOrderFeeBillOccupied) || !strings.Contains(removeErr.Error(), billedFee.String()) {
+			t.Fatalf("已建账费用删除应携带定位拒绝，实际 %v", removeErr)
 		}
 		freeFee, queryErr := data.db.OrderFee.Get(context.Background(), free)
 		if queryErr != nil || freeFee.Version != 1 {
-			t.Fatalf("混入已作废行时其他费用不得被改动: version=%d err=%v", freeFee.Version, queryErr)
+			t.Fatalf("混入占用费用时其他费用不得被改动: version=%d err=%v", freeFee.Version, queryErr)
 		}
 	})
 }

@@ -347,7 +347,7 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
 - Base：结果引用 `CURRENT` 目标，顶层仍显式声明该键和类型，不靠空字符串表达沿用。
 - Bad：结果传入 `MISSING`，data 查询不到后自动沿用当前 MBL。
 - Bad：整体改配传 `UNKNOWN`，因候选 ID 为空而被猜成 NEW。
-- Bad：Execute 事务前调用完整 Preview；并发失败方先看到胜方提交后的 HBL/费用状态，
+- Bad：Execute 事务前调用完整 Preview；并发失败方先看到胜方提交后的 HBL/费用账单占用变化，
   返回“数量不足”等 400，导致用户无法通过刷新恢复。
 
 ### 6. Tests Required

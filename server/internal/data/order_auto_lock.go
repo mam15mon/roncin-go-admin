@@ -568,7 +568,7 @@ func autoLockLifecycleBlockReason(order *ent.Order) string {
 func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.UUID) (eligible bool, reasonCode string, err error) {
 	// 1) 任意方向的未建账费用都阻止自动锁定。
 	unbilledFeeExists, err := tx.OrderFee.Query().
-		Where(orderfeeent.OrderIDEQ(orderID), orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED)).
+		Where(orderfeeent.OrderIDEQ(orderID), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).
 		Exist(ctx)
 	if err != nil {
 		return false, "", err

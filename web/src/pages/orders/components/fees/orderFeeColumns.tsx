@@ -2,11 +2,6 @@ import { EditOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button } from 'antd';
 import { feeBaseColumns } from './feeBaseColumns';
-import {
-  FEE_BILLED,
-  FEE_UNBILLED,
-  feeStatusCode,
-} from './feeConstants';
 
 type OrderFeeColumnProps = {
   direction: number;
@@ -32,19 +27,18 @@ export function getOrderFeeTableColumns({
         feeWritesDisabled
           ? []
           : [
-              (feeStatusCode(record.status) === FEE_UNBILLED ||
-                feeStatusCode(record.status) === FEE_BILLED) && (
-                <Button
-                  key="edit"
-                  type="link"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => onOpenModal(direction, record)}
-                >
-                  编辑
-                </Button>
-              ),
-              feeStatusCode(record.status) === FEE_UNBILLED && (
+              <Button
+                key="edit"
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => onOpenModal(direction, record)}
+              >
+                编辑
+              </Button>,
+              // 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
+              // 补录生成费用由服务端拒绝普通删除并提示前往补录申请撤销。
+              record.hasActiveBill !== true && (
                 <Button
                   key="cancel"
                   type="link"
@@ -52,10 +46,10 @@ export function getOrderFeeTableColumns({
                   danger
                   onClick={() => onCancelFee(record)}
                 >
-                  作废
+                  删除
                 </Button>
               ),
-            ],
+            ].filter(Boolean),
     },
   ];
 }

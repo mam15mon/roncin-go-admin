@@ -279,7 +279,6 @@ func workbenchAttributedOrderPredicate(scope biz.WorkbenchScope) predicate.Order
 	return orderent.And(
 		orderent.HasCommissionAttributionsWith(attribution.EmployeeIDEQ(scope.UserID)),
 		orderent.HasFeesWith(
-			fee.StatusIn(fee.StatusUNBILLED, fee.StatusBILLED),
 			fee.DirectionEQ(fee.DirectionRECEIVABLE),
 			fee.BaseCurrencyAmountGT("0"),
 		),
@@ -542,8 +541,8 @@ func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Cl
 		return summary, nil
 	}
 	unbilledFeeCount, err := client.OrderFee.Query().Where(
-		fee.StatusEQ(fee.StatusUNBILLED),
 		fee.OrderIDIn(myOrderIDs...),
+		fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate())),
 	).Count(ctx)
 	if err != nil {
 		return nil, err

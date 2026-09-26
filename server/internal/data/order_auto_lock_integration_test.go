@@ -238,7 +238,6 @@ func (f *autoLockPostgresFixture) createReceivableBill(orders []*ent.Order, line
 			SetOrderID(order.ID).
 			SetIdempotencyKey("fee-" + order.OrderNo + "-" + uuid.NewString()[:8]).
 			SetDirection(orderfeeent.DirectionRECEIVABLE).
-			SetStatus(orderfeeent.StatusBILLED).
 			SetFeeCode("OCEAN_FREIGHT").
 			SetFeeName("海运费").
 			SetSettlementPartyID(f.partnerID).
@@ -642,7 +641,6 @@ func TestAutoOrderLock_SettlementTriggerPostgres(t *testing.T) {
 			SetOrderID(order.ID).
 			SetIdempotencyKey("fee-unbilled-" + fixture.suffix).
 			SetDirection(orderfeeent.DirectionPAYABLE).
-			SetStatus(orderfeeent.StatusUNBILLED).
 			SetFeeCode("TRUCKING").
 			SetFeeName("拖车费").
 			SetSettlementPartyID(fixture.partnerID).
@@ -703,7 +701,6 @@ func TestAutoOrderLock_SettlementTriggerPostgres(t *testing.T) {
 			SetOrderID(order.ID).
 			SetIdempotencyKey("fee-unbilled-bill-" + fixture.suffix).
 			SetDirection(orderfeeent.DirectionPAYABLE).
-			SetStatus(orderfeeent.StatusUNBILLED).
 			SetFeeCode("TRUCKING").
 			SetFeeName("拖车费").
 			SetSettlementPartyID(fixture.partnerID).
@@ -779,7 +776,6 @@ func TestAutoOrderLock_SettlementTriggerPostgres(t *testing.T) {
 			t.Fatalf("创建应付账单行: %v", lineErr)
 		}
 		if _, feeErr := fixture.data.db.OrderFee.UpdateOneID(payableFee.ID).
-			SetStatus(orderfeeent.StatusBILLED).
 			SetVersion(2).
 			Save(fixture.ctx); feeErr != nil {
 			t.Fatalf("更新费用为已建账: %v", feeErr)

@@ -14,7 +14,7 @@ import {
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
 } from '@/services/roncin/orderFeeService';
-import { FEE_UNBILLED, RECEIVABLE } from './feeConstants';
+import { RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -58,7 +58,6 @@ function makeProps(orderId: string) {
 const taxFee = {
   id: 'fee-tax-1',
   direction: RECEIVABLE,
-  status: FEE_UNBILLED,
   currency: 'USD',
   expenseDate: '2026-09-20',
   version: '3',
@@ -193,7 +192,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
-        order: ['status', 'taxAmount', 'feeSettingId'],
+        order: ['taxAmount', 'feeSettingId'],
         hidden: ['taxRate'],
       }),
     );
@@ -211,7 +210,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
   it('恢复默认清除场景偏好并还原默认可见列（A1）', async () => {
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ order: ['status', 'taxRate'], hidden: ['taxRate'] }),
+      JSON.stringify({ order: ['taxRate'], hidden: ['taxRate'] }),
     );
     render(
       <App>

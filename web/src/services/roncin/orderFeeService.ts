@@ -103,7 +103,7 @@ export async function orderFeeServicePreviewOrderFeeSupplementApproval(
 }
 
 /** ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
- 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
+ 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
 export async function orderFeeServiceApproveOrderFeeSupplement(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceApproveOrderFeeSupplementParams,
@@ -125,9 +125,9 @@ export async function orderFeeServiceApproveOrderFeeSupplement(
   );
 }
 
-/** CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
- UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
- 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/cancel-fee */
+/** CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
+ 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
+ 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/cancel-fee */
 export async function orderFeeServiceCancelApprovedOrderFeeSupplement(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceCancelApprovedOrderFeeSupplementParams,
@@ -290,8 +290,8 @@ export async function orderFeeServiceAddFee(
   });
 }
 
-/** UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
- 已建账费用仅允许按财务策略修改并同步草稿账单。 PUT /api/v1/orders/${param0}/fees/${param1} */
+/** UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用
+ （未建账）的费用可全量维护，已建账费用仅允许按财务策略修改并同步草稿账单。 PUT /api/v1/orders/${param0}/fees/${param1} */
 export async function orderFeeServiceUpdateFee(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceUpdateFeeParams,
@@ -313,7 +313,8 @@ export async function orderFeeServiceUpdateFee(
   );
 }
 
-/** RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。 DELETE /api/v1/orders/${param0}/fees/${param1} */
+/** RemoveFee 物理删除未被有效账单关联占用（未建账）的订单费用；补录生成的费用
+ 必须通过补录申请专用撤销删除，历史账单行快照保留、来源引用置空。 DELETE /api/v1/orders/${param0}/fees/${param1} */
 export async function orderFeeServiceRemoveFee(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceRemoveFeeParams,
@@ -332,8 +333,9 @@ export async function orderFeeServiceRemoveFee(
   );
 }
 
-/** BulkRemoveOrderFees 批量删除订单未建账费用：整批单一事务，被未取消账单
- 占用、版本冲突或越订单任一不满足时整批回滚，费用标签关联随删除级联清理。 POST /api/v1/orders/${param0}/fees/bulk-remove */
+/** BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
+ 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
+ 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。 POST /api/v1/orders/${param0}/fees/bulk-remove */
 export async function orderFeeServiceBulkRemoveOrderFees(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceBulkRemoveOrderFeesParams,
@@ -355,8 +357,8 @@ export async function orderFeeServiceBulkRemoveOrderFees(
   );
 }
 
-/** BulkUpdateOrderFees 批量定向修改订单未建账费用：每次仅修改结算单位或
- 费用发生时间之一，整批单一事务，任一行版本冲突、状态不符、越订单或
+/** BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
+ 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
  汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。 POST /api/v1/orders/${param0}/fees/bulk-update */
 export async function orderFeeServiceBulkUpdateOrderFees(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

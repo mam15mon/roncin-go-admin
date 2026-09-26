@@ -10,7 +10,6 @@ describe('feeBaseColumns', () => {
     });
 
     expect(columns.map((column) => column.dataIndex)).toEqual([
-      'status',
       'feeCode',
       'feeName',
       'settlementPartyName',
@@ -24,7 +23,6 @@ describe('feeBaseColumns', () => {
       'note',
     ]);
     expect(columns.map((column) => column.width)).toEqual([
-      90,
       120,
       140,
       180,
@@ -43,7 +41,6 @@ describe('feeBaseColumns', () => {
     const columns = feeBaseColumns({ variant: 'panel' });
 
     expect(columns.map((column) => column.dataIndex)).toEqual([
-      'status',
       'direction',
       'feeCode',
       'feeName',
@@ -57,7 +54,7 @@ describe('feeBaseColumns', () => {
       'note',
     ]);
     expect(columns.map((column) => column.width)).toEqual([
-      90, 90, 130, 150, 190, 90, 110, 130, 150, 160, 110, 180,
+      90, 130, 150, 190, 90, 110, 130, 150, 160, 110, 180,
     ]);
   });
 });

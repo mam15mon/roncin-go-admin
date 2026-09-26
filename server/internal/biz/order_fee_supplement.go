@@ -21,9 +21,9 @@ var (
 	// ErrFeeSupplementNotApplicable 业务锁与财务锁均不存在时的稳定拒绝：补录是
 	// 锁单的受控例外，普通无锁订单必须走普通费用新增入口。
 	ErrFeeSupplementNotApplicable = errors.Conflict("FEE_SUPPLEMENT_NOT_APPLICABLE", "订单当前没有业务锁或财务锁，请使用普通费用新增入口")
-	// ErrFeeSupplementCancelBlocked 专用作废被下游事实阻断；消息由仓储按具体
+	// ErrFeeSupplementCancelBlocked 专用撤销被下游事实阻断；消息由仓储按具体
 	// 阻断原因动态构造，稳定 reason 便于前端识别。
-	ErrFeeSupplementCancelBlocked = errors.Conflict("FEE_SUPPLEMENT_CANCEL_BLOCKED", "当前补录费用不满足专用作废条件")
+	ErrFeeSupplementCancelBlocked = errors.Conflict("FEE_SUPPLEMENT_CANCEL_BLOCKED", "当前补录费用不满足专用撤销条件")
 )
 
 // LOCK_BASIS_CHANGED 的结构化 next_action 元数据键与取值：前端按稳定字段决定
@@ -412,13 +412,13 @@ type OrderFeeSupplementDecreaseSuggestion struct {
 	ExcessAmount  decimal.Decimal
 }
 
-// OrderFeeSupplementCancelCapability 是专用作废的只读能力投影。
+// OrderFeeSupplementCancelCapability 是专用撤销的只读能力投影。
 type OrderFeeSupplementCancelCapability struct {
 	Cancellable     bool
 	BlockReasonCode string
 	BlockReason     string
-	FeeID           *uuid.UUID
-	FeeStatus       string
+	// FeeID 是 APPROVED 申请当前生成的费用 ID；生成费用已专用撤销删除时为空。
+	FeeID *uuid.UUID
 }
 
 // OrderFeeSupplementCancelInput 是专用作废命令的事务入参。
@@ -433,9 +433,14 @@ type OrderFeeSupplementCancelInput struct {
 	Audit              *AuditEvent
 }
 
-// OrderFeeSupplementCancelResult 是专用作废事务的结果投影。
+// OrderFeeSupplementCancelResult 是专用撤销事务的结果投影：领域层保留已删除
+// 费用 ID 与被取消调整 ID 供内部联动，不再携带已不存在的费用对象。Request 是
+// 撤销后同一事务内重读的申请（保持 APPROVED），View 是刷新后的能力投影，
+// 供响应向调用方展示「生成费用已删除」。
 type OrderFeeSupplementCancelResult struct {
-	Fee                    *OrderFee
+	Request                *OrderFeeSupplementRequest
+	View                   *OrderFeeSupplementRequestView
+	DeletedFeeID           uuid.UUID
 	CancelledAdjustmentIDs []uuid.UUID
 }
 

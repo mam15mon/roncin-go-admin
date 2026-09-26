@@ -1,29 +1,34 @@
 package data
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/migrate"
-	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 )
 
-// TestOrderFeeStatusCheckMetadata 断言费用状态 CHECK 与正式迁移同名同表达式：
-// 历史 DRAFT/CONFIRMED 已合并为 UNBILLED，允许值收紧为未建账/已建账/已作废，
-// 枚举默认值与迁移默认值同源（ADR 0003 CHECK 同源规范）。
-func TestOrderFeeStatusCheckMetadata(t *testing.T) {
-	const wantExpr = "status IN ('UNBILLED', 'BILLED', 'CANCELLED')"
-	if migrate.OrderFeesTable.Annotation == nil || migrate.OrderFeesTable.Annotation.Checks == nil {
-		t.Fatalf("order_fees 生成元数据缺少 CHECK 注解")
+// TestOrderFeeStatusColumnsRemoved 断言费用状态已彻底退役：生成元数据中不再存在
+// status/cancelled_* 列、order_fees_status_check 约束与 (order_id,status,created_at)
+// 索引；是否已建账只由有效账单关联（活动账单行且所属账单未取消）这一关联事实表达，
+// 防止状态列或状态 CHECK 以漂移形式回流（数据库规范「正式 CHECK 与 Ent 同源」的
+// 删除侧守卫）。
+func TestOrderFeeStatusColumnsRemoved(t *testing.T) {
+	columns := map[string]struct{}{}
+	for _, column := range migrate.OrderFeesColumns {
+		columns[column.Name] = struct{}{}
 	}
-	expr, ok := migrate.OrderFeesTable.Annotation.Checks["order_fees_status_check"]
-	if !ok {
-		t.Fatalf("生成元数据缺少 order_fees_status_check: %#v", migrate.OrderFeesTable.Annotation.Checks)
+	for _, name := range []string{"status", "cancelled_at", "cancelled_by", "cancellation_reason"} {
+		if _, exists := columns[name]; exists {
+			t.Fatalf("order_fees.%s 应已随费用状态退役删除，仍存在于生成元数据", name)
+		}
 	}
-	if normalized := strings.Join(strings.Fields(expr), " "); normalized != wantExpr {
-		t.Fatalf("order_fees_status_check 表达式 = %q，期望 %q", normalized, wantExpr)
+	if migrate.OrderFeesTable.Annotation != nil && migrate.OrderFeesTable.Annotation.Checks != nil {
+		if _, exists := migrate.OrderFeesTable.Annotation.Checks["order_fees_status_check"]; exists {
+			t.Fatalf("order_fees_status_check 应已随费用状态退役删除，仍存在于生成元数据")
+		}
 	}
-	if orderfeeent.DefaultStatus != orderfeeent.StatusUNBILLED {
-		t.Fatalf("order_fees.status 默认值 = %q，期望 UNBILLED", orderfeeent.DefaultStatus)
+	for _, index := range migrate.OrderFeesTable.Indexes {
+		if index.Name == "orderfee_order_id_status_created_at" {
+			t.Fatalf("orderfee_order_id_status_created_at 索引应已随费用状态退役删除")
+		}
 	}
 }

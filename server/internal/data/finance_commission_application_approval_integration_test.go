@@ -367,7 +367,6 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 		SetOrderID(draftFixture.orderID).
 		SetIdempotencyKey("fca-unbilled-block-" + draftFixture.suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusUNBILLED).
 		SetFeeCode("DOCUMENT").
 		SetFeeName("未建账杂费").
 		SetSettlementPartyID(draftFixture.customerID).

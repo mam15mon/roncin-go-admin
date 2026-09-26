@@ -247,9 +247,8 @@ func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, sc
 	attributionPredicates := []predicate.OrderCommissionAttribution{
 		attribution.OrganizationIDEQ(scope.OrganizationID),
 		attribution.OrderIDIn(scope.OrderIDs...),
-		// 与候选发现同口径：订单须存在未建账/已建账的正数应收费用。
+		// 与候选发现同口径：订单须存在正数应收费用（状态已并入账单关联事实）。
 		attribution.HasOrderWith(orderent.HasFeesWith(
-			fee.StatusIn(fee.StatusUNBILLED, fee.StatusBILLED),
 			fee.DirectionEQ(fee.DirectionRECEIVABLE),
 			fee.BaseCurrencyAmountGT("0"),
 		)),

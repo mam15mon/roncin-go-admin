@@ -1,11 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
-import {
-  normalizeOrderFeeStatus,
-  orderFeeStatusMeta,
-  statusTag,
-} from '@/constants/statusMeta';
-import { trimDecimal, formatAmount } from '@/utils/format';
+import { formatAmount, trimDecimal } from '@/utils/format';
 import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
 
 type FeeBaseColumnsOptions =
@@ -17,13 +12,6 @@ export function feeBaseColumns(
   options: FeeBaseColumnsOptions,
 ): ProColumns<API.OrderFee>[] {
   const panel = options.variant === 'panel';
-  const statusColumn: ProColumns<API.OrderFee> = {
-    title: '状态',
-    dataIndex: 'status',
-    width: 90,
-    render: (_, record) =>
-      statusTag(orderFeeStatusMeta, normalizeOrderFeeStatus(record.status)),
-  };
   const directionColumn: ProColumns<API.OrderFee> = {
     title: '收付方向',
     dataIndex: 'direction',
@@ -147,7 +135,6 @@ export function feeBaseColumns(
 
   if (panel) {
     return [
-      statusColumn,
       directionColumn,
       feeCodeColumn,
       feeNameColumn,
@@ -163,7 +150,6 @@ export function feeBaseColumns(
   }
 
   return [
-    statusColumn,
     feeCodeColumn,
     feeNameColumn,
     settlementPartyColumn,

@@ -53,7 +53,7 @@ describe('feeColumnPreference 列定义与默认值', () => {
     );
     // 老用户偏好存储未提及新列时，按 defaultVisible 兜底自动出现且不进 hidden
     const stored: FeeColumnPreference = {
-      order: ['status', 'feeSettingId'],
+      order: ['feeCode', 'feeSettingId'],
       hidden: [],
     };
     const resolved = resolveFeeColumnPreference(stored, false);
@@ -78,7 +78,7 @@ describe('resolveFeeColumnPreference 存储合并', () => {
   it('忽略未知 key，并按默认可见性兜底偏好未提及的新列', () => {
     // 模拟历史版本或损坏存储写入的未知列 key
     const stored = {
-      order: ['status', 'ghost-column', 'feeSettingId'],
+      order: ['note', 'ghost-column', 'feeSettingId'],
       hidden: ['unknown-hidden'],
     } as unknown as FeeColumnPreference;
     const resolved = resolveFeeColumnPreference(stored, false);
@@ -106,11 +106,11 @@ describe('resolveFeeColumnPreference 存储合并', () => {
       defaultFeeColumnPreference(false),
     );
     const partial: FeeColumnPreference = {
-      order: ['note', 'status'],
+      order: ['note', 'feeCode'],
       hidden: ['note'],
     };
     const resolved = resolveFeeColumnPreference(partial, false);
-    expect(resolved.order.slice(0, 2)).toEqual(['note', 'status']);
+    expect(resolved.order.slice(0, 2)).toEqual(['note', 'feeCode']);
     for (const key of defaultFeeColumnPreference(false).order) {
       expect(resolved.order).toContain(key);
     }
@@ -156,9 +156,9 @@ describe('feeColumnPreference 本地存储', () => {
   });
 
   it('缺省 scope 段落到 anonymous/default 键，避免误读他人偏好', () => {
-    expect(saveFeeColumnPreference({}, { order: ['status'], hidden: [] })).toBe(
-      true,
-    );
+    expect(
+      saveFeeColumnPreference({}, { order: ['feeCode'], hidden: [] }),
+    ).toBe(true);
     expect(
       window.localStorage.getItem(
         'roncin:order-fee-columns:v1:anonymous:default',
@@ -196,7 +196,7 @@ describe('feeColumnPreference 本地存储', () => {
       expect(
         saveFeeColumnPreference(
           { userId: 'user-1', organizationId: 'org-1' },
-          { order: ['status'], hidden: [] },
+          { order: ['feeCode'], hidden: [] },
         ),
       ).toBe(false);
       expect(
@@ -210,7 +210,7 @@ describe('feeColumnPreference 本地存储', () => {
 
   it('恢复默认清除场景偏好键', () => {
     const scope = { userId: 'user-1', organizationId: 'org-1' };
-    saveFeeColumnPreference(scope, { order: ['status'], hidden: [] });
+    saveFeeColumnPreference(scope, { order: ['feeCode'], hidden: [] });
     expect(clearFeeColumnPreference(scope)).toBe(true);
     expect(
       window.localStorage.getItem('roncin:order-fee-columns:v1:user-1:org-1'),

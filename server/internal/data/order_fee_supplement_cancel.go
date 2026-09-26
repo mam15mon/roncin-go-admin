@@ -86,27 +86,21 @@ func evaluateCancelCapability(ctx context.Context, client *ent.Client, organizat
 		return nil, err
 	}
 	result.FeeID = &fee.ID
-	result.FeeStatus = string(fee.Status)
 	blocked := func(code, reason string) (*biz.OrderFeeSupplementCancelCapability, error) {
 		result.Cancellable = false
 		result.BlockReasonCode = code
 		result.BlockReason = reason
 		return result, nil
 	}
-	if fee.Status == orderfeeent.StatusCANCELLED {
-		return blocked("FEE_ALREADY_CANCELLED", "补录费用已作废")
-	}
-	activeLine, err := client.FinanceBillLine.Query().
-		Where(financebilllineent.OrderFeeIDEQ(fee.ID), financebilllineent.ActiveEQ(true)).
+	// 有效账单关联（活动账单行且所属账单未取消，含草稿账单）即视为已建账。
+	occupied, err := client.FinanceBillLine.Query().
+		Where(financebilllineent.OrderFeeIDEQ(fee.ID), effectiveBillLinePredicate()).
 		Exist(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if activeLine || fee.Status == orderfeeent.StatusBILLED {
-		return blocked("FEE_BILLED", "补录费用已建账，需先按现有财务链路取消账单")
-	}
-	if fee.Status != orderfeeent.StatusUNBILLED {
-		return blocked("FEE_STATUS_INVALID", "仅 UNBILLED 状态的补录费用可专用作废")
+	if occupied {
+		return blocked("FEE_BILLED", "补录生成的费用已建账，需先经现有财务链路取消账单")
 	}
 	// 更晚生效且未作废的补录存在时，必须按批准时间倒序逐笔作废，避免撤销早期
 	// 成本后让后续边际冲减失真。比较键为批准时间 + 申请 ID。
@@ -118,7 +112,6 @@ func evaluateCancelCapability(ctx context.Context, client *ent.Client, organizat
 		orderfeeent.OrderIDEQ(orderID),
 		orderfeeent.SupplementRequestIDNotNil(),
 		orderfeeent.SupplementRequestIDNEQ(requestID),
-		orderfeeent.StatusNEQ(orderfeeent.StatusCANCELLED),
 		orderfeeent.HasSupplementRequestWith(
 			orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusAPPROVED),
 			orderfeesupplementent.Or(
@@ -202,6 +195,10 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 		}
 		fee, feeErr := tx.OrderFee.Query().Where(orderfeeent.SupplementRequestIDEQ(input.RequestID)).ForUpdate().Only(ctx)
 		if feeErr != nil {
+			if ent.IsNotFound(feeErr) {
+				// 生成费用已被专用撤销删除：明确拒绝重复撤销，不重复处理调整。
+				return newFeeSupplementCancelBlockedError("补录生成的费用已删除，无需重复撤销")
+			}
 			return mapEntError(feeErr, biz.ErrFeeSupplementCancelBlocked, nil)
 		}
 		if fee.OrderID != input.OrderID {
@@ -261,14 +258,11 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 			}
 			cancelledIDs = append(cancelledIDs, adjustment.ID)
 		}
-		if _, feeUpdateErr := tx.OrderFee.UpdateOne(fee).
-			SetStatus(orderfeeent.StatusCANCELLED).
-			SetVersion(fee.Version + 1).
-			SetCancelledAt(now).
-			SetCancelledBy(input.OperatorID).
-			SetCancellationReason(input.Reason).
-			Save(ctx); feeUpdateErr != nil {
-			return feeUpdateErr
+		deletedFeeID := fee.ID
+		// 专用撤销改为物理删除：费用标签关联按现有外键级联清理，历史账单行快照
+		// 保留且来源外键置空；APPROVED 申请及其不可变费用快照保持不变。
+		if _, feeDeleteErr := tx.OrderFee.Delete().Where(orderfeeent.IDEQ(fee.ID)).Exec(ctx); feeDeleteErr != nil {
+			return feeDeleteErr
 		}
 		// 6. 写作废人、时间、原因、费用前一版本与被取消调整 ID 审计后提交。
 		if input.Audit != nil {
@@ -277,7 +271,11 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 			}
 			input.Audit.Details["fee.id"] = fee.ID.String()
 			input.Audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(fee.Version)).String()
-			input.Audit.Details["fee.previous_status"] = string(fee.Status)
+			input.Audit.Details["fee.code"] = fee.FeeCode
+			input.Audit.Details["fee.direction"] = string(fee.Direction)
+			input.Audit.Details["fee.amount"] = fee.TotalAmount
+			input.Audit.Details["fee.currency"] = fee.Currency
+			input.Audit.Details["fee.settlement_party_id"] = fee.SettlementPartyID.String()
 			cancelledIDTexts := make([]string, 0, len(cancelledIDs))
 			for _, id := range cancelledIDs {
 				cancelledIDTexts = append(cancelledIDTexts, id.String())
@@ -287,15 +285,15 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 				return writeErr
 			}
 		}
-		loaded, loadErr := tx.OrderFee.Query().Where(orderfeeent.IDEQ(fee.ID)).WithSettlementParty().Only(ctx)
-		if loadErr != nil {
-			return loadErr
+		refreshed, refreshErr := tx.OrderFeeSupplementRequest.Query().Where(orderfeesupplementent.IDEQ(input.RequestID)).Only(ctx)
+		if refreshErr != nil {
+			return refreshErr
 		}
-		converted, convertErr := orderFeeToBiz(loaded)
+		refreshedView, convertErr := supplementRequestToBiz(refreshed)
 		if convertErr != nil {
 			return convertErr
 		}
-		result = &biz.OrderFeeSupplementCancelResult{Fee: converted, CancelledAdjustmentIDs: cancelledIDs}
+		result = &biz.OrderFeeSupplementCancelResult{Request: refreshedView, DeletedFeeID: deletedFeeID, CancelledAdjustmentIDs: cancelledIDs}
 		return nil
 	})
 	if err != nil {

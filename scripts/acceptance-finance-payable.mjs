@@ -271,23 +271,12 @@ const feeResponse = await request(`/api/v1/orders/${order.id}/fees`, {
     note: '应付费用端到端自动验收',
   }),
 });
-const draftFee = feeResponse.data;
-assert(isEnumValue(draftFee?.direction, 2, 'PAYABLE'), '新建费用未保存为应付方向');
-assert(draftFee.settlementPartyId === supplier.id, '应付费用未关联供应商');
-const confirmedFeeResponse = await request(
-  `/api/v1/orders/${order.id}/fees/${draftFee.id}/confirm`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      orderId: order.id,
-      id: draftFee.id,
-      expectedVersion: draftFee.version,
-    }),
-  },
-);
-const confirmedFee = confirmedFeeResponse.data;
-assert(confirmedFee?.status === 2, `费用确认后状态应为 CONFIRMED(2)，实际 ${confirmedFee?.status}`);
-assert(isEnumValue(confirmedFee?.direction, 2, 'PAYABLE'), '费用确认后应付方向丢失');
+const createdFee = feeResponse.data;
+assert(isEnumValue(createdFee?.direction, 2, 'PAYABLE'), '新建费用未保存为应付方向');
+assert(createdFee.settlementPartyId === supplier.id, '应付费用未关联供应商');
+// 费用无独立状态与确认动作：是否建账由有效账单关联（hasActiveBill）表达。
+assert(createdFee.hasActiveBill !== true, '新建应付费用不应携带有效账单关联');
+const confirmedFee = createdFee;
 const orderFees = await request(`/api/v1/orders/${order.id}/fees`);
 const persistedFee = orderFees.data?.find((item) => item.id === confirmedFee.id);
 assert(
@@ -538,7 +527,7 @@ const [feesAfterVerification, billsAfterVerification, cashflowsAfterVerification
 assert(
   feesAfterVerification.data?.find((item) => item.id === confirmedFee.id)
     ?.financialProgress === 4,
-  '应付全额核销后费用状态不是 VERIFIED_UNINVOICED',
+  '应付全额核销后费用财务进度不是 VERIFIED_UNINVOICED',
 );
 assert(
   billsAfterVerification.data?.find((item) => item.id === confirmedBill.id)

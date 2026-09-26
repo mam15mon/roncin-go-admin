@@ -421,7 +421,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		OrderNo:        "SE202609100001",
 		BusinessType:   "SE",
 		Fee: &biz.OrderFee{
-			ID: feeID, OrderID: orderID, Direction: biz.OrderFeeReceivable, Status: biz.OrderFeeUnbilled,
+			ID: feeID, OrderID: orderID, Direction: biz.OrderFeeReceivable,
 			SettlementPartyID: partyID, SettlementPartyName: "测试客户", FeeCode: "OCEAN", FeeName: "海运费",
 			Currency: "CNY", BaseCurrency: "CNY", TaxRate: &taxRate, ExchangeRate: decimal.NewFromInt(1),
 			Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100),

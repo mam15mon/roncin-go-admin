@@ -5,11 +5,9 @@ import type { RowColorsConfig } from '@/components/ui/finance-ledger-template';
 import {
   businessTypeMeta,
   normalizeBusinessType,
-  orderFeeStatusMeta,
-  statusTag,
   statusText,
 } from '@/constants/statusMeta';
-import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
+import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { searchPartnerOptions } from '@/features/partners';
 import { history } from '@/router/history';
@@ -19,19 +17,6 @@ const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
   ['SE', 'SI', 'AE', 'AI', 'LAND', 'RAIL'].map((code) => [
     code,
     { text: statusText(businessTypeMeta, normalizeBusinessType(code), code) },
-  ]),
-);
-
-const feeLedgerStatusValueEnum = Object.fromEntries(
-  [
-    OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
-    OrderFeeStatus.ORDER_FEE_STATUS_BILLED,
-    OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
-  ].map((status) => [
-    status,
-    {
-      text: statusText(orderFeeStatusMeta, status, String(status)),
-    },
   ]),
 );
 
@@ -181,7 +166,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
         ),
     },
 
-    // 3. 费用名称、币种、金额、发票号、费用状态、汇率
+    // 3. 费用名称、币种、金额、发票号、财务进度、汇率
     {
       title: '费用名称',
       dataIndex: 'feeName',
@@ -263,20 +248,6 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
           </Tag>
         );
       },
-    },
-    {
-      title: '费用状态',
-      dataIndex: 'status',
-      width: 90,
-      valueType: 'select',
-      order: 82,
-      valueEnum: feeLedgerStatusValueEnum,
-      render: (_, row) =>
-        statusTag(
-          orderFeeStatusMeta,
-          row.status ?? OrderFeeStatus.ORDER_FEE_STATUS_UNSPECIFIED,
-          row.status == null ? '-' : String(row.status),
-        ),
     },
     {
       title: '汇率',

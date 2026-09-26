@@ -473,7 +473,7 @@ func newFinanceBillPostgresFixture(t *testing.T, data *Data) *financeBillPostgre
 	organization, err := data.db.Organization.Create().
 		SetCode("BILL-TX-" + suffix).
 		SetName("账单事务集成测试组织-" + suffix).
-		SetKind("system").
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -566,7 +566,6 @@ func (f *financeBillPostgresFixture) createUnbilledFeeWithCurrency(key, currency
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(f.partnerID).
@@ -597,7 +596,7 @@ func (f *financeBillPostgresFixture) createExchangeRateSetting(rate string) uuid
 		SetOrganizationID(f.organizationID).
 		SetFromCurrency("USD").
 		SetToCurrency("CNY").
-		SetEffectiveFrom(time.Date(2026, 8, 1, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).
+		SetEffectiveFrom(time.Date(2026, 8, 24, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).
 		SetRate(rate).
 		SetIsActive(true).
 		Save(context.Background())
@@ -652,7 +651,7 @@ func (f *financeBillPostgresFixture) requireCommittedState(feeID uuid.UUID, want
 		f.t.Fatalf("已提交账单序列 = %#v，期望当前值 %d，error=%v", sequences, wantBills, err)
 	}
 	fee, err := f.data.db.OrderFee.Get(ctx, feeID)
-	if err != nil || fee.Status != orderfeeent.StatusBILLED || fee.Version != 2 {
+	if err != nil || fee.Version != 2 {
 		f.t.Fatalf("已提交费用状态 = %#v，期望 BILLED/version 2，error=%v", fee, err)
 	}
 }
@@ -677,7 +676,7 @@ func (f *financeBillPostgresFixture) requireRolledBackState(feeID uuid.UUID) {
 		f.t.Fatalf("回滚后账单序列数 = %d，期望 0，error=%v", sequenceCount, err)
 	}
 	fee, err := f.data.db.OrderFee.Get(ctx, feeID)
-	if err != nil || fee.Status != orderfeeent.StatusUNBILLED || fee.Version != 1 {
+	if err != nil || fee.Version != 1 {
 		f.t.Fatalf("回滚后费用状态 = %#v，期望 UNBILLED/version 1，error=%v", fee, err)
 	}
 }

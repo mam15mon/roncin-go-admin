@@ -3,11 +3,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Space } from 'antd';
 import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import { feeBaseColumns } from './components/fees/feeBaseColumns';
-import {
-  FEE_BILLED,
-  FEE_UNBILLED,
-  feeStatusCode,
-} from './components/fees/feeConstants';
 
 interface OrderFeePanelColumnsDeps {
   canUpdate: boolean;
@@ -38,26 +33,26 @@ export function buildOrderFeePanelColumns({
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          {canUpdate &&
-            (feeStatusCode(record.status) === FEE_UNBILLED ||
-              feeStatusCode(record.status) === FEE_BILLED) && (
-              <Button
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => onEdit(record)}
-              >
-                编辑
-              </Button>
-            )}
-          {canDelete && feeStatusCode(record.status) === FEE_UNBILLED && (
+          {canUpdate && (
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(record)}
+            >
+              编辑
+            </Button>
+          )}
+          {/* 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
+              补录生成费用由服务端拒绝普通删除并提示前往补录申请撤销。 */}
+          {canDelete && record.hasActiveBill !== true && (
             <Button
               type="link"
               danger
               size="small"
               onClick={() => onCancelFee(record)}
             >
-              作废
+              删除
             </Button>
           )}
         </Space>

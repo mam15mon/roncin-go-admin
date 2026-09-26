@@ -129,7 +129,7 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 				return orderIDErr
 			}
 			lineOrderIDs := orderUUIDsFromLines(orderIDs)
-			hasUnbilledFees, unbilledErr := tx.OrderFee.Query().Where(fee.OrderIDIn(lineOrderIDs...), fee.StatusEQ(fee.StatusUNBILLED)).Exist(ctx)
+			hasUnbilledFees, unbilledErr := tx.OrderFee.Query().Where(fee.OrderIDIn(lineOrderIDs...), fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
 			if unbilledErr != nil {
 				return unbilledErr
 			}
@@ -237,7 +237,7 @@ func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, o
 		}
 	}
 	orderIDs := orderUUIDsFromLines(lineRows)
-	hasUnbilledFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusEQ(fee.StatusUNBILLED)).Exist(ctx)
+	hasUnbilledFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
 	if err != nil {
 		return err
 	}

@@ -6,7 +6,6 @@ import {
   DingTalkInvitationStatus,
   OrderAbnormalCaseStatus,
   OrderBusinessType,
-  OrderFeeStatus,
   OrderFlowStatus,
   OrderReleasePodStatus,
   PartnerContractStatus,
@@ -54,21 +53,6 @@ export const orderFlowStatusMeta: Record<number, StatusMeta> = {
   [OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED]: {
     text: '已放单',
     color: 'success',
-  },
-};
-
-export const orderFeeStatusMeta: Record<number, StatusMeta> = {
-  [OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED]: {
-    text: '未建账',
-    color: 'gold',
-  },
-  [OrderFeeStatus.ORDER_FEE_STATUS_BILLED]: {
-    text: '已进账单',
-    color: 'blue',
-  },
-  [OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED]: {
-    text: '已作废',
-    color: 'default',
   },
 };
 
@@ -196,15 +180,6 @@ const businessTypeCodes: Record<string, number> = {
   BUSINESS_TYPE_RAIL: OrderBusinessType.BUSINESS_TYPE_RAIL,
 };
 
-const orderFeeStatusCodes: Record<string, number> = {
-  UNBILLED: OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
-  BILLED: OrderFeeStatus.ORDER_FEE_STATUS_BILLED,
-  CANCELLED: OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
-  ORDER_FEE_STATUS_UNBILLED: OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
-  ORDER_FEE_STATUS_BILLED: OrderFeeStatus.ORDER_FEE_STATUS_BILLED,
-  ORDER_FEE_STATUS_CANCELLED: OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
-};
-
 function normalizeCode(value: unknown, codes: Record<string, number>): number {
   if (typeof value === 'number') return value;
   const text = String(value ?? '')
@@ -217,10 +192,6 @@ function normalizeCode(value: unknown, codes: Record<string, number>): number {
 
 export function normalizeBusinessType(value: unknown): number {
   return normalizeCode(value, businessTypeCodes);
-}
-
-export function normalizeOrderFeeStatus(value: unknown): number {
-  return normalizeCode(value, orderFeeStatusCodes);
 }
 
 export function makeValueEnum(

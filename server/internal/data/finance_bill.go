@@ -358,7 +358,7 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 	}
 	query := client.OrderFee.Query().
 		Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDIn(organizationIDs...))).
-		WithSettlementParty().WithOrder().Order(orderfeeent.ByID())
+		WithSettlementParty().WithOrder().WithFinanceBillLines(effectiveBillLineFilter).Order(orderfeeent.ByID())
 	if _, transactional := transactionFromContext(ctx); transactional {
 		query.ForUpdate()
 	}
@@ -477,7 +477,8 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
-	predicates := []predicate.OrderFee{orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(financebilllineent.ActiveEQ(true)))}
+	// 候选口径 = 未被有效账单关联占用（活动账单行且所属账单未取消，含草稿账单）。
+	predicates := []predicate.OrderFee{orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))}
 	if filter.Keyword != "" {
 		predicates = append(predicates, orderfeeent.Or(orderfeeent.FeeCodeContainsFold(filter.Keyword), orderfeeent.FeeNameContainsFold(filter.Keyword), orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(filter.Keyword)), orderfeeent.HasSettlementPartyWith(partnerent.Or(partnerent.CodeContainsFold(filter.Keyword), partnerent.LegalNameContainsFold(filter.Keyword), partnerent.SearchKeywordsContainsFold(filter.Keyword), partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(filter.Keyword), partneraliasent.SearchKeywordsContainsFold(filter.Keyword)))))))
 	}
@@ -489,7 +490,7 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
-	items, err := query.WithSettlementParty().WithOrder().Order(orderfeeent.ByExpenseDate(entsql.OrderDesc()), orderfeeent.ByID()).Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
+	items, err := query.WithSettlementParty().WithOrder().WithFinanceBillLines(effectiveBillLineFilter).Order(orderfeeent.ByExpenseDate(entsql.OrderDesc()), orderfeeent.ByID()).Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}

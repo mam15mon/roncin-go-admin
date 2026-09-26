@@ -385,7 +385,7 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFeeSupplementRequestData;
-    /** 审批生成的 UNBILLED 补录费用。 */
+    /** 审批生成的补录费用。 */
     fee?: OrderFee;
     traceId?: string;
   };
@@ -802,9 +802,10 @@ declare namespace API {
     success?: boolean;
     code?: number;
     message?: string;
-    /** 作废后的费用（CANCELLED）。 */
-    fee?: OrderFee;
     traceId?: string;
+    /** 撤销成功后刷新的申请数据：申请保持 APPROVED，fee_id 为空表示生成费用已删除，
+ can_cancel=false 并携带阻断原因；不再返回已删除的费用实体。 */
+    data?: OrderFeeSupplementRequestData;
   };
 
   type CancelBillRequest = {
@@ -991,7 +992,6 @@ declare namespace API {
     baseCurrency?: string;
     baseCurrencyAmount?: string;
     expenseDate?: string;
-    status?: number;
   };
 
   type CommissionRuleAssignmentProjection = {
@@ -2510,7 +2510,6 @@ declare namespace API {
     orderNo?: string;
     businessType?: string;
     direction?: string;
-    status?: number;
     feeCode?: string;
     feeName?: string;
     settlementPartyId?: string;
@@ -4923,17 +4922,16 @@ declare namespace API {
     feeNameEn?: string;
     taxRate?: string;
     taxableServiceName?: string;
-    status?: number;
     taxInclusive?: boolean;
     netAmount?: string;
     taxAmount?: string;
     baseCurrency?: string;
     baseCurrencyAmount?: string;
     version?: string;
-    cancelledAt?: string;
-    cancelledBy?: string;
-    cancellationReason?: string;
     tags?: BusinessTagSummary[];
+    /** 只读计算字段：是否存在有效账单关联（活动账单行且所属账单未取消，草稿账单
+ 同样构成占用）。不持久化、不接受请求写入，是否已建账由账单关联事实决定。 */
+    hasActiveBill?: boolean;
   };
 
   type OrderFeeBillingUnitOption = {
@@ -5109,11 +5107,11 @@ declare namespace API {
     canApprove?: boolean;
     canWithdraw?: boolean;
     canCancel?: boolean;
-    /** can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」）。 */
+    /** can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」「生成费用已删除」）。 */
     cancelBlockedReason?: string;
-    /** APPROVED 申请生成费用的当前状态与 ID（费用已专用作废时为 CANCELLED）。 */
+    /** APPROVED 申请生成的费用 ID；生成费用已专用撤销删除时为空，
+ 前端据此展示「生成费用已删除」。 */
     feeId?: string;
-    feeStatus?: string;
     /** 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
  PENDING 并投影 false，发起人仍可撤回。 */
     approverAvailable?: boolean;
@@ -7729,7 +7727,6 @@ declare namespace API {
     keyword?: string;
     businessType?: string;
     direction?: string;
-    status?: number;
     settlementPartyId?: string;
     currency?: string;
     expenseDateFrom?: string;

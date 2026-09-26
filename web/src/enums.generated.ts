@@ -498,15 +498,6 @@ export const OrderFeeDirection = {
 
 export type OrderFeeDirection = (typeof OrderFeeDirection)[keyof typeof OrderFeeDirection];
 
-export const OrderFeeStatus = {
-  ORDER_FEE_STATUS_UNSPECIFIED: 0,
-  ORDER_FEE_STATUS_BILLED: 3,
-  ORDER_FEE_STATUS_CANCELLED: 4,
-  ORDER_FEE_STATUS_UNBILLED: 5,
-} as const;
-
-export type OrderFeeStatus = (typeof OrderFeeStatus)[keyof typeof OrderFeeStatus];
-
 export const OrderPersonnelRole = {
   ORDER_PERSONNEL_ROLE_UNSPECIFIED: 0,
   ORDER_PERSONNEL_ROLE_CREATOR: 1,

@@ -29,7 +29,7 @@
 | 错误码 | 语义（HTTP 类别） | 中文消息 | 定义位置 | 关联 proto ErrorReason |
 | --- | --- | --- | --- | --- |
 | FEE_SUPPLEMENT_APPROVER_UNAVAILABLE | 409 Conflict | 当前没有具备订单直接解锁资格的审批人，请先配置审批资格 | order_fee_supplement.go | — |
-| FEE_SUPPLEMENT_CANCEL_BLOCKED | 409 Conflict | 当前补录费用不满足专用作废条件 | order_fee_supplement.go | — |
+| FEE_SUPPLEMENT_CANCEL_BLOCKED | 409 Conflict | 当前补录费用不满足专用撤销条件 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_IDEMPOTENCY_CONFLICT | 409 Conflict | 同一幂等键的补录申请内容已变化，请刷新后重新发起 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_NOT_APPLICABLE | 409 Conflict | 订单当前没有业务锁或财务锁，请使用普通费用新增入口 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_REQUEST_INVALID | 400 Bad Request | 补录费用申请参数不合法 | order_fee_supplement.go | — |
@@ -69,8 +69,8 @@
 | ORDER_FEE_FINANCE_LOCKED | 409 Conflict | 订单已因确认或发放提成进入财务锁定，请通过提成调整记录处理后续差异 | order_fee.go | — |
 | ORDER_FEE_IDEMPOTENCY_CONFLICT | 409 Conflict | 费用请求幂等键已被使用 | order_fee.go | — |
 | ORDER_FEE_INVALID_ARGUMENT | 400 Bad Request | 订单费用字段不合法 | order_fee.go | — |
-| ORDER_FEE_INVALID_TRANSITION | 409 Conflict | 当前费用状态不允许执行该操作 | order_fee.go | — |
 | ORDER_FEE_NOT_FOUND | 404 Not Found | 订单费用不存在 | order_fee.go | — |
+| ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN | 409 Conflict | 补录生成的费用不能普通删除，请前往补录申请专用撤销 | order_fee.go | — |
 | ORDER_FEE_PARTY_INVALID | 400 Bad Request | 结算单位必须是当前组织启用的往来单位 | order_fee.go | — |
 | ORDER_FEE_SETTING_INVALID | 400 Bad Request | 费用设置不存在、已停用或不适用于当前订单 | order_fee.go | — |
 | ORDER_FEE_VERSION_CONFLICT | 409 Conflict | 订单费用已被其他操作人修改，请刷新后重试 | order_fee.go | — |

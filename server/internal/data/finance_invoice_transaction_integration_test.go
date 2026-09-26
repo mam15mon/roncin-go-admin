@@ -89,7 +89,6 @@ func (f *financeInvoicePostgresFixture) createConfirmedBill(key string) *ent.Fin
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("inv-fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(orderfeeent.StatusBILLED).
 		SetFeeCode("INV-FEE-" + key).
 		SetFeeName("发票事务测试费用").
 		SetSettlementPartyID(f.partnerID).

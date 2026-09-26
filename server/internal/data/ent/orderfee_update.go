@@ -20,7 +20,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderFeeUpdate is the builder for updating OrderFee entities.
@@ -66,20 +65,6 @@ func (_u *OrderFeeUpdate) SetDirection(v orderfee.Direction) *OrderFeeUpdate {
 func (_u *OrderFeeUpdate) SetNillableDirection(v *orderfee.Direction) *OrderFeeUpdate {
 	if v != nil {
 		_u.SetDirection(*v)
-	}
-	return _u
-}
-
-// SetStatus sets the "status" field.
-func (_u *OrderFeeUpdate) SetStatus(v orderfee.Status) *OrderFeeUpdate {
-	_u.mutation.SetStatus(v)
-	return _u
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *OrderFeeUpdate) SetNillableStatus(v *orderfee.Status) *OrderFeeUpdate {
-	if v != nil {
-		_u.SetStatus(*v)
 	}
 	return _u
 }
@@ -483,66 +468,6 @@ func (_u *OrderFeeUpdate) AddVersion(v int64) *OrderFeeUpdate {
 	return _u
 }
 
-// SetCancelledAt sets the "cancelled_at" field.
-func (_u *OrderFeeUpdate) SetCancelledAt(v time.Time) *OrderFeeUpdate {
-	_u.mutation.SetCancelledAt(v)
-	return _u
-}
-
-// SetNillableCancelledAt sets the "cancelled_at" field if the given value is not nil.
-func (_u *OrderFeeUpdate) SetNillableCancelledAt(v *time.Time) *OrderFeeUpdate {
-	if v != nil {
-		_u.SetCancelledAt(*v)
-	}
-	return _u
-}
-
-// ClearCancelledAt clears the value of the "cancelled_at" field.
-func (_u *OrderFeeUpdate) ClearCancelledAt() *OrderFeeUpdate {
-	_u.mutation.ClearCancelledAt()
-	return _u
-}
-
-// SetCancelledBy sets the "cancelled_by" field.
-func (_u *OrderFeeUpdate) SetCancelledBy(v uuid.UUID) *OrderFeeUpdate {
-	_u.mutation.SetCancelledBy(v)
-	return _u
-}
-
-// SetNillableCancelledBy sets the "cancelled_by" field if the given value is not nil.
-func (_u *OrderFeeUpdate) SetNillableCancelledBy(v *uuid.UUID) *OrderFeeUpdate {
-	if v != nil {
-		_u.SetCancelledBy(*v)
-	}
-	return _u
-}
-
-// ClearCancelledBy clears the value of the "cancelled_by" field.
-func (_u *OrderFeeUpdate) ClearCancelledBy() *OrderFeeUpdate {
-	_u.mutation.ClearCancelledBy()
-	return _u
-}
-
-// SetCancellationReason sets the "cancellation_reason" field.
-func (_u *OrderFeeUpdate) SetCancellationReason(v string) *OrderFeeUpdate {
-	_u.mutation.SetCancellationReason(v)
-	return _u
-}
-
-// SetNillableCancellationReason sets the "cancellation_reason" field if the given value is not nil.
-func (_u *OrderFeeUpdate) SetNillableCancellationReason(v *string) *OrderFeeUpdate {
-	if v != nil {
-		_u.SetCancellationReason(*v)
-	}
-	return _u
-}
-
-// ClearCancellationReason clears the value of the "cancellation_reason" field.
-func (_u *OrderFeeUpdate) ClearCancellationReason() *OrderFeeUpdate {
-	_u.mutation.ClearCancellationReason()
-	return _u
-}
-
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *OrderFeeUpdate) SetOrder(v *Order) *OrderFeeUpdate {
 	return _u.SetOrderID(v.ID)
@@ -575,25 +500,6 @@ func (_u *OrderFeeUpdate) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFeeUp
 // SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
 func (_u *OrderFeeUpdate) SetBillingUnitRef(v *BillingUnit) *OrderFeeUpdate {
 	return _u.SetBillingUnitRefID(v.ID)
-}
-
-// SetCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID.
-func (_u *OrderFeeUpdate) SetCancelledByUserID(id uuid.UUID) *OrderFeeUpdate {
-	_u.mutation.SetCancelledByUserID(id)
-	return _u
-}
-
-// SetNillableCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID if the given value is not nil.
-func (_u *OrderFeeUpdate) SetNillableCancelledByUserID(id *uuid.UUID) *OrderFeeUpdate {
-	if id != nil {
-		_u = _u.SetCancelledByUserID(*id)
-	}
-	return _u
-}
-
-// SetCancelledByUser sets the "cancelled_by_user" edge to the User entity.
-func (_u *OrderFeeUpdate) SetCancelledByUser(v *User) *OrderFeeUpdate {
-	return _u.SetCancelledByUserID(v.ID)
 }
 
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
@@ -652,12 +558,6 @@ func (_u *OrderFeeUpdate) ClearSettlementParty() *OrderFeeUpdate {
 // ClearBillingUnitRef clears the "billing_unit_ref" edge to the BillingUnit entity.
 func (_u *OrderFeeUpdate) ClearBillingUnitRef() *OrderFeeUpdate {
 	_u.mutation.ClearBillingUnitRef()
-	return _u
-}
-
-// ClearCancelledByUser clears the "cancelled_by_user" edge to the User entity.
-func (_u *OrderFeeUpdate) ClearCancelledByUser() *OrderFeeUpdate {
-	_u.mutation.ClearCancelledByUser()
 	return _u
 }
 
@@ -746,11 +646,6 @@ func (_u *OrderFeeUpdate) check() error {
 			return &ValidationError{Name: "direction", err: fmt.Errorf(`ent: validator failed for field "OrderFee.direction": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := orderfee.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OrderFee.status": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.FeeCode(); ok {
 		if err := orderfee.FeeCodeValidator(v); err != nil {
 			return &ValidationError{Name: "fee_code", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_code": %w`, err)}
@@ -806,11 +701,6 @@ func (_u *OrderFeeUpdate) check() error {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFee.note": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.CancellationReason(); ok {
-		if err := orderfee.CancellationReasonValidator(v); err != nil {
-			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "OrderFee.cancellation_reason": %w`, err)}
-		}
-	}
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderFee.order"`)
 	}
@@ -837,9 +727,6 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Direction(); ok {
 		_spec.SetField(orderfee.FieldDirection, field.TypeEnum, value)
-	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(orderfee.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.FeeCode(); ok {
 		_spec.SetField(orderfee.FieldFeeCode, field.TypeString, value)
@@ -924,18 +811,6 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(orderfee.FieldVersion, field.TypeUint64, value)
-	}
-	if value, ok := _u.mutation.CancelledAt(); ok {
-		_spec.SetField(orderfee.FieldCancelledAt, field.TypeTime, value)
-	}
-	if _u.mutation.CancelledAtCleared() {
-		_spec.ClearField(orderfee.FieldCancelledAt, field.TypeTime)
-	}
-	if value, ok := _u.mutation.CancellationReason(); ok {
-		_spec.SetField(orderfee.FieldCancellationReason, field.TypeString, value)
-	}
-	if _u.mutation.CancellationReasonCleared() {
-		_spec.ClearField(orderfee.FieldCancellationReason, field.TypeString)
 	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1046,35 +921,6 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CancelledByUserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   orderfee.CancelledByUserTable,
-			Columns: []string{orderfee.CancelledByUserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CancelledByUserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   orderfee.CancelledByUserTable,
-			Columns: []string{orderfee.CancelledByUserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1222,20 +1068,6 @@ func (_u *OrderFeeUpdateOne) SetDirection(v orderfee.Direction) *OrderFeeUpdateO
 func (_u *OrderFeeUpdateOne) SetNillableDirection(v *orderfee.Direction) *OrderFeeUpdateOne {
 	if v != nil {
 		_u.SetDirection(*v)
-	}
-	return _u
-}
-
-// SetStatus sets the "status" field.
-func (_u *OrderFeeUpdateOne) SetStatus(v orderfee.Status) *OrderFeeUpdateOne {
-	_u.mutation.SetStatus(v)
-	return _u
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_u *OrderFeeUpdateOne) SetNillableStatus(v *orderfee.Status) *OrderFeeUpdateOne {
-	if v != nil {
-		_u.SetStatus(*v)
 	}
 	return _u
 }
@@ -1639,66 +1471,6 @@ func (_u *OrderFeeUpdateOne) AddVersion(v int64) *OrderFeeUpdateOne {
 	return _u
 }
 
-// SetCancelledAt sets the "cancelled_at" field.
-func (_u *OrderFeeUpdateOne) SetCancelledAt(v time.Time) *OrderFeeUpdateOne {
-	_u.mutation.SetCancelledAt(v)
-	return _u
-}
-
-// SetNillableCancelledAt sets the "cancelled_at" field if the given value is not nil.
-func (_u *OrderFeeUpdateOne) SetNillableCancelledAt(v *time.Time) *OrderFeeUpdateOne {
-	if v != nil {
-		_u.SetCancelledAt(*v)
-	}
-	return _u
-}
-
-// ClearCancelledAt clears the value of the "cancelled_at" field.
-func (_u *OrderFeeUpdateOne) ClearCancelledAt() *OrderFeeUpdateOne {
-	_u.mutation.ClearCancelledAt()
-	return _u
-}
-
-// SetCancelledBy sets the "cancelled_by" field.
-func (_u *OrderFeeUpdateOne) SetCancelledBy(v uuid.UUID) *OrderFeeUpdateOne {
-	_u.mutation.SetCancelledBy(v)
-	return _u
-}
-
-// SetNillableCancelledBy sets the "cancelled_by" field if the given value is not nil.
-func (_u *OrderFeeUpdateOne) SetNillableCancelledBy(v *uuid.UUID) *OrderFeeUpdateOne {
-	if v != nil {
-		_u.SetCancelledBy(*v)
-	}
-	return _u
-}
-
-// ClearCancelledBy clears the value of the "cancelled_by" field.
-func (_u *OrderFeeUpdateOne) ClearCancelledBy() *OrderFeeUpdateOne {
-	_u.mutation.ClearCancelledBy()
-	return _u
-}
-
-// SetCancellationReason sets the "cancellation_reason" field.
-func (_u *OrderFeeUpdateOne) SetCancellationReason(v string) *OrderFeeUpdateOne {
-	_u.mutation.SetCancellationReason(v)
-	return _u
-}
-
-// SetNillableCancellationReason sets the "cancellation_reason" field if the given value is not nil.
-func (_u *OrderFeeUpdateOne) SetNillableCancellationReason(v *string) *OrderFeeUpdateOne {
-	if v != nil {
-		_u.SetCancellationReason(*v)
-	}
-	return _u
-}
-
-// ClearCancellationReason clears the value of the "cancellation_reason" field.
-func (_u *OrderFeeUpdateOne) ClearCancellationReason() *OrderFeeUpdateOne {
-	_u.mutation.ClearCancellationReason()
-	return _u
-}
-
 // SetOrder sets the "order" edge to the Order entity.
 func (_u *OrderFeeUpdateOne) SetOrder(v *Order) *OrderFeeUpdateOne {
 	return _u.SetOrderID(v.ID)
@@ -1731,25 +1503,6 @@ func (_u *OrderFeeUpdateOne) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFe
 // SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
 func (_u *OrderFeeUpdateOne) SetBillingUnitRef(v *BillingUnit) *OrderFeeUpdateOne {
 	return _u.SetBillingUnitRefID(v.ID)
-}
-
-// SetCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID.
-func (_u *OrderFeeUpdateOne) SetCancelledByUserID(id uuid.UUID) *OrderFeeUpdateOne {
-	_u.mutation.SetCancelledByUserID(id)
-	return _u
-}
-
-// SetNillableCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID if the given value is not nil.
-func (_u *OrderFeeUpdateOne) SetNillableCancelledByUserID(id *uuid.UUID) *OrderFeeUpdateOne {
-	if id != nil {
-		_u = _u.SetCancelledByUserID(*id)
-	}
-	return _u
-}
-
-// SetCancelledByUser sets the "cancelled_by_user" edge to the User entity.
-func (_u *OrderFeeUpdateOne) SetCancelledByUser(v *User) *OrderFeeUpdateOne {
-	return _u.SetCancelledByUserID(v.ID)
 }
 
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
@@ -1808,12 +1561,6 @@ func (_u *OrderFeeUpdateOne) ClearSettlementParty() *OrderFeeUpdateOne {
 // ClearBillingUnitRef clears the "billing_unit_ref" edge to the BillingUnit entity.
 func (_u *OrderFeeUpdateOne) ClearBillingUnitRef() *OrderFeeUpdateOne {
 	_u.mutation.ClearBillingUnitRef()
-	return _u
-}
-
-// ClearCancelledByUser clears the "cancelled_by_user" edge to the User entity.
-func (_u *OrderFeeUpdateOne) ClearCancelledByUser() *OrderFeeUpdateOne {
-	_u.mutation.ClearCancelledByUser()
 	return _u
 }
 
@@ -1915,11 +1662,6 @@ func (_u *OrderFeeUpdateOne) check() error {
 			return &ValidationError{Name: "direction", err: fmt.Errorf(`ent: validator failed for field "OrderFee.direction": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Status(); ok {
-		if err := orderfee.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OrderFee.status": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.FeeCode(); ok {
 		if err := orderfee.FeeCodeValidator(v); err != nil {
 			return &ValidationError{Name: "fee_code", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_code": %w`, err)}
@@ -1975,11 +1717,6 @@ func (_u *OrderFeeUpdateOne) check() error {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFee.note": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.CancellationReason(); ok {
-		if err := orderfee.CancellationReasonValidator(v); err != nil {
-			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "OrderFee.cancellation_reason": %w`, err)}
-		}
-	}
 	if _u.mutation.OrderCleared() && len(_u.mutation.OrderIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "OrderFee.order"`)
 	}
@@ -2023,9 +1760,6 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	}
 	if value, ok := _u.mutation.Direction(); ok {
 		_spec.SetField(orderfee.FieldDirection, field.TypeEnum, value)
-	}
-	if value, ok := _u.mutation.Status(); ok {
-		_spec.SetField(orderfee.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.FeeCode(); ok {
 		_spec.SetField(orderfee.FieldFeeCode, field.TypeString, value)
@@ -2110,18 +1844,6 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(orderfee.FieldVersion, field.TypeUint64, value)
-	}
-	if value, ok := _u.mutation.CancelledAt(); ok {
-		_spec.SetField(orderfee.FieldCancelledAt, field.TypeTime, value)
-	}
-	if _u.mutation.CancelledAtCleared() {
-		_spec.ClearField(orderfee.FieldCancelledAt, field.TypeTime)
-	}
-	if value, ok := _u.mutation.CancellationReason(); ok {
-		_spec.SetField(orderfee.FieldCancellationReason, field.TypeString, value)
-	}
-	if _u.mutation.CancellationReasonCleared() {
-		_spec.ClearField(orderfee.FieldCancellationReason, field.TypeString)
 	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2232,35 +1954,6 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CancelledByUserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   orderfee.CancelledByUserTable,
-			Columns: []string{orderfee.CancelledByUserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CancelledByUserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   orderfee.CancelledByUserTable,
-			Columns: []string{orderfee.CancelledByUserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -182,10 +182,7 @@ func feeLedgerBillLineQuery(lineQuery *ent.FinanceBillLineQuery) {
 // applyFeeLedgerBillProjection 把费用已经按 feeLedgerBillLineQuery 装载的活动账单关系
 // 投影为账单号与财务进度。有效结清金额 = 有效核销分摊 + 有效对冲分摊，两类一对多分摊
 // 分别预加载后在此聚合，禁止直接 join 两表聚合造成金额倍增；列表与订单详情共用本函数。
-func applyFeeLedgerBillProjection(ledgerItem *biz.FeeLedgerItem, feeStatus biz.OrderFeeStatus, billLines []*ent.FinanceBillLine) error {
-	if feeStatus == biz.OrderFeeCancelled {
-		ledgerItem.FinancialProgress = ""
-	}
+func applyFeeLedgerBillProjection(ledgerItem *biz.FeeLedgerItem, billLines []*ent.FinanceBillLine) error {
 	if len(billLines) == 0 {
 		return nil
 	}
@@ -387,7 +384,7 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		if projectionErr := applyFeeLedgerBillProjection(ledgerItem, fee.Status, billLines); projectionErr != nil {
+		if projectionErr := applyFeeLedgerBillProjection(ledgerItem, billLines); projectionErr != nil {
 			return nil, projectionErr
 		}
 		detail.Items = append(detail.Items, ledgerItem)
@@ -440,9 +437,6 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 	if filter.Direction != "" {
 		predicates = append(predicates, orderfee.DirectionEQ(orderfee.Direction(filter.Direction)))
 	}
-	if filter.Status != "" {
-		predicates = append(predicates, orderfee.StatusEQ(orderfee.Status(filter.Status)))
-	}
 	if filter.SettlementPartyID != nil {
 		predicates = append(predicates, orderfee.SettlementPartyIDEQ(*filter.SettlementPartyID))
 	}
@@ -478,10 +472,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		predicates = append(predicates, orderfee.HasEnterpriseTagLinksWith(orderfeeenterprisetag.TagResourceIDIn(filter.TagIDs...)))
 	}
 	if filter.FinancialProgress != "" {
-		predicates = append(predicates,
-			orderfee.StatusNEQ(orderfee.StatusCANCELLED),
-			feeLedgerFinancialProgressPredicate(filter.FinancialProgress),
-		)
+		predicates = append(predicates, feeLedgerFinancialProgressPredicate(filter.FinancialProgress))
 	}
 
 	baseQuery := client.OrderFee.Query().Where(predicates...)
@@ -491,7 +482,6 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 	}
 	summaryRows := make([]feeLedgerSummaryRow, 0)
 	if err := baseQuery.Clone().
-		Where(orderfee.StatusNEQ(orderfee.StatusCANCELLED)).
 		GroupBy(orderfee.FieldDirection, orderfee.FieldBaseCurrency).
 		Aggregate(
 			ent.As(ent.Count(), "active_count"),
@@ -583,7 +573,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		if edgeErr != nil {
 			return nil, edgeErr
 		}
-		if projectionErr := applyFeeLedgerBillProjection(ledgerItem, fee.Status, billLines); projectionErr != nil {
+		if projectionErr := applyFeeLedgerBillProjection(ledgerItem, billLines); projectionErr != nil {
 			return nil, projectionErr
 		}
 		resultItems = append(resultItems, ledgerItem)

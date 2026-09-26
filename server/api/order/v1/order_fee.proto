@@ -40,8 +40,8 @@ service OrderFeeService {
     };
   }
 
-  // UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
-  // 已建账费用仅允许按财务策略修改并同步草稿账单。
+  // UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用
+  // （未建账）的费用可全量维护，已建账费用仅允许按财务策略修改并同步草稿账单。
   rpc UpdateFee(UpdateFeeRequest) returns (UpdateFeeResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -50,14 +50,15 @@ service OrderFeeService {
     };
   }
 
-  // RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
+  // RemoveFee 物理删除未被有效账单关联占用（未建账）的订单费用；补录生成的费用
+  // 必须通过补录申请专用撤销删除，历史账单行快照保留、来源引用置空。
   rpc RemoveFee(RemoveFeeRequest) returns (RemoveFeeResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {delete: "/api/v1/orders/{order_id}/fees/{id}"};
   }
 
-  // BulkUpdateOrderFees 批量定向修改订单未建账费用：每次仅修改结算单位或
-  // 费用发生时间之一，整批单一事务，任一行版本冲突、状态不符、越订单或
+  // BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
+  // 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
   // 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。
   rpc BulkUpdateOrderFees(BulkUpdateOrderFeesRequest) returns (BulkUpdateOrderFeesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
@@ -67,8 +68,9 @@ service OrderFeeService {
     };
   }
 
-  // BulkRemoveOrderFees 批量删除订单未建账费用：整批单一事务，被未取消账单
-  // 占用、版本冲突或越订单任一不满足时整批回滚，费用标签关联随删除级联清理。
+  // BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
+  // 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
+  // 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
   rpc BulkRemoveOrderFees(BulkRemoveOrderFeesRequest) returns (BulkRemoveOrderFeesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -103,7 +105,7 @@ service OrderFeeService {
   }
 
   // ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-  // 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+  // 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
   rpc ApproveOrderFeeSupplement(ApproveOrderFeeSupplementRequest) returns (ApproveOrderFeeSupplementResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -131,9 +133,9 @@ service OrderFeeService {
     };
   }
 
-  // CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-  // UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
-  // 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
+  // CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
+  // 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
+  // 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。
   rpc CancelApprovedOrderFeeSupplement(CancelApprovedOrderFeeSupplementRequest) returns (CancelApprovedOrderFeeSupplementResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -160,17 +162,6 @@ enum OrderFeeDirection {
   ORDER_FEE_DIRECTION_UNSPECIFIED = 0;
   ORDER_FEE_DIRECTION_RECEIVABLE = 1;
   ORDER_FEE_DIRECTION_PAYABLE = 2;
-}
-
-enum OrderFeeStatus {
-  ORDER_FEE_STATUS_UNSPECIFIED = 0;
-  // 历史值 1 (DRAFT) 与 2 (CONFIRMED) 已按用户决策合并为 UNBILLED，编号保留禁止复用。
-  reserved 1, 2;
-  reserved "ORDER_FEE_STATUS_DRAFT", "ORDER_FEE_STATUS_CONFIRMED";
-  ORDER_FEE_STATUS_BILLED = 3;
-  ORDER_FEE_STATUS_CANCELLED = 4;
-  // UNBILLED 未建账：费用保存后即进入该状态，可直接维护或建账。
-  ORDER_FEE_STATUS_UNBILLED = 5;
 }
 
 // OrderFee 是一条订单应收或应付费用。
@@ -201,17 +192,18 @@ message OrderFee {
   optional string fee_name_en = 23;
   optional string tax_rate = 24;
   optional string taxable_service_name = 25;
-  OrderFeeStatus status = 26;
+  reserved 26, 33, 34, 35;
+  reserved "status", "cancelled_at", "cancelled_by", "cancellation_reason";
   bool tax_inclusive = 27;
   string net_amount = 28;
   string tax_amount = 29;
   string base_currency = 30;
   string base_currency_amount = 31;
   uint64 version = 32;
-  optional string cancelled_at = 33;
-  optional string cancelled_by = 34;
-  optional string cancellation_reason = 35;
   repeated BusinessTagSummary tags = 36;
+  // 只读计算字段：是否存在有效账单关联（活动账单行且所属账单未取消，草稿账单
+  // 同样构成占用）。不持久化、不接受请求写入，是否已建账由账单关联事实决定。
+  bool has_active_bill = 37;
 }
 
 message ListFeesRequest {
@@ -501,11 +493,13 @@ message OrderFeeSupplementRequestData {
   bool can_approve = 42;
   bool can_withdraw = 43;
   bool can_cancel = 44;
-  // can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」）。
+  // can_cancel=false 时的稳定阻断原因（如「已建账需先取消账单」「存在更晚有效补录」「冲减已确认或已扣回」「生成费用已删除」）。
   optional string cancel_blocked_reason = 45;
-  // APPROVED 申请生成费用的当前状态与 ID（费用已专用作废时为 CANCELLED）。
+  // APPROVED 申请生成的费用 ID；生成费用已专用撤销删除时为空，
+  // 前端据此展示「生成费用已删除」。
   optional string fee_id = 46;
-  optional string fee_status = 47;
+  reserved 47;
+  reserved "fee_status";
   // 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
   // PENDING 并投影 false，发起人仍可撤回。
   bool approver_available = 48;
@@ -602,7 +596,7 @@ message ApproveOrderFeeSupplementResponse {
   int32 code = 2;
   string message = 3;
   OrderFeeSupplementRequestData data = 4;
-  // 审批生成的 UNBILLED 补录费用。
+  // 审批生成的补录费用。
   OrderFee fee = 5;
   string trace_id = 6;
 }
@@ -648,7 +642,10 @@ message CancelApprovedOrderFeeSupplementResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  // 作废后的费用（CANCELLED）。
-  OrderFee fee = 4;
+  reserved 4;
+  reserved "fee";
   string trace_id = 5;
+  // 撤销成功后刷新的申请数据：申请保持 APPROVED，fee_id 为空表示生成费用已删除，
+  // can_cancel=false 并携带阻断原因；不再返回已删除的费用实体。
+  OrderFeeSupplementRequestData data = 6;
 }

@@ -98,14 +98,13 @@ func (f *feeLedgerPostgresFixture) cleanupFeeLedger() {
 	}
 }
 
-func (f *feeLedgerPostgresFixture) createLedgerFeeWithStatus(key, total string, status orderfeeent.Status) uuid.UUID {
+func (f *feeLedgerPostgresFixture) createLedgerFee(key, total string) uuid.UUID {
 	f.t.Helper()
 	total8 := decimal.RequireFromString(total).StringFixed(8)
-	create := f.data.db.OrderFee.Create().
+	fee, err := f.data.db.OrderFee.Create().
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("fee-ledger-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(status).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(f.partnerID).
@@ -122,28 +121,12 @@ func (f *feeLedgerPostgresFixture) createLedgerFeeWithStatus(key, total string, 
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(total8).
 		SetExpenseDate(financeBillIntegrationDate).
-		SetVersion(1)
-	if status == orderfeeent.StatusCANCELLED {
-		// 数据库 CHECK 要求取消费用必须携带取消事实（时间、操作者、原因）。
-		actor, err := f.data.db.User.Create().SetDisplayName("台账取消费用用户-" + f.suffix).Save(context.Background())
-		if err != nil {
-			f.t.Fatalf("创建台账取消费用用户失败: %v", err)
-		}
-		create = create.
-			SetCancelledAt(time.Date(2026, 8, 31, 0, 0, 0, 0, time.UTC)).
-			SetCancelledBy(actor.ID).
-			SetCancellationReason("台账集成测试取消")
-	}
-	fee, err := create.Save(context.Background())
+		SetVersion(1).
+		Save(context.Background())
 	if err != nil {
 		f.t.Fatalf("创建台账测试费用 %s: %v", key, err)
 	}
 	return fee.ID
-}
-
-func (f *feeLedgerPostgresFixture) createLedgerFee(key, total string) uuid.UUID {
-	f.t.Helper()
-	return f.createLedgerFeeWithStatus(key, total, orderfeeent.StatusUNBILLED)
 }
 
 func (f *feeLedgerPostgresFixture) createConfirmedBill(key, total, billDate string) *ent.FinanceBill {
@@ -506,21 +489,6 @@ func TestFeeLedgerNettingSettlementConsistencyPostgres(t *testing.T) {
 			t.Fatalf("查询台账订单详情失败: %v", err)
 		}
 		requireFeeLedgerProjection(t, "详情", findFeeLedgerItem(detail.Items, feeID), bill.BillNo, biz.FeeLedgerVerifiedUninvoiced, false)
-
-		// 已取消费用与列表共用同一投影：活动账单行仍保留账单号与推导进度，两处字段必须一致。
-		cancelledFeeID := fixture.createLedgerFeeWithStatus("cancelled", "100", orderfeeent.StatusCANCELLED)
-		cancelledBill := fixture.createConfirmedBill("cancelled", "100", financeBillIntegrationDate)
-		fixture.linkBillFee("cancelled", cancelledBill, cancelledFeeID, "100")
-		unfiltered, err := repo.ListFeeLedger(ctx, organizationIDs, biz.FeeLedgerFilter{Page: 1, PageSize: 200})
-		if err != nil {
-			t.Fatalf("查询费用台账失败: %v", err)
-		}
-		requireFeeLedgerProjection(t, "取消费用列表", findFeeLedgerItem(unfiltered.Items, cancelledFeeID), cancelledBill.BillNo, biz.FeeLedgerUnverifiedUninvoiced, false)
-		detailWithCancelled, err := repo.GetFeeLedgerOrderDetail(ctx, organizationIDs, fixture.orderID)
-		if err != nil {
-			t.Fatalf("重取台账订单详情失败: %v", err)
-		}
-		requireFeeLedgerProjection(t, "取消费用详情", findFeeLedgerItem(detailWithCancelled.Items, cancelledFeeID), cancelledBill.BillNo, biz.FeeLedgerUnverifiedUninvoiced, false)
 
 		if _, err = data.db.FinanceNetting.UpdateOneID(netting.ID).SetStatus(financenettingent.StatusREVERSED).Save(ctx); err != nil {
 			t.Fatalf("反转对冲失败: %v", err)

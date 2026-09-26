@@ -66,7 +66,7 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 	groupsByRawKey := make(map[string]*FinanceBillBatchPreviewGroup)
 	rawKeys := make([]string, 0)
 	for _, item := range ordered {
-		if item == nil || item.Fee == nil || item.Fee.ID == uuid.Nil || item.Fee.OrderID == uuid.Nil || item.Fee.Status != OrderFeeUnbilled || item.Fee.TaxRate == nil || !financeBillCurrencyPattern.MatchString(item.Fee.Currency) || !financeBillCurrencyPattern.MatchString(item.Fee.BaseCurrency) {
+		if item == nil || item.Fee == nil || item.Fee.ID == uuid.Nil || item.Fee.OrderID == uuid.Nil || item.Fee.HasActiveBill || item.Fee.TaxRate == nil || !financeBillCurrencyPattern.MatchString(item.Fee.Currency) || !financeBillCurrencyPattern.MatchString(item.Fee.BaseCurrency) {
 			return nil, ErrFinanceBillFeeInvalid
 		}
 		fee := item.Fee
@@ -487,12 +487,7 @@ func financeBillConfiguredPreviewToken(organizationID uuid.UUID, policy FinanceB
 			if line.TaxRate != nil {
 				taxRate = line.TaxRate.StringFixed(4)
 			}
-			fee := financeBillFeeByID(group.Fees, line.OrderFeeID)
-			feeStatus := ""
-			if fee != nil {
-				feeStatus = string(fee.Status)
-			}
-			writeFinanceHashParts(&builder, line.OrderFeeID.String(), line.OrderID.String(), line.OrderNo, line.BusinessType, line.FeeCode, line.FeeName, taxRate, line.Currency, line.TotalAmount.StringFixed(8), line.NetAmount.StringFixed(8), line.TaxAmount.StringFixed(8), line.ExchangeRate.StringFixed(8), line.BaseCurrencyAmount.StringFixed(8), strconv.FormatUint(financeBillFeeVersion(group.Fees, line.OrderFeeID), 10), feeStatus)
+			writeFinanceHashParts(&builder, line.OrderFeeID.String(), line.OrderID.String(), line.OrderNo, line.BusinessType, line.FeeCode, line.FeeName, taxRate, line.Currency, line.TotalAmount.StringFixed(8), line.NetAmount.StringFixed(8), line.TaxAmount.StringFixed(8), line.ExchangeRate.StringFixed(8), line.BaseCurrencyAmount.StringFixed(8), strconv.FormatUint(financeBillFeeVersion(group.Fees, line.OrderFeeID), 10))
 		}
 	}
 	return financeSHA256(builder.String())

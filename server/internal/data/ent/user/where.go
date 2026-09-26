@@ -1186,29 +1186,6 @@ func HasPartnerAssignmentsWith(preds ...predicate.PartnerAssignment) predicate.U
 	})
 }
 
-// HasCancelledOrderFees applies the HasEdge predicate on the "cancelled_order_fees" edge.
-func HasCancelledOrderFees() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CancelledOrderFeesTable, CancelledOrderFeesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasCancelledOrderFeesWith applies the HasEdge predicate on the "cancelled_order_fees" edge with a given conditions (other predicates).
-func HasCancelledOrderFeesWith(preds ...predicate.OrderFee) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := newCancelledOrderFeesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasConfirmedFinanceBills applies the HasEdge predicate on the "confirmed_finance_bills" edge.
 func HasConfirmedFinanceBills() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

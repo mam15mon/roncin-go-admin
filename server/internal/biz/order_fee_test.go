@@ -80,8 +80,8 @@ func TestOrderFeeAddSavesAsUnbilledAndImmediatelyBillable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("保存费用失败: %v", err)
 	}
-	if created.Status != OrderFeeUnbilled {
-		t.Fatalf("费用保存后状态 = %q，期望 UNBILLED（无需确认即可维护/建账）", created.Status)
+	if created.HasActiveBill {
+		t.Fatalf("新建费用不应存在账单关联: %v", created.HasActiveBill)
 	}
 	if created.Version != 1 {
 		t.Fatalf("新费用版本 = %d，期望 1", created.Version)
@@ -90,7 +90,6 @@ func TestOrderFeeAddSavesAsUnbilledAndImmediatelyBillable(t *testing.T) {
 	// 未建账费用无需任何状态流转即可进入建账：单张建账构建直接接受该费用。
 	partyID := uuid.Must(uuid.NewV7())
 	billable := financeBillableFeeForTest(partyID, "100", "100", "0", "100")
-	billable.Fee.Status = OrderFeeUnbilled
 	bill, buildErr := buildFinanceBill(organizationID, []*FinanceBillableFee{billable}, CreateFinanceBillInput{
 		FeeIDs: []uuid.UUID{billable.Fee.ID}, BillDate: "2026-09-23", IdempotencyKey: "unbilled-bill-test", SettlementAccountID: uuid.Must(uuid.NewV7()),
 	})
@@ -107,7 +106,6 @@ func TestOrderFeeUpdatePreservesOldRateSnapshotWithoutManualRequest(t *testing.T
 		t.Run(source, func(t *testing.T) {
 			current := validOrderFeeForTest()
 			current.ID = uuid.Must(uuid.NewV7())
-			current.Status = OrderFeeUnbilled
 			current.Version = 1
 			current.ExchangeRate = decimal.RequireFromString("7.3")
 			current.ExchangeRateSource = source
@@ -137,7 +135,6 @@ func TestOrderFeeUpdatePreservesOldRateSnapshotWithoutManualRequest(t *testing.T
 func TestOrderFeeUpdateRejectsForgedManualRate(t *testing.T) {
 	current := validOrderFeeForTest()
 	current.ID = uuid.Must(uuid.NewV7())
-	current.Status = OrderFeeUnbilled
 	current.Version = 1
 	repo := &orderFeeUpdateCaptureRepoStub{current: current}
 	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil, nil)
@@ -474,7 +471,7 @@ func TestValidateBilledFeeUpdateRejectsUnlistedBusinessFields(t *testing.T) {
 func billedOrderFeeForTest() *OrderFee {
 	fee := validOrderFeeForTest()
 	taxRate := decimal.RequireFromString("6")
-	fee.Status = OrderFeeBilled
+	fee.HasActiveBill = true
 	fee.FeeCode = "OCEAN_FREIGHT"
 	fee.FeeName = "海运费"
 	fee.BillingUnit = "票"

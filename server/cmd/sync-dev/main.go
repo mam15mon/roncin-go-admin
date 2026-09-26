@@ -1386,7 +1386,6 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 					SetOrderID(ord.ID).
 					SetIdempotencyKey(feeKey).
 					SetDirection(dir).
-					SetStatus(orderfeeent.StatusUNBILLED).
 					SetFeeSettingID(fSetting.ID).
 					SetFeeCode(f.code).
 					SetFeeName(f.name).
@@ -1485,12 +1484,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 		for _, k := range keys {
 			f := sc.orderFees[k]
 			if f != nil {
-				// 进入账单的费用同步标记 BILLED，保持“未建账费用才可编辑”的开发数据语义。
-				if f.Status != orderfeeent.StatusBILLED {
-					if _, err := tx.OrderFee.UpdateOneID(f.ID).SetStatus(orderfeeent.StatusBILLED).AddVersion(1).Save(ctx); err != nil {
-						return fmt.Errorf("标记建账费用 %s: %w", k, err)
-					}
-				}
+				// 费用是否已建账由下面的有效账单行关联表达（活动行且账单未取消），不再回写费用状态。
 				lineExists, _ := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(b1.ID), financebilllineent.OrderFeeIDEQ(f.ID)).Exist(ctx)
 				if !lineExists {
 					_, _ = tx.FinanceBillLine.Create().
@@ -2297,7 +2291,6 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 				SetOrderID(ord4.ID).
 				SetIdempotencyKey(feeKey).
 				SetDirection(orderfeeent.DirectionPAYABLE).
-				SetStatus(orderfeeent.StatusUNBILLED).
 				SetFeeSettingID(sc.feeSettings["STORAGE"].ID).
 				SetFeeCode("STORAGE").
 				SetFeeName("码头堆存费(补录)").

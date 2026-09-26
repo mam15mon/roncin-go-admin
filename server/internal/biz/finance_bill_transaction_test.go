@@ -127,7 +127,7 @@ func TestFinanceBillCreateUsesOneSharedTransaction(t *testing.T) {
 	feeID := uuid.New()
 	repo := &financeBillTransactionRepoStub{fee: &FinanceBillableFee{
 		Fee: &OrderFee{
-			ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable, Status: OrderFeeUnbilled,
+			ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable,
 			FeeCode: "OCEAN_FREIGHT", FeeName: "海运费", SettlementPartyID: uuid.New(), SettlementPartyName: "测试客户",
 			Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100),
 			NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, Currency: "USD", BaseCurrency: "CNY",
@@ -188,7 +188,7 @@ func TestFinanceBillCreateTriggersAutoLockReevaluation(t *testing.T) {
 	newBillUsecase := func(autoLock *autoLockRepoCaptureStub) *FinanceBillUsecase {
 		repo := &financeBillTransactionRepoStub{fee: &FinanceBillableFee{
 			Fee: &OrderFee{
-				ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable, Status: OrderFeeUnbilled,
+				ID: feeID, OrderID: uuid.New(), Direction: OrderFeeReceivable,
 				FeeCode: "OCEAN_FREIGHT", FeeName: "海运费", SettlementPartyID: uuid.New(), SettlementPartyName: "测试客户",
 				Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TotalAmount: decimal.NewFromInt(100),
 				NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero, Currency: "USD", BaseCurrency: "CNY",

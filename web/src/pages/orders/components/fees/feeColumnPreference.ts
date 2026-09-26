@@ -7,7 +7,6 @@
 
 /** 订单费用表稳定列 key（与表格列 dataIndex 一一对应；操作列固定为 option）。 */
 export const FEE_COLUMN_KEYS = [
-  'status',
   'feeCode',
   'feeSettingId',
   'settlementPartyId',
@@ -45,7 +44,6 @@ export interface FeeColumnDef {
 
 /** 默认列保持当前表格相对顺序；费用标签与关联账单列默认隐藏，含税单价折算列与税额四列默认可见。 */
 export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
-  { key: 'status', title: '状态', lockVisible: false, defaultVisible: true },
   {
     key: 'feeCode',
     // 行内选科时以费用代码列作为代码预览载体，默认保持可见（仍可隐藏）。

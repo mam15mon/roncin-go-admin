@@ -2,12 +2,14 @@ package data
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
@@ -65,7 +67,7 @@ func newFeeSupplementFixture(t *testing.T) *feeSupplementPostgresFixture {
 	org, err := data.db.Organization.Create().
 		SetCode("FSUP-" + suffix).
 		SetName("费用补录测试组织-" + suffix).
-		SetKind("system").
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		SetEnabled(true).
 		Save(ctx)
@@ -610,8 +612,8 @@ func TestFeeSupplementDecisionPostgres(t *testing.T) {
 			t.Fatalf("审批必须生成且只生成一条费用，实际 %d", len(fees))
 		}
 		fee := fees[0]
-		if fee.Status != orderfeeent.StatusUNBILLED || fee.Direction != orderfeeent.DirectionPAYABLE || fee.Version != 1 {
-			t.Fatalf("补录费用必须为 UNBILLED 应付: %+v", fee)
+		if fee.Direction != orderfeeent.DirectionPAYABLE || fee.Version != 1 {
+			t.Fatalf("补录费用必须是尚无有效账单关联的初始版本应付费用（版本 1）: %+v", fee)
 		}
 		if fee.IdempotencyKey != "fee-supplement:"+created.ID.String() {
 			t.Fatalf("补录费用幂等键必须由申请 ID 派生: %s", fee.IdempotencyKey)
@@ -879,13 +881,20 @@ func TestFeeSupplementImpactAndCancelPostgres(t *testing.T) {
 		fixture.createConfirmedCommissionWithSnapshot(order, "60.00000000", "10.00", "1000.00000000", "400.00000000")
 		created := fixture.createSupplement(order, "cancel-1")
 		result := fixture.approveSupplement(order, created.ID, created.Version)
+		feeID := result.Fee.ID
 		feeVersion := result.Fee.Version
 		cancelResult, err := fixture.usecase.CancelApprovedFee(fixture.ctx, fixture.approverPrincipal(), fixture.organizationID, order.ID, created.ID, feeVersion, "成本重复补录")
 		if err != nil {
 			fixture.t.Fatalf("专用作废失败: %v", err)
 		}
-		if cancelResult.Fee.Status != biz.OrderFeeCancelled || cancelResult.Fee.Version != feeVersion+1 || cancelResult.Fee.CancellationReason == nil || *cancelResult.Fee.CancellationReason != "成本重复补录" {
-			t.Fatalf("费用作废投影不符: %+v", cancelResult.Fee)
+		if cancelResult.DeletedFeeID != feeID {
+			t.Fatalf("专用撤销应物理删除生成费用并回传其 ID: %+v", cancelResult)
+		}
+		if _, feeErr := fixture.data.db.OrderFee.Get(fixture.ctx, feeID); feeErr == nil || !ent.IsNotFound(feeErr) {
+			t.Fatalf("撤销后生成费用必须已物理删除: %v", feeErr)
+		}
+		if cancelResult.Request.Status != biz.OrderFeeSupplementApproved || cancelResult.View.CanCancel {
+			t.Fatalf("撤销后申请保持 APPROVED 且 can_cancel=false: %+v", cancelResult.View)
 		}
 		if len(cancelResult.CancelledAdjustmentIDs) != 1 {
 			t.Fatalf("DRAFT 建议应一并取消: %v", cancelResult.CancelledAdjustmentIDs)
@@ -926,7 +935,7 @@ func TestFeeSupplementImpactAndCancelPostgres(t *testing.T) {
 		if _, err := fixture.usecase.CancelApprovedFee(fixture.ctx, fixture.approverPrincipal(), fixture.organizationID, order.ID, first.ID, 1, "倒序校验"); err == nil || !strings.Contains(err.Error(), "更晚") {
 			t.Fatalf("存在更晚有效补录必须拒绝作废早期补录: %v", err)
 		}
-		if len(fixture.feesForRequest(first.ID)) != 1 || fixture.feesForRequest(first.ID)[0].Status != orderfeeent.StatusUNBILLED {
+		if len(fixture.feesForRequest(first.ID)) != 1 {
 			t.Fatalf("被拒绝的作废必须零写入: %+v", fixture.feesForRequest(first.ID))
 		}
 		// 版本竞争稳定拒绝。
@@ -941,8 +950,8 @@ func TestFeeSupplementImpactAndCancelPostgres(t *testing.T) {
 		if _, cancelErr := fixture.usecase.CancelApprovedFee(fixture.ctx, fixture.approverPrincipal(), fixture.organizationID, order.ID, second.ID, secondResult.Fee.Version, "已确认冲减"); cancelErr == nil || !strings.Contains(cancelErr.Error(), "已确认或已扣回") {
 			t.Fatalf("曾确认冲减必须禁止直接作废: %v", cancelErr)
 		}
-		if reloaded := fixture.feesForRequest(second.ID); reloaded[0].Status != orderfeeent.StatusUNBILLED {
-			t.Fatalf("作废被拒绝后费用必须保持 UNBILLED: %s", reloaded[0].Status)
+		if reloaded := fixture.feesForRequest(second.ID); len(reloaded) != 1 {
+			t.Fatalf("作废被拒绝后费用必须保留: %+v", reloaded[0])
 		}
 	})
 }
@@ -1237,14 +1246,14 @@ func TestFeeSupplementBillChainPostgres(t *testing.T) {
 		t.Fatalf("补录费用建账: %v", createErr)
 	}
 	billed, feeErr := fixture.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(feeID)).Only(fixture.ctx)
-	if feeErr != nil || billed.Status != orderfeeent.StatusBILLED {
-		t.Fatalf("建账后补录费用必须转为 BILLED: %v %+v", feeErr, billed)
+	if feeErr != nil || billed.Version != 2 {
+		t.Fatalf("建账后补录费用必须被有效账单关联占用（版本递增至 2）: %v %+v", feeErr, billed)
 	}
 	reloadedOrder, orderErr := fixture.data.db.Order.Query().Where(orderent.IDEQ(order.ID)).Only(fixture.ctx)
 	if orderErr != nil || reloadedOrder.LockedAt == nil {
 		t.Fatalf("建账不得解锁订单: %v", orderErr)
 	}
-	// 符合现有取消条件的草稿账单取消后，费用恢复 UNBILLED。
+	// 符合现有取消条件的草稿账单取消后，账单行停用、费用解除占用，版本随取消事务递增。
 	cancelled, cancelErr := billUsecase.Cancel(fixture.ctx, []uuid.UUID{fixture.organizationID}, fixture.approverID, bill.ID, bill.Version, "取消校验恢复链路")
 	if cancelErr != nil {
 		t.Fatalf("取消草稿账单: %v", cancelErr)
@@ -1253,8 +1262,8 @@ func TestFeeSupplementBillChainPostgres(t *testing.T) {
 		t.Fatalf("账单取消状态不符: %s", cancelled.Status)
 	}
 	restored, feeErr := fixture.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(feeID)).Only(fixture.ctx)
-	if feeErr != nil || restored.Status != orderfeeent.StatusUNBILLED {
-		t.Fatalf("账单取消后补录费用必须恢复 UNBILLED: %v %+v", feeErr, restored)
+	if feeErr != nil || restored.Version != 3 {
+		t.Fatalf("账单取消后补录费用版本应递增至 3: %v %+v", feeErr, restored)
 	}
 	// 费用行保留补录来源关联。
 	if restored.SupplementRequestID == nil || *restored.SupplementRequestID != created.ID {
@@ -1298,8 +1307,9 @@ func TestFeeSupplementListAuthorizationPostgres(t *testing.T) {
 		if approvedView == nil || approvedView.CanWithdraw || approvedView.CanApprove || approvedView.CanCancel {
 			t.Fatalf("无 grant 发起人的 APPROVED 投影不符: %+v", approvedView)
 		}
-		if approvedView.FeeID == nil || approvedView.FeeStatus != "UNBILLED" {
-			t.Fatalf("APPROVED 行应投影生成费用状态: %+v", approvedView)
+		generatedFees := fixture.feesForRequest(approved.ID)
+		if approvedView.FeeID == nil || *approvedView.FeeID != generatedFees[0].ID {
+			t.Fatalf("APPROVED 行应投影生成的费用 ID: %+v", approvedView)
 		}
 		if approvedView.Request.DecidedByName == nil || *approvedView.Request.DecidedByName == "" {
 			t.Fatalf("已审批申请应带决策人姓名: %+v", approvedView.Request)
@@ -1377,8 +1387,9 @@ func TestFeeSupplementListAuthorizationPostgres(t *testing.T) {
 			t.Fatalf("创建 fee.read 用户: %v", userErr)
 		}
 		feeReadPrincipal := &biz.Principal{
-			UserID:       feeReadUser.ID,
-			Organization: biz.Organization{ID: fixture.organizationID},
+			UserID:            feeReadUser.ID,
+			Organization:      biz.Organization{ID: fixture.organizationID, Kind: biz.OrganizationKindCompany},
+			OrganizationNodes: []biz.OrganizationScopeNode{{ID: fixture.organizationID, Kind: biz.OrganizationKindCompany}},
 			RoleGrants: []biz.RoleGrant{{
 				Permissions: map[string]struct{}{"business.order.si.fee.read": {}},
 				DataScope:   biz.DataScopeOrganization,
@@ -1394,6 +1405,106 @@ func TestFeeSupplementListAuthorizationPostgres(t *testing.T) {
 		// 仅 fee.read 不授予审批或撤回能力。
 		if view.Items[0].CanApprove || view.Items[0].CanWithdraw || view.Items[0].CanCancel {
 			t.Fatalf("仅 fee.read 不得获得操作能力: %+v", view.Items[0])
+		}
+	})
+}
+
+// ---------------------------------------------------------------------------
+// 场景 8：补录生成费用的普通删除准入（单条与混合批量拒绝、全普通批量放行）
+// ---------------------------------------------------------------------------
+
+// TestFeeSupplementGeneratedFeePlainDeleteForbiddenPostgres 验证补录生成费用对
+// 普通删除入口的准入拒绝：确认提成净额被全额冲减释放财务锁后（订单既未业务
+// 锁定也无财务锁），单条普通删除与混入补录费用的批量删除一律返回 409
+// ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN 且整批零写入；全普通批量删除不受
+// 补录准入影响照常硬删除。
+func TestFeeSupplementGeneratedFeePlainDeleteForbiddenPostgres(t *testing.T) {
+	fixture := newFeeSupplementFixture(t)
+	feeUsecase := newOrderFeeBulkUsecase(fixture.data)
+
+	// createReleasedSupplementFee 构造「补录费用已生成且删除准入可达」的前置：
+	// 确认提成建立财务锁 → 补录申请与审批生成费用 → 全额确认冲减释放净额。
+	// 订单保持未业务锁定，普通删除才能走到补录来源准入校验。
+	createReleasedSupplementFee := func(t *testing.T, orderNo, key string) *ent.OrderFee {
+		t.Helper()
+		fixture.setT(t)
+		order := fixture.createOrder(orderNo)
+		commission := fixture.createConfirmedCommissionWithSnapshot(order, "30.00000000", "10.00", "800.00000000", "500.00000000")
+		created := fixture.createSupplement(order, key)
+		fixture.approveSupplement(order, created.ID, created.Version)
+		fixture.createConfirmedDecrease(order, commission, "30.00000000", key+"-adj")
+		fees := fixture.feesForRequest(created.ID)
+		if len(fees) != 1 {
+			t.Fatalf("补录审批必须恰好生成一条费用: %d", len(fees))
+		}
+		return fees[0]
+	}
+
+	t.Run("单条普通删除拒绝且费用保留", func(t *testing.T) {
+		fee := createReleasedSupplementFee(t, "FSUP-DELS-"+fixture.suffix, "plain-del-single")
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err := feeUsecase.Remove(ctx, fixture.organizationID, fixture.approverID, fee.OrderID, fee.ID, fee.Version, "误删补录费用")
+		if !errors.Is(err, biz.ErrOrderFeeSupplementDeleteForbidden) {
+			t.Fatalf("补录生成费用的普通删除应被拒绝，实际 %v", err)
+		}
+		ke := kratoserrors.FromError(err)
+		if ke == nil || ke.Code != 409 || ke.Reason != biz.ErrOrderFeeSupplementDeleteForbidden.Reason {
+			t.Fatalf("应返回 409 ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN，实际 %v", err)
+		}
+		kept, keptErr := fixture.data.db.OrderFee.Query().Where(orderfeeent.IDEQ(fee.ID)).Only(ctx)
+		if keptErr != nil {
+			t.Fatalf("被拒绝的补录费用必须保留: %v", keptErr)
+		}
+		if kept.Version != fee.Version || kept.SupplementRequestID == nil || *kept.SupplementRequestID != *fee.SupplementRequestID {
+			t.Fatalf("拒绝后费用版本与补录来源关联不得变化: version=%d supplement=%v", kept.Version, kept.SupplementRequestID)
+		}
+	})
+
+	t.Run("混合批量删除整批拒绝且零写入", func(t *testing.T) {
+		supplementFee := createReleasedSupplementFee(t, "FSUP-DELM-"+fixture.suffix, "plain-del-mixed")
+		plainFee := createBulkFee(t, fixture.data, supplementFee.OrderID, fixture.customerID, "mixed-plain", "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err := feeUsecase.BulkRemove(ctx, fixture.organizationID, fixture.approverID, supplementFee.OrderID, []biz.OrderFeeBulkTarget{
+			{FeeID: plainFee, ExpectedVersion: 1},
+			{FeeID: supplementFee.ID, ExpectedVersion: supplementFee.Version},
+		}, "混合批量清理")
+		if !errors.Is(err, biz.ErrOrderFeeSupplementDeleteForbidden) {
+			t.Fatalf("混合批量删除应整批拒绝，实际 %v", err)
+		}
+		ke := kratoserrors.FromError(err)
+		if ke == nil || ke.Code != 409 || ke.Reason != biz.ErrOrderFeeSupplementDeleteForbidden.Reason {
+			t.Fatalf("批量拒绝应保持 409 与统一 reason，实际 %v", err)
+		}
+		if !strings.Contains(err.Error(), supplementFee.ID.String()) {
+			t.Fatalf("批量拒绝错误应携带补录费用定位: %v", err)
+		}
+		remaining, remainingErr := fixture.data.db.OrderFee.Query().Where(orderfeeent.IDIn(plainFee, supplementFee.ID)).Count(ctx)
+		if remainingErr != nil || remaining != 2 {
+			t.Fatalf("整批回滚后普通费用与补录费用都必须保留: count=%d err=%v", remaining, remainingErr)
+		}
+	})
+
+	t.Run("全普通批量删除不受补录准入影响", func(t *testing.T) {
+		fixture.setT(t)
+		order := fixture.createOrder("FSUP-DELP-" + fixture.suffix)
+		first := createBulkFee(t, fixture.data, order.ID, fixture.customerID, "plain-bulk-1", "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
+		second := createBulkFee(t, fixture.data, order.ID, fixture.customerID, "plain-bulk-2", "CNY", "1.00000000", "200.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := feeUsecase.BulkRemove(ctx, fixture.organizationID, fixture.approverID, order.ID, []biz.OrderFeeBulkTarget{
+			{FeeID: first, ExpectedVersion: 1},
+			{FeeID: second, ExpectedVersion: 1},
+		}, "全普通批量清理"); err != nil {
+			t.Fatalf("全普通批量删除不得被补录准入拒绝: %v", err)
+		}
+		remaining, remainingErr := fixture.data.db.OrderFee.Query().Where(orderfeeent.IDIn(first, second)).Count(ctx)
+		if remainingErr != nil || remaining != 0 {
+			t.Fatalf("全普通批量删除后费用应全部移除: count=%d err=%v", remaining, remainingErr)
 		}
 	})
 }

@@ -128,7 +128,7 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			tableName: "finance_commission_application_lines",
 			table:     FinanceCommissionApplicationLinesTable,
 			expectedChecks: map[string]string{
-				"finance_commission_application_lines_commission_amount_non_negative":   "commission_amount >= 0",
+				"finance_commission_application_lines_commission_amount_non_negative":     "commission_amount >= 0",
 				"finance_commission_application_lines_cny_commission_amount_non_negative": "cny_commission_amount >= 0",
 			},
 		},

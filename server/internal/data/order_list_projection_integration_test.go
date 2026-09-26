@@ -23,8 +23,8 @@ func TestOrderListProjectionNamesPostgres(t *testing.T) {
 	defer cancel()
 	suffix := uuid.NewString()[:8]
 	org, err := data.db.Organization.Create().
-		SetCode("OLP-"+suffix).
-		SetName("列表投影测试组织-"+suffix).
+		SetCode("OLP-" + suffix).
+		SetName("列表投影测试组织-" + suffix).
 		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
@@ -50,18 +50,18 @@ func TestOrderListProjectionNamesPostgres(t *testing.T) {
 	creatorID := newUser("投影创建人-" + suffix)
 	partner, err := data.db.Partner.Create().
 		SetOrganizationID(org.ID).
-		SetCode("OLP-CUST-"+suffix).
-		SetLegalName("列表投影客户-"+suffix).
-		SetNormalizedName("列表投影客户-"+suffix).
+		SetCode("OLP-CUST-" + suffix).
+		SetLegalName("列表投影客户-" + suffix).
+		SetNormalizedName("列表投影客户-" + suffix).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建委托单位: %v", err)
 	}
 	bookingAgent, err := data.db.Partner.Create().
 		SetOrganizationID(org.ID).
-		SetCode("OLP-AGENT-"+suffix).
-		SetLegalName("投影订舱代理-"+suffix).
-		SetNormalizedName("投影订舱代理-"+suffix).
+		SetCode("OLP-AGENT-" + suffix).
+		SetLegalName("投影订舱代理-" + suffix).
+		SetNormalizedName("投影订舱代理-" + suffix).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建订舱代理: %v", err)
@@ -92,7 +92,7 @@ func TestOrderListProjectionNamesPostgres(t *testing.T) {
 	order, err := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(org.ID).
-		SetOrderNo("OLP"+suffix).
+		SetOrderNo("OLP" + suffix).
 		SetCustomerID(partner.ID).
 		SetBusinessType(orderent.BusinessTypeSE).
 		SetTradeDirection(orderent.TradeDirectionExport).

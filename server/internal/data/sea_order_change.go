@@ -135,8 +135,7 @@ func (r *seaOrderChangeRepo) GetChangeActions(ctx context.Context, organizationI
 	billedFeeCount, err := client.OrderFee.Query().
 		Where(
 			orderfeeent.OrderIDEQ(orderID),
-			orderfeeent.StatusNEQ(orderfeeent.StatusUNBILLED),
-			orderfeeent.StatusNEQ(orderfeeent.StatusCANCELLED),
+			orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()),
 		).
 		Count(ctx)
 	if err != nil {

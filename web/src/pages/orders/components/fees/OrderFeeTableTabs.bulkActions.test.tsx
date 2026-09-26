@@ -19,7 +19,7 @@ import {
   orderFeeServiceListOrderFeeTagOptions,
   orderFeeServiceResolveFeeExchangeRate,
 } from '@/services/roncin/orderFeeService';
-import { FEE_BILLED, FEE_UNBILLED, RECEIVABLE } from './feeConstants';
+import { RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -77,7 +77,6 @@ async function triggerBulkAction(name: string | RegExp, tableIndex = 0) {
 function makeFee(partial: Partial<API.OrderFee>): API.OrderFee {
   return {
     direction: RECEIVABLE,
-    status: FEE_UNBILLED,
     currency: 'CNY',
     quantity: '1',
     unitPrice: '100',
@@ -100,7 +99,7 @@ const unbilledFeeB = makeFee({
 const billedFeeC = makeFee({
   id: 'fee-c',
   version: '5',
-  status: FEE_BILLED,
+  hasActiveBill: true,
   feeName: '已建账港杂费',
 });
 

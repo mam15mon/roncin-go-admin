@@ -103,6 +103,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 
 	// 两张订单：O1 应收 300/应付 100，O2 应收 500/应付 200。
 	orderPayables := [2]string{"100.00000000", "200.00000000"}
+	payableFeeIDs := make([]uuid.UUID, 0, len(commissionNettingBillAmounts))
 	for index, receivable := range commissionNettingBillAmounts {
 		orderNo := "NT-SE" + suffix + "-" + strconv.Itoa(index)
 		order, orderErr := data.db.Order.Create().
@@ -140,7 +141,6 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 				SetOrderID(order.ID).
 				SetIdempotencyKey("nt-fee-" + suffix + "-" + strconv.Itoa(index) + "-" + string(feeSpec.direction)).
 				SetDirection(feeSpec.direction).
-				SetStatus(fee.StatusBILLED).
 				SetFeeCode("OCEAN_FREIGHT").
 				SetFeeName("海运费").
 				SetSettlementPartyID(customer.ID).
@@ -164,6 +164,8 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 			}
 			if feeSpec.direction == fee.DirectionRECEIVABLE {
 				fixture.receivableFeeIDs = append(fixture.receivableFeeIDs, createdFee.ID)
+			} else {
+				payableFeeIDs = append(payableFeeIDs, createdFee.ID)
 			}
 		}
 	}
@@ -241,6 +243,30 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 		t.Fatalf("创建测试应付账单: %v", err)
 	}
 	fixture.payableBillID = payableBill.ID
+
+	// 应付费用同样以真实账单关联表达建账事实（活动账单行且账单未取消）。
+	for index, payableAmount := range orderPayables {
+		if _, lineErr := data.db.FinanceBillLine.Create().
+			SetBillID(payableBill.ID).
+			SetOrderID(fixture.orderIDs[index]).
+			SetOrderFeeID(payableFeeIDs[index]).
+			SetOrderNo("NT-SE" + suffix + "-" + strconv.Itoa(index)).
+			SetFeeCode("OCEAN_FREIGHT").
+			SetFeeName("海运费").
+			SetQuantity("1.0000").
+			SetUnitPrice(strings.TrimSuffix(strings.TrimSuffix(payableAmount, "0000"), ".")).
+			SetTotalAmount(payableAmount).
+			SetNetAmount(payableAmount).
+			SetTaxAmount("0.00000000").
+			SetCurrency("CNY").
+			SetExchangeRate("1.00000000").
+			SetBaseCurrencyAmount(payableAmount).
+			SetBaseCurrency("CNY").
+			SetActive(true).
+			Save(ctx); lineErr != nil {
+			t.Fatalf("创建测试应付账单明细 %d: %v", index, lineErr)
+		}
+	}
 
 	if _, err = data.db.NumberRule.Create().SetOrganizationID(org.ID).SetDocumentType(numberruleent.DocumentTypeNetting).SetPrefix("NT-").SetDateFormat(numberruleent.DateFormatNone).SetSequenceLength(4).SetResetPolicy(numberruleent.ResetPolicyNever).SetEnabled(true).Save(ctx); err != nil {
 		t.Fatalf("创建测试对冲编号规则: %v", err)
@@ -610,7 +636,6 @@ func (f *commissionNettingPostgresFixture) createVerificationSource(ctx context.
 		SetOrderID(f.orderIDs[0]).
 		SetIdempotencyKey("nt-verify-fee-" + f.suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(f.customerID).

@@ -123,9 +123,6 @@ func calculateSupplementApprovalPreview(fees []*OrderFee, fee *OrderFee) (*Order
 		if current == nil {
 			return nil, ErrOrderFeeInvalidArgument
 		}
-		if current.Status == OrderFeeCancelled {
-			continue
-		}
 		if current.BaseCurrency != result.BaseCurrency {
 			return nil, ErrOrderFeeInvalidArgument
 		}
@@ -169,7 +166,6 @@ type OrderFeeSupplementRequestView struct {
 	CancelBlockReason string
 	CancelBlockCode   string
 	FeeID             *uuid.UUID
-	FeeStatus         string
 	ApproverAvailable bool
 }
 
@@ -499,7 +495,6 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 			return amountErr
 		}
 		fee.ID = uuid.Must(uuid.NewV7())
-		fee.Status = OrderFeeUnbilled
 		fee.Version = 1
 		fee.IdempotencyKey = "fee-supplement:" + request.ID.String()
 		// 5. 按父单 UUID 升序锁定提成父单、订单行与调整。
@@ -795,6 +790,10 @@ func (uc *OrderFeeSupplementUsecase) CancelApprovedFee(ctx context.Context, call
 	if uc.transactor == nil {
 		return nil, ErrFeeSupplementInvalidArgument
 	}
+	grant, grantErr := uc.repo.HasRealtimeLockGrant(ctx, organizationID, orderID, caller.UserID, caller.IsBootstrapAdmin)
+	if grantErr != nil {
+		return nil, grantErr
+	}
 	var result *OrderFeeSupplementCancelResult
 	err := uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 		cancelResult, cancelErr := uc.repo.CancelApprovedFee(txCtx, &OrderFeeSupplementCancelInput{
@@ -809,6 +808,21 @@ func (uc *OrderFeeSupplementUsecase) CancelApprovedFee(ctx context.Context, call
 		})
 		if cancelErr != nil {
 			return cancelErr
+		}
+		// 撤销提交前在同一事务内刷新申请与能力投影：申请保持 APPROVED，生成
+		// 费用已删除时 can_cancel=false 并携带稳定阻断原因，供响应展示。
+		capability, capabilityErr := uc.repo.CancelCapability(txCtx, organizationID, orderID, requestID)
+		if capabilityErr != nil {
+			return capabilityErr
+		}
+		cancelResult.View = &OrderFeeSupplementRequestView{
+			Request:           cancelResult.Request,
+			CanApprove:        false,
+			CanWithdraw:       false,
+			ApproverAvailable: grant,
+			CanCancel:         capability.Cancellable && grant,
+			CancelBlockCode:   capability.BlockReasonCode,
+			CancelBlockReason: capability.BlockReason,
 		}
 		result = cancelResult
 		return nil
@@ -888,7 +902,6 @@ func (uc *OrderFeeSupplementUsecase) List(ctx context.Context, caller *Principal
 				return nil, capabilityErr
 			}
 			view.FeeID = capability.FeeID
-			view.FeeStatus = capability.FeeStatus
 			view.CanCancel = caller.CanOperateBusiness() && caller.Organization.ID == organizationID && capability.Cancellable && grant
 			view.CancelBlockCode = capability.BlockReasonCode
 			view.CancelBlockReason = capability.BlockReason

@@ -353,7 +353,7 @@ describe('订单费用页跨订单状态隔离', () => {
     );
   });
 
-  it('同一页面实例从 A 切到 B 时关闭工作台并清空 A 的费用状态', async () => {
+  it('同一页面实例从 A 切到 B 时关闭工作台并清空 A 的费用编辑状态', async () => {
     const { rerender, queryClient } = renderFeesPage();
 
     fireEvent.click(screen.getByRole('button', { name: '准备当前订单费用' }));

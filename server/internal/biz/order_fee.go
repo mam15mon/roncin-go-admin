@@ -24,8 +24,8 @@ var (
 	ErrOrderFeeQuantityMustBeInteger         = errors.BadRequest("ORDER_FEE_QUANTITY_MUST_BE_INTEGER", "该计费单位的数量必须为正整数")
 	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
 	ErrOrderFeeVersionConflict               = errors.Conflict("ORDER_FEE_VERSION_CONFLICT", "订单费用已被其他操作人修改，请刷新后重试")
-	ErrOrderFeeInvalidTransition             = errors.Conflict("ORDER_FEE_INVALID_TRANSITION", "当前费用状态不允许执行该操作")
 	ErrOrderFeeBillOccupied                  = errors.Conflict("ORDER_FEE_BILL_OCCUPIED", "费用已进入未取消的账单，请先取消对应账单后再删除")
+	ErrOrderFeeSupplementDeleteForbidden     = errors.Conflict("ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN", "补录生成的费用不能普通删除，请前往补录申请专用撤销")
 	ErrOrderFeeIdempotencyConflict           = errors.Conflict("ORDER_FEE_IDEMPOTENCY_CONFLICT", "费用请求幂等键已被使用")
 	ErrOrderFeeFinanceLocked                 = errors.Conflict("ORDER_FEE_FINANCE_LOCKED", "订单已因确认或发放提成进入财务锁定，请通过提成调整记录处理后续差异")
 )
@@ -38,24 +38,20 @@ var (
 )
 
 type OrderFeeDirection string
-type OrderFeeStatus string
 
 const (
 	OrderFeeReceivable OrderFeeDirection = "RECEIVABLE"
 	OrderFeePayable    OrderFeeDirection = "PAYABLE"
-	// OrderFeeUnbilled 未建账：费用保存后即进入该状态，可直接维护或建账；
-	// 历史 DRAFT/CONFIRMED 区分已按用户决策合并，不设确认环节。
-	OrderFeeUnbilled  OrderFeeStatus = "UNBILLED"
-	OrderFeeBilled    OrderFeeStatus = "BILLED"
-	OrderFeeCancelled OrderFeeStatus = "CANCELLED"
 )
 
 type OrderFee struct {
-	ID                    uuid.UUID
-	OrderID               uuid.UUID
-	IdempotencyKey        string
-	Direction             OrderFeeDirection
-	Status                OrderFeeStatus
+	ID             uuid.UUID
+	OrderID        uuid.UUID
+	IdempotencyKey string
+	Direction      OrderFeeDirection
+	// HasActiveBill 只读关联事实：费用是否被有效账单关联占用（活动账单行且所属
+	// 账单未取消，含草稿账单）。由 data 层批量投影，未加载关联时不允许默认为未建账。
+	HasActiveBill         bool
 	FeeSettingID          *uuid.UUID
 	FeeCode               string
 	FeeName               string
@@ -85,9 +81,6 @@ type OrderFee struct {
 	ExpenseDate           string
 	Note                  *string
 	Version               uint64
-	CancelledAt           *time.Time
-	CancelledBy           *uuid.UUID
-	CancellationReason    *string
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
 }
@@ -254,7 +247,6 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 		return nil, err
 	}
 	normalized.ID = uuid.Must(uuid.NewV7())
-	normalized.Status = OrderFeeUnbilled
 	normalized.Version = 1
 	if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, normalized); err != nil {
 		return nil, err
@@ -331,17 +323,12 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 		return nil, err
 	}
 	// 仅未建账费用可更换结算单位；已建账费用的结算单位不可变，无需重复校验。
-	if current.Status == OrderFeeUnbilled {
+	if !current.HasActiveBill {
 		if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, normalized); err != nil {
 			return nil, err
 		}
 	}
-	switch current.Status {
-	case OrderFeeUnbilled:
-		if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, false, uuidPointersEqual(current.BillingUnitID, normalized.BillingUnitID)); err != nil {
-			return nil, err
-		}
-	case OrderFeeBilled:
+	if current.HasActiveBill {
 		if !uuidPointersEqual(current.FeeSettingID, normalized.FeeSettingID) || !uuidPointersEqual(current.BillingUnitID, normalized.BillingUnitID) {
 			return nil, ErrBilledFeeFieldForbidden
 		}
@@ -356,12 +343,14 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 			normalized.TaxRate = requestedTaxRate
 			normalized.TaxRateOverride = requestedTaxRate
 		}
-	default:
-		return nil, ErrOrderFeeInvalidTransition
+	} else {
+		if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, false, uuidPointersEqual(current.BillingUnitID, normalized.BillingUnitID)); err != nil {
+			return nil, err
+		}
 	}
 	if normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency && normalized.Direction == current.Direction && normalized.ExpenseDate == current.ExpenseDate {
 		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
-	} else if current.Status == OrderFeeBilled && normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency {
+	} else if current.HasActiveBill && normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency {
 		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
 	} else {
 		if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
@@ -372,12 +361,7 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 		return nil, err
 	}
 	var billExchangeRate *ResolvedRate
-	switch current.Status {
-	case OrderFeeUnbilled:
-		if requestedTaxRate != nil || input.FeeNameOverride != nil {
-			return nil, ErrOrderFeeInvalidArgument
-		}
-	case OrderFeeBilled:
+	if current.HasActiveBill {
 		if uc.customSetting == nil {
 			return nil, ErrBilledFeeEditDisabled
 		}
@@ -405,10 +389,11 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 			}
 			billExchangeRate = &billRate
 		}
-	default:
-		return nil, ErrOrderFeeInvalidTransition
+	} else {
+		if requestedTaxRate != nil || input.FeeNameOverride != nil {
+			return nil, ErrOrderFeeInvalidArgument
+		}
 	}
-	normalized.Status = current.Status
 	normalized.Version = input.Version
 	auditFee := *normalized
 	auditFee.Version = input.Version + 1
@@ -561,18 +546,14 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 	return nil
 }
 
-// Remove 按账单占用关系物理删除费用：费用未被未取消账单（含草稿账单）包含时
-// 可删除；被占用时仓储在事务内以事实复核并返回 ErrOrderFeeBillOccupied。未建账
-// 状态不阻止删除；历史账单与金额快照不受影响。reason 选填，仅写入审计明细。
+// Remove 按账单占用关系物理删除费用：费用未被有效账单关联（活动账单行且所属
+// 账单未取消，含草稿账单）占用时可删除；被占用时仓储在事务内以事实复核并返回
+// ErrOrderFeeBillOccupied，补录生成的费用一律拒绝并提示走专用撤销。历史账单与
+// 金额快照不受影响，来源引用由外键置空。reason 选填，仅写入审计明细。
 func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, expectedVersion uint64, reason string) error {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || utf8.RuneCountInString(reason) > 500 {
 		return ErrOrderFeeInvalidArgument
-	}
-	// 删除未建账费用与作废同属自动锁定重试触发；先读取当前状态用于判断触发类型。
-	current, err := uc.repo.Get(ctx, organizationID, orderID, id)
-	if err != nil {
-		return err
 	}
 	details := map[string]string{
 		"fee.id": id.String(), "order.id": orderID.String(),
@@ -589,9 +570,8 @@ func (uc *OrderFeeUsecase) Remove(ctx context.Context, organizationID, actorID, 
 	}); err != nil {
 		return err
 	}
-	if current.Status == OrderFeeUnbilled {
-		uc.triggerAutoLock(ctx, organizationID, actorID, id, orderID, AutoLockTriggerFeeCancel)
-	}
+	// 成功删除的费用必然未被有效账单占用（占用会在事务内被拒绝）；删除即触发结清自动锁定重评（幂等）。
+	uc.triggerAutoLock(ctx, organizationID, actorID, id, orderID, AutoLockTriggerFeeCancel)
 	return nil
 }
 
@@ -708,9 +688,9 @@ func (uc *OrderFeeUsecase) BulkUpdate(ctx context.Context, organizationID, actor
 	return uc.repo.BulkUpdate(ctx, organizationID, orderID, input, audits)
 }
 
-// BulkRemove 批量删除未建账费用：整批单一事务，被未取消账单占用、版本冲突
-// 或越订单任一不满足时整批回滚。删除成功后按单条删除同款语义对每个未建账
-// 目标触发结清自动锁定重评（幂等）。
+// BulkRemove 批量删除未被有效账单关联占用的费用：整批单一事务，被有效账单
+// 占用、补录来源、版本冲突或越订单任一不满足时整批回滚。删除成功后对每个目标
+// 触发结清自动锁定重评（幂等）。
 func (uc *OrderFeeUsecase) BulkRemove(ctx context.Context, organizationID, actorID, orderID uuid.UUID, targets []OrderFeeBulkTarget, reason string) error {
 	if err := validateOrderFeeBulkTargets(targets); err != nil {
 		return err
@@ -760,9 +740,7 @@ func (uc *OrderFeeUsecase) BulkRemove(ctx context.Context, organizationID, actor
 		return err
 	}
 	for _, fee := range targetFees {
-		if fee.Status == OrderFeeUnbilled {
-			uc.triggerAutoLock(ctx, organizationID, actorID, fee.ID, orderID, AutoLockTriggerFeeCancel)
-		}
+		uc.triggerAutoLock(ctx, organizationID, actorID, fee.ID, orderID, AutoLockTriggerFeeCancel)
 	}
 	return nil
 }
@@ -802,7 +780,7 @@ func orderFeeBulkUpdateAudit(organizationID, actorID, orderID uuid.UUID, fee *Or
 	}
 }
 
-// triggerAutoLock 在未建账费用作废成功提交后触发结清自动锁定检查。
+// triggerAutoLock 在费用删除成功提交后触发结清自动锁定检查。
 // 触发失败只记录警告日志；纯成本等无有效结清事实的订单由仓储预检静默跳过。
 func (uc *OrderFeeUsecase) triggerAutoLock(ctx context.Context, organizationID, actorID, feeID, orderID uuid.UUID, triggerType AutoLockTriggerSource) {
 	if uc.autoLock == nil {
@@ -840,7 +818,6 @@ func orderFeeAudit(organizationID, actorID, orderID, feeID uuid.UUID, action str
 			"fee.amount":               fee.TotalAmount.StringFixed(8),
 			"fee.currency":             fee.Currency,
 			"fee.exchange_rate_source": fee.ExchangeRateSource,
-			"fee.status":               string(fee.Status),
 			"fee.version":              fmt.Sprintf("%d", fee.Version),
 			"fee.net_amount":           fee.NetAmount.StringFixed(8),
 			"fee.tax_amount":           fee.TaxAmount.StringFixed(8),

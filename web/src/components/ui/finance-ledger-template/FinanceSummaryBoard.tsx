@@ -37,8 +37,6 @@ function aggregateFees(
   let baseCurrency = fallbackBaseCurrency;
 
   for (const item of items) {
-    if (item.status === 'CANCELLED' || item.status === 4 || item.status === '4')
-      continue;
     const cur = item.currency || 'CNY';
     const total = Number(item.totalAmount || 0);
     const baseTotal = Number(item.baseCurrencyAmount || 0);

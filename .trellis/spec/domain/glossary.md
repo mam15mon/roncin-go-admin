@@ -23,8 +23,8 @@
 
 | 术语 | 英文/代码 | 含义与要点 | 代码入口 |
 | --- | --- | --- | --- |
-| 费用 | `OrderFee` | 订单级应收(RECEIVABLE)/应付(PAYABLE)费用行；状态为未建账(UNBILLED)/已建账(BILLED)/已作废(CANCELLED)，保存即未建账、无确认环节；币种+结算单位+方向一致才可同账单 | `service/settlement.go`、biz `fee_catalog` |
-| 费用补录 | Fee Supplement, `OrderFeeSupplementRequest` | 订单锁定后补录费用：锁证据→审批→生成费用+提成冲减建议；财务锁审批人资格 | `data/order_fee_supplement_*.go` |
+| 费用 | `OrderFee` | 订单级应收(RECEIVABLE)/应付(PAYABLE)费用行；**无独立状态字段**，是否已建账由有效账单关联（活动账单行且所属账单未取消，含 DRAFT）推导，投影为 `has_active_bill`；未建账费用硬删除（审计带快照），已建账须先取消账单，补录生成费用只能走补录专用撤销；币种+结算单位+方向一致才可同账单 | `data/fee_bill_association.go`、biz `order_fee.go` |
+| 费用补录 | Fee Supplement, `OrderFeeSupplementRequest` | 订单锁定后补录费用：锁证据→审批→生成费用+提成冲减建议；财务锁审批人资格；专用撤销=原子取消 DRAFT 冲减并硬删除生成费用，申请保持 APPROVED 且展示「生成费用已删除」 | `data/order_fee_supplement_*.go` |
 | 账单 | `FinanceBill` / `...Batch` / `...Line` | 费用汇成账单；支持单张与批量分组建账（分组策略/对冲模式）；状态机 含版本乐观锁 | `biz/finance_bill*.go` |
 | 对冲 | Netting, `FinanceNetting` / `...Allocation` | 同结算单位应收应付互抵；对冲配对在建账预览中生成 | `finance_netting*.go` |
 | 核销 | Verification, `FinanceVerification` / `...Allocation` | 收付款登记后按分配核销到账单/费用 | `finance_verification*.go` |

@@ -105,10 +105,6 @@ func supplementViewCapabilities(data *v1.OrderFeeSupplementRequestData, view *bi
 		feeID := view.FeeID.String()
 		data.FeeId = &feeID
 	}
-	if view.FeeStatus != "" {
-		feeStatus := view.FeeStatus
-		data.FeeStatus = &feeStatus
-	}
 }
 
 // CreateOrderFeeSupplement 发起锁后应付费用补录申请；方向应收在服务边界与
@@ -312,5 +308,9 @@ func (s *OrderFeeService) CancelApprovedOrderFeeSupplement(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.CancelApprovedOrderFeeSupplementResponse{Fee: orderFeeToAPI(result.Fee)}), nil
+	// 撤销成功后返回刷新的申请投影：APPROVED 保持不变，fee_id 为空表示生成
+	// 费用已删除，can_cancel=false 并携带阻断原因。
+	data := orderFeeSupplementToAPI(result.View.Request)
+	supplementViewCapabilities(data, result.View)
+	return ok(ctx, &v1.CancelApprovedOrderFeeSupplementResponse{Data: data}), nil
 }

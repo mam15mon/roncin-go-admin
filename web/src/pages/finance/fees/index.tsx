@@ -19,7 +19,6 @@ import {
 import {
   FeeLedgerFinancialProgress,
   FinanceOrganizationPurpose,
-  OrderFeeStatus,
 } from '@/enums.generated';
 import {
   type BillCreationMode,
@@ -151,10 +150,10 @@ export default function FinanceFeeLedgerPage() {
     actionRef.current?.reload();
   };
 
+  // 建账资格以既有账单信息为口径：关联账单号存在（含草稿账单占用）即不可建账；
+  // 候选事实由服务端在最终建单事务内复核。
   const canCreateBill = (row: API.FeeLedgerItem) =>
-    access.canOperateOrganization(row.organizationId) &&
-    row.status === OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED &&
-    !row.billNo;
+    access.canOperateOrganization(row.organizationId) && !row.billNo;
 
   const formatAmounts = (
     field: 'receivableBaseAmount' | 'payableBaseAmount' | 'profitBaseAmount',
@@ -304,7 +303,7 @@ export default function FinanceFeeLedgerPage() {
     <>
       <FinanceLedgerTemplate<API.FeeLedgerItem>
         pageTitle="费用明细台账"
-        pageSubTitle="全维度多币种费用台账，支持按单据、费用状态、结算单位快速对账与生成账单"
+        pageSubTitle="全维度多币种费用台账，支持按单据、财务进度、结算单位快速对账与生成账单"
         topBar={
           <Space size={16} align="center" wrap>
             <Space size={8} align="center">
@@ -494,7 +493,6 @@ export default function FinanceFeeLedgerPage() {
             billNo: filterParams.billNo || undefined,
             businessType: filterParams.businessType || undefined,
             direction: filterParams.direction || undefined,
-            status: filterParams.status || undefined,
             financialProgress: filterParams.financialProgress || undefined,
             customerId: filterParams.customerId || undefined,
             settlementPartyId: filterParams.settlementPartyId || undefined,

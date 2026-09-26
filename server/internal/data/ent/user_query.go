@@ -36,7 +36,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -69,7 +68,6 @@ type UserQuery struct {
 	withOrderPersonnel                             *OrderPersonnelQuery
 	withNotificationDeliveries                     *NotificationDeliveryQuery
 	withPartnerAssignments                         *PartnerAssignmentQuery
-	withCancelledOrderFees                         *OrderFeeQuery
 	withConfirmedFinanceBills                      *FinanceBillQuery
 	withCancelledFinanceBills                      *FinanceBillQuery
 	withCreatedFinanceBillBatches                  *FinanceBillBatchQuery
@@ -266,28 +264,6 @@ func (_q *UserQuery) QueryPartnerAssignments() *PartnerAssignmentQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(partnerassignment.Table, partnerassignment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.PartnerAssignmentsTable, user.PartnerAssignmentsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryCancelledOrderFees chains the current query on the "cancelled_order_fees" edge.
-func (_q *UserQuery) QueryCancelledOrderFees() *OrderFeeQuery {
-	query := (&OrderFeeClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(orderfee.Table, orderfee.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.CancelledOrderFeesTable, user.CancelledOrderFeesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1724,7 +1700,6 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withOrderPersonnel:                             _q.withOrderPersonnel.Clone(),
 		withNotificationDeliveries:                     _q.withNotificationDeliveries.Clone(),
 		withPartnerAssignments:                         _q.withPartnerAssignments.Clone(),
-		withCancelledOrderFees:                         _q.withCancelledOrderFees.Clone(),
 		withConfirmedFinanceBills:                      _q.withConfirmedFinanceBills.Clone(),
 		withCancelledFinanceBills:                      _q.withCancelledFinanceBills.Clone(),
 		withCreatedFinanceBillBatches:                  _q.withCreatedFinanceBillBatches.Clone(),
@@ -1839,17 +1814,6 @@ func (_q *UserQuery) WithPartnerAssignments(opts ...func(*PartnerAssignmentQuery
 		opt(query)
 	}
 	_q.withPartnerAssignments = query
-	return _q
-}
-
-// WithCancelledOrderFees tells the query-builder to eager-load the nodes that are connected to
-// the "cancelled_order_fees" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserQuery) WithCancelledOrderFees(opts ...func(*OrderFeeQuery)) *UserQuery {
-	query := (&OrderFeeClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withCancelledOrderFees = query
 	return _q
 }
 
@@ -2547,13 +2511,12 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [62]bool{
+		loadedTypes = [61]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
 			_q.withNotificationDeliveries != nil,
 			_q.withPartnerAssignments != nil,
-			_q.withCancelledOrderFees != nil,
 			_q.withConfirmedFinanceBills != nil,
 			_q.withCancelledFinanceBills != nil,
 			_q.withCreatedFinanceBillBatches != nil,
@@ -2669,13 +2632,6 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User, e *PartnerAssignment) {
 				n.Edges.PartnerAssignments = append(n.Edges.PartnerAssignments, e)
 			}); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withCancelledOrderFees; query != nil {
-		if err := _q.loadCancelledOrderFees(ctx, query, nodes,
-			func(n *User) { n.Edges.CancelledOrderFees = []*OrderFee{} },
-			func(n *User, e *OrderFee) { n.Edges.CancelledOrderFees = append(n.Edges.CancelledOrderFees, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -3328,39 +3284,6 @@ func (_q *UserQuery) loadPartnerAssignments(ctx context.Context, query *PartnerA
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *UserQuery) loadCancelledOrderFees(ctx context.Context, query *OrderFeeQuery, nodes []*User, init func(*User), assign func(*User, *OrderFee)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*User)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(orderfee.FieldCancelledBy)
-	}
-	query.Where(predicate.OrderFee(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.CancelledOrderFeesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.CancelledBy
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "cancelled_by" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "cancelled_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

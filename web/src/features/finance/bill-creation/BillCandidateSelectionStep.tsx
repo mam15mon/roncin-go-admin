@@ -1,9 +1,8 @@
-import { ProTable } from '@ant-design/pro-components';
 import type { ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
 import { Alert, Card, Select, Typography } from 'antd';
 import React from 'react';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { OrderFeeStatus } from '@/enums.generated';
 import { settlementServiceListBillCreationCandidates } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { selectionFeeColumns } from './billWorkbenchFeeColumns';
@@ -36,11 +35,10 @@ export default function BillCandidateSelectionStep({
   organizationOptions,
   onOrganizationChange,
 }: BillCandidateSelectionStepProps) {
-  const candidateSettings =
-    useColumnSettings<ProColumns<API.FeeLedgerItem>>({
-      tableKey: 'finance:bill-candidate-fees',
-      columns: selectionFeeColumns,
-    });
+  const candidateSettings = useColumnSettings<ProColumns<API.FeeLedgerItem>>({
+    tableKey: 'finance:bill-candidate-fees',
+    columns: selectionFeeColumns,
+  });
 
   return fixedSelection ? (
     <Card>
@@ -48,7 +46,7 @@ export default function BillCandidateSelectionStep({
         type="info"
         showIcon
         title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔未建账费用`}
-        description="费用状态、结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
+        description="结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
       />
       <div style={{ marginTop: 12 }}>
         来源公司：
@@ -88,16 +86,12 @@ export default function BillCandidateSelectionStep({
           preserveSelectedRowKeys: true,
           onChange: onSelectedFeeIdsChange,
           getCheckboxProps: (record) => {
-            const isSelectable =
-              record.status === OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED &&
-              !record.billNo;
+            // 候选接口已按有效账单关联过滤未建账费用；billNo 为空作为展示层兜底，
+            // 不在前端重建第二套状态判定。
+            const isSelectable = !record.billNo;
             return {
               disabled: !isSelectable,
-              title: !isSelectable
-                ? record.billNo
-                  ? `已进入账单 ${record.billNo}`
-                  : '只有未建账且未入账单的费用方可创建账单'
-                : undefined,
+              title: !isSelectable ? `已进入账单 ${record.billNo}` : undefined,
             };
           },
         }}

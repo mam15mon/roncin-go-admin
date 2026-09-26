@@ -119,16 +119,18 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		}
 		for _, fee := range fees {
 			line := expectedLines[fee.ID]
-			if line == nil || fee.Status != orderfeeent.StatusUNBILLED || fee.Currency != line.Currency || fee.BaseCurrency != line.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
+			if line == nil || fee.Currency != line.Currency || fee.BaseCurrency != line.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
 				return biz.ErrFinanceBillPreviewStale
 			}
 		}
-		active, err := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDIn(feeIDs...), financebilllineent.ActiveEQ(true)).Exist(ctx)
+		// 关联资格在插入账单行前锁内复核：任何目标费用已存在有效账单关联即拒绝，
+		// 与预览期的占用口径一致。
+		occupied, err := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDIn(feeIDs...), effectiveBillLinePredicate()).Exist(ctx)
 		if err != nil {
 			return err
 		}
-		if active {
-			return biz.ErrFinanceBillFeeInvalid
+		if occupied {
+			return biz.ErrFinanceBillPreviewStale
 		}
 		// 与单张建账保持“费用 → 账户”的固定加锁顺序，避免批量与单张并发建账互相等待。
 		if err := hydrateFinanceBillSettlementAccounts(ctx, tx, batch.Bills); err != nil {
@@ -169,7 +171,8 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 				return mapEntError(saveErr, nil, biz.ErrFinanceBillFeeInvalid)
 			}
 		}
-		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED)).SetStatus(orderfeeent.StatusBILLED).AddVersion(1).Save(ctx)
+		// 费用行已在锁内通过关联资格复核，直接递增版本；受影响行数校验保留。
+		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...)).AddVersion(1).Save(ctx)
 		if err != nil {
 			return err
 		}

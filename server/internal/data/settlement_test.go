@@ -298,8 +298,8 @@ func TestInvoiceProfilesForBillRequireEligibleScopedBill(t *testing.T) {
 func TestBillCreationCandidatesKeepOrganizationEligibilityAndPartnerSearchInSQL(t *testing.T) {
 	settlementRepo, mock := setupTestSettlementRepo(t)
 	repo := &financeBillRepo{data: settlementRepo.data}
-	mock.ExpectQuery(`SELECT COUNT.*FROM "order_fees".*status.*orders.*organization_id.*NOT.*finance_bill_lines.*partners.*partner_alias`).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-	mock.ExpectQuery(`SELECT "order_fees".*FROM "order_fees".*status.*orders.*organization_id.*NOT.*finance_bill_lines.*partners.*partner_alias`).WillReturnRows(sqlmock.NewRows(orderfee.Columns))
+	mock.ExpectQuery(`SELECT COUNT.*FROM "order_fees".*orders.*organization_id.*NOT.*finance_bill_lines.*finance_bills.*partners.*partner_alias`).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT "order_fees".*FROM "order_fees".*orders.*organization_id.*NOT.*finance_bill_lines.*finance_bills.*partners.*partner_alias`).WillReturnRows(sqlmock.NewRows(orderfee.Columns))
 	result, err := repo.ListCreationCandidates(context.Background(), uuid.New(), biz.FinanceBillCreationCandidateFilter{Page: 1, PageSize: 20, Keyword: "客户"})
 	if err != nil {
 		t.Fatal(err)

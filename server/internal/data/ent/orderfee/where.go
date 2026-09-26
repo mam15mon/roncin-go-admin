@@ -201,21 +201,6 @@ func Version(v uint64) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldVersion, v))
 }
 
-// CancelledAt applies equality check predicate on the "cancelled_at" field. It's identical to CancelledAtEQ.
-func CancelledAt(v time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEQ(FieldCancelledAt, v))
-}
-
-// CancelledBy applies equality check predicate on the "cancelled_by" field. It's identical to CancelledByEQ.
-func CancelledBy(v uuid.UUID) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEQ(FieldCancelledBy, v))
-}
-
-// CancellationReason applies equality check predicate on the "cancellation_reason" field. It's identical to CancellationReasonEQ.
-func CancellationReason(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEQ(FieldCancellationReason, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldCreatedAt, v))
@@ -399,26 +384,6 @@ func DirectionIn(vs ...Direction) predicate.OrderFee {
 // DirectionNotIn applies the NotIn predicate on the "direction" field.
 func DirectionNotIn(vs ...Direction) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldNotIn(FieldDirection, vs...))
-}
-
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v Status) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEQ(FieldStatus, v))
-}
-
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v Status) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNEQ(FieldStatus, v))
-}
-
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...Status) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldIn(FieldStatus, vs...))
-}
-
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...Status) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNotIn(FieldStatus, vs...))
 }
 
 // FeeSettingIDEQ applies the EQ predicate on the "fee_setting_id" field.
@@ -1861,161 +1826,6 @@ func VersionLTE(v uint64) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldLTE(FieldVersion, v))
 }
 
-// CancelledAtEQ applies the EQ predicate on the "cancelled_at" field.
-func CancelledAtEQ(v time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEQ(FieldCancelledAt, v))
-}
-
-// CancelledAtNEQ applies the NEQ predicate on the "cancelled_at" field.
-func CancelledAtNEQ(v time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNEQ(FieldCancelledAt, v))
-}
-
-// CancelledAtIn applies the In predicate on the "cancelled_at" field.
-func CancelledAtIn(vs ...time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldIn(FieldCancelledAt, vs...))
-}
-
-// CancelledAtNotIn applies the NotIn predicate on the "cancelled_at" field.
-func CancelledAtNotIn(vs ...time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNotIn(FieldCancelledAt, vs...))
-}
-
-// CancelledAtGT applies the GT predicate on the "cancelled_at" field.
-func CancelledAtGT(v time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldGT(FieldCancelledAt, v))
-}
-
-// CancelledAtGTE applies the GTE predicate on the "cancelled_at" field.
-func CancelledAtGTE(v time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldGTE(FieldCancelledAt, v))
-}
-
-// CancelledAtLT applies the LT predicate on the "cancelled_at" field.
-func CancelledAtLT(v time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldLT(FieldCancelledAt, v))
-}
-
-// CancelledAtLTE applies the LTE predicate on the "cancelled_at" field.
-func CancelledAtLTE(v time.Time) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldLTE(FieldCancelledAt, v))
-}
-
-// CancelledAtIsNil applies the IsNil predicate on the "cancelled_at" field.
-func CancelledAtIsNil() predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldIsNull(FieldCancelledAt))
-}
-
-// CancelledAtNotNil applies the NotNil predicate on the "cancelled_at" field.
-func CancelledAtNotNil() predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNotNull(FieldCancelledAt))
-}
-
-// CancelledByEQ applies the EQ predicate on the "cancelled_by" field.
-func CancelledByEQ(v uuid.UUID) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEQ(FieldCancelledBy, v))
-}
-
-// CancelledByNEQ applies the NEQ predicate on the "cancelled_by" field.
-func CancelledByNEQ(v uuid.UUID) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNEQ(FieldCancelledBy, v))
-}
-
-// CancelledByIn applies the In predicate on the "cancelled_by" field.
-func CancelledByIn(vs ...uuid.UUID) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldIn(FieldCancelledBy, vs...))
-}
-
-// CancelledByNotIn applies the NotIn predicate on the "cancelled_by" field.
-func CancelledByNotIn(vs ...uuid.UUID) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNotIn(FieldCancelledBy, vs...))
-}
-
-// CancelledByIsNil applies the IsNil predicate on the "cancelled_by" field.
-func CancelledByIsNil() predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldIsNull(FieldCancelledBy))
-}
-
-// CancelledByNotNil applies the NotNil predicate on the "cancelled_by" field.
-func CancelledByNotNil() predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNotNull(FieldCancelledBy))
-}
-
-// CancellationReasonEQ applies the EQ predicate on the "cancellation_reason" field.
-func CancellationReasonEQ(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEQ(FieldCancellationReason, v))
-}
-
-// CancellationReasonNEQ applies the NEQ predicate on the "cancellation_reason" field.
-func CancellationReasonNEQ(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNEQ(FieldCancellationReason, v))
-}
-
-// CancellationReasonIn applies the In predicate on the "cancellation_reason" field.
-func CancellationReasonIn(vs ...string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldIn(FieldCancellationReason, vs...))
-}
-
-// CancellationReasonNotIn applies the NotIn predicate on the "cancellation_reason" field.
-func CancellationReasonNotIn(vs ...string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNotIn(FieldCancellationReason, vs...))
-}
-
-// CancellationReasonGT applies the GT predicate on the "cancellation_reason" field.
-func CancellationReasonGT(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldGT(FieldCancellationReason, v))
-}
-
-// CancellationReasonGTE applies the GTE predicate on the "cancellation_reason" field.
-func CancellationReasonGTE(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldGTE(FieldCancellationReason, v))
-}
-
-// CancellationReasonLT applies the LT predicate on the "cancellation_reason" field.
-func CancellationReasonLT(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldLT(FieldCancellationReason, v))
-}
-
-// CancellationReasonLTE applies the LTE predicate on the "cancellation_reason" field.
-func CancellationReasonLTE(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldLTE(FieldCancellationReason, v))
-}
-
-// CancellationReasonContains applies the Contains predicate on the "cancellation_reason" field.
-func CancellationReasonContains(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldContains(FieldCancellationReason, v))
-}
-
-// CancellationReasonHasPrefix applies the HasPrefix predicate on the "cancellation_reason" field.
-func CancellationReasonHasPrefix(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldHasPrefix(FieldCancellationReason, v))
-}
-
-// CancellationReasonHasSuffix applies the HasSuffix predicate on the "cancellation_reason" field.
-func CancellationReasonHasSuffix(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldHasSuffix(FieldCancellationReason, v))
-}
-
-// CancellationReasonIsNil applies the IsNil predicate on the "cancellation_reason" field.
-func CancellationReasonIsNil() predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldIsNull(FieldCancellationReason))
-}
-
-// CancellationReasonNotNil applies the NotNil predicate on the "cancellation_reason" field.
-func CancellationReasonNotNil() predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldNotNull(FieldCancellationReason))
-}
-
-// CancellationReasonEqualFold applies the EqualFold predicate on the "cancellation_reason" field.
-func CancellationReasonEqualFold(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldEqualFold(FieldCancellationReason, v))
-}
-
-// CancellationReasonContainsFold applies the ContainsFold predicate on the "cancellation_reason" field.
-func CancellationReasonContainsFold(v string) predicate.OrderFee {
-	return predicate.OrderFee(sql.FieldContainsFold(FieldCancellationReason, v))
-}
-
 // HasOrder applies the HasEdge predicate on the "order" edge.
 func HasOrder() predicate.OrderFee {
 	return predicate.OrderFee(func(s *sql.Selector) {
@@ -2100,29 +1910,6 @@ func HasBillingUnitRef() predicate.OrderFee {
 func HasBillingUnitRefWith(preds ...predicate.BillingUnit) predicate.OrderFee {
 	return predicate.OrderFee(func(s *sql.Selector) {
 		step := newBillingUnitRefStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasCancelledByUser applies the HasEdge predicate on the "cancelled_by_user" edge.
-func HasCancelledByUser() predicate.OrderFee {
-	return predicate.OrderFee(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CancelledByUserTable, CancelledByUserColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasCancelledByUserWith applies the HasEdge predicate on the "cancelled_by_user" edge with a given conditions (other predicates).
-func HasCancelledByUserWith(preds ...predicate.User) predicate.OrderFee {
-	return predicate.OrderFee(func(s *sql.Selector) {
-		step := newCancelledByUserStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

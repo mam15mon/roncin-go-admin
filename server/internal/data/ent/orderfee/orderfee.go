@@ -26,8 +26,6 @@ const (
 	FieldIdempotencyKey = "idempotency_key"
 	// FieldDirection holds the string denoting the direction field in the database.
 	FieldDirection = "direction"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
 	// FieldFeeSettingID holds the string denoting the fee_setting_id field in the database.
 	FieldFeeSettingID = "fee_setting_id"
 	// FieldFeeCode holds the string denoting the fee_code field in the database.
@@ -80,12 +78,6 @@ const (
 	FieldSupplementRequestID = "supplement_request_id"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
-	// FieldCancelledAt holds the string denoting the cancelled_at field in the database.
-	FieldCancelledAt = "cancelled_at"
-	// FieldCancelledBy holds the string denoting the cancelled_by field in the database.
-	FieldCancelledBy = "cancelled_by"
-	// FieldCancellationReason holds the string denoting the cancellation_reason field in the database.
-	FieldCancellationReason = "cancellation_reason"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
 	EdgeOrder = "order"
 	// EdgeFeeSetting holds the string denoting the fee_setting edge name in mutations.
@@ -94,8 +86,6 @@ const (
 	EdgeSettlementParty = "settlement_party"
 	// EdgeBillingUnitRef holds the string denoting the billing_unit_ref edge name in mutations.
 	EdgeBillingUnitRef = "billing_unit_ref"
-	// EdgeCancelledByUser holds the string denoting the cancelled_by_user edge name in mutations.
-	EdgeCancelledByUser = "cancelled_by_user"
 	// EdgeSupplementRequest holds the string denoting the supplement_request edge name in mutations.
 	EdgeSupplementRequest = "supplement_request"
 	// EdgeFinanceBillLines holds the string denoting the finance_bill_lines edge name in mutations.
@@ -132,13 +122,6 @@ const (
 	BillingUnitRefInverseTable = "billing_units"
 	// BillingUnitRefColumn is the table column denoting the billing_unit_ref relation/edge.
 	BillingUnitRefColumn = "billing_unit_id"
-	// CancelledByUserTable is the table that holds the cancelled_by_user relation/edge.
-	CancelledByUserTable = "order_fees"
-	// CancelledByUserInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	CancelledByUserInverseTable = "users"
-	// CancelledByUserColumn is the table column denoting the cancelled_by_user relation/edge.
-	CancelledByUserColumn = "cancelled_by"
 	// SupplementRequestTable is the table that holds the supplement_request relation/edge.
 	SupplementRequestTable = "order_fees"
 	// SupplementRequestInverseTable is the table name for the OrderFeeSupplementRequest entity.
@@ -170,7 +153,6 @@ var Columns = []string{
 	FieldOrderID,
 	FieldIdempotencyKey,
 	FieldDirection,
-	FieldStatus,
 	FieldFeeSettingID,
 	FieldFeeCode,
 	FieldFeeName,
@@ -197,9 +179,6 @@ var Columns = []string{
 	FieldNote,
 	FieldSupplementRequestID,
 	FieldVersion,
-	FieldCancelledAt,
-	FieldCancelledBy,
-	FieldCancellationReason,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -245,8 +224,6 @@ var (
 	NoteValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
-	// CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
-	CancellationReasonValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -271,33 +248,6 @@ func DirectionValidator(d Direction) error {
 		return nil
 	default:
 		return fmt.Errorf("orderfee: invalid enum value for direction field: %q", d)
-	}
-}
-
-// Status defines the type for the "status" enum field.
-type Status string
-
-// StatusUNBILLED is the default value of the Status enum.
-const DefaultStatus = StatusUNBILLED
-
-// Status values.
-const (
-	StatusUNBILLED  Status = "UNBILLED"
-	StatusBILLED    Status = "BILLED"
-	StatusCANCELLED Status = "CANCELLED"
-)
-
-func (s Status) String() string {
-	return string(s)
-}
-
-// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
-func StatusValidator(s Status) error {
-	switch s {
-	case StatusUNBILLED, StatusBILLED, StatusCANCELLED:
-		return nil
-	default:
-		return fmt.Errorf("orderfee: invalid enum value for status field: %q", s)
 	}
 }
 
@@ -359,11 +309,6 @@ func ByIdempotencyKey(opts ...sql.OrderTermOption) OrderOption {
 // ByDirection orders the results by the direction field.
 func ByDirection(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDirection, opts...).ToFunc()
-}
-
-// ByStatus orders the results by the status field.
-func ByStatus(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
 // ByFeeSettingID orders the results by the fee_setting_id field.
@@ -496,21 +441,6 @@ func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
 }
 
-// ByCancelledAt orders the results by the cancelled_at field.
-func ByCancelledAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCancelledAt, opts...).ToFunc()
-}
-
-// ByCancelledBy orders the results by the cancelled_by field.
-func ByCancelledBy(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCancelledBy, opts...).ToFunc()
-}
-
-// ByCancellationReason orders the results by the cancellation_reason field.
-func ByCancellationReason(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCancellationReason, opts...).ToFunc()
-}
-
 // ByOrderField orders the results by order field.
 func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -536,13 +466,6 @@ func BySettlementPartyField(field string, opts ...sql.OrderTermOption) OrderOpti
 func ByBillingUnitRefField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newBillingUnitRefStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByCancelledByUserField orders the results by cancelled_by_user field.
-func ByCancelledByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCancelledByUserStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -606,13 +529,6 @@ func newBillingUnitRefStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BillingUnitRefInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, BillingUnitRefTable, BillingUnitRefColumn),
-	)
-}
-func newCancelledByUserStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CancelledByUserInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, CancelledByUserTable, CancelledByUserColumn),
 	)
 }
 func newSupplementRequestStep() *sqlgraph.Step {

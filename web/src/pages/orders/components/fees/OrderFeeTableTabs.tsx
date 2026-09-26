@@ -29,11 +29,6 @@ import {
   SectionCard,
   scrollToFirstTableError,
 } from '@/components/ui';
-import {
-  normalizeOrderFeeStatus,
-  orderFeeStatusMeta,
-  statusTag,
-} from '@/constants/statusMeta';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
 import {
@@ -68,15 +63,7 @@ import {
   resolveFeeColumnPreference,
   saveFeeColumnPreference,
 } from './feeColumnPreference';
-import {
-  FEE_BILLED,
-  FEE_CANCELLED,
-  FEE_UNBILLED,
-  feeDirectionCode,
-  feeStatusCode,
-  PAYABLE,
-  RECEIVABLE,
-} from './feeConstants';
+import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
 import { feeQuantityRuleError } from './feeQuantityRule';
 import {
   buildOptionalFeeColumns,
@@ -347,11 +334,9 @@ export default function OrderFeeTableTabs({
         expectedVersion: String(row.version),
       }));
 
-  /** 已建账行不参与改结算单位/改时间/删除/再次建账；显式报错，禁止静默过滤。 */
+  /** 已建账（存在有效账单关联，草稿账单同样占用）行不参与改结算单位/改时间/删除/再次建账；显式报错，禁止静默过滤。 */
   const rejectBilledRows = (rows: API.OrderFee[], actionText: string) => {
-    const billedRows = rows.filter(
-      (row) => feeStatusCode(row.status) !== FEE_UNBILLED,
-    );
+    const billedRows = rows.filter((row) => row.hasActiveBill === true);
     if (billedRows.length === 0) return false;
     const names = billedRows
       .map((row) => row.feeName || row.feeCode || row.id || '')
@@ -663,7 +648,6 @@ export default function OrderFeeTableTabs({
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
         expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
-        status: FEE_UNBILLED,
       },
       { position: 'top' },
     );
@@ -689,7 +673,6 @@ export default function OrderFeeTableTabs({
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
         expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
-        status: FEE_UNBILLED,
       },
       { position: 'top' },
     );
@@ -909,14 +892,6 @@ export default function OrderFeeTableTabs({
     const isReceivable = direction === RECEIVABLE;
 
     return [
-      {
-        title: '状态',
-        dataIndex: 'status',
-        width: 90,
-        editable: false,
-        render: (_, record) =>
-          statusTag(orderFeeStatusMeta, normalizeOrderFeeStatus(record.status)),
-      },
       {
         title: '费用代码',
         dataIndex: 'feeCode',
@@ -1348,23 +1323,22 @@ export default function OrderFeeTableTabs({
         render: (_, record, __, action) => {
           if (feeWritesDisabled) return [];
           return [
-            (feeStatusCode(record.status) === FEE_UNBILLED ||
-              feeStatusCode(record.status) === FEE_BILLED) && (
-              <Button
-                key="edit"
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  if (record.id) {
-                    action?.startEditable(record.id);
-                  }
-                }}
-              >
-                编辑
-              </Button>
-            ),
-            feeStatusCode(record.status) === FEE_UNBILLED && onCancelFee && (
+            <Button
+              key="edit"
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                if (record.id) {
+                  action?.startEditable(record.id);
+                }
+              }}
+            >
+              编辑
+            </Button>,
+            // 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
+            // 补录生成费用由服务端拒绝普通删除并提示前往补录申请撤销。
+            record.hasActiveBill !== true && onCancelFee && (
               <Button
                 key="cancel"
                 type="link"
@@ -1464,12 +1438,10 @@ export default function OrderFeeTableTabs({
             const requestSequence = ++receivableRequestSequenceRef.current;
             try {
               const res = await orderFeeServiceListFees({ orderId });
-              // 录入表只保留有效费用：已作废（历史软删除）行不进入表格、
+              // 录入表只保留有效费用（费用无独立状态，服务端仅返回现存费用行）、
               // 最近请求结果与父级集合，笔数与金额消费同一有效集合。
               const rItems = unwrapList(res).filter(
-                (f) =>
-                  feeDirectionCode(f.direction) === RECEIVABLE &&
-                  feeStatusCode(f.status) !== FEE_CANCELLED,
+                (f) => feeDirectionCode(f.direction) === RECEIVABLE,
               );
               const isCurrentRequest =
                 mountedRef.current &&
@@ -1606,12 +1578,10 @@ export default function OrderFeeTableTabs({
             const requestSequence = ++payableRequestSequenceRef.current;
             try {
               const res = await orderFeeServiceListFees({ orderId });
-              // 录入表只保留有效费用：已作废（历史软删除）行不进入表格、
+              // 录入表只保留有效费用（费用无独立状态，服务端仅返回现存费用行）、
               // 最近请求结果与父级集合，笔数与金额消费同一有效集合。
               const pItems = unwrapList(res).filter(
-                (f) =>
-                  feeDirectionCode(f.direction) === PAYABLE &&
-                  feeStatusCode(f.status) !== FEE_CANCELLED,
+                (f) => feeDirectionCode(f.direction) === PAYABLE,
               );
               const isCurrentRequest =
                 mountedRef.current &&

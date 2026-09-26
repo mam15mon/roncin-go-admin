@@ -21,7 +21,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // OrderFeeCreate is the builder for creating a OrderFee entity.
@@ -75,20 +74,6 @@ func (_c *OrderFeeCreate) SetIdempotencyKey(v string) *OrderFeeCreate {
 // SetDirection sets the "direction" field.
 func (_c *OrderFeeCreate) SetDirection(v orderfee.Direction) *OrderFeeCreate {
 	_c.mutation.SetDirection(v)
-	return _c
-}
-
-// SetStatus sets the "status" field.
-func (_c *OrderFeeCreate) SetStatus(v orderfee.Status) *OrderFeeCreate {
-	_c.mutation.SetStatus(v)
-	return _c
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (_c *OrderFeeCreate) SetNillableStatus(v *orderfee.Status) *OrderFeeCreate {
-	if v != nil {
-		_c.SetStatus(*v)
-	}
 	return _c
 }
 
@@ -328,48 +313,6 @@ func (_c *OrderFeeCreate) SetNillableVersion(v *uint64) *OrderFeeCreate {
 	return _c
 }
 
-// SetCancelledAt sets the "cancelled_at" field.
-func (_c *OrderFeeCreate) SetCancelledAt(v time.Time) *OrderFeeCreate {
-	_c.mutation.SetCancelledAt(v)
-	return _c
-}
-
-// SetNillableCancelledAt sets the "cancelled_at" field if the given value is not nil.
-func (_c *OrderFeeCreate) SetNillableCancelledAt(v *time.Time) *OrderFeeCreate {
-	if v != nil {
-		_c.SetCancelledAt(*v)
-	}
-	return _c
-}
-
-// SetCancelledBy sets the "cancelled_by" field.
-func (_c *OrderFeeCreate) SetCancelledBy(v uuid.UUID) *OrderFeeCreate {
-	_c.mutation.SetCancelledBy(v)
-	return _c
-}
-
-// SetNillableCancelledBy sets the "cancelled_by" field if the given value is not nil.
-func (_c *OrderFeeCreate) SetNillableCancelledBy(v *uuid.UUID) *OrderFeeCreate {
-	if v != nil {
-		_c.SetCancelledBy(*v)
-	}
-	return _c
-}
-
-// SetCancellationReason sets the "cancellation_reason" field.
-func (_c *OrderFeeCreate) SetCancellationReason(v string) *OrderFeeCreate {
-	_c.mutation.SetCancellationReason(v)
-	return _c
-}
-
-// SetNillableCancellationReason sets the "cancellation_reason" field if the given value is not nil.
-func (_c *OrderFeeCreate) SetNillableCancellationReason(v *string) *OrderFeeCreate {
-	if v != nil {
-		_c.SetCancellationReason(*v)
-	}
-	return _c
-}
-
 // SetID sets the "id" field.
 func (_c *OrderFeeCreate) SetID(v uuid.UUID) *OrderFeeCreate {
 	_c.mutation.SetID(v)
@@ -416,25 +359,6 @@ func (_c *OrderFeeCreate) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFeeCr
 // SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
 func (_c *OrderFeeCreate) SetBillingUnitRef(v *BillingUnit) *OrderFeeCreate {
 	return _c.SetBillingUnitRefID(v.ID)
-}
-
-// SetCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID.
-func (_c *OrderFeeCreate) SetCancelledByUserID(id uuid.UUID) *OrderFeeCreate {
-	_c.mutation.SetCancelledByUserID(id)
-	return _c
-}
-
-// SetNillableCancelledByUserID sets the "cancelled_by_user" edge to the User entity by ID if the given value is not nil.
-func (_c *OrderFeeCreate) SetNillableCancelledByUserID(id *uuid.UUID) *OrderFeeCreate {
-	if id != nil {
-		_c = _c.SetCancelledByUserID(*id)
-	}
-	return _c
-}
-
-// SetCancelledByUser sets the "cancelled_by_user" edge to the User entity.
-func (_c *OrderFeeCreate) SetCancelledByUser(v *User) *OrderFeeCreate {
-	return _c.SetCancelledByUserID(v.ID)
 }
 
 // SetSupplementRequest sets the "supplement_request" edge to the OrderFeeSupplementRequest entity.
@@ -515,10 +439,6 @@ func (_c *OrderFeeCreate) defaults() {
 		v := orderfee.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := _c.mutation.Status(); !ok {
-		v := orderfee.DefaultStatus
-		_c.mutation.SetStatus(v)
-	}
 	if _, ok := _c.mutation.TaxInclusive(); !ok {
 		v := orderfee.DefaultTaxInclusive
 		_c.mutation.SetTaxInclusive(v)
@@ -558,14 +478,6 @@ func (_c *OrderFeeCreate) check() error {
 	if v, ok := _c.mutation.Direction(); ok {
 		if err := orderfee.DirectionValidator(v); err != nil {
 			return &ValidationError{Name: "direction", err: fmt.Errorf(`ent: validator failed for field "OrderFee.direction": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "OrderFee.status"`)}
-	}
-	if v, ok := _c.mutation.Status(); ok {
-		if err := orderfee.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "OrderFee.status": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.FeeCode(); !ok {
@@ -677,11 +589,6 @@ func (_c *OrderFeeCreate) check() error {
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "OrderFee.version"`)}
 	}
-	if v, ok := _c.mutation.CancellationReason(); ok {
-		if err := orderfee.CancellationReasonValidator(v); err != nil {
-			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "OrderFee.cancellation_reason": %w`, err)}
-		}
-	}
 	if len(_c.mutation.OrderIDs()) == 0 {
 		return &ValidationError{Name: "order", err: errors.New(`ent: missing required edge "OrderFee.order"`)}
 	}
@@ -739,10 +646,6 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Direction(); ok {
 		_spec.SetField(orderfee.FieldDirection, field.TypeEnum, value)
 		_node.Direction = value
-	}
-	if value, ok := _c.mutation.Status(); ok {
-		_spec.SetField(orderfee.FieldStatus, field.TypeEnum, value)
-		_node.Status = value
 	}
 	if value, ok := _c.mutation.FeeCode(); ok {
 		_spec.SetField(orderfee.FieldFeeCode, field.TypeString, value)
@@ -832,14 +735,6 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_spec.SetField(orderfee.FieldVersion, field.TypeUint64, value)
 		_node.Version = value
 	}
-	if value, ok := _c.mutation.CancelledAt(); ok {
-		_spec.SetField(orderfee.FieldCancelledAt, field.TypeTime, value)
-		_node.CancelledAt = &value
-	}
-	if value, ok := _c.mutation.CancellationReason(); ok {
-		_spec.SetField(orderfee.FieldCancellationReason, field.TypeString, value)
-		_node.CancellationReason = &value
-	}
 	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -906,23 +801,6 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.BillingUnitID = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.CancelledByUserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   orderfee.CancelledByUserTable,
-			Columns: []string{orderfee.CancelledByUserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.CancelledBy = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.SupplementRequestIDs(); len(nodes) > 0 {
@@ -1059,18 +937,6 @@ func (u *OrderFeeUpsert) SetDirection(v orderfee.Direction) *OrderFeeUpsert {
 // UpdateDirection sets the "direction" field to the value that was provided on create.
 func (u *OrderFeeUpsert) UpdateDirection() *OrderFeeUpsert {
 	u.SetExcluded(orderfee.FieldDirection)
-	return u
-}
-
-// SetStatus sets the "status" field.
-func (u *OrderFeeUpsert) SetStatus(v orderfee.Status) *OrderFeeUpsert {
-	u.Set(orderfee.FieldStatus, v)
-	return u
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *OrderFeeUpsert) UpdateStatus() *OrderFeeUpsert {
-	u.SetExcluded(orderfee.FieldStatus)
 	return u
 }
 
@@ -1422,60 +1288,6 @@ func (u *OrderFeeUpsert) AddVersion(v uint64) *OrderFeeUpsert {
 	return u
 }
 
-// SetCancelledAt sets the "cancelled_at" field.
-func (u *OrderFeeUpsert) SetCancelledAt(v time.Time) *OrderFeeUpsert {
-	u.Set(orderfee.FieldCancelledAt, v)
-	return u
-}
-
-// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
-func (u *OrderFeeUpsert) UpdateCancelledAt() *OrderFeeUpsert {
-	u.SetExcluded(orderfee.FieldCancelledAt)
-	return u
-}
-
-// ClearCancelledAt clears the value of the "cancelled_at" field.
-func (u *OrderFeeUpsert) ClearCancelledAt() *OrderFeeUpsert {
-	u.SetNull(orderfee.FieldCancelledAt)
-	return u
-}
-
-// SetCancelledBy sets the "cancelled_by" field.
-func (u *OrderFeeUpsert) SetCancelledBy(v uuid.UUID) *OrderFeeUpsert {
-	u.Set(orderfee.FieldCancelledBy, v)
-	return u
-}
-
-// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
-func (u *OrderFeeUpsert) UpdateCancelledBy() *OrderFeeUpsert {
-	u.SetExcluded(orderfee.FieldCancelledBy)
-	return u
-}
-
-// ClearCancelledBy clears the value of the "cancelled_by" field.
-func (u *OrderFeeUpsert) ClearCancelledBy() *OrderFeeUpsert {
-	u.SetNull(orderfee.FieldCancelledBy)
-	return u
-}
-
-// SetCancellationReason sets the "cancellation_reason" field.
-func (u *OrderFeeUpsert) SetCancellationReason(v string) *OrderFeeUpsert {
-	u.Set(orderfee.FieldCancellationReason, v)
-	return u
-}
-
-// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
-func (u *OrderFeeUpsert) UpdateCancellationReason() *OrderFeeUpsert {
-	u.SetExcluded(orderfee.FieldCancellationReason)
-	return u
-}
-
-// ClearCancellationReason clears the value of the "cancellation_reason" field.
-func (u *OrderFeeUpsert) ClearCancellationReason() *OrderFeeUpsert {
-	u.SetNull(orderfee.FieldCancellationReason)
-	return u
-}
-
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -1572,20 +1384,6 @@ func (u *OrderFeeUpsertOne) SetDirection(v orderfee.Direction) *OrderFeeUpsertOn
 func (u *OrderFeeUpsertOne) UpdateDirection() *OrderFeeUpsertOne {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.UpdateDirection()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *OrderFeeUpsertOne) SetStatus(v orderfee.Status) *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *OrderFeeUpsertOne) UpdateStatus() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateStatus()
 	})
 }
 
@@ -1995,69 +1793,6 @@ func (u *OrderFeeUpsertOne) UpdateVersion() *OrderFeeUpsertOne {
 	})
 }
 
-// SetCancelledAt sets the "cancelled_at" field.
-func (u *OrderFeeUpsertOne) SetCancelledAt(v time.Time) *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetCancelledAt(v)
-	})
-}
-
-// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
-func (u *OrderFeeUpsertOne) UpdateCancelledAt() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateCancelledAt()
-	})
-}
-
-// ClearCancelledAt clears the value of the "cancelled_at" field.
-func (u *OrderFeeUpsertOne) ClearCancelledAt() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.ClearCancelledAt()
-	})
-}
-
-// SetCancelledBy sets the "cancelled_by" field.
-func (u *OrderFeeUpsertOne) SetCancelledBy(v uuid.UUID) *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetCancelledBy(v)
-	})
-}
-
-// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
-func (u *OrderFeeUpsertOne) UpdateCancelledBy() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateCancelledBy()
-	})
-}
-
-// ClearCancelledBy clears the value of the "cancelled_by" field.
-func (u *OrderFeeUpsertOne) ClearCancelledBy() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.ClearCancelledBy()
-	})
-}
-
-// SetCancellationReason sets the "cancellation_reason" field.
-func (u *OrderFeeUpsertOne) SetCancellationReason(v string) *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetCancellationReason(v)
-	})
-}
-
-// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
-func (u *OrderFeeUpsertOne) UpdateCancellationReason() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateCancellationReason()
-	})
-}
-
-// ClearCancellationReason clears the value of the "cancellation_reason" field.
-func (u *OrderFeeUpsertOne) ClearCancellationReason() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.ClearCancellationReason()
-	})
-}
-
 // Exec executes the query.
 func (u *OrderFeeUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
@@ -2321,20 +2056,6 @@ func (u *OrderFeeUpsertBulk) SetDirection(v orderfee.Direction) *OrderFeeUpsertB
 func (u *OrderFeeUpsertBulk) UpdateDirection() *OrderFeeUpsertBulk {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.UpdateDirection()
-	})
-}
-
-// SetStatus sets the "status" field.
-func (u *OrderFeeUpsertBulk) SetStatus(v orderfee.Status) *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetStatus(v)
-	})
-}
-
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *OrderFeeUpsertBulk) UpdateStatus() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateStatus()
 	})
 }
 
@@ -2741,69 +2462,6 @@ func (u *OrderFeeUpsertBulk) AddVersion(v uint64) *OrderFeeUpsertBulk {
 func (u *OrderFeeUpsertBulk) UpdateVersion() *OrderFeeUpsertBulk {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.UpdateVersion()
-	})
-}
-
-// SetCancelledAt sets the "cancelled_at" field.
-func (u *OrderFeeUpsertBulk) SetCancelledAt(v time.Time) *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetCancelledAt(v)
-	})
-}
-
-// UpdateCancelledAt sets the "cancelled_at" field to the value that was provided on create.
-func (u *OrderFeeUpsertBulk) UpdateCancelledAt() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateCancelledAt()
-	})
-}
-
-// ClearCancelledAt clears the value of the "cancelled_at" field.
-func (u *OrderFeeUpsertBulk) ClearCancelledAt() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.ClearCancelledAt()
-	})
-}
-
-// SetCancelledBy sets the "cancelled_by" field.
-func (u *OrderFeeUpsertBulk) SetCancelledBy(v uuid.UUID) *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetCancelledBy(v)
-	})
-}
-
-// UpdateCancelledBy sets the "cancelled_by" field to the value that was provided on create.
-func (u *OrderFeeUpsertBulk) UpdateCancelledBy() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateCancelledBy()
-	})
-}
-
-// ClearCancelledBy clears the value of the "cancelled_by" field.
-func (u *OrderFeeUpsertBulk) ClearCancelledBy() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.ClearCancelledBy()
-	})
-}
-
-// SetCancellationReason sets the "cancellation_reason" field.
-func (u *OrderFeeUpsertBulk) SetCancellationReason(v string) *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetCancellationReason(v)
-	})
-}
-
-// UpdateCancellationReason sets the "cancellation_reason" field to the value that was provided on create.
-func (u *OrderFeeUpsertBulk) UpdateCancellationReason() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateCancellationReason()
-	})
-}
-
-// ClearCancellationReason clears the value of the "cancellation_reason" field.
-func (u *OrderFeeUpsertBulk) ClearCancellationReason() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.ClearCancellationReason()
 	})
 }
 

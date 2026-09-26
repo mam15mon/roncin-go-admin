@@ -356,7 +356,6 @@ func createTestSplitFixture(t *testing.T, env *splitTestEnv, suffix string, opts
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fee-" + suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("OFT").
 		SetFeeName("海运基本费").
 		SetSettlementPartyID(env.customerID).

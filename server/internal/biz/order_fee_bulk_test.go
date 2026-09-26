@@ -61,7 +61,6 @@ func bulkOrderFeeForTest(id uuid.UUID, direction OrderFeeDirection, currency, so
 	fee.ID = id
 	fee.Direction = direction
 	fee.Currency = currency
-	fee.Status = OrderFeeUnbilled
 	fee.Version = 3
 	fee.FeeCode = "OCEAN_FREIGHT"
 	fee.FeeName = "海运费"

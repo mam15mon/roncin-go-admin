@@ -34,7 +34,6 @@ type FeeLedgerFilter struct {
 	Keyword           string
 	BusinessType      string
 	Direction         OrderFeeDirection
-	Status            OrderFeeStatus
 	FinancialProgress FeeLedgerFinancialProgress
 	SettlementPartyID *uuid.UUID
 	CustomerID        *uuid.UUID
@@ -192,9 +191,6 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationIDs 
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable {
-		return nil, ErrFinanceLedgerInvalidArgument
-	}
-	if filter.Status != "" && filter.Status != OrderFeeUnbilled && filter.Status != OrderFeeBilled && filter.Status != OrderFeeCancelled {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.FinancialProgress != "" && !IsFeeLedgerFinancialProgress(filter.FinancialProgress) {

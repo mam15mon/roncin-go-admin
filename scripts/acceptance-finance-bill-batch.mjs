@@ -312,23 +312,9 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
       note: '财务批量转账单自动验收',
     }),
   });
-  const confirmed = await request(
-    `/api/v1/orders/${order.id}/fees/${response.data.id}/confirm`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        orderId: order.id,
-        id: response.data.id,
-        expectedVersion: response.data.version,
-      }),
-    },
-  );
-  assert(
-    confirmed.data?.status === 2 ||
-      confirmed.data?.status === 'ORDER_FEE_STATUS_CONFIRMED',
-    '费用确认失败',
-  );
-  createdFees.push(confirmed.data);
+  // 费用无独立状态与确认动作：是否建账由有效账单关联（hasActiveBill）表达。
+  assert(response.data?.hasActiveBill !== true, '新建费用不应携带有效账单关联');
+  createdFees.push(response.data);
 }
 
 const feeIds = createdFees.map((fee) => fee.id);
@@ -366,6 +352,15 @@ async function assertFeeFinancialProgress(expected, message) {
   return currentFees;
 }
 await assertFeeFinancialProgress('UNBILLED', '费用创建后应为账单未建立');
+const feesBeforeBilling = await request(`/api/v1/orders/${order.id}/fees`);
+assert(
+  feeIds.every(
+    (id) =>
+      feesBeforeBilling.data?.find((item) => item.id === id)?.hasActiveBill !==
+      true,
+  ),
+  '建账前费用不应投影有效账单关联',
+);
 const feeLedgerByCustomer = await request(
   `/api/v1/finance/fees?page=1&pageSize=200&customerId=${customer.id}`,
 );
@@ -490,6 +485,15 @@ const confirmedBatch = await request(
 assert(
   confirmedBatch.data?.bills?.every((bill) => bill.status === 2),
   '批次账单未全部确认',
+);
+const feesAfterBilling = await request(`/api/v1/orders/${order.id}/fees`);
+assert(
+  feeIds.every(
+    (id) =>
+      feesAfterBilling.data?.find((item) => item.id === id)?.hasActiveBill ===
+      true,
+  ),
+  '建账确认后费用应投影有效账单关联',
 );
 await assertFeeFinancialProgress(
   'UNVERIFIED_UNINVOICED',

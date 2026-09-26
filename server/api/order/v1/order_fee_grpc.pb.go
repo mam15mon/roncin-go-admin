@@ -55,17 +55,19 @@ type OrderFeeServiceClient interface {
 	ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, in *AddFeeRequest, opts ...grpc.CallOption) (*AddFeeResponse, error)
-	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
-	// 已建账费用仅允许按财务策略修改并同步草稿账单。
+	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用
+	// （未建账）的费用可全量维护，已建账费用仅允许按财务策略修改并同步草稿账单。
 	UpdateFee(ctx context.Context, in *UpdateFeeRequest, opts ...grpc.CallOption) (*UpdateFeeResponse, error)
-	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
+	// RemoveFee 物理删除未被有效账单关联占用（未建账）的订单费用；补录生成的费用
+	// 必须通过补录申请专用撤销删除，历史账单行快照保留、来源引用置空。
 	RemoveFee(ctx context.Context, in *RemoveFeeRequest, opts ...grpc.CallOption) (*RemoveFeeResponse, error)
-	// BulkUpdateOrderFees 批量定向修改订单未建账费用：每次仅修改结算单位或
-	// 费用发生时间之一，整批单一事务，任一行版本冲突、状态不符、越订单或
+	// BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
+	// 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
 	// 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。
 	BulkUpdateOrderFees(ctx context.Context, in *BulkUpdateOrderFeesRequest, opts ...grpc.CallOption) (*BulkUpdateOrderFeesResponse, error)
-	// BulkRemoveOrderFees 批量删除订单未建账费用：整批单一事务，被未取消账单
-	// 占用、版本冲突或越订单任一不满足时整批回滚，费用标签关联随删除级联清理。
+	// BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
+	// 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
+	// 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
 	BulkRemoveOrderFees(ctx context.Context, in *BulkRemoveOrderFeesRequest, opts ...grpc.CallOption) (*BulkRemoveOrderFeesResponse, error)
 	// CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
 	// 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
@@ -78,16 +80,16 @@ type OrderFeeServiceClient interface {
 	// PreviewOrderFeeSupplementApproval 只读复核申请及审批资格，估算通过后的订单费用毛利。
 	PreviewOrderFeeSupplementApproval(ctx context.Context, in *PreviewOrderFeeSupplementApprovalRequest, opts ...grpc.CallOption) (*PreviewOrderFeeSupplementApprovalResponse, error)
 	// ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
 	ApproveOrderFeeSupplement(ctx context.Context, in *ApproveOrderFeeSupplementRequest, opts ...grpc.CallOption) (*ApproveOrderFeeSupplementResponse, error)
 	// RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
 	RejectOrderFeeSupplement(ctx context.Context, in *RejectOrderFeeSupplementRequest, opts ...grpc.CallOption) (*RejectOrderFeeSupplementResponse, error)
 	// WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
 	WithdrawOrderFeeSupplement(ctx context.Context, in *WithdrawOrderFeeSupplementRequest, opts ...grpc.CallOption) (*WithdrawOrderFeeSupplementResponse, error)
-	// CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-	// UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
-	// 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
+	// CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
+	// 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
+	// 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。
 	CancelApprovedOrderFeeSupplement(ctx context.Context, in *CancelApprovedOrderFeeSupplementRequest, opts ...grpc.CallOption) (*CancelApprovedOrderFeeSupplementResponse, error)
 	ListOrderFeeTagOptions(ctx context.Context, in *ListOrderFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListOrderFeeTagOptionsResponse, error)
 	BatchAssignOrderFeeTags(ctx context.Context, in *BatchAssignOrderFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignOrderFeeTagsResponse, error)
@@ -298,17 +300,19 @@ type OrderFeeServiceServer interface {
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
-	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；未建账费用可全量维护，
-	// 已建账费用仅允许按财务策略修改并同步草稿账单。
+	// UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用
+	// （未建账）的费用可全量维护，已建账费用仅允许按财务策略修改并同步草稿账单。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
-	// RemoveFee 作废尚未进入账单的订单费用，并保留完整历史数据。
+	// RemoveFee 物理删除未被有效账单关联占用（未建账）的订单费用；补录生成的费用
+	// 必须通过补录申请专用撤销删除，历史账单行快照保留、来源引用置空。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
-	// BulkUpdateOrderFees 批量定向修改订单未建账费用：每次仅修改结算单位或
-	// 费用发生时间之一，整批单一事务，任一行版本冲突、状态不符、越订单或
+	// BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
+	// 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
 	// 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。
 	BulkUpdateOrderFees(context.Context, *BulkUpdateOrderFeesRequest) (*BulkUpdateOrderFeesResponse, error)
-	// BulkRemoveOrderFees 批量删除订单未建账费用：整批单一事务，被未取消账单
-	// 占用、版本冲突或越订单任一不满足时整批回滚，费用标签关联随删除级联清理。
+	// BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
+	// 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
+	// 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
 	BulkRemoveOrderFees(context.Context, *BulkRemoveOrderFeesRequest) (*BulkRemoveOrderFeesResponse, error)
 	// CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
 	// 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
@@ -321,16 +325,16 @@ type OrderFeeServiceServer interface {
 	// PreviewOrderFeeSupplementApproval 只读复核申请及审批资格，估算通过后的订单费用毛利。
 	PreviewOrderFeeSupplementApproval(context.Context, *PreviewOrderFeeSupplementApprovalRequest) (*PreviewOrderFeeSupplementApprovalResponse, error)
 	// ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建 UNBILLED 补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
 	ApproveOrderFeeSupplement(context.Context, *ApproveOrderFeeSupplementRequest) (*ApproveOrderFeeSupplementResponse, error)
 	// RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
 	RejectOrderFeeSupplement(context.Context, *RejectOrderFeeSupplementRequest) (*RejectOrderFeeSupplementResponse, error)
 	// WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
 	WithdrawOrderFeeSupplement(context.Context, *WithdrawOrderFeeSupplementRequest) (*WithdrawOrderFeeSupplementResponse, error)
-	// CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用：仅限最新有效、
-	// UNBILLED、无活动账单行且关联冲减从未确认/扣回的补录；费用与仍为 DRAFT 的
-	// 关联冲减建议在同一事务转为 CANCELLED，APPROVED 申请保持不变。
+	// CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
+	// 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
+	// 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。
 	CancelApprovedOrderFeeSupplement(context.Context, *CancelApprovedOrderFeeSupplementRequest) (*CancelApprovedOrderFeeSupplementResponse, error)
 	ListOrderFeeTagOptions(context.Context, *ListOrderFeeTagOptionsRequest) (*ListOrderFeeTagOptionsResponse, error)
 	BatchAssignOrderFeeTags(context.Context, *BatchAssignOrderFeeTagsRequest) (*BatchAssignOrderFeeTagsResponse, error)

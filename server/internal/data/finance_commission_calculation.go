@@ -367,7 +367,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		orderByID[item.ID] = item
 		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order|%s|%s|%s|%s|%d", item.ID, item.OrderNo, item.CustomerID, item.OrderDate, item.Version))
 	}
-	fq := store.fees.Query().Where(fee.OrderIDIn(orderIDs...), fee.StatusIn(fee.StatusUNBILLED, fee.StatusBILLED)).WithSettlementParty().Order(fee.ByOrderID(), fee.ByCreatedAt(), fee.ByID())
+	fq := store.fees.Query().Where(fee.OrderIDIn(orderIDs...)).WithSettlementParty().WithFinanceBillLines(effectiveBillLineFilter).Order(fee.ByOrderID(), fee.ByCreatedAt(), fee.ByID())
 	if lock {
 		fq.ForUpdate()
 	}
@@ -513,9 +513,9 @@ func calculateCommissionFromSource(source *commissionCalculationSource, ruleItem
 				FeeID: feeItem.ID, SettlementPartyID: feeItem.SettlementPartyID, Direction: string(feeItem.Direction),
 				FeeCode: feeItem.FeeCode, FeeName: feeItem.FeeName, SettlementPartyName: party.LegalName,
 				Currency: feeItem.Currency, TotalAmount: totalAmount, ExchangeRate: exchangeRate,
-				BaseCurrency: feeItem.BaseCurrency, BaseCurrencyAmount: baseAmount, ExpenseDate: feeItem.ExpenseDate, Status: string(feeItem.Status),
+				BaseCurrency: feeItem.BaseCurrency, BaseCurrencyAmount: baseAmount, ExpenseDate: feeItem.ExpenseDate,
 			})
-			fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee|%s|%s|%s|%s|%s|%s|%s|%s|%d", feeItem.ID, feeItem.OrderID, feeItem.Direction, feeItem.Status, feeItem.TotalAmount, feeItem.ExchangeRate, feeItem.BaseCurrencyAmount, feeItem.BaseCurrency, feeItem.Version))
+			fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee|%s|%s|%s|%s|%s|%s|%s|%d", feeItem.ID, feeItem.OrderID, feeItem.Direction, feeItem.TotalAmount, feeItem.ExchangeRate, feeItem.BaseCurrencyAmount, feeItem.BaseCurrency, feeItem.Version))
 		}
 		line.FeeCount = len(line.Fees)
 		totalReceivable := line.RealizedRevenue.Round(8)

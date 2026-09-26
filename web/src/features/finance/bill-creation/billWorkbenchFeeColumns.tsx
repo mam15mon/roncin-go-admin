@@ -2,8 +2,6 @@ import { DeleteOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Tag, Typography } from 'antd';
 import React from 'react';
-import { orderFeeStatusMeta, statusTag } from '@/constants/statusMeta';
-import { OrderFeeStatus } from '@/enums.generated';
 import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
@@ -28,19 +26,6 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
         {row.direction === 'RECEIVABLE' ? '应收' : '应付'}
       </Tag>
     ),
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    width: 85,
-    search: false,
-    // 与费用台账共用 orderFeeStatusMeta 统一展示映射（未建账 gold、
-    // 已进账单 blue、已作废 default）。
-    render: (_, row) =>
-      statusTag(
-        orderFeeStatusMeta,
-        row.status ?? OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED,
-      ),
   },
   {
     title: '结算单位',

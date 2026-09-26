@@ -19,16 +19,14 @@ func TestParsePlainDecimalRejectsSignedValue(t *testing.T) {
 	}
 }
 
-func TestOrderFeeStatusAPIConversions(t *testing.T) {
-	status := v1.OrderFeeStatus_ORDER_FEE_STATUS_UNBILLED
-	if got := orderFeeStatusFromAPI(&status); got != biz.OrderFeeUnbilled {
-		t.Fatalf("费用领域状态 = %q", got)
+func TestOrderFeeHasActiveBillAPIProjection(t *testing.T) {
+	fee := &biz.OrderFee{HasActiveBill: true}
+	if got := orderFeeToAPI(fee); !got.HasActiveBill {
+		t.Fatalf("已建账费用必须投影 has_active_bill=true: %+v", got)
 	}
-	if got := orderFeeStatusToAPI(biz.OrderFeeBilled); got != v1.OrderFeeStatus_ORDER_FEE_STATUS_BILLED {
-		t.Fatalf("费用 API 状态 = %v", got)
-	}
-	if got := orderFeeStatusFromAPI(nil); got != "" {
-		t.Fatalf("空费用状态 = %q", got)
+	fresh := &biz.OrderFee{}
+	if got := orderFeeToAPI(fresh); got.HasActiveBill {
+		t.Fatalf("未建账费用必须投影 has_active_bill=false: %+v", got)
 	}
 }
 

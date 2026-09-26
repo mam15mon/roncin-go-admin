@@ -16,7 +16,6 @@ import {
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { orderFeeStatusMeta } from '@/constants/statusMeta';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
   orderFeeServiceApproveOrderFeeSupplement,
@@ -34,7 +33,7 @@ import FeeSupplementModal, {
   type FeeSupplementFormValues,
   type FeeSupplementOptions,
 } from './FeeSupplementModal';
-import { feeStatusCode, PAYABLE } from './feeConstants';
+import { PAYABLE } from './feeConstants';
 
 type SupplementRequest = API.OrderFeeSupplementRequestData;
 
@@ -71,6 +70,7 @@ export type SupplementErrorKind =
   | 'lock-basis-changed'
   | 'not-applicable'
   | 'approver-unavailable'
+  | 'cancel-blocked'
   | 'generic';
 
 /**
@@ -100,6 +100,13 @@ export function describeFeeSupplementError(
     return {
       kind: 'approver-unavailable',
       text: '当前没有任何具备直接解锁资格的审批人，请先配置审批资格后再提交补录申请',
+    };
+  }
+  if (reason === orderErrorReasons.FEE_SUPPLEMENT_CANCEL_BLOCKED) {
+    return {
+      kind: 'cancel-blocked',
+      // 服务端 message 携带具体阻断原因（含重复撤销的明确拒绝），缺失时兜底。
+      text: serverMessage || '当前不满足撤销条件，请刷新申请后查看阻断原因',
     };
   }
   if (reason === orderErrorReasons.FEE_SUPPLEMENT_IDEMPOTENCY_CONFLICT) {
@@ -499,32 +506,32 @@ export default function FeeSupplementSection({
     if (!targetOrderId || !record.id || !record.feeId) return;
     let cancelReason = '';
     modal.confirm({
-      title: '作废该补录生成的费用？',
+      title: '撤销补录费用？',
       content: (
         <div>
           <p>
-            作废后费用转为「已作废」，仍为待处理的关联冲减建议会同步取消；
+            撤销后生成的费用将被删除，仍为待处理的关联冲减建议会同步取消；
             APPROVED 申请历史保持不变。
           </p>
           <p style={{ color: '#faad14' }}>
-            已建账需先按现有链路取消账单；关联冲减已确认或已扣回后不能直接作废。
+            已建账需先按现有链路取消账单；关联冲减已确认或已扣回后不能直接撤销。
           </p>
           <Input.TextArea
             autoFocus
             maxLength={500}
             showCount
-            placeholder="请输入作废原因（必填）"
+            placeholder="请输入撤销原因（必填）"
             onChange={(event) => {
               cancelReason = event.target.value.trim();
             }}
           />
         </div>
       ),
-      okText: '确认作废',
+      okText: '确认撤销',
       okButtonProps: { danger: true },
       onOk: (_close) => {
         if (!cancelReason) {
-          message.warning('请输入作废原因');
+          message.warning('请输入撤销原因');
           return;
         }
         return runGuarded(async (requestSequence) => {
@@ -539,7 +546,11 @@ export default function FeeSupplementSection({
               },
             );
             if (isStaleResponse(requestSequence, targetOrderId)) return;
-            message.success('补录费用已作废，关联的待处理冲减建议已同步取消');
+            message.success(
+              '补录费用已撤销删除，关联的待处理冲减建议已同步取消',
+            );
+            // 响应只返回刷新后的申请数据（申请保持 APPROVED、fee_id 为空），
+            // 列表与费用/汇总一律经重查刷新，不读取已删除的费用实体。
             reloadList();
             onFeeTablesReload();
           } catch (error: unknown) {
@@ -551,9 +562,9 @@ export default function FeeSupplementSection({
             if (kind === 'transition') {
               message.warning(text);
             } else {
-              // 已建账、存在更晚补录或冲减已确认时展示服务端阻断原因，
+              // 已建账、存在更晚补录、冲减已确认或重复撤销时展示服务端阻断原因，
               // 不引导用户使用普通删除。
-              message.error(text || '作废补录费用失败');
+              message.error(text || '撤销补录费用失败');
             }
             reloadList();
           }
@@ -650,13 +661,15 @@ export default function FeeSupplementSection({
     },
     {
       title: '生成费用',
-      dataIndex: 'feeStatus',
-      width: 100,
+      dataIndex: 'feeId',
+      width: 110,
       render: (_, record) => {
         if (record.status !== 'APPROVED') return '-';
-        if (!record.feeStatus) return '-';
-        const meta = orderFeeStatusMeta[feeStatusCode(record.feeStatus)];
-        return <Tag color={meta?.color}>{meta?.text || record.feeStatus}</Tag>;
+        // fee_id 为空表示生成费用已专用撤销删除；申请保持 APPROVED，不显示空白。
+        if (!record.feeId) {
+          return <Tag color="default">生成费用已删除</Tag>;
+        }
+        return <Tag color="blue">已生成</Tag>;
       },
     },
     {
@@ -665,7 +678,7 @@ export default function FeeSupplementSection({
       width: 220,
       render: (_, record) => {
         const actions: React.ReactNode[] = [];
-        // 审批/驳回/撤回/作废全部只消费后端能力投影，前端不复制第二套资格规则。
+        // 审批/驳回/撤回/撤销全部只消费后端能力投影，前端不复制第二套资格规则。
         if (record.canApprove) {
           actions.push(
             <a key="review" onClick={() => openReview(record)}>
@@ -694,14 +707,14 @@ export default function FeeSupplementSection({
           if (record.canCancel) {
             actions.push(
               <a key="cancel-fee" onClick={() => handleCancelFee(record)}>
-                作废补录费用
+                撤销补录费用
               </a>,
             );
           } else if (record.cancelBlockedReason) {
             actions.push(
               <Tooltip key="cancel-blocked" title={record.cancelBlockedReason}>
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                  不可作废
+                  不可撤销
                 </Typography.Text>
               </Tooltip>,
             );

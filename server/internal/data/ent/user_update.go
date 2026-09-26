@@ -34,7 +34,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -389,21 +388,6 @@ func (_u *UserUpdate) AddPartnerAssignments(v ...*PartnerAssignment) *UserUpdate
 		ids[i] = v[i].ID
 	}
 	return _u.AddPartnerAssignmentIDs(ids...)
-}
-
-// AddCancelledOrderFeeIDs adds the "cancelled_order_fees" edge to the OrderFee entity by IDs.
-func (_u *UserUpdate) AddCancelledOrderFeeIDs(ids ...uuid.UUID) *UserUpdate {
-	_u.mutation.AddCancelledOrderFeeIDs(ids...)
-	return _u
-}
-
-// AddCancelledOrderFees adds the "cancelled_order_fees" edges to the OrderFee entity.
-func (_u *UserUpdate) AddCancelledOrderFees(v ...*OrderFee) *UserUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddCancelledOrderFeeIDs(ids...)
 }
 
 // AddConfirmedFinanceBillIDs adds the "confirmed_finance_bills" edge to the FinanceBill entity by IDs.
@@ -1344,27 +1328,6 @@ func (_u *UserUpdate) RemovePartnerAssignments(v ...*PartnerAssignment) *UserUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartnerAssignmentIDs(ids...)
-}
-
-// ClearCancelledOrderFees clears all "cancelled_order_fees" edges to the OrderFee entity.
-func (_u *UserUpdate) ClearCancelledOrderFees() *UserUpdate {
-	_u.mutation.ClearCancelledOrderFees()
-	return _u
-}
-
-// RemoveCancelledOrderFeeIDs removes the "cancelled_order_fees" edge to OrderFee entities by IDs.
-func (_u *UserUpdate) RemoveCancelledOrderFeeIDs(ids ...uuid.UUID) *UserUpdate {
-	_u.mutation.RemoveCancelledOrderFeeIDs(ids...)
-	return _u
-}
-
-// RemoveCancelledOrderFees removes "cancelled_order_fees" edges to OrderFee entities.
-func (_u *UserUpdate) RemoveCancelledOrderFees(v ...*OrderFee) *UserUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveCancelledOrderFeeIDs(ids...)
 }
 
 // ClearConfirmedFinanceBills clears all "confirmed_finance_bills" edges to the FinanceBill entity.
@@ -2916,51 +2879,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CancelledOrderFeesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.CancelledOrderFeesTable,
-			Columns: []string{user.CancelledOrderFeesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedCancelledOrderFeesIDs(); len(nodes) > 0 && !_u.mutation.CancelledOrderFeesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.CancelledOrderFeesTable,
-			Columns: []string{user.CancelledOrderFeesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CancelledOrderFeesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.CancelledOrderFeesTable,
-			Columns: []string{user.CancelledOrderFeesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -5815,21 +5733,6 @@ func (_u *UserUpdateOne) AddPartnerAssignments(v ...*PartnerAssignment) *UserUpd
 	return _u.AddPartnerAssignmentIDs(ids...)
 }
 
-// AddCancelledOrderFeeIDs adds the "cancelled_order_fees" edge to the OrderFee entity by IDs.
-func (_u *UserUpdateOne) AddCancelledOrderFeeIDs(ids ...uuid.UUID) *UserUpdateOne {
-	_u.mutation.AddCancelledOrderFeeIDs(ids...)
-	return _u
-}
-
-// AddCancelledOrderFees adds the "cancelled_order_fees" edges to the OrderFee entity.
-func (_u *UserUpdateOne) AddCancelledOrderFees(v ...*OrderFee) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddCancelledOrderFeeIDs(ids...)
-}
-
 // AddConfirmedFinanceBillIDs adds the "confirmed_finance_bills" edge to the FinanceBill entity by IDs.
 func (_u *UserUpdateOne) AddConfirmedFinanceBillIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddConfirmedFinanceBillIDs(ids...)
@@ -6768,27 +6671,6 @@ func (_u *UserUpdateOne) RemovePartnerAssignments(v ...*PartnerAssignment) *User
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartnerAssignmentIDs(ids...)
-}
-
-// ClearCancelledOrderFees clears all "cancelled_order_fees" edges to the OrderFee entity.
-func (_u *UserUpdateOne) ClearCancelledOrderFees() *UserUpdateOne {
-	_u.mutation.ClearCancelledOrderFees()
-	return _u
-}
-
-// RemoveCancelledOrderFeeIDs removes the "cancelled_order_fees" edge to OrderFee entities by IDs.
-func (_u *UserUpdateOne) RemoveCancelledOrderFeeIDs(ids ...uuid.UUID) *UserUpdateOne {
-	_u.mutation.RemoveCancelledOrderFeeIDs(ids...)
-	return _u
-}
-
-// RemoveCancelledOrderFees removes "cancelled_order_fees" edges to OrderFee entities.
-func (_u *UserUpdateOne) RemoveCancelledOrderFees(v ...*OrderFee) *UserUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveCancelledOrderFeeIDs(ids...)
 }
 
 // ClearConfirmedFinanceBills clears all "confirmed_finance_bills" edges to the FinanceBill entity.
@@ -8370,51 +8252,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CancelledOrderFeesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.CancelledOrderFeesTable,
-			Columns: []string{user.CancelledOrderFeesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedCancelledOrderFeesIDs(); len(nodes) > 0 && !_u.mutation.CancelledOrderFeesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.CancelledOrderFeesTable,
-			Columns: []string{user.CancelledOrderFeesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CancelledOrderFeesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.CancelledOrderFeesTable,
-			Columns: []string{user.CancelledOrderFeesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -171,11 +171,11 @@ func (r *seaOrderChangeRepo) GetSplitContext(ctx context.Context, organizationID
 		sharedAllocList = append(sharedAllocList, item)
 	}
 
-	// 查询未建账费用 (排除已作废)
+	// 查询未被有效账单关联占用（未建账）的费用
 	fees, err := client.OrderFee.Query().
 		Where(
 			orderfeeent.OrderIDEQ(orderID),
-			orderfeeent.StatusEQ(orderfeeent.StatusUNBILLED),
+			orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate())),
 		).
 		Order(orderfeeent.ByFeeCode(), orderfeeent.ByID()).
 		All(ctx)

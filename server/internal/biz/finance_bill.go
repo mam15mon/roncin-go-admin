@@ -364,7 +364,7 @@ func validateLockedFinanceBillSourceFees(bill *FinanceBill, fees []*FinanceBilla
 	}
 	for _, item := range fees {
 		fee, line := item.Fee, lines[item.Fee.ID]
-		if line == nil || fee.Status != OrderFeeBilled || fee.Direction != bill.Direction || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != line.Currency || !fee.TotalAmount.Equal(line.TotalAmount) || !fee.NetAmount.Equal(line.NetAmount) || !fee.TaxAmount.Equal(line.TaxAmount) {
+		if line == nil || !fee.HasActiveBill || fee.Direction != bill.Direction || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != line.Currency || !fee.TotalAmount.Equal(line.TotalAmount) || !fee.NetAmount.Equal(line.NetAmount) || !fee.TaxAmount.Equal(line.TaxAmount) {
 			return ErrFinanceBillPreviewStale
 		}
 	}
@@ -423,7 +423,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 		return nil, ErrFinanceBillFeeInvalid
 	}
 	first := fees[0]
-	if first == nil || first.Fee == nil || first.Fee.Status != OrderFeeUnbilled {
+	if first == nil || first.Fee == nil || first.Fee.HasActiveBill {
 		return nil, ErrFinanceBillFeeInvalid
 	}
 	billID := uuid.Must(uuid.NewV7())
@@ -438,7 +438,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 		bill.StatementTitle = &bill.SettlementPartyName
 	}
 	for _, item := range fees {
-		if item == nil || item.Fee == nil || item.Fee.Status != OrderFeeUnbilled {
+		if item == nil || item.Fee == nil || item.Fee.HasActiveBill {
 			return nil, ErrFinanceBillFeeInvalid
 		}
 		fee := item.Fee

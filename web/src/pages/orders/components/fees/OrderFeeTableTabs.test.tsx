@@ -14,7 +14,7 @@ import {
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
 } from '@/services/roncin/orderFeeService';
-import { FEE_UNBILLED, PAYABLE, RECEIVABLE } from './feeConstants';
+import { PAYABLE, RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -148,7 +148,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeB = {
       id: 'fee-B',
       direction: RECEIVABLE,
-      status: FEE_UNBILLED,
       baseCurrencyAmount: '200',
     } as API.OrderFee;
     responseB.resolve({ data: [feeB] });
@@ -164,7 +163,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeA = {
       id: 'fee-A',
       direction: RECEIVABLE,
-      status: FEE_UNBILLED,
       baseCurrencyAmount: '999',
     } as API.OrderFee;
     await act(async () => {
@@ -184,7 +182,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeA = {
       id: 'visible-fee-A',
       direction: RECEIVABLE,
-      status: FEE_UNBILLED,
       baseCurrencyAmount: '100',
     } as API.OrderFee;
     listFees
@@ -249,7 +246,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeB = {
       id: 'visible-fee-B',
       direction: RECEIVABLE,
-      status: FEE_UNBILLED,
       baseCurrencyAmount: '200',
     } as API.OrderFee;
     await act(async () => {
@@ -285,7 +281,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
           {
             id: 'fee-after-unmount',
             direction: RECEIVABLE,
-            status: FEE_UNBILLED,
           },
         ],
       });
@@ -330,7 +325,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeB = {
       id: 'payable-B',
       direction: PAYABLE,
-      status: FEE_UNBILLED,
       baseCurrencyAmount: '80',
     } as API.OrderFee;
     responseB.resolve({ data: [feeB] });
@@ -346,7 +340,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     const feeA = {
       id: 'payable-A',
       direction: PAYABLE,
-      status: FEE_UNBILLED,
       baseCurrencyAmount: '666',
     } as API.OrderFee;
     await act(async () => {
@@ -431,7 +424,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
         {
           id: 'fee-unbilled-3',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           currency: 'CNY',
           quantity: '1',
           expenseDate: today,
@@ -495,7 +487,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
         {
           id: 'fee-unbilled-4',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           currency: 'CNY',
           quantity: '1',
           expenseDate: today,
@@ -630,7 +621,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
         {
           id: 'fee-unbilled-1',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           currency: 'CNY',
           expenseDate: today,
           version: '3',
@@ -710,7 +700,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
         {
           id: 'fee-unbilled-2',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           currency: 'CNY',
           expenseDate: today,
           version: '2',

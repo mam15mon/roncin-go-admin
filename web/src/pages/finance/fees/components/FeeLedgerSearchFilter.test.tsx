@@ -38,8 +38,9 @@ describe('FeeLedgerSearchFilter', () => {
     expect(screen.getByText('综合搜索')).not.toBeNull();
     expect(screen.getByText('费用属性')).not.toBeNull();
     expect(screen.getByText('财务进度')).not.toBeNull();
-    expect(screen.getByText('费用状态')).not.toBeNull();
     expect(screen.getByText('结算单位')).not.toBeNull();
+    // 费用已无独立状态，不再提供「费用状态」筛选项
+    expect(screen.queryByText('费用状态')).toBeNull();
     expect(screen.getByText(/展开/)).not.toBeNull();
 
     // 结算单位远程下拉挂载请求收敛，避免异步状态更新落到 act 之外
@@ -51,7 +52,7 @@ describe('FeeLedgerSearchFilter', () => {
     });
   });
 
-  it('点击展开时展现其余 17 项业务字段', async () => {
+  it('点击展开时展现其余 16 项业务字段', async () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 

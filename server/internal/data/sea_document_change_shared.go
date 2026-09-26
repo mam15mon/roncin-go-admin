@@ -117,7 +117,7 @@ func collectDocumentImpacts(ctx context.Context, client *ent.Client, orgID uuid.
 		return nil, nil
 	}
 	impacts := make([]*biz.SeaDocumentDownstreamImpact, 0)
-	fees, err := client.OrderFee.Query().Where(orderfeeent.OrderIDIn(orderIDs...), orderfeeent.StatusNotIn(orderfeeent.StatusUNBILLED, orderfeeent.StatusCANCELLED)).Order(orderfeeent.ByID()).All(ctx)
+	fees, err := client.OrderFee.Query().Where(orderfeeent.OrderIDIn(orderIDs...), orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate())).Order(orderfeeent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -114,7 +114,6 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fca-fee-rec-" + suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(customer.ID).
@@ -136,11 +135,10 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 	if err != nil {
 		t.Fatalf("创建测试应收费用: %v", err)
 	}
-	if _, err = data.db.OrderFee.Create().
+	feePayable, err := data.db.OrderFee.Create().
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fca-fee-pay-" + suffix).
 		SetDirection(fee.DirectionPAYABLE).
-		SetStatus(fee.StatusBILLED).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
 		SetSettlementPartyID(customer.ID).
@@ -158,8 +156,55 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetBaseCurrencyAmount("400.00000000").
 		SetExpenseDate(historicalDate).
 		SetVersion(1).
-		Save(ctx); err != nil {
+		Save(ctx)
+	if err != nil {
 		t.Fatalf("创建测试应付费用: %v", err)
+	}
+
+	// 应付费用同样以真实账单关联表达建账事实（活动账单行且账单未取消）。
+	payableBillCreate := data.db.FinanceBill.Create().
+		SetOrganizationID(org.ID).
+		SetBillNo("FCA-BILL-P-" + suffix).
+		SetIdempotencyKey("fca-bill-pay-" + suffix).
+		SetDirection(financebillent.DirectionPAYABLE).
+		SetStatus(financebillent.StatusCONFIRMED).
+		SetSettlementPartyID(customer.ID).
+		SetSettlementPartyName(customer.LegalName).
+		SetCurrency("CNY").
+		SetBaseCurrency("CNY").
+		SetExchangeRate("1.00000000").
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
+		SetExchangeRateDate(historicalDate).
+		SetTotalAmount("400.00000000").
+		SetNetAmount("400.00000000").
+		SetTaxAmount("0.00000000").
+		SetBaseCurrencyAmount("400.00000000").
+		SetFeeCount(1).
+		SetBillDate(historicalDate).
+		SetVersion(1)
+	payableBill, err := withTestFinanceBillSettlementAccountSnapshot(payableBillCreate, uuid.New(), "CNY").Save(ctx)
+	if err != nil {
+		t.Fatalf("创建测试应付账单: %v", err)
+	}
+	if _, err = data.db.FinanceBillLine.Create().
+		SetBillID(payableBill.ID).
+		SetOrderID(order.ID).
+		SetOrderFeeID(feePayable.ID).
+		SetOrderNo(order.OrderNo).
+		SetFeeCode(feePayable.FeeCode).
+		SetFeeName(feePayable.FeeName).
+		SetQuantity("1.0000").
+		SetUnitPrice("400.0000").
+		SetTotalAmount("400.00000000").
+		SetNetAmount("400.00000000").
+		SetTaxAmount("0.00000000").
+		SetCurrency("CNY").
+		SetExchangeRate("1.00000000").
+		SetBaseCurrencyAmount("400.00000000").
+		SetBaseCurrency("CNY").
+		SetActive(true).
+		Save(ctx); err != nil {
+		t.Fatalf("创建测试应付账单明细: %v", err)
 	}
 	billCreate := data.db.FinanceBill.Create().
 		SetOrganizationID(org.ID).

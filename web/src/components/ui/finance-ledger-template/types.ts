@@ -33,7 +33,6 @@ export interface FinanceLedgerMetricCard {
 export interface FinanceLedgerSummaryItem {
   id?: string;
   direction?: string | number;
-  status?: string | number;
   currency?: string;
   totalAmount?: string | number;
   baseCurrency?: string;

@@ -25,7 +25,6 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.Keyword = financeOptionalString(request.Keyword)
 	filter.BusinessType = financeOptionalString(request.BusinessType)
 	filter.Direction = biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction)))
-	filter.Status = orderFeeStatusFromAPI(request.Status)
 	filter.FinancialProgress = feeLedgerFinancialProgressFromAPI(request.FinancialProgress)
 	filter.Currency = financeOptionalString(request.Currency)
 	filter.BillNo = financeOptionalString(request.BillNo)
@@ -105,7 +104,7 @@ func feeLedgerItemToAPI(item *biz.FeeLedgerItem, tags []*v1.BusinessTagSummary) 
 	fee := item.Fee
 	result := &v1.FeeLedgerItem{
 		Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName, OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
-		Direction: string(fee.Direction), Status: orderFeeStatusToAPI(fee.Status), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
+		Direction: string(fee.Direction), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
 		Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
 		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
 		CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), TaxRate: financeDecimalPointer(fee.TaxRate, 4),

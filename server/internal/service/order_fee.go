@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -261,7 +260,6 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		Id:                  value.ID.String(),
 		OrderId:             value.OrderID.String(),
 		Direction:           orderFeeDirectionToAPI(value.Direction),
-		Status:              orderFeeStatusToAPI(value.Status),
 		FeeCode:             value.FeeCode,
 		FeeName:             value.FeeName,
 		SettlementPartyId:   value.SettlementPartyID.String(),
@@ -282,18 +280,10 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		BaseCurrencyAmount:  value.BaseCurrencyAmount.StringFixed(8),
 		Version:             value.Version,
 		Note:                value.Note,
+		HasActiveBill:       value.HasActiveBill,
 		CreatedAt:           value.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt:           value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
-	if value.CancelledAt != nil {
-		cancelledAt := value.CancelledAt.UTC().Format(time.RFC3339)
-		result.CancelledAt = &cancelledAt
-	}
-	if value.CancelledBy != nil {
-		cancelledBy := value.CancelledBy.String()
-		result.CancelledBy = &cancelledBy
-	}
-	result.CancellationReason = value.CancellationReason
 	if value.FeeSettingID != nil {
 		settingID := value.FeeSettingID.String()
 		result.FeeSettingId = &settingID
@@ -415,26 +405,6 @@ func orderFeeDirectionToAPI(value biz.OrderFeeDirection) v1.OrderFeeDirection {
 	default:
 		return v1.OrderFeeDirection_ORDER_FEE_DIRECTION_UNSPECIFIED
 	}
-}
-
-func orderFeeStatusToAPI(value biz.OrderFeeStatus) v1.OrderFeeStatus {
-	switch value {
-	case biz.OrderFeeUnbilled:
-		return v1.OrderFeeStatus_ORDER_FEE_STATUS_UNBILLED
-	case biz.OrderFeeBilled:
-		return v1.OrderFeeStatus_ORDER_FEE_STATUS_BILLED
-	case biz.OrderFeeCancelled:
-		return v1.OrderFeeStatus_ORDER_FEE_STATUS_CANCELLED
-	default:
-		return v1.OrderFeeStatus_ORDER_FEE_STATUS_UNSPECIFIED
-	}
-}
-
-func orderFeeStatusFromAPI(value *v1.OrderFeeStatus) biz.OrderFeeStatus {
-	if value == nil {
-		return ""
-	}
-	return biz.OrderFeeStatus(strings.TrimPrefix(value.String(), "ORDER_FEE_STATUS_"))
 }
 
 var _ v1.OrderFeeServiceServer = (*OrderFeeService)(nil)

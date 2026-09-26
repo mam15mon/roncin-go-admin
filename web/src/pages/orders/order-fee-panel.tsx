@@ -31,12 +31,7 @@ import { generateUUID } from '@/utils/uuid';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
-import {
-  FEE_BILLED,
-  feeDirectionCode,
-  feeStatusCode,
-  RECEIVABLE,
-} from './components/fees/feeConstants';
+import { feeDirectionCode, RECEIVABLE } from './components/fees/feeConstants';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
@@ -247,7 +242,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       if (!orderId || !feeId || !version) return;
       confirmWithReason(
         { modal, message },
-        '确认作废该费用？',
+        '确认删除该笔费用？',
         async (reason) => {
           if (!ensureFeeWriteAllowed()) return;
           await orderFeeServiceRemoveFee({
@@ -256,7 +251,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             expectedVersion: version,
             reason: reason || undefined,
           });
-          message.success('费用已作废并保留历史记录');
+          message.success('费用已删除');
           actionRef.current?.reload();
         },
         { optional: true },
@@ -523,7 +518,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           modalDirection={
             editingFee ? feeDirectionCode(editingFee.direction) : RECEIVABLE
           }
-          isFeeBilled={feeStatusCode(editingFee?.status) === FEE_BILLED}
+          isFeeBilled={editingFee?.hasActiveBill === true}
           feeSettings={feeSettings}
           settlementParties={settlementParties}
           currencies={currencies}

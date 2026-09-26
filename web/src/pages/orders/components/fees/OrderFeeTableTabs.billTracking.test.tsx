@@ -22,13 +22,7 @@ vi.mock('@/router/history', () => ({
 }));
 
 import type { FeeBillTrackingView } from './feeBillTracking';
-import {
-  FEE_BILLED,
-  FEE_CANCELLED,
-  FEE_UNBILLED,
-  PAYABLE,
-  RECEIVABLE,
-} from './feeConstants';
+import { PAYABLE, RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -114,13 +108,13 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     updateFee.mockReset();
   });
 
-  it('就绪投影：展示活动账单号与整账单进度；已作废历史行不进入录入表（A4/A5）', async () => {
+  it('就绪投影：展示活动账单号与整账单进度（A4/A5）', async () => {
     listFees.mockResolvedValue({
       data: [
         {
           id: 'fee-billed',
           direction: RECEIVABLE,
-          status: FEE_BILLED,
+          hasActiveBill: true,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '海运费',
@@ -128,18 +122,9 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-unbilled',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '拖车费',
-        },
-        {
-          id: 'fee-cancelled',
-          direction: RECEIVABLE,
-          status: FEE_CANCELLED,
-          expenseDate: '2026-09-20',
-          version: '2',
-          feeName: '报关费',
         },
       ],
     } as any);
@@ -159,15 +144,12 @@ describe('OrderFeeTableTabs 关联账单列', () => {
               financialProgress: 3,
             },
             'fee-unbilled': {},
-            'fee-cancelled': {},
           })}
         />
       </App>,
     );
     await screen.findByText('海运费');
 
-    // 已作废（历史软删除）行不进入录入表、父级集合与笔数统计
-    expect(screen.queryByText('报关费')).not.toBeInTheDocument();
     await waitFor(() =>
       expect(props.setAllReceivableItems).toHaveBeenCalledWith([
         expect.objectContaining({ id: 'fee-billed' }),
@@ -183,8 +165,8 @@ describe('OrderFeeTableTabs 关联账单列', () => {
 
     expect(screen.getByText('BILL-2026-001')).toBeInTheDocument();
     expect(screen.getAllByText('已开票未核销')).toHaveLength(1);
-    // 未建账在状态、账单号与财务进度三格分别表达
-    expect(screen.getAllByText('未建账')).toHaveLength(3);
+    // 未建账在账单号与财务进度两格分别表达
+    expect(screen.getAllByText('未建账')).toHaveLength(2);
   });
 
   it('加载中与加载失败分别表达，失败提供重试入口且不显示成未建账（A7）', async () => {
@@ -194,7 +176,6 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-1',
           direction: RECEIVABLE,
-          status: FEE_BILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '海运费',
@@ -240,7 +221,6 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-1',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '海运费',
@@ -279,7 +259,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-edit-1',
           direction: PAYABLE,
-          status: FEE_BILLED,
+          hasActiveBill: true,
           currency: 'CNY',
           quantity: '1',
           unitPrice: '100',
@@ -329,7 +309,6 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-unbilled',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '拖车费',
@@ -337,7 +316,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-billed',
           direction: RECEIVABLE,
-          status: FEE_BILLED,
+          hasActiveBill: true,
           expenseDate: '2026-09-20',
           version: '3',
           feeName: '海运费',
@@ -379,7 +358,6 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-unbilled',
           direction: RECEIVABLE,
-          status: FEE_UNBILLED,
           expenseDate: '2026-09-20',
           version: '2',
           feeName: '拖车费',
@@ -387,7 +365,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
         {
           id: 'fee-billed',
           direction: RECEIVABLE,
-          status: FEE_BILLED,
+          hasActiveBill: true,
           expenseDate: '2026-09-20',
           version: '3',
           feeName: '海运费',

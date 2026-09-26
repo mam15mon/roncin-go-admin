@@ -64,6 +64,7 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 	items, err := client.OrderFee.Query().
 		Where(orderfeeent.OrderIDEQ(orderID)).
 		WithSettlementParty().
+		WithFinanceBillLines(effectiveBillLineFilter).
 		Order(orderfeeent.ByDirection(), orderfeeent.ByCreatedAt(), orderfeeent.ByID()).
 		All(ctx)
 	if err != nil {
@@ -85,7 +86,7 @@ func (r *orderFeeRepo) Get(ctx context.Context, organizationID, orderID, id uuid
 	if err != nil {
 		return nil, err
 	}
-	item, err := client.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).WithSettlementParty().Only(ctx)
+	item, err := client.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID))).WithSettlementParty().WithFinanceBillLines(effectiveBillLineFilter).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
@@ -122,6 +123,7 @@ func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, 
 			orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)),
 		).
 		WithSettlementParty().
+		WithFinanceBillLines(effectiveBillLineFilter).
 		Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
@@ -413,7 +415,6 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 			SetOrderID(orderID).
 			SetIdempotencyKey(input.IdempotencyKey).
 			SetDirection(orderfeeent.Direction(input.Direction)).
-			SetStatus(orderfeeent.Status(input.Status)).
 			SetNillableFeeSettingID(input.FeeSettingID).
 			SetFeeCode(input.FeeCode).
 			SetFeeName(input.FeeName).
@@ -448,6 +449,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 	if err != nil {
 		return nil, err
 	}
+	input.HasActiveBill = false // 刚创建的费用不可能存在账单关联
 	input.SettlementPartyName = partyLegalName
 	input.OrderID = orderID
 	input.CreatedAt = created.CreatedAt
@@ -465,33 +467,29 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
 			return lockErr
 		}
-		itemSnapshot, queryErr := tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
+		var queryErr error
+		// 定位有效账单关联（活动账单行且所属账单未取消）；命中后按「账单 → 账单行 →
+		// 费用」锁序加锁，与账单确认/取消保持一致，避免并发事务互相等待。
+		lineSnapshot, lineErr := tx.FinanceBillLine.Query().Where(
+			financebilllineent.OrderFeeIDEQ(id),
+			effectiveBillLinePredicate(),
+		).Only(ctx)
+		if lineErr != nil && !ent.IsNotFound(lineErr) {
+			return lineErr
 		}
-		if itemSnapshot.Status == orderfeeent.StatusBILLED {
-			lineSnapshot, lineErr := tx.FinanceBillLine.Query().Where(financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true)).Only(ctx)
-			if lineErr != nil {
-				return mapEntError(lineErr, biz.ErrBilledFeeBillLocked, nil)
-			}
-			// 与账单确认、取消保持“账单 -> 账单行 -> 费用”的锁顺序，避免并发事务互相等待。
+		if lineSnapshot != nil {
 			activeBill, queryErr = tx.FinanceBill.Query().Where(financebillent.IDEQ(lineSnapshot.BillID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
 			if queryErr != nil {
 				return queryErr
 			}
-			activeLine, queryErr = tx.FinanceBillLine.Query().Where(financebilllineent.IDEQ(lineSnapshot.ID), financebilllineent.OrderFeeIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().Only(ctx)
+			activeLine, queryErr = tx.FinanceBillLine.Query().Where(financebilllineent.IDEQ(lineSnapshot.ID), financebilllineent.OrderFeeIDEQ(id), effectiveBillLinePredicate()).ForUpdate().Only(ctx)
 			if queryErr != nil {
 				return mapEntError(queryErr, biz.ErrBilledFeeBillLocked, nil)
 			}
-			item, queryErr = tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).WithSettlementParty().ForUpdate().Only(ctx)
-			if queryErr != nil {
-				return queryErr
-			}
-		} else {
-			item, queryErr = tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).WithSettlementParty().ForUpdate().Only(ctx)
-			if queryErr != nil {
-				return queryErr
-			}
+		}
+		item, queryErr = tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).WithSettlementParty().WithFinanceBillLines(effectiveBillLineFilter).ForUpdate().Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
 		}
 		if item.Version != input.Version {
 			return biz.ErrOrderFeeVersionConflict
@@ -516,10 +514,10 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderFeePartyInvalid, nil)
 		}
-		if (item.Status != orderfeeent.StatusBILLED || item.SettlementPartyID != input.SettlementPartyID) && !party.Enabled {
+		if (activeLine == nil || item.SettlementPartyID != input.SettlementPartyID) && !party.Enabled {
 			return biz.ErrOrderFeePartyInvalid
 		}
-		if item.Status != orderfeeent.StatusBILLED || item.Currency != input.Currency {
+		if activeLine == nil || item.Currency != input.Currency {
 			validCurrency, currencyErr := tx.Currency.Query().Where(currencyent.CodeEQ(input.Currency), currencyent.EnabledEQ(true)).Exist(ctx)
 			if currencyErr != nil {
 				return currencyErr
@@ -528,7 +526,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 				return biz.ErrOrderFeeCurrencyInvalid
 			}
 		}
-		if item.Status == orderfeeent.StatusBILLED {
+		if activeLine != nil {
 			if activeBill == nil || activeLine == nil {
 				return biz.ErrOrderFeeVersionConflict
 			}
@@ -555,8 +553,6 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			if item.Currency != input.Currency && billExchangeRate == nil {
 				return biz.ErrFinanceBillInvalidArgument
 			}
-		} else if item.Status != orderfeeent.StatusUNBILLED {
-			return biz.ErrOrderFeeInvalidTransition
 		}
 		builder := tx.OrderFee.UpdateOne(item).
 			SetDirection(orderfeeent.Direction(input.Direction)).
@@ -670,7 +666,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 	input.ID = id
 	input.OrderID = orderID
 	input.IdempotencyKey = item.IdempotencyKey
-	input.Status = biz.OrderFeeStatus(item.Status)
+	input.HasActiveBill = activeLine != nil
 	input.Version = updated.Version
 	input.SettlementPartyName = party.LegalName
 	input.CreatedAt = updated.CreatedAt
@@ -693,6 +689,11 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		}
 		if item.Version != expectedVersion {
 			return biz.ErrOrderFeeVersionConflict
+		}
+		// 补录生成的费用只能经补录申请专用撤销删除：普通入口一律拒绝，防止绕开
+		// 审批资格、批准时间倒序与冲减联动规则。
+		if item.SupplementRequestID != nil {
+			return biz.ErrOrderFeeSupplementDeleteForbidden
 		}
 		// 占用复核以事务内事实为准：存在活动账单行且所属账单未取消即占用。
 		// 草稿账单同样视为已建立；已取消账单的历史行 active=false，不再阻断。
@@ -718,7 +719,6 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		audit.Details["fee.direction"] = string(item.Direction)
 		audit.Details["fee.amount"] = item.TotalAmount
 		audit.Details["fee.currency"] = item.Currency
-		audit.Details["fee.previous_status"] = string(item.Status)
 		audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -767,17 +767,20 @@ func lockOrderFeesForBulk(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, ta
 	return items, nil
 }
 
-// ensureOrderFeeBulkUpdatable 校验批量定向修改的状态资格：仅未建账费用可改
-// 结算单位/费用时间，与单条修改对已建账费用这两个字段的锁定口径一致。
-func ensureOrderFeeBulkUpdatable(item *ent.OrderFee) error {
-	switch item.Status {
-	case orderfeeent.StatusUNBILLED:
-		return nil
-	case orderfeeent.StatusBILLED:
-		return biz.BulkOrderFeeError(biz.ErrBilledFeeFieldForbidden, item.ID, "已进账单费用不可修改结算单位/费用时间")
-	default:
-		return biz.BulkOrderFeeError(biz.ErrOrderFeeInvalidTransition, item.ID, "当前状态不允许批量维护")
+// feeOccupiedSet 一次批量查询返回给定费用中存在有效账单关联的集合（活动账单行
+// 且所属账单未取消），供批量操作逐行准入复核，避免逐费用 N+1 查询。
+func feeOccupiedSet(ctx context.Context, tx *ent.Tx, feeIDs []uuid.UUID) (map[uuid.UUID]struct{}, error) {
+	lines, err := tx.FinanceBillLine.Query().
+		Where(financebilllineent.OrderFeeIDIn(feeIDs...), effectiveBillLinePredicate()).
+		All(ctx)
+	if err != nil {
+		return nil, err
 	}
+	result := make(map[uuid.UUID]struct{}, len(lines))
+	for _, line := range lines {
+		result[line.OrderFeeID] = struct{}{}
+	}
+	return result, nil
 }
 
 // BulkUpdate 批量定向修改未建账费用：整批单一事务，先锁订单行，再按费用主键
@@ -803,9 +806,17 @@ func (r *orderFeeRepo) BulkUpdate(ctx context.Context, organizationID, orderID u
 		if lockErr != nil {
 			return lockErr
 		}
+		feeIDs := make([]uuid.UUID, 0, len(items))
 		for _, item := range items {
-			if statusErr := ensureOrderFeeBulkUpdatable(item); statusErr != nil {
-				return statusErr
+			feeIDs = append(feeIDs, item.ID)
+		}
+		occupied, occupiedErr := feeOccupiedSet(ctx, tx, feeIDs)
+		if occupiedErr != nil {
+			return occupiedErr
+		}
+		for _, item := range items {
+			if _, isBilled := occupied[item.ID]; isBilled {
+				return biz.BulkOrderFeeError(biz.ErrBilledFeeFieldForbidden, item.ID, "已建账费用不可修改结算单位/费用时间")
 			}
 		}
 		for _, item := range items {
@@ -836,10 +847,8 @@ func (r *orderFeeRepo) BulkUpdate(ctx context.Context, organizationID, orderID u
 				return updateErr
 			}
 			if audit := audits[item.ID]; audit != nil {
-				audit.Details["fee.previous_status"] = string(item.Status)
 				audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 				audit.Details["fee.version"] = decimal.NewFromInt(int64(item.Version + 1)).String()
-				audit.Details["fee.status"] = string(item.Status)
 				if writeErr := writeAudit(ctx, tx.AuditLog, audit); writeErr != nil {
 					return writeErr
 				}
@@ -884,8 +893,8 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 				}
 				return biz.BulkOrderFeeError(biz.ErrOrderFeeBillOccupied, item.ID, fmt.Sprintf("已进入未取消的账单 %s，请先取消对应账单后再删除", bill.BillNo))
 			}
-			if item.Status != orderfeeent.StatusUNBILLED {
-				return biz.BulkOrderFeeError(biz.ErrOrderFeeInvalidTransition, item.ID, "仅未建账费用可批量删除")
+			if item.SupplementRequestID != nil {
+				return biz.BulkOrderFeeError(biz.ErrOrderFeeSupplementDeleteForbidden, item.ID, "补录生成的费用请通过补录申请专用撤销删除")
 			}
 		}
 		for _, item := range items {
@@ -897,7 +906,6 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 				audit.Details["fee.direction"] = string(item.Direction)
 				audit.Details["fee.amount"] = item.TotalAmount
 				audit.Details["fee.currency"] = item.Currency
-				audit.Details["fee.previous_status"] = string(item.Status)
 				audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 				if writeErr := writeAudit(ctx, tx.AuditLog, audit); writeErr != nil {
 					return writeErr
@@ -910,6 +918,12 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 
 func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 	party, err := item.Edges.SettlementPartyOrErr()
+	if err != nil {
+		return nil, err
+	}
+	// 有效账单关联必须预加载后投影：未装配关联时显式失败，禁止把未加载事实
+	// 静默当作未建账（调用方经 effectiveBillLineFilter 批量装配）。
+	billLines, err := item.Edges.FinanceBillLinesOrErr()
 	if err != nil {
 		return nil, err
 	}
@@ -946,7 +960,7 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		OrderID:               item.OrderID,
 		IdempotencyKey:        item.IdempotencyKey,
 		Direction:             biz.OrderFeeDirection(item.Direction),
-		Status:                biz.OrderFeeStatus(item.Status),
+		HasActiveBill:         len(billLines) > 0,
 		FeeSettingID:          item.FeeSettingID,
 		FeeCode:               item.FeeCode,
 		FeeName:               item.FeeName,
@@ -971,9 +985,6 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		BaseCurrencyAmount:    baseCurrencyAmount,
 		ExpenseDate:           item.ExpenseDate,
 		Version:               item.Version,
-		CancelledAt:           item.CancelledAt,
-		CancelledBy:           item.CancelledBy,
-		CancellationReason:    item.CancellationReason,
 		CreatedAt:             item.CreatedAt,
 		UpdatedAt:             item.UpdatedAt,
 	}

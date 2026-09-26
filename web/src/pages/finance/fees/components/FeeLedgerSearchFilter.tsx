@@ -4,7 +4,7 @@ import {
   type SearchFilterFieldItem,
   SearchFilterTemplate,
 } from '@/components/ui';
-import { FeeLedgerFinancialProgress, OrderFeeStatus } from '@/enums.generated';
+import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { searchPartnerOptions } from '@/features/partners';
 
@@ -12,7 +12,6 @@ export type FeeLedgerFilterParams = {
   keyword?: string;
   direction?: string;
   financialProgress?: number;
-  status?: number;
   settlementPartyId?: string;
   customerId?: string;
   billNo?: string;
@@ -107,20 +106,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
           label: '已完成',
           value:
             FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED,
-        },
-      ],
-    },
-    {
-      name: 'status',
-      label: '费用状态',
-      type: 'select',
-      placeholder: '全部状态',
-      options: [
-        { label: '未建账', value: OrderFeeStatus.ORDER_FEE_STATUS_UNBILLED },
-        { label: '已进账单', value: OrderFeeStatus.ORDER_FEE_STATUS_BILLED },
-        {
-          label: '已作废',
-          value: OrderFeeStatus.ORDER_FEE_STATUS_CANCELLED,
         },
       ],
     },

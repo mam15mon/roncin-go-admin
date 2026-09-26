@@ -303,7 +303,6 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fee-rec-" + suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
-		SetStatus(fee.StatusBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(customer.ID).
@@ -326,11 +325,10 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		t.Fatalf("创建测试应收费用: %v", err)
 	}
 
-	if _, err = data.db.OrderFee.Create().
+	feePayable, err := data.db.OrderFee.Create().
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fee-pay-" + suffix).
 		SetDirection(fee.DirectionPAYABLE).
-		SetStatus(fee.StatusBILLED).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
 		SetSettlementPartyID(customer.ID).
@@ -348,8 +346,55 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		SetBaseCurrencyAmount("400.00000000").
 		SetExpenseDate(financeCommissionIntegrationDate).
 		SetVersion(1).
-		Save(ctx); err != nil {
+		Save(ctx)
+	if err != nil {
 		t.Fatalf("创建测试应付费用: %v", err)
+	}
+
+	// 应付费用同样以真实账单关联表达建账事实（活动账单行且账单未取消）。
+	payableBillCreate := data.db.FinanceBill.Create().
+		SetOrganizationID(org.ID).
+		SetBillNo("BILL-BILL-P-" + suffix).
+		SetIdempotencyKey("bill-bill-pay-" + suffix).
+		SetDirection(financebillent.DirectionPAYABLE).
+		SetStatus(financebillent.StatusCONFIRMED).
+		SetSettlementPartyID(customer.ID).
+		SetSettlementPartyName(customer.LegalName).
+		SetCurrency("CNY").
+		SetBaseCurrency("CNY").
+		SetExchangeRate("1.00000000").
+		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
+		SetExchangeRateDate(financeCommissionIntegrationDate).
+		SetTotalAmount("400.00000000").
+		SetNetAmount("400.00000000").
+		SetTaxAmount("0.00000000").
+		SetBaseCurrencyAmount("400.00000000").
+		SetFeeCount(1).
+		SetBillDate(financeCommissionIntegrationDate).
+		SetVersion(1)
+	payableBill, err := withTestFinanceBillSettlementAccountSnapshot(payableBillCreate, uuid.New(), "CNY").Save(ctx)
+	if err != nil {
+		t.Fatalf("创建测试应付账单: %v", err)
+	}
+	if _, err = data.db.FinanceBillLine.Create().
+		SetBillID(payableBill.ID).
+		SetOrderID(order.ID).
+		SetOrderFeeID(feePayable.ID).
+		SetOrderNo(order.OrderNo).
+		SetFeeCode(feePayable.FeeCode).
+		SetFeeName(feePayable.FeeName).
+		SetQuantity("1.0000").
+		SetUnitPrice("400.0000").
+		SetTotalAmount("400.00000000").
+		SetNetAmount("400.00000000").
+		SetTaxAmount("0.00000000").
+		SetCurrency("CNY").
+		SetExchangeRate("1.00000000").
+		SetBaseCurrencyAmount("400.00000000").
+		SetBaseCurrency("CNY").
+		SetActive(true).
+		Save(ctx); err != nil {
+		t.Fatalf("创建测试应付账单明细: %v", err)
 	}
 
 	billCreate := data.db.FinanceBill.Create().
@@ -601,9 +646,9 @@ func (f *commissionPostgresFixture) requireRolledBackState() {
 	if _, err = f.data.db.Order.Query().Where(orderent.IDEQ(f.orderID), orderent.OrganizationIDEQ(f.organizationID)).Only(ctx); err != nil {
 		f.t.Fatalf("回滚后订单来源不可读: %v", err)
 	}
-	feeCount, err := f.data.db.OrderFee.Query().Where(fee.OrderIDEQ(f.orderID), fee.StatusEQ(fee.StatusBILLED)).Count(ctx)
-	if err != nil || feeCount != 2 {
-		f.t.Fatalf("回滚后已建账订单费用数 = %d，期望 2，error=%v", feeCount, err)
+	billLineCount2, err := f.data.db.FinanceBillLine.Query().Where(financebilllineent.OrderIDIn(f.orderID), financebilllineent.ActiveEQ(true)).Count(ctx)
+	if err != nil || billLineCount2 != 2 {
+		f.t.Fatalf("回滚后已建账（有效账单关联）费用数 = %d，期望 2，error=%v", billLineCount2, err)
 	}
 }
 

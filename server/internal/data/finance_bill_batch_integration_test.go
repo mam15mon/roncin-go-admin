@@ -90,7 +90,8 @@ func TestFinanceBillBatchCreatePostgres(t *testing.T) {
 		if !errors.Is(err, biz.ErrFinanceBillPreviewStale) {
 			t.Fatalf("陈旧令牌建批错误 = %v，期望 %v", err, biz.ErrFinanceBillPreviewStale)
 		}
-		fixture.requireRolledBackBatchState(feeIDs[0])
+		// 前置已把费用版本抬升到 2；零写入指批次失败后版本保持在修改后的 2。
+		fixture.requireRolledBackBatchState(feeIDs[0], 2)
 	})
 
 	t.Run("相同幂等键并发重放返回同一批次且无重复账单", func(t *testing.T) {
@@ -178,7 +179,6 @@ func (f *financeBillBatchPostgresFixture) createBatchUnbilledFee(key string) uui
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("batch-fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionRECEIVABLE).
-		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
 		SetSettlementPartyID(f.partnerID).
@@ -281,13 +281,13 @@ func (f *financeBillBatchPostgresFixture) requireCommittedBatchState(feeIDs []uu
 			f.t.Fatalf("费用 %s 的有效账单行数 = %d，期望 1，error=%v", feeID, feeLines, countErr)
 		}
 		fee, getErr := f.data.db.OrderFee.Get(ctx, feeID)
-		if getErr != nil || fee.Status != orderfeeent.StatusBILLED || fee.Version != 2 {
-			f.t.Fatalf("批量建账后费用状态 = %#v，期望 BILLED/version 2，error=%v", fee, getErr)
+		if getErr != nil || fee.Version != 2 {
+			f.t.Fatalf("批量建账后费用版本 = %#v，期望 2，error=%v", fee, getErr)
 		}
 	}
 }
 
-func (f *financeBillBatchPostgresFixture) requireRolledBackBatchState(feeID uuid.UUID) {
+func (f *financeBillBatchPostgresFixture) requireRolledBackBatchState(feeID uuid.UUID, wantVersion uint64) {
 	f.t.Helper()
 	ctx := context.Background()
 	batchCount, err := f.data.db.FinanceBillBatch.Query().Where(financebillbatchent.OrganizationIDEQ(f.organizationID)).Count(ctx)
@@ -303,8 +303,8 @@ func (f *financeBillBatchPostgresFixture) requireRolledBackBatchState(feeID uuid
 		f.t.Fatalf("零写入校验：账单明细数 = %d，期望 0，error=%v", lineCount, err)
 	}
 	fee, err := f.data.db.OrderFee.Get(ctx, feeID)
-	if err != nil || fee.Status != orderfeeent.StatusUNBILLED {
-		f.t.Fatalf("零写入校验：费用状态 = %#v，期望 UNBILLED（未被部分改成 BILLED），error=%v", fee, err)
+	if err != nil || fee.Version != wantVersion {
+		f.t.Fatalf("零写入校验：费用版本 = %#v，期望 %d（未发生部分写入），error=%v", fee, wantVersion, err)
 	}
 }
 
@@ -316,7 +316,6 @@ func (f *financeBillBatchPostgresFixture) createBatchUnbilledPayableFee(key stri
 		SetOrderID(f.orderID).
 		SetIdempotencyKey("batch-payable-fee-" + key + "-" + f.suffix).
 		SetDirection(orderfeeent.DirectionPAYABLE).
-		SetStatus(orderfeeent.StatusUNBILLED).
 		SetFeeCode("AGENT_FREIGHT").
 		SetFeeName("代理费").
 		SetSettlementPartyID(f.partnerID).

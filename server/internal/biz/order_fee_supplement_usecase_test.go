@@ -65,9 +65,8 @@ func TestCalculateSupplementApprovalPreview(t *testing.T) {
 	amount := func(s string) decimal.Decimal { return decimal.RequireFromString(s) }
 	fee := &OrderFee{Direction: OrderFeePayable, BaseCurrency: "USD", BaseCurrencyAmount: amount("12.34567890")}
 	rows := []*OrderFee{
-		{Direction: OrderFeeReceivable, Status: OrderFeeUnbilled, BaseCurrency: "USD", BaseCurrencyAmount: amount("100.00000001")},
-		{Direction: OrderFeePayable, Status: OrderFeeBilled, BaseCurrency: "USD", BaseCurrencyAmount: amount("40.00000002")},
-		{Direction: OrderFeePayable, Status: OrderFeeCancelled, BaseCurrency: "EUR", BaseCurrencyAmount: amount("900")},
+		{Direction: OrderFeeReceivable, BaseCurrency: "USD", BaseCurrencyAmount: amount("100.00000001")},
+		{Direction: OrderFeePayable, BaseCurrency: "USD", BaseCurrencyAmount: amount("40.00000002")},
 	}
 	preview, err := calculateSupplementApprovalPreview(rows, fee)
 	if err != nil {

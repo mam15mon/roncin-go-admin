@@ -35,11 +35,7 @@ import FeeFormModal, {
 } from './components/fees/FeeFormModal';
 import FeeSupplementSection from './components/fees/FeeSupplementSection';
 import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
-import {
-  FEE_BILLED,
-  feeStatusCode,
-  RECEIVABLE,
-} from './components/fees/feeConstants';
+import { RECEIVABLE } from './components/fees/feeConstants';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
 import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
@@ -763,7 +759,7 @@ export default function OrderFeesPage() {
         onOpenChange={setModalOpen}
         editingFee={editingFee}
         modalDirection={modalDirection}
-        isFeeBilled={feeStatusCode(editingFee?.status) === FEE_BILLED}
+        isFeeBilled={editingFee?.hasActiveBill === true}
         feeSettings={feeSettings}
         settlementParties={settlementParties}
         currencies={currencies}

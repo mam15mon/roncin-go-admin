@@ -183,9 +183,9 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 		replacement, err := data.db.Partner.Create().
 			SetOrganizationID(fixture.organizationID).
-			SetCode("CUSTOMER-REPLACED-"+fixture.suffix).
-			SetLegalName("换客户后客户-"+fixture.suffix).
-			SetNormalizedName("换客户后客户-"+fixture.suffix).
+			SetCode("CUSTOMER-REPLACED-" + fixture.suffix).
+			SetLegalName("换客户后客户-" + fixture.suffix).
+			SetNormalizedName("换客户后客户-" + fixture.suffix).
 			Save(ctx)
 		if err != nil {
 			t.Fatalf("创建换入客户失败: %v", err)

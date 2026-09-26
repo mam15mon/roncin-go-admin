@@ -35,7 +35,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -366,21 +365,6 @@ func (_c *UserCreate) AddPartnerAssignments(v ...*PartnerAssignment) *UserCreate
 		ids[i] = v[i].ID
 	}
 	return _c.AddPartnerAssignmentIDs(ids...)
-}
-
-// AddCancelledOrderFeeIDs adds the "cancelled_order_fees" edge to the OrderFee entity by IDs.
-func (_c *UserCreate) AddCancelledOrderFeeIDs(ids ...uuid.UUID) *UserCreate {
-	_c.mutation.AddCancelledOrderFeeIDs(ids...)
-	return _c
-}
-
-// AddCancelledOrderFees adds the "cancelled_order_fees" edges to the OrderFee entity.
-func (_c *UserCreate) AddCancelledOrderFees(v ...*OrderFee) *UserCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddCancelledOrderFeeIDs(ids...)
 }
 
 // AddConfirmedFinanceBillIDs adds the "confirmed_finance_bills" edge to the FinanceBill entity by IDs.
@@ -1520,22 +1504,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(partnerassignment.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.CancelledOrderFeesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.CancelledOrderFeesTable,
-			Columns: []string{user.CancelledOrderFeesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

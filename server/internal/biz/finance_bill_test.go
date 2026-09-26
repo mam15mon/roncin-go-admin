@@ -194,7 +194,7 @@ func financeBillableFeeForTest(partyID uuid.UUID, total, net, tax, base string) 
 	return &FinanceBillableFee{
 		OrderNo: "SE2026082600001", BusinessType: "SE",
 		Fee: &OrderFee{
-			ID: feeID, OrderID: uuid.Must(uuid.NewV7()), Direction: OrderFeeReceivable, Status: OrderFeeUnbilled,
+			ID: feeID, OrderID: uuid.Must(uuid.NewV7()), Direction: OrderFeeReceivable,
 			SettlementPartyID: partyID, SettlementPartyName: "验收客户", Currency: "CNY", BaseCurrency: "CNY",
 			FeeCode: "OCEAN", FeeName: "海运费", TotalAmount: decimal.RequireFromString(total),
 			NetAmount: decimal.RequireFromString(net), TaxAmount: decimal.RequireFromString(tax),

@@ -559,25 +559,31 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			return err
 		}
 		lockedFeesMap := make(map[uuid.UUID]*ent.OrderFee, len(fees))
-		unbilledFeeCount := 0
 		for _, f := range fees {
-			if f.Status != orderfeeent.StatusUNBILLED && f.Status != orderfeeent.StatusCANCELLED {
+			lockedFeesMap[f.ID] = f
+		}
+		// 门禁方向：存在有效账单关联（活动账单行且所属账单未取消）的费用即已建账，
+		// 拆票阻断；其余费用随拆票整行迁移并在锁内逐一核对乐观锁版本。
+		feeIDs := make([]uuid.UUID, 0, len(fees))
+		for _, f := range fees {
+			feeIDs = append(feeIDs, f.ID)
+		}
+		occupied, occupiedErr := feeOccupiedSet(ctx, tx, feeIDs)
+		if occupiedErr != nil {
+			return occupiedErr
+		}
+		for _, f := range fees {
+			if _, isBilled := occupied[f.ID]; isBilled {
 				return biz.ErrSeaOrderSplitBlocked
 			}
-			if f.Status == orderfeeent.StatusUNBILLED {
-				unbilledFeeCount++
-				lockedFeesMap[f.ID] = f
-			}
 		}
-		if input.ExpectedVersions.FeeVersions == nil || len(input.ExpectedVersions.FeeVersions) != unbilledFeeCount {
+		if input.ExpectedVersions.FeeVersions == nil || len(input.ExpectedVersions.FeeVersions) != len(fees) {
 			return biz.ErrSeaOrderSplitVersionConflict
 		}
 		for _, f := range fees {
-			if f.Status == orderfeeent.StatusUNBILLED {
-				expV, ok := input.ExpectedVersions.FeeVersions[f.ID]
-				if !ok || expV == 0 || f.Version != expV {
-					return biz.ErrSeaOrderSplitVersionConflict
-				}
+			expV, ok := input.ExpectedVersions.FeeVersions[f.ID]
+			if !ok || expV == 0 || f.Version != expV {
+				return biz.ErrSeaOrderSplitVersionConflict
 			}
 		}
 
@@ -834,7 +840,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			}
 		}
 
-		// 4. 未建账费用分配完整性与唯一性
+		// 4. 迁移费用分配完整性与唯一性
 		assignedFees := make(map[uuid.UUID]string)
 		for _, res := range input.Results {
 			for _, fID := range res.DraftFeeIDs {
@@ -855,7 +861,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				assignedFees[fID] = res.ClientResultKey
 			}
 		}
-		if len(assignedFees) != unbilledFeeCount {
+		if len(assignedFees) != len(fees) {
 			return biz.MetadataError(biz.ErrSeaOrderSplitInvalidArgument, map[string]string{
 				"reason":  "UNBILLED_FEE_ALLOCATION_INCOMPLETE",
 				"message": "所有未取消费用必须分配且只能属于一个结果",
@@ -933,7 +939,6 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 				"fee_code":     f.FeeCode,
 				"total_amount": f.TotalAmount,
 				"currency":     f.Currency,
-				"status":       f.Status,
 				"version":      f.Version,
 			})
 		}
@@ -991,7 +996,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 			"house_bills_count":                  len(hbls),
 			"containers_count":                   len(containers),
 			"shared_container_allocations_count": len(sharedAllocs),
-			"unbilled_fees_count":                unbilledFeeCount,
+			"unbilled_fees_count":                len(fees),
 		}
 		conservationSnapshotBytes, err := json.Marshal(conservationSnapshotMap)
 		if err != nil {
@@ -1891,7 +1896,6 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						SetOrderID(targetOrderID).
 						SetIdempotencyKey(newFeeIdempotencyKey).
 						SetDirection(oldFee.Direction).
-						SetStatus(oldFee.Status).
 						SetNillableFeeSettingID(oldFee.FeeSettingID).
 						SetFeeCode(oldFee.FeeCode).
 						SetFeeName(oldFee.FeeName).

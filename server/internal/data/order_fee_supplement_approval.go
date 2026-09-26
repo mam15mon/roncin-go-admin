@@ -93,11 +93,10 @@ func (r *orderFeeSupplementRepo) LockCommissionImpactContext(ctx context.Context
 	var result *biz.OrderFeeSupplementImpactContext
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		client := tx.Client()
-		// 此前已审批且尚未作废的补录应付合计：已作废不进基线。
+		// 此前已审批且未专用撤销的补录应付合计：已撤销的费用已物理删除，天然不进基线。
 		priorFees, err := client.OrderFee.Query().Where(
 			orderfeeent.OrderIDEQ(orderID),
 			orderfeeent.SupplementRequestIDNotNil(),
-			orderfeeent.StatusNEQ(orderfeeent.StatusCANCELLED),
 		).All(ctx)
 		if err != nil {
 			return err
@@ -165,7 +164,6 @@ func (r *orderFeeSupplementRepo) CreateApprovedFee(ctx context.Context, organiza
 			SetOrderID(fee.OrderID).
 			SetIdempotencyKey(fee.IdempotencyKey).
 			SetDirection(orderfeeent.Direction(fee.Direction)).
-			SetStatus(orderfeeent.StatusUNBILLED).
 			SetFeeCode(fee.FeeCode).
 			SetFeeName(fee.FeeName).
 			SetSettlementPartyID(fee.SettlementPartyID).
@@ -223,7 +221,7 @@ func (r *orderFeeSupplementRepo) CreateApprovedFee(ctx context.Context, organiza
 	if err != nil {
 		return nil, err
 	}
-	loaded, err := client.OrderFee.Query().Where(orderfeeent.IDEQ(created.ID)).WithSettlementParty().Only(ctx)
+	loaded, err := client.OrderFee.Query().Where(orderfeeent.IDEQ(created.ID)).WithSettlementParty().WithFinanceBillLines(effectiveBillLineFilter).Only(ctx)
 	if err != nil {
 		return nil, err
 	}
