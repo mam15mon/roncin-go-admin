@@ -30,28 +30,13 @@ export type FeeLedgerFilterParams = {
   // 航次与人员
   businessType?: string;
   currency?: string;
-  etdRange?: [Dayjs, Dayjs];
-  etaRange?: [Dayjs, Dayjs];
   salesName?: string;
   operatorName?: string;
-  csName?: string;
   vesselName?: string;
   voyageNo?: string;
 
-  // 账期与审计节点
-  invoiceDateRange?: [Dayjs, Dayjs];
-  verificationDateRange?: [Dayjs, Dayjs];
-  orderCreatedAtRange?: [Dayjs, Dayjs];
-  billCreatedAtRange?: [Dayjs, Dayjs];
-
-  // 合约风控与标签
-  isReconciled?: string;
+  // 费用锁定
   financeLocked?: 'LOCKED' | 'UNLOCKED';
-  contractNo?: string;
-  feeCategory?: string;
-  serviceType?: string;
-  feeTags?: string;
-  billTags?: string;
 };
 
 export interface FeeLedgerSearchFilterProps {
@@ -147,7 +132,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       request: ({ keyWords }) => searchPartnerOptions(keyWords),
     },
 
-    // --- 展开后展示的其余 33 项全维高密度业务字段 (一行 6 列) ---
+    // --- 展开后展示的其余 17 项业务字段 (一行 6 列) ---
     {
       name: 'expenseDateRange',
       label: '费用时间',
@@ -214,18 +199,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       request: getCurrencyOptions,
     },
     {
-      name: 'etdRange',
-      label: '离港时间',
-      type: 'date-range',
-      placeholder: ['开始时间', '结束时间'],
-    },
-    {
-      name: 'etaRange',
-      label: '到港时间',
-      type: 'date-range',
-      placeholder: ['开始时间', '结束时间'],
-    },
-    {
       name: 'salesName',
       label: '业务人员',
       placeholder: '输入业务员姓名',
@@ -234,11 +207,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       name: 'operatorName',
       label: '操作人员',
       placeholder: '输入操作员姓名',
-    },
-    {
-      name: 'csName',
-      label: '客服人员',
-      placeholder: '输入客服姓名',
     },
     {
       name: 'vesselName',
@@ -261,40 +229,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       placeholder: '输入发货人抬头',
     },
     {
-      name: 'invoiceDateRange',
-      label: '开票时间',
-      type: 'date-range',
-      placeholder: ['开始时间', '结束时间'],
-    },
-    {
-      name: 'verificationDateRange',
-      label: '核销时间',
-      type: 'date-range',
-      placeholder: ['开始时间', '结束时间'],
-    },
-    {
-      name: 'orderCreatedAtRange',
-      label: '接单时间',
-      type: 'date-range',
-      placeholder: ['开始时间', '结束时间'],
-    },
-    {
-      name: 'billCreatedAtRange',
-      label: '开账时间',
-      type: 'date-range',
-      placeholder: ['开始时间', '结束时间'],
-    },
-    {
-      name: 'isReconciled',
-      label: '是否对账',
-      type: 'select',
-      placeholder: '全部',
-      options: [
-        { label: '已对账', value: 'YES' },
-        { label: '未对账', value: 'NO' },
-      ],
-    },
-    {
       name: 'financeLocked',
       label: '费用锁定状态',
       type: 'select',
@@ -303,21 +237,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
         { label: '因提成已锁定', value: 'LOCKED' },
         { label: '未锁定', value: 'UNLOCKED' },
       ],
-    },
-    {
-      name: 'contractNo',
-      label: '合约协议',
-      placeholder: '输入合约协议号',
-    },
-    {
-      name: 'feeTags',
-      label: '费用标签',
-      placeholder: '输入费用标签',
-    },
-    {
-      name: 'billTags',
-      label: '账单标签',
-      placeholder: '输入账单标签',
     },
   ];
 

@@ -51,7 +51,7 @@ describe('FeeLedgerSearchFilter', () => {
     });
   });
 
-  it('点击展开时展现全维 33 项业务字段', async () => {
+  it('点击展开时展现其余 17 项业务字段', async () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
