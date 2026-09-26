@@ -765,3 +765,28 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
   侧根本不生效的条目」，与第一轮审计发现同构，只是发生在高级设置层。
 - 教训：服务端偏好带来的契约面（校验/乐观锁/迁移/生成物）是持续的维护
   负担；没有真实跨设备诉求时，浏览器本地是台账这类视图配置的合理默认。
+
+
+## Session 108: 费用状态去状态化与搜索 chips 回显落地
+<!-- trellis-session: v=2 fp=954ea58a9404c363 -->
+
+**Date**: 2026-09-26
+**Task**: 费用状态去状态化与搜索 chips 回显落地
+**Branch**: `main`
+
+### Summary
+
+上半程：SearchFilterTemplate 增加已选条件 chips 回显/删除/清除全部，费用台账移除 11 项未接后端的无效筛选项。下半程（fee-hard-delete，用户重写 PRD 后执行）：OrderFeeStatus 枚举与 status/cancelled_* 列整体退役，未建账费用硬删除、补录费用仅可专用撤销，API 以 has_active_bill 表达账单占用，约 40 处守卫切换为账单关联事实谓词；正式迁移含存量作废行校验/归档审计/物理删除并已获授权应用于开发库；前端 25 处消费方切换。集成验证：独立库基线对照发现并修正 11 项任务回归（审计确认无掩盖式修复）、修出被 panic 中止掩盖的 2 项夹具缺陷、根因修正使 16 项存量失败转绿；余 5 项同名同因存量失败登记于任务 research/baseline-failure-registry.md 留待单独立项。check:fast 全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f7dfedbc` | feat(web): SearchFilterTemplate 增加已选条件 chips 回显与删除 |
+| `5d77e0ad` | fix(web): 费用台账移除未接后端的无效筛选项 |
+| `ce851158` | docs: 完善费用状态移除任务规划与验收方案 |
+| `b895aa3e` | refactor: 费用移除独立状态字段，是否建账由有效账单关联推导 |
+
+### Status
+
+[OK] **Completed**
