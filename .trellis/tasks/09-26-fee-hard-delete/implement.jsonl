@@ -1,0 +1,8 @@
+{"file": "AGENTS.md", "reason": "仓库边界、授权、事务、生成及提交规范"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "正式迁移、Ent 同源、共享事务与并发规范"}
+{"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "补录与提成锁定业务约束"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范索引"}
+{"file": ".trellis/tasks/09-26-fee-hard-delete/prd.md", "reason": "本版需求及 A1—A8 验收"}
+{"file": ".trellis/tasks/09-26-fee-hard-delete/design.md", "reason": "事实投影、事务时序、补录响应与迁移决定"}
+{"file": ".trellis/tasks/09-26-fee-hard-delete/research/status-consumer-inventory.md", "reason": "消费方定位与旧方案事实修正"}
+{"file": ".trellis/tasks/09-26-fee-hard-delete/implement.md", "reason": "执行顺序与操作闸口"}
