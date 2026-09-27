@@ -224,6 +224,72 @@ RONCIN_INTEGRATION_DATABASE_SOURCE="postgres://..." \
 - 新增关键事务/锁测试时，同步确认它进入真实 PostgreSQL Job，而不只是进入普通
   `go test ./...` 的包扫描范围。
 
+## 场景：迁移前态、被测时点与种子集合
+
+### 1. 适用范围 / 触发条件
+
+测试历史回填、公司边界迁移、种子追加或单据快照不变时适用。测试准备必须与
+被测迁移的时点一致，避免后续合法删列或追加种子制造错误失败。
+
+### 2. 签名
+
+```go
+// internal/data/integration_test_helper_test.go
+getIntegrationDataBeforeMigration(t *testing.T, beforeVersion string) (*Data, func())
+// 空 beforeVersion 为最新态；非空值排除该版本及之后的正式 SQL 文件。
+
+// internal/platform/migration/company_boundaries_integration_test.go
+boundaryOnlyDir(t *testing.T, dir string) string
+// 保留正式历史前缀，只执行至被测公司边界迁移。
+```
+
+### 3. 契约
+
+- 前态通过正式 SQL 迁移前缀构造；禁止删除最新态 CHECK 来强塞非法旧夹具，
+  禁止使用 Ent 运行期建表替代正式迁移。
+- 针对单个迁移断言全行快照时，执行截止到该迁移；后续删列、字段演进和种子追加
+  单独验证。必须保留除明确允许改写的引用外的全部字段断言。
+- 最新态组织约束的拒绝场景独立执行，不能因历史前态测试成功而省略。
+- 种子数量与内容按本次迁移的 `kind + code` 或模板集合定位，核对值、公司副本
+  归属和税务关联。测试自行新增一条模板，不代表全库模板只有一条。
+- 重复执行需验证既有记录及关联保持不变，不能仅断言总数未增加。
+
+### 4. 校验与错误矩阵
+
+| 条件 | 必须得到的结果 |
+| --- | --- |
+| 最新态创建无合法上级的部门 | 当前 CHECK 拒绝，不能用于历史回填的正常夹具 |
+| 公司边界迁移改写费用科目引用 | 引用归本公司，其余费用和补录快照字段保持不变 |
+| 后续迁移合法移除费用状态字段 | 在后续迁移用例验证，不归为公司边界快照回归 |
+| 后续迁移新增其他种子 | 不影响被测种子集合的数量与内容期望 |
+| 相同种子再执行一次 | 目标记录、ID、公司副本和关联一致，无重复追加 |
+
+### 5. 正常 / 基准 / 错误场景
+
+- 正常：角色锚点回填在约束建立前的正式前态准备旧角色，随后实际执行回填。
+- 基准：最新态正常公司、部门、团队仍满足组织 CHECK。
+- 错误：执行整条最新迁移链后，要求旧费用的 `status` 列仍存在。
+
+### 6. 必需验证
+
+- 定向测试须执行到目标断言，并覆盖现行约束拒绝、公司隔离与种子幂等相邻路径。
+- 公司边界快照失败给出字段级差异；不得直接删除全行对照或把实际结果照抄为期望。
+- 真实库整包结果检查 PASS / FAIL / SKIP、panic 和超时；仅按 `Postgres$` 筛选
+  会漏掉无此后缀的迁移用例，不能作为完整 data / migration 包验收。
+
+### 7. 错误与正确示例
+
+```go
+// 错误：后续独立迁移也被纳入单个边界迁移的快照不变断言。
+Apply(ctx, db, allMigrationDir)
+assertWholeFeeSnapshotUnchanged()
+
+// 正确：保留真实历史前缀，在被测迁移结束处核对完整快照和引用归属。
+Apply(ctx, db, boundaryOnlyDir(t, allMigrationDir))
+assertWholeFeeSnapshotUnchanged()
+assertCompanyFeeAndTaxReferences()
+```
+
 ## Go 时间格式化布局必须是 `2006-01-02`
 
 `time.Format` 的布局串里 `15` 是小时占位符而不是“日”。写成 `"2006-01-15"`
