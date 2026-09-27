@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 )
 
@@ -57,6 +58,11 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建组: %v", err)
+	}
+	// 当前正式 Schema 必须拒绝断链部门；历史回填用例另用迁移前态覆盖。
+	if _, err := data.db.Organization.Create().SetCode("ORPHAN-" + suffix).
+		SetName("非法断链部门").SetKind("department").Save(ctx); !ent.IsConstraintError(err) || !strings.Contains(err.Error(), "organizations_workspace_parent_check") {
+		t.Fatalf("当前 Schema 断链部门错误 = %v, want organizations_workspace_parent_check", err)
 	}
 
 	actorID := uuid.New()
@@ -157,21 +163,13 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 // 部门/团队锚定角色改挂到最近的工作台祖先；重复执行结果不变；断链与唯一索引冲突
 // 都必须报错终止迁移，不静默跳过、不改名停用。
 func TestRoleWorkspaceAnchorBackfillPostgres(t *testing.T) {
-	data, cleanup := getIntegrationData(t)
+	// 断链旧组织只可能存在于组织根节点 CHECK 引入之前；从正式迁移前缀构造。
+	data, cleanup := getIntegrationDataBeforeMigration(t, "20260922100000")
 	t.Cleanup(cleanup)
 
 	ctx := context.Background()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
 
-	_, err := data.db.Organization.Create().
-		SetCode("HQ-" + suffix).
-		SetName("系统管理-" + suffix).
-		SetKind("system").
-		SetBaseCurrency("CNY").
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建系统管理: %v", err)
-	}
 	company, err := data.db.Organization.Create().
 		SetCode("CO-" + suffix).
 		SetName("公司-" + suffix).

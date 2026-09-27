@@ -26,7 +26,7 @@
 | [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 系统管理仅管理公共资料与授权、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
 | [DingTalk Registration Approval](./dingtalk-registration-approval.md) | 钉钉注册双通道：邀请自动激活（降级红线）、认领审批、按目标组织路由通知、手机号与令牌安全 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
-| [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、常用命令 | ✅ |
+| [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、路由与权限范围、真实库验证及迁移测试时点 | ✅ |
 | [Logging Guidelines](./logging-guidelines.md) | 结构化日志与审计 | ✅ |
 
 ## Pre-Development Checklist

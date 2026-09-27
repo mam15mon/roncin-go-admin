@@ -20,6 +20,13 @@ import (
 
 func getIntegrationData(t *testing.T) (*Data, func()) {
 	t.Helper()
+	return getIntegrationDataBeforeMigration(t, "")
+}
+
+// getIntegrationDataBeforeMigration 通过正式 SQL 前缀构造历史前态；空版本表示最新态。
+// 不删除现行约束来强塞旧夹具，也不依赖 Ent 运行期建表。
+func getIntegrationDataBeforeMigration(t *testing.T, beforeVersion string) (*Data, func()) {
+	t.Helper()
 	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
 	if source == "" {
 		t.Skip("未配置专用 RONCIN_INTEGRATION_DATABASE_SOURCE")
@@ -71,7 +78,27 @@ func getIntegrationData(t *testing.T) (*Data, func()) {
 		t.Fatalf("打开隔离迁移连接失败: %v", err)
 	}
 	migrationDB.SetMaxOpenConns(1)
-	if err := migration.Apply(ctx, migrationDB, filepath.Join("..", "..", "migrations")); err != nil {
+	migrationDir := filepath.Join("..", "..", "migrations")
+	if beforeVersion != "" {
+		files, err := filepath.Glob(filepath.Join(migrationDir, "*.sql"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		migrationDir = t.TempDir()
+		for _, file := range files {
+			if filepath.Base(file) >= beforeVersion {
+				continue
+			}
+			contents, err := os.ReadFile(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(migrationDir, filepath.Base(file)), contents, 0600); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	if err := migration.Apply(ctx, migrationDB, migrationDir); err != nil {
 		_ = migrationDB.Close()
 		t.Fatalf("在隔离 Schema 执行迁移失败: %v", err)
 	}

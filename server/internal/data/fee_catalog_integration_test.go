@@ -10,6 +10,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
+	feesettingtemplateent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesettingtemplate"
 	"github.com/shopspring/decimal"
 )
 
@@ -183,12 +184,49 @@ func TestFeeCatalogCompanyTemplatesPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// 最新正式迁移已有 122 个初始模板，初始化应完整复制全部启用模板。
+	templates, err := d.db.FeeSettingTemplate.Query().Where(feesettingtemplateent.EnabledEQ(true)).All(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
 	copied, err := d.db.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(company), feesettingent.FeeCodeEQ("FC_TEMPLATE")).WithTaxableService().Only(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if copied.Edges.TaxableService.OrganizationID != company || copied.ID == template.ID {
 		t.Fatal("模板必须生成公司独立副本")
+	}
+	companyCopies, err := d.db.FeeSetting.Query().Where(feesettingent.OrganizationIDEQ(company)).WithTaxableService().All(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(companyCopies) != len(templates) {
+		t.Fatalf("公司副本数量 = %d, 启用模板数量 = %d", len(companyCopies), len(templates))
+	}
+	copiesByCode := make(map[string]*ent.FeeSetting, len(companyCopies))
+	for _, item := range companyCopies {
+		copiesByCode[item.FeeCode] = item
+	}
+	for _, source := range templates {
+		item := copiesByCode[source.FeeCode]
+		if item == nil {
+			t.Fatalf("公司副本缺少模板科目 %s", source.FeeCode)
+		}
+		if item.ID == source.ID || item.OrganizationID != company || item.NameZh != source.NameZh ||
+			!sameOptionalText(item.NameEn, source.NameEn) || !sameOptionalText(item.AliasName, source.AliasName) ||
+			item.ChargeCategoryID != source.ChargeCategoryID || item.BillingUnitID != source.BillingUnitID ||
+			item.DefaultCurrency != source.DefaultCurrency || item.TaxRate != source.TaxRate ||
+			item.Enabled != source.Enabled || item.SortOrder != source.SortOrder ||
+			(item.AbnormalCaseID == nil) != (source.AbnormalCaseID == nil) ||
+			(item.AbnormalCaseID != nil && *item.AbnormalCaseID != *source.AbnormalCaseID) {
+			t.Fatalf("公司科目 %s 未按模板复制独立配置", source.FeeCode)
+		}
+		taxable := item.Edges.TaxableService
+		if taxable.OrganizationID != company || taxable.Name != source.TaxableServiceName ||
+			taxable.DefaultTaxRate != source.TaxableServiceDefaultTaxRate ||
+			!sameOptionalText(taxable.ShortName, source.TaxableServiceShortName) || !sameOptionalText(taxable.GoodsCode, source.TaxableServiceGoodsCode) {
+			t.Fatalf("公司科目 %s 的税务副本归属或文本错误", source.FeeCode)
+		}
 	}
 	input.NameZH = "修改后的系统模板"
 	if _, err := uc.SaveFeeSettingTemplate(systemCtx, template.ID, input); err != nil {
@@ -207,8 +245,21 @@ func TestFeeCatalogCompanyTemplatesPostgres(t *testing.T) {
 		t.Fatalf("跨公司更新必须不可见: %v", err)
 	}
 	result, err := uc.ListFeeSettings(companyCtx, company, biz.FeeCatalogListOptions{Page: 1, PageSize: 200})
-	if err != nil || result.Total != 1 {
-		t.Fatalf("公司目录: %v %v", result, err)
+	if err != nil {
+		t.Fatalf("读取公司目录: %v", err)
+	}
+	if result.Total != len(templates) || len(result.Items) != len(templates) {
+		t.Fatalf("公司目录 total=%d items=%d, want 启用模板数 %d", result.Total, len(result.Items), len(templates))
+	}
+	for _, item := range result.Items {
+		want := copiesByCode[item.FeeCode]
+		if want == nil || item.ID != want.ID || item.OrganizationID != company {
+			t.Fatalf("公司目录出现非本公司副本: fee_code=%s id=%s", item.FeeCode, item.ID)
+		}
+	}
+	filtered, err := uc.ListFeeSettings(companyCtx, company, biz.FeeCatalogListOptions{Page: 1, PageSize: 200, Keyword: "FC_TEMPLATE"})
+	if err != nil || filtered.Total != 1 || len(filtered.Items) != 1 || filtered.Items[0].ID != copied.ID {
+		t.Fatalf("关键字应只匹配自建模板的公司副本: result=%+v err=%v", filtered, err)
 	}
 	// 相同税务名称、不同默认值不能静默复用；失败须回滚整个公司初始化。
 	conflict := *input

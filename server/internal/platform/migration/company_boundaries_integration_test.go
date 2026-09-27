@@ -3,8 +3,11 @@ package migration
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -77,8 +80,8 @@ func assertBoundaryCount(t *testing.T, db *sql.DB, q string, want int) {
 	}
 }
 
-// boundaryOnlyDir 复制全部既有迁移但排除后续种子迁移（费用科目 20260923 之后），
-// 供需要排除追加影响的用例隔离应用：目录保留完整历史以满足迁移版本完整性校验。
+// boundaryOnlyDir 保留正式历史前缀，且只执行到被测公司边界迁移。
+// 后续费用状态、列删除与种子迁移有独立契约，不参与边界迁移的快照不变断言。
 func boundaryOnlyDir(t *testing.T, dir string) string {
 	t.Helper()
 	only := t.TempDir()
@@ -87,7 +90,7 @@ func boundaryOnlyDir(t *testing.T, dir string) string {
 		t.Fatal(err)
 	}
 	for _, file := range files {
-		if filepath.Base(file) >= "20260923120000" {
+		if filepath.Base(file) >= "20260922130000" {
 			continue
 		}
 		b, err := os.ReadFile(file)
@@ -181,7 +184,7 @@ func TestCompanyBoundaryMigrationRewritesFeeReferencesWithoutSnapshots(t *testin
 	if err := db.QueryRow(`SELECT (to_jsonb(f)-'fee_setting_id')::text FROM order_fee_supplement_requests f WHERE id='50000000-0000-0000-0000-000000000004'`).Scan(&beforeRequest); err != nil {
 		t.Fatal(err)
 	}
-	if err := Apply(context.Background(), db, dir); err != nil {
+	if err := Apply(context.Background(), db, boundaryOnlyDir(t, dir)); err != nil {
 		t.Fatal(err)
 	}
 	for _, test := range []struct{ table, id, before string }{{"order_fees", "50000000-0000-0000-0000-000000000003", beforeFee}, {"order_fee_supplement_requests", "50000000-0000-0000-0000-000000000004", beforeRequest}} {
@@ -190,10 +193,44 @@ func TestCompanyBoundaryMigrationRewritesFeeReferencesWithoutSnapshots(t *testin
 			t.Fatal(err)
 		}
 		if after != test.before {
-			t.Fatalf("%s 费用快照或其他字段被修改", test.table)
+			t.Fatalf("%s 费用快照或其他字段被修改: %s", test.table, boundarySnapshotDiff(t, test.before, after))
 		}
-		assertBoundaryCount(t, db, `SELECT count(*) FROM `+test.table+` f JOIN fee_settings s ON s.id=f.fee_setting_id WHERE f.id='`+test.id+`' AND s.organization_id='10000000-0000-0000-0000-000000000002'`, 1)
+		assertBoundaryCount(t, db, `SELECT count(*) FROM `+test.table+` f JOIN fee_settings s ON s.id=f.fee_setting_id JOIN taxable_services tax ON tax.id=s.taxable_service_id WHERE f.id='`+test.id+`' AND f.fee_setting_id<>'40000000-0000-0000-0000-000000000004' AND s.fee_code='MIGRATION_FEE' AND s.organization_id='10000000-0000-0000-0000-000000000002' AND tax.organization_id=s.organization_id`, 1)
 	}
+}
+
+// boundarySnapshotDiff 给出字段级差异，避免全行 JSON 断言掩盖后续迁移的影响。
+func boundarySnapshotDiff(t *testing.T, before, after string) string {
+	t.Helper()
+	var oldFields, newFields map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(before), &oldFields); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal([]byte(after), &newFields); err != nil {
+		t.Fatal(err)
+	}
+	keys := make(map[string]struct{}, len(oldFields)+len(newFields))
+	for key := range oldFields {
+		keys[key] = struct{}{}
+	}
+	for key := range newFields {
+		keys[key] = struct{}{}
+	}
+	var differences []string
+	for key := range keys {
+		if string(oldFields[key]) != string(newFields[key]) {
+			oldValue, newValue := string(oldFields[key]), string(newFields[key])
+			if oldValue == "" {
+				oldValue = "（字段不存在）"
+			}
+			if newValue == "" {
+				newValue = "（字段不存在）"
+			}
+			differences = append(differences, fmt.Sprintf("%s: %s -> %s", key, oldValue, newValue))
+		}
+	}
+	sort.Strings(differences)
+	return strings.Join(differences, "; ")
 }
 
 func TestCompanyBoundaryMigrationRejectsReferencedLocalOverride(t *testing.T) {
