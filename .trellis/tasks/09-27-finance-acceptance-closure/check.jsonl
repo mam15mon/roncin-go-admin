@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/domain/glossary.md", "reason": "费用、账单、核销与提成术语"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实集成与质量规范"}
+{"file": ".trellis/tasks/09-27-finance-acceptance-closure/research/evidence.md", "reason": "历史失败与当前验收入口的证据"}
+{"file": ".trellis/tasks/09-27-finance-acceptance-closure/prd.md", "reason": "本任务需求与验收范围"}
+{"file": ".trellis/tasks/09-27-finance-acceptance-closure/design.md", "reason": "本任务设计与边界"}

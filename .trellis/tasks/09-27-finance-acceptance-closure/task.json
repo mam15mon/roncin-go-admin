@@ -1,0 +1,29 @@
+{
+  "id": "finance-acceptance-closure",
+  "name": "finance-acceptance-closure",
+  "title": "清零存量集成失败并完成财务链路实弹验收",
+  "description": "分别清零四项历史集成失败、补跑真实 HTTP 与浏览器财务闭环，以可复核证据关闭验收缺口",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-09-27",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "09-27-integration-baseline-four-fixes",
+    "09-27-finance-live-acceptance"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
