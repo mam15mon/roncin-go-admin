@@ -51,11 +51,14 @@ func newAutoLockPostgresFixture(t *testing.T, data *Data) *autoLockPostgresFixtu
 	t.Helper()
 	ctx := context.Background()
 	suffix := uuid.NewString()[:10]
+	// 公司级根组织 + 本币：核销用例在事务内经汇率上下文解析公司本币，系统节点
+	// 组织无法解析本币（与 newFeeSupplementFixture 修正同源）。
 	organization, err := data.db.Organization.Create().
 		SetCode("ALOCK-" + suffix).
 		SetName("自动锁定集成测试组织-" + suffix).
-		SetKind("system").
+		SetKind("company").
 		SetBaseCurrency("CNY").
+		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试组织: %v", err)
