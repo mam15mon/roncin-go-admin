@@ -1,7 +1,8 @@
 -- 费用状态彻底退役（09-26-fee-hard-delete）：
 -- 1. 删列前校验存量 CANCELLED 费用的事务事实：存在有效账单关联（活动账单行且
---    所属账单未取消）或关联冲减调整曾确认/已扣回/进入终态时整体失败，禁止通过
---    级联删除金融历史解决冲突，不自动纠正。
+--    所属账单未取消），或关联任何未取消冲减调整（DRAFT/CONFIRMED/PAID 均冲突），
+--    或任何关联调整曾确认/支付（含已取消但保留 confirmed_at/paid_at 历史）时
+--    整体失败，需先处置待处理调整，禁止通过级联删除金融历史解决冲突，不自动纠正。
 -- 2. 迁移归档审计：为将物理删除的 CANCELLED 费用写入迁移来源审计快照（费用关键
 --    内容与旧撤销元数据；user_id 置空，不伪造操作人）。
 -- 3. 物理删除已作废费用：账单行来源外键 ON DELETE SET NULL 保留历史行快照；
@@ -35,9 +36,9 @@ BEGIN
       ON a.source_fee_supplement_request_id = f.supplement_request_id
     WHERE f."status" = 'CANCELLED'
       AND f.supplement_request_id IS NOT NULL
-      AND (a."status" NOT IN ('DRAFT', 'CANCELLED') OR a.confirmed_at IS NOT NULL OR a.paid_at IS NOT NULL);
+      AND (a."status" <> 'CANCELLED' OR a.confirmed_at IS NOT NULL OR a.paid_at IS NOT NULL);
     IF adjustment_conflict_count > 0 THEN
-        RAISE EXCEPTION '存量已作废费用存在曾确认或已扣回的关联冲减调整：%，需人工核处后再迁移', adjustment_conflict_count;
+        RAISE EXCEPTION '存量已作废补录费用存在未取消或曾确认/已扣回的关联冲减调整：%，需先处置待处理调整后再迁移', adjustment_conflict_count;
     END IF;
 
     SELECT count(*) INTO cancelled_count FROM "order_fees" WHERE "status" = 'CANCELLED';

@@ -13,6 +13,11 @@ import (
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	commissionadjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	commissionruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
+	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -264,4 +269,394 @@ func TestOrderFeeStatusHardDeleteMigrationRejectsOccupiedCancelFee(t *testing.T)
 	if _, err := data.db.OrderFee.Get(ctx, freeID); err != nil {
 		t.Fatalf("正常费用不得被部分删除: %v", err)
 	}
+}
+
+// replaySupplementChain 汇总迁移重放所需真实补录链路各实体的 ID。
+type replaySupplementChain struct {
+	requestID    uuid.UUID
+	feeID        uuid.UUID
+	adjustmentID uuid.UUID
+	commissionID uuid.UUID
+	ruleID       uuid.UUID
+}
+
+// cleanupReplaySupplementChain 按依赖顺序删除直构的补录链路行：申请与调整的
+// NO ACTION 外键会阻断账单夹具自带的订单/组织清理（清理按 LIFO 先于夹具执行），
+// 成功场景中费用已被迁移删除，删除空集不算失败。
+func cleanupReplaySupplementChain(t *testing.T, data *Data, chain replaySupplementChain) {
+	t.Helper()
+	t.Cleanup(func() {
+		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cleanupCancel()
+		steps := []struct {
+			name string
+			run  func() error
+		}{
+			{name: "冲减调整", run: func() error {
+				_, err := data.db.FinanceCommissionAdjustment.Delete().
+					Where(commissionadjustmentent.IDEQ(chain.adjustmentID)).Exec(cleanupCtx)
+				return err
+			}},
+			{name: "补录费用", run: func() error {
+				_, err := data.db.OrderFee.Delete().Where(orderfeeent.IDEQ(chain.feeID)).Exec(cleanupCtx)
+				return err
+			}},
+			{name: "补录申请", run: func() error {
+				_, err := data.db.OrderFeeSupplementRequest.Delete().
+					Where(orderfeesupplementent.IDEQ(chain.requestID)).Exec(cleanupCtx)
+				return err
+			}},
+			{name: "提成父单", run: func() error {
+				_, err := data.db.FinanceCommission.Delete().
+					Where(commissionent.IDEQ(chain.commissionID)).Exec(cleanupCtx)
+				return err
+			}},
+			{name: "提成规则", run: func() error {
+				_, err := data.db.FinanceCommissionRule.Delete().
+					Where(commissionruleent.IDEQ(chain.ruleID)).Exec(cleanupCtx)
+				return err
+			}},
+		}
+		for _, step := range steps {
+			if err := step.run(); err != nil {
+				t.Errorf("清理迁移重放%s: %v", step.name, err)
+			}
+		}
+	})
+}
+
+// createReplaySupplementChain 在迁移前状态上直构真实补录链路数据：APPROVED 补录
+// 申请、其生成的应付费用（supplement_request_id 反向关联，幂等键沿用业务链路
+// 派生规则）与 LOCKED_FEE_SUPPLEMENT 来源冲减调整（source_fee_supplement_request_id
+// 关联申请）。调整的状态与确认/扣回/取消时间戳按场景参数写入，用于命中迁移守卫
+// 的不同分支；调整所需的提成规则与父单按快照 CHECK 直构，不经过提成计算链路，
+// 避免引入与迁移重放无关的依赖（沿用 createReplayBill 的直构原则）。
+func createReplaySupplementChain(t *testing.T, data *Data, ctx context.Context, fixture *financeBillPostgresFixture,
+	status commissionadjustmentent.Status, confirmedAt, paidAt, cancelledAt bool) replaySupplementChain {
+	t.Helper()
+	actorID, actorErr := ensureReplayCancelActor(t, data, ctx)
+	if actorErr != nil {
+		t.Fatalf("准备补录链路操作者: %v", actorErr)
+	}
+	decidedAt := time.Date(2026, 9, 25, 8, 0, 0, 0, time.UTC)
+	request, requestErr := data.db.OrderFeeSupplementRequest.Create().
+		SetOrganizationID(fixture.organizationID).
+		SetOrderID(fixture.orderID).
+		SetLockBasis(orderfeesupplementent.LockBasisBUSINESS).
+		SetBusinessLockGeneration(1).
+		SetIdempotencyKey("hd-supp-" + fixture.suffix).
+		SetRequestFingerprint("hd-supp-fingerprint-" + fixture.suffix).
+		SetDirection(orderfeesupplementent.DirectionPAYABLE).
+		SetFeeCode("HD_SUPPLEMENT").
+		SetFeeName("迁移重放补录费用").
+		SetSettlementPartyID(fixture.partnerID).
+		SetBillingUnit("票").
+		SetQuantity("1.0000").
+		SetUnitPrice("100.0000").
+		SetTotalAmount("100.00000000").
+		SetNetAmount("100.00000000").
+		SetTaxAmount("0.00000000").
+		SetCurrency("CNY").
+		SetExchangeRate("1.00000000").
+		SetExchangeRateSource(orderfeesupplementent.ExchangeRateSourceSYSTEM).
+		SetExchangeRateDate(financeBillIntegrationDate).
+		SetBaseCurrency("CNY").
+		SetBaseCurrencyAmount("100.00000000").
+		SetExpenseDate(financeBillIntegrationDate).
+		SetReason("迁移重放测试补录").
+		SetRequestedBy(actorID).
+		SetRequestedAt(decidedAt).
+		SetStatus(orderfeesupplementent.StatusAPPROVED).
+		SetVersion(2).
+		SetDecidedBy(actorID).
+		SetDecidedAt(decidedAt).
+		Save(ctx)
+	if requestErr != nil {
+		t.Fatalf("创建迁移重放补录申请: %v", requestErr)
+	}
+
+	fee, feeErr := data.db.OrderFee.Create().
+		SetOrderID(fixture.orderID).
+		SetSupplementRequestID(request.ID).
+		SetIdempotencyKey("fee-supplement:" + request.ID.String()).
+		SetDirection(orderfeeent.DirectionPAYABLE).
+		SetFeeCode("HD_SUPPLEMENT").
+		SetFeeName("迁移重放补录费用").
+		SetSettlementPartyID(fixture.partnerID).
+		SetBillingUnit("票").
+		SetQuantity("1.0000").
+		SetUnitPrice("100.0000").
+		SetTotalAmount("100.00000000").
+		SetNetAmount("100.00000000").
+		SetTaxAmount("0.00000000").
+		SetCurrency("CNY").
+		SetExchangeRate("1.00000000").
+		SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
+		SetExchangeRateDate(financeBillIntegrationDate).
+		SetBaseCurrency("CNY").
+		SetBaseCurrencyAmount("100.00000000").
+		SetExpenseDate(financeBillIntegrationDate).
+		SetVersion(1).
+		Save(ctx)
+	if feeErr != nil {
+		t.Fatalf("创建迁移重放补录生成费用: %v", feeErr)
+	}
+
+	// 提成父单的规则快照 CHECK 要求 rule_id/rule_name/personnel_role/
+	// calculation_basis 四元组完整，先直构规则行再挂快照。
+	rule, ruleErr := data.db.FinanceCommissionRule.Create().
+		SetOrganizationID(fixture.organizationID).
+		SetName("迁移重放规则-" + fixture.suffix).
+		SetPersonnelRole(commissionruleent.PersonnelRoleSALES).
+		SetCalculationBasis(commissionruleent.CalculationBasisREALIZED_PROFIT).
+		SetRatePercent("10.0000").
+		SetEnabled(true).
+		SetVersion(1).
+		Save(ctx)
+	if ruleErr != nil {
+		t.Fatalf("创建迁移重放提成规则: %v", ruleErr)
+	}
+	commission, commissionErr := data.db.FinanceCommission.Create().
+		SetOrganizationID(fixture.organizationID).
+		SetCommissionNo("FC-HD-" + fixture.suffix).
+		SetIdempotencyKey("hd-commission-" + fixture.suffix).
+		SetEmployeeID(actorID).
+		SetEmployeeName("迁移重放提成员工").
+		SetCustomerCount(1).
+		SetOrderCount(1).
+		SetFeeCount(1).
+		SetRuleID(rule.ID).
+		SetRuleName("迁移重放规则-" + fixture.suffix).
+		SetPersonnelRole("SALES").
+		SetCalculationBasis("REALIZED_PROFIT").
+		SetStatus(commissionent.StatusCONFIRMED).
+		SetBaseCurrency("CNY").
+		SetRealizedRevenue("1000.00000000").
+		SetAllocatedCost("400.00000000").
+		SetRealizedProfit("1000.00000000").
+		SetCommissionBaseAmount("1000.00000000").
+		SetRatePercent("10.0000").
+		SetCommissionAmount("60.00000000").
+		SetCommissionDate(financeBillIntegrationDate).
+		SetCnyExchangeRate("1.00000000").
+		SetCnyExchangeRateSource(commissionent.CnyExchangeRateSourceBASE_CURRENCY).
+		SetCnyExchangeRateDate(financeBillIntegrationDate).
+		SetCnyCommissionAmount("60.00000000").
+		SetVersion(1).
+		Save(ctx)
+	if commissionErr != nil {
+		t.Fatalf("创建迁移重放提成父单: %v", commissionErr)
+	}
+
+	// 状态与时间戳组合说明：DRAFT/CONFIRMED/PAID 命中「未取消」分支；CANCELLED
+	// 且仅带 confirmed_at / paid_at 分别独立命中「曾确认」「曾扣回」分支（后者
+	// 在通用取消门禁下当前不可经业务流转产生，但迁移守卫保护数据库层不变量，
+	// 必须对任意存量状态失败关闭）。
+	adjustmentCreate := data.db.FinanceCommissionAdjustment.Create().
+		SetOrganizationID(fixture.organizationID).
+		SetCommissionID(commission.ID).
+		SetOrderID(fixture.orderID).
+		SetAdjustmentNo(commission.CommissionNo + "-ADJ001").
+		SetIdempotencyKey("hd-adj-" + fixture.suffix).
+		SetCommissionNo(commission.CommissionNo).
+		SetOrderNo("HD-SUPP-" + fixture.suffix).
+		SetEmployeeID(actorID).
+		SetEmployeeName("迁移重放提成员工").
+		SetSourceType(commissionadjustmentent.SourceTypeLOCKED_FEE_SUPPLEMENT).
+		SetSourceFeeSupplementRequestID(request.ID).
+		SetDirection(commissionadjustmentent.DirectionDECREASE).
+		SetStatus(status).
+		SetBaseCurrency("CNY").
+		SetAmount("10.00000000").
+		SetReason("迁移重放测试冲减建议").
+		SetVersion(1)
+	stampAt := time.Date(2026, 9, 25, 9, 0, 0, 0, time.UTC)
+	if confirmedAt {
+		adjustmentCreate = adjustmentCreate.SetConfirmedAt(stampAt).SetConfirmedBy(actorID)
+	}
+	if paidAt {
+		adjustmentCreate = adjustmentCreate.SetPaidAt(stampAt).SetPaidBy(actorID)
+	}
+	if cancelledAt {
+		adjustmentCreate = adjustmentCreate.SetCancelledAt(stampAt).SetCancelledBy(actorID).
+			SetCancellationReason("迁移重放测试取消建议")
+	}
+	adjustment, adjustmentErr := adjustmentCreate.Save(ctx)
+	if adjustmentErr != nil {
+		t.Fatalf("创建迁移重放关联冲减调整: %v", adjustmentErr)
+	}
+	chain := replaySupplementChain{
+		requestID:    request.ID,
+		feeID:        fee.ID,
+		adjustmentID: adjustment.ID,
+		commissionID: commission.ID,
+		ruleID:       rule.ID,
+	}
+	cleanupReplaySupplementChain(t, data, chain)
+	return chain
+}
+
+// TestOrderFeeStatusHardDeleteMigrationAdjustmentGuardMatrix 以真实补录链路夹具
+// （APPROVED 申请 + 生成费用置 CANCELLED + LOCKED_FEE_SUPPLEMENT 关联冲减调整）
+// 表驱动校验守卫拒绝矩阵：任何未取消调整（DRAFT/CONFIRMED/PAID）与已取消但保留
+// 确认/扣回历史的调整都使迁移整体失败回滚，费用、调整、申请与列结构无部分变更。
+// 每个场景在独立隔离 Schema 内执行；跳过不算通过。
+func TestOrderFeeStatusHardDeleteMigrationAdjustmentGuardMatrix(t *testing.T) {
+	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
+		t.Skip("未配置专用 RONCIN_INTEGRATION_DATABASE_SOURCE")
+	}
+	cases := []struct {
+		name        string
+		status      commissionadjustmentent.Status
+		confirmedAt bool
+		paidAt      bool
+		cancelledAt bool
+	}{
+		{name: "DRAFT 待处理调整拒绝迁移", status: commissionadjustmentent.StatusDRAFT},
+		{name: "CONFIRMED 调整拒绝迁移", status: commissionadjustmentent.StatusCONFIRMED, confirmedAt: true},
+		{name: "PAID 调整拒绝迁移", status: commissionadjustmentent.StatusPAID, confirmedAt: true, paidAt: true},
+		{name: "已取消但曾确认的调整拒绝迁移", status: commissionadjustmentent.StatusCANCELLED, confirmedAt: true, cancelledAt: true},
+		{name: "已取消但曾扣回的调整拒绝迁移", status: commissionadjustmentent.StatusCANCELLED, paidAt: true, cancelledAt: true},
+	}
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			data, cleanupData := getIntegrationData(t)
+			t.Cleanup(cleanupData)
+			fixture := newFinanceBillPostgresFixture(t, data)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			chain := createReplaySupplementChain(t, data, ctx, fixture,
+				testCase.status, testCase.confirmedAt, testCase.paidAt, testCase.cancelledAt)
+
+			restoreOrderFeeStatusColumns(t, data, ctx, []uuid.UUID{chain.feeID})
+			_, replayErr := data.sqlDB.ExecContext(ctx, readMigrationContent(t,
+				"20260926100000_order_fee_status_hard_delete.sql"))
+			if replayErr == nil || !strings.Contains(replayErr.Error(), "需先处置待处理调整") {
+				t.Fatalf("未处置关联冲减调整必须使迁移失败，实际: %v", replayErr)
+			}
+
+			// 原子回滚断言：费用仍在且保留补录来源，调整与申请原样，无新增归档
+			// 审计，旧状态列仍存在。
+			fee, feeErr := data.db.OrderFee.Get(ctx, chain.feeID)
+			if feeErr != nil {
+				t.Fatalf("迁移失败必须整体回滚，已作废补录费用不得被删除: %v", feeErr)
+			}
+			if fee.SupplementRequestID == nil || *fee.SupplementRequestID != chain.requestID {
+				t.Fatalf("回滚后费用补录来源关联不得变化: %v", fee.SupplementRequestID)
+			}
+			adjustment, adjustmentGetErr := data.db.FinanceCommissionAdjustment.Get(ctx, chain.adjustmentID)
+			if adjustmentGetErr != nil {
+				t.Fatalf("迁移失败不得改动关联调整: %v", adjustmentGetErr)
+			}
+			if adjustment.Status != testCase.status || adjustment.Version != 1 {
+				t.Fatalf("回滚后调整状态与版本必须原样: %+v", adjustment)
+			}
+			if (adjustment.ConfirmedAt != nil) != testCase.confirmedAt || (adjustment.PaidAt != nil) != testCase.paidAt {
+				t.Fatalf("回滚后调整确认/扣回时间戳必须原样: confirmed=%v paid=%v", adjustment.ConfirmedAt, adjustment.PaidAt)
+			}
+			request, requestErr := data.db.OrderFeeSupplementRequest.Get(ctx, chain.requestID)
+			if requestErr != nil || request.Status != orderfeesupplementent.StatusAPPROVED {
+				t.Fatalf("迁移失败不得改动补录申请: %v %+v", requestErr, request)
+			}
+			auditCount, auditErr := data.db.AuditLog.Query().
+				Where(auditlogent.ActionEQ("order.fee.migration_hard_delete")).Count(ctx)
+			if auditErr != nil || auditCount != 0 {
+				t.Fatalf("迁移失败不得写入归档审计: count=%d err=%v", auditCount, auditErr)
+			}
+			var columnCount int
+			if err := data.sqlDB.QueryRowContext(ctx,
+				`SELECT count(*) FROM information_schema.columns
+				 WHERE table_schema = current_schema() AND table_name = 'order_fees' AND column_name = 'status'`).Scan(&columnCount); err != nil {
+				t.Fatalf("读取列元数据失败: %v", err)
+			}
+			if columnCount != 1 {
+				t.Fatalf("迁移失败必须整体回滚，order_fees.status 应仍存在: %d", columnCount)
+			}
+		})
+	}
+}
+
+// TestOrderFeeStatusHardDeleteMigrationAdjustmentResolvedSuccess 校验成功矩阵：
+// 关联调整已全部取消且从未确认/扣回时迁移放行，申请与调整保留、费用删除并写入
+// 迁移归档审计；无任何 CANCELLED 行时迁移正常完成且零审计写入（无关联调整的
+// 普通 CANCELLED 费用路径由 TestOrderFeeStatusHardDeleteMigrationReplay 覆盖）。
+// 两个场景分别在独立隔离 Schema 内执行；跳过不算通过。
+func TestOrderFeeStatusHardDeleteMigrationAdjustmentResolvedSuccess(t *testing.T) {
+	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
+		t.Skip("未配置专用 RONCIN_INTEGRATION_DATABASE_SOURCE")
+	}
+
+	t.Run("仅关联已取消且无确认扣回历史的调整时迁移成功", func(t *testing.T) {
+		data, cleanupData := getIntegrationData(t)
+		t.Cleanup(cleanupData)
+		fixture := newFinanceBillPostgresFixture(t, data)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		chain := createReplaySupplementChain(t, data, ctx, fixture,
+			commissionadjustmentent.StatusCANCELLED, false, false, true)
+
+		restoreOrderFeeStatusColumns(t, data, ctx, []uuid.UUID{chain.feeID})
+		if _, err := data.sqlDB.ExecContext(ctx, readMigrationContent(t,
+			"20260926100000_order_fee_status_hard_delete.sql")); err != nil {
+			t.Fatalf("已处置关联调整时迁移应成功: %v", err)
+		}
+
+		// 申请与历史调整保留，费用被归档审计后物理删除。
+		if _, err := data.db.OrderFeeSupplementRequest.Get(ctx, chain.requestID); err != nil {
+			t.Fatalf("补录申请必须保留: %v", err)
+		}
+		adjustment, adjustmentErr := data.db.FinanceCommissionAdjustment.Get(ctx, chain.adjustmentID)
+		if adjustmentErr != nil || adjustment.Status != commissionadjustmentent.StatusCANCELLED ||
+			adjustment.ConfirmedAt != nil || adjustment.PaidAt != nil {
+			t.Fatalf("已取消调整必须原样保留: %v %+v", adjustmentErr, adjustment)
+		}
+		if _, err := data.db.OrderFee.Get(ctx, chain.feeID); err == nil || !ent.IsNotFound(err) {
+			t.Fatalf("已作废补录费用应被物理删除: %v", err)
+		}
+		archivedAudit, auditErr := data.db.AuditLog.Query().
+			Where(auditlogent.ActionEQ("order.fee.migration_hard_delete"), auditlogent.ResourceIDEQ(chain.feeID.String())).
+			Only(ctx)
+		if auditErr != nil {
+			t.Fatalf("迁移归档审计缺失: %v", auditErr)
+		}
+		if archivedAudit.OrganizationID == nil || *archivedAudit.OrganizationID != fixture.organizationID {
+			t.Fatalf("归档审计组织归属不符: %+v", archivedAudit.OrganizationID)
+		}
+	})
+
+	t.Run("无任何已作废费用时迁移正常完成", func(t *testing.T) {
+		data, cleanupData := getIntegrationData(t)
+		t.Cleanup(cleanupData)
+		fixture := newFinanceBillPostgresFixture(t, data)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		keptFeeID := fixture.createUnbilledFee("hd-empty-kept")
+
+		restoreOrderFeeStatusColumns(t, data, ctx, nil)
+		if _, err := data.sqlDB.ExecContext(ctx, readMigrationContent(t,
+			"20260926100000_order_fee_status_hard_delete.sql")); err != nil {
+			t.Fatalf("无 CANCELLED 行时迁移应正常完成: %v", err)
+		}
+
+		if _, err := data.db.OrderFee.Get(ctx, keptFeeID); err != nil {
+			t.Fatalf("正常费用不得被删除: %v", err)
+		}
+		auditCount, auditErr := data.db.AuditLog.Query().
+			Where(auditlogent.ActionEQ("order.fee.migration_hard_delete")).Count(ctx)
+		if auditErr != nil || auditCount != 0 {
+			t.Fatalf("零删除时不得写入归档审计: count=%d err=%v", auditCount, auditErr)
+		}
+		var columnCount int
+		if err := data.sqlDB.QueryRowContext(ctx,
+			`SELECT count(*) FROM information_schema.columns
+			 WHERE table_schema = current_schema() AND table_name = 'order_fees' AND column_name = 'status'`).Scan(&columnCount); err != nil {
+			t.Fatalf("读取列元数据失败: %v", err)
+		}
+		if columnCount != 0 {
+			t.Fatalf("无 CANCELLED 行时状态列仍应删除: %d", columnCount)
+		}
+	})
 }
