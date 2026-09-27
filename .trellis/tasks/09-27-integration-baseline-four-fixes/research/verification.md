@@ -3,7 +3,8 @@
 ## 环境与代码绑定
 
 - 日期：2026-09-27（UTC）。
-- 基准提交：`9d40fbc24ba1776707e9b4cd893df85c6b7d1477`；本记录首先对应该提交之上的五个测试/辅助文件工作区改动，最终提交由父任务统一记录。
+- 规划基准提交：`9d40fbc24ba1776707e9b4cd893df85c6b7d1477`；原四项修复代码已提交为 `57d7b1a0dde683453ecebfc84a2faa0d0656d036`。
+- 后续开启完整迁移测试暴露的四项遮蔽路径另补于 `postgres_integration_test.go`，独立完整包验证对应 SHA256 `c7595babbebf88385b10487aed99f2acc53396f269706ef82be33f7355802182`。最终提交 SHA 由父任务统一记录。
 - Go：`go1.26.8 linux/amd64`。
 - PostgreSQL：18.6，Ubuntu 本地真实实例；专用一次性数据库 `roncin_verify_45707338`，不是日常开发库。
 - 连接串通过权限 `0600` 的临时环境文件注入 `RONCIN_INTEGRATION_DATABASE_SOURCE`；记录中不保存连接串或凭据。
@@ -71,5 +72,37 @@ go -C server test -v -count=1 -p 32 -timeout 20m ./internal/platform/migration/ 
 
 - `git diff --check`：PASS。
 - `go -C server vet ./internal/data/ ./internal/platform/migration/`：PASS，退出码 0，日志 `/tmp/roncin-baseline-vet.log` 无输出。
-- 两包完整真实 PostgreSQL 集成由父任务的真实验收编排 Stage A 顺序执行，避免重复运行。需收取完整 JSON 日志及 PASS/FAIL/SKIP/panic 统计后再判断 A4；本子任务此刻不宣告完成。
-- Trellis 检查代理审阅与最终提交 SHA 由父任务协调。
+- 首次 Stage A 的完整 data 包：**291 个顶层 PASS、453 个子项 PASS、FAIL=0、SKIP=0，390.182s**，日志 `/tmp/roncin-finance-live-acceptance.log`。实际使用 `-v` 文本输出，不是 JSON；命令为 `go -C server test -p 32 -timeout 40m -v ./internal/data -count=1`。
+- 首次 Stage A 的 migration 包：20 个顶层 PASS、7 个顶层 SKIP、FAIL=0，21.722s；编排正确拒绝这次结果并清理资源，不能报告完整迁移通过。原因是未设置 `RONCIN_POSTGRES_MIGRATION_TEST=1`。
+- 为提前检查此前未执行路径，独立运行完整 migration 包（不重复完整 data）：显式提供专用集成连接串，同时设置 `RONCIN_POSTGRES_MIGRATION_TEST=1` 与 `DATABASE_SOURCE=$RONCIN_INTEGRATION_DATABASE_SOURCE`。
+- 独立 migration 修复后全包：**27 个顶层 PASS、9 个子项 PASS、FAIL=0、SKIP=0、panic=0，38.374s**，日志 `/tmp/roncin-baseline-migration-enabled-after.jsonl`，实际为 JSON 事件。包级事件 PASS、退出码 0。
+- 独立完整 migration 结束后查询专属库中除 `public / information_schema / pg_*` 外的 Schema 数量为 **0**，隔离夹具无残留。
+- 补修后 `go -C server vet ./internal/platform/migration/`：PASS，日志 `/tmp/roncin-baseline-migration-enabled-vet.log` 无输出。
+- 第二轮 Stage A 顺序完整两包已通过：data 291 顶层 + 453 子项 PASS，0 FAIL / SKIP，401.146s；migration 27 顶层 + 9 子项 PASS，0 FAIL / SKIP，37.967s。日志 `/tmp/roncin-finance-live-acceptance-r2.log`，实际命令为 `go -C server test -p 32 -timeout 40m -v <package> -count=1`。四项目标和新增七项均实际执行，未发生 panic / 超时。首次 7 SKIP 仍保留为失败门禁记录。
+- Trellis 检查代理已完成六个源码文件完整复核，无遗留问题，详见 `research/review.md`。原五文件代码提交 `57d7b1a0`；第六文件最终冻结指纹为 `c7595babbebf88385b10487aed99f2acc53396f269706ef82be33f7355802182`，父任务最终记录补充代码提交 SHA。
+
+独立完整 migration 命令：
+
+```bash
+# 先通过任务专用临时环境文件安全注入 RONCIN_INTEGRATION_DATABASE_SOURCE。
+export RONCIN_POSTGRES_MIGRATION_TEST=1
+export DATABASE_SOURCE="$RONCIN_INTEGRATION_DATABASE_SOURCE"
+go -C server test -json -count=1 -p 32 -timeout 40m ./internal/platform/migration/
+```
+
+## 开启迁移开关后额外暴露的四项历史测试漂移
+
+这四项属于完整迁移门禁中新执行的历史升级测试，与原立案四项分别记录。修复只涉及 `server/internal/platform/migration/postgres_integration_test.go`，未修改正式迁移、历史业务夹具、船公司身份规则或其他生产语义。
+
+开启开关后的第一次独立完整包运行：23 个顶层 PASS、4 个顶层 FAIL、7 个子项 PASS、2 个子项 FAIL、SKIP=0，40.797s；日志 `/tmp/roncin-baseline-migration-enabled.jsonl`。并非 Schema 查询使用了错误命名空间：原查询已正确绑定随机隔离 Schema，实际根因是全部执行最新链后再断言历史目标状态。
+
+| 额外测试 | 实际失败 | 正式契约依据 | 修复后被测目标截止 |
+| --- | --- | --- | --- |
+| `TestPostgresSeaDocumentStage2Migration` | 两个条件唯一索引数量 0，期望 2 | `20260916100000_sea_house_bill_batch_no_unique.sql` 正式删除原两索引 | `20260902140000_sea_export_document_content.sql` |
+| `TestPostgresSeaExportCargoAllocationStage3Migration` | `sea_cargo_allocations` 表不存在 | `20260907140000_simplify_sea_export_house_bill_model.sql` 正式删除旧箱货分配表 | `20260903100000_sea_export_cargo_allocation.sql` |
+| `TestPostgresSeaDocumentChangeMigrationFromVersioningBaseline` | Switch 链序号唯一索引查询无结果 | `20260907140000` 正式删除 `sea_house_bill_switch_events` 表及其索引 | `20260904160000_sea_document_change_idempotency.sql` |
+| `TestPostgresUniversalOrderLockMigrationFromSEBaseline` | 船公司身份迁移拒绝 `orders` 旧承运人事实 | `20260906120000_sea_shipping_line_identity.sql` 明确拒绝任何 SE 订单、运输执行、MBL 或旧版本历史事实；本测试应只验证此前全业务锁回填 | `20260905120000_universal_order_lock.sql` |
+
+新增辅助函数复制完整正式版本前缀到目标文件，并显式检查目标文件存在。四项全部保留原来的结构、精度、CHECK/FK、条件唯一索引、幂等、迁移 ledger、OA 关联、旧锁事实与原子拒绝/回滚断言。
+
+最新全链仍由 `TestPostgresColdStartMigration` 真正执行两遍并检查当前 Ent 表、索引和约束；`TestPostgresSeaShippingLineIdentityMigration` 保留从旧身份基线到最新全链的空业务成功以及历史业务拒绝路径。本次完整包中上述用例全部 PASS，未把旧业务夹具悄悄改成新船公司引用或删掉被测历史记录。

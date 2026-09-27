@@ -223,6 +223,10 @@ RONCIN_INTEGRATION_DATABASE_SOURCE="postgres://..." \
 - 测试使用随机业务键或一次性数据库隔离，结束后检查夹具、临时数据库和角色无残留。
 - 新增关键事务/锁测试时，同步确认它进入真实 PostgreSQL Job，而不只是进入普通
   `go test ./...` 的包扫描范围。
+- 完整执行 `internal/platform/migration` 时还必须显式注入
+  `RONCIN_POSTGRES_MIGRATION_TEST=1`；只提供集成连接串仍会跳过七个历史升级／冷启动
+  用例。迁移测试若启动子进程，`DATABASE_SOURCE` 也必须绑定同一隔离连接，避免从
+  本地配置继承日常开发库。完整验收不得把这些 SKIP 计为通过。
 
 ## 场景：迁移前态、被测时点与种子集合
 

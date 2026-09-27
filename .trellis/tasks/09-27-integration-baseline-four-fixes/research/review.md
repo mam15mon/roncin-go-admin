@@ -68,3 +68,31 @@ git diff --check
 ## 未修复问题与交接
 
 无遗留代码审阅问题。尚需父任务收取最终完整两包统计、记录最终提交及验收环境清理结果；这属于在进行的验收步骤，本记录不提前宣告子任务完成。未提交 Git，按父任务约定由主会话提交。
+
+## 补充复核：启用完整迁移门禁后的历史目标校准
+
+2026-09-27，父任务启用 `RONCIN_POSTGRES_MIGRATION_TEST=1` 后，此前被跳过的四项历史迁移用例额外暴露截止时点漂移。本节只审阅 `postgres_integration_test.go` 的补充改动；未修改该文件、未重复执行全量集成，未提交 Git。
+
+### 结论
+
+未发现遗留代码问题。改动仅增加 `postgresMigrationDirThrough` 辅助函数，并把四个历史目标用例的升级与重复执行目录从最新全链改为包含被测正式 SQL 的完整历史前缀。原始夹具、结构断言、失败签名及原子回滚断言均保留；未改变生产 SQL、业务契约、约束或种子语义。
+
+| 用例 | 基线末文件 | 被测目标末文件 | 保留的目标断言 |
+|---|---|---|---|
+| `TestPostgresSeaDocumentStage2Migration` | `20260902120000_sea_export_mbl_foundation.sql` | `20260902140000_sea_export_document_content.sql` | 目标列、HBL 表、5 个 CHECK、2 个条件唯一索引、revision、重复执行；既有 SE 数据拒绝、目标列和 revision 不残留 |
+| `TestPostgresSeaExportCargoAllocationStage3Migration` | `20260902140000_sea_export_document_content.sql` | `20260903100000_sea_export_cargo_allocation.sql` | 件重尺 numeric 精度、4 个分配状态列、13 个 CHECK/FK、旧列移除、新列存在、2 个局部唯一索引、revision；既有 SE 货物拒绝、目标表/revision 不残留 |
+| `TestPostgresSeaDocumentChangeMigrationFromVersioningBaseline` | `20260904120000_sea_export_document_versioning.sql` | `20260904160000_sea_document_change_idempotency.sql` | 重复执行、revision、作废事件 order_id 非空、4 个 CHECK/FK、Switch 链序号唯一索引 |
+| `TestPostgresUniversalOrderLockMigrationFromSEBaseline` | `20260904160000_sea_document_change_idempotency.sql` | `20260905120000_universal_order_lock.sql` | 旧 SE 锁和解锁申请归属回填、OA 实例与流程编码原值、列非空/可空、文档引用 CHECK 内容与 validated、历史快照 FK 为 NO ACTION、revision checksum 长度、重复执行 |
+
+辅助函数只复制 `.sql` 且文件名不大于目标的正式内容，包含目标自身；不存在指定目标时立即 Fatal，不允许误写文件名造成空转。当前迁移文件使用固定长度时间前缀，文件名字典序与正式历史顺序一致；正式 Apply 仍负责按版本校验和及顺序执行。临时目录由 `t.TempDir` 回收。
+
+完整最新链未失去覆盖：`TestPostgresColdStartMigration` 仍对正式完整目录 Apply 两次并按当前 Ent 元数据查表和最新索引；`TestPostgresSeaShippingLineIdentityMigration` 的成功与历史订单/船公司 Partner 拒绝子例仍 Apply `fullDir`，继续保护最新链结构、拒绝与回滚。锁升级夹具未删除历史 SE 数据，也未静默替换为行业船公司 ID 来绕开后续独立迁移的拒绝契约。
+
+### 独立证据核验
+
+- 文件 SHA256 实测与父任务冻结值一致：`c7595babbebf88385b10487aed99f2acc53396f269706ef82be33f7355802182`。
+- 独立解析 `/tmp/roncin-baseline-migration-enabled-after.jsonl`：27 个顶层 PASS、9 个子项 PASS、0 FAIL、0 SKIP，无 panic/超时；包级 PASS，耗时 38.374 秒。包括四个补充校准用例、冷启动和船公司身份迁移，不能把此前默认 SKIP 的运行作为这轮证据。
+- `gofmt -l server/internal/platform/migration/postgres_integration_test.go`：PASS，无输出。
+- `git diff --check -- server/internal/platform/migration/postgres_integration_test.go`：PASS。
+- `go -C server vet ./internal/platform/migration/`：PASS，退出码 0；Go 无单独 TypeScript 类型检查，vet 编译覆盖该包类型。
+- 本审阅未再运行真实集成；最终父任务仍需记录最终提交 SHA、验收 Stage A 对相同冻结文件的完整结果，以及资源回收证据。

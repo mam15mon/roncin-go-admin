@@ -18,6 +18,35 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// postgresMigrationDirThrough 保留正式迁移前缀直到被测目标，避免后续删除表/索引
+// 或拒绝历史数据的独立契约污染历史升级断言；最新全链由冷启动用例覆盖。
+func postgresMigrationDirThrough(t *testing.T, fullDir, targetMigration string) string {
+	t.Helper()
+	dir := t.TempDir()
+	entries, err := os.ReadDir(fullDir)
+	if err != nil {
+		t.Fatalf("读取迁移目录失败: %v", err)
+	}
+	foundTarget := false
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") || entry.Name() > targetMigration {
+			continue
+		}
+		content, err := os.ReadFile(filepath.Join(fullDir, entry.Name()))
+		if err != nil {
+			t.Fatalf("读取迁移 %s 失败: %v", entry.Name(), err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, entry.Name()), content, 0o600); err != nil {
+			t.Fatalf("复制迁移 %s 失败: %v", entry.Name(), err)
+		}
+		foundTarget = foundTarget || entry.Name() == targetMigration
+	}
+	if !foundTarget {
+		t.Fatalf("被测迁移不存在: %s", targetMigration)
+	}
+	return dir
+}
+
 func TestPostgresColdStartMigration(t *testing.T) {
 	if os.Getenv("RONCIN_POSTGRES_MIGRATION_TEST") != "1" {
 		t.Skip("设置 RONCIN_POSTGRES_MIGRATION_TEST=1 后运行真实 PostgreSQL 迁移测试")
@@ -378,6 +407,7 @@ func TestPostgresSeaDocumentStage2Migration(t *testing.T) {
 	const stage1Migration = "20260902120000_sea_export_mbl_foundation.sql"
 	const stage2Revision = "20260902140000_sea_export_document_content"
 	fullDir := filepath.Join("..", "..", "..", "migrations")
+	targetDir := postgresMigrationDirThrough(t, fullDir, stage2Revision+".sql")
 	stage1Dir := t.TempDir()
 	entries, err := os.ReadDir(fullDir)
 	if err != nil {
@@ -452,10 +482,10 @@ func TestPostgresSeaDocumentStage2Migration(t *testing.T) {
 			t.Fatal("阶段 1 状态不应提前包含 document_structure")
 		}
 
-		if err := Apply(ctx, db, fullDir); err != nil {
+		if err := Apply(ctx, db, targetDir); err != nil {
 			t.Fatalf("阶段 2 真实迁移失败: %v", err)
 		}
-		if err := Apply(ctx, db, fullDir); err != nil {
+		if err := Apply(ctx, db, targetDir); err != nil {
 			t.Fatalf("阶段 2 重复执行失败: %v", err)
 		}
 
@@ -539,7 +569,7 @@ func TestPostgresSeaDocumentStage2Migration(t *testing.T) {
 			t.Fatalf("插入迁移测试 SE 订单失败: %v", err)
 		}
 
-		err := Apply(ctx, db, fullDir)
+		err := Apply(ctx, db, targetDir)
 		if err == nil || !strings.Contains(err.Error(), "orders 存在 SE 业务数据") {
 			t.Fatalf("存在 SE 数据时应拒绝阶段 2 迁移，实际错误: %v", err)
 		}
@@ -584,6 +614,7 @@ func TestPostgresSeaExportCargoAllocationStage3Migration(t *testing.T) {
 	const stage2Migration = "20260902140000_sea_export_document_content.sql"
 	const stage3Revision = "20260903100000_sea_export_cargo_allocation"
 	fullDir := filepath.Join("..", "..", "..", "migrations")
+	targetDir := postgresMigrationDirThrough(t, fullDir, stage3Revision+".sql")
 	stage2Dir := t.TempDir()
 	entries, err := os.ReadDir(fullDir)
 	if err != nil {
@@ -647,7 +678,7 @@ func TestPostgresSeaExportCargoAllocationStage3Migration(t *testing.T) {
 			t.Fatalf("建立阶段 2 数据库状态失败: %v", err)
 		}
 
-		if err := Apply(ctx, db, fullDir); err != nil {
+		if err := Apply(ctx, db, targetDir); err != nil {
 			t.Fatalf("应用阶段 3 迁移失败: %v", err)
 		}
 
@@ -808,7 +839,7 @@ func TestPostgresSeaExportCargoAllocationStage3Migration(t *testing.T) {
 			t.Fatalf("插入迁移测试 cargo item 失败: %v", err)
 		}
 
-		err := Apply(ctx, db, fullDir)
+		err := Apply(ctx, db, targetDir)
 		if err == nil || !strings.Contains(err.Error(), "海运箱货分配迁移已停止：") {
 			t.Fatalf("存在 SE 历史数据时应拒绝阶段 3 迁移，实际错误: %v", err)
 		}
@@ -842,6 +873,7 @@ func TestPostgresSeaDocumentChangeMigrationFromVersioningBaseline(t *testing.T) 
 	const baselineMigration = "20260904120000_sea_export_document_versioning.sql"
 	const changeRevision = "20260904160000_sea_document_change_idempotency"
 	fullDir := filepath.Join("..", "..", "..", "migrations")
+	targetDir := postgresMigrationDirThrough(t, fullDir, changeRevision+".sql")
 	baselineDir := t.TempDir()
 	entries, err := os.ReadDir(fullDir)
 	if err != nil {
@@ -884,10 +916,10 @@ func TestPostgresSeaDocumentChangeMigrationFromVersioningBaseline(t *testing.T) 
 	if err := Apply(ctx, db, baselineDir); err != nil {
 		t.Fatalf("建立版本化基线失败: %v", err)
 	}
-	if err := Apply(ctx, db, fullDir); err != nil {
+	if err := Apply(ctx, db, targetDir); err != nil {
 		t.Fatalf("从版本化基线升级单证变更迁移失败: %v", err)
 	}
-	if err := Apply(ctx, db, fullDir); err != nil {
+	if err := Apply(ctx, db, targetDir); err != nil {
 		t.Fatalf("单证变更迁移重复执行失败: %v", err)
 	}
 	var revisionExists bool
@@ -920,6 +952,9 @@ func TestPostgresUniversalOrderLockMigrationFromSEBaseline(t *testing.T) {
 	const baselineMigration = "20260904160000_sea_document_change_idempotency.sql"
 	const universalLockRevision = "20260905120000_universal_order_lock"
 	fullDir := filepath.Join("..", "..", "..", "migrations")
+	// 旧 SE 锁事实是本目标回填的合法前态；后续船公司身份迁移明确拒绝这些事实，
+	// 不能为了全链绿灯静默改成行业主数据引用或删除被测历史记录。
+	targetDir := postgresMigrationDirThrough(t, fullDir, universalLockRevision+".sql")
 	baselineDir := t.TempDir()
 	entries, err := os.ReadDir(fullDir)
 	if err != nil {
@@ -1044,10 +1079,10 @@ func TestPostgresUniversalOrderLockMigrationFromSEBaseline(t *testing.T) {
 		t.Fatalf("插入升级前 SE 解锁请求失败: %v", err)
 	}
 
-	if err := Apply(ctx, db, fullDir); err != nil {
+	if err := Apply(ctx, db, targetDir); err != nil {
 		t.Fatalf("升级全业务订单锁迁移失败: %v", err)
 	}
-	if err := Apply(ctx, db, fullDir); err != nil {
+	if err := Apply(ctx, db, targetDir); err != nil {
 		t.Fatalf("全业务订单锁迁移重复执行失败: %v", err)
 	}
 
