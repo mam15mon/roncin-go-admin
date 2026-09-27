@@ -58,12 +58,30 @@
   - 场景 4/5 在当前业务流转下不可经通用取消产生，守卫对数据库层不变量失败关闭，测试注释已说明。
 - 开发库校验和重录（实施后执行）：`pnpm run migrate:dev` 输出旧 `6a282187…` → 新 `21466b23…`，无迁移重放、权限/种子零变更——仅元数据重录，与 §R1/A3 只读核查结论（无孤立数据）一致。
 
-## 独立复核与门禁（主会话执行，代码 SHA 见提交 50fec0bb/774b9aff/438b9450）
+## 独立复核与门禁
 
-- 定向套件（implement.md 指定命令，专用集成库）：**8 顶层 + 32 子用例全部 PASS，0 FAIL**（TestOrderFeeStatusHardDeleteMigration×4、TestOrderFeeDeleteByBillOccupancyPostgres、TestOrderFeeBulkMaintenancePostgres、TestAutoOrderLock_SettlementTriggerPostgres、TestFeeSupplementGeneratedFeePlainDeleteForbiddenPostgres）。
-- `go -C server vet ./...` 通过；`go test -p 32 ./internal/data/`（真实 PostgreSQL）仅剩 2 项存量失败（工位锚点 CHECK、费用目录断言），与原登记表 #13/#14 同名同因，本任务范围内路径全绿。
-- `pnpm run check:fast`：WEB 60.2s / SERVER 59.8s 并行全绿。
-- `git diff --check` 干净。
+**代码 SHA**（分组提交，均为最终哈希）：
+
+- `50fec0bb` fix(server): 迁移收紧已作废补录费用的冲减守卫（迁移文件 + 守卫矩阵测试）
+- `774b9aff` fix(server): 费用硬删除审计补全费用名称与结算单位快照（order_fee.go + 删除/批量测试 + 审计标签）
+- `200717b8` test(server): 修正自动锁定夹具组织类型使核销触发用例执行到目标断言（夹具 + 本记录；初版 438b9450 经 amend 并入本记录后废弃）
+- 归档与日志：`384fff1d`（archive）、`84acc1a7`（journal），不含代码变更。
+
+**定向套件**（implement.md 指定命令，主会话在 200717b8 代码树上独立运行，专用集成库 `roncin_go_admin_integration`，`-count=1 -p 1 -v`）：8 顶层 + 32 子用例全部 PASS，0 FAIL。逐测试子用例数：
+
+| 测试 | 子用例 PASS |
+|---|---|
+| TestAutoOrderLock_SettlementTriggerPostgres | 7 |
+| TestOrderFeeDeleteByBillOccupancyPostgres | 8 |
+| TestOrderFeeBulkMaintenancePostgres | 7 |
+| TestOrderFeeStatusHardDeleteMigrationAdjustmentGuardMatrix | 5 |
+| TestOrderFeeStatusHardDeleteMigrationAdjustmentResolvedSuccess | 2 |
+| TestFeeSupplementGeneratedFeePlainDeleteForbiddenPostgres | 3 |
+| TestOrderFeeStatusHardDeleteMigrationReplay / RejectsOccupiedCancelFee | 无子用例，整测试 PASS |
+
+**包级全量**：`./internal/data/` 由两个实施代理各运行一次（`-p 32`，真实 PostgreSQL），余 2 项失败（`TestRoleWorkspaceAnchorBackfillPostgres`、`TestFeeCatalogCompanyTemplatesPostgres`）；`./internal/platform/migration/` 由主会话运行（`-count=1 -p 32`），余 2 项失败（`TestCompanyBoundaryMigrationRewritesFeeReferencesWithoutSnapshots`、`TestFeeCatalogSeedSeedsTemplatesAndCompanyCopies`）。四项均与原任务登记表 #13/#14/#15/#16 同名同因（工位锚点 CHECK、费用目录断言×2、公司边界快照断言），属「不在范围内」存量失败。
+
+**门禁**：`go -C server vet ./...` 通过；`pnpm run check:fast` WEB 60.2s / SERVER 59.8s 并行全绿；`git diff --check` 干净。
 
 ## A1—A6 对照结论
 
@@ -74,6 +92,6 @@
 | A3/R1 修订策略与已应用环境 | 通过 | 本文档 §R1/A3（只读核查零异常）+ §校验和重录记录；未声称重录会重跑 DML，未自动处置 |
 | A4/R2 审计快照 + 原子性 | 通过 | 单条/批量新键一致（名称/单位 ID/单位名），批量去重无 N+1，审计失败回滚子用例 PASS |
 | A5/R3 自动锁定真实执行 | 通过 | 原失败用例 7/7 子用例 PASS 无 SKIP；未建账阻断与删除后重评闭环真实执行；已记录执行的子用例名 |
-| A6 门禁与如实报告 | 通过（附存量清单） | 定向套件 0 FAIL、vet/check:fast 全绿；data 包完整集成仍剩 2 项存量失败（原登记表 #13/#14，同名同因），逐项列明不报告全绿 |
+| A6 门禁与如实报告 | 通过（附存量清单） | 定向套件 0 FAIL、vet/check:fast 全绿；data 与 migration 两包完整集成合计余 4 项存量失败（原登记表 #13-#16，同名同因），逐项列明不报告全绿 |
 
-**结论**：本任务三项审阅发现全部修复并经真实 PostgreSQL 验证；完整集成测试仍存 2 项与验收路径无重叠的存量失败（工位锚点、费用目录），已登记原任务基线登记表，留待单独立项。
+**结论**：本任务三项审阅发现全部修复并经真实 PostgreSQL 验证；完整集成测试（data + migration 两包）仍存 4 项与验收路径无重叠的存量失败（工位锚点 1、费用目录 2、公司边界 1），已登记原任务基线登记表，留待单独立项。
