@@ -790,3 +790,27 @@ DIRECT 隐藏 HBL 整节与导航，优化提单和签发主体文案；补齐�
 ### Status
 
 [OK] **Completed**
+
+
+## Session 109: 费用状态移除审阅收尾三项修复
+<!-- trellis-session: v=2 fp=e63898ce920677b0 -->
+
+**Date**: 2026-09-27
+**Task**: 费用状态移除审阅收尾三项修复
+**Branch**: `main`
+
+### Summary
+
+fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 及已取消但带确认/扣回历史的调整均整体失败，补 5 拒绝+2 成功真实补录链路夹具矩阵；开发库只读核查确认旧守卫未留孤立数据，校验和仅重录不重跑 DML。②费用硬删除审计补 fee.name 与结算单位 ID/名称快照（批量去重查询），管理端审计页补标签，含审计失败回滚用例。③自动锁定夹具组织 kind system→company，核销触发锁定用例执行到目标断言（7/7 子用例），并更正原任务登记表「剩余失败与验收无重叠」的失实结论。定向套件 8 顶层+32 子用例 0 FAIL，check:fast 全绿；data 包仍剩 2 项存量失败（工位锚点/费用目录，原登记表 #13/#14）仅登记。证据见任务 research/verification.md。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `50fec0bb` | fix(server): 迁移收紧已作废补录费用的冲减守卫 |
+| `774b9aff` | fix(server): 费用硬删除审计补全费用名称与结算单位快照 |
+| `200717b8` | test(server): 修正自动锁定夹具组织类型使核销触发用例执行到目标断言 |
+
+### Status
+
+[OK] **Completed**

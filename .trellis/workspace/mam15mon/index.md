@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 108
-- **Last Active**: 2026-09-26
+- **Total Sessions**: 109
+- **Last Active**: 2026-09-27
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~792 | Active |
+| `journal-2.md` | ~816 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 109 | 2026-09-27 | 费用状态移除审阅收尾三项修复 | `50fec0bb`, `774b9aff`, `200717b8` | `main` |
 | 108 | 2026-09-26 | 费用状态去状态化与搜索 chips 回显落地 | `f7dfedbc`, `5d77e0ad`, `ce851158`, `b895aa3e` | `main` |
 | 107 | 2026-09-23 | 组织架构隐藏系统管理节点并完成分支验收 | `47df6a14` | `fix/hide-system-org-chart` |
 | 106 | 2026-09-23 | 费用补录重提与审批毛利预览 | `d7d968f6`, `eed5e0a5` | `fix/hide-system-org-chart` |
