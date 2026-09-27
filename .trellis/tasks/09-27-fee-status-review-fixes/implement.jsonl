@@ -1,0 +1,6 @@
+{"file": "AGENTS.md", "reason": "授权、迁移、事务与提交规范"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务原子性与正式迁移"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实集成验证"}
+{"file": ".trellis/tasks/09-27-fee-status-review-fixes/prd.md", "reason": "需求与 A1—A6 验收"}
+{"file": ".trellis/tasks/09-27-fee-status-review-fixes/design.md", "reason": "迁移修订边界与审计设计"}
+{"file": ".trellis/tasks/archive/2026-09/09-26-fee-hard-delete/research/baseline-failure-registry.md", "reason": "原基线证据，需纠正验收重叠结论"}
