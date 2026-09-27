@@ -715,10 +715,21 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		if deleteErr := tx.OrderFee.DeleteOne(item).Exec(ctx); deleteErr != nil {
 			return deleteErr
 		}
+		// 审计快照从已锁定费用行与同事务单位事实读取：费用名称取费用保存的名称，
+		// 结算单位名称为删除时读取的当前法定名称（不声称是费用创建时的历史名称）。
+		party, partyErr := tx.Partner.Query().
+			Where(partnerent.IDEQ(item.SettlementPartyID), partnerent.OrganizationIDEQ(organizationID)).
+			Only(ctx)
+		if partyErr != nil {
+			return partyErr
+		}
 		audit.Details["fee.code"] = item.FeeCode
+		audit.Details["fee.name"] = item.FeeName
 		audit.Details["fee.direction"] = string(item.Direction)
 		audit.Details["fee.amount"] = item.TotalAmount
 		audit.Details["fee.currency"] = item.Currency
+		audit.Details["fee.settlement_party_id"] = item.SettlementPartyID.String()
+		audit.Details["fee.settlement_party_name"] = party.LegalName
 		audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -897,15 +908,38 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 				return biz.BulkOrderFeeError(biz.ErrOrderFeeSupplementDeleteForbidden, item.ID, "补录生成的费用请通过补录申请专用撤销删除")
 			}
 		}
+		// 批量解析结算单位名称快照：按单位 ID 去重后在组织边界内一次查询，避免
+		// 逐费用 N+1；名称为删除事务内读取的当前法定名称（不声称是历史名称）。
+		partyIDs := make([]uuid.UUID, 0, len(items))
+		partySeen := make(map[uuid.UUID]struct{}, len(items))
+		for _, item := range items {
+			if _, exists := partySeen[item.SettlementPartyID]; !exists {
+				partySeen[item.SettlementPartyID] = struct{}{}
+				partyIDs = append(partyIDs, item.SettlementPartyID)
+			}
+		}
+		parties, partyErr := tx.Partner.Query().
+			Where(partnerent.OrganizationIDEQ(organizationID), partnerent.IDIn(partyIDs...)).
+			All(ctx)
+		if partyErr != nil {
+			return partyErr
+		}
+		partyNames := make(map[uuid.UUID]string, len(parties))
+		for _, party := range parties {
+			partyNames[party.ID] = party.LegalName
+		}
 		for _, item := range items {
 			if deleteErr := tx.OrderFee.DeleteOne(item).Exec(ctx); deleteErr != nil {
 				return deleteErr
 			}
 			if audit := audits[item.ID]; audit != nil {
 				audit.Details["fee.code"] = item.FeeCode
+				audit.Details["fee.name"] = item.FeeName
 				audit.Details["fee.direction"] = string(item.Direction)
 				audit.Details["fee.amount"] = item.TotalAmount
 				audit.Details["fee.currency"] = item.Currency
+				audit.Details["fee.settlement_party_id"] = item.SettlementPartyID.String()
+				audit.Details["fee.settlement_party_name"] = partyNames[item.SettlementPartyID]
 				audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 				if writeErr := writeAudit(ctx, tx.AuditLog, audit); writeErr != nil {
 					return writeErr

@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"os"
@@ -205,8 +206,9 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 	})
 
 	t.Run("批量删除未建账费用并级联清理标签", func(t *testing.T) {
+		// 两条费用挂不同结算单位，覆盖批量按单位去重查询后逐行正确回填名称快照。
 		first := fixture.createUnbilledFee("bulk-del-1")
-		second := fixture.createUnbilledFee("bulk-del-2")
+		second := createBulkFee(t, data, orderID, newParty.ID, "bulk-del-2", "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
 		resource, resourceErr := data.db.EnterpriseResource.Create().
 			SetOrganizationID(organizationID).
 			SetResourceType(enterpriseresourceent.ResourceTypeTAG).
@@ -255,6 +257,40 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 		}
 		if bulkAudits != 2 {
 			t.Fatalf("批量删除应逐行写入审计，实际 %d 条", bulkAudits)
+		}
+		// 逐行审计必须携带完整快照：费用名称取费用行保存的名称；两条费用挂不同
+		// 结算单位，单位 ID/名称须各自正确（去重查询后按单位回填，不串行）。
+		partySnapshot := map[string]string{
+			first.String():  "账单事务测试客户-" + fixture.suffix,
+			second.String(): newParty.LegalName,
+		}
+		partyIDSnapshot := map[string]string{
+			first.String():  fixture.partnerID.String(),
+			second.String(): newParty.ID.String(),
+		}
+		seenSnapshot := map[string]bool{}
+		for _, event := range audits {
+			var details map[string]string
+			if jsonErr := json.Unmarshal(event.Details, &details); jsonErr != nil {
+				t.Fatalf("解析批量删除审计详情: %v", jsonErr)
+			}
+			if details["fee.bulk"] != "true" {
+				continue
+			}
+			feeID := details["fee.id"]
+			if details["fee.name"] != "海运费" {
+				t.Fatalf("费用 %s 审计费用名称 = %q，期望 海运费", feeID, details["fee.name"])
+			}
+			if details["fee.settlement_party_id"] != partyIDSnapshot[feeID] {
+				t.Fatalf("费用 %s 审计结算单位 ID = %q，期望 %s", feeID, details["fee.settlement_party_id"], partyIDSnapshot[feeID])
+			}
+			if details["fee.settlement_party_name"] != partySnapshot[feeID] {
+				t.Fatalf("费用 %s 审计结算单位名称 = %q，期望 %s", feeID, details["fee.settlement_party_name"], partySnapshot[feeID])
+			}
+			seenSnapshot[feeID] = true
+		}
+		if !seenSnapshot[first.String()] || !seenSnapshot[second.String()] {
+			t.Fatalf("批量删除审计快照断言未覆盖全部费用: %v", seenSnapshot)
 		}
 	})
 

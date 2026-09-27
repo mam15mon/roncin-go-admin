@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"strings"
@@ -93,6 +94,33 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		}
 		if !matched {
 			t.Fatalf("删除审计事件缺失费用快照明细: %d 条", len(audits))
+		}
+		// 删除审计必须保存完整快照：费用名称取费用行保存的名称，结算单位
+		// ID/名称为删除事务内读取的当前事实，而非事后目录或单位历史值。
+		var firstDetails map[string]string
+		for _, event := range audits {
+			var details map[string]string
+			if jsonErr := json.Unmarshal(event.Details, &details); jsonErr != nil {
+				t.Fatalf("解析删除审计详情: %v", jsonErr)
+			}
+			if details["fee.id"] == firstID.String() {
+				firstDetails = details
+			}
+		}
+		if firstDetails == nil {
+			t.Fatal("删除审计缺少 firstID 对应事件")
+		}
+		if firstDetails["fee.name"] != "海运费" {
+			t.Fatalf("审计费用名称 = %q，期望 海运费", firstDetails["fee.name"])
+		}
+		if firstDetails["fee.settlement_party_id"] != fixture.partnerID.String() {
+			t.Fatalf("审计结算单位 ID = %q，期望 %s", firstDetails["fee.settlement_party_id"], fixture.partnerID)
+		}
+		if firstDetails["fee.settlement_party_name"] != "账单事务测试客户-"+fixture.suffix {
+			t.Fatalf("审计结算单位名称 = %q", firstDetails["fee.settlement_party_name"])
+		}
+		if firstDetails["fee.code"] != "OCEAN_FREIGHT" || firstDetails["fee.currency"] != "CNY" || firstDetails["fee.amount"] != "100.00000000" {
+			t.Fatalf("审计原有快照键缺失: %v", firstDetails)
 		}
 	})
 
@@ -216,6 +244,39 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		exists, err := data.db.OrderFee.Query().Where(orderfeeent.IDEQ(feeID)).Exist(context.Background())
 		if err != nil || !exists {
 			t.Fatalf("版本冲突不应删除费用: exists=%t err=%v", exists, err)
+		}
+	})
+
+	t.Run("审计写入失败回滚删除", func(t *testing.T) {
+		feeID := fixture.createUnbilledFee("del-audit-rollback")
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		// 非法 result 枚举使 writeAudit 在保存前校验失败；审计与 DELETE 同事务，
+		// 删除必须随之回滚，不得留下无审计的静默删除。
+		err := orderFeeRepo.Remove(ctx, fixture.organizationID, fixture.orderID, feeID, actor, 1, "", &biz.AuditEvent{
+			OrganizationID: &fixture.organizationID,
+			UserID:         &actor,
+			Action:         "order.fee.delete",
+			Result:         "invalid",
+			Details:        map[string]string{"fee.id": feeID.String()},
+		})
+		if err == nil {
+			t.Fatal("审计结果非法时删除未失败")
+		}
+		exists, existErr := data.db.OrderFee.Query().Where(orderfeeent.IDEQ(feeID)).Exist(context.Background())
+		if existErr != nil || !exists {
+			t.Fatalf("审计失败后费用应保留: exists=%t err=%v", exists, existErr)
+		}
+		audits, auditErr := data.db.AuditLog.Query().
+			Where(auditlogent.ActionEQ("order.fee.delete"), auditlogent.OrganizationIDEQ(fixture.organizationID)).
+			All(context.Background())
+		if auditErr != nil {
+			t.Fatalf("读取删除审计: %v", auditErr)
+		}
+		for _, event := range audits {
+			if strings.Contains(string(event.Details), feeID.String()) {
+				t.Fatal("审计失败后不应残留该费用的删除审计事件")
+			}
 		}
 	})
 

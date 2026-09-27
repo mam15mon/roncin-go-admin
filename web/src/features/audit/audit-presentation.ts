@@ -782,6 +782,9 @@ const detailLabels: Record<string, string> = {
   // 订单类
   'order.no': '订单编号',
   'fee.code': '费用编号',
+  'fee.name': '费用名称',
+  'fee.settlement_party_id': '结算单位 ID',
+  'fee.settlement_party_name': '结算单位名称',
 
   // 往来单位类
   'partner.code': '单位编号',
