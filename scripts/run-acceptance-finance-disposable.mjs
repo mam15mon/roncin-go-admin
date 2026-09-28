@@ -1,6 +1,12 @@
 import { spawn, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import net from 'node:net';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+// Playwright 会清空后重建 outputDir；子进程继承此 umask 才能持续保持原始 trace 私有。
+process.umask(0o077);
 
 function requireEnvironment(name) {
   const value = process.env[name]?.trim();
@@ -37,9 +43,33 @@ const adminHost = adminUrl.hostname || '127.0.0.1';
 const adminPort = adminUrl.port || '5432';
 
 const GO_SERVER_PORT = 8010;
-const WEB_SERVER_PORT = 8001;
+const WEB_SERVER_PORT = Number(process.env.RONCIN_ACCEPTANCE_WEB_PORT || '8001');
+if (!Number.isInteger(WEB_SERVER_PORT) || WEB_SERVER_PORT < 1024 || WEB_SERVER_PORT > 65535) {
+  throw new Error('RONCIN_ACCEPTANCE_WEB_PORT 必须是 1024 至 65535 的整数');
+}
 const GO_SERVER_BASE_URL = `http://127.0.0.1:${GO_SERVER_PORT}`;
 const WEB_SERVER_BASE_URL = `http://127.0.0.1:${WEB_SERVER_PORT}`;
+
+function createPrivateBrowserArtifactDir() {
+  const requested = process.env.RONCIN_ACCEPTANCE_ARTIFACT_DIR?.trim();
+  const parent = path.resolve(requested || os.tmpdir());
+  fs.mkdirSync(parent, { recursive: true, mode: 0o700 });
+  const realParent = fs.realpathSync(parent);
+  const repository = fs.realpathSync(process.cwd());
+  if (realParent === repository || realParent.startsWith(`${repository}${path.sep}`)) {
+    throw new Error('浏览器原始证据目录必须位于仓库外');
+  }
+  if (requested) {
+    if (fs.statSync(realParent).uid !== process.getuid()) {
+      throw new Error('浏览器原始证据父目录必须归当前用户所有');
+    }
+  }
+  const directory = fs.mkdtempSync(path.join(realParent, 'roncin-finance-browser-'));
+  fs.chmodSync(directory, 0o700);
+  return directory;
+}
+
+const BROWSER_ARTIFACT_DIR = createPrivateBrowserArtifactDir();
 
 const PREFIX = 'roncin_acc_fin_';
 
@@ -710,20 +740,19 @@ async function runStageA() {
       env: { ...process.env, DATABASE_SOURCE: connectionSource },
     });
 
+    if (process.argv.includes('--runtime-only')) {
+      console.log('[Stage 1] 显式 runtime-only：本次数据库测试未执行，必须关联独立完整门禁证据；继续真实 HTTP 与浏览器验收');
+    } else {
     console.log('[Stage 1] 运行真实 PostgreSQL 集成测试（禁止 SKIP 冒充 PASS）');
-    const testResult = await runCommand(
-      'go',
-      ['-C', 'server', 'test', '-v', './internal/data', '-run', 'Postgres$', '-count=1'],
-      {
-        env: {
-          ...process.env,
-          RONCIN_INTEGRATION_DATABASE_SOURCE: connectionSource,
-        },
-        capture: true,
-      },
-    );
-
-    const testOutput = testResult.stdout;
+    let testOutput = '';
+    for (const testPackage of ['./internal/data', './internal/platform/migration']) {
+      const testResult = await runCommand('go',
+        ['-C', 'server', 'test', '-p', '32', '-timeout', '40m', '-v', testPackage, '-count=1'],
+        { env: { ...process.env, RONCIN_INTEGRATION_DATABASE_SOURCE: connectionSource, DATABASE_SOURCE: connectionSource, RONCIN_POSTGRES_MIGRATION_TEST: '1' }, capture: true });
+      const output = sanitizeSensitiveOutput(testResult.stdout);
+      console.log(output);
+      testOutput += output;
+    }
     // 匹配真实顶层测试用例（行首以 --- PASS: / --- SKIP: / --- FAIL: 开头）
     const passMatches = testOutput.match(/^--- PASS:\s+\w+/gm) || [];
     const skipMatches = testOutput.match(/^--- SKIP:\s+\w+/gm) || [];
@@ -734,6 +763,8 @@ async function runStageA() {
       throw new Error(
         `PostgreSQL 集成测试未通过、存在 SKIP 或无执行用例: PASS=${passMatches.length}, SKIP=${skipMatches.length}, FAIL=${failMatches.length}`,
       );
+    }
+
     }
 
     console.log('[Stage 1] 初始化系统管理员');
@@ -764,10 +795,10 @@ async function runStageA() {
     await waitForHttpReady(`${GO_SERVER_BASE_URL}/health/ready`);
     console.log('[Stage 1] Go 后端测试服务就绪');
 
-    console.log('[Stage 1] 启动 Web 测试服务 (:8001)');
+    console.log(`[Stage 1] 启动 Web 测试服务 (:${WEB_SERVER_PORT})`);
     webProcess = spawnTrackedProcess(
       'pnpm',
-      ['--dir', 'web', 'exec', 'vite', '--mode', 'test', '--port', String(WEB_SERVER_PORT)],
+      ['--dir', 'web', 'exec', 'vite', '--mode', 'test', '--port', String(WEB_SERVER_PORT), '--strictPort'],
       {
         env: {
           ...process.env,
@@ -779,17 +810,19 @@ async function runStageA() {
     await waitForHttpReady(`${WEB_SERVER_BASE_URL}`);
     console.log('[Stage 1] Web 测试服务就绪');
 
+    console.log(`[Stage 1] 浏览器原始证据私有目录：${BROWSER_ARTIFACT_DIR}`);
     console.log('[Stage 1] 执行 acceptance:finance 全量验收（应收 + 应付 + Playwright）');
     await runCommand('pnpm', ['run', 'acceptance:finance'], {
       env: {
         ...process.env,
+        RONCIN_ACCEPTANCE_ARTIFACT_DIR: BROWSER_ARTIFACT_DIR,
         RONCIN_ACCEPTANCE_BASE_URL: GO_SERVER_BASE_URL,
         RONCIN_WEB_BASE_URL: WEB_SERVER_BASE_URL,
         BOOTSTRAP_ADMIN_USERNAME,
         BOOTSTRAP_ADMIN_PASSWORD,
       },
     });
-    console.log('[Stage 1] CNY 基线验收全部通过');
+    console.log(process.argv.includes('--runtime-only') ? '[Stage 1] CNY HTTP 与浏览器验收通过（数据库门禁未在本轮执行）' : '[Stage 1] CNY 基线验收全部通过');
   } catch (err) {
     execError = err;
   } finally {
@@ -1826,7 +1859,11 @@ async function main() {
 
   let finalError = null;
   try {
-    await runStageA();
+    if (process.argv.includes('--stage-b-only')) {
+      console.log('[disposable] 显式 stage-b-only：本轮仅运行 USD 外币链路；CNY 与数据库完整门禁须关联此前独立证据');
+    } else {
+      await runStageA();
+    }
     await runStageB();
   } catch (err) {
     finalError = err;
@@ -1855,7 +1892,13 @@ async function main() {
   }
 
   console.log('\n======================================================');
-  console.log('  一次性 PostgreSQL 双环境财务全链路验收全部成功！');
+  if (process.argv.includes('--stage-b-only')) {
+    console.log('  一次性 PostgreSQL USD 外币链路验收成功（仅 Stage 2）');
+  } else if (process.argv.includes('--runtime-only')) {
+    console.log('  一次性 PostgreSQL 双环境 HTTP/UI 验收成功（数据库完整门禁须另行关联）');
+  } else {
+    console.log('  一次性 PostgreSQL 双环境财务全链路验收全部成功！');
+  }
   console.log('======================================================\n');
 }
 

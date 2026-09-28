@@ -1,3 +1,5 @@
+import { withAcceptanceSystemWorkspace, acceptanceChargeCategoryId, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
+
 const baseURL = (
   process.env.RONCIN_ACCEPTANCE_BASE_URL || 'http://127.0.0.1:8000'
 ).replace(/\/$/, '');
@@ -52,6 +54,8 @@ function createClient(cookie) {
         ...options.headers,
       },
     });
+    const rotatedCookie = response.headers.getSetCookie().map((value) => value.split(';', 1)[0]).join('; ');
+    if (rotatedCookie) cookie = rotatedCookie;
     return { response, body: await readJSON(response) };
   }
   return {
@@ -78,6 +82,7 @@ function isEnumValue(value, code, name) {
 
 const cookie = await login();
 const { request, raw } = createClient(cookie);
+await prepareAcceptanceCompany(request, { allowCreate: apply });
 const me = await request('/api/v1/auth/me');
 assert(me.data?.currentOrganization?.id, '当前登录用户没有可用组织');
 const [customers, rules] = await Promise.all([
@@ -110,7 +115,7 @@ const stamp = new Date()
   .toISOString()
   .replace(/[-:.TZ]/g, '')
   .slice(0, 14);
-const today = new Date().toISOString().slice(0, 10);
+const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const supplierName = `应付验收供应商 ${stamp}`;
 const supplierResponse = await request('/api/v1/partners', {
   method: 'POST',
@@ -146,7 +151,7 @@ assert(
 );
 
 // 海运出口订单必须选择船公司并提供主单信息（047b3e79 起为强约束）。
-const shippingLineResponse = await request('/api/v1/master-data/shipping-lines', {
+const shippingLineResponse = await withAcceptanceSystemWorkspace(request, () => request('/api/v1/master-data/shipping-lines', {
   method: 'POST',
   body: JSON.stringify({
     scacCode: `A${Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('')}`,
@@ -154,12 +159,15 @@ const shippingLineResponse = await request('/api/v1/master-data/shipping-lines',
     nameEn: `Acceptance Carrier ${stamp}`,
     countryCode: 'CN',
   }),
-});
+}));
 const shippingLine = shippingLineResponse.data;
 assert(shippingLine?.id, '验收船公司创建失败');
+const chargeCategoryId = await acceptanceChargeCategoryId(request);
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
+    serviceTypeIds: [chargeCategoryId],
+    personnelAssignments: [2, 3, 4].map((role) => ({ userId: me.data.id, role })),
     customerId: customer.id,
     shippingLineId: shippingLine.id,
     seaMasterBill: { masterNo: `ACCMB${stamp}` },
@@ -183,7 +191,7 @@ assert(order?.id && order?.orderNo, '应付验收订单创建失败');
 
 let createdFeeSetting = null;
 if (apply) {
-  const createdUnit = await request('/api/v1/finance/billing-units', {
+  const createdUnit = await withAcceptanceSystemWorkspace(request, () => request('/api/v1/finance/billing-units', {
     method: 'POST',
     body: JSON.stringify({
       code: `UNIT_AP_${stamp.slice(-6)}`,
@@ -191,7 +199,7 @@ if (apply) {
       sortOrder: 1,
       isContainerUnit: false,
     }),
-  });
+  }));
   const billingUnit = createdUnit.data;
   assert(billingUnit?.id, '应付验收计费单位创建失败');
 
@@ -208,6 +216,7 @@ if (apply) {
   const createdSetting = await request('/api/v1/finance/fee-settings', {
     method: 'POST',
     body: JSON.stringify({
+      chargeCategoryId,
       feeCode: `FEE_AP_${stamp.slice(-6)}`,
       nameZh: '海运应付运费',
       defaultCurrency: 'CNY',
@@ -220,18 +229,7 @@ if (apply) {
   createdFeeSetting = createdSetting.data;
   assert(createdFeeSetting?.id, '应付验收费用科目创建失败');
 
-  await request('/api/v1/finance/exchange-rate-time-standards', {
-    method: 'PUT',
-    body: JSON.stringify({
-      data: [
-        { rateType: 'BASE_CURRENCY', timeStandards: ['ORDER_CREATED_AT'] },
-        { rateType: 'BILL', timeStandards: ['BILL_DATE'] },
-        { rateType: 'INVOICE', timeStandards: ['INVOICE_DATE'] },
-        { rateType: 'SETTLEMENT', timeStandards: ['TRANSACTION_DATE'] },
-        { rateType: 'WRITE_OFF', timeStandards: ['WRITE_OFF_TIME'] },
-      ],
-    }),
-  });
+
 }
 
 const options = await request(`/api/v1/orders/${order.id}/fee-options`);

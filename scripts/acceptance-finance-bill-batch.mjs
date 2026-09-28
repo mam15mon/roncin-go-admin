@@ -1,3 +1,5 @@
+import { withAcceptanceSystemWorkspace, acceptanceChargeCategoryId, prepareAcceptanceCompany, verifyDraftFeeBillLifecycle } from './acceptance-finance-fixtures.mjs';
+
 const baseURL = (
   process.env.RONCIN_ACCEPTANCE_BASE_URL || 'http://127.0.0.1:8000'
 ).replace(/\/$/, '');
@@ -52,6 +54,8 @@ function createClient(cookie) {
         ...options.headers,
       },
     });
+    const rotatedCookie = response.headers.getSetCookie().map((value) => value.split(';', 1)[0]).join('; ');
+    if (rotatedCookie) cookie = rotatedCookie;
     return { response, body: await readJSON(response) };
   }
   return {
@@ -75,6 +79,7 @@ function assert(condition, message) {
 const cookie = await login();
 const client = createClient(cookie);
 const { request, raw } = client;
+await prepareAcceptanceCompany(request, { allowCreate: apply });
 const [me, rules] = await Promise.all([
   request('/api/v1/auth/me'),
   request('/api/v1/master-data/number-rules'),
@@ -121,7 +126,7 @@ const stamp = new Date()
   .toISOString()
   .replace(/[-:.TZ]/g, '')
   .slice(0, 14);
-const today = new Date().toISOString().slice(0, 10);
+const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const customerName = `财务验收客户 ${stamp}`;
 const customerResponse = await request('/api/v1/partners', {
   method: 'POST',
@@ -176,7 +181,7 @@ const accountResponse = await request(`/api/v1/partners/${customer.id}/accounts`
 const settlementAccount = accountResponse.data;
 assert(settlementAccount?.id, '验收结算账户创建失败');
 // 海运出口订单必须选择船公司并提供主单信息（047b3e79 起为强约束）。
-const shippingLineResponse = await request('/api/v1/master-data/shipping-lines', {
+const shippingLineResponse = await withAcceptanceSystemWorkspace(request, () => request('/api/v1/master-data/shipping-lines', {
   method: 'POST',
   body: JSON.stringify({
     scacCode: `A${Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('')}`,
@@ -184,12 +189,13 @@ const shippingLineResponse = await request('/api/v1/master-data/shipping-lines',
     nameEn: `Acceptance Carrier ${stamp}`,
     countryCode: 'CN',
   }),
-});
+}));
 const shippingLine = shippingLineResponse.data;
 assert(shippingLine?.id, '验收船公司创建失败');
-const orderResponse = await request('/api/v1/orders', {
-  method: 'POST',
-  body: JSON.stringify({
+const chargeCategoryId = await acceptanceChargeCategoryId(request);
+const orderInput = {
+    serviceTypeIds: [chargeCategoryId],
+    personnelAssignments: [2, 3, 4].map((role) => ({ userId: me.data.id, role })),
     customerId: customer.id,
     shippingLineId: shippingLine.id,
     seaMasterBill: { masterNo: `ACCMB${stamp}` },
@@ -206,8 +212,8 @@ const orderResponse = await request('/api/v1/orders', {
     totalVolumeCbm: 2,
     customerReferenceNo: `ACC-FIN-${stamp}`,
     orderDate: new Date().toISOString(),
-  }),
-});
+  };
+const orderResponse = await request('/api/v1/orders', { method: 'POST', body: JSON.stringify(orderInput) });
 const order = orderResponse.data;
 assert(order?.id && order?.orderNo, '验收订单创建失败');
 
@@ -227,7 +233,7 @@ if (apply) {
     });
   }
 
-  const createdUnit = await request('/api/v1/finance/billing-units', {
+  const createdUnit = await withAcceptanceSystemWorkspace(request, () => request('/api/v1/finance/billing-units', {
     method: 'POST',
     body: JSON.stringify({
       code: `UNIT_AR_${stamp.slice(-6)}`,
@@ -235,7 +241,7 @@ if (apply) {
       sortOrder: 1,
       isContainerUnit: false,
     }),
-  });
+  }));
   const billingUnit = createdUnit.data;
   assert(billingUnit?.id, '应收验收计费单位创建失败');
 
@@ -252,6 +258,7 @@ if (apply) {
   await request('/api/v1/finance/fee-settings', {
     method: 'POST',
     body: JSON.stringify({
+      chargeCategoryId,
       feeCode: `FEE_AR_${stamp.slice(-6)}`,
       nameZh: '海运运费',
       defaultCurrency: 'CNY',
@@ -262,18 +269,7 @@ if (apply) {
     }),
   });
 
-  await request('/api/v1/finance/exchange-rate-time-standards', {
-    method: 'PUT',
-    body: JSON.stringify({
-      data: [
-        { rateType: 'BASE_CURRENCY', timeStandards: ['ORDER_CREATED_AT'] },
-        { rateType: 'BILL', timeStandards: ['BILL_DATE'] },
-        { rateType: 'INVOICE', timeStandards: ['INVOICE_DATE'] },
-        { rateType: 'SETTLEMENT', timeStandards: ['TRANSACTION_DATE'] },
-        { rateType: 'WRITE_OFF', timeStandards: ['WRITE_OFF_TIME'] },
-      ],
-    }),
-  });
+
 }
 
 const options = await request(`/api/v1/orders/${order.id}/fee-options`);
@@ -318,6 +314,11 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
 }
 
 const feeIds = createdFees.map((fee) => fee.id);
+const draftLifecycle = await verifyDraftFeeBillLifecycle(request, raw, {
+  organizationId: me.data.currentOrganization.id, orderInput, settlementAccountId: settlementAccount.id, billDate: today, stamp,
+  feeInput: { direction: 1, settlementPartyId: settlementParty.id, quantity: '1', unitPrice: '7.25', currency: options.baseCurrency, expenseDate: today, feeSettingId: feeSetting.id, billingUnitId: feeSetting.defaultBillingUnitId, taxInclusive: true },
+});
+
 const progressEnumMap = {
   UNSPECIFIED: 0,
   UNBILLED: 1,
@@ -798,15 +799,6 @@ await assertFeeFinancialProgress(
   '首笔部分核销后应为已开票部分核销',
 );
 
-await request(`/api/v1/orders/${order.id}/personnel`, {
-  method: 'POST',
-  body: JSON.stringify({
-    orderId: order.id,
-    userId: me.data.id,
-    organizationId: me.data.currentOrganization.id,
-    role: 3,
-  }),
-});
 const commissionRuleResponse = await request(
   '/api/v1/finance/commission-rules',
   {
@@ -816,6 +808,7 @@ const commissionRuleResponse = await request(
       rule: {
         name: `ACC-COMMISSION-${stamp}`,
         personnelRole: 'SALES',
+        employeeIds: [me.data.id],
         calculationBasis: 'REALIZED_PROFIT',
         ratePercent: '10',
         effectiveFrom: today,
@@ -832,7 +825,8 @@ const commissionPreview = await request('/api/v1/finance/commissions/preview', {
   body: JSON.stringify({
     verificationId: verificationA.id,
     employeeId: me.data.id,
-    ruleId: commissionRule.id,
+    personnelRole: 'SALES',
+    organizationId: me.data.currentOrganization.id,
   }),
 });
 assert(
@@ -856,7 +850,8 @@ assert(
 const firstCommissionBody = {
   verificationId: verificationA.id,
   employeeId: me.data.id,
-  ruleId: commissionRule.id,
+  personnelRole: 'SALES',
+    organizationId: me.data.currentOrganization.id,
   note: '验证来源变化拦截',
   idempotencyKey: `acc-fin-commission-${stamp}-stale`,
 };
@@ -901,27 +896,16 @@ assert(
   '提成草稿未固化 CNY 汇率快照（BASE_CURRENCY/1.00000000）',
 );
 
-const updatedRuleResponse = await request(
-  `/api/v1/finance/commission-rules/${commissionRule.id}`,
-  {
-    method: 'PUT',
-    body: JSON.stringify({
-      id: commissionRule.id,
-      expectedVersion: commissionRule.version,
-      rule: {
-        name: commissionRule.name,
-        personnelRole: commissionRule.personnelRole,
-        calculationBasis: commissionRule.calculationBasis,
-        ratePercent: commissionRule.ratePercent,
-        effectiveFrom: commissionRule.effectiveFrom,
-        effectiveTo: commissionRule.effectiveTo,
-        enabled: commissionRule.enabled,
-        note: '修改规则版本以验证草稿来源指纹',
-      },
-    }),
-  },
-);
+// 已生效方案及已建账费用均禁止原地修改经济参数；改备注不应使草稿过期。
+const updatedRuleResponse = await request(`/api/v1/finance/commission-rules/${commissionRule.id}`, {
+  method: 'PUT', body: JSON.stringify({ id: commissionRule.id, expectedVersion: commissionRule.version,
+    rule: { name: commissionRule.name, personnelRole: commissionRule.personnelRole,
+      calculationBasis: commissionRule.calculationBasis, ratePercent: commissionRule.ratePercent,
+      effectiveFrom: commissionRule.effectiveFrom, effectiveTo: commissionRule.effectiveTo,
+      enabled: commissionRule.enabled, employeeIds: [me.data.id], note: '只改备注不得改变来源指纹' } }),
+});
 commissionRule = updatedRuleResponse.data;
+assert(commissionRule.version > firstCommission.ruleVersion, '备注更新必须递增方案版本');
 const staleConfirmation = await raw(
   `/api/v1/finance/commissions/${firstCommission.id}/confirm`,
   {
@@ -933,16 +917,15 @@ const staleConfirmation = await raw(
   },
 );
 assert(
-  staleConfirmation.response.status === 409 &&
-    staleConfirmation.body.reason === 'FINANCE_COMMISSION_SOURCE_CHANGED',
-  '规则变化后确认旧提成草稿必须返回来源变化冲突',
+  staleConfirmation.response.ok && staleConfirmation.body.data?.status === 2,
+  '方案非经济备注变化后旧提成草稿应可确认，指纹不得纳入规则版本',
 );
 await request(`/api/v1/finance/commissions/${firstCommission.id}/cancel`, {
   method: 'POST',
   body: JSON.stringify({
     id: firstCommission.id,
-    expectedVersion: firstCommission.version,
-    reason: '来源变化后取消旧草稿',
+    expectedVersion: staleConfirmation.body.data.version,
+    reason: '验证备注不影响来源后取消首笔提成',
   }),
 });
 
@@ -951,12 +934,13 @@ const refreshedPreview = await request('/api/v1/finance/commissions/preview', {
   body: JSON.stringify({
     verificationId: verificationA.id,
     employeeId: me.data.id,
-    ruleId: commissionRule.id,
+    personnelRole: 'SALES',
+    organizationId: me.data.currentOrganization.id,
   }),
 });
 assert(
   refreshedPreview.data?.ruleVersion === commissionRule.version,
-  '重新预览未使用最新提成规则版本',
+  '重新预览未使用当前有效提成规则版本',
 );
 assert(
   refreshedPreview.data.cnyExchangeRate === '1.00000000' &&
@@ -971,7 +955,8 @@ const refreshedCommissionResponse = await request(
     body: JSON.stringify({
       verificationId: verificationA.id,
       employeeId: me.data.id,
-      ruleId: commissionRule.id,
+      personnelRole: 'SALES',
+      organizationId: me.data.currentOrganization.id,
       note: '验证来源一致时正常确认',
       idempotencyKey: `acc-fin-commission-${stamp}-confirmed`,
     }),
@@ -1011,25 +996,26 @@ const closeWithDraftFee = await raw(
 );
 assert(
   closeWithDraftFee.response.status === 409 &&
-    closeWithDraftFee.body.reason === 'FINANCE_COMMISSION_UNCONFIRMED_FEES',
-  '关联订单存在草稿费用时必须拒绝确认提成',
+    closeWithDraftFee.body.reason === 'FINANCE_COMMISSION_SOURCE_CHANGED',
+  '追加未建账费用后旧草稿来源指纹必须失效',
 );
+await request(`/api/v1/finance/commissions/${refreshedCommission.id}/cancel`, { method: 'POST', body: JSON.stringify({ id: refreshedCommission.id, expectedVersion: refreshedCommission.version, reason: '来源变化后取消旧草稿' }) });
+const unbilledPreview = await request('/api/v1/finance/commissions/preview', { method: 'POST', body: JSON.stringify({ verificationId: verificationA.id, employeeId: me.data.id, personnelRole: 'SALES', organizationId: me.data.currentOrganization.id }) });
+assert(unbilledPreview.data?.feeCount === 3, '未建账费用应进入提成来源预览');
+const unbilledCommission = (await request('/api/v1/finance/commissions', { method: 'POST', body: JSON.stringify({ verificationId: verificationA.id, employeeId: me.data.id, personnelRole: 'SALES', organizationId: me.data.currentOrganization.id, idempotencyKey: `acc-fin-unbilled-${stamp}` }) })).data;
+const unbilledClose = await raw(`/api/v1/finance/commissions/${unbilledCommission.id}/confirm`, { method: 'POST', body: JSON.stringify({ id: unbilledCommission.id, expectedVersion: unbilledCommission.version }) });
+assert(unbilledClose.response.status === 409 && unbilledClose.body.reason === 'FINANCE_COMMISSION_UNCONFIRMED_FEES', '来源一致但有未建账费用时必须拒绝确认提成');
+await request(`/api/v1/finance/commissions/${unbilledCommission.id}/cancel`, { method: 'POST', body: JSON.stringify({ id: unbilledCommission.id, expectedVersion: unbilledCommission.version, reason: '未建账费用门禁验收后取消草稿' }) });
 await request(
   `/api/v1/orders/${order.id}/fees/${draftFeeBeforeClose.id}?expectedVersion=${draftFeeBeforeClose.version}&reason=${encodeURIComponent('完成草稿费用关账拦截验收')}`,
   {
     method: 'DELETE',
   },
 );
-const confirmedCommissionResponse = await request(
-  `/api/v1/finance/commissions/${refreshedCommission.id}/confirm`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      id: refreshedCommission.id,
-      expectedVersion: refreshedCommission.version,
-    }),
-  },
-);
+const finalPreview = await request('/api/v1/finance/commissions/preview', { method: 'POST', body: JSON.stringify({ verificationId: verificationA.id, employeeId: me.data.id, personnelRole: 'SALES', organizationId: me.data.currentOrganization.id }) });
+assert(finalPreview.data?.commissionAmount === '4.00000000' && finalPreview.data?.feeCount === 2, '清除临时费用后经济预览必须回到原值');
+const finalCommission = (await request('/api/v1/finance/commissions', { method: 'POST', body: JSON.stringify({ verificationId: verificationA.id, employeeId: me.data.id, personnelRole: 'SALES', organizationId: me.data.currentOrganization.id, idempotencyKey: `acc-fin-final-${stamp}` }) })).data;
+const confirmedCommissionResponse = await request(`/api/v1/finance/commissions/${finalCommission.id}/confirm`, { method: 'POST', body: JSON.stringify({ id: finalCommission.id, expectedVersion: finalCommission.version }) });
 const confirmedCommission = confirmedCommissionResponse.data;
 assert(confirmedCommission.status === 2, '提成草稿确认失败');
 const lockedFeeOptions = await request(
@@ -1350,6 +1336,7 @@ console.log(
       competingKeyConflictVerified: true,
       idempotentRetryVerified: true,
       defaultProfileProtectionVerified: true,
+      draftLifecycle,
       cashflowNos: [confirmedCashflowA.flowNo, confirmedCashflowB.flowNo],
       verificationNos: [
         verificationA.verificationNo,
@@ -1357,7 +1344,7 @@ console.log(
       ],
       cashflowConcurrentIdempotencyVerified: true,
       verificationConcurrentIdempotencyVerified: true,
-      commissionNo: refreshedCommission.commissionNo,
+      commissionNo: finalCommission.commissionNo,
       commissionPreviewLineCount: refreshedPreview.data.lines.length,
       commissionSourceChangeRejected: true,
       commissionConcurrentIdempotencyVerified: true,

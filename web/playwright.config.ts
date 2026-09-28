@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
+  outputDir: process.env.RONCIN_ACCEPTANCE_ARTIFACT_DIR || 'test-results',
   testMatch: '**/*.e2e.ts',
   timeout: 60_000,
   fullyParallel: false,
@@ -13,6 +14,8 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     baseURL: process.env.RONCIN_WEB_BASE_URL || 'http://127.0.0.1:8001',
+    // 业务日期与服务端保持中国本地时区，跨 UTC 午夜时仍选同一自然日。
+    timezoneId: 'Asia/Shanghai',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     ...devices['Desktop Chrome'],

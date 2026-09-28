@@ -32,7 +32,7 @@
     "acceptance:se-order": "node --env-file-if-exists=.env.local scripts/acceptance-se-order.mjs",
     "acceptance:finance-bill-batch": "node --env-file-if-exists=.env.local scripts/acceptance-finance-bill-batch.mjs",
     "acceptance:finance-payable": "node --env-file-if-exists=.env.local scripts/acceptance-finance-payable.mjs",
-    "acceptance:finance-ui": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs pnpm --dir web test:e2e",
+    "acceptance:finance-ui": "node --env-file-if-exists=.env.local scripts/run-with-env.mjs pnpm --dir web exec playwright test tests/e2e/finance-bill-batch.e2e.ts",
     "acceptance:fee-ledger-preference": "node --env-file-if-exists=.env.local scripts/acceptance-fee-ledger-preference.mjs",
     "acceptance:finance:foreign-currency": "node scripts/acceptance-finance-foreign-currency.mjs",
     "acceptance:finance:disposable": "node scripts/run-acceptance-finance-disposable.mjs",

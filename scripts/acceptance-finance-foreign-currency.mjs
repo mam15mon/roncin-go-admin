@@ -1,3 +1,5 @@
+import { withAcceptanceSystemWorkspace, acceptanceChargeCategoryId, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
+
 function requireEnvironment(name) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`缺少必需环境变量 ${name}`);
@@ -49,6 +51,8 @@ function createClient(cookie) {
         ...options.headers,
       },
     });
+    const rotatedCookie = response.headers.getSetCookie().map((value) => value.split(';', 1)[0]).join('; ');
+    if (rotatedCookie) cookie = rotatedCookie;
     return { response, body: await readJSON(response) };
   }
   return {
@@ -71,6 +75,7 @@ function assert(condition, message) {
 
 const cookie = await login();
 const { request, raw } = createClient(cookie);
+await prepareAcceptanceCompany(request, { allowCreate: true, baseCurrency: 'USD' });
 
 // 1. 验证空环境前置条件
 const [me, existingPartners, existingOrders, existingBills, existingCashflows, rules] =
@@ -86,10 +91,7 @@ const [me, existingPartners, existingOrders, existingBills, existingCashflows, r
 const currentOrg = me.data?.currentOrganization;
 assert(me.data?.id, '当前登录用户缺少用户编号');
 assert(currentOrg?.id, '当前登录用户没有可用组织');
-assert(
-  currentOrg.baseCurrency === 'CNY',
-  `外币全链路验收要求初始组织本位币为 CNY，实际为 ${currentOrg.baseCurrency}`,
-);
+assert(currentOrg.baseCurrency === 'USD', '外币验收必须在创建时配置USD本币公司');
 assert(
   (existingPartners.data?.length ?? 0) === 0 &&
     (existingOrders.data?.length ?? 0) === 0 &&
@@ -112,124 +114,23 @@ for (const [code, name] of requiredDocumentTypes) {
   );
 }
 
-// 2. 将组织本位币变更为 USD（业务数据写入前）
-const updateOrgResponse = await request(
-  `/api/v1/admin/organizations/${currentOrg.id}`,
-  {
-    method: 'PUT',
-    body: JSON.stringify({
-      id: currentOrg.id,
-      name: currentOrg.name,
-      enabled: true,
-      baseCurrency: 'USD',
-    }),
-  },
-);
-assert(
-  updateOrgResponse.data?.baseCurrency === 'USD',
-  `组织本位币设置失败，实际为 ${updateOrgResponse.data?.baseCurrency}`,
-);
+// 本币按公司创建时契约一次确定，不变更既有公司的本币。
 
-// 3. 配置五类时间标准
-const timeStandardsResponse = await request(
-  '/api/v1/finance/exchange-rate-time-standards',
-  {
-    method: 'PUT',
-    body: JSON.stringify({
-      data: [
-        { rateType: 'BASE_CURRENCY', timeStandards: ['ORDER_CREATED_AT'] },
-        { rateType: 'BILL', timeStandards: ['BILL_DATE'] },
-        { rateType: 'INVOICE', timeStandards: ['INVOICE_DATE'] },
-        { rateType: 'SETTLEMENT', timeStandards: ['TRANSACTION_DATE'] },
-        { rateType: 'WRITE_OFF', timeStandards: ['WRITE_OFF_TIME'] },
-      ],
-    }),
-  },
-);
-assert(
-  timeStandardsResponse.data?.length === 5,
-  '汇率时间标准设置未返回 5 项配置',
-);
-
-// 4. 创建六条系统汇率（五条 EUR→USD，一条 CNY→USD）
-const shanghaiDateFormatter = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Asia/Shanghai',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
+// 4. 当前契约按公司与自然周统一维护汇率；各业务节点捕获独立快照。
+const shanghaiDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' });
 const today = shanghaiDateFormatter.format(new Date());
 const stamp = `${today.replace(/-/g, '')}${Date.now().toString().slice(-6)}`;
 const effectiveFrom = `${today}T00:00:00+08:00`;
-
-const rateConfigs = [
-  {
-    key: 'BASE_CURRENCY',
-    rateType: 'BASE_CURRENCY',
-    fromCurrency: 'EUR',
-    toCurrency: 'USD',
-    rate: '1.10000000',
-  },
-  {
-    key: 'BILL',
-    rateType: 'BILL',
-    fromCurrency: 'EUR',
-    toCurrency: 'USD',
-    rate: '1.20000000',
-  },
-  {
-    key: 'INVOICE',
-    rateType: 'INVOICE',
-    fromCurrency: 'EUR',
-    toCurrency: 'USD',
-    rate: '1.22000000',
-  },
-  {
-    key: 'SETTLEMENT',
-    rateType: 'SETTLEMENT',
-    fromCurrency: 'EUR',
-    toCurrency: 'USD',
-    rate: '1.25000000',
-  },
-  {
-    key: 'WRITE_OFF',
-    rateType: 'WRITE_OFF',
-    fromCurrency: 'EUR',
-    toCurrency: 'USD',
-    rate: '1.30000000',
-  },
-  {
-    key: 'CNY_WRITE_OFF',
-    rateType: 'WRITE_OFF',
-    fromCurrency: 'CNY',
-    toCurrency: 'USD',
-    rate: '0.14000000',
-  },
-];
-
-const createdRateSettings = {};
-for (const config of rateConfigs) {
-  const response = await request('/api/v1/finance/exchange-rates', {
-    method: 'POST',
-    body: JSON.stringify({
-      rateType: config.rateType,
-      fromCurrency: config.fromCurrency,
-      toCurrency: config.toCurrency,
-      effectiveFrom,
-      receivableRate: config.rate,
-      payableRate: config.rate,
-    }),
-  });
-  const setting = response.data;
-  assert(
-    setting?.id &&
-      setting.rateType === config.rateType &&
-      setting.fromCurrency === config.fromCurrency &&
-      setting.toCurrency === config.toCurrency &&
-      setting.receivableRate === config.rate,
-    `汇率配置 ${config.key} 创建失败`,
-  );
-  createdRateSettings[config.key] = setting;
+const createRate = async (fromCurrency, rate) => {
+  const response = await request('/api/v1/finance/exchange-rates', { method: 'POST', body: JSON.stringify({ fromCurrency, toCurrency: 'USD', effectiveFrom, arRate: rate, apRate: rate }) });
+  assert(response.data?.id && response.data.arRate === rate, '自然周汇率创建结果与输入不符');
+  return response.data;
+};
+const eurRate = await createRate('EUR', '1.10000000');
+const createdRateSettings = { BASE_CURRENCY: eurRate, BILL: eurRate, INVOICE: eurRate, SETTLEMENT: eurRate };
+async function updateEURRate(rate) {
+  const response = await request(`/api/v1/finance/exchange-rates/${eurRate.id}`, { method: 'PUT', body: JSON.stringify({ id: eurRate.id, fromCurrency: 'EUR', toCurrency: 'USD', effectiveFrom, arRate: rate, apRate: rate }) });
+  assert(response.data.arRate === rate, '自然周汇率更新结果与输入不符');
 }
 
 // 5. 创建客户
@@ -279,7 +180,7 @@ assert(
 );
 
 // 6. 创建订单（海运出口订单必须选择船公司并提供主单信息，047b3e79 起为强约束）。
-const shippingLineResponse = await request('/api/v1/master-data/shipping-lines', {
+const shippingLineResponse = await withAcceptanceSystemWorkspace(request, () => request('/api/v1/master-data/shipping-lines', {
   method: 'POST',
   body: JSON.stringify({
     scacCode: `A${Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('')}`,
@@ -287,12 +188,15 @@ const shippingLineResponse = await request('/api/v1/master-data/shipping-lines',
     nameEn: `Acceptance Carrier ${stamp}`,
     countryCode: 'CN',
   }),
-});
+}));
 const shippingLine = shippingLineResponse.data;
 assert(shippingLine?.id, '验收船公司创建失败');
+const chargeCategoryId = await acceptanceChargeCategoryId(request);
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
+    serviceTypeIds: [chargeCategoryId],
+    personnelAssignments: [2, 3, 4].map((role) => ({ userId: me.data.id, role })),
     customerId: customer.id,
     shippingLineId: shippingLine.id,
     seaMasterBill: { masterNo: `ACCMB${stamp}` },
@@ -331,7 +235,7 @@ if (!invoiceRule.enabled) {
 }
 
 // 7. 显式创建外币费用主数据与 EUR 应收费用（100 EUR @ 1.10 = 110.00000000 USD）
-const createdUnit = await request('/api/v1/finance/billing-units', {
+const createdUnit = await withAcceptanceSystemWorkspace(request, () => request('/api/v1/finance/billing-units', {
   method: 'POST',
   body: JSON.stringify({
     code: `UNIT_FC_${stamp.slice(-6)}`,
@@ -339,7 +243,7 @@ const createdUnit = await request('/api/v1/finance/billing-units', {
     sortOrder: 1,
     isContainerUnit: false,
   }),
-});
+}));
 const billingUnit = createdUnit.data;
 assert(billingUnit?.id, '外币计费单位创建失败');
 
@@ -356,6 +260,7 @@ assert(taxableService?.id, '外币应税服务创建失败');
 const createdFeeSetting = await request('/api/v1/finance/fee-settings', {
   method: 'POST',
   body: JSON.stringify({
+    chargeCategoryId,
     feeCode: `FEE_FC_${stamp.slice(-6)}`,
     nameZh: '外币海运运费',
     defaultCurrency: 'EUR',
@@ -402,7 +307,7 @@ assert(fee.currency === 'EUR', `费用币种应为 EUR，实际 ${fee.currency}`
 assert(fee.totalAmount === '100.00000000', `费用总额应为 100.00000000，实际 ${fee.totalAmount}`);
 assert(fee.baseCurrency === 'USD', `费用本位币应为 USD，实际 ${fee.baseCurrency}`);
 assert(fee.exchangeRate === '1.10000000', `费用系统汇率应为 1.10000000，实际 ${fee.exchangeRate}`);
-assert(fee.exchangeRateSource === 'SYSTEM', `费用汇率来源应为 SYSTEM，实际 ${fee.exchangeRateSource}`);
+assert(fee.exchangeRateSource === 'WEEKLY', `费用汇率来源应为 WEEKLY，实际 ${fee.exchangeRateSource}`);
 assert(fee.exchangeRateDate === today, `费用汇率日期应为 ${today}，实际 ${fee.exchangeRateDate}`);
 assert(
   fee.exchangeRateSettingId === createdRateSettings.BASE_CURRENCY.id,
@@ -413,19 +318,7 @@ assert(
   `费用折算本币应为 110.00000000 USD，实际 ${fee.baseCurrencyAmount}`,
 );
 
-// 确认费用
-const confirmedFeeResponse = await request(
-  `/api/v1/orders/${order.id}/fees/${fee.id}/confirm`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      orderId: order.id,
-      id: fee.id,
-      expectedVersion: fee.version,
-    }),
-  },
-);
-assert(confirmedFeeResponse.data?.status === 2, '费用确认失败');
+assert(fee.hasActiveBill !== true, '新录入费用必须未建账');
 
 // 8. 账单预览与创建（100 EUR @ 1.20 = 120.00000000 USD）
 // 账单必须固化结算账户快照：为客户创建 EUR 应收结算账户。
@@ -448,6 +341,7 @@ const accountResponse = await request(`/api/v1/partners/${customer.id}/accounts`
 const settlementAccount = accountResponse.data;
 assert(settlementAccount?.id, '验收外币结算账户创建失败');
 
+await updateEURRate('1.20000000');
 const initialPreview = await request('/api/v1/finance/bill-batches/preview', {
   method: 'POST',
   body: JSON.stringify({
@@ -507,7 +401,7 @@ assert(draftBill.currency === 'EUR', `账单币种应为 EUR，实际 ${draftBil
 assert(draftBill.totalAmount === '100.00000000', `账单金额应为 100.00000000，实际 ${draftBill.totalAmount}`);
 assert(draftBill.baseCurrency === 'USD', `账单本位币应为 USD，实际 ${draftBill.baseCurrency}`);
 assert(draftBill.exchangeRate === '1.20000000', `账单系统汇率应为 1.20000000，实际 ${draftBill.exchangeRate}`);
-assert(draftBill.exchangeRateSource === 'SYSTEM', `账单汇率来源应为 SYSTEM，实际 ${draftBill.exchangeRateSource}`);
+assert(draftBill.exchangeRateSource === 'WEEKLY', `账单汇率来源应为 WEEKLY，实际 ${draftBill.exchangeRateSource}`);
 assert(draftBill.exchangeRateDate === today, `账单汇率日期应为 ${today}，实际 ${draftBill.exchangeRateDate}`);
 assert(
   draftBill.exchangeRateSettingId === createdRateSettings.BILL.id,
@@ -553,6 +447,7 @@ const profileResponse = await request(
 const profile = profileResponse.data;
 assert(profile?.id, '开票资料创建失败');
 
+await updateEURRate('1.22000000');
 const invoiceResponse = await request('/api/v1/finance/invoices', {
   method: 'POST',
   body: JSON.stringify({
@@ -584,7 +479,7 @@ assert(issuedInvoice.currency === 'EUR', `发票币种应为 EUR，实际 ${issu
 assert(issuedInvoice.totalAmount === '100.00000000', `发票金额应为 100.00000000，实际 ${issuedInvoice.totalAmount}`);
 assert(issuedInvoice.baseCurrency === 'USD', `发票本位币应为 USD，实际 ${issuedInvoice.baseCurrency}`);
 assert(issuedInvoice.exchangeRate === '1.22000000', `发票系统汇率应为 1.22000000，实际 ${issuedInvoice.exchangeRate}`);
-assert(issuedInvoice.exchangeRateSource === 'SYSTEM', `发票汇率来源应为 SYSTEM，实际 ${issuedInvoice.exchangeRateSource}`);
+assert(issuedInvoice.exchangeRateSource === 'WEEKLY', `发票汇率来源应为 WEEKLY，实际 ${issuedInvoice.exchangeRateSource}`);
 assert(issuedInvoice.exchangeRateDate === today, `发票汇率日期应为 ${today}，实际 ${issuedInvoice.exchangeRateDate}`);
 assert(
   issuedInvoice.exchangeRateSettingId === createdRateSettings.INVOICE.id,
@@ -596,6 +491,7 @@ assert(
 );
 
 // 10. 创建 EUR 收款流水并确认（40 EUR @ 1.25 = 50.00000000 USD，禁止携带 exchangeRate）
+await updateEURRate('1.25000000');
 const cashflowResponse = await request('/api/v1/finance/cashflows', {
   method: 'POST',
   body: JSON.stringify({
@@ -620,7 +516,7 @@ assert(draftCashflow.currency === 'EUR', `流水币种应为 EUR，实际 ${draf
 assert(draftCashflow.amount === '40.00000000', `流水金额应为 40.00000000，实际 ${draftCashflow.amount}`);
 assert(draftCashflow.baseCurrency === 'USD', `流水本位币应为 USD，实际 ${draftCashflow.baseCurrency}`);
 assert(draftCashflow.exchangeRate === '1.25000000', `流水系统汇率应为 1.25000000，实际 ${draftCashflow.exchangeRate}`);
-assert(draftCashflow.exchangeRateSource === 'SYSTEM', `流水汇率来源应为 SYSTEM，实际 ${draftCashflow.exchangeRateSource}`);
+assert(draftCashflow.exchangeRateSource === 'WEEKLY', `流水汇率来源应为 WEEKLY，实际 ${draftCashflow.exchangeRateSource}`);
 assert(draftCashflow.exchangeRateDate === today, `流水汇率日期应为 ${today}，实际 ${draftCashflow.exchangeRateDate}`);
 assert(
   draftCashflow.exchangeRateSettingId === createdRateSettings.SETTLEMENT.id,
@@ -665,16 +561,10 @@ assert(verification?.id, '核销记录创建失败');
 assert(verification.currency === 'EUR', `核销币种应为 EUR，实际 ${verification.currency}`);
 assert(verification.amount === '40.00000000', `核销金额应为 40.00000000，实际 ${verification.amount}`);
 assert(verification.baseCurrency === 'USD', `核销本位币应为 USD，实际 ${verification.baseCurrency}`);
-assert(verification.exchangeRate === '1.30000000', `核销系统汇率应为 1.30000000，实际 ${verification.exchangeRate}`);
-assert(verification.exchangeRateSource === 'SYSTEM', `核销汇率来源应为 SYSTEM，实际 ${verification.exchangeRateSource}`);
-assert(verification.exchangeRateDate === today, `核销汇率日期应为 ${today}，实际 ${verification.exchangeRateDate}`);
+assert(!('exchangeRate' in verification), '核销不得携带已移除的独立汇率字段');
 assert(
-  verification.exchangeRateSettingId === createdRateSettings.WRITE_OFF.id,
-  '核销汇率 setting ID 未匹配 WRITE_OFF 配置',
-);
-assert(
-  verification.baseAmount === '52.00000000',
-  `核销本币金额应为 52.00000000 USD，实际 ${verification.baseAmount}`,
+  verification.baseAmount === '50.00000000',
+  `核销本币金额应为资金分摊 50.00000000 USD，实际 ${verification.baseAmount}`,
 );
 assert(
   verification.billBaseAmount === '48.00000000',
@@ -690,16 +580,6 @@ assert(
 );
 
 // 12. 指派订单销售人员与创建 10% 毛利提成规则
-await request(`/api/v1/orders/${order.id}/personnel`, {
-  method: 'POST',
-  body: JSON.stringify({
-    orderId: order.id,
-    userId: me.data.id,
-    organizationId: currentOrg.id,
-    role: 3, // SALES
-  }),
-});
-
 const commissionRuleResponse = await request(
   '/api/v1/finance/commission-rules',
   {
@@ -709,6 +589,7 @@ const commissionRuleResponse = await request(
       rule: {
         name: `ACC-FC-COMM-${stamp}`,
         personnelRole: 'SALES',
+        employeeIds: [me.data.id],
         calculationBasis: 'REALIZED_PROFIT',
         ratePercent: '10',
         effectiveFrom: today,
@@ -730,7 +611,8 @@ const commissionPreviewResponse = await request(
     body: JSON.stringify({
       verificationId: verification.id,
       employeeId: me.data.id,
-      ruleId: commissionRule.id,
+      personnelRole: 'SALES',
+    organizationId: me.data.currentOrganization.id,
     }),
   },
 );
@@ -755,25 +637,24 @@ assert(
   `USD 提成金额应为 4.80000000 USD，实际 ${previewCommission.commissionAmount}`,
 );
 assert(
-  previewCommission.cnyExchangeRate === '7.14285714',
-  `CNY 派生汇率应为 7.14285714，实际 ${previewCommission.cnyExchangeRate}`,
+  previewCommission.cnyExchangeRate === '1.00000000',
+  `原币记账口径的提成快照恒等汇率应为 1.00000000，实际 ${previewCommission.cnyExchangeRate}`,
 );
 assert(
-  previewCommission.cnyExchangeRateSource === 'DERIVED',
-  `CNY 汇率来源应为 DERIVED，实际 ${previewCommission.cnyExchangeRateSource}`,
+  previewCommission.cnyExchangeRateSource === 'BASE_CURRENCY',
+  `提成快照来源应为 BASE_CURRENCY，实际 ${previewCommission.cnyExchangeRateSource}`,
 );
 assert(
   previewCommission.cnyExchangeRateDate === today,
   `CNY 汇率日期应为 ${today}，实际 ${previewCommission.cnyExchangeRateDate}`,
 );
 assert(
-  previewCommission.cnyExchangeRateSettingId ===
-    createdRateSettings.CNY_WRITE_OFF.id,
-  'CNY 汇率 setting ID 未匹配 CNY_WRITE_OFF 配置',
+  !previewCommission.cnyExchangeRateSettingId,
+  '原币记账提成快照不应关联另一个币种的自然周汇率设置',
 );
 assert(
-  previewCommission.cnyCommissionAmount === '34.28571427',
-  `CNY 提成金额应为 34.28571427 CNY，实际 ${previewCommission.cnyCommissionAmount}`,
+  previewCommission.cnyCommissionAmount === '4.80000000',
+  `恒等提成快照金额应为 4.80000000，实际 ${previewCommission.cnyCommissionAmount}`,
 );
 
 // 创建提成草稿
@@ -784,7 +665,8 @@ const commissionCreateResponse = await request(
     body: JSON.stringify({
       verificationId: verification.id,
       employeeId: me.data.id,
-      ruleId: commissionRule.id,
+      personnelRole: 'SALES',
+    organizationId: me.data.currentOrganization.id,
       note: '外币提成全链路自动验收创建',
       idempotencyKey: `acc-fc-commission-${stamp}`,
     }),
@@ -802,25 +684,24 @@ assert(
   `创建 USD 提成金额应为 4.80000000 USD，实际 ${createdCommission.commissionAmount}`,
 );
 assert(
-  createdCommission.cnyExchangeRate === '7.14285714',
-  `创建提成 CNY 派生汇率应为 7.14285714，实际 ${createdCommission.cnyExchangeRate}`,
+  createdCommission.cnyExchangeRate === '1.00000000',
+  `创建提成恒等汇率应为 1.00000000，实际 ${createdCommission.cnyExchangeRate}`,
 );
 assert(
-  createdCommission.cnyExchangeRateSource === 'DERIVED',
-  `创建提成 CNY 汇率来源应为 DERIVED，实际 ${createdCommission.cnyExchangeRateSource}`,
+  createdCommission.cnyExchangeRateSource === 'BASE_CURRENCY',
+  `创建提成快照来源应为 BASE_CURRENCY，实际 ${createdCommission.cnyExchangeRateSource}`,
 );
 assert(
   createdCommission.cnyExchangeRateDate === today,
   `创建提成 CNY 汇率日期应为 ${today}，实际 ${createdCommission.cnyExchangeRateDate}`,
 );
 assert(
-  createdCommission.cnyExchangeRateSettingId ===
-    createdRateSettings.CNY_WRITE_OFF.id,
-  '创建提成 CNY 汇率 setting ID 未匹配 CNY_WRITE_OFF 配置',
+  !createdCommission.cnyExchangeRateSettingId,
+  '创建提成快照不应关联另一个币种的自然周汇率设置',
 );
 assert(
-  createdCommission.cnyCommissionAmount === '34.28571427',
-  `创建提成 CNY 金额应为 34.28571427 CNY，实际 ${createdCommission.cnyCommissionAmount}`,
+  createdCommission.cnyCommissionAmount === '4.80000000',
+  `创建提成恒等快照金额应为 4.80000000，实际 ${createdCommission.cnyCommissionAmount}`,
 );
 
 // 14. 详情重读持久化快照
@@ -828,14 +709,27 @@ const commissionDetailResponse = await request(
   `/api/v1/finance/commissions/${createdCommission.id}`,
 );
 const persistedCommission = commissionDetailResponse.data;
+const persistedSnapshots = await Promise.all([
+  request(`/api/v1/orders/${order.id}/fees`),
+  request(`/api/v1/finance/bills/${confirmedBill.id}`),
+  request(`/api/v1/finance/invoices/${issuedInvoice.id}`),
+  request(`/api/v1/finance/cashflows?page=1&pageSize=200&organizationId=${me.data.currentOrganization.id}`),
+]);
+assert(persistedSnapshots[0].data.find((item) => item.id === fee.id)?.exchangeRate === '1.10000000', '自然周汇率更新不得改写费用1.1快照');
+assert(persistedSnapshots[1].data.exchangeRate === '1.20000000', '自然周汇率更新不得改写账单1.2快照');
+assert(persistedSnapshots[2].data.exchangeRate === '1.22000000', '自然周汇率更新不得改写发票1.22快照');
+assert(persistedSnapshots[3].data.find((item) => item.id === confirmedCashflow.id)?.exchangeRate === '1.25000000', '收款流水1.25快照应持久化');
+assert(verification.allocations.length === 1 && verification.allocations[0].billId === confirmedBill.id && verification.allocations[0].cashflowId === confirmedCashflow.id, '外币核销必须关联本次账单与资金流水');
+assert(verification.allocations[0].billBaseAmount === '48.00000000' && verification.allocations[0].cashflowBaseAmount === '50.00000000' && verification.allocations[0].exchangeGainLoss === '2.00000000', '行级核销分摊须保留48/50/2的八位精度快照');
+assert(persistedCommission.lines.length === 1 && persistedCommission.lines[0].orderId === order.id && persistedCommission.lines[0].fees.some((item) => item.feeId === fee.id), '外币提成必须追溯本次订单费用');
+
 assert(
   persistedCommission.commissionAmount === '4.80000000' &&
-    persistedCommission.cnyExchangeRate === '7.14285714' &&
-    persistedCommission.cnyExchangeRateSource === 'DERIVED' &&
+    persistedCommission.cnyExchangeRate === '1.00000000' &&
+    persistedCommission.cnyExchangeRateSource === 'BASE_CURRENCY' &&
     persistedCommission.cnyExchangeRateDate === today &&
-    persistedCommission.cnyExchangeRateSettingId ===
-      createdRateSettings.CNY_WRITE_OFF.id &&
-    persistedCommission.cnyCommissionAmount === '34.28571427',
+    !persistedCommission.cnyExchangeRateSettingId &&
+    persistedCommission.cnyCommissionAmount === '4.80000000',
   '持久化提成详情快照重读不一致',
 );
 
@@ -849,8 +743,6 @@ console.log(
         bill: createdRateSettings.BILL.id,
         invoice: createdRateSettings.INVOICE.id,
         settlement: createdRateSettings.SETTLEMENT.id,
-        writeOff: createdRateSettings.WRITE_OFF.id,
-        cnyWriteOff: createdRateSettings.CNY_WRITE_OFF.id,
       },
       customerCode: customer.code,
       orderNo: order.orderNo,
@@ -872,14 +764,13 @@ console.log(
       cashflowBaseAmountUSD: confirmedCashflow.baseAmount,
       verificationNo: verification.verificationNo,
       verificationAmountEUR: verification.amount,
-      verificationExchangeRate: verification.exchangeRate,
       verificationBaseAmountUSD: verification.baseAmount,
       billBaseAmountUSD_Allocated: verification.billBaseAmount,
       cashflowBaseAmountUSD_Allocated: verification.cashflowBaseAmount,
       exchangeGainLossUSD: verification.exchangeGainLoss,
       commissionNo: createdCommission.commissionNo,
       commissionAmountUSD: createdCommission.commissionAmount,
-      cnyDerivedExchangeRate: createdCommission.cnyExchangeRate,
+      commissionSnapshotIdentityRate: createdCommission.cnyExchangeRate,
       cnyExchangeRateSource: createdCommission.cnyExchangeRateSource,
       cnyCommissionAmount: createdCommission.cnyCommissionAmount,
       persistedSnapshotVerified: true,
