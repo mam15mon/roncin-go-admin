@@ -132,7 +132,7 @@ export const previewColumns = [
         <Typography.Text strong>{val}</Typography.Text>
         {line.orderDate && (
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            {line.orderDate}
+            {formatDate(line.orderDate, 'minute')}
           </Typography.Text>
         )}
       </Space>
