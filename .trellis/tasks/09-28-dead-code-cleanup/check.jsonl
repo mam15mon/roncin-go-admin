@@ -1,0 +1,5 @@
+{"file":".trellis/tasks/09-28-dead-code-cleanup/research/audit-evidence.md","reason":"核对候选证据和保留项，防止误删"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"前端定向测试、Biome、类型和构建门禁"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"服务端分层、权限、真实库验证与生成物限制"}
+{"file":".trellis/spec/server/backend/role-workspace-ownership.md","reason":"权限分类与工作台边界不能因清理改变"}
+{"file":".trellis/spec/domain/architecture-map.md","reason":"拆票指纹与费用补录相邻路径验证"}

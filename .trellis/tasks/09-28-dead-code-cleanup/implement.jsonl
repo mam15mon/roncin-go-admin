@@ -1,0 +1,5 @@
+{"file":".trellis/tasks/09-28-dead-code-cleanup/research/audit-evidence.md","reason":"只读审查候选、扫描覆盖与未使用导入基线"}
+{"file":".trellis/spec/domain/architecture-map.md","reason":"订单、费用补录、权限与前后端业务边界"}
+{"file":".trellis/spec/web/frontend/index.md","reason":"前端页面与组件层规范入口"}
+{"file":".trellis/spec/server/backend/index.md","reason":"服务端分层、状态与权限专项规范入口"}
+{"file":".trellis/spec/guides/index.md","reason":"重复代码与跨层修改的审查思维指南"}
