@@ -814,3 +814,29 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 110: 财务实弹验收闭环与存量集成清零
+<!-- trellis-session: v=2 fp=5ee576b69f741245 -->
+
+**Date**: 2026-09-28
+**Task**: 财务实弹验收闭环与存量集成清零
+**Branch**: `fix/finance-acceptance-closure`
+
+### Summary
+
+四项存量集成测试修复并实跑data/migration全量318顶层PASS、0FAIL/SKIP；三类HTTP与同一订单Chromium125到12.5提成闭环PASS；check:fast通过（前端既有12SKIP）；修复提成订单时间展示，隔离资源和临时凭据回收，父子任务归档。人工走查未执行，证据保留仓库外私有目录。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `57d7b1a0` | test(server): 修复四项存量集成用例的迁移前态与目录断言 |
+| `5366a54b` | test(server): 校准完整迁移门禁中历史目标用例的执行截止 |
+| `a16e4dd6` | fix(web): 格式化提成明细中的订单时间 |
+| `ac213e8b` | test(finance): 实跑应收应付外币与同单浏览器闭环 |
+| `bd2091bf` | docs(task): 汇总财务真实验收与集成修复证据 |
+
+### Status
+
+[OK] **Completed**

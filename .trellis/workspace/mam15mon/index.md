@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 109
-- **Last Active**: 2026-09-27
+- **Total Sessions**: 110
+- **Last Active**: 2026-09-28
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~816 | Active |
+| `journal-2.md` | ~842 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 110 | 2026-09-28 | 财务实弹验收闭环与存量集成清零 | `57d7b1a0`, `5366a54b`, `a16e4dd6`, `ac213e8b`, `bd2091bf` | `fix/finance-acceptance-closure` |
 | 109 | 2026-09-27 | 费用状态移除审阅收尾三项修复 | `50fec0bb`, `774b9aff`, `200717b8` | `main` |
 | 108 | 2026-09-26 | 费用状态去状态化与搜索 chips 回显落地 | `f7dfedbc`, `5d77e0ad`, `ce851158`, `b895aa3e` | `main` |
 | 107 | 2026-09-23 | 组织架构隐藏系统管理节点并完成分支验收 | `47df6a14` | `fix/hide-system-org-chart` |
