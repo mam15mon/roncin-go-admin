@@ -4,7 +4,8 @@
 
 2026-09-28 完成真实 PostgreSQL、Go HTTP、Vite 和 Chromium 浏览器验收。最终运行 R29 的应收、应付、同一订单 UI 与 USD 外币链路全部 PASS，进程退出码 0；本轮为显式 runtime-only，数据库完整门禁关联此前 R2 的完整两包结果，不能把 R29 描述成重复执行数据库门禁。
 
-- 运行 HEAD：`a16e4dd6630344ae9cff3ad9ec8b43d05a0a4fb1`；验收脚本与 E2E 为本任务未提交工作区代码，文件指纹见下。
+- 运行 HEAD：`a16e4dd6630344ae9cff3ad9ec8b43d05a0a4fb1`；验收脚本与 E2E 当时为本任务未提交工作区代码，审阅时文件指纹见 `review.md`。
+- 实现提交：`ac213e8b`。该提交包含 R29 实跑的脚本与 E2E；之后仅调整一次性编排的结束提示文案，按运行模式明确已执行范围。
 - 最终脚本/用例 SHA256：bill-batch `b567119b8f763f810e4bc5e0b0e7eadba012f393fa4bf1a056a2fb16091a74a2`、payable `562c3b7e0b705dfe389768881b23c71eaf793b41b436a79e60fbe315ba382f07`、foreign `ea62bb173ad7b83675b6d7d2a3b5d3764f59afe9873a307d6f09e75e8dfcadba`、fixture `f7cf5c784ed944c2921a9e1352abc9cb98e4ef88cbf0d439c1f3509ae3813707`、财务 E2E `ddadbf93e3dc2b1f1d0e1c63e2e5578420b7778c6204d54ffae6d09213aadbfd`。runner 后续只有成功文案改动，按最终提交内容复核指纹。
 - 关联集成修复提交：`57d7b1a0`、`5366a54b`；真实 UI 暴露的原始 UTC 订单时间由父任务修复并提交为 `a16e4dd6`。
 - 最终完整运行日志：`/tmp/roncin-finance-live-acceptance-r29.log`。
@@ -100,7 +101,7 @@ R29 仅清理本次自己创建的资源：
 
 R29 运行时 runner 的尾部成功文案曾概括为“双环境全链路”；现已按 `--runtime-only`、`--stage-b-only` 和默认全量分别标明实际范围。文案调整后只做语法检查，R29 的业务代码、执行范围和结果不变。
 
-定向检查：5个Node脚本 node --check PASS；Playwright配置与E2E Biome PASS；pnpm --dir web tsc PASS；git diff --check PASS。父任务负责最终 check:fast、审阅、提交与归档。
+定向检查：5个Node脚本 node --check PASS；Playwright配置与E2E Biome PASS；pnpm --dir web tsc PASS；git diff --check PASS。父任务的 `pnpm run check:fast` 已通过，前端1089项PASS、12项既有SKIP（1个文件），服务端检查通过；日志 `/tmp/roncin-finance-closure-check-fast.log`。父任务负责最终收口与归档。
 
 ## 未覆盖项与限制
 
