@@ -3,7 +3,6 @@ export * from './currency-amount-input';
 export * from './date-presets';
 export * from './descriptions-detail-drawer';
 export * from './dialog-sizes';
-export * from './document-detail-layout';
 export * from './ellipsis-tooltip';
 export * from './exchange-rate-input';
 export * from './finance-ledger-template';

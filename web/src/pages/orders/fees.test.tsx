@@ -234,10 +234,6 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
   ),
 }));
 
-vi.mock('./components/fees/orderFeeColumns', () => ({
-  getOrderFeeTableColumns: () => [],
-}));
-
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceGetFeeLedgerOrderDetail: vi.fn(),
 }));

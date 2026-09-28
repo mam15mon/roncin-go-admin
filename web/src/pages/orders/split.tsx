@@ -1,46 +1,26 @@
-import {
-  CheckCircleOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
-  PlusOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import { ReloadOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import {
   Alert,
   App,
   Button,
-  Card,
-  Checkbox,
-  Col,
   Form,
-  Input,
-  InputNumber,
   Popconfirm,
-  Radio,
   Result,
-  Row,
-  Select,
   Space,
   Spin,
-  Statistic,
-  Table,
   Tag,
   Typography,
 } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
-import type { ColumnsType } from 'antd/es/table';
-import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
-import { SectionCard, StickyFooterBar } from '@/components/ui';
+import { StickyFooterBar } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
-import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
 import { history } from '@/router/history';
-import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import {
   seaOrderChangeServiceExecuteSeaOrderSplit,
   seaOrderChangeServiceGetSeaOrderSplitContext,
@@ -54,7 +34,7 @@ import SplitBaselineSection from './components/split/SplitBaselineSection';
 import SplitConservationSection from './components/split/SplitConservationSection';
 import SplitFeesSection from './components/split/SplitFeesSection';
 import SplitResultsSection from './components/split/SplitResultsSection';
-import SeaExternalConfirmationFields, {
+import {
   buildSeaExternalConfirmation,
   type SeaExternalConfirmationFormValues,
 } from './templates/components/sea/SeaExternalConfirmationFields';
@@ -64,7 +44,6 @@ import {
 } from './use-order-lock-state';
 
 const { Text } = Typography;
-const { TextArea } = Input;
 
 /** 拆票域前缀：跨组件失效按该前缀 invalidate。 */
 const SPLIT_QUERY_PREFIX = 'order-split';
@@ -87,7 +66,6 @@ export {
 import {
   buildSeaOrderSplitTargets,
   calculateFeeCurrencySummaries,
-  type FeeCurrencySummary,
   getErrorMessage,
   type ResultConfig,
 } from './splitUtils';
