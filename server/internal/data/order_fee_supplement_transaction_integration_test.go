@@ -650,6 +650,12 @@ func TestFeeSupplementDecisionPostgres(t *testing.T) {
 		if len(fixture.feesForRequest(created.ID)) != 0 || len(fixture.adjustmentsForRequest(created.ID)) != 0 {
 			t.Fatalf("驳回不得产生费用或调整")
 		}
+		if _, err := fixture.usecase.Reject(fixture.ctx, fixture.approverPrincipal(), fixture.organizationID, order.ID, created.ID, rejected.Version, &reason); err != biz.ErrFeeSupplementTransition {
+			t.Fatalf("终态后重复驳回应返回状态冲突，实际 %v", err)
+		}
+		if _, err := fixture.usecase.Withdraw(fixture.ctx, fixture.requesterPrincipal(), fixture.organizationID, order.ID, created.ID, rejected.Version); err != biz.ErrFeeSupplementTransition {
+			t.Fatalf("驳回终态后撤回应返回状态冲突，实际 %v", err)
+		}
 	})
 
 	t.Run("仅发起人可按版本撤回且与审批并发只有一个成功", func(t *testing.T) {
@@ -697,14 +703,14 @@ func TestFeeSupplementDecisionPostgres(t *testing.T) {
 		fees := fixture.feesForRequest(created.ID)
 		adjustments := fixture.adjustmentsForRequest(created.ID)
 		if final.Status == orderfeesupplementent.StatusWITHDRAWN {
-			if withdrawFailure != nil || approveFailure == nil {
+			if withdrawFailure != nil || approveFailure != biz.ErrFeeSupplementTransition {
 				t.Fatalf("撤回成功时审批必须以状态冲突失败: %v", approveFailure)
 			}
 			if len(fees) != 0 || len(adjustments) != 0 {
 				t.Fatalf("撤回成功不得创建费用或调整: %d %d", len(fees), len(adjustments))
 			}
 		} else if final.Status == orderfeesupplementent.StatusAPPROVED {
-			if approveFailure != nil || withdrawFailure == nil {
+			if approveFailure != nil || withdrawFailure != biz.ErrFeeSupplementTransition {
 				t.Fatalf("审批成功时撤回必须以状态冲突失败: %v", withdrawFailure)
 			}
 			if len(fees) != 1 {

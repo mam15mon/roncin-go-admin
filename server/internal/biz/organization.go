@@ -36,17 +36,6 @@ func RequireGlobalMasterDataWrite(ctx context.Context, permissionKey string) err
 	return requireSystemPermission(principal, permissionKey)
 }
 
-// RequireBaselineWrite 拦截 B 型基线行（organization_id IS NULL）的写路径：要求同
-// RequireGlobalMasterDataWrite 的系统管理身份与权限码。非系统管理主体的 B 型写入一律落
-// 本组织行，不允许触碰基线行。
-func RequireBaselineWrite(ctx context.Context, permissionKey string) error {
-	principal, err := RequirePrincipal(ctx)
-	if err != nil {
-		return err
-	}
-	return requireSystemPermission(principal, permissionKey)
-}
-
 // IsSystemWorkspace 判定当前主体的工作台组织沿组织树向上解析到根后是否
 // 为系统管理节点。写路径用于决定 B 型写入落基线行还是本组织行。
 func IsSystemWorkspace(ctx context.Context) bool {

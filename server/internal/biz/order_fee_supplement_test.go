@@ -7,7 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func TestOrderFeeSupplementStatusStateMachine(t *testing.T) {
+func TestOrderFeeSupplementStatusValidAndTerminal(t *testing.T) {
 	if OrderFeeSupplementPending.Terminal() {
 		t.Fatalf("PENDING 不应是终态")
 	}
@@ -15,24 +15,10 @@ func TestOrderFeeSupplementStatusStateMachine(t *testing.T) {
 		if !terminal.Terminal() {
 			t.Fatalf("%s 应是终态", terminal)
 		}
-		if !OrderFeeSupplementPending.CanTransitionTo(terminal) {
-			t.Fatalf("PENDING 应允许进入终态 %s", terminal)
-		}
-		if terminal.CanTransitionTo(terminal) || terminal.CanTransitionTo(OrderFeeSupplementPending) {
-			t.Fatalf("终态 %s 不允许任何后续流转", terminal)
-		}
-		for _, other := range []OrderFeeSupplementStatus{OrderFeeSupplementApproved, OrderFeeSupplementRejected, OrderFeeSupplementWithdrawn} {
-			if terminal.CanTransitionTo(other) {
-				t.Fatalf("终态 %s 不允许流转到 %s", terminal, other)
-			}
-		}
-	}
-	if OrderFeeSupplementPending.CanTransitionTo(OrderFeeSupplementPending) {
-		t.Fatalf("PENDING 不允许自流转")
 	}
 	var invalid OrderFeeSupplementStatus
-	if invalid.CanTransitionTo(OrderFeeSupplementApproved) || invalid.Valid() {
-		t.Fatalf("未登记状态不允许流转且不应通过取值校验")
+	if invalid.Valid() {
+		t.Fatalf("未登记状态不应通过取值校验")
 	}
 	if !OrderFeeSupplementPending.Valid() || !OrderFeeSupplementWithdrawn.Valid() {
 		t.Fatalf("已登记状态应通过取值校验")

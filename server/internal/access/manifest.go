@@ -455,51 +455,6 @@ func ResolveDependencies(granted []string) []string {
 	return result
 }
 
-// IsBusinessOperationPermission 显式声明经营办理权限；公共配置与只读导出不属于经营办理。
-func IsBusinessOperationPermission(key string) bool {
-	_, exists := businessOperationPermissions[key]
-	return exists
-}
-
-var businessOperationPermissions = func() map[string]struct{} {
-	result := make(map[string]struct{})
-	for _, permission := range manifest {
-		if isBusinessOperationPermissionDefinition(permission.Key) {
-			result[permission.Key] = struct{}{}
-		}
-	}
-	return result
-}()
-
-func isBusinessOperationPermissionDefinition(key string) bool {
-	switch key {
-	case PartnerCreate, PartnerUpdate, PartnerBlacklist, PartnerImport,
-		PartnerAccountCreate, PartnerAccountUpdate, PartnerContractCreate, PartnerContractUpdate,
-		PartnerSettlementRuleCreate, PartnerSettlementRuleUpdate, PartnerAttachmentRegister,
-		PartnerShippingPresetCreate, PartnerShippingPresetUpdate,
-		FinanceFeeTag, FinanceBillCreate, FinanceBillUpdate, FinanceBillConfirm,
-		FinanceInvoiceCreate, FinanceInvoiceUpdate, FinanceCashflowCreate, FinanceCashflowUpdate,
-		FinanceVerificationCreate, FinanceVerificationReverse, FinanceNettingCreate, FinanceNettingConfirm,
-		FinanceNettingReverse, FinanceCommissionManage:
-		return true
-	}
-	for _, businessType := range orderBusinessTypes {
-		for _, operation := range []OrderOperation{
-			OrderCreate, OrderUpdate, OrderTransition, OrderMilestoneSet, OrderAttachmentRegister,
-			OrderPersonnelAssign, OrderPersonnelRemove, OrderContainerCreate, OrderContainerUpdate, OrderContainerDelete,
-			OrderCargoItemCreate, OrderCargoItemUpdate, OrderCargoItemDelete, OrderAbnormalCaseCreate,
-			OrderAbnormalCaseResolve, OrderAbnormalCaseDelete, OrderReleasePodCreate, OrderReleasePodUpdate,
-			OrderReleasePodTransition, OrderReleasePodDelete, OrderFeeCreate, OrderFeeUpdate, OrderFeeDelete,
-			OrderSplit, OrderReassign, OrderLock, OrderAmend, OrderVoid, OrderSwitch,
-		} {
-			if permission := OrderPermission(businessType, operation); permission != "" && permission == key {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 // IsCompanyBusinessPermission 包含经营读取、办理和公司财务配置，系统工作台不授予。
 // 汇率完全下沉分公司：汇率读写全部属于公司业务权限；费用设置保持系统模板与
 // 公司配置的双工作台授权不变。

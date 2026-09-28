@@ -1090,12 +1090,6 @@ func isValidResponsibilityType(t string) bool {
 	}
 }
 
-// ComputeFingerprint 计算请求内容的稳定 SHA256 指纹
-func ComputeFingerprint(content string) string {
-	sum := sha256.Sum256([]byte(content))
-	return hex.EncodeToString(sum[:])
-}
-
 // FormatDecimal3 格式化 3 位小数
 func FormatDecimal3(d decimal.Decimal) string {
 	return d.StringFixed(3)

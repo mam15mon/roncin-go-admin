@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
-	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 )
 
@@ -112,24 +111,5 @@ func TestDecodeSplitResultSnapshotSummaryRejectsDamagedHistory(t *testing.T) {
 				t.Fatal("damaged split result snapshot must return an error")
 			}
 		})
-	}
-}
-
-func TestSeaOrderChange_Fingerprint(t *testing.T) {
-	s1 := "test-content-123"
-	fp1 := biz.ComputeFingerprint(s1)
-	fp2 := biz.ComputeFingerprint(s1)
-
-	if fp1 == "" {
-		t.Fatal("fingerprint should not be empty")
-	}
-	if fp1 != fp2 {
-		t.Fatalf("fingerprint should be deterministic: %s vs %s", fp1, fp2)
-	}
-
-	s2 := "test-content-456"
-	fp3 := biz.ComputeFingerprint(s2)
-	if fp1 == fp3 {
-		t.Fatal("different content must yield different fingerprint")
 	}
 }

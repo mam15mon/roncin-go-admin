@@ -71,21 +71,6 @@ func (s OrderFeeSupplementStatus) Terminal() bool {
 	return s != OrderFeeSupplementPending
 }
 
-// CanTransitionTo 是补录申请状态机的唯一流转规则：PENDING 只能进入一个终态，
-// 终态之间及向自身的流转一律拒绝；审批、驳回与撤回在申请行锁内竞争同一迁移，
-// 只有先提交的一方成功。
-func (s OrderFeeSupplementStatus) CanTransitionTo(target OrderFeeSupplementStatus) bool {
-	if s != OrderFeeSupplementPending {
-		return false
-	}
-	switch target {
-	case OrderFeeSupplementApproved, OrderFeeSupplementRejected, OrderFeeSupplementWithdrawn:
-		return true
-	default:
-		return false
-	}
-}
-
 // OrderFeeSupplementLockBasis 申请提交时固化的锁依据类型。
 type OrderFeeSupplementLockBasis string
 
