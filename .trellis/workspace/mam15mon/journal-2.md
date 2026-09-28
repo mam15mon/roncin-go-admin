@@ -840,3 +840,27 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 111: 清理无用代码并验证业务路径
+<!-- trellis-session: v=2 fp=4b29d30228893024 -->
+
+**Date**: 2026-09-28
+**Task**: 清理无用代码并验证业务路径
+**Branch**: `refactor/dead-code-cleanup`
+
+### Summary
+
+删除前后端无运行时消费者的模块、辅助入口和未生效 Tailwind 配置；补充费用补录真实库断言，完成定向测试、前端构建对比、全栈门禁和 Trellis 复核，归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b34fdb26` | refactor(server): 清理无调用的权限与业务辅助入口 |
+| `8d30142f` | refactor(web): 清理孤立组件与未使用导入 |
+| `b99e7f26` | docs(task): 记录无用代码清理验收结果 |
+
+### Status
+
+[OK] **Completed**
