@@ -39,7 +39,7 @@ export function AppLayout() {
       {...layoutSettings}
       location={{ pathname: location.pathname }}
       route={menuData}
-      menu={{ locale: false }}
+      menu={{ locale: false, collapsedWidth: 48 }}
       menuHeaderRender={(logo, title) => (
         <Link
           to="/welcome"

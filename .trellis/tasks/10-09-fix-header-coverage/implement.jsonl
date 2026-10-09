@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范入口"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "全局布局、侧栏与页签规范"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "风险匹配验证与禁止无布局假通过"}
+{"file": ".trellis/spec/guides/index.md", "reason": "共享变更检查原则"}

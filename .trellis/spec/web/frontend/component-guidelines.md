@@ -91,6 +91,13 @@
   展开箭头，图标正中居中。
 - 含子级的菜单项折叠态 Hover 弹出纯白圆角子菜单浮层（`.ant-menu-submenu-popup`）。
 
+## 固定顶部栏与侧栏宽度
+
+- `web/src/global.less` 中仅 `.ant-pro-layout-header` 外层负责侧栏偏移与扣减宽度：展开 208px、折叠 48px。外层 `padding: 0`、不透明白底，滚动后仍完整覆盖正文；内部 `.ant-pro-global-header` 始终 `width: 100%`、`margin-inline: 0`，水平留白由内部 padding 提供。
+- 折叠规则按实际 ProLayout 根下的 `.ant-pro-sider.ant-layout-sider-collapsed` 匹配，避免依赖失效的兄弟结构或历史类名；桌面折叠规则 `min-width: 768px`，移动外层覆盖规则 `max-width: 767px`，与 ProLayout 移动判定一致；折叠选择器不得压过移动规则。
+- `AppLayout` 的 `menu={{ locale: false, collapsedWidth: 48 }}` 同步设置组件的折叠占位。只修改侧栏 CSS 会保留组件默认 64px 占位，使页签和正文与 48px 顶部栏错位。
+- 布局缺口验证使用真实浏览器：展开、折叠及滚动前后比较外层/内层尺寸，header 高 48px，页签栏紧接其下；检查左右边缘命中顶部栏或页签而非正文，并覆盖移动端与响应式边界。jsdom/happy-dom 和 CSS 字符串断言不能证明覆盖范围。
+
 ## 权限相关组件
 
 - 按钮级权限复用路由级 `access` 的同一判断结果（如

@@ -385,14 +385,20 @@ body,
     }
   }
 
-  // 顶部顶栏：置于侧边栏右侧（left: 208px, width: calc(100% - 208px)）
-  .ant-pro-layout-header,
-  .ant-pro-fixed-header,
-  .ant-pro-global-header-layout-mix {
+  // 固定顶栏外层负责侧栏偏移，并完整覆盖滚动正文。
+  .ant-pro-layout-header {
     left: 208px !important;
     width: calc(100% - 208px) !important;
+    background: #ffffff !important;
+    padding: 0 !important;
     z-index: 100 !important;
     transition: all 0.2s ease !important;
+  }
+
+  // 内层铺满外层，水平留白只由内层 padding 提供。
+  .ant-pro-global-header {
+    width: 100% !important;
+    margin-inline: 0 !important;
   }
 
   // 隐藏顶部顶栏中冗余的 Logo（Logo 由全高左侧侧栏呈现）
@@ -400,15 +406,12 @@ body,
     display: none !important;
   }
 
-  // 侧边栏折叠时顶栏自动贴合
-  .ant-pro-sider-collapsed ~ .ant-layout .ant-pro-layout-header,
-  .ant-pro-sider-collapsed ~ .ant-layout .ant-pro-fixed-header,
-  .ant-layout-sider-collapsed ~ .ant-layout .ant-pro-layout-header,
-  .ant-layout-sider-collapsed ~ .ant-layout .ant-pro-fixed-header,
-  .ant-pro-layout-mix:has(.ant-layout-sider-collapsed) .ant-pro-layout-header,
-  .ant-pro-layout-mix:has(.ant-layout-sider-collapsed) .ant-pro-fixed-header {
-    left: 48px !important;
-    width: calc(100% - 48px) !important;
+  // 桌面折叠态按实际 ProLayout 根结构匹配；移动端仍铺满视口。
+  @media (min-width: 768px) {
+    &:has(.ant-pro-sider.ant-layout-sider-collapsed) .ant-pro-layout-header {
+      left: 48px !important;
+      width: calc(100% - 48px) !important;
+    }
   }
 }
 
@@ -1327,20 +1330,23 @@ ol {
   }
 }
 
-// 响应式
-@media (max-width: 768px) {
-  // 移动端顶栏占满视口，消除侧栏硬编码留白
+// 移动端顶栏跟随 ProLayout 的 < 768px 断点，避免桌面侧栏与顶栏错位。
+@media (max-width: 767px) {
   .ant-pro-layout,
   .ant-pro-layout-mix {
-    .ant-pro-layout-header,
-    .ant-pro-fixed-header,
-    .ant-pro-global-header-layout-mix {
+    .ant-pro-layout-header {
       left: 0 !important;
       width: 100% !important;
+    }
+
+    .ant-pro-global-header {
       padding: 0 8px !important;
     }
   }
+}
 
+// 响应式
+@media (max-width: 768px) {
   // 移动端顶栏标题弹性自适应，禁止单字竖排折行溢出
   .roncin-header-content {
     min-width: 0 !important;

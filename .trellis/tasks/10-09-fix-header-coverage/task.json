@@ -1,0 +1,30 @@
+{
+  "id": "fix-header-coverage",
+  "name": "fix-header-coverage",
+  "title": "修复固定顶部栏覆盖缺口",
+  "description": "修复 ProLayout 固定 header 外层与内部容器重复扣除侧栏宽度的问题，验证展开、折叠、滚动和移动端布局。",
+  "status": "in_progress",
+  "dev_type": "frontend",
+  "scope": "layout",
+  "package": "web",
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-09",
+  "completedAt": null,
+  "branch": "codex/fix-header-coverage",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "web/src/global.less",
+    "web/src/app/AppLayout.tsx",
+    ".trellis/spec/web/frontend/component-guidelines.md"
+  ],
+  "notes": "",
+  "meta": {}
+}
