@@ -977,3 +977,25 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Next Steps
 
 - 验证已开通与停用账号实际扫码结果后归档Trellis任务。
+
+
+## Session 116: 企业微信前后端下线与开发库迁移验收
+<!-- trellis-session: v=2 fp=1f80231a48f55a2b -->
+
+**Date**: 2026-10-09
+**Task**: 企业微信前后端下线与开发库迁移验收
+**Branch**: `codex/retire-wecom`
+
+### Summary
+
+下线企业微信登录、成员授权、用户列、权限与运行配置，删除专属绑定字段并同步生成物；正式迁移在开发库执行，34用户及组织角色关联保留。独立PostgreSQL升级与冷启动、前端98定向用例、全栈门禁1071前端用例、生产构建及真实页面/API验收通过；任务已归档，未推送或合并main。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `45b900ff` | refactor: 下线前后端企业微信功能与用户绑定字段 |
+
+### Status
+
+[OK] **Completed**
