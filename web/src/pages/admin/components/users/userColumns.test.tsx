@@ -126,3 +126,43 @@ describe('buildUserColumns 按页签隐藏操作列', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('buildUserColumns 头像显示', () => {
+  it.each(['', undefined])('没有头像链接（%s）时显示姓名首字', (avatarUrl) => {
+    const userColumn = buildUserColumns(baseDeps).find(
+      (column) => column.title === '用户',
+    );
+    const renderColumn = userColumn?.render as RoleColumnRender;
+    const { container } = render(
+      <>
+        {renderColumn(null, {
+          displayName: '张芳',
+          avatarUrl,
+        } as API.AdminUser)}
+      </>,
+    );
+
+    expect(container.querySelector('.ant-avatar')).toHaveTextContent('张');
+    expect(container.querySelector('.ant-avatar img')).not.toBeInTheDocument();
+  });
+
+  it('有头像链接时显示照片', () => {
+    const userColumn = buildUserColumns(baseDeps).find(
+      (column) => column.title === '用户',
+    );
+    const renderColumn = userColumn?.render as RoleColumnRender;
+    const { container } = render(
+      <>
+        {renderColumn(null, {
+          displayName: '张芳',
+          avatarUrl: 'https://example.com/avatar.jpg',
+        } as API.AdminUser)}
+      </>,
+    );
+
+    expect(container.querySelector('.ant-avatar img')).toHaveAttribute(
+      'src',
+      'https://example.com/avatar.jpg',
+    );
+  });
+});

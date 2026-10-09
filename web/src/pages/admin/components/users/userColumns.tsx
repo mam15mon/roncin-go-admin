@@ -60,7 +60,7 @@ export function buildUserColumns({
           <Space size={10} align="center">
             <Avatar
               size={32}
-              src={record.avatarUrl}
+              src={record.avatarUrl || undefined}
               style={{
                 backgroundColor:
                   record.status === AdminUserStatus.ADMIN_USER_STATUS_ACTIVE
