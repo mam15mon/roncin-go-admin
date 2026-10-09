@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "统一事务、锁内校验、正式迁移与 Schema 约束同源"}
+{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "无组织待分配与有效工作台会话边界"}
+{"file": ".trellis/spec/server/backend/role-workspace-ownership.md", "reason": "目标组织角色库归属及提权校验"}
+{"file": ".trellis/spec/server/backend/dingtalk-registration-approval.md", "reason": "识别要撤除的旧注册契约和必须保留的 token/日志安全要求；新产品决策以任务为准"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query 状态与生成请求客户端"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "页面模板、列表与表单生命周期规范"}
+{"file": ".trellis/tasks/10-09-dingtalk-directory-provisioning/research/current-state.md", "reason": "现状证据、身份与状态陷阱、接口权限核验限制"}
+{"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "服务端分层与依赖边界"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "契约与权限生成物对齐"}
