@@ -946,3 +946,34 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Next Steps
 
 - 在钉钉应用开通 qyapi_get_department_list 和 qyapi_get_department_member，完成真实全员同步与扫码联调后再归档任务
+
+
+## Session 115: 钉钉同步实际联调与合并收尾
+<!-- trellis-session: v=2 fp=d0e4480cb8b79745 -->
+
+**Date**: 2026-10-09
+**Task**: 钉钉同步实际联调与合并收尾
+**Branch**: `codex/dingtalk-directory-provisioning`
+
+### Summary
+
+真实同步27人、待分配扫码通过，修正字段/UI/排队及回调配置；按用户授权合并main，保留其他账号状态实扫待验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d50cf1c8` | fix: 缩短钉钉人员同步任务的空闲排队时间 |
+| `e4f64254` | docs: 记录真实通讯录联调与扫码回调地址修正 |
+
+### Testing
+
+- [OK] check:fast通过；前端1073通过、12既有跳过；通讯录定向专用PostgreSQL及网关12项通过。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 验证已开通与停用账号实际扫码结果后归档Trellis任务。

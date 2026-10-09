@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 114
+- **Total Sessions**: 115
 - **Last Active**: 2026-10-09
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~948 | Active |
+| `journal-2.md` | ~979 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 115 | 2026-10-09 | 钉钉同步实际联调与合并收尾 | `d50cf1c8`, `e4f64254` | `codex/dingtalk-directory-provisioning` |
 | 114 | 2026-10-09 | 钉钉人员同步与管理员开通实施 | `0fe1fa99`, `2aa9762e` | `codex/dingtalk-directory-provisioning` |
 | 113 | 2026-10-09 | 统一全站共享布局尺寸与样式变量 | `3f86ac4a` | `codex/layout-dimensions` |
 | 112 | 2026-10-09 | 修复固定顶部栏覆盖缺口 | `b19f314d` | `codex/fix-header-coverage` |
