@@ -1,15 +1,20 @@
-import { ReloadOutlined, SyncOutlined } from '@ant-design/icons';
+import {
+  QuestionCircleOutlined,
+  ReloadOutlined,
+  SyncOutlined,
+} from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   Button,
   Card,
-  Descriptions,
   Pagination,
   Space,
   Spin,
   Table,
+  Tag,
+  Tooltip,
   Typography,
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
@@ -107,7 +112,41 @@ export default function DingTalkDirectorySyncPanel({
   return (
     <Card
       size="small"
-      title="钉钉通讯录"
+      title={
+        <Space size={8} wrap>
+          <span>钉钉通讯录</span>
+          {sync && (
+            <Tag
+              color={
+                running
+                  ? 'processing'
+                  : sync.lastError || sync.failed || !sync.fullScope
+                    ? 'warning'
+                    : 'success'
+              }
+              style={{ margin: 0 }}
+            >
+              {completed && sync.failed
+                ? '部分失败'
+                : statusNames[sync.status?.toLowerCase() ?? ''] ||
+                  '同步状态未知'}
+            </Tag>
+          )}
+          <Tooltip title="新同步人员先进入待分配，分配组织和角色后开通；重复同步只更新钉钉资料，本次未返回的人员不会自动离职。">
+            <Button
+              type="text"
+              size="small"
+              aria-label="同步说明"
+              icon={<QuestionCircleOutlined />}
+              style={{ color: 'rgba(0, 0, 0, 0.45)' }}
+            />
+          </Tooltip>
+        </Space>
+      }
+      styles={{
+        header: { flexWrap: 'wrap', gap: 8, paddingBlock: 8 },
+        body: { padding: '12px 16px' },
+      }}
       style={{ marginBottom: 'var(--roncin-page-section-gap)' }}
       extra={
         <Space>
@@ -132,9 +171,6 @@ export default function DingTalkDirectorySyncPanel({
         </Space>
       }
     >
-      <Typography.Paragraph type="secondary">
-        新同步人员先进入待分配。管理员分配组织和角色后开通；重复同步只更新钉钉资料。本次未返回的人员不会自动离职。
-      </Typography.Paragraph>
       {syncQuery.isLoading ? (
         <Spin />
       ) : syncQuery.isError ? (
@@ -146,69 +182,75 @@ export default function DingTalkDirectorySyncPanel({
         />
       ) : sync ? (
         <>
-          <Alert
-            showIcon
-            type={
-              running
-                ? 'info'
-                : sync.lastError || sync.failed || !sync.fullScope
-                  ? 'warning'
-                  : 'success'
-            }
-            title={statusTitle}
-            description={
-              <>
-                {sync.fullScope
-                  ? '通讯录授权范围：全企业。此范围仅说明可以访问哪些人员，不代表每条人员资料均已同步成功。'
-                  : sync.scopeSummary || '通讯录范围尚未核验'}
-                {!sync.fullScope &&
-                  '；尚未确认全员授权范围，结果可能只包含部分人员。'}
-                {sync.lastError && <div>{sync.lastError}</div>}
-              </>
-            }
-            style={{ marginBottom: 12 }}
-          />
-          <Descriptions
-            size="small"
-            column={{ xs: 1, sm: 2, lg: 4 }}
-            items={[
-              {
-                key: 'total',
-                label: '可处理人员（去重）',
-                children: sync.total ?? 0,
-              },
-              {
-                key: 'created',
-                label: '新增待分配',
-                children: sync.created ?? 0,
-              },
-              {
-                key: 'updated',
-                label: '资料更新',
-                children: sync.updated ?? 0,
-              },
-              {
-                key: 'unchanged',
-                label: '未变化',
-                children: sync.unchanged ?? 0,
-              },
-              { key: 'failed', label: '失败记录', children: sync.failed ?? 0 },
-              {
-                key: 'time',
-                label: '完成时间',
-                children: formatDate(sync.completedAt, 'minute'),
-              },
-              {
-                key: 'fields',
-                label: '本次同步资料',
-                span: 2,
-                children:
-                  sync.availableFields
-                    ?.map((field) => fieldNames[field] || '其他资料')
-                    .join('、') || '尚未核验',
-              },
-            ]}
-          />
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '8px 28px',
+              marginBottom: 8,
+            }}
+          >
+            {[
+              { key: 'total', label: '可处理人员（去重）', value: sync.total },
+              { key: 'created', label: '新增待分配', value: sync.created },
+              { key: 'updated', label: '资料更新', value: sync.updated },
+              { key: 'unchanged', label: '未变化', value: sync.unchanged },
+              { key: 'failed', label: '失败记录', value: sync.failed },
+            ].map((item) => (
+              <Space key={item.key} size={8}>
+                <Typography.Text type="secondary">{item.label}</Typography.Text>
+                <Typography.Text
+                  strong
+                  type={
+                    item.key === 'failed' && item.value ? 'danger' : undefined
+                  }
+                  style={{ fontSize: 16 }}
+                >
+                  {item.value ?? 0}
+                </Typography.Text>
+              </Space>
+            ))}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '4px 20px',
+              fontSize: 12,
+              color: 'rgba(0, 0, 0, 0.45)',
+            }}
+          >
+            <span>完成时间：{formatDate(sync.completedAt, 'minute')}</span>
+            <Tooltip title="授权范围说明可以访问哪些人员；具体同步结果以人员统计和失败详情为准。">
+              <span>
+                授权范围：
+                {sync.fullScope ? '全企业' : sync.scopeSummary || '尚未核验'}
+              </span>
+            </Tooltip>
+            <span>
+              本次同步资料：
+              <span>
+                {sync.availableFields
+                  ?.map((field) => fieldNames[field] || '其他资料')
+                  .join('、') || '尚未核验'}
+              </span>
+            </span>
+          </div>
+          {!running &&
+            Boolean(sync.lastError || sync.failed || !sync.fullScope) && (
+              <Alert
+                showIcon
+                type="warning"
+                title={statusTitle}
+                description={
+                  sync.lastError ||
+                  (!sync.fullScope
+                    ? '尚未确认全员授权范围，结果可能只包含部分人员。'
+                    : '部分记录未同步成功，请查看下方具体失败原因。')
+                }
+                style={{ marginTop: 12, marginBottom: 12 }}
+              />
+            )}
           {Boolean(sync.failureTotal) && (
             <>
               <Typography.Paragraph type="secondary">
