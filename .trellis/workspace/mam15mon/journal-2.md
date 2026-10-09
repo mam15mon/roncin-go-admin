@@ -886,3 +886,26 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 113: 统一全站共享布局尺寸与样式变量
+<!-- trellis-session: v=2 fp=2d319f5d40be1077 -->
+
+**Date**: 2026-10-09
+**Task**: 统一全站共享布局尺寸与样式变量
+**Package**: web
+**Branch**: `codex/layout-dimensions`
+
+### Summary
+
+新增layout.ts作为组件尺寸与CSS变量唯一来源，迁移外壳、公共模板、导航避让与布局层级；默认及替代尺寸浏览器验收通过，1093用例复跑全绿、生产构建通过，任务已归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3f86ac4a` | refactor(web): 统一全站共享布局尺寸与样式变量 |
+
+### Status
+
+[OK] **Completed**
