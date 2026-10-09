@@ -209,6 +209,12 @@ export default function DingTalkDirectorySyncPanel({
               </Typography.Paragraph>
               <Table<API.DingTalkDirectorySyncFailure>
                 size="small"
+                tableLayout="fixed"
+                column={{
+                  onCell: () => ({
+                    style: { whiteSpace: 'normal', overflowWrap: 'anywhere' },
+                  }),
+                }}
                 pagination={false}
                 dataSource={sync.failures ?? []}
                 rowKey={(row) =>
@@ -217,11 +223,13 @@ export default function DingTalkDirectorySyncPanel({
                 columns={[
                   {
                     title: '人员标识',
+                    width: '28%',
                     dataIndex: 'userId',
                     render: (value) => value || '—',
                   },
                   {
                     title: '部门标识',
+                    width: '20%',
                     dataIndex: 'departmentId',
                     render: (value) =>
                       value && value !== '0' ? value : '未记录',
