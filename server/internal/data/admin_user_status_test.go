@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/google/uuid"
 	"testing"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -59,5 +60,13 @@ func TestAdminUserStatus(t *testing.T) {
 				t.Fatalf("adminUserStatus() = %q, want %q", got, test.want)
 			}
 		})
+	}
+}
+
+func TestPendingAssignmentHasNoOrganizationAnchorWithHistoricalMembership(t *testing.T) {
+	account := &ent.User{PendingAssignment: true, Enabled: false, Edges: ent.UserEdges{Memberships: []*ent.Membership{{Enabled: false}}}}
+	row, err := adminUserRow(account, nil)
+	if err != nil || row.CurrentMembershipEnabled || len(row.RoleIDs) != 0 || len(row.Organizations) != 0 || row.CurrentOrganizationID != uuid.Nil || row.Status != biz.AdminUserStatusPendingAssignment {
+		t.Fatalf("待分配投影带入历史组织: %+v %v", row, err)
 	}
 }

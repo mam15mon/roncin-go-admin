@@ -8,14 +8,12 @@ import {
   SafetyCertificateOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import React, { useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router';
+import React, { useMemo } from 'react';
 import { useAccess } from '@/app/access';
 import {
   type MultiTabCenterTabItem,
   MultiTabCenterTemplate,
 } from '@/components/ui';
-import { history } from '@/router/history';
 import AuditPanel from './audit';
 import BackgroundTasksPanel from './background-tasks';
 import AbnormalCasesPanel from './components/AbnormalCasesPanel';
@@ -27,23 +25,6 @@ import UsersPanel from './users';
 
 export default function Admin() {
   const access = useAccess();
-  const location = useLocation();
-
-  // 兼容旧路径重定向（原顶级 dingtalk-registrations / dingtalk-invitations 平滑收敛至用户管理子页签）
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const queryTab = params.get('tab');
-    if (queryTab === 'dingtalk-registrations') {
-      params.set('tab', 'users');
-      params.set('subTab', 'registrations');
-      history.replace(`${location.pathname}?${params.toString()}`);
-    } else if (queryTab === 'dingtalk-invitations') {
-      params.set('tab', 'users');
-      params.set('subTab', 'invitations');
-      history.replace(`${location.pathname}?${params.toString()}`);
-    }
-  }, [location.search, location.pathname]);
-
   const tabItems: MultiTabCenterTabItem[] = useMemo(
     () => [
       {
@@ -58,8 +39,8 @@ export default function Admin() {
         key: 'users',
         label: '用户管理',
         icon: <UserOutlined />,
-        visible: access.canReadUsers || access.canManageDingTalkInvitations,
-        tooltip: '管理系统成员账号、审批钉钉注册申请及生成入职邀请码',
+        visible: access.canReadUsers,
+        tooltip: '同步钉钉人员、分配组织角色并管理成员账号',
         children: <UsersPanel />,
       },
       {

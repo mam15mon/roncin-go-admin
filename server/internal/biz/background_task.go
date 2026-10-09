@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+ "github.com/roncin/roncin-go-admin/server/internal/access"
 )
 
 var (
@@ -23,18 +24,20 @@ var (
 type BackgroundTaskKind string
 
 const (
-	BackgroundTaskKindMasterDataImport    BackgroundTaskKind = "MASTER_DATA_IMPORT"
-	BackgroundTaskKindUnlocodeImport      BackgroundTaskKind = "UNLOCODE_IMPORT"
-	BackgroundTaskKindOrderReminder       BackgroundTaskKind = "ORDER_REMINDER"
-	BackgroundTaskKindIntegration         BackgroundTaskKind = "INTEGRATION"
-	BackgroundTaskKindDingTalkNotice      BackgroundTaskKind = "DINGTALK_NOTIFICATION"
-	BackgroundTaskKindObjectStorageDelete BackgroundTaskKind = "OBJECT_STORAGE_DELETION"
-	BackgroundTaskKindDingTalkApproval    BackgroundTaskKind = "DINGTALK_APPROVAL_CREATE"
+	BackgroundTaskKindDingTalkDirectorySync BackgroundTaskKind = "DINGTALK_DIRECTORY_SYNC"
+	BackgroundTaskKindMasterDataImport      BackgroundTaskKind = "MASTER_DATA_IMPORT"
+	BackgroundTaskKindUnlocodeImport        BackgroundTaskKind = "UNLOCODE_IMPORT"
+	BackgroundTaskKindOrderReminder         BackgroundTaskKind = "ORDER_REMINDER"
+	BackgroundTaskKindIntegration           BackgroundTaskKind = "INTEGRATION"
+	BackgroundTaskKindDingTalkNotice        BackgroundTaskKind = "DINGTALK_NOTIFICATION"
+	BackgroundTaskKindObjectStorageDelete   BackgroundTaskKind = "OBJECT_STORAGE_DELETION"
+	BackgroundTaskKindDingTalkApproval      BackgroundTaskKind = "DINGTALK_APPROVAL_CREATE"
 )
 
 func (k BackgroundTaskKind) Valid() bool {
 	switch k {
-	case BackgroundTaskKindMasterDataImport,
+	case BackgroundTaskKindDingTalkDirectorySync,
+		BackgroundTaskKindMasterDataImport,
 		BackgroundTaskKindUnlocodeImport,
 		BackgroundTaskKindOrderReminder,
 		BackgroundTaskKindIntegration,
@@ -269,7 +272,8 @@ func (uc *BackgroundTaskUsecase) Requeue(ctx context.Context, organizationID, ac
 	if err != nil {
 		return nil, err
 	}
-	if task.Kind == BackgroundTaskKindDingTalkApproval || task.Kind == BackgroundTaskKindOrderReminder || task.Kind == BackgroundTaskKindIntegration {
+	if task.Kind==BackgroundTaskKindDingTalkDirectorySync {principal,err:=RequirePrincipal(ctx);if err!=nil{return nil,err};if !IsSystemWorkspace(ctx) || !principal.HasPermission(access.UserDingTalkDirectorySync) {return nil,ErrPermissionDenied}}
+ if task.Kind == BackgroundTaskKindDingTalkApproval || task.Kind == BackgroundTaskKindOrderReminder || task.Kind == BackgroundTaskKindIntegration {
 		principal, err := RequirePrincipal(ctx)
 		if err != nil {
 			return nil, err

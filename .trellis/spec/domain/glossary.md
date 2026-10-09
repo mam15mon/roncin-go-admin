@@ -58,7 +58,7 @@
 | 编号规则 | `NumberRule` / `NumberSequence` | 业务单号生成（如提单号、申请号） | `number_rule.go` |
 | 汇率 | `ExchangeRateSetting` / `...ImportBatch` | 币种汇率设置与批量导入；提成/账单 CNY 折算依赖 | `exchange_rate*.go` |
 | 企业资源 | `EnterpriseResource` 系列 | 客户资源聚合（地址/影像/关联/备注/出货文本） | `enterprise_resource*.go` |
-| 钉钉集成 | `dingtalk_*` | 入职邀请与审批流转 | `biz/dingtalk_*.go` |
+| 钉钉集成 | `dingtalk_*` | 通讯录同步、待分配开通与业务审批流转 | `biz/dingtalk_*.go` |
 | 主数据 | Currency/Port/Airport/Airline/AdministrativeRegion | 全局引用数据；选择器搜索覆盖拼音 | `seeds/` 初始化 |
 
 ## 通用机制（贯穿全域）

@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
@@ -151,6 +152,8 @@ type Client struct {
 	DingTalkApprovalDispatch *DingTalkApprovalDispatchClient
 	// DingTalkApprovalInboxEvent is the client for interacting with the DingTalkApprovalInboxEvent builders.
 	DingTalkApprovalInboxEvent *DingTalkApprovalInboxEventClient
+	// DingTalkDirectorySync is the client for interacting with the DingTalkDirectorySync builders.
+	DingTalkDirectorySync *DingTalkDirectorySyncClient
 	// DingTalkInvitation is the client for interacting with the DingTalkInvitation builders.
 	DingTalkInvitation *DingTalkInvitationClient
 	// EnterpriseResource is the client for interacting with the EnterpriseResource builders.
@@ -373,6 +376,7 @@ func (c *Client) init() {
 	c.Currency = NewCurrencyClient(c.config)
 	c.DingTalkApprovalDispatch = NewDingTalkApprovalDispatchClient(c.config)
 	c.DingTalkApprovalInboxEvent = NewDingTalkApprovalInboxEventClient(c.config)
+	c.DingTalkDirectorySync = NewDingTalkDirectorySyncClient(c.config)
 	c.DingTalkInvitation = NewDingTalkInvitationClient(c.config)
 	c.EnterpriseResource = NewEnterpriseResourceClient(c.config)
 	c.EnterpriseResourceAddress = NewEnterpriseResourceAddressClient(c.config)
@@ -575,6 +579,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Currency:                         NewCurrencyClient(cfg),
 		DingTalkApprovalDispatch:         NewDingTalkApprovalDispatchClient(cfg),
 		DingTalkApprovalInboxEvent:       NewDingTalkApprovalInboxEventClient(cfg),
+		DingTalkDirectorySync:            NewDingTalkDirectorySyncClient(cfg),
 		DingTalkInvitation:               NewDingTalkInvitationClient(cfg),
 		EnterpriseResource:               NewEnterpriseResourceClient(cfg),
 		EnterpriseResourceAddress:        NewEnterpriseResourceAddressClient(cfg),
@@ -704,6 +709,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Currency:                         NewCurrencyClient(cfg),
 		DingTalkApprovalDispatch:         NewDingTalkApprovalDispatchClient(cfg),
 		DingTalkApprovalInboxEvent:       NewDingTalkApprovalInboxEventClient(cfg),
+		DingTalkDirectorySync:            NewDingTalkDirectorySyncClient(cfg),
 		DingTalkInvitation:               NewDingTalkInvitationClient(cfg),
 		EnterpriseResource:               NewEnterpriseResourceClient(cfg),
 		EnterpriseResourceAddress:        NewEnterpriseResourceAddressClient(cfg),
@@ -836,13 +842,14 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
-		c.DingTalkApprovalInboxEvent, c.DingTalkInvitation, c.EnterpriseResource,
-		c.EnterpriseResourceAddress, c.EnterpriseResourceAddressType,
-		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
-		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
-		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
-		c.EnterpriseTagGroup, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.FeeSetting, c.FeeSettingTemplate, c.FinanceBill, c.FinanceBillBatch,
+		c.DingTalkApprovalInboxEvent, c.DingTalkDirectorySync, c.DingTalkInvitation,
+		c.EnterpriseResource, c.EnterpriseResourceAddress,
+		c.EnterpriseResourceAddressType, c.EnterpriseResourceAssignee,
+		c.EnterpriseResourceImage, c.EnterpriseResourcePartner,
+		c.EnterpriseResourceParty, c.EnterpriseResourceRemark,
+		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
+		c.ExchangeRateImportBatch, c.ExchangeRateSetting, c.FeeSetting,
+		c.FeeSettingTemplate, c.FinanceBill, c.FinanceBillBatch,
 		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
 		c.FinanceCommission, c.FinanceCommissionAdjustment,
 		c.FinanceCommissionApplication, c.FinanceCommissionApplicationLine,
@@ -881,13 +888,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
-		c.DingTalkApprovalInboxEvent, c.DingTalkInvitation, c.EnterpriseResource,
-		c.EnterpriseResourceAddress, c.EnterpriseResourceAddressType,
-		c.EnterpriseResourceAssignee, c.EnterpriseResourceImage,
-		c.EnterpriseResourcePartner, c.EnterpriseResourceParty,
-		c.EnterpriseResourceRemark, c.EnterpriseResourceShippingText, c.EnterpriseTag,
-		c.EnterpriseTagGroup, c.ExchangeRateImportBatch, c.ExchangeRateSetting,
-		c.FeeSetting, c.FeeSettingTemplate, c.FinanceBill, c.FinanceBillBatch,
+		c.DingTalkApprovalInboxEvent, c.DingTalkDirectorySync, c.DingTalkInvitation,
+		c.EnterpriseResource, c.EnterpriseResourceAddress,
+		c.EnterpriseResourceAddressType, c.EnterpriseResourceAssignee,
+		c.EnterpriseResourceImage, c.EnterpriseResourcePartner,
+		c.EnterpriseResourceParty, c.EnterpriseResourceRemark,
+		c.EnterpriseResourceShippingText, c.EnterpriseTag, c.EnterpriseTagGroup,
+		c.ExchangeRateImportBatch, c.ExchangeRateSetting, c.FeeSetting,
+		c.FeeSettingTemplate, c.FinanceBill, c.FinanceBillBatch,
 		c.FinanceBillEnterpriseTag, c.FinanceBillLine, c.FinanceCashflow,
 		c.FinanceCommission, c.FinanceCommissionAdjustment,
 		c.FinanceCommissionApplication, c.FinanceCommissionApplicationLine,
@@ -941,6 +949,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.DingTalkApprovalDispatch.mutate(ctx, m)
 	case *DingTalkApprovalInboxEventMutation:
 		return c.DingTalkApprovalInboxEvent.mutate(ctx, m)
+	case *DingTalkDirectorySyncMutation:
+		return c.DingTalkDirectorySync.mutate(ctx, m)
 	case *DingTalkInvitationMutation:
 		return c.DingTalkInvitation.mutate(ctx, m)
 	case *EnterpriseResourceMutation:
@@ -1807,6 +1817,22 @@ func (c *BackgroundTaskClient) QueryOrganization(_m *BackgroundTask) *Organizati
 	return query
 }
 
+// QueryDingtalkDirectorySync queries the dingtalk_directory_sync edge of a BackgroundTask.
+func (c *BackgroundTaskClient) QueryDingtalkDirectorySync(_m *BackgroundTask) *DingTalkDirectorySyncQuery {
+	query := (&DingTalkDirectorySyncClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, id),
+			sqlgraph.To(dingtalkdirectorysync.Table, dingtalkdirectorysync.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.DingtalkDirectorySyncTable, backgroundtask.DingtalkDirectorySyncColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryNotificationDelivery queries the notification_delivery edge of a BackgroundTask.
 func (c *BackgroundTaskClient) QueryNotificationDelivery(_m *BackgroundTask) *NotificationDeliveryQuery {
 	query := (&NotificationDeliveryClient{config: c.config}).Query()
@@ -2491,6 +2517,155 @@ func (c *DingTalkApprovalInboxEventClient) mutate(ctx context.Context, m *DingTa
 		return (&DingTalkApprovalInboxEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown DingTalkApprovalInboxEvent mutation op: %q", m.Op())
+	}
+}
+
+// DingTalkDirectorySyncClient is a client for the DingTalkDirectorySync schema.
+type DingTalkDirectorySyncClient struct {
+	config
+}
+
+// NewDingTalkDirectorySyncClient returns a client for the DingTalkDirectorySync from the given config.
+func NewDingTalkDirectorySyncClient(c config) *DingTalkDirectorySyncClient {
+	return &DingTalkDirectorySyncClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dingtalkdirectorysync.Hooks(f(g(h())))`.
+func (c *DingTalkDirectorySyncClient) Use(hooks ...Hook) {
+	c.hooks.DingTalkDirectorySync = append(c.hooks.DingTalkDirectorySync, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dingtalkdirectorysync.Intercept(f(g(h())))`.
+func (c *DingTalkDirectorySyncClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DingTalkDirectorySync = append(c.inters.DingTalkDirectorySync, interceptors...)
+}
+
+// Create returns a builder for creating a DingTalkDirectorySync entity.
+func (c *DingTalkDirectorySyncClient) Create() *DingTalkDirectorySyncCreate {
+	mutation := newDingTalkDirectorySyncMutation(c.config, OpCreate)
+	return &DingTalkDirectorySyncCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DingTalkDirectorySync entities.
+func (c *DingTalkDirectorySyncClient) CreateBulk(builders ...*DingTalkDirectorySyncCreate) *DingTalkDirectorySyncCreateBulk {
+	return &DingTalkDirectorySyncCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DingTalkDirectorySyncClient) MapCreateBulk(slice any, setFunc func(*DingTalkDirectorySyncCreate, int)) *DingTalkDirectorySyncCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DingTalkDirectorySyncCreateBulk{err: fmt.Errorf("calling to DingTalkDirectorySyncClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DingTalkDirectorySyncCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DingTalkDirectorySyncCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DingTalkDirectorySync.
+func (c *DingTalkDirectorySyncClient) Update() *DingTalkDirectorySyncUpdate {
+	mutation := newDingTalkDirectorySyncMutation(c.config, OpUpdate)
+	return &DingTalkDirectorySyncUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DingTalkDirectorySyncClient) UpdateOne(_m *DingTalkDirectorySync) *DingTalkDirectorySyncUpdateOne {
+	mutation := newDingTalkDirectorySyncMutation(c.config, OpUpdateOne, withDingTalkDirectorySync(_m))
+	return &DingTalkDirectorySyncUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DingTalkDirectorySyncClient) UpdateOneID(id uuid.UUID) *DingTalkDirectorySyncUpdateOne {
+	mutation := newDingTalkDirectorySyncMutation(c.config, OpUpdateOne, withDingTalkDirectorySyncID(id))
+	return &DingTalkDirectorySyncUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DingTalkDirectorySync.
+func (c *DingTalkDirectorySyncClient) Delete() *DingTalkDirectorySyncDelete {
+	mutation := newDingTalkDirectorySyncMutation(c.config, OpDelete)
+	return &DingTalkDirectorySyncDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DingTalkDirectorySyncClient) DeleteOne(_m *DingTalkDirectorySync) *DingTalkDirectorySyncDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DingTalkDirectorySyncClient) DeleteOneID(id uuid.UUID) *DingTalkDirectorySyncDeleteOne {
+	builder := c.Delete().Where(dingtalkdirectorysync.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DingTalkDirectorySyncDeleteOne{builder}
+}
+
+// Query returns a query builder for DingTalkDirectorySync.
+func (c *DingTalkDirectorySyncClient) Query() *DingTalkDirectorySyncQuery {
+	return &DingTalkDirectorySyncQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDingTalkDirectorySync},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DingTalkDirectorySync entity by its id.
+func (c *DingTalkDirectorySyncClient) Get(ctx context.Context, id uuid.UUID) (*DingTalkDirectorySync, error) {
+	return c.Query().Where(dingtalkdirectorysync.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DingTalkDirectorySyncClient) GetX(ctx context.Context, id uuid.UUID) *DingTalkDirectorySync {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryBackgroundTask queries the background_task edge of a DingTalkDirectorySync.
+func (c *DingTalkDirectorySyncClient) QueryBackgroundTask(_m *DingTalkDirectorySync) *BackgroundTaskQuery {
+	query := (&BackgroundTaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(dingtalkdirectorysync.Table, dingtalkdirectorysync.FieldID, id),
+			sqlgraph.To(backgroundtask.Table, backgroundtask.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, dingtalkdirectorysync.BackgroundTaskTable, dingtalkdirectorysync.BackgroundTaskColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DingTalkDirectorySyncClient) Hooks() []Hook {
+	return c.hooks.DingTalkDirectorySync
+}
+
+// Interceptors returns the client interceptors.
+func (c *DingTalkDirectorySyncClient) Interceptors() []Interceptor {
+	return c.inters.DingTalkDirectorySync
+}
+
+func (c *DingTalkDirectorySyncClient) mutate(ctx context.Context, m *DingTalkDirectorySyncMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DingTalkDirectorySyncCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DingTalkDirectorySyncUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DingTalkDirectorySyncUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DingTalkDirectorySyncDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DingTalkDirectorySync mutation op: %q", m.Op())
 	}
 }
 
@@ -24856,21 +25031,22 @@ type (
 	hooks struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
-		DingTalkInvitation, EnterpriseResource, EnterpriseResourceAddress,
-		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
-		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
-		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
-		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
-		FeeSettingTemplate, FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag,
-		FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceCommissionAdjustment, FinanceCommissionApplication,
-		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
-		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		DingTalkDirectorySync, DingTalkInvitation, EnterpriseResource,
+		EnterpriseResourceAddress, EnterpriseResourceAddressType,
+		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
+		EnterpriseResourceParty, EnterpriseResourceRemark,
+		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
+		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FeeSettingTemplate,
+		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
+		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
+		FinanceCommissionApplication, FinanceCommissionApplicationLine,
+		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
+		FinanceCustomSetting, FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine,
+		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
+		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
+		Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
@@ -24889,21 +25065,22 @@ type (
 	inters struct {
 		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
 		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
-		DingTalkInvitation, EnterpriseResource, EnterpriseResourceAddress,
-		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
-		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
-		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
-		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
-		FeeSettingTemplate, FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag,
-		FinanceBillLine, FinanceCashflow, FinanceCommission,
-		FinanceCommissionAdjustment, FinanceCommissionApplication,
-		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
-		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		DingTalkDirectorySync, DingTalkInvitation, EnterpriseResource,
+		EnterpriseResourceAddress, EnterpriseResourceAddressType,
+		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
+		EnterpriseResourceParty, EnterpriseResourceRemark,
+		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
+		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FeeSettingTemplate,
+		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
+		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
+		FinanceCommissionApplication, FinanceCommissionApplicationLine,
+		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
+		FinanceCustomSetting, FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine,
+		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
+		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
+		Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,

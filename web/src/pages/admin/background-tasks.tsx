@@ -105,6 +105,9 @@ export default function BackgroundTasksPanel() {
       dataIndex: 'kind',
       width: 220,
       valueEnum: {
+        [BackgroundTaskKind.BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC]: {
+          text: '钉钉人员同步',
+        },
         [BackgroundTaskKind.BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT]: {
           text: '主数据导入',
         },

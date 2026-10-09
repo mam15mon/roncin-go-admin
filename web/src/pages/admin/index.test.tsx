@@ -8,7 +8,7 @@ const accessState = vi.hoisted(() => ({
   value: {
     canReadOrganizations: true,
     canReadUsers: true,
-    canManageDingTalkInvitations: true,
+    canSyncDingTalkDirectory: true,
     canReadRoles: true,
     canReadMasterDataNumberRules: true,
     canReadMasterDataItems: true,
@@ -73,7 +73,7 @@ describe('AdminPage (系统管理中心多Tab模板)', () => {
     accessState.value = {
       canReadOrganizations: true,
       canReadUsers: true,
-      canManageDingTalkInvitations: true,
+      canSyncDingTalkDirectory: true,
       canReadRoles: true,
       canReadMasterDataNumberRules: true,
       canReadMasterDataItems: true,
@@ -106,7 +106,7 @@ describe('AdminPage (系统管理中心多Tab模板)', () => {
     expect(screen.getByText('后台任务')).toBeInTheDocument();
     expect(screen.getByText('权限字典')).toBeInTheDocument();
 
-    // 钉钉邀请与注册审批已下沉收敛至用户管理内部，不在顶级Tab展示
+    // 旧邀请与注册审批入口已撤除。
     expect(screen.queryByText('钉钉邀请')).not.toBeInTheDocument();
     expect(screen.queryByText('注册审批')).not.toBeInTheDocument();
 
@@ -114,20 +114,11 @@ describe('AdminPage (系统管理中心多Tab模板)', () => {
     expect(screen.getByTestId('organizations-panel')).toBeInTheDocument();
   });
 
-  it('旧链接 tab=dingtalk-registrations 自动平滑重定向至用户管理下的子页签', () => {
-    locationState.search = '?tab=dingtalk-registrations';
-    render(<AdminPage />);
-
-    expect(historyMock.replace).toHaveBeenCalledWith(
-      '/admin?tab=users&subTab=registrations',
-    );
-  });
-
   it('当没有任何管理权限时展示暂无权限警告卡片', () => {
     accessState.value = {
       canReadOrganizations: false,
       canReadUsers: false,
-      canManageDingTalkInvitations: false,
+      canSyncDingTalkDirectory: false,
       canReadRoles: false,
       canReadMasterDataNumberRules: false,
       canReadMasterDataItems: false,

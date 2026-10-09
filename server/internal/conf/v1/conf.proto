@@ -95,7 +95,7 @@ message Security {
     string client_secret = 3;
     string redirect_uri = 4;
     string corp_id = 5;
-    string registration_token_secret = 6;
+    reserved 6;
     string approval_process_code = 7;
     string event_token = 8;
     string event_aes_key = 9;

@@ -27,12 +27,13 @@ const (
 type BackgroundTaskKind int32
 
 const (
-	BackgroundTaskKind_BACKGROUND_TASK_KIND_UNSPECIFIED           BackgroundTaskKind = 0
-	BackgroundTaskKind_BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT    BackgroundTaskKind = 1
-	BackgroundTaskKind_BACKGROUND_TASK_KIND_UNLOCODE_IMPORT       BackgroundTaskKind = 2
-	BackgroundTaskKind_BACKGROUND_TASK_KIND_ORDER_REMINDER        BackgroundTaskKind = 3
-	BackgroundTaskKind_BACKGROUND_TASK_KIND_INTEGRATION           BackgroundTaskKind = 4
-	BackgroundTaskKind_BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION BackgroundTaskKind = 5
+	BackgroundTaskKind_BACKGROUND_TASK_KIND_UNSPECIFIED             BackgroundTaskKind = 0
+	BackgroundTaskKind_BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT      BackgroundTaskKind = 1
+	BackgroundTaskKind_BACKGROUND_TASK_KIND_UNLOCODE_IMPORT         BackgroundTaskKind = 2
+	BackgroundTaskKind_BACKGROUND_TASK_KIND_ORDER_REMINDER          BackgroundTaskKind = 3
+	BackgroundTaskKind_BACKGROUND_TASK_KIND_INTEGRATION             BackgroundTaskKind = 4
+	BackgroundTaskKind_BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION   BackgroundTaskKind = 5
+	BackgroundTaskKind_BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC BackgroundTaskKind = 6
 )
 
 // Enum value maps for BackgroundTaskKind.
@@ -44,14 +45,16 @@ var (
 		3: "BACKGROUND_TASK_KIND_ORDER_REMINDER",
 		4: "BACKGROUND_TASK_KIND_INTEGRATION",
 		5: "BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION",
+		6: "BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC",
 	}
 	BackgroundTaskKind_value = map[string]int32{
-		"BACKGROUND_TASK_KIND_UNSPECIFIED":           0,
-		"BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT":    1,
-		"BACKGROUND_TASK_KIND_UNLOCODE_IMPORT":       2,
-		"BACKGROUND_TASK_KIND_ORDER_REMINDER":        3,
-		"BACKGROUND_TASK_KIND_INTEGRATION":           4,
-		"BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION": 5,
+		"BACKGROUND_TASK_KIND_UNSPECIFIED":             0,
+		"BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT":      1,
+		"BACKGROUND_TASK_KIND_UNLOCODE_IMPORT":         2,
+		"BACKGROUND_TASK_KIND_ORDER_REMINDER":          3,
+		"BACKGROUND_TASK_KIND_INTEGRATION":             4,
+		"BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION":   5,
+		"BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC": 6,
 	}
 )
 
@@ -819,14 +822,15 @@ const file_task_v1_background_task_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId*\x90\x02\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId*\xc2\x02\n" +
 	"\x12BackgroundTaskKind\x12$\n" +
 	" BACKGROUND_TASK_KIND_UNSPECIFIED\x10\x00\x12+\n" +
 	"'BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT\x10\x01\x12(\n" +
 	"$BACKGROUND_TASK_KIND_UNLOCODE_IMPORT\x10\x02\x12'\n" +
 	"#BACKGROUND_TASK_KIND_ORDER_REMINDER\x10\x03\x12$\n" +
 	" BACKGROUND_TASK_KIND_INTEGRATION\x10\x04\x12.\n" +
-	"*BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION\x10\x05*\xf7\x01\n" +
+	"*BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION\x10\x05\x120\n" +
+	",BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC\x10\x06*\xf7\x01\n" +
 	"\x14BackgroundTaskStatus\x12&\n" +
 	"\"BACKGROUND_TASK_STATUS_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eBACKGROUND_TASK_STATUS_PENDING\x10\x01\x12\"\n" +

@@ -1,5 +1,6 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { act, render, screen } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { act, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -163,7 +164,7 @@ function renderModal(
   editing: API.AdminUser | undefined,
   flags: Record<string, unknown>,
 ) {
-  render(
+  renderWithClient(
     <UserFormModal
       open
       onOpenChange={vi.fn()}
@@ -175,7 +176,6 @@ function renderModal(
       canManageUserMemberships={false}
       canUpdateUserProfile={true}
       canAuthorizeWeComUsers={false}
-      canAuthorizeDingTalkUsers={false}
       currentUserId="user-1"
       defaultOrganizationId="org-1"
       onReload={vi.fn()}
@@ -243,13 +243,16 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
     renderModal(normalUser, { canReadUserMemberships: true });
 
     await act(async () => {});
-    expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
-      organizationId: 'org-2',
-    });
-    const roleSelect = requiredSelect('roleIds');
-    expect(roleSelect.options).toEqual([
-      expect.objectContaining({ value: 'role-9' }),
-    ]);
+    await waitFor(() =>
+      expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
+        organizationId: 'org-2',
+      }),
+    );
+    await waitFor(() =>
+      expect(requiredSelect('roleIds').options).toEqual([
+        expect.objectContaining({ value: 'role-9' }),
+      ]),
+    );
     expect(formState.setFieldValue).toHaveBeenCalledWith('roleIds', []);
 
     await submitForm({ displayName: '张三', roleIds: ['role-9'] });
@@ -302,9 +305,11 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
       onReload,
     });
     await act(async () => {});
-    expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
-      'role-system',
-    ]);
+    await waitFor(() =>
+      expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
+        'role-system',
+      ]),
+    );
     expect(screen.getByTestId('membership-m-system')).toBeInTheDocument();
     expect(screen.getByTestId('membership-m-company')).toBeInTheDocument();
 
@@ -316,9 +321,11 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
       id: 'm-system',
     });
     expect(onReload).toHaveBeenCalledOnce();
-    expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
-      'role-company',
-    ]);
+    await waitFor(() =>
+      expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
+        'role-company',
+      ]),
+    );
     expect(serviceMocks.listOrganizationRoles).toHaveBeenLastCalledWith({
       organizationId: 'org-company',
     });
@@ -353,36 +360,25 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
     renderModal(normalUser, { canReadUserMemberships: true });
 
     await act(async () => {});
-    expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
-      organizationId: 'org-3',
-    });
+    await waitFor(() =>
+      expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
+        organizationId: 'org-3',
+      }),
+    );
   });
 
-  it('具备钉钉授权权限时，外部成员流程按目标组织调用 ListOrganizationRoles', async () => {
-    renderModal(pendingDingTalkUser, { canAuthorizeDingTalkUsers: true });
-
-    const organizationSelect = requiredSelect('organizationId');
-    const fieldProps = organizationSelect.fieldProps as {
-      onChange: (organizationId: string) => Promise<void>;
-    };
-    await act(async () => {
-      await fieldProps.onChange('org-2');
-    });
-
-    expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
-      organizationId: 'org-2',
-    });
-
+  it('钉钉资料编辑不会提交姓名或邮箱', async () => {
+    renderModal({ ...normalUser, dingtalkUnionid: 'union-1' }, {});
     await submitForm({
-      organizationId: 'org-2',
-      displayName: '钉钉新成员',
+      displayName: '新昵称',
+      email: 'other@example.com',
       roleIds: ['role-1'],
     });
-    expect(serviceMocks.authorizeDingTalkUser).toHaveBeenCalledWith(
-      { id: 'user-9' },
-      expect.objectContaining({ organizationId: 'org-2' }),
+    expect(serviceMocks.updateUser).toHaveBeenCalledWith(
+      { id: normalUser.id },
+      { id: normalUser.id, enabled: true, roleIds: ['role-1'] },
     );
-    expect(serviceMocks.updateUser).not.toHaveBeenCalled();
+    expect(serviceMocks.authorizeDingTalkUser).not.toHaveBeenCalled();
   });
 
   it('缺少授权权限时外部成员不进入授权流程，回落普通分支且不发跨组织请求', async () => {

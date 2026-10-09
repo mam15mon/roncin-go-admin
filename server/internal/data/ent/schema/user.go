@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"entgo.io/ent/schema"
 	"fmt"
 	"regexp"
 	"unicode/utf8"
@@ -40,10 +41,15 @@ func (User) Fields() []ent.Field {
 		field.String("dingtalk_unionid").MaxLen(128).Optional().Nillable(),
 		field.String("dingtalk_userid").MaxLen(64).Optional().Nillable(),
 		field.String("dingtalk_name").MaxLen(100).Optional().Nillable(),
-		// 通道 B 注册时自选的目标组织；NULL 表示存量兜底（通知总部管理员）。
+		// 旧注册申请的静态历史字段；通讯录同步和管理员开通不再读写。
 		field.UUID("dingtalk_requested_organization_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("is_bootstrap_admin").Default(false).Immutable(),
 		field.Bool("enabled").Default(true),
+		field.Bool("pending_assignment").Default(false),
+		field.String("dingtalk_job_number").MaxLen(100).Optional().Nillable(),
+		field.String("dingtalk_mobile").MaxLen(64).Optional().Nillable().Sensitive(),
+		field.JSON("dingtalk_departments", []DirectoryDepartment{}).Optional(),
+		field.Time("dingtalk_last_synced_at").Optional().Nillable(),
 		searchKeywordsField(),
 	}
 }
@@ -135,4 +141,14 @@ func (User) Indexes() []ent.Index {
 		index.Fields("dingtalk_userid").Unique(),
 		index.Fields("dingtalk_requested_organization_id"),
 	}
+}
+
+// DirectoryDepartment 保存钉钉来源部门快照，不代表本系统组织授权。
+type DirectoryDepartment struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (User) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{"users_pending_assignment_check": "NOT pending_assignment OR NOT enabled"})}
 }

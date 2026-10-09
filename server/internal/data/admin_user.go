@@ -6,11 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -86,6 +88,9 @@ func betterAdminAnchorMembership(candidate, current *ent.Membership) bool {
 // 组织摘要仍展示全部启用成员关系（与旧口径一致）。范围内无任何成员关系时视为
 // 用户不在当前工作台范围。
 func adminUserRow(account *ent.User, scope map[uuid.UUID]struct{}) (*biz.AdminUser, error) {
+	if account.PendingAssignment {
+		return accountToAdminUser(account), nil
+	}
 	candidates := make([]*ent.Membership, 0, len(account.Edges.Memberships))
 	active := make([]*ent.Membership, 0, len(account.Edges.Memberships))
 	for _, member := range account.Edges.Memberships {
@@ -98,7 +103,7 @@ func adminUserRow(account *ent.User, scope map[uuid.UUID]struct{}) (*biz.AdminUs
 	}
 	anchor := preferAdminAnchorMembership(candidates)
 	if anchor == nil {
-		return nil, biz.ErrAdminUserNotFound
+		return accountToAdminUser(account), nil
 	}
 	anchor.Edges.User = account
 	account.Edges.Memberships = active
@@ -135,8 +140,24 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 	if len(scope) == 0 {
 		return &biz.AdminUserList{Items: []*biz.AdminUser{}, Page: options.Page, PageSize: options.PageSize}, nil
 	}
-	predicates := []predicate.User{
-		userent.HasMembershipsWith(membership.OrganizationIDIn(scope...)),
+	workspace, workspaceErr := client.Organization.Get(ctx, organizationID)
+	if workspaceErr != nil {
+		return nil, workspaceErr
+	}
+	predicates := []predicate.User{}
+	if workspace.Kind != organization.KindSystem {
+		predicates = append(predicates, userent.PendingAssignmentEQ(false), userent.HasMembershipsWith(membership.OrganizationIDIn(scope...)))
+	}
+	switch options.Status {
+	case biz.AdminUserStatusPendingAssignment:
+		if workspace.Kind != organization.KindSystem {
+			return nil, biz.ErrPermissionDenied
+		}
+		predicates = append(predicates, userent.PendingAssignmentEQ(true))
+	case biz.AdminUserStatusActive:
+		predicates = append(predicates, userent.EnabledEQ(true), userent.PendingAssignmentEQ(false))
+	case biz.AdminUserStatusDisabled, biz.AdminUserStatusTerminated:
+		predicates = append(predicates, userent.EnabledEQ(false), userent.PendingAssignmentEQ(false))
 	}
 	if options.Keyword != "" {
 		predicates = append(predicates, userent.Or(
@@ -147,6 +168,9 @@ func (r *adminRepo) ListUsers(ctx context.Context, organizationID uuid.UUID, opt
 	}
 	if options.Enabled != nil {
 		predicates = append(predicates, userent.EnabledEQ(*options.Enabled))
+		if !*options.Enabled {
+			predicates = append(predicates, userent.PendingAssignmentEQ(false))
+		}
 	}
 	scopeSet := adminUserScopeSet(scope)
 	query := listAdminUsersQuery(client, predicates)
@@ -220,6 +244,12 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		if anchor == nil {
 			return biz.ErrAdminUserNotFound
 		}
+		if account.PendingAssignment {
+			return biz.ErrAdminUserAuthorizationRequired
+		}
+		if account.DingtalkUnionid != nil && (input.DisplayName != "" || input.Email != nil) {
+			return biz.ErrDingTalkProfileReadOnly
+		}
 		if account.Enabled && !input.Enabled {
 			return biz.ErrAdminUserTerminationRequired
 		}
@@ -231,11 +261,14 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		if queryErr != nil {
 			return queryErr
 		}
-		update := tx.User.UpdateOneID(id).SetDisplayName(input.DisplayName).SetEnabled(input.Enabled)
-		if input.Email == nil {
-			update.ClearEmail()
-		} else {
-			update.SetEmail(*input.Email)
+		update := tx.User.UpdateOneID(id).SetEnabled(input.Enabled)
+		if account.DingtalkUnionid == nil {
+			update.SetDisplayName(input.DisplayName)
+			if input.Email == nil {
+				update.ClearEmail()
+			} else {
+				update.SetEmail(*input.Email)
+			}
 		}
 		if _, updateErr := update.Save(ctx); updateErr != nil {
 			return mapEntError(updateErr, biz.ErrAdminUserNotFound, nil)
@@ -305,9 +338,122 @@ func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID
 }
 
 func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, notification, audit, func(account *ent.User) bool {
-		return account.DingtalkUnionid != nil && account.DingtalkUserid != nil && strings.TrimSpace(*account.DingtalkUserid) != ""
+	err := r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
+		client, err := r.data.client(txCtx)
+		if err != nil {
+			return err
+		}
+		account, err := client.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(txCtx)
+		if err != nil {
+			return mapEntError(err, biz.ErrAdminUserNotFound, nil)
+		}
+		if account.Enabled || account.IsBootstrapAdmin || account.DingtalkUnionid == nil || account.DingtalkUserid == nil || account.DingtalkLastSyncedAt == nil {
+			return biz.ErrDingTalkAssignmentConflict
+		}
+		// 停用人员可人工重新开通，首次与返聘都必须明确组织角色；已开通者绝不能覆盖。
+		source, err := client.Organization.Query().Where(organization.IDEQ(sourceOrganizationID), organization.KindEQ(organization.KindSystem), organization.EnabledEQ(true)).ForShare().Only(txCtx)
+		if err != nil {
+			return mapEntError(err, biz.ErrPermissionDenied, nil)
+		}
+		_ = source
+		nodes, err := client.Organization.Query().Order(organization.ByID()).ForShare().All(txCtx)
+		if err != nil {
+			return err
+		}
+		nodeMap := authOrganizationNodes(nodes)
+		target, ok := nodeMap[targetOrganizationID]
+		if !ok || !target.Enabled {
+			return biz.ErrAdminOrganizationNotFound
+		}
+		for current := targetOrganizationID; current != uuid.Nil; {
+			node := nodeMap[current]
+			if !node.Enabled {
+				return biz.ErrAdminOrganizationNotFound
+			}
+			if isWorkspaceKind(node.Kind) {
+				break
+			}
+			if node.ParentID == nil {
+				return biz.ErrAdminOrganizationNotFound
+			}
+			current = *node.ParentID
+		}
+		anchor := workspaceAncestorID(nodeMap, targetOrganizationID)
+		workspace, ok := nodeMap[anchor]
+		if !ok || !workspace.Enabled || workspace.Kind != string(organization.KindCompany) {
+			return biz.ErrAdminOrganizationNotFound
+		}
+		if audit.UserID == nil {
+			return biz.ErrPermissionDenied
+		}
+		if _, err = client.User.Query().Where(userent.IDEQ(*audit.UserID), userent.EnabledEQ(true)).ForShare().Only(txCtx); err != nil {
+			return biz.ErrPermissionDenied
+		}
+		if _, err = client.Membership.Query().Where(membership.UserIDEQ(*audit.UserID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).Order(membership.ByID()).ForShare().All(txCtx); err != nil {
+			return err
+		}
+		lockedRoles, err := client.Role.Query().Where(roleent.Or(roleent.IDIn(roleIDs...), roleent.HasAssignmentsWith(roleassignment.HasMembershipWith(membership.UserIDEQ(*audit.UserID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true))))).Order(roleent.ByID()).ForShare().All(txCtx)
+		if err != nil {
+			return err
+		}
+		if len(lockedRoles) < len(uniqueUUIDs(roleIDs)) {
+			return biz.ErrAdminRoleNotFound
+		}
+		roles, err := rolesForOrganization(txCtx, client, targetOrganizationID, roleIDs)
+		if err != nil {
+			return err
+		}
+		// 新鲜操作者授权与目标角色画像均在同一共享事务复核，避免锁外提权预检空窗。
+		actorPrincipal, err := (&authRepo{data: r.data}).ResolvePrincipal(txCtx, *audit.UserID, sourceOrganizationID)
+		if err != nil {
+			return err
+		}
+		if !actorPrincipal.HasPermission(access.UserAuthorizeDingTalk) {
+			return biz.ErrPermissionDenied
+		}
+		if err = biz.NewAdminUsecase(r).ValidateDingTalkAssignmentPrivilege(biz.WithPrincipal(txCtx, actorPrincipal), sourceOrganizationID, *audit.UserID, targetOrganizationID, roleIDs); err != nil {
+			return err
+		}
+		return r.data.WithTx(txCtx, func(tx *ent.Tx) error {
+			ids, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID)).IDs(txCtx)
+			if err != nil {
+				return err
+			}
+			if len(ids) > 0 {
+				if _, err = tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(ids...)).Exec(txCtx); err != nil {
+					return err
+				}
+			}
+			if _, err = tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).SetPrimary(false).Save(txCtx); err != nil {
+				return err
+			}
+			member, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(targetOrganizationID)).Only(txCtx)
+			if ent.IsNotFound(err) {
+				member, err = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).SetPrimary(true).Save(txCtx)
+			} else if err == nil {
+				member, err = tx.Membership.UpdateOne(member).SetEnabled(true).SetPrimary(true).Save(txCtx)
+			}
+			if err != nil {
+				return err
+			}
+			if err = replaceRoleAssignments(txCtx, tx, member.ID, roles); err != nil {
+				return err
+			}
+			if _, err = tx.User.UpdateOne(account).SetPendingAssignment(false).SetEnabled(true).Save(txCtx); err != nil {
+				return err
+			}
+			if notification != nil {
+				if err = enqueueDingTalkUserAuthorizedNotification(txCtx, tx, anchor, account, notification); err != nil {
+					return err
+				}
+			}
+			return writeAudit(txCtx, tx.AuditLog, audit)
+		})
 	})
+	if err != nil {
+		return nil, err
+	}
+	return r.findUser(ctx, sourceOrganizationID, input.ID)
 }
 
 func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
@@ -473,11 +619,31 @@ func (r *adminRepo) findUser(ctx context.Context, organizationID, userID uuid.UU
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAdminUserNotFound, nil)
 	}
+	workspace, err := client.Organization.Get(ctx, organizationID)
+	if err != nil {
+		return nil, err
+	}
+	if workspace.Kind != organization.KindSystem {
+		if account.PendingAssignment {
+			return nil, biz.ErrAdminUserNotFound
+		}
+		found := false
+		for _, m := range account.Edges.Memberships {
+			if uuidInValues(scope, m.OrganizationID) {
+				found = true
+			}
+		}
+		if !found {
+			return nil, biz.ErrAdminUserNotFound
+		}
+	}
 	return adminUserRow(account, adminUserScopeSet(scope))
 }
 func membershipToUser(item *ent.Membership) *biz.AdminUser {
 	account := item.Edges.User
-	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, CurrentMembershipEnabled: item.Enabled, CurrentOrganizationID: item.OrganizationID, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	result := accountToAdminUser(account)
+	result.CurrentMembershipEnabled = item.Enabled
+	result.CurrentOrganizationID = item.OrganizationID
 	for _, assignment := range item.Edges.RoleAssignments {
 		if assignedRole := assignment.Edges.Role; assignedRole != nil {
 			result.RoleIDs = append(result.RoleIDs, assignedRole.ID)
@@ -508,6 +674,9 @@ func membershipToUser(item *ent.Membership) *biz.AdminUser {
 }
 
 func adminUserStatus(account *ent.User, currentMembership *ent.Membership, hasActiveMembership bool) biz.AdminUserStatus {
+	if account.PendingAssignment {
+		return biz.AdminUserStatusPendingAssignment
+	}
 	if !currentMembership.Enabled && hasActiveMembership {
 		return biz.AdminUserStatusRemovedFromOrganization
 	}
@@ -522,4 +691,23 @@ func adminUserStatus(account *ent.User, currentMembership *ent.Membership, hasAc
 		return biz.AdminUserStatusPendingAuthorization
 	}
 	return biz.AdminUserStatusDisabled
+}
+
+func accountToAdminUser(account *ent.User) *biz.AdminUser {
+	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, PendingAssignment: account.PendingAssignment, DingTalkJobNumber: account.DingtalkJobNumber, DingTalkLastSyncedAt: account.DingtalkLastSyncedAt, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	if account.DingtalkMobile != nil {
+		mobile := biz.MaskDingTalkMobile(*account.DingtalkMobile)
+		result.DingTalkMobile = &mobile
+	}
+	for _, d := range account.DingtalkDepartments {
+		result.DingTalkDepartments = append(result.DingTalkDepartments, biz.DingTalkDepartment{ID: d.ID, Name: d.Name})
+	}
+	if account.PendingAssignment {
+		result.Status = biz.AdminUserStatusPendingAssignment
+	} else if account.Enabled {
+		result.Status = biz.AdminUserStatusActive
+	} else {
+		result.Status = biz.AdminUserStatusDisabled
+	}
+	return result
 }

@@ -15,7 +15,6 @@ const {
   authServiceSwitchOrganizationMock,
   authServiceGetWeComLoginConfigMock,
   authServiceGetDingTalkLoginConfigMock,
-  authServiceGetDingTalkInvitationInfoMock,
   messageSuccessMock,
   messageErrorMock,
   setInitialStateMock,
@@ -24,7 +23,6 @@ const {
   authServiceSwitchOrganizationMock: vi.fn(),
   authServiceGetWeComLoginConfigMock: vi.fn(),
   authServiceGetDingTalkLoginConfigMock: vi.fn(),
-  authServiceGetDingTalkInvitationInfoMock: vi.fn(),
   messageSuccessMock: vi.fn(),
   messageErrorMock: vi.fn(),
   setInitialStateMock: vi.fn(),
@@ -57,8 +55,6 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceSwitchOrganization: authServiceSwitchOrganizationMock,
   authServiceGetWeComLoginConfig: authServiceGetWeComLoginConfigMock,
   authServiceGetDingTalkLoginConfig: authServiceGetDingTalkLoginConfigMock,
-  authServiceGetDingTalkInvitationInfo:
-    authServiceGetDingTalkInvitationInfoMock,
 }));
 
 const singleOrgChoices: API.OrganizationChoice[] = [
@@ -282,42 +278,7 @@ describe('Login', () => {
     expect(messageSuccessMock).toHaveBeenCalledWith('登录成功');
   });
 
-  it('携带邀请 Token 的落地页展示专属欢迎与防呆警示', async () => {
-    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
-      data: { enabled: true, authorizeUrl: 'https://dingtalk.login/auth' },
-    });
-    authServiceGetDingTalkInvitationInfoMock.mockResolvedValue({
-      data: {
-        organizationName: '成都分公司',
-        inviterName: '李经理',
-        expiresAt: '2030-01-01T00:00:00Z',
-      },
-    });
-    window.history.replaceState({}, '', '/user/login?invite=valid-token');
-
-    render(
-      <App>
-        <Login />
-      </App>,
-    );
-
-    expect(
-      await screen.findByText('【成都分公司】专属邀请'),
-    ).toBeInTheDocument();
-    // PRD 3.2.3：防呆警示必须醒目呈现（warning 级 Alert）
-    expect(
-      screen.getByText(
-        '若您属于其他分公司（如成都、深圳），请勿加入，请向所属分公司主管索取专属码',
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/邀请人：李经理/)).toBeInTheDocument();
-    expect(
-      await screen.findByRole('button', { name: /使用钉钉加入【成都分公司】/ }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
-  });
-
-  it('钉钉启用时，普通登录页展示快捷入职按钮与提示文案，不展示注册链接', async () => {
+  it('钉钉启用时提示管理员开通，不展示注册链接', async () => {
     authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
       data: { enabled: true, authorizeUrl: 'https://dingtalk.login/auth' },
     });
@@ -332,46 +293,10 @@ describe('Login', () => {
     expect(
       await screen.findByRole('button', { name: /钉钉登录/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/快捷入职/)).toBeInTheDocument();
+    expect(screen.getByText('钉钉登录')).toBeInTheDocument();
     expect(
-      screen.getByText('首次使用钉钉扫码将自动提交入职审批申请'),
+      screen.getByText('使用前请联系管理员同步人员并分配组织和角色'),
     ).toBeInTheDocument();
     expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
-  });
-
-  it('邀请 Token 失效时仅呈现失效提示，不展示欢迎卡片', async () => {
-    authServiceGetDingTalkInvitationInfoMock.mockRejectedValue(
-      new Error('邀请链接已失效或已过期，请联系主管重新获取'),
-    );
-    window.history.replaceState({}, '', '/user/login?invite=bad-token');
-
-    render(
-      <App>
-        <Login />
-      </App>,
-    );
-
-    expect(await screen.findByText('邀请链接已失效')).toBeInTheDocument();
-    expect(
-      screen.queryByText('【成都分公司】专属邀请'),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        '若您属于其他分公司（如成都、深圳），请勿加入，请向所属分公司主管索取专属码',
-      ),
-    ).not.toBeInTheDocument();
-  });
-
-  it('直接访问普通登录页（无 ?invite=）时清空 sessionStorage 残留邀请 Token', () => {
-    sessionStorage.setItem('dingtalk_invitation_token', 'stale-token-xyz');
-    window.history.replaceState({}, '', '/user/login');
-
-    render(
-      <App>
-        <Login />
-      </App>,
-    );
-
-    expect(sessionStorage.getItem('dingtalk_invitation_token')).toBeNull();
   });
 });

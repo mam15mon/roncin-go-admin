@@ -23,7 +23,6 @@ export interface InitialState {
 export const LOGIN_PATH = '/user/login';
 export const PUBLIC_AUTH_PATHS = new Set([
   LOGIN_PATH,
-  '/user/register',
   '/user/login/wecom/callback',
   '/user/login/dingtalk/callback',
 ]);

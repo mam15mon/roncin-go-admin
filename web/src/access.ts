@@ -17,7 +17,7 @@ const permissions = {
   userTerminate: 'system.user.delete',
   userAuthorizeWeCom: 'system.user.authorize_wecom',
   userAuthorizeDingTalk: 'system.user.authorize_dingtalk',
-  userDingTalkInvitationManage: 'system.user.dingtalk_invitation.manage',
+  userDingTalkDirectorySync: 'system.user.dingtalk_directory.sync',
   userResetPassword: 'system.user.reset_password',
   roleRead: 'system.role.read',
   roleCreate: 'system.role.create',
@@ -191,7 +191,8 @@ export default function access(
       isSystemWorkspace && has(permissions.userAuthorizeWeCom, 'all'),
     canAuthorizeDingTalkUsers:
       isSystemWorkspace && has(permissions.userAuthorizeDingTalk, 'all'),
-    canManageDingTalkInvitations: has(permissions.userDingTalkInvitationManage),
+    canSyncDingTalkDirectory:
+      isSystemWorkspace && has(permissions.userDingTalkDirectorySync, 'all'),
     canResetUserPasswords:
       isSystemWorkspace && has(permissions.userResetPassword),
     canReadRoles: has(permissions.roleRead),
@@ -377,7 +378,7 @@ export default function access(
       result.canTerminateUsers ||
       result.canAuthorizeWeComUsers ||
       result.canAuthorizeDingTalkUsers ||
-      result.canManageDingTalkInvitations ||
+      result.canSyncDingTalkDirectory ||
       result.canResetUserPasswords,
     canManageRoles:
       result.canCreateRoles || result.canUpdateRoles || result.canDeleteRoles,
@@ -409,6 +410,8 @@ export default function access(
     canRequeueTask: (kind?: number) => {
       if (!result.canRequeueTasks) return false;
       switch (kind) {
+        case BackgroundTaskKind.BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC:
+          return result.canSyncDingTalkDirectory;
         case BackgroundTaskKind.BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT:
         case BackgroundTaskKind.BACKGROUND_TASK_KIND_UNLOCODE_IMPORT:
         case BackgroundTaskKind.BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION:

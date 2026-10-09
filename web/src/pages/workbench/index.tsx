@@ -170,7 +170,7 @@ export default function Workbench() {
       <ProCard title="系统管理">
         <Space orientation="vertical" size={16}>
           <Typography.Paragraph>
-            维护系统公共资料、管理公司及处理注册申请。办理公司业务请通过右上角切换工作台。
+            维护系统公共资料、管理公司及同步分配人员。办理公司业务请通过右上角切换工作台。
           </Typography.Paragraph>
           <Space wrap>
             {access.canReadMasterData && (
@@ -180,7 +180,7 @@ export default function Workbench() {
               <Link to="/admin?tab=organizations">公司管理</Link>
             )}
             {access.canAuthorizeDingTalkUsers && (
-              <Link to="/admin?tab=users&subTab=registrations">注册审批</Link>
+              <Link to="/admin?tab=users">人员分配</Link>
             )}
             {access.canReadFeeSettings && (
               <Link to="/finance/fee-settings">初始费用目录</Link>

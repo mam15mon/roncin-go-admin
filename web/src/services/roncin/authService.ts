@@ -2,24 +2,6 @@
 /* eslint-disable */
 import { request } from "@/utils/requestClient";
 
-/** GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。 GET /api/v1/auth/dingtalk/invitations/info */
-export async function authServiceGetDingTalkInvitationInfo(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.AuthServiceGetDingTalkInvitationInfoParams,
-  options?: { [key: string]: any }
-) {
-  return request<API.GetDingTalkInvitationInfoResponse>(
-    "/api/v1/auth/dingtalk/invitations/info",
-    {
-      method: "GET",
-      params: {
-        ...params,
-      },
-      ...(options || {}),
-    }
-  );
-}
-
 /** 此处后端没有提供注释 POST /api/v1/auth/dingtalk/login */
 export async function authServiceDingTalkLogin(
   body: API.DingTalkLoginRequest,
@@ -43,24 +25,6 @@ export async function authServiceGetDingTalkLoginConfig(options?: {
     "/api/v1/auth/dingtalk/login-config",
     {
       method: "GET",
-      ...(options || {}),
-    }
-  );
-}
-
-/** 此处后端没有提供注释 POST /api/v1/auth/dingtalk/registrations */
-export async function authServiceRegisterDingTalkUser(
-  body: API.RegisterDingTalkUserRequest,
-  options?: { [key: string]: any }
-) {
-  return request<API.RegisterDingTalkUserResponse>(
-    "/api/v1/auth/dingtalk/registrations",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: body,
       ...(options || {}),
     }
   );

@@ -22,6 +22,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
@@ -145,6 +146,7 @@ const (
 	TypeCurrency                         = "Currency"
 	TypeDingTalkApprovalDispatch         = "DingTalkApprovalDispatch"
 	TypeDingTalkApprovalInboxEvent       = "DingTalkApprovalInboxEvent"
+	TypeDingTalkDirectorySync            = "DingTalkDirectorySync"
 	TypeDingTalkInvitation               = "DingTalkInvitation"
 	TypeEnterpriseResource               = "EnterpriseResource"
 	TypeEnterpriseResourceAddress        = "EnterpriseResourceAddress"
@@ -4799,6 +4801,8 @@ type BackgroundTaskMutation struct {
 	clearedFields                     map[string]struct{}
 	organization                      *uuid.UUID
 	clearedorganization               bool
+	dingtalk_directory_sync           *uuid.UUID
+	cleareddingtalk_directory_sync    bool
 	notification_delivery             *uuid.UUID
 	clearednotification_delivery      bool
 	object_storage_deletion           *uuid.UUID
@@ -5452,6 +5456,45 @@ func (m *BackgroundTaskMutation) ResetOrganization() {
 	m.clearedorganization = false
 }
 
+// SetDingtalkDirectorySyncID sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity by id.
+func (m *BackgroundTaskMutation) SetDingtalkDirectorySyncID(id uuid.UUID) {
+	m.dingtalk_directory_sync = &id
+}
+
+// ClearDingtalkDirectorySync clears the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity.
+func (m *BackgroundTaskMutation) ClearDingtalkDirectorySync() {
+	m.cleareddingtalk_directory_sync = true
+}
+
+// DingtalkDirectorySyncCleared reports if the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity was cleared.
+func (m *BackgroundTaskMutation) DingtalkDirectorySyncCleared() bool {
+	return m.cleareddingtalk_directory_sync
+}
+
+// DingtalkDirectorySyncID returns the "dingtalk_directory_sync" edge ID in the mutation.
+func (m *BackgroundTaskMutation) DingtalkDirectorySyncID() (id uuid.UUID, exists bool) {
+	if m.dingtalk_directory_sync != nil {
+		return *m.dingtalk_directory_sync, true
+	}
+	return
+}
+
+// DingtalkDirectorySyncIDs returns the "dingtalk_directory_sync" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DingtalkDirectorySyncID instead. It exists only for internal usage by the builders.
+func (m *BackgroundTaskMutation) DingtalkDirectorySyncIDs() (ids []uuid.UUID) {
+	if id := m.dingtalk_directory_sync; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDingtalkDirectorySync resets all changes to the "dingtalk_directory_sync" edge.
+func (m *BackgroundTaskMutation) ResetDingtalkDirectorySync() {
+	m.dingtalk_directory_sync = nil
+	m.cleareddingtalk_directory_sync = false
+}
+
 // SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by id.
 func (m *BackgroundTaskMutation) SetNotificationDeliveryID(id uuid.UUID) {
 	m.notification_delivery = &id
@@ -5937,9 +5980,12 @@ func (m *BackgroundTaskMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *BackgroundTaskMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.organization != nil {
 		edges = append(edges, backgroundtask.EdgeOrganization)
+	}
+	if m.dingtalk_directory_sync != nil {
+		edges = append(edges, backgroundtask.EdgeDingtalkDirectorySync)
 	}
 	if m.notification_delivery != nil {
 		edges = append(edges, backgroundtask.EdgeNotificationDelivery)
@@ -5961,6 +6007,10 @@ func (m *BackgroundTaskMutation) AddedIDs(name string) []ent.Value {
 		if id := m.organization; id != nil {
 			return []ent.Value{*id}
 		}
+	case backgroundtask.EdgeDingtalkDirectorySync:
+		if id := m.dingtalk_directory_sync; id != nil {
+			return []ent.Value{*id}
+		}
 	case backgroundtask.EdgeNotificationDelivery:
 		if id := m.notification_delivery; id != nil {
 			return []ent.Value{*id}
@@ -5979,7 +6029,7 @@ func (m *BackgroundTaskMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *BackgroundTaskMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	return edges
 }
 
@@ -5991,9 +6041,12 @@ func (m *BackgroundTaskMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *BackgroundTaskMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedorganization {
 		edges = append(edges, backgroundtask.EdgeOrganization)
+	}
+	if m.cleareddingtalk_directory_sync {
+		edges = append(edges, backgroundtask.EdgeDingtalkDirectorySync)
 	}
 	if m.clearednotification_delivery {
 		edges = append(edges, backgroundtask.EdgeNotificationDelivery)
@@ -6013,6 +6066,8 @@ func (m *BackgroundTaskMutation) EdgeCleared(name string) bool {
 	switch name {
 	case backgroundtask.EdgeOrganization:
 		return m.clearedorganization
+	case backgroundtask.EdgeDingtalkDirectorySync:
+		return m.cleareddingtalk_directory_sync
 	case backgroundtask.EdgeNotificationDelivery:
 		return m.clearednotification_delivery
 	case backgroundtask.EdgeObjectStorageDeletion:
@@ -6029,6 +6084,9 @@ func (m *BackgroundTaskMutation) ClearEdge(name string) error {
 	switch name {
 	case backgroundtask.EdgeOrganization:
 		m.ClearOrganization()
+		return nil
+	case backgroundtask.EdgeDingtalkDirectorySync:
+		m.ClearDingtalkDirectorySync()
 		return nil
 	case backgroundtask.EdgeNotificationDelivery:
 		m.ClearNotificationDelivery()
@@ -6049,6 +6107,9 @@ func (m *BackgroundTaskMutation) ResetEdge(name string) error {
 	switch name {
 	case backgroundtask.EdgeOrganization:
 		m.ResetOrganization()
+		return nil
+	case backgroundtask.EdgeDingtalkDirectorySync:
+		m.ResetDingtalkDirectorySync()
 		return nil
 	case backgroundtask.EdgeNotificationDelivery:
 		m.ResetNotificationDelivery()
@@ -10302,6 +10363,1464 @@ func (m *DingTalkApprovalInboxEventMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *DingTalkApprovalInboxEventMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown DingTalkApprovalInboxEvent edge %s", name)
+}
+
+// DingTalkDirectorySyncMutation represents an operation that mutates the DingTalkDirectorySync nodes in the graph.
+type DingTalkDirectorySyncMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *uuid.UUID
+	created_at             *time.Time
+	updated_at             *time.Time
+	actor_id               *uuid.UUID
+	corp_id                *string
+	active                 *bool
+	scope_summary          *string
+	full_scope             *bool
+	available_fields       *[]string
+	appendavailable_fields []string
+	total_count            *int
+	addtotal_count         *int
+	created_count          *int
+	addcreated_count       *int
+	updated_count          *int
+	addupdated_count       *int
+	unchanged_count        *int
+	addunchanged_count     *int
+	failed_count           *int
+	addfailed_count        *int
+	failures               *[]schema.DirectoryFailure
+	appendfailures         []schema.DirectoryFailure
+	completed_at           *time.Time
+	clearedFields          map[string]struct{}
+	background_task        *uuid.UUID
+	clearedbackground_task bool
+	done                   bool
+	oldValue               func(context.Context) (*DingTalkDirectorySync, error)
+	predicates             []predicate.DingTalkDirectorySync
+}
+
+var _ ent.Mutation = (*DingTalkDirectorySyncMutation)(nil)
+
+// dingtalkdirectorysyncOption allows management of the mutation configuration using functional options.
+type dingtalkdirectorysyncOption func(*DingTalkDirectorySyncMutation)
+
+// newDingTalkDirectorySyncMutation creates new mutation for the DingTalkDirectorySync entity.
+func newDingTalkDirectorySyncMutation(c config, op Op, opts ...dingtalkdirectorysyncOption) *DingTalkDirectorySyncMutation {
+	m := &DingTalkDirectorySyncMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDingTalkDirectorySync,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDingTalkDirectorySyncID sets the ID field of the mutation.
+func withDingTalkDirectorySyncID(id uuid.UUID) dingtalkdirectorysyncOption {
+	return func(m *DingTalkDirectorySyncMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DingTalkDirectorySync
+		)
+		m.oldValue = func(ctx context.Context) (*DingTalkDirectorySync, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DingTalkDirectorySync.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDingTalkDirectorySync sets the old DingTalkDirectorySync of the mutation.
+func withDingTalkDirectorySync(node *DingTalkDirectorySync) dingtalkdirectorysyncOption {
+	return func(m *DingTalkDirectorySyncMutation) {
+		m.oldValue = func(context.Context) (*DingTalkDirectorySync, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DingTalkDirectorySyncMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DingTalkDirectorySyncMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DingTalkDirectorySync entities.
+func (m *DingTalkDirectorySyncMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DingTalkDirectorySyncMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DingTalkDirectorySyncMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DingTalkDirectorySync.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DingTalkDirectorySyncMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DingTalkDirectorySyncMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DingTalkDirectorySyncMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DingTalkDirectorySyncMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetBackgroundTaskID sets the "background_task_id" field.
+func (m *DingTalkDirectorySyncMutation) SetBackgroundTaskID(u uuid.UUID) {
+	m.background_task = &u
+}
+
+// BackgroundTaskID returns the value of the "background_task_id" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) BackgroundTaskID() (r uuid.UUID, exists bool) {
+	v := m.background_task
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBackgroundTaskID returns the old "background_task_id" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldBackgroundTaskID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBackgroundTaskID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBackgroundTaskID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBackgroundTaskID: %w", err)
+	}
+	return oldValue.BackgroundTaskID, nil
+}
+
+// ResetBackgroundTaskID resets all changes to the "background_task_id" field.
+func (m *DingTalkDirectorySyncMutation) ResetBackgroundTaskID() {
+	m.background_task = nil
+}
+
+// SetActorID sets the "actor_id" field.
+func (m *DingTalkDirectorySyncMutation) SetActorID(u uuid.UUID) {
+	m.actor_id = &u
+}
+
+// ActorID returns the value of the "actor_id" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) ActorID() (r uuid.UUID, exists bool) {
+	v := m.actor_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActorID returns the old "actor_id" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldActorID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActorID: %w", err)
+	}
+	return oldValue.ActorID, nil
+}
+
+// ResetActorID resets all changes to the "actor_id" field.
+func (m *DingTalkDirectorySyncMutation) ResetActorID() {
+	m.actor_id = nil
+}
+
+// SetCorpID sets the "corp_id" field.
+func (m *DingTalkDirectorySyncMutation) SetCorpID(s string) {
+	m.corp_id = &s
+}
+
+// CorpID returns the value of the "corp_id" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) CorpID() (r string, exists bool) {
+	v := m.corp_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCorpID returns the old "corp_id" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldCorpID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCorpID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCorpID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCorpID: %w", err)
+	}
+	return oldValue.CorpID, nil
+}
+
+// ResetCorpID resets all changes to the "corp_id" field.
+func (m *DingTalkDirectorySyncMutation) ResetCorpID() {
+	m.corp_id = nil
+}
+
+// SetActive sets the "active" field.
+func (m *DingTalkDirectorySyncMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *DingTalkDirectorySyncMutation) ResetActive() {
+	m.active = nil
+}
+
+// SetScopeSummary sets the "scope_summary" field.
+func (m *DingTalkDirectorySyncMutation) SetScopeSummary(s string) {
+	m.scope_summary = &s
+}
+
+// ScopeSummary returns the value of the "scope_summary" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) ScopeSummary() (r string, exists bool) {
+	v := m.scope_summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScopeSummary returns the old "scope_summary" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldScopeSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScopeSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScopeSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScopeSummary: %w", err)
+	}
+	return oldValue.ScopeSummary, nil
+}
+
+// ResetScopeSummary resets all changes to the "scope_summary" field.
+func (m *DingTalkDirectorySyncMutation) ResetScopeSummary() {
+	m.scope_summary = nil
+}
+
+// SetFullScope sets the "full_scope" field.
+func (m *DingTalkDirectorySyncMutation) SetFullScope(b bool) {
+	m.full_scope = &b
+}
+
+// FullScope returns the value of the "full_scope" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) FullScope() (r bool, exists bool) {
+	v := m.full_scope
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFullScope returns the old "full_scope" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldFullScope(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFullScope is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFullScope requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFullScope: %w", err)
+	}
+	return oldValue.FullScope, nil
+}
+
+// ResetFullScope resets all changes to the "full_scope" field.
+func (m *DingTalkDirectorySyncMutation) ResetFullScope() {
+	m.full_scope = nil
+}
+
+// SetAvailableFields sets the "available_fields" field.
+func (m *DingTalkDirectorySyncMutation) SetAvailableFields(s []string) {
+	m.available_fields = &s
+	m.appendavailable_fields = nil
+}
+
+// AvailableFields returns the value of the "available_fields" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) AvailableFields() (r []string, exists bool) {
+	v := m.available_fields
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAvailableFields returns the old "available_fields" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldAvailableFields(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAvailableFields is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAvailableFields requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAvailableFields: %w", err)
+	}
+	return oldValue.AvailableFields, nil
+}
+
+// AppendAvailableFields adds s to the "available_fields" field.
+func (m *DingTalkDirectorySyncMutation) AppendAvailableFields(s []string) {
+	m.appendavailable_fields = append(m.appendavailable_fields, s...)
+}
+
+// AppendedAvailableFields returns the list of values that were appended to the "available_fields" field in this mutation.
+func (m *DingTalkDirectorySyncMutation) AppendedAvailableFields() ([]string, bool) {
+	if len(m.appendavailable_fields) == 0 {
+		return nil, false
+	}
+	return m.appendavailable_fields, true
+}
+
+// ClearAvailableFields clears the value of the "available_fields" field.
+func (m *DingTalkDirectorySyncMutation) ClearAvailableFields() {
+	m.available_fields = nil
+	m.appendavailable_fields = nil
+	m.clearedFields[dingtalkdirectorysync.FieldAvailableFields] = struct{}{}
+}
+
+// AvailableFieldsCleared returns if the "available_fields" field was cleared in this mutation.
+func (m *DingTalkDirectorySyncMutation) AvailableFieldsCleared() bool {
+	_, ok := m.clearedFields[dingtalkdirectorysync.FieldAvailableFields]
+	return ok
+}
+
+// ResetAvailableFields resets all changes to the "available_fields" field.
+func (m *DingTalkDirectorySyncMutation) ResetAvailableFields() {
+	m.available_fields = nil
+	m.appendavailable_fields = nil
+	delete(m.clearedFields, dingtalkdirectorysync.FieldAvailableFields)
+}
+
+// SetTotalCount sets the "total_count" field.
+func (m *DingTalkDirectorySyncMutation) SetTotalCount(i int) {
+	m.total_count = &i
+	m.addtotal_count = nil
+}
+
+// TotalCount returns the value of the "total_count" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) TotalCount() (r int, exists bool) {
+	v := m.total_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalCount returns the old "total_count" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldTotalCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalCount: %w", err)
+	}
+	return oldValue.TotalCount, nil
+}
+
+// AddTotalCount adds i to the "total_count" field.
+func (m *DingTalkDirectorySyncMutation) AddTotalCount(i int) {
+	if m.addtotal_count != nil {
+		*m.addtotal_count += i
+	} else {
+		m.addtotal_count = &i
+	}
+}
+
+// AddedTotalCount returns the value that was added to the "total_count" field in this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedTotalCount() (r int, exists bool) {
+	v := m.addtotal_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalCount resets all changes to the "total_count" field.
+func (m *DingTalkDirectorySyncMutation) ResetTotalCount() {
+	m.total_count = nil
+	m.addtotal_count = nil
+}
+
+// SetCreatedCount sets the "created_count" field.
+func (m *DingTalkDirectorySyncMutation) SetCreatedCount(i int) {
+	m.created_count = &i
+	m.addcreated_count = nil
+}
+
+// CreatedCount returns the value of the "created_count" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) CreatedCount() (r int, exists bool) {
+	v := m.created_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedCount returns the old "created_count" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldCreatedCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedCount: %w", err)
+	}
+	return oldValue.CreatedCount, nil
+}
+
+// AddCreatedCount adds i to the "created_count" field.
+func (m *DingTalkDirectorySyncMutation) AddCreatedCount(i int) {
+	if m.addcreated_count != nil {
+		*m.addcreated_count += i
+	} else {
+		m.addcreated_count = &i
+	}
+}
+
+// AddedCreatedCount returns the value that was added to the "created_count" field in this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedCreatedCount() (r int, exists bool) {
+	v := m.addcreated_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreatedCount resets all changes to the "created_count" field.
+func (m *DingTalkDirectorySyncMutation) ResetCreatedCount() {
+	m.created_count = nil
+	m.addcreated_count = nil
+}
+
+// SetUpdatedCount sets the "updated_count" field.
+func (m *DingTalkDirectorySyncMutation) SetUpdatedCount(i int) {
+	m.updated_count = &i
+	m.addupdated_count = nil
+}
+
+// UpdatedCount returns the value of the "updated_count" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) UpdatedCount() (r int, exists bool) {
+	v := m.updated_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedCount returns the old "updated_count" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldUpdatedCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedCount: %w", err)
+	}
+	return oldValue.UpdatedCount, nil
+}
+
+// AddUpdatedCount adds i to the "updated_count" field.
+func (m *DingTalkDirectorySyncMutation) AddUpdatedCount(i int) {
+	if m.addupdated_count != nil {
+		*m.addupdated_count += i
+	} else {
+		m.addupdated_count = &i
+	}
+}
+
+// AddedUpdatedCount returns the value that was added to the "updated_count" field in this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedUpdatedCount() (r int, exists bool) {
+	v := m.addupdated_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpdatedCount resets all changes to the "updated_count" field.
+func (m *DingTalkDirectorySyncMutation) ResetUpdatedCount() {
+	m.updated_count = nil
+	m.addupdated_count = nil
+}
+
+// SetUnchangedCount sets the "unchanged_count" field.
+func (m *DingTalkDirectorySyncMutation) SetUnchangedCount(i int) {
+	m.unchanged_count = &i
+	m.addunchanged_count = nil
+}
+
+// UnchangedCount returns the value of the "unchanged_count" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) UnchangedCount() (r int, exists bool) {
+	v := m.unchanged_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnchangedCount returns the old "unchanged_count" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldUnchangedCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnchangedCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnchangedCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnchangedCount: %w", err)
+	}
+	return oldValue.UnchangedCount, nil
+}
+
+// AddUnchangedCount adds i to the "unchanged_count" field.
+func (m *DingTalkDirectorySyncMutation) AddUnchangedCount(i int) {
+	if m.addunchanged_count != nil {
+		*m.addunchanged_count += i
+	} else {
+		m.addunchanged_count = &i
+	}
+}
+
+// AddedUnchangedCount returns the value that was added to the "unchanged_count" field in this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedUnchangedCount() (r int, exists bool) {
+	v := m.addunchanged_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUnchangedCount resets all changes to the "unchanged_count" field.
+func (m *DingTalkDirectorySyncMutation) ResetUnchangedCount() {
+	m.unchanged_count = nil
+	m.addunchanged_count = nil
+}
+
+// SetFailedCount sets the "failed_count" field.
+func (m *DingTalkDirectorySyncMutation) SetFailedCount(i int) {
+	m.failed_count = &i
+	m.addfailed_count = nil
+}
+
+// FailedCount returns the value of the "failed_count" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) FailedCount() (r int, exists bool) {
+	v := m.failed_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailedCount returns the old "failed_count" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldFailedCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailedCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailedCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailedCount: %w", err)
+	}
+	return oldValue.FailedCount, nil
+}
+
+// AddFailedCount adds i to the "failed_count" field.
+func (m *DingTalkDirectorySyncMutation) AddFailedCount(i int) {
+	if m.addfailed_count != nil {
+		*m.addfailed_count += i
+	} else {
+		m.addfailed_count = &i
+	}
+}
+
+// AddedFailedCount returns the value that was added to the "failed_count" field in this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedFailedCount() (r int, exists bool) {
+	v := m.addfailed_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFailedCount resets all changes to the "failed_count" field.
+func (m *DingTalkDirectorySyncMutation) ResetFailedCount() {
+	m.failed_count = nil
+	m.addfailed_count = nil
+}
+
+// SetFailures sets the "failures" field.
+func (m *DingTalkDirectorySyncMutation) SetFailures(sf []schema.DirectoryFailure) {
+	m.failures = &sf
+	m.appendfailures = nil
+}
+
+// Failures returns the value of the "failures" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) Failures() (r []schema.DirectoryFailure, exists bool) {
+	v := m.failures
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailures returns the old "failures" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldFailures(ctx context.Context) (v []schema.DirectoryFailure, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailures is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailures requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailures: %w", err)
+	}
+	return oldValue.Failures, nil
+}
+
+// AppendFailures adds sf to the "failures" field.
+func (m *DingTalkDirectorySyncMutation) AppendFailures(sf []schema.DirectoryFailure) {
+	m.appendfailures = append(m.appendfailures, sf...)
+}
+
+// AppendedFailures returns the list of values that were appended to the "failures" field in this mutation.
+func (m *DingTalkDirectorySyncMutation) AppendedFailures() ([]schema.DirectoryFailure, bool) {
+	if len(m.appendfailures) == 0 {
+		return nil, false
+	}
+	return m.appendfailures, true
+}
+
+// ClearFailures clears the value of the "failures" field.
+func (m *DingTalkDirectorySyncMutation) ClearFailures() {
+	m.failures = nil
+	m.appendfailures = nil
+	m.clearedFields[dingtalkdirectorysync.FieldFailures] = struct{}{}
+}
+
+// FailuresCleared returns if the "failures" field was cleared in this mutation.
+func (m *DingTalkDirectorySyncMutation) FailuresCleared() bool {
+	_, ok := m.clearedFields[dingtalkdirectorysync.FieldFailures]
+	return ok
+}
+
+// ResetFailures resets all changes to the "failures" field.
+func (m *DingTalkDirectorySyncMutation) ResetFailures() {
+	m.failures = nil
+	m.appendfailures = nil
+	delete(m.clearedFields, dingtalkdirectorysync.FieldFailures)
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (m *DingTalkDirectorySyncMutation) SetCompletedAt(t time.Time) {
+	m.completed_at = &t
+}
+
+// CompletedAt returns the value of the "completed_at" field in the mutation.
+func (m *DingTalkDirectorySyncMutation) CompletedAt() (r time.Time, exists bool) {
+	v := m.completed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletedAt returns the old "completed_at" field's value of the DingTalkDirectorySync entity.
+// If the DingTalkDirectorySync object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DingTalkDirectorySyncMutation) OldCompletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletedAt: %w", err)
+	}
+	return oldValue.CompletedAt, nil
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (m *DingTalkDirectorySyncMutation) ClearCompletedAt() {
+	m.completed_at = nil
+	m.clearedFields[dingtalkdirectorysync.FieldCompletedAt] = struct{}{}
+}
+
+// CompletedAtCleared returns if the "completed_at" field was cleared in this mutation.
+func (m *DingTalkDirectorySyncMutation) CompletedAtCleared() bool {
+	_, ok := m.clearedFields[dingtalkdirectorysync.FieldCompletedAt]
+	return ok
+}
+
+// ResetCompletedAt resets all changes to the "completed_at" field.
+func (m *DingTalkDirectorySyncMutation) ResetCompletedAt() {
+	m.completed_at = nil
+	delete(m.clearedFields, dingtalkdirectorysync.FieldCompletedAt)
+}
+
+// ClearBackgroundTask clears the "background_task" edge to the BackgroundTask entity.
+func (m *DingTalkDirectorySyncMutation) ClearBackgroundTask() {
+	m.clearedbackground_task = true
+	m.clearedFields[dingtalkdirectorysync.FieldBackgroundTaskID] = struct{}{}
+}
+
+// BackgroundTaskCleared reports if the "background_task" edge to the BackgroundTask entity was cleared.
+func (m *DingTalkDirectorySyncMutation) BackgroundTaskCleared() bool {
+	return m.clearedbackground_task
+}
+
+// BackgroundTaskIDs returns the "background_task" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BackgroundTaskID instead. It exists only for internal usage by the builders.
+func (m *DingTalkDirectorySyncMutation) BackgroundTaskIDs() (ids []uuid.UUID) {
+	if id := m.background_task; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBackgroundTask resets all changes to the "background_task" edge.
+func (m *DingTalkDirectorySyncMutation) ResetBackgroundTask() {
+	m.background_task = nil
+	m.clearedbackground_task = false
+}
+
+// Where appends a list predicates to the DingTalkDirectorySyncMutation builder.
+func (m *DingTalkDirectorySyncMutation) Where(ps ...predicate.DingTalkDirectorySync) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DingTalkDirectorySyncMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DingTalkDirectorySyncMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DingTalkDirectorySync, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DingTalkDirectorySyncMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DingTalkDirectorySyncMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DingTalkDirectorySync).
+func (m *DingTalkDirectorySyncMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DingTalkDirectorySyncMutation) Fields() []string {
+	fields := make([]string, 0, 16)
+	if m.created_at != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldUpdatedAt)
+	}
+	if m.background_task != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldBackgroundTaskID)
+	}
+	if m.actor_id != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldActorID)
+	}
+	if m.corp_id != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldCorpID)
+	}
+	if m.active != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldActive)
+	}
+	if m.scope_summary != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldScopeSummary)
+	}
+	if m.full_scope != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldFullScope)
+	}
+	if m.available_fields != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldAvailableFields)
+	}
+	if m.total_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldTotalCount)
+	}
+	if m.created_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldCreatedCount)
+	}
+	if m.updated_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldUpdatedCount)
+	}
+	if m.unchanged_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldUnchangedCount)
+	}
+	if m.failed_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldFailedCount)
+	}
+	if m.failures != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldFailures)
+	}
+	if m.completed_at != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldCompletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DingTalkDirectorySyncMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case dingtalkdirectorysync.FieldCreatedAt:
+		return m.CreatedAt()
+	case dingtalkdirectorysync.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case dingtalkdirectorysync.FieldBackgroundTaskID:
+		return m.BackgroundTaskID()
+	case dingtalkdirectorysync.FieldActorID:
+		return m.ActorID()
+	case dingtalkdirectorysync.FieldCorpID:
+		return m.CorpID()
+	case dingtalkdirectorysync.FieldActive:
+		return m.Active()
+	case dingtalkdirectorysync.FieldScopeSummary:
+		return m.ScopeSummary()
+	case dingtalkdirectorysync.FieldFullScope:
+		return m.FullScope()
+	case dingtalkdirectorysync.FieldAvailableFields:
+		return m.AvailableFields()
+	case dingtalkdirectorysync.FieldTotalCount:
+		return m.TotalCount()
+	case dingtalkdirectorysync.FieldCreatedCount:
+		return m.CreatedCount()
+	case dingtalkdirectorysync.FieldUpdatedCount:
+		return m.UpdatedCount()
+	case dingtalkdirectorysync.FieldUnchangedCount:
+		return m.UnchangedCount()
+	case dingtalkdirectorysync.FieldFailedCount:
+		return m.FailedCount()
+	case dingtalkdirectorysync.FieldFailures:
+		return m.Failures()
+	case dingtalkdirectorysync.FieldCompletedAt:
+		return m.CompletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DingTalkDirectorySyncMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case dingtalkdirectorysync.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case dingtalkdirectorysync.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case dingtalkdirectorysync.FieldBackgroundTaskID:
+		return m.OldBackgroundTaskID(ctx)
+	case dingtalkdirectorysync.FieldActorID:
+		return m.OldActorID(ctx)
+	case dingtalkdirectorysync.FieldCorpID:
+		return m.OldCorpID(ctx)
+	case dingtalkdirectorysync.FieldActive:
+		return m.OldActive(ctx)
+	case dingtalkdirectorysync.FieldScopeSummary:
+		return m.OldScopeSummary(ctx)
+	case dingtalkdirectorysync.FieldFullScope:
+		return m.OldFullScope(ctx)
+	case dingtalkdirectorysync.FieldAvailableFields:
+		return m.OldAvailableFields(ctx)
+	case dingtalkdirectorysync.FieldTotalCount:
+		return m.OldTotalCount(ctx)
+	case dingtalkdirectorysync.FieldCreatedCount:
+		return m.OldCreatedCount(ctx)
+	case dingtalkdirectorysync.FieldUpdatedCount:
+		return m.OldUpdatedCount(ctx)
+	case dingtalkdirectorysync.FieldUnchangedCount:
+		return m.OldUnchangedCount(ctx)
+	case dingtalkdirectorysync.FieldFailedCount:
+		return m.OldFailedCount(ctx)
+	case dingtalkdirectorysync.FieldFailures:
+		return m.OldFailures(ctx)
+	case dingtalkdirectorysync.FieldCompletedAt:
+		return m.OldCompletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DingTalkDirectorySync field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DingTalkDirectorySyncMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case dingtalkdirectorysync.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case dingtalkdirectorysync.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case dingtalkdirectorysync.FieldBackgroundTaskID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBackgroundTaskID(v)
+		return nil
+	case dingtalkdirectorysync.FieldActorID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActorID(v)
+		return nil
+	case dingtalkdirectorysync.FieldCorpID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCorpID(v)
+		return nil
+	case dingtalkdirectorysync.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
+	case dingtalkdirectorysync.FieldScopeSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScopeSummary(v)
+		return nil
+	case dingtalkdirectorysync.FieldFullScope:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFullScope(v)
+		return nil
+	case dingtalkdirectorysync.FieldAvailableFields:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAvailableFields(v)
+		return nil
+	case dingtalkdirectorysync.FieldTotalCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldCreatedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldUpdatedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldUnchangedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnchangedCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldFailedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailedCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldFailures:
+		v, ok := value.([]schema.DirectoryFailure)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailures(v)
+		return nil
+	case dingtalkdirectorysync.FieldCompletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkDirectorySync field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedFields() []string {
+	var fields []string
+	if m.addtotal_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldTotalCount)
+	}
+	if m.addcreated_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldCreatedCount)
+	}
+	if m.addupdated_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldUpdatedCount)
+	}
+	if m.addunchanged_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldUnchangedCount)
+	}
+	if m.addfailed_count != nil {
+		fields = append(fields, dingtalkdirectorysync.FieldFailedCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DingTalkDirectorySyncMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case dingtalkdirectorysync.FieldTotalCount:
+		return m.AddedTotalCount()
+	case dingtalkdirectorysync.FieldCreatedCount:
+		return m.AddedCreatedCount()
+	case dingtalkdirectorysync.FieldUpdatedCount:
+		return m.AddedUpdatedCount()
+	case dingtalkdirectorysync.FieldUnchangedCount:
+		return m.AddedUnchangedCount()
+	case dingtalkdirectorysync.FieldFailedCount:
+		return m.AddedFailedCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DingTalkDirectorySyncMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case dingtalkdirectorysync.FieldTotalCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldCreatedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCreatedCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldUpdatedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUpdatedCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldUnchangedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUnchangedCount(v)
+		return nil
+	case dingtalkdirectorysync.FieldFailedCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFailedCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkDirectorySync numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DingTalkDirectorySyncMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(dingtalkdirectorysync.FieldAvailableFields) {
+		fields = append(fields, dingtalkdirectorysync.FieldAvailableFields)
+	}
+	if m.FieldCleared(dingtalkdirectorysync.FieldFailures) {
+		fields = append(fields, dingtalkdirectorysync.FieldFailures)
+	}
+	if m.FieldCleared(dingtalkdirectorysync.FieldCompletedAt) {
+		fields = append(fields, dingtalkdirectorysync.FieldCompletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DingTalkDirectorySyncMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DingTalkDirectorySyncMutation) ClearField(name string) error {
+	switch name {
+	case dingtalkdirectorysync.FieldAvailableFields:
+		m.ClearAvailableFields()
+		return nil
+	case dingtalkdirectorysync.FieldFailures:
+		m.ClearFailures()
+		return nil
+	case dingtalkdirectorysync.FieldCompletedAt:
+		m.ClearCompletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkDirectorySync nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DingTalkDirectorySyncMutation) ResetField(name string) error {
+	switch name {
+	case dingtalkdirectorysync.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case dingtalkdirectorysync.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case dingtalkdirectorysync.FieldBackgroundTaskID:
+		m.ResetBackgroundTaskID()
+		return nil
+	case dingtalkdirectorysync.FieldActorID:
+		m.ResetActorID()
+		return nil
+	case dingtalkdirectorysync.FieldCorpID:
+		m.ResetCorpID()
+		return nil
+	case dingtalkdirectorysync.FieldActive:
+		m.ResetActive()
+		return nil
+	case dingtalkdirectorysync.FieldScopeSummary:
+		m.ResetScopeSummary()
+		return nil
+	case dingtalkdirectorysync.FieldFullScope:
+		m.ResetFullScope()
+		return nil
+	case dingtalkdirectorysync.FieldAvailableFields:
+		m.ResetAvailableFields()
+		return nil
+	case dingtalkdirectorysync.FieldTotalCount:
+		m.ResetTotalCount()
+		return nil
+	case dingtalkdirectorysync.FieldCreatedCount:
+		m.ResetCreatedCount()
+		return nil
+	case dingtalkdirectorysync.FieldUpdatedCount:
+		m.ResetUpdatedCount()
+		return nil
+	case dingtalkdirectorysync.FieldUnchangedCount:
+		m.ResetUnchangedCount()
+		return nil
+	case dingtalkdirectorysync.FieldFailedCount:
+		m.ResetFailedCount()
+		return nil
+	case dingtalkdirectorysync.FieldFailures:
+		m.ResetFailures()
+		return nil
+	case dingtalkdirectorysync.FieldCompletedAt:
+		m.ResetCompletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkDirectorySync field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.background_task != nil {
+		edges = append(edges, dingtalkdirectorysync.EdgeBackgroundTask)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DingTalkDirectorySyncMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case dingtalkdirectorysync.EdgeBackgroundTask:
+		if id := m.background_task; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DingTalkDirectorySyncMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DingTalkDirectorySyncMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DingTalkDirectorySyncMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedbackground_task {
+		edges = append(edges, dingtalkdirectorysync.EdgeBackgroundTask)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DingTalkDirectorySyncMutation) EdgeCleared(name string) bool {
+	switch name {
+	case dingtalkdirectorysync.EdgeBackgroundTask:
+		return m.clearedbackground_task
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DingTalkDirectorySyncMutation) ClearEdge(name string) error {
+	switch name {
+	case dingtalkdirectorysync.EdgeBackgroundTask:
+		m.ClearBackgroundTask()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkDirectorySync unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DingTalkDirectorySyncMutation) ResetEdge(name string) error {
+	switch name {
+	case dingtalkdirectorysync.EdgeBackgroundTask:
+		m.ResetBackgroundTask()
+		return nil
+	}
+	return fmt.Errorf("unknown DingTalkDirectorySync edge %s", name)
 }
 
 // DingTalkInvitationMutation represents an operation that mutates the DingTalkInvitation nodes in the graph.
@@ -162962,6 +164481,12 @@ type UserMutation struct {
 	dingtalk_name                                         *string
 	is_bootstrap_admin                                    *bool
 	enabled                                               *bool
+	pending_assignment                                    *bool
+	dingtalk_job_number                                   *string
+	dingtalk_mobile                                       *string
+	dingtalk_departments                                  *[]schema.DirectoryDepartment
+	appenddingtalk_departments                            []schema.DirectoryDepartment
+	dingtalk_last_synced_at                               *time.Time
 	search_keywords                                       *string
 	clearedFields                                         map[string]struct{}
 	memberships                                           map[uuid.UUID]struct{}
@@ -163923,6 +165448,254 @@ func (m *UserMutation) OldEnabled(ctx context.Context) (v bool, err error) {
 // ResetEnabled resets all changes to the "enabled" field.
 func (m *UserMutation) ResetEnabled() {
 	m.enabled = nil
+}
+
+// SetPendingAssignment sets the "pending_assignment" field.
+func (m *UserMutation) SetPendingAssignment(b bool) {
+	m.pending_assignment = &b
+}
+
+// PendingAssignment returns the value of the "pending_assignment" field in the mutation.
+func (m *UserMutation) PendingAssignment() (r bool, exists bool) {
+	v := m.pending_assignment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPendingAssignment returns the old "pending_assignment" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPendingAssignment(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPendingAssignment is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPendingAssignment requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPendingAssignment: %w", err)
+	}
+	return oldValue.PendingAssignment, nil
+}
+
+// ResetPendingAssignment resets all changes to the "pending_assignment" field.
+func (m *UserMutation) ResetPendingAssignment() {
+	m.pending_assignment = nil
+}
+
+// SetDingtalkJobNumber sets the "dingtalk_job_number" field.
+func (m *UserMutation) SetDingtalkJobNumber(s string) {
+	m.dingtalk_job_number = &s
+}
+
+// DingtalkJobNumber returns the value of the "dingtalk_job_number" field in the mutation.
+func (m *UserMutation) DingtalkJobNumber() (r string, exists bool) {
+	v := m.dingtalk_job_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkJobNumber returns the old "dingtalk_job_number" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkJobNumber(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkJobNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkJobNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkJobNumber: %w", err)
+	}
+	return oldValue.DingtalkJobNumber, nil
+}
+
+// ClearDingtalkJobNumber clears the value of the "dingtalk_job_number" field.
+func (m *UserMutation) ClearDingtalkJobNumber() {
+	m.dingtalk_job_number = nil
+	m.clearedFields[user.FieldDingtalkJobNumber] = struct{}{}
+}
+
+// DingtalkJobNumberCleared returns if the "dingtalk_job_number" field was cleared in this mutation.
+func (m *UserMutation) DingtalkJobNumberCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkJobNumber]
+	return ok
+}
+
+// ResetDingtalkJobNumber resets all changes to the "dingtalk_job_number" field.
+func (m *UserMutation) ResetDingtalkJobNumber() {
+	m.dingtalk_job_number = nil
+	delete(m.clearedFields, user.FieldDingtalkJobNumber)
+}
+
+// SetDingtalkMobile sets the "dingtalk_mobile" field.
+func (m *UserMutation) SetDingtalkMobile(s string) {
+	m.dingtalk_mobile = &s
+}
+
+// DingtalkMobile returns the value of the "dingtalk_mobile" field in the mutation.
+func (m *UserMutation) DingtalkMobile() (r string, exists bool) {
+	v := m.dingtalk_mobile
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkMobile returns the old "dingtalk_mobile" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkMobile(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkMobile is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkMobile requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkMobile: %w", err)
+	}
+	return oldValue.DingtalkMobile, nil
+}
+
+// ClearDingtalkMobile clears the value of the "dingtalk_mobile" field.
+func (m *UserMutation) ClearDingtalkMobile() {
+	m.dingtalk_mobile = nil
+	m.clearedFields[user.FieldDingtalkMobile] = struct{}{}
+}
+
+// DingtalkMobileCleared returns if the "dingtalk_mobile" field was cleared in this mutation.
+func (m *UserMutation) DingtalkMobileCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkMobile]
+	return ok
+}
+
+// ResetDingtalkMobile resets all changes to the "dingtalk_mobile" field.
+func (m *UserMutation) ResetDingtalkMobile() {
+	m.dingtalk_mobile = nil
+	delete(m.clearedFields, user.FieldDingtalkMobile)
+}
+
+// SetDingtalkDepartments sets the "dingtalk_departments" field.
+func (m *UserMutation) SetDingtalkDepartments(sd []schema.DirectoryDepartment) {
+	m.dingtalk_departments = &sd
+	m.appenddingtalk_departments = nil
+}
+
+// DingtalkDepartments returns the value of the "dingtalk_departments" field in the mutation.
+func (m *UserMutation) DingtalkDepartments() (r []schema.DirectoryDepartment, exists bool) {
+	v := m.dingtalk_departments
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkDepartments returns the old "dingtalk_departments" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkDepartments(ctx context.Context) (v []schema.DirectoryDepartment, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkDepartments is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkDepartments requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkDepartments: %w", err)
+	}
+	return oldValue.DingtalkDepartments, nil
+}
+
+// AppendDingtalkDepartments adds sd to the "dingtalk_departments" field.
+func (m *UserMutation) AppendDingtalkDepartments(sd []schema.DirectoryDepartment) {
+	m.appenddingtalk_departments = append(m.appenddingtalk_departments, sd...)
+}
+
+// AppendedDingtalkDepartments returns the list of values that were appended to the "dingtalk_departments" field in this mutation.
+func (m *UserMutation) AppendedDingtalkDepartments() ([]schema.DirectoryDepartment, bool) {
+	if len(m.appenddingtalk_departments) == 0 {
+		return nil, false
+	}
+	return m.appenddingtalk_departments, true
+}
+
+// ClearDingtalkDepartments clears the value of the "dingtalk_departments" field.
+func (m *UserMutation) ClearDingtalkDepartments() {
+	m.dingtalk_departments = nil
+	m.appenddingtalk_departments = nil
+	m.clearedFields[user.FieldDingtalkDepartments] = struct{}{}
+}
+
+// DingtalkDepartmentsCleared returns if the "dingtalk_departments" field was cleared in this mutation.
+func (m *UserMutation) DingtalkDepartmentsCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkDepartments]
+	return ok
+}
+
+// ResetDingtalkDepartments resets all changes to the "dingtalk_departments" field.
+func (m *UserMutation) ResetDingtalkDepartments() {
+	m.dingtalk_departments = nil
+	m.appenddingtalk_departments = nil
+	delete(m.clearedFields, user.FieldDingtalkDepartments)
+}
+
+// SetDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field.
+func (m *UserMutation) SetDingtalkLastSyncedAt(t time.Time) {
+	m.dingtalk_last_synced_at = &t
+}
+
+// DingtalkLastSyncedAt returns the value of the "dingtalk_last_synced_at" field in the mutation.
+func (m *UserMutation) DingtalkLastSyncedAt() (r time.Time, exists bool) {
+	v := m.dingtalk_last_synced_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkLastSyncedAt returns the old "dingtalk_last_synced_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkLastSyncedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkLastSyncedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkLastSyncedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkLastSyncedAt: %w", err)
+	}
+	return oldValue.DingtalkLastSyncedAt, nil
+}
+
+// ClearDingtalkLastSyncedAt clears the value of the "dingtalk_last_synced_at" field.
+func (m *UserMutation) ClearDingtalkLastSyncedAt() {
+	m.dingtalk_last_synced_at = nil
+	m.clearedFields[user.FieldDingtalkLastSyncedAt] = struct{}{}
+}
+
+// DingtalkLastSyncedAtCleared returns if the "dingtalk_last_synced_at" field was cleared in this mutation.
+func (m *UserMutation) DingtalkLastSyncedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkLastSyncedAt]
+	return ok
+}
+
+// ResetDingtalkLastSyncedAt resets all changes to the "dingtalk_last_synced_at" field.
+func (m *UserMutation) ResetDingtalkLastSyncedAt() {
+	m.dingtalk_last_synced_at = nil
+	delete(m.clearedFields, user.FieldDingtalkLastSyncedAt)
 }
 
 // SetSearchKeywords sets the "search_keywords" field.
@@ -167262,7 +169035,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 21)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -167308,6 +169081,21 @@ func (m *UserMutation) Fields() []string {
 	if m.enabled != nil {
 		fields = append(fields, user.FieldEnabled)
 	}
+	if m.pending_assignment != nil {
+		fields = append(fields, user.FieldPendingAssignment)
+	}
+	if m.dingtalk_job_number != nil {
+		fields = append(fields, user.FieldDingtalkJobNumber)
+	}
+	if m.dingtalk_mobile != nil {
+		fields = append(fields, user.FieldDingtalkMobile)
+	}
+	if m.dingtalk_departments != nil {
+		fields = append(fields, user.FieldDingtalkDepartments)
+	}
+	if m.dingtalk_last_synced_at != nil {
+		fields = append(fields, user.FieldDingtalkLastSyncedAt)
+	}
 	if m.search_keywords != nil {
 		fields = append(fields, user.FieldSearchKeywords)
 	}
@@ -167349,6 +169137,16 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.IsBootstrapAdmin()
 	case user.FieldEnabled:
 		return m.Enabled()
+	case user.FieldPendingAssignment:
+		return m.PendingAssignment()
+	case user.FieldDingtalkJobNumber:
+		return m.DingtalkJobNumber()
+	case user.FieldDingtalkMobile:
+		return m.DingtalkMobile()
+	case user.FieldDingtalkDepartments:
+		return m.DingtalkDepartments()
+	case user.FieldDingtalkLastSyncedAt:
+		return m.DingtalkLastSyncedAt()
 	case user.FieldSearchKeywords:
 		return m.SearchKeywords()
 	}
@@ -167390,6 +169188,16 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldIsBootstrapAdmin(ctx)
 	case user.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case user.FieldPendingAssignment:
+		return m.OldPendingAssignment(ctx)
+	case user.FieldDingtalkJobNumber:
+		return m.OldDingtalkJobNumber(ctx)
+	case user.FieldDingtalkMobile:
+		return m.OldDingtalkMobile(ctx)
+	case user.FieldDingtalkDepartments:
+		return m.OldDingtalkDepartments(ctx)
+	case user.FieldDingtalkLastSyncedAt:
+		return m.OldDingtalkLastSyncedAt(ctx)
 	case user.FieldSearchKeywords:
 		return m.OldSearchKeywords(ctx)
 	}
@@ -167506,6 +169314,41 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEnabled(v)
 		return nil
+	case user.FieldPendingAssignment:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPendingAssignment(v)
+		return nil
+	case user.FieldDingtalkJobNumber:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkJobNumber(v)
+		return nil
+	case user.FieldDingtalkMobile:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkMobile(v)
+		return nil
+	case user.FieldDingtalkDepartments:
+		v, ok := value.([]schema.DirectoryDepartment)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkDepartments(v)
+		return nil
+	case user.FieldDingtalkLastSyncedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkLastSyncedAt(v)
+		return nil
 	case user.FieldSearchKeywords:
 		v, ok := value.(string)
 		if !ok {
@@ -167573,6 +169416,18 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldDingtalkRequestedOrganizationID) {
 		fields = append(fields, user.FieldDingtalkRequestedOrganizationID)
 	}
+	if m.FieldCleared(user.FieldDingtalkJobNumber) {
+		fields = append(fields, user.FieldDingtalkJobNumber)
+	}
+	if m.FieldCleared(user.FieldDingtalkMobile) {
+		fields = append(fields, user.FieldDingtalkMobile)
+	}
+	if m.FieldCleared(user.FieldDingtalkDepartments) {
+		fields = append(fields, user.FieldDingtalkDepartments)
+	}
+	if m.FieldCleared(user.FieldDingtalkLastSyncedAt) {
+		fields = append(fields, user.FieldDingtalkLastSyncedAt)
+	}
 	return fields
 }
 
@@ -167616,6 +169471,18 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldDingtalkRequestedOrganizationID:
 		m.ClearDingtalkRequestedOrganizationID()
+		return nil
+	case user.FieldDingtalkJobNumber:
+		m.ClearDingtalkJobNumber()
+		return nil
+	case user.FieldDingtalkMobile:
+		m.ClearDingtalkMobile()
+		return nil
+	case user.FieldDingtalkDepartments:
+		m.ClearDingtalkDepartments()
+		return nil
+	case user.FieldDingtalkLastSyncedAt:
+		m.ClearDingtalkLastSyncedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -167669,6 +169536,21 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case user.FieldPendingAssignment:
+		m.ResetPendingAssignment()
+		return nil
+	case user.FieldDingtalkJobNumber:
+		m.ResetDingtalkJobNumber()
+		return nil
+	case user.FieldDingtalkMobile:
+		m.ResetDingtalkMobile()
+		return nil
+	case user.FieldDingtalkDepartments:
+		m.ResetDingtalkDepartments()
+		return nil
+	case user.FieldDingtalkLastSyncedAt:
+		m.ResetDingtalkLastSyncedAt()
 		return nil
 	case user.FieldSearchKeywords:
 		m.ResetSearchKeywords()

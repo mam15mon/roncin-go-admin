@@ -3,7 +3,7 @@
   "name": "dingtalk-directory-provisioning",
   "title": "钉钉人员同步与待分配管理",
   "description": "从钉钉通讯录同步人员，先保留无组织的待分配状态，再由管理员分配业务组织和角色；规划用户管理与登录开通流程的收敛。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": "users",
   "package": null,
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-09",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/dingtalk-directory-provisioning",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -31,6 +31,6 @@
     "web/src/pages/admin/users.tsx",
     "web/src/pages/user/login/dingtalk-callback.tsx"
   ],
-  "notes": "2026-10-09 已确认 D1 统一同步分配并撤除旧邀请/注册、D2 通讯录资料只读、D3 批量逐人开通保留成功。PRD 已收敛，design/implement 与上下文清单齐备；等待用户审阅最新整体方案后批准实施，状态仍 planning。真实钉钉权限未实测。",
+  "notes": "2026-10-09 用户在最终方案呈现后明确回复“开始实施吧”，批准按最新 PRD/design/implement 实施。D1/D2/D3 已确认；真实钉钉权限需实施核验。",
   "meta": {}
 }

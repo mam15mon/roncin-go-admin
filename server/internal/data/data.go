@@ -23,16 +23,12 @@ import (
 // ProviderSet is data providers.
 var dingTalkProviderSet = wire.NewSet(
 	NewDingTalkIdentityProvider,
-	NewDingTalkRegistrationTokenCodec,
 	NewDingTalkApprovalGateway,
 	NewDingTalkApprovalCallbackCodec,
-	NewDingTalkRegistrationRepo,
+	NewDingTalkDirectoryRepo,
 	wire.Bind(new(biz.DingTalkIdentityProvider), new(*dingTalkIdentityProvider)),
-	wire.Bind(new(biz.DingTalkRegistrationTokenCodec), new(*dingTalkRegistrationTokenCodec)),
 	wire.Bind(new(biz.DingTalkNotificationSender), new(*dingTalkIdentityProvider)),
-	wire.Bind(new(biz.DingTalkDirectoryLookup), new(*dingTalkIdentityProvider)),
-	wire.Bind(new(biz.DingTalkLoginRegistrationRepo), new(*dingTalkRegistrationRepo)),
-	wire.Bind(new(biz.DingTalkRegistrationRepo), new(*dingTalkRegistrationRepo)),
+	wire.Bind(new(biz.DingTalkDirectoryGateway), new(*dingTalkIdentityProvider)),
 )
 
 var ProviderSet = wire.NewSet(NewData, NewEnterpriseImageStorage, NewEnterpriseResourceRepo, NewBusinessTagRepo, NewAuthRepo, NewWeComIdentityProvider, dingTalkProviderSet, NewPartnerRepo, NewPartnerAccountRepo, NewPartnerContractRepo, NewPartnerSettlementRuleRepo, NewPartnerAttachmentRepo, NewPartnerShippingPresetRepo, NewPartnerInvoiceProfileRepo, NewAdminRepo, NewMasterDataRepo, NewIndustryReferenceRepo, NewReferenceDataRepo, NewOrderConfigRepo, NewOrderRepo, NewOrderLockRepo, NewAutoOrderLockRepo, NewSeaMasterBillRepo, NewSeaDocumentRepo, NewSeaDocumentChangeRepo, NewSeaSharedContainerRepo, NewSeaOrderChangeRepo, NewOrderMilestoneRepo, NewOrderAttachmentRepo, NewOrderPersonnelRepo, NewOrderContainerRepo, NewOrderCargoItemRepo, NewOrderShippingDocumentRepo, NewOrderReleasePodRepo, NewOrderAbnormalCaseRepo, NewExchangeRateRepo, NewExchangeRateQuoteProvider, NewExchangeRateReminderRepo, NewFeeCatalogRepo, NewOrderFeeRepo, NewOrderFeeSupplementRepo, NewSettlementRepo, NewFinanceCustomSettingRepo, NewFinanceBillRepo, NewFinanceInvoiceRepo, NewFinanceCashflowRepo, NewVerificationRepo, NewFinanceNettingRepo, NewCommissionRepo, NewBackgroundTaskRepo, NewNotificationRepo, NewDingTalkApprovalRepo, NewObjectDeletionRepo, NewWorkbenchRepo, NewFinanceCommissionApplicationRepo, wire.Bind(new(biz.PartnerCreditRepo), new(biz.FinanceBillRepo)), wire.Bind(new(biz.Transactor), new(*Data)))

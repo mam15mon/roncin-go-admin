@@ -44,22 +44,6 @@ service AuthService {
     };
   }
 
-  rpc RegisterDingTalkUser(RegisterDingTalkUserRequest) returns (RegisterDingTalkUserResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
-    option (google.api.http) = {
-      post: "/api/v1/auth/dingtalk/registrations"
-      body: "*"
-    };
-  }
-
-  // GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
-  rpc GetDingTalkInvitationInfo(GetDingTalkInvitationInfoRequest) returns (GetDingTalkInvitationInfoResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
-    option (google.api.http) = {
-      get: "/api/v1/auth/dingtalk/invitations/info"
-    };
-  }
-
   rpc Logout(LogoutRequest) returns (LogoutResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -97,33 +81,6 @@ message WeComLoginRequest {
 message DingTalkLoginRequest {
   string auth_code = 1 [(google.api.field_behavior) = REQUIRED];
   string state = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-message RegisterDingTalkUserRequest {
-  // 可选：专属邀请 Token；若提供则由服务端解析目标组织，杜绝客户端伪造
-  optional string invitation_token = 1;
-  // 可选：自选要加入的目标公司（公开注册通道用；若有 invitation_token 则由服务端优先从 Token 兑现）
-  optional string organization_id = 2;
-}
-
-message GetDingTalkInvitationInfoRequest {
-  // 专属邀请 128-bit Token
-  string token = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
-message GetDingTalkInvitationInfoResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  DingTalkInvitationPublicInfo data = 4;
-  string trace_id = 5;
-}
-
-// 落地页公共展示信息（极简安全模型：不返回 token 本身、不返回角色或权限配置、不返回手机号）。
-message DingTalkInvitationPublicInfo {
-  string organization_name = 1;
-  string inviter_name = 2;
-  string expires_at = 3;
 }
 
 message GetWeComLoginConfigResponse {
@@ -185,28 +142,16 @@ message DingTalkLoginResponse {
 enum DingTalkLoginStatus {
   DING_TALK_LOGIN_STATUS_UNSPECIFIED = 0;
   DING_TALK_LOGIN_STATUS_AUTHENTICATED = 1;
-  DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED = 2;
+  DING_TALK_LOGIN_STATUS_NOT_SYNCED = 2;
+  DING_TALK_LOGIN_STATUS_PENDING_ASSIGNMENT = 3;
+  DING_TALK_LOGIN_STATUS_DISABLED = 4;
 }
 
 message DingTalkLoginResult {
   DingTalkLoginStatus status = 1;
   optional CurrentUser current_user = 2;
   optional string display_name = 3;
-  // REGISTRATION_REQUIRED 时可选的目标公司列表（启用中的公司组织），供注册确认页选择。
-  repeated OrganizationChoice registration_organizations = 4;
-}
-
-message RegisterDingTalkUserResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  DingTalkRegistrationConfirmation data = 4;
-  string trace_id = 5;
-}
-
-message DingTalkRegistrationConfirmation {
-  string display_name = 1;
-  string status = 2;
+  string message = 4;
 }
 
 message MeResponse {

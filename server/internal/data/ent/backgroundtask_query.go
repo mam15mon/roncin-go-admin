@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -30,6 +31,7 @@ type BackgroundTaskQuery struct {
 	inters                       []Interceptor
 	predicates                   []predicate.BackgroundTask
 	withOrganization             *OrganizationQuery
+	withDingtalkDirectorySync    *DingTalkDirectorySyncQuery
 	withNotificationDelivery     *NotificationDeliveryQuery
 	withObjectStorageDeletion    *ObjectStorageDeletionQuery
 	withDingtalkApprovalDispatch *DingTalkApprovalDispatchQuery
@@ -85,6 +87,28 @@ func (_q *BackgroundTaskQuery) QueryOrganization() *OrganizationQuery {
 			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, selector),
 			sqlgraph.To(organization.Table, organization.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, backgroundtask.OrganizationTable, backgroundtask.OrganizationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDingtalkDirectorySync chains the current query on the "dingtalk_directory_sync" edge.
+func (_q *BackgroundTaskQuery) QueryDingtalkDirectorySync() *DingTalkDirectorySyncQuery {
+	query := (&DingTalkDirectorySyncClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(backgroundtask.Table, backgroundtask.FieldID, selector),
+			sqlgraph.To(dingtalkdirectorysync.Table, dingtalkdirectorysync.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, backgroundtask.DingtalkDirectorySyncTable, backgroundtask.DingtalkDirectorySyncColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -351,6 +375,7 @@ func (_q *BackgroundTaskQuery) Clone() *BackgroundTaskQuery {
 		inters:                       append([]Interceptor{}, _q.inters...),
 		predicates:                   append([]predicate.BackgroundTask{}, _q.predicates...),
 		withOrganization:             _q.withOrganization.Clone(),
+		withDingtalkDirectorySync:    _q.withDingtalkDirectorySync.Clone(),
 		withNotificationDelivery:     _q.withNotificationDelivery.Clone(),
 		withObjectStorageDeletion:    _q.withObjectStorageDeletion.Clone(),
 		withDingtalkApprovalDispatch: _q.withDingtalkApprovalDispatch.Clone(),
@@ -368,6 +393,17 @@ func (_q *BackgroundTaskQuery) WithOrganization(opts ...func(*OrganizationQuery)
 		opt(query)
 	}
 	_q.withOrganization = query
+	return _q
+}
+
+// WithDingtalkDirectorySync tells the query-builder to eager-load the nodes that are connected to
+// the "dingtalk_directory_sync" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *BackgroundTaskQuery) WithDingtalkDirectorySync(opts ...func(*DingTalkDirectorySyncQuery)) *BackgroundTaskQuery {
+	query := (&DingTalkDirectorySyncClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDingtalkDirectorySync = query
 	return _q
 }
 
@@ -482,8 +518,9 @@ func (_q *BackgroundTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*BackgroundTask{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withOrganization != nil,
+			_q.withDingtalkDirectorySync != nil,
 			_q.withNotificationDelivery != nil,
 			_q.withObjectStorageDeletion != nil,
 			_q.withDingtalkApprovalDispatch != nil,
@@ -513,6 +550,12 @@ func (_q *BackgroundTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if query := _q.withOrganization; query != nil {
 		if err := _q.loadOrganization(ctx, query, nodes, nil,
 			func(n *BackgroundTask, e *Organization) { n.Edges.Organization = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDingtalkDirectorySync; query != nil {
+		if err := _q.loadDingtalkDirectorySync(ctx, query, nodes, nil,
+			func(n *BackgroundTask, e *DingTalkDirectorySync) { n.Edges.DingtalkDirectorySync = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -563,6 +606,33 @@ func (_q *BackgroundTaskQuery) loadOrganization(ctx context.Context, query *Orga
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *BackgroundTaskQuery) loadDingtalkDirectorySync(ctx context.Context, query *DingTalkDirectorySyncQuery, nodes []*BackgroundTask, init func(*BackgroundTask), assign func(*BackgroundTask, *DingTalkDirectorySync)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*BackgroundTask)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(dingtalkdirectorysync.FieldBackgroundTaskID)
+	}
+	query.Where(predicate.DingTalkDirectorySync(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(backgroundtask.DingtalkDirectorySyncColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BackgroundTaskID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "background_task_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

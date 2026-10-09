@@ -30,6 +30,8 @@ type Tx struct {
 	DingTalkApprovalDispatch *DingTalkApprovalDispatchClient
 	// DingTalkApprovalInboxEvent is the client for interacting with the DingTalkApprovalInboxEvent builders.
 	DingTalkApprovalInboxEvent *DingTalkApprovalInboxEventClient
+	// DingTalkDirectorySync is the client for interacting with the DingTalkDirectorySync builders.
+	DingTalkDirectorySync *DingTalkDirectorySyncClient
 	// DingTalkInvitation is the client for interacting with the DingTalkInvitation builders.
 	DingTalkInvitation *DingTalkInvitationClient
 	// EnterpriseResource is the client for interacting with the EnterpriseResource builders.
@@ -372,6 +374,7 @@ func (tx *Tx) init() {
 	tx.Currency = NewCurrencyClient(tx.config)
 	tx.DingTalkApprovalDispatch = NewDingTalkApprovalDispatchClient(tx.config)
 	tx.DingTalkApprovalInboxEvent = NewDingTalkApprovalInboxEventClient(tx.config)
+	tx.DingTalkDirectorySync = NewDingTalkDirectorySyncClient(tx.config)
 	tx.DingTalkInvitation = NewDingTalkInvitationClient(tx.config)
 	tx.EnterpriseResource = NewEnterpriseResourceClient(tx.config)
 	tx.EnterpriseResourceAddress = NewEnterpriseResourceAddressClient(tx.config)

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
@@ -49,6 +51,16 @@ type User struct {
 	IsBootstrapAdmin bool `json:"is_bootstrap_admin,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
+	// PendingAssignment holds the value of the "pending_assignment" field.
+	PendingAssignment bool `json:"pending_assignment,omitempty"`
+	// DingtalkJobNumber holds the value of the "dingtalk_job_number" field.
+	DingtalkJobNumber *string `json:"dingtalk_job_number,omitempty"`
+	// DingtalkMobile holds the value of the "dingtalk_mobile" field.
+	DingtalkMobile *string `json:"-"`
+	// DingtalkDepartments holds the value of the "dingtalk_departments" field.
+	DingtalkDepartments []schema.DirectoryDepartment `json:"dingtalk_departments,omitempty"`
+	// DingtalkLastSyncedAt holds the value of the "dingtalk_last_synced_at" field.
+	DingtalkLastSyncedAt *time.Time `json:"dingtalk_last_synced_at,omitempty"`
 	// SearchKeywords holds the value of the "search_keywords" field.
 	SearchKeywords string `json:"search_keywords,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -744,11 +756,13 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldDingtalkRequestedOrganizationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case user.FieldIsBootstrapAdmin, user.FieldEnabled:
+		case user.FieldDingtalkDepartments:
+			values[i] = new([]byte)
+		case user.FieldIsBootstrapAdmin, user.FieldEnabled, user.FieldPendingAssignment:
 			values[i] = new(sql.NullBool)
-		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldSearchKeywords:
+		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldDingtalkJobNumber, user.FieldDingtalkMobile, user.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
-		case user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDingtalkLastSyncedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -871,6 +885,41 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field enabled", values[i])
 			} else if value.Valid {
 				_m.Enabled = value.Bool
+			}
+		case user.FieldPendingAssignment:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field pending_assignment", values[i])
+			} else if value.Valid {
+				_m.PendingAssignment = value.Bool
+			}
+		case user.FieldDingtalkJobNumber:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_job_number", values[i])
+			} else if value.Valid {
+				_m.DingtalkJobNumber = new(string)
+				*_m.DingtalkJobNumber = value.String
+			}
+		case user.FieldDingtalkMobile:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_mobile", values[i])
+			} else if value.Valid {
+				_m.DingtalkMobile = new(string)
+				*_m.DingtalkMobile = value.String
+			}
+		case user.FieldDingtalkDepartments:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_departments", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.DingtalkDepartments); err != nil {
+					return fmt.Errorf("unmarshal field dingtalk_departments: %w", err)
+				}
+			}
+		case user.FieldDingtalkLastSyncedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_last_synced_at", values[i])
+			} else if value.Valid {
+				_m.DingtalkLastSyncedAt = new(time.Time)
+				*_m.DingtalkLastSyncedAt = value.Time
 			}
 		case user.FieldSearchKeywords:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -1278,6 +1327,24 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString(", ")
+	builder.WriteString("pending_assignment=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PendingAssignment))
+	builder.WriteString(", ")
+	if v := _m.DingtalkJobNumber; v != nil {
+		builder.WriteString("dingtalk_job_number=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("dingtalk_mobile=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("dingtalk_departments=")
+	builder.WriteString(fmt.Sprintf("%v", _m.DingtalkDepartments))
+	builder.WriteString(", ")
+	if v := _m.DingtalkLastSyncedAt; v != nil {
+		builder.WriteString("dingtalk_last_synced_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("search_keywords=")
 	builder.WriteString(_m.SearchKeywords)

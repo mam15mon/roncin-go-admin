@@ -8,6 +8,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"testing"
+	"time"
 )
 
 func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
@@ -88,19 +89,20 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 	}
 }
 
-func TestSystemRegistrationCannotGrantSystemIdentity(t *testing.T) {
-	f := newDingTalkRegistrationFixture(t)
-	identity := &biz.DingTalkIdentity{UnionID: "pending-system-" + f.suffix, UserID: "pending-system-" + f.suffix, Name: "待审批"}
-	credential, _, err := f.authRepo.RegisterDingTalkCredential(f.ctx, identity, nil, nil, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
+func TestSystemDirectoryAssignmentCannotGrantSystemIdentity(t *testing.T) {
+	f := newAuthPrincipalFixture(t)
+	ctx := context.Background()
+	account, err := f.data.db.User.Create().SetDisplayName("待分配").SetDingtalkUnionid("pending-union").SetDingtalkUserid("pending-user").SetPendingAssignment(true).SetEnabled(false).SetDingtalkLastSyncedAt(time.Now()).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = f.repo.ApproveRegistration(f.ctx, &biz.DingTalkRegistrationDecision{UserID: credential.UserID, ActorID: f.inviter.ID, OrganizationIDs: []uuid.UUID{f.systemWorkspace.ID}, RoleIDs: []uuid.UUID{f.staffRole.ID}, Audit: &biz.AuditEvent{Action: "admin.dingtalk.registration.approve", Result: "success"}})
-	if err != biz.ErrDingTalkRegistrationCompanyRequired {
-		t.Fatalf("系统收口不得直接授角色: %v", err)
+	ctx, actor := directoryAdministrator(t, f.data, f.systemWorkspace)
+	_, err = biz.NewAdminUsecase(&adminRepo{data: f.data}).AuthorizeDingTalkUser(ctx, f.systemWorkspace, f.systemWorkspace, actor, &biz.AdminUser{ID: account.ID}, []uuid.UUID{uuid.New()})
+	if err != biz.ErrAdminOrganizationNotFound {
+		t.Fatalf("通讯录员工不得被分配至系统工作台: %v", err)
 	}
-	account, err := f.data.db.User.Get(f.ctx, credential.UserID)
-	if err != nil || account.Enabled {
-		t.Fatalf("失败审批应保持待审批账号停用: %v", err)
+	reloaded, err := f.data.db.User.Get(ctx, account.ID)
+	if err != nil || reloaded.Enabled || !reloaded.PendingAssignment {
+		t.Fatalf("失败分配必须保持待分配: %v", err)
 	}
 }

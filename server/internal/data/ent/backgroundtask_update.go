@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -216,6 +217,25 @@ func (_u *BackgroundTaskUpdate) SetOrganization(v *Organization) *BackgroundTask
 	return _u.SetOrganizationID(v.ID)
 }
 
+// SetDingtalkDirectorySyncID sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity by ID.
+func (_u *BackgroundTaskUpdate) SetDingtalkDirectorySyncID(id uuid.UUID) *BackgroundTaskUpdate {
+	_u.mutation.SetDingtalkDirectorySyncID(id)
+	return _u
+}
+
+// SetNillableDingtalkDirectorySyncID sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity by ID if the given value is not nil.
+func (_u *BackgroundTaskUpdate) SetNillableDingtalkDirectorySyncID(id *uuid.UUID) *BackgroundTaskUpdate {
+	if id != nil {
+		_u = _u.SetDingtalkDirectorySyncID(*id)
+	}
+	return _u
+}
+
+// SetDingtalkDirectorySync sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity.
+func (_u *BackgroundTaskUpdate) SetDingtalkDirectorySync(v *DingTalkDirectorySync) *BackgroundTaskUpdate {
+	return _u.SetDingtalkDirectorySyncID(v.ID)
+}
+
 // SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID.
 func (_u *BackgroundTaskUpdate) SetNotificationDeliveryID(id uuid.UUID) *BackgroundTaskUpdate {
 	_u.mutation.SetNotificationDeliveryID(id)
@@ -281,6 +301,12 @@ func (_u *BackgroundTaskUpdate) Mutation() *BackgroundTaskMutation {
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (_u *BackgroundTaskUpdate) ClearOrganization() *BackgroundTaskUpdate {
 	_u.mutation.ClearOrganization()
+	return _u
+}
+
+// ClearDingtalkDirectorySync clears the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity.
+func (_u *BackgroundTaskUpdate) ClearDingtalkDirectorySync() *BackgroundTaskUpdate {
+	_u.mutation.ClearDingtalkDirectorySync()
 	return _u
 }
 
@@ -460,6 +486,35 @@ func (_u *BackgroundTaskUpdate) sqlSave(ctx context.Context) (_node int, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DingtalkDirectorySyncCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.DingtalkDirectorySyncTable,
+			Columns: []string{backgroundtask.DingtalkDirectorySyncColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkdirectorysync.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkDirectorySyncIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.DingtalkDirectorySyncTable,
+			Columns: []string{backgroundtask.DingtalkDirectorySyncColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkdirectorysync.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -757,6 +812,25 @@ func (_u *BackgroundTaskUpdateOne) SetOrganization(v *Organization) *BackgroundT
 	return _u.SetOrganizationID(v.ID)
 }
 
+// SetDingtalkDirectorySyncID sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity by ID.
+func (_u *BackgroundTaskUpdateOne) SetDingtalkDirectorySyncID(id uuid.UUID) *BackgroundTaskUpdateOne {
+	_u.mutation.SetDingtalkDirectorySyncID(id)
+	return _u
+}
+
+// SetNillableDingtalkDirectorySyncID sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity by ID if the given value is not nil.
+func (_u *BackgroundTaskUpdateOne) SetNillableDingtalkDirectorySyncID(id *uuid.UUID) *BackgroundTaskUpdateOne {
+	if id != nil {
+		_u = _u.SetDingtalkDirectorySyncID(*id)
+	}
+	return _u
+}
+
+// SetDingtalkDirectorySync sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity.
+func (_u *BackgroundTaskUpdateOne) SetDingtalkDirectorySync(v *DingTalkDirectorySync) *BackgroundTaskUpdateOne {
+	return _u.SetDingtalkDirectorySyncID(v.ID)
+}
+
 // SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID.
 func (_u *BackgroundTaskUpdateOne) SetNotificationDeliveryID(id uuid.UUID) *BackgroundTaskUpdateOne {
 	_u.mutation.SetNotificationDeliveryID(id)
@@ -822,6 +896,12 @@ func (_u *BackgroundTaskUpdateOne) Mutation() *BackgroundTaskMutation {
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (_u *BackgroundTaskUpdateOne) ClearOrganization() *BackgroundTaskUpdateOne {
 	_u.mutation.ClearOrganization()
+	return _u
+}
+
+// ClearDingtalkDirectorySync clears the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity.
+func (_u *BackgroundTaskUpdateOne) ClearDingtalkDirectorySync() *BackgroundTaskUpdateOne {
+	_u.mutation.ClearDingtalkDirectorySync()
 	return _u
 }
 
@@ -1031,6 +1111,35 @@ func (_u *BackgroundTaskUpdateOne) sqlSave(ctx context.Context) (_node *Backgrou
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(organization.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DingtalkDirectorySyncCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.DingtalkDirectorySyncTable,
+			Columns: []string{backgroundtask.DingtalkDirectorySyncColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkdirectorysync.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DingtalkDirectorySyncIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.DingtalkDirectorySyncTable,
+			Columns: []string{backgroundtask.DingtalkDirectorySyncColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkdirectorysync.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

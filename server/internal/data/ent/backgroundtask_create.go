@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -189,6 +190,25 @@ func (_c *BackgroundTaskCreate) SetNillableID(v *uuid.UUID) *BackgroundTaskCreat
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_c *BackgroundTaskCreate) SetOrganization(v *Organization) *BackgroundTaskCreate {
 	return _c.SetOrganizationID(v.ID)
+}
+
+// SetDingtalkDirectorySyncID sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity by ID.
+func (_c *BackgroundTaskCreate) SetDingtalkDirectorySyncID(id uuid.UUID) *BackgroundTaskCreate {
+	_c.mutation.SetDingtalkDirectorySyncID(id)
+	return _c
+}
+
+// SetNillableDingtalkDirectorySyncID sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity by ID if the given value is not nil.
+func (_c *BackgroundTaskCreate) SetNillableDingtalkDirectorySyncID(id *uuid.UUID) *BackgroundTaskCreate {
+	if id != nil {
+		_c = _c.SetDingtalkDirectorySyncID(*id)
+	}
+	return _c
+}
+
+// SetDingtalkDirectorySync sets the "dingtalk_directory_sync" edge to the DingTalkDirectorySync entity.
+func (_c *BackgroundTaskCreate) SetDingtalkDirectorySync(v *DingTalkDirectorySync) *BackgroundTaskCreate {
+	return _c.SetDingtalkDirectorySyncID(v.ID)
 }
 
 // SetNotificationDeliveryID sets the "notification_delivery" edge to the NotificationDelivery entity by ID.
@@ -475,6 +495,22 @@ func (_c *BackgroundTaskCreate) createSpec() (*BackgroundTask, *sqlgraph.CreateS
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrganizationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DingtalkDirectorySyncIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   backgroundtask.DingtalkDirectorySyncTable,
+			Columns: []string{backgroundtask.DingtalkDirectorySyncColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(dingtalkdirectorysync.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.NotificationDeliveryIDs(); len(nodes) > 0 {

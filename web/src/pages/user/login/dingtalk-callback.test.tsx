@@ -1,10 +1,5 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -90,157 +85,23 @@ describe('DingTalkCallback', () => {
     vi.restoreAllMocks();
   });
 
-  it('一次身份验证后由人员确认注册，不再重复扫码', async () => {
-    dingTalkLogin.mockResolvedValueOnce({
-      data: {
-        status: 2,
-        displayName: '张三',
-      },
-    });
-    registerDingTalkUser.mockResolvedValueOnce({
-      data: { displayName: '张三', status: 'PENDING' },
-    });
-
-    render(
+  it.each([
+    [2, '人员尚未同步', '请联系管理员同步开通'],
+    [3, '尚未分配组织', '请联系管理员分配组织和角色'],
+    [4, '账号已停用', '请联系管理员重新开通'],
+  ])('未开通状态 %s 仅展示管理员处理提示', async (status, title, message) => {
+    dingTalkLogin.mockResolvedValueOnce({ data: { status, message } });
+    renderWithClient(
       <App>
         <DingTalkCallback />
       </App>,
     );
-
-    expect(await screen.findByText('确认注册')).toBeInTheDocument();
-    expect(screen.getByText(/已确认 张三 属于本企业/)).toBeInTheDocument();
-    // 无可选目标公司时不渲染组织选择。
-    expect(screen.queryByText('要加入的公司')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('确认注册'));
-
-    expect(await screen.findByText('入职或返聘申请已提交')).toBeInTheDocument();
-    expect(registerDingTalkUser).toHaveBeenCalledWith(
-      {},
-      { skipErrorHandler: true },
-    );
-  });
-
-  it('多个候选公司时可自选目标公司，注册请求携带组织 ID', async () => {
-    dingTalkLogin.mockResolvedValueOnce({
-      data: {
-        status: 2,
-        displayName: '李四',
-        registrationOrganizations: [
-          {
-            organizationId: 'org-cd',
-            organizationName: '成都分公司',
-            organizationCode: 'CD',
-          },
-          {
-            organizationId: 'org-tj',
-            organizationName: '天津分公司',
-            organizationCode: 'TJ',
-          },
-        ],
-      },
-    });
-    registerDingTalkUser.mockResolvedValueOnce({
-      data: { displayName: '李四', status: 'PENDING' },
-    });
-
-    render(
-      <App>
-        <DingTalkCallback />
-      </App>,
-    );
-
-    expect(await screen.findByText('要加入的公司')).toBeInTheDocument();
-    expect(screen.getByText('默认（系统管理审批）')).toBeInTheDocument();
-
-    // 选择成都分公司后确认注册。
-    fireEvent.mouseDown(screen.getByRole('combobox'));
-    const option = await screen.findByText('成都分公司 (CD)');
-    fireEvent.click(option);
-
-    fireEvent.click(screen.getByText('确认注册'));
-
-    expect(await screen.findByText('入职或返聘申请已提交')).toBeInTheDocument();
-    expect(registerDingTalkUser).toHaveBeenCalledWith(
-      { organizationId: 'org-cd' },
-      { skipErrorHandler: true },
-    );
-  });
-
-  it('多个候选公司时不选择则走系统管理收口注册', async () => {
-    dingTalkLogin.mockResolvedValueOnce({
-      data: {
-        status: 2,
-        displayName: '王五',
-        registrationOrganizations: [
-          {
-            organizationId: 'org-cd',
-            organizationName: '成都分公司',
-            organizationCode: 'CD',
-          },
-          {
-            organizationId: 'org-tj',
-            organizationName: '天津分公司',
-            organizationCode: 'TJ',
-          },
-        ],
-      },
-    });
-    registerDingTalkUser.mockResolvedValueOnce({
-      data: { displayName: '王五', status: 'PENDING' },
-    });
-
-    render(
-      <App>
-        <DingTalkCallback />
-      </App>,
-    );
-
-    expect(await screen.findByText('要加入的公司')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('确认注册'));
-
-    expect(await screen.findByText('入职或返聘申请已提交')).toBeInTheDocument();
-    expect(registerDingTalkUser).toHaveBeenCalledWith(
-      {},
-      { skipErrorHandler: true },
-    );
-  });
-
-  it('单一候选公司维持现状，不渲染组织选择', async () => {
-    dingTalkLogin.mockResolvedValueOnce({
-      data: {
-        status: 2,
-        displayName: '赵六',
-        registrationOrganizations: [
-          {
-            organizationId: 'org-cd',
-            organizationName: '成都分公司',
-            organizationCode: 'CD',
-          },
-        ],
-      },
-    });
-    registerDingTalkUser.mockResolvedValueOnce({
-      data: { displayName: '赵六', status: 'PENDING' },
-    });
-
-    render(
-      <App>
-        <DingTalkCallback />
-      </App>,
-    );
-
-    expect(await screen.findByText('确认注册')).toBeInTheDocument();
-    expect(screen.queryByText('要加入的公司')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('确认注册'));
-
-    expect(await screen.findByText('入职或返聘申请已提交')).toBeInTheDocument();
-    expect(registerDingTalkUser).toHaveBeenCalledWith(
-      {},
-      { skipErrorHandler: true },
-    );
+    expect(await screen.findByText(title)).toBeInTheDocument();
+    expect(screen.getByText(message)).toBeInTheDocument();
+    expect(screen.queryByText('确认注册')).not.toBeInTheDocument();
+    expect(screen.getByText('返回登录')).toBeInTheDocument();
+    expect(registerDingTalkUser).not.toHaveBeenCalled();
+    expect(replaceMock).not.toHaveBeenCalled();
   });
 
   it('单组织用户认证后直接进入应用', async () => {
@@ -252,7 +113,7 @@ describe('DingTalkCallback', () => {
       ),
     });
 
-    render(
+    renderWithClient(
       <App>
         <DingTalkCallback />
       </App>,
@@ -281,7 +142,7 @@ describe('DingTalkCallback', () => {
       },
     });
 
-    render(
+    renderWithClient(
       <App>
         <DingTalkCallback />
       </App>,
@@ -311,7 +172,7 @@ describe('DingTalkCallback', () => {
       data: authenticatedUser(organizations, 'org-1'),
     });
 
-    render(
+    renderWithClient(
       <App>
         <DingTalkCallback />
       </App>,
@@ -326,57 +187,5 @@ describe('DingTalkCallback', () => {
     });
     expect(switchOrganization).not.toHaveBeenCalled();
     expect(messageSuccessMock).toHaveBeenCalledWith('钉钉登录成功');
-  });
-
-  it('携带 invitationToken 时不渲染公司选择，直接绑定专属通道并携带 token 注册', async () => {
-    sessionStorage.setItem('dingtalk_invitation_token', 'invite-token-abc');
-    getInvitationInfo.mockResolvedValueOnce({
-      data: {
-        organizationName: '天津分公司',
-        inviterName: '张经理',
-      },
-    });
-    dingTalkLogin.mockResolvedValueOnce({
-      data: {
-        status: 2,
-        displayName: '孙七',
-        registrationOrganizations: [
-          {
-            organizationId: 'org-cd',
-            organizationName: '成都分公司',
-            organizationCode: 'CD',
-          },
-          {
-            organizationId: 'org-tj',
-            organizationName: '天津分公司',
-            organizationCode: 'TJ',
-          },
-        ],
-      },
-    });
-    registerDingTalkUser.mockResolvedValueOnce({
-      data: { displayName: '孙七', status: 'PENDING' },
-    });
-
-    render(
-      <App>
-        <DingTalkCallback />
-      </App>,
-    );
-
-    expect(await screen.findByText('确认注册')).toBeInTheDocument();
-    expect(screen.getByText(/已确认 孙七 属于本企业/)).toBeInTheDocument();
-    expect(screen.getByText(/天津分公司/)).toBeInTheDocument();
-    // 专属邀请模式下不渲染公司自选下拉框
-    expect(screen.queryByText('要加入的公司')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('确认注册'));
-
-    expect(await screen.findByText('入职或返聘申请已提交')).toBeInTheDocument();
-    expect(registerDingTalkUser).toHaveBeenCalledWith(
-      { invitationToken: 'invite-token-abc' },
-      { skipErrorHandler: true },
-    );
-    expect(sessionStorage.getItem('dingtalk_invitation_token')).toBeNull();
   });
 });

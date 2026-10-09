@@ -18,53 +18,53 @@ type Permission struct {
 const (
 	PlatformAccess = "system.platform.access"
 
-	OrganizationRead             = "system.organization.read"
-	OrganizationCreate           = "system.organization.create"
-	OrganizationUpdate           = "system.organization.update"
-	UserRead                     = "system.user.read"
-	UserCreate                   = "system.user.create"
-	UserUpdate                   = "system.user.update"
-	UserTerminate                = "system.user.delete"
-	UserAuthorizeWeCom           = "system.user.authorize_wecom"
-	UserDingTalkInvitationManage = "system.user.dingtalk_invitation.manage"
-	UserResetPassword            = "system.user.reset_password"
-	RoleRead                     = "system.role.read"
-	RoleCreate                   = "system.role.create"
-	RoleUpdate                   = "system.role.update"
-	RoleDelete                   = "system.role.delete"
-	PermissionRead               = "system.permission.read"
-	AuditRead                    = "system.audit.read"
-	FinanceExchangeRateRead      = "system.finance.exchange_rate.read"
-	FinanceExchangeRateCreate    = "system.finance.exchange_rate.create"
-	FinanceExchangeRateUpdate    = "system.finance.exchange_rate.update"
-	FinanceExchangeRateDisable   = "system.finance.exchange_rate.disable"
-	FinanceFeeSettingRead        = "system.finance.fee_setting.read"
-	FinanceFeeSettingCreate      = "system.finance.fee_setting.create"
-	FinanceFeeSettingUpdate      = "system.finance.fee_setting.update"
-	FinanceFeeRead               = "system.finance.fee.read"
-	FinanceFeeTag                = "system.finance.fee.tag"
-	FinanceBillConfigure         = "system.finance.bill.configure"
-	FinanceBillRead              = "system.finance.bill.read"
-	FinanceBillCreate            = "system.finance.bill.create"
-	FinanceBillUpdate            = "system.finance.bill.update"
-	FinanceBillConfirm           = "system.finance.bill.confirm"
-	FinanceInvoiceRead           = "system.finance.invoice.read"
-	FinanceInvoiceCreate         = "system.finance.invoice.create"
-	FinanceInvoiceUpdate         = "system.finance.invoice.update"
-	FinanceCashflowRead          = "system.finance.cashflow.read"
-	FinanceCashflowCreate        = "system.finance.cashflow.create"
-	FinanceCashflowUpdate        = "system.finance.cashflow.update"
-	FinanceVerificationRead      = "system.finance.verification.read"
-	FinanceVerificationCreate    = "system.finance.verification.create"
-	FinanceVerificationReverse   = "system.finance.verification.reverse"
-	FinanceNettingRead           = "system.finance.netting.read"
-	FinanceNettingCreate         = "system.finance.netting.create"
-	FinanceNettingConfirm        = "system.finance.netting.confirm"
-	FinanceNettingReverse        = "system.finance.netting.reverse"
-	FinanceCommissionRead        = "system.finance.commission.read"
-	FinanceCommissionConfigure   = "system.finance.commission.configure"
-	FinanceCommissionManage      = "system.finance.commission.manage"
-	FinanceCommissionExport      = "system.finance.commission.export"
+	OrganizationRead           = "system.organization.read"
+	OrganizationCreate         = "system.organization.create"
+	OrganizationUpdate         = "system.organization.update"
+	UserRead                   = "system.user.read"
+	UserCreate                 = "system.user.create"
+	UserUpdate                 = "system.user.update"
+	UserTerminate              = "system.user.delete"
+	UserAuthorizeWeCom         = "system.user.authorize_wecom"
+	UserDingTalkDirectorySync  = "system.user.dingtalk_directory.sync"
+	UserResetPassword          = "system.user.reset_password"
+	RoleRead                   = "system.role.read"
+	RoleCreate                 = "system.role.create"
+	RoleUpdate                 = "system.role.update"
+	RoleDelete                 = "system.role.delete"
+	PermissionRead             = "system.permission.read"
+	AuditRead                  = "system.audit.read"
+	FinanceExchangeRateRead    = "system.finance.exchange_rate.read"
+	FinanceExchangeRateCreate  = "system.finance.exchange_rate.create"
+	FinanceExchangeRateUpdate  = "system.finance.exchange_rate.update"
+	FinanceExchangeRateDisable = "system.finance.exchange_rate.disable"
+	FinanceFeeSettingRead      = "system.finance.fee_setting.read"
+	FinanceFeeSettingCreate    = "system.finance.fee_setting.create"
+	FinanceFeeSettingUpdate    = "system.finance.fee_setting.update"
+	FinanceFeeRead             = "system.finance.fee.read"
+	FinanceFeeTag              = "system.finance.fee.tag"
+	FinanceBillConfigure       = "system.finance.bill.configure"
+	FinanceBillRead            = "system.finance.bill.read"
+	FinanceBillCreate          = "system.finance.bill.create"
+	FinanceBillUpdate          = "system.finance.bill.update"
+	FinanceBillConfirm         = "system.finance.bill.confirm"
+	FinanceInvoiceRead         = "system.finance.invoice.read"
+	FinanceInvoiceCreate       = "system.finance.invoice.create"
+	FinanceInvoiceUpdate       = "system.finance.invoice.update"
+	FinanceCashflowRead        = "system.finance.cashflow.read"
+	FinanceCashflowCreate      = "system.finance.cashflow.create"
+	FinanceCashflowUpdate      = "system.finance.cashflow.update"
+	FinanceVerificationRead    = "system.finance.verification.read"
+	FinanceVerificationCreate  = "system.finance.verification.create"
+	FinanceVerificationReverse = "system.finance.verification.reverse"
+	FinanceNettingRead         = "system.finance.netting.read"
+	FinanceNettingCreate       = "system.finance.netting.create"
+	FinanceNettingConfirm      = "system.finance.netting.confirm"
+	FinanceNettingReverse      = "system.finance.netting.reverse"
+	FinanceCommissionRead      = "system.finance.commission.read"
+	FinanceCommissionConfigure = "system.finance.commission.configure"
+	FinanceCommissionManage    = "system.finance.commission.manage"
+	FinanceCommissionExport    = "system.finance.commission.export"
 
 	PartnerRead                 = "business.partner.read"
 	PartnerCreate               = "business.partner.create"
@@ -195,8 +195,8 @@ var manifest = append([]Permission{
 	{Key: UserUpdate, Name: "编辑用户", Group: "系统管理 · 用户", Description: "修改用户资料、状态和成员关系", Requires: []string{UserRead}},
 	{Key: UserTerminate, Name: "办理离职", Group: "系统管理 · 用户", Description: "停用员工账号和全部组织权限，保留身份绑定与历史业务记录", Requires: []string{UserRead}},
 	{Key: UserAuthorizeWeCom, Name: "授权企业微信成员", Group: "系统管理 · 用户", Description: "读取企业微信成员并创建或绑定系统用户", Requires: []string{UserRead}},
-	{Key: UserAuthorizeDingTalk, Name: "授权钉钉成员", Group: "系统管理 · 用户", Description: "读取钉钉成员并创建或绑定系统用户", Requires: []string{UserRead}},
-	{Key: UserDingTalkInvitationManage, Name: "管理钉钉邀请与注册审批", Group: "系统管理 · 用户", Description: "创建手机号邀请、处理钉钉扫码注册审批并接收对应通知", Requires: []string{UserRead}},
+	{Key: UserAuthorizeDingTalk, Name: "授权钉钉成员", Group: "系统管理 · 用户", Description: "为钉钉人员分配组织与角色并开通账号", Requires: []string{UserRead, RoleRead}},
+	{Key: UserDingTalkDirectorySync, Name: "同步钉钉通讯录", Group: "系统管理 · 用户", Description: "在系统管理工作台同步钉钉人员并查看同步结果", Requires: []string{UserRead}},
 	{Key: UserResetPassword, Name: "重置用户密码", Group: "系统管理 · 用户", Description: "为系统用户重置登录密码", Requires: []string{UserRead}},
 	{Key: RoleRead, Name: "查看角色", Group: "系统管理 · 角色与权限", Description: "查看角色、权限和数据范围", Requires: []string{PermissionRead, OrganizationRead}},
 	{Key: RoleCreate, Name: "新建角色", Group: "系统管理 · 角色与权限", Description: "新建角色并配置权限和数据范围", Requires: []string{RoleRead}},
@@ -471,7 +471,7 @@ func IsCompanyBusinessPermission(key string) bool {
 // IsSystemManagementPermission 公共字典写权限仅由系统管理工作台持有。
 // 用户、角色及组织管理可用于公司内部管理，不因 system 前缀被归为系统专属。
 func IsSystemManagementPermission(key string) bool {
-	if key == UserResetPassword || key == UserTerminate || key == UserAuthorizeWeCom || key == UserAuthorizeDingTalk {
+	if key == UserResetPassword || key == UserTerminate || key == UserAuthorizeWeCom || key == UserAuthorizeDingTalk || key == UserDingTalkDirectorySync {
 		return true
 	}
 	return strings.HasPrefix(key, "system.master_data.") && !strings.HasPrefix(key, "system.master_data.number_rule.") && !strings.HasSuffix(key, ".read")

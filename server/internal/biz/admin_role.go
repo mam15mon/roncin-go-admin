@@ -85,7 +85,7 @@ func (uc *AdminUsecase) validateRolesPrivilege(ctx context.Context, actorOrganiz
 	}
 	if principal, ok := PrincipalFromContext(ctx); ok && principalIsSystemWorkspace(principal) {
 		for _, node := range principal.OrganizationNodes {
-			if node.ID == targetOrganizationID && node.Kind != OrganizationKindSystem && (principal.HasPermission(access.UserUpdate) || principal.HasPermission(access.UserCreate)) {
+			if node.ID == targetOrganizationID && node.Kind != OrganizationKindSystem && (principal.HasPermission(access.UserUpdate) || principal.HasPermission(access.UserCreate) || principal.HasPermission(access.UserAuthorizeDingTalk)) {
 				profile.IsSuperAdmin = true
 			}
 		}

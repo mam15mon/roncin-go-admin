@@ -242,10 +242,12 @@ func TestAdminUsecaseAuthorizeWeComUserRequiresTargetAndRole(t *testing.T) {
 func TestAdminUsecaseAuthorizeDingTalkUserRequiresTargetAndRole(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{})
 	input := &AdminUser{ID: uuid.New(), DisplayName: "张三"}
-	if _, err := usecase.AuthorizeDingTalkUser(context.Background(), uuid.New(), uuid.Nil, uuid.New(), input, []uuid.UUID{uuid.New()}); err != ErrAdminInvalidArgument {
+	systemID := uuid.New()
+	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: systemID, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: systemID, Kind: OrganizationKindSystem}}})
+	if _, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.Nil, uuid.New(), input, []uuid.UUID{uuid.New()}); err != ErrAdminInvalidArgument {
 		t.Fatalf("missing target organization error = %v", err)
 	}
-	if _, err := usecase.AuthorizeDingTalkUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminInvalidArgument {
+	if _, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("missing roles error = %v", err)
 	}
 }
@@ -254,8 +256,10 @@ func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T
 	repo := &adminRepoStub{}
 	usecase := NewAdminUsecase(repo)
 	userID := uuid.New()
+	systemID := uuid.New()
+	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: systemID, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: systemID, Kind: OrganizationKindSystem}}})
 
-	authorized, err := usecase.AuthorizeDingTalkUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), &AdminUser{ID: userID, DisplayName: "张三"}, []uuid.UUID{uuid.New()})
+	authorized, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.New(), uuid.New(), &AdminUser{ID: userID, DisplayName: "张三"}, []uuid.UUID{uuid.New()})
 	if err != nil {
 		t.Fatalf("AuthorizeDingTalkUser() error = %v", err)
 	}
@@ -264,6 +268,19 @@ func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T
 	}
 	if repo.notification == nil || repo.notification.ID == uuid.Nil || repo.notification.RecipientUserID != userID || repo.notification.Channel != NotificationChannelDingTalk || repo.notification.Template != NotificationTemplateUserAuthorized {
 		t.Fatalf("授权完成通知意图 = %#v", repo.notification)
+	}
+}
+
+func TestAdminUsecaseAuthorizeDingTalkUserRejectsCompanyWorkspace(t *testing.T) {
+	repo := &adminRepoStub{}
+	usecase := NewAdminUsecase(repo)
+	source := uuid.New()
+	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: source, Kind: OrganizationKindCompany}})
+	if _, err := usecase.AuthorizeDingTalkUser(ctx, source, uuid.New(), uuid.New(), &AdminUser{ID: uuid.New()}, []uuid.UUID{uuid.New()}); err != ErrPermissionDenied {
+		t.Fatalf("公司工作台不得开通全局待分配人员: %v", err)
+	}
+	if repo.notification != nil || repo.auditEvent != nil {
+		t.Fatal("被拒绝的公司开通不得触发仓储或通知")
 	}
 }
 

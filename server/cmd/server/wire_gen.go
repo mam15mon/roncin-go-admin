@@ -52,13 +52,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 		cleanup()
 		return nil, nil, err
 	}
-	dingTalkRegistrationTokenCodec, err := data.NewDingTalkRegistrationTokenCodec(security)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	dingTalkRegistrationRepo := data.NewDingTalkRegistrationRepo(dataData)
-	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy, weComIdentityProvider, dingTalkIdentityProvider, dingTalkRegistrationTokenCodec, dingTalkRegistrationRepo, dingTalkIdentityProvider, logger)
+	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy, weComIdentityProvider, dingTalkIdentityProvider, logger)
 	authService := service.NewAuthService(authUsecase, sessionPolicy)
 	partnerRepo := data.NewPartnerRepo(dataData)
 	partnerUsecase := biz.NewPartnerUsecase(partnerRepo)
@@ -77,8 +71,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	partnerService := service.NewPartnerService(partnerUsecase, partnerAccountUsecase, partnerContractUsecase, partnerSettlementRuleUsecase, partnerAttachmentUsecase, partnerShippingPresetUsecase, partnerInvoiceProfileUsecase)
 	adminRepo := data.NewAdminRepo(dataData)
 	adminUsecase := biz.NewAdminUsecase(adminRepo)
-	dingTalkRegistrationUsecase := biz.NewDingTalkRegistrationUsecase(dingTalkRegistrationRepo)
-	adminService := service.NewAdminService(adminUsecase, dingTalkRegistrationUsecase)
+	dingTalkDirectoryRepo := data.NewDingTalkDirectoryRepo(dataData)
+	backgroundTaskRepo := data.NewBackgroundTaskRepo(dataData)
+	backgroundTaskUsecase := biz.NewBackgroundTaskUsecase(backgroundTaskRepo)
+	dingTalkDirectoryUsecase := biz.NewDingTalkDirectoryUsecase(dingTalkDirectoryRepo, dingTalkIdentityProvider, backgroundTaskUsecase)
+	adminService := service.NewAdminService(adminUsecase, dingTalkDirectoryUsecase)
 	masterDataRepo := data.NewMasterDataRepo(dataData)
 	masterDataUsecase := biz.NewMasterDataUsecase(masterDataRepo)
 	industryReferenceRepo := data.NewIndustryReferenceRepo(dataData)
@@ -112,8 +109,6 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderPersonnelRepo := data.NewOrderPersonnelRepo(dataData)
 	orderPersonnelUsecase := biz.NewOrderPersonnelUsecase(orderPersonnelRepo)
 	orderPersonnelService := service.NewOrderPersonnelService(orderPersonnelUsecase)
-	backgroundTaskRepo := data.NewBackgroundTaskRepo(dataData)
-	backgroundTaskUsecase := biz.NewBackgroundTaskUsecase(backgroundTaskRepo)
 	backgroundTaskService := service.NewBackgroundTaskService(backgroundTaskUsecase)
 	orderContainerRepo := data.NewOrderContainerRepo(dataData)
 	orderContainerUsecase := biz.NewOrderContainerUsecase(orderContainerRepo)
@@ -193,7 +188,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	exchangeRateReminderRepo := data.NewExchangeRateReminderRepo(dataData)
 	exchangeRateReminderUsecase := biz.NewExchangeRateReminderUsecase(exchangeRateReminderRepo)
 	exchangeRateReminderWorker := server.NewExchangeRateReminderWorker(exchangeRateReminderUsecase, logger)
-	app := newApp(logger, grpcServer, httpServer, notificationWorker, dingTalkApprovalWorker, objectDeletionWorker, exchangeRateReminderWorker)
+	dingTalkDirectoryWorker := server.NewDingTalkDirectoryWorker(dingTalkDirectoryUsecase, logger)
+	app := newApp(logger, grpcServer, httpServer, notificationWorker, dingTalkApprovalWorker, objectDeletionWorker, exchangeRateReminderWorker, dingTalkDirectoryWorker)
 	return app, func() {
 		cleanup()
 	}, nil

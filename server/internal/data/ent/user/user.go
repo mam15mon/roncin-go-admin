@@ -46,6 +46,16 @@ const (
 	FieldIsBootstrapAdmin = "is_bootstrap_admin"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// FieldPendingAssignment holds the string denoting the pending_assignment field in the database.
+	FieldPendingAssignment = "pending_assignment"
+	// FieldDingtalkJobNumber holds the string denoting the dingtalk_job_number field in the database.
+	FieldDingtalkJobNumber = "dingtalk_job_number"
+	// FieldDingtalkMobile holds the string denoting the dingtalk_mobile field in the database.
+	FieldDingtalkMobile = "dingtalk_mobile"
+	// FieldDingtalkDepartments holds the string denoting the dingtalk_departments field in the database.
+	FieldDingtalkDepartments = "dingtalk_departments"
+	// FieldDingtalkLastSyncedAt holds the string denoting the dingtalk_last_synced_at field in the database.
+	FieldDingtalkLastSyncedAt = "dingtalk_last_synced_at"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
 	// EdgeMemberships holds the string denoting the memberships edge name in mutations.
@@ -619,6 +629,11 @@ var Columns = []string{
 	FieldDingtalkRequestedOrganizationID,
 	FieldIsBootstrapAdmin,
 	FieldEnabled,
+	FieldPendingAssignment,
+	FieldDingtalkJobNumber,
+	FieldDingtalkMobile,
+	FieldDingtalkDepartments,
+	FieldDingtalkLastSyncedAt,
 	FieldSearchKeywords,
 }
 
@@ -667,6 +682,12 @@ var (
 	DefaultIsBootstrapAdmin bool
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
+	// DefaultPendingAssignment holds the default value on creation for the "pending_assignment" field.
+	DefaultPendingAssignment bool
+	// DingtalkJobNumberValidator is a validator for the "dingtalk_job_number" field. It is called by the builders before save.
+	DingtalkJobNumberValidator func(string) error
+	// DingtalkMobileValidator is a validator for the "dingtalk_mobile" field. It is called by the builders before save.
+	DingtalkMobileValidator func(string) error
 	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
 	DefaultSearchKeywords string
 	// DefaultID holds the default value on creation for the "id" field.
@@ -754,6 +775,26 @@ func ByIsBootstrapAdmin(opts ...sql.OrderTermOption) OrderOption {
 // ByEnabled orders the results by the enabled field.
 func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
+}
+
+// ByPendingAssignment orders the results by the pending_assignment field.
+func ByPendingAssignment(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPendingAssignment, opts...).ToFunc()
+}
+
+// ByDingtalkJobNumber orders the results by the dingtalk_job_number field.
+func ByDingtalkJobNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkJobNumber, opts...).ToFunc()
+}
+
+// ByDingtalkMobile orders the results by the dingtalk_mobile field.
+func ByDingtalkMobile(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkMobile, opts...).ToFunc()
+}
+
+// ByDingtalkLastSyncedAt orders the results by the dingtalk_last_synced_at field.
+func ByDingtalkLastSyncedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkLastSyncedAt, opts...).ToFunc()
 }
 
 // BySearchKeywords orders the results by the search_keywords field.

@@ -151,68 +151,26 @@ service AdminService {
     option (google.api.http) = {get: "/api/v1/admin/audit-logs"};
   }
 
-  // CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。
-  rpc CreateDingTalkInvitation(CreateDingTalkInvitationRequest) returns (CreateDingTalkInvitationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/admin/dingtalk/invitations"
-      body: "*"
-    };
+  rpc BatchAuthorizeDingTalkUsers(BatchAuthorizeDingTalkUsersRequest) returns (BatchAuthorizeDingTalkUsersResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.authorize_dingtalk" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {post: "/api/v1/admin/dingtalk/authorizations" body: "*"};
   }
 
-  rpc ListDingTalkInvitations(ListDingTalkInvitationsRequest) returns (ListDingTalkInvitationsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/admin/dingtalk/invitations"};
+  rpc StartDingTalkDirectorySync(StartDingTalkDirectorySyncRequest) returns (StartDingTalkDirectorySyncResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_directory.sync" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {post: "/api/v1/admin/dingtalk/directory-syncs" body: "*"};
   }
 
-  rpc RevokeDingTalkInvitation(RevokeDingTalkInvitationRequest) returns (RevokeDingTalkInvitationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {delete: "/api/v1/admin/dingtalk/invitations/{id}"};
+  rpc GetLatestDingTalkDirectorySync(GetLatestDingTalkDirectorySyncRequest) returns (GetLatestDingTalkDirectorySyncResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_directory.sync" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {get: "/api/v1/admin/dingtalk/directory-syncs/latest"};
   }
 
-  // GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
-  rpc GetDingTalkInvitation(GetDingTalkInvitationRequest) returns (GetDingTalkInvitationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/admin/dingtalk/invitations/{id}"};
+  rpc GetDingTalkDirectorySync(GetDingTalkDirectorySyncRequest) returns (GetDingTalkDirectorySyncResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_directory.sync" scope: DATA_SCOPE_ALL};
+    option (google.api.http) = {get: "/api/v1/admin/dingtalk/directory-syncs/{task_id}"};
   }
 
-  // ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
-  rpc ListDingTalkRegistrations(ListDingTalkRegistrationsRequest) returns (ListDingTalkRegistrationsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/admin/dingtalk/registrations"};
-  }
-
-  // ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。
-  rpc ListTransferOrganizations(ListTransferOrganizationsRequest) returns (ListTransferOrganizationsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/admin/dingtalk/registrations/organizations"};
-  }
-
-  // ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
-  rpc ApproveDingTalkRegistration(ApproveDingTalkRegistrationRequest) returns (ApproveDingTalkRegistrationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/admin/dingtalk/registrations/{id}/approval"
-      body: "*"
-    };
-  }
-
-  rpc RejectDingTalkRegistration(RejectDingTalkRegistrationRequest) returns (RejectDingTalkRegistrationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/admin/dingtalk/registrations/{id}/rejection"
-      body: "*"
-    };
-  }
-
-  // TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
-  rpc TransferDingTalkRegistration(TransferDingTalkRegistrationRequest) returns (TransferDingTalkRegistrationResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.dingtalk_invitation.manage" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/admin/dingtalk/registrations/{user_id}/transfer"
-      body: "*"
-    };
-  }
 }
 
 enum DataScope {
@@ -238,6 +196,7 @@ enum AdminUserStatus {
   ADMIN_USER_STATUS_TERMINATED = 3;
   ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION = 4;
   ADMIN_USER_STATUS_DISABLED = 5;
+  ADMIN_USER_STATUS_PENDING_ASSIGNMENT = 6;
 }
 
 message ListOrganizationsRequest {}
@@ -302,8 +261,9 @@ message ListUsersRequest {
   int32 page = 1;
   int32 page_size = 2;
   string keyword = 3;
-  // 是否启用：不传=不过滤；true=在职用户；false=离职/停用用户。
+  // 是否启用：不传=不过滤；true=已启用成员；false=离职/停用成员（排除待分配）。
   optional bool enabled = 4;
+  AdminUserStatus status = 5;
 }
 
 message CreateUserRequest {
@@ -316,7 +276,7 @@ message CreateUserRequest {
 
 message UpdateUserRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string display_name = 2 [(google.api.field_behavior) = REQUIRED];
+  optional string display_name = 2;
   optional string email = 3;
   bool enabled = 4;
   repeated string role_ids = 5;
@@ -361,8 +321,7 @@ message AuthorizeWeComUserRequest {
 message AuthorizeDingTalkUserRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
-  string display_name = 3 [(google.api.field_behavior) = REQUIRED];
-  optional string email = 4;
+  reserved 3, 4;
   repeated string role_ids = 5 [(google.api.field_behavior) = REQUIRED];
 }
 
@@ -398,6 +357,11 @@ message AdminUser {
   repeated AdminUserOrganizationSummary organizations = 19;
   // 角色显示名，与 role_codes 按下标一一对应，供列表直接展示。
   repeated string role_names = 20;
+  bool pending_assignment = 21;
+  optional string dingtalk_job_number = 22;
+  optional string dingtalk_mobile_masked = 23;
+  repeated DingTalkDepartment dingtalk_departments = 24;
+  optional string dingtalk_last_synced_at = 25;
 }
 
 // 用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。
@@ -637,177 +601,94 @@ message ListAuditLogsResponse {
   string trace_id = 8;
 }
 
-enum DingTalkInvitationStatus {
-  DING_TALK_INVITATION_STATUS_UNSPECIFIED = 0;
-  DING_TALK_INVITATION_STATUS_PENDING = 1;
-  DING_TALK_INVITATION_STATUS_CONSUMED = 2;
-  DING_TALK_INVITATION_STATUS_EXPIRED = 3;
-  DING_TALK_INVITATION_STATUS_REVOKED = 4;
-}
-
-enum DingTalkInvitationKind {
-  DING_TALK_INVITATION_KIND_UNSPECIFIED = 0;
-  DING_TALK_INVITATION_KIND_TARGETED = 1;
-  DING_TALK_INVITATION_KIND_GENERIC = 2;
-}
-
-message CreateDingTalkInvitationRequest {
-  // 目标组织；必须是调用者可写范围内的组织。
-  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
-  // 邀请类型：TARGETED（定向单人免审码）或 GENERIC（通用入职审批码）。缺省为 TARGETED。
-  DingTalkInvitationKind kind = 2;
-  // 国内手机号；TARGETED 必填，GENERIC 留空。
-  optional string mobile = 3;
-  // 激活后授予的初始角色（属于目标组织；通用码可选，留空则审批时指定）。
-  optional string role_id = 4;
-  // 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
-  optional string display_name = 5;
-  // 有效期（小时）；缺省 168（7 天），允许 1-720。
-  optional int32 expires_in_hours = 6;
-}
-
-message CreateDingTalkInvitationResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  DingTalkInvitation data = 4;
-  string invitation_url = 5;
-  string trace_id = 6;
-}
-
-message ListDingTalkInvitationsRequest {
-  int32 page = 1;
-  int32 page_size = 2;
-  // 按组织过滤；必须是调用者可写范围内的组织。
-  optional string organization_id = 3;
-  optional DingTalkInvitationStatus status = 4;
-}
-
-message ListDingTalkInvitationsResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  repeated DingTalkInvitation data = 4;
-  int32 total = 5;
-  int32 page = 6;
-  int32 page_size = 7;
-  string trace_id = 8;
-}
-
-message GetDingTalkInvitationRequest {
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
-message GetDingTalkInvitationResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  DingTalkInvitation data = 4;
-  string invitation_url = 5;
-  string trace_id = 6;
-}
-
-message ListTransferOrganizationsRequest {}
-
-message ListTransferOrganizationsResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  repeated AdminOrganization data = 4;
-  string trace_id = 5;
-}
-
-message RevokeDingTalkInvitationRequest {
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
-message RevokeDingTalkInvitationResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  string trace_id = 4;
-}
-
-// 手机号展示统一脱敏（138****1234），完整号码不离开服务端。
-message DingTalkInvitation {
+// 钉钉来源部门仅用于展示，不代表本系统的业务组织。
+message DingTalkDepartment {
   string id = 1;
-  string organization_id = 2;
-  string organization_name = 3;
-  optional string role_id = 4;
-  optional string role_name = 5;
-  optional string mobile_masked = 6;
-  optional string display_name = 7;
-  DingTalkInvitationStatus status = 8;
-  optional string consumed_name = 9;
-  string created_at = 10;
-  string expires_at = 11;
-  string inviter_name = 12;
-  DingTalkInvitationKind kind = 13;
-  string token = 14;
+  string name = 2;
 }
 
-message TransferDingTalkRegistrationRequest {
-  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string target_organization_id = 2 [(google.api.field_behavior) = REQUIRED];
-  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+message BatchAuthorizeDingTalkUsersRequest {
+  repeated string user_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string role_ids = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-message TransferDingTalkRegistrationResponse {
+message DingTalkAssignmentResult {
+  string user_id = 1;
+  bool success = 2;
+  string reason = 3;
+  string message = 4;
+}
+
+message BatchAuthorizeDingTalkUsersResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  string trace_id = 4;
+  repeated DingTalkAssignmentResult data = 4;
+  string trace_id = 5;
 }
 
-message ListDingTalkRegistrationsRequest {
+message StartDingTalkDirectorySyncRequest {}
+
+message GetLatestDingTalkDirectorySyncRequest {
   int32 page = 1;
   int32 page_size = 2;
 }
 
-// 待审批注册：钉钉姓名/头像来自扫码返回，供管理员人工认领。
-message DingTalkRegistration {
+message GetDingTalkDirectorySyncRequest {
+  string task_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message DingTalkDirectorySyncFailure {
   string user_id = 1;
-  string display_name = 2;
-  optional string avatar_url = 3;
-  optional string requested_organization_id = 4;
-  string requested_organization_name = 5;
-  string registered_at = 6;
+  string department_id = 2;
+  string reason = 3;
+  string message = 4;
 }
 
-message ListDingTalkRegistrationsResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  repeated DingTalkRegistration data = 4;
+// 可用字段与授权范围反映本次执行，失败详情不含原始通讯录报文。
+message DingTalkDirectorySync {
+  string task_id = 1;
+  string status = 2;
+  string started_at = 3;
+  optional string completed_at = 4;
   int32 total = 5;
-  int32 page = 6;
-  int32 page_size = 7;
-  string trace_id = 8;
+  int32 created = 6;
+  int32 updated = 7;
+  int32 unchanged = 8;
+  int32 failed = 9;
+  string scope_summary = 10;
+  repeated string available_fields = 11;
+  repeated DingTalkDirectorySyncFailure failures = 12;
+  int32 failure_total = 13;
+  int32 page = 14;
+  int32 page_size = 15;
+  bool full_scope = 16;
+  optional string last_error = 17;
 }
 
-message ApproveDingTalkRegistrationRequest {
-  // 注册用户的 ID（待审批队列中的 user_id）。
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-  // 同意时授予的初始角色，必须属于注册的目标组织。
-  repeated string role_ids = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-message ApproveDingTalkRegistrationResponse {
+message StartDingTalkDirectorySyncResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  DingTalkRegistration data = 4;
+  optional DingTalkDirectorySync data = 4;
   string trace_id = 5;
 }
 
-message RejectDingTalkRegistrationRequest {
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string reason = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-message RejectDingTalkRegistrationResponse {
+message GetLatestDingTalkDirectorySyncResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  string trace_id = 4;
+  optional DingTalkDirectorySync data = 4;
+  string trace_id = 5;
+}
+
+message GetDingTalkDirectorySyncResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  optional DingTalkDirectorySync data = 4;
+  string trace_id = 5;
 }

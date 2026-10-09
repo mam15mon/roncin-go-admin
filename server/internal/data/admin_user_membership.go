@@ -69,8 +69,12 @@ func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUs
 			}
 		}
 
-		if _, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx); queryErr != nil {
+		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx)
+		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
+		}
+		if account.PendingAssignment {
+			return biz.ErrAdminUserAuthorizationRequired
 		}
 		if exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(input.OrganizationID), organization.EnabledEQ(true)).Exist(ctx); queryErr != nil {
 			return queryErr
@@ -129,6 +133,9 @@ func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUs
 		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
+		}
+		if account.PendingAssignment {
+			return biz.ErrAdminUserAuthorizationRequired
 		}
 		current, queryErr = tx.Membership.Query().
 			Where(membership.IDEQ(input.ID), membership.UserIDEQ(input.UserID), scope).

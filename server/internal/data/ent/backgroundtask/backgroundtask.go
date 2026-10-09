@@ -42,6 +42,8 @@ const (
 	FieldLastError = "last_error"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
+	// EdgeDingtalkDirectorySync holds the string denoting the dingtalk_directory_sync edge name in mutations.
+	EdgeDingtalkDirectorySync = "dingtalk_directory_sync"
 	// EdgeNotificationDelivery holds the string denoting the notification_delivery edge name in mutations.
 	EdgeNotificationDelivery = "notification_delivery"
 	// EdgeObjectStorageDeletion holds the string denoting the object_storage_deletion edge name in mutations.
@@ -57,6 +59,13 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
+	// DingtalkDirectorySyncTable is the table that holds the dingtalk_directory_sync relation/edge.
+	DingtalkDirectorySyncTable = "ding_talk_directory_syncs"
+	// DingtalkDirectorySyncInverseTable is the table name for the DingTalkDirectorySync entity.
+	// It exists in this package in order to avoid circular dependency with the "dingtalkdirectorysync" package.
+	DingtalkDirectorySyncInverseTable = "ding_talk_directory_syncs"
+	// DingtalkDirectorySyncColumn is the table column denoting the dingtalk_directory_sync relation/edge.
+	DingtalkDirectorySyncColumn = "background_task_id"
 	// NotificationDeliveryTable is the table that holds the notification_delivery relation/edge.
 	NotificationDeliveryTable = "notification_deliveries"
 	// NotificationDeliveryInverseTable is the table name for the NotificationDelivery entity.
@@ -146,6 +155,7 @@ const (
 	KindDINGTALK_NOTIFICATION    Kind = "DINGTALK_NOTIFICATION"
 	KindOBJECT_STORAGE_DELETION  Kind = "OBJECT_STORAGE_DELETION"
 	KindDINGTALK_APPROVAL_CREATE Kind = "DINGTALK_APPROVAL_CREATE"
+	KindDINGTALK_DIRECTORY_SYNC  Kind = "DINGTALK_DIRECTORY_SYNC"
 )
 
 func (k Kind) String() string {
@@ -155,7 +165,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION, KindDINGTALK_NOTIFICATION, KindOBJECT_STORAGE_DELETION, KindDINGTALK_APPROVAL_CREATE:
+	case KindMASTER_DATA_IMPORT, KindUNLOCODE_IMPORT, KindORDER_REMINDER, KindINTEGRATION, KindDINGTALK_NOTIFICATION, KindOBJECT_STORAGE_DELETION, KindDINGTALK_APPROVAL_CREATE, KindDINGTALK_DIRECTORY_SYNC:
 		return nil
 	default:
 		return fmt.Errorf("backgroundtask: invalid enum value for kind field: %q", k)
@@ -266,6 +276,13 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 	}
 }
 
+// ByDingtalkDirectorySyncField orders the results by dingtalk_directory_sync field.
+func ByDingtalkDirectorySyncField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDingtalkDirectorySyncStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByNotificationDeliveryField orders the results by notification_delivery field.
 func ByNotificationDeliveryField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -291,6 +308,13 @@ func newOrganizationStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrganizationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
+	)
+}
+func newDingtalkDirectorySyncStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DingtalkDirectorySyncInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, DingtalkDirectorySyncTable, DingtalkDirectorySyncColumn),
 	)
 }
 func newNotificationDeliveryStep() *sqlgraph.Step {
