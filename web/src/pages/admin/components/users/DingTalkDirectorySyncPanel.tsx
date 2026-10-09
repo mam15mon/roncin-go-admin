@@ -145,7 +145,6 @@ export default function DingTalkDirectorySyncPanel({
       }
       styles={{
         header: { flexWrap: 'wrap', gap: 8, paddingBlock: 8 },
-        body: { padding: '12px 16px' },
       }}
       style={{ marginBottom: 'var(--roncin-page-section-gap)' }}
       extra={
@@ -171,135 +170,143 @@ export default function DingTalkDirectorySyncPanel({
         </Space>
       }
     >
-      {syncQuery.isLoading ? (
-        <Spin />
-      ) : syncQuery.isError ? (
-        <Alert
-          type="error"
-          showIcon
-          title="读取同步状态失败"
-          description="请刷新状态后再发起同步。"
-        />
-      ) : sync ? (
-        <>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px 28px',
-              marginBottom: 8,
-            }}
-          >
-            {[
-              { key: 'total', label: '可处理人员（去重）', value: sync.total },
-              { key: 'created', label: '新增待分配', value: sync.created },
-              { key: 'updated', label: '资料更新', value: sync.updated },
-              { key: 'unchanged', label: '未变化', value: sync.unchanged },
-              { key: 'failed', label: '失败记录', value: sync.failed },
-            ].map((item) => (
-              <Space key={item.key} size={8}>
-                <Typography.Text type="secondary">{item.label}</Typography.Text>
-                <Typography.Text
-                  strong
-                  type={
-                    item.key === 'failed' && item.value ? 'danger' : undefined
+      <div style={{ padding: '12px 16px' }}>
+        {syncQuery.isLoading ? (
+          <Spin />
+        ) : syncQuery.isError ? (
+          <Alert
+            type="error"
+            showIcon
+            title="读取同步状态失败"
+            description="请刷新状态后再发起同步。"
+          />
+        ) : sync ? (
+          <>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px 28px',
+                marginBottom: 8,
+              }}
+            >
+              {[
+                {
+                  key: 'total',
+                  label: '可处理人员（去重）',
+                  value: sync.total,
+                },
+                { key: 'created', label: '新增待分配', value: sync.created },
+                { key: 'updated', label: '资料更新', value: sync.updated },
+                { key: 'unchanged', label: '未变化', value: sync.unchanged },
+                { key: 'failed', label: '失败记录', value: sync.failed },
+              ].map((item) => (
+                <Space key={item.key} size={8}>
+                  <Typography.Text type="secondary">
+                    {item.label}
+                  </Typography.Text>
+                  <Typography.Text
+                    strong
+                    type={
+                      item.key === 'failed' && item.value ? 'danger' : undefined
+                    }
+                    style={{ fontSize: 16 }}
+                  >
+                    {item.value ?? 0}
+                  </Typography.Text>
+                </Space>
+              ))}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '4px 20px',
+                fontSize: 12,
+                color: 'rgba(0, 0, 0, 0.45)',
+              }}
+            >
+              <span>完成时间：{formatDate(sync.completedAt, 'minute')}</span>
+              <Tooltip title="授权范围说明可以访问哪些人员；具体同步结果以人员统计和失败详情为准。">
+                <span>
+                  授权范围：
+                  {sync.fullScope ? '全企业' : sync.scopeSummary || '尚未核验'}
+                </span>
+              </Tooltip>
+              <span>
+                本次同步资料：
+                <span>
+                  {sync.availableFields
+                    ?.map((field) => fieldNames[field] || '其他资料')
+                    .join('、') || '尚未核验'}
+                </span>
+              </span>
+            </div>
+            {!running &&
+              Boolean(sync.lastError || sync.failed || !sync.fullScope) && (
+                <Alert
+                  showIcon
+                  type="warning"
+                  title={statusTitle}
+                  description={
+                    sync.lastError ||
+                    (!sync.fullScope
+                      ? '尚未确认全员授权范围，结果可能只包含部分人员。'
+                      : '部分记录未同步成功，请查看下方具体失败原因。')
                   }
-                  style={{ fontSize: 16 }}
-                >
-                  {item.value ?? 0}
-                </Typography.Text>
-              </Space>
-            ))}
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '4px 20px',
-              fontSize: 12,
-              color: 'rgba(0, 0, 0, 0.45)',
-            }}
-          >
-            <span>完成时间：{formatDate(sync.completedAt, 'minute')}</span>
-            <Tooltip title="授权范围说明可以访问哪些人员；具体同步结果以人员统计和失败详情为准。">
-              <span>
-                授权范围：
-                {sync.fullScope ? '全企业' : sync.scopeSummary || '尚未核验'}
-              </span>
-            </Tooltip>
-            <span>
-              本次同步资料：
-              <span>
-                {sync.availableFields
-                  ?.map((field) => fieldNames[field] || '其他资料')
-                  .join('、') || '尚未核验'}
-              </span>
-            </span>
-          </div>
-          {!running &&
-            Boolean(sync.lastError || sync.failed || !sync.fullScope) && (
-              <Alert
-                showIcon
-                type="warning"
-                title={statusTitle}
-                description={
-                  sync.lastError ||
-                  (!sync.fullScope
-                    ? '尚未确认全员授权范围，结果可能只包含部分人员。'
-                    : '部分记录未同步成功，请查看下方具体失败原因。')
-                }
-                style={{ marginTop: 12, marginBottom: 12 }}
-              />
+                  style={{ marginTop: 12, marginBottom: 12 }}
+                />
+              )}
+            {Boolean(sync.failureTotal) && (
+              <>
+                <Typography.Paragraph type="secondary">
+                  下方列出具体失败原因。失败按读取或处理记录计数，可能包含同一人员在不同部门的记录，与去重人员数不直接相加。
+                </Typography.Paragraph>
+                <Table<API.DingTalkDirectorySyncFailure>
+                  size="small"
+                  tableLayout="fixed"
+                  column={{ render: renderFailureCell }}
+                  pagination={false}
+                  dataSource={sync.failures ?? []}
+                  rowKey={(row) =>
+                    `${row.userId}:${row.departmentId}:${row.reason}`
+                  }
+                  columns={[
+                    {
+                      title: '人员标识',
+                      width: '28%',
+                      dataIndex: 'userId',
+                      render: (value) => renderFailureCell(value || '—'),
+                    },
+                    {
+                      title: '部门标识',
+                      width: '20%',
+                      dataIndex: 'departmentId',
+                      render: (value) =>
+                        renderFailureCell(
+                          value && value !== '0' ? value : '未记录',
+                        ),
+                    },
+                    { title: '失败原因', dataIndex: 'message' },
+                  ]}
+                />
+                <Pagination
+                  current={page}
+                  pageSize={20}
+                  total={sync.failureTotal}
+                  showSizeChanger={false}
+                  onChange={setPage}
+                  style={{ marginTop: 12 }}
+                />
+              </>
             )}
-          {Boolean(sync.failureTotal) && (
-            <>
-              <Typography.Paragraph type="secondary">
-                下方列出具体失败原因。失败按读取或处理记录计数，可能包含同一人员在不同部门的记录，与去重人员数不直接相加。
-              </Typography.Paragraph>
-              <Table<API.DingTalkDirectorySyncFailure>
-                size="small"
-                tableLayout="fixed"
-                column={{ render: renderFailureCell }}
-                pagination={false}
-                dataSource={sync.failures ?? []}
-                rowKey={(row) =>
-                  `${row.userId}:${row.departmentId}:${row.reason}`
-                }
-                columns={[
-                  {
-                    title: '人员标识',
-                    width: '28%',
-                    dataIndex: 'userId',
-                    render: (value) => renderFailureCell(value || '—'),
-                  },
-                  {
-                    title: '部门标识',
-                    width: '20%',
-                    dataIndex: 'departmentId',
-                    render: (value) =>
-                      renderFailureCell(
-                        value && value !== '0' ? value : '未记录',
-                      ),
-                  },
-                  { title: '失败原因', dataIndex: 'message' },
-                ]}
-              />
-              <Pagination
-                current={page}
-                pageSize={20}
-                total={sync.failureTotal}
-                showSizeChanger={false}
-                onChange={setPage}
-                style={{ marginTop: 12 }}
-              />
-            </>
-          )}
-        </>
-      ) : (
-        <Typography.Text type="secondary">
-          尚未同步，点击“同步钉钉人员”获取通讯录名单。
-        </Typography.Text>
-      )}
+          </>
+        ) : (
+          <Typography.Text type="secondary">
+            尚未同步，点击“同步钉钉人员”获取通讯录名单。
+          </Typography.Text>
+        )}
+      </div>
     </Card>
   );
 }
