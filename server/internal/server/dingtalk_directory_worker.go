@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+// 人工发起的同步固定每 2 秒检查，避免空闲退避导致长时间等待。
+const dingTalkDirectoryPollInterval = 2 * time.Second
+
 // DingTalkDirectoryWorker 在租约内执行有界通讯录同步，使用已有调度器接管重启任务。
 type DingTalkDirectoryWorker struct {
 	usecase *biz.DingTalkDirectoryUsecase
@@ -29,20 +32,18 @@ func (w *DingTalkDirectoryWorker) Start(context.Context) error {
 		<-w.ctx.Done()
 		return nil
 	}
-	backoff := newWorkerPollBackoff(2*time.Second, backgroundWorkerMaxPollInterval)
 	for {
 		if w.ctx.Err() != nil {
 			return nil
 		}
 		err := w.usecase.ProcessNext(w.ctx, 3*time.Minute)
 		if err == nil {
-			backoff.Reset()
 			continue
 		}
 		if !errors.Is(err, biz.ErrBackgroundTaskNoTask) {
 			w.logger.Error("钉钉通讯录同步执行失败", slog.Any("error", err))
 		}
-		if !waitForWorkerPoll(w.ctx, backoff.Next()) {
+		if !waitForWorkerPoll(w.ctx, dingTalkDirectoryPollInterval) {
 			return nil
 		}
 	}
