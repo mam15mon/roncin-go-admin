@@ -84,6 +84,13 @@ export default function DingTalkDirectorySyncPanel({
   });
   const sync = syncQuery.data;
   const running = isDirectorySyncRunning(sync?.status);
+  const completed = sync?.status?.toLowerCase() === 'succeeded';
+  const statusTitle =
+    completed && sync.failed
+      ? `同步结束，存在 ${sync.failed} 条失败记录`
+      : completed && !sync.fullScope
+        ? '同步结束，尚未确认全员授权范围'
+        : statusNames[sync?.status?.toLowerCase() ?? ''] || '同步状态未知';
   useEffect(() => {
     if (!sync?.taskId || running || completedTask.current === sync.taskId)
       return;
@@ -141,12 +148,12 @@ export default function DingTalkDirectorySyncPanel({
                   ? 'warning'
                   : 'success'
             }
-            title={
-              statusNames[sync.status?.toLowerCase() ?? ''] || '同步状态未知'
-            }
+            title={statusTitle}
             description={
               <>
-                {sync.scopeSummary || '通讯录范围尚未核验'}
+                {sync.fullScope
+                  ? '通讯录授权范围：全企业。此范围仅说明可以访问哪些人员，不代表每条人员资料均已同步成功。'
+                  : sync.scopeSummary || '通讯录范围尚未核验'}
                 {!sync.fullScope &&
                   '；尚未确认全员授权范围，结果可能只包含部分人员。'}
                 {sync.lastError && <div>{sync.lastError}</div>}
@@ -158,7 +165,11 @@ export default function DingTalkDirectorySyncPanel({
             size="small"
             column={{ xs: 1, sm: 2, lg: 4 }}
             items={[
-              { key: 'total', label: '去重人员', children: sync.total ?? 0 },
+              {
+                key: 'total',
+                label: '可处理人员（去重）',
+                children: sync.total ?? 0,
+              },
               {
                 key: 'created',
                 label: '新增待分配',
@@ -174,7 +185,7 @@ export default function DingTalkDirectorySyncPanel({
                 label: '未变化',
                 children: sync.unchanged ?? 0,
               },
-              { key: 'failed', label: '失败', children: sync.failed ?? 0 },
+              { key: 'failed', label: '失败记录', children: sync.failed ?? 0 },
               {
                 key: 'time',
                 label: '完成时间',
@@ -182,7 +193,7 @@ export default function DingTalkDirectorySyncPanel({
               },
               {
                 key: 'fields',
-                label: '本次可用资料',
+                label: '已授权资料字段',
                 span: 2,
                 children:
                   sync.availableFields
@@ -193,6 +204,9 @@ export default function DingTalkDirectorySyncPanel({
           />
           {Boolean(sync.failureTotal) && (
             <>
+              <Typography.Paragraph type="secondary">
+                下方列出具体失败原因。失败按读取或处理记录计数，可能包含同一人员在不同部门的记录，与去重人员数不直接相加。
+              </Typography.Paragraph>
               <Table<API.DingTalkDirectorySyncFailure>
                 size="small"
                 pagination={false}
@@ -209,7 +223,8 @@ export default function DingTalkDirectorySyncPanel({
                   {
                     title: '部门标识',
                     dataIndex: 'departmentId',
-                    render: (value) => value || '—',
+                    render: (value) =>
+                      value && value !== '0' ? value : '未记录',
                   },
                   { title: '失败原因', dataIndex: 'message' },
                 ]}

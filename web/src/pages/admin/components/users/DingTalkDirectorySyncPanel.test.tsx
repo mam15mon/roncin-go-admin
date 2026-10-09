@@ -49,7 +49,9 @@ describe('钉钉通讯录同步面板', () => {
       },
     });
     renderPanel();
-    expect(await screen.findByText('同步完成')).toBeInTheDocument();
+    expect(
+      await screen.findByText('同步结束，存在 1 条失败记录'),
+    ).toBeInTheDocument();
     expect(screen.getByText(/尚未确认全员授权范围/)).toBeInTheDocument();
     expect(screen.getByText('姓名、钉钉部门')).toBeInTheDocument();
     expect(screen.getByText('身份冲突')).toBeInTheDocument();
@@ -87,4 +89,37 @@ describe('钉钉通讯录同步面板', () => {
     });
     expect(api.latest).toHaveBeenCalledTimes(2);
   });
+});
+
+it('全企业授权存在失败时解释授权范围并展示具体缺失字段', async () => {
+  api.latest.mockResolvedValue({
+    data: {
+      taskId: 'task-3',
+      status: 'SUCCEEDED',
+      fullScope: true,
+      total: 13,
+      unchanged: 13,
+      failed: 14,
+      failureTotal: 14,
+      failures: [
+        {
+          userId: 'person-1',
+          departmentId: '0',
+          message:
+            '钉钉人员详情接口未返回已授权字段：工号、头像（字段缺失或为 null）',
+        },
+      ],
+    },
+  });
+  renderPanel();
+  expect(
+    await screen.findByText('同步结束，存在 14 条失败记录'),
+  ).toBeInTheDocument();
+  expect(screen.queryByText('同步完成')).not.toBeInTheDocument();
+  expect(screen.getByText(/此范围仅说明可以访问哪些人员/)).toBeInTheDocument();
+  expect(
+    screen.getByText(/人员详情接口未返回已授权字段：工号、头像/),
+  ).toBeInTheDocument();
+  expect(screen.getByText('未记录')).toBeInTheDocument();
+  expect(screen.getByText(/与去重人员数不直接相加/)).toBeInTheDocument();
 });

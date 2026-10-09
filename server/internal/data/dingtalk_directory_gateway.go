@@ -65,7 +65,7 @@ func (p *dingTalkIdentityProvider) ReadDirectory(ctx context.Context) (*biz.Ding
 	for _, id := range scope.AuthOrgScopes.AuthDept {
 		if id == 1 {
 			snapshot.FullScope = true
-			snapshot.ScopeSummary = "应用授权覆盖根部门（全企业通讯录）"
+			snapshot.ScopeSummary = "通讯录授权范围：全企业"
 		}
 	}
 	for _, field := range scope.AuthUserField {
@@ -145,8 +145,8 @@ func (p *dingTalkIdentityProvider) ReadDirectory(ctx context.Context) (*biz.Ding
 			}
 			for _, u := range page.List {
 				seenUser[u.UserID] = true
-				if !directoryOptionalFieldsComplete(snapshot.AvailableFields, u.Email, u.Mobile, u.JobNumber, u.Avatar) {
-					snapshot.Failures = append(snapshot.Failures, biz.DingTalkDirectoryFailure{UserID: u.UserID, Reason: "DINGTALK_PERSON_INCOMPLETE", Message: "已授权资料缺失，保留本地资料等待重新同步"})
+				if missing := directoryMissingOptionalFields(snapshot.AvailableFields, u.Email, u.Mobile, u.JobNumber, u.Avatar); len(missing) > 0 {
+					snapshot.Failures = append(snapshot.Failures, biz.DingTalkDirectoryFailure{UserID: u.UserID, DepartmentID: id, Reason: "DINGTALK_PERSON_INCOMPLETE", Message: "钉钉部门人员接口未返回已授权字段：" + strings.Join(missing, "、") + "（字段缺失或为 null）；本条资料未更新，已有本地资料保留。请核对钉钉人员资料和应用字段权限后重新同步。"})
 					continue
 				}
 				snapshot.People = append(snapshot.People, biz.DingTalkDirectoryPerson{UserID: strings.TrimSpace(u.UserID), UnionID: strings.TrimSpace(u.UnionID), Name: strings.TrimSpace(u.Name), Email: u.Email, Mobile: u.Mobile, JobNumber: u.JobNumber, AvatarURL: u.Avatar, Departments: []biz.DingTalkDepartment{{ID: id, Name: names[id]}}})
@@ -182,8 +182,8 @@ func (p *dingTalkIdentityProvider) ReadDirectory(ctx context.Context) (*biz.Ding
 			snapshot.Failures = append(snapshot.Failures, biz.DingTalkDirectoryFailure{UserID: id, Reason: "DINGTALK_PERSON_READ_FAILED", Message: "授权人员读取失败"})
 			continue
 		}
-		if !directoryOptionalFieldsComplete(snapshot.AvailableFields, person.Email, person.Mobile, person.JobNumber, person.Avatar) {
-			snapshot.Failures = append(snapshot.Failures, biz.DingTalkDirectoryFailure{UserID: id, Reason: "DINGTALK_PERSON_INCOMPLETE", Message: "已授权资料缺失，保留本地资料等待重新同步"})
+		if missing := directoryMissingOptionalFields(snapshot.AvailableFields, person.Email, person.Mobile, person.JobNumber, person.Avatar); len(missing) > 0 {
+			snapshot.Failures = append(snapshot.Failures, biz.DingTalkDirectoryFailure{UserID: id, Reason: "DINGTALK_PERSON_INCOMPLETE", Message: "钉钉人员详情接口未返回已授权字段：" + strings.Join(missing, "、") + "（字段缺失或为 null）；本条资料未更新，已有本地资料保留。请核对钉钉人员资料和应用字段权限后重新同步。"})
 			continue
 		}
 		depts := []biz.DingTalkDepartment{}
@@ -212,26 +212,26 @@ func (p *dingTalkIdentityProvider) ReadDirectory(ctx context.Context) (*biz.Ding
 var _ biz.DingTalkDirectoryGateway = (*dingTalkIdentityProvider)(nil)
 
 // 已授权字段缺键/null 是不完整响应；明确空字符串才表示源资料为空。
-func directoryOptionalFieldsComplete(fields []string, email, mobile, job, avatar *string) bool {
+func directoryMissingOptionalFields(fields []string, email, mobile, job, avatar *string) []string {
+	var missing []string
 	for _, field := range fields {
+		var value *string
+		var name string
 		switch field {
 		case "email":
-			if email == nil {
-				return false
-			}
+			value, name = email, "邮箱"
 		case "mobile":
-			if mobile == nil {
-				return false
-			}
+			value, name = mobile, "联系方式"
 		case "job_number":
-			if job == nil {
-				return false
-			}
+			value, name = job, "工号"
 		case "avatar_url":
-			if avatar == nil {
-				return false
-			}
+			value, name = avatar, "头像"
+		default:
+			continue
+		}
+		if value == nil {
+			missing = append(missing, name)
 		}
 	}
-	return true
+	return missing
 }
