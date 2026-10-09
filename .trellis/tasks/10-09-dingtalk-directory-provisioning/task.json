@@ -15,7 +15,7 @@
   "branch": "codex/dingtalk-directory-provisioning",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "0fe1fa99",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -31,6 +31,9 @@
     "web/src/pages/admin/users.tsx",
     "web/src/pages/user/login/dingtalk-callback.tsx"
   ],
-  "notes": "2026-10-09 用户在最终方案呈现后明确回复“开始实施吧”，批准按最新 PRD/design/implement 实施。D1/D2/D3 已确认；真实钉钉权限需实施核验。",
-  "meta": {}
+  "notes": "2026-10-09 用户在最终方案呈现后明确回复“开始实施吧”，批准按最新 PRD/design/implement 实施。D1/D2/D3 已确认；真实钉钉权限需实施核验。 实施提交 0fe1fa99；本地正式迁移已应用。真实根范围可读，但部门/成员接口权限缺失，待管理员开通后真实全员/扫码联调，暂不归档。",
+  "meta": {
+    "implementation_status": "代码完成，等待外部钉钉权限及真实联调",
+    "verification": "前端全量、后端完整门禁（真实 PostgreSQL）、生产构建、浏览器夹具通过；外部钉钉读取权限与实扫待联调"
+  }
 }
