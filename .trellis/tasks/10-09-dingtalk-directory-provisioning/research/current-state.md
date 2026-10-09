@@ -14,7 +14,7 @@
 | `server/internal/data/admin_user.go:81`、`:126` | 行投影和查询都要求当前管理范围内有成员关系 | 无组织待分配查询需显式全局管理路径和无成员关系投影 |
 | `server/internal/data/admin_user.go:510` | !enabled 且无有效 Membership 推断为 TERMINATED | 直接导入禁用、无组织用户会与离职混淆，必须调整状态契约 |
 | `server/internal/data/auth.go:161` | 钉钉按 unionId 查询，再更新资料、生成凭证 | 同步标识必须与扫码登录一致，避免创建后仍无法匹配 |
-| `server/internal/data/auth.go:582`、`server/internal/data/admin_user.go:234` | 扫码更新钉钉姓名和头像；后台另可编辑 display_name 和 email | 引入通讯录同步后必须确定资料维护来源，不能在扫码、本地编辑和同步之间反复覆盖 |
+| `server/internal/data/auth.go:582`、`server/internal/data/admin_user.go:234` | 扫码更新钉钉姓名和头像；后台另可编辑 display_name 和 email | 已确认 D2：通讯录统一维护钉钉人员资料，须收敛扫码与后台编辑写入口，不能相互覆盖 |
 | `server/internal/data/auth.go:180`、`:236`、`:251` | 新注册用户禁用，挂 system 节点成员资格 | 新方案应移除“为了进入审批队列而挂组织”的依赖 |
 | `server/internal/data/auth.go:611` | 无默认有效工作台时 credentialForAccount 返回组织权限错误 | 应在业务凭证解析前识别待分配；不能只在登录后加提示 |
 | `server/internal/biz/auth.go:758` | 未注册先尝试手机号邀请激活，否则要求注册；禁用凭证返回待授权 | 如统一开通入口，必须同时收敛扫码分支，避免另一入口绕过管理员分配 |
@@ -42,7 +42,7 @@
 ## 尚待设计的技术点
 
 1. 使用最少的显式状态支持待分配、已开通与离职，不额外建设复杂人事状态机；与现有 enabled 字段的关系需一次确定。
-2. 来源姓名、部门、工号及联系方式的字段所有权，以及与扫码资料更新的关系。
+2. D2 已确定钉钉通讯录为基础资料权威源；待设计可选字段授权、缺失语义和存储契约，以及扫码与后台写入口的统一约束。
 3. 单企业配置下 UserID/UnionID 匹配和冲突处理；无身份本地账号的人工绑定需求。
 4. 后台同步任务状态与摘要、重复触发和任务重试语义；成功摘要不得掩盖未遍历完的部门。
 5. 单人/批量开通的事务边界、锁顺序、并发冲突语义和是否需要版本，按批准的业务语义审阅后确定。
