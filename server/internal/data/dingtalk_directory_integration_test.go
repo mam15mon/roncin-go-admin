@@ -69,9 +69,9 @@ func TestDingTalkDirectorySyncPostgresIdentityLeaseAndAvailability(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	mobile, email, job := "13800000000", "private@example.test", "001"
-	person := &biz.DingTalkDirectoryPerson{UserID: "u1", UnionID: "union1", Name: "员工甲", Mobile: &mobile, Email: &email, JobNumber: &job, Departments: []biz.DingTalkDepartment{{ID: 1, Name: "企业"}}}
-	if outcome, err := repo.ApplyPerson(ctx, task, person, []string{"display_name", "departments", "job_number"}); err != nil || outcome != "created" {
+	mobile, email := "13800000000", "private@example.test"
+	person := &biz.DingTalkDirectoryPerson{UserID: "u1", UnionID: "union1", Name: "员工甲", Mobile: &mobile, Email: &email, Departments: []biz.DingTalkDepartment{{ID: 1, Name: "企业"}}}
+	if outcome, err := repo.ApplyPerson(ctx, task, person, []string{"display_name", "departments"}); err != nil || outcome != "created" {
 		t.Fatalf("新人员: %s %v", outcome, err)
 	}
 	pending, err := (&adminRepo{data: data}).ListUsers(ctx, org.ID, biz.AdminUserListOptions{Page: 1, PageSize: 20, Status: biz.AdminUserStatusPendingAssignment})
@@ -82,13 +82,13 @@ func TestDingTalkDirectorySyncPostgresIdentityLeaseAndAvailability(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if account.Enabled || !account.PendingAssignment || account.Email != nil || account.DingtalkMobile != nil || account.DingtalkJobNumber == nil {
+	if account.Enabled || !account.PendingAssignment || account.Email != nil || account.DingtalkMobile != nil || account.DingtalkJobNumber != nil {
 		t.Fatal("资料授权与待分配状态错误")
 	}
 	if count, err := data.db.Membership.Query().Where(membership.UserIDEQ(account.ID)).Count(ctx); err != nil || count != 0 {
 		t.Fatal("同步不能建立组织成员关系")
 	}
-	if outcome, err := repo.ApplyPerson(ctx, task, person, []string{"display_name", "departments", "job_number"}); err != nil || outcome != "unchanged" {
+	if outcome, err := repo.ApplyPerson(ctx, task, person, []string{"display_name", "departments"}); err != nil || outcome != "unchanged" {
 		t.Fatalf("重复同步应幂等: %s %v", outcome, err)
 	}
 	other, err := data.db.User.Create().SetDisplayName("冲突账号").SetDingtalkUnionid("union2").SetDingtalkUserid("u2").SetEnabled(false).Save(ctx)

@@ -23,7 +23,6 @@ import { formatDate } from '@/utils/format';
 const fieldNames: Record<string, string> = {
   display_name: '姓名',
   avatar_url: '头像',
-  job_number: '工号',
   mobile: '联系方式',
   email: '邮箱',
   departments: '钉钉部门',
@@ -201,7 +200,7 @@ export default function DingTalkDirectorySyncPanel({
               },
               {
                 key: 'fields',
-                label: '已授权资料字段',
+                label: '本次同步资料',
                 span: 2,
                 children:
                   sync.availableFields

@@ -380,7 +380,7 @@ export default function UserFormModal({
           type="info"
           showIcon
           title="钉钉基础资料由通讯录维护"
-          description="姓名、邮箱、头像、工号、联系方式及来源部门在钉钉维护；组织成员关系和角色在本系统配置。"
+          description="姓名、邮箱、头像、联系方式及来源部门在钉钉维护；组织成员关系和角色在本系统配置。"
           style={{ marginBottom: 16 }}
         />
       )}

@@ -23,7 +23,7 @@ func TestDingTalkDirectoryGatewayScopeAndPagination(t *testing.T) {
 			if calls == 1 {
 				content = `{"errcode":0,"result":{"has_more":true,"next_cursor":1,"list":[{"userid":"u1","unionid":"union1","name":"员工甲","mobile":"13800000000","job_number":"001","avatar":""}]}}`
 			} else {
-				content = `{"errcode":0,"result":{"has_more":false,"list":[{"userid":"u2","unionid":"union2","name":"员工乙","job_number":"","avatar":""}]}}`
+				content = `{"errcode":0,"result":{"has_more":false,"list":[{"userid":"u2","unionid":"union2","name":"员工乙","avatar":""}]}}`
 			}
 		default:
 			t.Fatalf("意外请求路径 %s", r.URL.Path)
@@ -38,7 +38,7 @@ func TestDingTalkDirectoryGatewayScopeAndPagination(t *testing.T) {
 		t.Fatalf("授权/分页结果不正确: %+v", snapshot)
 	}
 	fields := strings.Join(snapshot.AvailableFields, ",")
-	if strings.Contains(fields, "mobile") || strings.Contains(fields, "email") || !strings.Contains(fields, "job_number") || !strings.Contains(fields, "avatar_url") {
+	if strings.Contains(fields, "mobile") || strings.Contains(fields, "email") || strings.Contains(fields, "job_number") || !strings.Contains(fields, "avatar_url") {
 		t.Fatalf("字段授权错误 %s", fields)
 	}
 }
@@ -128,7 +128,7 @@ func TestDingTalkDirectoryGatewayIndependentUserScopeHasDepartmentName(t *testin
 		body := ""
 		switch r.URL.Path {
 		case "/auth/scopes":
-			body = `{"errcode":0,"auth_user_field":["name","department"],"auth_org_scopes":{"authed_dept":[],"authed_user":["u1"]}}`
+			body = `{"errcode":0,"auth_user_field":["name","department","jobnumber"],"auth_org_scopes":{"authed_dept":[],"authed_user":["u1"]}}`
 		case "/topapi/v2/user/get":
 			body = `{"errcode":0,"result":{"userid":"u1","unionid":"union1","name":"独立授权人员","dept_id_list":[10]}}`
 		case "/topapi/v2/department/get":
@@ -168,7 +168,7 @@ func TestDingTalkDirectoryGatewayIndependentUserMissingFields(t *testing.T) {
 		t.Fatalf("不完整资料未被保留为失败记录: %+v", snapshot)
 	}
 	message := snapshot.Failures[0].Message
-	if !strings.Contains(message, "人员详情接口未返回已授权字段：工号、头像") || strings.Contains(message, "邮箱") || strings.Contains(message, "联系方式") {
+	if !strings.Contains(message, "人员详情接口未返回已授权字段：头像") || strings.Contains(message, "邮箱") || strings.Contains(message, "联系方式") || strings.Contains(message, "工号") {
 		t.Fatalf("缺键/null 与明确空值的字段诊断错误: %s", message)
 	}
 }

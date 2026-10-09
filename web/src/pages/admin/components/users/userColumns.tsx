@@ -231,12 +231,6 @@ export function buildUserColumns({
           .join(' / ') || '-',
     },
     {
-      title: '工号',
-      dataIndex: 'dingtalkJobNumber',
-      width: 100,
-      search: false,
-    },
-    {
       title: '联系方式',
       dataIndex: 'dingtalkMobileMasked',
       width: 140,

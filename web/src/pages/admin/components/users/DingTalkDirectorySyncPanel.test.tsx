@@ -106,7 +106,7 @@ it('全企业授权存在失败时解释授权范围并展示具体缺失字段'
           userId: 'person-1',
           departmentId: '0',
           message:
-            '钉钉人员详情接口未返回已授权字段：工号、头像（字段缺失或为 null）',
+            '钉钉人员详情接口未返回已授权字段：头像（字段缺失或为 null）',
         },
       ],
     },
@@ -118,7 +118,7 @@ it('全企业授权存在失败时解释授权范围并展示具体缺失字段'
   expect(screen.queryByText('同步完成')).not.toBeInTheDocument();
   expect(screen.getByText(/此范围仅说明可以访问哪些人员/)).toBeInTheDocument();
   expect(
-    screen.getByText(/人员详情接口未返回已授权字段：工号、头像/),
+    screen.getByText(/人员详情接口未返回已授权字段：头像/),
   ).toBeInTheDocument();
   expect(screen.getByText('未记录')).toBeInTheDocument();
   expect(screen.getByText(/与去重人员数不直接相加/)).toBeInTheDocument();

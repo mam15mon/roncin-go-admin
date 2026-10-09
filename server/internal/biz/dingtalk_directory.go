@@ -22,9 +22,9 @@ type DingTalkDepartment struct {
 	Name string `json:"name"`
 }
 type DingTalkDirectoryPerson struct {
-	UserID, UnionID, Name               string
-	Email, AvatarURL, Mobile, JobNumber *string
-	Departments                         []DingTalkDepartment
+	UserID, UnionID, Name    string
+	Email, AvatarURL, Mobile *string
+	Departments              []DingTalkDepartment
 }
 type DingTalkDirectoryFailure struct {
 	UserID       string `json:"userId"`

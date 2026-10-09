@@ -52,7 +52,12 @@ func (r *dingTalkDirectoryRepo) Get(ctx context.Context, org, taskID uuid.UUID, 
 		query = query.Where(syncent.BackgroundTaskIDEQ(taskID))
 	}
 	record, err := query.Order(ent.Desc(syncent.FieldCreatedAt), ent.Desc(syncent.FieldID)).First(ctx)
-	if err!=nil {if ent.IsNotFound(err) && taskID==uuid.Nil{return nil,nil};return nil,mapEntError(err,biz.ErrBackgroundTaskNotFound,nil)}
+	if err != nil {
+		if ent.IsNotFound(err) && taskID == uuid.Nil {
+			return nil, nil
+		}
+		return nil, mapEntError(err, biz.ErrBackgroundTaskNotFound, nil)
+	}
 	task := record.Edges.BackgroundTask
 	result := &biz.DingTalkDirectorySync{TaskID: record.BackgroundTaskID, Status: biz.BackgroundTaskStatus(task.Status), CreatedAt: record.CreatedAt, CompletedAt: record.CompletedAt, CorpID: record.CorpID, ScopeSummary: record.ScopeSummary, FullScope: record.FullScope, AvailableFields: record.AvailableFields, TotalCount: record.TotalCount, CreatedCount: record.CreatedCount, UpdatedCount: record.UpdatedCount, UnchangedCount: record.UnchangedCount, FailedCount: record.FailedCount, FailureTotal: len(record.Failures), Page: page, PageSize: size, LastError: task.LastError}
 	start := (page - 1) * size
@@ -103,21 +108,18 @@ func (r *dingTalkDirectoryRepo) ApplyPerson(ctx context.Context, task *biz.Backg
 			allowed[field] = true
 		}
 		// 未确认授权的敏感字段清空，已授权空值由源字段显式决定。
-		email, mobile, job, avatar := p.Email, p.Mobile, p.JobNumber, p.AvatarURL
+		email, mobile, avatar := p.Email, p.Mobile, p.AvatarURL
 		if !allowed["email"] {
 			email = nil
 		}
 		if !allowed["mobile"] {
 			mobile = nil
 		}
-		if !allowed["job_number"] {
-			job = nil
-		}
 		if !allowed["avatar_url"] {
 			avatar = nil
 		}
 		if len(accounts) == 0 {
-			_, err := tx.User.Create().SetDisplayName(p.Name).SetDingtalkName(p.Name).SetDingtalkUnionid(p.UnionID).SetDingtalkUserid(p.UserID).SetEnabled(false).SetPendingAssignment(true).SetDingtalkDepartments(depts).SetDingtalkLastSyncedAt(time.Now().UTC()).SetNillableEmail(email).SetNillableDingtalkMobile(mobile).SetNillableDingtalkJobNumber(job).SetNillableAvatarURL(avatar).Save(ctx)
+			_, err := tx.User.Create().SetDisplayName(p.Name).SetDingtalkName(p.Name).SetDingtalkUnionid(p.UnionID).SetDingtalkUserid(p.UserID).SetEnabled(false).SetPendingAssignment(true).SetDingtalkDepartments(depts).SetDingtalkLastSyncedAt(time.Now().UTC()).SetNillableEmail(email).SetNillableDingtalkMobile(mobile).SetNillableAvatarURL(avatar).Save(ctx)
 			outcome = "created"
 			return mapEntError(err, nil, biz.ErrDingTalkIdentityConflict)
 		}
@@ -125,7 +127,7 @@ func (r *dingTalkDirectoryRepo) ApplyPerson(ctx context.Context, task *biz.Backg
 		if (a.DingtalkUserid != nil && *a.DingtalkUserid != p.UserID) || (a.DingtalkUnionid != nil && *a.DingtalkUnionid != p.UnionID) {
 			return biz.ErrDingTalkIdentityConflict
 		}
-		if a.DisplayName != p.Name || a.DingtalkName == nil || *a.DingtalkName != p.Name || !reflect.DeepEqual(a.DingtalkDepartments, depts) || !reflect.DeepEqual(a.Email, email) || !reflect.DeepEqual(a.DingtalkMobile, mobile) || !reflect.DeepEqual(a.DingtalkJobNumber, job) || !reflect.DeepEqual(a.AvatarURL, avatar) {
+		if a.DisplayName != p.Name || a.DingtalkName == nil || *a.DingtalkName != p.Name || !reflect.DeepEqual(a.DingtalkDepartments, depts) || !reflect.DeepEqual(a.Email, email) || !reflect.DeepEqual(a.DingtalkMobile, mobile) || !reflect.DeepEqual(a.AvatarURL, avatar) {
 			outcome = "updated"
 		}
 		update := tx.User.UpdateOne(a).SetDisplayName(p.Name).SetDingtalkName(p.Name).SetDingtalkUnionid(p.UnionID).SetDingtalkUserid(p.UserID).SetDingtalkDepartments(depts).SetDingtalkLastSyncedAt(time.Now().UTC())
@@ -138,11 +140,6 @@ func (r *dingTalkDirectoryRepo) ApplyPerson(ctx context.Context, task *biz.Backg
 			update.ClearDingtalkMobile()
 		} else {
 			update.SetDingtalkMobile(*mobile)
-		}
-		if job == nil {
-			update.ClearDingtalkJobNumber()
-		} else {
-			update.SetDingtalkJobNumber(*job)
 		}
 		if avatar == nil {
 			update.ClearAvatarURL()
