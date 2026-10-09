@@ -134,12 +134,10 @@ describe('buildUserColumns 头像显示', () => {
     );
     const renderColumn = userColumn?.render as RoleColumnRender;
     const { container } = render(
-      <>
-        {renderColumn(null, {
-          displayName: '张芳',
-          avatarUrl,
-        } as API.AdminUser)}
-      </>,
+      renderColumn(null, {
+        displayName: '张芳',
+        avatarUrl,
+      } as API.AdminUser),
     );
 
     expect(container.querySelector('.ant-avatar')).toHaveTextContent('张');
@@ -152,12 +150,10 @@ describe('buildUserColumns 头像显示', () => {
     );
     const renderColumn = userColumn?.render as RoleColumnRender;
     const { container } = render(
-      <>
-        {renderColumn(null, {
-          displayName: '张芳',
-          avatarUrl: 'https://example.com/avatar.jpg',
-        } as API.AdminUser)}
-      </>,
+      renderColumn(null, {
+        displayName: '张芳',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      } as API.AdminUser),
     );
 
     expect(container.querySelector('.ant-avatar img')).toHaveAttribute(
