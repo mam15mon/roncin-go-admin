@@ -20,8 +20,6 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	AuthService_Login_FullMethodName                  = "/auth.v1.AuthService/Login"
-	AuthService_GetWeComLoginConfig_FullMethodName    = "/auth.v1.AuthService/GetWeComLoginConfig"
-	AuthService_WeComLogin_FullMethodName             = "/auth.v1.AuthService/WeComLogin"
 	AuthService_GetDingTalkLoginConfig_FullMethodName = "/auth.v1.AuthService/GetDingTalkLoginConfig"
 	AuthService_DingTalkLogin_FullMethodName          = "/auth.v1.AuthService/DingTalkLogin"
 	AuthService_Logout_FullMethodName                 = "/auth.v1.AuthService/Logout"
@@ -36,8 +34,6 @@ const (
 // AuthService owns the browser session boundary for the management console.
 type AuthServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	GetWeComLoginConfig(ctx context.Context, in *GetWeComLoginConfigRequest, opts ...grpc.CallOption) (*GetWeComLoginConfigResponse, error)
-	WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...grpc.CallOption) (*WeComLoginResponse, error)
 	GetDingTalkLoginConfig(ctx context.Context, in *GetDingTalkLoginConfigRequest, opts ...grpc.CallOption) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...grpc.CallOption) (*DingTalkLoginResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
@@ -57,26 +53,6 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LoginResponse)
 	err := c.cc.Invoke(ctx, AuthService_Login_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) GetWeComLoginConfig(ctx context.Context, in *GetWeComLoginConfigRequest, opts ...grpc.CallOption) (*GetWeComLoginConfigResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetWeComLoginConfigResponse)
-	err := c.cc.Invoke(ctx, AuthService_GetWeComLoginConfig_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...grpc.CallOption) (*WeComLoginResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WeComLoginResponse)
-	err := c.cc.Invoke(ctx, AuthService_WeComLogin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -140,8 +116,6 @@ func (c *authServiceClient) SwitchOrganization(ctx context.Context, in *SwitchOr
 // AuthService owns the browser session boundary for the management console.
 type AuthServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error)
-	WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
@@ -159,12 +133,6 @@ type UnimplementedAuthServiceServer struct{}
 
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
-}
-func (UnimplementedAuthServiceServer) GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetWeComLoginConfig not implemented")
-}
-func (UnimplementedAuthServiceServer) WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method WeComLogin not implemented")
 }
 func (UnimplementedAuthServiceServer) GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDingTalkLoginConfig not implemented")
@@ -216,42 +184,6 @@ func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).Login(ctx, req.(*LoginRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_GetWeComLoginConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetWeComLoginConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).GetWeComLoginConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_GetWeComLoginConfig_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetWeComLoginConfig(ctx, req.(*GetWeComLoginConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_WeComLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WeComLoginRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).WeComLogin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_WeComLogin_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).WeComLogin(ctx, req.(*WeComLoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -356,14 +288,6 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
-		},
-		{
-			MethodName: "GetWeComLoginConfig",
-			Handler:    _AuthService_GetWeComLoginConfig_Handler,
-		},
-		{
-			MethodName: "WeComLogin",
-			Handler:    _AuthService_WeComLogin_Handler,
 		},
 		{
 			MethodName: "GetDingTalkLoginConfig",

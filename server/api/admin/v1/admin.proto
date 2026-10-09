@@ -86,14 +86,6 @@ service AdminService {
     };
   }
 
-  rpc AuthorizeWeComUser(AuthorizeWeComUserRequest) returns (AuthorizeWeComUserResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.authorize_wecom" scope: DATA_SCOPE_ALL};
-    option (google.api.http) = {
-      post: "/api/v1/admin/users/{id}/wecom-authorization"
-      body: "*"
-    };
-  }
-
   rpc AuthorizeDingTalkUser(AuthorizeDingTalkUserRequest) returns (AuthorizeDingTalkUserResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.authorize_dingtalk" scope: DATA_SCOPE_ALL};
     option (google.api.http) = {
@@ -310,14 +302,6 @@ message TerminateUserRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message AuthorizeWeComUserRequest {
-  string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
-  string display_name = 3 [(google.api.field_behavior) = REQUIRED];
-  optional string email = 4;
-  repeated string role_ids = 5 [(google.api.field_behavior) = REQUIRED];
-}
-
 message AuthorizeDingTalkUserRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
@@ -345,8 +329,8 @@ message AdminUser {
   repeated string role_codes = 7;
   string created_at = 8;
   string updated_at = 9;
-  optional string wecom_userid = 10;
-  optional string wecom_name = 11;
+  reserved 10, 11;
+  reserved "wecom_userid", "wecom_name";
   optional string dingtalk_unionid = 12;
   optional string dingtalk_name = 13;
   optional string avatar_url = 14;
@@ -450,14 +434,6 @@ message TerminateUserResponse {
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
-}
-
-message AuthorizeWeComUserResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  AdminUser data = 4;
-  string trace_id = 5;
 }
 
 message AuthorizeDingTalkUserResponse {

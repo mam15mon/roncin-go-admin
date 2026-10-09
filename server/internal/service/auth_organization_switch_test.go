@@ -37,10 +37,6 @@ func (*authServiceRepoStub) RecordLoginFailure(context.Context, []string, time.T
 	return false, nil
 }
 
-func (*authServiceRepoStub) FindOrCreateWeComCredential(context.Context, *biz.WeComIdentity, *biz.AuditEvent) (*biz.Credential, bool, error) {
-	return nil, false, biz.ErrWeComDisabled
-}
-
 func (*authServiceRepoStub) FindDingTalkCredential(context.Context, *biz.DingTalkIdentity) (*biz.Credential, error) {
 	return nil, biz.ErrDingTalkNotRegistered
 }
@@ -82,7 +78,7 @@ func (*authServiceRepoStub) RevokeSession(context.Context, string, time.Time, *b
 
 func newAuthServiceForTest(repo *authServiceRepoStub) *AuthService {
 	policy := &biz.SessionPolicy{TTL: time.Hour}
-	return NewAuthService(biz.NewAuthUsecase(repo, policy, nil, nil, nil), policy)
+	return NewAuthService(biz.NewAuthUsecase(repo, policy, nil, nil), policy)
 }
 
 func authServicePasswordHash(t *testing.T) *string {

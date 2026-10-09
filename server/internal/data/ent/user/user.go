@@ -30,10 +30,6 @@ const (
 	FieldAvatarURL = "avatar_url"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
-	// FieldWecomUserid holds the string denoting the wecom_userid field in the database.
-	FieldWecomUserid = "wecom_userid"
-	// FieldWecomName holds the string denoting the wecom_name field in the database.
-	FieldWecomName = "wecom_name"
 	// FieldDingtalkUnionid holds the string denoting the dingtalk_unionid field in the database.
 	FieldDingtalkUnionid = "dingtalk_unionid"
 	// FieldDingtalkUserid holds the string denoting the dingtalk_userid field in the database.
@@ -621,8 +617,6 @@ var Columns = []string{
 	FieldEmail,
 	FieldAvatarURL,
 	FieldPasswordHash,
-	FieldWecomUserid,
-	FieldWecomName,
 	FieldDingtalkUnionid,
 	FieldDingtalkUserid,
 	FieldDingtalkName,
@@ -668,10 +662,6 @@ var (
 	EmailValidator func(string) error
 	// AvatarURLValidator is a validator for the "avatar_url" field. It is called by the builders before save.
 	AvatarURLValidator func(string) error
-	// WecomUseridValidator is a validator for the "wecom_userid" field. It is called by the builders before save.
-	WecomUseridValidator func(string) error
-	// WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
-	WecomNameValidator func(string) error
 	// DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
 	DingtalkUnionidValidator func(string) error
 	// DingtalkUseridValidator is a validator for the "dingtalk_userid" field. It is called by the builders before save.
@@ -735,16 +725,6 @@ func ByAvatarURL(opts ...sql.OrderTermOption) OrderOption {
 // ByPasswordHash orders the results by the password_hash field.
 func ByPasswordHash(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPasswordHash, opts...).ToFunc()
-}
-
-// ByWecomUserid orders the results by the wecom_userid field.
-func ByWecomUserid(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldWecomUserid, opts...).ToFunc()
-}
-
-// ByWecomName orders the results by the wecom_name field.
-func ByWecomName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldWecomName, opts...).ToFunc()
 }
 
 // ByDingtalkUnionid orders the results by the dingtalk_unionid field.

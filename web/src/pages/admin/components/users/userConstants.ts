@@ -7,7 +7,6 @@ export type UserFormValues = {
   email?: string;
   enabled?: boolean;
   roleIds?: string[];
-  organizationId?: string;
 };
 
 export type UserMembershipFormValues = {
@@ -23,14 +22,6 @@ export const organizationKindLabels: Record<number, string> = {
   3: '部门',
   4: '组',
 };
-
-export function pendingExternalProvider(
-  user?: API.AdminUser,
-): 'wecom' | undefined {
-  if (user?.status !== 2) return undefined;
-  if (user.wecomUserid) return 'wecom';
-  return undefined;
-}
 
 // 解析用户编辑表单的锚定组织：优先取 primary 成员关系所在组织，其次第一条启用
 // 关系，最后退回列表第一条。后端按「工作台范围锚定成员关系」决定角色归属组织，

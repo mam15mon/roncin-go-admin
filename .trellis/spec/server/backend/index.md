@@ -22,6 +22,7 @@
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Partner Role Blacklist](./partner-role-blacklist.md) | 客户、供应商、国外代理角色级黑名单及订单新增关联门禁 | ✅ |
 | [Auth Session Org Switch](./auth-session-org-switch.md) | 登录组织选择、应用内切换与会话轮转契约：成员资格唯一入场券、单事务轮转、并发语义 | ✅ |
+| [WeCom Retirement](./wecom-retirement.md) | 企业微信下线：已删除端点、用户字段、环境配置、正式迁移和相邻认证验证 | ✅ |
 | [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属系统管理/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
 | [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 系统管理仅管理公共资料与授权、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
 | [DingTalk Directory Provisioning](./dingtalk-registration-approval.md) | 钉钉通讯录同步、待分配、逐人事务开通、租约与资料只读 | ✅ |

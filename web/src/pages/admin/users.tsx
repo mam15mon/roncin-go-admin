@@ -238,11 +238,7 @@ export default function UsersPanel() {
         canReadUserMemberships={access.canReadUserMemberships}
         canManageUserMemberships={access.canManageUserMemberships}
         canUpdateUserProfile={access.canUpdateUsers}
-        canAuthorizeWeComUsers={access.canAuthorizeWeComUsers}
         currentUserId={initialState?.currentUser?.id}
-        defaultOrganizationId={
-          initialState?.currentUser?.currentOrganization?.id
-        }
         onReload={() => {
           if (!editing) switchListTab('active');
           actionRef.current?.reload();

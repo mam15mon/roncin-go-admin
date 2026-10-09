@@ -12,7 +12,7 @@ import (
 
 // organizationSwitchRepoStub 记录会话建立/轮转调用，并按组织返回可配置的主体。
 type organizationSwitchRepoStub struct {
-	wecomAuthRepoStub
+	authRepoStub
 	credential         *Credential
 	choices            []OrganizationChoice
 	principalsByOrg    map[uuid.UUID]*Principal
@@ -55,7 +55,7 @@ func (s *organizationSwitchRepoStub) RotateSession(_ context.Context, fromHash s
 }
 
 func newOrganizationSwitchUsecase(repo *organizationSwitchRepoStub) *AuthUsecase {
-	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{}, nil)
+	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &dingTalkProviderStub{}, nil)
 }
 
 func organizationSwitchPasswordHash(t *testing.T) string {

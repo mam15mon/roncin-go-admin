@@ -196,30 +196,6 @@ export function buildUserColumns({
         ),
     },
     {
-      title: '企业微信',
-      dataIndex: 'wecomName',
-      width: 210,
-      search: false,
-      render: (_, record) =>
-        record.wecomUserid ? (
-          <div style={{ lineHeight: 1.4 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>
-              {record.wecomName || '-'}
-            </div>
-            <Text
-              type="secondary"
-              style={{ fontSize: 11, fontFamily: 'monospace' }}
-            >
-              {record.wecomUserid}
-            </Text>
-          </div>
-        ) : (
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            未绑定
-          </Text>
-        ),
-    },
-    {
       title: '钉钉部门',
       dataIndex: 'dingtalkDepartments',
       width: 200,

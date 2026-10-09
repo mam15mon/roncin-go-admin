@@ -28,13 +28,6 @@ var (
 	ErrOrganizationForbidden        = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无权访问该组织")
 	ErrAuthOrganizationInvalid      = errors.BadRequest("AUTH_ORGANIZATION_INVALID", "所选组织无效或不可用")
 	ErrAuthOrganizationForbidden    = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无该组织的成员资格或已停用")
-	ErrWeComDisabled                = errors.ServiceUnavailable("AUTH_WECOM_DISABLED", "企业微信登录未启用")
-	ErrWeComLoginFailed             = errors.Unauthorized("AUTH_WECOM_LOGIN_FAILED", "企业微信登录失败")
-	ErrWeComCodeInvalid             = errors.Unauthorized("AUTH_WECOM_CODE_INVALID", "企业微信登录凭证已失效，请重新扫码")
-	ErrWeComTrustedIPRequired       = errors.Unauthorized("AUTH_WECOM_TRUSTED_IP_REQUIRED", "企业微信拒绝当前服务器 IP，请在应用管理中配置企业可信 IP")
-	ErrWeComPermissionDenied        = errors.Unauthorized("AUTH_WECOM_PERMISSION_DENIED", "企业微信应用无权读取成员信息，请检查应用可见范围和通讯录权限")
-	ErrWeComStateInvalid            = errors.Unauthorized("AUTH_WECOM_STATE_INVALID", "企业微信登录状态已失效，请重新扫码")
-	ErrWeComAuthorizationPending    = errors.Forbidden("AUTH_WECOM_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
 	ErrDingTalkDisabled             = errors.ServiceUnavailable("AUTH_DINGTALK_DISABLED", "钉钉认证未启用")
 	ErrDingTalkLoginFailed          = errors.Unauthorized("AUTH_DINGTALK_LOGIN_FAILED", "钉钉登录失败")
 	ErrDingTalkCodeInvalid          = errors.Unauthorized("AUTH_DINGTALK_CODE_INVALID", "钉钉登录凭证已失效，请重新扫码")
@@ -118,18 +111,6 @@ type Credential struct {
 	// IsBootstrapAdmin 仅标记初始化管理员，不赋予成员资格或跨公司权限。
 	IsBootstrapAdmin      bool
 	PrimaryOrganizationID uuid.UUID
-}
-
-type WeComIdentity struct {
-	UserID string
-	Name   string
-	Email  *string
-}
-
-type WeComIdentityProvider interface {
-	Enabled() bool
-	AuthorizeURL(string) (string, error)
-	ResolveIdentity(context.Context, string) (*WeComIdentity, error)
 }
 
 type DingTalkIdentity struct {
@@ -472,7 +453,6 @@ type AuthRepo interface {
 	FindCredential(context.Context, string) (*Credential, error)
 	LoginRateLimitExceeded(context.Context, []string, time.Time, time.Duration, int) (bool, error)
 	RecordLoginFailure(context.Context, []string, time.Time, time.Duration, int, *AuditEvent) (bool, error)
-	FindOrCreateWeComCredential(context.Context, *WeComIdentity, *AuditEvent) (*Credential, bool, error)
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
 	// ListEnabledMembershipOrganizations 返回普通用户的工作台候选：系统管理节点要求本人
 	// 系统管理节点本身的启用成员关系；公司节点要求本人在该公司节点或其子树内任一启用节点
@@ -516,13 +496,12 @@ func RequirePrincipal(ctx context.Context) (*Principal, error) {
 type AuthUsecase struct {
 	repo     AuthRepo
 	policy   *SessionPolicy
-	wecom    WeComIdentityProvider
 	dingtalk DingTalkIdentityProvider
 	logger   *slog.Logger
 }
 
-func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, wecom WeComIdentityProvider, dingtalk DingTalkIdentityProvider, logger *slog.Logger) *AuthUsecase {
-	return &AuthUsecase{repo: repo, policy: policy, wecom: wecom, dingtalk: dingtalk, logger: logger}
+func NewAuthUsecase(repo AuthRepo, policy *SessionPolicy, dingtalk DingTalkIdentityProvider, logger *slog.Logger) *AuthUsecase {
+	return &AuthUsecase{repo: repo, policy: policy, dingtalk: dingtalk, logger: logger}
 }
 
 const (
@@ -600,49 +579,6 @@ func loginRateLimitKeys(username, ipAddress string) (string, []string) {
 func hashLoginRateLimitKey(kind, value string) string {
 	digest := sha256.Sum256([]byte(kind + ":" + value))
 	return hex.EncodeToString(digest[:])
-}
-
-func (uc *AuthUsecase) StartWeComLogin() (bool, string, string, time.Time, error) {
-	if !uc.wecom.Enabled() {
-		return false, "", "", time.Time{}, nil
-	}
-	state, _, err := newSessionToken()
-	if err != nil {
-		return false, "", "", time.Time{}, err
-	}
-	authorizeURL, err := uc.wecom.AuthorizeURL(state)
-	if err != nil {
-		return false, "", "", time.Time{}, err
-	}
-	return true, authorizeURL, state, time.Now().UTC().Add(5 * time.Minute), nil
-}
-
-func (uc *AuthUsecase) LoginWeCom(ctx context.Context, code, state, expectedState, userAgent string) (string, *Principal, time.Time, error) {
-	if !uc.wecom.Enabled() {
-		return "", nil, time.Time{}, ErrWeComDisabled
-	}
-	code = strings.TrimSpace(code)
-	state = strings.TrimSpace(state)
-	expectedState = strings.TrimSpace(expectedState)
-	if code == "" || state == "" || expectedState == "" || subtle.ConstantTimeCompare([]byte(state), []byte(expectedState)) != 1 {
-		return "", nil, time.Time{}, ErrWeComStateInvalid
-	}
-	identity, err := uc.wecom.ResolveIdentity(ctx, code)
-	if err != nil {
-		return "", nil, time.Time{}, err
-	}
-	credential, _, err := uc.repo.FindOrCreateWeComCredential(ctx, identity, &AuditEvent{Action: "auth.wecom.register", Result: "success"})
-	if err != nil {
-		return "", nil, time.Time{}, err
-	}
-	if !credential.Enabled {
-		return "", nil, time.Time{}, ErrWeComAuthorizationPending
-	}
-	result, err := uc.createSession(ctx, credential, credential.PrimaryOrganizationID, nil, userAgent, "auth.wecom.login", "")
-	if err != nil {
-		return "", nil, time.Time{}, err
-	}
-	return result.Token, result.Principal, result.ExpiresAt, nil
 }
 
 func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, error) {

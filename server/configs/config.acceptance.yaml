@@ -30,8 +30,6 @@ security:
     ttl: 43200s
     secure: false
     same_site: lax
-  wecom:
-    enabled: false
   dingtalk:
     enabled: false
     approval_process_code: ""

@@ -11,7 +11,7 @@ import (
 )
 
 type loginRateLimitRepoStub struct {
-	wecomAuthRepoStub
+	authRepoStub
 	loginCredential *Credential
 	credentialErr   error
 	checkErr        error
@@ -57,11 +57,11 @@ func (s *loginRateLimitRepoStub) CreateSession(ctx context.Context, session *Ses
 		delete(s.counts, clearLoginFailureKey)
 		s.cleared = append(s.cleared, clearLoginFailureKey)
 	}
-	return s.wecomAuthRepoStub.CreateSession(ctx, session, clearLoginFailureKey, audit)
+	return s.authRepoStub.CreateSession(ctx, session, clearLoginFailureKey, audit)
 }
 
 func newLoginRateLimitUsecase(repo AuthRepo) *AuthUsecase {
-	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{}, nil)
+	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &dingTalkProviderStub{}, nil)
 }
 
 func TestAuthUsecaseLoginRateLimitsSixthFailure(t *testing.T) {

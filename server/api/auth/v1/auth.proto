@@ -18,19 +18,6 @@ service AuthService {
     };
   }
 
-  rpc GetWeComLoginConfig(GetWeComLoginConfigRequest) returns (GetWeComLoginConfigResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
-    option (google.api.http) = {get: "/api/v1/auth/wecom/login-config"};
-  }
-
-  rpc WeComLogin(WeComLoginRequest) returns (WeComLoginResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
-    option (google.api.http) = {
-      post: "/api/v1/auth/wecom/login"
-      body: "*"
-    };
-  }
-
   rpc GetDingTalkLoginConfig(GetDingTalkLoginConfigRequest) returns (GetDingTalkLoginConfigResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
     option (google.api.http) = {get: "/api/v1/auth/dingtalk/login-config"};
@@ -73,27 +60,9 @@ message LoginRequest {
   optional string organization_id = 3;
 }
 
-message WeComLoginRequest {
-  string code = 1 [(google.api.field_behavior) = REQUIRED];
-  string state = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
 message DingTalkLoginRequest {
   string auth_code = 1 [(google.api.field_behavior) = REQUIRED];
   string state = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-message GetWeComLoginConfigResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  WeComLoginConfig data = 4;
-  string trace_id = 5;
-}
-
-message WeComLoginConfig {
-  bool enabled = 1;
-  optional string authorize_url = 2;
 }
 
 message GetDingTalkLoginConfigResponse {
@@ -121,14 +90,6 @@ message LoginResponse {
   string trace_id = 5;
   // 本人启用中成员资格组织候选列表（默认组织置首并标记）。
   repeated OrganizationChoice organization_choices = 6;
-}
-
-message WeComLoginResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  CurrentUser data = 4;
-  string trace_id = 5;
 }
 
 message DingTalkLoginResponse {
@@ -233,8 +194,6 @@ message RoleScope {
   // 角色显示名，按授权角色解析；合成授权无对应角色时为空。
   string role_name = 3;
 }
-
-message GetWeComLoginConfigRequest {}
 
 message GetDingTalkLoginConfigRequest {}
 

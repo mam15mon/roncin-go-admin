@@ -444,30 +444,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.TerminateUserResponse'
-    /api/v1/admin/users/{id}/wecom-authorization:
-        post:
-            tags:
-                - AdminService
-            operationId: AdminService_AuthorizeWeComUser
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/admin.v1.AuthorizeWeComUserRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/admin.v1.AuthorizeWeComUserResponse'
     /api/v1/admin/users/{userId}/memberships:
         get:
             tags:
@@ -656,36 +632,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/auth.v1.SwitchOrganizationResponse'
-    /api/v1/auth/wecom/login:
-        post:
-            tags:
-                - AuthService
-            operationId: AuthService_WeComLogin
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/auth.v1.WeComLoginRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/auth.v1.WeComLoginResponse'
-    /api/v1/auth/wecom/login-config:
-        get:
-            tags:
-                - AuthService
-            operationId: AuthService_GetWeComLoginConfig
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/auth.v1.GetWeComLoginConfigResponse'
     /api/v1/background-tasks:
         get:
             tags:
@@ -8172,10 +8118,6 @@ components:
                     type: string
                 updatedAt:
                     type: string
-                wecomUserid:
-                    type: string
-                wecomName:
-                    type: string
                 dingtalkUnionid:
                     type: string
                 dingtalkName:
@@ -8274,40 +8216,6 @@ components:
                     items:
                         type: string
         admin.v1.AuthorizeDingTalkUserResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/admin.v1.AdminUser'
-                traceId:
-                    type: string
-        admin.v1.AuthorizeWeComUserRequest:
-            required:
-                - id
-                - organizationId
-                - displayName
-                - roleIds
-            type: object
-            properties:
-                id:
-                    type: string
-                organizationId:
-                    type: string
-                displayName:
-                    type: string
-                email:
-                    type: string
-                roleIds:
-                    type: array
-                    items:
-                        type: string
-        admin.v1.AuthorizeWeComUserResponse:
             type: object
             properties:
                 success:
@@ -9017,20 +8925,6 @@ components:
                     $ref: '#/components/schemas/auth.v1.DingTalkLoginConfig'
                 traceId:
                     type: string
-        auth.v1.GetWeComLoginConfigResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/auth.v1.WeComLoginConfig'
-                traceId:
-                    type: string
         auth.v1.LoginRequest:
             required:
                 - username
@@ -9170,37 +9064,6 @@ components:
                     items:
                         $ref: '#/components/schemas/auth.v1.OrganizationChoice'
                     description: 与登录响应同构：切换后的成员资格组织候选列表。
-        auth.v1.WeComLoginConfig:
-            type: object
-            properties:
-                enabled:
-                    type: boolean
-                authorizeUrl:
-                    type: string
-        auth.v1.WeComLoginRequest:
-            required:
-                - code
-                - state
-            type: object
-            properties:
-                code:
-                    type: string
-                state:
-                    type: string
-        auth.v1.WeComLoginResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/auth.v1.CurrentUser'
-                traceId:
-                    type: string
         enterprise_resource.v1.BatchAssignAddressTypesRequest:
             required:
                 - resourceIds

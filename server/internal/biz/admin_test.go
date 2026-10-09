@@ -125,13 +125,6 @@ func (s *adminRepoStub) TerminateUser(_ context.Context, organizationID, id uuid
 	return nil
 }
 
-func (s *adminRepoStub) AuthorizeWeComUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID, audit *AuditEvent) (*AdminUser, error) {
-	input.Enabled = true
-	s.organizationID = targetOrganizationID
-	s.auditEvent = audit
-	return input, nil
-}
-
 func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID, notification *NotificationIntent, audit *AuditEvent) (*AdminUser, error) {
 	input.Enabled = true
 	s.organizationID = targetOrganizationID
@@ -225,17 +218,6 @@ func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 	}
 	if _, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 1, PageSize: MaxListPageSize + 1}); err != ErrAdminInvalidArgument {
 		t.Fatalf("invalid page size error = %v, want ErrAdminInvalidArgument", err)
-	}
-}
-
-func TestAdminUsecaseAuthorizeWeComUserRequiresTargetAndRole(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{})
-	input := &AdminUser{ID: uuid.New(), DisplayName: "张三"}
-	if _, err := usecase.AuthorizeWeComUser(context.Background(), uuid.New(), uuid.Nil, uuid.New(), input, []uuid.UUID{uuid.New()}); err != ErrAdminInvalidArgument {
-		t.Fatalf("missing target organization error = %v", err)
-	}
-	if _, err := usecase.AuthorizeWeComUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminInvalidArgument {
-		t.Fatalf("missing roles error = %v", err)
 	}
 }
 

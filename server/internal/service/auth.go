@@ -41,35 +41,6 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 	return ok(ctx, &v1.LoginResponse{Data: principalToAPI(result.Principal), OrganizationChoices: organizationChoicesToAPI(result.OrganizationChoices)}), nil
 }
 
-func (s *AuthService) GetWeComLoginConfig(ctx context.Context, _ *v1.GetWeComLoginConfigRequest) (*v1.GetWeComLoginConfigResponse, error) {
-	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartWeComLogin()
-	if err != nil {
-		return nil, err
-	}
-	config := &v1.WeComLoginConfig{Enabled: enabled}
-	if enabled {
-		config.AuthorizeUrl = &authorizeURL
-		s.setCookieNamed(ctx, s.wecomStateCookieName(), state, expiresAt, 300)
-	}
-	return ok(ctx, &v1.GetWeComLoginConfigResponse{Data: config}), nil
-}
-
-func (s *AuthService) WeComLogin(ctx context.Context, request *v1.WeComLoginRequest) (*v1.WeComLoginResponse, error) {
-	userAgent := ""
-	expectedState := ""
-	if tr, ok := transport.FromServerContext(ctx); ok {
-		userAgent = tr.RequestHeader().Get("User-Agent")
-		expectedState = cookieValue(tr.RequestHeader().Get("Cookie"), s.wecomStateCookieName())
-	}
-	s.setCookieNamed(ctx, s.wecomStateCookieName(), "", time.Unix(1, 0), -1)
-	token, principal, expiresAt, err := s.usecase.LoginWeCom(ctx, request.GetCode(), request.GetState(), expectedState, userAgent)
-	if err != nil {
-		return nil, err
-	}
-	s.setCookie(ctx, token, expiresAt, 0)
-	return ok(ctx, &v1.WeComLoginResponse{Data: principalToAPI(principal)}), nil
-}
-
 func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingTalkLoginConfigRequest) (*v1.GetDingTalkLoginConfigResponse, error) {
 	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartDingTalkLogin()
 	if err != nil {
@@ -160,8 +131,6 @@ func (s *AuthService) setCookieNamed(ctx context.Context, name, value string, ex
 		tr.ReplyHeader().Add("Set-Cookie", cookie.String())
 	}
 }
-
-func (s *AuthService) wecomStateCookieName() string { return s.policy.CookieName + "_wecom_state" }
 
 func (s *AuthService) dingTalkStateCookieName() string {
 	return s.policy.CookieName + "_dingtalk_state"

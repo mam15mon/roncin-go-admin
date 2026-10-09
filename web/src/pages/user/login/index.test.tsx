@@ -13,7 +13,6 @@ import Login from './index';
 const {
   authServiceLoginMock,
   authServiceSwitchOrganizationMock,
-  authServiceGetWeComLoginConfigMock,
   authServiceGetDingTalkLoginConfigMock,
   messageSuccessMock,
   messageErrorMock,
@@ -21,7 +20,6 @@ const {
 } = vi.hoisted(() => ({
   authServiceLoginMock: vi.fn(),
   authServiceSwitchOrganizationMock: vi.fn(),
-  authServiceGetWeComLoginConfigMock: vi.fn(),
   authServiceGetDingTalkLoginConfigMock: vi.fn(),
   messageSuccessMock: vi.fn(),
   messageErrorMock: vi.fn(),
@@ -53,7 +51,6 @@ vi.mock('antd', async (importOriginal) => {
 vi.mock('@/services/roncin/authService', () => ({
   authServiceLogin: authServiceLoginMock,
   authServiceSwitchOrganization: authServiceSwitchOrganizationMock,
-  authServiceGetWeComLoginConfig: authServiceGetWeComLoginConfigMock,
   authServiceGetDingTalkLoginConfig: authServiceGetDingTalkLoginConfigMock,
 }));
 
@@ -123,9 +120,6 @@ describe('Login', () => {
     vi.clearAllMocks();
     assignMock = vi.fn<(url: string | URL) => void>();
     vi.spyOn(window.location, 'assign').mockImplementation(assignMock);
-    authServiceGetWeComLoginConfigMock.mockResolvedValue({
-      data: { enabled: false },
-    });
     authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
       data: { enabled: false },
     });
@@ -293,10 +287,34 @@ describe('Login', () => {
     expect(
       await screen.findByRole('button', { name: /钉钉登录/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText('钉钉登录')).toBeInTheDocument();
+    expect(
+      screen
+        .getAllByRole('button', { name: /登录/ })
+        .map((button) => button.textContent?.trim()),
+    ).toEqual(['登录', '钉钉登录']);
     expect(
       screen.getByText('使用前请联系管理员同步人员并分配组织和角色'),
     ).toBeInTheDocument();
     expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
+  });
+
+  it('钉钉登录保留安全回跳地址并跳转授权页', async () => {
+    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
+      data: { enabled: true, authorizeUrl: 'https://dingtalk.login/auth' },
+    });
+    window.history.replaceState({}, '', '/user/login?redirect=%2Fwelcome');
+
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: /钉钉登录/ }));
+    await waitFor(() => {
+      expect(assignMock).toHaveBeenCalledWith('https://dingtalk.login/auth');
+    });
+    expect(sessionStorage.getItem('dingtalk_login_redirect')).toBe('/welcome');
+    expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledTimes(2);
   });
 });

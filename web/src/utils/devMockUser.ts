@@ -27,7 +27,6 @@ const mockUser: API.CurrentUser = {
     'system.user.create',
     'system.user.update',
     'system.user.delete',
-    'system.user.authorize_wecom',
     'system.user.authorize_dingtalk',
     'system.user.reset_password',
     'system.role.read',

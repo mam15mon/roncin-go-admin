@@ -18,7 +18,6 @@ import React, { useEffect, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
-  adminServiceAuthorizeWeComUser,
   adminServiceCreateUser,
   adminServiceDeleteUserMembership,
   adminServiceListOrganizationRoles,
@@ -30,7 +29,6 @@ import UserMembershipModal from './UserMembershipModal';
 import {
   formatOrganizationHierarchyName,
   organizationKindLabels,
-  pendingExternalProvider,
   resolveAnchorOrganizationId,
   type UserFormValues,
 } from './userConstants';
@@ -47,9 +45,7 @@ interface UserFormModalProps {
   canReadUserMemberships: boolean;
   canManageUserMemberships: boolean;
   canUpdateUserProfile: boolean;
-  canAuthorizeWeComUsers: boolean;
   currentUserId?: string;
-  defaultOrganizationId?: string;
   onReload: () => void;
 }
 
@@ -63,15 +59,11 @@ export default function UserFormModal({
   canReadUserMemberships,
   canManageUserMemberships,
   canUpdateUserProfile,
-  canAuthorizeWeComUsers,
   currentUserId,
-  defaultOrganizationId,
   onReload,
 }: UserFormModalProps) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
-  const [approvalOrganizationId, setApprovalOrganizationId] =
-    useState<string>();
   const [membershipView, setMembershipView] = useState<'active' | 'inactive'>(
     'active',
   );
@@ -79,24 +71,13 @@ export default function UserFormModal({
   const [membershipEditing, setMembershipEditing] =
     useState<API.AdminUserMembership>();
   const [membershipRoles, setMembershipRoles] = useState<API.AdminRole[]>([]);
-  // 外部成员的组织授权流程（依赖 ListOrganizationRoles / ListOrganizations 的全局
-  // 权限）只对具备对应授权权限的管理员开放；普通组织管理员编辑此类成员时回到
-  // 普通流程，由服务端稳定拒绝未授权的组织启用。
-  const externalProvider = pendingExternalProvider(editing);
-  const canAuthorizeExternalProvider =
-    !externalProvider || canAuthorizeWeComUsers;
-  const pendingProvider = canAuthorizeExternalProvider
-    ? externalProvider
-    : undefined;
   useEffect(() => {
     if (open) setMembershipView('active');
   }, [open, editing?.id]);
 
   const membershipsQuery = useQuery({
     queryKey: ['admin-users', 'memberships', editing?.id],
-    enabled: Boolean(
-      open && editing?.id && !pendingProvider && canReadUserMemberships,
-    ),
+    enabled: Boolean(open && editing?.id && canReadUserMemberships),
     queryFn: async () =>
       unwrapList(
         ensureListResponse(
@@ -117,7 +98,7 @@ export default function UserFormModal({
   const anchorOrganizationId = resolveAnchorOrganizationId(memberships);
   const anchorRolesQuery = useQuery({
     queryKey: ['admin-users', 'organization-roles', anchorOrganizationId],
-    enabled: Boolean(open && anchorOrganizationId && !pendingProvider),
+    enabled: Boolean(open && anchorOrganizationId),
     queryFn: async () =>
       unwrapList(
         ensureListResponse(
@@ -128,28 +109,10 @@ export default function UserFormModal({
         ),
       ),
   });
-  const approvalRolesQuery = useQuery({
-    queryKey: ['admin-users', 'organization-roles', approvalOrganizationId],
-    enabled: Boolean(open && pendingProvider && approvalOrganizationId),
-    queryFn: async () =>
-      unwrapList(
-        ensureListResponse(
-          await adminServiceListOrganizationRoles({
-            organizationId: approvalOrganizationId ?? '',
-          }),
-          '读取组织角色失败',
-        ),
-      ),
-  });
   const anchorRoles = anchorRolesQuery.data ?? [];
-  const approvalRoles = approvalRolesQuery.data ?? [];
   const loadMemberships = async (_userId: string) => {
     await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   };
-  useEffect(() => {
-    if (!open) return;
-    setApprovalOrganizationId(defaultOrganizationId);
-  }, [open, editing?.id, defaultOrganizationId]);
   useEffect(() => {
     if (!open || !membershipsQuery.data) return;
     const anchor = memberships.find(
@@ -302,47 +265,22 @@ export default function UserFormModal({
                   membershipsQuery.isFetching ||
                   membershipsQuery.isError ||
                   anchorRolesQuery.isFetching ||
-                  anchorRolesQuery.isError ||
-                  approvalRolesQuery.isFetching ||
-                  approvalRolesQuery.isError,
+                  anchorRolesQuery.isError,
               },
             }
       }
       open={open}
       formRef={formRef}
-      initialValues={
-        editing
-          ? {
-              ...editing,
-              organizationId: pendingProvider
-                ? defaultOrganizationId
-                : undefined,
-            }
-          : undefined
-      }
+      initialValues={editing}
       modalProps={{
         destroyOnHidden: true,
-        width:
-          editing && !pendingProvider && canReadUserMemberships ? 880 : 560,
+        width: editing && canReadUserMemberships ? 880 : 560,
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}
       onFinish={async (values) => {
         if (editing && !canUpdateUserProfile) return false;
-        if (editing?.id && pendingProvider) {
-          const response = await adminServiceAuthorizeWeComUser(
-            { id: editing.id },
-            {
-              id: editing.id,
-              organizationId: values.organizationId ?? '',
-              displayName: values.displayName?.trim() ?? '',
-              email: values.email?.trim() || undefined,
-              roleIds: values.roleIds ?? [],
-            },
-          );
-          if (!response) return false;
-          message.success('企业微信成员已完成组织授权并启用');
-        } else if (editing?.id) {
+        if (editing?.id) {
           const response = await adminServiceUpdateUser(
             { id: editing.id },
             {
@@ -395,35 +333,6 @@ export default function UserFormModal({
           }
         />
       )}
-      {pendingProvider && (
-        <Alert
-          showIcon
-          type="info"
-          title={`企业微信成员 ${editing?.wecomName || editing?.displayName} 已完成身份登记`}
-          description="请分配至少一个角色并启用账号。启用后，该成员再次扫码即可登录。"
-          style={{ marginBottom: 16 }}
-        />
-      )}
-      {pendingProvider && (
-        <ProFormSearchableSelect
-          name="organizationId"
-          label="所属组织"
-          placeholder="请选择公司、部门或组"
-          options={organizations.map((organization) => ({
-            label: `${formatOrganizationHierarchyName(organization, organizations)} (${organization.code})`,
-            value: organization.id,
-            code: organization.code,
-            name: organization.name,
-          }))}
-          rules={[{ required: true, message: '请选择所属组织' }]}
-          fieldProps={{
-            onChange: (organizationId: string) => {
-              formRef.current?.setFieldValue('roleIds', []);
-              setApprovalOrganizationId(organizationId);
-            },
-          }}
-        />
-      )}
       {(!editing || editing.username) && (
         <ProFormText
           name="username"
@@ -474,27 +383,17 @@ export default function UserFormModal({
       <ProFormSearchableSelect
         disabled={Boolean(editing) && !canUpdateUserProfile}
         name="roleIds"
-        label={editing && !pendingProvider ? '当前组织角色' : '分配角色'}
+        label={editing ? '当前组织角色' : '分配角色'}
         mode="multiple"
         placeholder="请选择角色"
-        options={(pendingProvider
-          ? approvalRoles
-          : anchorOrganizationId
-            ? anchorRoles
-            : roles
-        ).map((role) => ({
+        options={(anchorOrganizationId ? anchorRoles : roles).map((role) => ({
           label: `${role.name} (${role.code})`,
           value: role.id,
           code: role.code,
           name: role.name,
         }))}
-        rules={
-          pendingProvider
-            ? [{ required: true, message: '请至少分配一个角色' }]
-            : undefined
-        }
       />
-      {editing && !pendingProvider && canReadUserMemberships && (
+      {editing && canReadUserMemberships && (
         <div style={{ marginTop: 8 }}>
           <Space
             align="center"

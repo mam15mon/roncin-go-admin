@@ -153,34 +153,6 @@ func (_c *UserCreate) SetNillablePasswordHash(v *string) *UserCreate {
 	return _c
 }
 
-// SetWecomUserid sets the "wecom_userid" field.
-func (_c *UserCreate) SetWecomUserid(v string) *UserCreate {
-	_c.mutation.SetWecomUserid(v)
-	return _c
-}
-
-// SetNillableWecomUserid sets the "wecom_userid" field if the given value is not nil.
-func (_c *UserCreate) SetNillableWecomUserid(v *string) *UserCreate {
-	if v != nil {
-		_c.SetWecomUserid(*v)
-	}
-	return _c
-}
-
-// SetWecomName sets the "wecom_name" field.
-func (_c *UserCreate) SetWecomName(v string) *UserCreate {
-	_c.mutation.SetWecomName(v)
-	return _c
-}
-
-// SetNillableWecomName sets the "wecom_name" field if the given value is not nil.
-func (_c *UserCreate) SetNillableWecomName(v *string) *UserCreate {
-	if v != nil {
-		_c.SetWecomName(*v)
-	}
-	return _c
-}
-
 // SetDingtalkUnionid sets the "dingtalk_unionid" field.
 func (_c *UserCreate) SetDingtalkUnionid(v string) *UserCreate {
 	_c.mutation.SetDingtalkUnionid(v)
@@ -1368,16 +1340,6 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "avatar_url", err: fmt.Errorf(`ent: validator failed for field "User.avatar_url": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.WecomUserid(); ok {
-		if err := user.WecomUseridValidator(v); err != nil {
-			return &ValidationError{Name: "wecom_userid", err: fmt.Errorf(`ent: validator failed for field "User.wecom_userid": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.WecomName(); ok {
-		if err := user.WecomNameValidator(v); err != nil {
-			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
-		}
-	}
 	if v, ok := _c.mutation.DingtalkUnionid(); ok {
 		if err := user.DingtalkUnionidValidator(v); err != nil {
 			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
@@ -1478,14 +1440,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.PasswordHash(); ok {
 		_spec.SetField(user.FieldPasswordHash, field.TypeString, value)
 		_node.PasswordHash = &value
-	}
-	if value, ok := _c.mutation.WecomUserid(); ok {
-		_spec.SetField(user.FieldWecomUserid, field.TypeString, value)
-		_node.WecomUserid = &value
-	}
-	if value, ok := _c.mutation.WecomName(); ok {
-		_spec.SetField(user.FieldWecomName, field.TypeString, value)
-		_node.WecomName = &value
 	}
 	if value, ok := _c.mutation.DingtalkUnionid(); ok {
 		_spec.SetField(user.FieldDingtalkUnionid, field.TypeString, value)
@@ -2656,42 +2610,6 @@ func (u *UserUpsert) ClearPasswordHash() *UserUpsert {
 	return u
 }
 
-// SetWecomUserid sets the "wecom_userid" field.
-func (u *UserUpsert) SetWecomUserid(v string) *UserUpsert {
-	u.Set(user.FieldWecomUserid, v)
-	return u
-}
-
-// UpdateWecomUserid sets the "wecom_userid" field to the value that was provided on create.
-func (u *UserUpsert) UpdateWecomUserid() *UserUpsert {
-	u.SetExcluded(user.FieldWecomUserid)
-	return u
-}
-
-// ClearWecomUserid clears the value of the "wecom_userid" field.
-func (u *UserUpsert) ClearWecomUserid() *UserUpsert {
-	u.SetNull(user.FieldWecomUserid)
-	return u
-}
-
-// SetWecomName sets the "wecom_name" field.
-func (u *UserUpsert) SetWecomName(v string) *UserUpsert {
-	u.Set(user.FieldWecomName, v)
-	return u
-}
-
-// UpdateWecomName sets the "wecom_name" field to the value that was provided on create.
-func (u *UserUpsert) UpdateWecomName() *UserUpsert {
-	u.SetExcluded(user.FieldWecomName)
-	return u
-}
-
-// ClearWecomName clears the value of the "wecom_name" field.
-func (u *UserUpsert) ClearWecomName() *UserUpsert {
-	u.SetNull(user.FieldWecomName)
-	return u
-}
-
 // SetDingtalkUnionid sets the "dingtalk_unionid" field.
 func (u *UserUpsert) SetDingtalkUnionid(v string) *UserUpsert {
 	u.Set(user.FieldDingtalkUnionid, v)
@@ -3035,48 +2953,6 @@ func (u *UserUpsertOne) UpdatePasswordHash() *UserUpsertOne {
 func (u *UserUpsertOne) ClearPasswordHash() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearPasswordHash()
-	})
-}
-
-// SetWecomUserid sets the "wecom_userid" field.
-func (u *UserUpsertOne) SetWecomUserid(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetWecomUserid(v)
-	})
-}
-
-// UpdateWecomUserid sets the "wecom_userid" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateWecomUserid() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateWecomUserid()
-	})
-}
-
-// ClearWecomUserid clears the value of the "wecom_userid" field.
-func (u *UserUpsertOne) ClearWecomUserid() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearWecomUserid()
-	})
-}
-
-// SetWecomName sets the "wecom_name" field.
-func (u *UserUpsertOne) SetWecomName(v string) *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.SetWecomName(v)
-	})
-}
-
-// UpdateWecomName sets the "wecom_name" field to the value that was provided on create.
-func (u *UserUpsertOne) UpdateWecomName() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateWecomName()
-	})
-}
-
-// ClearWecomName clears the value of the "wecom_name" field.
-func (u *UserUpsertOne) ClearWecomName() *UserUpsertOne {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearWecomName()
 	})
 }
 
@@ -3620,48 +3496,6 @@ func (u *UserUpsertBulk) UpdatePasswordHash() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearPasswordHash() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearPasswordHash()
-	})
-}
-
-// SetWecomUserid sets the "wecom_userid" field.
-func (u *UserUpsertBulk) SetWecomUserid(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetWecomUserid(v)
-	})
-}
-
-// UpdateWecomUserid sets the "wecom_userid" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateWecomUserid() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateWecomUserid()
-	})
-}
-
-// ClearWecomUserid clears the value of the "wecom_userid" field.
-func (u *UserUpsertBulk) ClearWecomUserid() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearWecomUserid()
-	})
-}
-
-// SetWecomName sets the "wecom_name" field.
-func (u *UserUpsertBulk) SetWecomName(v string) *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.SetWecomName(v)
-	})
-}
-
-// UpdateWecomName sets the "wecom_name" field to the value that was provided on create.
-func (u *UserUpsertBulk) UpdateWecomName() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.UpdateWecomName()
-	})
-}
-
-// ClearWecomName clears the value of the "wecom_name" field.
-func (u *UserUpsertBulk) ClearWecomName() *UserUpsertBulk {
-	return u.Update(func(s *UserUpsert) {
-		s.ClearWecomName()
 	})
 }
 

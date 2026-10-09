@@ -1275,82 +1275,6 @@ func (x *TerminateUserRequest) GetId() string {
 	return ""
 }
 
-type AuthorizeWeComUserRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	DisplayName    string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Email          *string                `protobuf:"bytes,4,opt,name=email,proto3,oneof" json:"email,omitempty"`
-	RoleIds        []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *AuthorizeWeComUserRequest) Reset() {
-	*x = AuthorizeWeComUserRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AuthorizeWeComUserRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AuthorizeWeComUserRequest) ProtoMessage() {}
-
-func (x *AuthorizeWeComUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AuthorizeWeComUserRequest.ProtoReflect.Descriptor instead.
-func (*AuthorizeWeComUserRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *AuthorizeWeComUserRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *AuthorizeWeComUserRequest) GetOrganizationId() string {
-	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
-func (x *AuthorizeWeComUserRequest) GetDisplayName() string {
-	if x != nil {
-		return x.DisplayName
-	}
-	return ""
-}
-
-func (x *AuthorizeWeComUserRequest) GetEmail() string {
-	if x != nil && x.Email != nil {
-		return *x.Email
-	}
-	return ""
-}
-
-func (x *AuthorizeWeComUserRequest) GetRoleIds() []string {
-	if x != nil {
-		return x.RoleIds
-	}
-	return nil
-}
-
 type AuthorizeDingTalkUserRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1362,7 +1286,7 @@ type AuthorizeDingTalkUserRequest struct {
 
 func (x *AuthorizeDingTalkUserRequest) Reset() {
 	*x = AuthorizeDingTalkUserRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1374,7 +1298,7 @@ func (x *AuthorizeDingTalkUserRequest) String() string {
 func (*AuthorizeDingTalkUserRequest) ProtoMessage() {}
 
 func (x *AuthorizeDingTalkUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1387,7 +1311,7 @@ func (x *AuthorizeDingTalkUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeDingTalkUserRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizeDingTalkUserRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{17}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *AuthorizeDingTalkUserRequest) GetId() string {
@@ -1422,7 +1346,7 @@ type ResetUserPasswordRequest struct {
 
 func (x *ResetUserPasswordRequest) Reset() {
 	*x = ResetUserPasswordRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[18]
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1434,7 +1358,7 @@ func (x *ResetUserPasswordRequest) String() string {
 func (*ResetUserPasswordRequest) ProtoMessage() {}
 
 func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[18]
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1447,7 +1371,7 @@ func (x *ResetUserPasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetUserPasswordRequest.ProtoReflect.Descriptor instead.
 func (*ResetUserPasswordRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{18}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ResetUserPasswordRequest) GetId() string {
@@ -1480,7 +1404,7 @@ type ListOrganizationRolesRequest struct {
 
 func (x *ListOrganizationRolesRequest) Reset() {
 	*x = ListOrganizationRolesRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[19]
+	mi := &file_admin_v1_admin_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1492,7 +1416,7 @@ func (x *ListOrganizationRolesRequest) String() string {
 func (*ListOrganizationRolesRequest) ProtoMessage() {}
 
 func (x *ListOrganizationRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[19]
+	mi := &file_admin_v1_admin_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1505,7 +1429,7 @@ func (x *ListOrganizationRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationRolesRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{19}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListOrganizationRolesRequest) GetOrganizationId() string {
@@ -1526,8 +1450,6 @@ type AdminUser struct {
 	RoleCodes                []string                        `protobuf:"bytes,7,rep,name=role_codes,json=roleCodes,proto3" json:"role_codes,omitempty"`
 	CreatedAt                string                          `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt                string                          `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	WecomUserid              *string                         `protobuf:"bytes,10,opt,name=wecom_userid,json=wecomUserid,proto3,oneof" json:"wecom_userid,omitempty"`
-	WecomName                *string                         `protobuf:"bytes,11,opt,name=wecom_name,json=wecomName,proto3,oneof" json:"wecom_name,omitempty"`
 	DingtalkUnionid          *string                         `protobuf:"bytes,12,opt,name=dingtalk_unionid,json=dingtalkUnionid,proto3,oneof" json:"dingtalk_unionid,omitempty"`
 	DingtalkName             *string                         `protobuf:"bytes,13,opt,name=dingtalk_name,json=dingtalkName,proto3,oneof" json:"dingtalk_name,omitempty"`
 	AvatarUrl                *string                         `protobuf:"bytes,14,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
@@ -1549,7 +1471,7 @@ type AdminUser struct {
 
 func (x *AdminUser) Reset() {
 	*x = AdminUser{}
-	mi := &file_admin_v1_admin_proto_msgTypes[20]
+	mi := &file_admin_v1_admin_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1561,7 +1483,7 @@ func (x *AdminUser) String() string {
 func (*AdminUser) ProtoMessage() {}
 
 func (x *AdminUser) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[20]
+	mi := &file_admin_v1_admin_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1574,7 +1496,7 @@ func (x *AdminUser) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminUser.ProtoReflect.Descriptor instead.
 func (*AdminUser) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{20}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AdminUser) GetId() string {
@@ -1636,20 +1558,6 @@ func (x *AdminUser) GetCreatedAt() string {
 func (x *AdminUser) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
-	}
-	return ""
-}
-
-func (x *AdminUser) GetWecomUserid() string {
-	if x != nil && x.WecomUserid != nil {
-		return *x.WecomUserid
-	}
-	return ""
-}
-
-func (x *AdminUser) GetWecomName() string {
-	if x != nil && x.WecomName != nil {
-		return *x.WecomName
 	}
 	return ""
 }
@@ -1764,7 +1672,7 @@ type AdminUserOrganizationSummary struct {
 
 func (x *AdminUserOrganizationSummary) Reset() {
 	*x = AdminUserOrganizationSummary{}
-	mi := &file_admin_v1_admin_proto_msgTypes[21]
+	mi := &file_admin_v1_admin_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1776,7 +1684,7 @@ func (x *AdminUserOrganizationSummary) String() string {
 func (*AdminUserOrganizationSummary) ProtoMessage() {}
 
 func (x *AdminUserOrganizationSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[21]
+	mi := &file_admin_v1_admin_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1789,7 +1697,7 @@ func (x *AdminUserOrganizationSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminUserOrganizationSummary.ProtoReflect.Descriptor instead.
 func (*AdminUserOrganizationSummary) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{21}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *AdminUserOrganizationSummary) GetOrganizationId() string {
@@ -1834,7 +1742,7 @@ type AdminUserMembership struct {
 
 func (x *AdminUserMembership) Reset() {
 	*x = AdminUserMembership{}
-	mi := &file_admin_v1_admin_proto_msgTypes[22]
+	mi := &file_admin_v1_admin_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1846,7 +1754,7 @@ func (x *AdminUserMembership) String() string {
 func (*AdminUserMembership) ProtoMessage() {}
 
 func (x *AdminUserMembership) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[22]
+	mi := &file_admin_v1_admin_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1859,7 +1767,7 @@ func (x *AdminUserMembership) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminUserMembership.ProtoReflect.Descriptor instead.
 func (*AdminUserMembership) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{22}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AdminUserMembership) GetId() string {
@@ -1969,7 +1877,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[23]
+	mi := &file_admin_v1_admin_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1981,7 +1889,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[23]
+	mi := &file_admin_v1_admin_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1994,7 +1902,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{23}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListUsersResponse) GetSuccess() bool {
@@ -2066,7 +1974,7 @@ type CreateUserResponse struct {
 
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[24]
+	mi := &file_admin_v1_admin_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2078,7 +1986,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[24]
+	mi := &file_admin_v1_admin_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2091,7 +1999,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{24}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CreateUserResponse) GetSuccess() bool {
@@ -2142,7 +2050,7 @@ type UpdateUserResponse struct {
 
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[25]
+	mi := &file_admin_v1_admin_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2154,7 +2062,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[25]
+	mi := &file_admin_v1_admin_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2167,7 +2075,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{25}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateUserResponse) GetSuccess() bool {
@@ -2218,7 +2126,7 @@ type ListUserMembershipsResponse struct {
 
 func (x *ListUserMembershipsResponse) Reset() {
 	*x = ListUserMembershipsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[26]
+	mi := &file_admin_v1_admin_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2230,7 +2138,7 @@ func (x *ListUserMembershipsResponse) String() string {
 func (*ListUserMembershipsResponse) ProtoMessage() {}
 
 func (x *ListUserMembershipsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[26]
+	mi := &file_admin_v1_admin_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2243,7 +2151,7 @@ func (x *ListUserMembershipsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserMembershipsResponse.ProtoReflect.Descriptor instead.
 func (*ListUserMembershipsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{26}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListUserMembershipsResponse) GetSuccess() bool {
@@ -2294,7 +2202,7 @@ type CreateUserMembershipResponse struct {
 
 func (x *CreateUserMembershipResponse) Reset() {
 	*x = CreateUserMembershipResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[27]
+	mi := &file_admin_v1_admin_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2306,7 +2214,7 @@ func (x *CreateUserMembershipResponse) String() string {
 func (*CreateUserMembershipResponse) ProtoMessage() {}
 
 func (x *CreateUserMembershipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[27]
+	mi := &file_admin_v1_admin_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2319,7 +2227,7 @@ func (x *CreateUserMembershipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserMembershipResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserMembershipResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{27}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CreateUserMembershipResponse) GetSuccess() bool {
@@ -2370,7 +2278,7 @@ type UpdateUserMembershipResponse struct {
 
 func (x *UpdateUserMembershipResponse) Reset() {
 	*x = UpdateUserMembershipResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[28]
+	mi := &file_admin_v1_admin_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2382,7 +2290,7 @@ func (x *UpdateUserMembershipResponse) String() string {
 func (*UpdateUserMembershipResponse) ProtoMessage() {}
 
 func (x *UpdateUserMembershipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[28]
+	mi := &file_admin_v1_admin_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2395,7 +2303,7 @@ func (x *UpdateUserMembershipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserMembershipResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserMembershipResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{28}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateUserMembershipResponse) GetSuccess() bool {
@@ -2445,7 +2353,7 @@ type DeleteUserMembershipResponse struct {
 
 func (x *DeleteUserMembershipResponse) Reset() {
 	*x = DeleteUserMembershipResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[29]
+	mi := &file_admin_v1_admin_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2457,7 +2365,7 @@ func (x *DeleteUserMembershipResponse) String() string {
 func (*DeleteUserMembershipResponse) ProtoMessage() {}
 
 func (x *DeleteUserMembershipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[29]
+	mi := &file_admin_v1_admin_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2470,7 +2378,7 @@ func (x *DeleteUserMembershipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserMembershipResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserMembershipResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{29}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DeleteUserMembershipResponse) GetSuccess() bool {
@@ -2513,7 +2421,7 @@ type TerminateUserResponse struct {
 
 func (x *TerminateUserResponse) Reset() {
 	*x = TerminateUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[30]
+	mi := &file_admin_v1_admin_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2525,7 +2433,7 @@ func (x *TerminateUserResponse) String() string {
 func (*TerminateUserResponse) ProtoMessage() {}
 
 func (x *TerminateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[30]
+	mi := &file_admin_v1_admin_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2538,7 +2446,7 @@ func (x *TerminateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TerminateUserResponse.ProtoReflect.Descriptor instead.
 func (*TerminateUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{30}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *TerminateUserResponse) GetSuccess() bool {
@@ -2569,82 +2477,6 @@ func (x *TerminateUserResponse) GetTraceId() string {
 	return ""
 }
 
-type AuthorizeWeComUserResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *AdminUser             `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AuthorizeWeComUserResponse) Reset() {
-	*x = AuthorizeWeComUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[31]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AuthorizeWeComUserResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AuthorizeWeComUserResponse) ProtoMessage() {}
-
-func (x *AuthorizeWeComUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[31]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AuthorizeWeComUserResponse.ProtoReflect.Descriptor instead.
-func (*AuthorizeWeComUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{31}
-}
-
-func (x *AuthorizeWeComUserResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *AuthorizeWeComUserResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *AuthorizeWeComUserResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *AuthorizeWeComUserResponse) GetData() *AdminUser {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *AuthorizeWeComUserResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
 type AuthorizeDingTalkUserResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -2658,7 +2490,7 @@ type AuthorizeDingTalkUserResponse struct {
 
 func (x *AuthorizeDingTalkUserResponse) Reset() {
 	*x = AuthorizeDingTalkUserResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[32]
+	mi := &file_admin_v1_admin_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2670,7 +2502,7 @@ func (x *AuthorizeDingTalkUserResponse) String() string {
 func (*AuthorizeDingTalkUserResponse) ProtoMessage() {}
 
 func (x *AuthorizeDingTalkUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[32]
+	mi := &file_admin_v1_admin_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2683,7 +2515,7 @@ func (x *AuthorizeDingTalkUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeDingTalkUserResponse.ProtoReflect.Descriptor instead.
 func (*AuthorizeDingTalkUserResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{32}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *AuthorizeDingTalkUserResponse) GetSuccess() bool {
@@ -2729,7 +2561,7 @@ type ListRolesRequest struct {
 
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[33]
+	mi := &file_admin_v1_admin_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2741,7 +2573,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[33]
+	mi := &file_admin_v1_admin_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2754,7 +2586,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{33}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{31}
 }
 
 type CreateRoleRequest struct {
@@ -2770,7 +2602,7 @@ type CreateRoleRequest struct {
 
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[34]
+	mi := &file_admin_v1_admin_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2782,7 +2614,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[34]
+	mi := &file_admin_v1_admin_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2795,7 +2627,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{34}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *CreateRoleRequest) GetCode() string {
@@ -2839,7 +2671,7 @@ type UpdateRoleRequest struct {
 
 func (x *UpdateRoleRequest) Reset() {
 	*x = UpdateRoleRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[35]
+	mi := &file_admin_v1_admin_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2851,7 +2683,7 @@ func (x *UpdateRoleRequest) String() string {
 func (*UpdateRoleRequest) ProtoMessage() {}
 
 func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[35]
+	mi := &file_admin_v1_admin_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2864,7 +2696,7 @@ func (x *UpdateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{35}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *UpdateRoleRequest) GetId() string {
@@ -2921,7 +2753,7 @@ type AdminRole struct {
 
 func (x *AdminRole) Reset() {
 	*x = AdminRole{}
-	mi := &file_admin_v1_admin_proto_msgTypes[36]
+	mi := &file_admin_v1_admin_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2933,7 +2765,7 @@ func (x *AdminRole) String() string {
 func (*AdminRole) ProtoMessage() {}
 
 func (x *AdminRole) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[36]
+	mi := &file_admin_v1_admin_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2946,7 +2778,7 @@ func (x *AdminRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminRole.ProtoReflect.Descriptor instead.
 func (*AdminRole) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{36}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *AdminRole) GetId() string {
@@ -3032,7 +2864,7 @@ type ListRolesResponse struct {
 
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[37]
+	mi := &file_admin_v1_admin_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3044,7 +2876,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[37]
+	mi := &file_admin_v1_admin_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3057,7 +2889,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{37}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListRolesResponse) GetSuccess() bool {
@@ -3108,7 +2940,7 @@ type ListOrganizationRolesResponse struct {
 
 func (x *ListOrganizationRolesResponse) Reset() {
 	*x = ListOrganizationRolesResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[38]
+	mi := &file_admin_v1_admin_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3120,7 +2952,7 @@ func (x *ListOrganizationRolesResponse) String() string {
 func (*ListOrganizationRolesResponse) ProtoMessage() {}
 
 func (x *ListOrganizationRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[38]
+	mi := &file_admin_v1_admin_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3133,7 +2965,7 @@ func (x *ListOrganizationRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationRolesResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{38}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListOrganizationRolesResponse) GetSuccess() bool {
@@ -3184,7 +3016,7 @@ type CreateRoleResponse struct {
 
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[39]
+	mi := &file_admin_v1_admin_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3196,7 +3028,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[39]
+	mi := &file_admin_v1_admin_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3209,7 +3041,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{39}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *CreateRoleResponse) GetSuccess() bool {
@@ -3260,7 +3092,7 @@ type UpdateRoleResponse struct {
 
 func (x *UpdateRoleResponse) Reset() {
 	*x = UpdateRoleResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[40]
+	mi := &file_admin_v1_admin_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3272,7 +3104,7 @@ func (x *UpdateRoleResponse) String() string {
 func (*UpdateRoleResponse) ProtoMessage() {}
 
 func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[40]
+	mi := &file_admin_v1_admin_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3285,7 +3117,7 @@ func (x *UpdateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{40}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *UpdateRoleResponse) GetSuccess() bool {
@@ -3332,7 +3164,7 @@ type DeleteRoleRequest struct {
 
 func (x *DeleteRoleRequest) Reset() {
 	*x = DeleteRoleRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[41]
+	mi := &file_admin_v1_admin_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3344,7 +3176,7 @@ func (x *DeleteRoleRequest) String() string {
 func (*DeleteRoleRequest) ProtoMessage() {}
 
 func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[41]
+	mi := &file_admin_v1_admin_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3357,7 +3189,7 @@ func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{41}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *DeleteRoleRequest) GetId() string {
@@ -3379,7 +3211,7 @@ type DeleteRoleResponse struct {
 
 func (x *DeleteRoleResponse) Reset() {
 	*x = DeleteRoleResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[42]
+	mi := &file_admin_v1_admin_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3391,7 +3223,7 @@ func (x *DeleteRoleResponse) String() string {
 func (*DeleteRoleResponse) ProtoMessage() {}
 
 func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[42]
+	mi := &file_admin_v1_admin_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3404,7 +3236,7 @@ func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{42}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *DeleteRoleResponse) GetSuccess() bool {
@@ -3443,7 +3275,7 @@ type ListPermissionsRequest struct {
 
 func (x *ListPermissionsRequest) Reset() {
 	*x = ListPermissionsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[43]
+	mi := &file_admin_v1_admin_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3455,7 +3287,7 @@ func (x *ListPermissionsRequest) String() string {
 func (*ListPermissionsRequest) ProtoMessage() {}
 
 func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[43]
+	mi := &file_admin_v1_admin_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3468,7 +3300,7 @@ func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsRequest.ProtoReflect.Descriptor instead.
 func (*ListPermissionsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{43}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{41}
 }
 
 type AdminPermission struct {
@@ -3485,7 +3317,7 @@ type AdminPermission struct {
 
 func (x *AdminPermission) Reset() {
 	*x = AdminPermission{}
-	mi := &file_admin_v1_admin_proto_msgTypes[44]
+	mi := &file_admin_v1_admin_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3497,7 +3329,7 @@ func (x *AdminPermission) String() string {
 func (*AdminPermission) ProtoMessage() {}
 
 func (x *AdminPermission) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[44]
+	mi := &file_admin_v1_admin_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3510,7 +3342,7 @@ func (x *AdminPermission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminPermission.ProtoReflect.Descriptor instead.
 func (*AdminPermission) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{44}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *AdminPermission) GetKey() string {
@@ -3561,7 +3393,7 @@ type ListPermissionsResponse struct {
 
 func (x *ListPermissionsResponse) Reset() {
 	*x = ListPermissionsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[45]
+	mi := &file_admin_v1_admin_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3573,7 +3405,7 @@ func (x *ListPermissionsResponse) String() string {
 func (*ListPermissionsResponse) ProtoMessage() {}
 
 func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[45]
+	mi := &file_admin_v1_admin_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3586,7 +3418,7 @@ func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*ListPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{45}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListPermissionsResponse) GetSuccess() bool {
@@ -3640,7 +3472,7 @@ type ListAuditLogsRequest struct {
 
 func (x *ListAuditLogsRequest) Reset() {
 	*x = ListAuditLogsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[46]
+	mi := &file_admin_v1_admin_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3652,7 +3484,7 @@ func (x *ListAuditLogsRequest) String() string {
 func (*ListAuditLogsRequest) ProtoMessage() {}
 
 func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[46]
+	mi := &file_admin_v1_admin_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3665,7 +3497,7 @@ func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListAuditLogsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{46}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ListAuditLogsRequest) GetPage() int32 {
@@ -3746,7 +3578,7 @@ type AdminAuditLog struct {
 
 func (x *AdminAuditLog) Reset() {
 	*x = AdminAuditLog{}
-	mi := &file_admin_v1_admin_proto_msgTypes[47]
+	mi := &file_admin_v1_admin_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3758,7 +3590,7 @@ func (x *AdminAuditLog) String() string {
 func (*AdminAuditLog) ProtoMessage() {}
 
 func (x *AdminAuditLog) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[47]
+	mi := &file_admin_v1_admin_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3771,7 +3603,7 @@ func (x *AdminAuditLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminAuditLog.ProtoReflect.Descriptor instead.
 func (*AdminAuditLog) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{47}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *AdminAuditLog) GetId() string {
@@ -3888,7 +3720,7 @@ type ListAuditLogsResponse struct {
 
 func (x *ListAuditLogsResponse) Reset() {
 	*x = ListAuditLogsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[48]
+	mi := &file_admin_v1_admin_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3900,7 +3732,7 @@ func (x *ListAuditLogsResponse) String() string {
 func (*ListAuditLogsResponse) ProtoMessage() {}
 
 func (x *ListAuditLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[48]
+	mi := &file_admin_v1_admin_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3913,7 +3745,7 @@ func (x *ListAuditLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListAuditLogsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{48}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListAuditLogsResponse) GetSuccess() bool {
@@ -3983,7 +3815,7 @@ type DingTalkDepartment struct {
 
 func (x *DingTalkDepartment) Reset() {
 	*x = DingTalkDepartment{}
-	mi := &file_admin_v1_admin_proto_msgTypes[49]
+	mi := &file_admin_v1_admin_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3995,7 +3827,7 @@ func (x *DingTalkDepartment) String() string {
 func (*DingTalkDepartment) ProtoMessage() {}
 
 func (x *DingTalkDepartment) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[49]
+	mi := &file_admin_v1_admin_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4008,7 +3840,7 @@ func (x *DingTalkDepartment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkDepartment.ProtoReflect.Descriptor instead.
 func (*DingTalkDepartment) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{49}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *DingTalkDepartment) GetId() string {
@@ -4036,7 +3868,7 @@ type BatchAuthorizeDingTalkUsersRequest struct {
 
 func (x *BatchAuthorizeDingTalkUsersRequest) Reset() {
 	*x = BatchAuthorizeDingTalkUsersRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[50]
+	mi := &file_admin_v1_admin_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4048,7 +3880,7 @@ func (x *BatchAuthorizeDingTalkUsersRequest) String() string {
 func (*BatchAuthorizeDingTalkUsersRequest) ProtoMessage() {}
 
 func (x *BatchAuthorizeDingTalkUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[50]
+	mi := &file_admin_v1_admin_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4061,7 +3893,7 @@ func (x *BatchAuthorizeDingTalkUsersRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use BatchAuthorizeDingTalkUsersRequest.ProtoReflect.Descriptor instead.
 func (*BatchAuthorizeDingTalkUsersRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{50}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *BatchAuthorizeDingTalkUsersRequest) GetUserIds() []string {
@@ -4097,7 +3929,7 @@ type DingTalkAssignmentResult struct {
 
 func (x *DingTalkAssignmentResult) Reset() {
 	*x = DingTalkAssignmentResult{}
-	mi := &file_admin_v1_admin_proto_msgTypes[51]
+	mi := &file_admin_v1_admin_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4109,7 +3941,7 @@ func (x *DingTalkAssignmentResult) String() string {
 func (*DingTalkAssignmentResult) ProtoMessage() {}
 
 func (x *DingTalkAssignmentResult) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[51]
+	mi := &file_admin_v1_admin_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4122,7 +3954,7 @@ func (x *DingTalkAssignmentResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkAssignmentResult.ProtoReflect.Descriptor instead.
 func (*DingTalkAssignmentResult) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{51}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *DingTalkAssignmentResult) GetUserId() string {
@@ -4166,7 +3998,7 @@ type BatchAuthorizeDingTalkUsersResponse struct {
 
 func (x *BatchAuthorizeDingTalkUsersResponse) Reset() {
 	*x = BatchAuthorizeDingTalkUsersResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[52]
+	mi := &file_admin_v1_admin_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4178,7 +4010,7 @@ func (x *BatchAuthorizeDingTalkUsersResponse) String() string {
 func (*BatchAuthorizeDingTalkUsersResponse) ProtoMessage() {}
 
 func (x *BatchAuthorizeDingTalkUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[52]
+	mi := &file_admin_v1_admin_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4191,7 +4023,7 @@ func (x *BatchAuthorizeDingTalkUsersResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use BatchAuthorizeDingTalkUsersResponse.ProtoReflect.Descriptor instead.
 func (*BatchAuthorizeDingTalkUsersResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{52}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *BatchAuthorizeDingTalkUsersResponse) GetSuccess() bool {
@@ -4237,7 +4069,7 @@ type StartDingTalkDirectorySyncRequest struct {
 
 func (x *StartDingTalkDirectorySyncRequest) Reset() {
 	*x = StartDingTalkDirectorySyncRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	mi := &file_admin_v1_admin_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4249,7 +4081,7 @@ func (x *StartDingTalkDirectorySyncRequest) String() string {
 func (*StartDingTalkDirectorySyncRequest) ProtoMessage() {}
 
 func (x *StartDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	mi := &file_admin_v1_admin_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4262,7 +4094,7 @@ func (x *StartDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use StartDingTalkDirectorySyncRequest.ProtoReflect.Descriptor instead.
 func (*StartDingTalkDirectorySyncRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{53}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{51}
 }
 
 type GetLatestDingTalkDirectorySyncRequest struct {
@@ -4275,7 +4107,7 @@ type GetLatestDingTalkDirectorySyncRequest struct {
 
 func (x *GetLatestDingTalkDirectorySyncRequest) Reset() {
 	*x = GetLatestDingTalkDirectorySyncRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[54]
+	mi := &file_admin_v1_admin_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4287,7 +4119,7 @@ func (x *GetLatestDingTalkDirectorySyncRequest) String() string {
 func (*GetLatestDingTalkDirectorySyncRequest) ProtoMessage() {}
 
 func (x *GetLatestDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[54]
+	mi := &file_admin_v1_admin_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4300,7 +4132,7 @@ func (x *GetLatestDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use GetLatestDingTalkDirectorySyncRequest.ProtoReflect.Descriptor instead.
 func (*GetLatestDingTalkDirectorySyncRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{54}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetLatestDingTalkDirectorySyncRequest) GetPage() int32 {
@@ -4328,7 +4160,7 @@ type GetDingTalkDirectorySyncRequest struct {
 
 func (x *GetDingTalkDirectorySyncRequest) Reset() {
 	*x = GetDingTalkDirectorySyncRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[55]
+	mi := &file_admin_v1_admin_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4340,7 +4172,7 @@ func (x *GetDingTalkDirectorySyncRequest) String() string {
 func (*GetDingTalkDirectorySyncRequest) ProtoMessage() {}
 
 func (x *GetDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[55]
+	mi := &file_admin_v1_admin_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4353,7 +4185,7 @@ func (x *GetDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDingTalkDirectorySyncRequest.ProtoReflect.Descriptor instead.
 func (*GetDingTalkDirectorySyncRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{55}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetDingTalkDirectorySyncRequest) GetTaskId() string {
@@ -4389,7 +4221,7 @@ type DingTalkDirectorySyncFailure struct {
 
 func (x *DingTalkDirectorySyncFailure) Reset() {
 	*x = DingTalkDirectorySyncFailure{}
-	mi := &file_admin_v1_admin_proto_msgTypes[56]
+	mi := &file_admin_v1_admin_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4401,7 +4233,7 @@ func (x *DingTalkDirectorySyncFailure) String() string {
 func (*DingTalkDirectorySyncFailure) ProtoMessage() {}
 
 func (x *DingTalkDirectorySyncFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[56]
+	mi := &file_admin_v1_admin_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4414,7 +4246,7 @@ func (x *DingTalkDirectorySyncFailure) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkDirectorySyncFailure.ProtoReflect.Descriptor instead.
 func (*DingTalkDirectorySyncFailure) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{56}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *DingTalkDirectorySyncFailure) GetUserId() string {
@@ -4471,7 +4303,7 @@ type DingTalkDirectorySync struct {
 
 func (x *DingTalkDirectorySync) Reset() {
 	*x = DingTalkDirectorySync{}
-	mi := &file_admin_v1_admin_proto_msgTypes[57]
+	mi := &file_admin_v1_admin_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4483,7 +4315,7 @@ func (x *DingTalkDirectorySync) String() string {
 func (*DingTalkDirectorySync) ProtoMessage() {}
 
 func (x *DingTalkDirectorySync) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[57]
+	mi := &file_admin_v1_admin_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4496,7 +4328,7 @@ func (x *DingTalkDirectorySync) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkDirectorySync.ProtoReflect.Descriptor instead.
 func (*DingTalkDirectorySync) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{57}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *DingTalkDirectorySync) GetTaskId() string {
@@ -4631,7 +4463,7 @@ type StartDingTalkDirectorySyncResponse struct {
 
 func (x *StartDingTalkDirectorySyncResponse) Reset() {
 	*x = StartDingTalkDirectorySyncResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[58]
+	mi := &file_admin_v1_admin_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4643,7 +4475,7 @@ func (x *StartDingTalkDirectorySyncResponse) String() string {
 func (*StartDingTalkDirectorySyncResponse) ProtoMessage() {}
 
 func (x *StartDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[58]
+	mi := &file_admin_v1_admin_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4656,7 +4488,7 @@ func (x *StartDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use StartDingTalkDirectorySyncResponse.ProtoReflect.Descriptor instead.
 func (*StartDingTalkDirectorySyncResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{58}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *StartDingTalkDirectorySyncResponse) GetSuccess() bool {
@@ -4707,7 +4539,7 @@ type GetLatestDingTalkDirectorySyncResponse struct {
 
 func (x *GetLatestDingTalkDirectorySyncResponse) Reset() {
 	*x = GetLatestDingTalkDirectorySyncResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[59]
+	mi := &file_admin_v1_admin_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4719,7 +4551,7 @@ func (x *GetLatestDingTalkDirectorySyncResponse) String() string {
 func (*GetLatestDingTalkDirectorySyncResponse) ProtoMessage() {}
 
 func (x *GetLatestDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[59]
+	mi := &file_admin_v1_admin_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4732,7 +4564,7 @@ func (x *GetLatestDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use GetLatestDingTalkDirectorySyncResponse.ProtoReflect.Descriptor instead.
 func (*GetLatestDingTalkDirectorySyncResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{59}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetLatestDingTalkDirectorySyncResponse) GetSuccess() bool {
@@ -4783,7 +4615,7 @@ type GetDingTalkDirectorySyncResponse struct {
 
 func (x *GetDingTalkDirectorySyncResponse) Reset() {
 	*x = GetDingTalkDirectorySyncResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	mi := &file_admin_v1_admin_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4795,7 +4627,7 @@ func (x *GetDingTalkDirectorySyncResponse) String() string {
 func (*GetDingTalkDirectorySyncResponse) ProtoMessage() {}
 
 func (x *GetDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	mi := &file_admin_v1_admin_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4808,7 +4640,7 @@ func (x *GetDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDingTalkDirectorySyncResponse.ProtoReflect.Descriptor instead.
 func (*GetDingTalkDirectorySyncResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{60}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetDingTalkDirectorySyncResponse) GetSuccess() bool {
@@ -4940,14 +4772,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"+\n" +
 	"\x14TerminateUserRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xcb\x01\n" +
-	"\x19AuthorizeWeComUserRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
-	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12&\n" +
-	"\fdisplay_name\x18\x03 \x01(\tB\x03\xe0A\x02R\vdisplayName\x12\x19\n" +
-	"\x05email\x18\x04 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1e\n" +
-	"\brole_ids\x18\x05 \x03(\tB\x03\xe0A\x02R\aroleIdsB\b\n" +
-	"\x06_email\"\x8d\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x8d\x01\n" +
 	"\x1cAuthorizeDingTalkUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
 	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x1e\n" +
@@ -4958,7 +4783,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\busername\x18\x03 \x01(\tH\x00R\busername\x88\x01\x01B\v\n" +
 	"\t_username\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xef\t\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xa9\t\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -4971,37 +4796,33 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAt\x12&\n" +
-	"\fwecom_userid\x18\n" +
-	" \x01(\tH\x01R\vwecomUserid\x88\x01\x01\x12\"\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\x12.\n" +
+	"\x10dingtalk_unionid\x18\f \x01(\tH\x01R\x0fdingtalkUnionid\x88\x01\x01\x12(\n" +
+	"\rdingtalk_name\x18\r \x01(\tH\x02R\fdingtalkName\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"wecom_name\x18\v \x01(\tH\x02R\twecomName\x88\x01\x01\x12.\n" +
-	"\x10dingtalk_unionid\x18\f \x01(\tH\x03R\x0fdingtalkUnionid\x88\x01\x01\x12(\n" +
-	"\rdingtalk_name\x18\r \x01(\tH\x04R\fdingtalkName\x88\x01\x01\x12\"\n" +
-	"\n" +
-	"avatar_url\x18\x0e \x01(\tH\x05R\tavatarUrl\x88\x01\x01\x12!\n" +
+	"avatar_url\x18\x0e \x01(\tH\x03R\tavatarUrl\x88\x01\x01\x12!\n" +
 	"\fhas_password\x18\x0f \x01(\bR\vhasPassword\x12,\n" +
-	"\x0fdingtalk_userid\x18\x10 \x01(\tH\x06R\x0edingtalkUserid\x88\x01\x01\x121\n" +
+	"\x0fdingtalk_userid\x18\x10 \x01(\tH\x04R\x0edingtalkUserid\x88\x01\x01\x121\n" +
 	"\x06status\x18\x11 \x01(\x0e2\x19.admin.v1.AdminUserStatusR\x06status\x12<\n" +
 	"\x1acurrent_membership_enabled\x18\x12 \x01(\bR\x18currentMembershipEnabled\x12L\n" +
 	"\rorganizations\x18\x13 \x03(\v2&.admin.v1.AdminUserOrganizationSummaryR\rorganizations\x12\x1d\n" +
 	"\n" +
 	"role_names\x18\x14 \x03(\tR\troleNames\x12-\n" +
 	"\x12pending_assignment\x18\x15 \x01(\bR\x11pendingAssignment\x123\n" +
-	"\x13dingtalk_job_number\x18\x16 \x01(\tH\aR\x11dingtalkJobNumber\x88\x01\x01\x129\n" +
-	"\x16dingtalk_mobile_masked\x18\x17 \x01(\tH\bR\x14dingtalkMobileMasked\x88\x01\x01\x12O\n" +
+	"\x13dingtalk_job_number\x18\x16 \x01(\tH\x05R\x11dingtalkJobNumber\x88\x01\x01\x129\n" +
+	"\x16dingtalk_mobile_masked\x18\x17 \x01(\tH\x06R\x14dingtalkMobileMasked\x88\x01\x01\x12O\n" +
 	"\x14dingtalk_departments\x18\x18 \x03(\v2\x1c.admin.v1.DingTalkDepartmentR\x13dingtalkDepartments\x12:\n" +
-	"\x17dingtalk_last_synced_at\x18\x19 \x01(\tH\tR\x14dingtalkLastSyncedAt\x88\x01\x01B\b\n" +
-	"\x06_emailB\x0f\n" +
-	"\r_wecom_useridB\r\n" +
-	"\v_wecom_nameB\x13\n" +
+	"\x17dingtalk_last_synced_at\x18\x19 \x01(\tH\aR\x14dingtalkLastSyncedAt\x88\x01\x01B\b\n" +
+	"\x06_emailB\x13\n" +
 	"\x11_dingtalk_unionidB\x10\n" +
 	"\x0e_dingtalk_nameB\r\n" +
 	"\v_avatar_urlB\x12\n" +
 	"\x10_dingtalk_useridB\x16\n" +
 	"\x14_dingtalk_job_numberB\x19\n" +
 	"\x17_dingtalk_mobile_maskedB\x1a\n" +
-	"\x18_dingtalk_last_synced_at\"\x8e\x01\n" +
+	"\x18_dingtalk_last_synced_atJ\x04\b\n" +
+	"\x10\vJ\x04\b\v\x10\fR\fwecom_useridR\n" +
+	"wecom_name\"\x8e\x01\n" +
 	"\x1cAdminUserOrganizationSummary\x12'\n" +
 	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12+\n" +
 	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x12\x18\n" +
@@ -5073,13 +4894,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xa8\x01\n" +
-	"\x1aAuthorizeWeComUserResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
-	"\x04data\x18\x04 \x01(\v2\x13.admin.v1.AdminUserR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xab\x01\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xab\x01\n" +
 	"\x1dAuthorizeDingTalkUserResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -5304,7 +5119,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1cADMIN_USER_STATUS_TERMINATED\x10\x03\x12/\n" +
 	"+ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION\x10\x04\x12\x1e\n" +
 	"\x1aADMIN_USER_STATUS_DISABLED\x10\x05\x12(\n" +
-	"$ADMIN_USER_STATUS_PENDING_ASSIGNMENT\x10\x062\xe4!\n" +
+	"$ADMIN_USER_STATUS_PENDING_ASSIGNMENT\x10\x062\xa4 \n" +
 	"\fAdminService\x12\xa3\x01\n" +
 	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
 	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
@@ -5318,8 +5133,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x14CreateUserMembership\x12%.admin.v1.CreateUserMembershipRequest\x1a&.admin.v1.CreateUserMembershipResponse\"P\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x02.:\x01*\")/api/v1/admin/users/{user_id}/memberships\x12\xbc\x01\n" +
 	"\x14UpdateUserMembership\x12%.admin.v1.UpdateUserMembershipRequest\x1a&.admin.v1.UpdateUserMembershipResponse\"U\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x023:\x01*\x1a./api/v1/admin/users/{user_id}/memberships/{id}\x12\xb9\x01\n" +
 	"\x14DeleteUserMembership\x12%.admin.v1.DeleteUserMembershipRequest\x1a&.admin.v1.DeleteUserMembershipResponse\"R\x82\xb5\x18\x18\b\x03\x12\x12system.user.update \x02\x82\xd3\xe4\x93\x020*./api/v1/admin/users/{user_id}/memberships/{id}\x12\x9d\x01\n" +
-	"\rTerminateUser\x12\x1e.admin.v1.TerminateUserRequest\x1a\x1f.admin.v1.TerminateUserResponse\"K\x82\xb5\x18\x18\b\x03\x12\x12system.user.delete \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/admin/users/{id}/termination\x12\xbd\x01\n" +
-	"\x12AuthorizeWeComUser\x12#.admin.v1.AuthorizeWeComUserRequest\x1a$.admin.v1.AuthorizeWeComUserResponse\"\\\x82\xb5\x18!\b\x03\x12\x1bsystem.user.authorize_wecom \x01\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/admin/users/{id}/wecom-authorization\x12\xcc\x01\n" +
+	"\rTerminateUser\x12\x1e.admin.v1.TerminateUserRequest\x1a\x1f.admin.v1.TerminateUserResponse\"K\x82\xb5\x18\x18\b\x03\x12\x12system.user.delete \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/admin/users/{id}/termination\x12\xcc\x01\n" +
 	"\x15AuthorizeDingTalkUser\x12&.admin.v1.AuthorizeDingTalkUserRequest\x1a'.admin.v1.AuthorizeDingTalkUserResponse\"b\x82\xb5\x18$\b\x03\x12\x1esystem.user.authorize_dingtalk \x01\x82\xd3\xe4\x93\x024:\x01*\"//api/v1/admin/users/{id}/dingtalk-authorization\x12\xae\x01\n" +
 	"\x11ResetUserPassword\x12\".admin.v1.ResetUserPasswordRequest\x1a#.admin.v1.ResetUserPasswordResponse\"P\x82\xb5\x18 \b\x03\x12\x1asystem.user.reset_password \x02\x82\xd3\xe4\x93\x02&:\x01*\x1a!/api/v1/admin/users/{id}/password\x12{\n" +
 	"\tListRoles\x12\x1a.admin.v1.ListRolesRequest\x1a\x1b.admin.v1.ListRolesResponse\"5\x82\xb5\x18\x16\b\x03\x12\x10system.role.read \x02\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/admin/roles\x12\xbf\x01\n" +
@@ -5350,7 +5164,7 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 }
 
 var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 60)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(DataScope)(0),                                 // 0: admin.v1.DataScope
 	(OrganizationKind)(0),                          // 1: admin.v1.OrganizationKind
@@ -5371,52 +5185,50 @@ var file_admin_v1_admin_proto_goTypes = []any{
 	(*UpdateUserMembershipRequest)(nil),            // 16: admin.v1.UpdateUserMembershipRequest
 	(*DeleteUserMembershipRequest)(nil),            // 17: admin.v1.DeleteUserMembershipRequest
 	(*TerminateUserRequest)(nil),                   // 18: admin.v1.TerminateUserRequest
-	(*AuthorizeWeComUserRequest)(nil),              // 19: admin.v1.AuthorizeWeComUserRequest
-	(*AuthorizeDingTalkUserRequest)(nil),           // 20: admin.v1.AuthorizeDingTalkUserRequest
-	(*ResetUserPasswordRequest)(nil),               // 21: admin.v1.ResetUserPasswordRequest
-	(*ListOrganizationRolesRequest)(nil),           // 22: admin.v1.ListOrganizationRolesRequest
-	(*AdminUser)(nil),                              // 23: admin.v1.AdminUser
-	(*AdminUserOrganizationSummary)(nil),           // 24: admin.v1.AdminUserOrganizationSummary
-	(*AdminUserMembership)(nil),                    // 25: admin.v1.AdminUserMembership
-	(*ListUsersResponse)(nil),                      // 26: admin.v1.ListUsersResponse
-	(*CreateUserResponse)(nil),                     // 27: admin.v1.CreateUserResponse
-	(*UpdateUserResponse)(nil),                     // 28: admin.v1.UpdateUserResponse
-	(*ListUserMembershipsResponse)(nil),            // 29: admin.v1.ListUserMembershipsResponse
-	(*CreateUserMembershipResponse)(nil),           // 30: admin.v1.CreateUserMembershipResponse
-	(*UpdateUserMembershipResponse)(nil),           // 31: admin.v1.UpdateUserMembershipResponse
-	(*DeleteUserMembershipResponse)(nil),           // 32: admin.v1.DeleteUserMembershipResponse
-	(*TerminateUserResponse)(nil),                  // 33: admin.v1.TerminateUserResponse
-	(*AuthorizeWeComUserResponse)(nil),             // 34: admin.v1.AuthorizeWeComUserResponse
-	(*AuthorizeDingTalkUserResponse)(nil),          // 35: admin.v1.AuthorizeDingTalkUserResponse
-	(*ListRolesRequest)(nil),                       // 36: admin.v1.ListRolesRequest
-	(*CreateRoleRequest)(nil),                      // 37: admin.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),                      // 38: admin.v1.UpdateRoleRequest
-	(*AdminRole)(nil),                              // 39: admin.v1.AdminRole
-	(*ListRolesResponse)(nil),                      // 40: admin.v1.ListRolesResponse
-	(*ListOrganizationRolesResponse)(nil),          // 41: admin.v1.ListOrganizationRolesResponse
-	(*CreateRoleResponse)(nil),                     // 42: admin.v1.CreateRoleResponse
-	(*UpdateRoleResponse)(nil),                     // 43: admin.v1.UpdateRoleResponse
-	(*DeleteRoleRequest)(nil),                      // 44: admin.v1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil),                     // 45: admin.v1.DeleteRoleResponse
-	(*ListPermissionsRequest)(nil),                 // 46: admin.v1.ListPermissionsRequest
-	(*AdminPermission)(nil),                        // 47: admin.v1.AdminPermission
-	(*ListPermissionsResponse)(nil),                // 48: admin.v1.ListPermissionsResponse
-	(*ListAuditLogsRequest)(nil),                   // 49: admin.v1.ListAuditLogsRequest
-	(*AdminAuditLog)(nil),                          // 50: admin.v1.AdminAuditLog
-	(*ListAuditLogsResponse)(nil),                  // 51: admin.v1.ListAuditLogsResponse
-	(*DingTalkDepartment)(nil),                     // 52: admin.v1.DingTalkDepartment
-	(*BatchAuthorizeDingTalkUsersRequest)(nil),     // 53: admin.v1.BatchAuthorizeDingTalkUsersRequest
-	(*DingTalkAssignmentResult)(nil),               // 54: admin.v1.DingTalkAssignmentResult
-	(*BatchAuthorizeDingTalkUsersResponse)(nil),    // 55: admin.v1.BatchAuthorizeDingTalkUsersResponse
-	(*StartDingTalkDirectorySyncRequest)(nil),      // 56: admin.v1.StartDingTalkDirectorySyncRequest
-	(*GetLatestDingTalkDirectorySyncRequest)(nil),  // 57: admin.v1.GetLatestDingTalkDirectorySyncRequest
-	(*GetDingTalkDirectorySyncRequest)(nil),        // 58: admin.v1.GetDingTalkDirectorySyncRequest
-	(*DingTalkDirectorySyncFailure)(nil),           // 59: admin.v1.DingTalkDirectorySyncFailure
-	(*DingTalkDirectorySync)(nil),                  // 60: admin.v1.DingTalkDirectorySync
-	(*StartDingTalkDirectorySyncResponse)(nil),     // 61: admin.v1.StartDingTalkDirectorySyncResponse
-	(*GetLatestDingTalkDirectorySyncResponse)(nil), // 62: admin.v1.GetLatestDingTalkDirectorySyncResponse
-	(*GetDingTalkDirectorySyncResponse)(nil),       // 63: admin.v1.GetDingTalkDirectorySyncResponse
-	nil,                                            // 64: admin.v1.AdminAuditLog.DetailsEntry
+	(*AuthorizeDingTalkUserRequest)(nil),           // 19: admin.v1.AuthorizeDingTalkUserRequest
+	(*ResetUserPasswordRequest)(nil),               // 20: admin.v1.ResetUserPasswordRequest
+	(*ListOrganizationRolesRequest)(nil),           // 21: admin.v1.ListOrganizationRolesRequest
+	(*AdminUser)(nil),                              // 22: admin.v1.AdminUser
+	(*AdminUserOrganizationSummary)(nil),           // 23: admin.v1.AdminUserOrganizationSummary
+	(*AdminUserMembership)(nil),                    // 24: admin.v1.AdminUserMembership
+	(*ListUsersResponse)(nil),                      // 25: admin.v1.ListUsersResponse
+	(*CreateUserResponse)(nil),                     // 26: admin.v1.CreateUserResponse
+	(*UpdateUserResponse)(nil),                     // 27: admin.v1.UpdateUserResponse
+	(*ListUserMembershipsResponse)(nil),            // 28: admin.v1.ListUserMembershipsResponse
+	(*CreateUserMembershipResponse)(nil),           // 29: admin.v1.CreateUserMembershipResponse
+	(*UpdateUserMembershipResponse)(nil),           // 30: admin.v1.UpdateUserMembershipResponse
+	(*DeleteUserMembershipResponse)(nil),           // 31: admin.v1.DeleteUserMembershipResponse
+	(*TerminateUserResponse)(nil),                  // 32: admin.v1.TerminateUserResponse
+	(*AuthorizeDingTalkUserResponse)(nil),          // 33: admin.v1.AuthorizeDingTalkUserResponse
+	(*ListRolesRequest)(nil),                       // 34: admin.v1.ListRolesRequest
+	(*CreateRoleRequest)(nil),                      // 35: admin.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),                      // 36: admin.v1.UpdateRoleRequest
+	(*AdminRole)(nil),                              // 37: admin.v1.AdminRole
+	(*ListRolesResponse)(nil),                      // 38: admin.v1.ListRolesResponse
+	(*ListOrganizationRolesResponse)(nil),          // 39: admin.v1.ListOrganizationRolesResponse
+	(*CreateRoleResponse)(nil),                     // 40: admin.v1.CreateRoleResponse
+	(*UpdateRoleResponse)(nil),                     // 41: admin.v1.UpdateRoleResponse
+	(*DeleteRoleRequest)(nil),                      // 42: admin.v1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),                     // 43: admin.v1.DeleteRoleResponse
+	(*ListPermissionsRequest)(nil),                 // 44: admin.v1.ListPermissionsRequest
+	(*AdminPermission)(nil),                        // 45: admin.v1.AdminPermission
+	(*ListPermissionsResponse)(nil),                // 46: admin.v1.ListPermissionsResponse
+	(*ListAuditLogsRequest)(nil),                   // 47: admin.v1.ListAuditLogsRequest
+	(*AdminAuditLog)(nil),                          // 48: admin.v1.AdminAuditLog
+	(*ListAuditLogsResponse)(nil),                  // 49: admin.v1.ListAuditLogsResponse
+	(*DingTalkDepartment)(nil),                     // 50: admin.v1.DingTalkDepartment
+	(*BatchAuthorizeDingTalkUsersRequest)(nil),     // 51: admin.v1.BatchAuthorizeDingTalkUsersRequest
+	(*DingTalkAssignmentResult)(nil),               // 52: admin.v1.DingTalkAssignmentResult
+	(*BatchAuthorizeDingTalkUsersResponse)(nil),    // 53: admin.v1.BatchAuthorizeDingTalkUsersResponse
+	(*StartDingTalkDirectorySyncRequest)(nil),      // 54: admin.v1.StartDingTalkDirectorySyncRequest
+	(*GetLatestDingTalkDirectorySyncRequest)(nil),  // 55: admin.v1.GetLatestDingTalkDirectorySyncRequest
+	(*GetDingTalkDirectorySyncRequest)(nil),        // 56: admin.v1.GetDingTalkDirectorySyncRequest
+	(*DingTalkDirectorySyncFailure)(nil),           // 57: admin.v1.DingTalkDirectorySyncFailure
+	(*DingTalkDirectorySync)(nil),                  // 58: admin.v1.DingTalkDirectorySync
+	(*StartDingTalkDirectorySyncResponse)(nil),     // 59: admin.v1.StartDingTalkDirectorySyncResponse
+	(*GetLatestDingTalkDirectorySyncResponse)(nil), // 60: admin.v1.GetLatestDingTalkDirectorySyncResponse
+	(*GetDingTalkDirectorySyncResponse)(nil),       // 61: admin.v1.GetDingTalkDirectorySyncResponse
+	nil,                                            // 62: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	1,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
@@ -5426,87 +5238,84 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	6,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
 	2,  // 5: admin.v1.ListUsersRequest.status:type_name -> admin.v1.AdminUserStatus
 	2,  // 6: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
-	24, // 7: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
-	52, // 8: admin.v1.AdminUser.dingtalk_departments:type_name -> admin.v1.DingTalkDepartment
+	23, // 7: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
+	50, // 8: admin.v1.AdminUser.dingtalk_departments:type_name -> admin.v1.DingTalkDepartment
 	1,  // 9: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
-	23, // 10: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
-	23, // 11: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
-	23, // 12: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
-	25, // 13: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
-	25, // 14: admin.v1.CreateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	25, // 15: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	23, // 16: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
-	23, // 17: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
-	0,  // 18: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 19: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 20: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	39, // 21: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
-	39, // 22: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
-	39, // 23: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
-	39, // 24: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
-	47, // 25: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	64, // 26: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
-	50, // 27: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
-	54, // 28: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
-	59, // 29: admin.v1.DingTalkDirectorySync.failures:type_name -> admin.v1.DingTalkDirectorySyncFailure
-	60, // 30: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	60, // 31: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	60, // 32: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	3,  // 33: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	4,  // 34: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	5,  // 35: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	11, // 36: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	12, // 37: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	13, // 38: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	14, // 39: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
-	15, // 40: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
-	16, // 41: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
-	17, // 42: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
-	18, // 43: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
-	19, // 44: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
-	20, // 45: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	21, // 46: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	36, // 47: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	22, // 48: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	37, // 49: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	38, // 50: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	44, // 51: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
-	46, // 52: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	49, // 53: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	53, // 54: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
-	56, // 55: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
-	57, // 56: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
-	58, // 57: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
-	7,  // 58: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	9,  // 59: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	10, // 60: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	26, // 61: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	27, // 62: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	28, // 63: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	29, // 64: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
-	30, // 65: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
-	31, // 66: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
-	32, // 67: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
-	33, // 68: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
-	34, // 69: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
-	35, // 70: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	8,  // 71: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	40, // 72: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	41, // 73: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	42, // 74: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	43, // 75: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	45, // 76: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
-	48, // 77: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	51, // 78: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	55, // 79: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
-	61, // 80: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
-	62, // 81: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
-	63, // 82: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
-	58, // [58:83] is the sub-list for method output_type
-	33, // [33:58] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	22, // 10: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
+	22, // 11: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
+	22, // 12: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
+	24, // 13: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	24, // 14: admin.v1.CreateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	24, // 15: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	22, // 16: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
+	0,  // 17: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 18: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 19: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
+	37, // 20: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
+	37, // 21: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
+	37, // 22: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
+	37, // 23: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
+	45, // 24: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
+	62, // 25: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	48, // 26: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
+	52, // 27: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
+	57, // 28: admin.v1.DingTalkDirectorySync.failures:type_name -> admin.v1.DingTalkDirectorySyncFailure
+	58, // 29: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	58, // 30: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	58, // 31: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	3,  // 32: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	4,  // 33: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	5,  // 34: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	11, // 35: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	12, // 36: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	13, // 37: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	14, // 38: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	15, // 39: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
+	16, // 40: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	17, // 41: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	18, // 42: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
+	19, // 43: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	20, // 44: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	34, // 45: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	21, // 46: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	35, // 47: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	36, // 48: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	42, // 49: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
+	44, // 50: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	47, // 51: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	51, // 52: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
+	54, // 53: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
+	55, // 54: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
+	56, // 55: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
+	7,  // 56: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	9,  // 57: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	10, // 58: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	25, // 59: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	26, // 60: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	27, // 61: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	28, // 62: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	29, // 63: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
+	30, // 64: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	31, // 65: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	32, // 66: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
+	33, // 67: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	8,  // 68: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	38, // 69: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	39, // 70: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	40, // 71: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	41, // 72: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	43, // 73: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
+	46, // 74: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	49, // 75: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	53, // 76: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
+	59, // 77: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
+	60, // 78: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
+	61, // 79: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
+	56, // [56:80] is the sub-list for method output_type
+	32, // [32:56] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -5520,21 +5329,20 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[8].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[9].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[10].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[16].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[18].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[20].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[47].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[17].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[19].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[45].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[55].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[56].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[57].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[58].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[59].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[60].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   62,
+			NumMessages:   60,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -6997,8 +6997,6 @@ var (
 		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
 		{Name: "avatar_url", Type: field.TypeString, Nullable: true, Size: 2048},
 		{Name: "password_hash", Type: field.TypeString, Nullable: true},
-		{Name: "wecom_userid", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "wecom_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "dingtalk_unionid", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "dingtalk_userid", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "dingtalk_name", Type: field.TypeString, Nullable: true, Size: 100},
@@ -7020,7 +7018,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_organizations_dingtalk_registration_requests",
-				Columns:    []*schema.Column{UsersColumns[21]},
+				Columns:    []*schema.Column{UsersColumns[19]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -7045,24 +7043,19 @@ var (
 				Columns: []*schema.Column{UsersColumns[5]},
 			},
 			{
-				Name:    "user_wecom_userid",
+				Name:    "user_dingtalk_unionid",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[8]},
 			},
 			{
-				Name:    "user_dingtalk_unionid",
-				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[10]},
-			},
-			{
 				Name:    "user_dingtalk_userid",
 				Unique:  true,
-				Columns: []*schema.Column{UsersColumns[11]},
+				Columns: []*schema.Column{UsersColumns[9]},
 			},
 			{
 				Name:    "user_dingtalk_requested_organization_id",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[21]},
+				Columns: []*schema.Column{UsersColumns[19]},
 			},
 		},
 	}

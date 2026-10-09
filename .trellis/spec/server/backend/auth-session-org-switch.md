@@ -35,7 +35,7 @@ RotateSession(ctx, userID, currentTokenHash, targetOrgID, ...)  // 单事务轮�
   principal/token 一律取自会话（`RequirePrincipal`），请求体只携带目标组织。
 - **primary 语义不变**：不显式选择时登录进 primary；每次登录默认回 primary，选择只影响
   当次会话（不记忆）。
-- 钉钉/企业微信登录响应不携带 organization_choices（设计范围），前端以 principal
+- 钉钉登录响应不携带 organization_choices（设计范围），前端以 principal
   organizations 兜底派生候选，经切换进入非默认组织。
 
 ## 4. Validation & Error Matrix

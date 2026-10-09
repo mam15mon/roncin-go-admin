@@ -23,7 +23,7 @@ export default function ResetPasswordModal({
       title={
         user?.hasPassword
           ? `重置登录密码：${user?.displayName || user?.username || ''}`
-          : `设置登录账密：${user?.displayName || user?.dingtalkName || user?.wecomName || ''}`
+          : `设置登录账密：${user?.displayName || user?.dingtalkName || ''}`
       }
       open={Boolean(user)}
       initialValues={user?.username ? { username: user.username } : undefined}

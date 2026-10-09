@@ -29,16 +29,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     category: '账号注册',
     color: 'cyan',
   },
-  'auth.wecom.login': {
-    title: '使用企微登录',
-    category: '登录安全',
-    color: 'blue',
-  },
-  'auth.wecom.register': {
-    title: '提交企微注册',
-    category: '账号注册',
-    color: 'cyan',
-  },
 
   'admin.organization.create': {
     title: '创建企业',
@@ -108,12 +98,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
   },
   'admin.user.dingtalk.authorize': {
     title: '完成钉钉账号授权',
-    category: '权限管理',
-    color: 'geekblue',
-    objectType: '人员',
-  },
-  'admin.user.wecom.authorize': {
-    title: '完成企微账号授权',
     category: '权限管理',
     color: 'geekblue',
     objectType: '人员',

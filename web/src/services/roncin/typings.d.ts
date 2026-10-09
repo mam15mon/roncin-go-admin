@@ -161,10 +161,6 @@ declare namespace API {
     id: string;
   };
 
-  type AdminServiceAuthorizeWeComUserParams = {
-    id: string;
-  };
-
   type AdminServiceCreateUserMembershipParams = {
     userId: string;
   };
@@ -252,8 +248,6 @@ declare namespace API {
     roleCodes?: string[];
     createdAt?: string;
     updatedAt?: string;
-    wecomUserid?: string;
-    wecomName?: string;
     dingtalkUnionid?: string;
     dingtalkName?: string;
     avatarUrl?: string;
@@ -392,22 +386,6 @@ declare namespace API {
   };
 
   type AuthorizeDingTalkUserResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: AdminUser;
-    traceId?: string;
-  };
-
-  type AuthorizeWeComUserRequest = {
-    id: string;
-    organizationId: string;
-    displayName: string;
-    email?: string;
-    roleIds: string[];
-  };
-
-  type AuthorizeWeComUserResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -3350,14 +3328,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: SeaSharedContainer;
-    traceId?: string;
-  };
-
-  type GetWeComLoginConfigResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: WeComLoginConfig;
     traceId?: string;
   };
 
@@ -8643,24 +8613,6 @@ declare namespace API {
     currentValue?: string;
     targetValue?: string;
     isDifferent?: boolean;
-  };
-
-  type WeComLoginConfig = {
-    enabled?: boolean;
-    authorizeUrl?: string;
-  };
-
-  type WeComLoginRequest = {
-    code: string;
-    state: string;
-  };
-
-  type WeComLoginResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: CurrentUser;
-    traceId?: string;
   };
 
   type WithdrawOrderFeeSupplementRequest = {

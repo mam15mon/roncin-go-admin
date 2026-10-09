@@ -5,9 +5,8 @@ import {
   EyeOutlined,
   LockOutlined,
   UserOutlined,
-  WechatWorkOutlined,
 } from '@ant-design/icons';
-import { App, Button, Checkbox, Divider, Form, Input, Modal, Spin } from 'antd';
+import { App, Button, Checkbox, Divider, Form, Input } from 'antd';
 import React, { startTransition, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
@@ -15,7 +14,6 @@ import { QuarterRing } from '@/components/ui';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import {
   authServiceGetDingTalkLoginConfig,
-  authServiceGetWeComLoginConfig,
   authServiceLogin,
 } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
@@ -43,20 +41,12 @@ export default function Login() {
   const [isTyping, setIsTyping] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState('');
-  const [wecomEnabled, setWecomEnabled] = useState(false);
-  const [wecomLoading, setWecomLoading] = useState(false);
   const [dingtalkEnabled, setDingtalkEnabled] = useState(false);
   const [dingtalkLoading, setDingtalkLoading] = useState(false);
-  const [wecomModalOpen, setWecomModalOpen] = useState(false);
-  const [wecomAuthUrl, setWecomAuthUrl] = useState('');
-  const [iframeLoading, setIframeLoading] = useState(true);
   const [organizationOptions, setOrganizationOptions] =
     useState<LoginOrganizationOption[]>();
   const [pendingRedirect, setPendingRedirect] = useState('/');
   useEffect(() => {
-    authServiceGetWeComLoginConfig({ skipErrorHandler: true })
-      .then((response) => setWecomEnabled(response.data?.enabled ?? false))
-      .catch(() => setWecomEnabled(false));
     authServiceGetDingTalkLoginConfig({ skipErrorHandler: true })
       .then((response) => setDingtalkEnabled(response.data?.enabled ?? false))
       .catch(() => setDingtalkEnabled(false));
@@ -97,30 +87,6 @@ export default function Login() {
       message.error(getRequestErrorMessage(error, '登录失败，请稍后重试'));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleWeComLogin = async () => {
-    setWecomLoading(true);
-    setIframeLoading(true);
-    try {
-      const response = await authServiceGetWeComLoginConfig({
-        skipErrorHandler: true,
-      });
-      if (!response.data?.enabled || !response.data.authorizeUrl) {
-        message.warning('企业微信登录暂未启用');
-        return;
-      }
-      const redirect = new URL(window.location.href).searchParams.get(
-        'redirect',
-      );
-      sessionStorage.setItem('wecom_login_redirect', safeRedirect(redirect));
-      setWecomAuthUrl(response.data.authorizeUrl);
-      setWecomModalOpen(true);
-    } catch (error) {
-      message.error(getRequestErrorMessage(error, '企业微信登录启动失败'));
-    } finally {
-      setWecomLoading(false);
     }
   };
 
@@ -341,7 +307,7 @@ export default function Login() {
               </Form.Item>
             </Form>
 
-            {(wecomEnabled || dingtalkEnabled) && (
+            {dingtalkEnabled && (
               <>
                 <Divider plain className={styles.loginDivider}>
                   或
@@ -349,105 +315,31 @@ export default function Login() {
                 <div
                   style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
                 >
-                  {wecomEnabled && (
-                    <Button
-                      block
-                      size="large"
-                      icon={<WechatWorkOutlined />}
-                      loading={wecomLoading}
-                      disabled={loading || wecomLoading || dingtalkLoading}
-                      className={styles.wecomButton}
-                      onClick={handleWeComLogin}
-                    >
-                      企业微信登录
-                    </Button>
-                  )}
-                  {dingtalkEnabled && (
-                    <>
-                      <Button
-                        block
-                        size="large"
-                        icon={<DingdingOutlined />}
-                        loading={dingtalkLoading}
-                        disabled={loading || wecomLoading || dingtalkLoading}
-                        onClick={handleDingTalkLogin}
-                      >
-                        钉钉登录
-                      </Button>
-                      <div
-                        style={{
-                          textAlign: 'center',
-                          fontSize: 12,
-                          color: '#8c8c8c',
-                        }}
-                      >
-                        使用前请联系管理员同步人员并分配组织和角色
-                      </div>
-                    </>
-                  )}
+                  <Button
+                    block
+                    size="large"
+                    icon={<DingdingOutlined />}
+                    loading={dingtalkLoading}
+                    disabled={loading || dingtalkLoading}
+                    onClick={handleDingTalkLogin}
+                  >
+                    钉钉登录
+                  </Button>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      fontSize: 12,
+                      color: '#8c8c8c',
+                    }}
+                  >
+                    使用前请联系管理员同步人员并分配组织和角色
+                  </div>
                 </div>
               </>
             )}
           </div>
         )}
       </div>
-
-      {/* 企业微信扫码登录弹窗 */}
-      <Modal
-        open={wecomModalOpen}
-        onCancel={() => {
-          setWecomModalOpen(false);
-          setWecomAuthUrl('');
-        }}
-        footer={null}
-        destroyOnHidden
-        centered
-        width={380}
-        title={null}
-        styles={{
-          body: {
-            padding: '16px 8px 8px',
-          },
-        }}
-      >
-        <div
-          style={{
-            position: 'relative',
-            minHeight: 380,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {iframeLoading && (
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(255, 255, 255, 0.9)',
-                zIndex: 10,
-              }}
-            >
-              <Spin />
-            </div>
-          )}
-          {wecomAuthUrl && (
-            <iframe
-              src={wecomAuthUrl}
-              title="企业微信扫码登录"
-              style={{
-                width: '100%',
-                height: 380,
-                border: 'none',
-              }}
-              onLoad={() => setIframeLoading(false)}
-            />
-          )}
-        </div>
-      </Modal>
     </div>
   );
 }

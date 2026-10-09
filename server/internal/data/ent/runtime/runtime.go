@@ -9185,48 +9185,40 @@ func init() {
 	userDescAvatarURL := userFields[3].Descriptor()
 	// user.AvatarURLValidator is a validator for the "avatar_url" field. It is called by the builders before save.
 	user.AvatarURLValidator = userDescAvatarURL.Validators[0].(func(string) error)
-	// userDescWecomUserid is the schema descriptor for wecom_userid field.
-	userDescWecomUserid := userFields[5].Descriptor()
-	// user.WecomUseridValidator is a validator for the "wecom_userid" field. It is called by the builders before save.
-	user.WecomUseridValidator = userDescWecomUserid.Validators[0].(func(string) error)
-	// userDescWecomName is the schema descriptor for wecom_name field.
-	userDescWecomName := userFields[6].Descriptor()
-	// user.WecomNameValidator is a validator for the "wecom_name" field. It is called by the builders before save.
-	user.WecomNameValidator = userDescWecomName.Validators[0].(func(string) error)
 	// userDescDingtalkUnionid is the schema descriptor for dingtalk_unionid field.
-	userDescDingtalkUnionid := userFields[7].Descriptor()
+	userDescDingtalkUnionid := userFields[5].Descriptor()
 	// user.DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
 	user.DingtalkUnionidValidator = userDescDingtalkUnionid.Validators[0].(func(string) error)
 	// userDescDingtalkUserid is the schema descriptor for dingtalk_userid field.
-	userDescDingtalkUserid := userFields[8].Descriptor()
+	userDescDingtalkUserid := userFields[6].Descriptor()
 	// user.DingtalkUseridValidator is a validator for the "dingtalk_userid" field. It is called by the builders before save.
 	user.DingtalkUseridValidator = userDescDingtalkUserid.Validators[0].(func(string) error)
 	// userDescDingtalkName is the schema descriptor for dingtalk_name field.
-	userDescDingtalkName := userFields[9].Descriptor()
+	userDescDingtalkName := userFields[7].Descriptor()
 	// user.DingtalkNameValidator is a validator for the "dingtalk_name" field. It is called by the builders before save.
 	user.DingtalkNameValidator = userDescDingtalkName.Validators[0].(func(string) error)
 	// userDescIsBootstrapAdmin is the schema descriptor for is_bootstrap_admin field.
-	userDescIsBootstrapAdmin := userFields[11].Descriptor()
+	userDescIsBootstrapAdmin := userFields[9].Descriptor()
 	// user.DefaultIsBootstrapAdmin holds the default value on creation for the is_bootstrap_admin field.
 	user.DefaultIsBootstrapAdmin = userDescIsBootstrapAdmin.Default.(bool)
 	// userDescEnabled is the schema descriptor for enabled field.
-	userDescEnabled := userFields[12].Descriptor()
+	userDescEnabled := userFields[10].Descriptor()
 	// user.DefaultEnabled holds the default value on creation for the enabled field.
 	user.DefaultEnabled = userDescEnabled.Default.(bool)
 	// userDescPendingAssignment is the schema descriptor for pending_assignment field.
-	userDescPendingAssignment := userFields[13].Descriptor()
+	userDescPendingAssignment := userFields[11].Descriptor()
 	// user.DefaultPendingAssignment holds the default value on creation for the pending_assignment field.
 	user.DefaultPendingAssignment = userDescPendingAssignment.Default.(bool)
 	// userDescDingtalkJobNumber is the schema descriptor for dingtalk_job_number field.
-	userDescDingtalkJobNumber := userFields[14].Descriptor()
+	userDescDingtalkJobNumber := userFields[12].Descriptor()
 	// user.DingtalkJobNumberValidator is a validator for the "dingtalk_job_number" field. It is called by the builders before save.
 	user.DingtalkJobNumberValidator = userDescDingtalkJobNumber.Validators[0].(func(string) error)
 	// userDescDingtalkMobile is the schema descriptor for dingtalk_mobile field.
-	userDescDingtalkMobile := userFields[15].Descriptor()
+	userDescDingtalkMobile := userFields[13].Descriptor()
 	// user.DingtalkMobileValidator is a validator for the "dingtalk_mobile" field. It is called by the builders before save.
 	user.DingtalkMobileValidator = userDescDingtalkMobile.Validators[0].(func(string) error)
 	// userDescSearchKeywords is the schema descriptor for search_keywords field.
-	userDescSearchKeywords := userFields[18].Descriptor()
+	userDescSearchKeywords := userFields[16].Descriptor()
 	// user.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	user.DefaultSearchKeywords = userDescSearchKeywords.Default.(string)
 	// userDescID is the schema descriptor for id field.

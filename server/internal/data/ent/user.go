@@ -35,10 +35,6 @@ type User struct {
 	AvatarURL *string `json:"avatar_url,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash *string `json:"-"`
-	// WecomUserid holds the value of the "wecom_userid" field.
-	WecomUserid *string `json:"wecom_userid,omitempty"`
-	// WecomName holds the value of the "wecom_name" field.
-	WecomName *string `json:"wecom_name,omitempty"`
 	// DingtalkUnionid holds the value of the "dingtalk_unionid" field.
 	DingtalkUnionid *string `json:"dingtalk_unionid,omitempty"`
 	// DingtalkUserid holds the value of the "dingtalk_userid" field.
@@ -760,7 +756,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case user.FieldIsBootstrapAdmin, user.FieldEnabled, user.FieldPendingAssignment:
 			values[i] = new(sql.NullBool)
-		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldWecomUserid, user.FieldWecomName, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldDingtalkJobNumber, user.FieldDingtalkMobile, user.FieldSearchKeywords:
+		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldDingtalkJobNumber, user.FieldDingtalkMobile, user.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDingtalkLastSyncedAt:
 			values[i] = new(sql.NullTime)
@@ -831,20 +827,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.PasswordHash = new(string)
 				*_m.PasswordHash = value.String
-			}
-		case user.FieldWecomUserid:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field wecom_userid", values[i])
-			} else if value.Valid {
-				_m.WecomUserid = new(string)
-				*_m.WecomUserid = value.String
-			}
-		case user.FieldWecomName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field wecom_name", values[i])
-			} else if value.Valid {
-				_m.WecomName = new(string)
-				*_m.WecomName = value.String
 			}
 		case user.FieldDingtalkUnionid:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -1291,16 +1273,6 @@ func (_m *User) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("password_hash=<sensitive>")
-	builder.WriteString(", ")
-	if v := _m.WecomUserid; v != nil {
-		builder.WriteString("wecom_userid=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := _m.WecomName; v != nil {
-		builder.WriteString("wecom_name=")
-		builder.WriteString(*v)
-	}
 	builder.WriteString(", ")
 	if v := _m.DingtalkUnionid; v != nil {
 		builder.WriteString("dingtalk_unionid=")

@@ -18,7 +18,6 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationAdminServiceAuthorizeDingTalkUser = "/admin.v1.AdminService/AuthorizeDingTalkUser"
-const OperationAdminServiceAuthorizeWeComUser = "/admin.v1.AdminService/AuthorizeWeComUser"
 const OperationAdminServiceBatchAuthorizeDingTalkUsers = "/admin.v1.AdminService/BatchAuthorizeDingTalkUsers"
 const OperationAdminServiceCreateOrganization = "/admin.v1.AdminService/CreateOrganization"
 const OperationAdminServiceCreateRole = "/admin.v1.AdminService/CreateRole"
@@ -45,7 +44,6 @@ const OperationAdminServiceUpdateUserMembership = "/admin.v1.AdminService/Update
 
 type AdminServiceHTTPServer interface {
 	AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error)
-	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error)
 	BatchAuthorizeDingTalkUsers(context.Context, *BatchAuthorizeDingTalkUsersRequest) (*BatchAuthorizeDingTalkUsersResponse, error)
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
@@ -85,7 +83,6 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("PUT", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_UpdateUserMembership0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_DeleteUserMembership0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users/{id}/termination", _AdminService_TerminateUser0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/admin/users/{id}/wecom-authorization", _AdminService_AuthorizeWeComUser0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users/{id}/dingtalk-authorization", _AdminService_AuthorizeDingTalkUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/users/{id}/password", _AdminService_ResetUserPassword0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/roles", _AdminService_ListRoles0_HTTP_Handler(srv))
@@ -327,28 +324,6 @@ func _AdminService_TerminateUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(
 			return err
 		}
 		reply := out.(*TerminateUserResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _AdminService_AuthorizeWeComUser0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in AuthorizeWeComUserRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAdminServiceAuthorizeWeComUser)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.AuthorizeWeComUser(ctx, req.(*AuthorizeWeComUserRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*AuthorizeWeComUserResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -620,7 +595,6 @@ func _AdminService_GetDingTalkDirectorySync0_HTTP_Handler(srv AdminServiceHTTPSe
 
 type AdminServiceHTTPClient interface {
 	AuthorizeDingTalkUser(ctx context.Context, req *AuthorizeDingTalkUserRequest, opts ...http.CallOption) (rsp *AuthorizeDingTalkUserResponse, err error)
-	AuthorizeWeComUser(ctx context.Context, req *AuthorizeWeComUserRequest, opts ...http.CallOption) (rsp *AuthorizeWeComUserResponse, err error)
 	BatchAuthorizeDingTalkUsers(ctx context.Context, req *BatchAuthorizeDingTalkUsersRequest, opts ...http.CallOption) (rsp *BatchAuthorizeDingTalkUsersResponse, err error)
 	CreateOrganization(ctx context.Context, req *CreateOrganizationRequest, opts ...http.CallOption) (rsp *CreateOrganizationResponse, err error)
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleResponse, err error)
@@ -663,23 +637,6 @@ func (c *AdminServiceHTTPClientImpl) AuthorizeDingTalkUser(ctx context.Context, 
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAdminServiceAuthorizeDingTalkUser),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *AdminServiceHTTPClientImpl) AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...http.CallOption) (*AuthorizeWeComUserResponse, error) {
-	var out AuthorizeWeComUserResponse
-	pattern := "/api/v1/admin/users/{id}/wecom-authorization"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationAdminServiceAuthorizeWeComUser),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

@@ -169,46 +169,6 @@ func (_u *UserUpdate) ClearPasswordHash() *UserUpdate {
 	return _u
 }
 
-// SetWecomUserid sets the "wecom_userid" field.
-func (_u *UserUpdate) SetWecomUserid(v string) *UserUpdate {
-	_u.mutation.SetWecomUserid(v)
-	return _u
-}
-
-// SetNillableWecomUserid sets the "wecom_userid" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableWecomUserid(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetWecomUserid(*v)
-	}
-	return _u
-}
-
-// ClearWecomUserid clears the value of the "wecom_userid" field.
-func (_u *UserUpdate) ClearWecomUserid() *UserUpdate {
-	_u.mutation.ClearWecomUserid()
-	return _u
-}
-
-// SetWecomName sets the "wecom_name" field.
-func (_u *UserUpdate) SetWecomName(v string) *UserUpdate {
-	_u.mutation.SetWecomName(v)
-	return _u
-}
-
-// SetNillableWecomName sets the "wecom_name" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableWecomName(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetWecomName(*v)
-	}
-	return _u
-}
-
-// ClearWecomName clears the value of the "wecom_name" field.
-func (_u *UserUpdate) ClearWecomName() *UserUpdate {
-	_u.mutation.ClearWecomName()
-	return _u
-}
-
 // SetDingtalkUnionid sets the "dingtalk_unionid" field.
 func (_u *UserUpdate) SetDingtalkUnionid(v string) *UserUpdate {
 	_u.mutation.SetDingtalkUnionid(v)
@@ -2649,16 +2609,6 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "avatar_url", err: fmt.Errorf(`ent: validator failed for field "User.avatar_url": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.WecomUserid(); ok {
-		if err := user.WecomUseridValidator(v); err != nil {
-			return &ValidationError{Name: "wecom_userid", err: fmt.Errorf(`ent: validator failed for field "User.wecom_userid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.WecomName(); ok {
-		if err := user.WecomNameValidator(v); err != nil {
-			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.DingtalkUnionid(); ok {
 		if err := user.DingtalkUnionidValidator(v); err != nil {
 			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
@@ -2728,18 +2678,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.PasswordHashCleared() {
 		_spec.ClearField(user.FieldPasswordHash, field.TypeString)
-	}
-	if value, ok := _u.mutation.WecomUserid(); ok {
-		_spec.SetField(user.FieldWecomUserid, field.TypeString, value)
-	}
-	if _u.mutation.WecomUseridCleared() {
-		_spec.ClearField(user.FieldWecomUserid, field.TypeString)
-	}
-	if value, ok := _u.mutation.WecomName(); ok {
-		_spec.SetField(user.FieldWecomName, field.TypeString, value)
-	}
-	if _u.mutation.WecomNameCleared() {
-		_spec.ClearField(user.FieldWecomName, field.TypeString)
 	}
 	if value, ok := _u.mutation.DingtalkUnionid(); ok {
 		_spec.SetField(user.FieldDingtalkUnionid, field.TypeString, value)
@@ -5646,46 +5584,6 @@ func (_u *UserUpdateOne) ClearPasswordHash() *UserUpdateOne {
 	return _u
 }
 
-// SetWecomUserid sets the "wecom_userid" field.
-func (_u *UserUpdateOne) SetWecomUserid(v string) *UserUpdateOne {
-	_u.mutation.SetWecomUserid(v)
-	return _u
-}
-
-// SetNillableWecomUserid sets the "wecom_userid" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableWecomUserid(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetWecomUserid(*v)
-	}
-	return _u
-}
-
-// ClearWecomUserid clears the value of the "wecom_userid" field.
-func (_u *UserUpdateOne) ClearWecomUserid() *UserUpdateOne {
-	_u.mutation.ClearWecomUserid()
-	return _u
-}
-
-// SetWecomName sets the "wecom_name" field.
-func (_u *UserUpdateOne) SetWecomName(v string) *UserUpdateOne {
-	_u.mutation.SetWecomName(v)
-	return _u
-}
-
-// SetNillableWecomName sets the "wecom_name" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableWecomName(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetWecomName(*v)
-	}
-	return _u
-}
-
-// ClearWecomName clears the value of the "wecom_name" field.
-func (_u *UserUpdateOne) ClearWecomName() *UserUpdateOne {
-	_u.mutation.ClearWecomName()
-	return _u
-}
-
 // SetDingtalkUnionid sets the "dingtalk_unionid" field.
 func (_u *UserUpdateOne) SetDingtalkUnionid(v string) *UserUpdateOne {
 	_u.mutation.SetDingtalkUnionid(v)
@@ -8139,16 +8037,6 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "avatar_url", err: fmt.Errorf(`ent: validator failed for field "User.avatar_url": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.WecomUserid(); ok {
-		if err := user.WecomUseridValidator(v); err != nil {
-			return &ValidationError{Name: "wecom_userid", err: fmt.Errorf(`ent: validator failed for field "User.wecom_userid": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.WecomName(); ok {
-		if err := user.WecomNameValidator(v); err != nil {
-			return &ValidationError{Name: "wecom_name", err: fmt.Errorf(`ent: validator failed for field "User.wecom_name": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.DingtalkUnionid(); ok {
 		if err := user.DingtalkUnionidValidator(v); err != nil {
 			return &ValidationError{Name: "dingtalk_unionid", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_unionid": %w`, err)}
@@ -8235,18 +8123,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.PasswordHashCleared() {
 		_spec.ClearField(user.FieldPasswordHash, field.TypeString)
-	}
-	if value, ok := _u.mutation.WecomUserid(); ok {
-		_spec.SetField(user.FieldWecomUserid, field.TypeString, value)
-	}
-	if _u.mutation.WecomUseridCleared() {
-		_spec.ClearField(user.FieldWecomUserid, field.TypeString)
-	}
-	if value, ok := _u.mutation.WecomName(); ok {
-		_spec.SetField(user.FieldWecomName, field.TypeString, value)
-	}
-	if _u.mutation.WecomNameCleared() {
-		_spec.ClearField(user.FieldWecomName, field.TypeString)
 	}
 	if value, ok := _u.mutation.DingtalkUnionid(); ok {
 		_spec.SetField(user.FieldDingtalkUnionid, field.TypeString, value)

@@ -82,13 +82,6 @@ message Security {
     bool secure = 3;
     string same_site = 4;
   }
-  message WeCom {
-    bool enabled = 1;
-    string corp_id = 2;
-    int64 agent_id = 3;
-    string secret = 4;
-    string redirect_uri = 5;
-  }
   message DingTalk {
     bool enabled = 1;
     string client_id = 2;
@@ -101,6 +94,7 @@ message Security {
     string event_aes_key = 9;
   }
   Session session = 1;
-  WeCom wecom = 2;
+  reserved 2;
+  reserved "wecom";
   DingTalk dingtalk = 3;
 }

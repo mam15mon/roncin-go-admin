@@ -15,7 +15,6 @@ const permissions = {
   userCreate: 'system.user.create',
   userUpdate: 'system.user.update',
   userTerminate: 'system.user.delete',
-  userAuthorizeWeCom: 'system.user.authorize_wecom',
   userAuthorizeDingTalk: 'system.user.authorize_dingtalk',
   userDingTalkDirectorySync: 'system.user.dingtalk_directory.sync',
   userResetPassword: 'system.user.reset_password',
@@ -187,8 +186,6 @@ export default function access(
     canTerminateUsers: isSystemWorkspace && has(permissions.userTerminate),
     canReadUserMemberships: has(permissions.userRead),
     canManageUserMemberships: has(permissions.userUpdate),
-    canAuthorizeWeComUsers:
-      isSystemWorkspace && has(permissions.userAuthorizeWeCom, 'all'),
     canAuthorizeDingTalkUsers:
       isSystemWorkspace && has(permissions.userAuthorizeDingTalk, 'all'),
     canSyncDingTalkDirectory:
@@ -376,7 +373,6 @@ export default function access(
       result.canUpdateUsers ||
       result.canManageUserMemberships ||
       result.canTerminateUsers ||
-      result.canAuthorizeWeComUsers ||
       result.canAuthorizeDingTalkUsers ||
       result.canSyncDingTalkDirectory ||
       result.canResetUserPasswords,

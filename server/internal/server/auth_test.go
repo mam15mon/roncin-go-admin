@@ -316,7 +316,7 @@ func TestAuthorizationPartnerResourcesStayInWorkspace(t *testing.T) {
 			t.Run(test.operation+"/"+target.String(), func(t *testing.T) {
 				principal := &biz.Principal{Organization: biz.Organization{ID: companyA, Kind: biz.OrganizationKindCompany}, OrganizationNodes: serverOrganizationNodes(companyA, companyB), RoleGrants: []biz.RoleGrant{serverRoleGrant("当前公司角色", biz.DataScopeAll, []string{test.permission})}}
 				policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
-				authUsecase := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{TokenHash: "valid", UserID: uuid.New(), OrganizationID: companyA, ExpiresAt: time.Now().Add(time.Hour)}, principal: principal}, policy, nil, nil, nil)
+				authUsecase := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{TokenHash: "valid", UserID: uuid.New(), OrganizationID: companyA, ExpiresAt: time.Now().Add(time.Hour)}, principal: principal}, policy, nil, nil)
 				partnerUsecase := biz.NewPartnerUsecase(&authorizationPartnerRepoStub{partner: &biz.Partner{ID: partnerID, OrganizationID: target}})
 				called := false
 				ctx := transport.NewServerContext(t.Context(), &middlewareTransport{operation: "/partner.v1.PartnerService/" + test.operation, cookie: "sid=valid"})

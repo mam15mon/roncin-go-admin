@@ -36,8 +36,6 @@ func (User) Fields() []ent.Field {
 		field.String("email").MaxLen(254).Optional().Nillable(),
 		field.String("avatar_url").MaxLen(2048).Optional().Nillable(),
 		field.String("password_hash").Optional().Nillable().Sensitive(),
-		field.String("wecom_userid").MaxLen(64).Optional().Nillable(),
-		field.String("wecom_name").MaxLen(100).Optional().Nillable(),
 		field.String("dingtalk_unionid").MaxLen(128).Optional().Nillable(),
 		field.String("dingtalk_userid").MaxLen(64).Optional().Nillable(),
 		field.String("dingtalk_name").MaxLen(100).Optional().Nillable(),
@@ -55,7 +53,7 @@ func (User) Fields() []ent.Field {
 }
 
 func (User) Hooks() []ent.Hook {
-	return []ent.Hook{searchKeywordsHook("display_name", "wecom_name", "dingtalk_name")}
+	return []ent.Hook{searchKeywordsHook("display_name", "dingtalk_name")}
 }
 
 func (User) Edges() []ent.Edge {
@@ -136,7 +134,6 @@ func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("username").Unique().Annotations(entsql.IndexWhere("username IS NOT NULL AND username <> ''")),
 		index.Fields("email"),
-		index.Fields("wecom_userid").Unique(),
 		index.Fields("dingtalk_unionid").Unique(),
 		index.Fields("dingtalk_userid").Unique(),
 		index.Fields("dingtalk_requested_organization_id"),

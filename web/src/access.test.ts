@@ -141,7 +141,6 @@ describe('用户页数据源分流权限', () => {
     expect(result.canReadOrganizations).toBe(false);
     expect(result.canReadUserMemberships).toBe(true);
     expect(result.canManageUserMemberships).toBe(true);
-    expect(result.canAuthorizeWeComUsers).toBe(false);
     expect(result.canAuthorizeDingTalkUsers).toBe(false);
   });
 
@@ -152,7 +151,6 @@ describe('用户页数据源分流权限', () => {
         'system.organization.read',
         'system.user.read',
         'system.user.update',
-        'system.user.authorize_wecom',
         'system.user.authorize_dingtalk',
       ]),
     );
@@ -160,7 +158,6 @@ describe('用户页数据源分流权限', () => {
     expect(result.canReadOrganizations).toBe(true);
     expect(result.canReadUserMemberships).toBe(true);
     expect(result.canManageUserMemberships).toBe(true);
-    expect(result.canAuthorizeWeComUsers).toBe(false);
     expect(result.canAuthorizeDingTalkUsers).toBe(false);
   });
 });

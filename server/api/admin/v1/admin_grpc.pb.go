@@ -30,7 +30,6 @@ const (
 	AdminService_UpdateUserMembership_FullMethodName           = "/admin.v1.AdminService/UpdateUserMembership"
 	AdminService_DeleteUserMembership_FullMethodName           = "/admin.v1.AdminService/DeleteUserMembership"
 	AdminService_TerminateUser_FullMethodName                  = "/admin.v1.AdminService/TerminateUser"
-	AdminService_AuthorizeWeComUser_FullMethodName             = "/admin.v1.AdminService/AuthorizeWeComUser"
 	AdminService_AuthorizeDingTalkUser_FullMethodName          = "/admin.v1.AdminService/AuthorizeDingTalkUser"
 	AdminService_ResetUserPassword_FullMethodName              = "/admin.v1.AdminService/ResetUserPassword"
 	AdminService_ListRoles_FullMethodName                      = "/admin.v1.AdminService/ListRoles"
@@ -62,7 +61,6 @@ type AdminServiceClient interface {
 	DeleteUserMembership(ctx context.Context, in *DeleteUserMembershipRequest, opts ...grpc.CallOption) (*DeleteUserMembershipResponse, error)
 	// TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
 	TerminateUser(ctx context.Context, in *TerminateUserRequest, opts ...grpc.CallOption) (*TerminateUserResponse, error)
-	AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error)
 	AuthorizeDingTalkUser(ctx context.Context, in *AuthorizeDingTalkUserRequest, opts ...grpc.CallOption) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...grpc.CallOption) (*ResetUserPasswordResponse, error)
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
@@ -190,16 +188,6 @@ func (c *adminServiceClient) TerminateUser(ctx context.Context, in *TerminateUse
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(TerminateUserResponse)
 	err := c.cc.Invoke(ctx, AdminService_TerminateUser_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *adminServiceClient) AuthorizeWeComUser(ctx context.Context, in *AuthorizeWeComUserRequest, opts ...grpc.CallOption) (*AuthorizeWeComUserResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AuthorizeWeComUserResponse)
-	err := c.cc.Invoke(ctx, AdminService_AuthorizeWeComUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +340,6 @@ type AdminServiceServer interface {
 	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
 	// TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
 	TerminateUser(context.Context, *TerminateUserRequest) (*TerminateUserResponse, error)
-	AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error)
 	AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
@@ -408,9 +395,6 @@ func (UnimplementedAdminServiceServer) DeleteUserMembership(context.Context, *De
 }
 func (UnimplementedAdminServiceServer) TerminateUser(context.Context, *TerminateUserRequest) (*TerminateUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TerminateUser not implemented")
-}
-func (UnimplementedAdminServiceServer) AuthorizeWeComUser(context.Context, *AuthorizeWeComUserRequest) (*AuthorizeWeComUserResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AuthorizeWeComUser not implemented")
 }
 func (UnimplementedAdminServiceServer) AuthorizeDingTalkUser(context.Context, *AuthorizeDingTalkUserRequest) (*AuthorizeDingTalkUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AuthorizeDingTalkUser not implemented")
@@ -666,24 +650,6 @@ func _AdminService_TerminateUser_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).TerminateUser(ctx, req.(*TerminateUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AdminService_AuthorizeWeComUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthorizeWeComUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).AuthorizeWeComUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AdminService_AuthorizeWeComUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).AuthorizeWeComUser(ctx, req.(*AuthorizeWeComUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -972,10 +938,6 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TerminateUser",
 			Handler:    _AdminService_TerminateUser_Handler,
-		},
-		{
-			MethodName: "AuthorizeWeComUser",
-			Handler:    _AdminService_AuthorizeWeComUser_Handler,
 		},
 		{
 			MethodName: "AuthorizeDingTalkUser",

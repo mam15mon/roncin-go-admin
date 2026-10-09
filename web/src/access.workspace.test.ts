@@ -180,22 +180,17 @@ it('公司管理员不能操作全局账号，但保留本公司成员管理', (
 });
 
 it('公司不得通过外部授权重激活全局账号', () => {
-  const permissions = [
-    'system.user.authorize_wecom',
-    'system.user.authorize_dingtalk',
-  ];
+  const permissions = ['system.user.authorize_dingtalk'];
   const company = workspace(
     AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
     'company',
     permissions,
   );
-  expect(company.canAuthorizeWeComUsers).toBe(false);
   expect(company.canAuthorizeDingTalkUsers).toBe(false);
   const system = workspace(
     AuthOrganizationKind.ORGANIZATION_KIND_SYSTEM,
     'system',
     permissions,
   );
-  expect(system.canAuthorizeWeComUsers).toBe(true);
   expect(system.canAuthorizeDingTalkUsers).toBe(true);
 });

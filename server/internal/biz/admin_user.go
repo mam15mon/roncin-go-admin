@@ -35,8 +35,6 @@ type AdminUser struct {
 	DisplayName              string
 	Email                    *string
 	AvatarURL                *string
-	WeComUserID              *string
-	WeComName                *string
 	DingTalkUnionID          *string
 	DingTalkUserID           *string
 	DingTalkName             *string
@@ -150,23 +148,6 @@ func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actor
 	}
 	return uc.repo.TerminateUser(ctx, organizationID, id, adminAuditEvent(ctx, actorID, &id, "admin.user.terminate", ""))
 }
-func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
-	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
-		return nil, ErrPermissionDenied
-	}
-	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || len(roleIDs) == 0 {
-		return nil, ErrAdminInvalidArgument
-	}
-	if err := uc.validateRolesPrivilege(ctx, sourceOrganizationID, actorID, targetOrganizationID, roleIDs); err != nil {
-		return nil, err
-	}
-	normalized, err := normalizeUser(input)
-	if err != nil {
-		return nil, err
-	}
-	return uc.repo.AuthorizeWeComUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs, adminAuditEvent(ctx, actorID, &normalized.ID, "admin.user.wecom.authorize", ""))
-}
-
 func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
 	if !IsSystemWorkspace(ctx) {
 		return nil, ErrPermissionDenied

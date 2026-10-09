@@ -25,7 +25,7 @@ var selectorSearchKeywordBackfills = []searchKeywordBackfillSpec{
 	{table: "airlines", columns: []string{"name_zh", "name_en"}},
 	{table: "shipping_lines", columns: []string{"name_zh", "name_en"}},
 	{table: "administrative_regions", columns: []string{"name"}},
-	{table: "users", columns: []string{"display_name", "wecom_name", "dingtalk_name"}},
+	{table: "users", columns: []string{"display_name", "dingtalk_name"}},
 	{table: "fee_settings", columns: []string{"name_zh", "name_en", "alias_name"}},
 	{table: "billing_units", columns: []string{"name"}},
 	{table: "taxable_services", columns: []string{"name", "short_name"}},

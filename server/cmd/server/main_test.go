@@ -9,15 +9,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 )
 
-const wecomConfig = `security:
-  wecom:
-    enabled: ${WECOM_ENABLED:false}
-    corp_id: ${WECOM_CORP_ID:}
-    agent_id: ${WECOM_AGENT_ID:0}
-    secret: ${WECOM_SECRET:}
-    redirect_uri: ${WECOM_REDIRECT_URI:}
-`
-
 const dingtalkConfig = `security:
   dingtalk:
     enabled: ${DINGTALK_ENABLED:false}
@@ -27,28 +18,12 @@ const dingtalkConfig = `security:
     redirect_uri: ${DINGTALK_REDIRECT_URI:}
 `
 
-func TestNewRuntimeConfigResolvesWeComEnvironment(t *testing.T) {
-	t.Setenv("WECOM_ENABLED", "true")
-	t.Setenv("WECOM_CORP_ID", "test-corp")
-	t.Setenv("WECOM_AGENT_ID", "1000001")
-	t.Setenv("WECOM_SECRET", "test-secret")
-	t.Setenv("WECOM_REDIRECT_URI", "http://127.0.0.1:8001/user/login/wecom/callback")
-
-	wecom := loadWeComConfig(t)
-	if !wecom.Enabled {
-		t.Fatal("WECOM_ENABLED=true 未解析为启用状态")
-	}
-	if wecom.CorpId != "test-corp" || wecom.AgentId != 1000001 || wecom.Secret != "test-secret" {
-		t.Fatal("企业微信环境变量未完整注入")
-	}
-}
-
 func TestNewRuntimeConfigUsesDisabledDefault(t *testing.T) {
-	unsetEnv(t, "WECOM_ENABLED")
+	unsetEnv(t, "DINGTALK_ENABLED")
 
-	wecom := loadWeComConfig(t)
-	if wecom.Enabled {
-		t.Fatal("缺少 WECOM_ENABLED 时应保持关闭")
+	dingtalk := loadDingTalkConfig(t)
+	if dingtalk.Enabled {
+		t.Fatal("缺少 DINGTALK_ENABLED 时应保持关闭")
 	}
 }
 
@@ -144,26 +119,6 @@ func TestParseLogLevel(t *testing.T) {
 	if _, err := parseLogLevel("verbose"); err == nil {
 		t.Fatal("非法日志级别应返回错误")
 	}
-}
-
-func loadWeComConfig(t *testing.T) *conf.Security_WeCom {
-	t.Helper()
-	configPath := filepath.Join(t.TempDir(), "config.yaml")
-	if err := os.WriteFile(configPath, []byte(wecomConfig), 0o600); err != nil {
-		t.Fatalf("写入测试配置失败: %v", err)
-	}
-
-	c := newRuntimeConfig(configPath)
-	t.Cleanup(func() { _ = c.Close() })
-	if err := c.Load(); err != nil {
-		t.Fatalf("加载测试配置失败: %v", err)
-	}
-
-	var bootstrap conf.Bootstrap
-	if err := c.Scan(&bootstrap); err != nil {
-		t.Fatalf("解析测试配置失败: %v", err)
-	}
-	return bootstrap.Security.Wecom
 }
 
 func loadDingTalkConfig(t *testing.T) *conf.Security_DingTalk {

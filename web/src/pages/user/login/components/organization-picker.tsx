@@ -17,7 +17,7 @@ export interface LoginOrganizationOption {
  * 解析登录后的候选组织列表。
  *
  * 优先使用登录响应的 organizationChoices（服务端已按默认组织置首并标记）；
- * 钉钉/企微登录响应不携带候选列表，回退到 principal organizations，
+ * 钉钉登录响应不携带候选列表，回退到 principal organizations，
  * 并把当前会话组织视为默认组织（未显式选择时的进入组织）。
  */
 export function resolveLoginOrganizationOptions(

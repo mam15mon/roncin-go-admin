@@ -9,7 +9,6 @@ import (
 
 var operationAccessRules = map[string]accessRule{
 	"/admin.v1.AdminService/AuthorizeDingTalkUser":                                              {mode: accessModePermission, permission: "system.user.authorize_dingtalk", scope: biz.DataScopeAll},
-	"/admin.v1.AdminService/AuthorizeWeComUser":                                                 {mode: accessModePermission, permission: "system.user.authorize_wecom", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/BatchAuthorizeDingTalkUsers":                                        {mode: accessModePermission, permission: "system.user.authorize_dingtalk", scope: biz.DataScopeAll},
 	"/admin.v1.AdminService/CreateOrganization":                                                 {mode: accessModePermission, permission: "system.organization.create", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/CreateRole":                                                         {mode: accessModePermission, permission: "system.role.create", scope: biz.DataScopeOrganization},
@@ -35,12 +34,10 @@ var operationAccessRules = map[string]accessRule{
 	"/admin.v1.AdminService/UpdateUserMembership":                                               {mode: accessModePermission, permission: "system.user.update", scope: biz.DataScopeOrganization},
 	"/auth.v1.AuthService/DingTalkLogin":                                                        {mode: accessModePublic},
 	"/auth.v1.AuthService/GetDingTalkLoginConfig":                                               {mode: accessModePublic},
-	"/auth.v1.AuthService/GetWeComLoginConfig":                                                  {mode: accessModePublic},
 	"/auth.v1.AuthService/Login":                                                                {mode: accessModePublic},
 	"/auth.v1.AuthService/Logout":                                                               {mode: accessModeAuthenticated},
 	"/auth.v1.AuthService/Me":                                                                   {mode: accessModeAuthenticated},
 	"/auth.v1.AuthService/SwitchOrganization":                                                   {mode: accessModeAuthenticated},
-	"/auth.v1.AuthService/WeComLogin":                                                           {mode: accessModePublic},
 	"/enterprise_resource.v1.EnterpriseResourceService/BatchAssignAddressTypes":                 {mode: accessModePermission, permission: "business.enterprise_resource.update", scope: biz.DataScopeOrganization},
 	"/enterprise_resource.v1.EnterpriseResourceService/BatchAssignAssignees":                    {mode: accessModePermission, permission: "business.enterprise_resource.update", scope: biz.DataScopeOrganization},
 	"/enterprise_resource.v1.EnterpriseResourceService/BatchCreateAssociations":                 {mode: accessModePermission, permission: "business.enterprise_resource.update", scope: biz.DataScopeOrganization},

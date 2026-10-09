@@ -2,9 +2,7 @@ package data
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"slices"
 	"sort"
 	"strings"
@@ -99,62 +97,6 @@ VALUES ($1, $2, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`, uuid.Must(uuid.
 		return false, err
 	}
 	return exceeded, nil
-}
-
-func (r *authRepo) FindOrCreateWeComCredential(ctx context.Context, identity *biz.WeComIdentity, audit *biz.AuditEvent) (*biz.Credential, bool, error) {
-	if identity == nil || strings.TrimSpace(identity.UserID) == "" || strings.TrimSpace(identity.Name) == "" {
-		return nil, false, biz.ErrWeComLoginFailed
-	}
-	wecomUserID := strings.TrimSpace(identity.UserID)
-	wecomName := strings.TrimSpace(identity.Name)
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-	account, err := client.User.Query().Where(user.WecomUseridEQ(wecomUserID)).Only(ctx)
-	if err == nil {
-		if account.WecomName == nil || *account.WecomName != wecomName {
-			account, err = account.Update().SetWecomName(wecomName).Save(ctx)
-			if err != nil {
-				return nil, false, err
-			}
-		}
-		credential, credentialErr := r.credentialForAccount(ctx, account)
-		return credential, false, credentialErr
-	}
-	if !ent.IsNotFound(err) {
-		return nil, false, err
-	}
-
-	digest := sha256.Sum256([]byte(wecomUserID))
-	username := "wecom_" + hex.EncodeToString(digest[:12])
-	var systemWorkspace *ent.Organization
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		var queryErr error
-		systemWorkspace, queryErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindSystem), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		create := tx.User.Create().SetUsername(username).SetDisplayName(wecomName).SetWecomUserid(wecomUserID).SetWecomName(wecomName).SetEnabled(false)
-		if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
-			create.SetEmail(strings.TrimSpace(*identity.Email))
-		}
-		var createErr error
-		account, createErr = create.Save(ctx)
-		if createErr != nil {
-			return createErr
-		}
-		if _, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(systemWorkspace.ID).SetPrimary(true).SetEnabled(true).Save(ctx); createErr != nil {
-			return createErr
-		}
-		audit.UserID = &account.ID
-		audit.OrganizationID = &systemWorkspace.ID
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, false, err
-	}
-	return credentialFromAccount(account, systemWorkspace.ID), true, nil
 }
 
 func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity) (*biz.Credential, error) {

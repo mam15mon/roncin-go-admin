@@ -10,18 +10,18 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 371 个唯一错误码，373 条目录记录。
+- 当前共 354 个唯一错误码，356 条目录记录。
 
 ## 汇总
 
 | 业务域 | 错误码数 |
 | --- | --- |
-| 订单 | 102 |
+| 订单 | 103 |
 | 单证 | 29 |
-| 财务 | 85 |
+| 财务 | 83 |
 | 提成 | 37 |
 | 往来单位 | 34 |
-| 权限 | 60 |
+| 权限 | 44 |
 | 平台 | 26 |
 
 ## 订单
@@ -70,9 +70,10 @@
 | ORDER_FEE_IDEMPOTENCY_CONFLICT | 409 Conflict | 费用请求幂等键已被使用 | order_fee.go | — |
 | ORDER_FEE_INVALID_ARGUMENT | 400 Bad Request | 订单费用字段不合法 | order_fee.go | — |
 | ORDER_FEE_NOT_FOUND | 404 Not Found | 订单费用不存在 | order_fee.go | — |
-| ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN | 409 Conflict | 补录生成的费用不能普通删除，请前往补录申请专用撤销 | order_fee.go | — |
 | ORDER_FEE_PARTY_INVALID | 400 Bad Request | 结算单位必须是当前组织启用的往来单位 | order_fee.go | — |
+| ORDER_FEE_QUANTITY_MUST_BE_INTEGER | 400 Bad Request | 该计费单位的数量必须为正整数 | order_fee.go | — |
 | ORDER_FEE_SETTING_INVALID | 400 Bad Request | 费用设置不存在、已停用或不适用于当前订单 | order_fee.go | — |
+| ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN | 409 Conflict | 补录生成的费用不能普通删除，请前往补录申请专用撤销 | order_fee.go | — |
 | ORDER_FEE_VERSION_CONFLICT | 409 Conflict | 订单费用已被其他操作人修改，请刷新后重试 | order_fee.go | — |
 | ORDER_IDEMPOTENCY_CONFLICT | 409 Conflict | 订单请求幂等键已被其他请求使用 | order.go | — |
 | ORDER_INVALID_ARGUMENT | 400 Bad Request | 订单字段不合法 | order.go | — |
@@ -186,9 +187,9 @@
 | EXCHANGE_RATE_IMPORT_TOO_MANY_ROWS | 400 Bad Request | 汇率导入最多支持 500 条数据 | exchange_rate_import.go | — |
 | EXCHANGE_RATE_INVALID_ARGUMENT | 400 Bad Request | 汇率设置字段不合法 | exchange_rate.go | — |
 | EXCHANGE_RATE_NOT_FOUND | 404 Not Found | 汇率设置不存在 | exchange_rate.go | — |
-| EXCHANGE_RATE_ORGANIZATION_INVALID | 400 Bad Request | 当前组织未配置有效本币 | exchange_rate.go | — |
+| EXCHANGE_RATE_ORGANIZATION_INVALID | 400 Bad Request | 当前组织无法解析公司本币，汇率仅由公司工作台维护 | exchange_rate.go | — |
 | EXCHANGE_RATE_OVERLAP | 409 Conflict | 汇率生效周与现有设置冲突，请刷新后重试 | exchange_rate.go | — |
-| EXCHANGE_RATE_PERMISSION_DENIED | 403 Forbidden | 无权维护当前组织汇率 | exchange_rate.go | — |
+| EXCHANGE_RATE_PERMISSION_DENIED | 403 Forbidden | 无权维护当前公司汇率 | exchange_rate.go | — |
 | EXCHANGE_RATE_QUOTE_UNAVAILABLE | 400 Bad Request | 外汇牌价抓取失败，请稍后重试或手工录入汇率 | exchange_rate.go | — |
 | EXCHANGE_RATE_SYNC_ROWS_EMPTY | 400 Bad Request | 汇率同步数据为空 | exchange_rate.go | — |
 | EXCHANGE_RATE_SYNC_ROWS_INVALID | 400 Bad Request | 汇率同步数据不合法 | exchange_rate.go | — |
@@ -196,14 +197,12 @@
 | FEE_CATALOG_INVALID_ARGUMENT | 400 Bad Request | 费用设置字段不合法 | fee_catalog.go | — |
 | FEE_CATALOG_REFERENCE_INVALID | 400 Bad Request | 费用设置引用的基础资料不存在、已停用或不属于当前组织 | fee_catalog.go | — |
 | FEE_EXCHANGE_RATE_CONFLICT | 409 Conflict | 汇率日期命中多条生效汇率 | exchange_rate.go | — |
-| FEE_EXCHANGE_RATE_MISSING | 400 Bad Request | 汇率日期未命中生效汇率 | exchange_rate.go | ERROR_REASON_FEE_EXCHANGE_RATE_MISSING |
-| FEE_LEDGER_PREFERENCE_CONFLICT | 409 Conflict | 费用明细表头设置已被更新，请刷新后重试 | fee_ledger_preference.go | — |
-| FEE_LEDGER_PREFERENCE_INVALID_ARGUMENT | 400 Bad Request | 费用明细表头设置不合法 | fee_ledger_preference.go | — |
+| FEE_EXCHANGE_RATE_MISSING | 400 Bad Request | 汇率日期未命中生效汇率，请先维护汇率 | exchange_rate.go | ERROR_REASON_FEE_EXCHANGE_RATE_MISSING |
 | FEE_SETTING_CODE_EXISTS | 409 Conflict | 费用代码已存在 | fee_catalog.go | — |
 | FEE_SETTING_NOT_FOUND | 404 Not Found | 费用设置不存在 | fee_catalog.go | — |
 | FINANCE_BILL_BATCH_CONFLICT | 409 Conflict | 批量建单幂等键已被其他请求使用 | finance_bill.go | — |
 | FINANCE_BILL_BATCH_MISMATCH | 400 Bad Request | 批量账单分组资料与服务端预览不一致 | finance_bill.go | — |
-| FINANCE_BILL_FEE_INVALID | 409 Conflict | 所选费用必须为已确认状态且尚未进入其他账单 | finance_bill.go | ERROR_REASON_FINANCE_BILL_FEE_INVALID |
+| FINANCE_BILL_FEE_INVALID | 409 Conflict | 所选费用必须为未建账状态且尚未进入其他账单 | finance_bill.go | ERROR_REASON_FINANCE_BILL_FEE_INVALID |
 | FINANCE_BILL_FEE_MISMATCH | 400 Bad Request | 同一账单的费用必须具有相同收付方向、结算单位、币种和本币 | finance_bill.go | — |
 | FINANCE_BILL_GROUPING_MODE_UNSUPPORTED | 400 Bad Request | 当前阶段暂不支持对冲建账模式 | finance_bill.go | — |
 | FINANCE_BILL_IDEMPOTENCY_CONFLICT | 409 Conflict | 账单请求幂等键已被其他请求使用 | finance_bill.go | — |
@@ -378,19 +377,12 @@
 | AUTH_PERMISSION_DENIED | 403 Forbidden | 无权执行此操作 | auth.go | — |
 | AUTH_SESSION_EXPIRED | 401 Unauthorized | 登录已过期 | auth.go | — |
 | AUTH_SESSION_REQUIRED | 401 Unauthorized | 请先登录 | auth.go | — |
-| AUTH_WECOM_AUTHORIZATION_PENDING | 403 Forbidden | 账号已登记，请联系管理员分配角色并启用账号 | auth.go | — |
-| AUTH_WECOM_CODE_INVALID | 401 Unauthorized | 企业微信登录凭证已失效，请重新扫码 | auth.go | — |
-| AUTH_WECOM_DISABLED | 503 Service Unavailable | 企业微信登录未启用 | auth.go | — |
-| AUTH_WECOM_LOGIN_FAILED | 401 Unauthorized | 企业微信登录失败 | auth.go | — |
-| AUTH_WECOM_PERMISSION_DENIED | 401 Unauthorized | 企业微信应用无权读取成员信息，请检查应用可见范围和通讯录权限 | auth.go | — |
-| AUTH_WECOM_STATE_INVALID | 401 Unauthorized | 企业微信登录状态已失效，请重新扫码 | auth.go | — |
-| AUTH_WECOM_TRUSTED_IP_REQUIRED | 401 Unauthorized | 企业微信拒绝当前服务器 IP，请在应用管理中配置企业可信 IP | auth.go | — |
-| OPERATING_COMPANY_REQUIRED | 403 Forbidden | 系统管理工作台不承载经营数据，请切换到具体公司后再维护经营数据 | organization.go | — |
+| DINGTALK_ASSIGNMENT_CONFLICT | 409 Conflict | 人员已被开通或状态已变更，请刷新后重试 | dingtalk_directory.go | — |
 | DINGTALK_DIRECTORY_BUSY | 409 Conflict | 本企业已有通讯录同步任务正在执行 | dingtalk_directory.go | — |
 | DINGTALK_DIRECTORY_FAILED | 400 Bad Request | 通讯录读取失败，请检查钉钉应用通讯录权限 | dingtalk_directory.go | — |
 | DINGTALK_IDENTITY_CONFLICT | 409 Conflict | 钉钉身份与现有账号冲突，请管理员核对 | dingtalk_directory.go | — |
-| DINGTALK_ASSIGNMENT_CONFLICT | 409 Conflict | 人员已被开通或状态已变更，请刷新后重试 | dingtalk_directory.go | — |
 | DINGTALK_PROFILE_READ_ONLY | 400 Bad Request | 钉钉基础资料请在钉钉修改后同步 | dingtalk_directory.go | — |
+| OPERATING_COMPANY_REQUIRED | 403 Forbidden | 系统管理工作台不承载经营数据，请切换到具体公司后再维护经营数据 | organization.go | — |
 
 ## 平台
 

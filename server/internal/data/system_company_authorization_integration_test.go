@@ -49,9 +49,6 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 	}
 	companyPrincipal := &biz.Principal{UserID: f.normalUserID, Organization: biz.Organization{ID: f.branch, Kind: biz.OrganizationKindCompany}, OrganizationNodes: principal.OrganizationNodes, RoleGrants: []biz.RoleGrant{{RoleCode: "administrator", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.UserUpdate: {}}}}}
 	companyCtx := biz.WithPrincipal(ctx, companyPrincipal)
-	if _, err := uc.AuthorizeWeComUser(companyCtx, f.branch, f.branch, f.normalUserID, &biz.AdminUser{ID: f.bootstrapUserID, DisplayName: "不能全局授权"}, []uuid.UUID{companyRole.ID}); err != biz.ErrPermissionDenied {
-		t.Fatalf("公司不得全局重启企业微信账号: %v", err)
-	}
 	if _, err := uc.AuthorizeDingTalkUser(companyCtx, f.branch, f.branch, f.normalUserID, &biz.AdminUser{ID: f.bootstrapUserID, DisplayName: "不能全局授权"}, []uuid.UUID{companyRole.ID}); err != biz.ErrPermissionDenied {
 		t.Fatalf("公司不得全局重启钉钉账号: %v", err)
 	}

@@ -42,17 +42,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 		cleanup()
 		return nil, nil, err
 	}
-	weComIdentityProvider, err := data.NewWeComIdentityProvider(security)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
 	dingTalkIdentityProvider, err := data.NewDingTalkIdentityProvider(security)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy, weComIdentityProvider, dingTalkIdentityProvider, logger)
+	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy, dingTalkIdentityProvider, logger)
 	authService := service.NewAuthService(authUsecase, sessionPolicy)
 	partnerRepo := data.NewPartnerRepo(dataData)
 	partnerUsecase := biz.NewPartnerUsecase(partnerRepo)

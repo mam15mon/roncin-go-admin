@@ -253,7 +253,7 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		if account.Enabled && !input.Enabled {
 			return biz.ErrAdminUserTerminationRequired
 		}
-		if !account.Enabled && input.Enabled && (account.WecomUserid != nil || account.DingtalkUnionid != nil) {
+		if !account.Enabled && input.Enabled && account.DingtalkUnionid != nil {
 			return biz.ErrAdminUserAuthorizationRequired
 		}
 		// 角色必须与锚定成员关系同组织（既有规则不变）：按锚定组织校验后写入该成员关系。
@@ -328,12 +328,6 @@ func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.U
 			return updateErr
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-}
-
-func (r *adminRepo) AuthorizeWeComUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
-	return r.authorizePendingUser(ctx, sourceOrganizationID, targetOrganizationID, input, roleIDs, nil, audit, func(account *ent.User) bool {
-		return account.WecomUserid != nil
 	})
 }
 
@@ -454,97 +448,6 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 		return nil, err
 	}
 	return r.findUser(ctx, sourceOrganizationID, input.ID)
-}
-
-func (r *adminRepo) authorizePendingUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent, hasExternalIdentity func(*ent.User) bool) (*biz.AdminUser, error) {
-	if _, ok := biz.PrincipalFromContext(ctx); ok && !biz.IsSystemWorkspace(ctx) {
-		return nil, biz.ErrPermissionDenied
-	}
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
-		}
-		// 待授权用户在来源工作台管理范围内存在启用成员关系即可发起授权（范围口径
-		// 见 adminWorkspaceScopeIDs）；目标组织逻辑保持不变。
-		sourceScope, scopeErr := adminWorkspaceScope(ctx, tx.Client(), sourceOrganizationID)
-		if scopeErr != nil {
-			return scopeErr
-		}
-		if len(sourceScope) == 0 {
-			return biz.ErrAdminUserNotFound
-		}
-		sourceInScope, queryErr := tx.Membership.Query().
-			Where(membership.UserIDEQ(input.ID), membership.OrganizationIDIn(sourceScope...), membership.EnabledEQ(true)).
-			Exist(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if !sourceInScope {
-			return biz.ErrAdminUserNotFound
-		}
-		if !hasExternalIdentity(account) || account.Enabled {
-			return biz.ErrAdminInvalidArgument
-		}
-		exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(targetOrganizationID), organization.EnabledEQ(true), organization.KindEQ(organization.KindCompany)).Exist(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if !exists {
-			return biz.ErrAdminOrganizationNotFound
-		}
-		roles, queryErr := rolesForOrganization(ctx, tx.Client(), targetOrganizationID, roleIDs)
-		if queryErr != nil {
-			return queryErr
-		}
-		userUpdate := tx.User.UpdateOneID(input.ID).SetDisplayName(input.DisplayName).SetEnabled(true)
-		if input.Email == nil {
-			userUpdate.ClearEmail()
-		} else {
-			userUpdate.SetEmail(*input.Email)
-		}
-		if _, updateErr := userUpdate.Save(ctx); updateErr != nil {
-			return updateErr
-		}
-		membershipIDs, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(input.ID)).IDs(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if len(membershipIDs) > 0 {
-			if _, deleteErr := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); deleteErr != nil {
-				return deleteErr
-			}
-		}
-		if _, updateErr := tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).SetPrimary(false).Save(ctx); updateErr != nil {
-			return updateErr
-		}
-		targetMembership, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(targetOrganizationID)).Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			targetMembership, queryErr = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).SetPrimary(true).Save(ctx)
-		} else if queryErr == nil {
-			targetMembership, queryErr = tx.Membership.UpdateOneID(targetMembership.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
-		}
-		if queryErr != nil {
-			return queryErr
-		}
-		if replaceErr := replaceRoleAssignments(ctx, tx, targetMembership.ID, roles); replaceErr != nil {
-			return replaceErr
-		}
-		if notification != nil {
-			if notificationErr := enqueueDingTalkUserAuthorizedNotification(ctx, tx, targetOrganizationID, account, notification); notificationErr != nil {
-				return notificationErr
-			}
-		}
-		if _, updateErr := tx.Session.Update().Where(sessionent.UserIDEQ(input.ID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); updateErr != nil {
-			return updateErr
-		}
-		audit.Details["value"] = account.Username
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.findUser(ctx, targetOrganizationID, input.ID)
 }
 
 func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uuid.UUID, passwordHash string, username *string, audit *biz.AuditEvent) error {
@@ -686,7 +589,7 @@ func adminUserStatus(account *ent.User, currentMembership *ent.Membership, hasAc
 	if account.Enabled && currentMembership.Enabled {
 		return biz.AdminUserStatusActive
 	}
-	hasExternalIdentity := account.WecomUserid != nil || account.DingtalkUnionid != nil
+	hasExternalIdentity := account.DingtalkUnionid != nil
 	if !account.Enabled && currentMembership.Enabled && hasExternalIdentity && len(currentMembership.Edges.RoleAssignments) == 0 {
 		return biz.AdminUserStatusPendingAuthorization
 	}
@@ -694,7 +597,7 @@ func adminUserStatus(account *ent.User, currentMembership *ent.Membership, hasAc
 }
 
 func accountToAdminUser(account *ent.User) *biz.AdminUser {
-	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, WeComUserID: account.WecomUserid, WeComName: account.WecomName, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, PendingAssignment: account.PendingAssignment, DingTalkJobNumber: account.DingtalkJobNumber, DingTalkLastSyncedAt: account.DingtalkLastSyncedAt, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
+	result := &biz.AdminUser{ID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, AvatarURL: account.AvatarURL, DingTalkUnionID: account.DingtalkUnionid, DingTalkUserID: account.DingtalkUserid, DingTalkName: account.DingtalkName, Enabled: account.Enabled, PendingAssignment: account.PendingAssignment, DingTalkJobNumber: account.DingtalkJobNumber, DingTalkLastSyncedAt: account.DingtalkLastSyncedAt, HasPassword: account.PasswordHash != nil, CreatedAt: account.CreatedAt, UpdatedAt: account.UpdatedAt}
 	if account.DingtalkMobile != nil {
 		mobile := biz.MaskDingTalkMobile(*account.DingtalkMobile)
 		result.DingTalkMobile = &mobile

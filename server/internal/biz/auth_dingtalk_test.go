@@ -24,7 +24,7 @@ func (s *dingTalkProviderStub) ResolveIdentity(context.Context, string) (*DingTa
 }
 
 func TestAuthUsecaseStartDingTalkLogin(t *testing.T) {
-	usecase := NewAuthUsecase(&wecomAuthRepoStub{}, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{enabled: true}, nil)
+	usecase := NewAuthUsecase(&authRepoStub{}, &SessionPolicy{TTL: time.Hour}, &dingTalkProviderStub{enabled: true}, nil)
 	enabled, authorizeURL, state, expiresAt, err := usecase.StartDingTalkLogin()
 	if err != nil {
 		t.Fatalf("StartDingTalkLogin() error = %v", err)
@@ -46,14 +46,14 @@ func TestAuthUsecaseDingTalkNotOpenedDoesNotCreateSession(t *testing.T) {
 	}
 	for _, item := range cases {
 		t.Run(item.name, func(t *testing.T) {
-			repo := &wecomAuthRepoStub{credential: item.credential}
+			repo := &authRepoStub{credential: item.credential}
 			provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union", UserID: "user"}}
-			uc := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, nil)
+			uc := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, nil)
 			result, err := uc.LoginDingTalk(context.Background(), "code", "state", "state", "test")
 			if err != nil {
 				t.Fatal(err)
 			}
-			if result.Status != item.status || result.SessionToken != "" || result.Message == "" || repo.createdSession != nil || repo.created {
+			if result.Status != item.status || result.SessionToken != "" || result.Message == "" || repo.createdSession != nil {
 				t.Fatalf("未开通状态误建会话: %+v", result)
 			}
 		})
@@ -63,11 +63,11 @@ func TestAuthUsecaseDingTalkNotOpenedDoesNotCreateSession(t *testing.T) {
 func TestAuthUsecaseDingTalkAuthorizedLoginCreatesSession(t *testing.T) {
 	organizationID := uuid.New()
 	userID := uuid.New()
-	repo := &wecomAuthRepoStub{
+	repo := &authRepoStub{
 		credential: &Credential{UserID: userID, PrimaryOrganizationID: organizationID, Enabled: true},
 	}
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
-	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, provider, nil)
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, nil)
 	result, err := usecase.LoginDingTalk(context.Background(), "code", "state", "state", "test")
 	if err != nil {
 		t.Fatalf("LoginDingTalk() error = %v", err)

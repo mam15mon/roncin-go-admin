@@ -245,30 +245,6 @@ func (s *AdminService) TerminateUser(ctx context.Context, request *v1.TerminateU
 	return ok(ctx, &v1.TerminateUserResponse{}), nil
 }
 
-func (s *AdminService) AuthorizeWeComUser(ctx context.Context, request *v1.AuthorizeWeComUserRequest) (*v1.AuthorizeWeComUserResponse, error) {
-	principal, err := requirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	userID, err := uuid.Parse(request.GetId())
-	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
-	}
-	targetOrganizationID, err := uuid.Parse(request.GetOrganizationId())
-	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
-	}
-	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
-	if err != nil {
-		return nil, err
-	}
-	authorized, err := s.usecase.AuthorizeWeComUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil)}, roles)
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.AuthorizeWeComUserResponse{Data: userToAPI(authorized, false)}), nil
-}
-
 func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.AuthorizeDingTalkUserRequest) (*v1.AuthorizeDingTalkUserResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -528,7 +504,7 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 }
 
 func userToAPI(value *biz.AdminUser, includeOrganizations bool) *v1.AdminUser {
-	result := &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, RoleNames: value.RoleNames, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	result := &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, RoleNames: value.RoleNames, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 	result.PendingAssignment = value.PendingAssignment
 	result.DingtalkJobNumber = value.DingTalkJobNumber
 	result.DingtalkMobileMasked = value.DingTalkMobile

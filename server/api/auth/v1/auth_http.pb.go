@@ -19,29 +19,23 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationAuthServiceDingTalkLogin = "/auth.v1.AuthService/DingTalkLogin"
 const OperationAuthServiceGetDingTalkLoginConfig = "/auth.v1.AuthService/GetDingTalkLoginConfig"
-const OperationAuthServiceGetWeComLoginConfig = "/auth.v1.AuthService/GetWeComLoginConfig"
 const OperationAuthServiceLogin = "/auth.v1.AuthService/Login"
 const OperationAuthServiceLogout = "/auth.v1.AuthService/Logout"
 const OperationAuthServiceMe = "/auth.v1.AuthService/Me"
 const OperationAuthServiceSwitchOrganization = "/auth.v1.AuthService/SwitchOrganization"
-const OperationAuthServiceWeComLogin = "/auth.v1.AuthService/WeComLogin"
 
 type AuthServiceHTTPServer interface {
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
-	GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	Me(context.Context, *MeRequest) (*MeResponse, error)
 	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
-	WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error)
 }
 
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("POST", "/api/v1/auth/login", _AuthService_Login0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/auth/wecom/login-config", _AuthService_GetWeComLoginConfig0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/auth/wecom/login", _AuthService_WeComLogin0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/dingtalk/login-config", _AuthService_GetDingTalkLoginConfig0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/login", _AuthService_DingTalkLogin0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/logout", _AuthService_Logout0_HTTP_Handler(srv))
@@ -64,44 +58,6 @@ func _AuthService_Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.C
 			return err
 		}
 		reply := out.(*LoginResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _AuthService_GetWeComLoginConfig0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetWeComLoginConfigRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAuthServiceGetWeComLoginConfig)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetWeComLoginConfig(ctx, req.(*GetWeComLoginConfigRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetWeComLoginConfigResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _AuthService_WeComLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in WeComLoginRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAuthServiceWeComLogin)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.WeComLogin(ctx, req.(*WeComLoginRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*WeComLoginResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -204,12 +160,10 @@ func _AuthService_SwitchOrganization0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 type AuthServiceHTTPClient interface {
 	DingTalkLogin(ctx context.Context, req *DingTalkLoginRequest, opts ...http.CallOption) (rsp *DingTalkLoginResponse, err error)
 	GetDingTalkLoginConfig(ctx context.Context, req *GetDingTalkLoginConfigRequest, opts ...http.CallOption) (rsp *GetDingTalkLoginConfigResponse, err error)
-	GetWeComLoginConfig(ctx context.Context, req *GetWeComLoginConfigRequest, opts ...http.CallOption) (rsp *GetWeComLoginConfigResponse, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
 	Me(ctx context.Context, req *MeRequest, opts ...http.CallOption) (rsp *MeResponse, err error)
 	SwitchOrganization(ctx context.Context, req *SwitchOrganizationRequest, opts ...http.CallOption) (rsp *SwitchOrganizationResponse, err error)
-	WeComLogin(ctx context.Context, req *WeComLoginRequest, opts ...http.CallOption) (rsp *WeComLoginResponse, err error)
 }
 
 type AuthServiceHTTPClientImpl struct {
@@ -244,22 +198,6 @@ func (c *AuthServiceHTTPClientImpl) GetDingTalkLoginConfig(ctx context.Context, 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationAuthServiceGetDingTalkLoginConfig),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *AuthServiceHTTPClientImpl) GetWeComLoginConfig(ctx context.Context, in *GetWeComLoginConfigRequest, opts ...http.CallOption) (*GetWeComLoginConfigResponse, error) {
-	var out GetWeComLoginConfigResponse
-	pattern := "/api/v1/auth/wecom/login-config"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationAuthServiceGetWeComLoginConfig),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
@@ -327,23 +265,6 @@ func (c *AuthServiceHTTPClientImpl) SwitchOrganization(ctx context.Context, in *
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationAuthServiceSwitchOrganization),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *AuthServiceHTTPClientImpl) WeComLogin(ctx context.Context, in *WeComLoginRequest, opts ...http.CallOption) (*WeComLoginResponse, error) {
-	var out WeComLoginResponse
-	pattern := "/api/v1/auth/wecom/login"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationAuthServiceWeComLogin),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

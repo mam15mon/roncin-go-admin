@@ -25,7 +25,6 @@ const (
 	UserCreate                 = "system.user.create"
 	UserUpdate                 = "system.user.update"
 	UserTerminate              = "system.user.delete"
-	UserAuthorizeWeCom         = "system.user.authorize_wecom"
 	UserDingTalkDirectorySync  = "system.user.dingtalk_directory.sync"
 	UserResetPassword          = "system.user.reset_password"
 	RoleRead                   = "system.role.read"
@@ -194,7 +193,6 @@ var manifest = append([]Permission{
 	{Key: UserCreate, Name: "新建用户", Group: "系统管理 · 用户", Description: "新建用户并配置初始成员关系", Requires: []string{UserRead}},
 	{Key: UserUpdate, Name: "编辑用户", Group: "系统管理 · 用户", Description: "修改用户资料、状态和成员关系", Requires: []string{UserRead}},
 	{Key: UserTerminate, Name: "办理离职", Group: "系统管理 · 用户", Description: "停用员工账号和全部组织权限，保留身份绑定与历史业务记录", Requires: []string{UserRead}},
-	{Key: UserAuthorizeWeCom, Name: "授权企业微信成员", Group: "系统管理 · 用户", Description: "读取企业微信成员并创建或绑定系统用户", Requires: []string{UserRead}},
 	{Key: UserAuthorizeDingTalk, Name: "授权钉钉成员", Group: "系统管理 · 用户", Description: "为钉钉人员分配组织与角色并开通账号", Requires: []string{UserRead, RoleRead}},
 	{Key: UserDingTalkDirectorySync, Name: "同步钉钉通讯录", Group: "系统管理 · 用户", Description: "在系统管理工作台同步钉钉人员并查看同步结果", Requires: []string{UserRead}},
 	{Key: UserResetPassword, Name: "重置用户密码", Group: "系统管理 · 用户", Description: "为系统用户重置登录密码", Requires: []string{UserRead}},
@@ -471,7 +469,7 @@ func IsCompanyBusinessPermission(key string) bool {
 // IsSystemManagementPermission 公共字典写权限仅由系统管理工作台持有。
 // 用户、角色及组织管理可用于公司内部管理，不因 system 前缀被归为系统专属。
 func IsSystemManagementPermission(key string) bool {
-	if key == UserResetPassword || key == UserTerminate || key == UserAuthorizeWeCom || key == UserAuthorizeDingTalk || key == UserDingTalkDirectorySync {
+	if key == UserResetPassword || key == UserTerminate || key == UserAuthorizeDingTalk || key == UserDingTalkDirectorySync {
 		return true
 	}
 	return strings.HasPrefix(key, "system.master_data.") && !strings.HasPrefix(key, "system.master_data.number_rule.") && !strings.HasSuffix(key, ".read")

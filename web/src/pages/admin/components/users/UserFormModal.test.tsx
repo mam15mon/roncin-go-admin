@@ -3,10 +3,10 @@ import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AdminUserStatus } from '@/enums.generated';
 
 const serviceMocks = vi.hoisted(() => ({
   authorizeDingTalkUser: vi.fn(),
-  authorizeWeComUser: vi.fn(),
   createUser: vi.fn(),
   deleteUserMembership: vi.fn(),
   listOrganizationRoles: vi.fn(),
@@ -127,7 +127,6 @@ vi.mock('antd', () => ({
 
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceAuthorizeDingTalkUser: serviceMocks.authorizeDingTalkUser,
-  adminServiceAuthorizeWeComUser: serviceMocks.authorizeWeComUser,
   adminServiceCreateUser: serviceMocks.createUser,
   adminServiceDeleteUserMembership: serviceMocks.deleteUserMembership,
   adminServiceListOrganizationRoles: serviceMocks.listOrganizationRoles,
@@ -148,7 +147,7 @@ const currentOrgRoles: API.AdminRole[] = [
 const pendingDingTalkUser: API.AdminUser = {
   id: 'user-9',
   displayName: '钉钉新成员',
-  status: 2,
+  status: AdminUserStatus.ADMIN_USER_STATUS_PENDING_ASSIGNMENT,
   dingtalkUnionid: 'union-1',
   dingtalkName: '钉钉新成员',
 };
@@ -175,9 +174,7 @@ function renderModal(
       canReadUserMemberships={false}
       canManageUserMemberships={false}
       canUpdateUserProfile={true}
-      canAuthorizeWeComUsers={false}
       currentUserId="user-1"
-      defaultOrganizationId="org-1"
       onReload={vi.fn()}
       {...flags}
     />,
@@ -204,17 +201,17 @@ async function submitForm(values: Record<string, unknown>) {
   });
 }
 
-describe('UserFormModal 角色数据源与外部授权流程分流', () => {
-  beforeEach(() => {
-    modalState.props = undefined;
-    searchableSelectState.clear();
-    formState.setFieldValue.mockReset();
-    for (const mock of Object.values(serviceMocks)) {
-      mock.mockReset();
-      mock.mockResolvedValue({ data: [] });
-    }
-  });
+beforeEach(() => {
+  modalState.props = undefined;
+  searchableSelectState.clear();
+  formState.setFieldValue.mockReset();
+  for (const mock of Object.values(serviceMocks)) {
+    mock.mockReset();
+    mock.mockResolvedValue({ data: [] });
+  }
+});
 
+describe('UserFormModal 角色数据源与账号资料管理', () => {
   it('普通编辑流程只用当前组织角色，不触发跨组织角色请求', async () => {
     renderModal(normalUser, {});
 
@@ -227,6 +224,27 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
 
     await submitForm({ displayName: '张三', roleIds: ['role-1'] });
     expect(serviceMocks.updateUser).toHaveBeenCalled();
+    expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
+  });
+
+  it('新增本地账号保留账密、资料和当前组织角色提交', async () => {
+    renderModal(undefined, {});
+
+    await submitForm({
+      username: ' operator ',
+      displayName: ' 张三 ',
+      password: 'local-password-123',
+      email: ' operator@example.com ',
+      roleIds: ['role-1'],
+    });
+    expect(serviceMocks.createUser).toHaveBeenCalledWith({
+      username: 'operator',
+      displayName: '张三',
+      password: 'local-password-123',
+      email: 'operator@example.com',
+      roleIds: ['role-1'],
+    });
+    expect(serviceMocks.updateUser).not.toHaveBeenCalled();
     expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
   });
 
@@ -381,7 +399,7 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
     expect(serviceMocks.authorizeDingTalkUser).not.toHaveBeenCalled();
   });
 
-  it('缺少授权权限时外部成员不进入授权流程，回落普通分支且不发跨组织请求', async () => {
+  it('待分配钉钉成员不在资料编辑中分配组织或开通', async () => {
     renderModal(pendingDingTalkUser, {});
 
     expect(searchableSelectState.get('organizationId')).toBeUndefined();
@@ -391,28 +409,6 @@ describe('UserFormModal 角色数据源与外部授权流程分流', () => {
     expect(serviceMocks.updateUser).toHaveBeenCalled();
     expect(serviceMocks.authorizeDingTalkUser).not.toHaveBeenCalled();
     expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
-  });
-
-  it('企业微信外部成员按对应权限分流，未授权时不进入授权流程', async () => {
-    const pendingWeComUser: API.AdminUser = {
-      ...pendingDingTalkUser,
-      dingtalkUnionid: undefined,
-      wecomUserid: 'wecom-1',
-      wecomName: '企微新成员',
-    };
-    renderModal(pendingWeComUser, { canAuthorizeWeComUsers: true });
-
-    expect(searchableSelectState.get('organizationId')).toBeDefined();
-
-    await submitForm({
-      organizationId: 'org-1',
-      displayName: '企微新成员',
-      roleIds: ['role-1'],
-    });
-    expect(serviceMocks.authorizeWeComUser).toHaveBeenCalledWith(
-      { id: 'user-9' },
-      expect.objectContaining({ organizationId: 'org-1' }),
-    );
   });
 });
 
