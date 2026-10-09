@@ -26,7 +26,7 @@
 
 | 领域 | 核心技术选型 |
 | :--- | :--- |
-| **后端框架** | Go 1.25+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
+| **后端框架** | Go 1.26.9+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
 | **ORM / 数据库** | [entgo.io/ent](https://entgo.io), PostgreSQL 16 (支持 GIN 模糊全文检索) |
 | **依赖注入与安全** | Google Wire, JWT Session, Argon2id 密码哈希, OpenTelemetry 链路追踪 |
 | **前端架构** | React 19, TypeScript 7.x, [@umijs/max](https://umijs.org), [Ant Design](https://ant.design) 6.x, Ant Design ProComponents |
