@@ -1,3 +1,4 @@
+import { layoutDimensions } from '@root/config/layout';
 import type {
   ScrollToErrorOptions,
   ScrollToErrorResult,
@@ -172,7 +173,7 @@ export function scrollToFirstFormError(
   const {
     errorFields = [],
     container = document.body,
-    headerOffset = 146,
+    headerOffset = layoutDimensions.formScrollOffset,
     onExpandSection,
     notify,
   } = options;
@@ -275,11 +276,13 @@ export function scrollToFirstFormError(
  * 以页头壳底边为准：页头多高避让多高，操作按钮行不会盖住落点标题；
  * 页面没有吸顶页头壳时回退到 fallback。
  */
-export function measureStickyTopOffset(fallback = 146): number {
+export function measureStickyTopOffset(
+  fallback: number = layoutDimensions.formScrollOffset,
+): number {
   const shell = document.querySelector('.roncin-page-header-shell');
   if (shell) {
     const bottom = shell.getBoundingClientRect().bottom;
-    if (bottom > 0) return Math.ceil(bottom) + 12;
+    if (bottom > 0) return Math.ceil(bottom) + layoutDimensions.formScrollGap;
   }
   return fallback;
 }
@@ -320,7 +323,7 @@ export function waitForLayoutStable(
  */
 export function scrollToSectionWithStickyOffset(
   sectionEl: HTMLElement,
-  fallbackOffset = 146,
+  fallbackOffset: number = layoutDimensions.formScrollOffset,
 ): void {
   const rect = sectionEl.getBoundingClientRect();
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -340,7 +343,7 @@ export function scrollToSectionWithStickyOffset(
  */
 export async function locateSectionError(
   sectionKey: string,
-  fallbackOffset = 146,
+  fallbackOffset: number = layoutDimensions.formScrollOffset,
 ): Promise<void> {
   const sectionEl =
     document.getElementById(`section-${sectionKey}`) ||
@@ -372,7 +375,7 @@ export function scrollToFirstTableError(
     rowKey,
     errorFields = [],
     container = document.body,
-    headerOffset = 100,
+    headerOffset = layoutDimensions.tableErrorOffset,
     notify,
   } = options;
 
@@ -449,7 +452,7 @@ export function scrollToFirstTableError(
     const rect = targetCell.getBoundingClientRect();
     if (rect.top < headerOffset && typeof window.scrollBy === 'function') {
       window.scrollBy({
-        top: rect.top - headerOffset - 16,
+        top: rect.top - headerOffset - layoutDimensions.tableErrorScrollGap,
         behavior: 'smooth',
       });
     }

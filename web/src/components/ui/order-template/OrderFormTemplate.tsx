@@ -1,5 +1,6 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
+import { layoutOffsets } from '@root/config/layout';
 import {
   App,
   Card,
@@ -79,7 +80,7 @@ export function OrderFormTemplate<T>({
   const [sectionErrors, setSectionErrors] = useState<Record<string, number>>(
     {},
   );
-  // 表单导航展开时内容区预留 164px 右侧空间，避免遮挡输入控件；
+  // 表单导航展开时内容区按导航宽度与间隙预留右侧空间，避免遮挡输入控件；
   // 窄屏（<1500px）默认折叠，保证输入区完整可用。
   const [navCollapsed, setNavCollapsed] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 1500,
@@ -220,7 +221,7 @@ export function OrderFormTemplate<T>({
 
   // 点击楼层中带错误的分节，精确定位至该分节内的错误字段
   const handleErrorClick = (sectionKey: string) => {
-    void locateSectionError(sectionKey, 84);
+    void locateSectionError(sectionKey, layoutOffsets.topStackHeight);
   };
 
   const renderSection = (section: OrderFormTemplateSection) => (
@@ -249,12 +250,15 @@ export function OrderFormTemplate<T>({
       {header}
 
       {loading ? (
-        <div className="roncin-order-form-skeleton" style={{ marginTop: 12 }}>
+        <div
+          className="roncin-order-form-skeleton"
+          style={{ marginTop: 'var(--roncin-page-section-gap)' }}
+        >
           {loadingTip && (
             <Card
               variant="borderless"
               style={{
-                marginBottom: 12,
+                marginBottom: 'var(--roncin-page-section-gap)',
                 borderRadius: 8,
                 border: '1px solid #f0f0f0',
                 backgroundColor: '#ffffff',
@@ -286,7 +290,10 @@ export function OrderFormTemplate<T>({
           grid
           layout="vertical"
           style={{
-            paddingRight: navCollapsed || !anchorNavVisible ? 0 : 164,
+            paddingRight:
+              navCollapsed || !anchorNavVisible
+                ? 0
+                : 'calc(var(--roncin-form-navigator-width) + var(--roncin-form-navigator-content-gap))',
             transition: 'padding-right 0.25s ease',
           }}
           initialValues={initialValues}

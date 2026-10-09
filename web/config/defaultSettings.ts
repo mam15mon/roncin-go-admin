@@ -1,8 +1,9 @@
 import type { ProLayoutProps } from '@ant-design/pro-components';
+import { layoutDimensions } from './layout';
 
 /**
  * 全局后台布局默认配置
- * 统一对齐企业级后台设计：左侧全高深色侧栏（216px）、顶部56px紧凑浅色顶栏
+ * 纯白全高侧栏与紧凑顶部栏，共享尺寸由 layout.ts 统一管理。
  */
 const Settings: ProLayoutProps & {
   logo?: string;
@@ -17,7 +18,7 @@ const Settings: ProLayoutProps & {
   title: 'Roncin 货代后台',
   logo: '/logo.svg',
   iconfontUrl: '',
-  siderWidth: 208,
+  siderWidth: layoutDimensions.siderWidth,
   splitMenus: false,
   token: {
     sider: {
@@ -40,11 +41,12 @@ const Settings: ProLayoutProps & {
       colorTextMenu: 'rgba(0, 0, 0, 0.65)',
       colorBgMenuItemHover: 'rgba(0, 0, 0, 0.04)',
       colorTextMenuSelected: '#1677ff',
-      heightLayoutHeader: 48,
+      heightLayoutHeader: layoutDimensions.headerHeight,
     },
     pageContainer: {
-      paddingBlockPageContainerContent: 8,
-      paddingInlinePageContainerContent: 12,
+      paddingBlockPageContainerContent:
+        layoutDimensions.pageContainerPaddingBlock,
+      paddingInlinePageContainerContent: layoutDimensions.contentPaddingInline,
     },
   },
 };

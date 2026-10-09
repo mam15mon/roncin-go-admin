@@ -242,7 +242,11 @@ export function OrderListSearchFilter({
   return (
     <Card
       variant="borderless"
-      style={{ borderRadius: 8, border: '1px solid #f0f0f0', marginBottom: 12 }}
+      style={{
+        borderRadius: 8,
+        border: '1px solid #f0f0f0',
+        marginBottom: 'var(--roncin-page-section-gap)',
+      }}
       styles={{ body: { padding: '14px 16px 8px' } }}
     >
       <Form

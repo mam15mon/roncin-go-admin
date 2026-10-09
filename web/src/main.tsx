@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import { RouterProvider } from 'react-router';
+import { layoutCssVariables } from '../config/layout';
 import { themeConfig } from '../config/theme';
 import { AppProvider } from './app/AppProvider';
 import { QuarterRing } from './components/ui';
@@ -21,6 +22,11 @@ import '../tailwind.css';
 dayjs.locale('zh-cn');
 
 Spin.setDefaultIndicator(<QuarterRing />);
+
+// 首次渲染前安装尺寸，正文与 body 浮层继承同一份布局变量。
+for (const [name, value] of Object.entries(layoutCssVariables)) {
+  document.documentElement.style.setProperty(name, value);
+}
 
 const container = document.getElementById('root');
 if (!container) {

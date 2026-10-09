@@ -294,7 +294,7 @@ export default function OrganizationsPanel() {
     <>
       <Card
         styles={{ body: { padding: '12px 16px' } }}
-        style={{ marginBottom: 12 }}
+        style={{ marginBottom: 'var(--roncin-page-section-gap)' }}
       >
         <div
           style={{

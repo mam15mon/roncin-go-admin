@@ -1,5 +1,6 @@
 import type { ProLayoutProps } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
+import { layoutDimensions } from '@root/config/layout';
 import { useEffect, useMemo } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { HeaderMenus } from '@/components/layout/HeaderMenus';
@@ -39,7 +40,10 @@ export function AppLayout() {
       {...layoutSettings}
       location={{ pathname: location.pathname }}
       route={menuData}
-      menu={{ locale: false, collapsedWidth: 48 }}
+      menu={{
+        locale: false,
+        collapsedWidth: layoutDimensions.collapsedSiderWidth,
+      }}
       menuHeaderRender={(logo, title) => (
         <Link
           to="/welcome"

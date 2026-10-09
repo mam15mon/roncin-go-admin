@@ -379,7 +379,7 @@ export function SearchFilterTemplate<
           borderRadius: 8,
           border: '1px solid #f0f0f0',
           backgroundColor: '#ffffff',
-          marginBottom: 12,
+          marginBottom: 'var(--roncin-page-section-gap)',
           ...style,
         }}
         styles={{ body: { padding: '12px 16px' } }}
@@ -461,7 +461,7 @@ export function SearchFilterTemplate<
           borderRadius: 8,
           border: '1px solid #f0f0f0',
           backgroundColor: '#ffffff',
-          marginBottom: 12,
+          marginBottom: 'var(--roncin-page-section-gap)',
           ...style,
         }}
         styles={{ body: { padding: '14px 16px 8px' } }}
@@ -484,7 +484,7 @@ export function SearchFilterTemplate<
         borderRadius: 8,
         border: '1px solid #f0f0f0',
         backgroundColor: '#ffffff',
-        marginBottom: 12,
+        marginBottom: 'var(--roncin-page-section-gap)',
         ...style,
       }}
       styles={{ body: { padding: '14px 16px 6px' } }}

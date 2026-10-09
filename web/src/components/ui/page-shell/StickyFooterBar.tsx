@@ -14,15 +14,16 @@ export const StickyFooterBar: React.FC<StickyFooterBarProps> = ({
       style={{
         position: 'sticky',
         bottom: 0,
-        zIndex: 15,
+        zIndex: 'var(--roncin-layer-footer)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: info ? 'space-between' : 'center',
-        padding: '10px 24px',
+        padding:
+          'var(--roncin-sticky-footer-padding-block) var(--roncin-sticky-footer-padding-inline)',
         backgroundColor: '#ffffff',
         borderTop: '1px solid #e2e8f0',
         boxShadow: '0 -1px 4px 0 rgba(0, 0, 0, 0.03)',
-        marginTop: 16,
+        marginTop: 'var(--roncin-sticky-footer-margin-top)',
         ...style,
       }}
     >

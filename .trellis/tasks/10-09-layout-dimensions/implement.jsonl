@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端边界与检查入口"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "布局壳、共享模板与导航约定"}
+{"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "公共配置依赖边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "风险匹配验证门禁"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "相同语义抽取而非机械数字合并"}
+{"file": ".trellis/tasks/10-09-layout-dimensions/research/layout-consumers.md", "reason": "全站消费端、语义归属、明确采纳与排除决定"}

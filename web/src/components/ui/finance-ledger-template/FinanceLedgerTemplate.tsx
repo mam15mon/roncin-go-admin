@@ -388,7 +388,10 @@ export function FinanceLedgerTemplate<
         extra: headerExtra,
         breadcrumb: undefined,
       }}
-      style={{ minHeight: 'calc(100vh - 48px)', backgroundColor: '#f5f7fa' }}
+      style={{
+        minHeight: 'calc(100vh - var(--roncin-header-height))',
+        backgroundColor: '#f5f7fa',
+      }}
     >
       <div
         style={{
@@ -404,7 +407,7 @@ export function FinanceLedgerTemplate<
           <Card
             size="small"
             style={{
-              marginBottom: 12,
+              marginBottom: 'var(--roncin-page-section-gap)',
               borderRadius: 8,
               border: '1px solid #f0f0f0',
               backgroundColor: '#ffffff',
@@ -417,7 +420,10 @@ export function FinanceLedgerTemplate<
 
         {/* 1. 顶部宏观统计指标卡 */}
         {metricCards && metricCards.length > 0 && (
-          <Row gutter={12} style={{ marginBottom: 12 }}>
+          <Row
+            gutter={12}
+            style={{ marginBottom: 'var(--roncin-page-section-gap)' }}
+          >
             {metricCards.map((card) => (
               <Col
                 key={card.key}

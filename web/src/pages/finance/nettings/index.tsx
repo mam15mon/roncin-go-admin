@@ -418,7 +418,7 @@ export default function FinanceNettingsPage() {
       <Card
         size="small"
         style={{
-          marginBottom: 12,
+          marginBottom: 'var(--roncin-page-section-gap)',
           borderRadius: 8,
           border: '1px solid #f0f0f0',
           backgroundColor: '#ffffff',

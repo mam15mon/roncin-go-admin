@@ -3,6 +3,7 @@ import {
   MenuFoldOutlined,
   OrderedListOutlined,
 } from '@ant-design/icons';
+import { layoutDimensions } from '@root/config/layout';
 import { Badge, Button, Space, Tooltip, Typography } from 'antd';
 import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import {
@@ -22,7 +23,7 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
   onErrorClick,
   style,
   className,
-  targetOffset = 146,
+  targetOffset = layoutDimensions.formScrollOffset,
   defaultCollapsed = false,
   onCollapsedChange,
 }) => {
@@ -33,10 +34,15 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
     onCollapsedChange?.(next);
   };
   // 浮层顶部按吸顶页头壳实测底边下移，避免压住页头操作按钮行；
-  // 与点击跳转的落位补偿共用同一测量基准，无吸顶页头时回退 156。
-  const [topOffset, setTopOffset] = useState(156);
+  // 与点击跳转的落位补偿共用同一测量基准，无吸顶页头时使用配置的导航顶部偏移。
+  const [topOffset, setTopOffset] = useState<number>(
+    layoutDimensions.formNavigatorTopOffset,
+  );
   useLayoutEffect(() => {
-    const syncTopOffset = () => setTopOffset(measureStickyTopOffset(156));
+    const syncTopOffset = () =>
+      setTopOffset(
+        measureStickyTopOffset(layoutDimensions.formNavigatorTopOffset),
+      );
     syncTopOffset();
     window.addEventListener('resize', syncTopOffset);
     return () => window.removeEventListener('resize', syncTopOffset);
@@ -110,9 +116,9 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
         className={`roncin-form-anchor-nav-collapsed ${className || ''}`}
         style={{
           position: 'fixed',
-          right: 16,
+          right: 'var(--roncin-form-navigator-right)',
           top: topOffset,
-          zIndex: 88,
+          zIndex: 'var(--roncin-layer-form-navigator)',
           ...style,
         }}
       >
@@ -152,17 +158,17 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
       className={`roncin-form-anchor-nav ${className || ''}`}
       style={{
         position: 'fixed',
-        right: 16,
+        right: 'var(--roncin-form-navigator-right)',
         top: topOffset,
         // 高度按内容自适应，仅限制上限：底部预留吸底操作栏空间，分节过多时内部滚动
-        maxHeight: `calc(100vh - ${topOffset + 64}px)`,
-        width: 140,
+        maxHeight: `calc(100vh - ${topOffset}px - var(--roncin-form-navigator-bottom-reserve))`,
+        width: 'var(--roncin-form-navigator-width)',
         backgroundColor: 'rgba(255, 255, 255, 0.94)',
         backdropFilter: 'blur(8px)',
         borderRadius: 8,
         border: '1px solid #f0f0f0',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-        zIndex: 88,
+        zIndex: 'var(--roncin-layer-form-navigator)',
         display: 'flex',
         flexDirection: 'column',
         padding: '8px 6px',

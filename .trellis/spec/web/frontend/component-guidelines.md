@@ -95,8 +95,23 @@
 
 - `web/src/global.less` 中仅 `.ant-pro-layout-header` 外层负责侧栏偏移与扣减宽度：展开 208px、折叠 48px。外层 `padding: 0`、不透明白底，滚动后仍完整覆盖正文；内部 `.ant-pro-global-header` 始终 `width: 100%`、`margin-inline: 0`，水平留白由内部 padding 提供。
 - 折叠规则按实际 ProLayout 根下的 `.ant-pro-sider.ant-layout-sider-collapsed` 匹配，避免依赖失效的兄弟结构或历史类名；桌面折叠规则 `min-width: 768px`，移动外层覆盖规则 `max-width: 767px`，与 ProLayout 移动判定一致；折叠选择器不得压过移动规则。
-- `AppLayout` 的 `menu={{ locale: false, collapsedWidth: 48 }}` 同步设置组件的折叠占位。只修改侧栏 CSS 会保留组件默认 64px 占位，使页签和正文与 48px 顶部栏错位。
+- `AppLayout` 的 `menu.collapsedWidth` 读取 `layoutDimensions.collapsedSiderWidth` 同步设置组件的折叠占位。只修改侧栏 CSS 会保留组件默认 64px 占位，使页签和正文与 48px 顶部栏错位。
 - 布局缺口验证使用真实浏览器：展开、折叠及滚动前后比较外层/内层尺寸，header 高 48px，页签栏紧接其下；检查左右边缘命中顶部栏或页签而非正文，并覆盖移动端与响应式边界。jsdom/happy-dom 和 CSS 字符串断言不能证明覆盖范围。
+
+## 全站共享布局尺寸
+
+- **唯一入口**：`web/config/layout.ts` 的 `layoutDimensions` 管理侧栏宽、header/页签高、内容留白、公共页面区块外间距、表单导航几何参数和吸底栏尺寸；`layoutLayers` 分别管理公共布局层级。组件的数值配置直接读取它们，禁止在 `defaultSettings`、`AppLayout` 或公共模板另写第二份默认值。
+- **CSS桥接**：`layoutCssVariables` 将尺寸/偏移导出为 `--roncin-<kebab-case-key>: <number>px`，层级为 `--roncin-layer-<key>: <number>`；`main.tsx` 在 React 首次渲染前安装到 `document.documentElement`，body portal 与页面继承同一份变量。样式用 `var(...)`，不在CSS重复默认值或加另一套fallback。
+- **派生关系**：`layoutOffsets.topStackHeight = headerHeight + tagsHeight`；页头与参数页业务Tabs的 `top` 用 `calc(var(--roncin-header-height) + var(--roncin-tags-height))`。`formNavigatorContentReserve = formNavigatorWidth + formNavigatorContentGap`；订单和客商正文的导航避让同源，折叠时仍为0。侧栏菜单底部留白等于触发区高度加独立间隙。
+- **语义边界**：同值不是同义。内容横向留白、区块外间距、滚动落点间隙、footer内边距分别配置；普通字体、列宽、Card内部间距和控件容量由既有 `theme.ts` / dialog-sizes 或所属组件管理。没有证据的页面局部视口高度不拆成顶部栈加补数。
+- **滚动定位**：需要数值运算时使用TS配置；经验默认 `formScrollOffset`、`formNavigatorTopOffset`、`tableErrorOffset` 独立管理，保留调用方完整offset覆盖。`measureStickyTopOffset`继续优先实测页头底边，再加 `formScrollGap`，不得把动态页头高度改成固定猜测值。默认参数显式标注 `number`，避免 `as const` 配置把入参收窄为数值字面量。
+- **响应式与验证**：CSS变量不能作为媒体查询条件，当前ProLayout移动断点仍固定 `<768px`；不要为参数去重添加编译机制。尺寸改动先跑受影响行为测试，然后用真实浏览器验证默认与一组替代配置的组件占位、CSS解析、吸顶偏移、导航避让及滚动落点；验证后恢复默认配置，禁止提交替代尺寸或临时产物。
+
+```tsx
+// 组件数值与样式从同一配置派生。
+menu={{ collapsedWidth: layoutDimensions.collapsedSiderWidth }}
+style={{ top: 'calc(var(--roncin-header-height) + var(--roncin-tags-height))' }}
+```
 
 ## 权限相关组件
 

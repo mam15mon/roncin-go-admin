@@ -157,7 +157,7 @@ function UserMembersView() {
           borderRadius: 8,
           border: '1px solid #f0f0f0',
           backgroundColor: '#ffffff',
-          marginBottom: 12,
+          marginBottom: 'var(--roncin-page-section-gap)',
         }}
         styles={{ body: { padding: '0 16px' } }}
       >
@@ -336,7 +336,7 @@ export default function UsersPanel() {
             borderRadius: 8,
             border: '1px solid #f0f0f0',
             backgroundColor: '#ffffff',
-            marginBottom: 12,
+            marginBottom: 'var(--roncin-page-section-gap)',
           }}
           styles={{ body: { padding: '0 16px' } }}
         >

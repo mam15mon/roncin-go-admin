@@ -84,7 +84,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
       className={`roncin-section-card ${className || ''}`}
       style={{
         width: '100%',
-        marginBottom: 12,
+        marginBottom: 'var(--roncin-page-section-gap)',
         backgroundColor: '#ffffff',
         borderRadius: 8,
         border: '1px solid #e2e8f0',

@@ -107,7 +107,7 @@ export default function PartnerDetailPage() {
     {},
   );
 
-  // 表单导航浮层折叠状态：展开时内容区预留 164px 右侧空间，避免遮挡控件
+  // 表单导航浮层折叠状态：展开时内容区按导航宽度与间隙预留右侧空间，避免遮挡控件
   const [navCollapsed, setNavCollapsed] = useState(true);
 
   // Detect roleType from pathname（按路由段结构解析：/partners/{roleSegment}/...）
@@ -749,7 +749,9 @@ export default function PartnerDetailPage() {
           disabled={!canOperate}
           layout="horizontal"
           style={{
-            paddingRight: navCollapsed ? 0 : 164,
+            paddingRight: navCollapsed
+              ? 0
+              : 'calc(var(--roncin-form-navigator-width) + var(--roncin-form-navigator-content-gap))',
             transition: 'padding-right 0.25s ease',
           }}
         >

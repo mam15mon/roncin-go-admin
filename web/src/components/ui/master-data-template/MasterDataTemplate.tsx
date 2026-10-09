@@ -510,7 +510,7 @@ export function MasterDataTemplate<
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 12 }}
+          style={{ marginBottom: 'var(--roncin-page-section-gap)' }}
           title={notice}
         />
       )}
@@ -521,7 +521,7 @@ export function MasterDataTemplate<
             display: 'grid',
             gridTemplateColumns: `repeat(auto-fit, minmax(160px, 1fr))`,
             gap: 10,
-            marginBottom: 12,
+            marginBottom: 'var(--roncin-page-section-gap)',
             width: '100%',
           }}
         >

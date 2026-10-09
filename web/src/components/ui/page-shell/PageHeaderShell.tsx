@@ -1,7 +1,7 @@
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Link } from 'react-router';
 import { Button, Tooltip, Typography } from 'antd';
 import React from 'react';
+import { Link } from 'react-router';
 import type { PageHeaderShellProps } from './types';
 
 const { Text } = Typography;
@@ -28,8 +28,8 @@ export const PageHeaderShell: React.FC<PageHeaderShellProps> = ({
         ...(sticky
           ? {
               position: 'sticky',
-              top: 84, // 48px Header + 36px TagsView
-              zIndex: 18,
+              top: 'calc(var(--roncin-header-height) + var(--roncin-tags-height))',
+              zIndex: 'var(--roncin-layer-page-header)',
             }
           : {}),
         ...style,

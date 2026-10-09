@@ -440,7 +440,7 @@ export default function OrderDetailPage() {
           navigationTitle={definition.navigationTitle}
           orderNo={undefined}
         />
-        <div style={{ padding: 12 }}>
+        <div style={{ padding: 'var(--roncin-content-padding-inline)' }}>
           <SectionCard title="业务基本信息">
             <Skeleton active paragraph={{ rows: 3 }} />
           </SectionCard>

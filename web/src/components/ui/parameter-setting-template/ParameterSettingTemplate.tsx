@@ -1,8 +1,8 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { history } from '@/router/history';
-import { useLocation } from 'react-router';
 import { Alert, Space, Tabs, Tooltip, Typography } from 'antd';
 import React, { useCallback, useMemo, useState } from 'react';
+import { useLocation } from 'react-router';
+import { history } from '@/router/history';
 import type { MultiTabCenterTemplateProps } from './types';
 
 const { Text } = Typography;
@@ -161,9 +161,9 @@ export const MultiTabCenterTemplate: React.FC<MultiTabCenterTemplateProps> = ({
             items={tabItems}
             tabBarStyle={{
               position: 'sticky',
-              top: 84, // 48px Header + 36px TagsView
-              zIndex: 18,
-              marginBottom: 12,
+              top: 'calc(var(--roncin-header-height) + var(--roncin-tags-height))',
+              zIndex: 'var(--roncin-layer-page-header)',
+              marginBottom: 'var(--roncin-page-section-gap)',
               backgroundColor: '#ffffff',
               padding: '0 16px',
               borderRadius: 8,

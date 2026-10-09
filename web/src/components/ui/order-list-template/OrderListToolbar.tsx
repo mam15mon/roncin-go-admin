@@ -165,7 +165,7 @@ export function OrderListToolbar({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 'var(--roncin-page-section-gap)',
         flexWrap: 'wrap',
         gap: 8,
       }}
