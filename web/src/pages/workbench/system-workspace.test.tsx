@@ -28,7 +28,7 @@ describe('系统管理工作台', () => {
       screen.getByRole('link', { name: '公共基础资料' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '公司管理' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: '注册审批' })).toBeNull();
+    expect(screen.queryByRole('link', { name: '人员分配' })).toBeNull();
     expect(overview).not.toHaveBeenCalled();
   });
 });

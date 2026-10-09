@@ -3,7 +3,7 @@
   "name": "dingtalk-directory-provisioning",
   "title": "钉钉人员同步与待分配管理",
   "description": "从钉钉通讯录同步人员，先保留无组织的待分配状态，再由管理员分配业务组织和角色；规划用户管理与登录开通流程的收敛。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": "users",
   "package": null,
@@ -12,10 +12,10 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-09",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/dingtalk-directory-provisioning",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "d50cf1c8",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -31,6 +31,9 @@
     "web/src/pages/admin/users.tsx",
     "web/src/pages/user/login/dingtalk-callback.tsx"
   ],
-  "notes": "2026-10-09 已确认 D1 统一同步分配并撤除旧邀请/注册、D2 通讯录资料只读、D3 批量逐人开通保留成功。PRD 已收敛，design/implement 与上下文清单齐备；等待用户审阅最新整体方案后批准实施，状态仍 planning。真实钉钉权限未实测。",
-  "meta": {}
+  "notes": "2026-10-09 实施与自动验证已完成，真实全企业同步 27 人、0 失败，工号移除、空头像显示、同步摘要和排队速度已修正。用户授权合并 main 并删除工作分支。实际扫码回调 localhost 配置已修正，浏览器实测进入“尚未分配组织”提示；已开通与停用账号真实扫码尚未验证，保留任务待最终人工验收，不归档为全部验收完成。",
+  "meta": {
+    "implementation_status": "代码完成，准备合并 main；真实待分配扫码已通过，其余状态待人工验收",
+    "verification": "最新 check:fast 通过：前端 1073 PASS、12 既有 SKIP；后端完整门禁通过。另注入专用 PostgreSQL 的 12 项通讯录定向测试全部 PASS、无 SKIP；真实同步与待分配扫码通过。"
+  }
 }

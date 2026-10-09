@@ -33,6 +33,9 @@ type DingTalkApprovalDispatch func(*sql.Selector)
 // DingTalkApprovalInboxEvent is the predicate function for dingtalkapprovalinboxevent builders.
 type DingTalkApprovalInboxEvent func(*sql.Selector)
 
+// DingTalkDirectorySync is the predicate function for dingtalkdirectorysync builders.
+type DingTalkDirectorySync func(*sql.Selector)
+
 // DingTalkInvitation is the predicate function for dingtalkinvitation builders.
 type DingTalkInvitation func(*sql.Selector)
 

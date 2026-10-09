@@ -18,7 +18,7 @@ import (
 )
 
 // TestAdminEmployeeLifecyclePostgres 在隔离 Schema + 完整版本化迁移链上验证员工
-// 生命周期（离职 → 返聘审批 → 重新授权 → 多组织调出）的数据一致性与权限边界；
+// 生命周期（离职 → 管理员重新开通 → 多组织调出）的数据一致性与权限边界；
 // 不依赖 public schema 的开发数据，夹具随 Schema 一并清理。
 func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
@@ -56,6 +56,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		SetDingtalkUnionid(dingUnionID).
 		SetDingtalkUserid(dingUserID).
 		SetDingtalkName("返聘员工-" + suffix).
+		SetDingtalkLastSyncedAt(time.Now()).
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -107,42 +108,32 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	authRepo := &authRepo{data: data}
-	credential, submitted, err := authRepo.RegisterDingTalkCredential(ctx, &biz.DingTalkIdentity{
-		UnionID: dingUnionID,
-		UserID:  dingUserID,
-		Name:    "返聘员工-" + suffix,
-	}, nil, nil, &biz.AuditEvent{Action: "auth.dingtalk.register", Result: "success"})
-	if err != nil {
-		t.Fatalf("提交返聘登记: %v", err)
-	}
-	if !submitted || credential.Enabled {
-		t.Fatalf("返聘登记结果 submitted=%v credential=%#v", submitted, credential)
+	credential, err := authRepo.FindDingTalkCredential(ctx, &biz.DingTalkIdentity{UnionID: dingUnionID, UserID: dingUserID, Name: "扫码昵称"})
+	if err != nil || credential.Enabled || credential.UserID != account.ID {
+		t.Fatalf("离职扫码不能自动返聘: %+v %v", credential, err)
 	}
 	activeMemberships, err = data.db.Membership.Query().Where(membership.UserIDEQ(account.ID), membership.EnabledEQ(true)).Count(ctx)
-	if err != nil || activeMemberships != 1 {
-		t.Fatalf("返聘待审批组织数 = %d, error = %v", activeMemberships, err)
+	if err != nil || activeMemberships != 0 {
+		t.Fatalf("扫码应保留离职状态: %d %v", activeMemberships, err)
 	}
-	assignments, err = data.db.RoleAssignment.Query().Where(roleassignment.MembershipIDEQ(membershipRecord.ID)).Count(ctx)
-	if err != nil || assignments != 0 {
-		t.Fatalf("返聘待审批不应恢复旧角色，角色数 = %d, error = %v", assignments, err)
-	}
+	assignmentCtx, actorID := directoryAdministrator(t, data, intakeWorkspace.ID)
 	pendingUsername := "pending." + suffix
 	if err := adminRepo.ResetUserPassword(ctx, systemWorkspace.ID, account.ID, "pending-password-hash", &pendingUsername, adminLifecycleAudit(systemWorkspace.ID, "admin.user.password.reset")); err != biz.ErrAdminUserNotFound {
 		t.Fatalf("待审批账号设置密码 error = %v, want ErrAdminUserNotFound", err)
 	}
 	if _, err := adminRepo.UpdateUser(ctx, systemWorkspace.ID, account.ID, &biz.AdminUser{
 		ID:          account.ID,
-		DisplayName: "返聘员工",
+		DisplayName: "",
 		Enabled:     true,
 	}, []uuid.UUID{role.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
 	notification := biz.NewDingTalkUserAuthorizedNotification(account.ID)
-	authorized, err := adminRepo.AuthorizeDingTalkUser(ctx, intakeWorkspace.ID, systemWorkspace.ID, &biz.AdminUser{
+	authorized, err := adminRepo.AuthorizeDingTalkUser(assignmentCtx, intakeWorkspace.ID, systemWorkspace.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
-	}, []uuid.UUID{role.ID}, notification, adminLifecycleAudit(systemWorkspace.ID, "admin.user.dingtalk.authorize"))
+	}, []uuid.UUID{role.ID}, notification, &biz.AuditEvent{OrganizationID: &intakeWorkspace.ID, UserID: &actorID, Action: "admin.user.dingtalk.authorize", Result: "success", Details: map[string]string{}})
 	if err != nil {
 		t.Fatalf("返聘重新授权: %v", err)
 	}

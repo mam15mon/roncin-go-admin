@@ -53,49 +53,16 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.ListAuditLogsResponse'
-    /api/v1/admin/dingtalk/invitations:
-        get:
-            tags:
-                - AdminService
-            operationId: AdminService_ListDingTalkInvitations
-            parameters:
-                - name: page
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: pageSize
-                  in: query
-                  schema:
-                    type: integer
-                    format: int32
-                - name: organizationId
-                  in: query
-                  description: 按组织过滤；必须是调用者可写范围内的组织。
-                  schema:
-                    type: string
-                - name: status
-                  in: query
-                  schema:
-                    type: integer
-                    format: enum
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/admin.v1.ListDingTalkInvitationsResponse'
+    /api/v1/admin/dingtalk/authorizations:
         post:
             tags:
                 - AdminService
-            description: CreateDingTalkInvitation 为目标手机号预建扫码邀请（通道 A：员工扫码自动激活）。
-            operationId: AdminService_CreateDingTalkInvitation
+            operationId: AdminService_BatchAuthorizeDingTalkUsers
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/admin.v1.CreateDingTalkInvitationRequest'
+                            $ref: '#/components/schemas/admin.v1.BatchAuthorizeDingTalkUsersRequest'
                 required: true
             responses:
                 "200":
@@ -103,49 +70,30 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/admin.v1.CreateDingTalkInvitationResponse'
-    /api/v1/admin/dingtalk/invitations/{id}:
-        get:
+                                $ref: '#/components/schemas/admin.v1.BatchAuthorizeDingTalkUsersResponse'
+    /api/v1/admin/dingtalk/directory-syncs:
+        post:
             tags:
                 - AdminService
-            description: GetDingTalkInvitation 获取单个邀请详情与二维码链接（用于弹窗展示，避免在列表全量暴露 Token）。
-            operationId: AdminService_GetDingTalkInvitation
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
+            operationId: AdminService_StartDingTalkDirectorySync
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.StartDingTalkDirectorySyncRequest'
+                required: true
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/admin.v1.GetDingTalkInvitationResponse'
-        delete:
-            tags:
-                - AdminService
-            operationId: AdminService_RevokeDingTalkInvitation
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/admin.v1.RevokeDingTalkInvitationResponse'
-    /api/v1/admin/dingtalk/registrations:
+                                $ref: '#/components/schemas/admin.v1.StartDingTalkDirectorySyncResponse'
+    /api/v1/admin/dingtalk/directory-syncs/latest:
         get:
             tags:
                 - AdminService
-            description: ListDingTalkRegistrations 返回当前组织范围内待审批的钉钉扫码注册队列。
-            operationId: AdminService_ListDingTalkRegistrations
+            operationId: AdminService_GetLatestDingTalkDirectorySync
             parameters:
                 - name: page
                   in: query
@@ -163,95 +111,35 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/admin.v1.ListDingTalkRegistrationsResponse'
-    /api/v1/admin/dingtalk/registrations/organizations:
+                                $ref: '#/components/schemas/admin.v1.GetLatestDingTalkDirectorySyncResponse'
+    /api/v1/admin/dingtalk/directory-syncs/{taskId}:
         get:
             tags:
                 - AdminService
-            description: ListTransferOrganizations 返回待审批注册转派可选的目标分公司列表（启用中的公司）。
-            operationId: AdminService_ListTransferOrganizations
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/admin.v1.ListTransferOrganizationsResponse'
-    /api/v1/admin/dingtalk/registrations/{id}/approval:
-        post:
-            tags:
-                - AdminService
-            description: ApproveDingTalkRegistration 一站式同意：启用账号 + 建目标组织成员资格 + 授予初始角色 + 通知本人。
-            operationId: AdminService_ApproveDingTalkRegistration
+            operationId: AdminService_GetDingTalkDirectorySync
             parameters:
-                - name: id
-                  in: path
-                  description: 注册用户的 ID（待审批队列中的 user_id）。
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/admin.v1.ApproveDingTalkRegistrationRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/admin.v1.ApproveDingTalkRegistrationResponse'
-    /api/v1/admin/dingtalk/registrations/{id}/rejection:
-        post:
-            tags:
-                - AdminService
-            operationId: AdminService_RejectDingTalkRegistration
-            parameters:
-                - name: id
+                - name: taskId
                   in: path
                   required: true
                   schema:
                     type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/admin.v1.RejectDingTalkRegistrationRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/admin.v1.RejectDingTalkRegistrationResponse'
-    /api/v1/admin/dingtalk/registrations/{userId}/transfer:
-        post:
-            tags:
-                - AdminService
-            description: TransferDingTalkRegistration 将待审批注册转派至兄弟分公司。
-            operationId: AdminService_TransferDingTalkRegistration
-            parameters:
-                - name: userId
-                  in: path
-                  required: true
+                - name: page
+                  in: query
                   schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/admin.v1.TransferDingTalkRegistrationRequest'
-                required: true
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/admin.v1.TransferDingTalkRegistrationResponse'
+                                $ref: '#/components/schemas/admin.v1.GetDingTalkDirectorySyncResponse'
     /api/v1/admin/organizations:
         get:
             tags:
@@ -427,9 +315,14 @@ paths:
                     type: string
                 - name: enabled
                   in: query
-                  description: 是否启用：不传=不过滤；true=在职用户；false=离职/停用用户。
+                  description: 是否启用：不传=不过滤；true=已启用成员；false=离职/停用成员（排除待分配）。
                   schema:
                     type: boolean
+                - name: status
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
             responses:
                 "200":
                     description: OK
@@ -667,25 +560,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.DeleteUserMembershipResponse'
-    /api/v1/auth/dingtalk/invitations/info:
-        get:
-            tags:
-                - AuthService
-            description: GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
-            operationId: AuthService_GetDingTalkInvitationInfo
-            parameters:
-                - name: token
-                  in: query
-                  description: 专属邀请 128-bit Token
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/auth.v1.GetDingTalkInvitationInfoResponse'
     /api/v1/auth/dingtalk/login:
         post:
             tags:
@@ -716,24 +590,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/auth.v1.GetDingTalkLoginConfigResponse'
-    /api/v1/auth/dingtalk/registrations:
-        post:
-            tags:
-                - AuthService
-            operationId: AuthService_RegisterDingTalkUser
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/auth.v1.RegisterDingTalkUserRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/auth.v1.RegisterDingTalkUserResponse'
     /api/v1/auth/login:
         post:
             tags:
@@ -8344,6 +8200,18 @@ components:
                     items:
                         type: string
                     description: 角色显示名，与 role_codes 按下标一一对应，供列表直接展示。
+                pendingAssignment:
+                    type: boolean
+                dingtalkJobNumber:
+                    type: string
+                dingtalkMobileMasked:
+                    type: string
+                dingtalkDepartments:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.DingTalkDepartment'
+                dingtalkLastSyncedAt:
+                    type: string
         admin.v1.AdminUserMembership:
             type: object
             properties:
@@ -8390,49 +8258,16 @@ components:
                 primary:
                     type: boolean
             description: 用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。
-        admin.v1.ApproveDingTalkRegistrationRequest:
-            required:
-                - id
-                - roleIds
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: 注册用户的 ID（待审批队列中的 user_id）。
-                roleIds:
-                    type: array
-                    items:
-                        type: string
-                    description: 同意时授予的初始角色，必须属于注册的目标组织。
-        admin.v1.ApproveDingTalkRegistrationResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/admin.v1.DingTalkRegistration'
-                traceId:
-                    type: string
         admin.v1.AuthorizeDingTalkUserRequest:
             required:
                 - id
                 - organizationId
-                - displayName
                 - roleIds
             type: object
             properties:
                 id:
                     type: string
                 organizationId:
-                    type: string
-                displayName:
-                    type: string
-                email:
                     type: string
                 roleIds:
                     type: array
@@ -8486,32 +8321,24 @@ components:
                     $ref: '#/components/schemas/admin.v1.AdminUser'
                 traceId:
                     type: string
-        admin.v1.CreateDingTalkInvitationRequest:
+        admin.v1.BatchAuthorizeDingTalkUsersRequest:
             required:
+                - userIds
                 - organizationId
+                - roleIds
             type: object
             properties:
+                userIds:
+                    type: array
+                    items:
+                        type: string
                 organizationId:
                     type: string
-                    description: 目标组织；必须是调用者可写范围内的组织。
-                kind:
-                    type: integer
-                    description: 邀请类型：TARGETED（定向单人免审码）或 GENERIC（通用入职审批码）。缺省为 TARGETED。
-                    format: enum
-                mobile:
-                    type: string
-                    description: 国内手机号；TARGETED 必填，GENERIC 留空。
-                roleId:
-                    type: string
-                    description: 激活后授予的初始角色（属于目标组织；通用码可选，留空则审批时指定）。
-                displayName:
-                    type: string
-                    description: 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
-                expiresInHours:
-                    type: integer
-                    description: 有效期（小时）；缺省 168（7 天），允许 1-720。
-                    format: int32
-        admin.v1.CreateDingTalkInvitationResponse:
+                roleIds:
+                    type: array
+                    items:
+                        type: string
+        admin.v1.BatchAuthorizeDingTalkUsersResponse:
             type: object
             properties:
                 success:
@@ -8522,9 +8349,9 @@ components:
                 message:
                     type: string
                 data:
-                    $ref: '#/components/schemas/admin.v1.DingTalkInvitation'
-                invitationUrl:
-                    type: string
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.DingTalkAssignmentResult'
                 traceId:
                     type: string
         admin.v1.CreateOrganizationRequest:
@@ -8678,57 +8505,87 @@ components:
                     type: string
                 traceId:
                     type: string
-        admin.v1.DingTalkInvitation:
-            type: object
-            properties:
-                id:
-                    type: string
-                organizationId:
-                    type: string
-                organizationName:
-                    type: string
-                roleId:
-                    type: string
-                roleName:
-                    type: string
-                mobileMasked:
-                    type: string
-                displayName:
-                    type: string
-                status:
-                    type: integer
-                    format: enum
-                consumedName:
-                    type: string
-                createdAt:
-                    type: string
-                expiresAt:
-                    type: string
-                inviterName:
-                    type: string
-                kind:
-                    type: integer
-                    format: enum
-                token:
-                    type: string
-            description: 手机号展示统一脱敏（138****1234），完整号码不离开服务端。
-        admin.v1.DingTalkRegistration:
+        admin.v1.DingTalkAssignmentResult:
             type: object
             properties:
                 userId:
                     type: string
-                displayName:
+                success:
+                    type: boolean
+                reason:
                     type: string
-                avatarUrl:
+                message:
                     type: string
-                requestedOrganizationId:
+        admin.v1.DingTalkDepartment:
+            type: object
+            properties:
+                id:
                     type: string
-                requestedOrganizationName:
+                name:
                     type: string
-                registeredAt:
+            description: 钉钉来源部门仅用于展示，不代表本系统的业务组织。
+        admin.v1.DingTalkDirectorySync:
+            type: object
+            properties:
+                taskId:
                     type: string
-            description: 待审批注册：钉钉姓名/头像来自扫码返回，供管理员人工认领。
-        admin.v1.GetDingTalkInvitationResponse:
+                status:
+                    type: string
+                startedAt:
+                    type: string
+                completedAt:
+                    type: string
+                total:
+                    type: integer
+                    format: int32
+                created:
+                    type: integer
+                    format: int32
+                updated:
+                    type: integer
+                    format: int32
+                unchanged:
+                    type: integer
+                    format: int32
+                failed:
+                    type: integer
+                    format: int32
+                scopeSummary:
+                    type: string
+                availableFields:
+                    type: array
+                    items:
+                        type: string
+                failures:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.DingTalkDirectorySyncFailure'
+                failureTotal:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                fullScope:
+                    type: boolean
+                lastError:
+                    type: string
+            description: 可用字段与授权范围反映本次执行，失败详情不含原始通讯录报文。
+        admin.v1.DingTalkDirectorySyncFailure:
+            type: object
+            properties:
+                userId:
+                    type: string
+                departmentId:
+                    type: string
+                reason:
+                    type: string
+                message:
+                    type: string
+        admin.v1.GetDingTalkDirectorySyncResponse:
             type: object
             properties:
                 success:
@@ -8739,9 +8596,21 @@ components:
                 message:
                     type: string
                 data:
-                    $ref: '#/components/schemas/admin.v1.DingTalkInvitation'
-                invitationUrl:
+                    $ref: '#/components/schemas/admin.v1.DingTalkDirectorySync'
+                traceId:
                     type: string
+        admin.v1.GetLatestDingTalkDirectorySyncResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/admin.v1.DingTalkDirectorySync'
                 traceId:
                     type: string
         admin.v1.ListAuditLogsResponse:
@@ -8758,56 +8627,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/admin.v1.AdminAuditLog'
-                total:
-                    type: integer
-                    format: int32
-                page:
-                    type: integer
-                    format: int32
-                pageSize:
-                    type: integer
-                    format: int32
-                traceId:
-                    type: string
-        admin.v1.ListDingTalkInvitationsResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/admin.v1.DingTalkInvitation'
-                total:
-                    type: integer
-                    format: int32
-                page:
-                    type: integer
-                    format: int32
-                pageSize:
-                    type: integer
-                    format: int32
-                traceId:
-                    type: string
-        admin.v1.ListDingTalkRegistrationsResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/admin.v1.DingTalkRegistration'
                 total:
                     type: integer
                     format: int32
@@ -8883,22 +8702,6 @@ components:
                         $ref: '#/components/schemas/admin.v1.AdminRole'
                 traceId:
                     type: string
-        admin.v1.ListTransferOrganizationsResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/admin.v1.AdminOrganization'
-                traceId:
-                    type: string
         admin.v1.ListUserMembershipsResponse:
             type: object
             properties:
@@ -8940,28 +8743,6 @@ components:
                     format: int32
                 traceId:
                     type: string
-        admin.v1.RejectDingTalkRegistrationRequest:
-            required:
-                - id
-                - reason
-            type: object
-            properties:
-                id:
-                    type: string
-                reason:
-                    type: string
-        admin.v1.RejectDingTalkRegistrationResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                traceId:
-                    type: string
         admin.v1.ResetUserPasswordRequest:
             required:
                 - id
@@ -8986,7 +8767,10 @@ components:
                     type: string
                 traceId:
                     type: string
-        admin.v1.RevokeDingTalkInvitationResponse:
+        admin.v1.StartDingTalkDirectorySyncRequest:
+            type: object
+            properties: {}
+        admin.v1.StartDingTalkDirectorySyncResponse:
             type: object
             properties:
                 success:
@@ -8996,6 +8780,8 @@ components:
                     format: int32
                 message:
                     type: string
+                data:
+                    $ref: '#/components/schemas/admin.v1.DingTalkDirectorySync'
                 traceId:
                     type: string
         admin.v1.TerminateUserRequest:
@@ -9006,31 +8792,6 @@ components:
                 id:
                     type: string
         admin.v1.TerminateUserResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                traceId:
-                    type: string
-        admin.v1.TransferDingTalkRegistrationRequest:
-            required:
-                - userId
-                - targetOrganizationId
-                - reason
-            type: object
-            properties:
-                userId:
-                    type: string
-                targetOrganizationId:
-                    type: string
-                reason:
-                    type: string
-        admin.v1.TransferDingTalkRegistrationResponse:
             type: object
             properties:
                 success:
@@ -9139,7 +8900,6 @@ components:
         admin.v1.UpdateUserRequest:
             required:
                 - id
-                - displayName
             type: object
             properties:
                 id:
@@ -9200,16 +8960,6 @@ components:
                     items:
                         $ref: '#/components/schemas/auth.v1.PermissionCapability'
                     description: 按权限聚合的有效范围，前端授权使用此字段。
-        auth.v1.DingTalkInvitationPublicInfo:
-            type: object
-            properties:
-                organizationName:
-                    type: string
-                inviterName:
-                    type: string
-                expiresAt:
-                    type: string
-            description: 落地页公共展示信息（极简安全模型：不返回 token 本身、不返回角色或权限配置、不返回手机号）。
         auth.v1.DingTalkLoginConfig:
             type: object
             properties:
@@ -9251,31 +9001,7 @@ components:
                     $ref: '#/components/schemas/auth.v1.CurrentUser'
                 displayName:
                     type: string
-                registrationOrganizations:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/auth.v1.OrganizationChoice'
-                    description: REGISTRATION_REQUIRED 时可选的目标公司列表（启用中的公司组织），供注册确认页选择。
-        auth.v1.DingTalkRegistrationConfirmation:
-            type: object
-            properties:
-                displayName:
-                    type: string
-                status:
-                    type: string
-        auth.v1.GetDingTalkInvitationInfoResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
                 message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/auth.v1.DingTalkInvitationPublicInfo'
-                traceId:
                     type: string
         auth.v1.GetDingTalkLoginConfigResponse:
             type: object
@@ -9407,29 +9133,6 @@ components:
                 key:
                     type: string
                 dataScope:
-                    type: string
-        auth.v1.RegisterDingTalkUserRequest:
-            type: object
-            properties:
-                invitationToken:
-                    type: string
-                    description: 可选：专属邀请 Token；若提供则由服务端解析目标组织，杜绝客户端伪造
-                organizationId:
-                    type: string
-                    description: 可选：自选要加入的目标公司（公开注册通道用；若有 invitation_token 则由服务端优先从 Token 兑现）
-        auth.v1.RegisterDingTalkUserResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/auth.v1.DingTalkRegistrationConfirmation'
-                traceId:
                     type: string
         auth.v1.RoleScope:
             type: object

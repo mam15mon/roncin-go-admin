@@ -32,10 +32,12 @@ func TestAdminRepoListUsersUsesDatabaseFilteringAndPagination(t *testing.T) {
 	repo := NewAdminRepo(&Data{db: client, sqlDB: db})
 	workspaceID := uuid.New()
 
-	// 工作台范围先一次加载组织树（系统管理工作台 = 全树启用组织）。
+	// 公司列表先加载组织树，再确认工作台类型，数据库过滤只覆盖公司成员。
 	mock.ExpectQuery(`SELECT "organizations"."id", "organizations"."parent_id", "organizations"."kind", "organizations"."code", "organizations"."name", "organizations"."base_currency", "organizations"."enabled" FROM "organizations"`).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "parent_id", "kind", "code", "name", "base_currency", "enabled"}).
-			AddRow(workspaceID, nil, "system", "HQ", "系统管理", "CNY", true))
+			AddRow(workspaceID, nil, "company", "HQ", "验证公司", "CNY", true))
+	mock.ExpectQuery(`SELECT .* FROM "organizations" WHERE "organizations"."id" =`).WithArgs(workspaceID).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "kind", "enabled"}).AddRow(workspaceID, "company", true))
 	mock.ExpectQuery(`SELECT COUNT\("users"\."id"\) FROM "users".*EXISTS.*"memberships".*"organization_id"`).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 	mock.ExpectQuery(`SELECT "users"\."id".*FROM "users".*EXISTS.*ORDER BY "users"\."username", "users"\."id" LIMIT 20 OFFSET 20`).
@@ -99,7 +101,9 @@ func TestAdminRepoListUsersEnabledFilter(t *testing.T) {
 
 			mock.ExpectQuery(`SELECT "organizations"."id", "organizations"."parent_id", "organizations"."kind", "organizations"."code", "organizations"."name", "organizations"."base_currency", "organizations"."enabled" FROM "organizations"`).
 				WillReturnRows(sqlmock.NewRows([]string{"id", "parent_id", "kind", "code", "name", "base_currency", "enabled"}).
-					AddRow(workspaceID, nil, "system", "HQ", "系统管理", "CNY", true))
+					AddRow(workspaceID, nil, "company", "HQ", "验证公司", "CNY", true))
+			mock.ExpectQuery(`SELECT .* FROM "organizations" WHERE "organizations"."id" =`).WithArgs(workspaceID).
+				WillReturnRows(sqlmock.NewRows([]string{"id", "kind", "enabled"}).AddRow(workspaceID, "company", true))
 			if test.wantPredicate != "" {
 				mock.ExpectQuery(`SELECT COUNT\("users"\."id"\) FROM "users".*ILIKE.*`+regexp.QuoteMeta(test.wantPredicate)).
 					WithArgs(workspaceID, sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).

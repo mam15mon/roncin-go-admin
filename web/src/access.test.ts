@@ -188,26 +188,29 @@ describe('提成导出权限', () => {
   });
 });
 
-describe('钉钉邀请与注册审批权限', () => {
-  it('组织范围且拥有邀请管理权限时可管理钉钉邀请，并计入用户管理聚合', () => {
-    const result = access(
-      currentUser([
-        'system.user.read',
-        'system.user.dingtalk_invitation.manage',
-      ]),
-    );
-    expect(result.canManageDingTalkInvitations).toBe(true);
+describe('钉钉通讯录同步权限', () => {
+  it('系统工作台且拥有同步权限时可同步人员，并计入用户管理聚合', () => {
+    const state = currentUserWithAllScope([
+      'system.user.read',
+      'system.user.dingtalk_directory.sync',
+    ]);
+    state.currentUser.currentOrganization = {
+      id: 'system',
+      name: '系统管理',
+      kind: AuthOrganizationKind.ORGANIZATION_KIND_SYSTEM,
+    };
+    const result = access(state);
+    expect(result.canSyncDingTalkDirectory).toBe(true);
     expect(result.canManageUsers).toBe(true);
   });
 
   it('只有用户读取权限或本人范围时不可管理钉钉邀请', () => {
     expect(
-      access(currentUser(['system.user.read'])).canManageDingTalkInvitations,
+      access(currentUser(['system.user.read'])).canSyncDingTalkDirectory,
     ).toBe(false);
     expect(
-      access(
-        currentUserWithSelfScope(['system.user.dingtalk_invitation.manage']),
-      ).canManageDingTalkInvitations,
+      access(currentUserWithSelfScope(['system.user.dingtalk_directory.sync']))
+        .canSyncDingTalkDirectory,
     ).toBe(false);
   });
 });

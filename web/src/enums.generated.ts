@@ -47,32 +47,17 @@ export const AdminUserStatus = {
   ADMIN_USER_STATUS_TERMINATED: 3,
   ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION: 4,
   ADMIN_USER_STATUS_DISABLED: 5,
+  ADMIN_USER_STATUS_PENDING_ASSIGNMENT: 6,
 } as const;
 
 export type AdminUserStatus = (typeof AdminUserStatus)[keyof typeof AdminUserStatus];
 
-export const DingTalkInvitationStatus = {
-  DING_TALK_INVITATION_STATUS_UNSPECIFIED: 0,
-  DING_TALK_INVITATION_STATUS_PENDING: 1,
-  DING_TALK_INVITATION_STATUS_CONSUMED: 2,
-  DING_TALK_INVITATION_STATUS_EXPIRED: 3,
-  DING_TALK_INVITATION_STATUS_REVOKED: 4,
-} as const;
-
-export type DingTalkInvitationStatus = (typeof DingTalkInvitationStatus)[keyof typeof DingTalkInvitationStatus];
-
-export const DingTalkInvitationKind = {
-  DING_TALK_INVITATION_KIND_UNSPECIFIED: 0,
-  DING_TALK_INVITATION_KIND_TARGETED: 1,
-  DING_TALK_INVITATION_KIND_GENERIC: 2,
-} as const;
-
-export type DingTalkInvitationKind = (typeof DingTalkInvitationKind)[keyof typeof DingTalkInvitationKind];
-
 export const DingTalkLoginStatus = {
   DING_TALK_LOGIN_STATUS_UNSPECIFIED: 0,
   DING_TALK_LOGIN_STATUS_AUTHENTICATED: 1,
-  DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED: 2,
+  DING_TALK_LOGIN_STATUS_NOT_SYNCED: 2,
+  DING_TALK_LOGIN_STATUS_PENDING_ASSIGNMENT: 3,
+  DING_TALK_LOGIN_STATUS_DISABLED: 4,
 } as const;
 
 export type DingTalkLoginStatus = (typeof DingTalkLoginStatus)[keyof typeof DingTalkLoginStatus];
@@ -721,6 +706,7 @@ export const BackgroundTaskKind = {
   BACKGROUND_TASK_KIND_ORDER_REMINDER: 3,
   BACKGROUND_TASK_KIND_INTEGRATION: 4,
   BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION: 5,
+  BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC: 6,
 } as const;
 
 export type BackgroundTaskKind = (typeof BackgroundTaskKind)[keyof typeof BackgroundTaskKind];

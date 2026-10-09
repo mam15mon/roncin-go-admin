@@ -16,11 +16,6 @@ const routes: UmiRoute[] = [
         component: './user/login',
       },
       {
-        name: '注册',
-        path: '/user/register',
-        component: './user/register',
-      },
-      {
         name: '企业微信登录',
         path: '/user/login/wecom/callback',
         component: './user/login/wecom-callback',

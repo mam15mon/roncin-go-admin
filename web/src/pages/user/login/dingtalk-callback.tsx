@@ -1,15 +1,13 @@
 import { DingdingOutlined } from '@ant-design/icons';
-import { App, Button, Result, Select, Space, Spin } from 'antd';
+import { useMutation } from '@tanstack/react-query';
+import { App, Button, Result, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import { DingTalkLoginStatus } from '@/enums.generated';
+import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
-import {
-  authServiceDingTalkLogin,
-  authServiceGetDingTalkInvitationInfo,
-  authServiceRegisterDingTalkUser,
-} from '@/services/roncin/authService';
+import { authServiceDingTalkLogin } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import {
   type LoginOrganizationOption,
@@ -17,23 +15,6 @@ import {
   resolveLoginOrganizationOptions,
 } from './components/organization-picker';
 import styles from './index.module.less';
-
-interface LoginError extends Error {
-  response?: { data?: { message?: string } };
-  data?: { message?: string };
-}
-
-interface LoginFailure {
-  message: string;
-}
-
-function loginFailure(error: unknown): LoginFailure {
-  const requestError = error as LoginError;
-  const data = requestError.data ?? requestError.response?.data;
-  return {
-    message: data?.message ?? requestError.message ?? '钉钉登录失败',
-  };
-}
 
 function storedRedirect(): string {
   const value = sessionStorage.getItem('dingtalk_login_redirect');
@@ -45,40 +26,56 @@ function storedRedirect(): string {
 export default function DingTalkCallback() {
   const { setInitialState } = useInitialState();
   const { message } = App.useApp();
-  const [failure, setFailure] = useState<LoginFailure>();
-  const [registrationName, setRegistrationName] = useState('');
-  const [registeredName, setRegisteredName] = useState('');
-  const [registrationLoading, setRegistrationLoading] = useState(false);
-  const [registrationOrganizations, setRegistrationOrganizations] = useState<
-    API.OrganizationChoice[]
-  >([]);
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState('');
+  const [failure, setFailure] = useState<string>();
   const [organizationOptions, setOrganizationOptions] =
     useState<LoginOrganizationOption[]>();
-  const [invitationToken, setInvitationToken] = useState('');
-  const [invitationInfo, setInvitationInfo] =
-    useState<API.DingTalkInvitationPublicInfo>();
   const pendingRedirectRef = useRef('/');
   const handled = useRef(false);
-
-  useEffect(() => {
-    const token =
-      sessionStorage.getItem('dingtalk_invitation_token') ||
-      new URL(window.location.href).searchParams.get('invite') ||
-      '';
-    if (token) {
-      setInvitationToken(token);
-      authServiceGetDingTalkInvitationInfo(
-        { token },
-        { skipErrorHandler: true },
+  const login = useMutation({
+    mutationFn: async (credentials: API.DingTalkLoginRequest) => {
+      const response = await authServiceDingTalkLogin(credentials, {
+        skipErrorHandler: true,
+      });
+      if (!response?.data) throw new Error('钉钉认证未返回有效结果');
+      if (
+        !response.data.status ||
+        (response.data.status ===
+          DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED &&
+          !response.data.currentUser)
       )
-        .then((response) => {
-          if (response.data) setInvitationInfo(response.data);
-        })
-        .catch(() => {});
-    }
-  }, []);
-
+        throw new Error('钉钉认证未返回有效结果');
+      return response.data;
+    },
+    meta: { silent: true },
+    onSuccess: (data) => {
+      if (
+        data.status !==
+          DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED ||
+        !data.currentUser
+      )
+        return;
+      startTransition(() =>
+        setInitialState((current) => ({
+          ...current,
+          currentUser: data.currentUser,
+        })),
+      );
+      const options = resolveLoginOrganizationOptions(
+        undefined,
+        data.currentUser,
+      );
+      if (options.length > 1) {
+        pendingRedirectRef.current = storedRedirect();
+        setOrganizationOptions(options);
+        return;
+      }
+      message.success('钉钉登录成功');
+      window.location.replace(storedRedirect());
+    },
+    onError: (error) =>
+      setFailure(getRequestErrorMessage(error, '钉钉登录失败')),
+  });
+  const { mutate } = login;
   useEffect(() => {
     if (handled.current) return;
     handled.current = true;
@@ -86,176 +83,33 @@ export default function DingTalkCallback() {
     const authCode = params.get('authCode') ?? '';
     const state = params.get('state') ?? '';
     if (!authCode || !state) {
-      setFailure({ message: '钉钉未返回有效的登录凭证，请重新扫码' });
+      setFailure('钉钉未返回有效的登录凭证，请重新扫码');
       return;
     }
-    authServiceDingTalkLogin({ authCode, state }, { skipErrorHandler: true })
-      .then((response) => {
-        if (
-          response.data?.status ===
-            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED &&
-          response.data.displayName
-        ) {
-          setRegistrationName(response.data.displayName);
-          setRegistrationOrganizations(
-            response.data.registrationOrganizations ?? [],
-          );
-          return;
-        }
-        if (
-          response.data?.status !==
-            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED ||
-          !response.data.currentUser
-        ) {
-          setFailure({ message: '钉钉认证未返回有效结果' });
-          return;
-        }
-        startTransition(() => {
-          setInitialState((current) => ({
-            ...current,
-            currentUser: response.data?.currentUser,
-          }));
-        });
-        // 钉钉登录响应不携带组织候选列表，回退到 principal organizations；
-        // 多组织用户先选择进入组织，单组织直接进入。
-        const options = resolveLoginOrganizationOptions(
-          undefined,
-          response.data.currentUser,
-        );
-        if (options.length > 1) {
-          pendingRedirectRef.current = storedRedirect();
-          setOrganizationOptions(options);
-          return;
-        }
-        message.success('钉钉登录成功');
-        sessionStorage.removeItem('dingtalk_invitation_token');
-        window.location.replace(storedRedirect());
-      })
-      .catch((error) => {
-        setFailure(loginFailure(error));
-      });
-  }, [message, setInitialState]);
+    mutate({ authCode, state });
+  }, [mutate]);
 
-  const confirmRegistration = async () => {
-    setRegistrationLoading(true);
-    try {
-      const activeToken =
-        invitationToken ||
-        sessionStorage.getItem('dingtalk_invitation_token') ||
-        undefined;
-      const response = await authServiceRegisterDingTalkUser(
-        activeToken
-          ? { invitationToken: activeToken }
-          : selectedOrganizationId
-            ? { organizationId: selectedOrganizationId }
-            : {},
-        { skipErrorHandler: true },
-      );
-      if (!response.data) {
-        setFailure({ message: '钉钉注册未返回申请结果' });
-        return;
-      }
-      setRegisteredName(response.data.displayName ?? registrationName);
-      setRegistrationName('');
-      sessionStorage.removeItem('dingtalk_invitation_token');
-    } catch (error) {
-      setFailure(loginFailure(error));
-      setRegistrationName('');
-    } finally {
-      setRegistrationLoading(false);
-    }
-  };
-
+  const status = login.data?.status;
+  const blocked =
+    status !== undefined &&
+    status !== DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED;
+  const title =
+    status === DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_NOT_SYNCED
+      ? '人员尚未同步'
+      : status === DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_PENDING_ASSIGNMENT
+        ? '尚未分配组织'
+        : status === DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_DISABLED
+          ? '账号已停用'
+          : '钉钉认证未完成';
   return (
     <div className={styles.loginContainer} style={{ justifyContent: 'center' }}>
       <Helmet>
         <title>钉钉认证 - {Settings.title}</title>
       </Helmet>
-      {registeredName ? (
-        <Result
-          status="success"
-          title="入职或返聘申请已提交"
-          subTitle={
-            invitationInfo?.organizationName
-              ? `${registeredName}，企业身份验证已通过。申请已转交【${invitationInfo.organizationName}】管理员审批，授权完成后即可使用钉钉登录。`
-              : `${registeredName}，企业身份验证已通过。请等待管理员重新确认所属组织和角色，授权完成后即可使用钉钉登录。`
-          }
-          extra={
-            <Button
-              type="primary"
-              onClick={() => {
-                history.push('/user/login');
-              }}
-            >
-              返回登录
-            </Button>
-          }
-        />
-      ) : registrationName ? (
-        <Result
-          status="info"
-          icon={<DingdingOutlined style={{ color: '#1677ff' }} />}
-          title="钉钉身份验证完成"
-          subTitle={
-            invitationToken
-              ? `已确认 ${registrationName} 属于本企业。您正通过【${invitationInfo?.organizationName || '专属通道'}】申请入职，确认后将转交该分公司管理员审批。`
-              : registrationOrganizations.length > 1
-                ? `已确认 ${registrationName} 属于本企业。请选择要加入的公司；不选择时由系统管理审批。`
-                : `已确认 ${registrationName} 属于本企业。确认注册后将提交管理员分配所属组织和角色。`
-          }
-          extra={
-            <Space orientation="vertical" size={16}>
-              {!invitationToken && registrationOrganizations.length > 1 && (
-                <div>
-                  <div
-                    style={{
-                      marginBottom: 8,
-                      fontSize: 14,
-                      color: 'rgba(0, 0, 0, 0.88)',
-                    }}
-                  >
-                    要加入的公司
-                  </div>
-                  <Select
-                    value={selectedOrganizationId}
-                    disabled={registrationLoading}
-                    onChange={setSelectedOrganizationId}
-                    style={{ width: 280, display: 'block' }}
-                    options={[
-                      { label: '默认（系统管理审批）', value: '' },
-                      ...registrationOrganizations.map((organization) => ({
-                        label: `${organization.organizationName} (${organization.organizationCode})`,
-                        value: organization.organizationId,
-                      })),
-                    ]}
-                  />
-                </div>
-              )}
-              <Space>
-                <Button
-                  type="primary"
-                  loading={registrationLoading}
-                  onClick={confirmRegistration}
-                >
-                  确认注册
-                </Button>
-                <Button
-                  disabled={registrationLoading}
-                  onClick={() => {
-                    history.push('/user/login');
-                  }}
-                >
-                  取消并返回登录
-                </Button>
-              </Space>
-            </Space>
-          }
-        />
-      ) : organizationOptions ? (
+      {organizationOptions ? (
         <div
           style={{
             width: '100%',
-            maxWidth: 520,
             padding: '0 16px',
             display: 'flex',
             justifyContent: 'center',
@@ -269,19 +123,18 @@ export default function DingTalkCallback() {
             }}
           />
         </div>
-      ) : failure ? (
+      ) : failure || blocked ? (
         <Result
-          status="error"
+          status={failure ? 'error' : 'info'}
           icon={<DingdingOutlined style={{ color: '#1677ff' }} />}
-          title="钉钉认证未完成"
-          subTitle={failure.message}
+          title={failure ? '钉钉认证未完成' : title}
+          subTitle={
+            failure ||
+            login.data?.message ||
+            '请联系管理员同步人员并分配组织和角色后，再使用钉钉登录。'
+          }
           extra={
-            <Button
-              type="primary"
-              onClick={() => {
-                history.push('/user/login');
-              }}
-            >
+            <Button type="primary" onClick={() => history.push('/user/login')}>
               返回登录
             </Button>
           }

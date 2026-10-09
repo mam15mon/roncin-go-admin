@@ -145,6 +145,8 @@ func backgroundTaskKindFromAPI(kind taskv1.BackgroundTaskKind) (biz.BackgroundTa
 		return biz.BackgroundTaskKindOrderReminder, nil
 	case taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_INTEGRATION:
 		return biz.BackgroundTaskKindIntegration, nil
+	case taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC:
+		return biz.BackgroundTaskKindDingTalkDirectorySync, nil
 	case taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION:
 		return biz.BackgroundTaskKindDingTalkNotice, nil
 	default:
@@ -162,6 +164,8 @@ func backgroundTaskKindToAPI(kind biz.BackgroundTaskKind) taskv1.BackgroundTaskK
 		return taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_ORDER_REMINDER
 	case biz.BackgroundTaskKindIntegration:
 		return taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_INTEGRATION
+	case biz.BackgroundTaskKindDingTalkDirectorySync:
+		return taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC
 	case biz.BackgroundTaskKindDingTalkNotice:
 		return taskv1.BackgroundTaskKind_BACKGROUND_TASK_KIND_DINGTALK_NOTIFICATION
 	default:

@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,7 +7,7 @@ const accessState = vi.hoisted(() => ({
   value: {
     canReadRoles: true,
     canReadOrganizations: false,
-  },
+  } as Record<string, boolean>,
 }));
 
 const initialStateState = vi.hoisted(() => ({
@@ -75,7 +76,7 @@ vi.mock('@ant-design/pro-components', () => ({
     void props.request?.({
       current: proTableState.page,
       pageSize: 20,
-      enabled: props.params?.enabled,
+      ...props.params,
     });
     return <div />;
   },
@@ -125,18 +126,6 @@ vi.mock('antd', async (importOriginal) => {
   };
 });
 
-vi.mock('./dingtalk-invitations', () => ({
-  default: () => (
-    <div data-testid="dingtalk-invitations-subpanel">钉钉邀请子面板</div>
-  ),
-}));
-
-vi.mock('./dingtalk-registrations', () => ({
-  default: () => (
-    <div data-testid="dingtalk-registrations-subpanel">注册审批子面板</div>
-  ),
-}));
-
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceListRoles: serviceMocks.listRoles,
   adminServiceListOrganizations: serviceMocks.listOrganizations,
@@ -179,7 +168,7 @@ describe('UsersPanel 角色与组织数据源按权限分流', () => {
   it('普通组织管理员只请求当前组织角色，不发全组织请求', async () => {
     accessState.value = { canReadRoles: true, canReadOrganizations: false };
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
 
     expect(serviceMocks.listRoles).toHaveBeenCalledTimes(1);
@@ -189,7 +178,7 @@ describe('UsersPanel 角色与组织数据源按权限分流', () => {
   it('全局管理员同时请求当前组织角色与全组织列表', async () => {
     accessState.value = { canReadRoles: true, canReadOrganizations: true };
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
 
     expect(serviceMocks.listRoles).toHaveBeenCalledTimes(1);
@@ -199,7 +188,7 @@ describe('UsersPanel 角色与组织数据源按权限分流', () => {
   it('缺少角色读取权限时不请求角色列表', async () => {
     accessState.value = { canReadRoles: false, canReadOrganizations: false };
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
 
     expect(serviceMocks.listRoles).not.toHaveBeenCalled();
@@ -223,10 +212,10 @@ describe('UsersPanel 在职/离职页签数据视图', () => {
 
   it('默认展示在职页签，以 enabled=true 请求并保留操作列', async () => {
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
 
-    expect(screen.getByRole('button', { name: '在职用户' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '已开通' })).toHaveAttribute(
       'data-active',
       'true',
     );
@@ -241,14 +230,14 @@ describe('UsersPanel 在职/离职页签数据视图', () => {
 
   it('切换离职页签后以 enabled=false 重新请求并隐藏操作列', async () => {
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '离职用户' }));
+      fireEvent.click(screen.getByRole('button', { name: '离职 / 停用' }));
     });
 
-    expect(screen.getByRole('button', { name: '离职用户' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '离职 / 停用' })).toHaveAttribute(
       'data-active',
       'true',
     );
@@ -258,19 +247,19 @@ describe('UsersPanel 在职/离职页签数据视图', () => {
       keyword: undefined,
       enabled: false,
     });
-    expect(buildUserColumnsState.calls.at(-1)?.showActions).toBe(false);
+    expect(buildUserColumnsState.calls.at(-1)?.showActions).toBe(true);
   });
 
   it('切回在职页签后恢复 enabled=true 请求与操作列', async () => {
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '离职用户' }));
+      fireEvent.click(screen.getByRole('button', { name: '离职 / 停用' }));
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '在职用户' }));
+      fireEvent.click(screen.getByRole('button', { name: '已开通' }));
     });
 
     expect(serviceMocks.listUsers).toHaveBeenLastCalledWith(
@@ -281,7 +270,7 @@ describe('UsersPanel 在职/离职页签数据视图', () => {
 
   it('页签切换后回到第一页并以新页签参数请求', async () => {
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
 
     // 模拟用户已翻到第 3 页后切换页签
@@ -289,7 +278,7 @@ describe('UsersPanel 在职/离职页签数据视图', () => {
       proTableState.props.actionRef.current.setPageInfo({ current: 3 });
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '离职用户' }));
+      fireEvent.click(screen.getByRole('button', { name: '离职 / 停用' }));
     });
 
     expect(serviceMocks.listUsers).toHaveBeenLastCalledWith({
@@ -302,12 +291,12 @@ describe('UsersPanel 在职/离职页签数据视图', () => {
 
   it('离职页签下新建用户成功后落回在职页签', async () => {
     await act(async () => {
-      render(<UsersPanel />);
+      renderWithClient(<UsersPanel />);
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '离职用户' }));
+      fireEvent.click(screen.getByRole('button', { name: '离职 / 停用' }));
     });
-    expect(screen.getByRole('button', { name: '离职用户' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '离职 / 停用' })).toHaveAttribute(
       'data-active',
       'true',
     );
@@ -317,12 +306,53 @@ describe('UsersPanel 在职/离职页签数据视图', () => {
       userFormModalState.props.onReload();
     });
 
-    expect(screen.getByRole('button', { name: '在职用户' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '已开通' })).toHaveAttribute(
       'data-active',
       'true',
     );
     expect(serviceMocks.listUsers).toHaveBeenLastCalledWith(
       expect.objectContaining({ enabled: true, page: 1 }),
     );
+  });
+});
+
+describe('UsersPanel 待分配人员范围', () => {
+  it('系统工作台直接查询无组织待分配人员，切换页签清空选择', async () => {
+    accessState.value = {
+      isSystemWorkspace: true,
+      canReadRoles: false,
+      canReadOrganizations: false,
+      canAuthorizeDingTalkUsers: true,
+    };
+    serviceMocks.listUsers.mockResolvedValue({ data: [], total: 0 });
+    await act(async () => {
+      renderWithClient(<UsersPanel />);
+    });
+    expect(screen.getByRole('button', { name: '待分配' })).toHaveAttribute(
+      'data-active',
+      'true',
+    );
+    expect(serviceMocks.listUsers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 6 }),
+    );
+    const selected = {
+      id: 'person-1',
+      pendingAssignment: true,
+      dingtalkLastSyncedAt: '2026-10-09T01:00:00Z',
+    };
+    await act(async () => {
+      proTableState.props.rowSelection.onChange(['person-1'], [selected]);
+    });
+    expect(proTableState.props.rowSelection.selectedRowKeys).toEqual([
+      'person-1',
+    ]);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '已开通' }));
+    });
+    expect(proTableState.props.rowSelection).toBeUndefined();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '待分配' }));
+    });
+    expect(proTableState.props.rowSelection.selectedRowKeys).toEqual([]);
   });
 });

@@ -30,7 +30,7 @@ RotateSession(ctx, userID, currentTokenHash, targetOrgID, ...)  // 单事务轮�
   + 审计。任一步失败整体回滚；**不吊销其他设备会话**。
 - **并发语义**：同令牌并发切换由 ForUpdate 串行化，先提交者胜出，后到者 401（无双有效
   令牌窗口）；新令牌哈希唯一约束兜底。
-- **工作台经营边界**：系统管理工作台仅管理公共资料、公司授权及注册申请；经营读取和办理须进入启用公司。登录、auth/me 与切换响应输出相同有效权限集合，全部经营读写权限在系统管理工作台不可用；账号原始授权不因投影过滤而删除。跨组织详情查询临时定位组织必须保留 `Principal.WorkspaceOrganizationID`，不能当作实际切换。
+- **工作台经营边界**：系统管理工作台仅管理公共资料、公司授权及无组织待分配人员；经营读取和办理须进入启用公司。登录、auth/me 与切换响应输出相同有效权限集合，全部经营读写权限在系统管理工作台不可用；账号原始授权不因投影过滤而删除。跨组织详情查询临时定位组织必须保留 `Principal.WorkspaceOrganizationID`，不能当作实际切换。
 - **权限随组织重算**：切换后 `ResolvePrincipal(userID, targetOrgID)` 重算权限集；
   principal/token 一律取自会话（`RequirePrincipal`），请求体只携带目标组织。
 - **primary 语义不变**：不显式选择时登录进 primary；每次登录默认回 primary，选择只影响

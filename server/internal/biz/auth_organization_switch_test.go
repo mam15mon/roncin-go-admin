@@ -55,7 +55,7 @@ func (s *organizationSwitchRepoStub) RotateSession(_ context.Context, fromHash s
 }
 
 func newOrganizationSwitchUsecase(repo *organizationSwitchRepoStub) *AuthUsecase {
-	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{}, &dingTalkRegistrationTokenCodecStub{}, nil, nil, nil)
+	return NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, &wecomProviderStub{}, &dingTalkProviderStub{}, nil)
 }
 
 func organizationSwitchPasswordHash(t *testing.T) string {

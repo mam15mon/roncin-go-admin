@@ -9,6 +9,8 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
 import { adminUserStatusMeta, statusTag } from '@/constants/statusMeta';
+import { AdminUserStatus } from '@/enums.generated';
+import { formatDate } from '@/utils/format';
 import { formatOrganizationHierarchyName } from './userConstants';
 
 const { Text } = Typography;
@@ -19,6 +21,8 @@ interface UserColumnsDeps {
   // 是否展示操作列（编辑/重置密码/办理离职）；离职页签隐藏整列，展示列保留。
   showActions?: boolean;
   canUpdateUsers: boolean;
+  canAuthorizeDingTalkUsers?: boolean;
+  onAssign?: (user: API.AdminUser) => void;
   canResetUserPasswords: boolean;
   canTerminateUsers: boolean;
   canReadUserMemberships: boolean;
@@ -33,6 +37,8 @@ export function buildUserColumns({
   organizations,
   showActions = true,
   canUpdateUsers,
+  canAuthorizeDingTalkUsers,
+  onAssign,
   canResetUserPasswords,
   canTerminateUsers,
   canReadUserMemberships,
@@ -54,9 +60,12 @@ export function buildUserColumns({
           <Space size={10} align="center">
             <Avatar
               size={32}
-              src={record.avatarUrl}
+              src={record.avatarUrl || undefined}
               style={{
-                backgroundColor: record.status === 1 ? '#1677ff' : '#94a3b8',
+                backgroundColor:
+                  record.status === AdminUserStatus.ADMIN_USER_STATUS_ACTIVE
+                    ? '#1677ff'
+                    : '#94a3b8',
                 fontSize: 14,
                 fontWeight: 600,
                 flexShrink: 0,
@@ -211,47 +220,28 @@ export function buildUserColumns({
         ),
     },
     {
-      title: '钉钉',
-      dataIndex: 'dingtalkName',
-      width: 210,
+      title: '钉钉部门',
+      dataIndex: 'dingtalkDepartments',
+      width: 200,
       search: false,
       render: (_, record) =>
-        record.dingtalkUnionid ? (
-          <div style={{ lineHeight: 1.4 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>
-              {record.dingtalkName || '-'}
-            </div>
-            <Text
-              copyable={
-                record.dingtalkUserid ? { text: record.dingtalkUserid } : false
-              }
-              type={record.dingtalkUserid ? undefined : 'warning'}
-              style={{
-                display: 'block',
-                fontSize: 11,
-                fontFamily: 'monospace',
-              }}
-            >
-              {record.dingtalkUserid || '待重新登录绑定 userId'}
-            </Text>
-            <Text
-              type="secondary"
-              ellipsis={{ tooltip: record.dingtalkUnionid }}
-              style={{
-                display: 'block',
-                maxWidth: 190,
-                fontSize: 10,
-                fontFamily: 'monospace',
-              }}
-            >
-              unionId: {record.dingtalkUnionid}
-            </Text>
-          </div>
-        ) : (
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            未绑定
-          </Text>
-        ),
+        record.dingtalkDepartments
+          ?.map((department) => department.name)
+          .filter(Boolean)
+          .join(' / ') || '-',
+    },
+    {
+      title: '联系方式',
+      dataIndex: 'dingtalkMobileMasked',
+      width: 140,
+      search: false,
+    },
+    {
+      title: '资料同步时间',
+      dataIndex: 'dingtalkLastSyncedAt',
+      width: 160,
+      search: false,
+      render: (_, record) => formatDate(record.dingtalkLastSyncedAt, 'minute'),
     },
     {
       title: '已分配角色',
@@ -324,9 +314,24 @@ export function buildUserColumns({
             fixed: 'right' as const,
             render: (_: unknown, record: API.AdminUser) => (
               <Space size={8}>
+                {canAuthorizeDingTalkUsers &&
+                  record.dingtalkUnionid &&
+                  record.dingtalkLastSyncedAt &&
+                  !record.enabled && (
+                    <Button
+                      type="link"
+                      size="small"
+                      onClick={() => onAssign?.(record)}
+                    >
+                      {record.pendingAssignment ? '分配并开通' : '重新开通'}
+                    </Button>
+                  )}
                 {canUpdateUsers &&
-                  record.status !== 3 &&
-                  record.status !== 4 && (
+                  !record.pendingAssignment &&
+                  record.status !==
+                    AdminUserStatus.ADMIN_USER_STATUS_TERMINATED &&
+                  record.status !==
+                    AdminUserStatus.ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION && (
                     <Button
                       type="link"
                       size="small"
@@ -337,27 +342,29 @@ export function buildUserColumns({
                       编辑
                     </Button>
                   )}
-                {canResetUserPasswords && record.status === 1 && (
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<KeyOutlined />}
-                    style={{
-                      padding: 0,
-                      color: record.hasPassword ? '#f59e0b' : '#1677ff',
-                    }}
-                    onClick={() => onResetPassword(record)}
-                  >
-                    {record.hasPassword ? '重置密码' : '设置密码'}
-                  </Button>
-                )}
+                {canResetUserPasswords &&
+                  record.status ===
+                    AdminUserStatus.ADMIN_USER_STATUS_ACTIVE && (
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<KeyOutlined />}
+                      style={{
+                        padding: 0,
+                        color: record.hasPassword ? '#f59e0b' : '#1677ff',
+                      }}
+                      onClick={() => onResetPassword(record)}
+                    >
+                      {record.hasPassword ? '重置密码' : '设置密码'}
+                    </Button>
+                  )}
                 {canTerminateUsers &&
-                  record.status === 1 &&
+                  record.status === AdminUserStatus.ADMIN_USER_STATUS_ACTIVE &&
                   record.currentMembershipEnabled &&
                   record.id !== currentUserId && (
                     <Popconfirm
                       title={`确定为“${record.displayName || record.username}”办理离职？`}
-                      description="将停用账号和全部组织权限、撤销所有在线会话；历史业务记录与钉钉绑定会保留，返聘时需重新审批角色。"
+                      description="将停用账号和全部组织权限、撤销所有在线会话；历史业务记录与钉钉绑定会保留，返聘时由管理员重新分配组织和角色。"
                       okText="确认离职"
                       cancelText="取消"
                       okButtonProps={{ danger: true }}

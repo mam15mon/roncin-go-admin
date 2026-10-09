@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -18,7 +20,7 @@ func (BackgroundTask) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 func (BackgroundTask) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
-		field.Enum("kind").Values("MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION", "OBJECT_STORAGE_DELETION", "DINGTALK_APPROVAL_CREATE"),
+		field.Enum("kind").Values("MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION", "OBJECT_STORAGE_DELETION", "DINGTALK_APPROVAL_CREATE", "DINGTALK_DIRECTORY_SYNC"),
 		field.String("idempotency_key").NotEmpty().MaxLen(128),
 		field.Enum("status").Values("PENDING", "RUNNING", "SUCCEEDED", "FAILED", "DEAD_LETTER").Default("PENDING"),
 		field.Int("attempts").Default(0).NonNegative(),
@@ -33,6 +35,7 @@ func (BackgroundTask) Fields() []ent.Field {
 func (BackgroundTask) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("background_tasks").Field("organization_id").Unique().Required(),
+		edge.To("dingtalk_directory_sync", DingTalkDirectorySync.Type).Unique(),
 		edge.To("notification_delivery", NotificationDelivery.Type).Unique(),
 		edge.To("object_storage_deletion", ObjectStorageDeletion.Type).Unique(),
 		edge.To("dingtalk_approval_dispatch", DingTalkApprovalDispatch.Type).Unique(),
@@ -46,4 +49,8 @@ func (BackgroundTask) Indexes() []ent.Index {
 		index.Fields("status", "lease_expires_at"),
 		index.Fields("organization_id", "created_at"),
 	}
+}
+
+func (BackgroundTask) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{"background_tasks_kind_check": "kind IN ('MASTER_DATA_IMPORT', 'UNLOCODE_IMPORT', 'ORDER_REMINDER', 'INTEGRATION', 'DINGTALK_NOTIFICATION', 'OBJECT_STORAGE_DELETION', 'DINGTALK_APPROVAL_CREATE', 'DINGTALK_DIRECTORY_SYNC')"})}
 }

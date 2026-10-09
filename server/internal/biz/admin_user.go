@@ -40,6 +40,11 @@ type AdminUser struct {
 	DingTalkUnionID          *string
 	DingTalkUserID           *string
 	DingTalkName             *string
+	PendingAssignment        bool
+	DingTalkJobNumber        *string
+	DingTalkMobile           *string
+	DingTalkDepartments      []DingTalkDepartment
+	DingTalkLastSyncedAt     *time.Time
 	Enabled                  bool
 	Status                   AdminUserStatus
 	CurrentMembershipEnabled bool
@@ -59,6 +64,7 @@ type AdminUser struct {
 type AdminUserStatus string
 
 const (
+	AdminUserStatusPendingAssignment       AdminUserStatus = "PENDING_ASSIGNMENT"
 	AdminUserStatusActive                  AdminUserStatus = "ACTIVE"
 	AdminUserStatusPendingAuthorization    AdminUserStatus = "PENDING_AUTHORIZATION"
 	AdminUserStatusTerminated              AdminUserStatus = "TERMINATED"
@@ -70,6 +76,7 @@ type AdminUserListOptions struct {
 	Page     int
 	PageSize int
 	Keyword  string
+	Status   AdminUserStatus
 	// Enabled 过滤账号启用状态：nil=不过滤；true=在职；false=离职/停用。
 	Enabled *bool
 }
@@ -78,6 +85,11 @@ type AdminUserList = PagedList[*AdminUser]
 
 func (uc *AdminUsecase) ListUsers(ctx context.Context, organizationID uuid.UUID, options AdminUserListOptions) (*AdminUserList, error) {
 	if organizationID == uuid.Nil || !ValidListPagination(options.Page, options.PageSize) {
+		return nil, ErrAdminInvalidArgument
+	}
+	switch options.Status {
+	case "", AdminUserStatusPendingAssignment, AdminUserStatusActive, AdminUserStatusDisabled, AdminUserStatusTerminated, AdminUserStatusPendingAuthorization, AdminUserStatusRemovedFromOrganization:
+	default:
 		return nil, ErrAdminInvalidArgument
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
@@ -105,7 +117,7 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
 		return nil, ErrPermissionDenied
 	}
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || input == nil {
 		return nil, ErrAdminInvalidArgument
 	}
 	// 先取工作台管理范围下的锚定视图：角色必须与锚定成员关系同组织，提权校验与
@@ -117,9 +129,12 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 	if err := uc.validateRolesPrivilege(ctx, organizationID, actorID, current.CurrentOrganizationID, roleIDs); err != nil {
 		return nil, err
 	}
-	normalized, err := normalizeUser(input)
-	if err != nil {
-		return nil, err
+	normalized := input
+	if current.DingTalkUnionID == nil {
+		normalized, err = normalizeUser(input)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return uc.repo.UpdateUser(ctx, organizationID, id, normalized, roleIDs, adminAuditEvent(ctx, actorID, &id, "admin.user.update", ""))
 }
@@ -153,21 +168,14 @@ func (uc *AdminUsecase) AuthorizeWeComUser(ctx context.Context, sourceOrganizati
 }
 
 func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
-	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
+	if !IsSystemWorkspace(ctx) {
 		return nil, ErrPermissionDenied
 	}
-	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || len(roleIDs) == 0 {
+	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || input == nil || input.ID == uuid.Nil || len(roleIDs) == 0 {
 		return nil, ErrAdminInvalidArgument
 	}
-	if err := uc.validateRolesPrivilege(ctx, sourceOrganizationID, actorID, targetOrganizationID, roleIDs); err != nil {
-		return nil, err
-	}
-	normalized, err := normalizeUser(input)
-	if err != nil {
-		return nil, err
-	}
-	notification := NewDingTalkUserAuthorizedNotification(normalized.ID)
-	return uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, normalized, roleIDs, notification, adminAuditEvent(ctx, actorID, &normalized.ID, "admin.user.dingtalk.authorize", ""))
+	notification := NewDingTalkUserAuthorizedNotification(input.ID)
+	return uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, &AdminUser{ID: input.ID}, roleIDs, notification, adminAuditEvent(ctx, actorID, &input.ID, "admin.user.dingtalk.authorize", ""))
 }
 func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string, username *string) error {
 	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
@@ -211,4 +219,9 @@ func normalizeUser(input *AdminUser) (*AdminUser, error) {
 		output.Email = &value
 	}
 	return &output, nil
+}
+
+// ValidateDingTalkAssignmentPrivilege 在共享事务中复用用户角色提权画像校验。
+func (uc *AdminUsecase) ValidateDingTalkAssignmentPrivilege(ctx context.Context, source, actor, target uuid.UUID, roles []uuid.UUID) error {
+	return uc.validateRolesPrivilege(ctx, source, actor, target, roles)
 }

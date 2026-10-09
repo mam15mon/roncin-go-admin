@@ -53,6 +53,24 @@ func TestExchangeRatePermissionsBelongToCompanyWorkspace(t *testing.T) {
 	}
 }
 
+func TestDingTalkProvisioningPermissionDependenciesAndWorkspace(t *testing.T) {
+	granted := ResolveDependencies([]string{UserAuthorizeDingTalk})
+	want := []string{UserAuthorizeDingTalk, UserRead, RoleRead, PermissionRead, OrganizationRead}
+	if !slicesEqual(granted, want) {
+		t.Fatalf("钉钉人员开通缺少组织或角色候选读取依赖: %v", granted)
+	}
+	for _, key := range []string{UserAuthorizeDingTalk, UserDingTalkDirectorySync} {
+		if !PermissionAllowedInWorkspace(key, true) || PermissionAllowedInWorkspace(key, false) {
+			t.Fatalf("钉钉同步/开通权限 %s 必须仅属于系统管理工作台", key)
+		}
+	}
+	for _, permission := range Manifest() {
+		if permission.Key == "system.user.dingtalk_invitation.manage" {
+			t.Fatal("旧钉钉邀请权限不得继续授予")
+		}
+	}
+}
+
 func TestOrderPermissionsIncludeBusinessType(t *testing.T) {
 	for _, permission := range Manifest() {
 		if !strings.HasPrefix(permission.Key, "business.order.") {

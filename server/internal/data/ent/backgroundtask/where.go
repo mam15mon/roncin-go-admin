@@ -654,6 +654,29 @@ func HasOrganizationWith(preds ...predicate.Organization) predicate.BackgroundTa
 	})
 }
 
+// HasDingtalkDirectorySync applies the HasEdge predicate on the "dingtalk_directory_sync" edge.
+func HasDingtalkDirectorySync() predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, DingtalkDirectorySyncTable, DingtalkDirectorySyncColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDingtalkDirectorySyncWith applies the HasEdge predicate on the "dingtalk_directory_sync" edge with a given conditions (other predicates).
+func HasDingtalkDirectorySyncWith(preds ...predicate.DingTalkDirectorySync) predicate.BackgroundTask {
+	return predicate.BackgroundTask(func(s *sql.Selector) {
+		step := newDingtalkDirectorySyncStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasNotificationDelivery applies the HasEdge predicate on the "notification_delivery" edge.
 func HasNotificationDelivery() predicate.BackgroundTask {
 	return predicate.BackgroundTask(func(s *sql.Selector) {

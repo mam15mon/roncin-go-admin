@@ -18,26 +18,21 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationAuthServiceDingTalkLogin = "/auth.v1.AuthService/DingTalkLogin"
-const OperationAuthServiceGetDingTalkInvitationInfo = "/auth.v1.AuthService/GetDingTalkInvitationInfo"
 const OperationAuthServiceGetDingTalkLoginConfig = "/auth.v1.AuthService/GetDingTalkLoginConfig"
 const OperationAuthServiceGetWeComLoginConfig = "/auth.v1.AuthService/GetWeComLoginConfig"
 const OperationAuthServiceLogin = "/auth.v1.AuthService/Login"
 const OperationAuthServiceLogout = "/auth.v1.AuthService/Logout"
 const OperationAuthServiceMe = "/auth.v1.AuthService/Me"
-const OperationAuthServiceRegisterDingTalkUser = "/auth.v1.AuthService/RegisterDingTalkUser"
 const OperationAuthServiceSwitchOrganization = "/auth.v1.AuthService/SwitchOrganization"
 const OperationAuthServiceWeComLogin = "/auth.v1.AuthService/WeComLogin"
 
 type AuthServiceHTTPServer interface {
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
-	// GetDingTalkInvitationInfo GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
-	GetDingTalkInvitationInfo(context.Context, *GetDingTalkInvitationInfoRequest) (*GetDingTalkInvitationInfoResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	GetWeComLoginConfig(context.Context, *GetWeComLoginConfigRequest) (*GetWeComLoginConfigResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	Me(context.Context, *MeRequest) (*MeResponse, error)
-	RegisterDingTalkUser(context.Context, *RegisterDingTalkUserRequest) (*RegisterDingTalkUserResponse, error)
 	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
 	WeComLogin(context.Context, *WeComLoginRequest) (*WeComLoginResponse, error)
 }
@@ -49,8 +44,6 @@ func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r.Handle("POST", "/api/v1/auth/wecom/login", _AuthService_WeComLogin0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/dingtalk/login-config", _AuthService_GetDingTalkLoginConfig0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/login", _AuthService_DingTalkLogin0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/auth/dingtalk/registrations", _AuthService_RegisterDingTalkUser0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/auth/dingtalk/invitations/info", _AuthService_GetDingTalkInvitationInfo0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/logout", _AuthService_Logout0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/me", _AuthService_Me0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/switch-organization", _AuthService_SwitchOrganization0_HTTP_Handler(srv))
@@ -151,44 +144,6 @@ func _AuthService_DingTalkLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ct
 	}
 }
 
-func _AuthService_RegisterDingTalkUser0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in RegisterDingTalkUserRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAuthServiceRegisterDingTalkUser)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RegisterDingTalkUser(ctx, req.(*RegisterDingTalkUserRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*RegisterDingTalkUserResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _AuthService_GetDingTalkInvitationInfo0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in GetDingTalkInvitationInfoRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationAuthServiceGetDingTalkInvitationInfo)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.GetDingTalkInvitationInfo(ctx, req.(*GetDingTalkInvitationInfoRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*GetDingTalkInvitationInfoResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _AuthService_Logout0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in LogoutRequest
@@ -248,14 +203,11 @@ func _AuthService_SwitchOrganization0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 
 type AuthServiceHTTPClient interface {
 	DingTalkLogin(ctx context.Context, req *DingTalkLoginRequest, opts ...http.CallOption) (rsp *DingTalkLoginResponse, err error)
-	// GetDingTalkInvitationInfo GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
-	GetDingTalkInvitationInfo(ctx context.Context, req *GetDingTalkInvitationInfoRequest, opts ...http.CallOption) (rsp *GetDingTalkInvitationInfoResponse, err error)
 	GetDingTalkLoginConfig(ctx context.Context, req *GetDingTalkLoginConfigRequest, opts ...http.CallOption) (rsp *GetDingTalkLoginConfigResponse, err error)
 	GetWeComLoginConfig(ctx context.Context, req *GetWeComLoginConfigRequest, opts ...http.CallOption) (rsp *GetWeComLoginConfigResponse, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
 	Me(ctx context.Context, req *MeRequest, opts ...http.CallOption) (rsp *MeResponse, err error)
-	RegisterDingTalkUser(ctx context.Context, req *RegisterDingTalkUserRequest, opts ...http.CallOption) (rsp *RegisterDingTalkUserResponse, err error)
 	SwitchOrganization(ctx context.Context, req *SwitchOrganizationRequest, opts ...http.CallOption) (rsp *SwitchOrganizationResponse, err error)
 	WeComLogin(ctx context.Context, req *WeComLoginRequest, opts ...http.CallOption) (rsp *WeComLoginResponse, err error)
 }
@@ -279,23 +231,6 @@ func (c *AuthServiceHTTPClientImpl) DingTalkLogin(ctx context.Context, in *DingT
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// GetDingTalkInvitationInfo GetDingTalkInvitationInfo 扫码落地页查询专属邀请信息（未登录公开接口，响应最小化，受限流保护）。
-func (c *AuthServiceHTTPClientImpl) GetDingTalkInvitationInfo(ctx context.Context, in *GetDingTalkInvitationInfoRequest, opts ...http.CallOption) (*GetDingTalkInvitationInfoResponse, error) {
-	var out GetDingTalkInvitationInfoResponse
-	pattern := "/api/v1/auth/dingtalk/invitations/info"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationAuthServiceGetDingTalkInvitationInfo),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -378,23 +313,6 @@ func (c *AuthServiceHTTPClientImpl) Me(ctx context.Context, in *MeRequest, opts 
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *AuthServiceHTTPClientImpl) RegisterDingTalkUser(ctx context.Context, in *RegisterDingTalkUserRequest, opts ...http.CallOption) (*RegisterDingTalkUserResponse, error) {
-	var out RegisterDingTalkUserResponse
-	pattern := "/api/v1/auth/dingtalk/registrations"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationAuthServiceRegisterDingTalkUser),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

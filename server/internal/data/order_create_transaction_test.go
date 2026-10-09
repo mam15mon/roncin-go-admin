@@ -74,9 +74,9 @@ func TestOrderCommissionSnapshotReadsOrderPersonnels(t *testing.T) {
 			AddRow(operatorPersonnelID, now, now, orderID, operatorUserID, organizationID, "OPERATOR", now)
 		mock.ExpectQuery(`SELECT .* FROM "order_personnels"`).
 			WillReturnRows(personnelRows)
-		userRows := sqlmock.NewRows(user.Columns).
-			AddRow(salesUserID, now, now, "", "销售专员", "", "", "", nil, nil, nil, nil, nil, nil, false, true, "").
-			AddRow(operatorUserID, now, now, "", "操作专员", "", "", "", nil, nil, nil, nil, nil, nil, false, true, "")
+		userRows := sqlmock.NewRows([]string{user.FieldID, user.FieldDisplayName, user.FieldEnabled}).
+			AddRow(salesUserID, "销售专员", true).
+			AddRow(operatorUserID, "操作专员", true)
 		mock.ExpectQuery(`SELECT .* FROM "users" WHERE .*"id" IN`).
 			WillReturnRows(userRows)
 		mock.ExpectQuery(`INSERT INTO "order_commission_attributions"`).

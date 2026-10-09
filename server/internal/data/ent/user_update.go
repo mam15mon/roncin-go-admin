@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
@@ -42,6 +43,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
@@ -298,6 +300,98 @@ func (_u *UserUpdate) SetNillableEnabled(v *bool) *UserUpdate {
 	if v != nil {
 		_u.SetEnabled(*v)
 	}
+	return _u
+}
+
+// SetPendingAssignment sets the "pending_assignment" field.
+func (_u *UserUpdate) SetPendingAssignment(v bool) *UserUpdate {
+	_u.mutation.SetPendingAssignment(v)
+	return _u
+}
+
+// SetNillablePendingAssignment sets the "pending_assignment" field if the given value is not nil.
+func (_u *UserUpdate) SetNillablePendingAssignment(v *bool) *UserUpdate {
+	if v != nil {
+		_u.SetPendingAssignment(*v)
+	}
+	return _u
+}
+
+// SetDingtalkJobNumber sets the "dingtalk_job_number" field.
+func (_u *UserUpdate) SetDingtalkJobNumber(v string) *UserUpdate {
+	_u.mutation.SetDingtalkJobNumber(v)
+	return _u
+}
+
+// SetNillableDingtalkJobNumber sets the "dingtalk_job_number" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkJobNumber(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkJobNumber(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkJobNumber clears the value of the "dingtalk_job_number" field.
+func (_u *UserUpdate) ClearDingtalkJobNumber() *UserUpdate {
+	_u.mutation.ClearDingtalkJobNumber()
+	return _u
+}
+
+// SetDingtalkMobile sets the "dingtalk_mobile" field.
+func (_u *UserUpdate) SetDingtalkMobile(v string) *UserUpdate {
+	_u.mutation.SetDingtalkMobile(v)
+	return _u
+}
+
+// SetNillableDingtalkMobile sets the "dingtalk_mobile" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkMobile(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkMobile(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkMobile clears the value of the "dingtalk_mobile" field.
+func (_u *UserUpdate) ClearDingtalkMobile() *UserUpdate {
+	_u.mutation.ClearDingtalkMobile()
+	return _u
+}
+
+// SetDingtalkDepartments sets the "dingtalk_departments" field.
+func (_u *UserUpdate) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpdate {
+	_u.mutation.SetDingtalkDepartments(v)
+	return _u
+}
+
+// AppendDingtalkDepartments appends value to the "dingtalk_departments" field.
+func (_u *UserUpdate) AppendDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpdate {
+	_u.mutation.AppendDingtalkDepartments(v)
+	return _u
+}
+
+// ClearDingtalkDepartments clears the value of the "dingtalk_departments" field.
+func (_u *UserUpdate) ClearDingtalkDepartments() *UserUpdate {
+	_u.mutation.ClearDingtalkDepartments()
+	return _u
+}
+
+// SetDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field.
+func (_u *UserUpdate) SetDingtalkLastSyncedAt(v time.Time) *UserUpdate {
+	_u.mutation.SetDingtalkLastSyncedAt(v)
+	return _u
+}
+
+// SetNillableDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkLastSyncedAt(v *time.Time) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkLastSyncedAt(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkLastSyncedAt clears the value of the "dingtalk_last_synced_at" field.
+func (_u *UserUpdate) ClearDingtalkLastSyncedAt() *UserUpdate {
+	_u.mutation.ClearDingtalkLastSyncedAt()
 	return _u
 }
 
@@ -2580,6 +2674,16 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkJobNumber(); ok {
+		if err := user.DingtalkJobNumberValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_job_number", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_job_number": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.DingtalkMobile(); ok {
+		if err := user.DingtalkMobileValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_mobile", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -2657,6 +2761,38 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PendingAssignment(); ok {
+		_spec.SetField(user.FieldPendingAssignment, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DingtalkJobNumber(); ok {
+		_spec.SetField(user.FieldDingtalkJobNumber, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkJobNumberCleared() {
+		_spec.ClearField(user.FieldDingtalkJobNumber, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkMobile(); ok {
+		_spec.SetField(user.FieldDingtalkMobile, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkMobileCleared() {
+		_spec.ClearField(user.FieldDingtalkMobile, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkDepartments(); ok {
+		_spec.SetField(user.FieldDingtalkDepartments, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedDingtalkDepartments(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldDingtalkDepartments, value)
+		})
+	}
+	if _u.mutation.DingtalkDepartmentsCleared() {
+		_spec.ClearField(user.FieldDingtalkDepartments, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.DingtalkLastSyncedAt(); ok {
+		_spec.SetField(user.FieldDingtalkLastSyncedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DingtalkLastSyncedAtCleared() {
+		_spec.ClearField(user.FieldDingtalkLastSyncedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(user.FieldSearchKeywords, field.TypeString, value)
@@ -5644,6 +5780,98 @@ func (_u *UserUpdateOne) SetNillableEnabled(v *bool) *UserUpdateOne {
 	return _u
 }
 
+// SetPendingAssignment sets the "pending_assignment" field.
+func (_u *UserUpdateOne) SetPendingAssignment(v bool) *UserUpdateOne {
+	_u.mutation.SetPendingAssignment(v)
+	return _u
+}
+
+// SetNillablePendingAssignment sets the "pending_assignment" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillablePendingAssignment(v *bool) *UserUpdateOne {
+	if v != nil {
+		_u.SetPendingAssignment(*v)
+	}
+	return _u
+}
+
+// SetDingtalkJobNumber sets the "dingtalk_job_number" field.
+func (_u *UserUpdateOne) SetDingtalkJobNumber(v string) *UserUpdateOne {
+	_u.mutation.SetDingtalkJobNumber(v)
+	return _u
+}
+
+// SetNillableDingtalkJobNumber sets the "dingtalk_job_number" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkJobNumber(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkJobNumber(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkJobNumber clears the value of the "dingtalk_job_number" field.
+func (_u *UserUpdateOne) ClearDingtalkJobNumber() *UserUpdateOne {
+	_u.mutation.ClearDingtalkJobNumber()
+	return _u
+}
+
+// SetDingtalkMobile sets the "dingtalk_mobile" field.
+func (_u *UserUpdateOne) SetDingtalkMobile(v string) *UserUpdateOne {
+	_u.mutation.SetDingtalkMobile(v)
+	return _u
+}
+
+// SetNillableDingtalkMobile sets the "dingtalk_mobile" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkMobile(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkMobile(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkMobile clears the value of the "dingtalk_mobile" field.
+func (_u *UserUpdateOne) ClearDingtalkMobile() *UserUpdateOne {
+	_u.mutation.ClearDingtalkMobile()
+	return _u
+}
+
+// SetDingtalkDepartments sets the "dingtalk_departments" field.
+func (_u *UserUpdateOne) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpdateOne {
+	_u.mutation.SetDingtalkDepartments(v)
+	return _u
+}
+
+// AppendDingtalkDepartments appends value to the "dingtalk_departments" field.
+func (_u *UserUpdateOne) AppendDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpdateOne {
+	_u.mutation.AppendDingtalkDepartments(v)
+	return _u
+}
+
+// ClearDingtalkDepartments clears the value of the "dingtalk_departments" field.
+func (_u *UserUpdateOne) ClearDingtalkDepartments() *UserUpdateOne {
+	_u.mutation.ClearDingtalkDepartments()
+	return _u
+}
+
+// SetDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field.
+func (_u *UserUpdateOne) SetDingtalkLastSyncedAt(v time.Time) *UserUpdateOne {
+	_u.mutation.SetDingtalkLastSyncedAt(v)
+	return _u
+}
+
+// SetNillableDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkLastSyncedAt(v *time.Time) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkLastSyncedAt(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkLastSyncedAt clears the value of the "dingtalk_last_synced_at" field.
+func (_u *UserUpdateOne) ClearDingtalkLastSyncedAt() *UserUpdateOne {
+	_u.mutation.ClearDingtalkLastSyncedAt()
+	return _u
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (_u *UserUpdateOne) SetSearchKeywords(v string) *UserUpdateOne {
 	_u.mutation.SetSearchKeywords(v)
@@ -7936,6 +8164,16 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "dingtalk_name", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkJobNumber(); ok {
+		if err := user.DingtalkJobNumberValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_job_number", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_job_number": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.DingtalkMobile(); ok {
+		if err := user.DingtalkMobileValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_mobile", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -8030,6 +8268,38 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PendingAssignment(); ok {
+		_spec.SetField(user.FieldPendingAssignment, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.DingtalkJobNumber(); ok {
+		_spec.SetField(user.FieldDingtalkJobNumber, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkJobNumberCleared() {
+		_spec.ClearField(user.FieldDingtalkJobNumber, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkMobile(); ok {
+		_spec.SetField(user.FieldDingtalkMobile, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkMobileCleared() {
+		_spec.ClearField(user.FieldDingtalkMobile, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkDepartments(); ok {
+		_spec.SetField(user.FieldDingtalkDepartments, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedDingtalkDepartments(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldDingtalkDepartments, value)
+		})
+	}
+	if _u.mutation.DingtalkDepartmentsCleared() {
+		_spec.ClearField(user.FieldDingtalkDepartments, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.DingtalkLastSyncedAt(); ok {
+		_spec.SetField(user.FieldDingtalkLastSyncedAt, field.TypeTime, value)
+	}
+	if _u.mutation.DingtalkLastSyncedAtCleared() {
+		_spec.ClearField(user.FieldDingtalkLastSyncedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(user.FieldSearchKeywords, field.TypeString, value)

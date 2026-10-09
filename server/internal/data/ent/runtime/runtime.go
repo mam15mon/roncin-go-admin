@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovalinboxevent"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceaddress"
@@ -1018,6 +1019,89 @@ func init() {
 	dingtalkapprovalinboxeventDescID := dingtalkapprovalinboxeventMixinFields0[0].Descriptor()
 	// dingtalkapprovalinboxevent.DefaultID holds the default value on creation for the id field.
 	dingtalkapprovalinboxevent.DefaultID = dingtalkapprovalinboxeventDescID.Default.(func() uuid.UUID)
+	dingtalkdirectorysyncMixin := schema.DingTalkDirectorySync{}.Mixin()
+	dingtalkdirectorysyncMixinFields0 := dingtalkdirectorysyncMixin[0].Fields()
+	_ = dingtalkdirectorysyncMixinFields0
+	dingtalkdirectorysyncMixinFields1 := dingtalkdirectorysyncMixin[1].Fields()
+	_ = dingtalkdirectorysyncMixinFields1
+	dingtalkdirectorysyncFields := schema.DingTalkDirectorySync{}.Fields()
+	_ = dingtalkdirectorysyncFields
+	// dingtalkdirectorysyncDescCreatedAt is the schema descriptor for created_at field.
+	dingtalkdirectorysyncDescCreatedAt := dingtalkdirectorysyncMixinFields1[0].Descriptor()
+	// dingtalkdirectorysync.DefaultCreatedAt holds the default value on creation for the created_at field.
+	dingtalkdirectorysync.DefaultCreatedAt = dingtalkdirectorysyncDescCreatedAt.Default.(func() time.Time)
+	// dingtalkdirectorysyncDescUpdatedAt is the schema descriptor for updated_at field.
+	dingtalkdirectorysyncDescUpdatedAt := dingtalkdirectorysyncMixinFields1[1].Descriptor()
+	// dingtalkdirectorysync.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	dingtalkdirectorysync.DefaultUpdatedAt = dingtalkdirectorysyncDescUpdatedAt.Default.(func() time.Time)
+	// dingtalkdirectorysync.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	dingtalkdirectorysync.UpdateDefaultUpdatedAt = dingtalkdirectorysyncDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// dingtalkdirectorysyncDescCorpID is the schema descriptor for corp_id field.
+	dingtalkdirectorysyncDescCorpID := dingtalkdirectorysyncFields[2].Descriptor()
+	// dingtalkdirectorysync.CorpIDValidator is a validator for the "corp_id" field. It is called by the builders before save.
+	dingtalkdirectorysync.CorpIDValidator = func() func(string) error {
+		validators := dingtalkdirectorysyncDescCorpID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(corp_id string) error {
+			for _, fn := range fns {
+				if err := fn(corp_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// dingtalkdirectorysyncDescActive is the schema descriptor for active field.
+	dingtalkdirectorysyncDescActive := dingtalkdirectorysyncFields[3].Descriptor()
+	// dingtalkdirectorysync.DefaultActive holds the default value on creation for the active field.
+	dingtalkdirectorysync.DefaultActive = dingtalkdirectorysyncDescActive.Default.(bool)
+	// dingtalkdirectorysyncDescScopeSummary is the schema descriptor for scope_summary field.
+	dingtalkdirectorysyncDescScopeSummary := dingtalkdirectorysyncFields[4].Descriptor()
+	// dingtalkdirectorysync.DefaultScopeSummary holds the default value on creation for the scope_summary field.
+	dingtalkdirectorysync.DefaultScopeSummary = dingtalkdirectorysyncDescScopeSummary.Default.(string)
+	// dingtalkdirectorysync.ScopeSummaryValidator is a validator for the "scope_summary" field. It is called by the builders before save.
+	dingtalkdirectorysync.ScopeSummaryValidator = dingtalkdirectorysyncDescScopeSummary.Validators[0].(func(string) error)
+	// dingtalkdirectorysyncDescFullScope is the schema descriptor for full_scope field.
+	dingtalkdirectorysyncDescFullScope := dingtalkdirectorysyncFields[5].Descriptor()
+	// dingtalkdirectorysync.DefaultFullScope holds the default value on creation for the full_scope field.
+	dingtalkdirectorysync.DefaultFullScope = dingtalkdirectorysyncDescFullScope.Default.(bool)
+	// dingtalkdirectorysyncDescTotalCount is the schema descriptor for total_count field.
+	dingtalkdirectorysyncDescTotalCount := dingtalkdirectorysyncFields[7].Descriptor()
+	// dingtalkdirectorysync.DefaultTotalCount holds the default value on creation for the total_count field.
+	dingtalkdirectorysync.DefaultTotalCount = dingtalkdirectorysyncDescTotalCount.Default.(int)
+	// dingtalkdirectorysync.TotalCountValidator is a validator for the "total_count" field. It is called by the builders before save.
+	dingtalkdirectorysync.TotalCountValidator = dingtalkdirectorysyncDescTotalCount.Validators[0].(func(int) error)
+	// dingtalkdirectorysyncDescCreatedCount is the schema descriptor for created_count field.
+	dingtalkdirectorysyncDescCreatedCount := dingtalkdirectorysyncFields[8].Descriptor()
+	// dingtalkdirectorysync.DefaultCreatedCount holds the default value on creation for the created_count field.
+	dingtalkdirectorysync.DefaultCreatedCount = dingtalkdirectorysyncDescCreatedCount.Default.(int)
+	// dingtalkdirectorysync.CreatedCountValidator is a validator for the "created_count" field. It is called by the builders before save.
+	dingtalkdirectorysync.CreatedCountValidator = dingtalkdirectorysyncDescCreatedCount.Validators[0].(func(int) error)
+	// dingtalkdirectorysyncDescUpdatedCount is the schema descriptor for updated_count field.
+	dingtalkdirectorysyncDescUpdatedCount := dingtalkdirectorysyncFields[9].Descriptor()
+	// dingtalkdirectorysync.DefaultUpdatedCount holds the default value on creation for the updated_count field.
+	dingtalkdirectorysync.DefaultUpdatedCount = dingtalkdirectorysyncDescUpdatedCount.Default.(int)
+	// dingtalkdirectorysync.UpdatedCountValidator is a validator for the "updated_count" field. It is called by the builders before save.
+	dingtalkdirectorysync.UpdatedCountValidator = dingtalkdirectorysyncDescUpdatedCount.Validators[0].(func(int) error)
+	// dingtalkdirectorysyncDescUnchangedCount is the schema descriptor for unchanged_count field.
+	dingtalkdirectorysyncDescUnchangedCount := dingtalkdirectorysyncFields[10].Descriptor()
+	// dingtalkdirectorysync.DefaultUnchangedCount holds the default value on creation for the unchanged_count field.
+	dingtalkdirectorysync.DefaultUnchangedCount = dingtalkdirectorysyncDescUnchangedCount.Default.(int)
+	// dingtalkdirectorysync.UnchangedCountValidator is a validator for the "unchanged_count" field. It is called by the builders before save.
+	dingtalkdirectorysync.UnchangedCountValidator = dingtalkdirectorysyncDescUnchangedCount.Validators[0].(func(int) error)
+	// dingtalkdirectorysyncDescFailedCount is the schema descriptor for failed_count field.
+	dingtalkdirectorysyncDescFailedCount := dingtalkdirectorysyncFields[11].Descriptor()
+	// dingtalkdirectorysync.DefaultFailedCount holds the default value on creation for the failed_count field.
+	dingtalkdirectorysync.DefaultFailedCount = dingtalkdirectorysyncDescFailedCount.Default.(int)
+	// dingtalkdirectorysync.FailedCountValidator is a validator for the "failed_count" field. It is called by the builders before save.
+	dingtalkdirectorysync.FailedCountValidator = dingtalkdirectorysyncDescFailedCount.Validators[0].(func(int) error)
+	// dingtalkdirectorysyncDescID is the schema descriptor for id field.
+	dingtalkdirectorysyncDescID := dingtalkdirectorysyncMixinFields0[0].Descriptor()
+	// dingtalkdirectorysync.DefaultID holds the default value on creation for the id field.
+	dingtalkdirectorysync.DefaultID = dingtalkdirectorysyncDescID.Default.(func() uuid.UUID)
 	dingtalkinvitationMixin := schema.DingTalkInvitation{}.Mixin()
 	dingtalkinvitationMixinFields0 := dingtalkinvitationMixin[0].Fields()
 	_ = dingtalkinvitationMixinFields0
@@ -9129,8 +9213,20 @@ func init() {
 	userDescEnabled := userFields[12].Descriptor()
 	// user.DefaultEnabled holds the default value on creation for the enabled field.
 	user.DefaultEnabled = userDescEnabled.Default.(bool)
+	// userDescPendingAssignment is the schema descriptor for pending_assignment field.
+	userDescPendingAssignment := userFields[13].Descriptor()
+	// user.DefaultPendingAssignment holds the default value on creation for the pending_assignment field.
+	user.DefaultPendingAssignment = userDescPendingAssignment.Default.(bool)
+	// userDescDingtalkJobNumber is the schema descriptor for dingtalk_job_number field.
+	userDescDingtalkJobNumber := userFields[14].Descriptor()
+	// user.DingtalkJobNumberValidator is a validator for the "dingtalk_job_number" field. It is called by the builders before save.
+	user.DingtalkJobNumberValidator = userDescDingtalkJobNumber.Validators[0].(func(string) error)
+	// userDescDingtalkMobile is the schema descriptor for dingtalk_mobile field.
+	userDescDingtalkMobile := userFields[15].Descriptor()
+	// user.DingtalkMobileValidator is a validator for the "dingtalk_mobile" field. It is called by the builders before save.
+	user.DingtalkMobileValidator = userDescDingtalkMobile.Validators[0].(func(string) error)
 	// userDescSearchKeywords is the schema descriptor for search_keywords field.
-	userDescSearchKeywords := userFields[13].Descriptor()
+	userDescSearchKeywords := userFields[18].Descriptor()
 	// user.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	user.DefaultSearchKeywords = userDescSearchKeywords.Default.(string)
 	// userDescID is the schema descriptor for id field.

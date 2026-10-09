@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DingTalkInvitationStatus } from '@/enums.generated';
+import { AdminUserStatus } from '@/enums.generated';
 import {
+  adminUserStatusMeta,
   businessTypeMeta,
-  dingTalkInvitationStatusMeta,
   makeValueEnum,
   normalizeBusinessType,
   statusText,
@@ -22,27 +22,9 @@ describe('状态展示元数据', () => {
     expect(statusText(businessTypeMeta, 4)).toBe('空运进口');
   });
 
-  it('钉钉邀请状态四态全覆盖且以生成常量为键', () => {
+  it('待分配状态使用生成常量', () => {
     expect(
-      dingTalkInvitationStatusMeta[
-        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_PENDING
-      ],
-    ).toEqual({ text: '待使用', color: 'processing' });
-    expect(
-      dingTalkInvitationStatusMeta[
-        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_CONSUMED
-      ],
-    ).toEqual({ text: '已激活', color: 'success' });
-    expect(
-      dingTalkInvitationStatusMeta[
-        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_EXPIRED
-      ],
-    ).toEqual({ text: '已过期', color: 'default' });
-    expect(
-      dingTalkInvitationStatusMeta[
-        DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_REVOKED
-      ],
-    ).toEqual({ text: '已撤销', color: 'default' });
-    expect(Object.keys(dingTalkInvitationStatusMeta)).toHaveLength(4);
+      adminUserStatusMeta[AdminUserStatus.ADMIN_USER_STATUS_PENDING_ASSIGNMENT],
+    ).toEqual({ text: '待分配', color: 'warning' });
   });
 });

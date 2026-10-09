@@ -31,7 +31,7 @@
 | 登录与会话 | `auth.go` | 登录、组织切换、会话轮转 | 切换不走单事务轮转 |
 | 审计 | `admin_audit.go`、`biz.go`（审计上下文） | 业务审计独立存储 | 审计写运行日志 |
 | 业务标签 | `business_tag.go`、`enterprise_resource.go` | 标签分组、企业资源配置 | 每页自建标签查询 |
-| 钉钉集成 | `dingtalk_registration.go`、`dingtalk_approval.go`、`dingtalk_invitation.go` | 注册双通道、审批、邀请 | 手机号/令牌入日志 |
+| 钉钉集成 | `dingtalk_directory.go`、`admin_user.go`、`dingtalk_approval.go` | 通讯录同步、组织角色开通、业务审批 | 手机号/令牌入日志 |
 | 后台任务/通知 | `background_task.go`、`notification.go`、`workbench.go` | 任务调度、通知、工作台聚合 | 工作台直查多仓储 |
 | 订单辅助实体 | `order_cargo_item.go`、`order_container.go`、`order_milestone.go`、`order_personnel.go`、`order_attachment.go`、`order_abnormal_case.go`、`order_release_pod.go`、`orderconfig.go` | 货物、箱型、里程碑、人员、附件、异常、放货 | 辅助实体越权写他单 |
 | 公司人员候选与资格 | data `company_personnel.go`，biz `PartnerRepo.ListAssignmentOptions` / `OrderRepo.ListPersonnelOptions` | 当前公司及部门/团队、同用户聚合、部门展示、岗位写入成员范围 | 穿透下属公司、候选与保存范围不一致 |

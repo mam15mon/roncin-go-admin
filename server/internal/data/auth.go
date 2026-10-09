@@ -16,7 +16,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 
@@ -166,240 +165,20 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.User.Query().Where(user.DingtalkUnionidEQ(strings.TrimSpace(identity.UnionID))).Only(ctx)
+	account, err := client.User.Query().Where(user.DingtalkUnionidEQ(identity.UnionID)).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrDingTalkNotRegistered, nil)
 	}
-	account, err = updateDingTalkProfile(ctx, account, identity)
-	if err != nil {
-		return nil, err
+	if account.DingtalkUserid == nil || *account.DingtalkUserid != identity.UserID {
+		return nil, biz.ErrDingTalkIdentityConflict
+	}
+	// 状态判定先于工作台解析，无组织待分配人员没有业务凭证。
+	if account.PendingAssignment || !account.Enabled {
+		return credentialFromAccount(account, uuid.Nil), nil
 	}
 	return r.credentialForAccount(ctx, account)
 }
 
-// RegisterDingTalkCredential 注册钉钉账号（PENDING 禁用 + 系统管理收口成员资格）。
-// requestedOrganizationID 为通道 B 自选目标组织（可空）；notice 为 biz 决策好的
-// 审批通知路由（追溯收件人 + 展示组织名，含代管标注）。注册与「注册待审批」
-// 通知入队同事务完成，路由组织 = 自选目标 ?? 系统管理收口组织。
-func (r *authRepo) RegisterDingTalkCredential(ctx context.Context, identity *biz.DingTalkIdentity, requestedOrganizationID *uuid.UUID, notice *biz.DingTalkApproverNotice, audit *biz.AuditEvent) (*biz.Credential, bool, error) {
-	if identity == nil || strings.TrimSpace(identity.UnionID) == "" || strings.TrimSpace(identity.UserID) == "" || strings.TrimSpace(identity.Name) == "" {
-		return nil, false, biz.ErrDingTalkLoginFailed
-	}
-	unionID := strings.TrimSpace(identity.UnionID)
-	dingTalkUserID := strings.TrimSpace(identity.UserID)
-	dingtalkName := strings.TrimSpace(identity.Name)
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, false, err
-	}
-	account, err := client.User.Query().Where(user.DingtalkUnionidEQ(unionID)).Only(ctx)
-	if err == nil {
-		account, err = updateDingTalkProfile(ctx, account, identity)
-		if err != nil {
-			return nil, false, err
-		}
-		hasActiveMembership, queryErr := client.Membership.Query().Where(
-			membership.UserIDEQ(account.ID),
-			membership.EnabledEQ(true),
-			membership.HasOrganizationWith(organization.EnabledEQ(true)),
-		).Exist(ctx)
-		if queryErr != nil {
-			return nil, false, queryErr
-		}
-		if !hasActiveMembership {
-			credential, prepareErr := r.prepareDingTalkRehire(ctx, account, requestedOrganizationID, notice, audit)
-			return credential, prepareErr == nil, prepareErr
-		}
-		if account.Enabled {
-			// 已启用账号不做任何变更，由 biz 返回「已完成注册」。
-			credential, credentialErr := r.credentialForAccount(ctx, account)
-			return credential, false, credentialErr
-		}
-		// 仍处待授权状态：更新自选目标组织并（在目标变化时）重新提醒审批人。
-		if err := r.updateDingTalkRequestedOrganization(ctx, account.ID, requestedOrganizationID, notice, dingtalkName); err != nil {
-			return nil, false, err
-		}
-		credential, credentialErr := r.credentialForAccount(ctx, account)
-		return credential, false, credentialErr
-	}
-	if !ent.IsNotFound(err) {
-		return nil, false, err
-	}
-
-	var systemWorkspace *ent.Organization
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		var queryErr error
-		systemWorkspace, queryErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindSystem), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		create := tx.User.Create().SetDisplayName(dingtalkName).SetDingtalkUnionid(unionID).SetDingtalkUserid(dingTalkUserID).SetDingtalkName(dingtalkName).SetEnabled(false)
-		if requestedOrganizationID != nil {
-			create.SetDingtalkRequestedOrganizationID(*requestedOrganizationID)
-		}
-		if identity.Email != nil && strings.TrimSpace(*identity.Email) != "" {
-			create.SetEmail(strings.TrimSpace(*identity.Email))
-		}
-		if identity.AvatarURL != nil && strings.TrimSpace(*identity.AvatarURL) != "" {
-			create.SetAvatarURL(strings.TrimSpace(*identity.AvatarURL))
-		}
-		var createErr error
-		account, createErr = create.Save(ctx)
-		if createErr != nil {
-			return createErr
-		}
-		if _, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(systemWorkspace.ID).SetPrimary(true).SetEnabled(true).Save(ctx); createErr != nil {
-			return createErr
-		}
-		if err := enqueueDingTalkRegistrationPendingNotifications(ctx, tx, resolveRegistrationRoutingOrganization(requestedOrganizationID, systemWorkspace.ID), account.ID, dingtalkName, approverNoticeOrganizationName(notice, systemWorkspace.Name), approverNoticeUserIDs(notice)); err != nil {
-			return err
-		}
-		audit.UserID = &account.ID
-		audit.OrganizationID = &systemWorkspace.ID
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, false, err
-	}
-	return credentialFromAccount(account, systemWorkspace.ID), true, nil
-}
-
-// approverNoticeOrganizationName 返回审批通知卡片展示的组织名：biz 已按代管
-// 口径组合好展示名；空值表示未自选目标组织（系统管理收口），按路由组织自身名展示。
-func approverNoticeOrganizationName(notice *biz.DingTalkApproverNotice, fallback string) string {
-	if notice != nil && strings.TrimSpace(notice.OrganizationName) != "" {
-		return notice.OrganizationName
-	}
-	return fallback
-}
-
-// approverNoticeUserIDs 返回审批通知收件人（biz 向上追溯后的结果）。
-func approverNoticeUserIDs(notice *biz.DingTalkApproverNotice) []uuid.UUID {
-	if notice == nil {
-		return nil
-	}
-	return notice.ApproverUserIDs
-}
-
-// resolveRegistrationRoutingOrganization 返回注册审批通知的路由组织：
-// 自选了目标组织用自选值，否则用系统管理收口组织（系统管理兜底）。
-func resolveRegistrationRoutingOrganization(requestedOrganizationID *uuid.UUID, systemWorkspaceID uuid.UUID) uuid.UUID {
-	if requestedOrganizationID != nil {
-		return *requestedOrganizationID
-	}
-	return systemWorkspaceID
-}
-
-// updateDingTalkRequestedOrganization 更新待授权注册的自选目标组织；目标组织
-// 变化时向新路由组织重新入队审批通知（确定性幂等键自动去重同一组织的重复提醒）。
-func (r *authRepo) updateDingTalkRequestedOrganization(ctx context.Context, userID uuid.UUID, requestedOrganizationID *uuid.UUID, notice *biz.DingTalkApproverNotice, registrantName string) error {
-	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		account, queryErr := tx.User.Query().Where(user.IDEQ(userID)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		update := tx.User.UpdateOneID(userID)
-		changed := false
-		if requestedOrganizationID == nil {
-			if account.DingtalkRequestedOrganizationID != nil {
-				update.ClearDingtalkRequestedOrganizationID()
-				changed = true
-			}
-		} else if account.DingtalkRequestedOrganizationID == nil || *account.DingtalkRequestedOrganizationID != *requestedOrganizationID {
-			update.SetDingtalkRequestedOrganizationID(*requestedOrganizationID)
-			changed = true
-		}
-		if changed {
-			if _, updateErr := update.Save(ctx); updateErr != nil {
-				return updateErr
-			}
-		}
-		if !changed || len(approverNoticeUserIDs(notice)) == 0 {
-			return nil
-		}
-		// 自选目标变化（或清空回系统管理兜底）时向新路由组织重新提醒审批人。
-		var routingOrganization *ent.Organization
-		var routingErr error
-		if requestedOrganizationID != nil {
-			routingOrganization, routingErr = tx.Organization.Query().Where(organization.IDEQ(*requestedOrganizationID)).Only(ctx)
-		} else {
-			routingOrganization, routingErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindSystem), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
-		}
-		if routingErr != nil {
-			return routingErr
-		}
-		return enqueueDingTalkRegistrationPendingNotifications(ctx, tx, routingOrganization.ID, userID, registrantName, approverNoticeOrganizationName(notice, routingOrganization.Name), approverNoticeUserIDs(notice))
-	})
-}
-
-func (r *authRepo) prepareDingTalkRehire(ctx context.Context, account *ent.User, requestedOrganizationID *uuid.UUID, notice *biz.DingTalkApproverNotice, audit *biz.AuditEvent) (*biz.Credential, error) {
-	userID := account.ID
-	var systemWorkspace *ent.Organization
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if _, queryErr := tx.User.Query().Where(user.IDEQ(userID)).ForUpdate().Only(ctx); queryErr != nil {
-			return queryErr
-		}
-		var queryErr error
-		systemWorkspace, queryErr = tx.Organization.Query().Where(organization.KindEQ(organization.KindSystem), organization.ParentIDIsNil(), organization.EnabledEQ(true)).Only(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		membershipIDs, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(userID)).IDs(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if len(membershipIDs) > 0 {
-			if _, deleteErr := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(membershipIDs...)).Exec(ctx); deleteErr != nil {
-				return deleteErr
-			}
-		}
-		if _, updateErr := tx.Membership.Update().Where(membership.UserIDEQ(userID)).SetEnabled(false).SetPrimary(false).Save(ctx); updateErr != nil {
-			return updateErr
-		}
-		intake, queryErr := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.OrganizationIDEQ(systemWorkspace.ID)).Only(ctx)
-		if ent.IsNotFound(queryErr) {
-			_, queryErr = tx.Membership.Create().SetUserID(userID).SetOrganizationID(systemWorkspace.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
-		} else if queryErr == nil {
-			_, queryErr = tx.Membership.UpdateOneID(intake.ID).SetEnabled(true).SetPrimary(true).Save(ctx)
-		}
-		if queryErr != nil {
-			return queryErr
-		}
-		userUpdate := tx.User.UpdateOneID(userID).SetEnabled(false)
-		if requestedOrganizationID == nil {
-			userUpdate.ClearDingtalkRequestedOrganizationID()
-		} else {
-			userUpdate.SetDingtalkRequestedOrganizationID(*requestedOrganizationID)
-		}
-		if _, updateErr := userUpdate.Save(ctx); updateErr != nil {
-			return updateErr
-		}
-		if err := enqueueDingTalkRegistrationPendingNotifications(ctx, tx, resolveRegistrationRoutingOrganization(requestedOrganizationID, systemWorkspace.ID), userID, account.DisplayName, approverNoticeOrganizationName(notice, systemWorkspace.Name), approverNoticeUserIDs(notice)); err != nil {
-			return err
-		}
-		if _, updateErr := tx.Session.Update().Where(sessionent.UserIDEQ(userID), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); updateErr != nil {
-			return updateErr
-		}
-		audit.UserID = &userID
-		audit.OrganizationID = &systemWorkspace.ID
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	account.Enabled = false
-	return credentialFromAccount(account, systemWorkspace.ID), nil
-}
-
-// authOrgNode 是工作台判定的组织最小投影（kind 用字符串承载，纯函数不依赖 Ent 类型）。
-type authOrgNode struct {
-	ID       uuid.UUID
-	ParentID *uuid.UUID
-	Kind     string
-	Enabled  bool
-}
-
-// authOrganizationNodes 把组织实体列表投影为按 ID 索引的工作台判定节点表。
 func authOrganizationNodes(nodes []*ent.Organization) map[uuid.UUID]authOrgNode {
 	result := make(map[uuid.UUID]authOrgNode, len(nodes))
 	for _, node := range nodes {
@@ -576,33 +355,7 @@ func loadOrganizationTree(ctx context.Context, client *ent.Client) ([]*ent.Organ
 }
 
 func credentialFromAccount(account *ent.User, organizationID uuid.UUID) *biz.Credential {
-	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: organizationID}
-}
-
-func updateDingTalkProfile(ctx context.Context, account *ent.User, identity *biz.DingTalkIdentity) (*ent.User, error) {
-	update := account.Update()
-	changed := false
-	dingtalkName := strings.TrimSpace(identity.Name)
-	dingTalkUserID := strings.TrimSpace(identity.UserID)
-	if dingTalkUserID != "" && (account.DingtalkUserid == nil || *account.DingtalkUserid != dingTalkUserID) {
-		update.SetDingtalkUserid(dingTalkUserID)
-		changed = true
-	}
-	if dingtalkName != "" && (account.DingtalkName == nil || *account.DingtalkName != dingtalkName) {
-		update.SetDingtalkName(dingtalkName)
-		changed = true
-	}
-	if identity.AvatarURL != nil {
-		avatarURL := strings.TrimSpace(*identity.AvatarURL)
-		if avatarURL != "" && (account.AvatarURL == nil || *account.AvatarURL != avatarURL) {
-			update.SetAvatarURL(avatarURL)
-			changed = true
-		}
-	}
-	if !changed {
-		return account, nil
-	}
-	return update.Save(ctx)
+	return &biz.Credential{PendingAssignment: account.PendingAssignment, UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: organizationID}
 }
 
 // credentialForAccount 计算登录默认工作台：primary 成员关系所在组织向上取整到所属
@@ -625,7 +378,7 @@ func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) 
 	if primaryWorkspaceID == uuid.Nil {
 		return nil, biz.ErrOrganizationForbidden
 	}
-	return &biz.Credential{UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: primaryWorkspaceID}, nil
+	return &biz.Credential{PendingAssignment: account.PendingAssignment, UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: primaryWorkspaceID}, nil
 }
 
 // ListEnabledMembershipOrganizations 返回普通用户的工作台候选快照，供登录组织选择与
@@ -886,3 +639,20 @@ func (r *authRepo) RevokeSession(ctx context.Context, tokenHash string, now time
 }
 
 var _ biz.AuthRepo = (*authRepo)(nil)
+
+// authOrgNode 是工作台判定的最小组织投影。
+type authOrgNode struct {
+	ID       uuid.UUID
+	ParentID *uuid.UUID
+	Kind     string
+	Enabled  bool
+}
+
+func uuidInValues(values []uuid.UUID, target uuid.UUID) bool {
+	for _, v := range values {
+		if v == target {
+			return true
+		}
+	}
+	return false
+}

@@ -364,15 +364,13 @@
 | ADMIN_USER_NOT_FOUND | 404 Not Found | 用户不存在或不在当前工作台范围 | admin_user.go | — |
 | ADMIN_USER_SELF_DELETE | 400 Bad Request | 不能移除当前登录账号或为其办理离职 | admin_user.go | — |
 | ADMIN_USER_TERMINATION_REQUIRED | 400 Bad Request | 停用员工请使用办理离职 | admin_user.go | — |
-| AUTH_DINGTALK_ALREADY_REGISTERED | 409 Conflict | 该钉钉账号已完成注册，请直接登录 | auth.go | — |
 | AUTH_DINGTALK_AUTHORIZATION_PENDING | 403 Forbidden | 账号已登记，请联系管理员分配角色并启用账号 | auth.go | — |
 | AUTH_DINGTALK_CODE_INVALID | 401 Unauthorized | 钉钉登录凭证已失效，请重新扫码 | auth.go | — |
 | AUTH_DINGTALK_DISABLED | 503 Service Unavailable | 钉钉认证未启用 | auth.go | — |
 | AUTH_DINGTALK_LOGIN_FAILED | 401 Unauthorized | 钉钉登录失败 | auth.go | — |
 | AUTH_DINGTALK_NOT_REGISTERED | 401 Unauthorized | 当前人员尚未登记 | auth.go | — |
-| AUTH_DINGTALK_ORGANIZATION_MISMATCH | 403 Forbidden | 当前钉钉账号不属于本企业，无法继续注册 | auth.go | — |
+| AUTH_DINGTALK_ORGANIZATION_MISMATCH | 403 Forbidden | 当前钉钉账号不属于本企业，无法登录 | auth.go | — |
 | AUTH_DINGTALK_PERMISSION_DENIED | 401 Unauthorized | 钉钉应用无权读取成员信息，请检查应用权限 | auth.go | — |
-| AUTH_DINGTALK_REGISTRATION_EXPIRED | 401 Unauthorized | 钉钉身份确认已过期，请重新扫码 | auth.go | — |
 | AUTH_DINGTALK_STATE_INVALID | 401 Unauthorized | 钉钉验证状态已失效，请重新扫码 | auth.go | — |
 | AUTH_INVALID_CREDENTIALS | 401 Unauthorized | 用户名或密码错误 | auth.go | — |
 | AUTH_ORGANIZATION_FORBIDDEN | 403 Forbidden | 无权访问该组织<br>无该组织的成员资格或已停用 | auth.go | — |
@@ -387,19 +385,12 @@
 | AUTH_WECOM_PERMISSION_DENIED | 401 Unauthorized | 企业微信应用无权读取成员信息，请检查应用可见范围和通讯录权限 | auth.go | — |
 | AUTH_WECOM_STATE_INVALID | 401 Unauthorized | 企业微信登录状态已失效，请重新扫码 | auth.go | — |
 | AUTH_WECOM_TRUSTED_IP_REQUIRED | 401 Unauthorized | 企业微信拒绝当前服务器 IP，请在应用管理中配置企业可信 IP | auth.go | — |
-| DINGTALK_INVITATION_EXISTS | 409 Conflict | 该手机号在目标组织已存在有效定向邀请 | dingtalk_invitation.go | — |
-| DINGTALK_INVITATION_EXPIRED | 400 Bad Request | 邀请已过期 | dingtalk_invitation.go | — |
-| DINGTALK_INVITATION_NOT_CONSUMABLE | 409 Conflict | 邀请不可消费 | dingtalk_invitation.go | — |
-| DINGTALK_INVITATION_NOT_FOUND | 404 Not Found | 邀请不存在或已失效 | dingtalk_invitation.go | — |
-| DINGTALK_INVITATION_NOT_REVOCABLE | 409 Conflict | 邀请已消费或已撤销，不能再撤销 | dingtalk_invitation.go | — |
-| DINGTALK_INVITATION_REVOKED | 400 Bad Request | 邀请已撤销 | dingtalk_invitation.go | — |
-| DINGTALK_REGISTRATION_ALREADY_PROCESSED | 409 Conflict | 该注册申请已处理 | dingtalk_invitation.go | — |
-| DINGTALK_REGISTRATION_COMPANY_REQUIRED | 400 Bad Request | 请先将注册申请转交到具体公司，再分配角色并同意 | dingtalk_registration.go | — |
-| DINGTALK_REGISTRATION_NOT_FOUND | 404 Not Found | 注册申请不存在或已处理 | dingtalk_invitation.go | — |
-| DINGTALK_REGISTRATION_ORGANIZATION_INVALID | 400 Bad Request | 所选组织无效或不可选 | dingtalk_invitation.go | — |
-| DINGTALK_REGISTRATION_REASON_MISSING | 400 Bad Request | 原因说明不能为空 | dingtalk_invitation.go | — |
-| DINGTALK_REGISTRATION_TRANSFER_SAME | 400 Bad Request | 不能转派至当前已申请组织 | dingtalk_invitation.go | — |
 | OPERATING_COMPANY_REQUIRED | 403 Forbidden | 系统管理工作台不承载经营数据，请切换到具体公司后再维护经营数据 | organization.go | — |
+| DINGTALK_DIRECTORY_BUSY | 409 Conflict | 本企业已有通讯录同步任务正在执行 | dingtalk_directory.go | — |
+| DINGTALK_DIRECTORY_FAILED | 400 Bad Request | 通讯录读取失败，请检查钉钉应用通讯录权限 | dingtalk_directory.go | — |
+| DINGTALK_IDENTITY_CONFLICT | 409 Conflict | 钉钉身份与现有账号冲突，请管理员核对 | dingtalk_directory.go | — |
+| DINGTALK_ASSIGNMENT_CONFLICT | 409 Conflict | 人员已被开通或状态已变更，请刷新后重试 | dingtalk_directory.go | — |
+| DINGTALK_PROFILE_READ_ONLY | 400 Bad Request | 钉钉基础资料请在钉钉修改后同步 | dingtalk_directory.go | — |
 
 ## 平台
 

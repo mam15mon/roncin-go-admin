@@ -7,9 +7,16 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
+	syncent "github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	notifyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
+	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 type backgroundTaskRepo struct {
@@ -111,6 +118,11 @@ func (r *backgroundTaskRepo) claim(ctx context.Context, organizationID *uuid.UUI
 						Save(ctx)
 					if updateErr != nil {
 						return updateErr
+					}
+					if task.Kind == backgroundtaskent.KindDINGTALK_DIRECTORY_SYNC {
+						if _, err := tx.DingTalkDirectorySync.Update().Where(syncent.BackgroundTaskIDEQ(task.ID)).SetActive(false).SetCompletedAt(now).Save(ctx); err != nil {
+							return err
+						}
 					}
 					hasDeadLettered = true
 					continue
@@ -226,6 +238,12 @@ func (r *backgroundTaskRepo) Fail(ctx context.Context, organizationID, id uuid.U
 		}
 		var updateErr error
 		updated, updateErr = update.Save(ctx)
+		if updateErr != nil {
+			return updateErr
+		}
+		if updated.Kind == backgroundtaskent.KindDINGTALK_DIRECTORY_SYNC && updated.Status == backgroundtaskent.StatusDEAD_LETTER {
+			_, updateErr = tx.DingTalkDirectorySync.Update().Where(syncent.BackgroundTaskIDEQ(id)).SetActive(false).SetCompletedAt(time.Now().UTC()).Save(ctx)
+		}
 		return updateErr
 	})
 	if err != nil {
@@ -289,40 +307,75 @@ func (r *backgroundTaskRepo) List(ctx context.Context, organizationID uuid.UUID,
 
 func (r *backgroundTaskRepo) Requeue(ctx context.Context, organizationID, id uuid.UUID, now time.Time, audit *biz.AuditEvent) (*biz.BackgroundTask, error) {
 	var updated *ent.BackgroundTask
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		task, queryErr := tx.BackgroundTask.Query().
-			Where(
-				backgroundtaskent.IDEQ(id),
-				backgroundtaskent.OrganizationIDEQ(organizationID),
-			).
-			ForUpdate().
-			Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrBackgroundTaskNotFound, nil)
-		}
-		if task.Status != backgroundtaskent.StatusFAILED && task.Status != backgroundtaskent.StatusDEAD_LETTER {
-			return biz.ErrBackgroundTaskNotRequeueable
-		}
-		var updateErr error
-		updated, updateErr = tx.BackgroundTask.UpdateOne(task).
-			SetStatus(backgroundtaskent.StatusPENDING).
-			SetAttempts(0).
-			SetNextRunAt(now).
-			ClearLeaseToken().
-			ClearLeaseExpiresAt().
-			ClearLastError().
-			Save(ctx)
-		if updateErr != nil {
-			return updateErr
-		}
-		if audit.Details == nil {
-			audit.Details = make(map[string]string)
-		}
-		audit.Details["background_task.id"] = updated.ID.String()
-		audit.Details["background_task.kind"] = string(updated.Kind)
-		audit.Details["background_task.status"] = string(updated.Status)
-		audit.Details["background_task.attempts"] = strconv.Itoa(updated.Attempts)
-		return writeAudit(ctx, tx.AuditLog, audit)
+	err := r.data.WithinTransaction(ctx, func(ctx context.Context) error {
+		return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+			task, queryErr := tx.BackgroundTask.Query().
+				Where(
+					backgroundtaskent.IDEQ(id),
+					backgroundtaskent.OrganizationIDEQ(organizationID),
+				).
+				ForUpdate().
+				Only(ctx)
+			if queryErr != nil {
+				return mapEntError(queryErr, biz.ErrBackgroundTaskNotFound, nil)
+			}
+			if task.Kind == backgroundtaskent.KindDINGTALK_NOTIFICATION {
+				legacy, err := tx.NotificationDelivery.Query().Where(notifyent.BackgroundTaskIDEQ(task.ID), notifyent.TemplateIn(notifyent.TemplateDINGTALK_REGISTRATION_PENDING, notifyent.TemplateDINGTALK_REGISTRATION_REJECTED, notifyent.TemplateDINGTALK_INVITATION_ACTIVATED)).Exist(ctx)
+				if err != nil {
+					return err
+				}
+				if legacy {
+					return biz.ErrBackgroundTaskNotRequeueable
+				}
+			}
+			if task.Status != backgroundtaskent.StatusFAILED && task.Status != backgroundtaskent.StatusDEAD_LETTER {
+				return biz.ErrBackgroundTaskNotRequeueable
+			}
+			if task.Kind == backgroundtaskent.KindDINGTALK_DIRECTORY_SYNC {
+				if audit.UserID == nil {
+					return biz.ErrPermissionDenied
+				}
+				if _, err := tx.User.Query().Where(userent.IDEQ(*audit.UserID), userent.EnabledEQ(true)).ForShare().Only(ctx); err != nil {
+					return biz.ErrPermissionDenied
+				}
+				if _, err := tx.Membership.Query().Where(membership.UserIDEQ(*audit.UserID), membership.OrganizationIDEQ(organizationID)).Order(membership.ByID()).ForShare().All(ctx); err != nil {
+					return err
+				}
+				if _, err := tx.Role.Query().Where(role.HasAssignmentsWith(roleassignment.HasMembershipWith(membership.UserIDEQ(*audit.UserID), membership.OrganizationIDEQ(organizationID), membership.EnabledEQ(true)))).Order(role.ByID()).ForShare().All(ctx); err != nil {
+					return err
+				}
+				principal, err := (&authRepo{data: r.data}).ResolvePrincipal(ctx, *audit.UserID, organizationID)
+				if err != nil {
+					return err
+				}
+				if principal.Organization.Kind != biz.OrganizationKindSystem || !principal.HasPermission(access.UserDingTalkDirectorySync) {
+					return biz.ErrPermissionDenied
+				}
+				if _, err := tx.DingTalkDirectorySync.Update().Where(syncent.BackgroundTaskIDEQ(task.ID)).SetActive(true).ClearCompletedAt().SetTotalCount(0).SetCreatedCount(0).SetUpdatedCount(0).SetUnchangedCount(0).SetFailedCount(0).SetFailures(nil).Save(ctx); err != nil {
+					return mapEntError(err, nil, biz.ErrDingTalkDirectoryBusy)
+				}
+			}
+			var updateErr error
+			updated, updateErr = tx.BackgroundTask.UpdateOne(task).
+				SetStatus(backgroundtaskent.StatusPENDING).
+				SetAttempts(0).
+				SetNextRunAt(now).
+				ClearLeaseToken().
+				ClearLeaseExpiresAt().
+				ClearLastError().
+				Save(ctx)
+			if updateErr != nil {
+				return updateErr
+			}
+			if audit.Details == nil {
+				audit.Details = make(map[string]string)
+			}
+			audit.Details["background_task.id"] = updated.ID.String()
+			audit.Details["background_task.kind"] = string(updated.Kind)
+			audit.Details["background_task.status"] = string(updated.Status)
+			audit.Details["background_task.attempts"] = strconv.Itoa(updated.Attempts)
+			return writeAudit(ctx, tx.AuditLog, audit)
+		})
 	})
 	if err != nil {
 		return nil, err

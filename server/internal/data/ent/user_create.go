@@ -42,6 +42,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
@@ -260,6 +261,68 @@ func (_c *UserCreate) SetEnabled(v bool) *UserCreate {
 func (_c *UserCreate) SetNillableEnabled(v *bool) *UserCreate {
 	if v != nil {
 		_c.SetEnabled(*v)
+	}
+	return _c
+}
+
+// SetPendingAssignment sets the "pending_assignment" field.
+func (_c *UserCreate) SetPendingAssignment(v bool) *UserCreate {
+	_c.mutation.SetPendingAssignment(v)
+	return _c
+}
+
+// SetNillablePendingAssignment sets the "pending_assignment" field if the given value is not nil.
+func (_c *UserCreate) SetNillablePendingAssignment(v *bool) *UserCreate {
+	if v != nil {
+		_c.SetPendingAssignment(*v)
+	}
+	return _c
+}
+
+// SetDingtalkJobNumber sets the "dingtalk_job_number" field.
+func (_c *UserCreate) SetDingtalkJobNumber(v string) *UserCreate {
+	_c.mutation.SetDingtalkJobNumber(v)
+	return _c
+}
+
+// SetNillableDingtalkJobNumber sets the "dingtalk_job_number" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkJobNumber(v *string) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkJobNumber(*v)
+	}
+	return _c
+}
+
+// SetDingtalkMobile sets the "dingtalk_mobile" field.
+func (_c *UserCreate) SetDingtalkMobile(v string) *UserCreate {
+	_c.mutation.SetDingtalkMobile(v)
+	return _c
+}
+
+// SetNillableDingtalkMobile sets the "dingtalk_mobile" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkMobile(v *string) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkMobile(*v)
+	}
+	return _c
+}
+
+// SetDingtalkDepartments sets the "dingtalk_departments" field.
+func (_c *UserCreate) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserCreate {
+	_c.mutation.SetDingtalkDepartments(v)
+	return _c
+}
+
+// SetDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field.
+func (_c *UserCreate) SetDingtalkLastSyncedAt(v time.Time) *UserCreate {
+	_c.mutation.SetDingtalkLastSyncedAt(v)
+	return _c
+}
+
+// SetNillableDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkLastSyncedAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkLastSyncedAt(*v)
 	}
 	return _c
 }
@@ -1256,6 +1319,10 @@ func (_c *UserCreate) defaults() error {
 		v := user.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.PendingAssignment(); !ok {
+		v := user.DefaultPendingAssignment
+		_c.mutation.SetPendingAssignment(v)
+	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		v := user.DefaultSearchKeywords
 		_c.mutation.SetSearchKeywords(v)
@@ -1331,6 +1398,19 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "User.enabled"`)}
+	}
+	if _, ok := _c.mutation.PendingAssignment(); !ok {
+		return &ValidationError{Name: "pending_assignment", err: errors.New(`ent: missing required field "User.pending_assignment"`)}
+	}
+	if v, ok := _c.mutation.DingtalkJobNumber(); ok {
+		if err := user.DingtalkJobNumberValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_job_number", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_job_number": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.DingtalkMobile(); ok {
+		if err := user.DingtalkMobileValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_mobile", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "User.search_keywords"`)}
@@ -1426,6 +1506,26 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(user.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.PendingAssignment(); ok {
+		_spec.SetField(user.FieldPendingAssignment, field.TypeBool, value)
+		_node.PendingAssignment = value
+	}
+	if value, ok := _c.mutation.DingtalkJobNumber(); ok {
+		_spec.SetField(user.FieldDingtalkJobNumber, field.TypeString, value)
+		_node.DingtalkJobNumber = &value
+	}
+	if value, ok := _c.mutation.DingtalkMobile(); ok {
+		_spec.SetField(user.FieldDingtalkMobile, field.TypeString, value)
+		_node.DingtalkMobile = &value
+	}
+	if value, ok := _c.mutation.DingtalkDepartments(); ok {
+		_spec.SetField(user.FieldDingtalkDepartments, field.TypeJSON, value)
+		_node.DingtalkDepartments = value
+	}
+	if value, ok := _c.mutation.DingtalkLastSyncedAt(); ok {
+		_spec.SetField(user.FieldDingtalkLastSyncedAt, field.TypeTime, value)
+		_node.DingtalkLastSyncedAt = &value
 	}
 	if value, ok := _c.mutation.SearchKeywords(); ok {
 		_spec.SetField(user.FieldSearchKeywords, field.TypeString, value)
@@ -2676,6 +2776,90 @@ func (u *UserUpsert) UpdateEnabled() *UserUpsert {
 	return u
 }
 
+// SetPendingAssignment sets the "pending_assignment" field.
+func (u *UserUpsert) SetPendingAssignment(v bool) *UserUpsert {
+	u.Set(user.FieldPendingAssignment, v)
+	return u
+}
+
+// UpdatePendingAssignment sets the "pending_assignment" field to the value that was provided on create.
+func (u *UserUpsert) UpdatePendingAssignment() *UserUpsert {
+	u.SetExcluded(user.FieldPendingAssignment)
+	return u
+}
+
+// SetDingtalkJobNumber sets the "dingtalk_job_number" field.
+func (u *UserUpsert) SetDingtalkJobNumber(v string) *UserUpsert {
+	u.Set(user.FieldDingtalkJobNumber, v)
+	return u
+}
+
+// UpdateDingtalkJobNumber sets the "dingtalk_job_number" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkJobNumber() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkJobNumber)
+	return u
+}
+
+// ClearDingtalkJobNumber clears the value of the "dingtalk_job_number" field.
+func (u *UserUpsert) ClearDingtalkJobNumber() *UserUpsert {
+	u.SetNull(user.FieldDingtalkJobNumber)
+	return u
+}
+
+// SetDingtalkMobile sets the "dingtalk_mobile" field.
+func (u *UserUpsert) SetDingtalkMobile(v string) *UserUpsert {
+	u.Set(user.FieldDingtalkMobile, v)
+	return u
+}
+
+// UpdateDingtalkMobile sets the "dingtalk_mobile" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkMobile() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkMobile)
+	return u
+}
+
+// ClearDingtalkMobile clears the value of the "dingtalk_mobile" field.
+func (u *UserUpsert) ClearDingtalkMobile() *UserUpsert {
+	u.SetNull(user.FieldDingtalkMobile)
+	return u
+}
+
+// SetDingtalkDepartments sets the "dingtalk_departments" field.
+func (u *UserUpsert) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpsert {
+	u.Set(user.FieldDingtalkDepartments, v)
+	return u
+}
+
+// UpdateDingtalkDepartments sets the "dingtalk_departments" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkDepartments() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkDepartments)
+	return u
+}
+
+// ClearDingtalkDepartments clears the value of the "dingtalk_departments" field.
+func (u *UserUpsert) ClearDingtalkDepartments() *UserUpsert {
+	u.SetNull(user.FieldDingtalkDepartments)
+	return u
+}
+
+// SetDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field.
+func (u *UserUpsert) SetDingtalkLastSyncedAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldDingtalkLastSyncedAt, v)
+	return u
+}
+
+// UpdateDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkLastSyncedAt() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkLastSyncedAt)
+	return u
+}
+
+// ClearDingtalkLastSyncedAt clears the value of the "dingtalk_last_synced_at" field.
+func (u *UserUpsert) ClearDingtalkLastSyncedAt() *UserUpsert {
+	u.SetNull(user.FieldDingtalkLastSyncedAt)
+	return u
+}
+
 // SetSearchKeywords sets the "search_keywords" field.
 func (u *UserUpsert) SetSearchKeywords(v string) *UserUpsert {
 	u.Set(user.FieldSearchKeywords, v)
@@ -2991,6 +3175,104 @@ func (u *UserUpsertOne) SetEnabled(v bool) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateEnabled() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEnabled()
+	})
+}
+
+// SetPendingAssignment sets the "pending_assignment" field.
+func (u *UserUpsertOne) SetPendingAssignment(v bool) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPendingAssignment(v)
+	})
+}
+
+// UpdatePendingAssignment sets the "pending_assignment" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdatePendingAssignment() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePendingAssignment()
+	})
+}
+
+// SetDingtalkJobNumber sets the "dingtalk_job_number" field.
+func (u *UserUpsertOne) SetDingtalkJobNumber(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkJobNumber(v)
+	})
+}
+
+// UpdateDingtalkJobNumber sets the "dingtalk_job_number" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkJobNumber() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkJobNumber()
+	})
+}
+
+// ClearDingtalkJobNumber clears the value of the "dingtalk_job_number" field.
+func (u *UserUpsertOne) ClearDingtalkJobNumber() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkJobNumber()
+	})
+}
+
+// SetDingtalkMobile sets the "dingtalk_mobile" field.
+func (u *UserUpsertOne) SetDingtalkMobile(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkMobile(v)
+	})
+}
+
+// UpdateDingtalkMobile sets the "dingtalk_mobile" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkMobile() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkMobile()
+	})
+}
+
+// ClearDingtalkMobile clears the value of the "dingtalk_mobile" field.
+func (u *UserUpsertOne) ClearDingtalkMobile() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkMobile()
+	})
+}
+
+// SetDingtalkDepartments sets the "dingtalk_departments" field.
+func (u *UserUpsertOne) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkDepartments(v)
+	})
+}
+
+// UpdateDingtalkDepartments sets the "dingtalk_departments" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkDepartments() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkDepartments()
+	})
+}
+
+// ClearDingtalkDepartments clears the value of the "dingtalk_departments" field.
+func (u *UserUpsertOne) ClearDingtalkDepartments() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkDepartments()
+	})
+}
+
+// SetDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field.
+func (u *UserUpsertOne) SetDingtalkLastSyncedAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkLastSyncedAt(v)
+	})
+}
+
+// UpdateDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkLastSyncedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkLastSyncedAt()
+	})
+}
+
+// ClearDingtalkLastSyncedAt clears the value of the "dingtalk_last_synced_at" field.
+func (u *UserUpsertOne) ClearDingtalkLastSyncedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkLastSyncedAt()
 	})
 }
 
@@ -3478,6 +3760,104 @@ func (u *UserUpsertBulk) SetEnabled(v bool) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateEnabled() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateEnabled()
+	})
+}
+
+// SetPendingAssignment sets the "pending_assignment" field.
+func (u *UserUpsertBulk) SetPendingAssignment(v bool) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPendingAssignment(v)
+	})
+}
+
+// UpdatePendingAssignment sets the "pending_assignment" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdatePendingAssignment() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePendingAssignment()
+	})
+}
+
+// SetDingtalkJobNumber sets the "dingtalk_job_number" field.
+func (u *UserUpsertBulk) SetDingtalkJobNumber(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkJobNumber(v)
+	})
+}
+
+// UpdateDingtalkJobNumber sets the "dingtalk_job_number" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkJobNumber() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkJobNumber()
+	})
+}
+
+// ClearDingtalkJobNumber clears the value of the "dingtalk_job_number" field.
+func (u *UserUpsertBulk) ClearDingtalkJobNumber() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkJobNumber()
+	})
+}
+
+// SetDingtalkMobile sets the "dingtalk_mobile" field.
+func (u *UserUpsertBulk) SetDingtalkMobile(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkMobile(v)
+	})
+}
+
+// UpdateDingtalkMobile sets the "dingtalk_mobile" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkMobile() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkMobile()
+	})
+}
+
+// ClearDingtalkMobile clears the value of the "dingtalk_mobile" field.
+func (u *UserUpsertBulk) ClearDingtalkMobile() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkMobile()
+	})
+}
+
+// SetDingtalkDepartments sets the "dingtalk_departments" field.
+func (u *UserUpsertBulk) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkDepartments(v)
+	})
+}
+
+// UpdateDingtalkDepartments sets the "dingtalk_departments" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkDepartments() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkDepartments()
+	})
+}
+
+// ClearDingtalkDepartments clears the value of the "dingtalk_departments" field.
+func (u *UserUpsertBulk) ClearDingtalkDepartments() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkDepartments()
+	})
+}
+
+// SetDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field.
+func (u *UserUpsertBulk) SetDingtalkLastSyncedAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkLastSyncedAt(v)
+	})
+}
+
+// UpdateDingtalkLastSyncedAt sets the "dingtalk_last_synced_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkLastSyncedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkLastSyncedAt()
+	})
+}
+
+// ClearDingtalkLastSyncedAt clears the value of the "dingtalk_last_synced_at" field.
+func (u *UserUpsertBulk) ClearDingtalkLastSyncedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkLastSyncedAt()
 	})
 }
 

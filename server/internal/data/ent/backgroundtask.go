@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -56,6 +57,8 @@ type BackgroundTask struct {
 type BackgroundTaskEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
+	// DingtalkDirectorySync holds the value of the dingtalk_directory_sync edge.
+	DingtalkDirectorySync *DingTalkDirectorySync `json:"dingtalk_directory_sync,omitempty"`
 	// NotificationDelivery holds the value of the notification_delivery edge.
 	NotificationDelivery *NotificationDelivery `json:"notification_delivery,omitempty"`
 	// ObjectStorageDeletion holds the value of the object_storage_deletion edge.
@@ -64,7 +67,7 @@ type BackgroundTaskEdges struct {
 	DingtalkApprovalDispatch *DingTalkApprovalDispatch `json:"dingtalk_approval_dispatch,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -78,12 +81,23 @@ func (e BackgroundTaskEdges) OrganizationOrErr() (*Organization, error) {
 	return nil, &NotLoadedError{edge: "organization"}
 }
 
+// DingtalkDirectorySyncOrErr returns the DingtalkDirectorySync value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e BackgroundTaskEdges) DingtalkDirectorySyncOrErr() (*DingTalkDirectorySync, error) {
+	if e.DingtalkDirectorySync != nil {
+		return e.DingtalkDirectorySync, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: dingtalkdirectorysync.Label}
+	}
+	return nil, &NotLoadedError{edge: "dingtalk_directory_sync"}
+}
+
 // NotificationDeliveryOrErr returns the NotificationDelivery value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e BackgroundTaskEdges) NotificationDeliveryOrErr() (*NotificationDelivery, error) {
 	if e.NotificationDelivery != nil {
 		return e.NotificationDelivery, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: notificationdelivery.Label}
 	}
 	return nil, &NotLoadedError{edge: "notification_delivery"}
@@ -94,7 +108,7 @@ func (e BackgroundTaskEdges) NotificationDeliveryOrErr() (*NotificationDelivery,
 func (e BackgroundTaskEdges) ObjectStorageDeletionOrErr() (*ObjectStorageDeletion, error) {
 	if e.ObjectStorageDeletion != nil {
 		return e.ObjectStorageDeletion, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: objectstoragedeletion.Label}
 	}
 	return nil, &NotLoadedError{edge: "object_storage_deletion"}
@@ -105,7 +119,7 @@ func (e BackgroundTaskEdges) ObjectStorageDeletionOrErr() (*ObjectStorageDeletio
 func (e BackgroundTaskEdges) DingtalkApprovalDispatchOrErr() (*DingTalkApprovalDispatch, error) {
 	if e.DingtalkApprovalDispatch != nil {
 		return e.DingtalkApprovalDispatch, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: dingtalkapprovaldispatch.Label}
 	}
 	return nil, &NotLoadedError{edge: "dingtalk_approval_dispatch"}
@@ -236,6 +250,11 @@ func (_m *BackgroundTask) Value(name string) (ent.Value, error) {
 // QueryOrganization queries the "organization" edge of the BackgroundTask entity.
 func (_m *BackgroundTask) QueryOrganization() *OrganizationQuery {
 	return NewBackgroundTaskClient(_m.config).QueryOrganization(_m)
+}
+
+// QueryDingtalkDirectorySync queries the "dingtalk_directory_sync" edge of the BackgroundTask entity.
+func (_m *BackgroundTask) QueryDingtalkDirectorySync() *DingTalkDirectorySyncQuery {
+	return NewBackgroundTaskClient(_m.config).QueryDingtalkDirectorySync(_m)
 }
 
 // QueryNotificationDelivery queries the "notification_delivery" edge of the BackgroundTask entity.

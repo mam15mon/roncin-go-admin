@@ -117,6 +117,18 @@ func (f DingTalkApprovalInboxEventFunc) Mutate(ctx context.Context, m ent.Mutati
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DingTalkApprovalInboxEventMutation", m)
 }
 
+// The DingTalkDirectorySyncFunc type is an adapter to allow the use of ordinary
+// function as DingTalkDirectorySync mutator.
+type DingTalkDirectorySyncFunc func(context.Context, *ent.DingTalkDirectorySyncMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DingTalkDirectorySyncFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DingTalkDirectorySyncMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DingTalkDirectorySyncMutation", m)
+}
+
 // The DingTalkInvitationFunc type is an adapter to allow the use of ordinary
 // function as DingTalkInvitation mutator.
 type DingTalkInvitationFunc func(context.Context, *ent.DingTalkInvitationMutation) (ent.Value, error)

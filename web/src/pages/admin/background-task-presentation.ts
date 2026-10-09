@@ -5,6 +5,11 @@ export interface BackgroundTaskPresentation {
 }
 
 const genericTaskPresentation: Record<number, BackgroundTaskPresentation> = {
+  [BackgroundTaskKind.BACKGROUND_TASK_KIND_DINGTALK_DIRECTORY_SYNC]: {
+    label: '钉钉人员同步',
+    description: '同步通讯录资料并创建待分配人员',
+    color: 'cyan',
+  },
   [BackgroundTaskKind.BACKGROUND_TASK_KIND_MASTER_DATA_IMPORT]: {
     label: '主数据导入',
     description: '导入并处理主数据文件',

@@ -3,7 +3,6 @@ import { createElement } from 'react';
 import {
   AdminUserStatus,
   BackgroundTaskStatus,
-  DingTalkInvitationStatus,
   OrderAbnormalCaseStatus,
   OrderBusinessType,
   OrderFlowStatus,
@@ -57,8 +56,12 @@ export const orderFlowStatusMeta: Record<number, StatusMeta> = {
 };
 
 export const adminUserStatusMeta: Record<number, StatusMeta> = {
+  [AdminUserStatus.ADMIN_USER_STATUS_PENDING_ASSIGNMENT]: {
+    text: '待分配',
+    color: 'warning',
+  },
   [AdminUserStatus.ADMIN_USER_STATUS_ACTIVE]: {
-    text: '在职',
+    text: '已开通',
     color: 'success',
   },
   [AdminUserStatus.ADMIN_USER_STATUS_PENDING_AUTHORIZATION]: {
@@ -99,25 +102,6 @@ export const backgroundTaskStatusMeta: Record<number, StatusMeta> = {
   [BackgroundTaskStatus.BACKGROUND_TASK_STATUS_DEAD_LETTER]: {
     text: '已停止',
     color: 'error',
-  },
-};
-
-export const dingTalkInvitationStatusMeta: Record<number, StatusMeta> = {
-  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_PENDING]: {
-    text: '待使用',
-    color: 'processing',
-  },
-  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_CONSUMED]: {
-    text: '已激活',
-    color: 'success',
-  },
-  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_EXPIRED]: {
-    text: '已过期',
-    color: 'default',
-  },
-  [DingTalkInvitationStatus.DING_TALK_INVITATION_STATUS_REVOKED]: {
-    text: '已撤销',
-    color: 'default',
   },
 };
 

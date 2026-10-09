@@ -26,10 +26,9 @@ export const organizationKindLabels: Record<number, string> = {
 
 export function pendingExternalProvider(
   user?: API.AdminUser,
-): 'wecom' | 'dingtalk' | undefined {
+): 'wecom' | undefined {
   if (user?.status !== 2) return undefined;
   if (user.wecomUserid) return 'wecom';
-  if (user.dingtalkUnionid) return 'dingtalk';
   return undefined;
 }
 

@@ -213,7 +213,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION", "OBJECT_STORAGE_DELETION", "DINGTALK_APPROVAL_CREATE"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"MASTER_DATA_IMPORT", "UNLOCODE_IMPORT", "ORDER_REMINDER", "INTEGRATION", "DINGTALK_NOTIFICATION", "OBJECT_STORAGE_DELETION", "DINGTALK_APPROVAL_CREATE", "DINGTALK_DIRECTORY_SYNC"}},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "RUNNING", "SUCCEEDED", "FAILED", "DEAD_LETTER"}, Default: "PENDING"},
 		{Name: "attempts", Type: field.TypeInt, Default: 0},
@@ -436,6 +436,60 @@ var (
 				Name:    "dingtalkapprovalinboxevent_status_next_run_at_received_at",
 				Unique:  false,
 				Columns: []*schema.Column{DingTalkApprovalInboxEventsColumns[10], DingTalkApprovalInboxEventsColumns[12], DingTalkApprovalInboxEventsColumns[7]},
+			},
+		},
+	}
+	// DingTalkDirectorySyncsColumns holds the columns for the "ding_talk_directory_syncs" table.
+	DingTalkDirectorySyncsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "actor_id", Type: field.TypeUUID},
+		{Name: "corp_id", Type: field.TypeString, Size: 128},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "scope_summary", Type: field.TypeString, Size: 500, Default: ""},
+		{Name: "full_scope", Type: field.TypeBool, Default: false},
+		{Name: "available_fields", Type: field.TypeJSON, Nullable: true},
+		{Name: "total_count", Type: field.TypeInt, Default: 0},
+		{Name: "created_count", Type: field.TypeInt, Default: 0},
+		{Name: "updated_count", Type: field.TypeInt, Default: 0},
+		{Name: "unchanged_count", Type: field.TypeInt, Default: 0},
+		{Name: "failed_count", Type: field.TypeInt, Default: 0},
+		{Name: "failures", Type: field.TypeJSON, Nullable: true},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "background_task_id", Type: field.TypeUUID, Unique: true},
+	}
+	// DingTalkDirectorySyncsTable holds the schema information for the "ding_talk_directory_syncs" table.
+	DingTalkDirectorySyncsTable = &schema.Table{
+		Name:       "ding_talk_directory_syncs",
+		Columns:    DingTalkDirectorySyncsColumns,
+		PrimaryKey: []*schema.Column{DingTalkDirectorySyncsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "ding_talk_directory_syncs_background_tasks_dingtalk_directory_sync",
+				Columns:    []*schema.Column{DingTalkDirectorySyncsColumns[16]},
+				RefColumns: []*schema.Column{BackgroundTasksColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "dingtalkdirectorysync_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{DingTalkDirectorySyncsColumns[2]},
+			},
+			{
+				Name:    "dingtalkdirectorysync_background_task_id",
+				Unique:  true,
+				Columns: []*schema.Column{DingTalkDirectorySyncsColumns[16]},
+			},
+			{
+				Name:    "dingtalk_directory_sync_active_corp_unique",
+				Unique:  true,
+				Columns: []*schema.Column{DingTalkDirectorySyncsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "active = true",
+				},
 			},
 		},
 	}
@@ -6950,6 +7004,11 @@ var (
 		{Name: "dingtalk_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "is_bootstrap_admin", Type: field.TypeBool, Default: false},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "pending_assignment", Type: field.TypeBool, Default: false},
+		{Name: "dingtalk_job_number", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "dingtalk_mobile", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "dingtalk_departments", Type: field.TypeJSON, Nullable: true},
+		{Name: "dingtalk_last_synced_at", Type: field.TypeTime, Nullable: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "dingtalk_requested_organization_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -6961,7 +7020,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_organizations_dingtalk_registration_requests",
-				Columns:    []*schema.Column{UsersColumns[16]},
+				Columns:    []*schema.Column{UsersColumns[21]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -7003,7 +7062,7 @@ var (
 			{
 				Name:    "user_dingtalk_requested_organization_id",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[16]},
+				Columns: []*schema.Column{UsersColumns[21]},
 			},
 		},
 	}
@@ -7043,6 +7102,7 @@ var (
 		CurrenciesTable,
 		DingTalkApprovalDispatchesTable,
 		DingTalkApprovalInboxEventsTable,
+		DingTalkDirectorySyncsTable,
 		DingTalkInvitationsTable,
 		EnterpriseResourcesTable,
 		EnterpriseResourceAddressesTable,
@@ -7150,6 +7210,10 @@ var (
 
 func init() {
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
+	BackgroundTasksTable.Annotation = &entsql.Annotation{}
+	BackgroundTasksTable.Annotation.Checks = map[string]string{
+		"background_tasks_kind_check": "kind IN ('MASTER_DATA_IMPORT', 'UNLOCODE_IMPORT', 'ORDER_REMINDER', 'INTEGRATION', 'DINGTALK_NOTIFICATION', 'OBJECT_STORAGE_DELETION', 'DINGTALK_APPROVAL_CREATE', 'DINGTALK_DIRECTORY_SYNC')",
+	}
 	DingTalkApprovalDispatchesTable.ForeignKeys[0].RefTable = BackgroundTasksTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[1].RefTable = OrderUnlockRequestsTable
 	DingTalkApprovalDispatchesTable.ForeignKeys[2].RefTable = OrganizationsTable
@@ -7162,6 +7226,7 @@ func init() {
 		"ding_talk_approval_inbox_events_attempts_check": "attempts >= 0",
 		"ding_talk_approval_inbox_events_status_check":   "status IN ('RECEIVED', 'PROCESSING', 'PROCESSED', 'IGNORED', 'FAILED')",
 	}
+	DingTalkDirectorySyncsTable.ForeignKeys[0].RefTable = BackgroundTasksTable
 	DingTalkInvitationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	DingTalkInvitationsTable.ForeignKeys[1].RefTable = RolesTable
 	DingTalkInvitationsTable.ForeignKeys[2].RefTable = UsersTable
@@ -7557,6 +7622,10 @@ func init() {
 	ShippingLineContainerPrefixesTable.ForeignKeys[0].RefTable = ShippingLinesTable
 	TaxableServicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	UsersTable.ForeignKeys[0].RefTable = OrganizationsTable
+	UsersTable.Annotation = &entsql.Annotation{}
+	UsersTable.Annotation.Checks = map[string]string{
+		"users_pending_assignment_check": "NOT pending_assignment OR NOT enabled",
+	}
 	RolePermissionsTable.ForeignKeys[0].RefTable = RolesTable
 	RolePermissionsTable.ForeignKeys[1].RefTable = PermissionsTable
 }

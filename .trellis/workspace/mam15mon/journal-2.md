@@ -909,3 +909,71 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 114: 钉钉人员同步与管理员开通实施
+<!-- trellis-session: v=2 fp=baba96b904b9b84b -->
+
+**Date**: 2026-10-09
+**Task**: 钉钉人员同步与管理员开通实施
+**Branch**: `codex/dingtalk-directory-provisioning`
+
+### Summary
+
+完成通讯录同步、无组织待分配、逐人组织角色开通及旧注册链路移除；本地正式迁移、全量前后端门禁、真实 PostgreSQL 与浏览器夹具通过。当前应用缺部门/成员接口权限，保留任务等待真实联调。
+
+### Main Changes
+
+- 替换钉钉邀请和自助注册，统一同步后管理员分配组织与角色
+- 完善待分配范围、资料只读、并发开通与后台同步租约防护
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0fe1fa99` | feat: 同步钉钉通讯录并统一组织角色开通 |
+| `2aa9762e` | docs: 记录钉钉人员开通验收与待联调条件 |
+
+### Testing
+
+- [OK] 前端181文件1068用例通过，12既有用例跳过；后端完整门禁注入隔离PostgreSQL和迁移开关通过
+- [OK] 14项定向真实数据库/网关回归通过，构建和开发/生产浏览器夹具验证通过；隔离资源已清理
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 在钉钉应用开通 qyapi_get_department_list 和 qyapi_get_department_member，完成真实全员同步与扫码联调后再归档任务
+
+
+## Session 115: 钉钉同步实际联调与合并收尾
+<!-- trellis-session: v=2 fp=d0e4480cb8b79745 -->
+
+**Date**: 2026-10-09
+**Task**: 钉钉同步实际联调与合并收尾
+**Branch**: `codex/dingtalk-directory-provisioning`
+
+### Summary
+
+真实同步27人、待分配扫码通过，修正字段/UI/排队及回调配置；按用户授权合并main，保留其他账号状态实扫待验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d50cf1c8` | fix: 缩短钉钉人员同步任务的空闲排队时间 |
+| `e4f64254` | docs: 记录真实通讯录联调与扫码回调地址修正 |
+
+### Testing
+
+- [OK] check:fast通过；前端1073通过、12既有跳过；通讯录定向专用PostgreSQL及网关12项通过。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 验证已开通与停用账号实际扫码结果后归档Trellis任务。

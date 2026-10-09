@@ -79,7 +79,6 @@ func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingT
 	if enabled {
 		config.AuthorizeUrl = &authorizeURL
 		s.setCookieNamed(ctx, s.dingTalkStateCookieName(), state, expiresAt, 300)
-		s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), "", time.Unix(1, 0), -1)
 	}
 	return ok(ctx, &v1.GetDingTalkLoginConfigResponse{Data: config}), nil
 }
@@ -96,55 +95,22 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	if err != nil {
 		return nil, err
 	}
-	data := &v1.DingTalkLoginResult{}
+	data := &v1.DingTalkLoginResult{Message: result.Message, DisplayName: optionalString(result.DisplayName, result.DisplayName != "")}
 	switch result.Status {
 	case biz.DingTalkLoginStatusAuthenticated:
 		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_AUTHENTICATED
 		data.CurrentUser = principalToAPI(result.Principal)
 		s.setCookie(ctx, result.SessionToken, result.SessionExpiresAt, 0)
-	case biz.DingTalkLoginStatusRegistrationRequired:
-		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_REGISTRATION_REQUIRED
-		data.DisplayName = &result.DisplayName
-		data.RegistrationOrganizations = organizationChoicesToAPI(result.RegistrationOrganizations)
-		s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), result.RegistrationToken, result.RegistrationExpiresAt, 300)
+	case biz.DingTalkLoginStatusNotSynced:
+		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_NOT_SYNCED
+	case biz.DingTalkLoginStatusPendingAssignment:
+		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_PENDING_ASSIGNMENT
+	case biz.DingTalkLoginStatusDisabled:
+		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_DISABLED
 	default:
 		return nil, biz.ErrDingTalkLoginFailed
 	}
 	return ok(ctx, &v1.DingTalkLoginResponse{Data: data}), nil
-}
-
-func (s *AuthService) GetDingTalkInvitationInfo(ctx context.Context, request *v1.GetDingTalkInvitationInfoRequest) (*v1.GetDingTalkInvitationInfoResponse, error) {
-	ipAddress := requestmeta.IPAddress(ctx)
-	info, err := s.usecase.GetDingTalkInvitationInfo(ctx, request.GetToken(), ipAddress)
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.GetDingTalkInvitationInfoResponse{
-		Data: &v1.DingTalkInvitationPublicInfo{
-			OrganizationName: info.OrganizationName,
-			InviterName:      info.InviterDisplayName,
-			ExpiresAt:        info.ExpiresAt.Format(time.RFC3339),
-		},
-	}), nil
-}
-
-func (s *AuthService) RegisterDingTalkUser(ctx context.Context, request *v1.RegisterDingTalkUserRequest) (*v1.RegisterDingTalkUserResponse, error) {
-	registrationToken := ""
-	if tr, ok := transport.FromServerContext(ctx); ok {
-		registrationToken = cookieValue(tr.RequestHeader().Get("Cookie"), s.dingTalkRegistrationTokenCookieName())
-	}
-	requestedOrganizationID, err := parseOptionalOrganizationID(request.GetOrganizationId())
-	if err != nil {
-		return nil, biz.ErrDingTalkRegistrationOrgInvalid
-	}
-	registration, err := s.usecase.ConfirmDingTalkRegistration(ctx, registrationToken, request.GetInvitationToken(), requestedOrganizationID)
-	if err != nil {
-		return nil, err
-	}
-	s.setCookieNamed(ctx, s.dingTalkRegistrationTokenCookieName(), "", time.Unix(1, 0), -1)
-	return ok(ctx, &v1.RegisterDingTalkUserResponse{
-		Data: &v1.DingTalkRegistrationConfirmation{DisplayName: registration.DisplayName, Status: registration.Status},
-	}), nil
 }
 
 func (s *AuthService) Logout(ctx context.Context, _ *v1.LogoutRequest) (*v1.LogoutResponse, error) {
@@ -199,10 +165,6 @@ func (s *AuthService) wecomStateCookieName() string { return s.policy.CookieName
 
 func (s *AuthService) dingTalkStateCookieName() string {
 	return s.policy.CookieName + "_dingtalk_state"
-}
-
-func (s *AuthService) dingTalkRegistrationTokenCookieName() string {
-	return s.policy.CookieName + "_dingtalk_registration"
 }
 
 func cookieValue(rawHeader, name string) string {

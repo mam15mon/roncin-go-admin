@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,12 +15,12 @@ import (
 
 type AdminService struct {
 	v1.UnimplementedAdminServiceServer
-	usecase               *biz.AdminUsecase
-	dingTalkRegistrations *biz.DingTalkRegistrationUsecase
+	usecase           *biz.AdminUsecase
+	dingTalkDirectory *biz.DingTalkDirectoryUsecase
 }
 
-func NewAdminService(usecase *biz.AdminUsecase, dingTalkRegistrations *biz.DingTalkRegistrationUsecase) *AdminService {
-	return &AdminService{usecase: usecase, dingTalkRegistrations: dingTalkRegistrations}
+func NewAdminService(usecase *biz.AdminUsecase, dingTalkDirectory *biz.DingTalkDirectoryUsecase) *AdminService {
+	return &AdminService{usecase: usecase, dingTalkDirectory: dingTalkDirectory}
 }
 
 func (s *AdminService) ListOrganizations(ctx context.Context, _ *v1.ListOrganizationsRequest) (*v1.ListOrganizationsResponse, error) {
@@ -84,7 +85,11 @@ func (s *AdminService) ListUsers(ctx context.Context, request *v1.ListUsersReque
 	if err != nil {
 		return nil, err
 	}
-	options := biz.AdminUserListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword()}
+	status, err := adminUserStatusFromAPI(request.GetStatus())
+	if err != nil {
+		return nil, err
+	}
+	options := biz.AdminUserListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword(), Status: status}
 	if request.Enabled != nil {
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled
@@ -281,7 +286,7 @@ func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.Au
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := s.usecase.AuthorizeDingTalkUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil)}, roles)
+	authorized, err := s.usecase.AuthorizeDingTalkUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID}, roles)
 	if err != nil {
 		return nil, err
 	}
@@ -524,6 +529,17 @@ func organizationKindToAPI(value biz.OrganizationKind) v1.OrganizationKind {
 
 func userToAPI(value *biz.AdminUser, includeOrganizations bool) *v1.AdminUser {
 	result := &v1.AdminUser{Id: value.ID.String(), Username: value.Username, DisplayName: value.DisplayName, Email: value.Email, AvatarUrl: value.AvatarURL, WecomUserid: value.WeComUserID, WecomName: value.WeComName, DingtalkUnionid: value.DingTalkUnionID, DingtalkUserid: value.DingTalkUserID, DingtalkName: value.DingTalkName, Enabled: value.Enabled, Status: adminUserStatusToAPI(value.Status), CurrentMembershipEnabled: value.CurrentMembershipEnabled, HasPassword: value.HasPassword, RoleIds: uuidStrings(value.RoleIDs), RoleCodes: value.RoleCodes, RoleNames: value.RoleNames, CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	result.PendingAssignment = value.PendingAssignment
+	result.DingtalkJobNumber = value.DingTalkJobNumber
+	result.DingtalkMobileMasked = value.DingTalkMobile
+	for _, department := range value.DingTalkDepartments {
+		result.DingtalkDepartments = append(result.DingtalkDepartments, &v1.DingTalkDepartment{Id: strconv.FormatInt(department.ID, 10), Name: department.Name})
+	}
+	if value.DingTalkLastSyncedAt != nil {
+		syncedAt := value.DingTalkLastSyncedAt.Format(time.RFC3339)
+		result.DingtalkLastSyncedAt = &syncedAt
+	}
+
 	if includeOrganizations {
 		organizations := make([]*v1.AdminUserOrganizationSummary, 0, len(value.Organizations))
 		for _, organization := range value.Organizations {
@@ -536,6 +552,8 @@ func userToAPI(value *biz.AdminUser, includeOrganizations bool) *v1.AdminUser {
 
 func adminUserStatusToAPI(value biz.AdminUserStatus) v1.AdminUserStatus {
 	switch value {
+	case biz.AdminUserStatusPendingAssignment:
+		return v1.AdminUserStatus_ADMIN_USER_STATUS_PENDING_ASSIGNMENT
 	case biz.AdminUserStatusActive:
 		return v1.AdminUserStatus_ADMIN_USER_STATUS_ACTIVE
 	case biz.AdminUserStatusPendingAuthorization:
@@ -586,3 +604,24 @@ func uuidStrings(values []uuid.UUID) []string {
 }
 
 var _ v1.AdminServiceServer = (*AdminService)(nil)
+
+func adminUserStatusFromAPI(value v1.AdminUserStatus) (biz.AdminUserStatus, error) {
+	switch value {
+	case v1.AdminUserStatus_ADMIN_USER_STATUS_UNSPECIFIED:
+		return "", nil
+	case v1.AdminUserStatus_ADMIN_USER_STATUS_ACTIVE:
+		return biz.AdminUserStatusActive, nil
+	case v1.AdminUserStatus_ADMIN_USER_STATUS_PENDING_AUTHORIZATION:
+		return biz.AdminUserStatusPendingAuthorization, nil
+	case v1.AdminUserStatus_ADMIN_USER_STATUS_TERMINATED:
+		return biz.AdminUserStatusTerminated, nil
+	case v1.AdminUserStatus_ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION:
+		return biz.AdminUserStatusRemovedFromOrganization, nil
+	case v1.AdminUserStatus_ADMIN_USER_STATUS_DISABLED:
+		return biz.AdminUserStatusDisabled, nil
+	case v1.AdminUserStatus_ADMIN_USER_STATUS_PENDING_ASSIGNMENT:
+		return biz.AdminUserStatusPendingAssignment, nil
+	default:
+		return "", biz.ErrAdminInvalidArgument
+	}
+}

@@ -24,7 +24,7 @@
 | [Auth Session Org Switch](./auth-session-org-switch.md) | 登录组织选择、应用内切换与会话轮转契约：成员资格唯一入场券、单事务轮转、并发语义 | ✅ |
 | [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属系统管理/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
 | [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 系统管理仅管理公共资料与授权、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
-| [DingTalk Registration Approval](./dingtalk-registration-approval.md) | 钉钉注册双通道：邀请自动激活（降级红线）、认领审批、按目标组织路由通知、手机号与令牌安全 | ✅ |
+| [DingTalk Directory Provisioning](./dingtalk-registration-approval.md) | 钉钉通讯录同步、待分配、逐人事务开通、租约与资料只读 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、路由与权限范围、真实库验证及迁移测试时点 | ✅ |
 | [Logging Guidelines](./logging-guidelines.md) | 结构化日志与审计 | ✅ |

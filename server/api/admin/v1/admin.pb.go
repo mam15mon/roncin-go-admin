@@ -142,6 +142,7 @@ const (
 	AdminUserStatus_ADMIN_USER_STATUS_TERMINATED                AdminUserStatus = 3
 	AdminUserStatus_ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION AdminUserStatus = 4
 	AdminUserStatus_ADMIN_USER_STATUS_DISABLED                  AdminUserStatus = 5
+	AdminUserStatus_ADMIN_USER_STATUS_PENDING_ASSIGNMENT        AdminUserStatus = 6
 )
 
 // Enum value maps for AdminUserStatus.
@@ -153,6 +154,7 @@ var (
 		3: "ADMIN_USER_STATUS_TERMINATED",
 		4: "ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION",
 		5: "ADMIN_USER_STATUS_DISABLED",
+		6: "ADMIN_USER_STATUS_PENDING_ASSIGNMENT",
 	}
 	AdminUserStatus_value = map[string]int32{
 		"ADMIN_USER_STATUS_UNSPECIFIED":               0,
@@ -161,6 +163,7 @@ var (
 		"ADMIN_USER_STATUS_TERMINATED":                3,
 		"ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION": 4,
 		"ADMIN_USER_STATUS_DISABLED":                  5,
+		"ADMIN_USER_STATUS_PENDING_ASSIGNMENT":        6,
 	}
 )
 
@@ -189,110 +192,6 @@ func (x AdminUserStatus) Number() protoreflect.EnumNumber {
 // Deprecated: Use AdminUserStatus.Descriptor instead.
 func (AdminUserStatus) EnumDescriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{2}
-}
-
-type DingTalkInvitationStatus int32
-
-const (
-	DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_UNSPECIFIED DingTalkInvitationStatus = 0
-	DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_PENDING     DingTalkInvitationStatus = 1
-	DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_CONSUMED    DingTalkInvitationStatus = 2
-	DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_EXPIRED     DingTalkInvitationStatus = 3
-	DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_REVOKED     DingTalkInvitationStatus = 4
-)
-
-// Enum value maps for DingTalkInvitationStatus.
-var (
-	DingTalkInvitationStatus_name = map[int32]string{
-		0: "DING_TALK_INVITATION_STATUS_UNSPECIFIED",
-		1: "DING_TALK_INVITATION_STATUS_PENDING",
-		2: "DING_TALK_INVITATION_STATUS_CONSUMED",
-		3: "DING_TALK_INVITATION_STATUS_EXPIRED",
-		4: "DING_TALK_INVITATION_STATUS_REVOKED",
-	}
-	DingTalkInvitationStatus_value = map[string]int32{
-		"DING_TALK_INVITATION_STATUS_UNSPECIFIED": 0,
-		"DING_TALK_INVITATION_STATUS_PENDING":     1,
-		"DING_TALK_INVITATION_STATUS_CONSUMED":    2,
-		"DING_TALK_INVITATION_STATUS_EXPIRED":     3,
-		"DING_TALK_INVITATION_STATUS_REVOKED":     4,
-	}
-)
-
-func (x DingTalkInvitationStatus) Enum() *DingTalkInvitationStatus {
-	p := new(DingTalkInvitationStatus)
-	*p = x
-	return p
-}
-
-func (x DingTalkInvitationStatus) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (DingTalkInvitationStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_admin_v1_admin_proto_enumTypes[3].Descriptor()
-}
-
-func (DingTalkInvitationStatus) Type() protoreflect.EnumType {
-	return &file_admin_v1_admin_proto_enumTypes[3]
-}
-
-func (x DingTalkInvitationStatus) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use DingTalkInvitationStatus.Descriptor instead.
-func (DingTalkInvitationStatus) EnumDescriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{3}
-}
-
-type DingTalkInvitationKind int32
-
-const (
-	DingTalkInvitationKind_DING_TALK_INVITATION_KIND_UNSPECIFIED DingTalkInvitationKind = 0
-	DingTalkInvitationKind_DING_TALK_INVITATION_KIND_TARGETED    DingTalkInvitationKind = 1
-	DingTalkInvitationKind_DING_TALK_INVITATION_KIND_GENERIC     DingTalkInvitationKind = 2
-)
-
-// Enum value maps for DingTalkInvitationKind.
-var (
-	DingTalkInvitationKind_name = map[int32]string{
-		0: "DING_TALK_INVITATION_KIND_UNSPECIFIED",
-		1: "DING_TALK_INVITATION_KIND_TARGETED",
-		2: "DING_TALK_INVITATION_KIND_GENERIC",
-	}
-	DingTalkInvitationKind_value = map[string]int32{
-		"DING_TALK_INVITATION_KIND_UNSPECIFIED": 0,
-		"DING_TALK_INVITATION_KIND_TARGETED":    1,
-		"DING_TALK_INVITATION_KIND_GENERIC":     2,
-	}
-)
-
-func (x DingTalkInvitationKind) Enum() *DingTalkInvitationKind {
-	p := new(DingTalkInvitationKind)
-	*p = x
-	return p
-}
-
-func (x DingTalkInvitationKind) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (DingTalkInvitationKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_admin_v1_admin_proto_enumTypes[4].Descriptor()
-}
-
-func (DingTalkInvitationKind) Type() protoreflect.EnumType {
-	return &file_admin_v1_admin_proto_enumTypes[4]
-}
-
-func (x DingTalkInvitationKind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use DingTalkInvitationKind.Descriptor instead.
-func (DingTalkInvitationKind) EnumDescriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{4}
 }
 
 type ListOrganizationsRequest struct {
@@ -868,8 +767,9 @@ type ListUsersRequest struct {
 	Page     int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	Keyword  string                 `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	// 是否启用：不传=不过滤；true=在职用户；false=离职/停用用户。
-	Enabled       *bool `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	// 是否启用：不传=不过滤；true=已启用成员；false=离职/停用成员（排除待分配）。
+	Enabled       *bool           `protobuf:"varint,4,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
+	Status        AdminUserStatus `protobuf:"varint,5,opt,name=status,proto3,enum=admin.v1.AdminUserStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -930,6 +830,13 @@ func (x *ListUsersRequest) GetEnabled() bool {
 		return *x.Enabled
 	}
 	return false
+}
+
+func (x *ListUsersRequest) GetStatus() AdminUserStatus {
+	if x != nil {
+		return x.Status
+	}
+	return AdminUserStatus_ADMIN_USER_STATUS_UNSPECIFIED
 }
 
 type CreateUserRequest struct {
@@ -1011,7 +918,7 @@ func (x *CreateUserRequest) GetRoleIds() []string {
 type UpdateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	DisplayName   *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
 	Email         *string                `protobuf:"bytes,3,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	Enabled       bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	RoleIds       []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
@@ -1057,8 +964,8 @@ func (x *UpdateUserRequest) GetId() string {
 }
 
 func (x *UpdateUserRequest) GetDisplayName() string {
-	if x != nil {
-		return x.DisplayName
+	if x != nil && x.DisplayName != nil {
+		return *x.DisplayName
 	}
 	return ""
 }
@@ -1448,8 +1355,6 @@ type AuthorizeDingTalkUserRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	DisplayName    string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Email          *string                `protobuf:"bytes,4,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	RoleIds        []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
@@ -1495,20 +1400,6 @@ func (x *AuthorizeDingTalkUserRequest) GetId() string {
 func (x *AuthorizeDingTalkUserRequest) GetOrganizationId() string {
 	if x != nil {
 		return x.OrganizationId
-	}
-	return ""
-}
-
-func (x *AuthorizeDingTalkUserRequest) GetDisplayName() string {
-	if x != nil {
-		return x.DisplayName
-	}
-	return ""
-}
-
-func (x *AuthorizeDingTalkUserRequest) GetEmail() string {
-	if x != nil && x.Email != nil {
-		return *x.Email
 	}
 	return ""
 }
@@ -1646,9 +1537,14 @@ type AdminUser struct {
 	CurrentMembershipEnabled bool                            `protobuf:"varint,18,opt,name=current_membership_enabled,json=currentMembershipEnabled,proto3" json:"current_membership_enabled,omitempty"`
 	Organizations            []*AdminUserOrganizationSummary `protobuf:"bytes,19,rep,name=organizations,proto3" json:"organizations,omitempty"`
 	// 角色显示名，与 role_codes 按下标一一对应，供列表直接展示。
-	RoleNames     []string `protobuf:"bytes,20,rep,name=role_names,json=roleNames,proto3" json:"role_names,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	RoleNames            []string              `protobuf:"bytes,20,rep,name=role_names,json=roleNames,proto3" json:"role_names,omitempty"`
+	PendingAssignment    bool                  `protobuf:"varint,21,opt,name=pending_assignment,json=pendingAssignment,proto3" json:"pending_assignment,omitempty"`
+	DingtalkJobNumber    *string               `protobuf:"bytes,22,opt,name=dingtalk_job_number,json=dingtalkJobNumber,proto3,oneof" json:"dingtalk_job_number,omitempty"`
+	DingtalkMobileMasked *string               `protobuf:"bytes,23,opt,name=dingtalk_mobile_masked,json=dingtalkMobileMasked,proto3,oneof" json:"dingtalk_mobile_masked,omitempty"`
+	DingtalkDepartments  []*DingTalkDepartment `protobuf:"bytes,24,rep,name=dingtalk_departments,json=dingtalkDepartments,proto3" json:"dingtalk_departments,omitempty"`
+	DingtalkLastSyncedAt *string               `protobuf:"bytes,25,opt,name=dingtalk_last_synced_at,json=dingtalkLastSyncedAt,proto3,oneof" json:"dingtalk_last_synced_at,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *AdminUser) Reset() {
@@ -1819,6 +1715,41 @@ func (x *AdminUser) GetRoleNames() []string {
 		return x.RoleNames
 	}
 	return nil
+}
+
+func (x *AdminUser) GetPendingAssignment() bool {
+	if x != nil {
+		return x.PendingAssignment
+	}
+	return false
+}
+
+func (x *AdminUser) GetDingtalkJobNumber() string {
+	if x != nil && x.DingtalkJobNumber != nil {
+		return *x.DingtalkJobNumber
+	}
+	return ""
+}
+
+func (x *AdminUser) GetDingtalkMobileMasked() string {
+	if x != nil && x.DingtalkMobileMasked != nil {
+		return *x.DingtalkMobileMasked
+	}
+	return ""
+}
+
+func (x *AdminUser) GetDingtalkDepartments() []*DingTalkDepartment {
+	if x != nil {
+		return x.DingtalkDepartments
+	}
+	return nil
+}
+
+func (x *AdminUser) GetDingtalkLastSyncedAt() string {
+	if x != nil && x.DingtalkLastSyncedAt != nil {
+		return *x.DingtalkLastSyncedAt
+	}
+	return ""
 }
 
 // 用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。
@@ -4041,38 +3972,29 @@ func (x *ListAuditLogsResponse) GetTraceId() string {
 	return ""
 }
 
-type CreateDingTalkInvitationRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 目标组织；必须是调用者可写范围内的组织。
-	OrganizationId string `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	// 邀请类型：TARGETED（定向单人免审码）或 GENERIC（通用入职审批码）。缺省为 TARGETED。
-	Kind DingTalkInvitationKind `protobuf:"varint,2,opt,name=kind,proto3,enum=admin.v1.DingTalkInvitationKind" json:"kind,omitempty"`
-	// 国内手机号；TARGETED 必填，GENERIC 留空。
-	Mobile *string `protobuf:"bytes,3,opt,name=mobile,proto3,oneof" json:"mobile,omitempty"`
-	// 激活后授予的初始角色（属于目标组织；通用码可选，留空则审批时指定）。
-	RoleId *string `protobuf:"bytes,4,opt,name=role_id,json=roleId,proto3,oneof" json:"role_id,omitempty"`
-	// 备注姓名，仅供管理员识别，账号身份以钉钉返回为准。
-	DisplayName *string `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	// 有效期（小时）；缺省 168（7 天），允许 1-720。
-	ExpiresInHours *int32 `protobuf:"varint,6,opt,name=expires_in_hours,json=expiresInHours,proto3,oneof" json:"expires_in_hours,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+// 钉钉来源部门仅用于展示，不代表本系统的业务组织。
+type DingTalkDepartment struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateDingTalkInvitationRequest) Reset() {
-	*x = CreateDingTalkInvitationRequest{}
+func (x *DingTalkDepartment) Reset() {
+	*x = DingTalkDepartment{}
 	mi := &file_admin_v1_admin_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateDingTalkInvitationRequest) String() string {
+func (x *DingTalkDepartment) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateDingTalkInvitationRequest) ProtoMessage() {}
+func (*DingTalkDepartment) ProtoMessage() {}
 
-func (x *CreateDingTalkInvitationRequest) ProtoReflect() protoreflect.Message {
+func (x *DingTalkDepartment) ProtoReflect() protoreflect.Message {
 	mi := &file_admin_v1_admin_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4084,163 +4006,49 @@ func (x *CreateDingTalkInvitationRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateDingTalkInvitationRequest.ProtoReflect.Descriptor instead.
-func (*CreateDingTalkInvitationRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use DingTalkDepartment.ProtoReflect.Descriptor instead.
+func (*DingTalkDepartment) Descriptor() ([]byte, []int) {
 	return file_admin_v1_admin_proto_rawDescGZIP(), []int{49}
 }
 
-func (x *CreateDingTalkInvitationRequest) GetOrganizationId() string {
+func (x *DingTalkDepartment) GetId() string {
 	if x != nil {
-		return x.OrganizationId
+		return x.Id
 	}
 	return ""
 }
 
-func (x *CreateDingTalkInvitationRequest) GetKind() DingTalkInvitationKind {
+func (x *DingTalkDepartment) GetName() string {
 	if x != nil {
-		return x.Kind
-	}
-	return DingTalkInvitationKind_DING_TALK_INVITATION_KIND_UNSPECIFIED
-}
-
-func (x *CreateDingTalkInvitationRequest) GetMobile() string {
-	if x != nil && x.Mobile != nil {
-		return *x.Mobile
+		return x.Name
 	}
 	return ""
 }
 
-func (x *CreateDingTalkInvitationRequest) GetRoleId() string {
-	if x != nil && x.RoleId != nil {
-		return *x.RoleId
-	}
-	return ""
-}
-
-func (x *CreateDingTalkInvitationRequest) GetDisplayName() string {
-	if x != nil && x.DisplayName != nil {
-		return *x.DisplayName
-	}
-	return ""
-}
-
-func (x *CreateDingTalkInvitationRequest) GetExpiresInHours() int32 {
-	if x != nil && x.ExpiresInHours != nil {
-		return *x.ExpiresInHours
-	}
-	return 0
-}
-
-type CreateDingTalkInvitationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *DingTalkInvitation    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	InvitationUrl string                 `protobuf:"bytes,5,opt,name=invitation_url,json=invitationUrl,proto3" json:"invitation_url,omitempty"`
-	TraceId       string                 `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateDingTalkInvitationResponse) Reset() {
-	*x = CreateDingTalkInvitationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[50]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateDingTalkInvitationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateDingTalkInvitationResponse) ProtoMessage() {}
-
-func (x *CreateDingTalkInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[50]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateDingTalkInvitationResponse.ProtoReflect.Descriptor instead.
-func (*CreateDingTalkInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{50}
-}
-
-func (x *CreateDingTalkInvitationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *CreateDingTalkInvitationResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *CreateDingTalkInvitationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *CreateDingTalkInvitationResponse) GetData() *DingTalkInvitation {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *CreateDingTalkInvitationResponse) GetInvitationUrl() string {
-	if x != nil {
-		return x.InvitationUrl
-	}
-	return ""
-}
-
-func (x *CreateDingTalkInvitationResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-type ListDingTalkInvitationsRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	Page     int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	// 按组织过滤；必须是调用者可写范围内的组织。
-	OrganizationId *string                   `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
-	Status         *DingTalkInvitationStatus `protobuf:"varint,4,opt,name=status,proto3,enum=admin.v1.DingTalkInvitationStatus,oneof" json:"status,omitempty"`
+type BatchAuthorizeDingTalkUsersRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UserIds        []string               `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	RoleIds        []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *ListDingTalkInvitationsRequest) Reset() {
-	*x = ListDingTalkInvitationsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[51]
+func (x *BatchAuthorizeDingTalkUsersRequest) Reset() {
+	*x = BatchAuthorizeDingTalkUsersRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListDingTalkInvitationsRequest) String() string {
+func (x *BatchAuthorizeDingTalkUsersRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListDingTalkInvitationsRequest) ProtoMessage() {}
+func (*BatchAuthorizeDingTalkUsersRequest) ProtoMessage() {}
 
-func (x *ListDingTalkInvitationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[51]
+func (x *BatchAuthorizeDingTalkUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4251,664 +4059,57 @@ func (x *ListDingTalkInvitationsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListDingTalkInvitationsRequest.ProtoReflect.Descriptor instead.
-func (*ListDingTalkInvitationsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{51}
+// Deprecated: Use BatchAuthorizeDingTalkUsersRequest.ProtoReflect.Descriptor instead.
+func (*BatchAuthorizeDingTalkUsersRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{50}
 }
 
-func (x *ListDingTalkInvitationsRequest) GetPage() int32 {
+func (x *BatchAuthorizeDingTalkUsersRequest) GetUserIds() []string {
 	if x != nil {
-		return x.Page
-	}
-	return 0
-}
-
-func (x *ListDingTalkInvitationsRequest) GetPageSize() int32 {
-	if x != nil {
-		return x.PageSize
-	}
-	return 0
-}
-
-func (x *ListDingTalkInvitationsRequest) GetOrganizationId() string {
-	if x != nil && x.OrganizationId != nil {
-		return *x.OrganizationId
-	}
-	return ""
-}
-
-func (x *ListDingTalkInvitationsRequest) GetStatus() DingTalkInvitationStatus {
-	if x != nil && x.Status != nil {
-		return *x.Status
-	}
-	return DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_UNSPECIFIED
-}
-
-type ListDingTalkInvitationsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          []*DingTalkInvitation  `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
-	Total         int32                  `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
-	Page          int32                  `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	TraceId       string                 `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListDingTalkInvitationsResponse) Reset() {
-	*x = ListDingTalkInvitationsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[52]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListDingTalkInvitationsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListDingTalkInvitationsResponse) ProtoMessage() {}
-
-func (x *ListDingTalkInvitationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[52]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListDingTalkInvitationsResponse.ProtoReflect.Descriptor instead.
-func (*ListDingTalkInvitationsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{52}
-}
-
-func (x *ListDingTalkInvitationsResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *ListDingTalkInvitationsResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *ListDingTalkInvitationsResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ListDingTalkInvitationsResponse) GetData() []*DingTalkInvitation {
-	if x != nil {
-		return x.Data
+		return x.UserIds
 	}
 	return nil
 }
 
-func (x *ListDingTalkInvitationsResponse) GetTotal() int32 {
-	if x != nil {
-		return x.Total
-	}
-	return 0
-}
-
-func (x *ListDingTalkInvitationsResponse) GetPage() int32 {
-	if x != nil {
-		return x.Page
-	}
-	return 0
-}
-
-func (x *ListDingTalkInvitationsResponse) GetPageSize() int32 {
-	if x != nil {
-		return x.PageSize
-	}
-	return 0
-}
-
-func (x *ListDingTalkInvitationsResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-type GetDingTalkInvitationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetDingTalkInvitationRequest) Reset() {
-	*x = GetDingTalkInvitationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[53]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetDingTalkInvitationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetDingTalkInvitationRequest) ProtoMessage() {}
-
-func (x *GetDingTalkInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[53]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetDingTalkInvitationRequest.ProtoReflect.Descriptor instead.
-func (*GetDingTalkInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{53}
-}
-
-func (x *GetDingTalkInvitationRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-type GetDingTalkInvitationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *DingTalkInvitation    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	InvitationUrl string                 `protobuf:"bytes,5,opt,name=invitation_url,json=invitationUrl,proto3" json:"invitation_url,omitempty"`
-	TraceId       string                 `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetDingTalkInvitationResponse) Reset() {
-	*x = GetDingTalkInvitationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[54]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetDingTalkInvitationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetDingTalkInvitationResponse) ProtoMessage() {}
-
-func (x *GetDingTalkInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[54]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetDingTalkInvitationResponse.ProtoReflect.Descriptor instead.
-func (*GetDingTalkInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{54}
-}
-
-func (x *GetDingTalkInvitationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *GetDingTalkInvitationResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *GetDingTalkInvitationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *GetDingTalkInvitationResponse) GetData() *DingTalkInvitation {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *GetDingTalkInvitationResponse) GetInvitationUrl() string {
-	if x != nil {
-		return x.InvitationUrl
-	}
-	return ""
-}
-
-func (x *GetDingTalkInvitationResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-type ListTransferOrganizationsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListTransferOrganizationsRequest) Reset() {
-	*x = ListTransferOrganizationsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[55]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListTransferOrganizationsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListTransferOrganizationsRequest) ProtoMessage() {}
-
-func (x *ListTransferOrganizationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[55]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListTransferOrganizationsRequest.ProtoReflect.Descriptor instead.
-func (*ListTransferOrganizationsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{55}
-}
-
-type ListTransferOrganizationsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          []*AdminOrganization   `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListTransferOrganizationsResponse) Reset() {
-	*x = ListTransferOrganizationsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[56]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListTransferOrganizationsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListTransferOrganizationsResponse) ProtoMessage() {}
-
-func (x *ListTransferOrganizationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[56]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListTransferOrganizationsResponse.ProtoReflect.Descriptor instead.
-func (*ListTransferOrganizationsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{56}
-}
-
-func (x *ListTransferOrganizationsResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *ListTransferOrganizationsResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *ListTransferOrganizationsResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ListTransferOrganizationsResponse) GetData() []*AdminOrganization {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *ListTransferOrganizationsResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-type RevokeDingTalkInvitationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RevokeDingTalkInvitationRequest) Reset() {
-	*x = RevokeDingTalkInvitationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[57]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RevokeDingTalkInvitationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RevokeDingTalkInvitationRequest) ProtoMessage() {}
-
-func (x *RevokeDingTalkInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[57]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RevokeDingTalkInvitationRequest.ProtoReflect.Descriptor instead.
-func (*RevokeDingTalkInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{57}
-}
-
-func (x *RevokeDingTalkInvitationRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-type RevokeDingTalkInvitationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RevokeDingTalkInvitationResponse) Reset() {
-	*x = RevokeDingTalkInvitationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[58]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RevokeDingTalkInvitationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RevokeDingTalkInvitationResponse) ProtoMessage() {}
-
-func (x *RevokeDingTalkInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[58]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RevokeDingTalkInvitationResponse.ProtoReflect.Descriptor instead.
-func (*RevokeDingTalkInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{58}
-}
-
-func (x *RevokeDingTalkInvitationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *RevokeDingTalkInvitationResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *RevokeDingTalkInvitationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *RevokeDingTalkInvitationResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-// 手机号展示统一脱敏（138****1234），完整号码不离开服务端。
-type DingTalkInvitation struct {
-	state            protoimpl.MessageState   `protogen:"open.v1"`
-	Id               string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId   string                   `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrganizationName string                   `protobuf:"bytes,3,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	RoleId           *string                  `protobuf:"bytes,4,opt,name=role_id,json=roleId,proto3,oneof" json:"role_id,omitempty"`
-	RoleName         *string                  `protobuf:"bytes,5,opt,name=role_name,json=roleName,proto3,oneof" json:"role_name,omitempty"`
-	MobileMasked     *string                  `protobuf:"bytes,6,opt,name=mobile_masked,json=mobileMasked,proto3,oneof" json:"mobile_masked,omitempty"`
-	DisplayName      *string                  `protobuf:"bytes,7,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	Status           DingTalkInvitationStatus `protobuf:"varint,8,opt,name=status,proto3,enum=admin.v1.DingTalkInvitationStatus" json:"status,omitempty"`
-	ConsumedName     *string                  `protobuf:"bytes,9,opt,name=consumed_name,json=consumedName,proto3,oneof" json:"consumed_name,omitempty"`
-	CreatedAt        string                   `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	ExpiresAt        string                   `protobuf:"bytes,11,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	InviterName      string                   `protobuf:"bytes,12,opt,name=inviter_name,json=inviterName,proto3" json:"inviter_name,omitempty"`
-	Kind             DingTalkInvitationKind   `protobuf:"varint,13,opt,name=kind,proto3,enum=admin.v1.DingTalkInvitationKind" json:"kind,omitempty"`
-	Token            string                   `protobuf:"bytes,14,opt,name=token,proto3" json:"token,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *DingTalkInvitation) Reset() {
-	*x = DingTalkInvitation{}
-	mi := &file_admin_v1_admin_proto_msgTypes[59]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DingTalkInvitation) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DingTalkInvitation) ProtoMessage() {}
-
-func (x *DingTalkInvitation) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[59]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DingTalkInvitation.ProtoReflect.Descriptor instead.
-func (*DingTalkInvitation) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{59}
-}
-
-func (x *DingTalkInvitation) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetOrganizationId() string {
+func (x *BatchAuthorizeDingTalkUsersRequest) GetOrganizationId() string {
 	if x != nil {
 		return x.OrganizationId
 	}
 	return ""
 }
 
-func (x *DingTalkInvitation) GetOrganizationName() string {
+func (x *BatchAuthorizeDingTalkUsersRequest) GetRoleIds() []string {
 	if x != nil {
-		return x.OrganizationName
+		return x.RoleIds
 	}
-	return ""
+	return nil
 }
 
-func (x *DingTalkInvitation) GetRoleId() string {
-	if x != nil && x.RoleId != nil {
-		return *x.RoleId
-	}
-	return ""
+type DingTalkAssignmentResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	Message       string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DingTalkInvitation) GetRoleName() string {
-	if x != nil && x.RoleName != nil {
-		return *x.RoleName
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetMobileMasked() string {
-	if x != nil && x.MobileMasked != nil {
-		return *x.MobileMasked
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetDisplayName() string {
-	if x != nil && x.DisplayName != nil {
-		return *x.DisplayName
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetStatus() DingTalkInvitationStatus {
-	if x != nil {
-		return x.Status
-	}
-	return DingTalkInvitationStatus_DING_TALK_INVITATION_STATUS_UNSPECIFIED
-}
-
-func (x *DingTalkInvitation) GetConsumedName() string {
-	if x != nil && x.ConsumedName != nil {
-		return *x.ConsumedName
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetCreatedAt() string {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetExpiresAt() string {
-	if x != nil {
-		return x.ExpiresAt
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetInviterName() string {
-	if x != nil {
-		return x.InviterName
-	}
-	return ""
-}
-
-func (x *DingTalkInvitation) GetKind() DingTalkInvitationKind {
-	if x != nil {
-		return x.Kind
-	}
-	return DingTalkInvitationKind_DING_TALK_INVITATION_KIND_UNSPECIFIED
-}
-
-func (x *DingTalkInvitation) GetToken() string {
-	if x != nil {
-		return x.Token
-	}
-	return ""
-}
-
-type TransferDingTalkRegistrationRequest struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	UserId               string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	TargetOrganizationId string                 `protobuf:"bytes,2,opt,name=target_organization_id,json=targetOrganizationId,proto3" json:"target_organization_id,omitempty"`
-	Reason               string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
-}
-
-func (x *TransferDingTalkRegistrationRequest) Reset() {
-	*x = TransferDingTalkRegistrationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[60]
+func (x *DingTalkAssignmentResult) Reset() {
+	*x = DingTalkAssignmentResult{}
+	mi := &file_admin_v1_admin_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TransferDingTalkRegistrationRequest) String() string {
+func (x *DingTalkAssignmentResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TransferDingTalkRegistrationRequest) ProtoMessage() {}
+func (*DingTalkAssignmentResult) ProtoMessage() {}
 
-func (x *TransferDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[60]
+func (x *DingTalkAssignmentResult) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4919,57 +4120,65 @@ func (x *TransferDingTalkRegistrationRequest) ProtoReflect() protoreflect.Messag
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TransferDingTalkRegistrationRequest.ProtoReflect.Descriptor instead.
-func (*TransferDingTalkRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{60}
+// Deprecated: Use DingTalkAssignmentResult.ProtoReflect.Descriptor instead.
+func (*DingTalkAssignmentResult) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{51}
 }
 
-func (x *TransferDingTalkRegistrationRequest) GetUserId() string {
+func (x *DingTalkAssignmentResult) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *TransferDingTalkRegistrationRequest) GetTargetOrganizationId() string {
+func (x *DingTalkAssignmentResult) GetSuccess() bool {
 	if x != nil {
-		return x.TargetOrganizationId
+		return x.Success
 	}
-	return ""
+	return false
 }
 
-func (x *TransferDingTalkRegistrationRequest) GetReason() string {
+func (x *DingTalkAssignmentResult) GetReason() string {
 	if x != nil {
 		return x.Reason
 	}
 	return ""
 }
 
-type TransferDingTalkRegistrationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+func (x *DingTalkAssignmentResult) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type BatchAuthorizeDingTalkUsersResponse struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Success       bool                        `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                       `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                      `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          []*DingTalkAssignmentResult `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                      `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *TransferDingTalkRegistrationResponse) Reset() {
-	*x = TransferDingTalkRegistrationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[61]
+func (x *BatchAuthorizeDingTalkUsersResponse) Reset() {
+	*x = BatchAuthorizeDingTalkUsersResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *TransferDingTalkRegistrationResponse) String() string {
+func (x *BatchAuthorizeDingTalkUsersResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TransferDingTalkRegistrationResponse) ProtoMessage() {}
+func (*BatchAuthorizeDingTalkUsersResponse) ProtoMessage() {}
 
-func (x *TransferDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[61]
+func (x *BatchAuthorizeDingTalkUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4980,40 +4189,83 @@ func (x *TransferDingTalkRegistrationResponse) ProtoReflect() protoreflect.Messa
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TransferDingTalkRegistrationResponse.ProtoReflect.Descriptor instead.
-func (*TransferDingTalkRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{61}
+// Deprecated: Use BatchAuthorizeDingTalkUsersResponse.ProtoReflect.Descriptor instead.
+func (*BatchAuthorizeDingTalkUsersResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{52}
 }
 
-func (x *TransferDingTalkRegistrationResponse) GetSuccess() bool {
+func (x *BatchAuthorizeDingTalkUsersResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *TransferDingTalkRegistrationResponse) GetCode() int32 {
+func (x *BatchAuthorizeDingTalkUsersResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *TransferDingTalkRegistrationResponse) GetMessage() string {
+func (x *BatchAuthorizeDingTalkUsersResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *TransferDingTalkRegistrationResponse) GetTraceId() string {
+func (x *BatchAuthorizeDingTalkUsersResponse) GetData() []*DingTalkAssignmentResult {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *BatchAuthorizeDingTalkUsersResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
 	return ""
 }
 
-type ListDingTalkRegistrationsRequest struct {
+type StartDingTalkDirectorySyncRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartDingTalkDirectorySyncRequest) Reset() {
+	*x = StartDingTalkDirectorySyncRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartDingTalkDirectorySyncRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartDingTalkDirectorySyncRequest) ProtoMessage() {}
+
+func (x *StartDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartDingTalkDirectorySyncRequest.ProtoReflect.Descriptor instead.
+func (*StartDingTalkDirectorySyncRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{53}
+}
+
+type GetLatestDingTalkDirectorySyncRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
@@ -5021,21 +4273,21 @@ type ListDingTalkRegistrationsRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListDingTalkRegistrationsRequest) Reset() {
-	*x = ListDingTalkRegistrationsRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[62]
+func (x *GetLatestDingTalkDirectorySyncRequest) Reset() {
+	*x = GetLatestDingTalkDirectorySyncRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListDingTalkRegistrationsRequest) String() string {
+func (x *GetLatestDingTalkDirectorySyncRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListDingTalkRegistrationsRequest) ProtoMessage() {}
+func (*GetLatestDingTalkDirectorySyncRequest) ProtoMessage() {}
 
-func (x *ListDingTalkRegistrationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[62]
+func (x *GetLatestDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5046,53 +4298,49 @@ func (x *ListDingTalkRegistrationsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListDingTalkRegistrationsRequest.ProtoReflect.Descriptor instead.
-func (*ListDingTalkRegistrationsRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{62}
+// Deprecated: Use GetLatestDingTalkDirectorySyncRequest.ProtoReflect.Descriptor instead.
+func (*GetLatestDingTalkDirectorySyncRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{54}
 }
 
-func (x *ListDingTalkRegistrationsRequest) GetPage() int32 {
+func (x *GetLatestDingTalkDirectorySyncRequest) GetPage() int32 {
 	if x != nil {
 		return x.Page
 	}
 	return 0
 }
 
-func (x *ListDingTalkRegistrationsRequest) GetPageSize() int32 {
+func (x *GetLatestDingTalkDirectorySyncRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
 	}
 	return 0
 }
 
-// 待审批注册：钉钉姓名/头像来自扫码返回，供管理员人工认领。
-type DingTalkRegistration struct {
-	state                     protoimpl.MessageState `protogen:"open.v1"`
-	UserId                    string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	DisplayName               string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	AvatarUrl                 *string                `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
-	RequestedOrganizationId   *string                `protobuf:"bytes,4,opt,name=requested_organization_id,json=requestedOrganizationId,proto3,oneof" json:"requested_organization_id,omitempty"`
-	RequestedOrganizationName string                 `protobuf:"bytes,5,opt,name=requested_organization_name,json=requestedOrganizationName,proto3" json:"requested_organization_name,omitempty"`
-	RegisteredAt              string                 `protobuf:"bytes,6,opt,name=registered_at,json=registeredAt,proto3" json:"registered_at,omitempty"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+type GetDingTalkDirectorySyncRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TaskId        string                 `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DingTalkRegistration) Reset() {
-	*x = DingTalkRegistration{}
-	mi := &file_admin_v1_admin_proto_msgTypes[63]
+func (x *GetDingTalkDirectorySyncRequest) Reset() {
+	*x = GetDingTalkDirectorySyncRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DingTalkRegistration) String() string {
+func (x *GetDingTalkDirectorySyncRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DingTalkRegistration) ProtoMessage() {}
+func (*GetDingTalkDirectorySyncRequest) ProtoMessage() {}
 
-func (x *DingTalkRegistration) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[63]
+func (x *GetDingTalkDirectorySyncRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5103,360 +4351,139 @@ func (x *DingTalkRegistration) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DingTalkRegistration.ProtoReflect.Descriptor instead.
-func (*DingTalkRegistration) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{63}
+// Deprecated: Use GetDingTalkDirectorySyncRequest.ProtoReflect.Descriptor instead.
+func (*GetDingTalkDirectorySyncRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{55}
 }
 
-func (x *DingTalkRegistration) GetUserId() string {
+func (x *GetDingTalkDirectorySyncRequest) GetTaskId() string {
+	if x != nil {
+		return x.TaskId
+	}
+	return ""
+}
+
+func (x *GetDingTalkDirectorySyncRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetDingTalkDirectorySyncRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type DingTalkDirectorySyncFailure struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DepartmentId  string                 `protobuf:"bytes,2,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	Message       string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DingTalkDirectorySyncFailure) Reset() {
+	*x = DingTalkDirectorySyncFailure{}
+	mi := &file_admin_v1_admin_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DingTalkDirectorySyncFailure) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DingTalkDirectorySyncFailure) ProtoMessage() {}
+
+func (x *DingTalkDirectorySyncFailure) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DingTalkDirectorySyncFailure.ProtoReflect.Descriptor instead.
+func (*DingTalkDirectorySyncFailure) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *DingTalkDirectorySyncFailure) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *DingTalkRegistration) GetDisplayName() string {
+func (x *DingTalkDirectorySyncFailure) GetDepartmentId() string {
 	if x != nil {
-		return x.DisplayName
+		return x.DepartmentId
 	}
 	return ""
 }
 
-func (x *DingTalkRegistration) GetAvatarUrl() string {
-	if x != nil && x.AvatarUrl != nil {
-		return *x.AvatarUrl
-	}
-	return ""
-}
-
-func (x *DingTalkRegistration) GetRequestedOrganizationId() string {
-	if x != nil && x.RequestedOrganizationId != nil {
-		return *x.RequestedOrganizationId
-	}
-	return ""
-}
-
-func (x *DingTalkRegistration) GetRequestedOrganizationName() string {
-	if x != nil {
-		return x.RequestedOrganizationName
-	}
-	return ""
-}
-
-func (x *DingTalkRegistration) GetRegisteredAt() string {
-	if x != nil {
-		return x.RegisteredAt
-	}
-	return ""
-}
-
-type ListDingTalkRegistrationsResponse struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Success       bool                    `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                   `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                  `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          []*DingTalkRegistration `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
-	Total         int32                   `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
-	Page          int32                   `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                   `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	TraceId       string                  `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListDingTalkRegistrationsResponse) Reset() {
-	*x = ListDingTalkRegistrationsResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[64]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListDingTalkRegistrationsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListDingTalkRegistrationsResponse) ProtoMessage() {}
-
-func (x *ListDingTalkRegistrationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[64]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListDingTalkRegistrationsResponse.ProtoReflect.Descriptor instead.
-func (*ListDingTalkRegistrationsResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{64}
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetData() []*DingTalkRegistration {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetTotal() int32 {
-	if x != nil {
-		return x.Total
-	}
-	return 0
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetPage() int32 {
-	if x != nil {
-		return x.Page
-	}
-	return 0
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetPageSize() int32 {
-	if x != nil {
-		return x.PageSize
-	}
-	return 0
-}
-
-func (x *ListDingTalkRegistrationsResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-type ApproveDingTalkRegistrationRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 注册用户的 ID（待审批队列中的 user_id）。
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// 同意时授予的初始角色，必须属于注册的目标组织。
-	RoleIds       []string `protobuf:"bytes,2,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ApproveDingTalkRegistrationRequest) Reset() {
-	*x = ApproveDingTalkRegistrationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[65]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ApproveDingTalkRegistrationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ApproveDingTalkRegistrationRequest) ProtoMessage() {}
-
-func (x *ApproveDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[65]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ApproveDingTalkRegistrationRequest.ProtoReflect.Descriptor instead.
-func (*ApproveDingTalkRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{65}
-}
-
-func (x *ApproveDingTalkRegistrationRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *ApproveDingTalkRegistrationRequest) GetRoleIds() []string {
-	if x != nil {
-		return x.RoleIds
-	}
-	return nil
-}
-
-type ApproveDingTalkRegistrationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *DingTalkRegistration  `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ApproveDingTalkRegistrationResponse) Reset() {
-	*x = ApproveDingTalkRegistrationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[66]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ApproveDingTalkRegistrationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ApproveDingTalkRegistrationResponse) ProtoMessage() {}
-
-func (x *ApproveDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[66]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ApproveDingTalkRegistrationResponse.ProtoReflect.Descriptor instead.
-func (*ApproveDingTalkRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{66}
-}
-
-func (x *ApproveDingTalkRegistrationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *ApproveDingTalkRegistrationResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *ApproveDingTalkRegistrationResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ApproveDingTalkRegistrationResponse) GetData() *DingTalkRegistration {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *ApproveDingTalkRegistrationResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
-type RejectDingTalkRegistrationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RejectDingTalkRegistrationRequest) Reset() {
-	*x = RejectDingTalkRegistrationRequest{}
-	mi := &file_admin_v1_admin_proto_msgTypes[67]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RejectDingTalkRegistrationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RejectDingTalkRegistrationRequest) ProtoMessage() {}
-
-func (x *RejectDingTalkRegistrationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[67]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RejectDingTalkRegistrationRequest.ProtoReflect.Descriptor instead.
-func (*RejectDingTalkRegistrationRequest) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{67}
-}
-
-func (x *RejectDingTalkRegistrationRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *RejectDingTalkRegistrationRequest) GetReason() string {
+func (x *DingTalkDirectorySyncFailure) GetReason() string {
 	if x != nil {
 		return x.Reason
 	}
 	return ""
 }
 
-type RejectDingTalkRegistrationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+func (x *DingTalkDirectorySyncFailure) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
 }
 
-func (x *RejectDingTalkRegistrationResponse) Reset() {
-	*x = RejectDingTalkRegistrationResponse{}
-	mi := &file_admin_v1_admin_proto_msgTypes[68]
+// 可用字段与授权范围反映本次执行，失败详情不含原始通讯录报文。
+type DingTalkDirectorySync struct {
+	state           protoimpl.MessageState          `protogen:"open.v1"`
+	TaskId          string                          `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	Status          string                          `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	StartedAt       string                          `protobuf:"bytes,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	CompletedAt     *string                         `protobuf:"bytes,4,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
+	Total           int32                           `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Created         int32                           `protobuf:"varint,6,opt,name=created,proto3" json:"created,omitempty"`
+	Updated         int32                           `protobuf:"varint,7,opt,name=updated,proto3" json:"updated,omitempty"`
+	Unchanged       int32                           `protobuf:"varint,8,opt,name=unchanged,proto3" json:"unchanged,omitempty"`
+	Failed          int32                           `protobuf:"varint,9,opt,name=failed,proto3" json:"failed,omitempty"`
+	ScopeSummary    string                          `protobuf:"bytes,10,opt,name=scope_summary,json=scopeSummary,proto3" json:"scope_summary,omitempty"`
+	AvailableFields []string                        `protobuf:"bytes,11,rep,name=available_fields,json=availableFields,proto3" json:"available_fields,omitempty"`
+	Failures        []*DingTalkDirectorySyncFailure `protobuf:"bytes,12,rep,name=failures,proto3" json:"failures,omitempty"`
+	FailureTotal    int32                           `protobuf:"varint,13,opt,name=failure_total,json=failureTotal,proto3" json:"failure_total,omitempty"`
+	Page            int32                           `protobuf:"varint,14,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize        int32                           `protobuf:"varint,15,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	FullScope       bool                            `protobuf:"varint,16,opt,name=full_scope,json=fullScope,proto3" json:"full_scope,omitempty"`
+	LastError       *string                         `protobuf:"bytes,17,opt,name=last_error,json=lastError,proto3,oneof" json:"last_error,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *DingTalkDirectorySync) Reset() {
+	*x = DingTalkDirectorySync{}
+	mi := &file_admin_v1_admin_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RejectDingTalkRegistrationResponse) String() string {
+func (x *DingTalkDirectorySync) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RejectDingTalkRegistrationResponse) ProtoMessage() {}
+func (*DingTalkDirectorySync) ProtoMessage() {}
 
-func (x *RejectDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_admin_v1_admin_proto_msgTypes[68]
+func (x *DingTalkDirectorySync) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5467,33 +4494,352 @@ func (x *RejectDingTalkRegistrationResponse) ProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RejectDingTalkRegistrationResponse.ProtoReflect.Descriptor instead.
-func (*RejectDingTalkRegistrationResponse) Descriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{68}
+// Deprecated: Use DingTalkDirectorySync.ProtoReflect.Descriptor instead.
+func (*DingTalkDirectorySync) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{57}
 }
 
-func (x *RejectDingTalkRegistrationResponse) GetSuccess() bool {
+func (x *DingTalkDirectorySync) GetTaskId() string {
+	if x != nil {
+		return x.TaskId
+	}
+	return ""
+}
+
+func (x *DingTalkDirectorySync) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *DingTalkDirectorySync) GetStartedAt() string {
+	if x != nil {
+		return x.StartedAt
+	}
+	return ""
+}
+
+func (x *DingTalkDirectorySync) GetCompletedAt() string {
+	if x != nil && x.CompletedAt != nil {
+		return *x.CompletedAt
+	}
+	return ""
+}
+
+func (x *DingTalkDirectorySync) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetCreated() int32 {
+	if x != nil {
+		return x.Created
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetUpdated() int32 {
+	if x != nil {
+		return x.Updated
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetUnchanged() int32 {
+	if x != nil {
+		return x.Unchanged
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetFailed() int32 {
+	if x != nil {
+		return x.Failed
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetScopeSummary() string {
+	if x != nil {
+		return x.ScopeSummary
+	}
+	return ""
+}
+
+func (x *DingTalkDirectorySync) GetAvailableFields() []string {
+	if x != nil {
+		return x.AvailableFields
+	}
+	return nil
+}
+
+func (x *DingTalkDirectorySync) GetFailures() []*DingTalkDirectorySyncFailure {
+	if x != nil {
+		return x.Failures
+	}
+	return nil
+}
+
+func (x *DingTalkDirectorySync) GetFailureTotal() int32 {
+	if x != nil {
+		return x.FailureTotal
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *DingTalkDirectorySync) GetFullScope() bool {
+	if x != nil {
+		return x.FullScope
+	}
+	return false
+}
+
+func (x *DingTalkDirectorySync) GetLastError() string {
+	if x != nil && x.LastError != nil {
+		return *x.LastError
+	}
+	return ""
+}
+
+type StartDingTalkDirectorySyncResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *DingTalkDirectorySync `protobuf:"bytes,4,opt,name=data,proto3,oneof" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartDingTalkDirectorySyncResponse) Reset() {
+	*x = StartDingTalkDirectorySyncResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartDingTalkDirectorySyncResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartDingTalkDirectorySyncResponse) ProtoMessage() {}
+
+func (x *StartDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartDingTalkDirectorySyncResponse.ProtoReflect.Descriptor instead.
+func (*StartDingTalkDirectorySyncResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *StartDingTalkDirectorySyncResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *RejectDingTalkRegistrationResponse) GetCode() int32 {
+func (x *StartDingTalkDirectorySyncResponse) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *RejectDingTalkRegistrationResponse) GetMessage() string {
+func (x *StartDingTalkDirectorySyncResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *RejectDingTalkRegistrationResponse) GetTraceId() string {
+func (x *StartDingTalkDirectorySyncResponse) GetData() *DingTalkDirectorySync {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *StartDingTalkDirectorySyncResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type GetLatestDingTalkDirectorySyncResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *DingTalkDirectorySync `protobuf:"bytes,4,opt,name=data,proto3,oneof" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) Reset() {
+	*x = GetLatestDingTalkDirectorySyncResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLatestDingTalkDirectorySyncResponse) ProtoMessage() {}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLatestDingTalkDirectorySyncResponse.ProtoReflect.Descriptor instead.
+func (*GetLatestDingTalkDirectorySyncResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) GetData() *DingTalkDirectorySync {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetLatestDingTalkDirectorySyncResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type GetDingTalkDirectorySyncResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *DingTalkDirectorySync `protobuf:"bytes,4,opt,name=data,proto3,oneof" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDingTalkDirectorySyncResponse) Reset() {
+	*x = GetDingTalkDirectorySyncResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDingTalkDirectorySyncResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDingTalkDirectorySyncResponse) ProtoMessage() {}
+
+func (x *GetDingTalkDirectorySyncResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDingTalkDirectorySyncResponse.ProtoReflect.Descriptor instead.
+func (*GetDingTalkDirectorySyncResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *GetDingTalkDirectorySyncResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetDingTalkDirectorySyncResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetDingTalkDirectorySyncResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetDingTalkDirectorySyncResponse) GetData() *DingTalkDirectorySync {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetDingTalkDirectorySyncResponse) GetTraceId() string {
 	if x != nil {
 		return x.TraceId
 	}
@@ -5553,12 +4899,13 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.admin.v1.AdminOrganizationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x88\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xbb\x01\n" +
 	"\x10ListUsersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
 	"\akeyword\x18\x03 \x01(\tR\akeyword\x12\x1d\n" +
-	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01B\n" +
+	"\aenabled\x18\x04 \x01(\bH\x00R\aenabled\x88\x01\x01\x121\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x19.admin.v1.AdminUserStatusR\x06statusB\n" +
 	"\n" +
 	"\b_enabled\"\xbd\x01\n" +
 	"\x11CreateUserRequest\x12\x1f\n" +
@@ -5567,13 +4914,14 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\bpassword\x18\x03 \x01(\tB\x03\xe0A\x02R\bpassword\x12\x19\n" +
 	"\x05email\x18\x04 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x19\n" +
 	"\brole_ids\x18\x05 \x03(\tR\aroleIdsB\b\n" +
-	"\x06_email\"\xaa\x01\n" +
+	"\x06_email\"\xbb\x01\n" +
 	"\x11UpdateUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12&\n" +
-	"\fdisplay_name\x18\x02 \x01(\tB\x03\xe0A\x02R\vdisplayName\x12\x19\n" +
-	"\x05email\x18\x03 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x18\n" +
+	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\x19\n" +
+	"\x05email\x18\x03 \x01(\tH\x01R\x05email\x88\x01\x01\x12\x18\n" +
 	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x19\n" +
-	"\brole_ids\x18\x05 \x03(\tR\aroleIdsB\b\n" +
+	"\brole_ids\x18\x05 \x03(\tR\aroleIdsB\x0f\n" +
+	"\r_display_nameB\b\n" +
 	"\x06_email\":\n" +
 	"\x1aListUserMembershipsRequest\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\"\x9e\x01\n" +
@@ -5599,21 +4947,18 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\fdisplay_name\x18\x03 \x01(\tB\x03\xe0A\x02R\vdisplayName\x12\x19\n" +
 	"\x05email\x18\x04 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1e\n" +
 	"\brole_ids\x18\x05 \x03(\tB\x03\xe0A\x02R\aroleIdsB\b\n" +
-	"\x06_email\"\xce\x01\n" +
+	"\x06_email\"\x8d\x01\n" +
 	"\x1cAuthorizeDingTalkUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
-	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12&\n" +
-	"\fdisplay_name\x18\x03 \x01(\tB\x03\xe0A\x02R\vdisplayName\x12\x19\n" +
-	"\x05email\x18\x04 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1e\n" +
-	"\brole_ids\x18\x05 \x03(\tB\x03\xe0A\x02R\aroleIdsB\b\n" +
-	"\x06_email\"~\n" +
+	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x1e\n" +
+	"\brole_ids\x18\x05 \x03(\tB\x03\xe0A\x02R\aroleIdsJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"~\n" +
 	"\x18ResetUserPasswordRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\x12\x1f\n" +
 	"\busername\x18\x03 \x01(\tH\x00R\busername\x88\x01\x01B\v\n" +
 	"\t_username\"L\n" +
 	"\x1cListOrganizationRolesRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xf4\x06\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xef\t\n" +
 	"\tAdminUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -5641,14 +4986,22 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1acurrent_membership_enabled\x18\x12 \x01(\bR\x18currentMembershipEnabled\x12L\n" +
 	"\rorganizations\x18\x13 \x03(\v2&.admin.v1.AdminUserOrganizationSummaryR\rorganizations\x12\x1d\n" +
 	"\n" +
-	"role_names\x18\x14 \x03(\tR\troleNamesB\b\n" +
+	"role_names\x18\x14 \x03(\tR\troleNames\x12-\n" +
+	"\x12pending_assignment\x18\x15 \x01(\bR\x11pendingAssignment\x123\n" +
+	"\x13dingtalk_job_number\x18\x16 \x01(\tH\aR\x11dingtalkJobNumber\x88\x01\x01\x129\n" +
+	"\x16dingtalk_mobile_masked\x18\x17 \x01(\tH\bR\x14dingtalkMobileMasked\x88\x01\x01\x12O\n" +
+	"\x14dingtalk_departments\x18\x18 \x03(\v2\x1c.admin.v1.DingTalkDepartmentR\x13dingtalkDepartments\x12:\n" +
+	"\x17dingtalk_last_synced_at\x18\x19 \x01(\tH\tR\x14dingtalkLastSyncedAt\x88\x01\x01B\b\n" +
 	"\x06_emailB\x0f\n" +
 	"\r_wecom_useridB\r\n" +
 	"\v_wecom_nameB\x13\n" +
 	"\x11_dingtalk_unionidB\x10\n" +
 	"\x0e_dingtalk_nameB\r\n" +
 	"\v_avatar_urlB\x12\n" +
-	"\x10_dingtalk_userid\"\x8e\x01\n" +
+	"\x10_dingtalk_useridB\x16\n" +
+	"\x14_dingtalk_job_numberB\x19\n" +
+	"\x17_dingtalk_mobile_maskedB\x1a\n" +
+	"\x18_dingtalk_last_synced_at\"\x8e\x01\n" +
 	"\x1cAdminUserOrganizationSummary\x12'\n" +
 	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12+\n" +
 	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x12\x18\n" +
@@ -5855,138 +5208,83 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\xd4\x02\n" +
-	"\x1fCreateDingTalkInvitationRequest\x12,\n" +
-	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x124\n" +
-	"\x04kind\x18\x02 \x01(\x0e2 .admin.v1.DingTalkInvitationKindR\x04kind\x12\x1b\n" +
-	"\x06mobile\x18\x03 \x01(\tH\x00R\x06mobile\x88\x01\x01\x12\x1c\n" +
-	"\arole_id\x18\x04 \x01(\tH\x01R\x06roleId\x88\x01\x01\x12&\n" +
-	"\fdisplay_name\x18\x05 \x01(\tH\x02R\vdisplayName\x88\x01\x01\x12-\n" +
-	"\x10expires_in_hours\x18\x06 \x01(\x05H\x03R\x0eexpiresInHours\x88\x01\x01B\t\n" +
-	"\a_mobileB\n" +
-	"\n" +
-	"\b_role_idB\x0f\n" +
-	"\r_display_nameB\x13\n" +
-	"\x11_expires_in_hours\"\xde\x01\n" +
-	" CreateDingTalkInvitationResponse\x12\x18\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"8\n" +
+	"\x12DingTalkDepartment\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\x92\x01\n" +
+	"\"BatchAuthorizeDingTalkUsersRequest\x12\x1e\n" +
+	"\buser_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\auserIds\x12,\n" +
+	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x1e\n" +
+	"\brole_ids\x18\x03 \x03(\tB\x03\xe0A\x02R\aroleIds\"\x7f\n" +
+	"\x18DingTalkAssignmentResult\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
+	"\asuccess\x18\x02 \x01(\bR\asuccess\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x18\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\"\xc0\x01\n" +
+	"#BatchAuthorizeDingTalkUsersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
-	"\x04data\x18\x04 \x01(\v2\x1c.admin.v1.DingTalkInvitationR\x04data\x12%\n" +
-	"\x0einvitation_url\x18\x05 \x01(\tR\rinvitationUrl\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xdf\x01\n" +
-	"\x1eListDingTalkInvitationsRequest\x12\x12\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x126\n" +
+	"\x04data\x18\x04 \x03(\v2\".admin.v1.DingTalkAssignmentResultR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"#\n" +
+	"!StartDingTalkDirectorySyncRequest\"X\n" +
+	"%GetLatestDingTalkDirectorySyncRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12,\n" +
-	"\x0forganization_id\x18\x03 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12?\n" +
-	"\x06status\x18\x04 \x01(\x0e2\".admin.v1.DingTalkInvitationStatusH\x01R\x06status\x88\x01\x01B\x12\n" +
-	"\x10_organization_idB\t\n" +
-	"\a_status\"\xfd\x01\n" +
-	"\x1fListDingTalkInvitationsResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
-	"\x04data\x18\x04 \x03(\v2\x1c.admin.v1.DingTalkInvitationR\x04data\x12\x14\n" +
-	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
-	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"3\n" +
-	"\x1cGetDingTalkInvitationRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xdb\x01\n" +
-	"\x1dGetDingTalkInvitationResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
-	"\x04data\x18\x04 \x01(\v2\x1c.admin.v1.DingTalkInvitationR\x04data\x12%\n" +
-	"\x0einvitation_url\x18\x05 \x01(\tR\rinvitationUrl\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\"\n" +
-	" ListTransferOrganizationsRequest\"\xb7\x01\n" +
-	"!ListTransferOrganizationsResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
-	"\x04data\x18\x04 \x03(\v2\x1b.admin.v1.AdminOrganizationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"6\n" +
-	"\x1fRevokeDingTalkInvitationRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x85\x01\n" +
-	" RevokeDingTalkInvitationResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xee\x04\n" +
-	"\x12DingTalkInvitation\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
-	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18\x03 \x01(\tR\x10organizationName\x12\x1c\n" +
-	"\arole_id\x18\x04 \x01(\tH\x00R\x06roleId\x88\x01\x01\x12 \n" +
-	"\trole_name\x18\x05 \x01(\tH\x01R\broleName\x88\x01\x01\x12(\n" +
-	"\rmobile_masked\x18\x06 \x01(\tH\x02R\fmobileMasked\x88\x01\x01\x12&\n" +
-	"\fdisplay_name\x18\a \x01(\tH\x03R\vdisplayName\x88\x01\x01\x12:\n" +
-	"\x06status\x18\b \x01(\x0e2\".admin.v1.DingTalkInvitationStatusR\x06status\x12(\n" +
-	"\rconsumed_name\x18\t \x01(\tH\x04R\fconsumedName\x88\x01\x01\x12\x1d\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"p\n" +
+	"\x1fGetDingTalkDirectorySyncRequest\x12\x1c\n" +
+	"\atask_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06taskId\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x8e\x01\n" +
+	"\x1cDingTalkDirectorySyncFailure\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12#\n" +
+	"\rdepartment_id\x18\x02 \x01(\tR\fdepartmentId\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x18\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\"\xdc\x04\n" +
+	"\x15DingTalkDirectorySync\x12\x17\n" +
+	"\atask_id\x18\x01 \x01(\tR\x06taskId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\n" +
-	" \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"started_at\x18\x03 \x01(\tR\tstartedAt\x12&\n" +
+	"\fcompleted_at\x18\x04 \x01(\tH\x00R\vcompletedAt\x88\x01\x01\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x18\n" +
+	"\acreated\x18\x06 \x01(\x05R\acreated\x12\x18\n" +
+	"\aupdated\x18\a \x01(\x05R\aupdated\x12\x1c\n" +
+	"\tunchanged\x18\b \x01(\x05R\tunchanged\x12\x16\n" +
+	"\x06failed\x18\t \x01(\x05R\x06failed\x12#\n" +
+	"\rscope_summary\x18\n" +
+	" \x01(\tR\fscopeSummary\x12)\n" +
+	"\x10available_fields\x18\v \x03(\tR\x0favailableFields\x12B\n" +
+	"\bfailures\x18\f \x03(\v2&.admin.v1.DingTalkDirectorySyncFailureR\bfailures\x12#\n" +
+	"\rfailure_total\x18\r \x01(\x05R\ffailureTotal\x12\x12\n" +
+	"\x04page\x18\x0e \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x0f \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\v \x01(\tR\texpiresAt\x12!\n" +
-	"\finviter_name\x18\f \x01(\tR\vinviterName\x124\n" +
-	"\x04kind\x18\r \x01(\x0e2 .admin.v1.DingTalkInvitationKindR\x04kind\x12\x14\n" +
-	"\x05token\x18\x0e \x01(\tR\x05tokenB\n" +
+	"full_scope\x18\x10 \x01(\bR\tfullScope\x12\"\n" +
 	"\n" +
-	"\b_role_idB\f\n" +
-	"\n" +
-	"_role_nameB\x10\n" +
-	"\x0e_mobile_maskedB\x0f\n" +
-	"\r_display_nameB\x10\n" +
-	"\x0e_consumed_name\"\x9b\x01\n" +
-	"#TransferDingTalkRegistrationRequest\x12\x1c\n" +
-	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x129\n" +
-	"\x16target_organization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x14targetOrganizationId\x12\x1b\n" +
-	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\x89\x01\n" +
-	"$TransferDingTalkRegistrationResponse\x12\x18\n" +
+	"last_error\x18\x11 \x01(\tH\x01R\tlastError\x88\x01\x01B\x0f\n" +
+	"\r_completed_atB\r\n" +
+	"\v_last_error\"\xca\x01\n" +
+	"\"StartDingTalkDirectorySyncResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId\"S\n" +
-	" ListDingTalkRegistrationsRequest\x12\x12\n" +
-	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xc9\x02\n" +
-	"\x14DingTalkRegistration\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\"\n" +
-	"\n" +
-	"avatar_url\x18\x03 \x01(\tH\x00R\tavatarUrl\x88\x01\x01\x12?\n" +
-	"\x19requested_organization_id\x18\x04 \x01(\tH\x01R\x17requestedOrganizationId\x88\x01\x01\x12>\n" +
-	"\x1brequested_organization_name\x18\x05 \x01(\tR\x19requestedOrganizationName\x12#\n" +
-	"\rregistered_at\x18\x06 \x01(\tR\fregisteredAtB\r\n" +
-	"\v_avatar_urlB\x1c\n" +
-	"\x1a_requested_organization_id\"\x81\x02\n" +
-	"!ListDingTalkRegistrationsResponse\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x128\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.admin.v1.DingTalkDirectorySyncH\x00R\x04data\x88\x01\x01\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceIdB\a\n" +
+	"\x05_data\"\xce\x01\n" +
+	"&GetLatestDingTalkDirectorySyncResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x122\n" +
-	"\x04data\x18\x04 \x03(\v2\x1e.admin.v1.DingTalkRegistrationR\x04data\x12\x14\n" +
-	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
-	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"Y\n" +
-	"\"ApproveDingTalkRegistrationRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1e\n" +
-	"\brole_ids\x18\x02 \x03(\tB\x03\xe0A\x02R\aroleIds\"\xbc\x01\n" +
-	"#ApproveDingTalkRegistrationResponse\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x128\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.admin.v1.DingTalkDirectorySyncH\x00R\x04data\x88\x01\x01\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceIdB\a\n" +
+	"\x05_data\"\xc8\x01\n" +
+	" GetDingTalkDirectorySyncResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x122\n" +
-	"\x04data\x18\x04 \x01(\v2\x1e.admin.v1.DingTalkRegistrationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"U\n" +
-	"!RejectDingTalkRegistrationRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1b\n" +
-	"\x06reason\x18\x02 \x01(\tB\x03\xe0A\x02R\x06reason\"\x87\x01\n" +
-	"\"RejectDingTalkRegistrationResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId*\x8f\x01\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x128\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.admin.v1.DingTalkDirectorySyncH\x00R\x04data\x88\x01\x01\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceIdB\a\n" +
+	"\x05_data*\x8f\x01\n" +
 	"\tDataScope\x12\x1a\n" +
 	"\x16DATA_SCOPE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eDATA_SCOPE_ALL\x10\x01\x12\x1b\n" +
@@ -5998,24 +5296,15 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x18ORGANIZATION_KIND_SYSTEM\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
-	"\x16ORGANIZATION_KIND_TEAM\x10\x04*\xf2\x01\n" +
+	"\x16ORGANIZATION_KIND_TEAM\x10\x04*\x9c\x02\n" +
 	"\x0fAdminUserStatus\x12!\n" +
 	"\x1dADMIN_USER_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18ADMIN_USER_STATUS_ACTIVE\x10\x01\x12+\n" +
 	"'ADMIN_USER_STATUS_PENDING_AUTHORIZATION\x10\x02\x12 \n" +
 	"\x1cADMIN_USER_STATUS_TERMINATED\x10\x03\x12/\n" +
 	"+ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION\x10\x04\x12\x1e\n" +
-	"\x1aADMIN_USER_STATUS_DISABLED\x10\x05*\xec\x01\n" +
-	"\x18DingTalkInvitationStatus\x12+\n" +
-	"'DING_TALK_INVITATION_STATUS_UNSPECIFIED\x10\x00\x12'\n" +
-	"#DING_TALK_INVITATION_STATUS_PENDING\x10\x01\x12(\n" +
-	"$DING_TALK_INVITATION_STATUS_CONSUMED\x10\x02\x12'\n" +
-	"#DING_TALK_INVITATION_STATUS_EXPIRED\x10\x03\x12'\n" +
-	"#DING_TALK_INVITATION_STATUS_REVOKED\x10\x04*\x92\x01\n" +
-	"\x16DingTalkInvitationKind\x12)\n" +
-	"%DING_TALK_INVITATION_KIND_UNSPECIFIED\x10\x00\x12&\n" +
-	"\"DING_TALK_INVITATION_KIND_TARGETED\x10\x01\x12%\n" +
-	"!DING_TALK_INVITATION_KIND_GENERIC\x10\x022\xb1*\n" +
+	"\x1aADMIN_USER_STATUS_DISABLED\x10\x05\x12(\n" +
+	"$ADMIN_USER_STATUS_PENDING_ASSIGNMENT\x10\x062\xe4!\n" +
 	"\fAdminService\x12\xa3\x01\n" +
 	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
 	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
@@ -6042,16 +5331,11 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"DeleteRole\x12\x1b.admin.v1.DeleteRoleRequest\x1a\x1c.admin.v1.DeleteRoleResponse\"<\x82\xb5\x18\x18\b\x03\x12\x12system.role.delete \x02\x82\xd3\xe4\x93\x02\x1a*\x18/api/v1/admin/roles/{id}\x12\x99\x01\n" +
 	"\x0fListPermissions\x12 .admin.v1.ListPermissionsRequest\x1a!.admin.v1.ListPermissionsResponse\"A\x82\xb5\x18\x1c\b\x03\x12\x16system.permission.read \x02\x82\xd3\xe4\x93\x02\x1b\x12\x19/api/v1/admin/permissions\x12\x8d\x01\n" +
-	"\rListAuditLogs\x12\x1e.admin.v1.ListAuditLogsRequest\x1a\x1f.admin.v1.ListAuditLogsResponse\";\x82\xb5\x18\x17\b\x03\x12\x11system.audit.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/admin/audit-logs\x12\xd0\x01\n" +
-	"\x18CreateDingTalkInvitation\x12).admin.v1.CreateDingTalkInvitationRequest\x1a*.admin.v1.CreateDingTalkInvitationResponse\"]\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02':\x01*\"\"/api/v1/admin/dingtalk/invitations\x12\xca\x01\n" +
-	"\x17ListDingTalkInvitations\x12(.admin.v1.ListDingTalkInvitationsRequest\x1a).admin.v1.ListDingTalkInvitationsResponse\"Z\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/admin/dingtalk/invitations\x12\xd2\x01\n" +
-	"\x18RevokeDingTalkInvitation\x12).admin.v1.RevokeDingTalkInvitationRequest\x1a*.admin.v1.RevokeDingTalkInvitationResponse\"_\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02)*'/api/v1/admin/dingtalk/invitations/{id}\x12\xc9\x01\n" +
-	"\x15GetDingTalkInvitation\x12&.admin.v1.GetDingTalkInvitationRequest\x1a'.admin.v1.GetDingTalkInvitationResponse\"_\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02)\x12'/api/v1/admin/dingtalk/invitations/{id}\x12\xd2\x01\n" +
-	"\x19ListDingTalkRegistrations\x12*.admin.v1.ListDingTalkRegistrationsRequest\x1a+.admin.v1.ListDingTalkRegistrationsResponse\"\\\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/admin/dingtalk/registrations\x12\xe0\x01\n" +
-	"\x19ListTransferOrganizations\x12*.admin.v1.ListTransferOrganizationsRequest\x1a+.admin.v1.ListTransferOrganizationsResponse\"j\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x024\x122/api/v1/admin/dingtalk/registrations/organizations\x12\xe9\x01\n" +
-	"\x1bApproveDingTalkRegistration\x12,.admin.v1.ApproveDingTalkRegistrationRequest\x1a-.admin.v1.ApproveDingTalkRegistrationResponse\"m\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/admin/dingtalk/registrations/{id}/approval\x12\xe7\x01\n" +
-	"\x1aRejectDingTalkRegistration\x12+.admin.v1.RejectDingTalkRegistrationRequest\x1a,.admin.v1.RejectDingTalkRegistrationResponse\"n\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/admin/dingtalk/registrations/{id}/rejection\x12\xf1\x01\n" +
-	"\x1cTransferDingTalkRegistration\x12-.admin.v1.TransferDingTalkRegistrationRequest\x1a..admin.v1.TransferDingTalkRegistrationResponse\"r\x82\xb5\x18,\b\x03\x12&system.user.dingtalk_invitation.manage \x02\x82\xd3\xe4\x93\x02<:\x01*\"7/api/v1/admin/dingtalk/registrations/{user_id}/transferB:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
+	"\rListAuditLogs\x12\x1e.admin.v1.ListAuditLogsRequest\x1a\x1f.admin.v1.ListAuditLogsResponse\";\x82\xb5\x18\x17\b\x03\x12\x11system.audit.read \x02\x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/admin/audit-logs\x12\xd4\x01\n" +
+	"\x1bBatchAuthorizeDingTalkUsers\x12,.admin.v1.BatchAuthorizeDingTalkUsersRequest\x1a-.admin.v1.BatchAuthorizeDingTalkUsersResponse\"X\x82\xb5\x18$\b\x03\x12\x1esystem.user.authorize_dingtalk \x01\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/admin/dingtalk/authorizations\x12\xd7\x01\n" +
+	"\x1aStartDingTalkDirectorySync\x12+.admin.v1.StartDingTalkDirectorySyncRequest\x1a,.admin.v1.StartDingTalkDirectorySyncResponse\"^\x82\xb5\x18)\b\x03\x12#system.user.dingtalk_directory.sync \x01\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/admin/dingtalk/directory-syncs\x12\xe7\x01\n" +
+	"\x1eGetLatestDingTalkDirectorySync\x12/.admin.v1.GetLatestDingTalkDirectorySyncRequest\x1a0.admin.v1.GetLatestDingTalkDirectorySyncResponse\"b\x82\xb5\x18)\b\x03\x12#system.user.dingtalk_directory.sync \x01\x82\xd3\xe4\x93\x02/\x12-/api/v1/admin/dingtalk/directory-syncs/latest\x12\xd8\x01\n" +
+	"\x18GetDingTalkDirectorySync\x12).admin.v1.GetDingTalkDirectorySyncRequest\x1a*.admin.v1.GetDingTalkDirectorySyncResponse\"e\x82\xb5\x18)\b\x03\x12#system.user.dingtalk_directory.sync \x01\x82\xd3\xe4\x93\x022\x120/api/v1/admin/dingtalk/directory-syncs/{task_id}B:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once
@@ -6065,187 +5349,164 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 70)
+var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 62)
 var file_admin_v1_admin_proto_goTypes = []any{
-	(DataScope)(0),                               // 0: admin.v1.DataScope
-	(OrganizationKind)(0),                        // 1: admin.v1.OrganizationKind
-	(AdminUserStatus)(0),                         // 2: admin.v1.AdminUserStatus
-	(DingTalkInvitationStatus)(0),                // 3: admin.v1.DingTalkInvitationStatus
-	(DingTalkInvitationKind)(0),                  // 4: admin.v1.DingTalkInvitationKind
-	(*ListOrganizationsRequest)(nil),             // 5: admin.v1.ListOrganizationsRequest
-	(*CreateOrganizationRequest)(nil),            // 6: admin.v1.CreateOrganizationRequest
-	(*UpdateOrganizationRequest)(nil),            // 7: admin.v1.UpdateOrganizationRequest
-	(*AdminOrganization)(nil),                    // 8: admin.v1.AdminOrganization
-	(*ListOrganizationsResponse)(nil),            // 9: admin.v1.ListOrganizationsResponse
-	(*ResetUserPasswordResponse)(nil),            // 10: admin.v1.ResetUserPasswordResponse
-	(*CreateOrganizationResponse)(nil),           // 11: admin.v1.CreateOrganizationResponse
-	(*UpdateOrganizationResponse)(nil),           // 12: admin.v1.UpdateOrganizationResponse
-	(*ListUsersRequest)(nil),                     // 13: admin.v1.ListUsersRequest
-	(*CreateUserRequest)(nil),                    // 14: admin.v1.CreateUserRequest
-	(*UpdateUserRequest)(nil),                    // 15: admin.v1.UpdateUserRequest
-	(*ListUserMembershipsRequest)(nil),           // 16: admin.v1.ListUserMembershipsRequest
-	(*CreateUserMembershipRequest)(nil),          // 17: admin.v1.CreateUserMembershipRequest
-	(*UpdateUserMembershipRequest)(nil),          // 18: admin.v1.UpdateUserMembershipRequest
-	(*DeleteUserMembershipRequest)(nil),          // 19: admin.v1.DeleteUserMembershipRequest
-	(*TerminateUserRequest)(nil),                 // 20: admin.v1.TerminateUserRequest
-	(*AuthorizeWeComUserRequest)(nil),            // 21: admin.v1.AuthorizeWeComUserRequest
-	(*AuthorizeDingTalkUserRequest)(nil),         // 22: admin.v1.AuthorizeDingTalkUserRequest
-	(*ResetUserPasswordRequest)(nil),             // 23: admin.v1.ResetUserPasswordRequest
-	(*ListOrganizationRolesRequest)(nil),         // 24: admin.v1.ListOrganizationRolesRequest
-	(*AdminUser)(nil),                            // 25: admin.v1.AdminUser
-	(*AdminUserOrganizationSummary)(nil),         // 26: admin.v1.AdminUserOrganizationSummary
-	(*AdminUserMembership)(nil),                  // 27: admin.v1.AdminUserMembership
-	(*ListUsersResponse)(nil),                    // 28: admin.v1.ListUsersResponse
-	(*CreateUserResponse)(nil),                   // 29: admin.v1.CreateUserResponse
-	(*UpdateUserResponse)(nil),                   // 30: admin.v1.UpdateUserResponse
-	(*ListUserMembershipsResponse)(nil),          // 31: admin.v1.ListUserMembershipsResponse
-	(*CreateUserMembershipResponse)(nil),         // 32: admin.v1.CreateUserMembershipResponse
-	(*UpdateUserMembershipResponse)(nil),         // 33: admin.v1.UpdateUserMembershipResponse
-	(*DeleteUserMembershipResponse)(nil),         // 34: admin.v1.DeleteUserMembershipResponse
-	(*TerminateUserResponse)(nil),                // 35: admin.v1.TerminateUserResponse
-	(*AuthorizeWeComUserResponse)(nil),           // 36: admin.v1.AuthorizeWeComUserResponse
-	(*AuthorizeDingTalkUserResponse)(nil),        // 37: admin.v1.AuthorizeDingTalkUserResponse
-	(*ListRolesRequest)(nil),                     // 38: admin.v1.ListRolesRequest
-	(*CreateRoleRequest)(nil),                    // 39: admin.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),                    // 40: admin.v1.UpdateRoleRequest
-	(*AdminRole)(nil),                            // 41: admin.v1.AdminRole
-	(*ListRolesResponse)(nil),                    // 42: admin.v1.ListRolesResponse
-	(*ListOrganizationRolesResponse)(nil),        // 43: admin.v1.ListOrganizationRolesResponse
-	(*CreateRoleResponse)(nil),                   // 44: admin.v1.CreateRoleResponse
-	(*UpdateRoleResponse)(nil),                   // 45: admin.v1.UpdateRoleResponse
-	(*DeleteRoleRequest)(nil),                    // 46: admin.v1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil),                   // 47: admin.v1.DeleteRoleResponse
-	(*ListPermissionsRequest)(nil),               // 48: admin.v1.ListPermissionsRequest
-	(*AdminPermission)(nil),                      // 49: admin.v1.AdminPermission
-	(*ListPermissionsResponse)(nil),              // 50: admin.v1.ListPermissionsResponse
-	(*ListAuditLogsRequest)(nil),                 // 51: admin.v1.ListAuditLogsRequest
-	(*AdminAuditLog)(nil),                        // 52: admin.v1.AdminAuditLog
-	(*ListAuditLogsResponse)(nil),                // 53: admin.v1.ListAuditLogsResponse
-	(*CreateDingTalkInvitationRequest)(nil),      // 54: admin.v1.CreateDingTalkInvitationRequest
-	(*CreateDingTalkInvitationResponse)(nil),     // 55: admin.v1.CreateDingTalkInvitationResponse
-	(*ListDingTalkInvitationsRequest)(nil),       // 56: admin.v1.ListDingTalkInvitationsRequest
-	(*ListDingTalkInvitationsResponse)(nil),      // 57: admin.v1.ListDingTalkInvitationsResponse
-	(*GetDingTalkInvitationRequest)(nil),         // 58: admin.v1.GetDingTalkInvitationRequest
-	(*GetDingTalkInvitationResponse)(nil),        // 59: admin.v1.GetDingTalkInvitationResponse
-	(*ListTransferOrganizationsRequest)(nil),     // 60: admin.v1.ListTransferOrganizationsRequest
-	(*ListTransferOrganizationsResponse)(nil),    // 61: admin.v1.ListTransferOrganizationsResponse
-	(*RevokeDingTalkInvitationRequest)(nil),      // 62: admin.v1.RevokeDingTalkInvitationRequest
-	(*RevokeDingTalkInvitationResponse)(nil),     // 63: admin.v1.RevokeDingTalkInvitationResponse
-	(*DingTalkInvitation)(nil),                   // 64: admin.v1.DingTalkInvitation
-	(*TransferDingTalkRegistrationRequest)(nil),  // 65: admin.v1.TransferDingTalkRegistrationRequest
-	(*TransferDingTalkRegistrationResponse)(nil), // 66: admin.v1.TransferDingTalkRegistrationResponse
-	(*ListDingTalkRegistrationsRequest)(nil),     // 67: admin.v1.ListDingTalkRegistrationsRequest
-	(*DingTalkRegistration)(nil),                 // 68: admin.v1.DingTalkRegistration
-	(*ListDingTalkRegistrationsResponse)(nil),    // 69: admin.v1.ListDingTalkRegistrationsResponse
-	(*ApproveDingTalkRegistrationRequest)(nil),   // 70: admin.v1.ApproveDingTalkRegistrationRequest
-	(*ApproveDingTalkRegistrationResponse)(nil),  // 71: admin.v1.ApproveDingTalkRegistrationResponse
-	(*RejectDingTalkRegistrationRequest)(nil),    // 72: admin.v1.RejectDingTalkRegistrationRequest
-	(*RejectDingTalkRegistrationResponse)(nil),   // 73: admin.v1.RejectDingTalkRegistrationResponse
-	nil, // 74: admin.v1.AdminAuditLog.DetailsEntry
+	(DataScope)(0),                                 // 0: admin.v1.DataScope
+	(OrganizationKind)(0),                          // 1: admin.v1.OrganizationKind
+	(AdminUserStatus)(0),                           // 2: admin.v1.AdminUserStatus
+	(*ListOrganizationsRequest)(nil),               // 3: admin.v1.ListOrganizationsRequest
+	(*CreateOrganizationRequest)(nil),              // 4: admin.v1.CreateOrganizationRequest
+	(*UpdateOrganizationRequest)(nil),              // 5: admin.v1.UpdateOrganizationRequest
+	(*AdminOrganization)(nil),                      // 6: admin.v1.AdminOrganization
+	(*ListOrganizationsResponse)(nil),              // 7: admin.v1.ListOrganizationsResponse
+	(*ResetUserPasswordResponse)(nil),              // 8: admin.v1.ResetUserPasswordResponse
+	(*CreateOrganizationResponse)(nil),             // 9: admin.v1.CreateOrganizationResponse
+	(*UpdateOrganizationResponse)(nil),             // 10: admin.v1.UpdateOrganizationResponse
+	(*ListUsersRequest)(nil),                       // 11: admin.v1.ListUsersRequest
+	(*CreateUserRequest)(nil),                      // 12: admin.v1.CreateUserRequest
+	(*UpdateUserRequest)(nil),                      // 13: admin.v1.UpdateUserRequest
+	(*ListUserMembershipsRequest)(nil),             // 14: admin.v1.ListUserMembershipsRequest
+	(*CreateUserMembershipRequest)(nil),            // 15: admin.v1.CreateUserMembershipRequest
+	(*UpdateUserMembershipRequest)(nil),            // 16: admin.v1.UpdateUserMembershipRequest
+	(*DeleteUserMembershipRequest)(nil),            // 17: admin.v1.DeleteUserMembershipRequest
+	(*TerminateUserRequest)(nil),                   // 18: admin.v1.TerminateUserRequest
+	(*AuthorizeWeComUserRequest)(nil),              // 19: admin.v1.AuthorizeWeComUserRequest
+	(*AuthorizeDingTalkUserRequest)(nil),           // 20: admin.v1.AuthorizeDingTalkUserRequest
+	(*ResetUserPasswordRequest)(nil),               // 21: admin.v1.ResetUserPasswordRequest
+	(*ListOrganizationRolesRequest)(nil),           // 22: admin.v1.ListOrganizationRolesRequest
+	(*AdminUser)(nil),                              // 23: admin.v1.AdminUser
+	(*AdminUserOrganizationSummary)(nil),           // 24: admin.v1.AdminUserOrganizationSummary
+	(*AdminUserMembership)(nil),                    // 25: admin.v1.AdminUserMembership
+	(*ListUsersResponse)(nil),                      // 26: admin.v1.ListUsersResponse
+	(*CreateUserResponse)(nil),                     // 27: admin.v1.CreateUserResponse
+	(*UpdateUserResponse)(nil),                     // 28: admin.v1.UpdateUserResponse
+	(*ListUserMembershipsResponse)(nil),            // 29: admin.v1.ListUserMembershipsResponse
+	(*CreateUserMembershipResponse)(nil),           // 30: admin.v1.CreateUserMembershipResponse
+	(*UpdateUserMembershipResponse)(nil),           // 31: admin.v1.UpdateUserMembershipResponse
+	(*DeleteUserMembershipResponse)(nil),           // 32: admin.v1.DeleteUserMembershipResponse
+	(*TerminateUserResponse)(nil),                  // 33: admin.v1.TerminateUserResponse
+	(*AuthorizeWeComUserResponse)(nil),             // 34: admin.v1.AuthorizeWeComUserResponse
+	(*AuthorizeDingTalkUserResponse)(nil),          // 35: admin.v1.AuthorizeDingTalkUserResponse
+	(*ListRolesRequest)(nil),                       // 36: admin.v1.ListRolesRequest
+	(*CreateRoleRequest)(nil),                      // 37: admin.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),                      // 38: admin.v1.UpdateRoleRequest
+	(*AdminRole)(nil),                              // 39: admin.v1.AdminRole
+	(*ListRolesResponse)(nil),                      // 40: admin.v1.ListRolesResponse
+	(*ListOrganizationRolesResponse)(nil),          // 41: admin.v1.ListOrganizationRolesResponse
+	(*CreateRoleResponse)(nil),                     // 42: admin.v1.CreateRoleResponse
+	(*UpdateRoleResponse)(nil),                     // 43: admin.v1.UpdateRoleResponse
+	(*DeleteRoleRequest)(nil),                      // 44: admin.v1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),                     // 45: admin.v1.DeleteRoleResponse
+	(*ListPermissionsRequest)(nil),                 // 46: admin.v1.ListPermissionsRequest
+	(*AdminPermission)(nil),                        // 47: admin.v1.AdminPermission
+	(*ListPermissionsResponse)(nil),                // 48: admin.v1.ListPermissionsResponse
+	(*ListAuditLogsRequest)(nil),                   // 49: admin.v1.ListAuditLogsRequest
+	(*AdminAuditLog)(nil),                          // 50: admin.v1.AdminAuditLog
+	(*ListAuditLogsResponse)(nil),                  // 51: admin.v1.ListAuditLogsResponse
+	(*DingTalkDepartment)(nil),                     // 52: admin.v1.DingTalkDepartment
+	(*BatchAuthorizeDingTalkUsersRequest)(nil),     // 53: admin.v1.BatchAuthorizeDingTalkUsersRequest
+	(*DingTalkAssignmentResult)(nil),               // 54: admin.v1.DingTalkAssignmentResult
+	(*BatchAuthorizeDingTalkUsersResponse)(nil),    // 55: admin.v1.BatchAuthorizeDingTalkUsersResponse
+	(*StartDingTalkDirectorySyncRequest)(nil),      // 56: admin.v1.StartDingTalkDirectorySyncRequest
+	(*GetLatestDingTalkDirectorySyncRequest)(nil),  // 57: admin.v1.GetLatestDingTalkDirectorySyncRequest
+	(*GetDingTalkDirectorySyncRequest)(nil),        // 58: admin.v1.GetDingTalkDirectorySyncRequest
+	(*DingTalkDirectorySyncFailure)(nil),           // 59: admin.v1.DingTalkDirectorySyncFailure
+	(*DingTalkDirectorySync)(nil),                  // 60: admin.v1.DingTalkDirectorySync
+	(*StartDingTalkDirectorySyncResponse)(nil),     // 61: admin.v1.StartDingTalkDirectorySyncResponse
+	(*GetLatestDingTalkDirectorySyncResponse)(nil), // 62: admin.v1.GetLatestDingTalkDirectorySyncResponse
+	(*GetDingTalkDirectorySyncResponse)(nil),       // 63: admin.v1.GetDingTalkDirectorySyncResponse
+	nil,                                            // 64: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	1,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
 	1,  // 1: admin.v1.AdminOrganization.kind:type_name -> admin.v1.OrganizationKind
-	8,  // 2: admin.v1.ListOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
-	8,  // 3: admin.v1.CreateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
-	8,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
-	2,  // 5: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
-	26, // 6: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
-	1,  // 7: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
-	25, // 8: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
-	25, // 9: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
-	25, // 10: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
-	27, // 11: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
-	27, // 12: admin.v1.CreateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	27, // 13: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	25, // 14: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
-	25, // 15: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
-	0,  // 16: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 17: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 18: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	41, // 19: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
-	41, // 20: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
-	41, // 21: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
-	41, // 22: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
-	49, // 23: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	74, // 24: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
-	52, // 25: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
-	4,  // 26: admin.v1.CreateDingTalkInvitationRequest.kind:type_name -> admin.v1.DingTalkInvitationKind
-	64, // 27: admin.v1.CreateDingTalkInvitationResponse.data:type_name -> admin.v1.DingTalkInvitation
-	3,  // 28: admin.v1.ListDingTalkInvitationsRequest.status:type_name -> admin.v1.DingTalkInvitationStatus
-	64, // 29: admin.v1.ListDingTalkInvitationsResponse.data:type_name -> admin.v1.DingTalkInvitation
-	64, // 30: admin.v1.GetDingTalkInvitationResponse.data:type_name -> admin.v1.DingTalkInvitation
-	8,  // 31: admin.v1.ListTransferOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
-	3,  // 32: admin.v1.DingTalkInvitation.status:type_name -> admin.v1.DingTalkInvitationStatus
-	4,  // 33: admin.v1.DingTalkInvitation.kind:type_name -> admin.v1.DingTalkInvitationKind
-	68, // 34: admin.v1.ListDingTalkRegistrationsResponse.data:type_name -> admin.v1.DingTalkRegistration
-	68, // 35: admin.v1.ApproveDingTalkRegistrationResponse.data:type_name -> admin.v1.DingTalkRegistration
-	5,  // 36: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	6,  // 37: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	7,  // 38: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	13, // 39: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	14, // 40: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	15, // 41: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	16, // 42: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
-	17, // 43: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
-	18, // 44: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
-	19, // 45: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
-	20, // 46: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
-	21, // 47: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
-	22, // 48: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	23, // 49: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	38, // 50: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	24, // 51: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	39, // 52: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	40, // 53: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	46, // 54: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
-	48, // 55: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	51, // 56: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	54, // 57: admin.v1.AdminService.CreateDingTalkInvitation:input_type -> admin.v1.CreateDingTalkInvitationRequest
-	56, // 58: admin.v1.AdminService.ListDingTalkInvitations:input_type -> admin.v1.ListDingTalkInvitationsRequest
-	62, // 59: admin.v1.AdminService.RevokeDingTalkInvitation:input_type -> admin.v1.RevokeDingTalkInvitationRequest
-	58, // 60: admin.v1.AdminService.GetDingTalkInvitation:input_type -> admin.v1.GetDingTalkInvitationRequest
-	67, // 61: admin.v1.AdminService.ListDingTalkRegistrations:input_type -> admin.v1.ListDingTalkRegistrationsRequest
-	60, // 62: admin.v1.AdminService.ListTransferOrganizations:input_type -> admin.v1.ListTransferOrganizationsRequest
-	70, // 63: admin.v1.AdminService.ApproveDingTalkRegistration:input_type -> admin.v1.ApproveDingTalkRegistrationRequest
-	72, // 64: admin.v1.AdminService.RejectDingTalkRegistration:input_type -> admin.v1.RejectDingTalkRegistrationRequest
-	65, // 65: admin.v1.AdminService.TransferDingTalkRegistration:input_type -> admin.v1.TransferDingTalkRegistrationRequest
-	9,  // 66: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	11, // 67: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	12, // 68: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	28, // 69: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	29, // 70: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	30, // 71: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	31, // 72: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
-	32, // 73: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
-	33, // 74: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
-	34, // 75: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
-	35, // 76: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
-	36, // 77: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
-	37, // 78: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	10, // 79: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	42, // 80: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	43, // 81: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	44, // 82: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	45, // 83: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	47, // 84: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
-	50, // 85: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	53, // 86: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	55, // 87: admin.v1.AdminService.CreateDingTalkInvitation:output_type -> admin.v1.CreateDingTalkInvitationResponse
-	57, // 88: admin.v1.AdminService.ListDingTalkInvitations:output_type -> admin.v1.ListDingTalkInvitationsResponse
-	63, // 89: admin.v1.AdminService.RevokeDingTalkInvitation:output_type -> admin.v1.RevokeDingTalkInvitationResponse
-	59, // 90: admin.v1.AdminService.GetDingTalkInvitation:output_type -> admin.v1.GetDingTalkInvitationResponse
-	69, // 91: admin.v1.AdminService.ListDingTalkRegistrations:output_type -> admin.v1.ListDingTalkRegistrationsResponse
-	61, // 92: admin.v1.AdminService.ListTransferOrganizations:output_type -> admin.v1.ListTransferOrganizationsResponse
-	71, // 93: admin.v1.AdminService.ApproveDingTalkRegistration:output_type -> admin.v1.ApproveDingTalkRegistrationResponse
-	73, // 94: admin.v1.AdminService.RejectDingTalkRegistration:output_type -> admin.v1.RejectDingTalkRegistrationResponse
-	66, // 95: admin.v1.AdminService.TransferDingTalkRegistration:output_type -> admin.v1.TransferDingTalkRegistrationResponse
-	66, // [66:96] is the sub-list for method output_type
-	36, // [36:66] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	6,  // 2: admin.v1.ListOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
+	6,  // 3: admin.v1.CreateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
+	6,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
+	2,  // 5: admin.v1.ListUsersRequest.status:type_name -> admin.v1.AdminUserStatus
+	2,  // 6: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
+	24, // 7: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
+	52, // 8: admin.v1.AdminUser.dingtalk_departments:type_name -> admin.v1.DingTalkDepartment
+	1,  // 9: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
+	23, // 10: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
+	23, // 11: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
+	23, // 12: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
+	25, // 13: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	25, // 14: admin.v1.CreateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	25, // 15: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	23, // 16: admin.v1.AuthorizeWeComUserResponse.data:type_name -> admin.v1.AdminUser
+	23, // 17: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
+	0,  // 18: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 19: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 20: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
+	39, // 21: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
+	39, // 22: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
+	39, // 23: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
+	39, // 24: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
+	47, // 25: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
+	64, // 26: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	50, // 27: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
+	54, // 28: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
+	59, // 29: admin.v1.DingTalkDirectorySync.failures:type_name -> admin.v1.DingTalkDirectorySyncFailure
+	60, // 30: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	60, // 31: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	60, // 32: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	3,  // 33: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	4,  // 34: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	5,  // 35: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	11, // 36: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	12, // 37: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	13, // 38: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	14, // 39: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	15, // 40: admin.v1.AdminService.CreateUserMembership:input_type -> admin.v1.CreateUserMembershipRequest
+	16, // 41: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	17, // 42: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	18, // 43: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
+	19, // 44: admin.v1.AdminService.AuthorizeWeComUser:input_type -> admin.v1.AuthorizeWeComUserRequest
+	20, // 45: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	21, // 46: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	36, // 47: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	22, // 48: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	37, // 49: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	38, // 50: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	44, // 51: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
+	46, // 52: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	49, // 53: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	53, // 54: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
+	56, // 55: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
+	57, // 56: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
+	58, // 57: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
+	7,  // 58: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	9,  // 59: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	10, // 60: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	26, // 61: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	27, // 62: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	28, // 63: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	29, // 64: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	30, // 65: admin.v1.AdminService.CreateUserMembership:output_type -> admin.v1.CreateUserMembershipResponse
+	31, // 66: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	32, // 67: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	33, // 68: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
+	34, // 69: admin.v1.AdminService.AuthorizeWeComUser:output_type -> admin.v1.AuthorizeWeComUserResponse
+	35, // 70: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	8,  // 71: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	40, // 72: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	41, // 73: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	42, // 74: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	43, // 75: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	45, // 76: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
+	48, // 77: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	51, // 78: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	55, // 79: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
+	61, // 80: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
+	62, // 81: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
+	63, // 82: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
+	58, // [58:83] is the sub-list for method output_type
+	33, // [33:58] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -6260,21 +5521,20 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[9].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[10].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[16].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[17].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[18].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[20].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[47].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[49].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[51].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[57].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[58].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[59].OneofWrappers = []any{}
-	file_admin_v1_admin_proto_msgTypes[63].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[60].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   70,
+			NumEnums:      3,
+			NumMessages:   62,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
