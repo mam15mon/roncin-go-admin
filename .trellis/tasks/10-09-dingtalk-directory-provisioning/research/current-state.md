@@ -14,6 +14,7 @@
 | `server/internal/data/admin_user.go:81`、`:126` | 行投影和查询都要求当前管理范围内有成员关系 | 无组织待分配查询需显式全局管理路径和无成员关系投影 |
 | `server/internal/data/admin_user.go:510` | !enabled 且无有效 Membership 推断为 TERMINATED | 直接导入禁用、无组织用户会与离职混淆，必须调整状态契约 |
 | `server/internal/data/auth.go:161` | 钉钉按 unionId 查询，再更新资料、生成凭证 | 同步标识必须与扫码登录一致，避免创建后仍无法匹配 |
+| `server/internal/data/auth.go:582`、`server/internal/data/admin_user.go:234` | 扫码更新钉钉姓名和头像；后台另可编辑 display_name 和 email | 引入通讯录同步后必须确定资料维护来源，不能在扫码、本地编辑和同步之间反复覆盖 |
 | `server/internal/data/auth.go:180`、`:236`、`:251` | 新注册用户禁用，挂 system 节点成员资格 | 新方案应移除“为了进入审批队列而挂组织”的依赖 |
 | `server/internal/data/auth.go:611` | 无默认有效工作台时 credentialForAccount 返回组织权限错误 | 应在业务凭证解析前识别待分配；不能只在登录后加提示 |
 | `server/internal/biz/auth.go:758` | 未注册先尝试手机号邀请激活，否则要求注册；禁用凭证返回待授权 | 如统一开通入口，必须同时收敛扫码分支，避免另一入口绕过管理员分配 |
@@ -30,7 +31,7 @@
 - `.trellis/spec/server/backend/role-workspace-ownership.md`：角色只归属于公司/系统工作台，部门共享所属工作台角色库。
 - 根 `AGENTS.md`：正式 SQL 迁移、统一事务、按实体并发规则、分页上限、拼音搜索、生成物与权限同步、禁止自动清空开发数据。
 
-历史任务 `.trellis/tasks/archive/2026-09/09-12-dingtalk-registration-approval/prd.md` 曾强调分公司自主邀请；其部分邀请与组织树描述已被后续代码和规范调整。它说明保留旧入口可能有过业务背景，但不能据此推断用户本轮仍需要它。当前行为以代码与现行规范为准，新需求由用户决定。
+历史任务 `.trellis/tasks/archive/2026-09/09-12-dingtalk-registration-approval/prd.md` 曾强调分公司自主邀请；其部分邀请与组织树描述已被后续代码和规范调整。用户本轮已明确同意用同步后管理员分配替换邀请与自助注册审批（PRD D1），旧任务不能作为保留这些入口的理由。
 
 ## 外部接口依据
 
