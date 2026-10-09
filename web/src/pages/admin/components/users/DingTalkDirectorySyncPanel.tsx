@@ -39,6 +39,14 @@ export function isDirectorySyncRunning(status?: string): boolean {
   return ['pending', 'running', 'failed'].includes(status?.toLowerCase() ?? '');
 }
 
+function renderFailureCell(value: React.ReactNode) {
+  return (
+    <div style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
+      {value}
+    </div>
+  );
+}
+
 export default function DingTalkDirectorySyncPanel({
   actionRef,
 }: {
@@ -210,11 +218,7 @@ export default function DingTalkDirectorySyncPanel({
               <Table<API.DingTalkDirectorySyncFailure>
                 size="small"
                 tableLayout="fixed"
-                column={{
-                  onCell: () => ({
-                    style: { whiteSpace: 'normal', overflowWrap: 'anywhere' },
-                  }),
-                }}
+                column={{ render: renderFailureCell }}
                 pagination={false}
                 dataSource={sync.failures ?? []}
                 rowKey={(row) =>
@@ -225,14 +229,16 @@ export default function DingTalkDirectorySyncPanel({
                     title: '人员标识',
                     width: '28%',
                     dataIndex: 'userId',
-                    render: (value) => value || '—',
+                    render: (value) => renderFailureCell(value || '—'),
                   },
                   {
                     title: '部门标识',
                     width: '20%',
                     dataIndex: 'departmentId',
                     render: (value) =>
-                      value && value !== '0' ? value : '未记录',
+                      renderFailureCell(
+                        value && value !== '0' ? value : '未记录',
+                      ),
                   },
                   { title: '失败原因', dataIndex: 'message' },
                 ]}
