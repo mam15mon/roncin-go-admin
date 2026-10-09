@@ -864,3 +864,25 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 112: 修复固定顶部栏覆盖缺口
+<!-- trellis-session: v=2 fp=c5ef62d056fbaf37 -->
+
+**Date**: 2026-10-09
+**Task**: 修复固定顶部栏覆盖缺口
+**Branch**: `codex/fix-header-coverage`
+
+### Summary
+
+修复 ProLayout header 折叠选择器、内外容器尺寸及不透明背景，统一侧栏与占位48px并对齐768px断点；Chromium 11场景和check:web通过，任务已归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b19f314d` | fix(web): 修复固定顶部栏覆盖缺口与折叠布局错位 |
+
+### Status
+
+[OK] **Completed**

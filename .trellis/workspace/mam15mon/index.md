@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 111
-- **Last Active**: 2026-09-28
+- **Total Sessions**: 112
+- **Last Active**: 2026-10-09
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~866 | Active |
+| `journal-2.md` | ~888 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 112 | 2026-10-09 | 修复固定顶部栏覆盖缺口 | `b19f314d` | `codex/fix-header-coverage` |
 | 111 | 2026-09-28 | 清理无用代码并验证业务路径 | `b34fdb26`, `8d30142f`, `b99e7f26` | `refactor/dead-code-cleanup` |
 | 110 | 2026-09-28 | 财务实弹验收闭环与存量集成清零 | `57d7b1a0`, `5366a54b`, `a16e4dd6`, `ac213e8b`, `bd2091bf` | `fix/finance-acceptance-closure` |
 | 109 | 2026-09-27 | 费用状态移除审阅收尾三项修复 | `50fec0bb`, `774b9aff`, `200717b8` | `main` |
