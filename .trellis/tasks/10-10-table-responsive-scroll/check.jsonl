@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端模块与验证入口"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "公共UI模板、列设置和布局尺寸契约"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "稳定Hook引用与生命周期"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "风险匹配的验证"}
+{"file": ".trellis/tasks/10-10-table-responsive-scroll/research/entry-inventory.md", "reason": "全站原生表和模板消费者覆盖清单"}
+{"file": ".trellis/tasks/10-10-table-responsive-scroll/research/audit.md", "reason": "真实裁切证据、合理现状与官方依据"}

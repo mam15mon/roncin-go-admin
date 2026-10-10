@@ -1,0 +1,86 @@
+[
+  {
+    "headers": [
+      {
+        "title": "",
+        "x": 98,
+        "width": 48,
+        "display": "table-cell"
+      },
+      {
+        "title": "用户",
+        "x": 146,
+        "width": 220,
+        "display": "table-cell"
+      },
+      {
+        "title": "邮箱地址",
+        "x": 366,
+        "width": 220,
+        "display": "table-cell"
+      },
+      {
+        "title": "钉钉部门",
+        "x": 586,
+        "width": 200,
+        "display": "table-cell"
+      },
+      {
+        "title": "联系方式",
+        "x": 786,
+        "width": 140,
+        "display": "table-cell"
+      },
+      {
+        "title": "资料同步时间",
+        "x": 926,
+        "width": 160,
+        "display": "table-cell"
+      },
+      {
+        "title": "已分配角色",
+        "x": 1086,
+        "width": 240,
+        "display": "table-cell"
+      },
+      {
+        "title": "状态",
+        "x": 1326,
+        "width": 120,
+        "display": "table-cell"
+      },
+      {
+        "title": "更新时间",
+        "x": 1446,
+        "width": 170,
+        "display": "table-cell"
+      },
+      {
+        "title": "操作",
+        "x": 683,
+        "width": 230,
+        "display": "table-cell"
+      }
+    ],
+    "containers": [
+      {
+        "className": "ant-table ant-table-medium ant-table-bordered ant-table-empty css-var-_r_1_ ant-table-css-var css-dev-only-do-not-override-viwxw0 ant-table-has-fix-end",
+        "client": 816,
+        "scroll": 816,
+        "overflowX": "hidden"
+      },
+      {
+        "className": "ant-table-container",
+        "client": 815,
+        "scroll": 1748,
+        "overflowX": "hidden"
+      },
+      {
+        "className": "ant-table-content",
+        "client": 815,
+        "scroll": 1748,
+        "overflowX": "visible"
+      }
+    ]
+  }
+]

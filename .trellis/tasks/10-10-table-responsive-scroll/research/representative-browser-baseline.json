@@ -1,0 +1,743 @@
+[
+  {
+    "path": "/admin?tab=users",
+    "width": 390,
+    "actualWidth": 390,
+    "pageWidth": 390,
+    "pageScroll": 390,
+    "tables": [
+      {
+        "headerCount": 10,
+        "headerTitles": [
+          "",
+          "用户",
+          "邮箱地址",
+          "钉钉部门",
+          "联系方式",
+          "资料同步时间",
+          "已分配角色",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 299,
+            "scroll": 1748,
+            "overflow": "hidden",
+            "canMove": true
+          },
+          {
+            "className": "ant-table-content",
+            "client": 299,
+            "scroll": 1748,
+            "overflow": "visible",
+            "canMove": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/admin?tab=users",
+    "width": 962,
+    "actualWidth": 962,
+    "pageWidth": 962,
+    "pageScroll": 962,
+    "tables": [
+      {
+        "headerCount": 10,
+        "headerTitles": [
+          "",
+          "用户",
+          "邮箱地址",
+          "钉钉部门",
+          "联系方式",
+          "资料同步时间",
+          "已分配角色",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 815,
+            "scroll": 1748,
+            "overflow": "hidden",
+            "canMove": true
+          },
+          {
+            "className": "ant-table-content",
+            "client": 815,
+            "scroll": 1748,
+            "overflow": "visible",
+            "canMove": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/admin?tab=users",
+    "width": 1440,
+    "actualWidth": 1440,
+    "pageWidth": 1440,
+    "pageScroll": 1440,
+    "tables": [
+      {
+        "headerCount": 10,
+        "headerTitles": [
+          "",
+          "用户",
+          "邮箱地址",
+          "钉钉部门",
+          "联系方式",
+          "资料同步时间",
+          "已分配角色",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 1133,
+            "scroll": 1748,
+            "overflow": "hidden",
+            "canMove": true
+          },
+          {
+            "className": "ant-table-content",
+            "client": 1133,
+            "scroll": 1748,
+            "overflow": "visible",
+            "canMove": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/admin?tab=roles",
+    "width": 962,
+    "actualWidth": 962,
+    "pageWidth": 962,
+    "pageScroll": 962,
+    "tables": [
+      {
+        "headerCount": 5,
+        "headerTitles": [
+          "角色名称",
+          "数据访问范围",
+          "功能权限集",
+          "状态",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 815,
+            "scroll": 815,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 815,
+            "scroll": 815,
+            "overflow": "visible",
+            "canMove": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/admin?tab=roles",
+    "width": 1440,
+    "actualWidth": 1440,
+    "pageWidth": 1440,
+    "pageScroll": 1440,
+    "tables": [
+      {
+        "headerCount": 5,
+        "headerTitles": [
+          "角色名称",
+          "数据访问范围",
+          "功能权限集",
+          "状态",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 1133,
+            "scroll": 1133,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 1133,
+            "scroll": 1133,
+            "overflow": "visible",
+            "canMove": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/master-data",
+    "width": 390,
+    "actualWidth": 390,
+    "pageWidth": 390,
+    "pageScroll": 390,
+    "tables": [
+      {
+        "headerCount": 7,
+        "headerTitles": [
+          "UN/LOCODE 五字码",
+          "名称 (中/英文)",
+          "所属国家",
+          "枢纽运输类型",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 314,
+            "scroll": 314,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 314,
+            "scroll": 1093,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/master-data",
+    "width": 962,
+    "actualWidth": 962,
+    "pageWidth": 962,
+    "pageScroll": 962,
+    "tables": [
+      {
+        "headerCount": 7,
+        "headerTitles": [
+          "UN/LOCODE 五字码",
+          "名称 (中/英文)",
+          "所属国家",
+          "枢纽运输类型",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 830,
+            "scroll": 830,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 830,
+            "scroll": 1093,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/master-data",
+    "width": 1440,
+    "actualWidth": 1440,
+    "pageWidth": 1440,
+    "pageScroll": 1440,
+    "tables": [
+      {
+        "headerCount": 7,
+        "headerTitles": [
+          "UN/LOCODE 五字码",
+          "名称 (中/英文)",
+          "所属国家",
+          "枢纽运输类型",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 1148,
+            "scroll": 1148,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 1148,
+            "scroll": 1148,
+            "overflow": "auto",
+            "canMove": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/finance/fee-settings",
+    "width": 962,
+    "actualWidth": 962,
+    "pageWidth": 962,
+    "pageScroll": 962,
+    "tables": [
+      {
+        "headerCount": 8,
+        "headerTitles": [
+          "费用代码",
+          "费用名称",
+          "英文名称",
+          "默认币种",
+          "默认开票项目",
+          "税率（%）",
+          "状态",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 830,
+            "scroll": 830,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 830,
+            "scroll": 1100,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/finance/fee-settings",
+    "width": 1440,
+    "actualWidth": 1440,
+    "pageWidth": 1440,
+    "pageScroll": 1440,
+    "tables": [
+      {
+        "headerCount": 8,
+        "headerTitles": [
+          "费用代码",
+          "费用名称",
+          "英文名称",
+          "默认币种",
+          "默认开票项目",
+          "税率（%）",
+          "状态",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 1148,
+            "scroll": 1148,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 1148,
+            "scroll": 1148,
+            "overflow": "auto",
+            "canMove": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/partners/customers",
+    "width": 962,
+    "actualWidth": 962,
+    "pageWidth": 962,
+    "pageScroll": 962,
+    "tables": [
+      {
+        "headerCount": 10,
+        "headerTitles": [
+          "单位编码",
+          "法人实体名称",
+          "业务角色身份",
+          "合作类型",
+          "联系人",
+          "常用别名",
+          "统一社会信用代码",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 814,
+            "scroll": 814,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 814,
+            "scroll": 1490,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/partners/customers",
+    "width": 1440,
+    "actualWidth": 1440,
+    "pageWidth": 1440,
+    "pageScroll": 1440,
+    "tables": [
+      {
+        "headerCount": 10,
+        "headerTitles": [
+          "单位编码",
+          "法人实体名称",
+          "业务角色身份",
+          "合作类型",
+          "联系人",
+          "常用别名",
+          "统一社会信用代码",
+          "状态",
+          "更新时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 1132,
+            "scroll": 1132,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 1132,
+            "scroll": 1490,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/orders/sea-export",
+    "width": 962,
+    "actualWidth": 962,
+    "pageWidth": 962,
+    "pageScroll": 962,
+    "tables": [
+      {
+        "headerCount": 37,
+        "headerTitles": [
+          "",
+          "序号",
+          "订单编号",
+          "进程",
+          "业务类型",
+          "委托单位",
+          "客户业务编号",
+          "标签",
+          "创建时间",
+          "订舱代理",
+          "主单号",
+          "船名航次",
+          "起运港",
+          "目的港",
+          "目的地",
+          "箱型箱量",
+          "箱号",
+          "提成",
+          "操作人员",
+          "业务人员",
+          "创建人",
+          "委托总件数",
+          "委托总毛重(KGS)",
+          "委托总体积(CBM)",
+          "付款方式",
+          "贸易条款",
+          "合约号",
+          "收货人简称",
+          "发货人简称",
+          "配舱备注",
+          "订舱备注",
+          "操作备注",
+          "附件",
+          "订单锁定时间",
+          "订单状态",
+          "异常",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 782,
+            "scroll": 782,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 782,
+            "scroll": 4622,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/orders/sea-export",
+    "width": 1440,
+    "actualWidth": 1440,
+    "pageWidth": 1440,
+    "pageScroll": 1440,
+    "tables": [
+      {
+        "headerCount": 37,
+        "headerTitles": [
+          "",
+          "序号",
+          "订单编号",
+          "进程",
+          "业务类型",
+          "委托单位",
+          "客户业务编号",
+          "标签",
+          "创建时间",
+          "订舱代理",
+          "主单号",
+          "船名航次",
+          "起运港",
+          "目的港",
+          "目的地",
+          "箱型箱量",
+          "箱号",
+          "提成",
+          "操作人员",
+          "业务人员",
+          "创建人",
+          "委托总件数",
+          "委托总毛重(KGS)",
+          "委托总体积(CBM)",
+          "付款方式",
+          "贸易条款",
+          "合约号",
+          "收货人简称",
+          "发货人简称",
+          "配舱备注",
+          "订舱备注",
+          "操作备注",
+          "附件",
+          "订单锁定时间",
+          "订单状态",
+          "异常",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 1100,
+            "scroll": 1100,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 1100,
+            "scroll": 4622,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/finance/bills",
+    "width": 390,
+    "actualWidth": 390,
+    "pageWidth": 390,
+    "pageScroll": 390,
+    "tables": [
+      {
+        "headerCount": 20,
+        "headerTitles": [
+          "",
+          "序号",
+          "方向",
+          "标签",
+          "状态",
+          "账单编号",
+          "所属公司",
+          "建单批次",
+          "结算单位",
+          "对账抬头",
+          "账单金额",
+          "账单汇率",
+          "折本币金额",
+          "已核销",
+          "未核销",
+          "费用数",
+          "账单日期",
+          "到期日",
+          "创建时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 298,
+            "scroll": 298,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 298,
+            "scroll": 2677,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/finance/bills",
+    "width": 962,
+    "actualWidth": 962,
+    "pageWidth": 962,
+    "pageScroll": 962,
+    "tables": [
+      {
+        "headerCount": 20,
+        "headerTitles": [
+          "",
+          "序号",
+          "方向",
+          "标签",
+          "状态",
+          "账单编号",
+          "所属公司",
+          "建单批次",
+          "结算单位",
+          "对账抬头",
+          "账单金额",
+          "账单汇率",
+          "折本币金额",
+          "已核销",
+          "未核销",
+          "费用数",
+          "账单日期",
+          "到期日",
+          "创建时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 814,
+            "scroll": 814,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 814,
+            "scroll": 2677,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "/finance/bills",
+    "width": 1440,
+    "actualWidth": 1440,
+    "pageWidth": 1440,
+    "pageScroll": 1440,
+    "tables": [
+      {
+        "headerCount": 20,
+        "headerTitles": [
+          "",
+          "序号",
+          "方向",
+          "标签",
+          "状态",
+          "账单编号",
+          "所属公司",
+          "建单批次",
+          "结算单位",
+          "对账抬头",
+          "账单金额",
+          "账单汇率",
+          "折本币金额",
+          "已核销",
+          "未核销",
+          "费用数",
+          "账单日期",
+          "到期日",
+          "创建时间",
+          "操作"
+        ],
+        "containers": [
+          {
+            "className": "ant-table-container",
+            "client": 1132,
+            "scroll": 1132,
+            "overflow": "hidden",
+            "canMove": false
+          },
+          {
+            "className": "ant-table-content",
+            "client": 1132,
+            "scroll": 2677,
+            "overflow": "auto",
+            "canMove": true
+          }
+        ]
+      }
+    ]
+  }
+]
