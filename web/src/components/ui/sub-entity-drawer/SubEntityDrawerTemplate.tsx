@@ -4,7 +4,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ModalForm, ProTable } from '@ant-design/pro-components';
+import { ModalForm } from '@ant-design/pro-components';
 import { App, Button, Drawer, Popconfirm, Space } from 'antd';
 import React, {
   forwardRef,
@@ -15,6 +15,7 @@ import React, {
 } from 'react';
 import { toTableRequest } from '@/utils/api';
 import { useColumnSettings } from '../column-settings';
+import { ResponsiveProTable } from '../responsive-table';
 
 export type SubEntityDrawerRef<
   TParent extends { id?: string | number } = { id?: string | number },
@@ -218,7 +219,7 @@ export function SubEntityDrawerTemplateInner<
         destroyOnHidden
       >
         {parentRecord && (
-          <ProTable<TItem>
+          <ResponsiveProTable<TItem>
             actionRef={actionRef}
             rowKey="id"
             columns={columnSettings.columns}
@@ -248,7 +249,7 @@ export function SubEntityDrawerTemplateInner<
                 </Button>
               ),
             ]}
-          ></ProTable>
+          ></ResponsiveProTable>
         )}
       </Drawer>
 

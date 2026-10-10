@@ -8,7 +8,6 @@ import {
   type ActionType,
   PageContainer,
   type ProColumns,
-  ProTable,
 } from '@ant-design/pro-components';
 import {
   App,
@@ -25,6 +24,7 @@ import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { useColumnSettings } from '../column-settings';
+import { ResponsiveProTable } from '../responsive-table';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
 import type {
   FinanceLedgerGlobalSummary,
@@ -457,7 +457,7 @@ export function FinanceLedgerTemplate<
         {customSearch}
 
         {/* 3. ProTable 宽表主体 */}
-        <ProTable<T>
+        <ResponsiveProTable<T>
           headerTitle={headerTitle}
           actionRef={actionRef}
           rowKey={rowKey}

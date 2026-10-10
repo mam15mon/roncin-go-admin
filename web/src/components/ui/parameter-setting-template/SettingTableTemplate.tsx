@@ -1,10 +1,11 @@
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ModalForm, ProTable } from '@ant-design/pro-components';
+import { ModalForm } from '@ant-design/pro-components';
 import { App, Button, Card } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
 import { useColumnSettings } from '../column-settings';
+import { ResponsiveProTable } from '../responsive-table';
 import type { SettingTableTemplateProps } from './types';
 
 export function SettingTableTemplate<
@@ -154,7 +155,7 @@ export function SettingTableTemplate<
       }}
       styles={{ body: { padding: '12px 16px' } }}
     >
-      <ProTable<TRecord>
+      <ResponsiveProTable<TRecord>
         cardProps={false}
         tableAlertRender={false}
         tableAlertOptionRender={false}

@@ -18,7 +18,6 @@ import {
   ProFormSelect,
   ProFormText,
   ProFormTextArea,
-  ProTable,
 } from '@ant-design/pro-components';
 import {
   Alert,
@@ -40,6 +39,7 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { formatDate } from '@/utils/format';
 import { useColumnSettings } from '../column-settings';
+import { ResponsiveProTable } from '../responsive-table';
 import type {
   BaseMasterDataItem,
   MasterDataStatItem,
@@ -573,7 +573,7 @@ export function MasterDataTemplate<
         }}
         styles={{ body: { padding: '12px 16px' } }}
       >
-        <ProTable<T>
+        <ResponsiveProTable<T>
           actionRef={actionRef}
           rowKey="id"
           columns={columnSettings.columns}

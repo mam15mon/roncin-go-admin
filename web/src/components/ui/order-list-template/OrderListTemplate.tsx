@@ -12,12 +12,13 @@ import {
   WarningOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { PageContainer, ProTable } from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { useColumnSettings } from '../column-settings';
+import { ResponsiveProTable } from '../responsive-table';
 import OrderListSearchFilter from './OrderListSearchFilter';
 import OrderListToolbar from './OrderListToolbar';
 import type {
@@ -602,7 +603,7 @@ export function OrderListTemplate({
           showManageTags={showManageTags}
         />
 
-        <ProTable<OrderListItem>
+        <ResponsiveProTable<OrderListItem>
           actionRef={actionRef}
           rowKey="id"
           columns={columnSettings.columns}
@@ -626,7 +627,6 @@ export function OrderListTemplate({
               setSelectedRows(rows);
             },
           }}
-          scroll={{ x: 2600 }}
           request={async (params, sorter) => {
             const sorterField = Object.keys(sorter)[0];
             const sorterOrder = sorterField ? sorter[sorterField] : undefined;
