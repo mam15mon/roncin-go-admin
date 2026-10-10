@@ -1,8 +1,8 @@
 {
   "id": "column-fixed-preferences",
   "name": "column-fixed-preferences",
-  "title": "列设置支持用户自定义固定列",
-  "description": "在全站列设置中选择不固定、固定左侧或固定右侧，并保存个人偏好及保留窄屏可用性",
+  "title": "列设置支持首尾冻结",
+  "description": "在全站列设置中提供冻结首列、冻结尾列两个开关，保存个人偏好并保留窄屏可用性",
   "status": "planning",
   "dev_type": null,
   "scope": null,
