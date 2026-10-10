@@ -11,12 +11,12 @@ import {
   Drawer,
   Select,
   Space,
-  Table,
   Tag,
   Typography,
 } from 'antd';
 import React, { useState } from 'react';
 import { useAccess } from '@/app/access';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 import {

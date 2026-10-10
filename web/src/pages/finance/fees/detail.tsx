@@ -1,8 +1,12 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { App, Descriptions, Table, type TableColumnsType, Tag } from 'antd';
+import { App, Descriptions, type TableColumnsType, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import { PageHeaderShell, SectionCard } from '@/components/ui';
+import {
+  PageHeaderShell,
+  SectionCard,
+  ResponsiveTable as Table,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { history } from '@/router/history';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';

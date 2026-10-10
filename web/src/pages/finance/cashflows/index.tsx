@@ -460,7 +460,6 @@ export default function FinanceCashflowsPage() {
         columns={columns}
         columnSettingsKey="finance:cashflows"
         metricCards={metricCards}
-        scrollX={1900}
         primaryActionText="登记流水"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={

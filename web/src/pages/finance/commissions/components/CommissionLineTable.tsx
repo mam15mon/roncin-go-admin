@@ -1,5 +1,6 @@
-import { Space, Table, Tag, Typography } from 'antd';
+import { Space, Tag, Typography } from 'antd';
 import React from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { decimalText, personnelRoleText } from '../types';
 

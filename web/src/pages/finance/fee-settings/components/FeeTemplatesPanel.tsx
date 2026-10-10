@@ -64,7 +64,6 @@ export default function FeeTemplatesPanel() {
         pagination={{ pageSize: 20 }}
         modalWidth={840}
         grid
-        scroll={{ x: 1100 }}
         canCreate={access.isSystemWorkspace && access.canCreateFeeSettings}
         canUpdate={access.isSystemWorkspace && access.canUpdateFeeSettings}
         query={async (params) => {

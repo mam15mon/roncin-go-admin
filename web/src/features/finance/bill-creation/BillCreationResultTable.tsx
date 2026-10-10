@@ -1,17 +1,9 @@
 import { CheckCircleOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
-import {
-  Alert,
-  Button,
-  Descriptions,
-  Empty,
-  Result,
-  Space,
-  Table,
-  Tag,
-} from 'antd';
+import { Alert, Button, Descriptions, Empty, Result, Space, Tag } from 'antd';
 import React from 'react';
 import { useAccess } from '@/app/access';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';

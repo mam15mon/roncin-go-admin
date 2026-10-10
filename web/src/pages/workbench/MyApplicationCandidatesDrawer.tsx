@@ -1,7 +1,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
-import { Drawer, Select, Space, Table } from 'antd';
+import { Drawer, Select, Space } from 'antd';
 import React, { useState } from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { workbenchServiceListMyApplicationCandidates } from '@/services/roncin/workbenchService';
 import { formatDate } from '@/utils/format';

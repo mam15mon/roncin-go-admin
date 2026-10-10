@@ -428,7 +428,6 @@ export default function FinanceBillsPage() {
         columns={columns}
         columnSettingsKey="finance:bills"
         metricCards={metricCards}
-        scrollX={2000}
         search={false}
         customSearch={
           <SearchFilterTemplate<BillSearchParams>

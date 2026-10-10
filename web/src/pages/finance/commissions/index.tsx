@@ -8,7 +8,7 @@ import {
   SettingOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { PageContainer, ProTable } from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
 import {
   App,
@@ -21,7 +21,10 @@ import {
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-import { SearchFilterTemplate } from '@/components/ui';
+import {
+  ResponsiveProTable as ProTable,
+  SearchFilterTemplate,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   FinanceCommissionStatus,
@@ -698,7 +701,7 @@ export default function FinanceCommissionsPage() {
               actionRef.current?.reload();
             }}
             extraRight={
-              <Space size={8}>
+              <Space size={8} wrap style={{ maxWidth: '100%' }}>
                 {access.canExportFinanceCommissions && (
                   <Button
                     key="export"
@@ -743,7 +746,6 @@ export default function FinanceCommissionsPage() {
               },
             }}
             size="small"
-            scroll={{ x: 1900 }}
             search={false}
             toolBarRender={() => [columnSettings.entry]}
             options={{ reload: true, density: true, setting: false }}

@@ -1,10 +1,12 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { App, DatePicker, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-import { SearchFilterTemplate } from '@/components/ui';
+import {
+  ResponsiveProTable as ProTable,
+  SearchFilterTemplate,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceCommissionApplicationStatus } from '@/enums.generated';
 import { getRequestErrorStatus } from '@/requestErrorConfig';

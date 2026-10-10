@@ -4,11 +4,10 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { App, Button, Drawer, Select, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { DRAWER_SIZE } from '@/components/ui';
+import { DRAWER_SIZE, ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';

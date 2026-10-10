@@ -1,7 +1,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { Alert, Card, Select, Typography } from 'antd';
 import React from 'react';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { settlementServiceListBillCreationCandidates } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';

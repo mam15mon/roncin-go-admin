@@ -5,13 +5,12 @@ import {
   Form,
   Modal,
   Select,
-  Table,
   type TableColumnsType,
   Tag,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
-import { MODAL_SIZE } from '@/components/ui';
+import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   settlementServiceAssignCommissionRuleEmployees,

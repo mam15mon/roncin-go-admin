@@ -36,6 +36,7 @@ vi.mock('@/app/access', () => ({
 vi.mock('@/components/ui', async () => {
   const React = await import('react');
   return {
+    ResponsiveTable: (await import('antd')).Table,
     FinanceLedgerTemplate: (props: Record<string, any>) => {
       templateProps.columns = props.columns;
       React.useEffect(() => {

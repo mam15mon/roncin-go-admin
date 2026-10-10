@@ -5,13 +5,12 @@ import {
   Descriptions,
   Drawer,
   Space,
-  Table,
   type TableColumnsType,
   Tag,
   Typography,
 } from 'antd';
 import React from 'react';
-import { DRAWER_SIZE } from '@/components/ui';
+import { DRAWER_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceCommissionStatus } from '@/enums.generated';
 import { formatDate, trimDecimal } from '@/utils/format';
@@ -390,7 +389,6 @@ export default function CommissionDetailDrawer({
             rowKey={(line) => line.id || line.orderId || ''}
             columns={lineColumnSettings.columns}
             dataSource={detail.lines || []}
-            scroll={{ x: 1080 }}
             expandable={{
               expandedRowRender: renderExpandedFees,
               rowExpandable: (record) =>
@@ -415,7 +413,6 @@ export default function CommissionDetailDrawer({
             rowKey={(item) => item.id || item.adjustmentNo || ''}
             columns={adjustmentColumnSettings.columns}
             dataSource={detail.adjustments || []}
-            scroll={{ x: 1040 }}
             locale={{ emptyText: '暂无调整，当前有效提成等于原始提成' }}
           />
         </Space>

@@ -1,6 +1,10 @@
-import { Descriptions, Space, Table, type TableColumnsType, Tag } from 'antd';
+import { Descriptions, Space, type TableColumnsType, Tag } from 'antd';
 import React from 'react';
-import { DescriptionsDetailDrawer, DItem } from '@/components/ui';
+import {
+  DescriptionsDetailDrawer,
+  DItem,
+  ResponsiveTable as Table,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';

@@ -69,7 +69,9 @@ vi.mock('@ant-design/pro-components', () => ({
   },
 }));
 
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', async () => ({
+  ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
+  ResponsiveTable: (await import('antd')).Table,
   MODAL_SIZE: { SM: 520, MD: 680, LG: 960, XL: 1200 },
   DRAWER_SIZE: { SM: 600, MD: 860, LG: 1080, XL: 1200 },
   ProFormSearchableSelect: () => null,

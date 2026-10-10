@@ -1,8 +1,8 @@
 import type { TableColumnsType } from 'antd';
-import { Button, Descriptions, Drawer, Space, Spin, Table } from 'antd';
+import { Button, Descriptions, Drawer, Space, Spin } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-import { DRAWER_SIZE } from '@/components/ui';
+import { DRAWER_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceCommissionApplicationStatus } from '@/enums.generated';
 import { settlementServiceGetCommissionApplication } from '@/services/roncin/settlementService';
@@ -234,7 +234,6 @@ export default function CommissionApplicationDetailDrawer({
             columns={columnSettings.columns}
             dataSource={detail?.lines ?? []}
             pagination={false}
-            scroll={{ x: 1000 }}
           />
         </Space>
       </Spin>

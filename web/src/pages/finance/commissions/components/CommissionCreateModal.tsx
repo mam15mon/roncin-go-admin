@@ -14,12 +14,15 @@ import {
   Form,
   Input,
   Space,
-  Table,
   Tabs,
   Typography,
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
+import {
+  MODAL_SIZE,
+  ProFormSearchableSelect,
+  ResponsiveTable as Table,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
@@ -656,7 +659,6 @@ export default function CommissionCreateModal({
                     rowKey={(line) => line.orderId || line.orderNo || ''}
                     columns={previewColumnSettings.columns}
                     dataSource={preview.lines || []}
-                    scroll={{ x: 1080 }}
                     expandable={{
                       expandedRowRender: renderExpandedFees,
                       rowExpandable: (record) =>

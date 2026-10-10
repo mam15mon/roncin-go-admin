@@ -15,12 +15,12 @@ import {
   Modal,
   Radio,
   Space,
-  Table,
   Tag,
   Tooltip,
   Typography,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { ExchangeRateSyncTarget } from '@/enums.generated';
 import {
@@ -793,7 +793,7 @@ export function ExchangeRateSyncModal({
               size="small"
               pagination={false}
               dataSource={draftRows}
-              scroll={{ y: 400, x: 920 }}
+              scroll={{ y: 400 }}
               columns={columnSettings.columns}
             />
           </>

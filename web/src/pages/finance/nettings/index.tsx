@@ -7,7 +7,6 @@ import {
   Drawer,
   Select,
   Space,
-  Table,
   type TableColumnsType,
   Tag,
 } from 'antd';
@@ -16,6 +15,7 @@ import { useAccess } from '@/app/access';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
+  ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
@@ -453,7 +453,6 @@ export default function FinanceNettingsPage() {
         columns={columns}
         columnSettingsKey="finance:nettings"
         metricCards={metricCards}
-        scrollX={1980}
         request={async (params) => {
           const response = await settlementServiceListNettings({
             page: params.current,

@@ -7,9 +7,10 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
-import { Alert, App, Button, Modal, Space, Table, Tag, Upload } from 'antd';
+import { Alert, App, Button, Modal, Space, Tag, Upload } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import React, { useState } from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { isRequestTimeoutError } from '@/requestErrorConfig';
 import {

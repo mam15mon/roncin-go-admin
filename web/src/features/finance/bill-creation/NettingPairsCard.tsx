@@ -1,5 +1,6 @@
 import type { TableColumnsType } from 'antd';
-import { Card, Table, Tag, Typography } from 'antd';
+import { Card, Tag, Typography } from 'antd';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { formatAmount } from '@/utils/format';
 

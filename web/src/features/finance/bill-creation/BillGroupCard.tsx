@@ -1,5 +1,4 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import {
   Alert,
   Card,
@@ -18,6 +17,7 @@ import {
 import type { NamePath } from 'antd/es/form/interface';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
@@ -446,7 +446,6 @@ export default function BillGroupCard({
         pagination={false}
         columns={feeColumnSettings.columns}
         dataSource={group.fees || []}
-        scroll={{ x: 880 }}
       />
     </Card>
   );

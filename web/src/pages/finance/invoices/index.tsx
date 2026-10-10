@@ -548,7 +548,6 @@ export default function FinanceInvoicesPage() {
         columns={columns}
         columnSettingsKey="finance:invoices"
         metricCards={metricCards}
-        scrollX={1600}
         primaryActionText={
           access.canCreateFinanceInvoices ? '从账单创建开票' : undefined
         }

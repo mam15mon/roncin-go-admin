@@ -26,7 +26,8 @@ const searchFilterProps = vi.hoisted(() => ({
   current: undefined as Record<string, any> | undefined,
 }));
 
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', async () => ({
+  ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   SearchFilterTemplate: (props: Record<string, any>) => {
     searchFilterProps.current = props;
     return (

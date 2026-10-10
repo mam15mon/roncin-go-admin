@@ -366,7 +366,6 @@ export default function FinanceFeeLedgerPage() {
             onReset={handleReset}
           />
         }
-        scrollX={3200}
         search={false}
         primaryActionText={
           access.canCreateFinanceBills ? '创建账单' : undefined

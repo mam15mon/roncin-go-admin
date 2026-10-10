@@ -105,7 +105,6 @@ export function FeeItemsPanel() {
     <SettingTableTemplate<API.FeeSetting, FeeSettingFormValues>
       entityName="费用设置"
       columns={columns}
-      scroll={{ x: 1460 }}
       modalWidth={840}
       grid
       labelWidth={145}

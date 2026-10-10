@@ -1,4 +1,4 @@
-import { type ProColumns, ProTable } from '@ant-design/pro-components';
+import type { ProColumns } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
@@ -11,7 +11,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { MODAL_SIZE } from '@/components/ui';
+import { MODAL_SIZE, ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {

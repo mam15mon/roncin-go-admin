@@ -1,8 +1,9 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
-import { Button, Drawer, Select, Space, Table, Tag, Tooltip } from 'antd';
+import { Button, Drawer, Select, Space, Tag, Tooltip } from 'antd';
 import React, { useState } from 'react';
 import { Link } from 'react-router';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { workbenchServiceListMyCommissions } from '@/services/roncin/workbenchService';
