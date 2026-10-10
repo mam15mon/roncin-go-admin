@@ -212,12 +212,15 @@ describe('OrderFeeTableTabs 批量维护操作', () => {
     expect(rowCheckbox('未保存新行')).toBeDisabled();
     expect(rowCheckbox('海运费')).not.toBeDisabled();
 
-    const table = screen
+    // sticky 将表头与表体放入不同 table，按当前业务表格容器定位全选入口。
+    const tableWrapper = screen
       .getByText('海运费')
-      .closest('table') as HTMLTableElement;
-    const selectAll = within(
-      table.querySelector('thead') as HTMLTableSectionElement,
-    ).getByRole('checkbox');
+      .closest('.ant-table-wrapper') as HTMLElement;
+    const header = tableWrapper.querySelector('thead');
+    expect(header).not.toBeNull();
+    const selectAll = within(header as HTMLTableSectionElement).getByRole(
+      'checkbox',
+    );
     await act(async () => {
       fireEvent.click(selectAll);
     });

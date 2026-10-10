@@ -1,7 +1,7 @@
 import type { FormInstance } from 'antd';
-import { Checkbox, Form, Input, Space, Table, Tag, Typography } from 'antd';
+import { Checkbox, Form, Input, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { SectionCard } from '@/components/ui';
+import { SectionCard, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import type { ResultConfig } from '../../splitUtils';
 import SeaExternalConfirmationFields from '../../templates/components/sea/SeaExternalConfirmationFields';

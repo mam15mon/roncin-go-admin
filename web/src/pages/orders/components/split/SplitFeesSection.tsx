@@ -1,7 +1,7 @@
-import { Card, Col, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import { Card, Col, Row, Select, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import Decimal from 'decimal.js';
-import { SectionCard } from '@/components/ui';
+import { SectionCard, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { formatAmount } from '@/utils/format';
 import type { FeeCurrencySummary, ResultConfig } from '../../splitUtils';

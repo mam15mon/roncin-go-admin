@@ -8,7 +8,6 @@ import {
   ModalForm,
   ProFormText,
   ProFormTextArea,
-  ProTable,
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
@@ -16,6 +15,7 @@ import {
   DRAWER_SIZE,
   MODAL_SIZE,
   ProFormSearchableSelect,
+  ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { OrderShippingDocumentStatus } from '@/enums.generated';

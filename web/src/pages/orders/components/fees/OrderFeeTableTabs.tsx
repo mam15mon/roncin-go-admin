@@ -10,7 +10,6 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
-  EditableProTable,
   ModalForm,
   ProFormDatePicker,
   ProFormTextArea,
@@ -25,6 +24,7 @@ import {
   type ColumnSettingsField,
   type ColumnSettingsValue,
   defaultSelectFilterOption,
+  ResponsiveEditableProTable as EditableProTable,
   ProFormSearchableSelect,
   SectionCard,
   scrollToFirstTableError,

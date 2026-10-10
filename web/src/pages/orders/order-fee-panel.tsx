@@ -1,6 +1,5 @@
 import { PlusOutlined, TagOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import React, {
@@ -12,6 +11,7 @@ import React, {
 } from 'react';
 import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerRoleType } from '@/enums.generated';
 import {
@@ -438,7 +438,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               bordered
               search={false}
               pagination={false}
-              scroll={{ x: 1500 }}
               options={{ reload: true, density: true, setting: false }}
               request={async () => {
                 const response = await orderFeeServiceListFees({

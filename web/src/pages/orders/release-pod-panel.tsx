@@ -8,7 +8,6 @@ import {
   ModalForm,
   ProFormText,
   ProFormTextArea,
-  ProTable,
 } from '@ant-design/pro-components';
 import {
   Alert,
@@ -26,7 +25,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import {
+  ProFormSearchableSelect,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   makeValueEnum,

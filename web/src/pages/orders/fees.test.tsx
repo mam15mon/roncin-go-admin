@@ -57,7 +57,8 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', async () => ({
+  ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   FinanceSummaryBoard: ({ selectedRows, allRows }: any) => (
     <div data-testid="finance-summary-board">
       {selectedRows.map((item: API.OrderFee) => item.id).join(',')}|

@@ -4,7 +4,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ModalForm, ProTable } from '@ant-design/pro-components';
+import { ModalForm } from '@ant-design/pro-components';
 import { App, Button, Drawer, Popconfirm, Space, Typography } from 'antd';
 import {
   forwardRef,
@@ -13,7 +13,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import {
+  ProFormSearchableSelect,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   makeValueEnum,

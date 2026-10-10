@@ -1,6 +1,7 @@
-import { Alert, Form, Radio, Space, Table, Tag } from 'antd';
+import { Alert, Form, Radio, Space, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useRef } from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {

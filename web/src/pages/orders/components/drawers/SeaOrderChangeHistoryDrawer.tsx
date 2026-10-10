@@ -9,13 +9,12 @@ import {
   Modal,
   Space,
   Spin,
-  Table,
   Tag,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
-import { DRAWER_SIZE } from '@/components/ui';
+import { DRAWER_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { history } from '@/router/history';
 import {

@@ -9,7 +9,6 @@ import {
   Input,
   Modal,
   Space,
-  Table,
   Tag,
   Typography,
 } from 'antd';
@@ -17,6 +16,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useCallback, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   OrderBusinessType,

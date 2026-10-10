@@ -1,6 +1,7 @@
-import { type ProColumns, ProTable } from '@ant-design/pro-components';
+import type { ProColumns } from '@ant-design/pro-components';
 import { Drawer } from 'antd';
 import { forwardRef, useImperativeHandle, useState } from 'react';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderServiceListOrderConsolidations } from '@/services/roncin/orderService';
 import { toTableRequest } from '@/utils/api';

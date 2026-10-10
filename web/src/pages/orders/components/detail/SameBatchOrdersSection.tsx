@@ -1,7 +1,8 @@
 import { LinkOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
-import { Alert, Button, Empty, Skeleton, Space, Table, Tag } from 'antd';
+import { Alert, Button, Empty, Skeleton, Space, Tag } from 'antd';
 import { useEffect, useState } from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
 import { history } from '@/router/history';
