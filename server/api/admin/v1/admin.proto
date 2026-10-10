@@ -622,6 +622,8 @@ message DingTalkDirectorySyncFailure {
   string department_id = 2;
   string reason = 3;
   string message = 4;
+  string user_name = 5;
+  string department_name = 6;
 }
 
 // 可用字段与授权范围反映本次执行，失败详情不含原始通讯录报文。

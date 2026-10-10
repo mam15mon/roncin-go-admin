@@ -4210,13 +4210,15 @@ func (x *GetDingTalkDirectorySyncRequest) GetPageSize() int32 {
 }
 
 type DingTalkDirectorySyncFailure struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	DepartmentId  string                 `protobuf:"bytes,2,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
-	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
-	Message       string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DepartmentId   string                 `protobuf:"bytes,2,opt,name=department_id,json=departmentId,proto3" json:"department_id,omitempty"`
+	Reason         string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	Message        string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	UserName       string                 `protobuf:"bytes,5,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
+	DepartmentName string                 `protobuf:"bytes,6,opt,name=department_name,json=departmentName,proto3" json:"department_name,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *DingTalkDirectorySyncFailure) Reset() {
@@ -4273,6 +4275,20 @@ func (x *DingTalkDirectorySyncFailure) GetReason() string {
 func (x *DingTalkDirectorySyncFailure) GetMessage() string {
 	if x != nil {
 		return x.Message
+	}
+	return ""
+}
+
+func (x *DingTalkDirectorySyncFailure) GetUserName() string {
+	if x != nil {
+		return x.UserName
+	}
+	return ""
+}
+
+func (x *DingTalkDirectorySyncFailure) GetDepartmentName() string {
+	if x != nil {
+		return x.DepartmentName
 	}
 	return ""
 }
@@ -5049,12 +5065,14 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1fGetDingTalkDirectorySyncRequest\x12\x1c\n" +
 	"\atask_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06taskId\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\x8e\x01\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xd4\x01\n" +
 	"\x1cDingTalkDirectorySyncFailure\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12#\n" +
 	"\rdepartment_id\x18\x02 \x01(\tR\fdepartmentId\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x18\n" +
-	"\amessage\x18\x04 \x01(\tR\amessage\"\xdc\x04\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\x12\x1b\n" +
+	"\tuser_name\x18\x05 \x01(\tR\buserName\x12'\n" +
+	"\x0fdepartment_name\x18\x06 \x01(\tR\x0edepartmentName\"\xdc\x04\n" +
 	"\x15DingTalkDirectorySync\x12\x17\n" +
 	"\atask_id\x18\x01 \x01(\tR\x06taskId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x1d\n" +

@@ -273,18 +273,46 @@ export default function DingTalkDirectorySyncPanel({
                   }
                   columns={[
                     {
-                      title: '人员标识',
+                      title: '人员',
                       width: '28%',
-                      dataIndex: 'userId',
-                      render: (value) => renderFailureCell(value || '—'),
+                      dataIndex: 'userName',
+                      render: (_, row) =>
+                        renderFailureCell(
+                          <>
+                            <Typography.Text strong>
+                              {row.userName ||
+                                (row.userId ? '姓名未取得' : '无人员')}
+                            </Typography.Text>
+                            {row.userId && (
+                              <Typography.Text
+                                type="secondary"
+                                style={{ display: 'block', fontSize: 12 }}
+                              >
+                                ID：{row.userId}
+                              </Typography.Text>
+                            )}
+                          </>,
+                        ),
                     },
                     {
-                      title: '部门标识',
+                      title: '部门',
                       width: '20%',
-                      dataIndex: 'departmentId',
-                      render: (value) =>
+                      dataIndex: 'departmentName',
+                      render: (_, row) =>
                         renderFailureCell(
-                          value && value !== '0' ? value : '未记录',
+                          <>
+                            <Typography.Text strong>
+                              {row.departmentName || '部门名称未取得'}
+                            </Typography.Text>
+                            {row.departmentId && row.departmentId !== '0' && (
+                              <Typography.Text
+                                type="secondary"
+                                style={{ display: 'block', fontSize: 12 }}
+                              >
+                                ID：{row.departmentId}
+                              </Typography.Text>
+                            )}
+                          </>,
                         ),
                     },
                     { title: '失败原因', dataIndex: 'message' },

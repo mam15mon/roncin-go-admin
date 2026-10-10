@@ -1900,6 +1900,8 @@ declare namespace API {
     departmentId?: string;
     reason?: string;
     message?: string;
+    userName?: string;
+    departmentName?: string;
   };
 
   type DingTalkLoginConfig = {

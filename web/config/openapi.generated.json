@@ -13867,6 +13867,12 @@
           },
           "message": {
             "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "departmentName": {
+            "type": "string"
           }
         }
       },

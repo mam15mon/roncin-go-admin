@@ -69,7 +69,7 @@ func (r *dingTalkDirectoryRepo) Get(ctx context.Context, org, taskID uuid.UUID, 
 		end = len(record.Failures)
 	}
 	for _, f := range record.Failures[start:end] {
-		result.Failures = append(result.Failures, biz.DingTalkDirectoryFailure{UserID: f.UserID, DepartmentID: f.DepartmentID, Reason: f.Reason, Message: f.Message})
+		result.Failures = append(result.Failures, biz.DingTalkDirectoryFailure{UserID: f.UserID, UserName: f.UserName, DepartmentID: f.DepartmentID, DepartmentName: f.DepartmentName, Reason: f.Reason, Message: f.Message})
 	}
 	return result, nil
 }
@@ -109,7 +109,7 @@ func (r *dingTalkDirectoryRepo) ApplyPerson(ctx context.Context, task *biz.Backg
 		}
 		// 未确认授权的敏感字段清空，已授权空值由源字段显式决定。
 		email, mobile, avatar := p.Email, p.Mobile, p.AvatarURL
-		if !allowed["email"] {
+		if !allowed["email"] || email != nil && *email == "" {
 			email = nil
 		}
 		if !allowed["mobile"] {
@@ -159,7 +159,7 @@ func (r *dingTalkDirectoryRepo) Finish(ctx context.Context, task *biz.Background
 		}
 		failures := make([]schema.DirectoryFailure, 0, len(result.Failures))
 		for _, f := range result.Failures {
-			failures = append(failures, schema.DirectoryFailure{UserID: f.UserID, DepartmentID: f.DepartmentID, Reason: f.Reason, Message: f.Message})
+			failures = append(failures, schema.DirectoryFailure{UserID: f.UserID, UserName: f.UserName, DepartmentID: f.DepartmentID, DepartmentName: f.DepartmentName, Reason: f.Reason, Message: f.Message})
 		}
 		_, err = tx.DingTalkDirectorySync.Update().Where(syncent.BackgroundTaskIDEQ(task.ID)).SetActive(false).SetScopeSummary(result.ScopeSummary).SetFullScope(result.FullScope).SetAvailableFields(result.AvailableFields).SetTotalCount(result.TotalCount).SetCreatedCount(result.CreatedCount).SetUpdatedCount(result.UpdatedCount).SetUnchangedCount(result.UnchangedCount).SetFailedCount(result.FailedCount).SetFailures(failures).SetCompletedAt(time.Now().UTC()).Save(ctx)
 		if err != nil {

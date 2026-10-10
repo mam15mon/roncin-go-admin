@@ -8493,6 +8493,10 @@ components:
                     type: string
                 message:
                     type: string
+                userName:
+                    type: string
+                departmentName:
+                    type: string
         admin.v1.GetDingTalkDirectorySyncResponse:
             type: object
             properties:

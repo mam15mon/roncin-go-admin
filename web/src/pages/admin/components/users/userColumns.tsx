@@ -20,6 +20,7 @@ interface UserColumnsDeps {
   organizations?: API.AdminOrganization[];
   // 是否展示操作列（编辑/重置密码/办理离职）；离职页签隐藏整列，展示列保留。
   showActions?: boolean;
+  showOrganizations?: boolean;
   canUpdateUsers: boolean;
   canAuthorizeDingTalkUsers?: boolean;
   onAssign?: (user: API.AdminUser) => void;
@@ -36,6 +37,7 @@ export function buildUserColumns({
   roles,
   organizations,
   showActions = true,
+  showOrganizations = true,
   canUpdateUsers,
   canAuthorizeDingTalkUsers,
   onAssign,
@@ -101,7 +103,7 @@ export function buildUserColumns({
         );
       },
     },
-    ...(canReadUserMemberships
+    ...(canReadUserMemberships && showOrganizations
       ? [
           {
             title: '所属组织',

@@ -74,6 +74,7 @@ export default function UsersPanel() {
     roles,
     organizations,
     showActions: true,
+    showOrganizations: listTab !== 'pending',
     canUpdateUsers: access.canUpdateUsers || access.canManageUserMemberships,
     canAuthorizeDingTalkUsers: access.canAuthorizeDingTalkUsers,
     canResetUserPasswords: access.canResetUserPasswords,

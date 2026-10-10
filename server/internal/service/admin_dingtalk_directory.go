@@ -96,7 +96,7 @@ func dingTalkDirectorySyncToAPI(value *biz.DingTalkDirectorySync) *v1.DingTalkDi
 		result.CompletedAt = &completed
 	}
 	for _, failure := range value.Failures {
-		result.Failures = append(result.Failures, &v1.DingTalkDirectorySyncFailure{UserId: failure.UserID, DepartmentId: strconv.FormatInt(failure.DepartmentID, 10), Reason: failure.Reason, Message: failure.Message})
+		result.Failures = append(result.Failures, &v1.DingTalkDirectorySyncFailure{UserId: failure.UserID, UserName: failure.UserName, DepartmentName: failure.DepartmentName, DepartmentId: strconv.FormatInt(failure.DepartmentID, 10), Reason: failure.Reason, Message: failure.Message})
 	}
 	return result
 }

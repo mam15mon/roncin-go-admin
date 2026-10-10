@@ -27,10 +27,12 @@ type DingTalkDirectoryPerson struct {
 	Departments              []DingTalkDepartment
 }
 type DingTalkDirectoryFailure struct {
-	UserID       string `json:"userId"`
-	DepartmentID int64  `json:"departmentId"`
-	Reason       string `json:"reason"`
-	Message      string `json:"message"`
+	UserID         string `json:"userId"`
+	UserName       string `json:"userName"`
+	DepartmentName string `json:"departmentName"`
+	DepartmentID   int64  `json:"departmentId"`
+	Reason         string `json:"reason"`
+	Message        string `json:"message"`
 }
 type DingTalkDirectorySnapshot struct {
 	CorpID          string
@@ -129,7 +131,7 @@ func (uc *DingTalkDirectoryUsecase) ProcessNext(ctx context.Context, lease time.
 			}
 			if existing, ok := byID[p.UserID]; ok {
 				if existing.UnionID != p.UnionID {
-					result.Failures = append(result.Failures, DingTalkDirectoryFailure{UserID: p.UserID, Reason: "DINGTALK_IDENTITY_CONFLICT", Message: "同一人员身份资料不一致"})
+					result.Failures = append(result.Failures, NewDingTalkDirectoryPersonFailure(&p, "DINGTALK_IDENTITY_CONFLICT", "同一人员身份资料不一致"))
 					delete(byID, p.UserID)
 					conflicted[p.UserID] = true
 					continue
@@ -156,7 +158,7 @@ func (uc *DingTalkDirectoryUsecase) ProcessNext(ctx context.Context, lease time.
 				if errors.FromError(applyErr).Reason == ErrDingTalkIdentityConflict.Reason {
 					reason, message = ErrDingTalkIdentityConflict.Reason, ErrDingTalkIdentityConflict.Message
 				}
-				result.Failures = append(result.Failures, DingTalkDirectoryFailure{UserID: id, Reason: reason, Message: message})
+				result.Failures = append(result.Failures, NewDingTalkDirectoryPersonFailure(byID[id], reason, message))
 				continue
 			}
 			switch outcome {
@@ -174,6 +176,18 @@ func (uc *DingTalkDirectoryUsecase) ProcessNext(ctx context.Context, lease time.
 	defer finishCancel()
 	return uc.repo.Finish(finishCtx, task, result, finishError)
 }
+
+// NewDingTalkDirectoryPersonFailure 固化失败时已知资料；多部门选择 ID 最小的来源部门，
+// 不通过本地账号查名或以显示名称重新绑定身份。
+func NewDingTalkDirectoryPersonFailure(person *DingTalkDirectoryPerson, reason, message string) DingTalkDirectoryFailure {
+	failure := DingTalkDirectoryFailure{UserID: person.UserID, UserName: person.Name, Reason: reason, Message: message}
+	departments := mergeDingTalkDepartments(nil, person.Departments)
+	if len(departments) > 0 {
+		failure.DepartmentID, failure.DepartmentName = departments[0].ID, departments[0].Name
+	}
+	return failure
+}
+
 func mergeDingTalkDepartments(a, b []DingTalkDepartment) []DingTalkDepartment {
 	byID := map[int64]DingTalkDepartment{}
 	for _, d := range append(a, b...) {

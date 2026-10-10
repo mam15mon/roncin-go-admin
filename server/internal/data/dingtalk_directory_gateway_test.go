@@ -75,7 +75,7 @@ func TestDingTalkDirectoryGatewayIncompleteOptionalFieldsRemainFailure(t *testin
 		t.Fatalf("不完整响应与明确空值混淆: %+v", snapshot)
 	}
 	failure := snapshot.Failures[0]
-	if failure.DepartmentID != 1 || !strings.Contains(failure.Message, "部门人员接口未返回已授权字段：联系方式") {
+	if failure.UserName != "缺手机号键" || failure.DepartmentName != "根部门" || failure.DepartmentID != 1 || !strings.Contains(failure.Message, "部门人员接口未返回已授权字段：联系方式") {
 		t.Fatalf("失败记录未说明字段和来源部门: %+v", failure)
 	}
 }
@@ -117,7 +117,7 @@ func TestDingTalkDirectoryGatewayMultipleDepartmentsAndPartialFailure(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(snapshot.People) != 2 || snapshot.People[1].Departments[0].Name != "部门乙" || len(snapshot.Failures) != 1 || snapshot.Failures[0].DepartmentID != 2 {
+	if len(snapshot.People) != 2 || snapshot.People[1].Departments[0].Name != "部门乙" || len(snapshot.Failures) != 1 || snapshot.Failures[0].DepartmentID != 2 || snapshot.Failures[0].DepartmentName != "部门乙" {
 		t.Fatalf("多级部门/部分失败未明确: %+v", snapshot)
 	}
 }
@@ -154,7 +154,9 @@ func TestDingTalkDirectoryGatewayIndependentUserMissingFields(t *testing.T) {
 		case "/auth/scopes":
 			body = `{"errcode":0,"auth_user_field":["email","mobile","jobnumber","avatar"],"auth_org_scopes":{"authed_user":["u1"]}}`
 		case "/topapi/v2/user/get":
-			body = `{"errcode":0,"result":{"userid":"u1","unionid":"union1","name":"人员甲","email":"","mobile":"","avatar":null}}`
+			body = `{"errcode":0,"result":{"userid":"u1","unionid":"union1","name":"人员甲","email":"","mobile":"","avatar":null,"dept_id_list":[10]}}`
+		case "/topapi/v2/department/get":
+			body = `{"errcode":0,"result":{"name":"来源部门"}}`
 		default:
 			t.Fatalf("意外请求路径 %s", r.URL.Path)
 		}
@@ -166,6 +168,9 @@ func TestDingTalkDirectoryGatewayIndependentUserMissingFields(t *testing.T) {
 	}
 	if len(snapshot.People) != 0 || len(snapshot.Failures) != 1 {
 		t.Fatalf("不完整资料未被保留为失败记录: %+v", snapshot)
+	}
+	if snapshot.Failures[0].UserName != "人员甲" || snapshot.Failures[0].DepartmentName != "来源部门" || snapshot.Failures[0].DepartmentID != 10 {
+		t.Fatal("字段失败未携带已知人员与部门")
 	}
 	message := snapshot.Failures[0].Message
 	if !strings.Contains(message, "人员详情接口未返回已授权字段：头像") || strings.Contains(message, "邮箱") || strings.Contains(message, "联系方式") || strings.Contains(message, "工号") {

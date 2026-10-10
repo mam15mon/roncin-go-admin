@@ -35,8 +35,10 @@ func (DingTalkDirectorySync) Indexes() []ent.Index {
 }
 
 type DirectoryFailure struct {
-	UserID       string `json:"userId"`
-	DepartmentID int64  `json:"departmentId"`
-	Reason       string `json:"reason"`
-	Message      string `json:"message"`
+	UserID         string `json:"userId"`
+	UserName       string `json:"userName"`
+	DepartmentName string `json:"departmentName"`
+	DepartmentID   int64  `json:"departmentId"`
+	Reason         string `json:"reason"`
+	Message        string `json:"message"`
 }
