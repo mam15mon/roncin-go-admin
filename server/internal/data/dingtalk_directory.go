@@ -107,15 +107,15 @@ func (r *dingTalkDirectoryRepo) ApplyPerson(ctx context.Context, task *biz.Backg
 		for _, field := range fields {
 			allowed[field] = true
 		}
-		// 未确认授权的敏感字段清空，已授权空值由源字段显式决定。
+		// 可选资料按来源快照更新；无授权、缺值或空字符串统一清空旧值。
 		email, mobile, avatar := p.Email, p.Mobile, p.AvatarURL
 		if !allowed["email"] || email != nil && *email == "" {
 			email = nil
 		}
-		if !allowed["mobile"] {
+		if !allowed["mobile"] || mobile != nil && *mobile == "" {
 			mobile = nil
 		}
-		if !allowed["avatar_url"] {
+		if !allowed["avatar_url"] || avatar != nil && *avatar == "" {
 			avatar = nil
 		}
 		if len(accounts) == 0 {

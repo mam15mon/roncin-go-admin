@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "分层职责与生成规则"}
+{"file": ".trellis/spec/server/backend/dingtalk-registration-approval.md", "reason": "当前人员同步/身份/租约契约，手机号头像严格空值规则在本任务被批准统一"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实隔离PostgreSQL及必要验证"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "现有事务与状态防护"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "真实错误明确传播"}
