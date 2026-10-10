@@ -17,6 +17,7 @@ export * from './parameter-setting-template';
 export * from './quarter-ring';
 export * from './quick-create-modal';
 export * from './quick-date-picker';
+export * from './responsive-table';
 export * from './search-filter-template';
 export * from './searchable-select';
 export * from './sub-entity-card-grid';

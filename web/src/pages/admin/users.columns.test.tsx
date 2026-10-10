@@ -16,7 +16,10 @@ vi.mock('@/app/access', () => ({ useAccess: () => accessState.value }));
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({ initialState: { currentUser: { id: 'user-1' } } }),
 }));
-vi.mock('@/components/ui', () => ({ SearchFilterTemplate: () => null }));
+vi.mock('@/components/ui', async () => ({
+  ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
+  SearchFilterTemplate: () => null,
+}));
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceListUsers: vi.fn().mockResolvedValue({ data: [], total: 0 }),
   adminServiceListRoles: vi.fn().mockResolvedValue({ data: [] }),

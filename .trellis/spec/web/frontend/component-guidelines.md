@@ -66,6 +66,39 @@
 **Related**：`web/src/utils/format.ts`（唯一真相源）；AGENTS.md「金额显示规范」；
 导出金额参考 `src/pages/finance/commissions/commissionExport.ts`。
 
+## 表格窄屏与横向滚动（全站统一）
+
+- **公共入口**：产品表格统一从 `@/components/ui` 使用 `ResponsiveTable`、
+  `ResponsiveProTable`、`ResponsiveEditableProTable`；公共模板内部从
+  `../responsive-table` 导入，避免经聚合入口形成循环。三个组件保持官方泛型、
+  Table ref/静态组件以及业务 props，不托管 `request`、`actionRef`、列偏好或编辑状态。
+- **宽度规则**：先由业务与列设置输出实际显示列，再计算横向宽度。隐藏列不计入，
+  分组列递归求和；数字或像素宽度直接使用，未指定宽度的列按 160px 预留阅读空间，
+  选择/展开列另计。百分比等非像素列使用官方 `max-content`。已有显式 `scroll.x`
+  可覆盖默认值，但不得把陈旧的整表宽度常量留给可隐藏列的列表；`scroll.y` 保留。
+  少列表格通过官方 `min-width: 100%` 铺满容器，长描述仍可按原有渲染换行。
+- **固定区规则**：以表格容器实际宽度判定，不能只看窗口宽度。尚未测量、容器小于
+  640px、固定区占用超过 60%，或固定区外不足 240px 时解除固定；普通列、分组、
+  选择/展开均参与，原始列配置与用户偏好不修改。正常列不因窄屏自动隐藏；业务、权限
+  和用户主动隐藏继续生效。
+- **滚动归属**：默认复用官方 `scroll`/`sticky`，最近存在纵向溢出的 `auto/scroll`
+  祖先管理弹层滚动，普通页面使用窗口。业务页头/参数页签的吸顶高度参与表头避让；
+  显式 `sticky: false` 或官方 sticky 参数仍可覆盖。祖先尺寸或滚动状态变化需重新测量。
+  禁止给 `.ant-table` 错层增加横向滚动，或在外层裁掉官方吸附滚动条。
+- **工具栏**：窄屏按钮和筛选工具组允许换行，并限制到容器宽度；禁止用裁切整页的方式
+  掩盖超宽按钮组。表格内容的横向滚动不应带动整页。
+
+```tsx
+import { ResponsiveProTable as ProTable } from '@/components/ui';
+
+// 先应用已有列设置；仅显式保留业务需要的纵向高度。
+<ProTable columns={columnSettings.columns} scroll={{ y: 400 }} request={request} />;
+```
+
+验证至少覆盖窄容器与宽容器、首尾横向访问、选择/固定列、列隐藏后的总宽度、小表自然
+铺满、长表中段吸底条及弹窗/抽屉/嵌套/编辑。保留业务定向回归，几何验收使用真实浏览器；
+jsdom 和 CSS 字符串断言不能证明列可达或滚动条可操作。
+
 ## 表格列设置（全站统一）
 
 - **唯一入口**：所有表格（ProTable、EditableProTable、普通 Table、抽屉/弹窗/嵌套表、

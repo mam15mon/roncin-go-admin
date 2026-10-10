@@ -1391,7 +1391,6 @@ ol {
 
   .ant-table {
     width: 100%;
-    overflow-x: auto;
     &-thead > tr,
     &-tbody > tr {
       > th,
@@ -1472,14 +1471,37 @@ ol {
 .ant-pro-table {
   width: 100% !important;
   max-width: 100% !important;
-  overflow: hidden !important;
   position: relative !important;
 }
 
 .ant-table-wrapper {
   width: 100% !important;
   max-width: 100% !important;
-  overflow: hidden !important;
+}
+
+// 横向溢出由 Table.scroll 管理，外层不能创建额外滚动区或裁切官方吸附滚动条。
+.roncin-responsive-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  // 操作按钮随可用宽度换行，不以工具栏的内在宽度撑开整个页面。
+  .ant-pro-table-list-toolbar-right {
+    max-width: 100%;
+    min-width: 0;
+
+    > div {
+      max-width: 100%;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+  }
+
+  // clip 保留边界裁切而不创建滚动祖先，使官方 sticky 跟随页面/弹层滚动。
+  .ant-table,
+  .ant-table-container {
+    overflow: clip !important;
+  }
 }
 
 .ant-table-container {

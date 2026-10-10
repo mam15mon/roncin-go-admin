@@ -441,7 +441,16 @@ export function SearchFilterTemplate<
             </Space>
 
             {/* 右侧扩展操作插槽 */}
-            {extraRight && <Space size={8}>{extraRight}</Space>}
+            {extraRight && (
+              <Space
+                size={8}
+                wrap
+                style={{ maxWidth: '100%', minWidth: 0 }}
+                styles={{ item: { maxWidth: '100%', minWidth: 0 } }}
+              >
+                {extraRight}
+              </Space>
+            )}
           </div>
 
           {/* 已选条件 chips 回显行 */}

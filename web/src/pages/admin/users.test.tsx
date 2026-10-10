@@ -82,7 +82,8 @@ vi.mock('@ant-design/pro-components', () => ({
   },
 }));
 
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', async () => ({
+  ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   SearchFilterTemplate: () => <div />,
 }));
 

@@ -2,7 +2,7 @@
 
 - [x] 用户批准创建任务，检查干净工作区，完成全站静态盘点和17组真实浏览器研究。
 - [x] 完成PRD收敛、设计、实施计划及上下文清单。
-- [ ] 用户批准最终规划摘要后task.py start，进入实施；当前只规划。
+- [x] 用户批准最终规划摘要后task.py start，进入实施。
 - [ ] 共享展示能力与用户列表先实施验证，避免将局部补丁复制到全站。
 - [ ] 五个公共模板接入，财务列宽/订单固定列/设置小表验证。
 - [ ] 按清单分组覆盖admin、partners/enterprise-resources、orders、finance/workbench、features；每组相关定向验证与diff-check后提交。

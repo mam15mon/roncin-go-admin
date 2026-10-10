@@ -10,6 +10,7 @@
 |------|------|------|--------------|
 | 全站共享布局尺寸与层级 | [`web/config/layout.ts`](../../../../web/config/layout.ts) | 组件数值、CSS变量及顶部栈/导航避让派生尺寸；main首次渲染前安装到html | 普通控件主题、表格列宽、页面专属图形尺寸与媒体查询条件 |
 | 页面骨架、分节表单/详情、CRUD 列表 | [`web/src/components/ui/index.ts`](../../../../web/src/components/ui/index.ts) | `PageHeaderShell`/`SectionCard`/`StickyFooterBar`、`OrderFormTemplate`、`MasterDataTemplate`、`FinanceLedgerTemplate`、`OrderListTemplate`、`SearchFilterTemplate`（grid/bar/custom 三模式列表搜索区，内置已提交条件 chips 回显与单个删除/清除全部，消费方零改动生效）等视觉与结构模板 | 领域请求、领域状态映射；模板内不发起新领域请求 |
+| 表格窄屏展示与横向滚动 | [`web/src/components/ui/responsive-table/index.ts`](../../../../web/src/components/ui/responsive-table/index.ts) | `ResponsiveTable` / `ResponsiveProTable` / `ResponsiveEditableProTable`：实际可见列宽、窄容器固定区、官方吸附滚动条与弹层滚动归属 | 业务请求、编辑状态、列偏好；页面复制滚动适配；以整页裁切掩盖溢出 |
 | 表格列设置 | [`web/src/components/ui/column-settings/index.ts`](../../../../web/src/components/ui/column-settings/index.ts) | `useColumnSettings`/`ColumnSettingsEntry`：齿轮锚定浮层（即时生效+自动持久化），返回契约 `{ columns, entry }`；`advanced` 内容经浮层「更多设置」二级弹窗注入；偏好按用户+组织+表格标识本地持久化 | 业务请求与数据流；各页面另造第二套设置 UI；列设置禁止用居中 Modal + 保存确认形态（视图偏好可逆，须所见即所得） |
 | 业务状态标签/文案 | [`web/src/constants/statusMeta.ts`](../../../../web/src/constants/statusMeta.ts) | `orderFeeStatusMeta` 等各实体状态元数据与通用 `statusTag`/`statusText`/`makeValueEnum` | 页面自写「状态→颜色/文字」映射；不新建平行的全局状态渲染体系 |
 | 账单状态映射 | [`web/src/features/finance/bill-status/index.ts`](../../../../web/src/features/finance/bill-status/index.ts) | `billStatusMeta`（账单列表、抽屉、建账结果表共用） | 与费用账单占用事实（`hasActiveBill`）混同；账单语义只归本能力 |

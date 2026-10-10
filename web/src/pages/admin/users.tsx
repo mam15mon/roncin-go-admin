@@ -4,13 +4,15 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
 import { App, Button, Card, Space, Tabs } from 'antd';
 import React, { useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
-import { SearchFilterTemplate } from '@/components/ui';
+import {
+  ResponsiveProTable as ProTable,
+  SearchFilterTemplate,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { AdminUserStatus } from '@/enums.generated';
 import {
