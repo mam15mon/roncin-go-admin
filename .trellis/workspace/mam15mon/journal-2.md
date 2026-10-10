@@ -1081,3 +1081,28 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 120: 统一表格首尾冻结与个人偏好
+<!-- trellis-session: v=2 fp=09b08fd913a6a999 -->
+
+**Date**: 2026-10-10
+**Task**: 统一表格首尾冻结与个人偏好
+**Branch**: `codex/column-fixed-preferences`
+
+### Summary
+
+完成统一列设置的冻结首列、冻结尾列即时开关，按用户、组织、表格隔离本地偏好；解决 Pro/Editable 固定状态缓存及顺序问题，窄屏自动解冻恢复，订单费用应收应付共享设置。独立复核与23组真实浏览器验证通过，完整前端门禁200文件、1124用例通过、12跳过；拆分海运提单长尾测试并补齐切换等待。同步公共规范、验收证据并归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f4cbe480` | feat: 为统一列设置增加首尾冻结与个人偏好隔离 |
+| `30a90fb0` | feat: 接入订单费用首尾冻结与应收应付共享偏好 |
+| `2f0264e1` | test: 拆分海运提单可见性与校验套件并等待模式切换 |
+| `b69ff0a4` | docs: 记录首尾冻结契约与完整验收结果 |
+
+### Status
+
+[OK] **Completed**
