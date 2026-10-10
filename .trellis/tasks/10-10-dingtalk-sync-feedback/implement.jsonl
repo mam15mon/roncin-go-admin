@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/dingtalk-registration-approval.md", "reason": "钉钉资料与同步权限及失败契约"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务和Ent JSON持久化"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实库与生成验证"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "同步查询生命周期"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向前端验证"}
