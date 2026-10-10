@@ -8,13 +8,13 @@
 
 在components/ui内提供最薄表格展示适配能力，经公开入口导出，集中处理有效可见列的宽度、scroll.x默认值、既有scroll.y保留，以及窄容器固定列取舍。直接兼容Table/ProTable/EditableProTable，不托管request、actionRef、列设置或编辑状态。
 
-保持已有业务列宽与财务拖拽宽度。已明确总宽度经审查保留；不正确的固定常量改为可见列驱动或max-content。列组/选择/展开列参与布局；宽屏少列弹性适配。实际容器空间作为固定区依据，抽屉窄宽不能只看window宽度。
+保持已有业务列宽与财务拖拽宽度。默认横向宽度按实际可见列的像素宽度求和；普通未指定宽度列预留160px阅读空间，百分比等非像素宽度使用官方max-content。初版全用max-content会将角色权限标签展开成1535px，浏览器验收后改为可见列求和，角色表恢复自然铺满。已明确总宽度经审查保留；不正确的固定常量删除。列组/选择/展开列参与布局；宽屏少列弹性适配。实际容器空间作为固定区依据，抽屉窄宽不能只看window宽度。
 
 列设置先输出有效列，再由共享布局适配，保留用户排序、手动隐藏和固定区语义。用户列表的业务隐藏组织继续由buildUserColumns控制。
 
 ## 滚动与样式
 
-复用antd官方scroll/sticky，页面长表使用正确布局顶部偏移与吸底条；抽屉/弹窗绑定实际滚动容器。global.less只保留外层边界隔离与统一视觉，修正错层overflow导致的裁切，不用全局.ant-table无限叠加!important或自建DOM同步滚动器。
+复用antd官方scroll/sticky，页面长表使用正确布局顶部偏移与吸底条；抽屉/弹窗绑定实际滚动容器。global.less移除表格外层hidden，统一包装内部使用overflow:clip保留边界且不形成错误滚动祖先；真实浏览器确认表头停留138px、吸底条位于956px视口底部并可拖动。Pro工具栏及搜索扩展操作允许窄屏换行，不自建DOM同步滚动器。
 
 公共模板先接入：MasterDataTemplate、FinanceLedgerTemplate、OrderListTemplate、SettingTableTemplate、SubEntityDrawerTemplate。再按清单处理pages/features的普通、可编辑、弹层和嵌套表。前端已有模块边界保持。
 

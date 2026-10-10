@@ -1,0 +1,1532 @@
+{
+  "results": [
+    {
+      "path": "/admin?tab=users",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "用户",
+            "邮箱地址",
+            "钉钉部门",
+            "联系方式",
+            "资料同步时间",
+            "已分配角色",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 299,
+          "content": 1748,
+          "overflow": "auto",
+          "moved": 1449,
+          "lastRect": {
+            "left": 115,
+            "right": 345
+          },
+          "bodyRect": {
+            "left": 46,
+            "right": 345
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=users",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "用户",
+            "邮箱地址",
+            "钉钉部门",
+            "联系方式",
+            "资料同步时间",
+            "已分配角色",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 815,
+          "content": 1748,
+          "overflow": "auto",
+          "moved": 933,
+          "lastRect": {
+            "left": 683,
+            "right": 913
+          },
+          "bodyRect": {
+            "left": 98,
+            "right": 913
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=users",
+      "sidebar": "折叠",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "用户",
+            "邮箱地址",
+            "钉钉部门",
+            "联系方式",
+            "资料同步时间",
+            "已分配角色",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 655,
+          "content": 1748,
+          "overflow": "auto",
+          "moved": 1093,
+          "lastRect": {
+            "left": 683,
+            "right": 913
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 913
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=users",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "用户",
+            "邮箱地址",
+            "钉钉部门",
+            "联系方式",
+            "资料同步时间",
+            "已分配角色",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1133,
+          "content": 1748,
+          "overflow": "auto",
+          "moved": 615,
+          "lastRect": {
+            "left": 1161,
+            "right": 1391
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1391
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=users",
+      "sidebar": "折叠",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "用户",
+            "邮箱地址",
+            "钉钉部门",
+            "联系方式",
+            "资料同步时间",
+            "已分配角色",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1293,
+          "content": 1748,
+          "overflow": "auto",
+          "moved": 455,
+          "lastRect": {
+            "left": 1161,
+            "right": 1391
+          },
+          "bodyRect": {
+            "left": 98,
+            "right": 1391
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=users",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "用户",
+            "邮箱地址",
+            "钉钉部门",
+            "联系方式",
+            "资料同步时间",
+            "已分配角色",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1613,
+          "content": 1748,
+          "overflow": "auto",
+          "moved": 135,
+          "lastRect": {
+            "left": 1641,
+            "right": 1871
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1871
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=users",
+      "sidebar": "折叠",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "用户",
+            "邮箱地址",
+            "钉钉部门",
+            "联系方式",
+            "资料同步时间",
+            "已分配角色",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1773,
+          "content": 1773,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1637.640625,
+            "right": 1871
+          },
+          "bodyRect": {
+            "left": 98,
+            "right": 1871
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=roles",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "角色名称",
+            "数据访问范围",
+            "功能权限集",
+            "状态",
+            "操作"
+          ],
+          "client": 299,
+          "content": 770,
+          "overflow": "auto",
+          "moved": 471,
+          "lastRect": {
+            "left": 175,
+            "right": 345
+          },
+          "bodyRect": {
+            "left": 46,
+            "right": 345
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=roles",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "角色名称",
+            "数据访问范围",
+            "功能权限集",
+            "状态",
+            "操作"
+          ],
+          "client": 815,
+          "content": 815,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 743,
+            "right": 913
+          },
+          "bodyRect": {
+            "left": 98,
+            "right": 913
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=roles",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "角色名称",
+            "数据访问范围",
+            "功能权限集",
+            "状态",
+            "操作"
+          ],
+          "client": 1133,
+          "content": 1133,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1221,
+            "right": 1391
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1391
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/admin?tab=roles",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "角色名称",
+            "数据访问范围",
+            "功能权限集",
+            "状态",
+            "操作"
+          ],
+          "client": 1613,
+          "content": 1613,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1701,
+            "right": 1871
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1871
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/master-data",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "UN/LOCODE 五字码",
+            "名称 (中/英文)",
+            "所属国家",
+            "枢纽运输类型",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 314,
+          "content": 1093,
+          "overflow": "auto",
+          "moved": 779,
+          "lastRect": {
+            "left": 221.625,
+            "right": 351.625
+          },
+          "bodyRect": {
+            "left": 38,
+            "right": 352
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/master-data",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "UN/LOCODE 五字码",
+            "名称 (中/英文)",
+            "所属国家",
+            "枢纽运输类型",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 830,
+          "content": 1093,
+          "overflow": "auto",
+          "moved": 263,
+          "lastRect": {
+            "left": 789.625,
+            "right": 919.625
+          },
+          "bodyRect": {
+            "left": 90,
+            "right": 920
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/master-data",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "UN/LOCODE 五字码",
+            "名称 (中/英文)",
+            "所属国家",
+            "枢纽运输类型",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1148,
+          "content": 1148,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1261.359375,
+            "right": 1398
+          },
+          "bodyRect": {
+            "left": 250,
+            "right": 1398
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/master-data",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "UN/LOCODE 五字码",
+            "名称 (中/英文)",
+            "所属国家",
+            "枢纽运输类型",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1628,
+          "content": 1628,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1684.25,
+            "right": 1878
+          },
+          "bodyRect": {
+            "left": 250,
+            "right": 1878
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/fee-settings",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "费用代码",
+            "费用名称",
+            "英文名称",
+            "默认币种",
+            "默认开票项目",
+            "税率（%）",
+            "状态",
+            "操作"
+          ],
+          "client": 314,
+          "content": 1050,
+          "overflow": "auto",
+          "moved": 736,
+          "lastRect": {
+            "left": 262,
+            "right": 352
+          },
+          "bodyRect": {
+            "left": 38,
+            "right": 352
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/finance/fee-settings",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "费用代码",
+            "费用名称",
+            "英文名称",
+            "默认币种",
+            "默认开票项目",
+            "税率（%）",
+            "状态",
+            "操作"
+          ],
+          "client": 830,
+          "content": 1050,
+          "overflow": "auto",
+          "moved": 220,
+          "lastRect": {
+            "left": 830,
+            "right": 920
+          },
+          "bodyRect": {
+            "left": 90,
+            "right": 920
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/finance/fee-settings",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "费用代码",
+            "费用名称",
+            "英文名称",
+            "默认币种",
+            "默认开票项目",
+            "税率（%）",
+            "状态",
+            "操作"
+          ],
+          "client": 1148,
+          "content": 1148,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1299.5625,
+            "right": 1398
+          },
+          "bodyRect": {
+            "left": 250,
+            "right": 1398
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/fee-settings",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "费用代码",
+            "费用名称",
+            "英文名称",
+            "默认币种",
+            "默认开票项目",
+            "税率（%）",
+            "状态",
+            "操作"
+          ],
+          "client": 1628,
+          "content": 1628,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1738.421875,
+            "right": 1878
+          },
+          "bodyRect": {
+            "left": 250,
+            "right": 1878
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/partners/customers",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "单位编码",
+            "法人实体名称",
+            "业务角色身份",
+            "合作类型",
+            "联系人",
+            "常用别名",
+            "统一社会信用代码",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 298,
+          "content": 1490,
+          "overflow": "auto",
+          "moved": 1192,
+          "lastRect": {
+            "left": 224,
+            "right": 344
+          },
+          "bodyRect": {
+            "left": 46,
+            "right": 344
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/partners/customers",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "单位编码",
+            "法人实体名称",
+            "业务角色身份",
+            "合作类型",
+            "联系人",
+            "常用别名",
+            "统一社会信用代码",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 814,
+          "content": 1490,
+          "overflow": "auto",
+          "moved": 676,
+          "lastRect": {
+            "left": 792,
+            "right": 912
+          },
+          "bodyRect": {
+            "left": 98,
+            "right": 912
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/partners/customers",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "单位编码",
+            "法人实体名称",
+            "业务角色身份",
+            "合作类型",
+            "联系人",
+            "常用别名",
+            "统一社会信用代码",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1132,
+          "content": 1490,
+          "overflow": "auto",
+          "moved": 358,
+          "lastRect": {
+            "left": 1270,
+            "right": 1390
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1390
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/partners/customers",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "单位编码",
+            "法人实体名称",
+            "业务角色身份",
+            "合作类型",
+            "联系人",
+            "常用别名",
+            "统一社会信用代码",
+            "状态",
+            "更新时间",
+            "操作"
+          ],
+          "client": 1612,
+          "content": 1612,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1740.109375,
+            "right": 1870
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1870
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/orders/sea-export",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "序号",
+            "进程",
+            "订单编号",
+            "业务类型",
+            "委托单位",
+            "客户业务编号",
+            "标签",
+            "创建时间",
+            "订舱代理",
+            "主单号",
+            "船名航次",
+            "起运港",
+            "目的港",
+            "目的地",
+            "箱型箱量",
+            "箱号",
+            "提成",
+            "操作人员",
+            "业务人员",
+            "创建人",
+            "委托总件数",
+            "委托总毛重(KGS)",
+            "委托总体积(CBM)",
+            "付款方式",
+            "贸易条款",
+            "合约号",
+            "收货人简称",
+            "发货人简称",
+            "配舱备注",
+            "订舱备注",
+            "操作备注",
+            "附件",
+            "订单锁定时间",
+            "订单状态",
+            "异常",
+            "操作"
+          ],
+          "client": 266,
+          "content": 4622,
+          "overflow": "auto",
+          "moved": 4356,
+          "lastRect": {
+            "left": 148,
+            "right": 328
+          },
+          "bodyRect": {
+            "left": 62,
+            "right": 328
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/orders/sea-export",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "序号",
+            "进程",
+            "订单编号",
+            "业务类型",
+            "委托单位",
+            "客户业务编号",
+            "标签",
+            "创建时间",
+            "订舱代理",
+            "主单号",
+            "船名航次",
+            "起运港",
+            "目的港",
+            "目的地",
+            "箱型箱量",
+            "箱号",
+            "提成",
+            "操作人员",
+            "业务人员",
+            "创建人",
+            "委托总件数",
+            "委托总毛重(KGS)",
+            "委托总体积(CBM)",
+            "付款方式",
+            "贸易条款",
+            "合约号",
+            "收货人简称",
+            "发货人简称",
+            "配舱备注",
+            "订舱备注",
+            "操作备注",
+            "附件",
+            "订单锁定时间",
+            "订单状态",
+            "异常",
+            "操作"
+          ],
+          "client": 782,
+          "content": 4622,
+          "overflow": "auto",
+          "moved": 3840,
+          "lastRect": {
+            "left": 716,
+            "right": 896
+          },
+          "bodyRect": {
+            "left": 114,
+            "right": 896
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/orders/sea-export",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "序号",
+            "进程",
+            "订单编号",
+            "业务类型",
+            "委托单位",
+            "客户业务编号",
+            "标签",
+            "创建时间",
+            "订舱代理",
+            "主单号",
+            "船名航次",
+            "起运港",
+            "目的港",
+            "目的地",
+            "箱型箱量",
+            "箱号",
+            "提成",
+            "操作人员",
+            "业务人员",
+            "创建人",
+            "委托总件数",
+            "委托总毛重(KGS)",
+            "委托总体积(CBM)",
+            "付款方式",
+            "贸易条款",
+            "合约号",
+            "收货人简称",
+            "发货人简称",
+            "配舱备注",
+            "订舱备注",
+            "操作备注",
+            "附件",
+            "订单锁定时间",
+            "订单状态",
+            "异常",
+            "操作"
+          ],
+          "client": 1100,
+          "content": 4622,
+          "overflow": "auto",
+          "moved": 3522,
+          "lastRect": {
+            "left": 1194,
+            "right": 1374
+          },
+          "bodyRect": {
+            "left": 274,
+            "right": 1374
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/orders/sea-export",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "序号",
+            "进程",
+            "订单编号",
+            "业务类型",
+            "委托单位",
+            "客户业务编号",
+            "标签",
+            "创建时间",
+            "订舱代理",
+            "主单号",
+            "船名航次",
+            "起运港",
+            "目的港",
+            "目的地",
+            "箱型箱量",
+            "箱号",
+            "提成",
+            "操作人员",
+            "业务人员",
+            "创建人",
+            "委托总件数",
+            "委托总毛重(KGS)",
+            "委托总体积(CBM)",
+            "付款方式",
+            "贸易条款",
+            "合约号",
+            "收货人简称",
+            "发货人简称",
+            "配舱备注",
+            "订舱备注",
+            "操作备注",
+            "附件",
+            "订单锁定时间",
+            "订单状态",
+            "异常",
+            "操作"
+          ],
+          "client": 1580,
+          "content": 4622,
+          "overflow": "auto",
+          "moved": 3042,
+          "lastRect": {
+            "left": 1674,
+            "right": 1854
+          },
+          "bodyRect": {
+            "left": 274,
+            "right": 1854
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/bills",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "标签",
+            "序号",
+            "方向",
+            "状态",
+            "账单编号",
+            "所属公司",
+            "建单批次",
+            "结算单位",
+            "对账抬头",
+            "账单金额",
+            "账单汇率",
+            "折本币金额",
+            "已核销",
+            "未核销",
+            "费用数",
+            "账单日期",
+            "到期日",
+            "创建时间",
+            "操作"
+          ],
+          "client": 298,
+          "content": 2677,
+          "overflow": "auto",
+          "moved": 2379,
+          "lastRect": {
+            "left": 174,
+            "right": 344
+          },
+          "bodyRect": {
+            "left": 46,
+            "right": 344
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 1
+        }
+      ]
+    },
+    {
+      "path": "/finance/bills",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "标签",
+            "序号",
+            "方向",
+            "状态",
+            "账单编号",
+            "所属公司",
+            "建单批次",
+            "结算单位",
+            "对账抬头",
+            "账单金额",
+            "账单汇率",
+            "折本币金额",
+            "已核销",
+            "未核销",
+            "费用数",
+            "账单日期",
+            "到期日",
+            "创建时间",
+            "操作"
+          ],
+          "client": 814,
+          "content": 2677,
+          "overflow": "auto",
+          "moved": 1863,
+          "lastRect": {
+            "left": 742,
+            "right": 912
+          },
+          "bodyRect": {
+            "left": 98,
+            "right": 912
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/bills",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "标签",
+            "序号",
+            "方向",
+            "状态",
+            "账单编号",
+            "所属公司",
+            "建单批次",
+            "结算单位",
+            "对账抬头",
+            "账单金额",
+            "账单汇率",
+            "折本币金额",
+            "已核销",
+            "未核销",
+            "费用数",
+            "账单日期",
+            "到期日",
+            "创建时间",
+            "操作"
+          ],
+          "client": 1132,
+          "content": 2677,
+          "overflow": "auto",
+          "moved": 1545,
+          "lastRect": {
+            "left": 1220,
+            "right": 1390
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1390
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/bills",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "",
+            "标签",
+            "序号",
+            "方向",
+            "状态",
+            "账单编号",
+            "所属公司",
+            "建单批次",
+            "结算单位",
+            "对账抬头",
+            "账单金额",
+            "账单汇率",
+            "折本币金额",
+            "已核销",
+            "未核销",
+            "费用数",
+            "账单日期",
+            "到期日",
+            "创建时间",
+            "操作"
+          ],
+          "client": 1612,
+          "content": 2677,
+          "overflow": "auto",
+          "moved": 1065,
+          "lastRect": {
+            "left": 1700,
+            "right": 1870
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1870
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/commissions",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "所属公司",
+            "提成编号",
+            "状态",
+            "来源单号",
+            "归属日期",
+            "提成员工",
+            "考核角色",
+            "规则名称",
+            "计提口径",
+            "分摊成本",
+            "已实现毛利",
+            "比例",
+            "原始/有效提成",
+            "CNY 提成",
+            "操作"
+          ],
+          "client": 298,
+          "content": 2180,
+          "overflow": "auto",
+          "moved": 1882,
+          "lastRect": {
+            "left": 154,
+            "right": 344
+          },
+          "bodyRect": {
+            "left": 46,
+            "right": 344
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/commissions",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "所属公司",
+            "提成编号",
+            "状态",
+            "来源单号",
+            "归属日期",
+            "提成员工",
+            "考核角色",
+            "规则名称",
+            "计提口径",
+            "分摊成本",
+            "已实现毛利",
+            "比例",
+            "原始/有效提成",
+            "CNY 提成",
+            "操作"
+          ],
+          "client": 814,
+          "content": 2180,
+          "overflow": "auto",
+          "moved": 1366,
+          "lastRect": {
+            "left": 722,
+            "right": 912
+          },
+          "bodyRect": {
+            "left": 98,
+            "right": 912
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/commissions",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "所属公司",
+            "提成编号",
+            "状态",
+            "来源单号",
+            "归属日期",
+            "提成员工",
+            "考核角色",
+            "规则名称",
+            "计提口径",
+            "分摊成本",
+            "已实现毛利",
+            "比例",
+            "原始/有效提成",
+            "CNY 提成",
+            "操作"
+          ],
+          "client": 1132,
+          "content": 2180,
+          "overflow": "auto",
+          "moved": 1048,
+          "lastRect": {
+            "left": 1200,
+            "right": 1390
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1390
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/commissions",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "所属公司",
+            "提成编号",
+            "状态",
+            "来源单号",
+            "归属日期",
+            "提成员工",
+            "考核角色",
+            "规则名称",
+            "计提口径",
+            "分摊成本",
+            "已实现毛利",
+            "比例",
+            "原始/有效提成",
+            "CNY 提成",
+            "操作"
+          ],
+          "client": 1612,
+          "content": 2180,
+          "overflow": "auto",
+          "moved": 568,
+          "lastRect": {
+            "left": 1680,
+            "right": 1870
+          },
+          "bodyRect": {
+            "left": 258,
+            "right": 1870
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/exchange-rates",
+      "viewport": 390,
+      "pageWidth": 390,
+      "tables": [
+        {
+          "headers": [
+            "序号",
+            "币种对",
+            "应收汇率（现汇卖出价）",
+            "应付汇率（现汇买入价）",
+            "基准汇率",
+            "生效周",
+            "状态",
+            "操作"
+          ],
+          "client": 314,
+          "content": 1115,
+          "overflow": "auto",
+          "moved": 801,
+          "lastRect": {
+            "left": 202,
+            "right": 352
+          },
+          "bodyRect": {
+            "left": 38,
+            "right": 352
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/exchange-rates",
+      "viewport": 962,
+      "pageWidth": 962,
+      "tables": [
+        {
+          "headers": [
+            "序号",
+            "币种对",
+            "应收汇率（现汇卖出价）",
+            "应付汇率（现汇买入价）",
+            "基准汇率",
+            "生效周",
+            "状态",
+            "操作"
+          ],
+          "client": 830,
+          "content": 1115,
+          "overflow": "auto",
+          "moved": 285,
+          "lastRect": {
+            "left": 770,
+            "right": 920
+          },
+          "bodyRect": {
+            "left": 90,
+            "right": 920
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/exchange-rates",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "tables": [
+        {
+          "headers": [
+            "序号",
+            "币种对",
+            "应收汇率（现汇卖出价）",
+            "应付汇率（现汇买入价）",
+            "基准汇率",
+            "生效周",
+            "状态",
+            "操作"
+          ],
+          "client": 1148,
+          "content": 1148,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1243.515625,
+            "right": 1398
+          },
+          "bodyRect": {
+            "left": 250,
+            "right": 1398
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    },
+    {
+      "path": "/finance/exchange-rates",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "tables": [
+        {
+          "headers": [
+            "序号",
+            "币种对",
+            "应收汇率（现汇卖出价）",
+            "应付汇率（现汇买入价）",
+            "基准汇率",
+            "生效周",
+            "状态",
+            "操作"
+          ],
+          "client": 1628,
+          "content": 1628,
+          "overflow": "auto",
+          "moved": 0,
+          "lastRect": {
+            "left": 1658.9375,
+            "right": 1878
+          },
+          "bodyRect": {
+            "left": 250,
+            "right": 1878
+          },
+          "lastReachable": true,
+          "fixed": 0,
+          "sticky": 0
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

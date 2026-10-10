@@ -1,0 +1,245 @@
+{
+  "results": [
+    {
+      "kind": "plain",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 298,
+          "content": 1068,
+          "moved": 770,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 1813
+        }
+      ]
+    },
+    {
+      "kind": "plain",
+      "width": 900,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 898,
+          "content": 1068,
+          "moved": 170,
+          "fixed": 3,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 1813
+        }
+      ]
+    },
+    {
+      "kind": "plain",
+      "width": 900,
+      "hidden": true,
+      "tables": [
+        {
+          "client": 898,
+          "content": 898,
+          "moved": 0,
+          "fixed": 3,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 1813
+        }
+      ]
+    },
+    {
+      "kind": "small",
+      "width": 900,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 898,
+          "content": 898,
+          "moved": 0,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 73
+        }
+      ]
+    },
+    {
+      "kind": "vertical",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 298,
+          "content": 1068,
+          "moved": 770,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 260
+        }
+      ]
+    },
+    {
+      "kind": "nested",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 298,
+          "content": 1116,
+          "moved": 818,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 193
+        },
+        {
+          "client": 1066,
+          "content": 1066,
+          "moved": 0,
+          "fixed": 2,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 103
+        }
+      ]
+    },
+    {
+      "kind": "pro",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 298,
+          "content": 1068,
+          "moved": 770,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 1813
+        }
+      ]
+    },
+    {
+      "kind": "editable",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 298,
+          "content": 1068,
+          "moved": 770,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 93
+        }
+      ]
+    },
+    {
+      "kind": "modal",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 600,
+          "content": 1068,
+          "moved": 468,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 1813
+        }
+      ]
+    },
+    {
+      "kind": "modal弹层中段真实吸底拖动",
+      "ownerInfo": {
+        "clientHeight": 400,
+        "scrollHeight": 1857
+      },
+      "ownerRect": {
+        "x": 299,
+        "y": 150,
+        "width": 602,
+        "height": 400
+      },
+      "barRect": {
+        "x": 300,
+        "y": 542,
+        "width": 600,
+        "height": 8
+      },
+      "before": 0,
+      "after": 125,
+      "windowScrollY": 0
+    },
+    {
+      "kind": "drawer",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 466,
+          "content": 1068,
+          "moved": 602,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 1813
+        }
+      ]
+    },
+    {
+      "kind": "drawer弹层中段真实吸底拖动",
+      "ownerInfo": {
+        "clientHeight": 901,
+        "scrollHeight": 1889
+      },
+      "ownerRect": {
+        "x": 700,
+        "y": 55,
+        "width": 500,
+        "height": 901
+      },
+      "barRect": {
+        "x": 717,
+        "y": 932,
+        "width": 466,
+        "height": 8
+      },
+      "before": 0,
+      "after": 161,
+      "windowScrollY": 0
+    },
+    {
+      "kind": "plain",
+      "width": 300,
+      "hidden": false,
+      "tables": [
+        {
+          "client": 298,
+          "content": 1068,
+          "moved": 770,
+          "fixed": 0,
+          "lastReachable": true,
+          "overflow": "auto",
+          "height": 1813
+        }
+      ]
+    },
+    {
+      "kind": "长表中段吸底条拖动",
+      "rect": {
+        "x": 13,
+        "y": 948,
+        "width": 298,
+        "height": 8
+      },
+      "before": 0,
+      "after": 251
+    }
+  ],
+  "errors": []
+}
