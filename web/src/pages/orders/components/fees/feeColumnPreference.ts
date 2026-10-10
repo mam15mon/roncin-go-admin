@@ -2,8 +2,18 @@
  * 订单费用页列设置：列清单、默认显隐顺序与同浏览器偏好存取。
  *
  * 偏好按「用户 ID + 组织 ID」隔离在 localStorage，应收/应付两表共享一份，
- * 切换订单继续生效；只存列 key、显隐与顺序，不含任何费用数据或身份秘密。
+ * 切换订单继续生效；只存列 key、显隐、顺序与首尾冻结，不含任何费用数据或身份秘密。
  */
+import {
+  type ColumnFreezeValue,
+  resolveColumnFreeze,
+} from '@/components/ui/column-settings';
+
+/** 原费用表只固定末尾操作列，统一首尾冻结后保持相同默认效果。 */
+const DEFAULT_FEE_COLUMN_FREEZE: ColumnFreezeValue = {
+  first: false,
+  last: true,
+};
 
 /** 订单费用表稳定列 key（与表格列 dataIndex 一一对应；操作列固定为 option）。 */
 export const FEE_COLUMN_KEYS = [
@@ -144,10 +154,11 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   { key: 'option', title: '操作', lockVisible: true, defaultVisible: true },
 ];
 
-/** 用户提交的列偏好：完整顺序 + 被隐藏的列。 */
+/** 用户提交的列偏好：完整顺序、隐藏列与表格首尾冻结。 */
 export interface FeeColumnPreference {
   order: FeeColumnKey[];
   hidden: FeeColumnKey[];
+  freeze?: ColumnFreezeValue;
 }
 
 /** 列偏好在同一浏览器内的隔离范围：用户 + 当前组织。 */
@@ -171,11 +182,16 @@ export function defaultFeeColumnPreference(
   return {
     order: defs.map((def) => def.key),
     hidden: defs.filter((def) => !def.defaultVisible).map((def) => def.key),
+    freeze: { ...DEFAULT_FEE_COLUMN_FREEZE },
   };
 }
 
 function isSamePreference(a: FeeColumnPreference, b: FeeColumnPreference) {
+  const aFreeze = resolveColumnFreeze(a.freeze, DEFAULT_FEE_COLUMN_FREEZE);
+  const bFreeze = resolveColumnFreeze(b.freeze, DEFAULT_FEE_COLUMN_FREEZE);
   return (
+    aFreeze.first === bFreeze.first &&
+    aFreeze.last === bFreeze.last &&
     a.order.length === b.order.length &&
     a.order.every((key, index) => key === b.order[index]) &&
     a.hidden.length === b.hidden.length &&
@@ -211,13 +227,17 @@ export function resolveFeeColumnPreference(
     defs.filter((def) => def.lockVisible).map((def) => def.key),
   );
 
-  const storedOrder = (stored.order ?? []).filter((key) =>
-    knownKeys.has(key as FeeColumnKey),
+  // 操作列始终位于末尾；存储顺序只调整普通列，重复列不重复渲染。
+  const storedOrder = [...new Set(stored.order ?? [])].filter(
+    (key) => knownKeys.has(key as FeeColumnKey) && key !== 'option',
   ) as FeeColumnKey[];
   const orderedKeys = new Set(storedOrder);
   const order: FeeColumnKey[] = [
     ...storedOrder,
-    ...defs.filter((def) => !orderedKeys.has(def.key)).map((def) => def.key),
+    ...defs
+      .filter((def) => !orderedKeys.has(def.key) && def.key !== 'option')
+      .map((def) => def.key),
+    'option',
   ];
 
   const mentioned = new Set<string>([
@@ -236,7 +256,11 @@ export function resolveFeeColumnPreference(
       hidden.add(def.key);
     }
   }
-  return { order, hidden: order.filter((key) => hidden.has(key)) };
+  return {
+    order,
+    hidden: order.filter((key) => hidden.has(key)),
+    freeze: resolveColumnFreeze(stored.freeze, DEFAULT_FEE_COLUMN_FREEZE),
+  };
 }
 
 function feeColumnStorageKey(scope: FeeColumnPreferenceScope): string {
@@ -261,13 +285,14 @@ export function loadFeeColumnPreference(
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) return null;
-    const { order, hidden } = parsed as Record<string, unknown>;
+    const { order, hidden, freeze } = parsed as Record<string, unknown>;
     if (!isFeeColumnKeyArray(order) || !isFeeColumnKeyArray(hidden)) {
       return null;
     }
     return {
       order: order as FeeColumnKey[],
       hidden: hidden as FeeColumnKey[],
+      freeze: resolveColumnFreeze(freeze, DEFAULT_FEE_COLUMN_FREEZE),
     };
   } catch {
     return null;
@@ -282,7 +307,14 @@ export function saveFeeColumnPreference(
   try {
     window.localStorage.setItem(
       feeColumnStorageKey(scope),
-      JSON.stringify({ order: preference.order, hidden: preference.hidden }),
+      JSON.stringify({
+        order: preference.order,
+        hidden: preference.hidden,
+        freeze: resolveColumnFreeze(
+          preference.freeze,
+          DEFAULT_FEE_COLUMN_FREEZE,
+        ),
+      }),
     );
     return true;
   } catch {

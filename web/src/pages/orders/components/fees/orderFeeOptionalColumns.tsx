@@ -2,6 +2,11 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag, Tooltip } from 'antd';
 import Decimal from 'decimal.js';
 import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
+import {
+  applyColumnFreeze,
+  deriveColumnFreezeDefaults,
+  resolveColumnFreeze,
+} from '@/components/ui/column-settings';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { formatAmount } from '@/utils/format';
@@ -354,7 +359,7 @@ function columnKeyOf(column: ProColumns<API.OrderFee>): string | undefined {
   return column.key ? String(column.key) : undefined;
 }
 
-/** 按列偏好重排并过滤列；偏好未覆盖或外部注入的列保持原顺序追加在末尾。 */
+/** 普通列先显隐排序，操作列始终必显且置末，最后按统一规则冻结当前首尾。 */
 export function orderColumnsByPreference(
   columns: ProColumns<API.OrderFee>[],
   preference: FeeColumnPreference,
@@ -369,17 +374,22 @@ export function orderColumnsByPreference(
   const placed = new Set<string>();
   for (const key of preference.order) {
     const column = byKey.get(key);
-    if (column && !hidden.has(key)) {
+    if (column && key !== 'option' && !placed.has(key) && !hidden.has(key)) {
       ordered.push(column);
       placed.add(key);
     }
   }
   for (const column of columns) {
     const key = columnKeyOf(column);
-    if (key && !placed.has(key) && !hidden.has(key)) {
+    if (key && key !== 'option' && !placed.has(key) && !hidden.has(key)) {
       ordered.push(column);
       placed.add(key);
     }
   }
-  return ordered;
+  const option = byKey.get('option');
+  if (option) ordered.push(option);
+  return applyColumnFreeze(
+    ordered,
+    resolveColumnFreeze(preference.freeze, deriveColumnFreezeDefaults(columns)),
+  );
 }

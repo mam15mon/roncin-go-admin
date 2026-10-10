@@ -137,6 +137,7 @@ describe('feeColumnPreference 本地存储', () => {
     const preference: FeeColumnPreference = {
       order: defaultFeeColumnPreference(false).order,
       hidden: ['taxRate'],
+      freeze: { first: true, last: false },
     };
     expect(
       saveFeeColumnPreference(
@@ -215,5 +216,71 @@ describe('feeColumnPreference 本地存储', () => {
     expect(
       window.localStorage.getItem('roncin:order-fee-columns:v1:user-1:org-1'),
     ).toBeNull();
+  });
+});
+
+describe('feeColumnPreference 首尾冻结', () => {
+  it('默认只冻结末尾操作列；未配置冻结时保留已有顺序与显隐', () => {
+    const defaults = defaultFeeColumnPreference(false);
+    expect(defaults.freeze).toEqual({ first: false, last: true });
+    const resolved = resolveFeeColumnPreference(
+      { order: ['note', 'feeCode'], hidden: ['taxRate'] },
+      false,
+    );
+    expect(resolved.order.slice(0, 2)).toEqual(['note', 'feeCode']);
+    expect(resolved.hidden).toContain('taxRate');
+    expect(resolved.freeze).toEqual(defaults.freeze);
+  });
+
+  it('分别保存关闭和开启状态，冻结变化不被误判为恢复默认', () => {
+    const defaults = defaultFeeColumnPreference(false);
+    const preference = { ...defaults, freeze: { first: true, last: false } };
+    expect(isDefaultFeeColumnPreference(preference, false)).toBe(false);
+    const scope = { userId: 'freeze-user', organizationId: 'freeze-org' };
+    expect(saveFeeColumnPreference(scope, preference)).toBe(true);
+    expect(loadFeeColumnPreference(scope)).toEqual(preference);
+    expect(
+      isDefaultFeeColumnPreference(
+        { ...defaults, freeze: { first: false, last: false } },
+        false,
+      ),
+    ).toBe(false);
+  });
+
+  it('非法冻结值按字段默认解析，不丢弃有效的显隐或顺序', () => {
+    const scope = { userId: 'invalid-user', organizationId: 'invalid-org' };
+    window.localStorage.setItem(
+      'roncin:order-fee-columns:v1:invalid-user:invalid-org',
+      JSON.stringify({
+        order: ['note'],
+        hidden: ['taxAmount'],
+        freeze: { first: 'true', last: false },
+      }),
+    );
+    const resolved = resolveFeeColumnPreference(
+      loadFeeColumnPreference(scope),
+      false,
+    );
+    expect(resolved.freeze).toEqual({ first: false, last: false });
+    expect(resolved.order[0]).toBe('note');
+    expect(resolved.hidden).toContain('taxAmount');
+  });
+
+  it('操作列始终必显且在末尾，重复排序键去重，财务列继续按权限裁剪', () => {
+    const resolved = resolveFeeColumnPreference(
+      {
+        order: ['option', 'note', 'billNo', 'note'],
+        hidden: ['option', 'note'],
+        freeze: { first: true, last: true },
+      },
+      false,
+    );
+    expect(resolved.order[0]).toBe('note');
+    expect(resolved.order.at(-1)).toBe('option');
+    expect(resolved.order.filter((key) => key === 'note')).toHaveLength(1);
+    expect(resolved.order).not.toContain('billNo');
+    expect(resolved.hidden).not.toContain('option');
+    expect(resolved.hidden).toContain('note');
+    expect(resolved.freeze).toEqual({ first: true, last: true });
   });
 });

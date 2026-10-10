@@ -17,7 +17,7 @@ import {
 import { Alert, App, Button, Dropdown, type MenuProps, Space, Tag } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   ColumnSettingsEntry,
@@ -29,6 +29,7 @@ import {
   SectionCard,
   scrollToFirstTableError,
 } from '@/components/ui';
+import { getColumnFreezeTargets } from '@/components/ui/column-settings';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
 import {
@@ -208,35 +209,53 @@ export default function OrderFeeTableTabs({
   );
 
   // 列设置状态：应收/应付共享同一份偏好；编辑进行中禁用入口，避免丢失未保存行。
-  const [feeColumnPref, setFeeColumnPref] = useState<FeeColumnPreference>(() =>
-    defaultFeeColumnPreference(false),
-  );
   const columnEditing =
     receivableEditableKeys.length > 0 || payableEditableKeys.length > 0;
   // 账单号与关联账单财务进度列仅在页面提供关联投影（财务读取权限）时可用。
   const financeAvailable = Boolean(feeBillTracking);
 
-  useEffect(() => {
-    setFeeColumnPref(
+  const columnPreferenceIdentity = JSON.stringify([
+    columnSettingScope?.userId ?? '',
+    columnSettingScope?.organizationId ?? '',
+    financeAvailable,
+  ]);
+  const loadedColumnPreference = useMemo(
+    () =>
       resolveFeeColumnPreference(
         columnSettingScope ? loadFeeColumnPreference(columnSettingScope) : null,
         financeAvailable,
       ),
-    );
-  }, [
-    columnSettingScope?.userId,
-    columnSettingScope?.organizationId,
-    financeAvailable,
-  ]);
+    [
+      columnSettingScope?.userId,
+      columnSettingScope?.organizationId,
+      financeAvailable,
+    ],
+  );
+  const [columnPreferenceState, setColumnPreferenceState] = useState<{
+    identity: string;
+    preference: FeeColumnPreference;
+  } | null>(null);
+  // 切换用户、组织或财务权限时，本次渲染立即使用对应配置，不闪现旧作用域。
+  const feeColumnPref =
+    columnPreferenceState?.identity === columnPreferenceIdentity
+      ? columnPreferenceState.preference
+      : loadedColumnPreference;
 
   /** 统一列设置变更：应收/应付共享；恢复默认等价偏好时清空本地存储。 */
   const handleColumnSettingsChange = (next: ColumnSettingsValue) => {
     // 字段清单来自 feeColumnPreference 域定义，运行时 key 必然属于该联合类型。
-    const preference: FeeColumnPreference = {
-      order: next.order as FeeColumnPreference['order'],
-      hidden: next.hidden as FeeColumnPreference['hidden'],
-    };
-    setFeeColumnPref(preference);
+    const preference = resolveFeeColumnPreference(
+      {
+        order: next.order as FeeColumnPreference['order'],
+        hidden: next.hidden as FeeColumnPreference['hidden'],
+        freeze: next.freeze,
+      },
+      financeAvailable,
+    );
+    setColumnPreferenceState({
+      identity: columnPreferenceIdentity,
+      preference,
+    });
     const scope = columnSettingScope ?? {};
     const persisted = isDefaultFeeColumnPreference(preference, financeAvailable)
       ? clearFeeColumnPreference(scope)
@@ -250,51 +269,68 @@ export default function OrderFeeTableTabs({
   /** 订单费用列设置元数据：含权限裁剪与必显标记，供统一浮层消费。 */
   const feeColumnFields: ColumnSettingsField[] = effectiveFeeColumnDefs(
     financeAvailable,
-  ).map(({ key, title, lockVisible }) => ({ key, title, lockVisible }));
+  )
+    .filter(({ key }) => key !== 'option')
+    .map(({ key, title, lockVisible }) => ({ key, title, lockVisible }));
 
-  const renderColumnToolbar = () => (
-    <Space size={8}>
-      {feeBillTracking?.state === 'error' && (
-        <Space size={4}>
-          <Tag color="error">账单关联加载失败</Tag>
+  const renderColumnToolbar = () => {
+    const targets = getColumnFreezeTargets(
+      orderColumnsByPreference(buildColumns(RECEIVABLE), feeColumnPref),
+    );
+    const targetTitle = (column: ProColumns<API.OrderFee> | undefined) => {
+      const key = column?.valueType === 'option' ? 'option' : column?.dataIndex;
+      return effectiveFeeColumnDefs(financeAvailable).find(
+        (def) => def.key === key,
+      )?.title;
+    };
+    return (
+      <Space size={8}>
+        {feeBillTracking?.state === 'error' && (
+          <Space size={4}>
+            <Tag color="error">账单关联加载失败</Tag>
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: 0 }}
+              onClick={feeBillTracking.onRetry}
+            >
+              重试
+            </Button>
+          </Space>
+        )}
+        {feeBillTracking && (
           <Button
             type="link"
             size="small"
             style={{ padding: 0 }}
-            onClick={feeBillTracking.onRetry}
+            onClick={() => history.push(`/finance/fees/detail/${orderId}`)}
           >
-            重试
+            财务详情
           </Button>
-        </Space>
-      )}
-      {feeBillTracking && (
-        <Button
-          type="link"
-          size="small"
-          style={{ padding: 0 }}
-          onClick={() => history.push(`/finance/fees/detail/${orderId}`)}
-        >
-          财务详情
-        </Button>
-      )}
-      <ColumnSettingsEntry
-        fields={feeColumnFields}
-        value={feeColumnPref}
-        onChange={handleColumnSettingsChange}
-        onReset={() =>
-          handleColumnSettingsChange(
-            defaultFeeColumnPreference(financeAvailable),
-          )
-        }
-        disabled={columnEditing || Boolean(getTableColumns)}
-        disabledReason={
-          columnEditing
-            ? '请先保存或取消正在编辑的费用行'
-            : '外部自定义列模式下不支持列设置'
-        }
-      />
-    </Space>
-  );
+        )}
+        <ColumnSettingsEntry
+          fields={feeColumnFields}
+          value={feeColumnPref}
+          freezeTargets={{
+            first: targetTitle(targets.first),
+            last: targetTitle(targets.last),
+          }}
+          onChange={handleColumnSettingsChange}
+          onReset={() =>
+            handleColumnSettingsChange(
+              defaultFeeColumnPreference(financeAvailable),
+            )
+          }
+          disabled={columnEditing || Boolean(getTableColumns)}
+          disabledReason={
+            columnEditing
+              ? '请先保存或取消正在编辑的费用行'
+              : '外部自定义列模式下不支持列设置'
+          }
+        />
+      </Space>
+    );
+  };
 
   // ===== 批量维护（阶段二）：应收/应付两表各自一套入口，作用于该表勾选行 =====
 
