@@ -1043,3 +1043,41 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 119: 统一全站表格窄屏滚动与固定列
+<!-- trellis-session: v=2 fp=56baff0e08b5f81d -->
+
+**Date**: 2026-10-10
+**Task**: 统一全站表格窄屏滚动与固定列
+**Package**: web
+**Branch**: `codex/table-responsive-scroll`
+
+### Summary
+
+全站82处直接表格与24模板消费者统一布局；用户列表右侧可达，窄容器释放固定列，官方吸底条绑定页面或弹层，工具栏窄屏换行。
+
+### Main Changes
+
+- 共享ResponsiveTable/ProTable/EditableProTable与五模板接入，实际可见列决定宽度，保留业务权限及个人列偏好。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `bbd39e76` | fix: 统一表格窄屏滚动与固定列并修复用户列表 |
+| `c0bc5500` | refactor: 公共列表与抽屉模板接入统一表格布局 |
+| `6fb0fb37` | refactor: 管理与客商表格统一窄屏展示 |
+| `ceb8d9b1` | refactor: 订单详情与费用编辑表格统一横向滚动 |
+| `af8a72d5` | refactor: 财务台账与工作台表格统一滚动布局 |
+| `a2835928` | test: 按功能拆分订单费用批量操作长尾用例 |
+| `c3b28283` | docs: 记录全站表格覆盖与浏览器验收结果 |
+
+### Testing
+
+- [OK] 39组主页面浏览器几何与公共真实组件弹层/嵌套/编辑验收通过；长表/Modal/Drawer实际鼠标拖动通过。
+- [OK] check:web通过；按20秒规范拆分测试后全量189文件1091测试通过12跳过，架构与重复函数复验通过，工作区干净。
+
+### Status
+
+[OK] **Completed**
