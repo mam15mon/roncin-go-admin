@@ -1021,3 +1021,25 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 118: 统一钉钉可选资料与告警规则
+<!-- trellis-session: v=2 fp=edab7e8276b9ae86 -->
+
+**Date**: 2026-10-10
+**Task**: 统一钉钉可选资料与告警规则
+**Branch**: `codex/dingtalk-optional-profile`
+
+### Summary
+
+邮箱手机头像缺键null空串正常同步并清空旧快照，保留API身份写入租约错误。两入口三字段24组合与6个独立PG用例通过，补验UserID/UnionID/Name空串空白拒绝且旧资料不变。全栈check:fast通过，真实开发27人更新15未变12失败0，人员资料非空数量及组织角色关系保持，页面默认头像无告警验收通过；已归档当前任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9462b60d` | fix: 统一钉钉可选资料空值与同步告警规则 |
+
+### Status
+
+[OK] **Completed**
