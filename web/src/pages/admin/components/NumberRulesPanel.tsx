@@ -19,13 +19,13 @@ import {
   Row,
   Space,
   Spin,
-  Table,
   Tag,
   Tooltip,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useEffect, useState } from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   masterDataServiceCreateNumberRule,

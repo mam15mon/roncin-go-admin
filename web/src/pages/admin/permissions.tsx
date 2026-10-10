@@ -1,8 +1,8 @@
 import { KeyOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import { Button, Space, Tag, Typography } from 'antd';
 import React, { useRef } from 'react';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { adminServiceListPermissions } from '@/services/roncin/adminService';
 import { toTableRequest } from '@/utils/api';

@@ -33,7 +33,8 @@ vi.mock('@ant-design/pro-components', () => ({
   ProFormText: () => null,
 }));
 
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', async () => ({
+  ResponsiveTable: (await import('antd')).Table,
   ProFormSearchableSelect: (props: Record<string, unknown>) => {
     searchableSelectState.set(String(props.name), props);
     return null;

@@ -12,12 +12,12 @@ import {
   Pagination,
   Space,
   Spin,
-  Table,
   Tag,
   Tooltip,
   Typography,
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { ResponsiveTable as Table } from '@/components/ui';
 import {
   adminServiceGetDingTalkDirectorySync,
   adminServiceGetLatestDingTalkDirectorySync,
@@ -274,7 +274,7 @@ export default function DingTalkDirectorySyncPanel({
                   columns={[
                     {
                       title: '人员',
-                      width: '28%',
+                      width: 220,
                       dataIndex: 'userName',
                       render: (_, row) =>
                         renderFailureCell(
@@ -296,7 +296,7 @@ export default function DingTalkDirectorySyncPanel({
                     },
                     {
                       title: '部门',
-                      width: '20%',
+                      width: 180,
                       dataIndex: 'departmentName',
                       render: (_, row) =>
                         renderFailureCell(
@@ -315,7 +315,7 @@ export default function DingTalkDirectorySyncPanel({
                           </>,
                         ),
                     },
-                    { title: '失败原因', dataIndex: 'message' },
+                    { title: '失败原因', dataIndex: 'message', width: 420 },
                   ]}
                 />
                 <Pagination

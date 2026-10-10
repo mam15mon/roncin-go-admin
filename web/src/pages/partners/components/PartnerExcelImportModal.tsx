@@ -10,7 +10,6 @@ import {
   Modal,
   Radio,
   Space,
-  Table,
   Tag,
   Typography,
   Upload,
@@ -18,6 +17,7 @@ import {
 import type { UploadFile } from 'antd/es/upload/interface';
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
+import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerImportMode, PartnerRoleType } from '@/enums.generated';
 import { partnerServiceImportPartners } from '@/services/roncin/partnerService';

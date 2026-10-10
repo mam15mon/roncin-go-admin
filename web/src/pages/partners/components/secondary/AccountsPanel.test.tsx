@@ -20,7 +20,7 @@ vi.mock('@ant-design/pro-components', () => ({
   ProTable: (props: any) => {
     useEffect(() => {
       void props.request?.({});
-    }, [props]);
+    }, [props.request]);
     return (
       <div>
         {props.headerTitle}

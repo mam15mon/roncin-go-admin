@@ -8,10 +8,10 @@ import {
   ModalForm,
   ProFormDigit,
   ProFormText,
-  ProTable,
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Space, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   partnerServiceListPartnerAttachments,

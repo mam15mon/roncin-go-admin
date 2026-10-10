@@ -21,7 +21,6 @@ import {
   ProFormSelect,
   ProFormSwitch,
   ProFormTextArea,
-  ProTable,
 } from '@ant-design/pro-components';
 import {
   App,
@@ -37,7 +36,10 @@ import React, { useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import * as XLSX from 'xlsx';
 import { useAccess } from '@/app/access';
-import { SearchFilterTemplate } from '@/components/ui';
+import {
+  ResponsiveProTable as ProTable,
+  SearchFilterTemplate,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerRoleType } from '@/enums.generated';
 import { history } from '@/router/history';
@@ -530,7 +532,7 @@ export default function Partners() {
           actionRef.current?.reload();
         }}
         extraRight={
-          <Space size={8}>
+          <Space size={8} wrap style={{ maxWidth: '100%' }}>
             <Button
               key="refresh"
               icon={<ReloadOutlined />}
@@ -573,7 +575,7 @@ export default function Partners() {
       <ProTable<API.Partner>
         key={location.pathname}
         headerTitle={
-          <Space size={8}>
+          <Space size={8} wrap style={{ maxWidth: '100%' }}>
             <ContactsOutlined style={{ color: '#1677ff' }} />
             <span>{currentView.title}档案列表</span>
             <Segmented
@@ -603,7 +605,6 @@ export default function Partners() {
           },
         }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
-        scroll={{ x: 1480 }}
         request={async (params) => {
           const response = await partnerServiceListPartners({
             page: params.current,

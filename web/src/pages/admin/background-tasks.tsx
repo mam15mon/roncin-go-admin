@@ -8,7 +8,6 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
 import {
   App,
   Button,
@@ -22,6 +21,7 @@ import {
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   backgroundTaskStatusMeta,

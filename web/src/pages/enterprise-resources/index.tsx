@@ -7,7 +7,7 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { PageContainer, ProTable } from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 import type { UploadFile } from 'antd';
 import { App, Button, Form, Popconfirm, Tabs, Tag } from 'antd';
 import React, {
@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAccess } from '@/app/access';
+import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { history } from '@/router/history';
 import {
@@ -723,7 +724,6 @@ const EnterpriseResourcesPage: React.FC = () => {
           return toTableRequest(response);
         }}
         pagination={{ defaultPageSize: 20, showSizeChanger: true }}
-        scroll={{ x: 1100 }}
         options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [
           columnSettings.entry,
