@@ -999,3 +999,25 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 117: 钉钉同步反馈与待分配列表优化验收
+<!-- trellis-session: v=2 fp=9a0fff58618d6598 -->
+
+**Date**: 2026-10-10
+**Task**: 钉钉同步反馈与待分配列表优化验收
+**Branch**: `codex/dingtalk-sync-feedback`
+
+### Summary
+
+完成可选邮箱缺失正常同步并清空旧值、失败姓名部门贯通展示、待分配隐藏系统组织列。全栈check:fast通过，前端1078用例通过，独立PostgreSQL与相邻钉钉回归实际执行通过，生成幂等通过。真实开发同步27人、更新2、未变化25、失败0，实际页面验收通过；任务已归档，未合并或推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dc4f62fc` | fix: 优化钉钉邮箱同步反馈与待分配人员列表 |
+
+### Status
+
+[OK] **Completed**

@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 116
-- **Last Active**: 2026-10-09
+- **Total Sessions**: 117
+- **Last Active**: 2026-10-10
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1001 | Active |
+| `journal-2.md` | ~1023 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 117 | 2026-10-10 | 钉钉同步反馈与待分配列表优化验收 | `dc4f62fc` | `codex/dingtalk-sync-feedback` |
 | 116 | 2026-10-09 | 企业微信前后端下线与开发库迁移验收 | `45b900ff` | `codex/retire-wecom` |
 | 115 | 2026-10-09 | 钉钉同步实际联调与合并收尾 | `d50cf1c8`, `e4f64254` | `codex/dingtalk-directory-provisioning` |
 | 114 | 2026-10-09 | 钉钉人员同步与管理员开通实施 | `0fe1fa99`, `2aa9762e` | `codex/dingtalk-directory-provisioning` |
