@@ -101,22 +101,15 @@ jsdom 和 CSS 字符串断言不能证明列可达或滚动条可操作。
 
 ## 表格列设置（全站统一）
 
-- **唯一入口**：所有表格（ProTable、EditableProTable、普通 Table、抽屉/弹窗/嵌套表、
-  导入预览）的列设置一律经 `@/components/ui/column-settings` 的 `useColumnSettings`
-  接入；ProTable 原生 `options.setting` 必须关闭（`setting: false`），同一表格只保留
-  一个齿轮图标「列设置」入口。无工具栏的表格把入口放表格上方右侧。
-- **两种容量**：标准版覆盖普通列表；财务费用台账等宽表在 `advanced` 插槽承载
-  分页/默认排序/行配色等高级设置（见 `finance-ledger-template/TableColumnConfigModal`）。
-- **交互契约**：草稿式编辑（取消/关闭丢弃），「恢复默认」只重置草稿、保存后生效；
-  搜索只筛选列表，搜索中禁用排序；必显列与「至少保留一列」由组件强制；
-  保存失败保留弹窗草稿并明确报错，不得声称已持久化。
-- **偏好存储**：本地偏好 key 为 `roncin:column-settings:v1:<表格标识>:<用户>:<组织>`；
-  表格标识按业务视图命名（如 `orders:list`、`finance:bills`），禁止包含实体 ID，
-  同一业务视图跨实体复用。财务费用台账继续使用服务端偏好，订单费用沿用其既有
-  本地存储键。
-- **列元数据**：稳定 key 取列的 `key ?? dataIndex`；两者皆缺或 `hideInTable` 的列
-  视为结构列（操作/选择等），始终渲染且不进设置；ReactNode 标题需用
-  `titleOverrides` 提供纯文本名，不得把 render 结果当设置名称。
+具体类型、首尾计算、身份隔离、错误矩阵与验证见 [列设置契约](./column-settings.md)。
+
+- 所有表格经 `useColumnSettings`/`ColumnSettingsEntry` 接入唯一齿轮入口，原生
+  `options.setting` 关闭；显隐、排序、首尾冻结与恢复默认即时生效、自动持久化。
+- 首尾按实际可见顺序计算，选择/展开/序号不是首个业务目标，操作列保持必显；
+  普通列不再按原fixed区域限制排序。缺省偏好消费真实用户/组织，同一身份跨实体复用。
+- 订单费用专有存储复用公共冻结能力，应收/应付共享；Responsive窄屏临时解冻不回写
+  偏好，Pro/Editable适配官方列状态与逻辑固定位置，保留业务请求和编辑状态。
+- `advanced` 承载财务宽表高级内容，经「更多设置」二级弹窗打开，由内容自行维护状态。
 
 ## 侧边栏
 

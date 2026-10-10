@@ -1,0 +1,59 @@
+{
+  "results": [
+    {
+      "kind": "开关键盘交互",
+      "passed": true
+    },
+    {
+      "kind": "真实公共Hook账号组织上下文切换",
+      "passed": true
+    },
+    {
+      "kind": "plain",
+      "client": 898,
+      "content": 1168,
+      "moved": 270,
+      "fixed": [
+        "名称",
+        "操作"
+      ],
+      "lastReachable": true,
+      "pageWidth": 1200,
+      "viewport": 1200
+    },
+    {
+      "kind": "modal",
+      "client": 448,
+      "content": 1168,
+      "moved": 720,
+      "fixed": [],
+      "lastReachable": true,
+      "pageWidth": 1200,
+      "viewport": 1200
+    },
+    {
+      "kind": "drawer",
+      "client": 448,
+      "content": 1168,
+      "moved": 720,
+      "fixed": [],
+      "lastReachable": true,
+      "pageWidth": 1200,
+      "viewport": 1200
+    },
+    {
+      "kind": "弹层回到宽表恢复冻结",
+      "client": 898,
+      "content": 1168,
+      "moved": 270,
+      "fixed": [
+        "名称",
+        "操作"
+      ],
+      "lastReachable": true,
+      "pageWidth": 1200,
+      "viewport": 1200
+    }
+  ],
+  "errors": []
+}

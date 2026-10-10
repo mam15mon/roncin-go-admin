@@ -1,0 +1,2800 @@
+{
+  "results": [
+    {
+      "kind": "用户表开关",
+      "first": false,
+      "last": false,
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": false,
+          "left": 1776,
+          "right": 2006
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": -357,
+          "right": -309
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -309,
+          "right": -89
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": false,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "用户表开关",
+      "first": true,
+      "last": false,
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "用户",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": false,
+          "left": 1776,
+          "right": 2006
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "用户",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": false,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "用户表开关",
+      "first": false,
+      "last": true,
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": -357,
+          "right": -309
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -309,
+          "right": -89
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "用户表开关",
+      "first": true,
+      "last": true,
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "用户",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "用户",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "隐藏首列跟随",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1528,
+      "moved": 395,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 526,
+          "right": 726
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 726,
+          "right": 866
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 866,
+          "right": 1026
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1026,
+          "right": 1266
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1266,
+          "right": 1386
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1386,
+          "right": 1556
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "排序首列跟随",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "刷新保留",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "窄宽冻结恢复",
+      "viewport": 390,
+      "pageWidth": 390,
+      "client": 299,
+      "content": 1748,
+      "moved": 1449,
+      "initial": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": 46,
+          "right": 94
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": 94,
+          "right": 314
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 314,
+          "right": 534
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 534,
+          "right": 734
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 734,
+          "right": 874
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 874,
+          "right": 1034
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1034,
+          "right": 1274
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1274,
+          "right": 1394
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1394,
+          "right": 1564
+        },
+        {
+          "title": "操作",
+          "sticky": false,
+          "left": 1564,
+          "right": 1794
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": -1403,
+          "right": -1355
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": -1355,
+          "right": -1135
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -1135,
+          "right": -915
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": -915,
+          "right": -715
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": -715,
+          "right": -575
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": -575,
+          "right": -415
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": -415,
+          "right": -175
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": -175,
+          "right": -55
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": -55,
+          "right": 115
+        },
+        {
+          "title": "操作",
+          "sticky": false,
+          "left": 115,
+          "right": 345
+        }
+      ],
+      "bounds": {
+        "left": 46,
+        "right": 345
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "窄宽冻结恢复",
+      "viewport": 962,
+      "pageWidth": 962,
+      "client": 815,
+      "content": 1748,
+      "moved": 933,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 98,
+          "right": 146
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 146,
+          "right": 366
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 366,
+          "right": 586
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 586,
+          "right": 786
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 786,
+          "right": 926
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 926,
+          "right": 1086
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1086,
+          "right": 1326
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1326,
+          "right": 1446
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1446,
+          "right": 1616
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 683,
+          "right": 913
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 98,
+          "right": 146
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 146,
+          "right": 366
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -567,
+          "right": -347
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": -347,
+          "right": -147
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": -147,
+          "right": -7
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": -7,
+          "right": 153
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 153,
+          "right": 393
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 393,
+          "right": 513
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 513,
+          "right": 683
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 683,
+          "right": 913
+        }
+      ],
+      "bounds": {
+        "left": 98,
+        "right": 913
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "窄宽冻结恢复",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "窄宽冻结恢复",
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "client": 1613,
+      "content": 1748,
+      "moved": 135,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1641,
+          "right": 1871
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": true,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 391,
+          "right": 611
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 611,
+          "right": 811
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 811,
+          "right": 951
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 951,
+          "right": 1111
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1111,
+          "right": 1351
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1351,
+          "right": 1471
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1471,
+          "right": 1641
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1641,
+          "right": 1871
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1871
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "恢复默认",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1133,
+      "content": 1748,
+      "moved": 615,
+      "initial": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": 258,
+          "right": 306
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": 306,
+          "right": 526
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": 526,
+          "right": 746
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 746,
+          "right": 946
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 946,
+          "right": 1086
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 1086,
+          "right": 1246
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 1246,
+          "right": 1486
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 1486,
+          "right": 1606
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 1606,
+          "right": 1776
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": false,
+          "left": -357,
+          "right": -309
+        },
+        {
+          "title": "用户",
+          "sticky": false,
+          "left": -309,
+          "right": -89
+        },
+        {
+          "title": "邮箱地址",
+          "sticky": false,
+          "left": -89,
+          "right": 131
+        },
+        {
+          "title": "钉钉部门",
+          "sticky": false,
+          "left": 131,
+          "right": 331
+        },
+        {
+          "title": "联系方式",
+          "sticky": false,
+          "left": 331,
+          "right": 471
+        },
+        {
+          "title": "资料同步时间",
+          "sticky": false,
+          "left": 471,
+          "right": 631
+        },
+        {
+          "title": "已分配角色",
+          "sticky": false,
+          "left": 631,
+          "right": 871
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 871,
+          "right": 991
+        },
+        {
+          "title": "更新时间",
+          "sticky": false,
+          "left": 991,
+          "right": 1161
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1161,
+          "right": 1391
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1391
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "真实组织切换隔离",
+      "passed": true
+    },
+    {
+      "kind": "相邻页面冻结",
+      "path": "/finance/cashflows",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1132,
+      "content": 2314,
+      "moved": 1182,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 290
+        },
+        {
+          "title": "所属公司",
+          "sticky": false,
+          "left": 322,
+          "right": 533
+        },
+        {
+          "title": "序号",
+          "sticky": true,
+          "left": 501,
+          "right": 556
+        },
+        {
+          "title": "方向",
+          "sticky": false,
+          "left": 556,
+          "right": 631
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": 631,
+          "right": 716
+        },
+        {
+          "title": "流水编号",
+          "sticky": false,
+          "left": 716,
+          "right": 886
+        },
+        {
+          "title": "结算单位",
+          "sticky": false,
+          "left": 886,
+          "right": 1106
+        },
+        {
+          "title": "金额",
+          "sticky": false,
+          "left": 1106,
+          "right": 1246
+        },
+        {
+          "title": "结算汇率",
+          "sticky": false,
+          "left": 1246,
+          "right": 1386
+        },
+        {
+          "title": "折本币",
+          "sticky": false,
+          "left": 1386,
+          "right": 1526
+        },
+        {
+          "title": "已核销",
+          "sticky": false,
+          "left": 1526,
+          "right": 1661
+        },
+        {
+          "title": "未核销",
+          "sticky": false,
+          "left": 1661,
+          "right": 1796
+        },
+        {
+          "title": "交易日期",
+          "sticky": false,
+          "left": 1796,
+          "right": 1906
+        },
+        {
+          "title": "我方账户",
+          "sticky": false,
+          "left": 1906,
+          "right": 2177.0625
+        },
+        {
+          "title": "支付方式",
+          "sticky": false,
+          "left": 2177.0625,
+          "right": 2272.0625
+        },
+        {
+          "title": "银行水单号",
+          "sticky": false,
+          "left": 2272.0625,
+          "right": 2422.0625
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1240,
+          "right": 1390
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 258,
+          "right": 290
+        },
+        {
+          "title": "所属公司",
+          "sticky": false,
+          "left": -860,
+          "right": -649
+        },
+        {
+          "title": "序号",
+          "sticky": true,
+          "left": 501,
+          "right": 556
+        },
+        {
+          "title": "方向",
+          "sticky": false,
+          "left": -626,
+          "right": -551
+        },
+        {
+          "title": "状态",
+          "sticky": false,
+          "left": -551,
+          "right": -466
+        },
+        {
+          "title": "流水编号",
+          "sticky": false,
+          "left": -466,
+          "right": -296
+        },
+        {
+          "title": "结算单位",
+          "sticky": false,
+          "left": -296,
+          "right": -76
+        },
+        {
+          "title": "金额",
+          "sticky": false,
+          "left": -76,
+          "right": 64
+        },
+        {
+          "title": "结算汇率",
+          "sticky": false,
+          "left": 64,
+          "right": 204
+        },
+        {
+          "title": "折本币",
+          "sticky": false,
+          "left": 204,
+          "right": 344
+        },
+        {
+          "title": "已核销",
+          "sticky": false,
+          "left": 344,
+          "right": 479
+        },
+        {
+          "title": "未核销",
+          "sticky": false,
+          "left": 479,
+          "right": 614
+        },
+        {
+          "title": "交易日期",
+          "sticky": false,
+          "left": 614,
+          "right": 724
+        },
+        {
+          "title": "我方账户",
+          "sticky": false,
+          "left": 724,
+          "right": 995.0625
+        },
+        {
+          "title": "支付方式",
+          "sticky": false,
+          "left": 995.0625,
+          "right": 1090.0625
+        },
+        {
+          "title": "银行水单号",
+          "sticky": false,
+          "left": 1090.0625,
+          "right": 1240.0625
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1240,
+          "right": 1390
+        }
+      ],
+      "bounds": {
+        "left": 258,
+        "right": 1390
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "相邻页面冻结",
+      "path": "/orders/sea-export",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1100,
+      "content": 4622,
+      "moved": 3522,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 274,
+          "right": 306
+        },
+        {
+          "title": "序号",
+          "sticky": true,
+          "left": 306,
+          "right": 356
+        },
+        {
+          "title": "进程",
+          "sticky": true,
+          "left": 356,
+          "right": 446
+        },
+        {
+          "title": "订单编号",
+          "sticky": false,
+          "left": 446,
+          "right": 596
+        },
+        {
+          "title": "业务类型",
+          "sticky": false,
+          "left": 596,
+          "right": 696
+        },
+        {
+          "title": "委托单位",
+          "sticky": false,
+          "left": 696,
+          "right": 876
+        },
+        {
+          "title": "客户业务编号",
+          "sticky": false,
+          "left": 876,
+          "right": 1006
+        },
+        {
+          "title": "标签",
+          "sticky": false,
+          "left": 1006,
+          "right": 1156
+        },
+        {
+          "title": "创建时间",
+          "sticky": false,
+          "left": 1156,
+          "right": 1296
+        },
+        {
+          "title": "订舱代理",
+          "sticky": false,
+          "left": 1296,
+          "right": 1426
+        },
+        {
+          "title": "主单号",
+          "sticky": false,
+          "left": 1426,
+          "right": 1566
+        },
+        {
+          "title": "船名航次",
+          "sticky": false,
+          "left": 1566,
+          "right": 1706
+        },
+        {
+          "title": "起运港",
+          "sticky": false,
+          "left": 1706,
+          "right": 1836
+        },
+        {
+          "title": "目的港",
+          "sticky": false,
+          "left": 1836,
+          "right": 1966
+        },
+        {
+          "title": "目的地",
+          "sticky": false,
+          "left": 1966,
+          "right": 2086
+        },
+        {
+          "title": "箱型箱量",
+          "sticky": false,
+          "left": 2086,
+          "right": 2216
+        },
+        {
+          "title": "箱号",
+          "sticky": false,
+          "left": 2216,
+          "right": 2356
+        },
+        {
+          "title": "提成",
+          "sticky": false,
+          "left": 2356,
+          "right": 2576
+        },
+        {
+          "title": "操作人员",
+          "sticky": false,
+          "left": 2576,
+          "right": 2706
+        },
+        {
+          "title": "业务人员",
+          "sticky": false,
+          "left": 2706,
+          "right": 2836
+        },
+        {
+          "title": "创建人",
+          "sticky": false,
+          "left": 2836,
+          "right": 2956
+        },
+        {
+          "title": "委托总件数",
+          "sticky": false,
+          "left": 2956,
+          "right": 3066
+        },
+        {
+          "title": "委托总毛重(KGS)",
+          "sticky": false,
+          "left": 3066,
+          "right": 3196
+        },
+        {
+          "title": "委托总体积(CBM)",
+          "sticky": false,
+          "left": 3196,
+          "right": 3326
+        },
+        {
+          "title": "付款方式",
+          "sticky": false,
+          "left": 3326,
+          "right": 3456
+        },
+        {
+          "title": "贸易条款",
+          "sticky": false,
+          "left": 3456,
+          "right": 3556
+        },
+        {
+          "title": "合约号",
+          "sticky": false,
+          "left": 3556,
+          "right": 3676
+        },
+        {
+          "title": "收货人简称",
+          "sticky": false,
+          "left": 3676,
+          "right": 3806
+        },
+        {
+          "title": "发货人简称",
+          "sticky": false,
+          "left": 3806,
+          "right": 3936
+        },
+        {
+          "title": "配舱备注",
+          "sticky": false,
+          "left": 3936,
+          "right": 4066
+        },
+        {
+          "title": "订舱备注",
+          "sticky": false,
+          "left": 4066,
+          "right": 4196
+        },
+        {
+          "title": "操作备注",
+          "sticky": false,
+          "left": 4196,
+          "right": 4326
+        },
+        {
+          "title": "附件",
+          "sticky": false,
+          "left": 4326,
+          "right": 4396
+        },
+        {
+          "title": "订单锁定时间",
+          "sticky": false,
+          "left": 4396,
+          "right": 4536
+        },
+        {
+          "title": "订单状态",
+          "sticky": false,
+          "left": 4536,
+          "right": 4636
+        },
+        {
+          "title": "异常",
+          "sticky": false,
+          "left": 4636,
+          "right": 4716
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1194,
+          "right": 1374
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 274,
+          "right": 306
+        },
+        {
+          "title": "序号",
+          "sticky": true,
+          "left": 306,
+          "right": 356
+        },
+        {
+          "title": "进程",
+          "sticky": true,
+          "left": 356,
+          "right": 446
+        },
+        {
+          "title": "订单编号",
+          "sticky": false,
+          "left": -3076,
+          "right": -2926
+        },
+        {
+          "title": "业务类型",
+          "sticky": false,
+          "left": -2926,
+          "right": -2826
+        },
+        {
+          "title": "委托单位",
+          "sticky": false,
+          "left": -2826,
+          "right": -2646
+        },
+        {
+          "title": "客户业务编号",
+          "sticky": false,
+          "left": -2646,
+          "right": -2516
+        },
+        {
+          "title": "标签",
+          "sticky": false,
+          "left": -2516,
+          "right": -2366
+        },
+        {
+          "title": "创建时间",
+          "sticky": false,
+          "left": -2366,
+          "right": -2226
+        },
+        {
+          "title": "订舱代理",
+          "sticky": false,
+          "left": -2226,
+          "right": -2096
+        },
+        {
+          "title": "主单号",
+          "sticky": false,
+          "left": -2096,
+          "right": -1956
+        },
+        {
+          "title": "船名航次",
+          "sticky": false,
+          "left": -1956,
+          "right": -1816
+        },
+        {
+          "title": "起运港",
+          "sticky": false,
+          "left": -1816,
+          "right": -1686
+        },
+        {
+          "title": "目的港",
+          "sticky": false,
+          "left": -1686,
+          "right": -1556
+        },
+        {
+          "title": "目的地",
+          "sticky": false,
+          "left": -1556,
+          "right": -1436
+        },
+        {
+          "title": "箱型箱量",
+          "sticky": false,
+          "left": -1436,
+          "right": -1306
+        },
+        {
+          "title": "箱号",
+          "sticky": false,
+          "left": -1306,
+          "right": -1166
+        },
+        {
+          "title": "提成",
+          "sticky": false,
+          "left": -1166,
+          "right": -946
+        },
+        {
+          "title": "操作人员",
+          "sticky": false,
+          "left": -946,
+          "right": -816
+        },
+        {
+          "title": "业务人员",
+          "sticky": false,
+          "left": -816,
+          "right": -686
+        },
+        {
+          "title": "创建人",
+          "sticky": false,
+          "left": -686,
+          "right": -566
+        },
+        {
+          "title": "委托总件数",
+          "sticky": false,
+          "left": -566,
+          "right": -456
+        },
+        {
+          "title": "委托总毛重(KGS)",
+          "sticky": false,
+          "left": -456,
+          "right": -326
+        },
+        {
+          "title": "委托总体积(CBM)",
+          "sticky": false,
+          "left": -326,
+          "right": -196
+        },
+        {
+          "title": "付款方式",
+          "sticky": false,
+          "left": -196,
+          "right": -66
+        },
+        {
+          "title": "贸易条款",
+          "sticky": false,
+          "left": -66,
+          "right": 34
+        },
+        {
+          "title": "合约号",
+          "sticky": false,
+          "left": 34,
+          "right": 154
+        },
+        {
+          "title": "收货人简称",
+          "sticky": false,
+          "left": 154,
+          "right": 284
+        },
+        {
+          "title": "发货人简称",
+          "sticky": false,
+          "left": 284,
+          "right": 414
+        },
+        {
+          "title": "配舱备注",
+          "sticky": false,
+          "left": 414,
+          "right": 544
+        },
+        {
+          "title": "订舱备注",
+          "sticky": false,
+          "left": 544,
+          "right": 674
+        },
+        {
+          "title": "操作备注",
+          "sticky": false,
+          "left": 674,
+          "right": 804
+        },
+        {
+          "title": "附件",
+          "sticky": false,
+          "left": 804,
+          "right": 874
+        },
+        {
+          "title": "订单锁定时间",
+          "sticky": false,
+          "left": 874,
+          "right": 1014
+        },
+        {
+          "title": "订单状态",
+          "sticky": false,
+          "left": 1014,
+          "right": 1114
+        },
+        {
+          "title": "异常",
+          "sticky": false,
+          "left": 1114,
+          "right": 1194
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1194,
+          "right": 1374
+        }
+      ],
+      "bounds": {
+        "left": 274,
+        "right": 1374
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "相邻页面冻结",
+      "path": "/orders/sea-export/:id/fees",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1147,
+      "content": 2180,
+      "moved": 1033,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 251,
+          "right": 299
+        },
+        {
+          "title": "费用代码",
+          "sticky": true,
+          "left": 299,
+          "right": 399
+        },
+        {
+          "title": "费用名称",
+          "sticky": false,
+          "left": 399,
+          "right": 579
+        },
+        {
+          "title": "结算单位",
+          "sticky": false,
+          "left": 579,
+          "right": 816.609375
+        },
+        {
+          "title": "币种",
+          "sticky": false,
+          "left": 816.609375,
+          "right": 906.609375
+        },
+        {
+          "title": "单价",
+          "sticky": false,
+          "left": 906.609375,
+          "right": 1016.609375
+        },
+        {
+          "title": "不含税单价",
+          "sticky": false,
+          "left": 1016.609375,
+          "right": 1126.609375
+        },
+        {
+          "title": "数量",
+          "sticky": false,
+          "left": 1126.609375,
+          "right": 1216.609375
+        },
+        {
+          "title": "计费单位",
+          "sticky": false,
+          "left": 1216.609375,
+          "right": 1316.609375
+        },
+        {
+          "title": "总金额",
+          "sticky": false,
+          "left": 1316.609375,
+          "right": 1436.609375
+        },
+        {
+          "title": "汇率",
+          "sticky": false,
+          "left": 1436.609375,
+          "right": 1556.609375
+        },
+        {
+          "title": "发生日期",
+          "sticky": false,
+          "left": 1556.609375,
+          "right": 1706.609375
+        },
+        {
+          "title": "备注",
+          "sticky": false,
+          "left": 1706.609375,
+          "right": 1846.609375
+        },
+        {
+          "title": "税率(%)",
+          "sticky": false,
+          "left": 1846.609375,
+          "right": 1946.609375
+        },
+        {
+          "title": "税金",
+          "sticky": false,
+          "left": 1946.609375,
+          "right": 2046.609375
+        },
+        {
+          "title": "不含税总额",
+          "sticky": false,
+          "left": 2046.609375,
+          "right": 2156.609375
+        },
+        {
+          "title": "折本币金额",
+          "sticky": false,
+          "left": 2156.609375,
+          "right": 2296.609375
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1264,
+          "right": 1398
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 251,
+          "right": 299
+        },
+        {
+          "title": "费用代码",
+          "sticky": true,
+          "left": 299,
+          "right": 399
+        },
+        {
+          "title": "费用名称",
+          "sticky": false,
+          "left": -634,
+          "right": -454
+        },
+        {
+          "title": "结算单位",
+          "sticky": false,
+          "left": -454,
+          "right": -216.390625
+        },
+        {
+          "title": "币种",
+          "sticky": false,
+          "left": -216.390625,
+          "right": -126.390625
+        },
+        {
+          "title": "单价",
+          "sticky": false,
+          "left": -126.390625,
+          "right": -16.390625
+        },
+        {
+          "title": "不含税单价",
+          "sticky": false,
+          "left": -16.390625,
+          "right": 93.609375
+        },
+        {
+          "title": "数量",
+          "sticky": false,
+          "left": 93.609375,
+          "right": 183.609375
+        },
+        {
+          "title": "计费单位",
+          "sticky": false,
+          "left": 183.609375,
+          "right": 283.609375
+        },
+        {
+          "title": "总金额",
+          "sticky": false,
+          "left": 283.609375,
+          "right": 403.609375
+        },
+        {
+          "title": "汇率",
+          "sticky": false,
+          "left": 403.609375,
+          "right": 523.609375
+        },
+        {
+          "title": "发生日期",
+          "sticky": false,
+          "left": 523.609375,
+          "right": 673.609375
+        },
+        {
+          "title": "备注",
+          "sticky": false,
+          "left": 673.609375,
+          "right": 813.609375
+        },
+        {
+          "title": "税率(%)",
+          "sticky": false,
+          "left": 813.609375,
+          "right": 913.609375
+        },
+        {
+          "title": "税金",
+          "sticky": false,
+          "left": 913.609375,
+          "right": 1013.609375
+        },
+        {
+          "title": "不含税总额",
+          "sticky": false,
+          "left": 1013.609375,
+          "right": 1123.609375
+        },
+        {
+          "title": "折本币金额",
+          "sticky": false,
+          "left": 1123.609375,
+          "right": 1263.609375
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1263.609375,
+          "right": 1397.609375
+        }
+      ],
+      "bounds": {
+        "left": 251,
+        "right": 1398
+      },
+      "overflow": "auto"
+    },
+    {
+      "kind": "费用应收应付共享",
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "client": 1147,
+      "content": 2154,
+      "moved": 1007,
+      "initial": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 251,
+          "right": 299
+        },
+        {
+          "title": "费用代码",
+          "sticky": true,
+          "left": 299,
+          "right": 399
+        },
+        {
+          "title": "费用名称",
+          "sticky": false,
+          "left": 399,
+          "right": 579
+        },
+        {
+          "title": "结算单位",
+          "sticky": false,
+          "left": 579,
+          "right": 791
+        },
+        {
+          "title": "币种",
+          "sticky": false,
+          "left": 791,
+          "right": 881
+        },
+        {
+          "title": "单价",
+          "sticky": false,
+          "left": 881,
+          "right": 991
+        },
+        {
+          "title": "不含税单价",
+          "sticky": false,
+          "left": 991,
+          "right": 1101
+        },
+        {
+          "title": "数量",
+          "sticky": false,
+          "left": 1101,
+          "right": 1191
+        },
+        {
+          "title": "计费单位",
+          "sticky": false,
+          "left": 1191,
+          "right": 1291
+        },
+        {
+          "title": "总金额",
+          "sticky": false,
+          "left": 1291,
+          "right": 1411
+        },
+        {
+          "title": "汇率",
+          "sticky": false,
+          "left": 1411,
+          "right": 1531
+        },
+        {
+          "title": "发生日期",
+          "sticky": false,
+          "left": 1531,
+          "right": 1681
+        },
+        {
+          "title": "备注",
+          "sticky": false,
+          "left": 1681,
+          "right": 1821
+        },
+        {
+          "title": "税率(%)",
+          "sticky": false,
+          "left": 1821,
+          "right": 1921
+        },
+        {
+          "title": "税金",
+          "sticky": false,
+          "left": 1921,
+          "right": 2021
+        },
+        {
+          "title": "不含税总额",
+          "sticky": false,
+          "left": 2021,
+          "right": 2131
+        },
+        {
+          "title": "折本币金额",
+          "sticky": false,
+          "left": 2131,
+          "right": 2271
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1264,
+          "right": 1398
+        }
+      ],
+      "end": [
+        {
+          "title": "",
+          "sticky": true,
+          "left": 251,
+          "right": 299
+        },
+        {
+          "title": "费用代码",
+          "sticky": true,
+          "left": 299,
+          "right": 399
+        },
+        {
+          "title": "费用名称",
+          "sticky": false,
+          "left": -608,
+          "right": -428
+        },
+        {
+          "title": "结算单位",
+          "sticky": false,
+          "left": -428,
+          "right": -216
+        },
+        {
+          "title": "币种",
+          "sticky": false,
+          "left": -216,
+          "right": -126
+        },
+        {
+          "title": "单价",
+          "sticky": false,
+          "left": -126,
+          "right": -16
+        },
+        {
+          "title": "不含税单价",
+          "sticky": false,
+          "left": -16,
+          "right": 94
+        },
+        {
+          "title": "数量",
+          "sticky": false,
+          "left": 94,
+          "right": 184
+        },
+        {
+          "title": "计费单位",
+          "sticky": false,
+          "left": 184,
+          "right": 284
+        },
+        {
+          "title": "总金额",
+          "sticky": false,
+          "left": 284,
+          "right": 404
+        },
+        {
+          "title": "汇率",
+          "sticky": false,
+          "left": 404,
+          "right": 524
+        },
+        {
+          "title": "发生日期",
+          "sticky": false,
+          "left": 524,
+          "right": 674
+        },
+        {
+          "title": "备注",
+          "sticky": false,
+          "left": 674,
+          "right": 814
+        },
+        {
+          "title": "税率(%)",
+          "sticky": false,
+          "left": 814,
+          "right": 914
+        },
+        {
+          "title": "税金",
+          "sticky": false,
+          "left": 914,
+          "right": 1014
+        },
+        {
+          "title": "不含税总额",
+          "sticky": false,
+          "left": 1014,
+          "right": 1124
+        },
+        {
+          "title": "折本币金额",
+          "sticky": false,
+          "left": 1124,
+          "right": 1264
+        },
+        {
+          "title": "操作",
+          "sticky": true,
+          "left": 1264,
+          "right": 1398
+        }
+      ],
+      "bounds": {
+        "left": 251,
+        "right": 1398
+      },
+      "overflow": "auto"
+    }
+  ],
+  "errors": []
+}

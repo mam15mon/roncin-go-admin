@@ -42,4 +42,4 @@ AC5：实现后定向测试、Biome/antd lint/tsc及最终check:web通过；重�
 
 ## 规划状态
 
-复杂任务，研究与方案齐备，首尾冻结版本等待最新最终摘要后用户明确批准再start/实施。分支codex/column-fixed-preferences基于已完成codex/table-responsive-scroll，依赖记录在设计/计划与base_branch中。
+复杂任务，首尾冻结最终摘要已获用户明确批准；实施、独立复核、真实浏览器验收及最终前端门禁已完成。分支codex/column-fixed-preferences基于已完成codex/table-responsive-scroll，依赖记录在设计/计划与base_branch中。

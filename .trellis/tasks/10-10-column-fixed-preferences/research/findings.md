@@ -1,4 +1,4 @@
-# 代码与任务研究
+# 规划阶段代码与任务研究
 
 公共types/preference只有order/hidden；Panel按业务fixed分区且仅区内排序；Hook解析key/dataIndex、排除结构列，再应用显隐/顺序。本期按用户明确方向增加表格级首尾冻结开关，首尾要在可见列排序后实际应用，普通列拖动不再受原fixed分区限制。
 
