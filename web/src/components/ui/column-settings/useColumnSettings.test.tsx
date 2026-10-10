@@ -87,7 +87,8 @@ describe('useColumnSettings', () => {
       'roncin:column-settings:v1:test:demo:u1:o1',
     );
     expect(JSON.parse(stored as string)).toEqual({
-      order: ['code', 'customer', 'note', 'option'],
+      order: ['code', 'customer', 'note'],
+      freeze: { first: false, last: true },
       hidden: ['customer'],
     });
     storageSpy.mockRestore();
@@ -105,7 +106,8 @@ describe('useColumnSettings', () => {
         ) as string,
       ),
     ).toEqual({
-      order: ['customer', 'code', 'note', 'option'],
+      order: ['customer', 'code', 'note'],
+      freeze: { first: false, last: true },
       hidden: [],
     });
   });
@@ -196,7 +198,8 @@ describe('useColumnSettings', () => {
         ) as string,
       ),
     ).toEqual({
-      order: ['code', 'customer', 'note', 'option'],
+      order: ['code', 'customer', 'note'],
+      freeze: { first: false, last: true },
       hidden: [],
     });
     clearColumnSettingsPreference('test:clear', SCOPE);

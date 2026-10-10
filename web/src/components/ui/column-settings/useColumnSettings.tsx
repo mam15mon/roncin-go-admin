@@ -1,6 +1,12 @@
 import { App } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useMemo, useRef, useState } from 'react';
+import { appInitialStateContext } from '@/app/initialStateContext';
 import { ColumnSettingsEntry } from './ColumnSettingsEntry';
+import {
+  applyColumnFreeze,
+  deriveColumnFreezeDefaults,
+  getColumnFreezeTargets,
+} from './freeze';
 import {
   defaultColumnSettingsValue,
   loadColumnSettingsPreference,
@@ -9,6 +15,7 @@ import {
 } from './preference';
 import type {
   ColumnSettingsField,
+  ColumnSettingsPreference,
   ColumnSettingsScope,
   ColumnSettingsValue,
 } from './types';
@@ -19,6 +26,7 @@ interface ColumnLike {
   dataIndex?: string | string[];
   title?: React.ReactNode;
   fixed?: 'left' | 'right' | boolean;
+  valueType?: unknown;
   hideInTable?: boolean;
 }
 
@@ -27,7 +35,7 @@ export interface UseColumnSettingsOptions {
   tableKey: string;
   /** 基准列定义（应用显隐排序前）。 */
   columns: unknown[];
-  /** 偏好隔离范围（用户 + 组织）；缺省时同浏览器共享。 */
+  /** 偏好隔离范围（用户 + 组织）；缺省时读取当前认证上下文。 */
   scope?: ColumnSettingsScope;
   /** 结构列 key（选择、展开、操作等）：始终渲染，不进入设置列表。 */
   structuralKeys?: string[];
@@ -79,6 +87,25 @@ function columnTitle(column: ColumnLike): string {
   return '';
 }
 
+/** 沿用公共模板的稳定结构标识与 ProTable 官方类型，不根据列名猜测。 */
+function isStructuralColumn(
+  column: ColumnLike,
+  key: string | null,
+  structural: Set<string>,
+): boolean {
+  return (
+    !key ||
+    structural.has(key) ||
+    column.hideInTable === true ||
+    column.valueType === 'option' ||
+    column.valueType === 'index' ||
+    column.valueType === 'indexBorder' ||
+    key === 'index' ||
+    key === 'action' ||
+    key === 'option'
+  );
+}
+
 /** 派生设置元数据：可命名、可隐藏的普通列进入设置，其余按结构列处理。 */
 function deriveFields(
   columns: unknown[],
@@ -94,7 +121,7 @@ function deriveFields(
   columns.forEach((raw, index) => {
     const column = raw as ColumnLike;
     const key = columnKeyOf(column, index);
-    if (!key || structural.has(key) || column.hideInTable) return;
+    if (isStructuralColumn(column, key, structural) || !key) return;
     const title = overrides[key] ?? columnTitle(column);
     if (!title) return;
     fields.push({
@@ -109,7 +136,7 @@ function deriveFields(
 
 /**
  * 应用列配置：按偏好顺序输出受管列（隐藏列剔除），结构列保持在
- * 原始相对锚点（如操作列保持在最后），固定列区域不跨越。
+ * 原始相对锚点（如操作列保持在最后）。首尾冻结在排序完成后统一应用。
  */
 function applyColumnSettings<C>(
   columns: unknown[],
@@ -124,8 +151,7 @@ function applyColumnSettings<C>(
   columns.forEach((raw, index) => {
     const column = raw as ColumnLike;
     const key = columnKeyOf(column, index);
-    const isStructural =
-      !key || structural.has(key) || column.hideInTable === true;
+    const isStructural = isStructuralColumn(column, key, structural);
     if (isStructural) {
       structuralItems.push({ column, anchor: managedCount });
       return;
@@ -179,7 +205,7 @@ export function useColumnSettings<C = Record<string, unknown>>(
   const {
     tableKey,
     columns,
-    scope,
+    scope: explicitScope,
     structuralKeys,
     lockVisibleKeys,
     defaultHiddenKeys,
@@ -190,9 +216,13 @@ export function useColumnSettings<C = Record<string, unknown>>(
     advancedTitle,
   } = options;
 
-  const [value, setValue] = useState<ColumnSettingsValue | null>(null);
+  const initialState = useContext(appInitialStateContext)?.initialState;
+  const scope = explicitScope ?? {
+    userId: initialState?.currentUser?.id,
+    organizationId: initialState?.currentUser?.currentOrganization?.id,
+  };
   // 存储连续失败时只提示一次，写入成功后复位，避免连续操作刷屏。
-  const persistFailedRef = useRef(false);
+  const persistFailedRef = useRef<string | null>(null);
 
   const fields = useMemo(
     () =>
@@ -204,8 +234,13 @@ export function useColumnSettings<C = Record<string, unknown>>(
     [columns, structuralKeys, lockVisibleKeys, titleOverrides],
   );
   const defaultValue = useMemo(
-    () => defaultColumnSettingsValue(fields, defaultHiddenKeys),
-    [fields, defaultHiddenKeys],
+    () =>
+      defaultColumnSettingsValue(
+        fields,
+        defaultHiddenKeys,
+        deriveColumnFreezeDefaults(columns as ColumnLike[]),
+      ),
+    [columns, fields, defaultHiddenKeys],
   );
 
   // 字段集合（key + 约束 + 固定区域）或隔离范围变化时重新解析偏好，
@@ -218,41 +253,66 @@ export function useColumnSettings<C = Record<string, unknown>>(
     .join('|');
   const hiddenSignature = (defaultHiddenKeys ?? []).join('|');
 
-  useEffect(() => {
-    const stored = loadColumnSettingsPreference(tableKey, scope ?? {});
-    setValue(
-      resolveColumnSettingsValue(
-        // 签名一致时字段内容等价，仅引用不同
-        fields,
-        defaultColumnSettingsValue(fields, defaultHiddenKeys),
-        stored,
-      ),
-    );
-  }, [
+  const identity = JSON.stringify([
     fieldsSignature,
     hiddenSignature,
     tableKey,
-    scope?.userId,
-    scope?.organizationId,
+    scope.userId,
+    scope.organizationId,
+    defaultValue.freeze,
   ]);
 
+  const [local, setLocal] = useState<{
+    identity: string;
+    value: ColumnSettingsPreference | null;
+  }>(() => ({
+    identity,
+    value: loadColumnSettingsPreference(tableKey, scope),
+  }));
+  // 切换作用域的当前渲染直接读取新偏好，不等待 effect 清理旧组织配置。
+  const storedValue = useMemo(
+    () =>
+      local.identity === identity
+        ? local.value
+        : loadColumnSettingsPreference(tableKey, scope),
+    [identity, local],
+  );
+  const value = useMemo(
+    () => resolveColumnSettingsValue(fields, defaultValue, storedValue),
+    [fields, defaultValue, storedValue],
+  );
+
   const effectiveColumns = useMemo(() => {
-    if (!value) return columns as C[];
-    return applyColumnSettings<C>(columns, value, structuralKeys);
+    const ordered = applyColumnSettings<ColumnLike>(
+      columns,
+      value,
+      structuralKeys,
+    );
+    return applyColumnFreeze(
+      ordered,
+      value.freeze ?? deriveColumnFreezeDefaults(columns as ColumnLike[]),
+      {
+        firstExcludedKeys: structuralKeys,
+      },
+    ) as C[];
   }, [columns, value, structuralKeys]);
 
+  const targets = getColumnFreezeTargets(effectiveColumns as ColumnLike[], {
+    firstExcludedKeys: structuralKeys,
+  });
+
   const handleValueChange = (next: ColumnSettingsValue) => {
-    setValue(next);
-    const persisted = saveColumnSettingsPreference(tableKey, scope ?? {}, next);
+    setLocal({ identity, value: next });
+    const persisted = saveColumnSettingsPreference(tableKey, scope, next);
     if (!persisted) {
       // 存储失败：表格已应用本次设置，提示一次便于感知未持久化。
-      if (!persistFailedRef.current) {
-        persistFailedRef.current = true;
+      if (persistFailedRef.current !== identity) {
+        persistFailedRef.current = identity;
         message.error('列设置保存到本地浏览器失败，本次设置仅当前页面生效');
       }
       return;
     }
-    persistFailedRef.current = false;
+    persistFailedRef.current = null;
   };
 
   const handleReset = () => {
@@ -263,8 +323,21 @@ export function useColumnSettings<C = Record<string, unknown>>(
   const entry = (
     <React.Fragment key="column-settings-entry">
       <ColumnSettingsEntry
+        key={identity}
         fields={fields}
-        value={value ?? defaultValue}
+        value={value}
+        freezeTargets={{
+          first: targets.first
+            ? columnTitle(targets.first) ||
+              titleOverrides?.[columnKeyOf(targets.first, 0) ?? ''] ||
+              '未命名列'
+            : undefined,
+          last: targets.last
+            ? columnTitle(targets.last) ||
+              titleOverrides?.[columnKeyOf(targets.last, 0) ?? ''] ||
+              '未命名列'
+            : undefined,
+        }}
         onChange={handleValueChange}
         onReset={handleReset}
         advanced={advanced}

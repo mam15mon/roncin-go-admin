@@ -1,14 +1,20 @@
 import { SettingOutlined } from '@ant-design/icons';
 import { Button, Modal, Popover, Tooltip } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ColumnSettingsPanel from './ColumnSettingsPanel';
-import type { ColumnSettingsField, ColumnSettingsValue } from './types';
+import type {
+  ColumnFreezeTargetTitles,
+  ColumnSettingsField,
+  ColumnSettingsValue,
+} from './types';
 
 export interface ColumnSettingsEntryProps {
   /** 全量可配置字段；无权限字段由调用方裁剪，不得传入。 */
   fields: ColumnSettingsField[];
   /** 当前生效配置（即时真相源）。 */
   value: ColumnSettingsValue;
+  /** 显隐和排序后实际首尾名称，包含末尾操作列。 */
+  freezeTargets?: ColumnFreezeTargetTitles;
   /** 显隐或排序变更回调：浮层内每次交互立即触发，由调用方应用并持久化。 */
   onChange: (value: ColumnSettingsValue) => void;
   /** 恢复默认回调。 */
@@ -36,6 +42,7 @@ export interface ColumnSettingsEntryProps {
 export function ColumnSettingsEntry({
   fields,
   value,
+  freezeTargets,
   onChange,
   onReset,
   advanced,
@@ -49,14 +56,24 @@ export function ColumnSettingsEntry({
   // 每次打开递增 key 重挂浮层内容，使搜索与筛选从干净状态开始。
   const [session, setSession] = useState(0);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  // Popover 关闭动画可能保留旧内容与回调，禁用校验读取当前值。
+  const disabledRef = useRef(disabled);
+  disabledRef.current = disabled;
+  useEffect(() => {
+    if (disabled) {
+      setOpen(false);
+      setAdvancedOpen(false);
+    }
+  }, [disabled]);
 
   return (
     <>
       <Popover
         trigger="click"
-        placement="bottomRight"
-        open={open}
+        placement="bottom"
+        open={open && !disabled}
         onOpenChange={(next) => {
+          if (next && disabledRef.current) return;
           setOpen(next);
           if (next) setSession((prev) => prev + 1);
         }}
@@ -65,11 +82,17 @@ export function ColumnSettingsEntry({
             key={session}
             fields={fields}
             value={value}
-            onChange={onChange}
-            onReset={onReset}
+            freezeTargets={freezeTargets}
+            onChange={(next) => {
+              if (!disabledRef.current) onChange(next);
+            }}
+            onReset={() => {
+              if (!disabledRef.current) onReset();
+            }}
             onOpenAdvanced={
               advanced
                 ? () => {
+                    if (disabledRef.current) return;
                     setOpen(false);
                     setAdvancedOpen(true);
                   }
@@ -91,7 +114,7 @@ export function ColumnSettingsEntry({
         </span>
       </Popover>
       <Modal
-        open={advancedOpen}
+        open={advancedOpen && !disabled}
         title={advancedTitle ?? '高级设置'}
         width={advancedWidth ?? 880}
         footer={null}

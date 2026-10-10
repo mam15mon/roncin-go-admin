@@ -10,6 +10,31 @@ import React, { forwardRef } from 'react';
 import type { LayoutColumn } from './layout';
 import { useResponsiveTableLayout } from './useResponsiveTableLayout';
 
+// 列显隐、顺序与 fixed 已由公共设置和响应式层应用。空的受控 map 使
+// ProComponents 每次转换都使用当前列，避免首次挂载的内部 fixed 缓存覆盖。
+const columnsStateFromProps = { value: {} };
+
+/** Pro 内部按 left/right 再排序；官方逻辑固定位置可保留输入锚点与结构列顺序。 */
+function logicalFixedColumns<C extends LayoutColumn>(
+  columns: C[] | undefined,
+): C[] | undefined {
+  return columns?.map((column) => {
+    if (Object.keys(column).length === 0) return column;
+    return {
+      ...column,
+      fixed:
+        column.fixed === 'left'
+          ? 'start'
+          : column.fixed === 'right'
+            ? 'end'
+            : column.fixed,
+      ...(column.children
+        ? { children: logicalFixedColumns([...column.children]) }
+        : {}),
+    };
+  });
+}
+
 function useLayout<T extends object, C extends LayoutColumn>(
   props: Pick<TableProps<T>, 'scroll' | 'sticky' | 'expandable'> & {
     columns?: C[];
@@ -89,10 +114,17 @@ function ResponsiveProTableComponent<
 >(props: ProTableProps<T, U, ValueType>) {
   const { containerRef, tableProps } = useLayout(props);
   // Pro 列在布局映射时仅变更 fixed，完整保留其 render/valueType 等字段。
-  const columns = tableProps.columns as typeof props.columns;
+  const columns = logicalFixedColumns(
+    tableProps.columns,
+  ) as typeof props.columns;
   return (
     <div ref={containerRef} className="roncin-responsive-table">
-      <ProTable<T, U, ValueType> {...props} {...tableProps} columns={columns} />
+      <ProTable<T, U, ValueType>
+        {...props}
+        {...tableProps}
+        columns={columns}
+        columnsState={props.columnsState ?? columnsStateFromProps}
+      />
     </div>
   );
 }
@@ -109,13 +141,16 @@ export function ResponsiveEditableProTable<
   ValueType = 'text',
 >(props: EditableProTableProps<T, U, ValueType>) {
   const { containerRef, tableProps } = useLayout(props);
-  const columns = tableProps.columns as typeof props.columns;
+  const columns = logicalFixedColumns(
+    tableProps.columns,
+  ) as typeof props.columns;
   return (
     <div ref={containerRef} className="roncin-responsive-table">
       <EditableProTable<T, U, ValueType>
         {...props}
         {...tableProps}
         columns={columns}
+        columnsState={props.columnsState ?? columnsStateFromProps}
       />
     </div>
   );

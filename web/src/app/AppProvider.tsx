@@ -1,24 +1,19 @@
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
-import type { Dispatch, ReactNode, SetStateAction } from 'react';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import type { ReactNode } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { getRequestErrorStatus } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import { authServiceMe } from '@/services/roncin/authService';
 import { DEV_MOCK_USER, isDevMockEnabled } from '@/utils/devMockUser';
 import defaultSettings from '../../config/defaultSettings';
+import {
+  appInitialStateContext,
+  type InitialState,
+  type InitialStateModel,
+} from './initialStateContext';
 
-export interface InitialState {
-  settings?: Partial<LayoutSettings>;
-  currentUser?: API.CurrentUser;
-  fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
-}
+export type { InitialState, InitialStateModel } from './initialStateContext';
+export { appInitialStateContext } from './initialStateContext';
 
 export const LOGIN_PATH = '/user/login';
 export const PUBLIC_AUTH_PATHS = new Set([
@@ -79,19 +74,6 @@ async function getInitialState(): Promise<InitialState> {
     }
     throw error;
   }
-}
-
-// 导出供测试注入（tests/renderWithApp.tsx）；业务代码请使用 useInitialState。
-export const appInitialStateContext = createContext<
-  InitialStateModel | undefined
->(undefined);
-
-// 与 Umi `useModel('@@initialState')` 同形的状态模型，业务调用点零语义变化。
-export interface InitialStateModel {
-  initialState?: InitialState;
-  setInitialState: Dispatch<SetStateAction<InitialState | undefined>>;
-  refresh: () => void;
-  loading: boolean;
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {

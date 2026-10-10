@@ -2,11 +2,14 @@
  * 列偏好的浏览器本地存取与合并逻辑。
  *
  * 存储 key 按「表格标识 + 用户 + 组织」隔离，同一业务视图跨实体复用，
- * 不使用实体 ID，避免逐订单产生配置；只存列 key、显隐与顺序，
+ * 不使用实体 ID，避免逐订单产生配置；只存列 key、显隐、顺序与首尾冻结，
  * 不含任何业务数据或身份秘密。
  */
+import { deriveColumnFreezeDefaults, resolveColumnFreeze } from './freeze';
 import type {
+  ColumnFreezeValue,
   ColumnSettingsField,
+  ColumnSettingsPreference,
   ColumnSettingsScope,
   ColumnSettingsValue,
 } from './types';
@@ -30,15 +33,26 @@ function isStringArray(value: unknown): value is string[] {
 export function loadColumnSettingsPreference(
   tableKey: string,
   scope: ColumnSettingsScope,
-): ColumnSettingsValue | null {
+): ColumnSettingsPreference | null {
   try {
     const raw = window.localStorage.getItem(storageKey(tableKey, scope));
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) return null;
-    const { order, hidden } = parsed as Record<string, unknown>;
+    const { order, hidden, freeze } = parsed as Record<string, unknown>;
     if (!isStringArray(order) || !isStringArray(hidden)) return null;
-    return { order, hidden };
+    const parsedFreeze: Partial<ColumnFreezeValue> = {};
+    if (freeze && typeof freeze === 'object') {
+      if ('first' in freeze && typeof freeze.first === 'boolean')
+        parsedFreeze.first = freeze.first;
+      if ('last' in freeze && typeof freeze.last === 'boolean')
+        parsedFreeze.last = freeze.last;
+    }
+    return {
+      order,
+      hidden,
+      ...(Object.keys(parsedFreeze).length ? { freeze: parsedFreeze } : {}),
+    };
   } catch {
     return null;
   }
@@ -53,7 +67,11 @@ export function saveColumnSettingsPreference(
   try {
     window.localStorage.setItem(
       storageKey(tableKey, scope),
-      JSON.stringify({ order: value.order, hidden: value.hidden }),
+      JSON.stringify({
+        order: value.order,
+        hidden: value.hidden,
+        freeze: value.freeze,
+      }),
     );
     return true;
   } catch {
@@ -78,9 +96,11 @@ export function clearColumnSettingsPreference(
 export function defaultColumnSettingsValue(
   fields: ColumnSettingsField[],
   hiddenKeys: string[] = [],
+  freeze: ColumnFreezeValue = deriveColumnFreezeDefaults(fields),
 ): ColumnSettingsValue {
   const hidden = new Set(hiddenKeys);
   return {
+    freeze,
     order: fields.map((field) => field.key),
     hidden: fields
       .filter((field) => hidden.has(field.key))
@@ -98,13 +118,17 @@ export function defaultColumnSettingsValue(
 export function resolveColumnSettingsValue(
   fields: ColumnSettingsField[],
   defaultValue: ColumnSettingsValue,
-  stored: ColumnSettingsValue | null | undefined,
+  stored: ColumnSettingsPreference | null | undefined,
 ): ColumnSettingsValue {
   const known = new Set(fields.map((field) => field.key));
   const locked = new Set(
     fields.filter((field) => field.lockVisible).map((field) => field.key),
   );
   const defaultHidden = new Set(defaultValue.hidden);
+  const freeze = resolveColumnFreeze(
+    stored?.freeze,
+    defaultValue.freeze ?? deriveColumnFreezeDefaults(fields),
+  );
 
   const seen = new Set<string>();
   const order: string[] = [];
@@ -143,9 +167,10 @@ export function resolveColumnSettingsValue(
 
   if (hidden.size >= order.length) {
     return {
+      freeze,
       order,
       hidden: order.filter((key) => defaultHidden.has(key) && !locked.has(key)),
     };
   }
-  return { order, hidden: order.filter((key) => hidden.has(key)) };
+  return { order, hidden: order.filter((key) => hidden.has(key)), freeze };
 }

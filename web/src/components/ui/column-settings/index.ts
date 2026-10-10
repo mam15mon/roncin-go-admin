@@ -6,6 +6,13 @@
 
 export type { ColumnSettingsEntryProps } from './ColumnSettingsEntry';
 export { ColumnSettingsEntry } from './ColumnSettingsEntry';
+export type { ColumnFreezeOptions } from './freeze';
+export {
+  applyColumnFreeze,
+  deriveColumnFreezeDefaults,
+  getColumnFreezeTargets,
+  resolveColumnFreeze,
+} from './freeze';
 export {
   clearColumnSettingsPreference,
   defaultColumnSettingsValue,
@@ -14,7 +21,10 @@ export {
   saveColumnSettingsPreference,
 } from './preference';
 export type {
+  ColumnFreezeTargetTitles,
+  ColumnFreezeValue,
   ColumnSettingsField,
+  ColumnSettingsPreference,
   ColumnSettingsScope,
   ColumnSettingsValue,
 } from './types';

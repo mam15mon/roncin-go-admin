@@ -4,10 +4,15 @@ import {
   SearchOutlined,
   UpOutlined,
 } from '@ant-design/icons';
-import { Button, Checkbox, Empty, Input, Tooltip } from 'antd';
+import { Button, Checkbox, Empty, Input, Switch, Tooltip } from 'antd';
 import React, { useMemo, useState } from 'react';
 import './ColumnSettingsPanel.less';
-import type { ColumnSettingsField, ColumnSettingsValue } from './types';
+import { deriveColumnFreezeDefaults, resolveColumnFreeze } from './freeze';
+import type {
+  ColumnFreezeTargetTitles,
+  ColumnSettingsField,
+  ColumnSettingsValue,
+} from './types';
 
 /** 受控渲染条目：字段元数据 + 当前可见性。 */
 interface PanelItem extends ColumnSettingsField {
@@ -48,15 +53,13 @@ function draftToValue(draft: PanelItem[]): ColumnSettingsValue {
   };
 }
 
-function zoneOf(fixed: ColumnSettingsField['fixed']): string {
-  return fixed ?? 'main';
-}
-
 export interface ColumnSettingsPanelProps {
   /** 全量可配置字段；无权限字段由调用方裁剪，不得传入。 */
   fields: ColumnSettingsField[];
   /** 当前生效配置（即时真相源），变更经 onChange 回流。 */
   value: ColumnSettingsValue;
+  /** 实际表格首尾目标；不随列设置搜索结果变化。 */
+  freezeTargets?: ColumnFreezeTargetTitles;
   /** 显隐或排序变更回调：每次交互立即触发，无草稿与保存步骤。 */
   onChange: (value: ColumnSettingsValue) => void;
   /** 恢复默认回调：由调用方提交默认配置并持久化。 */
@@ -67,7 +70,7 @@ export interface ColumnSettingsPanelProps {
 
 /**
  * 统一列设置浮层内容：顶部全选/统计与恢复默认、全宽搜索、带拖拽手柄的
- * 分区列表（上下移仅悬浮显现）与底栏计数摘要；全部操作即时回调生效。
+ * 首尾冻结、统一排序列表与底栏计数摘要；全部操作即时回调生效。
  * 搜索中禁用顺序调整并提示清空搜索后排序，避免以筛选后序号操作完整顺序。
  */
 export default function ColumnSettingsPanel({
@@ -75,6 +78,7 @@ export default function ColumnSettingsPanel({
   value,
   onChange,
   onReset,
+  freezeTargets,
   onOpenAdvanced,
 }: ColumnSettingsPanelProps) {
   const [keyword, setKeyword] = useState('');
@@ -96,29 +100,17 @@ export default function ColumnSettingsPanel({
   const masterChecked = totalCount > 0 && visibleCount === totalCount;
   const masterIndeterminate = !masterChecked && visibleCount > 0;
 
-  // 分区展示：左固定 / 动态列 / 右固定，排序只在同侧区域内进行。
-  const zones = useMemo(
-    () => [
-      {
-        key: 'left',
-        label: '左侧固定列',
-        items: draft.filter((item) => item.fixed === 'left'),
-      },
-      {
-        key: 'main',
-        label: draft.some((item) => item.fixed) ? '动态列' : '',
-        items: draft.filter((item) => !item.fixed),
-      },
-      {
-        key: 'right',
-        label: '右侧固定列',
-        items: draft.filter((item) => item.fixed === 'right'),
-      },
-    ],
-    [draft],
+  const freeze = resolveColumnFreeze(
+    value.freeze,
+    deriveColumnFreezeDefaults(fields),
   );
-
-  const emit = (next: PanelItem[]) => onChange(draftToValue(next));
+  const visibleItems = draft.filter((item) => item.visible);
+  const targets = freezeTargets ?? {
+    first: visibleItems[0]?.title,
+    last: visibleItems.at(-1)?.title,
+  };
+  const emit = (next: PanelItem[]) =>
+    onChange({ ...draftToValue(next), freeze });
 
   /** 全选/清空：必显列始终保留；无必显列时清空保留排序首列兜底。 */
   const handleToggleAll = () => {
@@ -137,17 +129,11 @@ export default function ColumnSettingsPanel({
     emit(draft.map((item) => ({ ...item, visible: true })));
   };
 
-  const moveWithinZone = (key: string, direction: -1 | 1) => {
+  const moveColumn = (key: string, direction: -1 | 1) => {
     if (searching) return;
     const index = draft.findIndex((item) => item.key === key);
     if (index < 0) return;
-    const zone = zoneOf(draft[index].fixed);
-    const canTarget = (item: PanelItem) =>
-      zoneOf(item.fixed) === zone && matchesKeyword(item);
-    let target = index + direction;
-    while (target >= 0 && target < draft.length && !canTarget(draft[target])) {
-      target += direction;
-    }
+    const target = index + direction;
     if (target < 0 || target >= draft.length) return;
     const next = [...draft];
     const [item] = next.splice(index, 1);
@@ -160,9 +146,6 @@ export default function ColumnSettingsPanel({
     const sourceIndex = draft.findIndex((item) => item.key === draggingKey);
     const targetIndex = draft.findIndex((item) => item.key === targetKey);
     if (sourceIndex < 0 || targetIndex < 0) return;
-    if (zoneOf(draft[sourceIndex].fixed) !== zoneOf(draft[targetIndex].fixed)) {
-      return;
-    }
     const next = [...draft];
     const [item] = next.splice(sourceIndex, 1);
     next.splice(targetIndex, 0, item);
@@ -181,8 +164,8 @@ export default function ColumnSettingsPanel({
   const canHide = (item: PanelItem) =>
     !item.lockVisible && !(item.visible && visibleCount <= 1);
 
-  const renderRow = (item: PanelItem, zoneItems: PanelItem[]) => {
-    const zoneIndex = zoneItems.findIndex((row) => row.key === item.key);
+  const renderRow = (item: PanelItem) => {
+    const itemIndex = draft.findIndex((row) => row.key === item.key);
     const checkboxDisabled = !canHide(item);
     const checkboxTooltip = item.lockVisible
       ? '必显列，不可隐藏'
@@ -242,16 +225,16 @@ export default function ColumnSettingsPanel({
             size="small"
             aria-label={`上移${item.title}`}
             icon={<UpOutlined />}
-            disabled={moveDisabled || zoneIndex <= 0}
-            onClick={() => moveWithinZone(item.key, -1)}
+            disabled={moveDisabled || itemIndex <= 0}
+            onClick={() => moveColumn(item.key, -1)}
           />
           <Button
             type="text"
             size="small"
             aria-label={`下移${item.title}`}
             icon={<DownOutlined />}
-            disabled={moveDisabled || zoneIndex >= zoneItems.length - 1}
-            onClick={() => moveWithinZone(item.key, 1)}
+            disabled={moveDisabled || itemIndex >= draft.length - 1}
+            onClick={() => moveColumn(item.key, 1)}
           />
         </span>
       </div>
@@ -259,7 +242,30 @@ export default function ColumnSettingsPanel({
   };
 
   return (
-    <div style={{ width: 300 }}>
+    <div style={{ width: 300, maxWidth: 'calc(100vw - 48px)' }}>
+      <div className="roncin-column-settings-freeze">
+        {(['first', 'last'] as const).map((side) => (
+          <div key={side} className="roncin-column-settings-freeze-row">
+            <div className="roncin-column-settings-freeze-text">
+              <span>{side === 'first' ? '冻结首列' : '冻结尾列'}</span>
+              <Tooltip title={targets[side]}>
+                <span className="roncin-column-settings-freeze-target">
+                  当前：{targets[side] ?? '无可冻结列'}
+                </span>
+              </Tooltip>
+            </div>
+            <Switch
+              size="small"
+              aria-label={side === 'first' ? '冻结首列' : '冻结尾列'}
+              checked={freeze[side]}
+              disabled={!targets[side]}
+              onChange={(checked) =>
+                onChange({ ...value, freeze: { ...freeze, [side]: checked } })
+              }
+            />
+          </div>
+        ))}
+      </div>
       <div
         style={{
           display: 'flex',
@@ -276,7 +282,7 @@ export default function ColumnSettingsPanel({
         >
           列展示 ({visibleCount} / {totalCount})
         </Checkbox>
-        <Tooltip title="恢复默认列显隐与顺序，立即生效">
+        <Tooltip title="恢复默认冻结、显隐与顺序，立即生效">
           <Button
             type="link"
             size="small"
@@ -302,26 +308,7 @@ export default function ColumnSettingsPanel({
         </div>
       )}
       <div style={{ maxHeight: 420, overflowY: 'auto', paddingRight: 2 }}>
-        {zones.map((zone) => {
-          const zoneItems = zone.items.filter(matchesKeyword);
-          if (zoneItems.length === 0) return null;
-          return (
-            <div key={zone.key}>
-              {zone.label && (
-                <div
-                  style={{
-                    padding: '6px 6px 4px',
-                    color: '#8c8c8c',
-                    fontSize: 12,
-                  }}
-                >
-                  {zone.label}
-                </div>
-              )}
-              {zoneItems.map((item) => renderRow(item, zone.items))}
-            </div>
-          );
-        })}
+        {draft.filter(matchesKeyword).map(renderRow)}
         {draft.filter(matchesKeyword).length === 0 && (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}

@@ -19,7 +19,8 @@
     transition: color 0.15s ease;
   }
 
-  &:hover {
+  &:hover,
+  &:focus-within {
     background-color: #fafafa;
 
     .roncin-column-settings-actions {
@@ -63,4 +64,32 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
+}
+
+.roncin-column-settings-freeze {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.roncin-column-settings-freeze-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.roncin-column-settings-freeze-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.roncin-column-settings-freeze-target {
+  color: #8c8c8c;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

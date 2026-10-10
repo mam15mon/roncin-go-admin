@@ -70,6 +70,7 @@ describe('ColumnSettingsPanel', () => {
     const { onChange } = renderPanel();
     fireEvent.click(masterCheckbox());
     expect(onChange).toHaveBeenCalledWith({
+      freeze: { first: false, last: true },
       order: ['code', 'customer', 'note', 'option'],
       hidden: ['code', 'customer', 'note'],
     });
@@ -83,6 +84,7 @@ describe('ColumnSettingsPanel', () => {
     expect(box).toHaveClass('ant-checkbox-indeterminate');
     fireEvent.click(masterCheckbox());
     expect(onChange).toHaveBeenCalledWith({
+      freeze: { first: false, last: true },
       order: VALUE.order,
       hidden: [],
     });
@@ -100,6 +102,7 @@ describe('ColumnSettingsPanel', () => {
     });
     fireEvent.click(masterCheckbox());
     expect(onChange).toHaveBeenCalledWith({
+      freeze: { first: false, last: false },
       order: ['a', 'b', 'c'],
       hidden: ['b', 'c'],
     });
@@ -120,6 +123,7 @@ describe('ColumnSettingsPanel', () => {
     const { onChange } = renderPanel();
     fireEvent.click(screen.getByRole('checkbox', { name: '客户名称' }));
     expect(onChange).toHaveBeenCalledWith({
+      freeze: { first: false, last: true },
       order: ['code', 'customer', 'note', 'option'],
       hidden: ['customer'],
     });
@@ -156,17 +160,32 @@ describe('ColumnSettingsPanel', () => {
     expect(screen.getByRole('button', { name: '上移业务单号' })).toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: '下移业务单号' }));
     expect(onChange).toHaveBeenCalledWith({
+      freeze: { first: false, last: true },
       order: ['customer', 'code', 'note', 'option'],
       hidden: [],
     });
   });
 
-  it('上下移不得跨固定区域排序', () => {
-    const { onChange } = renderPanel();
-    // 操作列固定在右侧：下移已到边界禁用；上移目标跨入动态列同样被禁止。
-    expect(screen.getByRole('button', { name: '下移操作' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: '上移操作' }));
-    expect(onChange).not.toHaveBeenCalled();
+  it('普通列可跨原固定区域排序，冻结目标跟随实际首尾', () => {
+    const { onChange } = renderPanel({
+      fields: [
+        { key: 'code', title: '业务单号', fixed: 'left' },
+        { key: 'customer', title: '客户名称' },
+        { key: 'note', title: '备注', fixed: 'right' },
+      ],
+      initial: {
+        order: ['code', 'customer', 'note'],
+        hidden: [],
+        freeze: { first: true, last: true },
+      },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '上移备注' }));
+    expect(onChange).toHaveBeenCalledWith({
+      order: ['code', 'note', 'customer'],
+      hidden: [],
+      freeze: { first: true, last: true },
+    });
+    expect(screen.getByText('当前：客户名称')).toBeInTheDocument();
   });
 
   it('搜索过滤列表且搜索中禁用排序；空结果给出提示', () => {
@@ -175,7 +194,9 @@ describe('ColumnSettingsPanel', () => {
       target: { value: '客户' },
     });
     expect(screen.getByText('客户名称')).toBeInTheDocument();
-    expect(screen.queryByText('业务单号')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: '业务单号' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByText('搜索中无法调整顺序，清空搜索后可拖拽或使用箭头排序'),
     ).toBeInTheDocument();
