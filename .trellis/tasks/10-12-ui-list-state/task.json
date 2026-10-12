@@ -32,8 +32,9 @@
     "web/src/pages/finance/bills/index.tsx",
     "web/src/pages/finance/cashflows/index.tsx"
   ],
-  "notes": "规划草案已落盘，等待总任务产品范围决策及最终规划批准；未实施。",
+  "notes": "需求范围已收敛，等待用户批准最新最终规划；未实施。",
   "meta": {
-    "audit_issue_ids": "A04 / A05 / A12"
+    "audit_issue_ids": "A04 / A05 / A12",
+    "planning_ready": true
   }
 }

@@ -2,7 +2,7 @@
 
 ## 目标与来源
 
-修复UI-UX审查 A10 / A11，让业务操作、反馈及状态一致。用户已同意创建修复任务并进入规划；来源为 `.trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md`，所有原始浏览器证据仍在原审查归档。
+修复UI-UX审查 A10 / A11，让业务操作、反馈及状态一致。来源为 `.trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md`，所有原始浏览器证据仍在原审查归档。
 
 ## 已确认事实
 
@@ -28,4 +28,4 @@ R3：保持桌面流式全宽、高密度与统一列宽行为，无新增maxWid
 ## 共同约束
 
 保持纯白高密度、PageContainer 流式全宽、12px 内容边距、既有权限和用户/组织隔离。复用现有能力，遵循 ProTable request/actionRef、ModalForm.onFinish；不加兼容回退，不手改生成物，不引入全站 KeepAlive 或自动保存平台。禁止 TDD，实现后按风险补回归验证；不修改真实业务数据进行验收。
-本子任务处于 planning，产品代码未变。规划待总任务范围决策及最终审阅；不得仅凭任务创建或本方案草案进入实施。
+本子任务处于 planning，需求范围已确定，等待最终规划审阅；产品代码未变。

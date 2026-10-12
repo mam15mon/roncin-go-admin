@@ -1,4 +1,4 @@
-# 公共键盘交互与焦点修复：设计草案
+# 公共键盘交互与焦点修复：技术设计
 
 对目标下拉使用Antd trigger受控能力及原生button激活，必要ArrowDown处理在触发层，避免全局HeaderDropdown默认变更影响右键/其它消费者。明确open/aria-expanded与返回焦点。
 SectionCard只有collapsible时将点击div改原生button，样式保持标题尺寸与品牌竖线；useId或既有sectionKey形成内容关联，统一受控状态。

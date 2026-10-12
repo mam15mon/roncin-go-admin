@@ -27,8 +27,10 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "规划草案与五子任务已落盘；待用户选择计息范围，再最终规划审阅。禁止提前实施。",
+  "notes": "用户已明确选择移除未完成计息入口；范围及需求收敛完成，等待最终规划批准，未实施。",
   "meta": {
-    "audit_source": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md"
+    "audit_source": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md",
+    "interest_decision": "remove_unfinished_ui",
+    "planning_ready": true
   }
 }
