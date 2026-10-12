@@ -1,0 +1,56 @@
+{
+  "results": [
+    {
+      "name": "页签列表查询恢复",
+      "afterReturn": "",
+      "onCustomer": true
+    },
+    {
+      "name": "顶部键盘展开对照",
+      "control": "企业资源",
+      "spaceOpened": false,
+      "hoverOpened": true
+    },
+    {
+      "name": "顶部键盘展开对照",
+      "control": "设置中心",
+      "spaceOpened": false,
+      "hoverOpened": true
+    },
+    {
+      "name": "组织切换键盘",
+      "enterOpened": false,
+      "arrowOpened": false
+    },
+    {
+      "name": "客户详情请求失败",
+      "blankFormVisible": true,
+      "inputDisabled": true,
+      "retryButtonCount": 0,
+      "saveButtonCount": 0
+    },
+    {
+      "name": "写失败成功反馈",
+      "simulatedWrites": 1,
+      "successShown": true,
+      "failureShown": true,
+      "leftDetail": true,
+      "notices": [
+        "客户档案已成功更新",
+        "审查模拟服务暂不可用请联系系统管理员查看服务日志。"
+      ]
+    },
+    {
+      "name": "写隔离",
+      "interceptedWrites": 1,
+      "allPageWritesIntercepted": true
+    }
+  ],
+  "errors": [],
+  "methodNotes": {
+    "locatorCorrections": 0,
+    "excludedFromFindings": true,
+    "isolatedBrowserContext": true,
+    "allPageWritesIntercepted": true
+  }
+}

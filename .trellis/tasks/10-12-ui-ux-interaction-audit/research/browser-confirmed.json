@@ -1,0 +1,229 @@
+{
+  "results": [
+    {
+      "name": "折叠分节键盘语义",
+      "titles": [
+        {
+          "title": "基础信息",
+          "tag": "DIV",
+          "tabIndex": -1,
+          "role": null,
+          "expanded": null
+        },
+        {
+          "title": "财务结算规则",
+          "tag": "DIV",
+          "tabIndex": -1,
+          "role": null,
+          "expanded": null
+        },
+        {
+          "title": "联系方式",
+          "tag": "DIV",
+          "tabIndex": -1,
+          "role": null,
+          "expanded": null
+        },
+        {
+          "title": "客户备注",
+          "tag": "DIV",
+          "tabIndex": -1,
+          "role": null,
+          "expanded": null
+        }
+      ]
+    },
+    {
+      "name": "客户未保存离开",
+      "leftWithoutConfirmation": true,
+      "guarded": 0
+    },
+    {
+      "name": "客户页签关闭守卫",
+      "leftWithoutConfirmation": true
+    },
+    {
+      "name": "订单筛选收起保留",
+      "inputAfterExpand": "",
+      "requestStillFiltered": true,
+      "requests": [
+        "page=1&pageSize=20&numberType=1&numberKeyword=UXAUDIT_NO_MATCH&businessType=1",
+        "page=1&pageSize=20&numberType=1&numberKeyword=UXAUDIT_NO_MATCH&businessType=1"
+      ]
+    },
+    {
+      "name": "键盘顶栏菜单",
+      "control": "企业资源",
+      "enterOpened": false,
+      "arrowDownOpened": false
+    },
+    {
+      "name": "键盘顶栏菜单",
+      "control": "设置中心",
+      "enterOpened": false,
+      "arrowDownOpened": false
+    },
+    {
+      "name": "页签可见焦点",
+      "focusVisible": true,
+      "outline": "rgb(100, 116, 139) none 3px",
+      "shadow": "none",
+      "border": "0px solid rgb(100, 116, 139)"
+    },
+    {
+      "name": "窄屏稳定几何",
+      "path": "/welcome",
+      "pageWidth": 390,
+      "viewport": 390,
+      "menus": [
+        {
+          "display": "none",
+          "width": 0
+        }
+      ],
+      "overflow": []
+    },
+    {
+      "name": "窄屏导航入口",
+      "menuNames": [
+        "工作台",
+        "订单管理",
+        "费用管理"
+      ],
+      "customerEntry": false,
+      "adminEntry": false,
+      "masterEntry": false
+    },
+    {
+      "name": "窄屏稳定几何",
+      "path": "/orders/sea-export/new",
+      "pageWidth": 537,
+      "viewport": 390,
+      "menus": [
+        {
+          "display": "none",
+          "width": 0
+        }
+      ],
+      "overflow": [
+        {
+          "tag": "DIV",
+          "cls": "",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "acss-18zf6sl",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-form-item css-var-_r_1_ ant-form-css-var css-dev-only-do-not-override-viwxw0 ant-form-item-vertical",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-row ant-form-item-row css-dev-only-do-not-override-viwxw0 css-var-_r_1_",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-col ant-form-item-label css-dev-only-do-not-override-viwxw0 css-var-_r_1_",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-col ant-form-item-control css-dev-only-do-not-override-viwxw0 css-var-_r_1_",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-form-item-control-input",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-form-item-control-input-content",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "INPUT",
+          "cls": "ant-input css-dev-only-do-not-override-viwxw0 ant-input-outlined css-var-_r_1_ ant-input-css-var",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-form-item css-var-_r_1_ ant-form-css-var css-dev-only-do-not-override-viwxw0 ant-form-item-vertical",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-row ant-form-item-row css-dev-only-do-not-override-viwxw0 css-var-_r_1_",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-col ant-form-item-label css-dev-only-do-not-override-viwxw0 css-var-_r_1_",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-col ant-form-item-control css-dev-only-do-not-override-viwxw0 css-var-_r_1_",
+          "right": 414,
+          "width": 389
+        },
+        {
+          "tag": "DIV",
+          "cls": "ant-form-item-control-input",
+          "right": 414,
+          "width": 389
+        }
+      ]
+    },
+    {
+      "name": "客户详情请求失败",
+      "blankFormVisible": true,
+      "inputDisabled": true,
+      "retryButtonCount": 0,
+      "saveButtonCount": 0
+    },
+    {
+      "name": "写失败成功反馈",
+      "simulatedWrites": 1,
+      "successShown": false,
+      "failureShown": false,
+      "leftDetail": true,
+      "notices": []
+    },
+    {
+      "name": "写隔离",
+      "interceptedWrites": 1,
+      "allPageWritesIntercepted": true
+    }
+  ],
+  "errors": [],
+  "methodNotes": {
+    "locatorCorrections": 1,
+    "excludedFromFindings": true,
+    "isolatedBrowserContext": true,
+    "allPageWritesIntercepted": true
+  }
+}
