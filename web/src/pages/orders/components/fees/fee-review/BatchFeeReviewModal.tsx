@@ -274,7 +274,9 @@ export function BatchFeeReviewModal({
               comment: values.comments?.[row.orderId ?? '']?.trim(),
             })),
           });
-          const newResults = response.data ?? [];
+          if (!Array.isArray(response?.data) || response.data.length === 0)
+            return false;
+          const newResults = response.data;
           setSubmittedComments((previous) => ({
             ...previous,
             ...values.comments,

@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
-import { expect, it, vi } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vitest';
 import {
   orderFeeServiceApproveOrderFeeReviews,
   orderFeeServicePreviewOrderFeeReviews,
@@ -25,6 +25,10 @@ vi.mock('@/services/roncin/orderFeeService', async (original) => ({
   orderFeeServiceApproveOrderFeeReviews: vi.fn(),
   orderFeeServicePreviewOrderFeeReviews: vi.fn(),
 }));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 it('批量批准保留每票预览和亏损意见，只移除成功订单且不自动重审失败新版本', async () => {
   vi.mocked(orderFeeServicePreviewOrderFeeReviews).mockResolvedValue({
@@ -167,3 +171,68 @@ it('批量批准保留每票预览和亏损意见，只移除成功订单且不�
   expect(orderFeeServicePreviewOrderFeeReviews).toHaveBeenCalledOnce();
   await act(async () => {});
 });
+
+it.each([undefined, {}, { data: [] }])(
+  '批量批准失败或空结果保留逐票意见和幂等键供重试（%j）',
+  async (failure) => {
+    vi.mocked(orderFeeServicePreviewOrderFeeReviews).mockResolvedValue({
+      data: [
+        {
+          orderId: 'retry-order',
+          success: true,
+          data: {
+            orderId: 'retry-order',
+            orderNo: 'RETRY-ORDER',
+            status: 'PENDING',
+            canApprove: true,
+            reviewVersion: '3',
+            contentVersion: '2',
+            previewToken: 'reviewed-token',
+            summary: { profit: '-10', baseCurrency: 'CNY' },
+          },
+        },
+      ],
+    });
+    vi.mocked(orderFeeServiceApproveOrderFeeReviews)
+      .mockResolvedValueOnce(failure as API.ApproveOrderFeeReviewsResponse)
+      .mockResolvedValueOnce({
+        data: [{ orderId: 'retry-order', success: true }],
+      });
+    const completed = vi.fn();
+    const closed = vi.fn();
+    renderWithClient(
+      <App>
+        <BatchFeeReviewModal
+          orderIds={['retry-order']}
+          onClose={closed}
+          onCompleted={completed}
+        />
+      </App>,
+    );
+    expect(await screen.findByText('RETRY-ORDER')).toBeInTheDocument();
+    const comment = screen.getByRole('textbox', {
+      name: '审批意见（亏损原因，必填）',
+    });
+    fireEvent.change(comment, { target: { value: '亏损成本已核实' } });
+    const submit = screen.getByRole('button', { name: '批准可审核订单' });
+    fireEvent.click(submit);
+    await waitFor(() =>
+      expect(orderFeeServiceApproveOrderFeeReviews).toHaveBeenCalledOnce(),
+    );
+    await waitFor(() => expect(submit).toBeEnabled());
+    expect(completed).not.toHaveBeenCalled();
+    expect(closed).not.toHaveBeenCalled();
+    expect(comment).toHaveValue('亏损成本已核实');
+    expect(
+      screen.queryByText('批准成功 0 票，失败 0 票'),
+    ).not.toBeInTheDocument();
+    fireEvent.click(submit);
+    await waitFor(() =>
+      expect(completed).toHaveBeenCalledWith(['retry-order']),
+    );
+    const calls = vi.mocked(orderFeeServiceApproveOrderFeeReviews).mock.calls;
+    expect(calls[1][0]).toEqual(calls[0][0]);
+    expect(orderFeeServicePreviewOrderFeeReviews).toHaveBeenCalledOnce();
+    await act(async () => {});
+  },
+);
