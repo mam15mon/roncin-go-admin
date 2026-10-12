@@ -86,4 +86,3 @@ const effective = applyColumnFreeze(visibleOrderedColumns, resolveColumnFreeze(v
   firstExcludedKeys: structuralKeys,
 });
 ```
-
