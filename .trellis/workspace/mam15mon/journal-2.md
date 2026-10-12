@@ -1200,3 +1200,25 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 124: 整票费用包审批与精简表格交付
+<!-- trellis-session: v=2 fp=f38ac7d0145ee2cc -->
+
+**Date**: 2026-10-12
+**Task**: 整票费用包审批与精简表格交付
+**Branch**: `codex/order-fee-approval`
+
+### Summary
+
+按用户最终要求实现每订单整票审核、费用冻结、列表筛选及逐票批量审批，单票和展开明细表格化。同步受控补成本和提成确认冲减、净额发放及付款证据。完整前端1184项通过，服务端门禁及真实PostgreSQL全data包537.272秒通过，真实页面建账/补录/净发/键盘和窄屏验收通过。原开发库有旧待审补录，未自动处理或迁移；钉钉仅提醒且未真实投递。任务已归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `34d10ff5` | feat: 实现整票费用包审批与表格审核闭环 |
+
+### Status
+
+[OK] **Completed**
