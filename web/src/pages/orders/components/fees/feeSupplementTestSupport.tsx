@@ -135,7 +135,8 @@ function makeProps(orderId: string) {
   return {
     orderId,
     canCreate: true,
-    lockActive: true,
+    feeReviewApproved: true,
+    hasPendingSupplement: false,
     feeSettings: [],
     settlementParties: [],
     currencies: [],

@@ -12,7 +12,11 @@ import React, { useMemo, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { FeeReviewStatus } from '@/features/orders/fee-review';
+import {
+  FeeReviewStatus,
+  feeReviewCommentFieldProps,
+  feeReviewCommentRule,
+} from '@/features/orders/fee-review';
 import {
   orderFeeServiceApproveOrderFeeReviews,
   orderFeeServicePreviewOrderFeeReviews,
@@ -179,10 +183,11 @@ export function BatchFeeReviewModal({
               'aria-label': loss ? '审批意见（亏损原因，必填）' : '审批意见',
               placeholder: loss ? '请填写该票亏损原因' : '填写意见（选填）',
               autoSize: { minRows: 1, maxRows: 3 },
-              maxLength: 2000,
+              ...feeReviewCommentFieldProps,
             }}
-            rules={
-              loss
+            rules={[
+              feeReviewCommentRule,
+              ...(loss
                 ? [
                     {
                       required: true,
@@ -190,8 +195,8 @@ export function BatchFeeReviewModal({
                       message: '请为该亏损订单填写审批意见',
                     },
                   ]
-                : []
-            }
+                : []),
+            ]}
           />
         ) : (
           <Typography.Text type="secondary">

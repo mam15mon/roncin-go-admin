@@ -554,7 +554,8 @@ export default function OrderFeesPage() {
             key={targetOrderId}
             orderId={targetOrderId}
             canCreate={false}
-            lockActive={false}
+            feeReviewApproved={false}
+            hasPendingSupplement={Boolean(feeReview.data?.hasPendingSupplement)}
             feeSettings={[]}
             settlementParties={[]}
             currencies={[]}
@@ -752,10 +753,8 @@ export default function OrderFeesPage() {
             order.businessType !== undefined &&
             access.canOrder(order.businessType, 'fee.create')
           }
-          lockActive={
-            feeReview.data?.status === 'APPROVED' &&
-            !feeReview.data.hasPendingSupplement
-          }
+          feeReviewApproved={feeReview.data?.status === 'APPROVED'}
+          hasPendingSupplement={Boolean(feeReview.data?.hasPendingSupplement)}
           feeSettings={feeSettings}
           settlementParties={settlementParties}
           currencies={currencies}

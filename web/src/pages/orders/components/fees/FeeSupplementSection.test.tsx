@@ -50,7 +50,7 @@ describe('费用补录申请与撤回', () => {
     await waitFor(() => expect(listSupplements).toHaveBeenCalledTimes(2));
   });
   it('无锁订单不显示补录入口，但申请列表仍可读取（不以 fee.read 隐藏申请区）', async () => {
-    const props = { ...makeProps('order-1'), lockActive: false };
+    const props = { ...makeProps('order-1'), feeReviewApproved: false };
     render(
       <App>
         <FeeSupplementSection {...props} />
@@ -101,6 +101,7 @@ describe('费用补录申请与撤回', () => {
   it('发起人可撤回本人 PENDING 申请，携带 expectedVersion', async () => {
     withdrawSupplement.mockResolvedValue({
       success: true,
+      data: supplementRow(),
     } as Awaited<ReturnType<typeof withdrawSupplement>>);
     listSupplements.mockResolvedValue(
       listResponse([supplementRow({ canWithdraw: true })]),
@@ -144,9 +145,10 @@ describe('费用补录申请与撤回', () => {
     await waitFor(() => expect(listSupplements).toHaveBeenCalledTimes(2));
   });
   it('仅本人可撤回且当前可创建、订单有锁时显示重提入口；成功后预填原申请', async () => {
-    withdrawSupplement.mockResolvedValue({ success: true } as Awaited<
-      ReturnType<typeof withdrawSupplement>
-    >);
+    withdrawSupplement.mockResolvedValue({
+      success: true,
+      data: supplementRow(),
+    } as Awaited<ReturnType<typeof withdrawSupplement>>);
     listSupplements.mockResolvedValue(
       listResponse([
         supplementRow({
@@ -208,7 +210,10 @@ describe('费用补录申请与撤回', () => {
     withoutCreate.unmount();
     render(
       <App>
-        <FeeSupplementSection {...makeProps('order-1')} lockActive={false} />
+        <FeeSupplementSection
+          {...makeProps('order-1')}
+          feeReviewApproved={false}
+        />
       </App>,
     );
     await screen.findByText('撤回申请');
@@ -241,7 +246,7 @@ describe('费用补录申请与撤回', () => {
         <FeeSupplementSection {...makeProps('order-2')} />
       </App>,
     );
-    resolveWithdraw({ success: true });
+    resolveWithdraw({ success: true, data: supplementRow() });
     await waitFor(() =>
       expect(screen.getByTestId('supplement-modal')).toHaveTextContent('false'),
     );

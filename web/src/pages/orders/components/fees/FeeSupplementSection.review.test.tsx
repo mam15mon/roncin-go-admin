@@ -26,6 +26,7 @@ describe('费用补录审核', () => {
   it('具备审批能力时先审核毛利，再通过并刷新费用表', async () => {
     approveSupplement.mockResolvedValue({
       success: true,
+      data: supplementRow(),
     } as Awaited<ReturnType<typeof approveSupplement>>);
     listSupplements.mockResolvedValue(
       listResponse([
@@ -67,9 +68,10 @@ describe('费用补录审核', () => {
   });
   it('预览失败时禁止通过，但仍可按原流程驳回', async () => {
     previewSupplement.mockRejectedValue(new Error('汇率不可用'));
-    rejectSupplement.mockResolvedValue({ success: true } as Awaited<
-      ReturnType<typeof rejectSupplement>
-    >);
+    rejectSupplement.mockResolvedValue({
+      success: true,
+      data: supplementRow(),
+    } as Awaited<ReturnType<typeof rejectSupplement>>);
     listSupplements.mockResolvedValue(
       listResponse([supplementRow({ canApprove: true })]),
     );
@@ -151,6 +153,7 @@ describe('费用补录审核', () => {
   it('驳回原因为必填并随请求提交', async () => {
     rejectSupplement.mockResolvedValue({
       success: true,
+      data: supplementRow(),
     } as Awaited<ReturnType<typeof rejectSupplement>>);
     listSupplements.mockResolvedValue(
       listResponse([supplementRow({ canApprove: true })]),

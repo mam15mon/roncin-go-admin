@@ -19,7 +19,7 @@ export function confirmWithReason(
 ) {
   let reason = '';
   const requiredMessage = options.requiredMessage ?? '请输入操作原因';
-  app.modal.confirm({
+  return app.modal.confirm({
     title,
     content: (
       <Input.TextArea

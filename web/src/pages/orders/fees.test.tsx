@@ -20,14 +20,17 @@ const feeTestState = vi.hoisted(() => ({
   canReadFinanceFees: false,
   feeOptions: vi.fn(),
   canOperate: true,
+  hasPendingSupplement: false,
 }));
 
 // 本文件验证费用页已有编辑与跨订单状态；审核流程由独立组件用例验证。
-vi.mock('@/features/orders/fee-review', () => ({
+vi.mock('@/features/orders/fee-review', async (original) => ({
+  ...(await original<typeof import('@/features/orders/fee-review')>()),
   useOrderFeeReview: () => ({
     data: {
       canEdit: !feeTestState.lockState.isLocked,
-      canBill: true,
+      canBill: !feeTestState.hasPendingSupplement,
+      hasPendingSupplement: feeTestState.hasPendingSupplement,
       status: feeTestState.lockState.isLocked ? 'APPROVED' : 'UNSUBMITTED',
     },
     refetch: vi.fn(),
@@ -327,6 +330,7 @@ describe('订单费用页跨订单状态隔离', () => {
     feeTestState.canLock = true;
     feeTestState.feeOptions.mockClear();
     feeTestState.canOperate = true;
+    feeTestState.hasPendingSupplement = false;
     vi.clearAllMocks();
   });
 
@@ -439,6 +443,7 @@ describe('订单费用页锁后费用补录', () => {
     feeTestState.canLock = true;
     feeTestState.feeOptions.mockClear();
     feeTestState.canOperate = true;
+    feeTestState.hasPendingSupplement = false;
     vi.clearAllMocks();
     listSupplements.mockResolvedValue({
       data: { items: [], total: 0 },
@@ -479,7 +484,7 @@ describe('订单费用页锁后费用补录', () => {
 
   it('订单锁定时普通费用写入口关闭，但按 fee.create 能力开放补录入口', async () => {
     feeTestState.lockState = { isLocked: true };
-    renderPage();
+    const page = renderPage();
 
     // 补录申请区不依赖 fee.read，申请列表照常读取。
     await waitFor(() =>
@@ -498,6 +503,28 @@ describe('订单费用页锁后费用补录', () => {
       expect(tabs).toBeInTheDocument();
     });
     expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
+    feeTestState.hasPendingSupplement = true;
+    listSupplements.mockResolvedValue({
+      success: true,
+      data: {
+        items: [
+          {
+            id: 'sup-1',
+            orderId: 'order-A',
+            version: '1',
+            status: 'PENDING',
+            canWithdraw: true,
+          },
+        ],
+        total: 1,
+      },
+    });
+    page.unmount();
+    renderPage();
+    expect(await screen.findByText('撤回并重提')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '补录费用' }),
+    ).not.toBeInTheDocument();
   });
 
   it('无 fee.create 能力时不展示补录入口，但申请列表仍可读取', async () => {
@@ -543,6 +570,7 @@ describe('订单费用页关联账单追踪', () => {
     feeTestState.canLock = true;
     feeTestState.canReadFinanceFees = false;
     feeTestState.canOperate = true;
+    feeTestState.hasPendingSupplement = false;
     vi.clearAllMocks();
   });
 

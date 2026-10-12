@@ -69,6 +69,7 @@ describe('费用补录撤销与状态', () => {
   it('撤销补录费用必须填写原因并携带费用版本', async () => {
     cancelApproved.mockResolvedValue({
       success: true,
+      data: supplementRow(),
     } as Awaited<ReturnType<typeof cancelApproved>>);
     listSupplements.mockResolvedValue(
       listResponse([

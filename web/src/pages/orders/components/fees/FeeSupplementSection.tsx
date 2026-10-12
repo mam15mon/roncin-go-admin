@@ -21,6 +21,10 @@ import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
+  feeReviewCommentFieldProps,
+  feeReviewCommentRule,
+} from '@/features/orders/fee-review';
+import {
   orderFeeServiceApproveOrderFeeSupplement,
   orderFeeServiceCancelApprovedOrderFeeSupplement,
   orderFeeServiceCreateOrderFeeSupplement,
@@ -39,6 +43,9 @@ import FeeSupplementModal, {
 import { PAYABLE } from './feeConstants';
 
 type SupplementRequest = API.OrderFeeSupplementRequestData;
+
+// 请求层已呈现失败；拒绝确认 Promise 以保留弹窗和已输入的原因。
+const consumedResponseError = new Error('请求未成功完成');
 
 type SupplementError = Error & {
   data?: { message?: string; reason?: string };
@@ -125,8 +132,10 @@ type FeeSupplementSectionProps = FeeSupplementOptions & {
   orderId: string;
   /** 是否具备 fee.create 能力（来自前端 access 对权限清单的统一判断）。 */
   canCreate: boolean;
-  /** 订单处于业务锁或财务锁下才开放补录申请入口。 */
-  lockActive: boolean;
+  /** 整票费用当前具有批准基础，撤回待审补录后可重提。 */
+  feeReviewApproved: boolean;
+  /** 待审期间禁止另建申请，但保留撤回重提入口。 */
+  hasPendingSupplement: boolean;
   /** 审批通过生成未建账费用后，调用方刷新费用表格。 */
   onFeeTablesReload: () => void;
 };
@@ -134,7 +143,8 @@ type FeeSupplementSectionProps = FeeSupplementOptions & {
 export default function FeeSupplementSection({
   orderId,
   canCreate,
-  lockActive,
+  feeReviewApproved,
+  hasPendingSupplement,
   feeSettings,
   settlementParties,
   currencies,
@@ -149,8 +159,8 @@ export default function FeeSupplementSection({
   const listRequestSequenceRef = useRef(0);
   const activeOrderIdRef = useRef(orderId);
   activeOrderIdRef.current = orderId;
-  const canResubmitRef = useRef(canCreate && lockActive);
-  canResubmitRef.current = canCreate && lockActive;
+  const canResubmitRef = useRef(canCreate && feeReviewApproved);
+  canResubmitRef.current = canCreate && feeReviewApproved;
   const previousOrderIdRef = useRef(orderId);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalOrderId, setModalOrderId] = useState<string>();
@@ -172,7 +182,7 @@ export default function FeeSupplementSection({
         id: reviewRequest?.id as string,
         expectedVersion: reviewRequest?.version as string,
       });
-      if (!response.data) throw new Error('补录预览数据为空');
+      if (!response?.data) throw new Error('补录预览数据为空');
       return response.data;
     },
     meta: { errorMessage: '补录费用及提成影响加载失败' },
@@ -207,6 +217,11 @@ export default function FeeSupplementSection({
   };
 
   const reloadList = () => actionRef.current?.reload();
+  const refreshCapabilities = () => {
+    void queryClient.invalidateQueries({ queryKey: ['order-fee-review'] });
+    void queryClient.invalidateQueries({ queryKey: ['orders'] });
+    void queryClient.invalidateQueries({ queryKey: ['finance'] });
+  };
 
   /** 迟到响应守卫：订单切换后旧订单的异步回写全部丢弃。 */
   const isStaleResponse = (requestSequence: number, targetOrderId: string) =>
@@ -253,13 +268,15 @@ export default function FeeSupplementSection({
           },
         );
         if (isStaleResponse(requestSequence, targetOrderId)) return true;
+        if (response?.success !== true || !response.data?.id) return false;
+        refreshCapabilities();
         idempotencyKeyRef.current = generateUUID();
         message.success('补录申请已提交，等待审批');
         if (response.data?.approverAvailable !== true) {
           modal.warning({
             title: '当前暂无可用审批人',
             content:
-              '具备该订单直接解锁资格的人员当前均无法审批；申请会保持待审批状态，您可以在下方撤回该申请。',
+              '具备该订单费用审核资格的人员当前均无法审批；申请会保持待审批状态，您可以在下方撤回该申请。',
           });
         }
         setModalOpen(false);
@@ -271,8 +288,13 @@ export default function FeeSupplementSection({
           reasonOf(error),
           textOf(error),
         );
-        // 幂等冲突后更换幂等键，允许用户修改内容重新发起。
-        idempotencyKeyRef.current = generateUUID();
+        // 只有明确的内容冲突才更换身份；网络失败重试沿用原幂等键。
+        if (
+          reasonOf(error) ===
+          orderErrorReasons.FEE_SUPPLEMENT_IDEMPOTENCY_CONFLICT
+        ) {
+          idempotencyKeyRef.current = generateUUID();
+        }
         if (kind === 'not-applicable' || kind === 'approver-unavailable') {
           modal.warning({ title: '无法提交补录申请', content: text });
         } else {
@@ -297,7 +319,7 @@ export default function FeeSupplementSection({
       return false;
     await runGuarded(async (requestSequence) => {
       try {
-        await orderFeeServiceApproveOrderFeeSupplement(
+        const response = await orderFeeServiceApproveOrderFeeSupplement(
           { orderId: targetOrderId, id: record.id as string },
           {
             orderId: targetOrderId,
@@ -308,8 +330,10 @@ export default function FeeSupplementSection({
           },
         );
         if (isStaleResponse(requestSequence, targetOrderId)) return;
+        if (response?.success !== true || response.data?.id !== record.id)
+          return;
+        refreshCapabilities();
         message.success('补录已批准，费用与应有的提成冲减已同步保存');
-        void queryClient.invalidateQueries({ queryKey: ['order-fee-review'] });
         if (reviewSequence === reviewSequenceRef.current) closeReview();
         reloadList();
         onFeeTablesReload();
@@ -342,13 +366,13 @@ export default function FeeSupplementSection({
     const targetOrderId = orderId;
     const reviewSequence = reviewSequenceRef.current;
     if (!targetOrderId || !record.id || !record.version) return;
-    confirmWithReason(
+    void confirmWithReason(
       { modal, message },
       `驳回补录申请？`,
       async (reason) => {
         await runGuarded(async (requestSequence) => {
           try {
-            await orderFeeServiceRejectOrderFeeSupplement(
+            const response = await orderFeeServiceRejectOrderFeeSupplement(
               { orderId: targetOrderId, id: record.id as string },
               {
                 orderId: targetOrderId,
@@ -358,10 +382,14 @@ export default function FeeSupplementSection({
               },
             );
             if (isStaleResponse(requestSequence, targetOrderId)) return;
+            if (response?.success !== true || response.data?.id !== record.id)
+              throw consumedResponseError;
+            refreshCapabilities();
             message.success('补录申请已驳回');
             if (reviewSequence === reviewSequenceRef.current) closeReview();
             reloadList();
           } catch (error: unknown) {
+            if (error === consumedResponseError) throw error;
             if (isStaleResponse(requestSequence, targetOrderId)) return;
             const { kind, text } = describeFeeSupplementError(
               reasonOf(error),
@@ -373,6 +401,7 @@ export default function FeeSupplementSection({
               message.error(text || '驳回失败');
             }
             reloadList();
+            throw error;
           }
         });
       },
@@ -380,13 +409,16 @@ export default function FeeSupplementSection({
         placeholder: '请输入驳回原因（必填）',
         requiredMessage: '请输入驳回原因',
       },
+    ).then(
+      () => {},
+      () => {},
     );
   };
 
   const handleWithdraw = (record: SupplementRequest) => {
     const targetOrderId = orderId;
     if (!targetOrderId || !record.id || !record.version) return;
-    modal.confirm({
+    const confirmation = modal.confirm({
       title: '撤回补录申请？',
       content:
         '撤回后申请进入终态，不再显示审批动作；撤回与审批并发时只有先提交的一方成功。',
@@ -395,7 +427,7 @@ export default function FeeSupplementSection({
       onOk: async () => {
         await runGuarded(async (requestSequence) => {
           try {
-            await orderFeeServiceWithdrawOrderFeeSupplement(
+            const response = await orderFeeServiceWithdrawOrderFeeSupplement(
               { orderId: targetOrderId, id: record.id as string },
               {
                 orderId: targetOrderId,
@@ -404,9 +436,13 @@ export default function FeeSupplementSection({
               },
             );
             if (isStaleResponse(requestSequence, targetOrderId)) return;
+            if (response?.success !== true || response.data?.id !== record.id)
+              throw consumedResponseError;
+            refreshCapabilities();
             message.success('补录申请已撤回');
             reloadList();
           } catch (error: unknown) {
+            if (error === consumedResponseError) throw error;
             if (isStaleResponse(requestSequence, targetOrderId)) return;
             const { kind, text } = describeFeeSupplementError(
               reasonOf(error),
@@ -423,10 +459,15 @@ export default function FeeSupplementSection({
               message.error(text || '撤回失败');
             }
             reloadList();
+            throw error;
           }
         });
       },
     });
+    void confirmation.then(
+      () => {},
+      () => {},
+    );
   };
 
   const handleWithdrawAndResubmit = (record: SupplementRequest) => {
@@ -437,10 +478,10 @@ export default function FeeSupplementSection({
       !record.version ||
       !record.canWithdraw ||
       !canCreate ||
-      !lockActive
+      !feeReviewApproved
     )
       return;
-    modal.confirm({
+    const confirmation = modal.confirm({
       title: '撤回并重新提交补录申请？',
       content:
         '原申请撤回后将成为不可修改的历史记录。撤回成功才会打开预填表单；关闭表单不会恢复原申请，也不会自动提交新申请。',
@@ -448,7 +489,7 @@ export default function FeeSupplementSection({
       onOk: async () => {
         await runGuarded(async (requestSequence) => {
           try {
-            await orderFeeServiceWithdrawOrderFeeSupplement(
+            const response = await orderFeeServiceWithdrawOrderFeeSupplement(
               { orderId: targetOrderId, id: record.id as string },
               {
                 orderId: targetOrderId,
@@ -457,6 +498,9 @@ export default function FeeSupplementSection({
               },
             );
             if (isStaleResponse(requestSequence, targetOrderId)) return;
+            if (response?.success !== true || response.data?.id !== record.id)
+              throw consumedResponseError;
+            refreshCapabilities();
             if (!canResubmitRef.current) {
               message.warning('原申请已撤回，当前订单已不符合重提条件');
               reloadList();
@@ -469,6 +513,7 @@ export default function FeeSupplementSection({
             message.success('原申请已撤回，请核对并提交新申请');
             reloadList();
           } catch (error: unknown) {
+            if (error === consumedResponseError) throw error;
             if (isStaleResponse(requestSequence, targetOrderId)) return;
             const { kind, text } = describeFeeSupplementError(
               reasonOf(error),
@@ -483,17 +528,22 @@ export default function FeeSupplementSection({
               message.error(text || '撤回失败，未打开重提表单');
             }
             reloadList();
+            throw error;
           }
         });
       },
     });
+    void confirmation.then(
+      () => {},
+      () => {},
+    );
   };
 
   const handleCancelFee = (record: SupplementRequest) => {
     const targetOrderId = orderId;
     if (!targetOrderId || !record.id || !record.feeId) return;
     let cancelReason = '';
-    modal.confirm({
+    const confirmation = modal.confirm({
       title: '撤销补录费用？',
       content: (
         <div>
@@ -523,22 +573,27 @@ export default function FeeSupplementSection({
         }
         return runGuarded(async (requestSequence) => {
           try {
-            await orderFeeServiceCancelApprovedOrderFeeSupplement(
-              { orderId: targetOrderId, id: record.id as string },
-              {
-                orderId: targetOrderId,
-                id: record.id as string,
-                expectedVersion: record.version as string,
-                reason: cancelReason,
-              },
-            );
+            const response =
+              await orderFeeServiceCancelApprovedOrderFeeSupplement(
+                { orderId: targetOrderId, id: record.id as string },
+                {
+                  orderId: targetOrderId,
+                  id: record.id as string,
+                  expectedVersion: record.version as string,
+                  reason: cancelReason,
+                },
+              );
             if (isStaleResponse(requestSequence, targetOrderId)) return;
+            if (response?.success !== true || response.data?.id !== record.id)
+              throw consumedResponseError;
+            refreshCapabilities();
             message.success('补录费用已撤销删除，整票费用批准状态已刷新');
             // 响应只返回刷新后的申请数据（申请保持 APPROVED、fee_id 为空），
             // 列表与费用/汇总一律经重查刷新，不读取已删除的费用实体。
             reloadList();
             onFeeTablesReload();
           } catch (error: unknown) {
+            if (error === consumedResponseError) throw error;
             if (isStaleResponse(requestSequence, targetOrderId)) return;
             const { kind, text } = describeFeeSupplementError(
               reasonOf(error),
@@ -552,10 +607,15 @@ export default function FeeSupplementSection({
               message.error(text || '撤销补录费用失败');
             }
             reloadList();
+            throw error;
           }
         });
       },
     });
+    void confirmation.then(
+      () => {},
+      () => {},
+    );
   };
 
   const columns: ProColumns<SupplementRequest>[] = [
@@ -677,7 +737,7 @@ export default function FeeSupplementSection({
               撤回申请
             </a>,
           );
-          if (canCreate && lockActive) {
+          if (canCreate && feeReviewApproved) {
             actions.push(
               <a
                 key="withdraw-resubmit"
@@ -717,7 +777,7 @@ export default function FeeSupplementSection({
 
   return (
     <>
-      {canCreate && lockActive && (
+      {canCreate && feeReviewApproved && !hasPendingSupplement && (
         <Space style={{ marginBottom: 12 }}>
           <Button
             type="primary"
@@ -968,8 +1028,10 @@ export default function FeeSupplementSection({
               ? '审批意见（亏损原因，必填）'
               : '审批意见'
           }
-          rules={
-            Number(reviewPreview?.projectedProfit) < 0
+          fieldProps={feeReviewCommentFieldProps}
+          rules={[
+            feeReviewCommentRule,
+            ...(Number(reviewPreview?.projectedProfit) < 0
               ? [
                   {
                     required: true,
@@ -977,8 +1039,8 @@ export default function FeeSupplementSection({
                     message: '请说明补录后亏损原因',
                   },
                 ]
-              : []
-          }
+              : []),
+          ]}
         />
       </ModalForm>
       <FeeSupplementModal

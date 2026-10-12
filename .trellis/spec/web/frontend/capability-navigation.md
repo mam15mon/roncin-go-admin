@@ -25,7 +25,7 @@
 | 信用额度干预提示 | [`web/src/features/finance/credit-control/index.ts`](../../../../web/src/features/finance/credit-control/index.ts) | `useCreditLimitIntervention` 与 `disableCreditExceededOptions` 信用控制查询和候选禁用 | 业务查询 Hook 放全局 `hooks/` |
 | 异步竞态防护 | [`web/src/hooks/`](../../../../web/src/hooks/) | 通用 `useLatestAsync`/`useAsyncGuard` 竞态工具 | 任何业务查询 Hook（领域 Hook 进 features） |
 | 订单候选缓存 | [`features/orders/options`](../../../../web/src/features/orders/options/index.ts) | 字典、首批港口/机场、人员候选缓存；组织切换/退出调用清理入口 | 把缓存键隔离误认为页面迟到响应保护 |
-| 整票费用审核状态与摘要 | [`features/orders/fee-review`](../../../../web/src/features/orders/fee-review/index.ts) | `FeeReviewStatus`、`FeeReviewSummary`、状态筛选选项及 `useOrderFeeReview`；订单页面、费用台账、建账候选共用，查询按组织隔离 | 审核资格／建账资格在前端自行推算；引用页面私有审批弹窗；将机器人消息当审批结果 |
+| 整票费用审核状态与摘要 | [`features/orders/fee-review`](../../../../web/src/features/orders/fee-review/index.ts) | `FeeReviewStatus`、`FeeReviewSummary`、状态筛选选项、`useOrderFeeReview` 及按 Unicode 码点计数的审批意见规则；订单页面、费用台账、建账候选共用，查询按组织隔离 | 审核资格／建账资格在前端自行推算；引用页面私有审批弹窗；将机器人消息当审批结果 |
 | 币种候选 | [`features/master-data/currencies`](../../../../web/src/features/master-data/currencies/index.ts) | `getCurrencies` / `getCurrencyOptions`，启停后显式强制刷新 | 在每个页面重复维护币种请求缓存 |
 | 船公司候选 | [`features/master-data/shipping-lines`](../../../../web/src/features/master-data/shipping-lines/index.ts) | `searchShippingLineOptions` 服务端关键字搜索 | 循环翻页拼接全量 |
 | 通用候选类型 | [`types/select-option.ts`](../../../../web/src/types/select-option.ts) | `SelectOption` 基础字段，业务类型按领域组合 | 散客、信用超额等业务字段 |

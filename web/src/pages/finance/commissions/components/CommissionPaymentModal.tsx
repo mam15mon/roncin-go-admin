@@ -35,7 +35,7 @@ export default function CommissionPaymentModal({
         { id: record.id as string },
         { id: record.id, expectedVersion: record.version },
       );
-      if (!response.data) throw new Error('发放预览为空');
+      if (!response?.data) throw new Error('发放预览为空');
       return response.data;
     },
     meta: { errorMessage: '无法预览提成实际发放金额' },
@@ -72,13 +72,15 @@ export default function CommissionPaymentModal({
         )
           return false;
         try {
-          await mutation.mutateAsync({
+          const response = await mutation.mutateAsync({
             id: record.id,
             expectedVersion: preview.data.version,
             previewToken: preview.data.previewToken,
             actualAmount: preview.data.actualAmount,
             idempotencyKey: actionKey.current,
           });
+          if (response?.success !== true || response.data?.id !== record.id)
+            return false;
           onPaid();
           return true;
         } catch {

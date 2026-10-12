@@ -9,6 +9,8 @@ import React, { useRef, useState } from 'react';
 import {
   FeeReviewStatus,
   FeeReviewSummary,
+  feeReviewCommentFieldProps,
+  feeReviewCommentRule,
   useOrderFeeReview,
 } from '@/features/orders/fee-review';
 import {
@@ -58,7 +60,7 @@ export function OrderFeeReviewActions({
       values: { comment?: string; completenessConfirmed?: boolean };
     }) => {
       const snapshot = actionSnapshot.current;
-      await requests[target](
+      const response = await requests[target](
         { orderId: snapshot.orderId as string },
         {
           orderId: snapshot.orderId,
@@ -71,8 +73,13 @@ export function OrderFeeReviewActions({
           completenessConfirmed: values.completenessConfirmed,
         },
       );
+      return response?.success === true &&
+        response.data?.orderId === snapshot.orderId
+        ? response.data
+        : undefined;
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      if (!result) return;
       await Promise.all([
         client.invalidateQueries({ queryKey: ['order-fee-review'] }),
         client.invalidateQueries({ queryKey: ['orders'] }),
@@ -136,8 +143,7 @@ export function OrderFeeReviewActions({
           }}
           onFinish={async (values) => {
             try {
-              await mutation.mutateAsync({ action, values });
-              return true;
+              return Boolean(await mutation.mutateAsync({ action, values }));
             } catch {
               return false;
             }
@@ -191,8 +197,9 @@ export function OrderFeeReviewActions({
             label={
               action === 'reject' || action === 'revoke' ? '原因' : '审批意见'
             }
-            rules={
-              requiredComment
+            rules={[
+              feeReviewCommentRule,
+              ...(requiredComment
                 ? [
                     {
                       required: true,
@@ -200,9 +207,9 @@ export function OrderFeeReviewActions({
                       message: '请填写有效意见或原因',
                     },
                   ]
-                : []
-            }
-            fieldProps={{ maxLength: 2000, showCount: true }}
+                : []),
+            ]}
+            fieldProps={feeReviewCommentFieldProps}
           />
         </ModalForm>
       )}
