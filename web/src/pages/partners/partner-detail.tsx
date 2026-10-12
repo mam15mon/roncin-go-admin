@@ -56,9 +56,6 @@ function isFormValidationError(
 }
 
 import ContractsSection from './components/ContractsSection';
-import InterestRuleModal, {
-  type InterestRuleValues,
-} from './components/InterestRuleModal';
 import LogsSection from './components/LogsSection';
 import PartnerAnchorNav from './components/PartnerAnchorNav';
 import PresetsSection from './components/PresetsSection';
@@ -89,16 +86,6 @@ export default function PartnerDetailPage() {
   // Aliases state
   const [aliases, setAliases] = useState<string[]>([]);
   const [newAliasInput, setNewAliasInput] = useState('');
-
-  // Interest Rule state
-  const [interestModalOpen, setInterestModalOpen] = useState(false);
-  const [interestRule, setInterestRule] = useState<InterestRuleValues>({
-    enabled: false,
-    dailyRateBp: 5,
-    graceDays: 3,
-    calcMode: 'daily_simple',
-    remark: '',
-  });
 
   // Collapsible active keys (all expanded by default)
   const [activeCollapseKeys, setActiveCollapseKeys] = useState<string[]>([
@@ -875,8 +862,6 @@ export default function PartnerDetailPage() {
                 toggleSection('settlement', collapsed)
               }
               currencyOptions={currencyOptions}
-              interestRule={interestRule}
-              onOpenInterestModal={() => setInterestModalOpen(true)}
               roleLabel={roleLabel}
             />
           )}
@@ -1009,18 +994,6 @@ export default function PartnerDetailPage() {
           </Button>
         )}
       </StickyFooterBar>
-
-      {/* Interest Rule Modal */}
-      <InterestRuleModal
-        open={interestModalOpen}
-        value={interestRule}
-        onOpenChange={setInterestModalOpen}
-        onFinish={async (values) => {
-          setInterestRule(values);
-          message.success('利息规则已更新');
-          setInterestModalOpen(false);
-        }}
-      />
 
       {/* 4. 楼层大纲与错误定位导航 */}
       {!loading && (

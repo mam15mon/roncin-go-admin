@@ -3,10 +3,10 @@
 - [x] 关联审查编号、证据与目标文件。
 - [x] 产品范围已确认，PRD收敛完成。
 - [x] 用户已回复“好的”，明确批准855e467d最新最终规划。
-- [ ] 按本任务design核对真实调用/报文/布局，必要技术研究只读产品。
-- [ ] 主会话在批准后启动本子任务，dispatch trellis-implement；明确文件所有权，同文件不并发。
-- [ ] 实现后补触发场景及相邻路径回归，dispatch trellis-check。
-- [ ] 定向验证、修改文件Biome、必要tsc及git diff --check；按共同阶段计划提交。
+- [x] 按本任务design核对真实调用/报文/布局，必要技术研究只读产品。
+- [x] 主会话在批准后启动本子任务，dispatch trellis-implement；明确文件所有权，同文件不并发。
+- [x] 实现后补触发场景及相邻路径回归，dispatch trellis-check。
+- [x] 定向验证、修改文件Biome、必要tsc及git diff --check；按共同阶段计划提交。
 - [ ] 更新实际实现的spec与能力导航，验收通过再归档。
 
 ## 最小验证
@@ -21,3 +21,7 @@
 ## 执行前置条件
 
 10-12-ui-save-protection完成并提交后启动，共享partner-detail.tsx，必须串行。
+
+## 本组验证与spec判断
+
+删除只影响未完成专属UI，既有结算payload、回填与公共保存契约未变；没有新增可执行接口，spec无需重复记录业务延期。用户范围决定保存在PRD。客商/保存/route定向3文件21例、Biome、tsc、diff及浏览器结算字段检查通过。独立审查记录见research/interest-check.md；最终前端门禁后归档。

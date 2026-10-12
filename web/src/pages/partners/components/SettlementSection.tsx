@@ -1,6 +1,6 @@
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import { ProFormDigit, ProFormSelect } from '@ant-design/pro-components';
-import { Button, Col, Form, Input, Row, Select, Space, Tooltip } from 'antd';
+import { Col, Form, Input, Row, Select, Space, Tooltip } from 'antd';
 import React from 'react';
 import { SectionCard } from '@/components/ui';
 import {
@@ -8,7 +8,6 @@ import {
   PartnerSettlementMethod,
   PartnerStatementMode,
 } from '@/enums.generated';
-import type { InterestRuleValues } from './InterestRuleModal';
 
 export const STATEMENT_MODE_OPTIONS = [
   { label: '单票', value: PartnerStatementMode.PARTNER_STATEMENT_MODE_SINGLE },
@@ -78,8 +77,6 @@ type SettlementSectionProps = {
   collapsed: boolean;
   onCollapseChange: (collapsed: boolean) => void;
   currencyOptions: { label: string; value: string }[];
-  interestRule: InterestRuleValues;
-  onOpenInterestModal: () => void;
   roleLabel?: string;
 };
 
@@ -87,8 +84,6 @@ export default function SettlementSection({
   collapsed,
   onCollapseChange,
   currencyOptions,
-  interestRule,
-  onOpenInterestModal,
   roleLabel,
 }: SettlementSectionProps) {
   const isSupplier = roleLabel === '供应商';
@@ -255,35 +250,6 @@ export default function SettlementSection({
                   precision: 2,
                 }}
               />
-            </Col>
-          )}
-
-          {/* Row 3 - Col 2: 利息规则 - 仅客户应收适用 */}
-          {!isSupplier && (
-            <Col xs={24} sm={12} md={8}>
-              <Form.Item
-                label="利息规则"
-                labelCol={labelCol}
-                style={{ marginBottom: 0 }}
-              >
-                <div
-                  style={{
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Button
-                    type="link"
-                    onClick={onOpenInterestModal}
-                    style={{ padding: 0, fontWeight: 500 }}
-                  >
-                    {interestRule.enabled
-                      ? `已启用 (万分之${interestRule.dailyRateBp || 5}/日)`
-                      : '编辑规则'}
-                  </Button>
-                </div>
-              </Form.Item>
             </Col>
           )}
         </Row>

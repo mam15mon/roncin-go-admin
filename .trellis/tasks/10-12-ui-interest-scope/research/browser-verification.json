@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "name": "未完成计息入口移除且结算字段保留",
+      "passed": true,
+      "noInterestEntry": true,
+      "settlementFieldsVisible": true
+    }
+  ],
+  "pageErrors": [],
+  "allPageBusinessWritesIntercepted": true,
+  "writesIntercepted": 0
+}
