@@ -76,3 +76,16 @@
 - `server/internal/data/order_fee.go:280` 的普通写入检查业务锁及提成财务锁。因此简单要求所有新增费用都先取消原账单、撤销整票批准，会改变已有迟到成本业务，并可能使已核销／已产生提成的订单无法补录。
 - 待确认建议：区分“改原费用”和“补新增成本”。前者继续执行用户已确认的取消账单、撤销批准、修改重审；后者保留原费用与账单，受控补录后停止新的建账，重新审阅整票收入／成本／利润，获批后允许新增费用建账。不能只审新增成本一行，也不能复用旧批准放行它。
 - 此建议涉及产品例外，尚未批准；补录资格与现有冲减建议流程的整合设计待该决策明确后完成。
+
+## 用户追问：当前是否能补成本、怎样影响提成
+
+本节核实当前代码行为，不代表用户已同意在新整票审核流程中放行补录。
+
+- 当前存在锁后应付补录申请与审批；审批用例 `server/internal/biz/order_fee_supplement_usecase.go:442` 在同一事务中创建新费用并调用提成影响计算、冲减建议创建。
+- `server/internal/data/order_fee_supplement_approval.go:92` 的 LockCommissionImpactContext 读取目标订单 CONFIRMED／PAID 提成行；原提成金额和历史发放事实不在补录审批中重写。
+- `server/internal/biz/order_fee_supplement.go:499` 的 CommissionSupplementCostSensitivity 明确已实现毛利计提受成本影响，已实现收入计提不受仅新增应付成本的影响；未知计算版本拒绝推测。
+- 同文件 `:539` 计算本笔新增成本加入前后的提成差额，使用原提成快照及此前有效补录成本；`:553` 起按订单行与父单可用余额封顶，不将超额转扣其他订单或员工。
+- `server/internal/data/order_fee_supplement_approval.go:233` 创建 DECREASE＋DRAFT 调整，属于待处理建议，不等同自动扣款；`web/src/pages/finance/commissions/components/PendingDecreasePanel.tsx:86` 提供确认冲减，`:140` 起提供必填原因的忽略建议。实际少发后人工标记已扣回，系统不执行工资扣款。
+- `server/internal/data/finance_commission_write.go:97` 的提成确认重新计算并比较来源指纹，费用变动导致旧草稿不能直接确认；同一确认流程还检查未建账费用。
+- 用于说明的简化例子：同币种、收入全部实现、按毛利 10% 计提且可冲减余额足够，收入 10,000、原成本 8,000，原提成 200；补成本 500 后理论提成 150，生成 50 的冲减建议。实际金额受原计提口径、已实现收入比例、历史快照和可冲减余额约束。
+- 用户担忧提成计算变化，不能将其追问视作授权取消补录或同意保留新例外；保留为待确认产品决策。
