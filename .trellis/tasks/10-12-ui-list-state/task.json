@@ -3,7 +3,7 @@
   "name": "ui-list-state",
   "title": "列表筛选刷新与页签状态统一",
   "description": "修复A04/A05/A12：筛选收起回显一致、真实自动刷新和列表查询上下文恢复",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-12",
   "completedAt": null,
-  "branch": null,
+  "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -36,6 +36,7 @@
   "meta": {
     "audit_issue_ids": "A04 / A05 / A12",
     "planning_ready": true,
-    "implementation_approved": true
+    "implementation_approved": true,
+    "group_verified": true
   }
 }

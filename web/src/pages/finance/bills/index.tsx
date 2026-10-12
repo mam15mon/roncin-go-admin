@@ -11,6 +11,7 @@ import {
   type SearchFilterFieldItem,
   SearchFilterTemplate,
 } from '@/components/ui';
+import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { billStatusMeta } from '@/features/finance/bill-status';
@@ -52,15 +53,34 @@ type BillSearchParams = {
 
 export default function FinanceBillsPage() {
   const access = useAccess();
+  const queryState = useListQueryState<{
+    search: BillSearchParams;
+    organizationId?: string;
+    tagIds?: string[];
+    tagLabels?: Record<string, string>;
+  }>({
+    tabKey: '/finance/bills',
+    listId: 'finance:bills',
+    defaultPageSize: 40,
+    defaultFilters: { search: {} },
+  });
   const [tagModalOpen, setTagModalOpen] = useState(false);
   const [tagBillIds, setTagBillIds] = useState<string[]>([]);
   const [tagExisting, setTagExisting] = useState<API.BusinessTagSummary[]>([]);
   const [tagOptions, setTagOptions] = useState<
     { label: string; value: string }[]
-  >([]);
+  >(() =>
+    Object.entries(queryState.initial.filters.tagLabels ?? {}).map(
+      ([value, label]) => ({ value, label }),
+    ),
+  );
   const [tagOptionsLoading, setTagOptionsLoading] = useState(false);
-  const [tagFilterIds, setTagFilterIds] = useState<string[]>();
-  const [organizationId, setOrganizationId] = useState<string>();
+  const [tagFilterIds, setTagFilterIds] = useState<string[] | undefined>(
+    queryState.initial.filters.tagIds,
+  );
+  const [organizationId, setOrganizationId] = useState<string | undefined>(
+    queryState.initial.filters.organizationId,
+  );
   const [organizationOptions, setOrganizationOptions] = useState<
     API.FinanceOrganizationOption[]
   >([]);
@@ -106,7 +126,7 @@ export default function FinanceBillsPage() {
   );
 
   useEffect(() => {
-    if (organizationId) void loadTagFilterOptions();
+    if (organizationId) void loadTagFilterOptions(undefined, tagFilterIds);
   }, [loadTagFilterOptions]);
   useEffect(() => {
     void settlementServiceListFinanceOrganizationOptions({
@@ -145,8 +165,6 @@ export default function FinanceBillsPage() {
           `${formatAmount(item[field] ?? '0')} ${item.baseCurrency ?? '-'}`,
       )
       .join(' / ') || '-';
-
-  const [searchParams, setSearchParams] = useState<BillSearchParams>({});
 
   const filterItems: SearchFilterFieldItem[] = [
     {
@@ -370,6 +388,7 @@ export default function FinanceBillsPage() {
   return (
     <>
       <FinanceLedgerTemplate<API.FinanceBill>
+        pagination={queryState.pagination}
         pageTitle="账单管理"
         pageSubTitle="集中管理与跟踪海运出口及各业务线收付账单、开票与结算流转状态"
         topBar={
@@ -391,10 +410,16 @@ export default function FinanceBillsPage() {
                   // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
                   tagFilterRequestRef.current += 1;
                   setTagOptionsLoading(false);
+                  queryState.commit({
+                    ...queryState.snapshotRef.current.filters,
+                    organizationId: value,
+                    tagIds: undefined,
+                    tagLabels: {},
+                  });
                   setOrganizationId(value);
                   setTagFilterIds(undefined);
                   setTagOptions([]);
-                  actionRef.current?.reload();
+                  actionRef.current?.reload(true);
                 }}
               />
             </Space>
@@ -419,8 +444,17 @@ export default function FinanceBillsPage() {
                 options={tagOptions}
                 value={tagFilterIds}
                 onChange={(value) => {
+                  queryState.commit({
+                    ...queryState.snapshotRef.current.filters,
+                    tagIds: value.length ? value : undefined,
+                    tagLabels: Object.fromEntries(
+                      tagOptions
+                        .filter((option) => value.includes(option.value))
+                        .map((option) => [option.value, option.label]),
+                    ),
+                  });
                   setTagFilterIds(value.length ? value : undefined);
-                  actionRef.current?.reload();
+                  actionRef.current?.reload(true);
                 }}
               />
             </Space>
@@ -434,6 +468,14 @@ export default function FinanceBillsPage() {
         search={false}
         customSearch={
           <SearchFilterTemplate<BillSearchParams>
+            initialValues={queryState.initial.filters.search}
+            initialLabels={queryState.initial.labels}
+            onCommit={(values, labels) =>
+              queryState.commit(
+                { ...queryState.snapshotRef.current.filters, search: values },
+                labels,
+              )
+            }
             layout="grid"
             formLayout="horizontal"
             labelWidth={80}
@@ -442,12 +484,18 @@ export default function FinanceBillsPage() {
             defaultVisibleCount={5}
             items={filterItems}
             onSearch={(values) => {
-              setSearchParams(values);
-              reload();
+              queryState.commit({
+                ...queryState.snapshotRef.current.filters,
+                search: values,
+              });
+              actionRef.current?.reload(true);
             }}
             onReset={() => {
-              setSearchParams({});
-              reload();
+              queryState.commit(
+                { ...queryState.snapshotRef.current.filters, search: {} },
+                {},
+              );
+              actionRef.current?.reload(true);
             }}
           />
         }
@@ -490,6 +538,11 @@ export default function FinanceBillsPage() {
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={openCreate}
         request={async (params) => {
+          const {
+            search: searchParams,
+            organizationId,
+            tagIds: tagFilterIds,
+          } = queryState.snapshotRef.current.filters;
           const billDateFrom = searchParams.billDateRange?.[0]
             ? searchParams.billDateRange[0].format('YYYY-MM-DD')
             : undefined;

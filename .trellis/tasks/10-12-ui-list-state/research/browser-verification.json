@@ -1,0 +1,52 @@
+{
+  "results": [
+    {
+      "name": "列表已提交查询返回 /partners/customers",
+      "passed": true,
+      "inputRestored": true,
+      "requestRestored": true
+    },
+    {
+      "name": "列表已提交查询返回 /finance/fees",
+      "passed": true,
+      "inputRestored": true,
+      "requestRestored": true
+    },
+    {
+      "name": "列表已提交查询返回 /finance/bills",
+      "passed": true,
+      "inputRestored": true,
+      "requestRestored": true
+    },
+    {
+      "name": "资金流水内置筛选及分页返回",
+      "passed": true,
+      "directionRestored": true,
+      "pageRestored": true,
+      "pageSizeRestored": true,
+      "fixtureTotal": 200
+    },
+    {
+      "name": "订单筛选收起及跨页签恢复已提交值",
+      "passed": true,
+      "collapsePreservesUnsubmitted": true,
+      "refreshUsesCommitted": true,
+      "tabReturnRestoresCommitted": true
+    },
+    {
+      "name": "客户关闭重开恢复默认查询",
+      "passed": true,
+      "closedQueryCleared": true
+    },
+    {
+      "name": "订单自动刷新兑现60秒并关闭清理",
+      "passed": true,
+      "enabled65sRequests": 1,
+      "disabled62sRequests": 0
+    }
+  ],
+  "pageErrors": [],
+  "allPageWritesIntercepted": true,
+  "writesIntercepted": 0,
+  "note": "最终无热更新干扰复测：65秒1次请求，关闭62秒0次。资金流水仅拦截GET总数为200以显示分页，未修改业务数据。 资金流水连续两次跨页签返回仍保持page2/pageSize20。"
+}

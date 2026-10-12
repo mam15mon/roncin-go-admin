@@ -23,7 +23,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import React, { useState } from 'react';
+import React from 'react';
 import type { BatchActionKey, OrderListItem } from './types';
 
 const { Text } = Typography;
@@ -45,6 +45,8 @@ export interface OrderListToolbarProps {
   filterVisible?: boolean;
   onToggleFilter?: () => void;
   readonly?: boolean;
+  autoRefresh?: boolean;
+  onAutoRefreshChange?: (enabled: boolean) => void;
 }
 
 export function OrderListToolbar({
@@ -60,8 +62,9 @@ export function OrderListToolbar({
   filterVisible = false,
   onToggleFilter,
   readonly = false,
+  autoRefresh = false,
+  onAutoRefreshChange,
 }: OrderListToolbarProps) {
-  const [autoRefresh, setAutoRefresh] = useState(false);
   const hasSelected = selectedRows.length > 0;
 
   // 批量操作下拉菜单项定义
@@ -223,7 +226,8 @@ export function OrderListToolbar({
             <Switch
               size="small"
               checked={autoRefresh}
-              onChange={setAutoRefresh}
+              aria-label="自动刷新订单列表"
+              onChange={onAutoRefreshChange}
               style={{ marginLeft: 4 }}
             />
           </Tooltip>

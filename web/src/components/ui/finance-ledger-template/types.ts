@@ -58,6 +58,14 @@ export interface FinanceLedgerTemplateProps<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
   TFilter extends Record<string, unknown> = Record<string, unknown>,
 > {
+  pagination?: ProTableProps<
+    T,
+    TFilter & FinanceLedgerRequestParams
+  >['pagination'];
+  formRef?: ProTableProps<T, TFilter & FinanceLedgerRequestParams>['formRef'];
+  form?: ProTableProps<T, TFilter & FinanceLedgerRequestParams>['form'];
+  onSubmit?: ProTableProps<T, TFilter & FinanceLedgerRequestParams>['onSubmit'];
+  onReset?: ProTableProps<T, TFilter & FinanceLedgerRequestParams>['onReset'];
   pageTitle?: ReactNode;
   pageSubTitle?: ReactNode;
   headerExtra?: ReactNode;

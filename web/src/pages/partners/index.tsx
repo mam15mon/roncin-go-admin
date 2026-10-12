@@ -41,6 +41,7 @@ import {
   SearchFilterTemplate,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { useListQueryState } from '@/components/ui/list-query-state';
 import { PartnerRoleType } from '@/enums.generated';
 import { history } from '@/router/history';
 import {
@@ -130,7 +131,7 @@ type PartnerSearchParams = {
   isCasual?: boolean;
 };
 
-export default function Partners() {
+function PartnersContent() {
   const { message } = App.useApp();
   const location = useLocation();
   const access = useAccess();
@@ -151,7 +152,17 @@ export default function Partners() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   // 黑名单视图：仅显示当前角色类型已拉黑的档案（列表与导出口径一致）
-  const [blacklistView, setBlacklistView] = useState(false);
+  const queryState = useListQueryState<
+    PartnerSearchParams & { blacklistView?: boolean }
+  >({
+    tabKey: location.pathname,
+    listId: `partners:${location.pathname}`,
+    defaultPageSize: 20,
+    defaultFilters: {},
+  });
+  const [blacklistView, setBlacklistView] = useState(
+    queryState.initial.filters.blacklistView ?? false,
+  );
 
   const currentView =
     currentViewMeta[location.pathname] ||
@@ -183,10 +194,11 @@ export default function Partners() {
       // 导出走服务端聚合翻页的 ExportPartners 接口，与列表读取同一组已提交
       // 搜索条件（契约无 isCasual 过滤字段，故不透传）
       const response = await partnerServiceExportPartners({
-        keyword: searchParams.keyword,
+        keyword: queryState.snapshotRef.current.filters.keyword,
         role: currentView.roleType,
-        enabled: searchParams.enabled,
-        blacklisted: blacklistView || undefined,
+        enabled: queryState.snapshotRef.current.filters.enabled,
+        blacklisted:
+          queryState.snapshotRef.current.filters.blacklistView || undefined,
       });
       const data = unwrapList(response);
       if (data.length === 0) {
@@ -475,8 +487,6 @@ export default function Partners() {
     },
   ];
 
-  const [searchParams, setSearchParams] = useState<PartnerSearchParams>({});
-
   const columnSettings = useColumnSettings<ProColumns<API.Partner>>({
     // 客户/供应商/国外代理与黑名单口径的列集合不同，偏好按业务视图隔离。
     tableKey: `partners:list:${currentView.roleType}${
@@ -497,6 +507,8 @@ export default function Partners() {
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       <SearchFilterTemplate<PartnerSearchParams>
+        initialValues={queryState.initial.filters}
+        initialLabels={queryState.initial.labels}
         layout="bar"
         keywordPlaceholder={`搜索单位编码、名称、拼音或税号...`}
         quickFilters={[
@@ -524,12 +536,12 @@ export default function Partners() {
             : []),
         ]}
         onSearch={(values) => {
-          setSearchParams(values);
-          actionRef.current?.reload();
+          queryState.commit({ ...values, blacklistView });
+          actionRef.current?.reload(true);
         }}
         onReset={() => {
-          setSearchParams({});
-          actionRef.current?.reload();
+          queryState.commit({ blacklistView }, {});
+          actionRef.current?.reload(true);
         }}
         extraRight={
           <Space size={8} wrap style={{ maxWidth: '100%' }}>
@@ -585,12 +597,12 @@ export default function Partners() {
                 { label: `黑名单${currentView.title}`, value: 'blacklist' },
               ]}
               onChange={(value) => {
+                queryState.commit({
+                  ...queryState.snapshotRef.current.filters,
+                  blacklistView: value === 'blacklist',
+                });
                 setBlacklistView(value === 'blacklist');
-                // reset 负责把分页归位到第 1 页，但停留在第 1 页时它不会
-                // 触发刷新；reload 补上重新请求，两者经 ProTable 内部
-                // 防抖合并为一次请求，外部 searchParams 搜索条件不受影响
-                actionRef.current?.reset?.();
-                actionRef.current?.reload();
+                actionRef.current?.reload(true);
               }}
             />
           </Space>
@@ -604,16 +616,17 @@ export default function Partners() {
             border: '1px solid #f0f0f0',
           },
         }}
-        pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+        pagination={{ ...queryState.pagination, showSizeChanger: true }}
         request={async (params) => {
           const response = await partnerServiceListPartners({
             page: params.current,
             pageSize: params.pageSize,
-            keyword: searchParams.keyword,
+            keyword: queryState.snapshotRef.current.filters.keyword,
             role: currentView.roleType,
-            enabled: searchParams.enabled,
-            isCasual: searchParams.isCasual,
-            blacklisted: blacklistView || undefined,
+            enabled: queryState.snapshotRef.current.filters.enabled,
+            isCasual: queryState.snapshotRef.current.filters.isCasual,
+            blacklisted:
+              queryState.snapshotRef.current.filters.blacklistView || undefined,
           });
           return toTableRequest(response);
         }}
@@ -723,4 +736,9 @@ export default function Partners() {
       />
     </PageContainer>
   );
+}
+
+export default function Partners() {
+  const location = useLocation();
+  return <PartnersContent key={location.pathname} />;
 }

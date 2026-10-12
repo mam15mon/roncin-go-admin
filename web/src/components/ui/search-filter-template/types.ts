@@ -82,6 +82,10 @@ export interface SearchFilterTemplateProps<TValues = Record<string, unknown>> {
   keywordName?: string;
   /** 快捷搜索栏模式下的下拉筛选组（用于 'bar' 模式） */
   quickFilters?: QuickFilterOption[];
+  /** 已提交条件及候选名称，仅首次挂载初始化 */
+  initialValues?: Partial<TValues>;
+  initialLabels?: Record<string, string>;
+  onCommit?: (values: TValues, labels: Record<string, string>) => void;
   /** 提交搜索回调 */
   onSearch?: (values: TValues) => void;
   /** 重置搜索回调 */

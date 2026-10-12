@@ -7,6 +7,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ModalForm,
   ProFormDatePicker,
+  type ProFormInstance,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -20,6 +21,7 @@ import {
   FinanceLedgerTemplate,
   ProFormSearchableSelect,
 } from '@/components/ui';
+import { useListQueryState } from '@/components/ui/list-query-state';
 import {
   FinanceCashflowStatus,
   FinanceOrganizationPurpose,
@@ -86,11 +88,24 @@ const decimalRule = {
 
 export default function FinanceCashflowsPage() {
   const access = useAccess();
+  const queryState = useListQueryState<{
+    direction?: string;
+    status?: string;
+    organizationId?: string;
+  }>({
+    tabKey: '/finance/cashflows',
+    listId: 'finance:cashflows',
+    defaultPageSize: 40,
+    defaultFilters: {},
+  });
   const { message, modal } = App.useApp();
+  const searchFormRef = useRef<ProFormInstance | undefined>(undefined);
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<Values>();
   const [open, setOpen] = useState(false);
-  const [organizationId, setOrganizationId] = useState<string>();
+  const [organizationId, setOrganizationId] = useState<string | undefined>(
+    queryState.initial.filters.organizationId,
+  );
   const [partyCasualMap, setPartyCasualMap] = useState<Record<string, boolean>>(
     {},
   );
@@ -432,6 +447,38 @@ export default function FinanceCashflowsPage() {
   return (
     <>
       <FinanceLedgerTemplate<API.FinanceCashflow, CashflowLedgerFilterParams>
+        formRef={searchFormRef}
+        pagination={queryState.pagination}
+        form={{
+          initialValues: {
+            ...queryState.initial.filters,
+            current: queryState.initial.current,
+            pageSize: queryState.initial.pageSize,
+          },
+        }}
+        onSubmit={(values) =>
+          queryState.commit({
+            organizationId:
+              queryState.snapshotRef.current.filters.organizationId,
+            direction: values.direction,
+            status: values.status,
+          })
+        }
+        onReset={() => {
+          searchFormRef.current?.setFieldsValue({
+            direction: undefined,
+            status: undefined,
+            current: undefined,
+            pageSize: undefined,
+          });
+          queryState.commit(
+            {
+              organizationId:
+                queryState.snapshotRef.current.filters.organizationId,
+            },
+            {},
+          );
+        }}
         pageTitle="收付管理"
         pageSubTitle="银行流水认领、资金收付流水台账及状态跟踪"
         topBar={
@@ -449,8 +496,12 @@ export default function FinanceCashflowsPage() {
                 label: item.name ?? item.code ?? item.id,
               }))}
               onChange={(value) => {
+                queryState.commit({
+                  ...queryState.snapshotRef.current.filters,
+                  organizationId: value,
+                });
                 setOrganizationId(value);
-                actionRef.current?.reload();
+                actionRef.current?.reload(true);
               }}
             />
           </Space>
@@ -466,12 +517,16 @@ export default function FinanceCashflowsPage() {
           access.canCreateFinanceCashflows ? () => setOpen(true) : undefined
         }
         request={async (p) => {
+          const organizationId =
+            queryState.snapshotRef.current.filters.organizationId;
           const r = await settlementServiceListCashflows({
             page: p.current,
             pageSize: p.pageSize,
             keyword: p.keyword,
-            direction: p.direction,
-            status: p.status ? Number(p.status) : undefined,
+            direction: queryState.snapshotRef.current.filters.direction,
+            status: queryState.snapshotRef.current.filters.status
+              ? Number(queryState.snapshotRef.current.filters.status)
+              : undefined,
             organizationId,
           });
           setMetricStats({

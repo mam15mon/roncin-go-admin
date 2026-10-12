@@ -16,6 +16,7 @@ import {
   RowColorSettings,
   type RowColorsConfig,
 } from '@/components/ui';
+import { useListQueryState } from '@/components/ui/list-query-state';
 import {
   FeeLedgerFinancialProgress,
   FinanceOrganizationPurpose,
@@ -116,8 +117,20 @@ export default function FinanceFeeLedgerPage() {
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
   const [selectedBillOrganizationId, setSelectedBillOrganizationId] =
     useState<string>();
-  const [filterParams, setFilterParams] = useState<FeeLedgerFilterParams>({});
-  const [organizationId, setOrganizationId] = useState<string>();
+  const queryState = useListQueryState<{
+    search: FeeLedgerFilterParams;
+    organizationId?: string;
+    tagIds?: string[];
+    tagLabels?: Record<string, string>;
+  }>({
+    tabKey: '/finance/fees',
+    listId: 'finance:fees',
+    defaultPageSize: 40,
+    defaultFilters: { search: {} },
+  });
+  const [organizationId, setOrganizationId] = useState<string | undefined>(
+    queryState.initial.filters.organizationId,
+  );
 
   // 顶部筛选所属公司候选：失败经全局 onError 提示原文案。
   const organizationQuery = useQuery({
@@ -141,13 +154,19 @@ export default function FinanceFeeLedgerPage() {
   const organizationOptions = organizationQuery.data ?? [];
 
   const handleSearch = (values: FeeLedgerFilterParams) => {
-    setFilterParams(values);
-    actionRef.current?.reload();
+    queryState.commit({
+      ...queryState.snapshotRef.current.filters,
+      search: values,
+    });
+    actionRef.current?.reload(true);
   };
 
   const handleReset = () => {
-    setFilterParams({});
-    actionRef.current?.reload();
+    queryState.commit(
+      { ...queryState.snapshotRef.current.filters, search: {} },
+      {},
+    );
+    actionRef.current?.reload(true);
   };
 
   // 建账资格以既有账单信息为口径：关联账单号存在（含草稿账单占用）即不可建账；
@@ -197,7 +216,9 @@ export default function FinanceFeeLedgerPage() {
   const [tagFeeIds, setTagFeeIds] = useState<string[]>([]);
   const [tagExisting, setTagExisting] = useState<API.BusinessTagSummary[]>([]);
   const [tagSearchKeyword, setTagSearchKeyword] = useState('');
-  const [tagFilterIds, setTagFilterIds] = useState<string[]>();
+  const [tagFilterIds, setTagFilterIds] = useState<string[] | undefined>(
+    queryState.initial.filters.tagIds,
+  );
   // 搜索词规范化与原请求一致：空白关键字按未过滤处理，规范化后的词进 queryKey。
   const normalizedTagKeyword = tagSearchKeyword.trim() || undefined;
 
@@ -230,7 +251,11 @@ export default function FinanceFeeLedgerPage() {
   const tagOptions = useMemo(() => {
     if (!organizationId) return [];
     const selected = new Set(tagFilterIds ?? []);
-    const options = new Map<string, { label: string; value: string }>();
+    const options = new Map<string, { label: string; value: string }>(
+      Object.entries(queryState.snapshotRef.current.filters.tagLabels ?? {})
+        .filter(([id]) => selected.has(id))
+        .map(([value, label]) => [value, { value, label }]),
+    );
     const cachedEntries = queryClient.getQueriesData<API.BusinessTagSummary[]>({
       queryKey: ['finance', 'fee-tag-options', { organizationId }],
     });
@@ -302,6 +327,7 @@ export default function FinanceFeeLedgerPage() {
   return (
     <>
       <FinanceLedgerTemplate<API.FeeLedgerItem>
+        pagination={queryState.pagination}
         pageTitle="费用明细台账"
         pageSubTitle="全维度多币种费用台账，支持按单据、财务进度、结算单位快速对账与生成账单"
         topBar={
@@ -322,10 +348,16 @@ export default function FinanceFeeLedgerPage() {
                 onChange={(value) => {
                   // 切换或清空公司即整体换键：旧组织的在途结果落在旧 queryKey，
                   // 不再回填；同步重置标签筛选与搜索词，候选按新公司重查。
+                  queryState.commit({
+                    ...queryState.snapshotRef.current.filters,
+                    organizationId: value,
+                    tagIds: undefined,
+                    tagLabels: {},
+                  });
                   setOrganizationId(value);
                   setTagSearchKeyword('');
                   setTagFilterIds(undefined);
-                  actionRef.current?.reload();
+                  actionRef.current?.reload(true);
                 }}
               />
             </Space>
@@ -349,8 +381,17 @@ export default function FinanceFeeLedgerPage() {
                 value={tagFilterIds}
                 disabled={!organizationId}
                 onChange={(value) => {
+                  queryState.commit({
+                    ...queryState.snapshotRef.current.filters,
+                    tagIds: value.length ? value : undefined,
+                    tagLabels: Object.fromEntries(
+                      tagOptions
+                        .filter((option) => value.includes(option.value))
+                        .map((option) => [option.value, option.label]),
+                    ),
+                  });
                   setTagFilterIds(value.length ? value : undefined);
-                  actionRef.current?.reload();
+                  actionRef.current?.reload(true);
                 }}
               />
             </Space>
@@ -362,6 +403,14 @@ export default function FinanceFeeLedgerPage() {
         metricCards={metricCards}
         customSearch={
           <FeeLedgerSearchFilter
+            initialValues={queryState.initial.filters.search}
+            initialLabels={queryState.initial.labels}
+            onCommit={(values, labels) =>
+              queryState.commit(
+                { ...queryState.snapshotRef.current.filters, search: values },
+                labels,
+              )
+            }
             onSearch={handleSearch}
             onReset={handleReset}
           />
@@ -465,6 +514,11 @@ export default function FinanceFeeLedgerPage() {
           if (row.orderId) history.push(`/finance/fees/detail/${row.orderId}`);
         }}
         request={async (params) => {
+          const {
+            search: filterParams,
+            organizationId,
+            tagIds: tagFilterIds,
+          } = queryState.snapshotRef.current.filters;
           const expenseDateFrom = filterParams.expenseDateRange?.[0]
             ? filterParams.expenseDateRange[0].format('YYYY-MM-DD')
             : undefined;

@@ -122,6 +122,9 @@ export function SearchFilterTemplate<
   keywordPlaceholder = '输入关键字搜索...',
   keywordName = 'keyword',
   quickFilters = [],
+  initialValues,
+  initialLabels = {},
+  onCommit,
   onSearch,
   onReset,
   loading = false,
@@ -135,13 +138,14 @@ export function SearchFilterTemplate<
   const form = externalForm || internalForm;
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   // 已提交筛选条件：chips 回显是它的镜像，仅随提交/重置/删除 chip 变更
-  const [committed, setCommitted] = useState<TValues>({} as TValues);
-  // 与 committed 同批固化的下拉 label 快照：chips 只反映已提交口径，改选未重查不影响回显
-  const [labelSnapshot, setLabelSnapshot] = useState<Record<string, string>>(
-    {},
+  const [committed, setCommitted] = useState<TValues>(
+    (initialValues ?? {}) as TValues,
   );
+  // 与 committed 同批固化的下拉 label 快照：chips 只反映已提交口径，改选未重查不影响回显
+  const [labelSnapshot, setLabelSnapshot] =
+    useState<Record<string, string>>(initialLabels);
   // 选择动作发生时捕获的下拉候选项 label（远程字段无法从配置解析），提交时固化进快照
-  const labelMapRef = useRef<Record<string, string>>({});
+  const labelMapRef = useRef<Record<string, string>>({ ...initialLabels });
 
   const toggleCollapse = () => setCollapsed((prev) => !prev);
 
@@ -177,15 +181,30 @@ export function SearchFilterTemplate<
   const handleFinish = (values: TValues) => {
     setCommitted(values);
     setLabelSnapshot({ ...labelMapRef.current });
+    onCommit?.(values, { ...labelMapRef.current });
     onSearch?.(values);
   };
 
   // 重置处理：清空表单、chips 与捕获的 label
   const handleReset = () => {
     form.resetFields();
+    form.setFieldsValue(
+      Object.fromEntries(
+        [
+          ...items.map((i) => i.name),
+          keywordName,
+          ...quickFilters.map((i) => i.name),
+        ].map((name) => [
+          name,
+          items.find((i) => i.name === name)?.initialValue ??
+            quickFilters.find((i) => i.name === name)?.initialValue,
+        ]),
+      ),
+    );
     labelMapRef.current = {};
     setCommitted({} as TValues);
     setLabelSnapshot({});
+    onCommit?.({} as TValues, {});
     onReset?.();
   };
 
@@ -201,6 +220,12 @@ export function SearchFilterTemplate<
       delete nextLabels[name];
       return nextLabels;
     });
+    onCommit?.(
+      next,
+      Object.fromEntries(
+        Object.entries(labelSnapshot).filter(([key]) => key !== name),
+      ),
+    );
     onSearch?.(next);
   };
 
@@ -303,6 +328,18 @@ export function SearchFilterTemplate<
         if (request) {
           return (
             <RemoteSearchSelect
+              selectedOptions={
+                (typeof initialValues?.[item.name] === 'string' ||
+                  typeof initialValues?.[item.name] === 'number') &&
+                initialLabels[item.name]
+                  ? [
+                      {
+                        value: initialValues[item.name] as string | number,
+                        label: initialLabels[item.name],
+                      },
+                    ]
+                  : []
+              }
               allowClear={allowClear}
               placeholder={placeholder as string}
               style={{ width: '100%' }}
@@ -384,7 +421,12 @@ export function SearchFilterTemplate<
         }}
         styles={{ body: { padding: '12px 16px' } }}
       >
-        <Form form={form} layout="inline" onFinish={handleFinish}>
+        <Form
+          initialValues={initialValues}
+          form={form}
+          layout="inline"
+          onFinish={handleFinish}
+        >
           <div
             style={{
               display: 'flex',
@@ -475,7 +517,12 @@ export function SearchFilterTemplate<
         }}
         styles={{ body: { padding: '14px 16px 8px' } }}
       >
-        <Form form={form} layout="vertical" onFinish={handleFinish}>
+        <Form
+          initialValues={initialValues}
+          form={form}
+          layout="vertical"
+          onFinish={handleFinish}
+        >
           {typeof children === 'function'
             ? children({ form, collapsed, toggleCollapse })
             : children}
@@ -499,6 +546,7 @@ export function SearchFilterTemplate<
       styles={{ body: { padding: '14px 16px 6px' } }}
     >
       <Form
+        initialValues={initialValues}
         form={form}
         layout={formLayout}
         onFinish={handleFinish}

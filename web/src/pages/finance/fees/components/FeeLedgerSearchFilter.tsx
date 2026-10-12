@@ -39,12 +39,21 @@ export type FeeLedgerFilterParams = {
 };
 
 export interface FeeLedgerSearchFilterProps {
+  initialValues?: FeeLedgerFilterParams;
+  initialLabels?: Record<string, string>;
+  onCommit?: (
+    values: FeeLedgerFilterParams,
+    labels: Record<string, string>,
+  ) => void;
   onSearch: (values: FeeLedgerFilterParams) => void;
   onReset: () => void;
   loading?: boolean;
 }
 
 export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
+  initialValues,
+  initialLabels,
+  onCommit,
   onSearch,
   onReset,
   loading = false,
@@ -227,6 +236,9 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
 
   return (
     <SearchFilterTemplate<FeeLedgerFilterParams>
+      initialValues={initialValues}
+      initialLabels={initialLabels}
+      onCommit={onCommit}
       layout="grid"
       formLayout="horizontal"
       labelWidth={75}

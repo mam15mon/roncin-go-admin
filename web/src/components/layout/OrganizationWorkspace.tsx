@@ -1,5 +1,7 @@
 import React from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { TagsView } from '@/components/layout/TagsView';
+import { ListQueryStateProvider } from '@/components/ui/list-query-state';
 
 export function getOrganizationWorkspaceKey(
   currentUser?: API.CurrentUser,
@@ -12,10 +14,16 @@ export function OrganizationWorkspace({
 }: {
   children: React.ReactNode;
 }) {
+  const { initialState } = useInitialState();
+  const user = initialState?.currentUser;
   return (
-    <div className="roncin-layout-wrapper roncin-organization-workspace">
-      <TagsView />
-      <div className="roncin-layout-main">{children}</div>
-    </div>
+    <ListQueryStateProvider
+      enabled={Boolean(user?.id && user.currentOrganization?.id)}
+    >
+      <div className="roncin-layout-wrapper roncin-organization-workspace">
+        <TagsView />
+        <div className="roncin-layout-main">{children}</div>
+      </div>
+    </ListQueryStateProvider>
   );
 }

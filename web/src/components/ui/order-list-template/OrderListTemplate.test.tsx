@@ -110,6 +110,7 @@ describe('OrderListSearchFilter', () => {
           numberType: 'order',
           numberKeyword: 'SE202608280001',
         }),
+        {},
       );
     });
   });

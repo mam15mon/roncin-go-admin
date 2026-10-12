@@ -15,7 +15,7 @@
   "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "de04cff4",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -30,6 +30,7 @@
     "audit_issue_ids": "A03",
     "planning_ready": true,
     "interest_decision": "remove_unfinished_ui",
-    "implementation_approved": true
+    "implementation_approved": true,
+    "group_verified": true
   }
 }

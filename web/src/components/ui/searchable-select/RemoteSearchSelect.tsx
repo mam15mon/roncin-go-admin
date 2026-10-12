@@ -10,6 +10,7 @@ import type { RemoteSearchSelectProps, SearchableSelectProps } from './types';
  */
 export const RemoteSearchSelect: React.FC<RemoteSearchSelectProps> = ({
   request,
+  selectedOptions = [],
   debounceMs = 300,
   allowClear = true,
   ...rest
@@ -74,7 +75,14 @@ export const RemoteSearchSelect: React.FC<RemoteSearchSelectProps> = ({
       allowClear={allowClear}
       loading={loading}
       notFoundContent={loading ? <Spin size="small" /> : undefined}
-      options={options}
+      options={Array.from(
+        new Map(
+          [...(selectedOptions ?? []), ...(options ?? [])].map((option) => [
+            option.value,
+            option,
+          ]),
+        ).values(),
+      )}
       onSearch={handleSearch}
     />
   );

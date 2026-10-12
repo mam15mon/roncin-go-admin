@@ -11,13 +11,14 @@ import {
   SettingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useLocation } from 'react-router';
-import { useInitialState } from '@/app/AppProvider';
 import type { MenuProps } from 'antd';
 import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
 import { EllipsisTooltip } from '@/components/ui';
+import { useClearListQueries } from '@/components/ui/list-query-state';
+import { history } from '@/router/history';
 import { clearTabDrafts, getFormDraftScope } from './formDraft';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
 import { confirmIfTabsDirty } from './tabCloseGuard';
@@ -98,6 +99,7 @@ function getRouteIcon(path: string) {
  * 现代化 Chrome 风格多页签导航组件 (Chrome Modern Tab)
  */
 export const TagsView: React.FC = () => {
+  const clearQueries = useClearListQueries();
   const location = useLocation();
   const { initialState } = useInitialState();
   const draftScope = getFormDraftScope(
@@ -217,6 +219,7 @@ export const TagsView: React.FC = () => {
   };
 
   const executeCloseTag = (tag: TagItem) => {
+    clearQueries([tag.key]);
     clearTabDrafts(tag.key, draftScope);
     const nextPath = computeNextActivePath(tags, tag.key, currentTabKey);
     setTags((prev) => prev.filter((t) => t.key !== tag.key));
@@ -290,6 +293,7 @@ export const TagsView: React.FC = () => {
           confirmIfTabsDirty(
             closingTags.map((t) => t.key),
             () => {
+              clearQueries(closingTags.map((t) => t.key));
               for (const t of closingTags) {
                 clearTabDrafts(t.key, draftScope);
               }
@@ -316,6 +320,7 @@ export const TagsView: React.FC = () => {
           confirmIfTabsDirty(
             closingTags.map((t) => t.key),
             () => {
+              clearQueries(closingTags.map((t) => t.key));
               for (const t of closingTags) {
                 clearTabDrafts(t.key, draftScope);
               }
@@ -342,6 +347,7 @@ export const TagsView: React.FC = () => {
           confirmIfTabsDirty(
             closingTags.map((t) => t.key),
             () => {
+              clearQueries(closingTags.map((t) => t.key));
               for (const t of closingTags) {
                 clearTabDrafts(t.key, draftScope);
               }

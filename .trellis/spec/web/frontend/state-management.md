@@ -211,6 +211,83 @@ clearFormDraft(draftKey);
 templateActionsRef.current?.resetTo(initialValues);
 ```
 
+## 场景：业务页签列表查询恢复
+
+### 1. 范围
+
+客商、共享订单、费用/账单/资金流水列表的已提交查询通过
+`components/ui/list-query-state` 公开入口恢复。状态属于当前已认证用户/组织的
+`OrganizationWorkspace` 实例；工作区 key 重建销毁全部快照。缺少用户或组织时禁用共享，
+完整刷新浏览器回默认。快照只存查询条件、已选候选名称、页码和 pageSize。
+
+### 2. 签名
+
+```ts
+type ListQuerySnapshot<T> = {
+  filters: T;
+  labels: Record<string, string>;
+  current: number;
+  pageSize: number;
+};
+ListQueryStateProvider({ enabled, children });
+useListQueryState<T>({ tabKey, listId, defaultPageSize, defaultFilters });
+// 返回 initial / snapshotRef / commit(filters, labels?, resetPage?) / pagination
+useClearListQueries(); // 返回 clear(tabKeys)
+```
+
+### 3. 契约
+
+- `tabKey + listId` 显式固定到挂载身份；客商角色、订单业务类型属于 listId，角色/类型变化
+  重建消费实例。无身份不共享；禁止全局 Map、匿名命名空间、结果缓存或 KeepAlive。
+- 提交、重置、即时筛选、分页事件同步写快照，卸载不回写；列表仍完全通过官方
+  ProTable `request` / `actionRef` 请求数据，不存 data/loading。请求条件同步引用更新后，
+  新查询用 `reload(true)` 回第一页，普通刷新 `reload()` 保留页码。
+- 页签真正关闭的已确认回调清理对应快照并递增 tab 代际。旧租约禁止再写，关闭重开
+  获得新代际；拒绝关闭不清理。覆盖叉号及当前/其他/左/右/全部菜单。
+- 通用 SearchFilterTemplate 的 `initialValues`、`initialLabels` 只首次初始化；
+  `onCommit(values, labels)` 固化已提交口径。重置明确清到真实默认值，不能回到恢复初值。
+  删除单个 chip 只改变已提交条件，不把其他未提交编辑混入请求。
+- 日期按字段定义恢复 Dayjs，不猜普通字符串；已选远程候选保活轻量 value/label，
+  查询仍提交原始 ID。财务顶部所属公司、标签及标签名均属于查询条件，切所属公司清旧标签；
+  顶部目标公司不是工作区身份。客商黑名单同样为真实查询，不丢 false/0 值。
+- 订单收起筛选用 hidden 保持 Form 挂载，保留尚未提交输入；跨页签恢复只恢复已提交值。
+  自动刷新开关不跨页签保存：60 秒调用官方 actionRef，仅开启且窗口聚焦、页面可见时运行，
+  busy 时跳过；关闭、blur、hidden、卸载清理，恢复前台只建立一个计时器。
+
+### 4. 验证矩阵
+
+| 场景 | 行为 |
+| --- | --- |
+| 切页签后返回 | 恢复已提交值、中文名称、分页及实际请求参数 |
+| 收起后展开 | 未提交编辑也保留，刷新仍按已提交条件 |
+| 恢复后重置 | 默认查询/第一页，旧 initialValues 不复活 |
+| 关闭后旧事件迟到 | 旧租约写入被拒绝，重开默认值且新查询可正常保存 |
+| 拒绝关闭 | 原快照保留 |
+| 用户/组织变化或身份缺失 | 不读取原实例共享快照 |
+| 自动刷新失败 | 不清查询，不覆盖未提交输入 |
+
+### 5. 正常与错误场景
+
+正常：客户列表查关键词，切工作台再点客户页签，关键词和请求一致；关闭客户页签后重新进入，
+回默认查询。错误：组件卸载时写筛选，关闭清理之后又把旧查询存回来；用全局匿名键让不同身份串用。
+
+### 6. 必须测试
+
+Provider 的工作区隔离/身份缺失、关闭代际与重开；真实路由卸载返回；各消费者已提交查询/分页；
+客商角色、财务顶部公司与标签、日期/候选名称；所有关闭菜单确认/取消；
+假计时器的 tick/busy/blur/hidden/恢复/卸载及浏览器真实 65 秒请求观察。
+
+### 7. 错误与正确示例
+
+```ts
+// 错误：卸载 cleanup 保存，让已关闭页签复活。
+useEffect(() => () => saveQuery(form.getFieldsValue()), []);
+// 正确：提交事件同步记录，再由官方表格刷新。
+queryState.commit(filters, labels);
+currentFilterRef.current = filters;
+actionRef.current?.reload(true);
+```
+
 ## 场景：列表筛选驱动的前端 CSV 导出
 
 ### 1. 使用范围

@@ -38,6 +38,11 @@ export function FinanceLedgerTemplate<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
   TFilter extends Record<string, unknown> = Record<string, unknown>,
 >({
+  pagination,
+  formRef,
+  form,
+  onSubmit,
+  onReset,
   pageTitle,
   pageSubTitle,
   headerExtra,
@@ -228,7 +233,17 @@ export function FinanceLedgerTemplate<
           size={densitySize}
           onSizeChange={(size) => setDensitySize(size || 'small')}
           scroll={{ x: scrollX }}
-          pagination={{ defaultPageSize: 40, showSizeChanger: true }}
+          pagination={
+            pagination === false
+              ? false
+              : { defaultPageSize: 40, showSizeChanger: true, ...pagination }
+          }
+          formRef={formRef}
+          form={form}
+          onSubmit={(params) =>
+            onSubmit?.(params as TFilter & FinanceLedgerRequestParams)
+          }
+          onReset={onReset}
           search={
             search === false
               ? false

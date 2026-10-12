@@ -18,6 +18,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { useColumnSettings } from '../column-settings';
+import { useListQueryState } from '../list-query-state';
 import { ResponsiveProTable } from '../responsive-table';
 import OrderListSearchFilter from './OrderListSearchFilter';
 import OrderListToolbar from './OrderListToolbar';
@@ -26,8 +27,10 @@ import type {
   OrderListItem,
   OrderListTemplateProps,
 } from './types';
+import { useOrderAutoRefresh } from './useOrderAutoRefresh';
 
 export function OrderListTemplate({
+  queryStateIdentity,
   actionRef: externalActionRef,
   title = '业务订单管理',
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
@@ -61,7 +64,18 @@ export function OrderListTemplate({
     internalActionRef;
   const [selectedRows, setSelectedRows] = useState<OrderListItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const currentFilterRef = useRef<OrderListFilterParams>({});
+  const queryState = useListQueryState<OrderListFilterParams>({
+    tabKey: queryStateIdentity?.tabKey ?? '',
+    listId: queryStateIdentity?.listId ?? '',
+    defaultPageSize: 20,
+    defaultFilters: {},
+  });
+  const currentFilterRef = useRef<OrderListFilterParams>(
+    queryState.initial.filters,
+  );
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const busyRef = useRef(false);
+  useOrderAutoRefresh(autoRefresh, actionRef, busyRef);
   const [filterVisible, setFilterVisible] = useState(false);
 
   // 1. 构建完整表头列定义
@@ -564,19 +578,23 @@ export function OrderListTemplate({
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       {/* 展开/收起的专业多维筛选面板（默认收起） */}
-      {filterVisible && (
+      <div hidden={!filterVisible}>
         <OrderListSearchFilter
           options={options}
-          onSearch={(values) => {
+          initialValues={queryState.initial.filters}
+          initialLabels={queryState.initial.labels}
+          onSearch={(values, labels) => {
             currentFilterRef.current = values;
-            actionRef.current?.reload();
+            queryState.commit(values, labels);
+            actionRef.current?.reload(true);
           }}
           onReset={() => {
             currentFilterRef.current = {};
-            actionRef.current?.reload();
+            queryState.commit({}, {});
+            actionRef.current?.reload(true);
           }}
         />
-      )}
+      </div>
 
       {/* 数据表格卡片 */}
       <Card
@@ -597,6 +615,8 @@ export function OrderListTemplate({
           onCopyOrder={onCopyOrder}
           onExportDocuments={onExportDocuments}
           onBatchAction={onBatchAction}
+          autoRefresh={autoRefresh}
+          onAutoRefreshChange={setAutoRefresh}
           filterVisible={filterVisible}
           onToggleFilter={() => setFilterVisible((prev) => !prev)}
           readonly={readonly}
@@ -614,8 +634,11 @@ export function OrderListTemplate({
             density: true,
             setting: false,
           }}
+          onLoadingChange={(loading) => {
+            busyRef.current = Boolean(loading);
+          }}
           pagination={{
-            defaultPageSize: 20,
+            ...queryState.pagination,
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
             showTotal: (total) => `共 ${total} 笔订单`,

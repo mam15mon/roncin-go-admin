@@ -17,7 +17,7 @@ import {
   Select,
   Space,
 } from 'antd';
-import type { Dayjs } from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { standardDateRangePresets } from '../date-presets';
 import type {
@@ -28,6 +28,7 @@ import type {
 } from './types';
 
 const { RangePicker } = DatePicker;
+const EMPTY_SELECT_OPTIONS: OrderSelectOption[] = [];
 
 /** 搜索表单的原始提交值（日期区间保持 Dayjs，清洗转换在 handleFinish 内完成） */
 type OrderListFilterRawValues = {
@@ -60,25 +61,42 @@ type OrderListFilterRawValues = {
 };
 
 export interface OrderListSearchFilterProps {
-  onSearch: (values: OrderListFilterParams) => void;
+  initialValues?: OrderListFilterParams;
+  initialLabels?: Record<string, string>;
+  onSearch: (
+    values: OrderListFilterParams,
+    labels: Record<string, string>,
+  ) => void;
   onReset: () => void;
   options?: OrderListFilterOptions;
   loading?: boolean;
 }
 
 interface RemoteSelectProps extends Omit<SelectProps<string>, 'options'> {
+  selectedLabel?: string;
+  selectedValue?: string;
   options?: OrderSelectOption[];
   loadOptions?: (keyword?: string) => Promise<OrderSelectOption[]>;
 }
 
 function RemoteSelect({
-  options = [],
+  options = EMPTY_SELECT_OPTIONS,
+  selectedLabel,
+  selectedValue,
+  onChange,
   loadOptions,
   ...props
 }: RemoteSelectProps) {
   const { message } = App.useApp();
   const [remoteOptions, setRemoteOptions] =
     useState<OrderSelectOption[]>(options);
+  const [selectedOption, setSelectedOption] = useState<
+    OrderSelectOption | undefined
+  >(
+    selectedValue && selectedLabel
+      ? { value: selectedValue, label: selectedLabel }
+      : undefined,
+  );
   const [loading, setLoading] = useState(false);
   const loaderRef = useRef(loadOptions);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -123,7 +141,24 @@ function RemoteSelect({
       {...props}
       allowClear
       loading={loading}
-      options={loadOptions ? remoteOptions : options}
+      options={Array.from(
+        new Map(
+          [
+            ...(selectedOption?.value === props.value && selectedOption
+              ? [selectedOption]
+              : []),
+            ...(loadOptions ? remoteOptions : options),
+          ].map((option) => [option.value, option]),
+        ).values(),
+      )}
+      onChange={(value, option) => {
+        setSelectedOption(
+          option && !Array.isArray(option) && option.label != null
+            ? { value, label: String(option.label) }
+            : undefined,
+        );
+        onChange?.(value, option);
+      }}
       showSearch={{
         filterOption: loadOptions
           ? false
@@ -148,22 +183,36 @@ function RemoteSelect({
 interface PersonnelFilterProps {
   label: string;
   userField: keyof OrderListFilterParams;
+  selectedLabel?: string;
+  selectedValue?: string;
+  onSelectLabel: (value: unknown, option: unknown) => void;
   loadUsers?: (keyword?: string) => Promise<OrderSelectOption[]>;
 }
 
 function PersonnelFilter({
   label,
   userField,
+  selectedLabel,
+  selectedValue,
+  onSelectLabel,
   loadUsers,
 }: PersonnelFilterProps) {
   return (
     <Form.Item label={label} name={userField}>
-      <RemoteSelect placeholder="选择员工" loadOptions={loadUsers} />
+      <RemoteSelect
+        placeholder="选择员工"
+        loadOptions={loadUsers}
+        selectedLabel={selectedLabel}
+        selectedValue={selectedValue}
+        onChange={onSelectLabel}
+      />
     </Form.Item>
   );
 }
 
 export function OrderListSearchFilter({
+  initialValues = {},
+  initialLabels = {},
   onSearch,
   onReset,
   options = {},
@@ -171,6 +220,25 @@ export function OrderListSearchFilter({
 }: OrderListSearchFilterProps) {
   const [form] = Form.useForm();
   const [collapsed, setCollapsed] = useState(true);
+  const labelsRef = useRef({ ...initialLabels });
+  const captureLabel =
+    (field: string) => (_value: unknown, option: unknown) => {
+      if (option && typeof option === 'object' && 'label' in option)
+        labelsRef.current[field] = String(option.label);
+      else delete labelsRef.current[field];
+    };
+  const restored = { ...initialValues } as Record<string, unknown>;
+  for (const field of [
+    'createdAtRange',
+    'etaRange',
+    'etdRange',
+    'lockedAtRange',
+    'statusTimeRange',
+  ]) {
+    const value = restored[field];
+    if (Array.isArray(value))
+      restored[field] = value.map((item) => dayjs(item));
+  }
   const personnelCacheRef = useRef(
     new Map<string, Promise<OrderPersonnelFilterOption[]>>(),
   );
@@ -206,30 +274,33 @@ export function OrderListSearchFilter({
     const tagIds = (rawValues.tagIds as string[] | undefined)?.filter(Boolean);
     const numberKeyword = rawValues.numberKeyword?.trim() || undefined;
 
-    onSearch({
-      numberType: numberKeyword ? rawValues.numberType || 'order' : undefined,
-      numberKeyword,
-      customerId: rawValues.customerId || undefined,
-      shippingLineId: rawValues.shippingLineId || undefined,
-      originLocationId: rawValues.originLocationId || undefined,
-      destinationLocationId: rawValues.destinationLocationId || undefined,
-      consignee: rawValues.consignee?.trim() || undefined,
-      shipper: rawValues.shipper?.trim() || undefined,
-      createdAtRange: formatRange(rawValues.createdAtRange),
-      etaRange: formatRange(rawValues.etaRange),
-      etdRange: formatRange(rawValues.etdRange),
-      lockedAtRange: formatRange(rawValues.lockedAtRange),
-      statusTimeRange: formatRange(rawValues.statusTimeRange),
-      operatorId: rawValues.operatorId || undefined,
-      salesId: rawValues.salesId || undefined,
-      customerServiceId: rawValues.customerServiceId || undefined,
-      creatorId: rawValues.creatorId || undefined,
-      stage: rawValues.stage === 'all' ? undefined : rawValues.stage,
-      shareStatus:
-        rawValues.shareStatus === 'all' ? undefined : rawValues.shareStatus,
-      isLocked: rawValues.isLocked === 'all' ? undefined : rawValues.isLocked,
-      tagIds: tagIds?.length ? tagIds : undefined,
-    });
+    onSearch(
+      {
+        numberType: numberKeyword ? rawValues.numberType || 'order' : undefined,
+        numberKeyword,
+        customerId: rawValues.customerId || undefined,
+        shippingLineId: rawValues.shippingLineId || undefined,
+        originLocationId: rawValues.originLocationId || undefined,
+        destinationLocationId: rawValues.destinationLocationId || undefined,
+        consignee: rawValues.consignee?.trim() || undefined,
+        shipper: rawValues.shipper?.trim() || undefined,
+        createdAtRange: formatRange(rawValues.createdAtRange),
+        etaRange: formatRange(rawValues.etaRange),
+        etdRange: formatRange(rawValues.etdRange),
+        lockedAtRange: formatRange(rawValues.lockedAtRange),
+        statusTimeRange: formatRange(rawValues.statusTimeRange),
+        operatorId: rawValues.operatorId || undefined,
+        salesId: rawValues.salesId || undefined,
+        customerServiceId: rawValues.customerServiceId || undefined,
+        creatorId: rawValues.creatorId || undefined,
+        stage: rawValues.stage === 'all' ? undefined : rawValues.stage,
+        shareStatus:
+          rawValues.shareStatus === 'all' ? undefined : rawValues.shareStatus,
+        isLocked: rawValues.isLocked === 'all' ? undefined : rawValues.isLocked,
+        tagIds: tagIds?.length ? tagIds : undefined,
+      },
+      { ...labelsRef.current },
+    );
   };
 
   const filterRows = [
@@ -257,6 +328,7 @@ export function OrderListSearchFilter({
           numberType: 'order',
           shareStatus: 'all',
           isLocked: 'all',
+          ...restored,
         }}
       >
         <Row gutter={[12, 0]}>
@@ -288,6 +360,9 @@ export function OrderListSearchFilter({
           <Col xs={24} sm={12} lg={5}>
             <Form.Item name="customerId" label="委托单位">
               <RemoteSelect
+                selectedLabel={labelsRef.current.customerId}
+                selectedValue={initialValues.customerId}
+                onChange={captureLabel('customerId')}
                 placeholder="输入代码、名称或别名检索"
                 options={options.partners}
                 loadOptions={options.loadPartners}
@@ -297,6 +372,9 @@ export function OrderListSearchFilter({
           <Col xs={24} sm={12} lg={4}>
             <Form.Item name="originLocationId" label="起运港">
               <RemoteSelect
+                selectedLabel={labelsRef.current.originLocationId}
+                selectedValue={initialValues.originLocationId}
+                onChange={captureLabel('originLocationId')}
                 placeholder="输入港口代码或名称"
                 options={options.ports || options.airports}
                 loadOptions={options.loadPorts}
@@ -306,6 +384,9 @@ export function OrderListSearchFilter({
           <Col xs={24} sm={12} lg={4}>
             <Form.Item name="destinationLocationId" label="目的港">
               <RemoteSelect
+                selectedLabel={labelsRef.current.destinationLocationId}
+                selectedValue={initialValues.destinationLocationId}
+                onChange={captureLabel('destinationLocationId')}
                 placeholder="输入港口代码或名称"
                 options={options.ports || options.airports}
                 loadOptions={options.loadPorts}
@@ -322,111 +403,141 @@ export function OrderListSearchFilter({
           </Col>
         </Row>
 
-        {!collapsed && (
-          <>
-            <Row gutter={[12, 0]}>
-              {[
-                ['创建时间', 'createdAtRange'],
-                ['ETA（预计到港时间）', 'etaRange'],
-                ['订单状态时间', 'statusTimeRange'],
-                ['订单锁定时间', 'lockedAtRange'],
-              ].map(([label, name]) => (
-                <Col xs={24} sm={12} lg={6} key={name}>
-                  <Form.Item name={name} label={label}>
-                    <RangePicker
-                      presets={standardDateRangePresets}
-                      style={{ width: '100%' }}
-                    />
-                  </Form.Item>
-                </Col>
-              ))}
-            </Row>
+        <div hidden={collapsed}>
+          <Row gutter={[12, 0]}>
+            {[
+              ['创建时间', 'createdAtRange'],
+              ['ETA（预计到港时间）', 'etaRange'],
+              ['订单状态时间', 'statusTimeRange'],
+              ['订单锁定时间', 'lockedAtRange'],
+            ].map(([label, name]) => (
+              <Col xs={24} sm={12} lg={6} key={name}>
+                <Form.Item name={name} label={label}>
+                  <RangePicker
+                    presets={standardDateRangePresets}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+              </Col>
+            ))}
+          </Row>
 
-            <Row gutter={[12, 0]}>
-              <Col xs={24} sm={12} lg={6}>
-                <Form.Item name="shippingLineId" label="船公司">
-                  <RemoteSelect
-                    placeholder="输入船公司代码或名称"
-                    options={options.shippingLines}
-                    loadOptions={options.loadCarriers}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Form.Item name="shipper" label="发货人简称">
-                  <Input placeholder="输入发货人简称" allowClear />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Form.Item name="consignee" label="收货人简称">
-                  <Input placeholder="输入收货人简称" allowClear />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Form.Item name="stage" label="进程">
-                  <Select
-                    allowClear
-                    placeholder="全部进程"
-                    options={[
-                      { label: '全部', value: 'all' },
-                      { label: '未退关', value: 'unreturned' },
-                      { label: '已退关', value: 'returned' },
-                      { label: '已完结', value: 'completed' },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+          <Row gutter={[12, 0]}>
+            <Col xs={24} sm={12} lg={6}>
+              <Form.Item name="shippingLineId" label="船公司">
+                <RemoteSelect
+                  selectedLabel={labelsRef.current.shippingLineId}
+                  selectedValue={initialValues.shippingLineId}
+                  onChange={captureLabel('shippingLineId')}
+                  placeholder="输入船公司代码或名称"
+                  options={options.shippingLines}
+                  loadOptions={options.loadCarriers}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Form.Item name="shipper" label="发货人简称">
+                <Input placeholder="输入发货人简称" allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Form.Item name="consignee" label="收货人简称">
+                <Input placeholder="输入收货人简称" allowClear />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={6}>
+              <Form.Item name="stage" label="进程">
+                <Select
+                  allowClear
+                  placeholder="全部进程"
+                  options={[
+                    { label: '全部', value: 'all' },
+                    { label: '未退关', value: 'unreturned' },
+                    { label: '已退关', value: 'returned' },
+                    { label: '已完结', value: 'completed' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
 
-            <Row gutter={[12, 0]}>
-              {filterRows.map(([label, userField]) => (
-                <Col xs={24} sm={12} lg={6} key={userField}>
-                  <PersonnelFilter
-                    label={label}
-                    userField={userField}
-                    loadUsers={loadPersonnelUsers}
-                  />
-                </Col>
-              ))}
-            </Row>
+          <Row gutter={[12, 0]}>
+            {filterRows.map(([label, userField]) => (
+              <Col xs={24} sm={12} lg={6} key={userField}>
+                <PersonnelFilter
+                  label={label}
+                  userField={userField}
+                  selectedLabel={labelsRef.current[userField]}
+                  selectedValue={initialValues[userField] as string | undefined}
+                  onSelectLabel={captureLabel(userField)}
+                  loadUsers={loadPersonnelUsers}
+                />
+              </Col>
+            ))}
+          </Row>
 
-            <Row gutter={[12, 0]}>
-              <Col xs={24} sm={12} lg={4}>
-                <Form.Item name="isLocked" label="是否锁定">
-                  <Select
-                    options={[
-                      { label: '全部', value: 'all' },
-                      { label: '是', value: 'locked' },
-                      { label: '否', value: 'unlocked' },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} lg={4}>
-                <Form.Item name="shareStatus" label="分享状态">
-                  <Select
-                    options={[
-                      { label: '全部', value: 'all' },
-                      { label: '已分享', value: 'shared' },
-                      { label: '未分享', value: 'unshared' },
-                    ]}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} lg={11}>
-                <Form.Item name="tagIds" label="订单标签">
-                  <Select
-                    mode="multiple"
-                    allowClear
-                    showSearch={{ optionFilterProp: 'label' }}
-                    placeholder="选择标签筛选订单"
-                    options={options.tags}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          </>
-        )}
+          <Row gutter={[12, 0]}>
+            <Col xs={24} sm={12} lg={4}>
+              <Form.Item name="isLocked" label="是否锁定">
+                <Select
+                  options={[
+                    { label: '全部', value: 'all' },
+                    { label: '是', value: 'locked' },
+                    { label: '否', value: 'unlocked' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={4}>
+              <Form.Item name="shareStatus" label="分享状态">
+                <Select
+                  options={[
+                    { label: '全部', value: 'all' },
+                    { label: '已分享', value: 'shared' },
+                    { label: '未分享', value: 'unshared' },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} lg={11}>
+              <Form.Item name="tagIds" label="订单标签">
+                <Select
+                  mode="multiple"
+                  allowClear
+                  showSearch={{ optionFilterProp: 'label' }}
+                  placeholder="选择标签筛选订单"
+                  options={Array.from(
+                    new Map(
+                      [
+                        ...Object.entries(labelsRef.current)
+                          .filter(([key]) => key.startsWith('tagIds:'))
+                          .map(([key, label]) => ({
+                            value: key.slice(7),
+                            label,
+                          })),
+                        ...(options.tags ?? []),
+                      ].map((option) => [option.value, option]),
+                    ).values(),
+                  )}
+                  onChange={(_values, selected) => {
+                    for (const key of Object.keys(labelsRef.current)) {
+                      if (key.startsWith('tagIds:'))
+                        delete labelsRef.current[key];
+                    }
+                    for (const option of Array.isArray(selected)
+                      ? selected
+                      : []) {
+                      if (option.value != null && option.label != null)
+                        labelsRef.current[`tagIds:${option.value}`] = String(
+                          option.label,
+                        );
+                    }
+                  }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </div>
 
         <Row
           justify="end"
@@ -439,6 +550,19 @@ export function OrderListSearchFilter({
                 icon={<ClearOutlined />}
                 onClick={() => {
                   form.resetFields();
+                  form.setFieldsValue(
+                    Object.fromEntries(
+                      Object.keys(form.getFieldsValue(true)).map((key) => [
+                        key,
+                        key === 'numberType'
+                          ? 'order'
+                          : key === 'shareStatus' || key === 'isLocked'
+                            ? 'all'
+                            : undefined,
+                      ]),
+                    ),
+                  );
+                  labelsRef.current = {};
                   onReset();
                 }}
               >

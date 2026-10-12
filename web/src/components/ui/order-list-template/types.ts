@@ -157,6 +157,7 @@ export type BatchActionKey =
 
 /** OrderListTemplate 组件属性定义 */
 export interface OrderListTemplateProps {
+  queryStateIdentity?: { tabKey: string; listId: string };
   /** 是否显示标签管理入口 */
   showManageTags?: boolean;
   /** 统一列设置表格标识（业务视图级）；缺省 `orders:list`。 */

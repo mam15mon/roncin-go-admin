@@ -153,6 +153,11 @@ export default function OrderListPage() {
   return (
     <>
       <OrderListTemplate
+        key={definition.kind}
+        queryStateIdentity={{
+          tabKey: `/orders/${definition.kind}`,
+          listId: `orders:${definition.kind}`,
+        }}
         actionRef={actionRef}
         title={definition.title}
         subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
