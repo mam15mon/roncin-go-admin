@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "统一公共模板与交互规范"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "错误/查询/组织隔离与草稿边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "阶段验证与pnpm约束"}
+{"file": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md", "reason": "12项确认问题与证据"}

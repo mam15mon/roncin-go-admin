@@ -1,0 +1,36 @@
+{
+  "id": "ui-narrow-layout",
+  "name": "ui-narrow-layout",
+  "title": "窄屏导航入口与订单布局修复",
+  "description": "修复A10/A11：补足窄屏业务导航并消除新建订单整页横向溢出",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": "web",
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-12",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "10-12-ui-ux-interaction-fixes",
+  "relatedFiles": [
+    "web/src/components/layout/HeaderMenus.tsx",
+    "web/src/app/AppLayout.tsx",
+    "web/src/router/adaptRoutes.tsx",
+    "web/src/global.less",
+    "web/src/components/ui/order-template/OrderFormTemplate.tsx",
+    "web/src/components/ui/form-row/FormRow.tsx",
+    "web/src/pages/orders/templates/components/sea/SeaBasicInfoSection.tsx"
+  ],
+  "notes": "规划草案已落盘，等待总任务产品范围决策及最终规划批准；未实施。",
+  "meta": {
+    "audit_issue_ids": "A10 / A11"
+  }
+}

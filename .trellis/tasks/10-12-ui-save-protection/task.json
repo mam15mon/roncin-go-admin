@@ -1,0 +1,34 @@
+{
+  "id": "ui-save-protection",
+  "name": "ui-save-protection",
+  "title": "保存保护与详情失败恢复",
+  "description": "修复A01/A02/A06：保存失败保留输入、客商未保存离开确认、详情加载失败可重试",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": "web",
+  "priority": "P1",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-12",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "10-12-ui-ux-interaction-fixes",
+  "relatedFiles": [
+    "web/src/pages/partners/partner-detail.tsx",
+    "web/src/pages/orders/detail.tsx",
+    "web/src/pages/finance/bills/index.tsx",
+    "web/src/pages/finance/cashflows/index.tsx",
+    "web/src/components/layout/tabCloseGuard.ts"
+  ],
+  "notes": "规划草案已落盘，等待总任务产品范围决策及最终规划批准；未实施。",
+  "meta": {
+    "audit_issue_ids": "A01 / A02 / A06"
+  }
+}

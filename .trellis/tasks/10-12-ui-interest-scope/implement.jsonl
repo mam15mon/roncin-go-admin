@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "公共模板、官方表格/表单生命周期与视觉约束"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "错误undefined契约、组织隔离及草稿生命周期"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "pnpm定向验证、禁TDD与门禁范围"}
+{"file": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md", "reason": "本子任务原始问题、证据边界与复现方式"}
+{"file": ".trellis/tasks/10-12-ui-interest-scope/research/scope-evidence.md", "reason": "既有逾期计息非目标事实与本次仍待用户决定的边界；避免大文档注入截断"}

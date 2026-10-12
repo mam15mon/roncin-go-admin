@@ -1,0 +1,32 @@
+{
+  "id": "ui-interest-scope",
+  "name": "ui-interest-scope",
+  "title": "利息规则界面与业务范围对齐",
+  "description": "处理A03：明确逾期计息是否本期交付，消除本地配置被误认为已持久生效",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": "web",
+  "priority": "P1",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-12",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "10-12-ui-ux-interaction-fixes",
+  "relatedFiles": [
+    "web/src/pages/partners/partner-detail.tsx",
+    "web/src/pages/partners/components/SettlementSection.tsx",
+    "web/src/pages/partners/components/InterestRuleModal.tsx"
+  ],
+  "notes": "规划草案已落盘，等待总任务产品范围决策及最终规划批准；未实施。",
+  "meta": {
+    "audit_issue_ids": "A03"
+  }
+}

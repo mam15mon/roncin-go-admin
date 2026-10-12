@@ -1,0 +1,35 @@
+{
+  "id": "ui-keyboard-access",
+  "name": "ui-keyboard-access",
+  "title": "公共键盘交互与焦点修复",
+  "description": "修复A07/A08/A09：顶栏菜单键盘展开、分节折叠语义和页签焦点可见",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": "web",
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-12",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "10-12-ui-ux-interaction-fixes",
+  "relatedFiles": [
+    "web/src/components/layout/HeaderMenus.tsx",
+    "web/src/components/OrganizationSwitcher.tsx",
+    "web/src/components/HeaderDropdown/index.tsx",
+    "web/src/components/ui/page-shell/SectionCard.tsx",
+    "web/src/components/layout/TagsView.tsx",
+    "web/src/global.less"
+  ],
+  "notes": "规划草案已落盘，等待总任务产品范围决策及最终规划批准；未实施。",
+  "meta": {
+    "audit_issue_ids": "A07 / A08 / A09"
+  }
+}

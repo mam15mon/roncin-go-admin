@@ -1,0 +1,34 @@
+{
+  "id": "ui-ux-interaction-fixes",
+  "name": "ui-ux-interaction-fixes",
+  "title": "UI交互审查问题修复",
+  "description": "修复UI-UX审查确认的12项问题，统一保存保护、列表状态、键盘交互和窄屏行为",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": "web",
+  "priority": "P1",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-12",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "10-12-ui-save-protection",
+    "10-12-ui-list-state",
+    "10-12-ui-keyboard-access",
+    "10-12-ui-narrow-layout",
+    "10-12-ui-interest-scope"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "规划草案与五子任务已落盘；待用户选择计息范围，再最终规划审阅。禁止提前实施。",
+  "meta": {
+    "audit_source": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md"
+  }
+}
