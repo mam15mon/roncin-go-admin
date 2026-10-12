@@ -29,9 +29,10 @@
     "web/src/components/ui/form-row/FormRow.tsx",
     "web/src/pages/orders/templates/components/sea/SeaBasicInfoSection.tsx"
   ],
-  "notes": "需求范围已收敛，等待用户批准最新最终规划；未实施。",
+  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
   "meta": {
     "audit_issue_ids": "A10 / A11",
-    "planning_ready": true
+    "planning_ready": true,
+    "implementation_approved": true
   }
 }

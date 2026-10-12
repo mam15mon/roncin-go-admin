@@ -32,9 +32,10 @@
     "web/src/pages/finance/bills/index.tsx",
     "web/src/pages/finance/cashflows/index.tsx"
   ],
-  "notes": "需求范围已收敛，等待用户批准最新最终规划；未实施。",
+  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
   "meta": {
     "audit_issue_ids": "A04 / A05 / A12",
-    "planning_ready": true
+    "planning_ready": true,
+    "implementation_approved": true
   }
 }

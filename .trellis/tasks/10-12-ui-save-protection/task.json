@@ -3,7 +3,7 @@
   "name": "ui-save-protection",
   "title": "保存保护与详情失败恢复",
   "description": "修复A01/A02/A06：保存失败保留输入、客商未保存离开确认、详情加载失败可重试",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-12",
   "completedAt": null,
-  "branch": null,
+  "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -27,9 +27,10 @@
     "web/src/pages/finance/cashflows/index.tsx",
     "web/src/components/layout/tabCloseGuard.ts"
   ],
-  "notes": "需求范围已收敛，等待用户批准最新最终规划；未实施。",
+  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
   "meta": {
     "audit_issue_ids": "A01 / A02 / A06",
-    "planning_ready": true
+    "planning_ready": true,
+    "implementation_approved": true
   }
 }

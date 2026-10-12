@@ -28,9 +28,10 @@
     "web/src/components/layout/TagsView.tsx",
     "web/src/global.less"
   ],
-  "notes": "需求范围已收敛，等待用户批准最新最终规划；未实施。",
+  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
   "meta": {
     "audit_issue_ids": "A07 / A08 / A09",
-    "planning_ready": true
+    "planning_ready": true,
+    "implementation_approved": true
   }
 }

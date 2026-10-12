@@ -25,10 +25,11 @@
     "web/src/pages/partners/components/SettlementSection.tsx",
     "web/src/pages/partners/components/InterestRuleModal.tsx"
   ],
-  "notes": "需求范围已收敛，等待用户批准最新最终规划；未实施。",
+  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
   "meta": {
     "audit_issue_ids": "A03",
     "planning_ready": true,
-    "interest_decision": "remove_unfinished_ui"
+    "interest_decision": "remove_unfinished_ui",
+    "implementation_approved": true
   }
 }

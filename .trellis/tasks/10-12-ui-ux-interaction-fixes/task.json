@@ -27,10 +27,11 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "用户已明确选择移除未完成计息入口；范围及需求收敛完成，等待最终规划批准，未实施。",
+  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
   "meta": {
     "audit_source": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md",
     "interest_decision": "remove_unfinished_ui",
-    "planning_ready": true
+    "planning_ready": true,
+    "implementation_approved": true
   }
 }
