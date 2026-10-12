@@ -284,6 +284,7 @@ export function OrderContainerRequestFields({
         >
           {containerRequests.length === 0 ? (
             <div
+              className="roncin-container-plan-item"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
               <Select
@@ -319,6 +320,7 @@ export function OrderContainerRequestFields({
               {containerRequests.map((req, idx) => (
                 <div
                   key={req.id || `cr-${req.containerSpecId}-${idx}`}
+                  className="roncin-container-plan-item"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',

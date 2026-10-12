@@ -1,6 +1,7 @@
 import type { ProLayoutProps } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
 import { layoutDimensions } from '@root/config/layout';
+import { Grid } from 'antd';
 import { useEffect, useMemo } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { HeaderMenus } from '@/components/layout/HeaderMenus';
@@ -9,6 +10,11 @@ import {
   getOrganizationWorkspaceKey,
   OrganizationWorkspace,
 } from '@/components/layout/OrganizationWorkspace';
+import {
+  buildWorkspaceMenus,
+  resolveWorkspaceMenuKey,
+  toMobileWorkspaceMenus,
+} from '@/components/layout/workspaceMenus';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
 import { buildMenuData } from '@/router/adaptRoutes';
@@ -26,6 +32,21 @@ export function AppLayout() {
     | undefined;
   const accessState = useAccess();
   const location = useLocation();
+  const screens = Grid.useBreakpoint();
+  const isMobile = screens.md === false;
+  const workspaceMenus = useMemo(
+    () => buildWorkspaceMenus(accessState),
+    [accessState],
+  );
+  const supplementalMenus = useMemo(
+    () => toMobileWorkspaceMenus(workspaceMenus),
+    [workspaceMenus],
+  );
+  const workspaceSelectedKey = resolveWorkspaceMenuKey(
+    location.pathname,
+    location.search,
+    workspaceMenus,
+  );
   const menuData = useMemo(() => buildMenuData(accessState), [accessState]);
 
   // 平移 onPageChange 未登录守卫。
@@ -40,6 +61,14 @@ export function AppLayout() {
       {...layoutSettings}
       location={{ pathname: location.pathname }}
       route={menuData}
+      menuDataRender={(items) =>
+        isMobile ? [...items, ...supplementalMenus] : items
+      }
+      menuProps={
+        isMobile && workspaceSelectedKey
+          ? { selectedKeys: [workspaceSelectedKey] }
+          : undefined
+      }
       menu={{
         locale: false,
         collapsedWidth: layoutDimensions.collapsedSiderWidth,
@@ -63,7 +92,11 @@ export function AppLayout() {
       )}
       menuItemRender={(item, dom) =>
         item.path ? (
-          <Link to={item.path} className="roncin-menu-item-link">
+          <Link
+            to={item.path}
+            onClick={item.onClick}
+            className="roncin-menu-item-link"
+          >
             {dom}
           </Link>
         ) : (

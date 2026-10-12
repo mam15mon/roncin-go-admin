@@ -1,17 +1,4 @@
-import {
-  ApartmentOutlined,
-  ClockCircleOutlined,
-  ContactsOutlined,
-  DatabaseOutlined,
-  DownOutlined,
-  FormOutlined,
-  GlobalOutlined,
-  HistoryOutlined,
-  NumberOutlined,
-  SafetyCertificateOutlined,
-  ShopOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { DownOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Button, Space } from 'antd';
 import React, { useMemo } from 'react';
@@ -19,6 +6,7 @@ import { useLocation } from 'react-router';
 import { useAccess } from '@/app/access';
 import { history } from '@/router/history';
 import HeaderDropdown from '../HeaderDropdown';
+import { buildWorkspaceMenus, resolveWorkspaceMenuKey } from './workspaceMenus';
 
 export interface HeaderMenusProps {
   className?: string;
@@ -38,111 +26,13 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
     }
   };
 
-  // 设置中心下拉项（直达组织、人员、角色、主数据等）
-  const settingsItems = useMemo<MenuProps['items']>(() => {
-    const items: MenuProps['items'] = [];
-
-    if (access?.canManageOrganizations || access?.canAccessPlatform) {
-      items.push({
-        key: '/admin?tab=organizations',
-        icon: <ApartmentOutlined />,
-        label: '组织架构',
-      });
-    }
-
-    if (access?.canManageUsers || access?.canAccessPlatform) {
-      items.push({
-        key: '/admin?tab=users',
-        icon: <UserOutlined />,
-        label: '用户人员',
-      });
-    }
-
-    if (access?.canManageRoles || access?.canAccessPlatform) {
-      items.push({
-        key: '/admin?tab=roles',
-        icon: <SafetyCertificateOutlined />,
-        label: '角色权限',
-      });
-    }
-
-    if (access?.canReadMasterDataNumberRules || access?.canAccessPlatform) {
-      items.push({
-        key: '/admin?tab=number-rules',
-        icon: <NumberOutlined />,
-        label: '单据规则',
-      });
-    }
-
-    if (access?.canReadMasterData) {
-      items.push({
-        key: '/master-data',
-        icon: <DatabaseOutlined />,
-        label: '主数据',
-      });
-    }
-
-    if (access?.canReadAudit) {
-      items.push({
-        key: '/admin?tab=audit',
-        icon: <HistoryOutlined />,
-        label: '审计日志',
-      });
-    }
-
-    if (access?.canReadTasks) {
-      items.push({
-        key: '/admin?tab=background-tasks',
-        icon: <ClockCircleOutlined />,
-        label: '后台任务',
-      });
-    }
-
-    return items;
-  }, [
-    access?.canManageOrganizations,
-    access?.canManageUsers,
-    access?.canManageRoles,
-    access?.canReadMasterDataNumberRules,
-    access?.canReadMasterData,
-    access?.canReadAudit,
-    access?.canReadTasks,
-    access?.canAccessPlatform,
-  ]);
-
-  // 企业资源下拉项
-  const enterpriseResourceItems = useMemo<MenuProps['items']>(() => {
-    const items: MenuProps['items'] = [];
-
-    if (access?.canReadPartners) {
-      items.push({
-        key: '/partners/customers',
-        icon: <ContactsOutlined />,
-        label: '客户',
-      });
-      items.push({
-        key: '/partners/suppliers',
-        icon: <ShopOutlined />,
-        label: '供应商',
-      });
-      items.push({
-        key: '/partners/foreign-agents',
-        icon: <GlobalOutlined />,
-        label: '国外代理',
-      });
-    }
-
-    if (access?.canReadEnterpriseResources) {
-      items.push({
-        key: '/enterprise-resources/config',
-        icon: <FormOutlined />,
-        label: '配置管理',
-      });
-    }
-
-    return items;
-  }, [access?.canReadEnterpriseResources, access?.canReadPartners]);
-
+  const menus = useMemo(() => buildWorkspaceMenus(access), [access]);
+  const { settingsItems, enterpriseResourceItems } = menus;
+  const selectedKey = resolveWorkspaceMenuKey(
+    location.pathname,
+    location.search,
+    menus,
+  );
   const hasSettings = Boolean(settingsItems && settingsItems.length > 0);
   const hasEnterprise = Boolean(
     enterpriseResourceItems && enterpriseResourceItems.length > 0,
@@ -176,7 +66,7 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
           menu={{
             items: enterpriseResourceItems,
             onClick: handleMenuClick,
-            selectedKeys: [location.pathname],
+            selectedKeys: selectedKey ? [selectedKey] : [],
           }}
         >
           <Button
@@ -202,7 +92,7 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
           menu={{
             items: settingsItems,
             onClick: handleMenuClick,
-            selectedKeys: [location.pathname],
+            selectedKeys: selectedKey ? [selectedKey] : [],
           }}
         >
           <Button

@@ -34,6 +34,22 @@
 - **严禁在任何页面、工作台或模板中私自硬编码 `maxWidth: 1440` 或自定义水平居中外层容器**。
 - 吸顶页头（`PageHeaderShell`）、业务分节卡片（`SectionCard`）、数据表格与吸底操作栏（`StickyFooterBar`）在任何屏幕分辨率下必须 100% 满屏平铺与贴边对齐，仅保留全局统一的 12px 内容区内边距。
 
+## 窄屏导航与海运表单
+
+- `components/layout/workspaceMenus.tsx` 的 `buildWorkspaceMenus(access)` 为企业资源/设置项
+  唯一权限过滤构造；HeaderMenus 与移动 Drawer 共用，`toMobileWorkspaceMenus` 仅映射为
+  ProLayout 菜单并排除空组。不得为移动展示取消业务详情 `hideInMenu`。
+- AppLayout 依据 Grid 的 md 断点，仅移动时用官方 `menuDataRender` 追加菜单；顶栏快捷菜单
+  仅 `<768px` 隐藏，768px 保留桌面入口。带 query 的设置页签按实际目标匹配 selectedKey，
+  菜单 Link 必须传递 `item.onClick`，保留 ProLayout 点击后关 Drawer 的默认动作。
+- 海运单证标题/长标签与箱计划使用具名 class，在 `<768px` 支持 wrap/min-width:0；
+  通知人 Segmented 使用组件公开 semantic classNames 限定本组件 label/item 换行和收缩，
+  不全局改 Antd 内部类，不用整页 overflow-x:hidden 裁切。FormRow 已具备窄屏单列，不因
+  子项 intrinsic 宽度错误重复改模板网格；先测出真正溢出元素，再最薄修复。
+- 验证 375/390/767/768/769px 与1440px、公司及系统工作区、权限过滤和 query 高亮/关抽屉；
+  海运新建/详情、空及有值箱计划、DIRECT/HOUSE 与只读状态均测稳定 scrollWidth。
+  宽表的横向滚动继续归属自身容器，不能以隐藏宽表换取整页宽度通过。
+
 ## Ant Design Pro / ProComponents 状态与请求核心范式
 
 - **表格数据流一律走官方 `request` 协议**：严禁在外层自建 `data/loading/query` 状态去架空 ProTable；服务端分页列表与搜索一律优先通过 ProTable 的 `request={(params) => Promise<{ data, success, total }>}` 消费接口，由组件内建引擎自动调度分页与防竞态。

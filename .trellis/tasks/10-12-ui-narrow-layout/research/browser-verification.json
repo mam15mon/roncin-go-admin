@@ -1,0 +1,263 @@
+{
+  "results": [
+    {
+      "name": "订单新建窄屏 375",
+      "passed": true,
+      "viewport": 375,
+      "width": 375
+    },
+    {
+      "name": "订单新建窄屏 390",
+      "passed": true,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "name": "订单新建窄屏 767",
+      "passed": true,
+      "viewport": 767,
+      "width": 767
+    },
+    {
+      "name": "订单新建窄屏 768",
+      "passed": true,
+      "viewport": 768,
+      "width": 768
+    },
+    {
+      "name": "订单新建窄屏 769",
+      "passed": true,
+      "viewport": 769,
+      "width": 769
+    },
+    {
+      "name": "订单新建窄屏 1440",
+      "passed": true,
+      "viewport": 1440,
+      "width": 1440
+    },
+    {
+      "name": "订单新建有值箱计划 375",
+      "passed": true,
+      "viewport": 375,
+      "width": 375,
+      "twoPlanItems": true
+    },
+    {
+      "name": "订单新建有值箱计划 390",
+      "passed": true,
+      "viewport": 390,
+      "width": 390,
+      "twoPlanItems": true
+    },
+    {
+      "name": "订单新建有值箱计划 1440",
+      "passed": true,
+      "viewport": 1440,
+      "width": 1440,
+      "twoPlanItems": true
+    },
+    {
+      "name": "已有订单详情窄屏 375",
+      "passed": true,
+      "viewport": 375,
+      "width": 375
+    },
+    {
+      "name": "已有订单详情窄屏 390",
+      "passed": true,
+      "viewport": 390,
+      "width": 390
+    },
+    {
+      "name": "已有订单详情窄屏 1440",
+      "passed": true,
+      "viewport": 1440,
+      "width": 1440
+    },
+    {
+      "name": "导航断点 2 375",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": true
+    },
+    {
+      "name": "导航断点 2 390",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": true
+    },
+    {
+      "name": "导航断点 2 767",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": true
+    },
+    {
+      "name": "导航断点 2 768",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": false
+    },
+    {
+      "name": "导航断点 2 769",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": false
+    },
+    {
+      "name": "导航断点 2 1440",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": false
+    },
+    {
+      "name": "导航断点 1 375",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": true
+    },
+    {
+      "name": "导航断点 1 390",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": true
+    },
+    {
+      "name": "导航断点 1 767",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": true
+    },
+    {
+      "name": "导航断点 1 768",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": false
+    },
+    {
+      "name": "导航断点 1 769",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": false
+    },
+    {
+      "name": "导航断点 1 1440",
+      "passed": true,
+      "menuVisible": true,
+      "drawerClosesAfterNavigate": false
+    },
+    {
+      "name": "详情GETfixture 2 false 375",
+      "passed": true,
+      "viewport": 375,
+      "width": 375,
+      "fixture": true,
+      "mode": 2,
+      "readonly": false
+    },
+    {
+      "name": "详情GETfixture 2 false 390",
+      "passed": true,
+      "viewport": 390,
+      "width": 390,
+      "fixture": true,
+      "mode": 2,
+      "readonly": false
+    },
+    {
+      "name": "详情GETfixture 2 false 1440",
+      "passed": true,
+      "viewport": 1440,
+      "width": 1440,
+      "fixture": true,
+      "mode": 2,
+      "readonly": false
+    },
+    {
+      "name": "详情GETfixture 2 true 375",
+      "passed": true,
+      "viewport": 375,
+      "width": 375,
+      "fixture": true,
+      "mode": 2,
+      "readonly": true
+    },
+    {
+      "name": "详情GETfixture 2 true 390",
+      "passed": true,
+      "viewport": 390,
+      "width": 390,
+      "fixture": true,
+      "mode": 2,
+      "readonly": true
+    },
+    {
+      "name": "详情GETfixture 2 true 1440",
+      "passed": true,
+      "viewport": 1440,
+      "width": 1440,
+      "fixture": true,
+      "mode": 2,
+      "readonly": true
+    },
+    {
+      "name": "详情GETfixture 3 false 375",
+      "passed": true,
+      "viewport": 375,
+      "width": 375,
+      "fixture": true,
+      "mode": 3,
+      "readonly": false
+    },
+    {
+      "name": "详情GETfixture 3 false 390",
+      "passed": true,
+      "viewport": 390,
+      "width": 390,
+      "fixture": true,
+      "mode": 3,
+      "readonly": false
+    },
+    {
+      "name": "详情GETfixture 3 false 1440",
+      "passed": true,
+      "viewport": 1440,
+      "width": 1440,
+      "fixture": true,
+      "mode": 3,
+      "readonly": false
+    },
+    {
+      "name": "详情GETfixture 3 true 375",
+      "passed": true,
+      "viewport": 375,
+      "width": 375,
+      "fixture": true,
+      "mode": 3,
+      "readonly": true
+    },
+    {
+      "name": "详情GETfixture 3 true 390",
+      "passed": true,
+      "viewport": 390,
+      "width": 390,
+      "fixture": true,
+      "mode": 3,
+      "readonly": true
+    },
+    {
+      "name": "详情GETfixture 3 true 1440",
+      "passed": true,
+      "viewport": 1440,
+      "width": 1440,
+      "fixture": true,
+      "mode": 3,
+      "readonly": true
+    }
+  ],
+  "pageErrors": [],
+  "allPageWritesIntercepted": true,
+  "writesIntercepted": 0,
+  "note": "24项真实页面/认证工作区验收与12项仅GET fixture详情组合，均无业务写入。真实现有订单在另一个可选公司中找到。fixture覆盖DIRECT/HOUSE、editable/readonly、两条箱计划和375/390/1440；不作为后端业务验收。桌面不使用Drawer，drawerClosesAfterNavigate=false仅表示不适用。"
+}

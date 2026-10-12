@@ -416,6 +416,7 @@ export function SeaBillContentFormFields({
         <FormRow cols={2}>
           <div style={{ marginBottom: 24 }}>
             <div
+              className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -464,6 +465,7 @@ export function SeaBillContentFormFields({
           </div>
           <div style={{ marginBottom: 24 }}>
             <div
+              className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -534,6 +536,7 @@ export function SeaBillContentFormFields({
           {/* 通知人与第二通知人 Tab 切换 */}
           <div style={{ marginBottom: 24 }}>
             <div
+              className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -545,6 +548,11 @@ export function SeaBillContentFormFields({
               }}
             >
               <Segmented
+                classNames={{
+                  root: 'roncin-sea-notify-tabs',
+                  label: 'roncin-sea-notify-tab-label',
+                  item: 'roncin-sea-notify-tab-item',
+                }}
                 size="small"
                 value={notifyTab}
                 onChange={(val) =>
@@ -558,7 +566,7 @@ export function SeaBillContentFormFields({
                   {
                     value: 'secondNotify',
                     label: (
-                      <Space size={4}>
+                      <Space size={4} className="roncin-sea-notify-tab-content">
                         <span>第二通知人 (Second Notify Party)</span>
                         {hasSecondNotify ? (
                           <Tag
@@ -621,6 +629,7 @@ export function SeaBillContentFormFields({
           {/* 外国代理 (Foreign Agent) */}
           <div style={{ marginBottom: 24 }}>
             <div
+              className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -671,6 +680,7 @@ export function SeaBillContentFormFields({
 
         {/* 唛头与货物信息区块 */}
         <div
+          className="roncin-sea-bill-heading"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -680,7 +690,10 @@ export function SeaBillContentFormFields({
             margin: '8px 0 12px 0',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            className="roncin-sea-bill-heading-label"
+            style={{ display: 'flex', alignItems: 'center' }}
+          >
             <div
               style={{
                 width: 3,
@@ -714,6 +727,7 @@ export function SeaBillContentFormFields({
         <FormRow cols={2}>
           <div style={{ marginBottom: 24 }}>
             <div
+              className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -760,6 +774,7 @@ export function SeaBillContentFormFields({
           </div>
           <div style={{ marginBottom: 24 }}>
             <div
+              className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -820,6 +835,7 @@ export function SeaBillContentFormFields({
       {/* 委托 vs 实际件重尺对照：标题行右侧放「带入委托件重尺」操作；
           对照数据以轻量表格呈现，左列客户委托、右列订舱/实际，底部汇总行自动比对差额 */}
       <div
+        className="roncin-sea-bill-heading"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -829,7 +845,10 @@ export function SeaBillContentFormFields({
           margin: '8px 0 8px 0',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div
+          className="roncin-sea-bill-heading-label"
+          style={{ display: 'flex', alignItems: 'center' }}
+        >
           <div
             style={{
               width: 3,

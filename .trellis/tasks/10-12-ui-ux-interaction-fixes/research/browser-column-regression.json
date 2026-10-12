@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "name": "公共表格拖宽双击恢复及固定列",
+      "passed": true,
+      "dragChangedWidth": true,
+      "doubleClickWorking": true,
+      "oldWidth": 140,
+      "resizedWidth": 200,
+      "restoredWidth": 240,
+      "fixedCells": 0
+    }
+  ],
+  "pageErrors": [],
+  "allPageWritesIntercepted": true,
+  "writesIntercepted": 0
+}

@@ -3,7 +3,7 @@
   "name": "ui-narrow-layout",
   "title": "窄屏导航入口与订单布局修复",
   "description": "修复A10/A11：补足窄屏业务导航并消除新建订单整页横向溢出",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-12",
   "completedAt": null,
-  "branch": null,
+  "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -31,6 +31,7 @@
   "meta": {
     "audit_issue_ids": "A10 / A11",
     "planning_ready": true,
-    "implementation_approved": true
+    "implementation_approved": true,
+    "group_verified": true
   }
 }

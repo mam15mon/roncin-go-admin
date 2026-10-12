@@ -1390,10 +1390,6 @@ ol {
     }
   }
 
-  // 移动端顶栏隐藏桌面端快捷下拉菜单（抽屉中已包含完整菜单）
-  .roncin-header-menus {
-    display: none !important;
-  }
 
   // 移动端顶栏操作区紧凑对齐
   .ant-pro-global-header-header-actions {
@@ -1590,4 +1586,40 @@ textarea.ant-input {
 .roncin-section-toggle:focus-visible {
   outline: 2px solid #1677ff;
   outline-offset: 2px;
+}
+
+@media (width < 768px) {
+  // 与ProLayout md断点对齐，768px保留桌面入口。
+  .roncin-header-menus {
+    display: none !important;
+  }
+
+  .roncin-sea-bill-heading,
+  .roncin-sea-bill-heading-label,
+  .roncin-container-plan-item {
+    flex-wrap: wrap;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .roncin-sea-bill-heading-label {
+    flex: 1 1 auto;
+  }
+
+  .roncin-sea-notify-tabs {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .roncin-sea-notify-tab-item {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+  .roncin-sea-notify-tab-label {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .roncin-sea-notify-tab-content {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
 }

@@ -7,7 +7,7 @@
 - [x] 用户明确选择移除未完成计息入口，已同步子任务和总PRD。
 - [x] 完成最终PRD收敛及最终规划摘要，记录目标/范围/非目标/验收/关键决定/风险及文档状态。
 - [x] 用户已回复“好的”，明确批准855e467d最新最终规划，可启动子任务。
-- [ ] 按design协调顺序逐个启动子任务，trellis-implement→trellis-check。
+- [x] 按design协调顺序逐个启动子任务，trellis-implement→trellis-check。
 - [ ] 各组实现后定向测试、改动文件Biome、必要tsc、diff检查、spec同步和中文提交。
 - [ ] 最终pnpm run check:web + 桌面/窄屏/失败模拟复测，逐项记录通过或仍未通过。
 - [ ] AC满足后归档子任务和父任务、记录会话；未实现不得归档为完成。
