@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 124
+- **Total Sessions**: 125
 - **Last Active**: 2026-10-12
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1224 | Active |
+| `journal-2.md` | ~1260 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 125 | 2026-10-12 | 修复整票费用审核审查问题 | `4aa7c46b`, `d246c3d5`, `a41e8139`, `3c8ec084`, `ef2c5881` | `codex/order-fee-approval` |
 | 124 | 2026-10-12 | 整票费用包审批与精简表格交付 | `34d10ff5` | `codex/order-fee-approval` |
 | 123 | 2026-10-12 | UI交互12项修复与最终验收 | `82f2c67a`, `de04cff4`, `73beedec`, `ccb04bea`, `46bb6b92`, `b558131c` | `main` |
 | 122 | 2026-10-12 | UI-UX-Pro-Max交互审查与证据归档 | `d9934f02` | `main` |
