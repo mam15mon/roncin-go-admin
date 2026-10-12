@@ -19,9 +19,8 @@ import {
   Statistic,
   Tooltip,
 } from 'antd';
-import type { ColumnGroupType, ColumnType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
@@ -34,204 +33,6 @@ import type {
 } from './types';
 
 type DensitySize = 'middle' | 'small' | 'large' | undefined;
-
-interface ResizableHeaderCellProps
-  extends React.HTMLAttributes<HTMLTableHeaderCellElement> {
-  onResize?: (width: number) => void;
-  onAutoFit?: () => void;
-  width?: number;
-  resizable?: boolean;
-}
-
-const MIN_COLUMN_WIDTH = 50;
-const MAX_COLUMN_WIDTH = 600;
-
-export const ResizableHeaderCell: React.FC<ResizableHeaderCellProps> = ({
-  onResize,
-  onAutoFit,
-  width,
-  resizable = true,
-  children,
-  style,
-  className,
-  ...restProps
-}) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const headerCellRef = useRef<HTMLTableCellElement>(null);
-  const dragCleanupRef = useRef<(() => void) | undefined>(undefined);
-
-  useEffect(() => {
-    return () => {
-      dragCleanupRef.current?.();
-    };
-  }, []);
-
-  if (!resizable || !width || !onResize) {
-    return (
-      <th style={style} className={className} {...restProps}>
-        {children}
-      </th>
-    );
-  }
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const headerCell = headerCellRef.current;
-    if (!headerCell) return;
-
-    setIsDragging(true);
-
-    const cellRect = headerCell.getBoundingClientRect();
-    const tableWrapper =
-      headerCell.closest('.ant-table-wrapper') ||
-      headerCell.closest('.ant-pro-table') ||
-      document.body;
-    const tableRect = tableWrapper.getBoundingClientRect();
-
-    const startX = e.clientX;
-    const startWidth = width;
-    let targetWidth = startWidth;
-
-    const previousCursor = document.body.style.cursor;
-    const previousUserSelect = document.body.style.userSelect;
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-
-    // 方案 3：创建 Excel / 飞书 垂直辅助高亮虚线与实时像素尺寸提示浮层
-    const guideLine = document.createElement('div');
-    guideLine.className = 'roncin-table-resizer-guide';
-    guideLine.style.cssText = `
-      position: fixed;
-      top: ${tableRect.top}px;
-      left: ${cellRect.right}px;
-      width: 2px;
-      height: ${tableRect.height}px;
-      background: #1677ff;
-      box-shadow: 0 0 6px rgba(22, 119, 255, 0.6);
-      z-index: 99999;
-      pointer-events: none;
-      will-change: transform;
-      transform: translateX(0px);
-    `;
-
-    const tooltip = document.createElement('div');
-    tooltip.style.cssText = `
-      position: absolute;
-      top: 4px;
-      left: 6px;
-      background: rgba(0, 0, 0, 0.78);
-      color: #fff;
-      font-size: 11px;
-      font-family: monospace;
-      font-weight: 500;
-      padding: 2px 6px;
-      border-radius: 3px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-      white-space: nowrap;
-      pointer-events: none;
-    `;
-    tooltip.textContent = `宽度: ${startWidth}px`;
-    guideLine.appendChild(tooltip);
-    document.body.appendChild(guideLine);
-
-    let animationFrameId: number | undefined;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      targetWidth = Math.max(
-        MIN_COLUMN_WIDTH,
-        Math.min(MAX_COLUMN_WIDTH, startWidth + deltaX),
-      );
-      const clampedDeltaX = targetWidth - startWidth;
-
-      if (animationFrameId !== undefined) {
-        window.cancelAnimationFrame(animationFrameId);
-      }
-
-      animationFrameId = window.requestAnimationFrame(() => {
-        guideLine.style.transform = `translateX(${clampedDeltaX}px)`;
-        tooltip.textContent = `宽度: ${targetWidth}px`;
-      });
-    };
-
-    const cleanup = () => {
-      if (animationFrameId !== undefined) {
-        window.cancelAnimationFrame(animationFrameId);
-        animationFrameId = undefined;
-      }
-      if (guideLine.parentNode) {
-        guideLine.parentNode.removeChild(guideLine);
-      }
-      document.body.style.cursor = previousCursor;
-      document.body.style.userSelect = previousUserSelect;
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      dragCleanupRef.current = undefined;
-      setIsDragging(false);
-    };
-
-    const handleMouseUp = () => {
-      cleanup();
-      // 拖拽过程 0 次 React 重绘，仅在松手时提交 1 次 React 状态
-      if (targetWidth !== startWidth) {
-        onResize(targetWidth);
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    dragCleanupRef.current = cleanup;
-  };
-
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onAutoFit) {
-      onAutoFit();
-    }
-  };
-
-  return (
-    <th
-      ref={headerCellRef}
-      style={{
-        ...style,
-        position: 'relative',
-        userSelect: isDragging ? 'none' : undefined,
-      }}
-      className={className}
-      {...restProps}
-    >
-      {children}
-      <div
-        style={{
-          position: 'absolute',
-          right: -3,
-          top: 0,
-          bottom: 0,
-          width: 7,
-          cursor: 'col-resize',
-          zIndex: 2,
-          backgroundColor: isDragging
-            ? '#1677ff'
-            : isHovered
-              ? 'rgba(22, 119, 255, 0.45)'
-              : 'transparent',
-          transition: 'background-color 0.15s',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseDown={handleMouseDown}
-        onDoubleClick={handleDoubleClick}
-        data-column-resize-handle
-        title="按住鼠标左右拖拽调节列宽；双击缝隙自动展开/还原"
-      />
-    </th>
-  );
-};
 
 export function FinanceLedgerTemplate<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
@@ -280,61 +81,17 @@ export function FinanceLedgerTemplate<
   const [globalSummary, setGlobalSummary] =
     useState<FinanceLedgerGlobalSummary>();
   const [densitySize, setDensitySize] = useState<DensitySize>('small');
-  const [colWidths, setColWidths] = useState<Record<string, number>>({});
-
-  const handleResize = useCallback((colKey: string, newWidth: number) => {
-    setColWidths((prev) => ({ ...prev, [colKey]: newWidth }));
-  }, []);
-
-  const handleAutoFit = useCallback((colKey: string, initialWidth: number) => {
-    setColWidths((prev) => {
-      const current = prev[colKey] || initialWidth;
-      const expandedWidth = Math.max(initialWidth * 1.6, 240);
-      if (current >= expandedWidth - 10) {
-        return { ...prev, [colKey]: initialWidth };
-      }
-      return { ...prev, [colKey]: expandedWidth };
-    });
-  }, []);
-
-  // 为每个非固定列动态挂载拖拽拉伸与双击自适应属性
-  const resizableColumns = React.useMemo(() => {
-    return columns.map((col) => {
-      const key = String(col.dataIndex || col.key || '');
-      const isFixed = Boolean(col.fixed);
-      const initialWidth = typeof col.width === 'number' ? col.width : 120;
-      const currentWidth = colWidths[key] || initialWidth;
-
-      if (!key || isFixed) {
-        return col;
-      }
-
-      return {
-        ...col,
-        width: currentWidth,
-        onHeaderCell: (column: ColumnGroupType<T> | ColumnType<T>) => ({
-          width: column.width,
-          resizable: true,
-          onResize: (newWidth: number) => handleResize(key, newWidth),
-          onAutoFit: () => handleAutoFit(key, initialWidth),
-        }),
-      };
-    });
-  }, [columns, colWidths, handleAutoFit, handleResize]);
-
   // 统一列设置：表格标识由调用方按业务视图传入，不使用实体 ID。
   const enableColumnSettings = Boolean(columnSettingsKey);
   const columnSettings = useColumnSettings<ProColumns<T>>({
     tableKey: columnSettingsKey ?? 'finance-ledger:unset',
-    columns: resizableColumns,
+    columns,
     // 消费者的序号列（dataIndex: 'index'）属结构列，不进入设置。
     structuralKeys: ['index', ...(columnSettingsStructuralKeys ?? [])],
     advanced: advancedSettings,
     advancedTitle: advancedSettingsTitle,
   });
-  const ledgerColumns = enableColumnSettings
-    ? columnSettings.columns
-    : resizableColumns;
+  const ledgerColumns = enableColumnSettings ? columnSettings.columns : columns;
 
   // 默认导出 CSV 处理
   const handleDefaultExport = () => {
@@ -462,11 +219,6 @@ export function FinanceLedgerTemplate<
           actionRef={actionRef}
           rowKey={rowKey}
           columns={ledgerColumns}
-          components={{
-            header: {
-              cell: ResizableHeaderCell,
-            },
-          }}
           cardProps={{
             style: {
               borderRadius: 8,

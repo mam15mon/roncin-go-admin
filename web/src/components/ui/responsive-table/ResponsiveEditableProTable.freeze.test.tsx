@@ -70,6 +70,24 @@ describe('可编辑Pro表格动态冻结', () => {
     expect(
       screen.getAllByRole('columnheader').map((node) => node.textContent),
     ).toEqual(['序号', '姓名', '邮箱']);
+
+    const nameHeader = screen
+      .getAllByRole('columnheader')
+      .find((node) => node.textContent === '姓名');
+    if (!nameHeader) throw new Error('没有姓名表头');
+    const resizeHandle = nameHeader.querySelector<HTMLElement>(
+      '[data-column-resize-handle]',
+    );
+    if (!resizeHandle) throw new Error('没有调宽手柄');
+    fireEvent.mouseDown(resizeHandle, { clientX: 100 });
+    fireEvent.mouseMove(window, { clientX: 180 });
+    fireEvent.mouseUp(window);
+    expect(nameHeader.style.position).toBe('');
+    expect(screen.getByDisplayValue('张芳未提交')).toBe(input);
+    expect(input).toHaveFocus();
+    fireEvent.doubleClick(resizeHandle);
+    expect(screen.getByDisplayValue('张芳未提交')).toBe(input);
+    expect(input).toHaveFocus();
     await act(async () => {});
   });
 });

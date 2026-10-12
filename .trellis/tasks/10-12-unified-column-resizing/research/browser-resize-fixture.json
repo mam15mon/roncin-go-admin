@@ -1,0 +1,352 @@
+{
+  "results": [
+    {
+      "kind": "真实公共组件调宽",
+      "component": "plain",
+      "before": 229.390625,
+      "after": 279,
+      "headers": [
+        {
+          "title": "",
+          "width": 40.78125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "",
+          "width": 61.171875,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "序号",
+          "width": 76.453125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 279,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 331.359375,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 305.859375,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 152.984375,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 305.859375,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 1198,
+      "content": 1248,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "短表收缩调宽",
+      "component": "plain",
+      "before": 279,
+      "after": 195.59375,
+      "headers": [
+        {
+          "title": "",
+          "width": 42.203125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "",
+          "width": 63.296875,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "序号",
+          "width": 79.109375,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 195.59375,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 342.90625,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 316.515625,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 158.375,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 316.515625,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 1198,
+      "content": 1198,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实公共组件调宽",
+      "component": "pro",
+      "before": 240.6875,
+      "after": 291,
+      "headers": [
+        {
+          "title": "序号",
+          "width": 80.21875,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 291,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 347.671875,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 320.921875,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 160.5,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 320.921875,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 1150,
+      "content": 1200,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "短表收缩调宽",
+      "component": "pro",
+      "before": 291,
+      "after": 208.171875,
+      "headers": [
+        {
+          "title": "序号",
+          "width": 83.078125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 208.171875,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 360.09375,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 332.390625,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 166.265625,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 332.390625,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 1150,
+      "content": 1150,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实公共组件调宽",
+      "component": "editable",
+      "before": 333.859375,
+      "after": 384,
+      "headers": [
+        {
+          "title": "序号",
+          "width": 111.28125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 384,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 482.25,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 222.609375,
+          "sticky": true,
+          "handles": 1
+        }
+      ],
+      "client": 1150,
+      "content": 1200,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "短表收缩调宽",
+      "component": "editable",
+      "before": 384,
+      "after": 304.546875,
+      "headers": [
+        {
+          "title": "序号",
+          "width": 115.265625,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 304.546875,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 499.5625,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 230.625,
+          "sticky": true,
+          "handles": 1
+        }
+      ],
+      "client": 1150,
+      "content": 1150,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "窄弹窗调宽与解冻",
+      "before": 177.09375,
+      "after": 207,
+      "headers": [
+        {
+          "title": "",
+          "width": 48,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "",
+          "width": 47.625,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "序号",
+          "width": 59.9375,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 207,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 254.6875,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 234.5,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 118.15625,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 234.5,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 448,
+      "content": 970,
+      "viewport": 1440,
+      "pageWidth": 1440
+    }
+  ],
+  "errors": []
+}

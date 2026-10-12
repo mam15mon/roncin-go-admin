@@ -8,6 +8,7 @@ import {
 import { Table, type TableProps, type TableRef } from 'antd';
 import React, { forwardRef } from 'react';
 import type { LayoutColumn } from './layout';
+import { useResizableColumns } from './useResizableColumns';
 import { useResponsiveTableLayout } from './useResponsiveTableLayout';
 
 // 列显隐、顺序与 fixed 已由公共设置和响应式层应用。空的受控 map 使
@@ -36,39 +37,63 @@ function logicalFixedColumns<C extends LayoutColumn>(
 }
 
 function useLayout<T extends object, C extends LayoutColumn>(
-  props: Pick<TableProps<T>, 'scroll' | 'sticky' | 'expandable'> & {
+  props: Pick<
+    TableProps<T>,
+    'scroll' | 'sticky' | 'expandable' | 'components' | 'tableLayout'
+  > & {
     columns?: C[];
     rowSelection?: TableProps<T>['rowSelection'] | false;
   },
 ) {
-  const rowSelection = props.rowSelection || undefined;
+  const resizable = useResizableColumns<T, C>(props.columns, props.components);
+  const rowSelection = props.rowSelection
+    ? {
+        ...props.rowSelection,
+        ...(resizable.selectionWidth === undefined
+          ? {}
+          : { columnWidth: resizable.selectionWidth }),
+      }
+    : undefined;
+  const expandable = props.expandable
+    ? {
+        ...props.expandable,
+        ...(resizable.expandWidth === undefined
+          ? {}
+          : { columnWidth: resizable.expandWidth }),
+      }
+    : undefined;
   const layout = useResponsiveTableLayout({
-    columns: props.columns,
+    columns: resizable.columns,
     scroll: props.scroll,
     sticky: props.sticky,
     auxiliaryWidth:
       (rowSelection ? Number(rowSelection.columnWidth) || 32 : 0) +
-      (props.expandable?.expandedRowRender || props.expandable?.rowExpandable
-        ? Number(props.expandable.columnWidth) || 48
+      (expandable?.expandedRowRender || expandable?.rowExpandable
+        ? Number(expandable.columnWidth) || 48
         : 0),
     auxiliaryFixedWidth:
       (rowSelection?.fixed ? Number(rowSelection.columnWidth) || 32 : 0) +
-      (props.expandable?.fixed ? 48 : 0),
+      (expandable?.fixed ? Number(expandable.columnWidth) || 48 : 0),
   });
   return {
     containerRef: layout.containerRef,
     tableProps: {
       columns: layout.columns,
+      components: resizable.components,
+      tableLayout:
+        props.tableLayout ?? (resizable.resized ? 'fixed' : undefined),
       scroll: layout.scroll,
       sticky: layout.sticky,
       rowSelection:
-        props.rowSelection && layout.releaseFixed
-          ? { ...props.rowSelection, fixed: false }
-          : props.rowSelection,
+        props.rowSelection === false
+          ? (false as const)
+          : rowSelection && layout.releaseFixed
+            ? { ...rowSelection, fixed: false }
+            : rowSelection,
       expandable:
-        props.expandable && layout.releaseFixed
-          ? { ...props.expandable, fixed: false }
-          : props.expandable,
+        expandable && layout.releaseFixed
+          ? { ...expandable, fixed: false }
+          : expandable,
     },
   };
 }

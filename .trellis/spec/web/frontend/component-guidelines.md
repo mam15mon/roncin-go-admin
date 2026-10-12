@@ -71,7 +71,8 @@
 - **公共入口**：产品表格统一从 `@/components/ui` 使用 `ResponsiveTable`、
   `ResponsiveProTable`、`ResponsiveEditableProTable`；公共模板内部从
   `../responsive-table` 导入，避免经聚合入口形成循环。三个组件保持官方泛型、
-  Table ref/静态组件以及业务 props，不托管 `request`、`actionRef`、列偏好或编辑状态。
+  Table ref/静态组件以及业务 props，不托管 `request`、`actionRef`、持久化列偏好或编辑状态；
+  统一拖拽列宽由该层保存会话内状态，详见[列设置契约](./column-settings.md)。
 - **宽度规则**：先由业务与列设置输出实际显示列，再计算横向宽度。隐藏列不计入，
   分组列递归求和；数字或像素宽度直接使用，未指定宽度的列按 160px 预留阅读空间，
   选择/展开列另计。百分比等非像素列使用官方 `max-content`。已有显式 `scroll.x`

@@ -1,0 +1,1155 @@
+{
+  "results": [
+    {
+      "kind": "真实用户列表拖动",
+      "path": "/admin?tab=users",
+      "before": 220,
+      "after": 290,
+      "headers": [
+        {
+          "title": "",
+          "width": 48,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "用户",
+          "width": 290,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "邮箱地址",
+          "width": 220,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "钉钉部门",
+          "width": 200,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "联系方式",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "资料同步时间",
+          "width": 160,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "已分配角色",
+          "width": 240,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "状态",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "更新时间",
+          "width": 170,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 230,
+          "sticky": true,
+          "handles": 0
+        }
+      ],
+      "client": 1133,
+      "content": 1818,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实用户列表双击展开还原",
+      "expanded": 352,
+      "restored": 220
+    },
+    {
+      "kind": "真实用户列隐藏重显排序后保留宽度",
+      "width": 250
+    },
+    {
+      "kind": "真实列表窄宽与末列可达",
+      "headers": [
+        {
+          "title": "",
+          "width": 48,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "邮箱地址",
+          "width": 220,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "用户",
+          "width": 250,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "钉钉部门",
+          "width": 200,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "联系方式",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "资料同步时间",
+          "width": 160,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "已分配角色",
+          "width": 240,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "状态",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "更新时间",
+          "width": 170,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 230,
+          "sticky": false,
+          "handles": 0
+        }
+      ],
+      "client": 299,
+      "content": 1778,
+      "viewport": 390,
+      "pageWidth": 390,
+      "moved": 1479,
+      "lastReachable": true
+    },
+    {
+      "kind": "真实列表窄宽与末列可达",
+      "headers": [
+        {
+          "title": "",
+          "width": 48,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "邮箱地址",
+          "width": 220,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "用户",
+          "width": 250,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "钉钉部门",
+          "width": 200,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "联系方式",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "资料同步时间",
+          "width": 160,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "已分配角色",
+          "width": 240,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "状态",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "更新时间",
+          "width": 170,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 230,
+          "sticky": true,
+          "handles": 0
+        }
+      ],
+      "client": 815,
+      "content": 1778,
+      "viewport": 962,
+      "pageWidth": 962,
+      "moved": 963,
+      "lastReachable": true
+    },
+    {
+      "kind": "真实列表窄宽与末列可达",
+      "headers": [
+        {
+          "title": "",
+          "width": 48,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "邮箱地址",
+          "width": 220,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "用户",
+          "width": 250,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "钉钉部门",
+          "width": 200,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "联系方式",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "资料同步时间",
+          "width": 160,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "已分配角色",
+          "width": 240,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "状态",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "更新时间",
+          "width": 170,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 230,
+          "sticky": true,
+          "handles": 0
+        }
+      ],
+      "client": 1133,
+      "content": 1778,
+      "viewport": 1440,
+      "pageWidth": 1440,
+      "moved": 645,
+      "lastReachable": true
+    },
+    {
+      "kind": "真实列表窄宽与末列可达",
+      "headers": [
+        {
+          "title": "",
+          "width": 48,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "邮箱地址",
+          "width": 220,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "用户",
+          "width": 250,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "钉钉部门",
+          "width": 200,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "联系方式",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "资料同步时间",
+          "width": 160,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "已分配角色",
+          "width": 240,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "状态",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "更新时间",
+          "width": 170,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 230,
+          "sticky": true,
+          "handles": 0
+        }
+      ],
+      "client": 1613,
+      "content": 1778,
+      "viewport": 1920,
+      "pageWidth": 1920,
+      "moved": 165,
+      "lastReachable": true
+    },
+    {
+      "kind": "真实业务列表拖动",
+      "path": "/orders/sea-export",
+      "before": 90,
+      "after": 130,
+      "headers": [
+        {
+          "title": "",
+          "width": 32,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "序号",
+          "width": 50,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "进程",
+          "width": 130,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "订单编号",
+          "width": 150,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "业务类型",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "委托单位",
+          "width": 180,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "客户业务编号",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "标签",
+          "width": 150,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "创建时间",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "订舱代理",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "主单号",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "船名航次",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "起运港",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "目的港",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "目的地",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "箱型箱量",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "箱号",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "提成",
+          "width": 220,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作人员",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "业务人员",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "创建人",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "委托总件数",
+          "width": 110,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "委托总毛重(KGS)",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "委托总体积(CBM)",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "付款方式",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "贸易条款",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "合约号",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "收货人简称",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "发货人简称",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "配舱备注",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "订舱备注",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作备注",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "附件",
+          "width": 70,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "订单锁定时间",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "订单状态",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "异常",
+          "width": 80,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 180,
+          "sticky": true,
+          "handles": 1
+        }
+      ],
+      "client": 1100,
+      "content": 4662,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实业务列表拖动",
+      "path": "/finance/fees",
+      "before": 140,
+      "after": 180,
+      "headers": [
+        {
+          "title": "",
+          "width": 32,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "序号",
+          "width": 50,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "标签",
+          "width": 180,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "所属公司",
+          "width": 150,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "属性",
+          "width": 65,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "主单号",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "委托单位",
+          "width": 180,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "结算单位",
+          "width": 180,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "业务类型",
+          "width": 95,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "费用名称",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "币种",
+          "width": 65,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 110,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "发票号",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "财务进度",
+          "width": 125,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "汇率",
+          "width": 80,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作人员",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "业务人员",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "客服人员",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "关联人员",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "税率(%)",
+          "width": 75,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "税金",
+          "width": 90,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "不含税总价",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分单号",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "账单编号",
+          "width": 155,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "订单编号",
+          "width": 160,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "费用时间",
+          "width": 110,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "SO号",
+          "width": 130,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "折本币总价",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "关联信息",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "收货人简称",
+          "width": 110,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "发货人简称",
+          "width": 110,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "通知人简称",
+          "width": 110,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "已核销金额",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "未核销金额",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "实际总毛重(KGS)",
+          "width": 115,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "实际总体积",
+          "width": 100,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "备注",
+          "width": 120,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 1132,
+      "content": 4159,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实业务列表拖动",
+      "path": "/finance/cashflows",
+      "before": 150,
+      "after": 190,
+      "headers": [
+        {
+          "title": "",
+          "width": 32,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "所属公司",
+          "width": 190,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "序号",
+          "width": 55,
+          "sticky": true,
+          "handles": 0
+        },
+        {
+          "title": "方向",
+          "width": 75,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "状态",
+          "width": 85,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "流水编号",
+          "width": 170,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "结算单位",
+          "width": 220,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "结算汇率",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "折本币",
+          "width": 140,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "已核销",
+          "width": 135,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "未核销",
+          "width": 135,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "交易日期",
+          "width": 110,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "我方账户",
+          "width": 180,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "支付方式",
+          "width": 95,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "银行水单号",
+          "width": 150,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 150,
+          "sticky": true,
+          "handles": 0
+        }
+      ],
+      "client": 1132,
+      "content": 2202,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实公共组件调宽",
+      "component": "plain",
+      "before": 229.390625,
+      "after": 279,
+      "headers": [
+        {
+          "title": "",
+          "width": 40.78125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "",
+          "width": 61.171875,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "序号",
+          "width": 76.453125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 279,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 331.359375,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 305.859375,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 152.984375,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 305.859375,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 1198,
+      "content": 1248,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实公共组件调宽",
+      "component": "pro",
+      "before": 240.6875,
+      "after": 291,
+      "headers": [
+        {
+          "title": "序号",
+          "width": 80.21875,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 291,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 347.671875,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 320.921875,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 160.5,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 320.921875,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 1150,
+      "content": 1200,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "真实公共组件调宽",
+      "component": "editable",
+      "before": 333.859375,
+      "after": 384,
+      "headers": [
+        {
+          "title": "序号",
+          "width": 111.28125,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 384,
+          "sticky": true,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 482.25,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "操作",
+          "width": 222.609375,
+          "sticky": true,
+          "handles": 1
+        }
+      ],
+      "client": 1150,
+      "content": 1200,
+      "viewport": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "kind": "窄弹窗调宽与解冻",
+      "before": 177.09375,
+      "after": 207,
+      "headers": [
+        {
+          "title": "",
+          "width": 48,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "",
+          "width": 47.625,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "序号",
+          "width": 59.9375,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "名称",
+          "width": 207,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "说明",
+          "width": 254.6875,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "分组",
+          "width": 234.5,
+          "sticky": false,
+          "handles": 0
+        },
+        {
+          "title": "操作",
+          "width": 118.15625,
+          "sticky": false,
+          "handles": 1
+        },
+        {
+          "title": "金额",
+          "width": 234.5,
+          "sticky": false,
+          "handles": 1
+        }
+      ],
+      "client": 448,
+      "content": 970,
+      "viewport": 1440,
+      "pageWidth": 1440
+    }
+  ],
+  "errors": []
+}
