@@ -1106,3 +1106,37 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 121: 统一全站表格列宽交互
+<!-- trellis-session: v=2 fp=a57166827d0bcd9e -->
+
+**Date**: 2026-10-12
+**Task**: 统一全站表格列宽交互
+**Package**: web
+**Branch**: `main`
+
+### Summary
+
+将费用页拖拽列宽与双击展开还原下沉到公共三类表格，修复冻结定位和短表调宽跳动，完成独立复核、真实浏览器和前端全量验收。
+
+### Main Changes
+
+- 普通、Pro与Editable统一列宽交互，保留列设置、业务请求和编辑节点。
+- 调宽开始测量同表列宽快照，保留Antd CSS sticky、满铺规则及会话内宽度状态。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c9ad41c8` | feat: 统一所有表格的列宽拖拽与双击调整行为 |
+
+### Testing
+
+- [OK] 定向8文件30用例、Biome、TypeScript和独立Trellis检查通过。
+- [OK] 真实浏览器主14组与额外组件收缩验证通过，无页面错误。
+- [OK] 最终check:web通过：202文件、1137用例通过，原有1文件/12用例跳过；首次无关动画测试单独及最终全量均通过。
+
+### Status
+
+[OK] **Completed**

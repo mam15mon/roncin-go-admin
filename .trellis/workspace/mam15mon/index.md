@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 120
-- **Last Active**: 2026-10-10
+- **Total Sessions**: 121
+- **Last Active**: 2026-10-12
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1108 | Active |
+| `journal-2.md` | ~1142 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 121 | 2026-10-12 | 统一全站表格列宽交互 | `c9ad41c8` | `main` |
 | 120 | 2026-10-10 | 统一表格首尾冻结与个人偏好 | `f4cbe480`, `30a90fb0`, `2f0264e1`, `b69ff0a4` | `codex/column-fixed-preferences` |
 | 119 | 2026-10-10 | 统一全站表格窄屏滚动与固定列 | `bbd39e76`, `c0bc5500`, `6fb0fb37`, `ceb8d9b1`, `af8a72d5`, `a2835928`, `c3b28283` | `codex/table-responsive-scroll` |
 | 118 | 2026-10-10 | 统一钉钉可选资料与告警规则 | `9462b60d` | `codex/dingtalk-optional-profile` |
