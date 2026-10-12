@@ -97,6 +97,15 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
+		movesFees := false
+		for _, result := range input.Results {
+			if result.ResultRole == biz.ResultRoleCreated && len(result.DraftFeeIDs) > 0 {
+				movesFees = true
+			}
+		}
+		if movesFees && (sourceOrder.FeeReviewStatus == orderent.FeeReviewStatusPENDING || sourceOrder.FeeReviewStatus == orderent.FeeReviewStatusAPPROVED) {
+			return biz.ErrFeeReviewFrozen
+		}
 		if err := ensureOrderBusinessEditable(ctx, tx, sourceOrder); err != nil {
 			return err
 		}
@@ -2094,9 +2103,11 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		// -------------------------------------------------------------------
 		// 更新原订单版本与生命周期事件
 		// -------------------------------------------------------------------
-		if _, err := tx.Order.UpdateOneID(sourceOrder.ID).
-			SetVersion(sourceOrder.Version + 1).
-			Save(ctx); err != nil {
+		sourceUpdate := tx.Order.UpdateOneID(sourceOrder.ID).SetVersion(sourceOrder.Version + 1)
+		if movesFees {
+			sourceUpdate.AddFeeContentVersion(1)
+		}
+		if _, err := sourceUpdate.Save(ctx); err != nil {
 			return err
 		}
 

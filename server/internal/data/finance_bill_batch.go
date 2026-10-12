@@ -59,6 +59,17 @@ func (r *financeBillRepo) GetBatch(ctx context.Context, organizationIDs []uuid.U
 
 func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		preBills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID), financebillent.OrganizationIDIn(organizationIDs...)).All(ctx)
+		if err != nil {
+			return err
+		}
+		ids := make([]uuid.UUID, 0, len(preBills))
+		for _, bill := range preBills {
+			ids = append(ids, bill.ID)
+		}
+		if err := lockExistingBillOrders(ctx, tx.Client(), organizationIDs, ids); err != nil {
+			return err
+		}
 		batch, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDIn(organizationIDs...)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
@@ -110,6 +121,9 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 			return biz.ErrFinanceBillBatchMismatch
 		}
 		sort.Slice(feeIDs, func(i, j int) bool { return feeIDs[i].String() < feeIDs[j].String() })
+		if err := lockBillFeeOrders(ctx, tx.Client(), []uuid.UUID{batch.OrganizationID}, feeIDs, true); err != nil {
+			return err
+		}
 		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(batch.OrganizationID))).WithSettlementParty().WithOrder().Order(orderfeeent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err

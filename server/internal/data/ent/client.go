@@ -81,6 +81,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
@@ -264,6 +265,8 @@ type Client struct {
 	OrderFee *OrderFeeClient
 	// OrderFeeEnterpriseTag is the client for interacting with the OrderFeeEnterpriseTag builders.
 	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
+	// OrderFeeReviewEvent is the client for interacting with the OrderFeeReviewEvent builders.
+	OrderFeeReviewEvent *OrderFeeReviewEventClient
 	// OrderFeeSupplementRequest is the client for interacting with the OrderFeeSupplementRequest builders.
 	OrderFeeSupplementRequest *OrderFeeSupplementRequestClient
 	// OrderLifecycleEvent is the client for interacting with the OrderLifecycleEvent builders.
@@ -432,6 +435,7 @@ func (c *Client) init() {
 	c.OrderEnterpriseTag = NewOrderEnterpriseTagClient(c.config)
 	c.OrderFee = NewOrderFeeClient(c.config)
 	c.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(c.config)
+	c.OrderFeeReviewEvent = NewOrderFeeReviewEventClient(c.config)
 	c.OrderFeeSupplementRequest = NewOrderFeeSupplementRequestClient(c.config)
 	c.OrderLifecycleEvent = NewOrderLifecycleEventClient(c.config)
 	c.OrderLockHouseBillSnapshot = NewOrderLockHouseBillSnapshotClient(c.config)
@@ -635,6 +639,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderEnterpriseTag:               NewOrderEnterpriseTagClient(cfg),
 		OrderFee:                         NewOrderFeeClient(cfg),
 		OrderFeeEnterpriseTag:            NewOrderFeeEnterpriseTagClient(cfg),
+		OrderFeeReviewEvent:              NewOrderFeeReviewEventClient(cfg),
 		OrderFeeSupplementRequest:        NewOrderFeeSupplementRequestClient(cfg),
 		OrderLifecycleEvent:              NewOrderLifecycleEventClient(cfg),
 		OrderLockHouseBillSnapshot:       NewOrderLockHouseBillSnapshotClient(cfg),
@@ -765,6 +770,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderEnterpriseTag:               NewOrderEnterpriseTagClient(cfg),
 		OrderFee:                         NewOrderFeeClient(cfg),
 		OrderFeeEnterpriseTag:            NewOrderFeeEnterpriseTagClient(cfg),
+		OrderFeeReviewEvent:              NewOrderFeeReviewEventClient(cfg),
 		OrderFeeSupplementRequest:        NewOrderFeeSupplementRequestClient(cfg),
 		OrderLifecycleEvent:              NewOrderLifecycleEventClient(cfg),
 		OrderLockHouseBillSnapshot:       NewOrderLockHouseBillSnapshotClient(cfg),
@@ -863,7 +869,7 @@ func (c *Client) Use(hooks ...Hook) {
 		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
 		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
+		c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
 		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderMilestone,
 		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
@@ -909,7 +915,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
 		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
+		c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
 		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderMilestone,
 		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
@@ -1061,6 +1067,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderFee.mutate(ctx, m)
 	case *OrderFeeEnterpriseTagMutation:
 		return c.OrderFeeEnterpriseTag.mutate(ctx, m)
+	case *OrderFeeReviewEventMutation:
+		return c.OrderFeeReviewEvent.mutate(ctx, m)
 	case *OrderFeeSupplementRequestMutation:
 		return c.OrderFeeSupplementRequest.mutate(ctx, m)
 	case *OrderLifecycleEventMutation:
@@ -11141,6 +11149,22 @@ func (c *OrderClient) QueryAbnormalCases(_m *Order) *OrderAbnormalCaseQuery {
 	return query
 }
 
+// QueryFeeReviewEvents queries the fee_review_events edge of a Order.
+func (c *OrderClient) QueryFeeReviewEvents(_m *Order) *OrderFeeReviewEventQuery {
+	query := (&OrderFeeReviewEventClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderfeereviewevent.Table, orderfeereviewevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.FeeReviewEventsTable, order.FeeReviewEventsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFees queries the fees edge of a Order.
 func (c *OrderClient) QueryFees(_m *Order) *OrderFeeQuery {
 	query := (&OrderFeeClient{config: c.config}).Query()
@@ -13522,6 +13546,155 @@ func (c *OrderFeeEnterpriseTagClient) mutate(ctx context.Context, m *OrderFeeEnt
 		return (&OrderFeeEnterpriseTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderFeeEnterpriseTag mutation op: %q", m.Op())
+	}
+}
+
+// OrderFeeReviewEventClient is a client for the OrderFeeReviewEvent schema.
+type OrderFeeReviewEventClient struct {
+	config
+}
+
+// NewOrderFeeReviewEventClient returns a client for the OrderFeeReviewEvent from the given config.
+func NewOrderFeeReviewEventClient(c config) *OrderFeeReviewEventClient {
+	return &OrderFeeReviewEventClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderfeereviewevent.Hooks(f(g(h())))`.
+func (c *OrderFeeReviewEventClient) Use(hooks ...Hook) {
+	c.hooks.OrderFeeReviewEvent = append(c.hooks.OrderFeeReviewEvent, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderfeereviewevent.Intercept(f(g(h())))`.
+func (c *OrderFeeReviewEventClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderFeeReviewEvent = append(c.inters.OrderFeeReviewEvent, interceptors...)
+}
+
+// Create returns a builder for creating a OrderFeeReviewEvent entity.
+func (c *OrderFeeReviewEventClient) Create() *OrderFeeReviewEventCreate {
+	mutation := newOrderFeeReviewEventMutation(c.config, OpCreate)
+	return &OrderFeeReviewEventCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderFeeReviewEvent entities.
+func (c *OrderFeeReviewEventClient) CreateBulk(builders ...*OrderFeeReviewEventCreate) *OrderFeeReviewEventCreateBulk {
+	return &OrderFeeReviewEventCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderFeeReviewEventClient) MapCreateBulk(slice any, setFunc func(*OrderFeeReviewEventCreate, int)) *OrderFeeReviewEventCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderFeeReviewEventCreateBulk{err: fmt.Errorf("calling to OrderFeeReviewEventClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderFeeReviewEventCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderFeeReviewEventCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderFeeReviewEvent.
+func (c *OrderFeeReviewEventClient) Update() *OrderFeeReviewEventUpdate {
+	mutation := newOrderFeeReviewEventMutation(c.config, OpUpdate)
+	return &OrderFeeReviewEventUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderFeeReviewEventClient) UpdateOne(_m *OrderFeeReviewEvent) *OrderFeeReviewEventUpdateOne {
+	mutation := newOrderFeeReviewEventMutation(c.config, OpUpdateOne, withOrderFeeReviewEvent(_m))
+	return &OrderFeeReviewEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderFeeReviewEventClient) UpdateOneID(id uuid.UUID) *OrderFeeReviewEventUpdateOne {
+	mutation := newOrderFeeReviewEventMutation(c.config, OpUpdateOne, withOrderFeeReviewEventID(id))
+	return &OrderFeeReviewEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderFeeReviewEvent.
+func (c *OrderFeeReviewEventClient) Delete() *OrderFeeReviewEventDelete {
+	mutation := newOrderFeeReviewEventMutation(c.config, OpDelete)
+	return &OrderFeeReviewEventDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderFeeReviewEventClient) DeleteOne(_m *OrderFeeReviewEvent) *OrderFeeReviewEventDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderFeeReviewEventClient) DeleteOneID(id uuid.UUID) *OrderFeeReviewEventDeleteOne {
+	builder := c.Delete().Where(orderfeereviewevent.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderFeeReviewEventDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderFeeReviewEvent.
+func (c *OrderFeeReviewEventClient) Query() *OrderFeeReviewEventQuery {
+	return &OrderFeeReviewEventQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderFeeReviewEvent},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderFeeReviewEvent entity by its id.
+func (c *OrderFeeReviewEventClient) Get(ctx context.Context, id uuid.UUID) (*OrderFeeReviewEvent, error) {
+	return c.Query().Where(orderfeereviewevent.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderFeeReviewEventClient) GetX(ctx context.Context, id uuid.UUID) *OrderFeeReviewEvent {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrder queries the order edge of a OrderFeeReviewEvent.
+func (c *OrderFeeReviewEventClient) QueryOrder(_m *OrderFeeReviewEvent) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeereviewevent.Table, orderfeereviewevent.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeereviewevent.OrderTable, orderfeereviewevent.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderFeeReviewEventClient) Hooks() []Hook {
+	return c.hooks.OrderFeeReviewEvent
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderFeeReviewEventClient) Interceptors() []Interceptor {
+	return c.inters.OrderFeeReviewEvent
+}
+
+func (c *OrderFeeReviewEventClient) mutate(ctx context.Context, m *OrderFeeReviewEventMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderFeeReviewEventCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderFeeReviewEventUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderFeeReviewEventUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderFeeReviewEventDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderFeeReviewEvent mutation op: %q", m.Op())
 	}
 }
 
@@ -25048,18 +25221,19 @@ type (
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
-		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
-		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderUnlockApproverCandidate, OrderUnlockRequest,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
-		RoleAssignment, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
-		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
-		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
-		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
-		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
+		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeReviewEvent,
+		OrderFeeSupplementRequest, OrderLifecycleEvent, OrderLockHouseBillSnapshot,
+		OrderLockRecord, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, OrderUnlockApproverCandidate,
+		OrderUnlockRequest, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
+		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
+		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
+		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
+		SeaSharedContainerAllocation, SeaTransportExecution,
+		SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
@@ -25082,18 +25256,19 @@ type (
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
-		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeSupplementRequest,
-		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
-		OrderMilestone, OrderPersonnel, OrderReleasePod, OrderServiceType,
-		OrderShippingDocument, OrderUnlockApproverCandidate, OrderUnlockRequest,
-		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
-		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, Permission, Port, Role,
-		RoleAssignment, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
-		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
-		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
-		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
-		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
+		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeReviewEvent,
+		OrderFeeSupplementRequest, OrderLifecycleEvent, OrderLockHouseBillSnapshot,
+		OrderLockRecord, OrderMilestone, OrderPersonnel, OrderReleasePod,
+		OrderServiceType, OrderShippingDocument, OrderUnlockApproverCandidate,
+		OrderUnlockRequest, Organization, Partner, PartnerAccount, PartnerAlias,
+		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
+		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
+		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
+		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
+		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
+		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
+		SeaSharedContainerAllocation, SeaTransportExecution,
+		SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

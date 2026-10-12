@@ -70,6 +70,10 @@ type FinanceCommissionAdjustment struct {
 	ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
 	// ConfirmedBy holds the value of the "confirmed_by" field.
 	ConfirmedBy *uuid.UUID `json:"confirmed_by,omitempty"`
+	// ExecutionMethod holds the value of the "execution_method" field.
+	ExecutionMethod *financecommissionadjustment.ExecutionMethod `json:"execution_method,omitempty"`
+	// ParentPaymentID holds the value of the "parent_payment_id" field.
+	ParentPaymentID *uuid.UUID `json:"parent_payment_id,omitempty"`
 	// PaidAt holds the value of the "paid_at" field.
 	PaidAt *time.Time `json:"paid_at,omitempty"`
 	// PaidBy holds the value of the "paid_by" field.
@@ -215,11 +219,11 @@ func (*FinanceCommissionAdjustment) scanValues(columns []string) ([]any, error) 
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommissionadjustment.FieldSourceVerificationID, financecommissionadjustment.FieldSourceFeeSupplementRequestID, financecommissionadjustment.FieldConfirmedBy, financecommissionadjustment.FieldPaidBy, financecommissionadjustment.FieldCancelledBy:
+		case financecommissionadjustment.FieldSourceVerificationID, financecommissionadjustment.FieldSourceFeeSupplementRequestID, financecommissionadjustment.FieldConfirmedBy, financecommissionadjustment.FieldParentPaymentID, financecommissionadjustment.FieldPaidBy, financecommissionadjustment.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommissionadjustment.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommissionadjustment.FieldAdjustmentNo, financecommissionadjustment.FieldIdempotencyKey, financecommissionadjustment.FieldCommissionNo, financecommissionadjustment.FieldOrderNo, financecommissionadjustment.FieldEmployeeName, financecommissionadjustment.FieldSourceType, financecommissionadjustment.FieldDirection, financecommissionadjustment.FieldStatus, financecommissionadjustment.FieldBaseCurrency, financecommissionadjustment.FieldAmount, financecommissionadjustment.FieldReason, financecommissionadjustment.FieldNote, financecommissionadjustment.FieldCancellationReason:
+		case financecommissionadjustment.FieldAdjustmentNo, financecommissionadjustment.FieldIdempotencyKey, financecommissionadjustment.FieldCommissionNo, financecommissionadjustment.FieldOrderNo, financecommissionadjustment.FieldEmployeeName, financecommissionadjustment.FieldSourceType, financecommissionadjustment.FieldDirection, financecommissionadjustment.FieldStatus, financecommissionadjustment.FieldBaseCurrency, financecommissionadjustment.FieldAmount, financecommissionadjustment.FieldReason, financecommissionadjustment.FieldNote, financecommissionadjustment.FieldExecutionMethod, financecommissionadjustment.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommissionadjustment.FieldCreatedAt, financecommissionadjustment.FieldUpdatedAt, financecommissionadjustment.FieldConfirmedAt, financecommissionadjustment.FieldPaidAt, financecommissionadjustment.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -388,6 +392,20 @@ func (_m *FinanceCommissionAdjustment) assignValues(columns []string, values []a
 			} else if value.Valid {
 				_m.ConfirmedBy = new(uuid.UUID)
 				*_m.ConfirmedBy = *value.S.(*uuid.UUID)
+			}
+		case financecommissionadjustment.FieldExecutionMethod:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field execution_method", values[i])
+			} else if value.Valid {
+				_m.ExecutionMethod = new(financecommissionadjustment.ExecutionMethod)
+				*_m.ExecutionMethod = financecommissionadjustment.ExecutionMethod(value.String)
+			}
+		case financecommissionadjustment.FieldParentPaymentID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field parent_payment_id", values[i])
+			} else if value.Valid {
+				_m.ParentPaymentID = new(uuid.UUID)
+				*_m.ParentPaymentID = *value.S.(*uuid.UUID)
 			}
 		case financecommissionadjustment.FieldPaidAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -581,6 +599,16 @@ func (_m *FinanceCommissionAdjustment) String() string {
 	builder.WriteString(", ")
 	if v := _m.ConfirmedBy; v != nil {
 		builder.WriteString("confirmed_by=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.ExecutionMethod; v != nil {
+		builder.WriteString("execution_method=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.ParentPaymentID; v != nil {
+		builder.WriteString("parent_payment_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

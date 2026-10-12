@@ -77,6 +77,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
@@ -248,6 +249,7 @@ func checkColumn(t, c string) error {
 			orderenterprisetag.Table:               orderenterprisetag.ValidColumn,
 			orderfee.Table:                         orderfee.ValidColumn,
 			orderfeeenterprisetag.Table:            orderfeeenterprisetag.ValidColumn,
+			orderfeereviewevent.Table:              orderfeereviewevent.ValidColumn,
 			orderfeesupplementrequest.Table:        orderfeesupplementrequest.ValidColumn,
 			orderlifecycleevent.Table:              orderlifecycleevent.ValidColumn,
 			orderlockhousebillsnapshot.Table:       orderlockhousebillsnapshot.ValidColumn,

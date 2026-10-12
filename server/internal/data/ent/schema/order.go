@@ -21,7 +21,8 @@ func (Order) Annotations() []schema.Annotation {
 			// 锁定来源一致性：未锁定时全部锁字段为空；MANUAL 必须有 locked_by
 			// 且自动触发字段为空；AUTO_SETTLEMENT 必须 locked_by 为空且触发
 			// 类型、触发单据与触发操作人完整。
-			"orders_lock_source_check": "(locked_at IS NULL AND locked_by IS NULL AND lock_source IS NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'MANUAL' AND locked_by IS NOT NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND auto_lock_trigger_type IS NOT NULL AND auto_lock_trigger_resource_id IS NOT NULL AND auto_lock_triggered_by IS NOT NULL)",
+			"orders_fee_review_status_check": "fee_review_status IN ('UNSUBMITTED', 'PENDING', 'APPROVED', 'REJECTED', 'REVOKED')",
+			"orders_lock_source_check":       "(locked_at IS NULL AND locked_by IS NULL AND lock_source IS NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'MANUAL' AND locked_by IS NOT NULL AND auto_lock_trigger_type IS NULL AND auto_lock_trigger_resource_id IS NULL AND auto_lock_triggered_by IS NULL) OR (locked_at IS NOT NULL AND lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND auto_lock_trigger_type IS NOT NULL AND auto_lock_trigger_resource_id IS NOT NULL AND auto_lock_triggered_by IS NOT NULL)",
 		}),
 	}
 }
@@ -79,6 +80,11 @@ func (Order) Fields() []ent.Field {
 		field.UUID("auto_lock_triggered_by", uuid.Nil).Optional().Nillable(),
 		field.Bool("is_shared").Default(false),
 		field.Uint64("version").Default(1),
+		field.Enum("fee_review_status").Values("UNSUBMITTED", "PENDING", "APPROVED", "REJECTED", "REVOKED").Default("UNSUBMITTED"),
+		field.Uint64("fee_content_version").Default(1),
+		field.Uint64("fee_review_version").Default(1),
+		field.UUID("current_fee_review_event_id", uuid.Nil).Optional().Nillable(),
+		field.UUID("approved_fee_review_event_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("origin_location_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("destination_location_id", uuid.Nil).Optional().Nillable(),
 		field.UUID("discharge_location_id", uuid.Nil).Optional().Nillable(),
@@ -122,6 +128,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("shipping_documents", OrderShippingDocument.Type),
 		edge.To("release_pods", OrderReleasePod.Type),
 		edge.To("abnormal_cases", OrderAbnormalCase.Type),
+		edge.To("fee_review_events", OrderFeeReviewEvent.Type),
 		edge.To("fees", OrderFee.Type),
 		edge.To("fee_supplement_requests", OrderFeeSupplementRequest.Type),
 		edge.To("finance_bill_lines", FinanceBillLine.Type),
@@ -148,6 +155,7 @@ func (Order) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("organization_id", "order_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
+		index.Fields("organization_id", "fee_review_status"),
 		index.Fields("organization_id", "flow_status"),
 		index.Fields("organization_id", "termination_status"),
 		index.Fields("organization_id", "closure_status"),

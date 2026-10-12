@@ -315,6 +315,10 @@ describe('OrderCommissionSummaryModal', () => {
 describe('海运出口订单列表提成摘要接线', () => {
   beforeEach(() => {
     pageState.pathname = '/orders/sea-export';
+    listQueryState.queryOrderList.mockReset();
+    accessState.canReadFinanceCommissions = false;
+    localStorage.clear();
+    sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -341,7 +345,13 @@ describe('海运出口订单列表提成摘要接线', () => {
       </App>,
     );
 
-    expect(await screen.findByText('待确认 ¥80.00')).toBeInTheDocument();
+    // 先等官方 ProTable request 完成并渲染目标行，再检查该行的提成投影。
+    // 全量并发下列表初始化可能晚于单独摘要组件，不能把尚未加载当作投影丢失。
+    await waitFor(() =>
+      expect(listQueryState.queryOrderList).toHaveBeenCalled(),
+    );
+    await screen.findByText('SE202609180001');
+    expect(screen.getByText('待确认 ¥80.00')).toBeInTheDocument();
     expect(screen.getByText('已发 ¥120.00')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('待确认 ¥80.00'));
@@ -370,9 +380,10 @@ describe('海运出口订单列表提成摘要接线', () => {
       </App>,
     );
 
-    await waitFor(() => {
-      expect(screen.getByText('SE202609180003')).toBeInTheDocument();
-    });
+    await waitFor(() =>
+      expect(listQueryState.queryOrderList).toHaveBeenCalled(),
+    );
+    await screen.findByText('SE202609180003');
     const commissionTags = Array.from(
       container.querySelectorAll('.ant-tag'),
     ).filter((tag) => tag.textContent === '我暂无提成');

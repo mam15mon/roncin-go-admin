@@ -4310,6 +4310,46 @@
         }
       }
     },
+    "/api/v1/finance/commissions/{id}/payment-preview": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_PreviewCommissionPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.PreviewCommissionPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.PreviewCommissionPaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/custom-settings/billed-fee-edit-policy": {
       "get": {
         "tags": [
@@ -5275,6 +5315,20 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "feeReviewStatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasPendingFeeSupplement",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -7106,6 +7160,66 @@
         }
       }
     },
+    "/api/v1/order-fee-reviews/approve": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_ApproveOrderFeeReviews",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ApproveOrderFeeReviewsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ApproveOrderFeeReviewsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/order-fee-reviews/preview": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_PreviewOrderFeeReviews",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewOrderFeeReviewsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewOrderFeeReviewsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/order-personnel-options": {
       "get": {
         "tags": [
@@ -7566,6 +7680,20 @@
           },
           {
             "name": "isShared",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "feeReviewStatus",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasPendingFeeSupplement",
             "in": "query",
             "schema": {
               "type": "boolean"
@@ -9011,12 +9139,272 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/fee-review": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_GetOrderFeeReview",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetOrderFeeReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-review/approve": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_ApproveOrderFeeReview",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ApproveOrderFeeReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ApproveOrderFeeReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-review/preview": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_PreviewOrderFeeReview",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewOrderFeeReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-review/reject": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_RejectOrderFeeReview",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.RejectOrderFeeReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.RejectOrderFeeReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-review/revoke": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_RevokeOrderFeeReview",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.RevokeOrderFeeReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.RevokeOrderFeeReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-review/submit": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_SubmitOrderFeeReview",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.SubmitOrderFeeReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.SubmitOrderFeeReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-review/withdraw": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_WithdrawOrderFeeReview",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.WithdrawOrderFeeReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.WithdrawOrderFeeReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/fee-supplement-requests": {
       "get": {
         "tags": [
           "OrderFeeService"
         ],
-        "description": "ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权\n （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级\n fee.read 注解提前挡住，也不泄露无权申请。",
+        "description": "ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权\n （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级\n fee.read 注解提前挡住，也不泄露无权申请。",
         "operationId": "OrderFeeService_ListOrderFeeSupplementRequests",
         "parameters": [
           {
@@ -9061,7 +9449,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。\n 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时\n 稳定拒绝并引导普通费用新增。",
+        "description": "CreateOrderFeeSupplement 基于有效整票费用批准发起受控正数应付成本补录。\n 批准事件与内容版本由服务端锁内固化；同订单只允许一条待审补录，并提醒\n 有效费用审核权限且组织范围匹配的候选人。",
         "operationId": "OrderFeeService_CreateOrderFeeSupplement",
         "parameters": [
           {
@@ -9148,7 +9536,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，\n 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。",
+        "description": "ApproveOrderFeeSupplement 审批通过补录申请：复核固化的有效费用批准与整票利润、逐人提成预览，\n 在同一事务创建补录费用、DECREASE+CONFIRMED 冲减并逐员工通知。",
         "operationId": "OrderFeeService_ApproveOrderFeeSupplement",
         "parameters": [
           {
@@ -9197,7 +9585,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、\n 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT\n 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。",
+        "description": "CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、\n 未被有效账单关联占用且未产生确认冲减的补录；同事务物理删除费用并撤销\n 当前整票批准，APPROVED 申请事实及历史账单行快照保留。",
         "operationId": "OrderFeeService_CancelApprovedOrderFeeSupplement",
         "parameters": [
           {
@@ -16944,6 +17332,61 @@
           }
         }
       },
+      "finance.v1.CommissionPaymentAdjustment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "adjustmentNo": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.CommissionPaymentPreview": {
+        "type": "object",
+        "properties": {
+          "commissionId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "originalAmount": {
+            "type": "string"
+          },
+          "adjustmentAmount": {
+            "type": "string"
+          },
+          "actualAmount": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "adjustments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.CommissionPaymentAdjustment"
+            }
+          },
+          "offsetSettlement": {
+            "type": "boolean"
+          }
+        }
+      },
       "finance.v1.CommissionRuleAssignmentProjection": {
         "type": "object",
         "properties": {
@@ -18548,6 +18991,21 @@
           },
           "organizationName": {
             "type": "string"
+          },
+          "feeReviewStatus": {
+            "type": "string"
+          },
+          "hasPendingFeeSupplement": {
+            "type": "boolean"
+          },
+          "canBill": {
+            "type": "boolean"
+          },
+          "blockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -19350,6 +19808,9 @@
           },
           "nettingNo": {
             "type": "string"
+          },
+          "paidAmount": {
+            "type": "string"
           }
         }
       },
@@ -19439,6 +19900,18 @@
             "type": "string"
           },
           "cancelledBy": {
+            "type": "string"
+          },
+          "executionMethod": {
+            "type": "string"
+          },
+          "parentPaymentId": {
+            "type": "string"
+          },
+          "canExecute": {
+            "type": "boolean"
+          },
+          "executionBlockedReason": {
             "type": "string"
           }
         }
@@ -21547,7 +22020,10 @@
       "finance.v1.MarkCommissionPaidRequest": {
         "required": [
           "id",
-          "expectedVersion"
+          "expectedVersion",
+          "previewToken",
+          "actualAmount",
+          "idempotencyKey"
         ],
         "type": "object",
         "properties": {
@@ -21555,6 +22031,15 @@
             "type": "string"
           },
           "expectedVersion": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "actualAmount": {
+            "type": "string"
+          },
+          "idempotencyKey": {
             "type": "string"
           }
         }
@@ -21708,6 +22193,42 @@
               "$ref": "#/components/schemas/finance.v1.BillBatchNettingPair"
             },
             "description": "netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。"
+          }
+        }
+      },
+      "finance.v1.PreviewCommissionPaymentRequest": {
+        "required": [
+          "id",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.PreviewCommissionPaymentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.CommissionPaymentPreview"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -24583,11 +25104,87 @@
         },
         "description": "AddShippingDocumentResponse 单条提单响应。"
       },
+      "order.v1.ApproveOrderFeeReviewRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedReviewVersion": {
+            "type": "string"
+          },
+          "expectedContentVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "completenessConfirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.ApproveOrderFeeReviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ApproveOrderFeeReviewsRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeReviewActionData"
+            }
+          }
+        }
+      },
+      "order.v1.ApproveOrderFeeReviewsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeReviewResult"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.ApproveOrderFeeSupplementRequest": {
         "required": [
           "orderId",
           "id",
-          "expectedVersion"
+          "expectedVersion",
+          "previewToken"
         ],
         "type": "object",
         "properties": {
@@ -24598,6 +25195,12 @@
             "type": "string"
           },
           "expectedVersion": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
             "type": "string"
           }
         }
@@ -25889,6 +26492,62 @@
           },
           "versionId": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.FeeSupplementCommissionImpact": {
+        "type": "object",
+        "properties": {
+          "commissionId": {
+            "type": "string"
+          },
+          "commissionNo": {
+            "type": "string"
+          },
+          "employeeId": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "amountBefore": {
+            "type": "string"
+          },
+          "amountAfter": {
+            "type": "string"
+          },
+          "decreaseAmount": {
+            "type": "string"
+          },
+          "excessAmount": {
+            "type": "string"
+          },
+          "commissionStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.GetOrderFeeReviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
           },
           "traceId": {
             "type": "string"
@@ -27208,6 +27867,9 @@
             ],
             "description": "commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户\n 可见范围批量附加；普通员工视图不含他人提成事实。"
           },
+          "feeReview": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewProjection"
+          },
           "customerName": {
             "type": "string",
             "description": "列表展示名称由服务端批量解析；前端本地候选缓存缺项时禁止回退展示原始 ID。"
@@ -27742,6 +28404,242 @@
           }
         }
       },
+      "order.v1.OrderFeeReviewActionData": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedReviewVersion": {
+            "type": "string"
+          },
+          "expectedContentVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "completenessConfirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.OrderFeeReviewData": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "contentVersion": {
+            "type": "string"
+          },
+          "reviewVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "approvedEventId": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewSummary"
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFee"
+            }
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeReviewEventData"
+            }
+          },
+          "canSubmit": {
+            "type": "boolean"
+          },
+          "canWithdraw": {
+            "type": "boolean"
+          },
+          "canApprove": {
+            "type": "boolean"
+          },
+          "canRevoke": {
+            "type": "boolean"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canBill": {
+            "type": "boolean"
+          },
+          "hasPendingSupplement": {
+            "type": "boolean"
+          },
+          "blockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notificationFailedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notificationUnboundCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.OrderFeeReviewEventData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "actorName": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "contentVersion": {
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewSummary"
+          },
+          "submissionId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.OrderFeeReviewProjection": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "contentVersion": {
+            "type": "string"
+          },
+          "reviewVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "approvedEventId": {
+            "type": "string"
+          },
+          "hasPendingSupplement": {
+            "type": "boolean"
+          },
+          "canApprove": {
+            "type": "boolean"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canBill": {
+            "type": "boolean"
+          },
+          "blockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "summary": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewSummary"
+          }
+        }
+      },
+      "order.v1.OrderFeeReviewResult": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
+          }
+        }
+      },
+      "order.v1.OrderFeeReviewSummary": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string"
+          },
+          "receivable": {
+            "type": "string"
+          },
+          "payable": {
+            "type": "string"
+          },
+          "profit": {
+            "type": "string"
+          },
+          "profitRate": {
+            "type": "string"
+          },
+          "receivableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "payableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "submittedByName": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string"
+          }
+        },
+        "description": "整票审核摘要。仅向具备该组织费用读取或审核资格的人返回。"
+      },
       "order.v1.OrderFeeSettingOption": {
         "type": "object",
         "properties": {
@@ -27802,7 +28700,7 @@
           },
           "lockBasis": {
             "type": "string",
-            "description": "锁依据类型：BUSINESS / FINANCIAL / BOTH。"
+            "description": "当前申请依据类型：APPROVAL；业务锁字段不参与新申请与动作判定。"
           },
           "businessLockGeneration": {
             "type": "string"
@@ -27942,7 +28840,7 @@
           },
           "approverAvailable": {
             "type": "boolean",
-            "description": "当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持\n PENDING 并投影 false，发起人仍可撤回。"
+            "description": "当前是否仍存在具备有效费用审核权限且组织范围匹配的审批人；提交后资格全部失效时申请保持\n PENDING 并投影 false，发起人仍可撤回。"
           },
           "requestedByName": {
             "type": "string",
@@ -27952,7 +28850,7 @@
             "type": "string"
           }
         },
-        "description": "OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。\n 锁依据字段由服务端在 Order 行锁内判定固化，客户端传入值一律被忽略。"
+        "description": "OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。\n 批准依据由服务端在 Order 行锁内固化，业务锁与提成财务锁不授予审批资格。"
       },
       "order.v1.OrderLockHouseBillSnapshotData": {
         "type": "object",
@@ -28533,6 +29431,52 @@
         },
         "description": "PreviewChangeSeaDocumentModeResponse 预览模式切换响应。"
       },
+      "order.v1.PreviewOrderFeeReviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.PreviewOrderFeeReviewsRequest": {
+        "type": "object",
+        "properties": {
+          "orderIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "order.v1.PreviewOrderFeeReviewsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeReviewResult"
+            }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.PreviewOrderFeeSupplementApprovalData": {
         "type": "object",
         "properties": {
@@ -28569,6 +29513,15 @@
           },
           "profitChange": {
             "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "commissionImpacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.FeeSupplementCommissionImpact"
+            }
           }
         }
       },
@@ -28904,6 +29857,56 @@
         },
         "description": "RegisterAttachmentResponse 单条订单附件响应。"
       },
+      "order.v1.RejectOrderFeeReviewRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedReviewVersion": {
+            "type": "string"
+          },
+          "expectedContentVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "completenessConfirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.RejectOrderFeeReviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.RejectOrderFeeSupplementRequest": {
         "required": [
           "orderId",
@@ -29202,6 +30205,56 @@
           },
           "exchangeRateSettingId": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.RevokeOrderFeeReviewRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedReviewVersion": {
+            "type": "string"
+          },
+          "expectedContentVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "completenessConfirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.RevokeOrderFeeReviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
           },
           "traceId": {
             "type": "string"
@@ -31511,6 +32564,56 @@
         },
         "description": "SetMilestoneResponse 单条订单里程碑响应。"
       },
+      "order.v1.SubmitOrderFeeReviewRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedReviewVersion": {
+            "type": "string"
+          },
+          "expectedContentVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "completenessConfirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.SubmitOrderFeeReviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.TransitionOrderClosureRequest": {
         "required": [
           "id",
@@ -31942,11 +33045,11 @@
           },
           "taxRate": {
             "type": "string",
-            "description": "tax_rate 仅在修改已进入草稿账单的费用时作为目标税率；不传时沿用费用项目默认或现有税率。"
+            "description": "tax_rate 请求字段；审核中及已批准费用均禁止直接更新，既有草稿编辑配置不能绕过。"
           },
           "feeName": {
             "type": "string",
-            "description": "fee_name 仅覆盖当前费用及其草稿账单行快照，不修改费用设置主数据。"
+            "description": "fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。"
           }
         }
       },
@@ -32459,6 +33562,56 @@
           },
           "isDifferent": {
             "type": "boolean"
+          }
+        }
+      },
+      "order.v1.WithdrawOrderFeeReviewRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "expectedReviewVersion": {
+            "type": "string"
+          },
+          "expectedContentVersion": {
+            "type": "string"
+          },
+          "submissionId": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "completenessConfirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.WithdrawOrderFeeReviewResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewData"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -35586,7 +36739,7 @@
     },
     {
       "name": "OrderFeeService",
-      "description": "OrderFeeService 订单费用录入服务。\n 管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，\n 进入账单后修改范围由财务自定义策略控制。"
+      "description": "OrderFeeService 订单费用录入服务。\n 管理整票费用录入与人工审核；费用批准后冻结，财务仅从有效批准费用建账。"
     },
     {
       "name": "OrderLockService",

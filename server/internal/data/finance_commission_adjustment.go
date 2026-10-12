@@ -24,7 +24,7 @@ func (r *commissionRepo) GetAdjustmentByKey(ctx context.Context, org uuid.UUID, 
 	if err != nil {
 		return nil, err
 	}
-	x, err := client.FinanceCommissionAdjustment.Query().WithOrganization().Where(adjustment.OrganizationIDEQ(org), adjustment.IdempotencyKeyEQ(key)).Only(ctx)
+	x, err := client.FinanceCommissionAdjustment.Query().WithOrganization().WithCommission(commissionAdjustmentParentProjection).Where(adjustment.OrganizationIDEQ(org), adjustment.IdempotencyKeyEQ(key)).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
 	}
@@ -39,7 +39,7 @@ func (r *commissionRepo) GetAdjustmentScoped(ctx context.Context, organizationID
 	if err != nil {
 		return nil, err
 	}
-	x, err := client.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDIn(organizationIDs...)).WithOrganization().Only(ctx)
+	x, err := client.FinanceCommissionAdjustment.Query().Where(adjustment.IDEQ(id), adjustment.OrganizationIDIn(organizationIDs...)).WithOrganization().WithCommission(commissionAdjustmentParentProjection).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrCommissionAdjustmentNotFound, nil)
 	}
@@ -81,7 +81,7 @@ func (r *commissionRepo) ListAdjustmentsScoped(ctx context.Context, organization
 	if err != nil {
 		return nil, err
 	}
-	xs, err := q.WithOrganization().
+	xs, err := q.WithOrganization().WithCommission(commissionAdjustmentParentProjection).
 		Order(adjustment.ByCreatedAt(entsql.OrderDesc()), adjustment.ByID(entsql.OrderDesc())).
 		Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if err != nil {
@@ -156,6 +156,16 @@ func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context,
 func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.UUID, item *biz.FinanceCommissionAdjustment, audit *biz.AuditEvent) (*biz.FinanceCommissionAdjustment, error) {
 	var created *ent.FinanceCommissionAdjustment
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		lines, err := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(item.CommissionID)).All(ctx)
+		if err != nil {
+			return err
+		}
+		if err := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(lines)); err != nil {
+			return err
+		}
+		if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lines), false); err != nil {
+			return err
+		}
 		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(item.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrCommissionNotFound, nil)
@@ -183,14 +193,15 @@ func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.U
 		if err != nil {
 			return mapEntError(err, nil, biz.ErrCommissionAdjustmentInvalid)
 		}
-		if _, err = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).Save(ctx); err != nil {
+		if _, err = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).SetVersion(parent.Version + 1).Save(ctx); err != nil {
 			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
 		return nil, err
 	}
-	return commissionAdjustmentToBiz(created)
+	loaded, err := r.GetAdjustmentScoped(ctx, []uuid.UUID{org}, created.ID)
+	return loaded, err
 }
 
 func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommissionAdjustment, error) {
@@ -203,7 +214,11 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 		if preErr != nil {
 			return mapEntError(preErr, biz.ErrCommissionAdjustmentNotFound, nil)
 		}
-		if lockErr := lockOrdersSortedForFinance(ctx, tx, []uuid.UUID{pre.OrderID}); lockErr != nil {
+		preLines, err := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(pre.CommissionID)).All(ctx)
+		if err != nil {
+			return err
+		}
+		if lockErr := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(preLines)); lockErr != nil {
 			return lockErr
 		}
 		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(pre.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
@@ -216,6 +231,11 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 		}
 		if x.Version != version {
 			return biz.ErrCommissionAdjustmentTransition
+		}
+		if target == biz.CommissionConfirmed || target == biz.CommissionPaid {
+			if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(preLines), false); err != nil {
+				return err
+			}
 		}
 		now := time.Now().UTC()
 		update := tx.FinanceCommissionAdjustment.UpdateOne(x).SetVersion(version + 1)
@@ -296,19 +316,31 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 			}
 			update.SetStatus(adjustment.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
 		case biz.CommissionPaid:
-			if x.Status != adjustment.StatusCONFIRMED {
+			if x.Status != adjustment.StatusCONFIRMED || parent.Status != commission.StatusPAID || x.ExecutionMethod != nil {
 				return biz.ErrCommissionAdjustmentTransition
 			}
-			update.SetStatus(adjustment.StatusPAID).SetPaidAt(now).SetPaidBy(actor)
+			executed, err := tx.FinanceCommissionAdjustment.Query().Where(adjustment.CommissionIDEQ(parent.ID), adjustment.StatusEQ(adjustment.StatusPAID)).Order(adjustment.ByID()).ForUpdate().All(ctx)
+			if err != nil {
+				return err
+			}
+			cash, err := commissionCashExposure(parent, executed)
+			if err != nil {
+				return err
+			}
+			currentAmount, err := decimalOf(x.Amount)
+			if err != nil {
+				return err
+			}
+			if x.Direction == adjustment.DirectionDECREASE && cash.LessThan(currentAmount) {
+				return biz.ErrCommissionAdjustmentExceeds
+			}
+			update.SetStatus(adjustment.StatusPAID).SetPaidAt(now).SetPaidBy(actor).SetExecutionMethod(adjustment.ExecutionMethodSEPARATE)
 		case biz.CommissionCancelled:
 			if x.SourceType == adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT {
-				// 来源专属取消门禁：锁后费用补录冲减建议只有 DRAFT 可经通用取消
-				// 接口忽略；CONFIRMED/PAID 即使绕过页面直接调用也稳定拒绝，
-				// 防止经通用取消把已确认冲减洗白为已取消。
-				if x.Status != adjustment.StatusDRAFT {
-					return biz.ErrCommissionAdjustmentCancelNotAllowed
-				}
-			} else if x.Status != adjustment.StatusDRAFT && x.Status != adjustment.StatusCONFIRMED {
+				// 补录批准直接确认系统冲减，任何状态均不可通过通用接口忽略。
+				return biz.ErrCommissionAdjustmentCancelNotAllowed
+			}
+			if x.Status != adjustment.StatusDRAFT && x.Status != adjustment.StatusCONFIRMED {
 				return biz.ErrCommissionAdjustmentTransition
 			}
 			update.SetStatus(adjustment.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
@@ -323,7 +355,8 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 	}); err != nil {
 		return nil, err
 	}
-	return commissionAdjustmentToBiz(updated)
+	loaded, err := r.GetAdjustmentScoped(ctx, []uuid.UUID{org}, updated.ID)
+	return loaded, err
 }
 
 func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.FinanceCommissionAdjustment, error) {
@@ -338,10 +371,34 @@ func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.Finance
 		Direction: biz.CommissionAdjustmentDirection(x.Direction), SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), SourceVerificationID: x.SourceVerificationID, Status: biz.CommissionStatus(x.Status),
 		BaseCurrency: x.BaseCurrency, Amount: amount, Reason: x.Reason, Note: x.Note, Version: x.Version,
 		ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, PaidAt: x.PaidAt, PaidBy: x.PaidBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy,
+		ExecutionMethod: executionMethodText(x.ExecutionMethod), ParentPaymentID: x.ParentPaymentID,
 		CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt,
 	}
+	var rows []*ent.FinanceCommissionAdjustment
+	if x.Edges.Commission != nil {
+		rows = x.Edges.Commission.Edges.Adjustments
+	}
+	populateAdjustmentExecutionCapability(result, x, x.Edges.Commission, rows)
 	if x.Edges.Organization != nil {
 		result.OrganizationName = x.Edges.Organization.Name
 	}
 	return result, nil
+}
+
+func executionMethodText(value *adjustment.ExecutionMethod) *string {
+	if value == nil {
+		return nil
+	}
+	s := string(*value)
+	return &s
+}
+
+func commissionAdjustmentParentProjection(q *ent.FinanceCommissionQuery) {
+	q.WithAdjustments().WithLines(func(q *ent.FinanceCommissionLineQuery) {
+		q.WithOrder(func(q *ent.OrderQuery) {
+			q.WithFeeSupplementRequests(func(q *ent.OrderFeeSupplementRequestQuery) {
+				q.Where(orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusPENDING))
+			})
+		})
+	})
 }

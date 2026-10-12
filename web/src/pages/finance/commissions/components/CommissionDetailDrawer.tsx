@@ -65,7 +65,9 @@ export default function CommissionDetailDrawer({
       key: 'sourceType',
       width: 110,
       render: (value: string) =>
-        value === 'VERIFICATION_REVERSAL' ? (
+        value === 'LOCKED_FEE_SUPPLEMENT' ? (
+          <Tag color="blue">费用补录</Tag>
+        ) : value === 'VERIFICATION_REVERSAL' ? (
           <Tag color="volcano">核销撤销</Tag>
         ) : value === 'NETTING_REVERSAL' ? (
           <Tag color="orange">对冲撤销</Tag>
@@ -99,6 +101,16 @@ export default function CommissionDetailDrawer({
         </Typography.Text>
       ),
     },
+    {
+      title: '执行方式',
+      dataIndex: 'executionMethod',
+      render: (value: string) =>
+        value === 'OFFSET_WITH_PARENT'
+          ? '发放抵扣'
+          : value === 'SEPARATE'
+            ? '单独执行'
+            : '-',
+    },
     { title: '调整原因', dataIndex: 'reason', key: 'reason', ellipsis: true },
     {
       title: '状态',
@@ -118,7 +130,14 @@ export default function CommissionDetailDrawer({
         const isDecrease = record.direction === 'DECREASE';
 
         return (
-          <Space size={8}>
+          <Space size={8} wrap>
+            {record.status ===
+              FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED &&
+              record.canExecute !== true && (
+                <Typography.Text type="secondary">
+                  {record.executionBlockedReason || '请通过父提成登记净额发放'}
+                </Typography.Text>
+              )}
             {!isReversal &&
               record.status ===
                 FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT &&
@@ -131,7 +150,8 @@ export default function CommissionDetailDrawer({
             {isReversal &&
               record.status ===
                 FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED &&
-              canManage && (
+              canManage &&
+              record.canExecute === true && (
                 <a onClick={() => onTransitionAdjustment(record, 'PAID')}>
                   标记已追回
                 </a>
@@ -140,13 +160,15 @@ export default function CommissionDetailDrawer({
             {!isReversal &&
               record.status ===
                 FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED &&
-              canManage && (
+              canManage &&
+              record.canExecute === true && (
                 <a onClick={() => onTransitionAdjustment(record, 'PAID')}>
                   {isDecrease ? '标记已扣回' : '标记已发放'}
                 </a>
               )}
 
             {!isReversal &&
+              record.sourceType !== 'LOCKED_FEE_SUPPLEMENT' &&
               (record.status ===
                 FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT ||
                 record.status ===
@@ -368,6 +390,14 @@ export default function CommissionDetailDrawer({
                 key: 'confirmedAt',
                 label: '确认时间',
                 children: formatDate(detail.confirmedAt),
+              },
+              {
+                key: 'paidAmount',
+                label: '实际发放金额',
+                children:
+                  detail.paidAmount == null
+                    ? '未记录'
+                    : decimalText(detail.paidAmount),
               },
               {
                 key: 'paidAt',

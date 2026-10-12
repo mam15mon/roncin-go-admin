@@ -159,7 +159,7 @@ func requireAdjustmentState(f *feeSupplementPostgresFixture, id uuid.UUID, wantS
 
 // TestCommissionAdjustmentCancelGatePostgres 验证 LOCKED_FEE_SUPPLEMENT 来源的
 // 通用取消门禁（上一轮检查 MEDIUM-3 强制验收）：CONFIRMED/PAID 即使绕过页面
-// 直接调用通用取消接口也稳定拒绝且零写入；DRAFT 可忽略；MANUAL 来源行为不变。
+// 直接调用通用取消接口也稳定拒绝且零写入；MANUAL 来源行为不变。
 func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
 		t.Skip("未配置专用 RONCIN_INTEGRATION_DATABASE_SOURCE")
@@ -171,7 +171,8 @@ func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 	// 通过真实补录审批链路生成 LFS 调整，保证来源关联与业务事实完整。
 	newLFSAdjustment := func(order *ent.Order, key string) *ent.FinanceCommissionAdjustment {
 		f.t.Helper()
-		// READY + NATIVE 快照父单：历史分母 1000/400，审批后建议金额为正。
+		// 初始整票批准 + NATIVE 快照父单：补录批准后冲减直接为 CONFIRMED。
+		f.approveInitialFees(order)
 		f.createConfirmedCommissionWithSnapshot(order, "60.00000000", "10.0000", "1000.00000000", "400.00000000")
 		request := f.createSupplement(order, key)
 		f.approveSupplement(order, request.ID, 1)
@@ -182,37 +183,19 @@ func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 		return adjustments[0]
 	}
 
-	t.Run("LFS_DRAFT 可经通用取消接口忽略", func(t *testing.T) {
-		f.setT(t)
-		order := f.createOrder("SE-CG-DRAFT-" + f.suffix)
-		f.lockOrder(order)
-		adjustment := newLFSAdjustment(order, "cancel-gate-draft-"+f.suffix)
-		cancelled, err := uc.CancelAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version, "财务忽略建议")
-		if err != nil {
-			f.t.Fatalf("LFS DRAFT 忽略被拒绝: %v", err)
-		}
-		if cancelled.Status != biz.CommissionCancelled {
-			f.t.Fatalf("忽略后状态不符: %s", cancelled.Status)
-		}
-		requireAdjustmentState(f, adjustment.ID, "CANCELLED", adjustment.Version+1, true)
-	})
-
 	t.Run("LFS_CONFIRMED 直接调用通用取消接口稳定拒绝且零写入", func(t *testing.T) {
 		f.setT(t)
 		order := f.createOrder("SE-CG-CONF-" + f.suffix)
 		f.lockOrder(order)
 		adjustment := newLFSAdjustment(order, "cancel-gate-conf-"+f.suffix)
-		if _, err := uc.ConfirmAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version); err != nil {
-			f.t.Fatalf("确认 LFS 建议失败: %v", err)
-		}
-		_, err := uc.CancelAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version+1, "尝试状态洗白")
+		_, err := uc.CancelAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version, "尝试状态洗白")
 		if err == nil {
 			f.t.Fatal("LFS CONFIRMED 经通用取消接口未拒绝")
 		}
 		if kratoserrors.FromError(err).Reason != biz.ErrCommissionAdjustmentCancelNotAllowed.Reason {
 			f.t.Fatalf("稳定错误码不符: got=%s want=%s", kratoserrors.FromError(err).Reason, biz.ErrCommissionAdjustmentCancelNotAllowed.Reason)
 		}
-		requireAdjustmentState(f, adjustment.ID, "CONFIRMED", adjustment.Version+1, false)
+		requireAdjustmentState(f, adjustment.ID, "CONFIRMED", adjustment.Version, false)
 	})
 
 	t.Run("LFS_PAID 直接调用通用取消接口稳定拒绝且零写入", func(t *testing.T) {
@@ -220,20 +203,21 @@ func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 		order := f.createOrder("SE-CG-PAID-" + f.suffix)
 		f.lockOrder(order)
 		adjustment := newLFSAdjustment(order, "cancel-gate-paid-"+f.suffix)
-		if _, err := uc.ConfirmAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version); err != nil {
-			f.t.Fatalf("确认 LFS 建议失败: %v", err)
+		parent, err := f.data.db.FinanceCommission.Get(context.Background(), adjustment.CommissionID)
+		if err != nil {
+			t.Fatal(err)
 		}
-		if _, err := uc.MarkAdjustmentPaid(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version+1); err != nil {
-			f.t.Fatalf("标记已扣回失败: %v", err)
+		if _, err := markCommissionPaidForTest(context.Background(), uc, f.organizationID, actor, parent.ID, parent.Version); err != nil {
+			t.Fatalf("父单净额发放失败: %v", err)
 		}
-		_, err := uc.CancelAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version+2, "尝试状态洗白")
+		_, err = uc.CancelAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version+1, "尝试状态洗白")
 		if err == nil {
 			f.t.Fatal("LFS PAID 经通用取消接口未拒绝")
 		}
 		if kratoserrors.FromError(err).Reason != biz.ErrCommissionAdjustmentCancelNotAllowed.Reason {
 			f.t.Fatalf("稳定错误码不符: got=%s want=%s", kratoserrors.FromError(err).Reason, biz.ErrCommissionAdjustmentCancelNotAllowed.Reason)
 		}
-		requireAdjustmentState(f, adjustment.ID, "PAID", adjustment.Version+2, false)
+		requireAdjustmentState(f, adjustment.ID, "PAID", adjustment.Version+1, false)
 	})
 
 	t.Run("MANUAL 来源取消行为保持不变", func(t *testing.T) {
@@ -355,7 +339,7 @@ func TestCommissionAdjustmentMySourcePostgres(t *testing.T) {
 	uc := newAdjustmentTransitionUsecase(f)
 
 	order := f.createOrder("SE-SRC-" + f.suffix)
-	f.lockOrder(order)
+	f.approveInitialFees(order)
 	f.createConfirmedCommissionWithSnapshot(order, "60.00000000", "10.0000", "1000.00000000", "400.00000000")
 	request := f.createSupplement(order, "my-source-"+f.suffix)
 	f.approveSupplement(order, request.ID, 1)
@@ -394,7 +378,7 @@ func TestCommissionAdjustmentMySourcePostgres(t *testing.T) {
 		if source.AdjustmentID != adjustment.ID || source.OrderNo != order.OrderNo || source.CommissionNo != adjustment.CommissionNo {
 			f.t.Fatalf("来源详情标识不符: %+v", source)
 		}
-		if source.Status != biz.CommissionDraft || source.SuggestedAmount.Sign() <= 0 {
+		if source.Status != biz.CommissionConfirmed || source.SuggestedAmount.Sign() <= 0 {
 			f.t.Fatalf("来源详情状态或建议金额不符: status=%s amount=%s", source.Status, source.SuggestedAmount)
 		}
 		if source.FeeExpenseDate != "2026-09-01" || source.FeeCurrency != "CNY" || source.FeeTotalAmount.Sign() <= 0 || source.SupplementReason == "" {

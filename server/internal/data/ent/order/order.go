@@ -118,6 +118,16 @@ const (
 	FieldIsShared = "is_shared"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldFeeReviewStatus holds the string denoting the fee_review_status field in the database.
+	FieldFeeReviewStatus = "fee_review_status"
+	// FieldFeeContentVersion holds the string denoting the fee_content_version field in the database.
+	FieldFeeContentVersion = "fee_content_version"
+	// FieldFeeReviewVersion holds the string denoting the fee_review_version field in the database.
+	FieldFeeReviewVersion = "fee_review_version"
+	// FieldCurrentFeeReviewEventID holds the string denoting the current_fee_review_event_id field in the database.
+	FieldCurrentFeeReviewEventID = "current_fee_review_event_id"
+	// FieldApprovedFeeReviewEventID holds the string denoting the approved_fee_review_event_id field in the database.
+	FieldApprovedFeeReviewEventID = "approved_fee_review_event_id"
 	// FieldOriginLocationID holds the string denoting the origin_location_id field in the database.
 	FieldOriginLocationID = "origin_location_id"
 	// FieldDestinationLocationID holds the string denoting the destination_location_id field in the database.
@@ -194,6 +204,8 @@ const (
 	EdgeReleasePods = "release_pods"
 	// EdgeAbnormalCases holds the string denoting the abnormal_cases edge name in mutations.
 	EdgeAbnormalCases = "abnormal_cases"
+	// EdgeFeeReviewEvents holds the string denoting the fee_review_events edge name in mutations.
+	EdgeFeeReviewEvents = "fee_review_events"
 	// EdgeFees holds the string denoting the fees edge name in mutations.
 	EdgeFees = "fees"
 	// EdgeFeeSupplementRequests holds the string denoting the fee_supplement_requests edge name in mutations.
@@ -339,6 +351,13 @@ const (
 	AbnormalCasesInverseTable = "order_abnormal_cases"
 	// AbnormalCasesColumn is the table column denoting the abnormal_cases relation/edge.
 	AbnormalCasesColumn = "order_id"
+	// FeeReviewEventsTable is the table that holds the fee_review_events relation/edge.
+	FeeReviewEventsTable = "order_fee_review_events"
+	// FeeReviewEventsInverseTable is the table name for the OrderFeeReviewEvent entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeereviewevent" package.
+	FeeReviewEventsInverseTable = "order_fee_review_events"
+	// FeeReviewEventsColumn is the table column denoting the fee_review_events relation/edge.
+	FeeReviewEventsColumn = "order_id"
 	// FeesTable is the table that holds the fees relation/edge.
 	FeesTable = "order_fees"
 	// FeesInverseTable is the table name for the OrderFee entity.
@@ -528,6 +547,11 @@ var Columns = []string{
 	FieldAutoLockTriggeredBy,
 	FieldIsShared,
 	FieldVersion,
+	FieldFeeReviewStatus,
+	FieldFeeContentVersion,
+	FieldFeeReviewVersion,
+	FieldCurrentFeeReviewEventID,
+	FieldApprovedFeeReviewEventID,
 	FieldOriginLocationID,
 	FieldDestinationLocationID,
 	FieldDischargeLocationID,
@@ -618,6 +642,10 @@ var (
 	DefaultIsShared bool
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
+	// DefaultFeeContentVersion holds the default value on creation for the "fee_content_version" field.
+	DefaultFeeContentVersion uint64
+	// DefaultFeeReviewVersion holds the default value on creation for the "fee_review_version" field.
+	DefaultFeeReviewVersion uint64
 	// VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
 	VesselVoyageValidator func(string) error
 	// EtdValidator is a validator for the "etd" field. It is called by the builders before save.
@@ -992,6 +1020,35 @@ func AutoLockTriggerTypeValidator(altt AutoLockTriggerType) error {
 	}
 }
 
+// FeeReviewStatus defines the type for the "fee_review_status" enum field.
+type FeeReviewStatus string
+
+// FeeReviewStatusUNSUBMITTED is the default value of the FeeReviewStatus enum.
+const DefaultFeeReviewStatus = FeeReviewStatusUNSUBMITTED
+
+// FeeReviewStatus values.
+const (
+	FeeReviewStatusUNSUBMITTED FeeReviewStatus = "UNSUBMITTED"
+	FeeReviewStatusPENDING     FeeReviewStatus = "PENDING"
+	FeeReviewStatusAPPROVED    FeeReviewStatus = "APPROVED"
+	FeeReviewStatusREJECTED    FeeReviewStatus = "REJECTED"
+	FeeReviewStatusREVOKED     FeeReviewStatus = "REVOKED"
+)
+
+func (frs FeeReviewStatus) String() string {
+	return string(frs)
+}
+
+// FeeReviewStatusValidator is a validator for the "fee_review_status" field enum values. It is called by the builders before save.
+func FeeReviewStatusValidator(frs FeeReviewStatus) error {
+	switch frs {
+	case FeeReviewStatusUNSUBMITTED, FeeReviewStatusPENDING, FeeReviewStatusAPPROVED, FeeReviewStatusREJECTED, FeeReviewStatusREVOKED:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for fee_review_status field: %q", frs)
+	}
+}
+
 // OrderOption defines the ordering options for the Order queries.
 type OrderOption func(*sql.Selector)
 
@@ -1253,6 +1310,31 @@ func ByIsShared(opts ...sql.OrderTermOption) OrderOption {
 // ByVersion orders the results by the version field.
 func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
+}
+
+// ByFeeReviewStatus orders the results by the fee_review_status field.
+func ByFeeReviewStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeReviewStatus, opts...).ToFunc()
+}
+
+// ByFeeContentVersion orders the results by the fee_content_version field.
+func ByFeeContentVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeContentVersion, opts...).ToFunc()
+}
+
+// ByFeeReviewVersion orders the results by the fee_review_version field.
+func ByFeeReviewVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeReviewVersion, opts...).ToFunc()
+}
+
+// ByCurrentFeeReviewEventID orders the results by the current_fee_review_event_id field.
+func ByCurrentFeeReviewEventID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCurrentFeeReviewEventID, opts...).ToFunc()
+}
+
+// ByApprovedFeeReviewEventID orders the results by the approved_fee_review_event_id field.
+func ByApprovedFeeReviewEventID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApprovedFeeReviewEventID, opts...).ToFunc()
 }
 
 // ByOriginLocationID orders the results by the origin_location_id field.
@@ -1556,6 +1638,20 @@ func ByAbnormalCasesCount(opts ...sql.OrderTermOption) OrderOption {
 func ByAbnormalCases(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAbnormalCasesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFeeReviewEventsCount orders the results by fee_review_events count.
+func ByFeeReviewEventsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeeReviewEventsStep(), opts...)
+	}
+}
+
+// ByFeeReviewEvents orders the results by fee_review_events terms.
+func ByFeeReviewEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeReviewEventsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1920,6 +2016,13 @@ func newAbnormalCasesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AbnormalCasesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AbnormalCasesTable, AbnormalCasesColumn),
+	)
+}
+func newFeeReviewEventsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeReviewEventsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeeReviewEventsTable, FeeReviewEventsColumn),
 	)
 }
 func newFeesStep() *sqlgraph.Step {

@@ -24,7 +24,7 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 | 订单/海运单证 | `biz/sea_order_change.go`、`biz/sea_document_change.go`、`biz/sea_master_bill.go`、`data/sea_*` | `pages/orders/**`（品类模板 `pages/orders/templates/components/sea/`，注册表 `pages/orders/order-kinds/`） |
 | 订单候选缓存 | `service/order_query.go` | `features/orders/options`（字典/首批港口机场/人员候选，组织切换清理入口） |
 | 订单锁定 | `biz/order_lock.go`、`biz/order_auto_lock.go`、`data/order_lock_*.go` | `pages/orders`（锁状态条） |
-| 费用/费用补录 | `service/settlement*.go`、`data/order_fee_supplement_*.go` | `pages/orders/fees.tsx`（建账工作台经 `features/finance/bill-creation`） |
+| 费用/审核/补录 | `biz/order_fee_review.go`、`data/order_fee_review*.go`、`data/order_fee_supplement_*.go` | `pages/orders/{list,fees}.tsx`、`features/orders/fee-review`（建账经 `features/finance/bill-creation`） |
 | 账单/对冲/核销 | `biz/finance_bill*.go`、`data/finance_bill_*.go` | `pages/finance/{bills,fees,cashflows,verifications}/**`、`features/finance/{bill-creation,bill-status,credit-control,exchange-gain-loss}` |
 | 提成（方案/台账/月度申请） | `biz/finance_commission*.go`、`data/finance_commission*.go` | `pages/finance/commissions/**`、`pages/workbench/**` |
 | 往来单位 | `biz/partner*.go` | `pages/partners/**`、`features/partners`（候选搜索 `searchPartnerOptions`） |
@@ -43,19 +43,24 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 flowchart LR
     A[订单创建/草稿] --> B[单证: MBL+航次+HBL\n版本化历史]
     B --> C{拆票/改配\n守恒校验}
-    C --> D[订单锁定\n业务冻结编辑]
-    D --> E[费用 应收/应付\n锁定后走补录审批]
-    E --> F[账单 费用汇单\n批量分组/对冲配对\n信用额度校验]
+    C --> E[完整录入应收/应付]
+    E --> R[整票费用提交人工审核\n收入/成本/利润快照]
+    R --> D[批准冻结费用\n独立审核权限+组织范围]
+    D --> F[账单 费用汇单\n批量分组/对冲配对\n信用额度校验]
     F --> G[核销 收付款\n按分配核销]
     G --> H[提成计提\n按归属+方案规则\nCNY 快照]
     H --> I[月度申请\n员工按自然月申请]
     I --> J[财务整批审批\n批准=整批确认]
+    J --> K[净额发放\n已确认调整同时抵扣执行]
+    D --> S[受控补录成本\n一次审核费用及提成影响]
+    S --> D
 ```
 
 要点（改代码前必须理解的链路约束）：
 
-1. **锁定的涟漪**：订单锁定后一切编辑路径冻结；费用只能补录（审批制），
-   补录会产生提成冲减建议——改锁定/补录逻辑时两条链都要看。
+1. **审核与锁的职责**：费用批准冻结内容并约束建账；业务锁限制业务修改，提成财务锁
+   保护确认/支付权益。解锁不是审批通过。补录成本批准自动刷新整票审批及确认提成冲减，
+   不要求先解锁；待审补录阻止新建账及受影响提成确认/发放。
 2. **守恒不变量**：拆票与共享箱的件数/毛重/体积必须逐票守恒（前端实时校验 +
    服务端预览复核双层）；费用拆分按「方向+币种」守恒。
 3. **版本乐观锁贯穿**：订单/账单/提成/申请全部 `expected_version` 校验，
@@ -74,6 +79,8 @@ erDiagram
     Membership }o--|| User : binds
     Organization ||--o{ Order : owns
     Order ||--o{ OrderFee : bills
+    Order ||--o{ OrderFeeReviewEvent : reviews
+    Order ||--o{ OrderFeeSupplementRequest : supplements
     Order }o--o| SeaMasterBill : "link (active)"
     SeaMasterBill ||--o{ SeaTransportExecution : voyages
     Order ||--o| SeaHouseBill : "HOUSE 结构"

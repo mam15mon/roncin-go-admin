@@ -642,6 +642,7 @@ func TestCommissionResolutionPostgres(t *testing.T) {
 		}); err != nil {
 			t.Fatalf("以当天日期移除名单失败: %v", err)
 		}
+		seedApprovedFeeSnapshotForTest(t, fixture.data, fixture.orderID, fixture.actorID)
 		confirmed, err := usecase.Confirm(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version)
 		if err != nil {
 			t.Fatalf("名单变更后确认历史快照失败: %v", err)

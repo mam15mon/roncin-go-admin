@@ -1,19 +1,22 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ModalForm, ProFormTextArea } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
   Button,
   Descriptions,
   Input,
-  Modal,
   Space,
   Spin,
+  Table,
   Tag,
   Tooltip,
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderErrorReasons } from '@/errorReasons.generated';
@@ -27,7 +30,7 @@ import {
   orderFeeServiceWithdrawOrderFeeSupplement,
 } from '@/services/roncin/orderFeeService';
 import { confirmWithReason } from '@/utils/confirmWithReason';
-import { formatAmount, trimDecimal } from '@/utils/format';
+import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import FeeSupplementModal, {
   type FeeSupplementFormValues,
@@ -57,7 +60,7 @@ export function supplementStatusText(status?: string): string {
   return (status && supplementStatusMeta[status]?.text) || status || '-';
 }
 
-/** 锁依据只做文案翻译，不推导业务含义。 */
+/** 审核依据只做文案翻译，不推导业务含义。 */
 export function supplementLockBasisText(lockBasis?: string): string {
   if (lockBasis === 'BUSINESS') return '业务锁';
   if (lockBasis === 'FINANCIAL') return '财务锁';
@@ -87,19 +90,19 @@ export function describeFeeSupplementError(
   if (reason === orderErrorReasons.LOCK_BASIS_CHANGED) {
     return {
       kind: 'lock-basis-changed',
-      text: serverMessage || '申请提交时的锁依据已全部失效，请刷新后重新申请',
+      text: serverMessage || '申请依据的费用批准版本已变化，请刷新后重新申请',
     };
   }
   if (reason === orderErrorReasons.FEE_SUPPLEMENT_NOT_APPLICABLE) {
     return {
       kind: 'not-applicable',
-      text: '订单当前没有业务锁或财务锁，请直接使用「录入费用」普通入口',
+      text: '订单费用尚未批准，请先完成整票费用录入并提交审核',
     };
   }
   if (reason === orderErrorReasons.FEE_SUPPLEMENT_APPROVER_UNAVAILABLE) {
     return {
       kind: 'approver-unavailable',
-      text: '当前没有任何具备直接解锁资格的审批人，请先配置审批资格后再提交补录申请',
+      text: '当前没有任何具备费用审核权限的审批人，请先配置审批资格后再提交补录申请',
     };
   }
   if (reason === orderErrorReasons.FEE_SUPPLEMENT_CANCEL_BLOCKED) {
@@ -139,6 +142,8 @@ export default function FeeSupplementSection({
   onFeeTablesReload,
 }: FeeSupplementSectionProps) {
   const { message, modal } = App.useApp();
+  const { initialState } = useInitialState();
+  const queryClient = useQueryClient();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const requestSequenceRef = useRef(0);
   const listRequestSequenceRef = useRef(0);
@@ -151,11 +156,30 @@ export default function FeeSupplementSection({
   const [modalOrderId, setModalOrderId] = useState<string>();
   const [resubmitRequest, setResubmitRequest] = useState<SupplementRequest>();
   const [reviewRequest, setReviewRequest] = useState<SupplementRequest>();
-  const [reviewPreview, setReviewPreview] =
-    useState<API.PreviewOrderFeeSupplementApprovalData>();
-  const [reviewLoading, setReviewLoading] = useState(false);
-  const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState('');
+  const reviewQuery = useQuery({
+    queryKey: [
+      'order-fee-supplement-preview',
+      initialState?.currentUser?.currentOrganization?.id,
+      orderId,
+      reviewRequest?.id,
+      reviewRequest?.version,
+    ],
+    enabled: Boolean(reviewRequest?.id && reviewRequest.orderId === orderId),
+    queryFn: async () => {
+      const response = await orderFeeServicePreviewOrderFeeSupplementApproval({
+        orderId,
+        id: reviewRequest?.id as string,
+        expectedVersion: reviewRequest?.version as string,
+      });
+      if (!response.data) throw new Error('补录预览数据为空');
+      return response.data;
+    },
+    meta: { errorMessage: '补录费用及提成影响加载失败' },
+  });
+  const reviewPreview =
+    !reviewQuery.isError && !reviewError ? reviewQuery.data : undefined;
+  const reviewLoading = reviewQuery.isFetching;
   const reviewSequenceRef = useRef(0);
   const idempotencyKeyRef = useRef(generateUUID());
 
@@ -167,55 +191,18 @@ export default function FeeSupplementSection({
     setModalOrderId(undefined);
     reviewSequenceRef.current += 1;
     setReviewRequest(undefined);
-    setReviewPreview(undefined);
   }, [orderId]);
 
   const openReview = (record: SupplementRequest) => {
     if (!record.id || !record.version) return;
-    const targetOrderId = orderId;
-    const sequence = ++reviewSequenceRef.current;
-    setReviewRequest(record);
-    setReviewPreview(undefined);
+    ++reviewSequenceRef.current;
     setReviewError('');
-    setReviewLoading(true);
-    orderFeeServicePreviewOrderFeeSupplementApproval({
-      orderId: targetOrderId,
-      id: record.id,
-      // expectedVersion 必须位于 params 槽位（生成客户端第二参是请求配置对象），
-      // 否则服务端收不到 expected_version 直接按参数无效拒绝。
-      expectedVersion: record.version as string,
-    })
-      .then((response) => {
-        if (
-          sequence !== reviewSequenceRef.current ||
-          targetOrderId !== activeOrderIdRef.current
-        )
-          return;
-        if (!response.data) throw new Error('预览数据为空');
-        setReviewPreview(response.data);
-      })
-      .catch((error: unknown) => {
-        if (
-          sequence !== reviewSequenceRef.current ||
-          targetOrderId !== activeOrderIdRef.current
-        )
-          return;
-        setReviewPreview(undefined);
-        setReviewError(textOf(error) || '毛利预览加载失败，请刷新申请后重试');
-      })
-      .finally(() => {
-        if (
-          sequence === reviewSequenceRef.current &&
-          targetOrderId === activeOrderIdRef.current
-        )
-          setReviewLoading(false);
-      });
+    setReviewRequest(record);
   };
 
   const closeReview = () => {
     reviewSequenceRef.current += 1;
     setReviewRequest(undefined);
-    setReviewPreview(undefined);
     setReviewError('');
   };
 
@@ -296,58 +283,59 @@ export default function FeeSupplementSection({
     });
   };
 
-  const handleApprove = async (record: SupplementRequest) => {
+  const handleApprove = async (record: SupplementRequest, comment?: string) => {
     const targetOrderId = orderId;
     const reviewSequence = reviewSequenceRef.current;
     if (
       !targetOrderId ||
       !record.id ||
       !record.version ||
-      !reviewPreview ||
-      reviewSubmitting
+      !reviewPreview?.previewToken ||
+      reviewLoading ||
+      reviewQuery.isError
     )
-      return;
-    setReviewSubmitting(true);
-    try {
-      await runGuarded(async (requestSequence) => {
-        try {
-          await orderFeeServiceApproveOrderFeeSupplement(
-            { orderId: targetOrderId, id: record.id as string },
-            {
-              orderId: targetOrderId,
-              id: record.id as string,
-              expectedVersion: record.version as string,
-            },
-          );
-          if (isStaleResponse(requestSequence, targetOrderId)) return;
-          message.success('补录申请已通过，费用已生成');
-          if (reviewSequence === reviewSequenceRef.current) closeReview();
-          reloadList();
-          onFeeTablesReload();
-        } catch (error: unknown) {
-          if (isStaleResponse(requestSequence, targetOrderId)) return;
-          const { kind, text } = describeFeeSupplementError(
-            reasonOf(error),
-            textOf(error),
-          );
-          if (kind === 'transition') {
-            message.warning(text);
-          } else if (kind === 'lock-basis-changed') {
-            modal.warning({ title: '锁依据已变化，无法审批', content: text });
-          } else {
-            message.error(text || '审批失败');
-          }
-          reloadList();
-          if (reviewSequence === reviewSequenceRef.current) {
-            setReviewPreview(undefined);
-            setReviewError('审批未完成，请关闭审核窗口并刷新申请后重试');
-          }
+      return false;
+    await runGuarded(async (requestSequence) => {
+      try {
+        await orderFeeServiceApproveOrderFeeSupplement(
+          { orderId: targetOrderId, id: record.id as string },
+          {
+            orderId: targetOrderId,
+            id: record.id as string,
+            expectedVersion: record.version as string,
+            previewToken: reviewPreview.previewToken as string,
+            comment: comment?.trim(),
+          },
+        );
+        if (isStaleResponse(requestSequence, targetOrderId)) return;
+        message.success('补录已批准，费用与应有的提成冲减已同步保存');
+        void queryClient.invalidateQueries({ queryKey: ['order-fee-review'] });
+        if (reviewSequence === reviewSequenceRef.current) closeReview();
+        reloadList();
+        onFeeTablesReload();
+      } catch (error: unknown) {
+        if (isStaleResponse(requestSequence, targetOrderId)) return;
+        const { kind, text } = describeFeeSupplementError(
+          reasonOf(error),
+          textOf(error),
+        );
+        if (kind === 'transition') {
+          message.warning(text);
+        } else if (kind === 'lock-basis-changed') {
+          modal.warning({
+            title: '审核依据已变化，请刷新后重新审核',
+            content: text,
+          });
+        } else {
+          message.error(text || '审批失败');
         }
-      });
-    } finally {
-      if (targetOrderId === activeOrderIdRef.current)
-        setReviewSubmitting(false);
-    }
+        reloadList();
+        if (reviewSequence === reviewSequenceRef.current) {
+          setReviewError('审批未完成，请关闭审核窗口并刷新申请后重试');
+        }
+      }
+    });
+    return false;
   };
 
   const handleReject = (record: SupplementRequest) => {
@@ -510,8 +498,7 @@ export default function FeeSupplementSection({
       content: (
         <div>
           <p>
-            撤销后生成的费用将被删除，仍为待处理的关联冲减建议会同步取消；
-            APPROVED 申请历史保持不变。
+            撤销后生成的费用将被删除，审批历史保留；存在已确认提成冲减时不能撤销。
           </p>
           <p style={{ color: '#faad14' }}>
             已建账需先按现有链路取消账单；关联冲减已确认或已扣回后不能直接撤销。
@@ -546,9 +533,7 @@ export default function FeeSupplementSection({
               },
             );
             if (isStaleResponse(requestSequence, targetOrderId)) return;
-            message.success(
-              '补录费用已撤销删除，关联的待处理冲减建议已同步取消',
-            );
+            message.success('补录费用已撤销删除，整票费用批准状态已刷新');
             // 响应只返回刷新后的申请数据（申请保持 APPROVED、fee_id 为空），
             // 列表与费用/汇总一律经重查刷新，不读取已删除的费用实体。
             reloadList();
@@ -588,7 +573,7 @@ export default function FeeSupplementSection({
       },
     },
     {
-      title: '锁依据',
+      title: '审核依据',
       dataIndex: 'lockBasis',
       width: 110,
       renderText: (value: string) => supplementLockBasisText(value),
@@ -746,7 +731,7 @@ export default function FeeSupplementSection({
             补录费用
           </Button>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            锁定订单无法使用普通录入时，可申请补录应付成本，经具备直接解锁资格的人员审批后入账。
+            费用批准后，可申请新增真实应付成本；审批同时核对整票利润和提成影响。
           </Typography.Text>
         </Space>
       )}
@@ -784,31 +769,40 @@ export default function FeeSupplementSection({
         }}
         locale={{ emptyText: '暂无补录申请' }}
       />
-      <Modal
-        title="审核补录费用"
+      <ModalForm<{ comment?: string }>
+        title="审核补录费用与提成影响"
         open={!!reviewRequest && reviewRequest.orderId === orderId}
         width={760}
-        onCancel={closeReview}
-        footer={
-          <Space>
-            <Button onClick={closeReview}>取消</Button>
-            <Button
-              danger
-              disabled={reviewSubmitting}
-              onClick={() => reviewRequest && handleReject(reviewRequest)}
-            >
-              驳回
-            </Button>
-            <Button
-              type="primary"
-              loading={reviewSubmitting}
-              disabled={!reviewPreview || reviewLoading || !!reviewError}
-              onClick={() => reviewRequest && void handleApprove(reviewRequest)}
-            >
-              确认通过
-            </Button>
-          </Space>
-        }
+        modalProps={{ destroyOnHidden: true, onCancel: closeReview }}
+        onOpenChange={(open) => {
+          if (!open) closeReview();
+        }}
+        onFinish={async (values) => {
+          if (!reviewRequest) return false;
+          await handleApprove(reviewRequest, values.comment);
+          return false;
+        }}
+        submitter={{
+          searchConfig: { submitText: '批准并确认提成影响' },
+          submitButtonProps: {
+            disabled:
+              !reviewPreview ||
+              reviewLoading ||
+              reviewQuery.isError ||
+              !!reviewError,
+          },
+          render: (_, dom) => (
+            <Space>
+              <Button
+                danger
+                onClick={() => reviewRequest && handleReject(reviewRequest)}
+              >
+                退回
+              </Button>
+              {dom}
+            </Space>
+          ),
+        }}
       >
         {reviewRequest && (
           <>
@@ -836,7 +830,7 @@ export default function FeeSupplementSection({
                 {
                   key: 'date',
                   label: '发生日期',
-                  children: reviewRequest.expenseDate || '-',
+                  children: formatDate(reviewRequest.expenseDate, 'minute'),
                 },
                 {
                   key: 'reason',
@@ -852,18 +846,50 @@ export default function FeeSupplementSection({
                   <div style={{ height: 120 }} />
                 </Spin>
               )}
-              {!!reviewError && (
+              {(!!reviewError || reviewQuery.isError) && (
                 <Alert
                   type="error"
                   showIcon
                   title="无法预览毛利变化"
-                  description={reviewError}
+                  description={reviewError || '请关闭窗口后重新加载补录预览'}
                 />
               )}
               {reviewPreview && !reviewLoading && !reviewError && (
                 <>
+                  <Alert
+                    type="warning"
+                    showIcon
+                    title="批准后同时确认下列提成冲减，冲减以原有效提成余额为上限；财务按净额发放或登记实际扣回。"
+                  />
+                  <Table<API.FeeSupplementCommissionImpact>
+                    size="small"
+                    pagination={false}
+                    rowKey="commissionId"
+                    dataSource={reviewPreview.commissionImpacts ?? []}
+                    columns={[
+                      { title: '员工', dataIndex: 'employeeName' },
+                      { title: '原提成单', dataIndex: 'commissionNo' },
+                      { title: '币种', dataIndex: 'baseCurrency' },
+                      {
+                        title: '有效提成 当前 → 批准后',
+                        render: (_, item) =>
+                          `${formatAmount(item.amountBefore)} → ${formatAmount(item.amountAfter)}`,
+                      },
+                      {
+                        title: '本次冲减',
+                        dataIndex: 'decreaseAmount',
+                        render: (value) => formatAmount(value),
+                      },
+                      {
+                        title: '超过余额未冲减部分',
+                        dataIndex: 'excessAmount',
+                        render: (value) => formatAmount(value),
+                      },
+                      { title: '原提成状态', dataIndex: 'commissionStatus' },
+                    ]}
+                  />
                   <Typography.Title level={5}>
-                    预计毛利影响（{reviewPreview.baseCurrency}）
+                    整票预计毛利影响（{reviewPreview.baseCurrency}）
                   </Typography.Title>
                   <div
                     style={{
@@ -881,7 +907,7 @@ export default function FeeSupplementSection({
                       level={3}
                       style={{ margin: '4px 0 0', color: '#cf1322' }}
                     >
-                      {`${reviewPreview.currentProfitRate == null ? '不可计算' : `${formatAmount(reviewPreview.currentProfitRate, 2)}%`} → ${reviewPreview.projectedProfitRate == null ? '不可计算' : `${formatAmount(reviewPreview.projectedProfitRate, 2)}%`}`}
+                      {`${reviewPreview.currentProfitRate == null ? '不可计算' : `${trimDecimal(reviewPreview.currentProfitRate)}%`} → ${reviewPreview.projectedProfitRate == null ? '不可计算' : `${trimDecimal(reviewPreview.projectedProfitRate)}%`}`}
                     </Typography.Title>
                   </div>
                   <Descriptions
@@ -928,14 +954,33 @@ export default function FeeSupplementSection({
                     type="secondary"
                     style={{ display: 'block', marginTop: 8 }}
                   >
-                    以上为当前时点估算。确认通过时服务端会按最新费用、汇率和锁依据重新复核；通过后生成未建账应付费用，可能产生提成冲减建议。
+                    以上为当前时点估算。确认通过时服务端会按当前整票费用与汇率复核；批准后生成未建账应付费用并刷新整票费用批准，适用时直接确认提成冲减。
                   </Typography.Text>
                 </>
               )}
             </div>
           </>
         )}
-      </Modal>
+        <ProFormTextArea
+          name="comment"
+          label={
+            Number(reviewPreview?.projectedProfit) < 0
+              ? '审批意见（亏损原因，必填）'
+              : '审批意见'
+          }
+          rules={
+            Number(reviewPreview?.projectedProfit) < 0
+              ? [
+                  {
+                    required: true,
+                    whitespace: true,
+                    message: '请说明补录后亏损原因',
+                  },
+                ]
+              : []
+          }
+        />
+      </ModalForm>
       <FeeSupplementModal
         key={resubmitRequest?.id ?? 'new'}
         orderId={orderId}

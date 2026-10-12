@@ -357,9 +357,9 @@ func TestPlanCommissionReversal(t *testing.T) {
 		}
 	})
 
-	t.Run("已支付提成形成等额待追回冲减", func(t *testing.T) {
+	t.Run("已支付提成及已执行增提形成等额待追回冲减", func(t *testing.T) {
 		plan, err := PlanCommissionReversal(CommissionPaid, decimal.NewFromInt(30), lines, []*FinanceCommissionAdjustment{
-			{OrderID: firstID, Status: CommissionConfirmed, Direction: CommissionAdjustmentIncrease, Amount: decimal.NewFromInt(10)},
+			{OrderID: firstID, Status: CommissionPaid, Direction: CommissionAdjustmentIncrease, Amount: decimal.NewFromInt(10)},
 		})
 		if err != nil {
 			t.Fatalf("PlanCommissionReversal() error = %v", err)

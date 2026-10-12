@@ -19,6 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	OrderFeeService_PreviewOrderFeeReviews_FullMethodName            = "/order.v1.OrderFeeService/PreviewOrderFeeReviews"
+	OrderFeeService_ApproveOrderFeeReviews_FullMethodName            = "/order.v1.OrderFeeService/ApproveOrderFeeReviews"
+	OrderFeeService_GetOrderFeeReview_FullMethodName                 = "/order.v1.OrderFeeService/GetOrderFeeReview"
+	OrderFeeService_PreviewOrderFeeReview_FullMethodName             = "/order.v1.OrderFeeService/PreviewOrderFeeReview"
+	OrderFeeService_SubmitOrderFeeReview_FullMethodName              = "/order.v1.OrderFeeService/SubmitOrderFeeReview"
+	OrderFeeService_WithdrawOrderFeeReview_FullMethodName            = "/order.v1.OrderFeeService/WithdrawOrderFeeReview"
+	OrderFeeService_ApproveOrderFeeReview_FullMethodName             = "/order.v1.OrderFeeService/ApproveOrderFeeReview"
+	OrderFeeService_RejectOrderFeeReview_FullMethodName              = "/order.v1.OrderFeeService/RejectOrderFeeReview"
+	OrderFeeService_RevokeOrderFeeReview_FullMethodName              = "/order.v1.OrderFeeService/RevokeOrderFeeReview"
 	OrderFeeService_ListFeeOptions_FullMethodName                    = "/order.v1.OrderFeeService/ListFeeOptions"
 	OrderFeeService_ListFees_FullMethodName                          = "/order.v1.OrderFeeService/ListFees"
 	OrderFeeService_ResolveFeeExchangeRate_FullMethodName            = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
@@ -44,9 +53,17 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // OrderFeeService 订单费用录入服务。
-// 管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，
-// 进入账单后修改范围由财务自定义策略控制。
+// 管理整票费用录入与人工审核；费用批准后冻结，财务仅从有效批准费用建账。
 type OrderFeeServiceClient interface {
+	PreviewOrderFeeReviews(ctx context.Context, in *PreviewOrderFeeReviewsRequest, opts ...grpc.CallOption) (*PreviewOrderFeeReviewsResponse, error)
+	ApproveOrderFeeReviews(ctx context.Context, in *ApproveOrderFeeReviewsRequest, opts ...grpc.CallOption) (*ApproveOrderFeeReviewsResponse, error)
+	GetOrderFeeReview(ctx context.Context, in *GetOrderFeeReviewRequest, opts ...grpc.CallOption) (*GetOrderFeeReviewResponse, error)
+	PreviewOrderFeeReview(ctx context.Context, in *PreviewOrderFeeReviewRequest, opts ...grpc.CallOption) (*PreviewOrderFeeReviewResponse, error)
+	SubmitOrderFeeReview(ctx context.Context, in *SubmitOrderFeeReviewRequest, opts ...grpc.CallOption) (*SubmitOrderFeeReviewResponse, error)
+	WithdrawOrderFeeReview(ctx context.Context, in *WithdrawOrderFeeReviewRequest, opts ...grpc.CallOption) (*WithdrawOrderFeeReviewResponse, error)
+	ApproveOrderFeeReview(ctx context.Context, in *ApproveOrderFeeReviewRequest, opts ...grpc.CallOption) (*ApproveOrderFeeReviewResponse, error)
+	RejectOrderFeeReview(ctx context.Context, in *RejectOrderFeeReviewRequest, opts ...grpc.CallOption) (*RejectOrderFeeReviewResponse, error)
+	RevokeOrderFeeReview(ctx context.Context, in *RevokeOrderFeeReviewRequest, opts ...grpc.CallOption) (*RevokeOrderFeeReviewResponse, error)
 	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
@@ -69,18 +86,18 @@ type OrderFeeServiceClient interface {
 	// 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
 	// 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
 	BulkRemoveOrderFees(ctx context.Context, in *BulkRemoveOrderFeesRequest, opts ...grpc.CallOption) (*BulkRemoveOrderFeesResponse, error)
-	// CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
-	// 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
-	// 稳定拒绝并引导普通费用新增。
+	// CreateOrderFeeSupplement 基于有效整票费用批准发起受控正数应付成本补录。
+	// 批准事件与内容版本由服务端锁内固化；同订单只允许一条待审补录，并提醒
+	// 有效费用审核权限且组织范围匹配的候选人。
 	CreateOrderFeeSupplement(ctx context.Context, in *CreateOrderFeeSupplementRequest, opts ...grpc.CallOption) (*CreateOrderFeeSupplementResponse, error)
 	// ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权
-	// （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级
+	// （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(ctx context.Context, in *ListOrderFeeSupplementRequestsRequest, opts ...grpc.CallOption) (*ListOrderFeeSupplementRequestsResponse, error)
 	// PreviewOrderFeeSupplementApproval 只读复核申请及审批资格，估算通过后的订单费用毛利。
 	PreviewOrderFeeSupplementApproval(ctx context.Context, in *PreviewOrderFeeSupplementApprovalRequest, opts ...grpc.CallOption) (*PreviewOrderFeeSupplementApprovalResponse, error)
-	// ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// ApproveOrderFeeSupplement 审批通过补录申请：复核固化的有效费用批准与整票利润、逐人提成预览，
+	// 在同一事务创建补录费用、DECREASE+CONFIRMED 冲减并逐员工通知。
 	ApproveOrderFeeSupplement(ctx context.Context, in *ApproveOrderFeeSupplementRequest, opts ...grpc.CallOption) (*ApproveOrderFeeSupplementResponse, error)
 	// RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
 	RejectOrderFeeSupplement(ctx context.Context, in *RejectOrderFeeSupplementRequest, opts ...grpc.CallOption) (*RejectOrderFeeSupplementResponse, error)
@@ -88,8 +105,8 @@ type OrderFeeServiceClient interface {
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
 	WithdrawOrderFeeSupplement(ctx context.Context, in *WithdrawOrderFeeSupplementRequest, opts ...grpc.CallOption) (*WithdrawOrderFeeSupplementResponse, error)
 	// CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
-	// 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
-	// 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。
+	// 未被有效账单关联占用且未产生确认冲减的补录；同事务物理删除费用并撤销
+	// 当前整票批准，APPROVED 申请事实及历史账单行快照保留。
 	CancelApprovedOrderFeeSupplement(ctx context.Context, in *CancelApprovedOrderFeeSupplementRequest, opts ...grpc.CallOption) (*CancelApprovedOrderFeeSupplementResponse, error)
 	ListOrderFeeTagOptions(ctx context.Context, in *ListOrderFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListOrderFeeTagOptionsResponse, error)
 	BatchAssignOrderFeeTags(ctx context.Context, in *BatchAssignOrderFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignOrderFeeTagsResponse, error)
@@ -102,6 +119,96 @@ type orderFeeServiceClient struct {
 
 func NewOrderFeeServiceClient(cc grpc.ClientConnInterface) OrderFeeServiceClient {
 	return &orderFeeServiceClient{cc}
+}
+
+func (c *orderFeeServiceClient) PreviewOrderFeeReviews(ctx context.Context, in *PreviewOrderFeeReviewsRequest, opts ...grpc.CallOption) (*PreviewOrderFeeReviewsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewOrderFeeReviewsResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_PreviewOrderFeeReviews_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) ApproveOrderFeeReviews(ctx context.Context, in *ApproveOrderFeeReviewsRequest, opts ...grpc.CallOption) (*ApproveOrderFeeReviewsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApproveOrderFeeReviewsResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_ApproveOrderFeeReviews_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) GetOrderFeeReview(ctx context.Context, in *GetOrderFeeReviewRequest, opts ...grpc.CallOption) (*GetOrderFeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOrderFeeReviewResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_GetOrderFeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) PreviewOrderFeeReview(ctx context.Context, in *PreviewOrderFeeReviewRequest, opts ...grpc.CallOption) (*PreviewOrderFeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewOrderFeeReviewResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_PreviewOrderFeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) SubmitOrderFeeReview(ctx context.Context, in *SubmitOrderFeeReviewRequest, opts ...grpc.CallOption) (*SubmitOrderFeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubmitOrderFeeReviewResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_SubmitOrderFeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) WithdrawOrderFeeReview(ctx context.Context, in *WithdrawOrderFeeReviewRequest, opts ...grpc.CallOption) (*WithdrawOrderFeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WithdrawOrderFeeReviewResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_WithdrawOrderFeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) ApproveOrderFeeReview(ctx context.Context, in *ApproveOrderFeeReviewRequest, opts ...grpc.CallOption) (*ApproveOrderFeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApproveOrderFeeReviewResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_ApproveOrderFeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) RejectOrderFeeReview(ctx context.Context, in *RejectOrderFeeReviewRequest, opts ...grpc.CallOption) (*RejectOrderFeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RejectOrderFeeReviewResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_RejectOrderFeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderFeeServiceClient) RevokeOrderFeeReview(ctx context.Context, in *RevokeOrderFeeReviewRequest, opts ...grpc.CallOption) (*RevokeOrderFeeReviewResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeOrderFeeReviewResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_RevokeOrderFeeReview_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *orderFeeServiceClient) ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error) {
@@ -289,9 +396,17 @@ func (c *orderFeeServiceClient) BatchRemoveOrderFeeTags(ctx context.Context, in 
 // for forward compatibility.
 //
 // OrderFeeService 订单费用录入服务。
-// 管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，
-// 进入账单后修改范围由财务自定义策略控制。
+// 管理整票费用录入与人工审核；费用批准后冻结，财务仅从有效批准费用建账。
 type OrderFeeServiceServer interface {
+	PreviewOrderFeeReviews(context.Context, *PreviewOrderFeeReviewsRequest) (*PreviewOrderFeeReviewsResponse, error)
+	ApproveOrderFeeReviews(context.Context, *ApproveOrderFeeReviewsRequest) (*ApproveOrderFeeReviewsResponse, error)
+	GetOrderFeeReview(context.Context, *GetOrderFeeReviewRequest) (*GetOrderFeeReviewResponse, error)
+	PreviewOrderFeeReview(context.Context, *PreviewOrderFeeReviewRequest) (*PreviewOrderFeeReviewResponse, error)
+	SubmitOrderFeeReview(context.Context, *SubmitOrderFeeReviewRequest) (*SubmitOrderFeeReviewResponse, error)
+	WithdrawOrderFeeReview(context.Context, *WithdrawOrderFeeReviewRequest) (*WithdrawOrderFeeReviewResponse, error)
+	ApproveOrderFeeReview(context.Context, *ApproveOrderFeeReviewRequest) (*ApproveOrderFeeReviewResponse, error)
+	RejectOrderFeeReview(context.Context, *RejectOrderFeeReviewRequest) (*RejectOrderFeeReviewResponse, error)
+	RevokeOrderFeeReview(context.Context, *RevokeOrderFeeReviewRequest) (*RevokeOrderFeeReviewResponse, error)
 	// ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
@@ -314,18 +429,18 @@ type OrderFeeServiceServer interface {
 	// 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
 	// 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
 	BulkRemoveOrderFees(context.Context, *BulkRemoveOrderFeesRequest) (*BulkRemoveOrderFeesResponse, error)
-	// CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
-	// 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
-	// 稳定拒绝并引导普通费用新增。
+	// CreateOrderFeeSupplement 基于有效整票费用批准发起受控正数应付成本补录。
+	// 批准事件与内容版本由服务端锁内固化；同订单只允许一条待审补录，并提醒
+	// 有效费用审核权限且组织范围匹配的候选人。
 	CreateOrderFeeSupplement(context.Context, *CreateOrderFeeSupplementRequest) (*CreateOrderFeeSupplementResponse, error)
 	// ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权
-	// （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级
+	// （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(context.Context, *ListOrderFeeSupplementRequestsRequest) (*ListOrderFeeSupplementRequestsResponse, error)
 	// PreviewOrderFeeSupplementApproval 只读复核申请及审批资格，估算通过后的订单费用毛利。
 	PreviewOrderFeeSupplementApproval(context.Context, *PreviewOrderFeeSupplementApprovalRequest) (*PreviewOrderFeeSupplementApprovalResponse, error)
-	// ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-	// 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+	// ApproveOrderFeeSupplement 审批通过补录申请：复核固化的有效费用批准与整票利润、逐人提成预览，
+	// 在同一事务创建补录费用、DECREASE+CONFIRMED 冲减并逐员工通知。
 	ApproveOrderFeeSupplement(context.Context, *ApproveOrderFeeSupplementRequest) (*ApproveOrderFeeSupplementResponse, error)
 	// RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
 	RejectOrderFeeSupplement(context.Context, *RejectOrderFeeSupplementRequest) (*RejectOrderFeeSupplementResponse, error)
@@ -333,8 +448,8 @@ type OrderFeeServiceServer interface {
 	// 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
 	WithdrawOrderFeeSupplement(context.Context, *WithdrawOrderFeeSupplementRequest) (*WithdrawOrderFeeSupplementResponse, error)
 	// CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
-	// 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
-	// 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。
+	// 未被有效账单关联占用且未产生确认冲减的补录；同事务物理删除费用并撤销
+	// 当前整票批准，APPROVED 申请事实及历史账单行快照保留。
 	CancelApprovedOrderFeeSupplement(context.Context, *CancelApprovedOrderFeeSupplementRequest) (*CancelApprovedOrderFeeSupplementResponse, error)
 	ListOrderFeeTagOptions(context.Context, *ListOrderFeeTagOptionsRequest) (*ListOrderFeeTagOptionsResponse, error)
 	BatchAssignOrderFeeTags(context.Context, *BatchAssignOrderFeeTagsRequest) (*BatchAssignOrderFeeTagsResponse, error)
@@ -349,6 +464,33 @@ type OrderFeeServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrderFeeServiceServer struct{}
 
+func (UnimplementedOrderFeeServiceServer) PreviewOrderFeeReviews(context.Context, *PreviewOrderFeeReviewsRequest) (*PreviewOrderFeeReviewsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewOrderFeeReviews not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) ApproveOrderFeeReviews(context.Context, *ApproveOrderFeeReviewsRequest) (*ApproveOrderFeeReviewsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApproveOrderFeeReviews not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) GetOrderFeeReview(context.Context, *GetOrderFeeReviewRequest) (*GetOrderFeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetOrderFeeReview not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) PreviewOrderFeeReview(context.Context, *PreviewOrderFeeReviewRequest) (*PreviewOrderFeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewOrderFeeReview not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) SubmitOrderFeeReview(context.Context, *SubmitOrderFeeReviewRequest) (*SubmitOrderFeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitOrderFeeReview not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) WithdrawOrderFeeReview(context.Context, *WithdrawOrderFeeReviewRequest) (*WithdrawOrderFeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method WithdrawOrderFeeReview not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) ApproveOrderFeeReview(context.Context, *ApproveOrderFeeReviewRequest) (*ApproveOrderFeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApproveOrderFeeReview not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) RejectOrderFeeReview(context.Context, *RejectOrderFeeReviewRequest) (*RejectOrderFeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RejectOrderFeeReview not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) RevokeOrderFeeReview(context.Context, *RevokeOrderFeeReviewRequest) (*RevokeOrderFeeReviewResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeOrderFeeReview not implemented")
+}
 func (UnimplementedOrderFeeServiceServer) ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFeeOptions not implemented")
 }
@@ -422,6 +564,168 @@ func RegisterOrderFeeServiceServer(s grpc.ServiceRegistrar, srv OrderFeeServiceS
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&OrderFeeService_ServiceDesc, srv)
+}
+
+func _OrderFeeService_PreviewOrderFeeReviews_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewOrderFeeReviewsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).PreviewOrderFeeReviews(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_PreviewOrderFeeReviews_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).PreviewOrderFeeReviews(ctx, req.(*PreviewOrderFeeReviewsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_ApproveOrderFeeReviews_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApproveOrderFeeReviewsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).ApproveOrderFeeReviews(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_ApproveOrderFeeReviews_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).ApproveOrderFeeReviews(ctx, req.(*ApproveOrderFeeReviewsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_GetOrderFeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrderFeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).GetOrderFeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_GetOrderFeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).GetOrderFeeReview(ctx, req.(*GetOrderFeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_PreviewOrderFeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewOrderFeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).PreviewOrderFeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_PreviewOrderFeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).PreviewOrderFeeReview(ctx, req.(*PreviewOrderFeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_SubmitOrderFeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitOrderFeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).SubmitOrderFeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_SubmitOrderFeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).SubmitOrderFeeReview(ctx, req.(*SubmitOrderFeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_WithdrawOrderFeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawOrderFeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).WithdrawOrderFeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_WithdrawOrderFeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).WithdrawOrderFeeReview(ctx, req.(*WithdrawOrderFeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_ApproveOrderFeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApproveOrderFeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).ApproveOrderFeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_ApproveOrderFeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).ApproveOrderFeeReview(ctx, req.(*ApproveOrderFeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_RejectOrderFeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RejectOrderFeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).RejectOrderFeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_RejectOrderFeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).RejectOrderFeeReview(ctx, req.(*RejectOrderFeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderFeeService_RevokeOrderFeeReview_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeOrderFeeReviewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).RevokeOrderFeeReview(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_RevokeOrderFeeReview_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).RevokeOrderFeeReview(ctx, req.(*RevokeOrderFeeReviewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _OrderFeeService_ListFeeOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -755,6 +1059,42 @@ var OrderFeeService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "order.v1.OrderFeeService",
 	HandlerType: (*OrderFeeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "PreviewOrderFeeReviews",
+			Handler:    _OrderFeeService_PreviewOrderFeeReviews_Handler,
+		},
+		{
+			MethodName: "ApproveOrderFeeReviews",
+			Handler:    _OrderFeeService_ApproveOrderFeeReviews_Handler,
+		},
+		{
+			MethodName: "GetOrderFeeReview",
+			Handler:    _OrderFeeService_GetOrderFeeReview_Handler,
+		},
+		{
+			MethodName: "PreviewOrderFeeReview",
+			Handler:    _OrderFeeService_PreviewOrderFeeReview_Handler,
+		},
+		{
+			MethodName: "SubmitOrderFeeReview",
+			Handler:    _OrderFeeService_SubmitOrderFeeReview_Handler,
+		},
+		{
+			MethodName: "WithdrawOrderFeeReview",
+			Handler:    _OrderFeeService_WithdrawOrderFeeReview_Handler,
+		},
+		{
+			MethodName: "ApproveOrderFeeReview",
+			Handler:    _OrderFeeService_ApproveOrderFeeReview_Handler,
+		},
+		{
+			MethodName: "RejectOrderFeeReview",
+			Handler:    _OrderFeeService_RejectOrderFeeReview_Handler,
+		},
+		{
+			MethodName: "RevokeOrderFeeReview",
+			Handler:    _OrderFeeService_RevokeOrderFeeReview_Handler,
+		},
 		{
 			MethodName: "ListFeeOptions",
 			Handler:    _OrderFeeService_ListFeeOptions_Handler,

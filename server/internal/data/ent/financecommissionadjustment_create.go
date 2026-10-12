@@ -248,6 +248,34 @@ func (_c *FinanceCommissionAdjustmentCreate) SetNillableConfirmedBy(v *uuid.UUID
 	return _c
 }
 
+// SetExecutionMethod sets the "execution_method" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetExecutionMethod(v financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetExecutionMethod(v)
+	return _c
+}
+
+// SetNillableExecutionMethod sets the "execution_method" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableExecutionMethod(v *financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetExecutionMethod(*v)
+	}
+	return _c
+}
+
+// SetParentPaymentID sets the "parent_payment_id" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetParentPaymentID(v uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetParentPaymentID(v)
+	return _c
+}
+
+// SetNillableParentPaymentID sets the "parent_payment_id" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableParentPaymentID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetParentPaymentID(*v)
+	}
+	return _c
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (_c *FinanceCommissionAdjustmentCreate) SetPaidAt(v time.Time) *FinanceCommissionAdjustmentCreate {
 	_c.mutation.SetPaidAt(v)
@@ -591,6 +619,11 @@ func (_c *FinanceCommissionAdjustmentCreate) check() error {
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "FinanceCommissionAdjustment.version"`)}
 	}
+	if v, ok := _c.mutation.ExecutionMethod(); ok {
+		if err := financecommissionadjustment.ExecutionMethodValidator(v); err != nil {
+			return &ValidationError{Name: "execution_method", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.execution_method": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.CancellationReason(); ok {
 		if err := financecommissionadjustment.CancellationReasonValidator(v); err != nil {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.cancellation_reason": %w`, err)}
@@ -707,6 +740,14 @@ func (_c *FinanceCommissionAdjustmentCreate) createSpec() (*FinanceCommissionAdj
 	if value, ok := _c.mutation.ConfirmedAt(); ok {
 		_spec.SetField(financecommissionadjustment.FieldConfirmedAt, field.TypeTime, value)
 		_node.ConfirmedAt = &value
+	}
+	if value, ok := _c.mutation.ExecutionMethod(); ok {
+		_spec.SetField(financecommissionadjustment.FieldExecutionMethod, field.TypeEnum, value)
+		_node.ExecutionMethod = &value
+	}
+	if value, ok := _c.mutation.ParentPaymentID(); ok {
+		_spec.SetField(financecommissionadjustment.FieldParentPaymentID, field.TypeUUID, value)
+		_node.ParentPaymentID = &value
 	}
 	if value, ok := _c.mutation.PaidAt(); ok {
 		_spec.SetField(financecommissionadjustment.FieldPaidAt, field.TypeTime, value)
@@ -1021,6 +1062,42 @@ func (u *FinanceCommissionAdjustmentUpsert) ClearConfirmedBy() *FinanceCommissio
 	return u
 }
 
+// SetExecutionMethod sets the "execution_method" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetExecutionMethod(v financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldExecutionMethod, v)
+	return u
+}
+
+// UpdateExecutionMethod sets the "execution_method" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateExecutionMethod() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldExecutionMethod)
+	return u
+}
+
+// ClearExecutionMethod clears the value of the "execution_method" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearExecutionMethod() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldExecutionMethod)
+	return u
+}
+
+// SetParentPaymentID sets the "parent_payment_id" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetParentPaymentID(v uuid.UUID) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldParentPaymentID, v)
+	return u
+}
+
+// UpdateParentPaymentID sets the "parent_payment_id" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateParentPaymentID() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldParentPaymentID)
+	return u
+}
+
+// ClearParentPaymentID clears the value of the "parent_payment_id" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearParentPaymentID() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldParentPaymentID)
+	return u
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (u *FinanceCommissionAdjustmentUpsert) SetPaidAt(v time.Time) *FinanceCommissionAdjustmentUpsert {
 	u.Set(financecommissionadjustment.FieldPaidAt, v)
@@ -1319,6 +1396,48 @@ func (u *FinanceCommissionAdjustmentUpsertOne) UpdateConfirmedBy() *FinanceCommi
 func (u *FinanceCommissionAdjustmentUpsertOne) ClearConfirmedBy() *FinanceCommissionAdjustmentUpsertOne {
 	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
 		s.ClearConfirmedBy()
+	})
+}
+
+// SetExecutionMethod sets the "execution_method" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetExecutionMethod(v financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetExecutionMethod(v)
+	})
+}
+
+// UpdateExecutionMethod sets the "execution_method" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateExecutionMethod() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateExecutionMethod()
+	})
+}
+
+// ClearExecutionMethod clears the value of the "execution_method" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearExecutionMethod() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearExecutionMethod()
+	})
+}
+
+// SetParentPaymentID sets the "parent_payment_id" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetParentPaymentID(v uuid.UUID) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetParentPaymentID(v)
+	})
+}
+
+// UpdateParentPaymentID sets the "parent_payment_id" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateParentPaymentID() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateParentPaymentID()
+	})
+}
+
+// ClearParentPaymentID clears the value of the "parent_payment_id" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearParentPaymentID() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearParentPaymentID()
 	})
 }
 
@@ -1802,6 +1921,48 @@ func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateConfirmedBy() *FinanceComm
 func (u *FinanceCommissionAdjustmentUpsertBulk) ClearConfirmedBy() *FinanceCommissionAdjustmentUpsertBulk {
 	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
 		s.ClearConfirmedBy()
+	})
+}
+
+// SetExecutionMethod sets the "execution_method" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetExecutionMethod(v financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetExecutionMethod(v)
+	})
+}
+
+// UpdateExecutionMethod sets the "execution_method" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateExecutionMethod() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateExecutionMethod()
+	})
+}
+
+// ClearExecutionMethod clears the value of the "execution_method" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearExecutionMethod() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearExecutionMethod()
+	})
+}
+
+// SetParentPaymentID sets the "parent_payment_id" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetParentPaymentID(v uuid.UUID) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetParentPaymentID(v)
+	})
+}
+
+// UpdateParentPaymentID sets the "parent_payment_id" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateParentPaymentID() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateParentPaymentID()
+	})
+}
+
+// ClearParentPaymentID clears the value of the "parent_payment_id" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearParentPaymentID() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearParentPaymentID()
 	})
 }
 

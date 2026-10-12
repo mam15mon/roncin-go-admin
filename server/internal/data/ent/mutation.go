@@ -78,6 +78,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
@@ -202,6 +203,7 @@ const (
 	TypeOrderEnterpriseTag               = "OrderEnterpriseTag"
 	TypeOrderFee                         = "OrderFee"
 	TypeOrderFeeEnterpriseTag            = "OrderFeeEnterpriseTag"
+	TypeOrderFeeReviewEvent              = "OrderFeeReviewEvent"
 	TypeOrderFeeSupplementRequest        = "OrderFeeSupplementRequest"
 	TypeOrderLifecycleEvent              = "OrderLifecycleEvent"
 	TypeOrderLockHouseBillSnapshot       = "OrderLockHouseBillSnapshot"
@@ -38659,6 +38661,10 @@ type FinanceCommissionMutation struct {
 	version                      *uint64
 	addversion                   *int64
 	confirmed_at                 *time.Time
+	paid_amount                  *string
+	payment_key                  *string
+	payment_fingerprint          *string
+	payment_snapshot             *string
 	paid_at                      *time.Time
 	cancelled_at                 *time.Time
 	cancellation_reason          *string
@@ -40513,6 +40519,202 @@ func (m *FinanceCommissionMutation) ResetConfirmedBy() {
 	delete(m.clearedFields, financecommission.FieldConfirmedBy)
 }
 
+// SetPaidAmount sets the "paid_amount" field.
+func (m *FinanceCommissionMutation) SetPaidAmount(s string) {
+	m.paid_amount = &s
+}
+
+// PaidAmount returns the value of the "paid_amount" field in the mutation.
+func (m *FinanceCommissionMutation) PaidAmount() (r string, exists bool) {
+	v := m.paid_amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaidAmount returns the old "paid_amount" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldPaidAmount(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaidAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaidAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaidAmount: %w", err)
+	}
+	return oldValue.PaidAmount, nil
+}
+
+// ClearPaidAmount clears the value of the "paid_amount" field.
+func (m *FinanceCommissionMutation) ClearPaidAmount() {
+	m.paid_amount = nil
+	m.clearedFields[financecommission.FieldPaidAmount] = struct{}{}
+}
+
+// PaidAmountCleared returns if the "paid_amount" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) PaidAmountCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldPaidAmount]
+	return ok
+}
+
+// ResetPaidAmount resets all changes to the "paid_amount" field.
+func (m *FinanceCommissionMutation) ResetPaidAmount() {
+	m.paid_amount = nil
+	delete(m.clearedFields, financecommission.FieldPaidAmount)
+}
+
+// SetPaymentKey sets the "payment_key" field.
+func (m *FinanceCommissionMutation) SetPaymentKey(s string) {
+	m.payment_key = &s
+}
+
+// PaymentKey returns the value of the "payment_key" field in the mutation.
+func (m *FinanceCommissionMutation) PaymentKey() (r string, exists bool) {
+	v := m.payment_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaymentKey returns the old "payment_key" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldPaymentKey(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaymentKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaymentKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaymentKey: %w", err)
+	}
+	return oldValue.PaymentKey, nil
+}
+
+// ClearPaymentKey clears the value of the "payment_key" field.
+func (m *FinanceCommissionMutation) ClearPaymentKey() {
+	m.payment_key = nil
+	m.clearedFields[financecommission.FieldPaymentKey] = struct{}{}
+}
+
+// PaymentKeyCleared returns if the "payment_key" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) PaymentKeyCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldPaymentKey]
+	return ok
+}
+
+// ResetPaymentKey resets all changes to the "payment_key" field.
+func (m *FinanceCommissionMutation) ResetPaymentKey() {
+	m.payment_key = nil
+	delete(m.clearedFields, financecommission.FieldPaymentKey)
+}
+
+// SetPaymentFingerprint sets the "payment_fingerprint" field.
+func (m *FinanceCommissionMutation) SetPaymentFingerprint(s string) {
+	m.payment_fingerprint = &s
+}
+
+// PaymentFingerprint returns the value of the "payment_fingerprint" field in the mutation.
+func (m *FinanceCommissionMutation) PaymentFingerprint() (r string, exists bool) {
+	v := m.payment_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaymentFingerprint returns the old "payment_fingerprint" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldPaymentFingerprint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaymentFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaymentFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaymentFingerprint: %w", err)
+	}
+	return oldValue.PaymentFingerprint, nil
+}
+
+// ClearPaymentFingerprint clears the value of the "payment_fingerprint" field.
+func (m *FinanceCommissionMutation) ClearPaymentFingerprint() {
+	m.payment_fingerprint = nil
+	m.clearedFields[financecommission.FieldPaymentFingerprint] = struct{}{}
+}
+
+// PaymentFingerprintCleared returns if the "payment_fingerprint" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) PaymentFingerprintCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldPaymentFingerprint]
+	return ok
+}
+
+// ResetPaymentFingerprint resets all changes to the "payment_fingerprint" field.
+func (m *FinanceCommissionMutation) ResetPaymentFingerprint() {
+	m.payment_fingerprint = nil
+	delete(m.clearedFields, financecommission.FieldPaymentFingerprint)
+}
+
+// SetPaymentSnapshot sets the "payment_snapshot" field.
+func (m *FinanceCommissionMutation) SetPaymentSnapshot(s string) {
+	m.payment_snapshot = &s
+}
+
+// PaymentSnapshot returns the value of the "payment_snapshot" field in the mutation.
+func (m *FinanceCommissionMutation) PaymentSnapshot() (r string, exists bool) {
+	v := m.payment_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPaymentSnapshot returns the old "payment_snapshot" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldPaymentSnapshot(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPaymentSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPaymentSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPaymentSnapshot: %w", err)
+	}
+	return oldValue.PaymentSnapshot, nil
+}
+
+// ClearPaymentSnapshot clears the value of the "payment_snapshot" field.
+func (m *FinanceCommissionMutation) ClearPaymentSnapshot() {
+	m.payment_snapshot = nil
+	m.clearedFields[financecommission.FieldPaymentSnapshot] = struct{}{}
+}
+
+// PaymentSnapshotCleared returns if the "payment_snapshot" field was cleared in this mutation.
+func (m *FinanceCommissionMutation) PaymentSnapshotCleared() bool {
+	_, ok := m.clearedFields[financecommission.FieldPaymentSnapshot]
+	return ok
+}
+
+// ResetPaymentSnapshot resets all changes to the "payment_snapshot" field.
+func (m *FinanceCommissionMutation) ResetPaymentSnapshot() {
+	m.payment_snapshot = nil
+	delete(m.clearedFields, financecommission.FieldPaymentSnapshot)
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (m *FinanceCommissionMutation) SetPaidAt(t time.Time) {
 	m.paid_at = &t
@@ -41209,7 +41411,7 @@ func (m *FinanceCommissionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionMutation) Fields() []string {
-	fields := make([]string, 0, 45)
+	fields := make([]string, 0, 49)
 	if m.created_at != nil {
 		fields = append(fields, financecommission.FieldCreatedAt)
 	}
@@ -41330,6 +41532,18 @@ func (m *FinanceCommissionMutation) Fields() []string {
 	if m.confirmed_by_user != nil {
 		fields = append(fields, financecommission.FieldConfirmedBy)
 	}
+	if m.paid_amount != nil {
+		fields = append(fields, financecommission.FieldPaidAmount)
+	}
+	if m.payment_key != nil {
+		fields = append(fields, financecommission.FieldPaymentKey)
+	}
+	if m.payment_fingerprint != nil {
+		fields = append(fields, financecommission.FieldPaymentFingerprint)
+	}
+	if m.payment_snapshot != nil {
+		fields = append(fields, financecommission.FieldPaymentSnapshot)
+	}
 	if m.paid_at != nil {
 		fields = append(fields, financecommission.FieldPaidAt)
 	}
@@ -41433,6 +41647,14 @@ func (m *FinanceCommissionMutation) Field(name string) (ent.Value, bool) {
 		return m.ConfirmedAt()
 	case financecommission.FieldConfirmedBy:
 		return m.ConfirmedBy()
+	case financecommission.FieldPaidAmount:
+		return m.PaidAmount()
+	case financecommission.FieldPaymentKey:
+		return m.PaymentKey()
+	case financecommission.FieldPaymentFingerprint:
+		return m.PaymentFingerprint()
+	case financecommission.FieldPaymentSnapshot:
+		return m.PaymentSnapshot()
 	case financecommission.FieldPaidAt:
 		return m.PaidAt()
 	case financecommission.FieldPaidBy:
@@ -41532,6 +41754,14 @@ func (m *FinanceCommissionMutation) OldField(ctx context.Context, name string) (
 		return m.OldConfirmedAt(ctx)
 	case financecommission.FieldConfirmedBy:
 		return m.OldConfirmedBy(ctx)
+	case financecommission.FieldPaidAmount:
+		return m.OldPaidAmount(ctx)
+	case financecommission.FieldPaymentKey:
+		return m.OldPaymentKey(ctx)
+	case financecommission.FieldPaymentFingerprint:
+		return m.OldPaymentFingerprint(ctx)
+	case financecommission.FieldPaymentSnapshot:
+		return m.OldPaymentSnapshot(ctx)
 	case financecommission.FieldPaidAt:
 		return m.OldPaidAt(ctx)
 	case financecommission.FieldPaidBy:
@@ -41831,6 +42061,34 @@ func (m *FinanceCommissionMutation) SetField(name string, value ent.Value) error
 		}
 		m.SetConfirmedBy(v)
 		return nil
+	case financecommission.FieldPaidAmount:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaidAmount(v)
+		return nil
+	case financecommission.FieldPaymentKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaymentKey(v)
+		return nil
+	case financecommission.FieldPaymentFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaymentFingerprint(v)
+		return nil
+	case financecommission.FieldPaymentSnapshot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPaymentSnapshot(v)
+		return nil
 	case financecommission.FieldPaidAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -42007,6 +42265,18 @@ func (m *FinanceCommissionMutation) ClearedFields() []string {
 	if m.FieldCleared(financecommission.FieldConfirmedBy) {
 		fields = append(fields, financecommission.FieldConfirmedBy)
 	}
+	if m.FieldCleared(financecommission.FieldPaidAmount) {
+		fields = append(fields, financecommission.FieldPaidAmount)
+	}
+	if m.FieldCleared(financecommission.FieldPaymentKey) {
+		fields = append(fields, financecommission.FieldPaymentKey)
+	}
+	if m.FieldCleared(financecommission.FieldPaymentFingerprint) {
+		fields = append(fields, financecommission.FieldPaymentFingerprint)
+	}
+	if m.FieldCleared(financecommission.FieldPaymentSnapshot) {
+		fields = append(fields, financecommission.FieldPaymentSnapshot)
+	}
 	if m.FieldCleared(financecommission.FieldPaidAt) {
 		fields = append(fields, financecommission.FieldPaidAt)
 	}
@@ -42071,6 +42341,18 @@ func (m *FinanceCommissionMutation) ClearField(name string) error {
 		return nil
 	case financecommission.FieldConfirmedBy:
 		m.ClearConfirmedBy()
+		return nil
+	case financecommission.FieldPaidAmount:
+		m.ClearPaidAmount()
+		return nil
+	case financecommission.FieldPaymentKey:
+		m.ClearPaymentKey()
+		return nil
+	case financecommission.FieldPaymentFingerprint:
+		m.ClearPaymentFingerprint()
+		return nil
+	case financecommission.FieldPaymentSnapshot:
+		m.ClearPaymentSnapshot()
 		return nil
 	case financecommission.FieldPaidAt:
 		m.ClearPaidAt()
@@ -42214,6 +42496,18 @@ func (m *FinanceCommissionMutation) ResetField(name string) error {
 		return nil
 	case financecommission.FieldConfirmedBy:
 		m.ResetConfirmedBy()
+		return nil
+	case financecommission.FieldPaidAmount:
+		m.ResetPaidAmount()
+		return nil
+	case financecommission.FieldPaymentKey:
+		m.ResetPaymentKey()
+		return nil
+	case financecommission.FieldPaymentFingerprint:
+		m.ResetPaymentFingerprint()
+		return nil
+	case financecommission.FieldPaymentSnapshot:
+		m.ResetPaymentSnapshot()
 		return nil
 	case financecommission.FieldPaidAt:
 		m.ResetPaidAt()
@@ -42537,6 +42831,8 @@ type FinanceCommissionAdjustmentMutation struct {
 	version                              *uint64
 	addversion                           *int64
 	confirmed_at                         *time.Time
+	execution_method                     *financecommissionadjustment.ExecutionMethod
+	parent_payment_id                    *uuid.UUID
 	paid_at                              *time.Time
 	cancelled_at                         *time.Time
 	cancellation_reason                  *string
@@ -43581,6 +43877,104 @@ func (m *FinanceCommissionAdjustmentMutation) ResetConfirmedBy() {
 	delete(m.clearedFields, financecommissionadjustment.FieldConfirmedBy)
 }
 
+// SetExecutionMethod sets the "execution_method" field.
+func (m *FinanceCommissionAdjustmentMutation) SetExecutionMethod(fm financecommissionadjustment.ExecutionMethod) {
+	m.execution_method = &fm
+}
+
+// ExecutionMethod returns the value of the "execution_method" field in the mutation.
+func (m *FinanceCommissionAdjustmentMutation) ExecutionMethod() (r financecommissionadjustment.ExecutionMethod, exists bool) {
+	v := m.execution_method
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExecutionMethod returns the old "execution_method" field's value of the FinanceCommissionAdjustment entity.
+// If the FinanceCommissionAdjustment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionAdjustmentMutation) OldExecutionMethod(ctx context.Context) (v *financecommissionadjustment.ExecutionMethod, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExecutionMethod is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExecutionMethod requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExecutionMethod: %w", err)
+	}
+	return oldValue.ExecutionMethod, nil
+}
+
+// ClearExecutionMethod clears the value of the "execution_method" field.
+func (m *FinanceCommissionAdjustmentMutation) ClearExecutionMethod() {
+	m.execution_method = nil
+	m.clearedFields[financecommissionadjustment.FieldExecutionMethod] = struct{}{}
+}
+
+// ExecutionMethodCleared returns if the "execution_method" field was cleared in this mutation.
+func (m *FinanceCommissionAdjustmentMutation) ExecutionMethodCleared() bool {
+	_, ok := m.clearedFields[financecommissionadjustment.FieldExecutionMethod]
+	return ok
+}
+
+// ResetExecutionMethod resets all changes to the "execution_method" field.
+func (m *FinanceCommissionAdjustmentMutation) ResetExecutionMethod() {
+	m.execution_method = nil
+	delete(m.clearedFields, financecommissionadjustment.FieldExecutionMethod)
+}
+
+// SetParentPaymentID sets the "parent_payment_id" field.
+func (m *FinanceCommissionAdjustmentMutation) SetParentPaymentID(u uuid.UUID) {
+	m.parent_payment_id = &u
+}
+
+// ParentPaymentID returns the value of the "parent_payment_id" field in the mutation.
+func (m *FinanceCommissionAdjustmentMutation) ParentPaymentID() (r uuid.UUID, exists bool) {
+	v := m.parent_payment_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentPaymentID returns the old "parent_payment_id" field's value of the FinanceCommissionAdjustment entity.
+// If the FinanceCommissionAdjustment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionAdjustmentMutation) OldParentPaymentID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentPaymentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentPaymentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentPaymentID: %w", err)
+	}
+	return oldValue.ParentPaymentID, nil
+}
+
+// ClearParentPaymentID clears the value of the "parent_payment_id" field.
+func (m *FinanceCommissionAdjustmentMutation) ClearParentPaymentID() {
+	m.parent_payment_id = nil
+	m.clearedFields[financecommissionadjustment.FieldParentPaymentID] = struct{}{}
+}
+
+// ParentPaymentIDCleared returns if the "parent_payment_id" field was cleared in this mutation.
+func (m *FinanceCommissionAdjustmentMutation) ParentPaymentIDCleared() bool {
+	_, ok := m.clearedFields[financecommissionadjustment.FieldParentPaymentID]
+	return ok
+}
+
+// ResetParentPaymentID resets all changes to the "parent_payment_id" field.
+func (m *FinanceCommissionAdjustmentMutation) ResetParentPaymentID() {
+	m.parent_payment_id = nil
+	delete(m.clearedFields, financecommissionadjustment.FieldParentPaymentID)
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (m *FinanceCommissionAdjustmentMutation) SetPaidAt(t time.Time) {
 	m.paid_at = &t
@@ -44142,7 +44536,7 @@ func (m *FinanceCommissionAdjustmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionAdjustmentMutation) Fields() []string {
-	fields := make([]string, 0, 28)
+	fields := make([]string, 0, 30)
 	if m.created_at != nil {
 		fields = append(fields, financecommissionadjustment.FieldCreatedAt)
 	}
@@ -44211,6 +44605,12 @@ func (m *FinanceCommissionAdjustmentMutation) Fields() []string {
 	}
 	if m.confirmed_by_user != nil {
 		fields = append(fields, financecommissionadjustment.FieldConfirmedBy)
+	}
+	if m.execution_method != nil {
+		fields = append(fields, financecommissionadjustment.FieldExecutionMethod)
+	}
+	if m.parent_payment_id != nil {
+		fields = append(fields, financecommissionadjustment.FieldParentPaymentID)
 	}
 	if m.paid_at != nil {
 		fields = append(fields, financecommissionadjustment.FieldPaidAt)
@@ -44281,6 +44681,10 @@ func (m *FinanceCommissionAdjustmentMutation) Field(name string) (ent.Value, boo
 		return m.ConfirmedAt()
 	case financecommissionadjustment.FieldConfirmedBy:
 		return m.ConfirmedBy()
+	case financecommissionadjustment.FieldExecutionMethod:
+		return m.ExecutionMethod()
+	case financecommissionadjustment.FieldParentPaymentID:
+		return m.ParentPaymentID()
 	case financecommissionadjustment.FieldPaidAt:
 		return m.PaidAt()
 	case financecommissionadjustment.FieldPaidBy:
@@ -44346,6 +44750,10 @@ func (m *FinanceCommissionAdjustmentMutation) OldField(ctx context.Context, name
 		return m.OldConfirmedAt(ctx)
 	case financecommissionadjustment.FieldConfirmedBy:
 		return m.OldConfirmedBy(ctx)
+	case financecommissionadjustment.FieldExecutionMethod:
+		return m.OldExecutionMethod(ctx)
+	case financecommissionadjustment.FieldParentPaymentID:
+		return m.OldParentPaymentID(ctx)
 	case financecommissionadjustment.FieldPaidAt:
 		return m.OldPaidAt(ctx)
 	case financecommissionadjustment.FieldPaidBy:
@@ -44526,6 +44934,20 @@ func (m *FinanceCommissionAdjustmentMutation) SetField(name string, value ent.Va
 		}
 		m.SetConfirmedBy(v)
 		return nil
+	case financecommissionadjustment.FieldExecutionMethod:
+		v, ok := value.(financecommissionadjustment.ExecutionMethod)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExecutionMethod(v)
+		return nil
+	case financecommissionadjustment.FieldParentPaymentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentPaymentID(v)
+		return nil
 	case financecommissionadjustment.FieldPaidAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -44621,6 +45043,12 @@ func (m *FinanceCommissionAdjustmentMutation) ClearedFields() []string {
 	if m.FieldCleared(financecommissionadjustment.FieldConfirmedBy) {
 		fields = append(fields, financecommissionadjustment.FieldConfirmedBy)
 	}
+	if m.FieldCleared(financecommissionadjustment.FieldExecutionMethod) {
+		fields = append(fields, financecommissionadjustment.FieldExecutionMethod)
+	}
+	if m.FieldCleared(financecommissionadjustment.FieldParentPaymentID) {
+		fields = append(fields, financecommissionadjustment.FieldParentPaymentID)
+	}
 	if m.FieldCleared(financecommissionadjustment.FieldPaidAt) {
 		fields = append(fields, financecommissionadjustment.FieldPaidAt)
 	}
@@ -44664,6 +45092,12 @@ func (m *FinanceCommissionAdjustmentMutation) ClearField(name string) error {
 		return nil
 	case financecommissionadjustment.FieldConfirmedBy:
 		m.ClearConfirmedBy()
+		return nil
+	case financecommissionadjustment.FieldExecutionMethod:
+		m.ClearExecutionMethod()
+		return nil
+	case financecommissionadjustment.FieldParentPaymentID:
+		m.ClearParentPaymentID()
 		return nil
 	case financecommissionadjustment.FieldPaidAt:
 		m.ClearPaidAt()
@@ -44756,6 +45190,12 @@ func (m *FinanceCommissionAdjustmentMutation) ResetField(name string) error {
 		return nil
 	case financecommissionadjustment.FieldConfirmedBy:
 		m.ResetConfirmedBy()
+		return nil
+	case financecommissionadjustment.FieldExecutionMethod:
+		m.ResetExecutionMethod()
+		return nil
+	case financecommissionadjustment.FieldParentPaymentID:
+		m.ResetParentPaymentID()
 		return nil
 	case financecommissionadjustment.FieldPaidAt:
 		m.ResetPaidAt()
@@ -72186,6 +72626,13 @@ type OrderMutation struct {
 	is_shared                               *bool
 	version                                 *uint64
 	addversion                              *int64
+	fee_review_status                       *order.FeeReviewStatus
+	fee_content_version                     *uint64
+	addfee_content_version                  *int64
+	fee_review_version                      *uint64
+	addfee_review_version                   *int64
+	current_fee_review_event_id             *uuid.UUID
+	approved_fee_review_event_id            *uuid.UUID
 	origin_location_id                      *uuid.UUID
 	destination_location_id                 *uuid.UUID
 	discharge_location_id                   *uuid.UUID
@@ -72255,6 +72702,9 @@ type OrderMutation struct {
 	abnormal_cases                          map[uuid.UUID]struct{}
 	removedabnormal_cases                   map[uuid.UUID]struct{}
 	clearedabnormal_cases                   bool
+	fee_review_events                       map[uuid.UUID]struct{}
+	removedfee_review_events                map[uuid.UUID]struct{}
+	clearedfee_review_events                bool
 	fees                                    map[uuid.UUID]struct{}
 	removedfees                             map[uuid.UUID]struct{}
 	clearedfees                             bool
@@ -74738,6 +75188,252 @@ func (m *OrderMutation) ResetVersion() {
 	m.addversion = nil
 }
 
+// SetFeeReviewStatus sets the "fee_review_status" field.
+func (m *OrderMutation) SetFeeReviewStatus(ors order.FeeReviewStatus) {
+	m.fee_review_status = &ors
+}
+
+// FeeReviewStatus returns the value of the "fee_review_status" field in the mutation.
+func (m *OrderMutation) FeeReviewStatus() (r order.FeeReviewStatus, exists bool) {
+	v := m.fee_review_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeReviewStatus returns the old "fee_review_status" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldFeeReviewStatus(ctx context.Context) (v order.FeeReviewStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeReviewStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeReviewStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeReviewStatus: %w", err)
+	}
+	return oldValue.FeeReviewStatus, nil
+}
+
+// ResetFeeReviewStatus resets all changes to the "fee_review_status" field.
+func (m *OrderMutation) ResetFeeReviewStatus() {
+	m.fee_review_status = nil
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (m *OrderMutation) SetFeeContentVersion(u uint64) {
+	m.fee_content_version = &u
+	m.addfee_content_version = nil
+}
+
+// FeeContentVersion returns the value of the "fee_content_version" field in the mutation.
+func (m *OrderMutation) FeeContentVersion() (r uint64, exists bool) {
+	v := m.fee_content_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeContentVersion returns the old "fee_content_version" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldFeeContentVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeContentVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeContentVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeContentVersion: %w", err)
+	}
+	return oldValue.FeeContentVersion, nil
+}
+
+// AddFeeContentVersion adds u to the "fee_content_version" field.
+func (m *OrderMutation) AddFeeContentVersion(u int64) {
+	if m.addfee_content_version != nil {
+		*m.addfee_content_version += u
+	} else {
+		m.addfee_content_version = &u
+	}
+}
+
+// AddedFeeContentVersion returns the value that was added to the "fee_content_version" field in this mutation.
+func (m *OrderMutation) AddedFeeContentVersion() (r int64, exists bool) {
+	v := m.addfee_content_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFeeContentVersion resets all changes to the "fee_content_version" field.
+func (m *OrderMutation) ResetFeeContentVersion() {
+	m.fee_content_version = nil
+	m.addfee_content_version = nil
+}
+
+// SetFeeReviewVersion sets the "fee_review_version" field.
+func (m *OrderMutation) SetFeeReviewVersion(u uint64) {
+	m.fee_review_version = &u
+	m.addfee_review_version = nil
+}
+
+// FeeReviewVersion returns the value of the "fee_review_version" field in the mutation.
+func (m *OrderMutation) FeeReviewVersion() (r uint64, exists bool) {
+	v := m.fee_review_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeReviewVersion returns the old "fee_review_version" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldFeeReviewVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeReviewVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeReviewVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeReviewVersion: %w", err)
+	}
+	return oldValue.FeeReviewVersion, nil
+}
+
+// AddFeeReviewVersion adds u to the "fee_review_version" field.
+func (m *OrderMutation) AddFeeReviewVersion(u int64) {
+	if m.addfee_review_version != nil {
+		*m.addfee_review_version += u
+	} else {
+		m.addfee_review_version = &u
+	}
+}
+
+// AddedFeeReviewVersion returns the value that was added to the "fee_review_version" field in this mutation.
+func (m *OrderMutation) AddedFeeReviewVersion() (r int64, exists bool) {
+	v := m.addfee_review_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFeeReviewVersion resets all changes to the "fee_review_version" field.
+func (m *OrderMutation) ResetFeeReviewVersion() {
+	m.fee_review_version = nil
+	m.addfee_review_version = nil
+}
+
+// SetCurrentFeeReviewEventID sets the "current_fee_review_event_id" field.
+func (m *OrderMutation) SetCurrentFeeReviewEventID(u uuid.UUID) {
+	m.current_fee_review_event_id = &u
+}
+
+// CurrentFeeReviewEventID returns the value of the "current_fee_review_event_id" field in the mutation.
+func (m *OrderMutation) CurrentFeeReviewEventID() (r uuid.UUID, exists bool) {
+	v := m.current_fee_review_event_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrentFeeReviewEventID returns the old "current_fee_review_event_id" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldCurrentFeeReviewEventID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrentFeeReviewEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrentFeeReviewEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrentFeeReviewEventID: %w", err)
+	}
+	return oldValue.CurrentFeeReviewEventID, nil
+}
+
+// ClearCurrentFeeReviewEventID clears the value of the "current_fee_review_event_id" field.
+func (m *OrderMutation) ClearCurrentFeeReviewEventID() {
+	m.current_fee_review_event_id = nil
+	m.clearedFields[order.FieldCurrentFeeReviewEventID] = struct{}{}
+}
+
+// CurrentFeeReviewEventIDCleared returns if the "current_fee_review_event_id" field was cleared in this mutation.
+func (m *OrderMutation) CurrentFeeReviewEventIDCleared() bool {
+	_, ok := m.clearedFields[order.FieldCurrentFeeReviewEventID]
+	return ok
+}
+
+// ResetCurrentFeeReviewEventID resets all changes to the "current_fee_review_event_id" field.
+func (m *OrderMutation) ResetCurrentFeeReviewEventID() {
+	m.current_fee_review_event_id = nil
+	delete(m.clearedFields, order.FieldCurrentFeeReviewEventID)
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (m *OrderMutation) SetApprovedFeeReviewEventID(u uuid.UUID) {
+	m.approved_fee_review_event_id = &u
+}
+
+// ApprovedFeeReviewEventID returns the value of the "approved_fee_review_event_id" field in the mutation.
+func (m *OrderMutation) ApprovedFeeReviewEventID() (r uuid.UUID, exists bool) {
+	v := m.approved_fee_review_event_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApprovedFeeReviewEventID returns the old "approved_fee_review_event_id" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldApprovedFeeReviewEventID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApprovedFeeReviewEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApprovedFeeReviewEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApprovedFeeReviewEventID: %w", err)
+	}
+	return oldValue.ApprovedFeeReviewEventID, nil
+}
+
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (m *OrderMutation) ClearApprovedFeeReviewEventID() {
+	m.approved_fee_review_event_id = nil
+	m.clearedFields[order.FieldApprovedFeeReviewEventID] = struct{}{}
+}
+
+// ApprovedFeeReviewEventIDCleared returns if the "approved_fee_review_event_id" field was cleared in this mutation.
+func (m *OrderMutation) ApprovedFeeReviewEventIDCleared() bool {
+	_, ok := m.clearedFields[order.FieldApprovedFeeReviewEventID]
+	return ok
+}
+
+// ResetApprovedFeeReviewEventID resets all changes to the "approved_fee_review_event_id" field.
+func (m *OrderMutation) ResetApprovedFeeReviewEventID() {
+	m.approved_fee_review_event_id = nil
+	delete(m.clearedFields, order.FieldApprovedFeeReviewEventID)
+}
+
 // SetOriginLocationID sets the "origin_location_id" field.
 func (m *OrderMutation) SetOriginLocationID(u uuid.UUID) {
 	m.origin_location_id = &u
@@ -76657,6 +77353,60 @@ func (m *OrderMutation) ResetAbnormalCases() {
 	m.removedabnormal_cases = nil
 }
 
+// AddFeeReviewEventIDs adds the "fee_review_events" edge to the OrderFeeReviewEvent entity by ids.
+func (m *OrderMutation) AddFeeReviewEventIDs(ids ...uuid.UUID) {
+	if m.fee_review_events == nil {
+		m.fee_review_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.fee_review_events[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFeeReviewEvents clears the "fee_review_events" edge to the OrderFeeReviewEvent entity.
+func (m *OrderMutation) ClearFeeReviewEvents() {
+	m.clearedfee_review_events = true
+}
+
+// FeeReviewEventsCleared reports if the "fee_review_events" edge to the OrderFeeReviewEvent entity was cleared.
+func (m *OrderMutation) FeeReviewEventsCleared() bool {
+	return m.clearedfee_review_events
+}
+
+// RemoveFeeReviewEventIDs removes the "fee_review_events" edge to the OrderFeeReviewEvent entity by IDs.
+func (m *OrderMutation) RemoveFeeReviewEventIDs(ids ...uuid.UUID) {
+	if m.removedfee_review_events == nil {
+		m.removedfee_review_events = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.fee_review_events, ids[i])
+		m.removedfee_review_events[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFeeReviewEvents returns the removed IDs of the "fee_review_events" edge to the OrderFeeReviewEvent entity.
+func (m *OrderMutation) RemovedFeeReviewEventsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfee_review_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeeReviewEventsIDs returns the "fee_review_events" edge IDs in the mutation.
+func (m *OrderMutation) FeeReviewEventsIDs() (ids []uuid.UUID) {
+	for id := range m.fee_review_events {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFeeReviewEvents resets all changes to the "fee_review_events" edge.
+func (m *OrderMutation) ResetFeeReviewEvents() {
+	m.fee_review_events = nil
+	m.clearedfee_review_events = false
+	m.removedfee_review_events = nil
+}
+
 // AddFeeIDs adds the "fees" edge to the OrderFee entity by ids.
 func (m *OrderMutation) AddFeeIDs(ids ...uuid.UUID) {
 	if m.fees == nil {
@@ -77703,7 +78453,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 74)
+	fields := make([]string, 0, 79)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -77856,6 +78606,21 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.version != nil {
 		fields = append(fields, order.FieldVersion)
+	}
+	if m.fee_review_status != nil {
+		fields = append(fields, order.FieldFeeReviewStatus)
+	}
+	if m.fee_content_version != nil {
+		fields = append(fields, order.FieldFeeContentVersion)
+	}
+	if m.fee_review_version != nil {
+		fields = append(fields, order.FieldFeeReviewVersion)
+	}
+	if m.current_fee_review_event_id != nil {
+		fields = append(fields, order.FieldCurrentFeeReviewEventID)
+	}
+	if m.approved_fee_review_event_id != nil {
+		fields = append(fields, order.FieldApprovedFeeReviewEventID)
 	}
 	if m.origin_location_id != nil {
 		fields = append(fields, order.FieldOriginLocationID)
@@ -78036,6 +78801,16 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.IsShared()
 	case order.FieldVersion:
 		return m.Version()
+	case order.FieldFeeReviewStatus:
+		return m.FeeReviewStatus()
+	case order.FieldFeeContentVersion:
+		return m.FeeContentVersion()
+	case order.FieldFeeReviewVersion:
+		return m.FeeReviewVersion()
+	case order.FieldCurrentFeeReviewEventID:
+		return m.CurrentFeeReviewEventID()
+	case order.FieldApprovedFeeReviewEventID:
+		return m.ApprovedFeeReviewEventID()
 	case order.FieldOriginLocationID:
 		return m.OriginLocationID()
 	case order.FieldDestinationLocationID:
@@ -78193,6 +78968,16 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldIsShared(ctx)
 	case order.FieldVersion:
 		return m.OldVersion(ctx)
+	case order.FieldFeeReviewStatus:
+		return m.OldFeeReviewStatus(ctx)
+	case order.FieldFeeContentVersion:
+		return m.OldFeeContentVersion(ctx)
+	case order.FieldFeeReviewVersion:
+		return m.OldFeeReviewVersion(ctx)
+	case order.FieldCurrentFeeReviewEventID:
+		return m.OldCurrentFeeReviewEventID(ctx)
+	case order.FieldApprovedFeeReviewEventID:
+		return m.OldApprovedFeeReviewEventID(ctx)
 	case order.FieldOriginLocationID:
 		return m.OldOriginLocationID(ctx)
 	case order.FieldDestinationLocationID:
@@ -78605,6 +79390,41 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetVersion(v)
 		return nil
+	case order.FieldFeeReviewStatus:
+		v, ok := value.(order.FeeReviewStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeReviewStatus(v)
+		return nil
+	case order.FieldFeeContentVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeContentVersion(v)
+		return nil
+	case order.FieldFeeReviewVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeReviewVersion(v)
+		return nil
+	case order.FieldCurrentFeeReviewEventID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrentFeeReviewEventID(v)
+		return nil
+	case order.FieldApprovedFeeReviewEventID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApprovedFeeReviewEventID(v)
+		return nil
 	case order.FieldOriginLocationID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -78780,6 +79600,12 @@ func (m *OrderMutation) AddedFields() []string {
 	if m.addversion != nil {
 		fields = append(fields, order.FieldVersion)
 	}
+	if m.addfee_content_version != nil {
+		fields = append(fields, order.FieldFeeContentVersion)
+	}
+	if m.addfee_review_version != nil {
+		fields = append(fields, order.FieldFeeReviewVersion)
+	}
 	if m.addtotal_packages != nil {
 		fields = append(fields, order.FieldTotalPackages)
 	}
@@ -78801,6 +79627,10 @@ func (m *OrderMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedLockGeneration()
 	case order.FieldVersion:
 		return m.AddedVersion()
+	case order.FieldFeeContentVersion:
+		return m.AddedFeeContentVersion()
+	case order.FieldFeeReviewVersion:
+		return m.AddedFeeReviewVersion()
 	case order.FieldTotalPackages:
 		return m.AddedTotalPackages()
 	case order.FieldTotalGrossWeightKg:
@@ -78829,6 +79659,20 @@ func (m *OrderMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddVersion(v)
+		return nil
+	case order.FieldFeeContentVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFeeContentVersion(v)
+		return nil
+	case order.FieldFeeReviewVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFeeReviewVersion(v)
 		return nil
 	case order.FieldTotalPackages:
 		v, ok := value.(int)
@@ -78960,6 +79804,12 @@ func (m *OrderMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(order.FieldAutoLockTriggeredBy) {
 		fields = append(fields, order.FieldAutoLockTriggeredBy)
+	}
+	if m.FieldCleared(order.FieldCurrentFeeReviewEventID) {
+		fields = append(fields, order.FieldCurrentFeeReviewEventID)
+	}
+	if m.FieldCleared(order.FieldApprovedFeeReviewEventID) {
+		fields = append(fields, order.FieldApprovedFeeReviewEventID)
 	}
 	if m.FieldCleared(order.FieldOriginLocationID) {
 		fields = append(fields, order.FieldOriginLocationID)
@@ -79145,6 +79995,12 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldAutoLockTriggeredBy:
 		m.ClearAutoLockTriggeredBy()
+		return nil
+	case order.FieldCurrentFeeReviewEventID:
+		m.ClearCurrentFeeReviewEventID()
+		return nil
+	case order.FieldApprovedFeeReviewEventID:
+		m.ClearApprovedFeeReviewEventID()
 		return nil
 	case order.FieldOriginLocationID:
 		m.ClearOriginLocationID()
@@ -79376,6 +80232,21 @@ func (m *OrderMutation) ResetField(name string) error {
 	case order.FieldVersion:
 		m.ResetVersion()
 		return nil
+	case order.FieldFeeReviewStatus:
+		m.ResetFeeReviewStatus()
+		return nil
+	case order.FieldFeeContentVersion:
+		m.ResetFeeContentVersion()
+		return nil
+	case order.FieldFeeReviewVersion:
+		m.ResetFeeReviewVersion()
+		return nil
+	case order.FieldCurrentFeeReviewEventID:
+		m.ResetCurrentFeeReviewEventID()
+		return nil
+	case order.FieldApprovedFeeReviewEventID:
+		m.ResetApprovedFeeReviewEventID()
+		return nil
 	case order.FieldOriginLocationID:
 		m.ResetOriginLocationID()
 		return nil
@@ -79451,7 +80322,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 34)
+	edges := make([]string, 0, 35)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -79496,6 +80367,9 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.abnormal_cases != nil {
 		edges = append(edges, order.EdgeAbnormalCases)
+	}
+	if m.fee_review_events != nil {
+		edges = append(edges, order.EdgeFeeReviewEvents)
 	}
 	if m.fees != nil {
 		edges = append(edges, order.EdgeFees)
@@ -79645,6 +80519,12 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeFeeReviewEvents:
+		ids := make([]ent.Value, 0, len(m.fee_review_events))
+		for id := range m.fee_review_events {
+			ids = append(ids, id)
+		}
+		return ids
 	case order.EdgeFees:
 		ids := make([]ent.Value, 0, len(m.fees))
 		for id := range m.fees {
@@ -79763,7 +80643,7 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 34)
+	edges := make([]string, 0, 35)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
 	}
@@ -79799,6 +80679,9 @@ func (m *OrderMutation) RemovedEdges() []string {
 	}
 	if m.removedabnormal_cases != nil {
 		edges = append(edges, order.EdgeAbnormalCases)
+	}
+	if m.removedfee_review_events != nil {
+		edges = append(edges, order.EdgeFeeReviewEvents)
 	}
 	if m.removedfees != nil {
 		edges = append(edges, order.EdgeFees)
@@ -79933,6 +80816,12 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case order.EdgeFeeReviewEvents:
+		ids := make([]ent.Value, 0, len(m.removedfee_review_events))
+		for id := range m.removedfee_review_events {
+			ids = append(ids, id)
+		}
+		return ids
 	case order.EdgeFees:
 		ids := make([]ent.Value, 0, len(m.removedfees))
 		for id := range m.removedfees {
@@ -80047,7 +80936,7 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 34)
+	edges := make([]string, 0, 35)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -80092,6 +80981,9 @@ func (m *OrderMutation) ClearedEdges() []string {
 	}
 	if m.clearedabnormal_cases {
 		edges = append(edges, order.EdgeAbnormalCases)
+	}
+	if m.clearedfee_review_events {
+		edges = append(edges, order.EdgeFeeReviewEvents)
 	}
 	if m.clearedfees {
 		edges = append(edges, order.EdgeFees)
@@ -80187,6 +81079,8 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedrelease_pods
 	case order.EdgeAbnormalCases:
 		return m.clearedabnormal_cases
+	case order.EdgeFeeReviewEvents:
+		return m.clearedfee_review_events
 	case order.EdgeFees:
 		return m.clearedfees
 	case order.EdgeFeeSupplementRequests:
@@ -80297,6 +81191,9 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeAbnormalCases:
 		m.ResetAbnormalCases()
+		return nil
+	case order.EdgeFeeReviewEvents:
+		m.ResetFeeReviewEvents()
 		return nil
 	case order.EdgeFees:
 		m.ResetFees()
@@ -92209,6 +93106,1295 @@ func (m *OrderFeeEnterpriseTagMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown OrderFeeEnterpriseTag edge %s", name)
 }
 
+// OrderFeeReviewEventMutation represents an operation that mutates the OrderFeeReviewEvent nodes in the graph.
+type OrderFeeReviewEventMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *uuid.UUID
+	created_at             *time.Time
+	updated_at             *time.Time
+	organization_id        *uuid.UUID
+	action                 *orderfeereviewevent.Action
+	submission_id          *uuid.UUID
+	actor_id               *uuid.UUID
+	actor_name             *string
+	authorization_snapshot *map[string]string
+	comment                *string
+	content_version        *uint64
+	addcontent_version     *int64
+	content_fingerprint    *string
+	snapshot               *json.RawMessage
+	appendsnapshot         json.RawMessage
+	supplement_request_id  *uuid.UUID
+	idempotency_key        *string
+	request_fingerprint    *string
+	clearedFields          map[string]struct{}
+	_order                 *uuid.UUID
+	cleared_order          bool
+	done                   bool
+	oldValue               func(context.Context) (*OrderFeeReviewEvent, error)
+	predicates             []predicate.OrderFeeReviewEvent
+}
+
+var _ ent.Mutation = (*OrderFeeReviewEventMutation)(nil)
+
+// orderfeerevieweventOption allows management of the mutation configuration using functional options.
+type orderfeerevieweventOption func(*OrderFeeReviewEventMutation)
+
+// newOrderFeeReviewEventMutation creates new mutation for the OrderFeeReviewEvent entity.
+func newOrderFeeReviewEventMutation(c config, op Op, opts ...orderfeerevieweventOption) *OrderFeeReviewEventMutation {
+	m := &OrderFeeReviewEventMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOrderFeeReviewEvent,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOrderFeeReviewEventID sets the ID field of the mutation.
+func withOrderFeeReviewEventID(id uuid.UUID) orderfeerevieweventOption {
+	return func(m *OrderFeeReviewEventMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OrderFeeReviewEvent
+		)
+		m.oldValue = func(ctx context.Context) (*OrderFeeReviewEvent, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OrderFeeReviewEvent.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOrderFeeReviewEvent sets the old OrderFeeReviewEvent of the mutation.
+func withOrderFeeReviewEvent(node *OrderFeeReviewEvent) orderfeerevieweventOption {
+	return func(m *OrderFeeReviewEventMutation) {
+		m.oldValue = func(context.Context) (*OrderFeeReviewEvent, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OrderFeeReviewEventMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OrderFeeReviewEventMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OrderFeeReviewEvent entities.
+func (m *OrderFeeReviewEventMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OrderFeeReviewEventMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OrderFeeReviewEventMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OrderFeeReviewEvent.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OrderFeeReviewEventMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OrderFeeReviewEventMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OrderFeeReviewEventMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OrderFeeReviewEventMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OrderFeeReviewEventMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OrderFeeReviewEventMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *OrderFeeReviewEventMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *OrderFeeReviewEventMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *OrderFeeReviewEventMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *OrderFeeReviewEventMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *OrderFeeReviewEventMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *OrderFeeReviewEventMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetAction sets the "action" field.
+func (m *OrderFeeReviewEventMutation) SetAction(o orderfeereviewevent.Action) {
+	m.action = &o
+}
+
+// Action returns the value of the "action" field in the mutation.
+func (m *OrderFeeReviewEventMutation) Action() (r orderfeereviewevent.Action, exists bool) {
+	v := m.action
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAction returns the old "action" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldAction(ctx context.Context) (v orderfeereviewevent.Action, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAction is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAction requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAction: %w", err)
+	}
+	return oldValue.Action, nil
+}
+
+// ResetAction resets all changes to the "action" field.
+func (m *OrderFeeReviewEventMutation) ResetAction() {
+	m.action = nil
+}
+
+// SetSubmissionID sets the "submission_id" field.
+func (m *OrderFeeReviewEventMutation) SetSubmissionID(u uuid.UUID) {
+	m.submission_id = &u
+}
+
+// SubmissionID returns the value of the "submission_id" field in the mutation.
+func (m *OrderFeeReviewEventMutation) SubmissionID() (r uuid.UUID, exists bool) {
+	v := m.submission_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubmissionID returns the old "submission_id" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldSubmissionID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubmissionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubmissionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubmissionID: %w", err)
+	}
+	return oldValue.SubmissionID, nil
+}
+
+// ClearSubmissionID clears the value of the "submission_id" field.
+func (m *OrderFeeReviewEventMutation) ClearSubmissionID() {
+	m.submission_id = nil
+	m.clearedFields[orderfeereviewevent.FieldSubmissionID] = struct{}{}
+}
+
+// SubmissionIDCleared returns if the "submission_id" field was cleared in this mutation.
+func (m *OrderFeeReviewEventMutation) SubmissionIDCleared() bool {
+	_, ok := m.clearedFields[orderfeereviewevent.FieldSubmissionID]
+	return ok
+}
+
+// ResetSubmissionID resets all changes to the "submission_id" field.
+func (m *OrderFeeReviewEventMutation) ResetSubmissionID() {
+	m.submission_id = nil
+	delete(m.clearedFields, orderfeereviewevent.FieldSubmissionID)
+}
+
+// SetActorID sets the "actor_id" field.
+func (m *OrderFeeReviewEventMutation) SetActorID(u uuid.UUID) {
+	m.actor_id = &u
+}
+
+// ActorID returns the value of the "actor_id" field in the mutation.
+func (m *OrderFeeReviewEventMutation) ActorID() (r uuid.UUID, exists bool) {
+	v := m.actor_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActorID returns the old "actor_id" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldActorID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActorID: %w", err)
+	}
+	return oldValue.ActorID, nil
+}
+
+// ResetActorID resets all changes to the "actor_id" field.
+func (m *OrderFeeReviewEventMutation) ResetActorID() {
+	m.actor_id = nil
+}
+
+// SetActorName sets the "actor_name" field.
+func (m *OrderFeeReviewEventMutation) SetActorName(s string) {
+	m.actor_name = &s
+}
+
+// ActorName returns the value of the "actor_name" field in the mutation.
+func (m *OrderFeeReviewEventMutation) ActorName() (r string, exists bool) {
+	v := m.actor_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActorName returns the old "actor_name" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldActorName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActorName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActorName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActorName: %w", err)
+	}
+	return oldValue.ActorName, nil
+}
+
+// ResetActorName resets all changes to the "actor_name" field.
+func (m *OrderFeeReviewEventMutation) ResetActorName() {
+	m.actor_name = nil
+}
+
+// SetAuthorizationSnapshot sets the "authorization_snapshot" field.
+func (m *OrderFeeReviewEventMutation) SetAuthorizationSnapshot(value map[string]string) {
+	m.authorization_snapshot = &value
+}
+
+// AuthorizationSnapshot returns the value of the "authorization_snapshot" field in the mutation.
+func (m *OrderFeeReviewEventMutation) AuthorizationSnapshot() (r map[string]string, exists bool) {
+	v := m.authorization_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAuthorizationSnapshot returns the old "authorization_snapshot" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldAuthorizationSnapshot(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAuthorizationSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAuthorizationSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAuthorizationSnapshot: %w", err)
+	}
+	return oldValue.AuthorizationSnapshot, nil
+}
+
+// ResetAuthorizationSnapshot resets all changes to the "authorization_snapshot" field.
+func (m *OrderFeeReviewEventMutation) ResetAuthorizationSnapshot() {
+	m.authorization_snapshot = nil
+}
+
+// SetComment sets the "comment" field.
+func (m *OrderFeeReviewEventMutation) SetComment(s string) {
+	m.comment = &s
+}
+
+// Comment returns the value of the "comment" field in the mutation.
+func (m *OrderFeeReviewEventMutation) Comment() (r string, exists bool) {
+	v := m.comment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldComment returns the old "comment" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldComment(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldComment is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldComment requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldComment: %w", err)
+	}
+	return oldValue.Comment, nil
+}
+
+// ResetComment resets all changes to the "comment" field.
+func (m *OrderFeeReviewEventMutation) ResetComment() {
+	m.comment = nil
+}
+
+// SetContentVersion sets the "content_version" field.
+func (m *OrderFeeReviewEventMutation) SetContentVersion(u uint64) {
+	m.content_version = &u
+	m.addcontent_version = nil
+}
+
+// ContentVersion returns the value of the "content_version" field in the mutation.
+func (m *OrderFeeReviewEventMutation) ContentVersion() (r uint64, exists bool) {
+	v := m.content_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentVersion returns the old "content_version" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldContentVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentVersion: %w", err)
+	}
+	return oldValue.ContentVersion, nil
+}
+
+// AddContentVersion adds u to the "content_version" field.
+func (m *OrderFeeReviewEventMutation) AddContentVersion(u int64) {
+	if m.addcontent_version != nil {
+		*m.addcontent_version += u
+	} else {
+		m.addcontent_version = &u
+	}
+}
+
+// AddedContentVersion returns the value that was added to the "content_version" field in this mutation.
+func (m *OrderFeeReviewEventMutation) AddedContentVersion() (r int64, exists bool) {
+	v := m.addcontent_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetContentVersion resets all changes to the "content_version" field.
+func (m *OrderFeeReviewEventMutation) ResetContentVersion() {
+	m.content_version = nil
+	m.addcontent_version = nil
+}
+
+// SetContentFingerprint sets the "content_fingerprint" field.
+func (m *OrderFeeReviewEventMutation) SetContentFingerprint(s string) {
+	m.content_fingerprint = &s
+}
+
+// ContentFingerprint returns the value of the "content_fingerprint" field in the mutation.
+func (m *OrderFeeReviewEventMutation) ContentFingerprint() (r string, exists bool) {
+	v := m.content_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentFingerprint returns the old "content_fingerprint" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldContentFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentFingerprint: %w", err)
+	}
+	return oldValue.ContentFingerprint, nil
+}
+
+// ResetContentFingerprint resets all changes to the "content_fingerprint" field.
+func (m *OrderFeeReviewEventMutation) ResetContentFingerprint() {
+	m.content_fingerprint = nil
+}
+
+// SetSnapshot sets the "snapshot" field.
+func (m *OrderFeeReviewEventMutation) SetSnapshot(jm json.RawMessage) {
+	m.snapshot = &jm
+	m.appendsnapshot = nil
+}
+
+// Snapshot returns the value of the "snapshot" field in the mutation.
+func (m *OrderFeeReviewEventMutation) Snapshot() (r json.RawMessage, exists bool) {
+	v := m.snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnapshot returns the old "snapshot" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldSnapshot(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnapshot: %w", err)
+	}
+	return oldValue.Snapshot, nil
+}
+
+// AppendSnapshot adds jm to the "snapshot" field.
+func (m *OrderFeeReviewEventMutation) AppendSnapshot(jm json.RawMessage) {
+	m.appendsnapshot = append(m.appendsnapshot, jm...)
+}
+
+// AppendedSnapshot returns the list of values that were appended to the "snapshot" field in this mutation.
+func (m *OrderFeeReviewEventMutation) AppendedSnapshot() (json.RawMessage, bool) {
+	if len(m.appendsnapshot) == 0 {
+		return nil, false
+	}
+	return m.appendsnapshot, true
+}
+
+// ResetSnapshot resets all changes to the "snapshot" field.
+func (m *OrderFeeReviewEventMutation) ResetSnapshot() {
+	m.snapshot = nil
+	m.appendsnapshot = nil
+}
+
+// SetSupplementRequestID sets the "supplement_request_id" field.
+func (m *OrderFeeReviewEventMutation) SetSupplementRequestID(u uuid.UUID) {
+	m.supplement_request_id = &u
+}
+
+// SupplementRequestID returns the value of the "supplement_request_id" field in the mutation.
+func (m *OrderFeeReviewEventMutation) SupplementRequestID() (r uuid.UUID, exists bool) {
+	v := m.supplement_request_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSupplementRequestID returns the old "supplement_request_id" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldSupplementRequestID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSupplementRequestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSupplementRequestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSupplementRequestID: %w", err)
+	}
+	return oldValue.SupplementRequestID, nil
+}
+
+// ClearSupplementRequestID clears the value of the "supplement_request_id" field.
+func (m *OrderFeeReviewEventMutation) ClearSupplementRequestID() {
+	m.supplement_request_id = nil
+	m.clearedFields[orderfeereviewevent.FieldSupplementRequestID] = struct{}{}
+}
+
+// SupplementRequestIDCleared returns if the "supplement_request_id" field was cleared in this mutation.
+func (m *OrderFeeReviewEventMutation) SupplementRequestIDCleared() bool {
+	_, ok := m.clearedFields[orderfeereviewevent.FieldSupplementRequestID]
+	return ok
+}
+
+// ResetSupplementRequestID resets all changes to the "supplement_request_id" field.
+func (m *OrderFeeReviewEventMutation) ResetSupplementRequestID() {
+	m.supplement_request_id = nil
+	delete(m.clearedFields, orderfeereviewevent.FieldSupplementRequestID)
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *OrderFeeReviewEventMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *OrderFeeReviewEventMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *OrderFeeReviewEventMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetRequestFingerprint sets the "request_fingerprint" field.
+func (m *OrderFeeReviewEventMutation) SetRequestFingerprint(s string) {
+	m.request_fingerprint = &s
+}
+
+// RequestFingerprint returns the value of the "request_fingerprint" field in the mutation.
+func (m *OrderFeeReviewEventMutation) RequestFingerprint() (r string, exists bool) {
+	v := m.request_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestFingerprint returns the old "request_fingerprint" field's value of the OrderFeeReviewEvent entity.
+// If the OrderFeeReviewEvent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeReviewEventMutation) OldRequestFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestFingerprint: %w", err)
+	}
+	return oldValue.RequestFingerprint, nil
+}
+
+// ResetRequestFingerprint resets all changes to the "request_fingerprint" field.
+func (m *OrderFeeReviewEventMutation) ResetRequestFingerprint() {
+	m.request_fingerprint = nil
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *OrderFeeReviewEventMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[orderfeereviewevent.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *OrderFeeReviewEventMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeReviewEventMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *OrderFeeReviewEventMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the OrderFeeReviewEventMutation builder.
+func (m *OrderFeeReviewEventMutation) Where(ps ...predicate.OrderFeeReviewEvent) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OrderFeeReviewEventMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OrderFeeReviewEventMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OrderFeeReviewEvent, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OrderFeeReviewEventMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OrderFeeReviewEventMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OrderFeeReviewEvent).
+func (m *OrderFeeReviewEventMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OrderFeeReviewEventMutation) Fields() []string {
+	fields := make([]string, 0, 16)
+	if m.created_at != nil {
+		fields = append(fields, orderfeereviewevent.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, orderfeereviewevent.FieldUpdatedAt)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, orderfeereviewevent.FieldOrganizationID)
+	}
+	if m._order != nil {
+		fields = append(fields, orderfeereviewevent.FieldOrderID)
+	}
+	if m.action != nil {
+		fields = append(fields, orderfeereviewevent.FieldAction)
+	}
+	if m.submission_id != nil {
+		fields = append(fields, orderfeereviewevent.FieldSubmissionID)
+	}
+	if m.actor_id != nil {
+		fields = append(fields, orderfeereviewevent.FieldActorID)
+	}
+	if m.actor_name != nil {
+		fields = append(fields, orderfeereviewevent.FieldActorName)
+	}
+	if m.authorization_snapshot != nil {
+		fields = append(fields, orderfeereviewevent.FieldAuthorizationSnapshot)
+	}
+	if m.comment != nil {
+		fields = append(fields, orderfeereviewevent.FieldComment)
+	}
+	if m.content_version != nil {
+		fields = append(fields, orderfeereviewevent.FieldContentVersion)
+	}
+	if m.content_fingerprint != nil {
+		fields = append(fields, orderfeereviewevent.FieldContentFingerprint)
+	}
+	if m.snapshot != nil {
+		fields = append(fields, orderfeereviewevent.FieldSnapshot)
+	}
+	if m.supplement_request_id != nil {
+		fields = append(fields, orderfeereviewevent.FieldSupplementRequestID)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, orderfeereviewevent.FieldIdempotencyKey)
+	}
+	if m.request_fingerprint != nil {
+		fields = append(fields, orderfeereviewevent.FieldRequestFingerprint)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OrderFeeReviewEventMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case orderfeereviewevent.FieldCreatedAt:
+		return m.CreatedAt()
+	case orderfeereviewevent.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case orderfeereviewevent.FieldOrganizationID:
+		return m.OrganizationID()
+	case orderfeereviewevent.FieldOrderID:
+		return m.OrderID()
+	case orderfeereviewevent.FieldAction:
+		return m.Action()
+	case orderfeereviewevent.FieldSubmissionID:
+		return m.SubmissionID()
+	case orderfeereviewevent.FieldActorID:
+		return m.ActorID()
+	case orderfeereviewevent.FieldActorName:
+		return m.ActorName()
+	case orderfeereviewevent.FieldAuthorizationSnapshot:
+		return m.AuthorizationSnapshot()
+	case orderfeereviewevent.FieldComment:
+		return m.Comment()
+	case orderfeereviewevent.FieldContentVersion:
+		return m.ContentVersion()
+	case orderfeereviewevent.FieldContentFingerprint:
+		return m.ContentFingerprint()
+	case orderfeereviewevent.FieldSnapshot:
+		return m.Snapshot()
+	case orderfeereviewevent.FieldSupplementRequestID:
+		return m.SupplementRequestID()
+	case orderfeereviewevent.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case orderfeereviewevent.FieldRequestFingerprint:
+		return m.RequestFingerprint()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OrderFeeReviewEventMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case orderfeereviewevent.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case orderfeereviewevent.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case orderfeereviewevent.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case orderfeereviewevent.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case orderfeereviewevent.FieldAction:
+		return m.OldAction(ctx)
+	case orderfeereviewevent.FieldSubmissionID:
+		return m.OldSubmissionID(ctx)
+	case orderfeereviewevent.FieldActorID:
+		return m.OldActorID(ctx)
+	case orderfeereviewevent.FieldActorName:
+		return m.OldActorName(ctx)
+	case orderfeereviewevent.FieldAuthorizationSnapshot:
+		return m.OldAuthorizationSnapshot(ctx)
+	case orderfeereviewevent.FieldComment:
+		return m.OldComment(ctx)
+	case orderfeereviewevent.FieldContentVersion:
+		return m.OldContentVersion(ctx)
+	case orderfeereviewevent.FieldContentFingerprint:
+		return m.OldContentFingerprint(ctx)
+	case orderfeereviewevent.FieldSnapshot:
+		return m.OldSnapshot(ctx)
+	case orderfeereviewevent.FieldSupplementRequestID:
+		return m.OldSupplementRequestID(ctx)
+	case orderfeereviewevent.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case orderfeereviewevent.FieldRequestFingerprint:
+		return m.OldRequestFingerprint(ctx)
+	}
+	return nil, fmt.Errorf("unknown OrderFeeReviewEvent field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeReviewEventMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case orderfeereviewevent.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case orderfeereviewevent.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case orderfeereviewevent.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case orderfeereviewevent.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case orderfeereviewevent.FieldAction:
+		v, ok := value.(orderfeereviewevent.Action)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAction(v)
+		return nil
+	case orderfeereviewevent.FieldSubmissionID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubmissionID(v)
+		return nil
+	case orderfeereviewevent.FieldActorID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActorID(v)
+		return nil
+	case orderfeereviewevent.FieldActorName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActorName(v)
+		return nil
+	case orderfeereviewevent.FieldAuthorizationSnapshot:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAuthorizationSnapshot(v)
+		return nil
+	case orderfeereviewevent.FieldComment:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetComment(v)
+		return nil
+	case orderfeereviewevent.FieldContentVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentVersion(v)
+		return nil
+	case orderfeereviewevent.FieldContentFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentFingerprint(v)
+		return nil
+	case orderfeereviewevent.FieldSnapshot:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnapshot(v)
+		return nil
+	case orderfeereviewevent.FieldSupplementRequestID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSupplementRequestID(v)
+		return nil
+	case orderfeereviewevent.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case orderfeereviewevent.FieldRequestFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestFingerprint(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeReviewEvent field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OrderFeeReviewEventMutation) AddedFields() []string {
+	var fields []string
+	if m.addcontent_version != nil {
+		fields = append(fields, orderfeereviewevent.FieldContentVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OrderFeeReviewEventMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case orderfeereviewevent.FieldContentVersion:
+		return m.AddedContentVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OrderFeeReviewEventMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case orderfeereviewevent.FieldContentVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddContentVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeReviewEvent numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OrderFeeReviewEventMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(orderfeereviewevent.FieldSubmissionID) {
+		fields = append(fields, orderfeereviewevent.FieldSubmissionID)
+	}
+	if m.FieldCleared(orderfeereviewevent.FieldSupplementRequestID) {
+		fields = append(fields, orderfeereviewevent.FieldSupplementRequestID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OrderFeeReviewEventMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OrderFeeReviewEventMutation) ClearField(name string) error {
+	switch name {
+	case orderfeereviewevent.FieldSubmissionID:
+		m.ClearSubmissionID()
+		return nil
+	case orderfeereviewevent.FieldSupplementRequestID:
+		m.ClearSupplementRequestID()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeReviewEvent nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OrderFeeReviewEventMutation) ResetField(name string) error {
+	switch name {
+	case orderfeereviewevent.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case orderfeereviewevent.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case orderfeereviewevent.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case orderfeereviewevent.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case orderfeereviewevent.FieldAction:
+		m.ResetAction()
+		return nil
+	case orderfeereviewevent.FieldSubmissionID:
+		m.ResetSubmissionID()
+		return nil
+	case orderfeereviewevent.FieldActorID:
+		m.ResetActorID()
+		return nil
+	case orderfeereviewevent.FieldActorName:
+		m.ResetActorName()
+		return nil
+	case orderfeereviewevent.FieldAuthorizationSnapshot:
+		m.ResetAuthorizationSnapshot()
+		return nil
+	case orderfeereviewevent.FieldComment:
+		m.ResetComment()
+		return nil
+	case orderfeereviewevent.FieldContentVersion:
+		m.ResetContentVersion()
+		return nil
+	case orderfeereviewevent.FieldContentFingerprint:
+		m.ResetContentFingerprint()
+		return nil
+	case orderfeereviewevent.FieldSnapshot:
+		m.ResetSnapshot()
+		return nil
+	case orderfeereviewevent.FieldSupplementRequestID:
+		m.ResetSupplementRequestID()
+		return nil
+	case orderfeereviewevent.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case orderfeereviewevent.FieldRequestFingerprint:
+		m.ResetRequestFingerprint()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeReviewEvent field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OrderFeeReviewEventMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m._order != nil {
+		edges = append(edges, orderfeereviewevent.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OrderFeeReviewEventMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case orderfeereviewevent.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OrderFeeReviewEventMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OrderFeeReviewEventMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OrderFeeReviewEventMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleared_order {
+		edges = append(edges, orderfeereviewevent.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OrderFeeReviewEventMutation) EdgeCleared(name string) bool {
+	switch name {
+	case orderfeereviewevent.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OrderFeeReviewEventMutation) ClearEdge(name string) error {
+	switch name {
+	case orderfeereviewevent.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeReviewEvent unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OrderFeeReviewEventMutation) ResetEdge(name string) error {
+	switch name {
+	case orderfeereviewevent.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown OrderFeeReviewEvent edge %s", name)
+}
+
 // OrderFeeSupplementRequestMutation represents an operation that mutates the OrderFeeSupplementRequest nodes in the graph.
 type OrderFeeSupplementRequestMutation struct {
 	config
@@ -92217,6 +94403,9 @@ type OrderFeeSupplementRequestMutation struct {
 	id                                 *uuid.UUID
 	created_at                         *time.Time
 	updated_at                         *time.Time
+	approved_fee_review_event_id       *uuid.UUID
+	approved_fee_content_version       *uint64
+	addapproved_fee_content_version    *int64
 	lock_basis                         *orderfeesupplementrequest.LockBasis
 	business_lock_generation           *uint64
 	addbusiness_lock_generation        *int64
@@ -92523,6 +94712,125 @@ func (m *OrderFeeSupplementRequestMutation) OldOrderID(ctx context.Context) (v u
 // ResetOrderID resets all changes to the "order_id" field.
 func (m *OrderFeeSupplementRequestMutation) ResetOrderID() {
 	m._order = nil
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (m *OrderFeeSupplementRequestMutation) SetApprovedFeeReviewEventID(u uuid.UUID) {
+	m.approved_fee_review_event_id = &u
+}
+
+// ApprovedFeeReviewEventID returns the value of the "approved_fee_review_event_id" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) ApprovedFeeReviewEventID() (r uuid.UUID, exists bool) {
+	v := m.approved_fee_review_event_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApprovedFeeReviewEventID returns the old "approved_fee_review_event_id" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldApprovedFeeReviewEventID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApprovedFeeReviewEventID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApprovedFeeReviewEventID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApprovedFeeReviewEventID: %w", err)
+	}
+	return oldValue.ApprovedFeeReviewEventID, nil
+}
+
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (m *OrderFeeSupplementRequestMutation) ClearApprovedFeeReviewEventID() {
+	m.approved_fee_review_event_id = nil
+	m.clearedFields[orderfeesupplementrequest.FieldApprovedFeeReviewEventID] = struct{}{}
+}
+
+// ApprovedFeeReviewEventIDCleared returns if the "approved_fee_review_event_id" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) ApprovedFeeReviewEventIDCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldApprovedFeeReviewEventID]
+	return ok
+}
+
+// ResetApprovedFeeReviewEventID resets all changes to the "approved_fee_review_event_id" field.
+func (m *OrderFeeSupplementRequestMutation) ResetApprovedFeeReviewEventID() {
+	m.approved_fee_review_event_id = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldApprovedFeeReviewEventID)
+}
+
+// SetApprovedFeeContentVersion sets the "approved_fee_content_version" field.
+func (m *OrderFeeSupplementRequestMutation) SetApprovedFeeContentVersion(u uint64) {
+	m.approved_fee_content_version = &u
+	m.addapproved_fee_content_version = nil
+}
+
+// ApprovedFeeContentVersion returns the value of the "approved_fee_content_version" field in the mutation.
+func (m *OrderFeeSupplementRequestMutation) ApprovedFeeContentVersion() (r uint64, exists bool) {
+	v := m.approved_fee_content_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApprovedFeeContentVersion returns the old "approved_fee_content_version" field's value of the OrderFeeSupplementRequest entity.
+// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeSupplementRequestMutation) OldApprovedFeeContentVersion(ctx context.Context) (v *uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApprovedFeeContentVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApprovedFeeContentVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApprovedFeeContentVersion: %w", err)
+	}
+	return oldValue.ApprovedFeeContentVersion, nil
+}
+
+// AddApprovedFeeContentVersion adds u to the "approved_fee_content_version" field.
+func (m *OrderFeeSupplementRequestMutation) AddApprovedFeeContentVersion(u int64) {
+	if m.addapproved_fee_content_version != nil {
+		*m.addapproved_fee_content_version += u
+	} else {
+		m.addapproved_fee_content_version = &u
+	}
+}
+
+// AddedApprovedFeeContentVersion returns the value that was added to the "approved_fee_content_version" field in this mutation.
+func (m *OrderFeeSupplementRequestMutation) AddedApprovedFeeContentVersion() (r int64, exists bool) {
+	v := m.addapproved_fee_content_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearApprovedFeeContentVersion clears the value of the "approved_fee_content_version" field.
+func (m *OrderFeeSupplementRequestMutation) ClearApprovedFeeContentVersion() {
+	m.approved_fee_content_version = nil
+	m.addapproved_fee_content_version = nil
+	m.clearedFields[orderfeesupplementrequest.FieldApprovedFeeContentVersion] = struct{}{}
+}
+
+// ApprovedFeeContentVersionCleared returns if the "approved_fee_content_version" field was cleared in this mutation.
+func (m *OrderFeeSupplementRequestMutation) ApprovedFeeContentVersionCleared() bool {
+	_, ok := m.clearedFields[orderfeesupplementrequest.FieldApprovedFeeContentVersion]
+	return ok
+}
+
+// ResetApprovedFeeContentVersion resets all changes to the "approved_fee_content_version" field.
+func (m *OrderFeeSupplementRequestMutation) ResetApprovedFeeContentVersion() {
+	m.approved_fee_content_version = nil
+	m.addapproved_fee_content_version = nil
+	delete(m.clearedFields, orderfeesupplementrequest.FieldApprovedFeeContentVersion)
 }
 
 // SetLockBasis sets the "lock_basis" field.
@@ -94464,7 +96772,7 @@ func (m *OrderFeeSupplementRequestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeSupplementRequestMutation) Fields() []string {
-	fields := make([]string, 0, 44)
+	fields := make([]string, 0, 46)
 	if m.created_at != nil {
 		fields = append(fields, orderfeesupplementrequest.FieldCreatedAt)
 	}
@@ -94476,6 +96784,12 @@ func (m *OrderFeeSupplementRequestMutation) Fields() []string {
 	}
 	if m._order != nil {
 		fields = append(fields, orderfeesupplementrequest.FieldOrderID)
+	}
+	if m.approved_fee_review_event_id != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldApprovedFeeReviewEventID)
+	}
+	if m.approved_fee_content_version != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldApprovedFeeContentVersion)
 	}
 	if m.lock_basis != nil {
 		fields = append(fields, orderfeesupplementrequest.FieldLockBasis)
@@ -94613,6 +96927,10 @@ func (m *OrderFeeSupplementRequestMutation) Field(name string) (ent.Value, bool)
 		return m.OrganizationID()
 	case orderfeesupplementrequest.FieldOrderID:
 		return m.OrderID()
+	case orderfeesupplementrequest.FieldApprovedFeeReviewEventID:
+		return m.ApprovedFeeReviewEventID()
+	case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+		return m.ApprovedFeeContentVersion()
 	case orderfeesupplementrequest.FieldLockBasis:
 		return m.LockBasis()
 	case orderfeesupplementrequest.FieldBusinessLockGeneration:
@@ -94710,6 +97028,10 @@ func (m *OrderFeeSupplementRequestMutation) OldField(ctx context.Context, name s
 		return m.OldOrganizationID(ctx)
 	case orderfeesupplementrequest.FieldOrderID:
 		return m.OldOrderID(ctx)
+	case orderfeesupplementrequest.FieldApprovedFeeReviewEventID:
+		return m.OldApprovedFeeReviewEventID(ctx)
+	case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+		return m.OldApprovedFeeContentVersion(ctx)
 	case orderfeesupplementrequest.FieldLockBasis:
 		return m.OldLockBasis(ctx)
 	case orderfeesupplementrequest.FieldBusinessLockGeneration:
@@ -94826,6 +97148,20 @@ func (m *OrderFeeSupplementRequestMutation) SetField(name string, value ent.Valu
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderID(v)
+		return nil
+	case orderfeesupplementrequest.FieldApprovedFeeReviewEventID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApprovedFeeReviewEventID(v)
+		return nil
+	case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApprovedFeeContentVersion(v)
 		return nil
 	case orderfeesupplementrequest.FieldLockBasis:
 		v, ok := value.(orderfeesupplementrequest.LockBasis)
@@ -95115,6 +97451,9 @@ func (m *OrderFeeSupplementRequestMutation) SetField(name string, value ent.Valu
 // this mutation.
 func (m *OrderFeeSupplementRequestMutation) AddedFields() []string {
 	var fields []string
+	if m.addapproved_fee_content_version != nil {
+		fields = append(fields, orderfeesupplementrequest.FieldApprovedFeeContentVersion)
+	}
 	if m.addbusiness_lock_generation != nil {
 		fields = append(fields, orderfeesupplementrequest.FieldBusinessLockGeneration)
 	}
@@ -95129,6 +97468,8 @@ func (m *OrderFeeSupplementRequestMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *OrderFeeSupplementRequestMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+		return m.AddedApprovedFeeContentVersion()
 	case orderfeesupplementrequest.FieldBusinessLockGeneration:
 		return m.AddedBusinessLockGeneration()
 	case orderfeesupplementrequest.FieldVersion:
@@ -95142,6 +97483,13 @@ func (m *OrderFeeSupplementRequestMutation) AddedField(name string) (ent.Value, 
 // type.
 func (m *OrderFeeSupplementRequestMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddApprovedFeeContentVersion(v)
+		return nil
 	case orderfeesupplementrequest.FieldBusinessLockGeneration:
 		v, ok := value.(int64)
 		if !ok {
@@ -95164,6 +97512,12 @@ func (m *OrderFeeSupplementRequestMutation) AddField(name string, value ent.Valu
 // mutation.
 func (m *OrderFeeSupplementRequestMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(orderfeesupplementrequest.FieldApprovedFeeReviewEventID) {
+		fields = append(fields, orderfeesupplementrequest.FieldApprovedFeeReviewEventID)
+	}
+	if m.FieldCleared(orderfeesupplementrequest.FieldApprovedFeeContentVersion) {
+		fields = append(fields, orderfeesupplementrequest.FieldApprovedFeeContentVersion)
+	}
 	if m.FieldCleared(orderfeesupplementrequest.FieldBusinessLockGeneration) {
 		fields = append(fields, orderfeesupplementrequest.FieldBusinessLockGeneration)
 	}
@@ -95220,6 +97574,12 @@ func (m *OrderFeeSupplementRequestMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrderFeeSupplementRequestMutation) ClearField(name string) error {
 	switch name {
+	case orderfeesupplementrequest.FieldApprovedFeeReviewEventID:
+		m.ClearApprovedFeeReviewEventID()
+		return nil
+	case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+		m.ClearApprovedFeeContentVersion()
+		return nil
 	case orderfeesupplementrequest.FieldBusinessLockGeneration:
 		m.ClearBusinessLockGeneration()
 		return nil
@@ -95281,6 +97641,12 @@ func (m *OrderFeeSupplementRequestMutation) ResetField(name string) error {
 		return nil
 	case orderfeesupplementrequest.FieldOrderID:
 		m.ResetOrderID()
+		return nil
+	case orderfeesupplementrequest.FieldApprovedFeeReviewEventID:
+		m.ResetApprovedFeeReviewEventID()
+		return nil
+	case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+		m.ResetApprovedFeeContentVersion()
 		return nil
 	case orderfeesupplementrequest.FieldLockBasis:
 		m.ResetLockBasis()

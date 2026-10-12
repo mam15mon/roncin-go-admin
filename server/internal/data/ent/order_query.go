@@ -27,6 +27,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -74,6 +75,7 @@ type OrderQuery struct {
 	withShippingDocuments             *OrderShippingDocumentQuery
 	withReleasePods                   *OrderReleasePodQuery
 	withAbnormalCases                 *OrderAbnormalCaseQuery
+	withFeeReviewEvents               *OrderFeeReviewEventQuery
 	withFees                          *OrderFeeQuery
 	withFeeSupplementRequests         *OrderFeeSupplementRequestQuery
 	withFinanceBillLines              *FinanceBillLineQuery
@@ -453,6 +455,28 @@ func (_q *OrderQuery) QueryAbnormalCases() *OrderAbnormalCaseQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(orderabnormalcase.Table, orderabnormalcase.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.AbnormalCasesTable, order.AbnormalCasesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFeeReviewEvents chains the current query on the "fee_review_events" edge.
+func (_q *OrderQuery) QueryFeeReviewEvents() *OrderFeeReviewEventQuery {
+	query := (&OrderFeeReviewEventClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(orderfeereviewevent.Table, orderfeereviewevent.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.FeeReviewEventsTable, order.FeeReviewEventsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1085,6 +1109,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withShippingDocuments:             _q.withShippingDocuments.Clone(),
 		withReleasePods:                   _q.withReleasePods.Clone(),
 		withAbnormalCases:                 _q.withAbnormalCases.Clone(),
+		withFeeReviewEvents:               _q.withFeeReviewEvents.Clone(),
 		withFees:                          _q.withFees.Clone(),
 		withFeeSupplementRequests:         _q.withFeeSupplementRequests.Clone(),
 		withFinanceBillLines:              _q.withFinanceBillLines.Clone(),
@@ -1272,6 +1297,17 @@ func (_q *OrderQuery) WithAbnormalCases(opts ...func(*OrderAbnormalCaseQuery)) *
 		opt(query)
 	}
 	_q.withAbnormalCases = query
+	return _q
+}
+
+// WithFeeReviewEvents tells the query-builder to eager-load the nodes that are connected to
+// the "fee_review_events" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithFeeReviewEvents(opts ...func(*OrderFeeReviewEventQuery)) *OrderQuery {
+	query := (&OrderFeeReviewEventClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFeeReviewEvents = query
 	return _q
 }
 
@@ -1562,7 +1598,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [34]bool{
+		loadedTypes = [35]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withShippingLine != nil,
@@ -1578,6 +1614,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withShippingDocuments != nil,
 			_q.withReleasePods != nil,
 			_q.withAbnormalCases != nil,
+			_q.withFeeReviewEvents != nil,
 			_q.withFees != nil,
 			_q.withFeeSupplementRequests != nil,
 			_q.withFinanceBillLines != nil,
@@ -1723,6 +1760,13 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		if err := _q.loadAbnormalCases(ctx, query, nodes,
 			func(n *Order) { n.Edges.AbnormalCases = []*OrderAbnormalCase{} },
 			func(n *Order, e *OrderAbnormalCase) { n.Edges.AbnormalCases = append(n.Edges.AbnormalCases, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFeeReviewEvents; query != nil {
+		if err := _q.loadFeeReviewEvents(ctx, query, nodes,
+			func(n *Order) { n.Edges.FeeReviewEvents = []*OrderFeeReviewEvent{} },
+			func(n *Order, e *OrderFeeReviewEvent) { n.Edges.FeeReviewEvents = append(n.Edges.FeeReviewEvents, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -2322,6 +2366,36 @@ func (_q *OrderQuery) loadAbnormalCases(ctx context.Context, query *OrderAbnorma
 	}
 	query.Where(predicate.OrderAbnormalCase(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.AbnormalCasesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadFeeReviewEvents(ctx context.Context, query *OrderFeeReviewEventQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderFeeReviewEvent)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeereviewevent.FieldOrderID)
+	}
+	query.Where(predicate.OrderFeeReviewEvent(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.FeeReviewEventsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

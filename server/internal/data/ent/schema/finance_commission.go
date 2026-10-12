@@ -60,6 +60,11 @@ func (FinanceCommission) Fields() []ent.Field {
 		field.Uint64("version").Default(1),
 		field.Time("confirmed_at").Optional().Nillable(),
 		field.UUID("confirmed_by", uuid.Nil).Optional().Nillable(),
+		// 发放快照仅由净额发放事务写入，历史未知金额保持 NULL。
+		field.String("paid_amount").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
+		field.String("payment_key").Optional().Nillable().MaxLen(128),
+		field.String("payment_fingerprint").Optional().Nillable().MaxLen(64),
+		field.String("payment_snapshot").Optional().Nillable(),
 		field.Time("paid_at").Optional().Nillable(),
 		field.UUID("paid_by", uuid.Nil).Optional().Nillable(),
 		field.Time("cancelled_at").Optional().Nillable(),

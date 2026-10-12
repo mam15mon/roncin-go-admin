@@ -58,6 +58,8 @@ type OrderListFilterRawValues = {
   shareStatus?: 'all' | 'shared' | 'unshared';
   isLocked?: 'all' | 'locked' | 'unlocked';
   tagIds?: string[];
+  feeReviewStatus?: string;
+  hasPendingFeeSupplement?: boolean;
 };
 
 export interface OrderListSearchFilterProps {
@@ -298,6 +300,8 @@ export function OrderListSearchFilter({
           rawValues.shareStatus === 'all' ? undefined : rawValues.shareStatus,
         isLocked: rawValues.isLocked === 'all' ? undefined : rawValues.isLocked,
         tagIds: tagIds?.length ? tagIds : undefined,
+        feeReviewStatus: rawValues.feeReviewStatus || undefined,
+        hasPendingFeeSupplement: rawValues.hasPendingFeeSupplement,
       },
       { ...labelsRef.current },
     );
@@ -331,6 +335,35 @@ export function OrderListSearchFilter({
           ...restored,
         }}
       >
+        <Row gutter={[12, 0]}>
+          <Col xs={24} sm={12} lg={6}>
+            <Form.Item name="feeReviewStatus" label="费用审核状态">
+              <Select
+                allowClear
+                placeholder="全部费用审核状态"
+                options={[
+                  { label: '未提交', value: 'UNSUBMITTED' },
+                  { label: '待审核', value: 'PENDING' },
+                  { label: '已批准', value: 'APPROVED' },
+                  { label: '已退回', value: 'REJECTED' },
+                  { label: '已撤销批准', value: 'REVOKED' },
+                ]}
+              />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Form.Item name="hasPendingFeeSupplement" label="待审核补录">
+              <Select
+                allowClear
+                placeholder="全部"
+                options={[
+                  { label: '有待审核补录', value: true },
+                  { label: '无待审核补录', value: false },
+                ]}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
         <Row gutter={[12, 0]}>
           <Col xs={24} sm={12} lg={6}>
             <Form.Item label="复合单号">

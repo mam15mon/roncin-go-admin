@@ -96,6 +96,14 @@ const (
 	FieldConfirmedAt = "confirmed_at"
 	// FieldConfirmedBy holds the string denoting the confirmed_by field in the database.
 	FieldConfirmedBy = "confirmed_by"
+	// FieldPaidAmount holds the string denoting the paid_amount field in the database.
+	FieldPaidAmount = "paid_amount"
+	// FieldPaymentKey holds the string denoting the payment_key field in the database.
+	FieldPaymentKey = "payment_key"
+	// FieldPaymentFingerprint holds the string denoting the payment_fingerprint field in the database.
+	FieldPaymentFingerprint = "payment_fingerprint"
+	// FieldPaymentSnapshot holds the string denoting the payment_snapshot field in the database.
+	FieldPaymentSnapshot = "payment_snapshot"
 	// FieldPaidAt holds the string denoting the paid_at field in the database.
 	FieldPaidAt = "paid_at"
 	// FieldPaidBy holds the string denoting the paid_by field in the database.
@@ -252,6 +260,10 @@ var Columns = []string{
 	FieldVersion,
 	FieldConfirmedAt,
 	FieldConfirmedBy,
+	FieldPaidAmount,
+	FieldPaymentKey,
+	FieldPaymentFingerprint,
+	FieldPaymentSnapshot,
 	FieldPaidAt,
 	FieldPaidBy,
 	FieldCancelledAt,
@@ -320,6 +332,10 @@ var (
 	NoteValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
+	// PaymentKeyValidator is a validator for the "payment_key" field. It is called by the builders before save.
+	PaymentKeyValidator func(string) error
+	// PaymentFingerprintValidator is a validator for the "payment_fingerprint" field. It is called by the builders before save.
+	PaymentFingerprintValidator func(string) error
 	// CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	CancellationReasonValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
@@ -583,6 +599,26 @@ func ByConfirmedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByConfirmedBy orders the results by the confirmed_by field.
 func ByConfirmedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldConfirmedBy, opts...).ToFunc()
+}
+
+// ByPaidAmount orders the results by the paid_amount field.
+func ByPaidAmount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaidAmount, opts...).ToFunc()
+}
+
+// ByPaymentKey orders the results by the payment_key field.
+func ByPaymentKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentKey, opts...).ToFunc()
+}
+
+// ByPaymentFingerprint orders the results by the payment_fingerprint field.
+func ByPaymentFingerprint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentFingerprint, opts...).ToFunc()
+}
+
+// ByPaymentSnapshot orders the results by the payment_snapshot field.
+func ByPaymentSnapshot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPaymentSnapshot, opts...).ToFunc()
 }
 
 // ByPaidAt orders the results by the paid_at field.

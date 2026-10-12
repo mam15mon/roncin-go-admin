@@ -95,6 +95,7 @@ type seedContext struct {
 	feeSettings     map[string]*ent.FeeSetting
 	partners        map[string]*ent.Partner
 	orders          map[string]*ent.Order
+	newOrderIDs     map[uuid.UUID]bool
 	orderFees       map[string]*ent.OrderFee
 }
 
@@ -152,6 +153,7 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 			feeSettings:    make(map[string]*ent.FeeSetting),
 			partners:       make(map[string]*ent.Partner),
 			orders:         make(map[string]*ent.Order),
+			newOrderIDs:    make(map[uuid.UUID]bool),
 			orderFees:      make(map[string]*ent.OrderFee),
 		}
 
@@ -169,6 +171,9 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 		}
 		if err := seedOrdersAndFees(ctx, sc); err != nil {
 			return fmt.Errorf("业务订单与费用明细同步失败: %w", err)
+		}
+		if err := seedCreatedOrderFeeReviews(ctx, sc); err != nil {
+			return fmt.Errorf("新建演示订单费用审核同步失败: %w", err)
 		}
 		if err := seedFinanceBillsAndCashflows(ctx, sc); err != nil {
 			return fmt.Errorf("财务账单、流水与核销同步失败: %w", err)
@@ -203,8 +208,8 @@ func printSeedSummary(sc *seedContext) {
 	fmt.Printf("✔ 财务字典: %d 个计费单位 + %d 个费用科目 + 开发基准汇率已生效\n", len(sc.billingUnits), len(sc.feeSettings))
 	fmt.Printf("✔ 往来单位: %d 家客商档案 (包含进出口商、电商、船代、车队、报关行及对公账户/联系人)\n", len(sc.partners))
 	fmt.Printf("✔ 海运订单: %d 票全生命周期订单 (草稿/订舱/配舱/拖车/截单/报关安排/放单/终止/结案，含锁定票、拼舱与主分单)\n", len(sc.orders))
-	fmt.Printf("✔ 费用账单: 应收/应付费用明细已录入，含已核销、部分核销+汇兑损益、美元确认、草稿、应付与批量建账批次\n")
-	fmt.Printf("✔ 订单锁治理: 核销自动锁+钉钉解锁审批(审批中)、人工锁定含单证版本快照、锁后补录(待审批+已审批)\n")
+	fmt.Printf("✔ 费用审核与账单: 新建演示票录齐应收/应付后显式提交并整票批准，含已核销、部分核销+汇兑损益、美元确认、草稿、应付与批量建账批次\n")
+	fmt.Printf("✔ 订单锁治理: 核销自动锁+钉钉解锁审批(审批中)、人工锁定含单证版本快照、已批准费用的受控成本补录(待审+已批准)\n")
 	fmt.Printf("✔ 提成链路: 经营归属+核销计提台账(销售10%%/操作3%%)+月度申请(待审批/已审批)\n")
 	fmt.Printf("✔ 单证操作: 拆票+整体改配(含ENDED关系)、共享箱守恒、HBL改单/作废重出、直单转主分单\n")
 	fmt.Printf("✔ 运营数据: 异常标记(未解决/已解决)、里程碑、放单POD(待签/已签)、附件登记\n")
@@ -1183,6 +1188,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 				return fmt.Errorf("创建订单 %s: %w", o.orderNo, err)
 			}
 			ord = created
+			sc.newOrderIDs[ord.ID] = true
 		}
 		sc.orders[o.orderNo] = ord
 
@@ -1377,6 +1383,11 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			feeKey := fmt.Sprintf("DEV-FEE-%s-%s-%s", o.orderNo, f.dir, f.code)
 			orderFee, _ := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(ord.ID), orderfeeent.IdempotencyKeyEQ(feeKey)).First(ctx)
 			if orderFee == nil {
+				// 已进入审核流程的既有订单由真实操作维护，重复同步不能补写费用
+				// 改变批准快照；新流程演示事实仅为本次新建的种子订单生成。
+				if !sc.newOrderIDs[ord.ID] && (ord.FeeReviewStatus == orderent.FeeReviewStatusPENDING || ord.FeeReviewStatus == orderent.FeeReviewStatusAPPROVED) {
+					continue
+				}
 				party := sc.partners[f.party]
 				fSetting := sc.feeSettings[f.code]
 				bUnit := sc.billingUnits[f.unit]
@@ -2185,57 +2196,18 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 		}
 	}
 
-	// 人工锁定票 SE26090004 的锁后应付补录：一笔待审批 + 一笔已审批并生成费用
+	// 仅新建演示票构造补录：先批准一笔，再创建依据新快照的待审申请。
 	ord4, err := tx.Order.Query().Where(orderent.OrganizationIDEQ(co.ID), orderent.OrderNoEQ("SE26090004")).First(ctx)
 	if err != nil {
 		return fmt.Errorf("查询订单 SE26090004: %w", err)
 	}
-	if ord4.LockGeneration == 0 {
-		return fmt.Errorf("订单 SE26090004 未锁定，无法注入费用补录")
+	if !sc.newOrderIDs[ord4.ID] {
+		return nil
+	}
+	if ord4.ApprovedFeeReviewEventID == nil {
+		return fmt.Errorf("订单 SE26090004 未批准整票费用，无法注入补录")
 	}
 	wangli := sc.users["wangli"]
-
-	supp1Key := "DEV-SUPP-SE26090004-TRUCK"
-	supp1Exists, _ := tx.OrderFeeSupplementRequest.Query().Where(
-		orderfeesupplementrequestent.OrganizationIDEQ(co.ID),
-		orderfeesupplementrequestent.IdempotencyKeyEQ(supp1Key),
-	).Exist(ctx)
-	if !supp1Exists {
-		_, err := tx.OrderFeeSupplementRequest.Create().
-			SetOrganizationID(co.ID).
-			SetOrderID(ord4.ID).
-			SetLockBasis(orderfeesupplementrequestent.LockBasisBUSINESS).
-			SetBusinessLockGeneration(ord4.LockGeneration).
-			SetIdempotencyKey(supp1Key).
-			SetRequestFingerprint("DEV-SUPP-FP-SE26090004-TRUCK").
-			SetDirection(orderfeesupplementrequestent.DirectionPAYABLE).
-			SetFeeSettingID(sc.feeSettings["TRUCK"].ID).
-			SetFeeCode("TRUCK").
-			SetFeeName("集装箱拖车费").
-			SetSettlementPartyID(sc.partners["SUPP-YJTC-04"].ID).
-			SetBillingUnitID(sc.billingUnits["CONT"].ID).
-			SetBillingUnit(sc.billingUnits["CONT"].Name).
-			SetTaxRate("9.00").
-			SetQuantity("1.0000").
-			SetUnitPrice("780.0000").
-			SetTotalAmount("780.00000000").
-			SetNetAmount("780.00000000").
-			SetTaxAmount("0.00000000").
-			SetCurrency("CNY").
-			SetExchangeRate("1.00000000").
-			SetExchangeRateSource(orderfeesupplementrequestent.ExchangeRateSourceSYSTEM).
-			SetExchangeRateDate("2026-09-21").
-			SetBaseCurrency("CNY").
-			SetBaseCurrencyAmount("780.00000000").
-			SetExpenseDate("2026-09-21").
-			SetReason("旺季拖车附加费漏录，供应商账单已到，需补录应付成本").
-			SetRequestedBy(wangli.ID).
-			SetRequestedAt(time.Now().UTC()).
-			Save(ctx)
-		if err != nil {
-			return fmt.Errorf("创建费用补录申请 (拖车费): %w", err)
-		}
-	}
 
 	supp2Key := "DEV-SUPP-SE26090004-STORAGE"
 	supp2, _ := tx.OrderFeeSupplementRequest.Query().Where(
@@ -2246,8 +2218,9 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 		createdSupp, err := tx.OrderFeeSupplementRequest.Create().
 			SetOrganizationID(co.ID).
 			SetOrderID(ord4.ID).
-			SetLockBasis(orderfeesupplementrequestent.LockBasisBUSINESS).
-			SetBusinessLockGeneration(ord4.LockGeneration).
+			SetLockBasis(orderfeesupplementrequestent.LockBasisAPPROVAL).
+			SetApprovedFeeReviewEventID(*ord4.ApprovedFeeReviewEventID).
+			SetApprovedFeeContentVersion(ord4.FeeContentVersion).
 			SetIdempotencyKey(supp2Key).
 			SetRequestFingerprint("DEV-SUPP-FP-SE26090004-STORAGE").
 			SetDirection(orderfeesupplementrequestent.DirectionPAYABLE).
@@ -2317,6 +2290,58 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 			}
 		}
 	}
+	ord4, err = seedSupplementReviewSnapshot(ctx, sc, ord4.ID, supp2.ID)
+	if err != nil {
+		return fmt.Errorf("更新已批准补录费用快照: %w", err)
+	}
+	sc.orders[ord4.OrderNo] = ord4
+
+	supp1Key := "DEV-SUPP-SE26090004-TRUCK"
+	supp1Exists, _ := tx.OrderFeeSupplementRequest.Query().Where(
+		orderfeesupplementrequestent.OrganizationIDEQ(co.ID),
+		orderfeesupplementrequestent.IdempotencyKeyEQ(supp1Key),
+	).Exist(ctx)
+	if !supp1Exists {
+		_, err := tx.OrderFeeSupplementRequest.Create().
+			SetOrganizationID(co.ID).
+			SetOrderID(ord4.ID).
+			SetLockBasis(orderfeesupplementrequestent.LockBasisAPPROVAL).
+			SetApprovedFeeReviewEventID(*ord4.ApprovedFeeReviewEventID).
+			SetApprovedFeeContentVersion(ord4.FeeContentVersion).
+			SetIdempotencyKey(supp1Key).
+			SetRequestFingerprint("DEV-SUPP-FP-SE26090004-TRUCK").
+			SetDirection(orderfeesupplementrequestent.DirectionPAYABLE).
+			SetFeeSettingID(sc.feeSettings["TRUCK"].ID).
+			SetFeeCode("TRUCK").
+			SetFeeName("集装箱拖车费").
+			SetSettlementPartyID(sc.partners["SUPP-YJTC-04"].ID).
+			SetBillingUnitID(sc.billingUnits["CONT"].ID).
+			SetBillingUnit(sc.billingUnits["CONT"].Name).
+			SetTaxRate("9.00").
+			SetQuantity("1.0000").
+			SetUnitPrice("780.0000").
+			SetTotalAmount("780.00000000").
+			SetNetAmount("780.00000000").
+			SetTaxAmount("0.00000000").
+			SetCurrency("CNY").
+			SetExchangeRate("1.00000000").
+			SetExchangeRateSource(orderfeesupplementrequestent.ExchangeRateSourceSYSTEM).
+			SetExchangeRateDate("2026-09-21").
+			SetBaseCurrency("CNY").
+			SetBaseCurrencyAmount("780.00000000").
+			SetExpenseDate("2026-09-21").
+			SetReason("旺季拖车附加费漏录，供应商账单已到，需补录应付成本").
+			SetRequestedBy(wangli.ID).
+			SetRequestedAt(time.Now().UTC()).
+			Save(ctx)
+		if err != nil {
+			return fmt.Errorf("创建费用补录申请 (拖车费): %w", err)
+		}
+		if err := tx.Order.UpdateOneID(ord4.ID).AddFeeReviewVersion(1).Exec(ctx); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

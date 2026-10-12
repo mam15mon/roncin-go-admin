@@ -231,6 +231,10 @@ func (s *OrderFeeService) PreviewOrderFeeSupplementApproval(ctx context.Context,
 		ProjectedPayable:    preview.ProjectedPayable.StringFixed(8),
 		ProjectedProfit:     preview.ProjectedProfit.StringFixed(8),
 		ProfitChange:        preview.ProfitChange.StringFixed(8),
+		PreviewToken:        preview.PreviewToken,
+	}
+	for _, a := range preview.CommissionImpacts {
+		data.CommissionImpacts = append(data.CommissionImpacts, &v1.FeeSupplementCommissionImpact{CommissionId: a.CommissionID.String(), CommissionNo: a.CommissionNo, EmployeeId: a.EmployeeID.String(), EmployeeName: a.EmployeeName, BaseCurrency: a.BaseCurrency, AmountBefore: a.AmountBefore.StringFixed(8), AmountAfter: a.AmountAfter.StringFixed(8), DecreaseAmount: a.Amount.StringFixed(8), ExcessAmount: a.ExcessAmount.StringFixed(8), CommissionStatus: a.CommissionStatus})
 	}
 	if preview.CurrentProfitRate != nil {
 		value := preview.CurrentProfitRate.StringFixed(4)
@@ -253,7 +257,7 @@ func (s *OrderFeeService) ApproveOrderFeeSupplement(ctx context.Context, request
 	if err != nil || request.GetExpectedVersion() == 0 {
 		return nil, biz.ErrFeeSupplementInvalidArgument
 	}
-	result, err := s.supplement.Approve(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion())
+	result, err := s.supplement.Approve(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion(), request.GetPreviewToken(), request.GetComment())
 	if err != nil {
 		return nil, err
 	}

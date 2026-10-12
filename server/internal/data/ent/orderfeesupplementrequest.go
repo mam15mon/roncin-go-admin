@@ -29,6 +29,10 @@ type OrderFeeSupplementRequest struct {
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
+	// ApprovedFeeReviewEventID holds the value of the "approved_fee_review_event_id" field.
+	ApprovedFeeReviewEventID *uuid.UUID `json:"approved_fee_review_event_id,omitempty"`
+	// ApprovedFeeContentVersion holds the value of the "approved_fee_content_version" field.
+	ApprovedFeeContentVersion *uint64 `json:"approved_fee_content_version,omitempty"`
 	// LockBasis holds the value of the "lock_basis" field.
 	LockBasis orderfeesupplementrequest.LockBasis `json:"lock_basis,omitempty"`
 	// BusinessLockGeneration holds the value of the "business_lock_generation" field.
@@ -201,11 +205,11 @@ func (*OrderFeeSupplementRequest) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfeesupplementrequest.FieldFeeSettingID, orderfeesupplementrequest.FieldBillingUnitID, orderfeesupplementrequest.FieldExchangeRateSettingID, orderfeesupplementrequest.FieldDecidedBy:
+		case orderfeesupplementrequest.FieldApprovedFeeReviewEventID, orderfeesupplementrequest.FieldFeeSettingID, orderfeesupplementrequest.FieldBillingUnitID, orderfeesupplementrequest.FieldExchangeRateSettingID, orderfeesupplementrequest.FieldDecidedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderfeesupplementrequest.FieldTaxInclusive:
 			values[i] = new(sql.NullBool)
-		case orderfeesupplementrequest.FieldBusinessLockGeneration, orderfeesupplementrequest.FieldVersion:
+		case orderfeesupplementrequest.FieldApprovedFeeContentVersion, orderfeesupplementrequest.FieldBusinessLockGeneration, orderfeesupplementrequest.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case orderfeesupplementrequest.FieldLockBasis, orderfeesupplementrequest.FieldFinancialLockEvidenceVersion, orderfeesupplementrequest.FieldFinancialLockEvidenceHash, orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot, orderfeesupplementrequest.FieldIdempotencyKey, orderfeesupplementrequest.FieldRequestFingerprint, orderfeesupplementrequest.FieldDirection, orderfeesupplementrequest.FieldFeeCode, orderfeesupplementrequest.FieldFeeName, orderfeesupplementrequest.FieldFeeNameEn, orderfeesupplementrequest.FieldBillingUnit, orderfeesupplementrequest.FieldTaxRate, orderfeesupplementrequest.FieldTaxableServiceName, orderfeesupplementrequest.FieldQuantity, orderfeesupplementrequest.FieldUnitPrice, orderfeesupplementrequest.FieldTotalAmount, orderfeesupplementrequest.FieldNetAmount, orderfeesupplementrequest.FieldTaxAmount, orderfeesupplementrequest.FieldCurrency, orderfeesupplementrequest.FieldExchangeRate, orderfeesupplementrequest.FieldExchangeRateSource, orderfeesupplementrequest.FieldExchangeRateDate, orderfeesupplementrequest.FieldBaseCurrency, orderfeesupplementrequest.FieldBaseCurrencyAmount, orderfeesupplementrequest.FieldExpenseDate, orderfeesupplementrequest.FieldNote, orderfeesupplementrequest.FieldReason, orderfeesupplementrequest.FieldStatus, orderfeesupplementrequest.FieldDecisionReason:
 			values[i] = new(sql.NullString)
@@ -257,6 +261,20 @@ func (_m *OrderFeeSupplementRequest) assignValues(columns []string, values []any
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
 			} else if value != nil {
 				_m.OrderID = *value
+			}
+		case orderfeesupplementrequest.FieldApprovedFeeReviewEventID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field approved_fee_review_event_id", values[i])
+			} else if value.Valid {
+				_m.ApprovedFeeReviewEventID = new(uuid.UUID)
+				*_m.ApprovedFeeReviewEventID = *value.S.(*uuid.UUID)
+			}
+		case orderfeesupplementrequest.FieldApprovedFeeContentVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field approved_fee_content_version", values[i])
+			} else if value.Valid {
+				_m.ApprovedFeeContentVersion = new(uint64)
+				*_m.ApprovedFeeContentVersion = uint64(value.Int64)
 			}
 		case orderfeesupplementrequest.FieldLockBasis:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -588,6 +606,16 @@ func (_m *OrderFeeSupplementRequest) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
+	builder.WriteString(", ")
+	if v := _m.ApprovedFeeReviewEventID; v != nil {
+		builder.WriteString("approved_fee_review_event_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.ApprovedFeeContentVersion; v != nil {
+		builder.WriteString("approved_fee_content_version=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("lock_basis=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LockBasis))

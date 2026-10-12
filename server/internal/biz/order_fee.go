@@ -45,10 +45,11 @@ const (
 )
 
 type OrderFee struct {
-	ID             uuid.UUID
-	OrderID        uuid.UUID
-	IdempotencyKey string
-	Direction      OrderFeeDirection
+	ID                  uuid.UUID
+	SupplementRequestID *uuid.UUID
+	OrderID             uuid.UUID
+	IdempotencyKey      string
+	Direction           OrderFeeDirection
 	// HasActiveBill 只读关联事实：费用是否被有效账单关联占用（活动账单行且所属
 	// 账单未取消，含草稿账单）。由 data 层批量投影，未加载关联时不允许默认为未建账。
 	HasActiveBill         bool

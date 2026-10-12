@@ -40,6 +40,7 @@ const (
 	FinanceFeeSettingRead      = "system.finance.fee_setting.read"
 	FinanceFeeSettingCreate    = "system.finance.fee_setting.create"
 	FinanceFeeSettingUpdate    = "system.finance.fee_setting.update"
+	FinanceFeeReview           = "system.finance.fee.review"
 	FinanceFeeRead             = "system.finance.fee.read"
 	FinanceFeeTag              = "system.finance.fee.tag"
 	FinanceBillConfigure       = "system.finance.bill.configure"
@@ -216,6 +217,7 @@ var manifest = append([]Permission{
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "费用管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "费用管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 费用总台账", Description: "查看当前组织全部业务线的应收应付费用"},
+	{Key: FinanceFeeReview, Name: "费用审核", Group: "费用管理 · 费用总台账", Description: "审核整票费用、退回或撤销批准及审核成本补录", Requires: []string{FinanceFeeRead}},
 	{Key: FinanceFeeTag, Name: "维护费用标签", Group: "费用管理 · 费用总台账", Description: "在费用总台账批量添加或移除业务标签", Requires: []string{FinanceFeeRead}},
 	{Key: FinanceBillConfigure, Name: "配置公司账单策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},

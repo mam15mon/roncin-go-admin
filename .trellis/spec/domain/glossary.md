@@ -24,7 +24,8 @@
 | 术语 | 英文/代码 | 含义与要点 | 代码入口 |
 | --- | --- | --- | --- |
 | 费用 | `OrderFee` | 订单级应收(RECEIVABLE)/应付(PAYABLE)费用行；**无独立状态字段**，是否已建账由有效账单关联（活动账单行且所属账单未取消，含 DRAFT）推导，投影为 `has_active_bill`；未建账费用硬删除（审计带快照），已建账须先取消账单，补录生成费用只能走补录专用撤销；币种+结算单位+方向一致才可同账单 | `data/fee_bill_association.go`、biz `order_fee.go` |
-| 费用补录 | Fee Supplement, `OrderFeeSupplementRequest` | 订单锁定后补录费用：锁证据→审批→生成费用+提成冲减建议；财务锁审批人资格；专用撤销=原子取消 DRAFT 冲减并硬删除生成费用，申请保持 APPROVED 且展示「生成费用已删除」 | `data/order_fee_supplement_*.go` |
+| 费用审核 | `OrderFeeReviewEvent` / `Order.fee_review_status` | 整票应收应付及利润人工审核；UNSUBMITTED/PENDING/APPROVED/REJECTED/REVOKED；独立费用审核权限且组织范围匹配，允许自审，亏损意见必填；批准绑定费用内容版本和快照，批准后冻结费用，建账服务端再次复核 | `biz/order_fee_review.go`、`data/order_fee_review.go` |
+| 费用补录 | Fee Supplement, `OrderFeeSupplementRequest` | 已批准费用的正向应付成本受控补录；提交不生成费用，待审阻止新建账及受影响提成确认/发放；批准一次生成费用+完整新审批快照+CONFIRMED提成冲减；存在已确认冲减时不能直接撤销 | `data/order_fee_supplement_*.go` |
 | 账单 | `FinanceBill` / `...Batch` / `...Line` | 费用汇成账单；支持单张与批量分组建账（分组策略/对冲模式）；状态机 含版本乐观锁 | `biz/finance_bill*.go` |
 | 对冲 | Netting, `FinanceNetting` / `...Allocation` | 同结算单位应收应付互抵；对冲配对在建账预览中生成 | `finance_netting*.go` |
 | 核销 | Verification, `FinanceVerification` / `...Allocation` | 收付款登记后按分配核销到账单/费用 | `finance_verification*.go` |
@@ -32,7 +33,7 @@
 | 发票 | `FinanceInvoice` / `...Bill` / `...Line` | 发票及其与账单行关联 | `finance_invoice*.go` |
 | 提成方案 | `FinanceCommissionRule` / `...Assignment` | 按员工+角色分配的提成规则（区间不可重叠，生效/草稿/停用） | `biz/finance_commission_rules.go` |
 | 提成 | `FinanceCommission` / `...Line` | 计提引擎按核销/对冲来源生成的提成（金额、CNY 快照、来源指纹）；状态 DRAFT→CONFIRMED→PAID，可 Cancel | `data/finance_commission_calculation.go` |
-| 提成调整 | `FinanceCommissionAdjustment` | 提成的手工调整/冲减（补录场景产生冲减建议） | `finance_commission_adjustment.go` |
+| 提成调整 | `FinanceCommissionAdjustment` | 提成的手工调整/冲减；补录批准直接生成CONFIRMED冲减；未付父单发放时所有已确认调整参与净额并同步抵扣执行，已付父单后续调整单独执行 | `finance_commission_adjustment.go` |
 | 月度提成申请 | `FinanceCommissionApplication` / `...Line` | 员工按完整自然月汇总申请全部未申请合格提成；财务整单批准/驳回（不做部分批准）；驳回原单显式重提（Resubmit） | `biz/finance_commission_application.go` |
 | 提成归属 | `OrderCommissionAttribution` | 订单经营归属（销售/操作/客服三岗）锚点，计提依据；创建时按订单人员分工固化，客户档案责任人仅作表单带入默认值 | 计提源解析见 `finance_commission_calculation.go`，契约见 `server/backend/operating-company-commission-attribution.md` |
 | 结算单位 | Settlement Party | 费用/账单的往来结算对象（Partner） | `partner.go` |

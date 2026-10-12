@@ -544,6 +544,29 @@ func (s *SettlementService) ConfirmCommission(ctx context.Context, r *v1.Confirm
 	}
 	return ok(ctx, &v1.ConfirmCommissionResponse{Data: commissionToAPI(item)}), nil
 }
+func (s *SettlementService) PreviewCommissionPayment(ctx context.Context, r *v1.PreviewCommissionPaymentRequest) (*v1.PreviewCommissionPaymentResponse, error) {
+	p, id, err := financePrincipalAndID(ctx, r.GetId())
+	if err != nil {
+		return nil, err
+	}
+	ids, err := organizationIDsForPermission(p, access.FinanceCommissionManage, true)
+	if err != nil {
+		return nil, err
+	}
+	parent, err := s.commissionUsecase.GetScoped(ctx, ids, id)
+	if err != nil {
+		return nil, err
+	}
+	preview, err := s.commissionUsecase.PreviewPayment(ctx, parent.OrganizationID, id, r.GetExpectedVersion())
+	if err != nil {
+		return nil, err
+	}
+	data := &v1.CommissionPaymentPreview{CommissionId: preview.CommissionID.String(), Version: preview.Version, BaseCurrency: preview.BaseCurrency, OriginalAmount: preview.OriginalAmount.StringFixed(8), AdjustmentAmount: preview.AdjustmentAmount.StringFixed(8), ActualAmount: preview.ActualAmount.StringFixed(8), PreviewToken: preview.PreviewToken, OffsetSettlement: preview.OffsetSettlement}
+	for _, a := range preview.Adjustments {
+		data.Adjustments = append(data.Adjustments, &v1.CommissionPaymentAdjustment{Id: a.ID.String(), Version: a.Version, Direction: string(a.Direction), Amount: a.Amount.StringFixed(8), AdjustmentNo: a.AdjustmentNo})
+	}
+	return ok(ctx, &v1.PreviewCommissionPaymentResponse{Data: data}), nil
+}
 func (s *SettlementService) MarkCommissionPaid(ctx context.Context, r *v1.MarkCommissionPaidRequest) (*v1.MarkCommissionPaidResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, r.GetId())
 	if err != nil {
@@ -557,7 +580,11 @@ func (s *SettlementService) MarkCommissionPaid(ctx context.Context, r *v1.MarkCo
 	if err != nil {
 		return nil, err
 	}
-	item, err := s.commissionUsecase.MarkPaid(ctx, commission.OrganizationID, p.UserID, id, r.GetExpectedVersion())
+	amount, parseErr := parsePlainDecimal(r.GetActualAmount())
+	if parseErr != nil {
+		return nil, biz.ErrCommissionInvalid
+	}
+	item, err := s.commissionUsecase.MarkPaid(ctx, commission.OrganizationID, p.UserID, id, r.GetExpectedVersion(), biz.CommissionPaymentInput{PreviewToken: r.GetPreviewToken(), ActualAmount: amount, IdempotencyKey: r.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}
@@ -786,7 +813,12 @@ func commissionToAPI(x *biz.FinanceCommission) *v1.FinanceCommission {
 	for _, item := range x.Adjustments {
 		adjustments = append(adjustments, commissionAdjustmentToAPI(item))
 	}
-	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, VerificationId: verificationID, VerificationNo: verificationNo, NettingId: nettingID, NettingNo: nettingNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: financeCommissionStatusToAPI(x.Status), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), ConfirmedBy: uuidStringPtr(x.ConfirmedBy), PaidAt: financeTime(x.PaidAt), PaidBy: uuidStringPtr(x.PaidBy), CancelledAt: financeTime(x.CancelledAt), CancelledBy: uuidStringPtr(x.CancelledBy), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CommissionDate: x.CommissionDate, CnyExchangeRate: x.CNYExchangeRate.StringFixed(8), CnyExchangeRateSource: x.CNYExchangeRateSource, CnyExchangeRateDate: x.CNYExchangeRateDate, CnyExchangeRateSettingId: uuidStringPtr(x.CNYExchangeRateSettingID), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
+	var paidAmount *string
+	if x.PaidAmount != nil {
+		v := x.PaidAmount.StringFixed(8)
+		paidAmount = &v
+	}
+	return &v1.FinanceCommission{Id: x.ID.String(), CommissionNo: x.CommissionNo, PaidAmount: paidAmount, VerificationId: verificationID, VerificationNo: verificationNo, NettingId: nettingID, NettingNo: nettingNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName, Status: financeCommissionStatusToAPI(x.Status), OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName, BaseCurrency: x.BaseCurrency, CustomerCount: int32(x.CustomerCount), OrderCount: int32(x.OrderCount), FeeCount: int32(x.FeeCount), RealizedRevenue: x.RealizedRevenue.StringFixed(8), AllocatedCost: x.AllocatedCost.StringFixed(8), RealizedProfit: x.RealizedProfit.StringFixed(8), CommissionBaseAmount: x.CommissionBaseAmount.StringFixed(8), RatePercent: x.RatePercent.StringFixed(4), CommissionAmount: x.CommissionAmount.StringFixed(8), Note: x.Note, Version: x.Version, ConfirmedAt: financeTime(x.ConfirmedAt), ConfirmedBy: uuidStringPtr(x.ConfirmedBy), PaidAt: financeTime(x.PaidAt), PaidBy: uuidStringPtr(x.PaidBy), CancelledAt: financeTime(x.CancelledAt), CancelledBy: uuidStringPtr(x.CancelledBy), CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339), RuleId: ruleID, RuleName: ruleName, PersonnelRole: personnelRole, CalculationBasis: calculationBasis, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, Lines: lines, Adjustments: adjustments, AdjustmentAmount: x.AdjustmentAmount.StringFixed(8), EffectiveCommissionAmount: x.EffectiveCommissionAmount.StringFixed(8), CommissionDate: x.CommissionDate, CnyExchangeRate: x.CNYExchangeRate.StringFixed(8), CnyExchangeRateSource: x.CNYExchangeRateSource, CnyExchangeRateDate: x.CNYExchangeRateDate, CnyExchangeRateSettingId: uuidStringPtr(x.CNYExchangeRateSettingID), CnyCommissionAmount: x.CNYCommissionAmount.StringFixed(8), CnyAdjustmentAmount: x.CNYAdjustmentAmount.StringFixed(8), CnyEffectiveCommissionAmount: x.CNYEffectiveCommissionAmount.StringFixed(8)}
 }
 
 // commissionExportItemToAPI 输出导出扁平 DTO：金额字段与本位币、CNY 双口径及
@@ -810,6 +842,7 @@ func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCo
 		return nil
 	}
 	return &v1.FinanceCommissionAdjustment{
+		ExecutionMethod: x.ExecutionMethod, ParentPaymentId: uuidStringPtr(x.ParentPaymentID), CanExecute: x.CanExecute, ExecutionBlockedReason: x.ExecutionBlockedReason,
 		Id: x.ID.String(), AdjustmentNo: x.AdjustmentNo, CommissionId: x.CommissionID.String(), CommissionNo: x.CommissionNo,
 		OrganizationId: x.OrganizationID.String(), OrganizationName: x.OrganizationName,
 		OrderId: x.OrderID.String(), OrderNo: x.OrderNo, EmployeeId: x.EmployeeID.String(), EmployeeName: x.EmployeeName,

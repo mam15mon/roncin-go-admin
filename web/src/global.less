@@ -1095,11 +1095,11 @@ body,
     }
   }
 
-  // 4. 彻底重置 scroll 滚动表格 body 内部的测量占位 thead 和 measure-row，防止被撑开出现多余空行
+  // 4. 只重置直属滚动表的测量占位，保留展开行内嵌套表格的真实表头。
   .ant-table-body {
-    .ant-table-thead > tr > th,
-    .ant-table-thead > tr,
-    .ant-table-measure-row > td {
+    > table > .ant-table-thead > tr > th,
+    > table > .ant-table-thead > tr,
+    > table > .ant-table-tbody > .ant-table-measure-row > td {
       height: 0 !important;
       padding: 0 !important;
       border: none !important;

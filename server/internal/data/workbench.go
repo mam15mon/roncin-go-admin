@@ -581,7 +581,7 @@ func (r *workbenchRepo) workbenchFinanceSummary(ctx context.Context, client *ent
 		pendingDecreaseCount, err := client.FinanceCommissionAdjustment.Query().Where(
 			adjustment.OrganizationIDEQ(scope.OrganizationID),
 			adjustment.DirectionEQ(adjustment.DirectionDECREASE),
-			adjustment.StatusEQ(adjustment.StatusDRAFT),
+			adjustment.StatusEQ(adjustment.StatusCONFIRMED),
 			adjustment.SourceTypeEQ(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT),
 		).Count(ctx)
 		if err != nil {
@@ -590,6 +590,14 @@ func (r *workbenchRepo) workbenchFinanceSummary(ctx context.Context, client *ent
 		summary.PendingDecreaseCount = pendingDecreaseCount
 	}
 
+	// 同组织所有补录候选复用一次费用审核真实 grant 判定，不按订单锁角色或 bootstrap 身份放行。
+	qualified, err := hasFeeReviewPermission(ctx, client, scope.OrganizationID, scope.UserID, false)
+	if err != nil {
+		return nil, err
+	}
+	if !qualified {
+		return summary, nil
+	}
 	requests, err := client.OrderFeeSupplementRequest.Query().Where(
 		orderfeesupplementent.OrganizationIDEQ(scope.OrganizationID),
 		orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusPENDING),
@@ -606,18 +614,6 @@ func (r *workbenchRepo) workbenchFinanceSummary(ctx context.Context, client *ent
 	}
 	for _, requestItem := range requests {
 		if requestItem.Edges.Order == nil {
-			continue
-		}
-		businessType, typeErr := orderAccessBusinessType(requestItem.Edges.Order.BusinessType)
-		if typeErr != nil {
-			// 业务类型不受支持视为不具备资格，与审批路径一致按无资格跳过。
-			continue
-		}
-		qualified, grantErr := hasRealtimeLockGrantWithClient(ctx, client, scope.OrganizationID, scope.UserID, businessType, scope.IsBootstrapAdmin)
-		if grantErr != nil {
-			return nil, grantErr
-		}
-		if !qualified {
 			continue
 		}
 		summary.PendingSupplementApprovalCount++

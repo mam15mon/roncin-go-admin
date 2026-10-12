@@ -121,7 +121,7 @@ export default function FinanceSummaryCard({ finance }: Props) {
             >
               <Space size={8}>
                 <MinusCircleOutlined style={{ color: '#ff7a45' }} />
-                <Text strong>待处理冲减建议</Text>
+                <Text strong>待执行提成冲减</Text>
                 <Tag color="orange">
                   {finance.pendingDecreaseCount ?? 0} 条（尚未扣回）
                 </Tag>

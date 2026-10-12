@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -37,26 +36,26 @@ func TestSupplementPreviewRejectsStaleOrUnauthorizedRequest(t *testing.T) {
 	request := &OrderFeeSupplementRequest{OrderID: orderID, Version: 2, Status: OrderFeeSupplementPending, LockBasis: SupplementLockBasisBusiness, BusinessLockGeneration: &generation}
 	repo := &supplementPreviewRepoStub{request: request, evidence: &OrderFeeSupplementLockEvidence{BusinessLocked: true, BusinessLockGeneration: 2}}
 	uc := NewOrderFeeSupplementUsecase(repo, nil, nil)
-	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, uuid.New(), requestID, 2); err != ErrFeeSupplementNotFound {
+	if _, err := uc.previewApproval(context.Background(), principal, organizationID, uuid.New(), requestID, 2); err != ErrFeeSupplementNotFound {
 		t.Fatalf("跨订单申请应拒绝: %v", err)
 	}
 	if repo.grantCalls != 0 {
 		t.Fatal("跨订单申请不得继续读取审批资格")
 	}
-	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, orderID, requestID, 1); err != ErrFeeSupplementTransition {
+	if _, err := uc.previewApproval(context.Background(), principal, organizationID, orderID, requestID, 1); err != ErrFeeSupplementTransition {
 		t.Fatalf("旧版本应拒绝: %v", err)
 	}
 	if repo.grantCalls != 0 {
 		t.Fatal("旧版本不得继续读取审批资格")
 	}
-	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, orderID, requestID, 2); err != ErrPermissionDenied {
+	if _, err := uc.previewApproval(context.Background(), principal, organizationID, orderID, requestID, 2); err != ErrPermissionDenied {
 		t.Fatalf("无资格应拒绝: %v", err)
 	}
 	if repo.evidenceCalls != 0 {
 		t.Fatal("无资格不得读取锁依据")
 	}
 	repo.grant = true
-	if _, err := uc.PreviewApproval(context.Background(), principal, organizationID, orderID, requestID, 2); err == nil {
+	if _, err := uc.previewApproval(context.Background(), principal, organizationID, orderID, requestID, 2); err == nil {
 		t.Fatal("锁代次变化应拒绝")
 	}
 }
@@ -150,102 +149,27 @@ func TestBuildOrderFeeSupplementFingerprint(t *testing.T) {
 	}
 }
 
-func TestClassifySupplementLockBasis(t *testing.T) {
-	evidence := &OrderFeeSupplementLockEvidence{
-		BusinessLocked:           true,
-		BusinessLockGeneration:   4,
-		FinancialLocked:          true,
-		FinancialEvidenceVersion: financialEvidenceVersionForTest(),
-		FinancialEvidenceHash:    "hash-1",
-		FinancialNetAmount:       decimal.RequireFromString("80.00000000"),
+func TestVerifyApprovalBasis(t *testing.T) {
+	id := uuid.New()
+	version := uint64(2)
+	request := &OrderFeeSupplementRequest{LockBasis: SupplementLockBasisApproval, ApprovedFeeReviewEventID: &id, ApprovedFeeContentVersion: &version}
+	evidence := &OrderFeeSupplementLockEvidence{ApprovedFeeReviewEventID: &id, FeeContentVersion: version}
+	if err := verifyLockBasis(request, evidence); err != nil {
+		t.Fatal(err)
 	}
-	basis, generation, version, hash, net := classifySupplementLockBasis(evidence)
-	if basis != SupplementLockBasisBoth || generation == nil || *generation != 4 || version == nil || hash == nil || net == nil || net.Sign() <= 0 {
-		t.Fatalf("双锁应固化为 BOTH 且携带两组依据: %s", basis)
+	evidence.FeeContentVersion++
+	if err := verifyLockBasis(request, evidence); err == nil {
+		t.Fatal("内容版本漂移必须拒绝")
 	}
-	businessOnly := &OrderFeeSupplementLockEvidence{BusinessLocked: true, BusinessLockGeneration: 2, OrderNo: "SO-1"}
-	basis, generation, version, hash, net = classifySupplementLockBasis(businessOnly)
-	if basis != SupplementLockBasisBusiness || generation == nil || *generation != 2 || version != nil || hash != nil || net != nil {
-		t.Fatalf("仅业务锁应固化为 BUSINESS 且财务字段为空: %s", basis)
+	evidence.FeeContentVersion = version
+	other := uuid.New()
+	evidence.ApprovedFeeReviewEventID = &other
+	if err := verifyLockBasis(request, evidence); err == nil {
+		t.Fatal("批准身份变化必须拒绝")
 	}
-	financialOnly := &OrderFeeSupplementLockEvidence{FinancialLocked: true, FinancialEvidenceVersion: financialEvidenceVersionForTest(), FinancialEvidenceHash: "hash-9", FinancialNetAmount: decimal.RequireFromString("1.00000000")}
-	basis, generation, version, hash, net = classifySupplementLockBasis(financialOnly)
-	if basis != SupplementLockBasisFinancial || generation != nil || version == nil || hash == nil || net == nil {
-		t.Fatalf("仅财务锁应固化为 FINANCIAL 且业务字段为空: %s", basis)
-	}
-	if none, _, _, _, _ := classifySupplementLockBasis(&OrderFeeSupplementLockEvidence{}); none != "" {
-		t.Fatalf("无锁应返回空 basis 引导普通新增: %s", none)
-	}
-}
-
-func financialEvidenceVersionForTest() string {
-	return "FIN_LOCK_EVIDENCE_V1"
-}
-
-func TestVerifyLockBasis(t *testing.T) {
-	generation := uint64(7)
-	version := financialEvidenceVersionForTest()
-	hash := "hash-same"
-	netAmount := decimal.RequireFromString("66.00000000")
-	request := &OrderFeeSupplementRequest{
-		LockBasis:                    SupplementLockBasisBusiness,
-		BusinessLockGeneration:       &generation,
-		FinancialLockEvidenceVersion: &version,
-		FinancialLockEvidenceHash:    &hash,
-		FinancialLockNetAmount:       &netAmount,
-	}
-
-	sameGeneration := &OrderFeeSupplementLockEvidence{BusinessLocked: true, BusinessLockGeneration: generation}
-	if err := verifyLockBasis(request, sameGeneration); err != nil {
-		t.Fatalf("同一业务锁代次应通过复核: %v", err)
-	}
-	newGeneration := &OrderFeeSupplementLockEvidence{BusinessLocked: true, BusinessLockGeneration: generation + 1}
-	err := verifyLockBasis(request, newGeneration)
-	if err == nil || !strings.Contains(err.Error(), "重新发起补录") {
-		t.Fatalf("代次失效且仍有新锁应提示重新发起: %v", err)
-	}
-	if kErr := kratoserrors.FromError(err); kErr == nil || kErr.Metadata[LockBasisChangedNextActionMetadata] != LockBasisChangedRecreateSupplement {
-		t.Fatalf("仍有新锁必须携带 next_action=RECREATE_SUPPLEMENT: %v", err)
-	}
-	noLock := &OrderFeeSupplementLockEvidence{}
-	err = verifyLockBasis(request, noLock)
-	if err == nil || !strings.Contains(err.Error(), "普通费用新增") {
-		t.Fatalf("代次失效且已无锁应提示普通新增: %v", err)
-	}
-	if kErr := kratoserrors.FromError(err); kErr == nil || kErr.Metadata[LockBasisChangedNextActionMetadata] != LockBasisChangedUseNormalFeeEntry {
-		t.Fatalf("已无锁必须携带 next_action=USE_NORMAL_FEE_ENTRY: %v", err)
-	}
-
-	request.LockBasis = SupplementLockBasisFinancial
-	if err := verifyLockBasis(request, &OrderFeeSupplementLockEvidence{FinancialLocked: true, FinancialEvidenceVersion: version, FinancialEvidenceHash: hash, FinancialNetAmount: netAmount}); err != nil {
-		t.Fatalf("同版本同哈希且净额为正应通过复核: %v", err)
-	}
-	// CONFIRMED↔PAID 流转不改变证据：净额与哈希不变即通过。
-	if err := verifyLockBasis(request, &OrderFeeSupplementLockEvidence{FinancialLocked: true, FinancialEvidenceVersion: version, FinancialEvidenceHash: hash, FinancialNetAmount: decimal.RequireFromString("66.00000000")}); err != nil {
-		t.Fatalf("净额不变时复核必须通过: %v", err)
-	}
-	changedSet := &OrderFeeSupplementLockEvidence{FinancialLocked: true, FinancialEvidenceVersion: version, FinancialEvidenceHash: "hash-changed", FinancialNetAmount: netAmount}
-	if err := verifyLockBasis(request, changedSet); err == nil {
-		t.Fatalf("证据集合变化必须拒绝审批")
-	}
-	released := &OrderFeeSupplementLockEvidence{FinancialLocked: false, FinancialEvidenceVersion: version, FinancialEvidenceHash: hash, FinancialNetAmount: decimal.Zero}
-	if err := verifyLockBasis(request, released); err == nil {
-		t.Fatalf("净额释放后必须拒绝审批")
-	}
-
-	if kErr := kratoserrors.FromError(err); kErr == nil || kErr.Reason != "LOCK_BASIS_CHANGED" {
-		t.Fatalf("BOTH 双依据失效必须返回稳定 LOCK_BASIS_CHANGED: %v", err)
-	}
-	// BOTH：任一依据匹配即可。
-	request.LockBasis = SupplementLockBasisBoth
-	if err := verifyLockBasis(request, sameGeneration); err != nil {
-		t.Fatalf("BOTH 依据业务代次匹配应通过: %v", err)
-	}
-	if err := verifyLockBasis(request, &OrderFeeSupplementLockEvidence{FinancialLocked: true, FinancialEvidenceVersion: version, FinancialEvidenceHash: hash, FinancialNetAmount: netAmount}); err != nil {
-		t.Fatalf("BOTH 依据财务证据匹配应通过: %v", err)
-	}
-	if err := verifyLockBasis(request, noLock); err == nil {
-		t.Fatalf("BOTH 双依据全部失效必须拒绝")
+	request.LockBasis = SupplementLockBasisBusiness
+	if err := verifyLockBasis(request, evidence); err == nil {
+		t.Fatal("旧业务锁不得放行补录")
 	}
 }
 

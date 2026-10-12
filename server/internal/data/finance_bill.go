@@ -257,6 +257,9 @@ func (r *financeBillRepo) Get(ctx context.Context, organizationIDs []uuid.UUID, 
 	}
 	query := client.FinanceBill.Query().WithOrganization().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs))
 	if _, transactional := transactionFromContext(ctx); transactional {
+		if err := lockExistingBillOrders(ctx, client, organizationIDs, []uuid.UUID{id}); err != nil {
+			return nil, err
+		}
 		query.ForUpdate()
 	}
 	item, err := r.financeBillQueryWithLines(query).Only(ctx)
@@ -356,6 +359,11 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		if err := lockBillFeeOrders(ctx, client, organizationIDs, feeIDs, true); err != nil {
+			return nil, err
+		}
+	}
 	query := client.OrderFee.Query().
 		Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDIn(organizationIDs...))).
 		WithSettlementParty().WithOrder().WithFinanceBillLines(effectiveBillLineFilter).Order(orderfeeent.ByID())
@@ -381,7 +389,10 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 		if party != nil {
 			isCasual = party.IsCasual
 		}
-		result = append(result, &biz.FinanceBillableFee{Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType), SettlementPartyIsCasual: isCasual})
+		if err := validateApprovedOrderFees(ctx, client, businessOrder); err != nil {
+			return nil, err
+		}
+		result = append(result, &biz.FinanceBillableFee{FeeReviewStatus: string(businessOrder.FeeReviewStatus), CanBill: !fee.HasActiveBill, Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }
@@ -494,6 +505,14 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
+	orders := make([]*ent.Order, 0, len(items))
+	for _, item := range items {
+		orders = append(orders, item.Edges.Order)
+	}
+	approvalStates, pendingStates, err := batchFeeReviewApprovalStates(ctx, client, orders)
+	if err != nil {
+		return nil, err
+	}
 	result := &biz.FinanceBillCreationCandidateResult{Items: make([]*biz.FinanceBillableFee, 0, len(items)), Total: int64(total)}
 	for _, item := range items {
 		fee, e := orderFeeToBiz(item)
@@ -509,7 +528,13 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 		if party != nil {
 			isCasual = party.IsCasual
 		}
-		result.Items = append(result.Items, &biz.FinanceBillableFee{Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType), SettlementPartyIsCasual: isCasual})
+		approvalErr := approvalStates[order.ID]
+		pending := pendingStates[order.ID]
+		blocked := []string{}
+		if approvalErr != nil {
+			blocked = append(blocked, approvalErr.Error())
+		}
+		result.Items = append(result.Items, &biz.FinanceBillableFee{FeeReviewStatus: string(order.FeeReviewStatus), HasPendingFeeSupplement: pending, CanBill: approvalErr == nil, BlockedReasons: blocked, Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }

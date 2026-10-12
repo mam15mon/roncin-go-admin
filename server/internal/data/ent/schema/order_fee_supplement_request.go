@@ -29,7 +29,7 @@ func (OrderFeeSupplementRequest) Annotations() []schema.Annotation {
 			// 非空的财务证据版本、证据哈希与大于零的净额快照；BOTH 同时保存两组
 			// 依据。锁类型、锁代次与财务证据均由服务端在 Order 行锁内判定固化，
 			// 不接受客户端覆盖。
-			"order_fee_supplement_requests_lock_basis_check": "(lock_basis = 'BUSINESS' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NULL AND financial_lock_evidence_hash IS NULL AND financial_lock_net_amount_snapshot IS NULL) OR (lock_basis = 'FINANCIAL' AND business_lock_generation IS NULL AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0) OR (lock_basis = 'BOTH' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0)",
+			"order_fee_supplement_requests_lock_basis_check": "(lock_basis = 'APPROVAL' AND approved_fee_review_event_id IS NOT NULL AND approved_fee_content_version > 0) OR (lock_basis = 'BUSINESS' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NULL AND financial_lock_evidence_hash IS NULL AND financial_lock_net_amount_snapshot IS NULL) OR (lock_basis = 'FINANCIAL' AND business_lock_generation IS NULL AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0) OR (lock_basis = 'BOTH' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0)",
 			// 申请状态取值；PENDING 只能进入一个终态由状态机与仓储校验保证。
 			"order_fee_supplement_requests_status_check": "status IN ('PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN')",
 		}),
@@ -40,8 +40,10 @@ func (OrderFeeSupplementRequest) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.UUID("order_id", uuid.Nil).Immutable(),
+		field.UUID("approved_fee_review_event_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.Uint64("approved_fee_content_version").Optional().Nillable().Immutable(),
 		// 提交当时成立的锁依据：仅业务锁、仅财务锁或双锁。
-		field.Enum("lock_basis").Values("BUSINESS", "FINANCIAL", "BOTH").Immutable(),
+		field.Enum("lock_basis").Values("BUSINESS", "FINANCIAL", "BOTH", "APPROVAL").Immutable(),
 		field.Uint64("business_lock_generation").Optional().Nillable().Immutable(),
 		// 财务锁证据版本标识证据规范编码算法；哈希对当时参与净额的
 		// CONFIRMED/PAID 提成行与调整行按「组件类型 + 主键 + 方向 + 符号化 8 位
@@ -113,5 +115,6 @@ func (OrderFeeSupplementRequest) Indexes() []ent.Index {
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "order_id"),
 		index.Fields("order_id", "status"),
+		index.Fields("order_id").Unique().StorageKey("order_fee_supplement_one_pending").Annotations(entsql.IndexWhere("status = 'PENDING'")),
 	}
 }

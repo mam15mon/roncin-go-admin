@@ -66,7 +66,26 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceListSameBatchOrders: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
-vi.mock('@/services/roncin/orderFeeService', () => ({
+vi.mock('@/services/roncin/orderFeeService', async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import('@/services/roncin/orderFeeService')
+  >()),
+  orderFeeServiceSubmitOrderFeeReview: vi.fn(),
+  orderFeeServiceWithdrawOrderFeeReview: vi.fn(),
+  orderFeeServiceApproveOrderFeeReview: vi.fn(),
+  orderFeeServiceRejectOrderFeeReview: vi.fn(),
+  orderFeeServiceRevokeOrderFeeReview: vi.fn(),
+  orderFeeServicePreviewOrderFeeReview: vi
+    .fn()
+    .mockResolvedValue({
+      data: {
+        status: 'UNSUBMITTED',
+        canEdit: true,
+        canSubmit: true,
+        fees: [],
+        history: [],
+      },
+    }),
   orderFeeServiceListFeeOptions: vi.fn(),
   orderFeeServiceAddFee: vi.fn(),
   orderFeeServiceRemoveFee: vi.fn(),

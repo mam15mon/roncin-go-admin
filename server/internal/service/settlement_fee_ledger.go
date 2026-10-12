@@ -21,7 +21,10 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	if err != nil {
 		return nil, err
 	}
-	filter := biz.FeeLedgerFilter{Page: page, PageSize: pageSize}
+	filter := biz.FeeLedgerFilter{Page: page, PageSize: pageSize, FeeReviewStatus: request.GetFeeReviewStatus(), HasPendingFeeSupplement: request.HasPendingFeeSupplement}
+	if !biz.ValidFeeReviewStatus(filter.FeeReviewStatus) {
+		return nil, biz.ErrFeeReviewInvalid
+	}
 	filter.Keyword = financeOptionalString(request.Keyword)
 	filter.BusinessType = financeOptionalString(request.BusinessType)
 	filter.Direction = biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction)))
@@ -103,6 +106,7 @@ func (s *SettlementService) GetFeeLedgerOrderDetail(ctx context.Context, request
 func feeLedgerItemToAPI(item *biz.FeeLedgerItem, tags []*v1.BusinessTagSummary) *v1.FeeLedgerItem {
 	fee := item.Fee
 	result := &v1.FeeLedgerItem{
+		FeeReviewStatus: item.FeeReviewStatus, HasPendingFeeSupplement: item.HasPendingFeeSupplement, CanBill: item.CanBill, BlockedReasons: item.BlockedReasons,
 		Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName, OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		Direction: string(fee.Direction), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
 		Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,

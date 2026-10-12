@@ -1,14 +1,4 @@
-import {
-  Alert,
-  Button,
-  Card,
-  Col,
-  Descriptions,
-  Row,
-  Space,
-  Statistic,
-  Tag,
-} from 'antd';
+import { Card, Col, Descriptions, Row, Space, Statistic, Tag } from 'antd';
 import React from 'react';
 import { SectionCard } from '@/components/ui';
 import { formatDate } from '@/utils/format';
@@ -38,11 +28,11 @@ export default function OrderFeeHeader({
   orderId: _orderId,
   configTitle,
   customerName,
-  financeLocked,
-  financeLockReason,
-  financeLockCommissionNos,
-  lockWritePolicy,
-  onRetryLockState,
+  financeLocked: _financeLocked,
+  financeLockReason: _financeLockReason,
+  financeLockCommissionNos: _financeLockCommissionNos,
+  lockWritePolicy: _lockWritePolicy,
+  onRetryLockState: _onRetryLockState,
   receivableSummary,
   payableSummary,
   profitCny,
@@ -50,32 +40,6 @@ export default function OrderFeeHeader({
 }: OrderFeeHeaderProps) {
   return (
     <>
-      {lockWritePolicy.disabled && (
-        <Alert
-          type={
-            lockWritePolicy.reason?.includes('已锁定') ? 'warning' : 'error'
-          }
-          showIcon
-          title="订单业务费用当前为只读"
-          description={lockWritePolicy.reason}
-          action={
-            <Button size="small" onClick={() => void onRetryLockState()}>
-              重试锁状态
-            </Button>
-          }
-          style={{ marginBottom: 16 }}
-        />
-      )}
-      {financeLocked && (
-        <Alert
-          type="warning"
-          showIcon
-          title="该订单费用已进入财务锁定"
-          description={`${financeLockReason || '关联提成已确认或已发放，原费用事实不可再修改。'}${financeLockCommissionNos.length > 0 ? ` 关联提成：${financeLockCommissionNos.join('、')}。` : ''} 后续提成差异请在提成管理中新增独立调整记录。`}
-          style={{ marginBottom: 16 }}
-        />
-      )}
-
       {/* 1. 基础信息卡片 */}
       <SectionCard title="订单基础信息" style={{ marginBottom: 16 }}>
         <Descriptions

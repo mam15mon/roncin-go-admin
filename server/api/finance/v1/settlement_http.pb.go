@@ -86,6 +86,7 @@ const OperationSettlementServiceMarkCommissionAdjustmentPaid = "/finance.v1.Sett
 const OperationSettlementServiceMarkCommissionPaid = "/finance.v1.SettlementService/MarkCommissionPaid"
 const OperationSettlementServicePreviewBillBatch = "/finance.v1.SettlementService/PreviewBillBatch"
 const OperationSettlementServicePreviewCommission = "/finance.v1.SettlementService/PreviewCommission"
+const OperationSettlementServicePreviewCommissionPayment = "/finance.v1.SettlementService/PreviewCommissionPayment"
 const OperationSettlementServicePreviewNetting = "/finance.v1.SettlementService/PreviewNetting"
 const OperationSettlementServiceRedFlushInvoice = "/finance.v1.SettlementService/RedFlushInvoice"
 const OperationSettlementServiceRejectCommissionApplication = "/finance.v1.SettlementService/RejectCommissionApplication"
@@ -194,6 +195,7 @@ type SettlementServiceHTTPServer interface {
 	MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
+	PreviewCommissionPayment(context.Context, *PreviewCommissionPaymentRequest) (*PreviewCommissionPaymentResponse, error)
 	PreviewNetting(context.Context, *PreviewNettingRequest) (*PreviewNettingResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
 	// RejectCommissionApplication RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
@@ -279,6 +281,7 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/commissions/preview", _SettlementService_PreviewCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions", _SettlementService_CreateCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/confirm", _SettlementService_ConfirmCommission0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/commissions/{id}/payment-preview", _SettlementService_PreviewCommissionPayment0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/paid", _SettlementService_MarkCommissionPaid0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{id}/cancel", _SettlementService_CancelCommission0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/commissions/{commission_id}/adjustments", _SettlementService_CreateCommissionAdjustment0_HTTP_Handler(srv))
@@ -1635,6 +1638,28 @@ func _SettlementService_ConfirmCommission0_HTTP_Handler(srv SettlementServiceHTT
 	}
 }
 
+func _SettlementService_PreviewCommissionPayment0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PreviewCommissionPaymentRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServicePreviewCommissionPayment)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PreviewCommissionPayment(ctx, req.(*PreviewCommissionPaymentRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PreviewCommissionPaymentResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _SettlementService_MarkCommissionPaid0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in MarkCommissionPaidRequest
@@ -1990,6 +2015,7 @@ type SettlementServiceHTTPClient interface {
 	MarkCommissionPaid(ctx context.Context, req *MarkCommissionPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionPaidResponse, err error)
 	PreviewBillBatch(ctx context.Context, req *PreviewBillBatchRequest, opts ...http.CallOption) (rsp *PreviewBillBatchResponse, err error)
 	PreviewCommission(ctx context.Context, req *PreviewCommissionRequest, opts ...http.CallOption) (rsp *PreviewCommissionResponse, err error)
+	PreviewCommissionPayment(ctx context.Context, req *PreviewCommissionPaymentRequest, opts ...http.CallOption) (rsp *PreviewCommissionPaymentResponse, err error)
 	PreviewNetting(ctx context.Context, req *PreviewNettingRequest, opts ...http.CallOption) (rsp *PreviewNettingResponse, err error)
 	RedFlushInvoice(ctx context.Context, req *RedFlushInvoiceRequest, opts ...http.CallOption) (rsp *RedFlushInvoiceResponse, err error)
 	// RejectCommissionApplication RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，
@@ -3169,6 +3195,23 @@ func (c *SettlementServiceHTTPClientImpl) PreviewCommission(ctx context.Context,
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServicePreviewCommission),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) PreviewCommissionPayment(ctx context.Context, in *PreviewCommissionPaymentRequest, opts ...http.CallOption) (*PreviewCommissionPaymentResponse, error) {
+	var out PreviewCommissionPaymentResponse
+	pattern := "/api/v1/finance/commissions/{id}/payment-preview"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServicePreviewCommissionPayment),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

@@ -124,6 +124,16 @@ type Order struct {
 	IsShared bool `json:"is_shared,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
+	// FeeReviewStatus holds the value of the "fee_review_status" field.
+	FeeReviewStatus order.FeeReviewStatus `json:"fee_review_status,omitempty"`
+	// FeeContentVersion holds the value of the "fee_content_version" field.
+	FeeContentVersion uint64 `json:"fee_content_version,omitempty"`
+	// FeeReviewVersion holds the value of the "fee_review_version" field.
+	FeeReviewVersion uint64 `json:"fee_review_version,omitempty"`
+	// CurrentFeeReviewEventID holds the value of the "current_fee_review_event_id" field.
+	CurrentFeeReviewEventID *uuid.UUID `json:"current_fee_review_event_id,omitempty"`
+	// ApprovedFeeReviewEventID holds the value of the "approved_fee_review_event_id" field.
+	ApprovedFeeReviewEventID *uuid.UUID `json:"approved_fee_review_event_id,omitempty"`
 	// OriginLocationID holds the value of the "origin_location_id" field.
 	OriginLocationID *uuid.UUID `json:"origin_location_id,omitempty"`
 	// DestinationLocationID holds the value of the "destination_location_id" field.
@@ -208,6 +218,8 @@ type OrderEdges struct {
 	ReleasePods []*OrderReleasePod `json:"release_pods,omitempty"`
 	// AbnormalCases holds the value of the abnormal_cases edge.
 	AbnormalCases []*OrderAbnormalCase `json:"abnormal_cases,omitempty"`
+	// FeeReviewEvents holds the value of the fee_review_events edge.
+	FeeReviewEvents []*OrderFeeReviewEvent `json:"fee_review_events,omitempty"`
 	// Fees holds the value of the fees edge.
 	Fees []*OrderFee `json:"fees,omitempty"`
 	// FeeSupplementRequests holds the value of the fee_supplement_requests edge.
@@ -248,7 +260,7 @@ type OrderEdges struct {
 	SeaDocumentVoidEvents []*SeaDocumentVoidEvent `json:"sea_document_void_events,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [34]bool
+	loadedTypes [35]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -392,10 +404,19 @@ func (e OrderEdges) AbnormalCasesOrErr() ([]*OrderAbnormalCase, error) {
 	return nil, &NotLoadedError{edge: "abnormal_cases"}
 }
 
+// FeeReviewEventsOrErr returns the FeeReviewEvents value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderEdges) FeeReviewEventsOrErr() ([]*OrderFeeReviewEvent, error) {
+	if e.loadedTypes[15] {
+		return e.FeeReviewEvents, nil
+	}
+	return nil, &NotLoadedError{edge: "fee_review_events"}
+}
+
 // FeesOrErr returns the Fees value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) FeesOrErr() ([]*OrderFee, error) {
-	if e.loadedTypes[15] {
+	if e.loadedTypes[16] {
 		return e.Fees, nil
 	}
 	return nil, &NotLoadedError{edge: "fees"}
@@ -404,7 +425,7 @@ func (e OrderEdges) FeesOrErr() ([]*OrderFee, error) {
 // FeeSupplementRequestsOrErr returns the FeeSupplementRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) FeeSupplementRequestsOrErr() ([]*OrderFeeSupplementRequest, error) {
-	if e.loadedTypes[16] {
+	if e.loadedTypes[17] {
 		return e.FeeSupplementRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "fee_supplement_requests"}
@@ -413,7 +434,7 @@ func (e OrderEdges) FeeSupplementRequestsOrErr() ([]*OrderFeeSupplementRequest, 
 // FinanceBillLinesOrErr returns the FinanceBillLines value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
-	if e.loadedTypes[17] {
+	if e.loadedTypes[18] {
 		return e.FinanceBillLines, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bill_lines"}
@@ -422,7 +443,7 @@ func (e OrderEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
 // FinanceCommissionLinesOrErr returns the FinanceCommissionLines value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) FinanceCommissionLinesOrErr() ([]*FinanceCommissionLine, error) {
-	if e.loadedTypes[18] {
+	if e.loadedTypes[19] {
 		return e.FinanceCommissionLines, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_lines"}
@@ -431,7 +452,7 @@ func (e OrderEdges) FinanceCommissionLinesOrErr() ([]*FinanceCommissionLine, err
 // FinanceCommissionAdjustmentsOrErr returns the FinanceCommissionAdjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[19] {
+	if e.loadedTypes[20] {
 		return e.FinanceCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_commission_adjustments"}
@@ -440,7 +461,7 @@ func (e OrderEdges) FinanceCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdj
 // CommissionAttributionsOrErr returns the CommissionAttributions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) CommissionAttributionsOrErr() ([]*OrderCommissionAttribution, error) {
-	if e.loadedTypes[20] {
+	if e.loadedTypes[21] {
 		return e.CommissionAttributions, nil
 	}
 	return nil, &NotLoadedError{edge: "commission_attributions"}
@@ -449,7 +470,7 @@ func (e OrderEdges) CommissionAttributionsOrErr() ([]*OrderCommissionAttribution
 // EnterpriseTagLinksOrErr returns the EnterpriseTagLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) EnterpriseTagLinksOrErr() ([]*OrderEnterpriseTag, error) {
-	if e.loadedTypes[21] {
+	if e.loadedTypes[22] {
 		return e.EnterpriseTagLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "enterprise_tag_links"}
@@ -458,7 +479,7 @@ func (e OrderEdges) EnterpriseTagLinksOrErr() ([]*OrderEnterpriseTag, error) {
 // SeaMasterBillLinksOrErr returns the SeaMasterBillLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaMasterBillLinksOrErr() ([]*SeaMasterBillOrderLink, error) {
-	if e.loadedTypes[22] {
+	if e.loadedTypes[23] {
 		return e.SeaMasterBillLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_master_bill_links"}
@@ -467,7 +488,7 @@ func (e OrderEdges) SeaMasterBillLinksOrErr() ([]*SeaMasterBillOrderLink, error)
 // SeaHouseBillsOrErr returns the SeaHouseBills value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaHouseBillsOrErr() ([]*SeaHouseBill, error) {
-	if e.loadedTypes[23] {
+	if e.loadedTypes[24] {
 		return e.SeaHouseBills, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_house_bills"}
@@ -476,7 +497,7 @@ func (e OrderEdges) SeaHouseBillsOrErr() ([]*SeaHouseBill, error) {
 // SeaDocumentModeChangeEventsOrErr returns the SeaDocumentModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
-	if e.loadedTypes[24] {
+	if e.loadedTypes[25] {
 		return e.SeaDocumentModeChangeEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_document_mode_change_events"}
@@ -485,7 +506,7 @@ func (e OrderEdges) SeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChange
 // SeaSharedContainerAllocationsOrErr returns the SeaSharedContainerAllocations value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaSharedContainerAllocationsOrErr() ([]*SeaSharedContainerAllocation, error) {
-	if e.loadedTypes[25] {
+	if e.loadedTypes[26] {
 		return e.SeaSharedContainerAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_shared_container_allocations"}
@@ -494,7 +515,7 @@ func (e OrderEdges) SeaSharedContainerAllocationsOrErr() ([]*SeaSharedContainerA
 // SeaOrderSplitEventsOrErr returns the SeaOrderSplitEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
-	if e.loadedTypes[26] {
+	if e.loadedTypes[27] {
 		return e.SeaOrderSplitEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_split_events"}
@@ -503,7 +524,7 @@ func (e OrderEdges) SeaOrderSplitEventsOrErr() ([]*SeaOrderSplitEvent, error) {
 // SeaOrderSplitResultsOrErr returns the SeaOrderSplitResults value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) {
-	if e.loadedTypes[27] {
+	if e.loadedTypes[28] {
 		return e.SeaOrderSplitResults, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_split_results"}
@@ -512,7 +533,7 @@ func (e OrderEdges) SeaOrderSplitResultsOrErr() ([]*SeaOrderSplitResult, error) 
 // SeaOrderReassignmentEventsOrErr returns the SeaOrderReassignmentEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEvent, error) {
-	if e.loadedTypes[28] {
+	if e.loadedTypes[29] {
 		return e.SeaOrderReassignmentEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_order_reassignment_events"}
@@ -523,7 +544,7 @@ func (e OrderEdges) SeaOrderReassignmentEventsOrErr() ([]*SeaOrderReassignmentEv
 func (e OrderEdges) LockedByUserOrErr() (*User, error) {
 	if e.LockedByUser != nil {
 		return e.LockedByUser, nil
-	} else if e.loadedTypes[29] {
+	} else if e.loadedTypes[30] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "locked_by_user"}
@@ -532,7 +553,7 @@ func (e OrderEdges) LockedByUserOrErr() (*User, error) {
 // LockRecordsOrErr returns the LockRecords value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
-	if e.loadedTypes[30] {
+	if e.loadedTypes[31] {
 		return e.LockRecords, nil
 	}
 	return nil, &NotLoadedError{edge: "lock_records"}
@@ -541,7 +562,7 @@ func (e OrderEdges) LockRecordsOrErr() ([]*OrderLockRecord, error) {
 // UnlockRequestsOrErr returns the UnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[31] {
+	if e.loadedTypes[32] {
 		return e.UnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "unlock_requests"}
@@ -550,7 +571,7 @@ func (e OrderEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
 // SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[32] {
+	if e.loadedTypes[33] {
 		return e.SeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
@@ -559,7 +580,7 @@ func (e OrderEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) 
 // SeaDocumentVoidEventsOrErr returns the SeaDocumentVoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[33] {
+	if e.loadedTypes[34] {
 		return e.SeaDocumentVoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_document_void_events"}
@@ -570,15 +591,15 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case order.FieldShippingLineID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldLockedBy, order.FieldAutoLockTriggerResourceID, order.FieldAutoLockTriggeredBy, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
+		case order.FieldShippingLineID, order.FieldBookingAgentID, order.FieldForeignAgentID, order.FieldShippingAgentID, order.FieldTerminatedBy, order.FieldClosedBy, order.FieldLockedBy, order.FieldAutoLockTriggerResourceID, order.FieldAutoLockTriggeredBy, order.FieldCurrentFeeReviewEventID, order.FieldApprovedFeeReviewEventID, order.FieldOriginLocationID, order.FieldDestinationLocationID, order.FieldDischargeLocationID, order.FieldTransitLocationID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case order.FieldIsShared:
 			values[i] = new(sql.NullBool)
 		case order.FieldTotalGrossWeightKg, order.FieldTotalVolumeCbm:
 			values[i] = new(sql.NullFloat64)
-		case order.FieldLockGeneration, order.FieldVersion, order.FieldTotalPackages:
+		case order.FieldLockGeneration, order.FieldVersion, order.FieldFeeContentVersion, order.FieldFeeReviewVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldLockSource, order.FieldAutoLockTriggerType, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldLockSource, order.FieldAutoLockTriggerType, order.FieldFeeReviewStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
@@ -932,6 +953,38 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Version = uint64(value.Int64)
 			}
+		case order.FieldFeeReviewStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_review_status", values[i])
+			} else if value.Valid {
+				_m.FeeReviewStatus = order.FeeReviewStatus(value.String)
+			}
+		case order.FieldFeeContentVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_content_version", values[i])
+			} else if value.Valid {
+				_m.FeeContentVersion = uint64(value.Int64)
+			}
+		case order.FieldFeeReviewVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_review_version", values[i])
+			} else if value.Valid {
+				_m.FeeReviewVersion = uint64(value.Int64)
+			}
+		case order.FieldCurrentFeeReviewEventID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field current_fee_review_event_id", values[i])
+			} else if value.Valid {
+				_m.CurrentFeeReviewEventID = new(uuid.UUID)
+				*_m.CurrentFeeReviewEventID = *value.S.(*uuid.UUID)
+			}
+		case order.FieldApprovedFeeReviewEventID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field approved_fee_review_event_id", values[i])
+			} else if value.Valid {
+				_m.ApprovedFeeReviewEventID = new(uuid.UUID)
+				*_m.ApprovedFeeReviewEventID = *value.S.(*uuid.UUID)
+			}
 		case order.FieldOriginLocationID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field origin_location_id", values[i])
@@ -1163,6 +1216,11 @@ func (_m *Order) QueryReleasePods() *OrderReleasePodQuery {
 // QueryAbnormalCases queries the "abnormal_cases" edge of the Order entity.
 func (_m *Order) QueryAbnormalCases() *OrderAbnormalCaseQuery {
 	return NewOrderClient(_m.config).QueryAbnormalCases(_m)
+}
+
+// QueryFeeReviewEvents queries the "fee_review_events" edge of the Order entity.
+func (_m *Order) QueryFeeReviewEvents() *OrderFeeReviewEventQuery {
+	return NewOrderClient(_m.config).QueryFeeReviewEvents(_m)
 }
 
 // QueryFees queries the "fees" edge of the Order entity.
@@ -1477,6 +1535,25 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))
+	builder.WriteString(", ")
+	builder.WriteString("fee_review_status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeeReviewStatus))
+	builder.WriteString(", ")
+	builder.WriteString("fee_content_version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeeContentVersion))
+	builder.WriteString(", ")
+	builder.WriteString("fee_review_version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeeReviewVersion))
+	builder.WriteString(", ")
+	if v := _m.CurrentFeeReviewEventID; v != nil {
+		builder.WriteString("current_fee_review_event_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.ApprovedFeeReviewEventID; v != nil {
+		builder.WriteString("approved_fee_review_event_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := _m.OriginLocationID; v != nil {
 		builder.WriteString("origin_location_id=")

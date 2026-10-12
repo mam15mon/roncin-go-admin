@@ -118,7 +118,10 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if err != nil {
 		return nil, err
 	}
-	options := biz.OrderListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword()}
+	options := biz.OrderListOptions{Page: page, PageSize: pageSize, Keyword: request.GetKeyword(), FeeReviewStatus: request.GetFeeReviewStatus(), HasPendingFeeSupplement: request.HasPendingFeeSupplement}
+	if !biz.ValidFeeReviewStatus(options.FeeReviewStatus) {
+		return nil, biz.ErrFeeReviewInvalid
+	}
 	if request.FlowStatus != nil {
 		options.FlowStatus = orderFlowStatusFromAPI(request.GetFlowStatus())
 	}

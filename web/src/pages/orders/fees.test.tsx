@@ -22,6 +22,21 @@ const feeTestState = vi.hoisted(() => ({
   canOperate: true,
 }));
 
+// 本文件验证费用页已有编辑与跨订单状态；审核流程由独立组件用例验证。
+vi.mock('@/features/orders/fee-review', () => ({
+  useOrderFeeReview: () => ({
+    data: {
+      canEdit: !feeTestState.lockState.isLocked,
+      canBill: true,
+      status: feeTestState.lockState.isLocked ? 'APPROVED' : 'UNSUBMITTED',
+    },
+    refetch: vi.fn(),
+  }),
+}));
+vi.mock('./components/fees/fee-review/OrderFeeReview', () => ({
+  OrderFeeReviewSection: () => null,
+}));
+
 vi.mock('@/router/history', () => ({
   history: { push: vi.fn() },
 }));
@@ -32,6 +47,7 @@ vi.mock('@/app/access', () => ({
     canOperateBusiness: true,
     canCreateFinanceBills: true,
     canReadFinanceFees: feeTestState.canReadFinanceFees,
+    canReviewOrderFees: feeTestState.canLock,
     canOrder: (_: unknown, operation: string) =>
       operation === 'fee.read'
         ? feeTestState.canReadFee
@@ -102,7 +118,11 @@ vi.mock('@/services/roncin/feeCatalogService', () => ({
   feeCatalogServiceListTaxableServices: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
-vi.mock('@/services/roncin/orderFeeService', () => ({
+vi.mock('@/services/roncin/orderFeeService', async (original) => ({
+  ...(await original<typeof import('@/services/roncin/orderFeeService')>()),
+  orderFeeServicePreviewOrderFeeReview: vi.fn().mockResolvedValue({
+    data: { canEdit: true, canBill: true, status: 'UNSUBMITTED' },
+  }),
   orderFeeServiceAddFee: vi.fn(),
   orderFeeServiceRemoveFee: vi.fn(),
   orderFeeServiceUpdateFee: vi.fn(),

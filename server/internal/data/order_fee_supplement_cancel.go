@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"sort"
-	"strings"
 	"time"
 
 	kratoserrors "github.com/go-kratos/kratos/v3/errors"
@@ -13,7 +12,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
-	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	commissionadjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
@@ -62,8 +60,7 @@ type supplementCancelBlockReason struct {
 }
 
 // evaluateCancelCapability 按专用作废前置条件只读评估能力：仅限 APPROVED 申请、
-// CONFIRMED、无活动账单行、无更晚生效且未作废的补录，且关联调整 confirmed_at/
-// paid_at 从未写入、当前全为 DRAFT/CANCELLED。列表投影与专用作废命令复用本实现。
+// 无活动账单行、无待审或更晚有效补录，且未产生系统冲减。列表与命令复用。
 func evaluateCancelCapability(ctx context.Context, client *ent.Client, organizationID, orderID, requestID uuid.UUID) (*biz.OrderFeeSupplementCancelCapability, error) {
 	result := &biz.OrderFeeSupplementCancelCapability{}
 	request, err := client.OrderFeeSupplementRequest.Query().
@@ -135,11 +132,15 @@ func evaluateCancelCapability(ctx context.Context, client *ent.Client, organizat
 	if err != nil {
 		return nil, err
 	}
-	for _, adjustment := range adjustments {
-		if adjustment.ConfirmedAt != nil || adjustment.PaidAt != nil ||
-			adjustment.Status == commissionadjustmentent.StatusCONFIRMED || adjustment.Status == commissionadjustmentent.StatusPAID {
-			return blocked("ADJUSTMENT_CONFIRMED", "关联冲减建议已确认或已扣回，不允许直接作废补录费用")
-		}
+	if len(adjustments) != 0 {
+		return blocked("ADJUSTMENT_CONFIRMED", "补录已产生系统确认冲减，不允许直接撤销费用")
+	}
+	pending, err := client.OrderFeeSupplementRequest.Query().Where(orderfeesupplementent.OrderIDEQ(orderID), orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusPENDING)).Exist(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if pending {
+		return blocked("PENDING_SUPPLEMENT_EXISTS", "存在待审核补录，请先处理后再撤销费用")
 	}
 	result.Cancellable = true
 	return result, nil
@@ -153,14 +154,13 @@ func (r *orderFeeSupplementRepo) CancelCapability(ctx context.Context, organizat
 	return evaluateCancelCapability(ctx, client, organizationID, orderID, requestID)
 }
 
-// CancelApprovedFee 执行专用作废事务，固定锁序为 Order → 补录申请/费用 → 按
-// UUID 排序的提成父单 → 关联调整（design 5.1 六步）。任何一步失败整体回滚；
-// 该事务不删除任何事实，也不把系统作废伪装成财务主动忽略建议。
+// CancelApprovedFee 对无系统冲减且未建账的最新补录执行受控撤销；
+// 同事务删除费用并撤销整票批准，保留申请、审批事件及审计事实。
 func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *biz.OrderFeeSupplementCancelInput) (*biz.OrderFeeSupplementCancelResult, error) {
 	var result *biz.OrderFeeSupplementCancelResult
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		client := tx.Client()
-		// 1. Order FOR UPDATE 后实时复核直接解锁资格；订单只作互斥点，不调用
+		// 1. Order FOR UPDATE 后实时复核费用审核资格；订单只作互斥点，不调用
 		// 会禁止锁后专用动作的普通费用内容门禁。
 		order, orderErr := tx.Order.Query().Where(orderent.IDEQ(input.OrderID), orderent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
 		if orderErr != nil {
@@ -169,11 +169,7 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 		if order.ID != input.OrderID {
 			return biz.ErrFeeSupplementNotFound
 		}
-		businessType, typeErr := orderAccessBusinessType(order.BusinessType)
-		if typeErr != nil {
-			return typeErr
-		}
-		qualified, grantErr := hasRealtimeLockGrantWithClient(ctx, client, input.OrganizationID, input.OperatorID, businessType, input.IsBootstrapAdmin)
+		qualified, grantErr := hasFeeReviewPermission(ctx, client, input.OrganizationID, input.OperatorID, true)
 		if grantErr != nil {
 			return grantErr
 		}
@@ -214,55 +210,16 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 		if !blocked.Cancellable {
 			return newFeeSupplementCancelBlockedError(blocked.BlockReason)
 		}
-		// 4. 按 design §5.1 固定锁序：先只读定位关联调整并按父单 UUID 升序锁定
-		// 全部提成父单，再按 ID 锁定关联调整，与审批/确认路径保持同一顺序，
-		// 避免多订单父单并发下形成反向锁序死锁。任一调整曾进入 CONFIRMED 或
-		// PAID 时已在能力评估中整体拒绝。
-		linkedAdjustments, linkedErr := tx.FinanceCommissionAdjustment.Query().
-			Where(commissionadjustmentent.SourceFeeSupplementRequestIDEQ(input.RequestID)).
-			All(ctx)
-		if linkedErr != nil {
-			return linkedErr
-		}
-		commissionIDs := make([]uuid.UUID, 0, len(linkedAdjustments))
-		for _, adjustment := range linkedAdjustments {
-			commissionIDs = append(commissionIDs, adjustment.CommissionID)
-		}
-		for _, commissionID := range uniqueSortedUUIDs(commissionIDs) {
-			if _, parentErr := tx.FinanceCommission.Query().Where(commissionent.IDEQ(commissionID), commissionent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx); parentErr != nil {
-				return parentErr
-			}
-		}
-		adjustments, adjustmentErr := tx.FinanceCommissionAdjustment.Query().
-			Where(commissionadjustmentent.SourceFeeSupplementRequestIDEQ(input.RequestID)).
-			Order(commissionadjustmentent.ByID()).ForUpdate().All(ctx)
-		if adjustmentErr != nil {
-			return adjustmentErr
-		}
-		// 5. 将关联 DRAFT 调整转为 CANCELLED，再将费用转为 CANCELLED；APPROVED
-		// 申请保持终态不变，生成费用已作废由列表投影呈现。
-		cancelledIDs := make([]uuid.UUID, 0, len(adjustments))
-		now := time.Now().UTC()
-		for _, adjustment := range adjustments {
-			if adjustment.Status != commissionadjustmentent.StatusDRAFT {
-				continue
-			}
-			if _, updateErr := tx.FinanceCommissionAdjustment.UpdateOne(adjustment).
-				SetStatus(commissionadjustmentent.StatusCANCELLED).
-				SetCancelledAt(now).
-				SetCancelledBy(input.OperatorID).
-				SetCancellationReason(input.Reason).
-				SetVersion(adjustment.Version + 1).
-				Save(ctx); updateErr != nil {
-				return updateErr
-			}
-			cancelledIDs = append(cancelledIDs, adjustment.ID)
-		}
+		// 4. 能力评估已拒绝任何系统冲减；无冲减补录同事务删除并撤销整票批准。
+		cancelledIDs := make([]uuid.UUID, 0)
 		deletedFeeID := fee.ID
 		// 专用撤销改为物理删除：费用标签关联按现有外键级联清理，历史账单行快照
 		// 保留且来源外键置空；APPROVED 申请及其不可变费用快照保持不变。
 		if _, feeDeleteErr := tx.OrderFee.Delete().Where(orderfeeent.IDEQ(fee.ID)).Exec(ctx); feeDeleteErr != nil {
 			return feeDeleteErr
+		}
+		if err := revokeSupplementApproval(ctx, client, order.ID, input.OperatorID, input.RequestID, input.Reason); err != nil {
+			return err
 		}
 		// 6. 写作废人、时间、原因、费用前一版本与被取消调整 ID 审计后提交。
 		if input.Audit != nil {
@@ -276,11 +233,7 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 			input.Audit.Details["fee.amount"] = fee.TotalAmount
 			input.Audit.Details["fee.currency"] = fee.Currency
 			input.Audit.Details["fee.settlement_party_id"] = fee.SettlementPartyID.String()
-			cancelledIDTexts := make([]string, 0, len(cancelledIDs))
-			for _, id := range cancelledIDs {
-				cancelledIDTexts = append(cancelledIDTexts, id.String())
-			}
-			input.Audit.Details["cancelled_adjustment_ids"] = strings.Join(cancelledIDTexts, ",")
+			input.Audit.Details["cancelled_adjustment_ids"] = ""
 			if writeErr := writeAudit(ctx, tx.AuditLog, input.Audit); writeErr != nil {
 				return writeErr
 			}

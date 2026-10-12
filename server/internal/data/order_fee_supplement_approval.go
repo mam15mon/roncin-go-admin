@@ -2,11 +2,12 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/shopspring/decimal"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -22,7 +23,7 @@ import (
 
 // ResolveFeeFactsForApproval 在审批事务的锁内复核费用快照引用：结算对象、费用
 // 项、计费单位与币种必须仍然有效。汇率与金额的重解析由用例层复用现有解析与
-// 计算入口完成，本方法只做引用校验并返回快照原值。
+// 计算入口完成；提交时固化汇率，审批不重读主数据汇率。
 func (r *orderFeeSupplementRepo) ResolveFeeFactsForApproval(ctx context.Context, organizationID, orderID uuid.UUID, snapshot *biz.OrderFeeSupplementFeeSnapshot) (*biz.OrderFee, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -101,14 +102,6 @@ func (r *orderFeeSupplementRepo) LockCommissionImpactContext(ctx context.Context
 		if err != nil {
 			return err
 		}
-		priorBase := decimal.Zero
-		for _, item := range priorFees {
-			amount, parseErr := decimalOf(item.BaseCurrencyAmount)
-			if parseErr != nil {
-				return parseErr
-			}
-			priorBase = priorBase.Add(amount)
-		}
 		lines, err := client.FinanceCommissionLine.Query().Where(
 			commissionlineent.OrganizationIDEQ(organizationID),
 			commissionlineent.OrderIDEQ(orderID),
@@ -123,26 +116,51 @@ func (r *orderFeeSupplementRepo) LockCommissionImpactContext(ctx context.Context
 		}
 		// 多张父单按 UUID 升序一次性加锁，固定加锁顺序防死锁。
 		sort.Slice(commissionIDs, func(i, j int) bool { return commissionIDs[i].String() < commissionIDs[j].String() })
-		result = &biz.OrderFeeSupplementImpactContext{PriorSupplementBaseAmount: priorBase.Round(8), Lines: make([]*biz.OrderFeeSupplementCommissionLine, 0, len(commissionIDs))}
+		result = &biz.OrderFeeSupplementImpactContext{Lines: make([]*biz.OrderFeeSupplementCommissionLine, 0, len(commissionIDs))}
 		lineByCommission := make(map[uuid.UUID]*ent.FinanceCommissionLine, len(lines))
 		for _, line := range lines {
 			lineByCommission[line.CommissionID] = line
 		}
-		for _, commissionID := range commissionIDs {
-			parent, parentErr := tx.FinanceCommission.Query().Where(commissionent.IDEQ(commissionID), commissionent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-			if parentErr != nil {
-				return parentErr
-			}
-			line := lineByCommission[commissionID]
-			adjustments, adjustmentErr := tx.FinanceCommissionAdjustment.Query().Where(
-				commissionadjustmentent.CommissionIDEQ(commissionID),
-			).Order(commissionadjustmentent.ByID()).ForUpdate().All(ctx)
-			if adjustmentErr != nil {
-				return adjustmentErr
-			}
+		parents, err := tx.FinanceCommission.Query().Where(commissionent.IDIn(commissionIDs...), commissionent.OrganizationIDEQ(organizationID)).Order(commissionent.ByID()).ForUpdate().All(ctx)
+		if err != nil {
+			return err
+		}
+		allAdjustments, err := tx.FinanceCommissionAdjustment.Query().Where(commissionadjustmentent.CommissionIDIn(commissionIDs...)).Order(commissionadjustmentent.ByID()).ForUpdate().All(ctx)
+		if err != nil {
+			return err
+		}
+		byParent := make(map[uuid.UUID][]*ent.FinanceCommissionAdjustment, len(parents))
+		for _, a := range allAdjustments {
+			byParent[a.CommissionID] = append(byParent[a.CommissionID], a)
+		}
+		for _, parent := range parents {
+			line := lineByCommission[parent.ID]
+			adjustments := byParent[parent.ID]
 			contextLine, convertErr := commissionImpactLineToBiz(parent, line, adjustments)
 			if convertErr != nil {
 				return convertErr
+			}
+			var snapshot []*biz.CommissionFeeDetail
+			if err := json.Unmarshal([]byte(line.FeeSnapshot), &snapshot); err != nil {
+				return biz.ErrCommissionSnapshotUnavailable
+			}
+			included := make(map[uuid.UUID]bool, len(snapshot))
+			for _, f := range snapshot {
+				if f != nil {
+					included[f.FeeID] = true
+				}
+			}
+			for _, f := range priorFees {
+				if !included[f.ID] {
+					if f.BaseCurrency != line.BaseCurrency {
+						return biz.ErrCommissionBaseCurrencyMismatch
+					}
+					amount, err := decimalOf(f.BaseCurrencyAmount)
+					if err != nil {
+						return err
+					}
+					contextLine.PriorSupplementBaseAmount = contextLine.PriorSupplementBaseAmount.Add(amount)
+				}
 			}
 			result.Lines = append(result.Lines, contextLine)
 		}
@@ -228,7 +246,7 @@ func (r *orderFeeSupplementRepo) CreateApprovedFee(ctx context.Context, organiza
 	return orderFeeToBiz(loaded)
 }
 
-// CreateDecreaseSuggestion 在审批事务内创建 DECREASE+DRAFT+LOCKED_FEE_SUPPLEMENT
+// CreateDecreaseSuggestion 在审批事务内创建 DECREASE+CONFIRMED+LOCKED_FEE_SUPPLEMENT
 // 调整：父单行内分配调整号并递增序号；来源关联由数据库 CHECK 强制指向补录申请。
 func (r *orderFeeSupplementRepo) CreateDecreaseSuggestion(ctx context.Context, organizationID, requestID uuid.UUID, suggestion *biz.OrderFeeSupplementDecreaseSuggestion, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
@@ -259,7 +277,9 @@ func (r *orderFeeSupplementRepo) CreateDecreaseSuggestion(ctx context.Context, o
 			SetSourceType(commissionadjustmentent.SourceTypeLOCKED_FEE_SUPPLEMENT).
 			SetSourceFeeSupplementRequestID(requestID).
 			SetDirection(commissionadjustmentent.DirectionDECREASE).
-			SetStatus(commissionadjustmentent.StatusDRAFT).
+			SetStatus(commissionadjustmentent.StatusCONFIRMED).
+			SetConfirmedAt(time.Now().UTC()).
+			SetNillableConfirmedBy(audit.UserID).
 			SetBaseCurrency(parent.BaseCurrency).
 			SetAmount(suggestion.Amount.StringFixed(8)).
 			SetReason(suggestion.Reason).
@@ -270,7 +290,7 @@ func (r *orderFeeSupplementRepo) CreateDecreaseSuggestion(ctx context.Context, o
 			}
 			return err
 		}
-		if _, err = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).Save(ctx); err != nil {
+		if _, err = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).SetVersion(parent.Version + 1).Save(ctx); err != nil {
 			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)

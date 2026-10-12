@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
-	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -111,6 +110,9 @@ func (r *orderFeeSupplementRepo) ReadLockEvidence(ctx context.Context, organizat
 }
 
 func supplementLockEvidenceForOrder(ctx context.Context, client *ent.Client, organizationID, orderID uuid.UUID, order *ent.Order) (*biz.OrderFeeSupplementLockEvidence, error) {
+	if err := validateOrderApprovalSnapshot(ctx, client, order); err != nil {
+		return nil, err
+	}
 	businessType, err := orderAccessBusinessType(order.BusinessType)
 	if err != nil {
 		return nil, err
@@ -128,6 +130,9 @@ func supplementLockEvidenceForOrder(ctx context.Context, client *ent.Client, org
 		return nil, err
 	}
 	return &biz.OrderFeeSupplementLockEvidence{
+		ApprovedFeeReviewEventID: order.ApprovedFeeReviewEventID,
+		FeeContentVersion:        order.FeeContentVersion,
+		FeeReviewVersion:         order.FeeReviewVersion,
 		OrderNo:                  order.OrderNo,
 		BusinessType:             string(businessType),
 		BusinessLocked:           order.LockedAt != nil,
@@ -156,39 +161,11 @@ func (r *orderFeeSupplementRepo) LockOrderForSupplement(ctx context.Context, org
 }
 
 func (r *orderFeeSupplementRepo) ListLockGrantApprovers(ctx context.Context, organizationID, orderID uuid.UUID) ([]biz.OrderFeeSupplementApprover, error) {
-	ref, err := r.GetOrderRef(ctx, organizationID, orderID)
+	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
-	businessType, err := orderAccessBusinessType(orderent.BusinessType(ref.BusinessType))
-	if err != nil {
-		return nil, err
-	}
-	var result []biz.OrderFeeSupplementApprover
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		candidates, candidateErr := queryQualifiedBusinessLockCandidates(ctx, tx.Client(), organizationID, businessType)
-		if candidateErr != nil {
-			return candidateErr
-		}
-		result = make([]biz.OrderFeeSupplementApprover, 0, len(candidates))
-		for _, candidate := range candidates {
-			result = append(result, biz.OrderFeeSupplementApprover{UserID: candidate.UserID, DisplayName: candidate.DisplayName, DingTalkUserID: candidate.DingTalkUserIDSnapshot})
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-// hasRealtimeLockGrantWithClient 复用订单直接解锁资格的唯一契约：bootstrap
-// admin 显式具备资格；普通用户按统一 lock grant 谓词判定。
-func hasRealtimeLockGrantWithClient(ctx context.Context, client *ent.Client, organizationID, userID uuid.UUID, businessType access.OrderBusinessType, isBootstrapAdmin bool) (bool, error) {
-	if isBootstrapAdmin {
-		return true, nil
-	}
-	return isUserQualifiedBusinessLockRole(ctx, client, organizationID, userID, businessType)
+	return qualifiedFeeReviewCandidates(ctx, client, organizationID)
 }
 
 func (r *orderFeeSupplementRepo) HasRealtimeLockGrant(ctx context.Context, organizationID, orderID, userID uuid.UUID, isBootstrapAdmin bool) (bool, error) {
@@ -196,15 +173,8 @@ func (r *orderFeeSupplementRepo) HasRealtimeLockGrant(ctx context.Context, organ
 	if err != nil {
 		return false, err
 	}
-	order, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if err != nil {
-		return false, mapEntError(err, biz.ErrFeeSupplementNotFound, nil)
-	}
-	businessType, err := orderAccessBusinessType(order.BusinessType)
-	if err != nil {
-		return false, err
-	}
-	return hasRealtimeLockGrantWithClient(ctx, client, organizationID, userID, businessType, isBootstrapAdmin)
+	_, transactional := transactionFromContext(ctx)
+	return hasFeeReviewPermission(ctx, client, organizationID, userID, transactional)
 }
 
 // ---------------------------------------------------------------------------

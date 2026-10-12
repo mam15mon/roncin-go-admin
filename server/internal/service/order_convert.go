@@ -36,6 +36,15 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared, Tags: businessTagSummariesToAPI(item.Tags),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
+	if r := item.FeeReview; r != nil {
+		result.FeeReview = &v1.OrderFeeReviewProjection{Status: r.Status, ContentVersion: r.ContentVersion, ReviewVersion: r.ReviewVersion, HasPendingSupplement: r.HasPendingSupplement, CanApprove: r.CanApprove, CanEdit: r.CanEdit, CanBill: r.CanBill, BlockedReasons: r.BlockedReasons, Summary: feeReviewSummaryToAPI(r.Summary)}
+		if r.SubmissionID != nil {
+			result.FeeReview.SubmissionId = r.SubmissionID.String()
+		}
+		if r.ApprovedEventID != nil {
+			result.FeeReview.ApprovedEventId = r.ApprovedEventID.String()
+		}
+	}
 	result.ShippingDocuments = make([]*v1.OrderShippingDocument, 0, len(item.ShippingDocuments))
 	for _, document := range item.ShippingDocuments {
 		result.ShippingDocuments = append(result.ShippingDocuments, orderShippingDocumentToAPI(document))

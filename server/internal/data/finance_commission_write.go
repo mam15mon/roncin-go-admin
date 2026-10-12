@@ -96,9 +96,24 @@ func financeCommissionLineBuildersFromCalculation(lineClient *ent.FinanceCommiss
 
 func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommission, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+
+		// 提成状态迁移会改变订单财务锁证据集合；在修改提成行之前统一按 UUID
+		// 升序取得受影响 Order 行锁，保持 Order → 提成父单 → 调整的固定锁序，
+		// 避免补录审批复核证据后被并发改写。
+		preLines, preLineErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(id)).All(ctx)
+		if preLineErr != nil {
+			return preLineErr
+		}
+		if lockErr := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(preLines)); lockErr != nil {
+			return lockErr
+		}
+
+		if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(preLines), target == biz.CommissionConfirmed); err != nil {
+			return err
+		}
 		if target == biz.CommissionConfirmed {
-			// CONFIRMED 分支先按既有「来源 → 账单 → 订单 → 费用」锁序完成指纹
-			// 复算，避免引入与提成创建路径相反的订单/账单加锁顺序。方案与员工
+			// CONFIRMED 分支在完整订单集合之后锁来源与账单并完成指纹
+			// 复算，与提成创建路径保持相同锁序。方案与员工
 			// 分配按快照的员工、身份与归属日期重新解析：已生效方案的历史快照
 			// 不被名单或方案后续变化重算，但解析失败或指纹漂移会拒绝确认。
 			snapshot, lookupErr := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
@@ -112,16 +127,6 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 			if snapshot.SourceFingerprint == "" || snapshot.SourceFingerprint != current.SourceFingerprint {
 				return biz.ErrCommissionSourceChanged
 			}
-		}
-		// 提成状态迁移会改变订单财务锁证据集合；在修改提成行之前统一按 UUID
-		// 升序取得受影响 Order 行锁，保持 Order → 提成父单 → 调整的固定锁序，
-		// 避免补录审批复核证据后被并发改写。
-		preLines, preLineErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(id)).All(ctx)
-		if preLineErr != nil {
-			return preLineErr
-		}
-		if lockErr := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(preLines)); lockErr != nil {
-			return lockErr
 		}
 		if target == biz.CommissionConfirmed {
 			orderIDs, orderIDErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(id)).All(ctx)
@@ -153,10 +158,7 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 			}
 			update.SetStatus(commission.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
 		case biz.CommissionPaid:
-			if x.Status != commission.StatusCONFIRMED {
-				return biz.ErrCommissionTransition
-			}
-			update.SetStatus(commission.StatusPAID).SetPaidAt(now).SetPaidBy(actor)
+			return biz.ErrCommissionInvalid
 		case biz.CommissionCancelled:
 			if x.Status != commission.StatusDRAFT && x.Status != commission.StatusCONFIRMED {
 				return biz.ErrCommissionTransition
@@ -210,10 +212,13 @@ func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, o
 	if err := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(lineRows)); err != nil {
 		return err
 	}
+	if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lineRows), true); err != nil {
+		return err
+	}
 	parents, err := tx.FinanceCommission.Query().
 		Where(commission.IDIn(sorted...), commission.OrganizationIDEQ(org)).
 		Order(ent.Asc(commission.FieldID)).
-		ForUpdate().All(ctx)
+		All(ctx)
 	if err != nil {
 		return err
 	}
@@ -236,6 +241,19 @@ func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, o
 			return biz.ErrCommissionSourceChanged
 		}
 	}
+	locked, err := tx.FinanceCommission.Query().Where(commission.IDIn(sorted...), commission.OrganizationIDEQ(org)).Order(commission.ByID()).ForUpdate().All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(locked) != len(parents) {
+		return biz.ErrCommissionApplicationSourceConflict
+	}
+	for i, p := range locked {
+		if p.Version != parents[i].Version || p.Status != commission.StatusDRAFT {
+			return biz.ErrCommissionApplicationSourceConflict
+		}
+	}
+	parents = locked
 	orderIDs := orderUUIDsFromLines(lineRows)
 	hasUnbilledFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
 	if err != nil {

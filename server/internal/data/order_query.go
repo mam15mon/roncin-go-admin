@@ -38,6 +38,9 @@ func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz
 	if err := attachOrderDisplayNames(ctx, client, []*biz.Order{result}); err != nil {
 		return nil, err
 	}
+	if err := attachOrderFeeReviewProjections(ctx, client, []*biz.Order{result}); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -54,6 +57,9 @@ func (r *orderRepo) FindAuthorized(ctx context.Context, id uuid.UUID, scopes []b
 	if err := attachOrderDisplayNames(ctx, client, []*biz.Order{result}); err != nil {
 		return nil, err
 	}
+	if err := attachOrderFeeReviewProjections(ctx, client, []*biz.Order{result}); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -63,6 +69,16 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 		return nil, err
 	}
 	query := client.Order.Query().Where(orderOrganizationScopePredicate(scopes))
+	if options.FeeReviewStatus != "" {
+		query.Where(orderent.FeeReviewStatusEQ(orderent.FeeReviewStatus(options.FeeReviewStatus)))
+	}
+	if options.HasPendingFeeSupplement != nil {
+		predicate := orderHasPendingSupplementPredicate()
+		if !*options.HasPendingFeeSupplement {
+			predicate = orderent.Not(predicate)
+		}
+		query.Where(predicate)
+	}
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword)))
 	}
@@ -175,6 +191,9 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 		return nil, err
 	}
 	if err := attachOrderDisplayNames(ctx, client, result.Items); err != nil {
+		return nil, err
+	}
+	if err := attachOrderFeeReviewProjections(ctx, client, result.Items); err != nil {
 		return nil, err
 	}
 	return result, nil

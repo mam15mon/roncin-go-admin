@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -959,6 +960,102 @@ func (_u *OrderUpdate) AddVersion(v int64) *OrderUpdate {
 	return _u
 }
 
+// SetFeeReviewStatus sets the "fee_review_status" field.
+func (_u *OrderUpdate) SetFeeReviewStatus(v order.FeeReviewStatus) *OrderUpdate {
+	_u.mutation.SetFeeReviewStatus(v)
+	return _u
+}
+
+// SetNillableFeeReviewStatus sets the "fee_review_status" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableFeeReviewStatus(v *order.FeeReviewStatus) *OrderUpdate {
+	if v != nil {
+		_u.SetFeeReviewStatus(*v)
+	}
+	return _u
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (_u *OrderUpdate) SetFeeContentVersion(v uint64) *OrderUpdate {
+	_u.mutation.ResetFeeContentVersion()
+	_u.mutation.SetFeeContentVersion(v)
+	return _u
+}
+
+// SetNillableFeeContentVersion sets the "fee_content_version" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableFeeContentVersion(v *uint64) *OrderUpdate {
+	if v != nil {
+		_u.SetFeeContentVersion(*v)
+	}
+	return _u
+}
+
+// AddFeeContentVersion adds value to the "fee_content_version" field.
+func (_u *OrderUpdate) AddFeeContentVersion(v int64) *OrderUpdate {
+	_u.mutation.AddFeeContentVersion(v)
+	return _u
+}
+
+// SetFeeReviewVersion sets the "fee_review_version" field.
+func (_u *OrderUpdate) SetFeeReviewVersion(v uint64) *OrderUpdate {
+	_u.mutation.ResetFeeReviewVersion()
+	_u.mutation.SetFeeReviewVersion(v)
+	return _u
+}
+
+// SetNillableFeeReviewVersion sets the "fee_review_version" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableFeeReviewVersion(v *uint64) *OrderUpdate {
+	if v != nil {
+		_u.SetFeeReviewVersion(*v)
+	}
+	return _u
+}
+
+// AddFeeReviewVersion adds value to the "fee_review_version" field.
+func (_u *OrderUpdate) AddFeeReviewVersion(v int64) *OrderUpdate {
+	_u.mutation.AddFeeReviewVersion(v)
+	return _u
+}
+
+// SetCurrentFeeReviewEventID sets the "current_fee_review_event_id" field.
+func (_u *OrderUpdate) SetCurrentFeeReviewEventID(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetCurrentFeeReviewEventID(v)
+	return _u
+}
+
+// SetNillableCurrentFeeReviewEventID sets the "current_fee_review_event_id" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableCurrentFeeReviewEventID(v *uuid.UUID) *OrderUpdate {
+	if v != nil {
+		_u.SetCurrentFeeReviewEventID(*v)
+	}
+	return _u
+}
+
+// ClearCurrentFeeReviewEventID clears the value of the "current_fee_review_event_id" field.
+func (_u *OrderUpdate) ClearCurrentFeeReviewEventID() *OrderUpdate {
+	_u.mutation.ClearCurrentFeeReviewEventID()
+	return _u
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (_u *OrderUpdate) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderUpdate {
+	_u.mutation.SetApprovedFeeReviewEventID(v)
+	return _u
+}
+
+// SetNillableApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableApprovedFeeReviewEventID(v *uuid.UUID) *OrderUpdate {
+	if v != nil {
+		_u.SetApprovedFeeReviewEventID(*v)
+	}
+	return _u
+}
+
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (_u *OrderUpdate) ClearApprovedFeeReviewEventID() *OrderUpdate {
+	_u.mutation.ClearApprovedFeeReviewEventID()
+	return _u
+}
+
 // SetOriginLocationID sets the "origin_location_id" field.
 func (_u *OrderUpdate) SetOriginLocationID(v uuid.UUID) *OrderUpdate {
 	_u.mutation.SetOriginLocationID(v)
@@ -1635,6 +1732,21 @@ func (_u *OrderUpdate) AddAbnormalCases(v ...*OrderAbnormalCase) *OrderUpdate {
 	return _u.AddAbnormalCaseIDs(ids...)
 }
 
+// AddFeeReviewEventIDs adds the "fee_review_events" edge to the OrderFeeReviewEvent entity by IDs.
+func (_u *OrderUpdate) AddFeeReviewEventIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddFeeReviewEventIDs(ids...)
+	return _u
+}
+
+// AddFeeReviewEvents adds the "fee_review_events" edges to the OrderFeeReviewEvent entity.
+func (_u *OrderUpdate) AddFeeReviewEvents(v ...*OrderFeeReviewEvent) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeReviewEventIDs(ids...)
+}
+
 // AddFeeIDs adds the "fees" edge to the OrderFee entity by IDs.
 func (_u *OrderUpdate) AddFeeIDs(ids ...uuid.UUID) *OrderUpdate {
 	_u.mutation.AddFeeIDs(ids...)
@@ -2197,6 +2309,27 @@ func (_u *OrderUpdate) RemoveAbnormalCases(v ...*OrderAbnormalCase) *OrderUpdate
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAbnormalCaseIDs(ids...)
+}
+
+// ClearFeeReviewEvents clears all "fee_review_events" edges to the OrderFeeReviewEvent entity.
+func (_u *OrderUpdate) ClearFeeReviewEvents() *OrderUpdate {
+	_u.mutation.ClearFeeReviewEvents()
+	return _u
+}
+
+// RemoveFeeReviewEventIDs removes the "fee_review_events" edge to OrderFeeReviewEvent entities by IDs.
+func (_u *OrderUpdate) RemoveFeeReviewEventIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveFeeReviewEventIDs(ids...)
+	return _u
+}
+
+// RemoveFeeReviewEvents removes "fee_review_events" edges to OrderFeeReviewEvent entities.
+func (_u *OrderUpdate) RemoveFeeReviewEvents(v ...*OrderFeeReviewEvent) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeReviewEventIDs(ids...)
 }
 
 // ClearFees clears all "fees" edges to the OrderFee entity.
@@ -2776,6 +2909,11 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "auto_lock_trigger_type", err: fmt.Errorf(`ent: validator failed for field "Order.auto_lock_trigger_type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FeeReviewStatus(); ok {
+		if err := order.FeeReviewStatusValidator(v); err != nil {
+			return &ValidationError{Name: "fee_review_status", err: fmt.Errorf(`ent: validator failed for field "Order.fee_review_status": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.VesselVoyage(); ok {
 		if err := order.VesselVoyageValidator(v); err != nil {
 			return &ValidationError{Name: "vessel_voyage", err: fmt.Errorf(`ent: validator failed for field "Order.vessel_voyage": %w`, err)}
@@ -3123,6 +3261,33 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(order.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.FeeReviewStatus(); ok {
+		_spec.SetField(order.FieldFeeReviewStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.FeeContentVersion(); ok {
+		_spec.SetField(order.FieldFeeContentVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedFeeContentVersion(); ok {
+		_spec.AddField(order.FieldFeeContentVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.FeeReviewVersion(); ok {
+		_spec.SetField(order.FieldFeeReviewVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedFeeReviewVersion(); ok {
+		_spec.AddField(order.FieldFeeReviewVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CurrentFeeReviewEventID(); ok {
+		_spec.SetField(order.FieldCurrentFeeReviewEventID, field.TypeUUID, value)
+	}
+	if _u.mutation.CurrentFeeReviewEventIDCleared() {
+		_spec.ClearField(order.FieldCurrentFeeReviewEventID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ApprovedFeeReviewEventID(); ok {
+		_spec.SetField(order.FieldApprovedFeeReviewEventID, field.TypeUUID, value)
+	}
+	if _u.mutation.ApprovedFeeReviewEventIDCleared() {
+		_spec.ClearField(order.FieldApprovedFeeReviewEventID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.OriginLocationID(); ok {
 		_spec.SetField(order.FieldOriginLocationID, field.TypeUUID, value)
@@ -3891,6 +4056,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeReviewEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeReviewEventsTable,
+			Columns: []string{order.FeeReviewEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeereviewevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeReviewEventsIDs(); len(nodes) > 0 && !_u.mutation.FeeReviewEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeReviewEventsTable,
+			Columns: []string{order.FeeReviewEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeereviewevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeReviewEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeReviewEventsTable,
+			Columns: []string{order.FeeReviewEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeereviewevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -5653,6 +5863,102 @@ func (_u *OrderUpdateOne) AddVersion(v int64) *OrderUpdateOne {
 	return _u
 }
 
+// SetFeeReviewStatus sets the "fee_review_status" field.
+func (_u *OrderUpdateOne) SetFeeReviewStatus(v order.FeeReviewStatus) *OrderUpdateOne {
+	_u.mutation.SetFeeReviewStatus(v)
+	return _u
+}
+
+// SetNillableFeeReviewStatus sets the "fee_review_status" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableFeeReviewStatus(v *order.FeeReviewStatus) *OrderUpdateOne {
+	if v != nil {
+		_u.SetFeeReviewStatus(*v)
+	}
+	return _u
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (_u *OrderUpdateOne) SetFeeContentVersion(v uint64) *OrderUpdateOne {
+	_u.mutation.ResetFeeContentVersion()
+	_u.mutation.SetFeeContentVersion(v)
+	return _u
+}
+
+// SetNillableFeeContentVersion sets the "fee_content_version" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableFeeContentVersion(v *uint64) *OrderUpdateOne {
+	if v != nil {
+		_u.SetFeeContentVersion(*v)
+	}
+	return _u
+}
+
+// AddFeeContentVersion adds value to the "fee_content_version" field.
+func (_u *OrderUpdateOne) AddFeeContentVersion(v int64) *OrderUpdateOne {
+	_u.mutation.AddFeeContentVersion(v)
+	return _u
+}
+
+// SetFeeReviewVersion sets the "fee_review_version" field.
+func (_u *OrderUpdateOne) SetFeeReviewVersion(v uint64) *OrderUpdateOne {
+	_u.mutation.ResetFeeReviewVersion()
+	_u.mutation.SetFeeReviewVersion(v)
+	return _u
+}
+
+// SetNillableFeeReviewVersion sets the "fee_review_version" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableFeeReviewVersion(v *uint64) *OrderUpdateOne {
+	if v != nil {
+		_u.SetFeeReviewVersion(*v)
+	}
+	return _u
+}
+
+// AddFeeReviewVersion adds value to the "fee_review_version" field.
+func (_u *OrderUpdateOne) AddFeeReviewVersion(v int64) *OrderUpdateOne {
+	_u.mutation.AddFeeReviewVersion(v)
+	return _u
+}
+
+// SetCurrentFeeReviewEventID sets the "current_fee_review_event_id" field.
+func (_u *OrderUpdateOne) SetCurrentFeeReviewEventID(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetCurrentFeeReviewEventID(v)
+	return _u
+}
+
+// SetNillableCurrentFeeReviewEventID sets the "current_fee_review_event_id" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableCurrentFeeReviewEventID(v *uuid.UUID) *OrderUpdateOne {
+	if v != nil {
+		_u.SetCurrentFeeReviewEventID(*v)
+	}
+	return _u
+}
+
+// ClearCurrentFeeReviewEventID clears the value of the "current_fee_review_event_id" field.
+func (_u *OrderUpdateOne) ClearCurrentFeeReviewEventID() *OrderUpdateOne {
+	_u.mutation.ClearCurrentFeeReviewEventID()
+	return _u
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (_u *OrderUpdateOne) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderUpdateOne {
+	_u.mutation.SetApprovedFeeReviewEventID(v)
+	return _u
+}
+
+// SetNillableApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableApprovedFeeReviewEventID(v *uuid.UUID) *OrderUpdateOne {
+	if v != nil {
+		_u.SetApprovedFeeReviewEventID(*v)
+	}
+	return _u
+}
+
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (_u *OrderUpdateOne) ClearApprovedFeeReviewEventID() *OrderUpdateOne {
+	_u.mutation.ClearApprovedFeeReviewEventID()
+	return _u
+}
+
 // SetOriginLocationID sets the "origin_location_id" field.
 func (_u *OrderUpdateOne) SetOriginLocationID(v uuid.UUID) *OrderUpdateOne {
 	_u.mutation.SetOriginLocationID(v)
@@ -6329,6 +6635,21 @@ func (_u *OrderUpdateOne) AddAbnormalCases(v ...*OrderAbnormalCase) *OrderUpdate
 	return _u.AddAbnormalCaseIDs(ids...)
 }
 
+// AddFeeReviewEventIDs adds the "fee_review_events" edge to the OrderFeeReviewEvent entity by IDs.
+func (_u *OrderUpdateOne) AddFeeReviewEventIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddFeeReviewEventIDs(ids...)
+	return _u
+}
+
+// AddFeeReviewEvents adds the "fee_review_events" edges to the OrderFeeReviewEvent entity.
+func (_u *OrderUpdateOne) AddFeeReviewEvents(v ...*OrderFeeReviewEvent) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeReviewEventIDs(ids...)
+}
+
 // AddFeeIDs adds the "fees" edge to the OrderFee entity by IDs.
 func (_u *OrderUpdateOne) AddFeeIDs(ids ...uuid.UUID) *OrderUpdateOne {
 	_u.mutation.AddFeeIDs(ids...)
@@ -6891,6 +7212,27 @@ func (_u *OrderUpdateOne) RemoveAbnormalCases(v ...*OrderAbnormalCase) *OrderUpd
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAbnormalCaseIDs(ids...)
+}
+
+// ClearFeeReviewEvents clears all "fee_review_events" edges to the OrderFeeReviewEvent entity.
+func (_u *OrderUpdateOne) ClearFeeReviewEvents() *OrderUpdateOne {
+	_u.mutation.ClearFeeReviewEvents()
+	return _u
+}
+
+// RemoveFeeReviewEventIDs removes the "fee_review_events" edge to OrderFeeReviewEvent entities by IDs.
+func (_u *OrderUpdateOne) RemoveFeeReviewEventIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveFeeReviewEventIDs(ids...)
+	return _u
+}
+
+// RemoveFeeReviewEvents removes "fee_review_events" edges to OrderFeeReviewEvent entities.
+func (_u *OrderUpdateOne) RemoveFeeReviewEvents(v ...*OrderFeeReviewEvent) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeReviewEventIDs(ids...)
 }
 
 // ClearFees clears all "fees" edges to the OrderFee entity.
@@ -7483,6 +7825,11 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "auto_lock_trigger_type", err: fmt.Errorf(`ent: validator failed for field "Order.auto_lock_trigger_type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FeeReviewStatus(); ok {
+		if err := order.FeeReviewStatusValidator(v); err != nil {
+			return &ValidationError{Name: "fee_review_status", err: fmt.Errorf(`ent: validator failed for field "Order.fee_review_status": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.VesselVoyage(); ok {
 		if err := order.VesselVoyageValidator(v); err != nil {
 			return &ValidationError{Name: "vessel_voyage", err: fmt.Errorf(`ent: validator failed for field "Order.vessel_voyage": %w`, err)}
@@ -7847,6 +8194,33 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(order.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.FeeReviewStatus(); ok {
+		_spec.SetField(order.FieldFeeReviewStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.FeeContentVersion(); ok {
+		_spec.SetField(order.FieldFeeContentVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedFeeContentVersion(); ok {
+		_spec.AddField(order.FieldFeeContentVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.FeeReviewVersion(); ok {
+		_spec.SetField(order.FieldFeeReviewVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedFeeReviewVersion(); ok {
+		_spec.AddField(order.FieldFeeReviewVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.CurrentFeeReviewEventID(); ok {
+		_spec.SetField(order.FieldCurrentFeeReviewEventID, field.TypeUUID, value)
+	}
+	if _u.mutation.CurrentFeeReviewEventIDCleared() {
+		_spec.ClearField(order.FieldCurrentFeeReviewEventID, field.TypeUUID)
+	}
+	if value, ok := _u.mutation.ApprovedFeeReviewEventID(); ok {
+		_spec.SetField(order.FieldApprovedFeeReviewEventID, field.TypeUUID, value)
+	}
+	if _u.mutation.ApprovedFeeReviewEventIDCleared() {
+		_spec.ClearField(order.FieldApprovedFeeReviewEventID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.OriginLocationID(); ok {
 		_spec.SetField(order.FieldOriginLocationID, field.TypeUUID, value)
@@ -8615,6 +8989,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeReviewEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeReviewEventsTable,
+			Columns: []string{order.FeeReviewEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeereviewevent.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeReviewEventsIDs(); len(nodes) > 0 && !_u.mutation.FeeReviewEventsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeReviewEventsTable,
+			Columns: []string{order.FeeReviewEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeereviewevent.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeReviewEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeReviewEventsTable,
+			Columns: []string{order.FeeReviewEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeereviewevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

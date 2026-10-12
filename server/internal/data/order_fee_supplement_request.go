@@ -26,10 +26,19 @@ func (r *orderFeeSupplementRepo) Create(ctx context.Context, request *biz.OrderF
 		if !ent.IsNotFound(queryErr) {
 			return queryErr
 		}
+		pending, err := tx.OrderFeeSupplementRequest.Query().Where(orderfeesupplementent.OrderIDEQ(request.OrderID), orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusPENDING)).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if pending {
+			return biz.ErrFeeSupplementTransition
+		}
 		builder := tx.OrderFeeSupplementRequest.Create().
 			SetID(request.ID).
 			SetOrganizationID(request.OrganizationID).
 			SetOrderID(request.OrderID).
+			SetNillableApprovedFeeReviewEventID(request.ApprovedFeeReviewEventID).
+			SetNillableApprovedFeeContentVersion(request.ApprovedFeeContentVersion).
 			SetLockBasis(orderfeesupplementent.LockBasis(request.LockBasis)).
 			SetIdempotencyKey(request.IdempotencyKey).
 			SetRequestFingerprint(request.RequestFingerprint).
@@ -97,6 +106,9 @@ func (r *orderFeeSupplementRepo) Create(ctx context.Context, request *biz.OrderF
 				return biz.ErrFeeSupplementIdempotencyConflict
 			}
 			return createErr
+		}
+		if err := bumpFeeReviewVersion(ctx, tx.Client(), request.OrderID); err != nil {
+			return err
 		}
 		result = request
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -239,7 +251,27 @@ func (r *orderFeeSupplementRepo) SaveDecision(ctx context.Context, request *biz.
 	if affected == 0 {
 		return biz.ErrFeeSupplementTransition
 	}
-	return nil
+	if request.Status == biz.OrderFeeSupplementApproved || request.Status == biz.OrderFeeSupplementRejected {
+		o, err := client.Order.Get(ctx, request.OrderID)
+		if err != nil {
+			return err
+		}
+		actor, err := client.User.Get(ctx, *request.DecidedBy)
+		if err != nil {
+			return err
+		}
+		label := "费用补录已退回"
+		if request.Status == biz.OrderFeeSupplementApproved {
+			label = "费用补录已批准"
+		}
+		if err := enqueueFeeReviewResultForUser(ctx, client, o, request.ID, request.RequestedBy, actor.DisplayName, label); err != nil {
+			return err
+		}
+	}
+	if request.Status == biz.OrderFeeSupplementApproved {
+		return refreshSupplementApproval(ctx, client, request.OrderID, *request.DecidedBy, request.ID, optionalStringValue(request.DecisionReason))
+	}
+	return bumpFeeReviewVersion(ctx, client, request.OrderID)
 }
 
 func (r *orderFeeSupplementRepo) SaveAudit(ctx context.Context, event *biz.AuditEvent) error {
@@ -251,5 +283,5 @@ func (r *orderFeeSupplementRepo) SaveAudit(ctx context.Context, event *biz.Audit
 }
 
 // ---------------------------------------------------------------------------
-// 审批：费用事实重解析、提成上下文加锁、费用与建议创建
+// 审批：固化费用复核、提成上下文加锁、费用与确认冲减创建
 // ---------------------------------------------------------------------------

@@ -16,34 +16,14 @@ var (
 	ErrFeeSupplementNotFound            = errors.NotFound("FEE_SUPPLEMENT_REQUEST_NOT_FOUND", "补录费用申请不存在")
 	ErrFeeSupplementInvalidArgument     = errors.BadRequest("FEE_SUPPLEMENT_REQUEST_INVALID", "补录费用申请参数不合法")
 	ErrFeeSupplementIdempotencyConflict = errors.Conflict("FEE_SUPPLEMENT_IDEMPOTENCY_CONFLICT", "同一幂等键的补录申请内容已变化，请刷新后重新发起")
-	ErrFeeSupplementApproverUnavailable = errors.Conflict("FEE_SUPPLEMENT_APPROVER_UNAVAILABLE", "当前没有具备订单直接解锁资格的审批人，请先配置审批资格")
+	ErrFeeSupplementApproverUnavailable = errors.Conflict("FEE_SUPPLEMENT_APPROVER_UNAVAILABLE", "当前没有具备费用审核权限且组织范围匹配的审批人，请先配置审批资格")
 	ErrFeeSupplementTransition          = errors.Conflict("FEE_SUPPLEMENT_TRANSITION", "当前补录申请状态不允许该操作")
-	// ErrFeeSupplementNotApplicable 业务锁与财务锁均不存在时的稳定拒绝：补录是
-	// 锁单的受控例外，普通无锁订单必须走普通费用新增入口。
-	ErrFeeSupplementNotApplicable = errors.Conflict("FEE_SUPPLEMENT_NOT_APPLICABLE", "订单当前没有业务锁或财务锁，请使用普通费用新增入口")
+	// ErrFeeSupplementNotApplicable 当前整票费用无有效批准，不能提交受控成本补录。
+	ErrFeeSupplementNotApplicable = errors.Conflict("FEE_SUPPLEMENT_NOT_APPLICABLE", "订单费用尚未有效批准，请先完成费用审核")
 	// ErrFeeSupplementCancelBlocked 专用撤销被下游事实阻断；消息由仓储按具体
 	// 阻断原因动态构造，稳定 reason 便于前端识别。
 	ErrFeeSupplementCancelBlocked = errors.Conflict("FEE_SUPPLEMENT_CANCEL_BLOCKED", "当前补录费用不满足专用撤销条件")
 )
-
-// LOCK_BASIS_CHANGED 的结构化 next_action 元数据键与取值：前端按稳定字段决定
-// 引导动作，不解析中文文案。
-const (
-	// LockBasisChangedNextActionMetadata 是错误 metadata 中携带引导动作的键。
-	LockBasisChangedNextActionMetadata = "next_action"
-	// LockBasisChangedRecreateSupplement 表示订单当前仍存在新锁，应重新发起补录。
-	LockBasisChangedRecreateSupplement = "RECREATE_SUPPLEMENT"
-	// LockBasisChangedUseNormalFeeEntry 表示订单已无任何锁，应改走普通费用新增。
-	LockBasisChangedUseNormalFeeEntry = "USE_NORMAL_FEE_ENTRY"
-)
-
-// newLockBasisChangedError 构造携带结构化 next_action 的 LOCK_BASIS_CHANGED
-// 错误；reason 稳定不变，引导语义只依赖 metadata。
-func newLockBasisChangedError(nextAction, message string) error {
-	return errors.Conflict("LOCK_BASIS_CHANGED", message).WithMetadata(map[string]string{
-		LockBasisChangedNextActionMetadata: nextAction,
-	})
-}
 
 // OrderFeeSupplementStatus 补录申请状态：PENDING 是唯一可流转状态；
 // APPROVED、REJECTED、WITHDRAWN 均为终态。
@@ -75,18 +55,19 @@ func (s OrderFeeSupplementStatus) Terminal() bool {
 type OrderFeeSupplementLockBasis string
 
 const (
-	// SupplementLockBasisBusiness 仅存在业务锁，依据为业务锁代次。
+	// SupplementLockBasisBusiness 保留历史业务锁事实，不授权新动作。
 	SupplementLockBasisBusiness OrderFeeSupplementLockBasis = "BUSINESS"
-	// SupplementLockBasisFinancial 仅存在财务锁，依据为版本化财务证据三元组。
+	// SupplementLockBasisFinancial 保留历史财务锁事实，不授权新动作。
 	SupplementLockBasisFinancial OrderFeeSupplementLockBasis = "FINANCIAL"
-	// SupplementLockBasisBoth 双锁并存，审批时任一依据匹配即可。
-	SupplementLockBasisBoth OrderFeeSupplementLockBasis = "BOTH"
+	// SupplementLockBasisBoth 保留历史双锁事实；新动作不据此授权。
+	SupplementLockBasisBoth     OrderFeeSupplementLockBasis = "BOTH"
+	SupplementLockBasisApproval OrderFeeSupplementLockBasis = "APPROVAL"
 )
 
 // Valid 判断锁依据取值是否已登记。
 func (b OrderFeeSupplementLockBasis) Valid() bool {
 	switch b {
-	case SupplementLockBasisBusiness, SupplementLockBasisFinancial, SupplementLockBasisBoth:
+	case SupplementLockBasisBusiness, SupplementLockBasisFinancial, SupplementLockBasisBoth, SupplementLockBasisApproval:
 		return true
 	default:
 		return false
@@ -137,10 +118,12 @@ func (f OrderFeeSupplementFeeSnapshot) Validate() error {
 	return nil
 }
 
-// OrderFeeSupplementRequest 是锁后应付费用补录申请领域对象。除状态流转字段
-// 外全部不可变；锁依据在提交事务的 Order 行锁内由服务端判定固化。
+// OrderFeeSupplementRequest 是费用批准后的受控应付补录申请领域对象。除状态流转字段
+// 外全部不可变；批准依据在提交事务的 Order 行锁内由服务端固化。
 type OrderFeeSupplementRequest struct {
 	ID, OrganizationID, OrderID  uuid.UUID
+	ApprovedFeeReviewEventID     *uuid.UUID
+	ApprovedFeeContentVersion    *uint64
 	LockBasis                    OrderFeeSupplementLockBasis
 	BusinessLockGeneration       *uint64
 	FinancialLockEvidenceVersion *string
@@ -162,52 +145,10 @@ type OrderFeeSupplementRequest struct {
 	CreatedAt, UpdatedAt         time.Time
 }
 
-// businessLockEvidenceComplete 报告业务锁依据是否为「大于零的锁代次」。
-func (r *OrderFeeSupplementRequest) businessLockEvidenceComplete() bool {
-	return r.BusinessLockGeneration != nil && *r.BusinessLockGeneration > 0
-}
-
-// businessLockEvidenceAbsent 报告业务锁依据是否完全未填写。
-func (r *OrderFeeSupplementRequest) businessLockEvidenceAbsent() bool {
-	return r.BusinessLockGeneration == nil
-}
-
-// financialLockEvidenceComplete 报告财务锁依据三元组是否完整且净额大于零。
-func (r *OrderFeeSupplementRequest) financialLockEvidenceComplete() bool {
-	return r.FinancialLockEvidenceVersion != nil && *r.FinancialLockEvidenceVersion != "" &&
-		r.FinancialLockEvidenceHash != nil && *r.FinancialLockEvidenceHash != "" &&
-		r.FinancialLockNetAmount != nil && r.FinancialLockNetAmount.Sign() > 0
-}
-
-// financialLockEvidenceAbsent 报告财务锁依据三元组是否完全未填写。
-func (r *OrderFeeSupplementRequest) financialLockEvidenceAbsent() bool {
-	return r.FinancialLockEvidenceVersion == nil &&
-		r.FinancialLockEvidenceHash == nil &&
-		r.FinancialLockNetAmount == nil
-}
-
-// ValidateLockBasisEvidence 校验锁依据字段组合与 lock_basis 一致，规则与数据库
-// CHECK order_fee_supplement_requests_lock_basis_check 同源：BUSINESS 仅保存
-// 大于零的业务锁代次；FINANCIAL 仅保存非空证据三元组且净额大于零；BOTH 同时
-// 保存两组依据。
+// ValidateLockBasisEvidence 新申请仅接受完整的费用批准依据；旧枚举仅供历史投影。
 func (r *OrderFeeSupplementRequest) ValidateLockBasisEvidence() error {
-	businessOK := r.businessLockEvidenceComplete()
-	financialOK := r.financialLockEvidenceComplete()
-	switch r.LockBasis {
-	case SupplementLockBasisBusiness:
-		if businessOK && r.financialLockEvidenceAbsent() {
-			return nil
-		}
-	case SupplementLockBasisFinancial:
-		if financialOK && r.businessLockEvidenceAbsent() {
-			return nil
-		}
-	case SupplementLockBasisBoth:
-		if businessOK && financialOK {
-			return nil
-		}
-	default:
-		return ErrFeeSupplementInvalidArgument
+	if r.LockBasis == SupplementLockBasisApproval && r.ApprovedFeeReviewEventID != nil && *r.ApprovedFeeReviewEventID != uuid.Nil && r.ApprovedFeeContentVersion != nil && *r.ApprovedFeeContentVersion > 0 {
+		return nil
 	}
 	return ErrFeeSupplementInvalidArgument
 }
@@ -233,7 +174,7 @@ func (r *OrderFeeSupplementRequest) Validate() error {
 
 // OrderFeeSupplementRequestRepo 补录申请持久化接口。
 // 实现约束：审批、驳回与撤回必须在申请行 FOR UPDATE 锁内比对乐观锁版本；
-// 费用快照与锁依据字段创建后不可变；组织级幂等键唯一由数据库唯一索引兜底，
+// 费用快照与批准依据字段创建后不可变；组织级幂等键唯一由数据库唯一索引兜底，
 // 不得用先查后插替代。
 type OrderFeeSupplementRequestRepo interface {
 	// Create 幂等创建申请：同组织同幂等键同指纹返回既有申请，同键不同指纹
@@ -251,20 +192,18 @@ type OrderFeeSupplementRequestRepo interface {
 	// 流转。
 	SaveDecision(ctx context.Context, request *OrderFeeSupplementRequest) error
 
-	// LockOrderForSupplement 在事务内以 FOR UPDATE 锁定目标订单行，并返回当前
-	// 业务锁与财务锁事实。补录是锁单的受控例外：本方法不执行普通费用写入口的
-	// 内容门禁与财务锁拒绝，但锁依据计算必须复用财务锁净额口径。
+	// LockOrderForSupplement 按主键锁目标订单，复核当前整票有效批准；
+	// 这是批准冻结下的受控成本补录入口，不能复用解锁授权。
 	LockOrderForSupplement(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementLockEvidence, error)
-	// ReadLockEvidence 只读计算当前锁依据，供审批预览复核。
+	// ReadLockEvidence 读取当前有效批准版本，供审批预览复核。
 	ReadLockEvidence(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementLockEvidence, error)
 	// GetOrderRef 读取订单号与业务类型，供权限判定与通知摘要使用。
 	GetOrderRef(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementOrderRef, error)
-	// ListLockGrantApprovers 解析当前实时具备目标订单直接解锁资格的审批候选人
+	// ListLockGrantApprovers 解析当前实时具备目标订单费用审核权限的审批候选人
 	//（按 UserID 升序去重；bootstrap admin 不进入候选池）。同一目标订单与组织
 	// 范围内的解析必须与单用户资格判断复用同一谓词。
 	ListLockGrantApprovers(ctx context.Context, organizationID, orderID uuid.UUID) ([]OrderFeeSupplementApprover, error)
-	// HasRealtimeLockGrant 实时判断用户是否具备目标订单直接解锁资格；
-	// bootstrap admin 显式具备，普通用户按统一 lock grant 口径判定。
+	// HasRealtimeLockGrant 实时判断费用审核资格及组织范围，不复用解锁授权或管理员旁路。
 	HasRealtimeLockGrant(ctx context.Context, organizationID, orderID, userID uuid.UUID, isBootstrapAdmin bool) (bool, error)
 	// CancelCapability 只读投影专用作废能力与稳定阻断原因，列表与专用作废
 	// 命令复用同一校验口径。
@@ -280,13 +219,13 @@ type OrderFeeSupplementRequestRepo interface {
 	// CreateApprovedFee 在审批事务内创建与申请一对一关联的 UNBILLED 补录费用；
 	// 幂等键由申请 ID 派生，supplement_request_id 反向关联。
 	CreateApprovedFee(ctx context.Context, organizationID, requestID uuid.UUID, fee *OrderFee, audit *AuditEvent) (*OrderFee, error)
-	// CreateDecreaseSuggestion 在审批事务内创建 DECREASE+DRAFT+LOCKED_FEE_SUPPLEMENT
+	// CreateDecreaseSuggestion 在审批事务内创建 DECREASE+CONFIRMED+LOCKED_FEE_SUPPLEMENT
 	// 调整：父单行内分配调整号并递增序号，来源关联必须指向补录申请。
 	CreateDecreaseSuggestion(ctx context.Context, organizationID, requestID uuid.UUID, suggestion *OrderFeeSupplementDecreaseSuggestion, audit *AuditEvent) error
 	// EnqueueApprovalPendingNotifications 在创建申请的同一事务内为审批人逐人
 	// 入队 FEE_SUPPLEMENT_APPROVAL_PENDING 通知（确定性 ID + 幂等键）。
 	EnqueueApprovalPendingNotifications(ctx context.Context, organizationID, requestID uuid.UUID, orderNo string, totalAmount decimal.Decimal, currency string, approvers []OrderFeeSupplementApprover) error
-	// EnqueueDecreaseSuggestedNotifications 在审批事务内为实际生成冲减建议的
+	// EnqueueDecreaseSuggestedNotifications 在审批事务内为实际生成已确认提成冲减的
 	// 员工逐人入队 COMMISSION_DECREASE_SUGGESTED 通知（确定性 ID + 幂等键）。
 	EnqueueDecreaseSuggestedNotifications(ctx context.Context, organizationID uuid.UUID, orderNo string, suggestions []OrderFeeSupplementDecreaseSuggestion) error
 	// CancelApprovedFee 执行专用作废事务（design 5.1 六步，固定锁序 Order →
@@ -309,6 +248,9 @@ type OrderFeeSupplementOrderRef struct {
 // locked_at 与 lock_generation 为准；财务锁复用有效提成净额口径（净额 > 0），
 // 并携带版本化证据三元组（CONFIRMED/PAID 统一编码为 ACTIVE）。
 type OrderFeeSupplementLockEvidence struct {
+	ApprovedFeeReviewEventID *uuid.UUID
+	FeeContentVersion        uint64
+	FeeReviewVersion         uint64
 	OrderNo                  string
 	BusinessType             string
 	BusinessLocked           bool
@@ -319,18 +261,7 @@ type OrderFeeSupplementLockEvidence struct {
 	FinancialNetAmount       decimal.Decimal
 }
 
-// BusinessMatched 报告业务锁依据是否与申请固化代次一致。
-func (e *OrderFeeSupplementLockEvidence) BusinessMatched(generation uint64) bool {
-	return e.BusinessLocked && e.BusinessLockGeneration == generation
-}
-
-// FinancialMatched 报告财务锁依据是否与申请固化证据一致：当前净额仍大于零且
-// 同版本证据哈希一致；CONFIRMED↔PAID 流转不改变证据。
-func (e *OrderFeeSupplementLockEvidence) FinancialMatched(version, hash string) bool {
-	return e.FinancialLocked && e.FinancialEvidenceVersion == version && e.FinancialEvidenceHash == hash
-}
-
-// OrderFeeSupplementApprover 是实时具备直接解锁资格的审批人快照，仅用于通知
+// OrderFeeSupplementApprover 是有效费用审核授权及组织范围匹配的审批人快照，仅用于通知
 // 收件人投影；审批资格始终以接口调用时的实时校验为准。
 type OrderFeeSupplementApprover struct {
 	UserID         uuid.UUID
@@ -363,33 +294,32 @@ type OrderFeeSupplementCommissionLine struct {
 	TotalReceivableSnapshot *decimal.Decimal
 	TotalPayableSnapshot    *decimal.Decimal
 	// 双层余额：CONFIRMED/PAID 符号化合计与其他 DRAFT DECREASE 预留。
-	LineEffective       decimal.Decimal
-	LineDraftDecrease   decimal.Decimal
-	ParentEffective     decimal.Decimal
-	ParentDraftDecrease decimal.Decimal
+	PriorSupplementBaseAmount decimal.Decimal
+	LineEffective             decimal.Decimal
+	LineDraftDecrease         decimal.Decimal
+	ParentEffective           decimal.Decimal
+	ParentDraftDecrease       decimal.Decimal
 }
 
 // OrderFeeSupplementImpactContext 是一次补录审批的边际影响计算上下文。
 type OrderFeeSupplementImpactContext struct {
-	// PriorSupplementBaseAmount 是该订单此前已审批且尚未作废的补录应付本位币
-	// 合计：作为历史计算事实进入 before 基线，已作废补录不进基线。
-	PriorSupplementBaseAmount decimal.Decimal
 	// Lines 按父单 UUID 升序排列，每张父单至多一行（commission_id + order_id 唯一）。
 	Lines []*OrderFeeSupplementCommissionLine
 }
 
-// OrderFeeSupplementDecreaseSuggestion 是审批计算得出的单条冲减建议。
+// OrderFeeSupplementDecreaseSuggestion 是审批计算得出的单条确认冲减及预览影响。
 type OrderFeeSupplementDecreaseSuggestion struct {
-	AdjustmentID uuid.UUID
-	CommissionID uuid.UUID
-	CommissionNo string
-	OrderID      uuid.UUID
-	OrderNo      string
-	EmployeeID   uuid.UUID
-	EmployeeName string
-	BaseCurrency string
-	Amount       decimal.Decimal
-	Reason       string
+	AdjustmentID     uuid.UUID
+	CommissionID     uuid.UUID
+	CommissionNo     string
+	CommissionStatus string
+	OrderID          uuid.UUID
+	OrderNo          string
+	EmployeeID       uuid.UUID
+	EmployeeName     string
+	BaseCurrency     string
+	Amount           decimal.Decimal
+	Reason           string
 	// 计算审计：before/after 提成金额与理论边际、超出封顶金额。
 	AmountBefore  decimal.Decimal
 	AmountAfter   decimal.Decimal

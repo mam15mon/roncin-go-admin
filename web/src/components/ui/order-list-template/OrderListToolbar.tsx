@@ -31,6 +31,7 @@ const { Text } = Typography;
 export interface OrderListToolbarProps {
   /** 是否显示标签管理入口（由订单业务类型 update 权限决定） */
   showManageTags?: boolean;
+  showFeeReview?: boolean;
   orderKindTitle?: string;
   selectedRows: OrderListItem[];
   onRefresh: () => void;
@@ -51,6 +52,7 @@ export interface OrderListToolbarProps {
 
 export function OrderListToolbar({
   showManageTags = true,
+  showFeeReview = false,
   orderKindTitle = '订单',
   selectedRows,
   onRefresh,
@@ -69,6 +71,9 @@ export function OrderListToolbar({
 
   // 批量操作下拉菜单项定义
   const batchMenuItems: MenuProps['items'] = [
+    ...(showFeeReview
+      ? [{ key: 'review-fees', label: '批量审核费用', disabled: !hasSelected }]
+      : []),
     {
       key: 'export-documents',
       icon: <FileDoneOutlined />,

@@ -2,6 +2,42 @@
 /* eslint-disable */
 import { request } from "@/utils/requestClient";
 
+/** 此处后端没有提供注释 POST /api/v1/order-fee-reviews/approve */
+export async function orderFeeServiceApproveOrderFeeReviews(
+  body: API.ApproveOrderFeeReviewsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.ApproveOrderFeeReviewsResponse>(
+    "/api/v1/order-fee-reviews/approve",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/order-fee-reviews/preview */
+export async function orderFeeServicePreviewOrderFeeReviews(
+  body: API.PreviewOrderFeeReviewsRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.PreviewOrderFeeReviewsResponse>(
+    "/api/v1/order-fee-reviews/preview",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。 GET /api/v1/orders/${param0}/fee-exchange-rate */
 export async function orderFeeServiceResolveFeeExchangeRate(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -38,8 +74,152 @@ export async function orderFeeServiceListFeeOptions(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-review */
+export async function orderFeeServiceGetOrderFeeReview(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceGetOrderFeeReviewParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.GetOrderFeeReviewResponse>(
+    `/api/v1/orders/${param0}/fee-review`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-review/approve */
+export async function orderFeeServiceApproveOrderFeeReview(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceApproveOrderFeeReviewParams,
+  body: API.ApproveOrderFeeReviewRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.ApproveOrderFeeReviewResponse>(
+    `/api/v1/orders/${param0}/fee-review/approve`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-review/preview */
+export async function orderFeeServicePreviewOrderFeeReview(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServicePreviewOrderFeeReviewParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.PreviewOrderFeeReviewResponse>(
+    `/api/v1/orders/${param0}/fee-review/preview`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-review/reject */
+export async function orderFeeServiceRejectOrderFeeReview(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceRejectOrderFeeReviewParams,
+  body: API.RejectOrderFeeReviewRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.RejectOrderFeeReviewResponse>(
+    `/api/v1/orders/${param0}/fee-review/reject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-review/revoke */
+export async function orderFeeServiceRevokeOrderFeeReview(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceRevokeOrderFeeReviewParams,
+  body: API.RevokeOrderFeeReviewRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.RevokeOrderFeeReviewResponse>(
+    `/api/v1/orders/${param0}/fee-review/revoke`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-review/submit */
+export async function orderFeeServiceSubmitOrderFeeReview(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceSubmitOrderFeeReviewParams,
+  body: API.SubmitOrderFeeReviewRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.SubmitOrderFeeReviewResponse>(
+    `/api/v1/orders/${param0}/fee-review/submit`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-review/withdraw */
+export async function orderFeeServiceWithdrawOrderFeeReview(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceWithdrawOrderFeeReviewParams,
+  body: API.WithdrawOrderFeeReviewRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.WithdrawOrderFeeReviewResponse>(
+    `/api/v1/orders/${param0}/fee-review/withdraw`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权
- （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级
+ （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级
  fee.read 注解提前挡住，也不泄露无权申请。 GET /api/v1/orders/${param0}/fee-supplement-requests */
 export async function orderFeeServiceListOrderFeeSupplementRequests(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -59,9 +239,9 @@ export async function orderFeeServiceListOrderFeeSupplementRequests(
   );
 }
 
-/** CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
- 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
- 稳定拒绝并引导普通费用新增。 POST /api/v1/orders/${param0}/fee-supplement-requests */
+/** CreateOrderFeeSupplement 基于有效整票费用批准发起受控正数应付成本补录。
+ 批准事件与内容版本由服务端锁内固化；同订单只允许一条待审补录，并提醒
+ 有效费用审核权限且组织范围匹配的候选人。 POST /api/v1/orders/${param0}/fee-supplement-requests */
 export async function orderFeeServiceCreateOrderFeeSupplement(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceCreateOrderFeeSupplementParams,
@@ -102,8 +282,8 @@ export async function orderFeeServicePreviewOrderFeeSupplementApproval(
   );
 }
 
-/** ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
- 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
+/** ApproveOrderFeeSupplement 审批通过补录申请：复核固化的有效费用批准与整票利润、逐人提成预览，
+ 在同一事务创建补录费用、DECREASE+CONFIRMED 冲减并逐员工通知。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/approve */
 export async function orderFeeServiceApproveOrderFeeSupplement(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceApproveOrderFeeSupplementParams,
@@ -126,8 +306,8 @@ export async function orderFeeServiceApproveOrderFeeSupplement(
 }
 
 /** CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
- 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
- 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/cancel-fee */
+ 未被有效账单关联占用且未产生确认冲减的补录；同事务物理删除费用并撤销
+ 当前整票批准，APPROVED 申请事实及历史账单行快照保留。 POST /api/v1/orders/${param0}/fee-supplement-requests/${param1}/cancel-fee */
 export async function orderFeeServiceCancelApprovedOrderFeeSupplement(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceCancelApprovedOrderFeeSupplementParams,

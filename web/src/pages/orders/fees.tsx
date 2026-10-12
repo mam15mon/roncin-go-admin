@@ -17,6 +17,7 @@ import { useAccess } from '@/app/access';
 import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
 import { OrderFlowStatus, PartnerRoleType } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
+import { useOrderFeeReview } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import {
@@ -34,6 +35,7 @@ import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
 import FeeSupplementSection from './components/fees/FeeSupplementSection';
+import { OrderFeeReviewSection } from './components/fees/fee-review/OrderFeeReview';
 import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import { RECEIVABLE } from './components/fees/feeConstants';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
@@ -71,9 +73,10 @@ export default function OrderFeesPage() {
   const canAccessPage = Boolean(
     definition &&
       (access.canOrder(definition.businessType, 'fee.read') ||
-        access.canOrder(definition.businessType, 'lock')),
+        access.canReviewOrderFees),
   );
   const targetOrderId = canAccessPage ? orderId : undefined;
+  const feeReview = useOrderFeeReview(targetOrderId);
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
@@ -209,6 +212,7 @@ export default function OrderFeesPage() {
     void queryClient.invalidateQueries({
       queryKey: ['orders', 'fee-bill-tracking'],
     });
+    void queryClient.invalidateQueries({ queryKey: ['order-fee-review'] });
   }, [queryClient]);
   const feeBillTracking = useMemo<FeeBillTrackingView | undefined>(() => {
     if (!canTrackFeeBills) return undefined;
@@ -272,7 +276,11 @@ export default function OrderFeesPage() {
     error: lockStateError,
     canOperate: access.canOperateOrganization(order?.organizationId),
   });
-  const feeWritesDisabled = financeLocked || lockWritePolicy.disabled;
+  const feeWritesDisabled =
+    financeLocked ||
+    lockWritePolicy.disabled ||
+    feeReview.isError ||
+    feeReview.data?.canEdit !== true;
   const feeWritePolicyRef = useRef({
     financeLocked,
     lockWritePolicy,
@@ -280,6 +288,13 @@ export default function OrderFeesPage() {
   feeWritePolicyRef.current = { financeLocked, lockWritePolicy };
 
   const ensureFeeWriteAllowed = () => {
+    if (feeReview.isError || feeReview.data?.canEdit !== true) {
+      message.warning(
+        feeReview.data?.blockedReasons?.join('；') ||
+          '费用审核信息未就绪或费用已冻结',
+      );
+      return false;
+    }
     const currentPolicy = feeWritePolicyRef.current;
     if (currentPolicy.lockWritePolicy.disabled) {
       message.warning(
@@ -288,7 +303,7 @@ export default function OrderFeesPage() {
       return false;
     }
     if (currentPolicy.financeLocked) {
-      message.warning('订单财务已锁定，请在提成管理中创建独立调整记录');
+      message.warning('存在有效提成，原费用不能直接修改；新增成本请申请补录');
       return false;
     }
     return true;
@@ -460,6 +475,7 @@ export default function OrderFeesPage() {
     receivableActionRef.current?.reload();
     payableActionRef.current?.reload();
     refreshFeeBillTracking();
+    void feeReview.refetch();
   };
 
   const handleCancelFee = (fee: API.OrderFee) => {
@@ -527,7 +543,13 @@ export default function OrderFeesPage() {
           navigationTitle={definition.navigationTitle}
           orderId={orderId}
         />
-        <SectionCard title="锁后费用补录审批">
+        <SectionCard title="整票费用包审核">
+          <OrderFeeReviewSection
+            orderId={targetOrderId}
+            onChanged={() => void feeReview.refetch()}
+          />
+        </SectionCard>
+        <SectionCard title="费用补录审核">
           <FeeSupplementSection
             key={targetOrderId}
             orderId={targetOrderId}
@@ -621,7 +643,7 @@ export default function OrderFeesPage() {
               )}
             {financeLocked && (
               <Tag color="red" icon={<LockOutlined />}>
-                财务已关账
+                存在有效提成
               </Tag>
             )}
           </>
@@ -641,6 +663,19 @@ export default function OrderFeesPage() {
           </Button>
         }
       />
+
+      <SectionCard title="整票费用包审核">
+        <OrderFeeReviewSection
+          key={targetOrderId}
+          orderId={orderId || ''}
+          onChanged={() => {
+            void loadData();
+            receivableActionRef.current?.reload();
+            payableActionRef.current?.reload();
+            refreshFeeBillTracking();
+          }}
+        />
+      </SectionCard>
 
       <OrderFeeHeader
         order={order}
@@ -676,7 +711,8 @@ export default function OrderFeesPage() {
         setPayableSummary={setPayableSummary}
         canCreateFinanceBills={
           access.canOperateOrganization(order?.organizationId) &&
-          Boolean(access.canCreateFinanceBills)
+          Boolean(access.canCreateFinanceBills) &&
+          feeReview.data?.canBill === true
         }
         feeWritesDisabled={feeWritesDisabled}
         columnSettingScope={feeColumnSettingScope}
@@ -707,7 +743,7 @@ export default function OrderFeesPage() {
       />
 
       {/* 3.1 锁后费用补录：订单身份变化时经 key 整体重建，清空申请、弹窗与异步状态 */}
-      <SectionCard title="锁后费用补录" collapsible>
+      <SectionCard title="费用补录" collapsible>
         <FeeSupplementSection
           key={targetOrderId}
           orderId={orderId || ''}
@@ -716,7 +752,10 @@ export default function OrderFeesPage() {
             order.businessType !== undefined &&
             access.canOrder(order.businessType, 'fee.create')
           }
-          lockActive={Boolean(lockState?.isLocked) || financeLocked}
+          lockActive={
+            feeReview.data?.status === 'APPROVED' &&
+            !feeReview.data.hasPendingSupplement
+          }
           feeSettings={feeSettings}
           settlementParties={settlementParties}
           currencies={currencies}

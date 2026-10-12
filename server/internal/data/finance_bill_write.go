@@ -28,6 +28,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 			feeIDs = append(feeIDs, line.OrderFeeID)
 			expected[line.OrderFeeID] = line
 		}
+		if err := lockBillFeeOrders(ctx, tx.Client(), []uuid.UUID{bill.OrganizationID}, feeIDs, true); err != nil {
+			return err
+		}
 		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(bill.OrganizationID))).Order(orderfeeent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err
@@ -106,6 +109,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 
 func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUID, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if err := lockExistingBillOrders(ctx, tx.Client(), organizationIDs, []uuid.UUID{input.ID}); err != nil {
+			return err
+		}
 		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
@@ -186,6 +192,9 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUI
 
 func (r *financeBillRepo) Confirm(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if err := lockExistingBillOrders(ctx, tx.Client(), organizationIDs, []uuid.UUID{id}); err != nil {
+			return err
+		}
 		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
@@ -209,6 +218,9 @@ func (r *financeBillRepo) Confirm(ctx context.Context, organizationIDs []uuid.UU
 
 func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if err := lockExistingBillOrders(ctx, tx.Client(), organizationIDs, []uuid.UUID{id}); err != nil {
+			return err
+		}
 		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
@@ -246,7 +258,7 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 		if netted {
 			return biz.ErrFinanceBillInvalidTransition
 		}
-		lines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).ForUpdate().All(ctx)
+		lines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).Order(financebilllineent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err
 		}
@@ -258,7 +270,7 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 			feeIDs = append(feeIDs, line.OrderFeeID)
 		}
 		sort.Slice(feeIDs, func(i, j int) bool { return feeIDs[i].String() < feeIDs[j].String() })
-		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...)).ForUpdate().All(ctx)
+		fees, err := tx.OrderFee.Query().Where(orderfeeent.IDIn(feeIDs...)).Order(orderfeeent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err
 		}

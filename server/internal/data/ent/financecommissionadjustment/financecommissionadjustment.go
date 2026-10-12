@@ -62,6 +62,10 @@ const (
 	FieldConfirmedAt = "confirmed_at"
 	// FieldConfirmedBy holds the string denoting the confirmed_by field in the database.
 	FieldConfirmedBy = "confirmed_by"
+	// FieldExecutionMethod holds the string denoting the execution_method field in the database.
+	FieldExecutionMethod = "execution_method"
+	// FieldParentPaymentID holds the string denoting the parent_payment_id field in the database.
+	FieldParentPaymentID = "parent_payment_id"
 	// FieldPaidAt holds the string denoting the paid_at field in the database.
 	FieldPaidAt = "paid_at"
 	// FieldPaidBy holds the string denoting the paid_by field in the database.
@@ -183,6 +187,8 @@ var Columns = []string{
 	FieldVersion,
 	FieldConfirmedAt,
 	FieldConfirmedBy,
+	FieldExecutionMethod,
+	FieldParentPaymentID,
 	FieldPaidAt,
 	FieldPaidBy,
 	FieldCancelledAt,
@@ -310,6 +316,29 @@ func StatusValidator(s Status) error {
 	}
 }
 
+// ExecutionMethod defines the type for the "execution_method" enum field.
+type ExecutionMethod string
+
+// ExecutionMethod values.
+const (
+	ExecutionMethodOFFSET_WITH_PARENT ExecutionMethod = "OFFSET_WITH_PARENT"
+	ExecutionMethodSEPARATE           ExecutionMethod = "SEPARATE"
+)
+
+func (em ExecutionMethod) String() string {
+	return string(em)
+}
+
+// ExecutionMethodValidator is a validator for the "execution_method" field enum values. It is called by the builders before save.
+func ExecutionMethodValidator(em ExecutionMethod) error {
+	switch em {
+	case ExecutionMethodOFFSET_WITH_PARENT, ExecutionMethodSEPARATE:
+		return nil
+	default:
+		return fmt.Errorf("financecommissionadjustment: invalid enum value for execution_method field: %q", em)
+	}
+}
+
 // OrderOption defines the ordering options for the FinanceCommissionAdjustment queries.
 type OrderOption func(*sql.Selector)
 
@@ -431,6 +460,16 @@ func ByConfirmedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByConfirmedBy orders the results by the confirmed_by field.
 func ByConfirmedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldConfirmedBy, opts...).ToFunc()
+}
+
+// ByExecutionMethod orders the results by the execution_method field.
+func ByExecutionMethod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExecutionMethod, opts...).ToFunc()
+}
+
+// ByParentPaymentID orders the results by the parent_payment_id field.
+func ByParentPaymentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldParentPaymentID, opts...).ToFunc()
 }
 
 // ByPaidAt orders the results by the paid_at field.

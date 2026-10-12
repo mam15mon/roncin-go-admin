@@ -224,6 +224,7 @@ type OrderPersonnelFilter struct {
 }
 
 type Order struct {
+	FeeReview        *OrderFeeReview
 	ID               uuid.UUID
 	OrganizationID   uuid.UUID
 	OrganizationName string
@@ -340,35 +341,37 @@ type OrderContainerRequest struct {
 }
 
 type OrderListOptions struct {
-	Page                  int
-	PageSize              int
-	Keyword               string
-	FlowStatus            OrderFlowStatus
-	TerminationStatus     OrderTerminationStatus
-	ClosureStatus         OrderClosureStatus
-	HasActiveException    *bool
-	BusinessType          OrderBusinessType
-	BusinessTypes         []OrderBusinessType
-	CustomerID            *uuid.UUID
-	NumberType            OrderNumberFilterType
-	NumberKeyword         string
-	CreatedAtRange        OrderDateRange
-	ETDRange              OrderDateRange
-	ETARange              OrderDateRange
-	StatusTimeRange       OrderDateRange
-	LockedAtRange         OrderDateRange
-	OriginLocationID      *uuid.UUID
-	DestinationLocationID *uuid.UUID
-	ShippingLineID        *uuid.UUID
-	ConsigneeShortName    string
-	ShipperShortName      string
-	Operator              OrderPersonnelFilter
-	Sales                 OrderPersonnelFilter
-	CustomerService       OrderPersonnelFilter
-	Creator               OrderPersonnelFilter
-	TagIDs                []uuid.UUID
-	IsLocked              *bool
-	IsShared              *bool
+	FeeReviewStatus         string
+	HasPendingFeeSupplement *bool
+	Page                    int
+	PageSize                int
+	Keyword                 string
+	FlowStatus              OrderFlowStatus
+	TerminationStatus       OrderTerminationStatus
+	ClosureStatus           OrderClosureStatus
+	HasActiveException      *bool
+	BusinessType            OrderBusinessType
+	BusinessTypes           []OrderBusinessType
+	CustomerID              *uuid.UUID
+	NumberType              OrderNumberFilterType
+	NumberKeyword           string
+	CreatedAtRange          OrderDateRange
+	ETDRange                OrderDateRange
+	ETARange                OrderDateRange
+	StatusTimeRange         OrderDateRange
+	LockedAtRange           OrderDateRange
+	OriginLocationID        *uuid.UUID
+	DestinationLocationID   *uuid.UUID
+	ShippingLineID          *uuid.UUID
+	ConsigneeShortName      string
+	ShipperShortName        string
+	Operator                OrderPersonnelFilter
+	Sales                   OrderPersonnelFilter
+	CustomerService         OrderPersonnelFilter
+	Creator                 OrderPersonnelFilter
+	TagIDs                  []uuid.UUID
+	IsLocked                *bool
+	IsShared                *bool
 }
 
 type OrderList = PagedList[*Order]

@@ -94,6 +94,10 @@ type FinanceBillLine struct {
 }
 
 type FinanceBillableFee struct {
+	FeeReviewStatus         string
+	HasPendingFeeSupplement bool
+	CanBill                 bool
+	BlockedReasons          []string
 	Fee                     *OrderFee
 	OrganizationID          uuid.UUID
 	OrderNo                 string

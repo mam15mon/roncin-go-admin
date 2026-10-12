@@ -450,9 +450,53 @@ func reconcileCommissionsForSourceReversal(ctx context.Context, tx *ent.Tx, org 
 			}
 			domainAdjustments = append(domainAdjustments, converted)
 		}
+		if parent.Status != commission.StatusPAID {
+			for _, a := range domainAdjustments {
+				if a.Status == biz.CommissionPaid {
+					return biz.ErrCommissionPaymentEvidence
+				}
+			}
+		}
+		if parent.Status == commission.StatusPAID {
+			cash, err := commissionCashExposure(parent, adjustments)
+			if err != nil {
+				return err
+			}
+			reserved := decimal.Zero
+			for _, a := range domainAdjustments {
+				if a.Status == biz.CommissionConfirmed && a.Direction == biz.CommissionAdjustmentIncrease {
+					return biz.ErrCommissionPendingIncrease
+				}
+				if a.Status == biz.CommissionConfirmed && a.Direction == biz.CommissionAdjustmentDecrease {
+					reserved = reserved.Add(a.Amount)
+				}
+			}
+			if reserved.GreaterThan(cash) {
+				return biz.ErrCommissionPaymentEvidence
+			}
+		}
 		plan, planErr := biz.PlanCommissionReversal(biz.CommissionStatus(parent.Status), baseAmount, domainLines, domainAdjustments)
 		if planErr != nil {
 			return planErr
+		}
+		if parent.Status == commission.StatusPAID {
+			cash, err := commissionCashExposure(parent, adjustments)
+			if err != nil {
+				return err
+			}
+			reserved := decimal.Zero
+			for _, a := range domainAdjustments {
+				if a.Status == biz.CommissionConfirmed && a.Direction == biz.CommissionAdjustmentDecrease {
+					reserved = reserved.Add(a.Amount)
+				}
+			}
+			total := decimal.Zero
+			for _, r := range plan.Recoveries {
+				total = total.Add(r.Amount)
+			}
+			if total.Add(reserved).GreaterThan(cash) {
+				return biz.ErrCommissionPaymentEvidence
+			}
 		}
 		if len(plan.CancelAdjustmentIDs) > 0 {
 			if _, queryErr = tx.FinanceCommissionAdjustment.Update().Where(

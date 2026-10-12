@@ -27,6 +27,7 @@ func commissionWithLinesToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission,
 		if convertErr != nil {
 			return nil, convertErr
 		}
+		populateAdjustmentExecutionCapability(converted, item, x, x.Edges.Adjustments)
 		result.Adjustments = append(result.Adjustments, converted)
 		if converted.Status == biz.CommissionConfirmed || converted.Status == biz.CommissionPaid {
 			if converted.Direction == biz.CommissionAdjustmentDecrease {
@@ -78,6 +79,13 @@ func commissionToBiz(x *ent.FinanceCommission) (*biz.FinanceCommission, error) {
 		return nil, err
 	}
 	result := &biz.FinanceCommission{ID: x.ID, OrganizationID: x.OrganizationID, CommissionNo: x.CommissionNo, IdempotencyKey: x.IdempotencyKey, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName, CustomerCount: x.CustomerCount, OrderCount: x.OrderCount, FeeCount: x.FeeCount, Status: biz.CommissionStatus(x.Status), BaseCurrency: x.BaseCurrency, RealizedRevenue: revenue, AllocatedCost: cost, RealizedProfit: profit, CommissionBaseAmount: commissionBase, RatePercent: rate, CommissionAmount: amount, EffectiveCommissionAmount: amount, CommissionDate: x.CommissionDate, CNYExchangeRate: cnyRate, CNYExchangeRateSource: string(x.CnyExchangeRateSource), CNYExchangeRateDate: x.CnyExchangeRateDate, CNYExchangeRateSettingID: x.CnyExchangeRateSettingID, CNYCommissionAmount: cnyAmount, Note: x.Note, Version: x.Version, RuleVersion: x.RuleVersion, CalculationVersion: x.CalculationVersion, SourceFingerprint: x.SourceFingerprint, ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, PaidAt: x.PaidAt, PaidBy: x.PaidBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt}
+	if x.PaidAmount != nil {
+		paid, err := decimalOf(*x.PaidAmount)
+		if err != nil {
+			return nil, err
+		}
+		result.PaidAmount = &paid
+	}
 	if x.VerificationID != nil {
 		result.VerificationID = *x.VerificationID
 		result.VerificationNo = optionalStringValue(x.VerificationNo)

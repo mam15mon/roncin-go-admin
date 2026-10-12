@@ -266,6 +266,7 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		orderID: order.ID, receivableFeeID: receivableFee.ID, billID: billItem.ID,
 		suffix: suffix, historicalDate: historicalDate, currentDate: today,
 	}
+	seedApprovedFeeSnapshotForTest(t, data, fixture.orderID, fixture.actorID)
 	return fixture
 }
 

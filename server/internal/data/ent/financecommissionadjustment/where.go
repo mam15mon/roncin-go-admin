@@ -156,6 +156,11 @@ func ConfirmedBy(v uuid.UUID) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldConfirmedBy, v))
 }
 
+// ParentPaymentID applies equality check predicate on the "parent_payment_id" field. It's identical to ParentPaymentIDEQ.
+func ParentPaymentID(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldParentPaymentID, v))
+}
+
 // PaidAt applies equality check predicate on the "paid_at" field. It's identical to PaidAtEQ.
 func PaidAt(v time.Time) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldPaidAt, v))
@@ -1174,6 +1179,86 @@ func ConfirmedByIsNil() predicate.FinanceCommissionAdjustment {
 // ConfirmedByNotNil applies the NotNil predicate on the "confirmed_by" field.
 func ConfirmedByNotNil() predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldConfirmedBy))
+}
+
+// ExecutionMethodEQ applies the EQ predicate on the "execution_method" field.
+func ExecutionMethodEQ(v ExecutionMethod) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldExecutionMethod, v))
+}
+
+// ExecutionMethodNEQ applies the NEQ predicate on the "execution_method" field.
+func ExecutionMethodNEQ(v ExecutionMethod) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNEQ(FieldExecutionMethod, v))
+}
+
+// ExecutionMethodIn applies the In predicate on the "execution_method" field.
+func ExecutionMethodIn(vs ...ExecutionMethod) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIn(FieldExecutionMethod, vs...))
+}
+
+// ExecutionMethodNotIn applies the NotIn predicate on the "execution_method" field.
+func ExecutionMethodNotIn(vs ...ExecutionMethod) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotIn(FieldExecutionMethod, vs...))
+}
+
+// ExecutionMethodIsNil applies the IsNil predicate on the "execution_method" field.
+func ExecutionMethodIsNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIsNull(FieldExecutionMethod))
+}
+
+// ExecutionMethodNotNil applies the NotNil predicate on the "execution_method" field.
+func ExecutionMethodNotNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldExecutionMethod))
+}
+
+// ParentPaymentIDEQ applies the EQ predicate on the "parent_payment_id" field.
+func ParentPaymentIDEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldParentPaymentID, v))
+}
+
+// ParentPaymentIDNEQ applies the NEQ predicate on the "parent_payment_id" field.
+func ParentPaymentIDNEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNEQ(FieldParentPaymentID, v))
+}
+
+// ParentPaymentIDIn applies the In predicate on the "parent_payment_id" field.
+func ParentPaymentIDIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIn(FieldParentPaymentID, vs...))
+}
+
+// ParentPaymentIDNotIn applies the NotIn predicate on the "parent_payment_id" field.
+func ParentPaymentIDNotIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotIn(FieldParentPaymentID, vs...))
+}
+
+// ParentPaymentIDGT applies the GT predicate on the "parent_payment_id" field.
+func ParentPaymentIDGT(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldGT(FieldParentPaymentID, v))
+}
+
+// ParentPaymentIDGTE applies the GTE predicate on the "parent_payment_id" field.
+func ParentPaymentIDGTE(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldGTE(FieldParentPaymentID, v))
+}
+
+// ParentPaymentIDLT applies the LT predicate on the "parent_payment_id" field.
+func ParentPaymentIDLT(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldLT(FieldParentPaymentID, v))
+}
+
+// ParentPaymentIDLTE applies the LTE predicate on the "parent_payment_id" field.
+func ParentPaymentIDLTE(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldLTE(FieldParentPaymentID, v))
+}
+
+// ParentPaymentIDIsNil applies the IsNil predicate on the "parent_payment_id" field.
+func ParentPaymentIDIsNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIsNull(FieldParentPaymentID))
+}
+
+// ParentPaymentIDNotNil applies the NotNil predicate on the "parent_payment_id" field.
+func ParentPaymentIDNotNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldParentPaymentID))
 }
 
 // PaidAtEQ applies the EQ predicate on the "paid_at" field.

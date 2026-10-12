@@ -26,7 +26,7 @@ func TestOrderFeeSupplementStatusValidAndTerminal(t *testing.T) {
 }
 
 func TestOrderFeeSupplementLockBasisValid(t *testing.T) {
-	for _, basis := range []OrderFeeSupplementLockBasis{SupplementLockBasisBusiness, SupplementLockBasisFinancial, SupplementLockBasisBoth} {
+	for _, basis := range []OrderFeeSupplementLockBasis{SupplementLockBasisBusiness, SupplementLockBasisFinancial, SupplementLockBasisBoth, SupplementLockBasisApproval} {
 		if !basis.Valid() {
 			t.Fatalf("锁依据 %s 应通过取值校验", basis)
 		}
@@ -70,6 +70,11 @@ func newOrderFeeSupplementRequestFixture(basis OrderFeeSupplementLockBasis) *Ord
 		},
 	}
 	switch basis {
+	case SupplementLockBasisApproval:
+		eventID := uuid.New()
+		contentVersion := uint64(1)
+		request.ApprovedFeeReviewEventID = &eventID
+		request.ApprovedFeeContentVersion = &contentVersion
 	case SupplementLockBasisBusiness:
 		request.BusinessLockGeneration = &generation
 	case SupplementLockBasisFinancial:
@@ -86,98 +91,62 @@ func newOrderFeeSupplementRequestFixture(basis OrderFeeSupplementLockBasis) *Ord
 }
 
 func TestOrderFeeSupplementValidateLockBasisEvidence(t *testing.T) {
+	valid := newOrderFeeSupplementRequestFixture(SupplementLockBasisApproval)
+	if err := valid.ValidateLockBasisEvidence(); err != nil {
+		t.Fatal(err)
+	}
 	for _, basis := range []OrderFeeSupplementLockBasis{SupplementLockBasisBusiness, SupplementLockBasisFinancial, SupplementLockBasisBoth} {
-		if err := newOrderFeeSupplementRequestFixture(basis).ValidateLockBasisEvidence(); err != nil {
-			t.Fatalf("%s 合法组合不应报错: %v", basis, err)
+		if err := newOrderFeeSupplementRequestFixture(basis).ValidateLockBasisEvidence(); err == nil {
+			t.Fatalf("历史锁依据%s不能授权新申请", basis)
 		}
 	}
-
-	zeroNet := decimal.RequireFromString("0.00000000")
-	negativeNet := decimal.RequireFromString("-1.00000000")
-	cases := []struct {
-		name   string
-		basis  OrderFeeSupplementLockBasis
-		mutate func(*OrderFeeSupplementRequest)
-	}{
-		{"BUSINESS 缺少业务锁代次", SupplementLockBasisBusiness, func(r *OrderFeeSupplementRequest) {
-			r.BusinessLockGeneration = nil
-		}},
-		{"BUSINESS 业务锁代次为零", SupplementLockBasisBusiness, func(r *OrderFeeSupplementRequest) {
-			zero := uint64(0)
-			r.BusinessLockGeneration = &zero
-		}},
-		{"BUSINESS 不得携带财务证据", SupplementLockBasisBusiness, func(r *OrderFeeSupplementRequest) {
-			net := decimal.RequireFromString("10.00000000")
-			version := "FINANCIAL_LOCK_EVIDENCE_V1"
-			r.FinancialLockEvidenceVersion = &version
-			r.FinancialLockEvidenceHash = &version
-			r.FinancialLockNetAmount = &net
-		}},
-		{"FINANCIAL 缺少证据哈希", SupplementLockBasisFinancial, func(r *OrderFeeSupplementRequest) {
-			r.FinancialLockEvidenceHash = nil
-		}},
-		{"FINANCIAL 缺少证据版本", SupplementLockBasisFinancial, func(r *OrderFeeSupplementRequest) {
-			r.FinancialLockEvidenceVersion = nil
-		}},
-		{"FINANCIAL 净额为零", SupplementLockBasisFinancial, func(r *OrderFeeSupplementRequest) {
-			r.FinancialLockNetAmount = &zeroNet
-		}},
-		{"FINANCIAL 净额为负", SupplementLockBasisFinancial, func(r *OrderFeeSupplementRequest) {
-			r.FinancialLockNetAmount = &negativeNet
-		}},
-		{"FINANCIAL 不得携带业务锁代次", SupplementLockBasisFinancial, func(r *OrderFeeSupplementRequest) {
-			generation := uint64(1)
-			r.BusinessLockGeneration = &generation
-		}},
-		{"BOTH 缺少业务锁代次", SupplementLockBasisBoth, func(r *OrderFeeSupplementRequest) {
-			r.BusinessLockGeneration = nil
-		}},
-		{"BOTH 缺少财务证据版本", SupplementLockBasisBoth, func(r *OrderFeeSupplementRequest) {
-			r.FinancialLockEvidenceVersion = nil
-		}},
-		{"BOTH 缺少财务证据哈希", SupplementLockBasisBoth, func(r *OrderFeeSupplementRequest) {
-			r.FinancialLockEvidenceHash = nil
-		}},
-		{"BOTH 缺少净额快照", SupplementLockBasisBoth, func(r *OrderFeeSupplementRequest) {
-			r.FinancialLockNetAmount = nil
-		}},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			request := newOrderFeeSupplementRequestFixture(tc.basis)
-			tc.mutate(request)
+	for _, scenario := range []string{"无批准事件", "空批准ID", "无内容版本", "零内容版本"} {
+		t.Run(scenario, func(t *testing.T) {
+			request := newOrderFeeSupplementRequestFixture(SupplementLockBasisApproval)
+			switch scenario {
+			case "无批准事件":
+				request.ApprovedFeeReviewEventID = nil
+			case "空批准ID":
+				empty := uuid.Nil
+				request.ApprovedFeeReviewEventID = &empty
+			case "无内容版本":
+				request.ApprovedFeeContentVersion = nil
+			case "零内容版本":
+				zero := uint64(0)
+				request.ApprovedFeeContentVersion = &zero
+			}
 			if err := request.ValidateLockBasisEvidence(); err == nil {
-				t.Fatalf("%s 应校验失败", tc.name)
+				t.Fatal("不完整批准依据应拒绝")
 			}
 		})
 	}
 }
 
 func TestOrderFeeSupplementValidate(t *testing.T) {
-	request := newOrderFeeSupplementRequestFixture(SupplementLockBasisBoth)
+	request := newOrderFeeSupplementRequestFixture(SupplementLockBasisApproval)
 	if err := request.Validate(); err != nil {
 		t.Fatalf("合法申请不应报错: %v", err)
 	}
 
-	receivable := newOrderFeeSupplementRequestFixture(SupplementLockBasisBusiness)
+	receivable := newOrderFeeSupplementRequestFixture(SupplementLockBasisApproval)
 	receivable.Fee.Direction = OrderFeeReceivable
 	if err := receivable.Validate(); err == nil {
 		t.Fatalf("应收方向补录必须在领域边界拒绝")
 	}
 
-	nonPositive := newOrderFeeSupplementRequestFixture(SupplementLockBasisBusiness)
+	nonPositive := newOrderFeeSupplementRequestFixture(SupplementLockBasisApproval)
 	nonPositive.Fee.TotalAmount = decimal.Zero
 	if err := nonPositive.Validate(); err == nil {
 		t.Fatalf("非正数应付金额必须拒绝")
 	}
 
-	badStatus := newOrderFeeSupplementRequestFixture(SupplementLockBasisBusiness)
+	badStatus := newOrderFeeSupplementRequestFixture(SupplementLockBasisApproval)
 	badStatus.Status = OrderFeeSupplementApproved
 	if err := badStatus.Validate(); err == nil {
 		t.Fatalf("创建时申请状态必须是 PENDING")
 	}
 
-	noReason := newOrderFeeSupplementRequestFixture(SupplementLockBasisBusiness)
+	noReason := newOrderFeeSupplementRequestFixture(SupplementLockBasisApproval)
 	noReason.Reason = ""
 	if err := noReason.Validate(); err == nil {
 		t.Fatalf("补录原因必填")

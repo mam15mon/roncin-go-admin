@@ -269,6 +269,32 @@ message BusinessTagSummary {
   bool enabled = 6;
 }
 
+// 整票审核摘要。仅向具备该组织费用读取或审核资格的人返回。
+message OrderFeeReviewSummary {
+ string base_currency = 1;
+ string receivable = 2;
+ string payable = 3;
+ string profit = 4;
+ optional string profit_rate = 5;
+ int32 receivable_count = 6;
+ int32 payable_count = 7;
+ string submitted_by_name = 8;
+ string submitted_at = 9;
+}
+message OrderFeeReviewProjection {
+ string status = 1;
+ uint64 content_version = 2;
+ uint64 review_version = 3;
+ string submission_id = 4;
+ string approved_event_id = 5;
+ bool has_pending_supplement = 6;
+ bool can_approve = 7;
+ bool can_edit = 8;
+ bool can_bill = 9;
+ repeated string blocked_reasons = 10;
+ OrderFeeReviewSummary summary = 11;
+}
+
 message Order {
   string id = 1;
   string organization_id = 2;
@@ -360,6 +386,7 @@ message Order {
   // commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户
   // 可见范围批量附加；普通员工视图不含他人提成事实。
   optional OrderCommissionSummary commission_summary = 86;
+  OrderFeeReviewProjection fee_review = 101;
   // 列表展示名称由服务端批量解析；前端本地候选缓存缺项时禁止回退展示原始 ID。
   optional string customer_name = 87;
   optional string origin_location_name = 88;
@@ -515,6 +542,8 @@ message ListOrdersRequest {
   repeated string tag_ids = 35;
   optional bool is_locked = 37;
   optional bool is_shared = 38;
+  string fee_review_status = 39;
+  optional bool has_pending_fee_supplement = 40;
 }
 
 // CheckOrderReferenceRequest 检查订单业务编号是否重复。

@@ -26,6 +26,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -716,6 +717,76 @@ func (_c *OrderCreate) SetNillableVersion(v *uint64) *OrderCreate {
 	return _c
 }
 
+// SetFeeReviewStatus sets the "fee_review_status" field.
+func (_c *OrderCreate) SetFeeReviewStatus(v order.FeeReviewStatus) *OrderCreate {
+	_c.mutation.SetFeeReviewStatus(v)
+	return _c
+}
+
+// SetNillableFeeReviewStatus sets the "fee_review_status" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableFeeReviewStatus(v *order.FeeReviewStatus) *OrderCreate {
+	if v != nil {
+		_c.SetFeeReviewStatus(*v)
+	}
+	return _c
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (_c *OrderCreate) SetFeeContentVersion(v uint64) *OrderCreate {
+	_c.mutation.SetFeeContentVersion(v)
+	return _c
+}
+
+// SetNillableFeeContentVersion sets the "fee_content_version" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableFeeContentVersion(v *uint64) *OrderCreate {
+	if v != nil {
+		_c.SetFeeContentVersion(*v)
+	}
+	return _c
+}
+
+// SetFeeReviewVersion sets the "fee_review_version" field.
+func (_c *OrderCreate) SetFeeReviewVersion(v uint64) *OrderCreate {
+	_c.mutation.SetFeeReviewVersion(v)
+	return _c
+}
+
+// SetNillableFeeReviewVersion sets the "fee_review_version" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableFeeReviewVersion(v *uint64) *OrderCreate {
+	if v != nil {
+		_c.SetFeeReviewVersion(*v)
+	}
+	return _c
+}
+
+// SetCurrentFeeReviewEventID sets the "current_fee_review_event_id" field.
+func (_c *OrderCreate) SetCurrentFeeReviewEventID(v uuid.UUID) *OrderCreate {
+	_c.mutation.SetCurrentFeeReviewEventID(v)
+	return _c
+}
+
+// SetNillableCurrentFeeReviewEventID sets the "current_fee_review_event_id" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableCurrentFeeReviewEventID(v *uuid.UUID) *OrderCreate {
+	if v != nil {
+		_c.SetCurrentFeeReviewEventID(*v)
+	}
+	return _c
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (_c *OrderCreate) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderCreate {
+	_c.mutation.SetApprovedFeeReviewEventID(v)
+	return _c
+}
+
+// SetNillableApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableApprovedFeeReviewEventID(v *uuid.UUID) *OrderCreate {
+	if v != nil {
+		_c.SetApprovedFeeReviewEventID(*v)
+	}
+	return _c
+}
+
 // SetOriginLocationID sets the "origin_location_id" field.
 func (_c *OrderCreate) SetOriginLocationID(v uuid.UUID) *OrderCreate {
 	_c.mutation.SetOriginLocationID(v)
@@ -1247,6 +1318,21 @@ func (_c *OrderCreate) AddAbnormalCases(v ...*OrderAbnormalCase) *OrderCreate {
 	return _c.AddAbnormalCaseIDs(ids...)
 }
 
+// AddFeeReviewEventIDs adds the "fee_review_events" edge to the OrderFeeReviewEvent entity by IDs.
+func (_c *OrderCreate) AddFeeReviewEventIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddFeeReviewEventIDs(ids...)
+	return _c
+}
+
+// AddFeeReviewEvents adds the "fee_review_events" edges to the OrderFeeReviewEvent entity.
+func (_c *OrderCreate) AddFeeReviewEvents(v ...*OrderFeeReviewEvent) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeeReviewEventIDs(ids...)
+}
+
 // AddFeeIDs adds the "fees" edge to the OrderFee entity by IDs.
 func (_c *OrderCreate) AddFeeIDs(ids ...uuid.UUID) *OrderCreate {
 	_c.mutation.AddFeeIDs(ids...)
@@ -1611,6 +1697,18 @@ func (_c *OrderCreate) defaults() {
 		v := order.DefaultVersion
 		_c.mutation.SetVersion(v)
 	}
+	if _, ok := _c.mutation.FeeReviewStatus(); !ok {
+		v := order.DefaultFeeReviewStatus
+		_c.mutation.SetFeeReviewStatus(v)
+	}
+	if _, ok := _c.mutation.FeeContentVersion(); !ok {
+		v := order.DefaultFeeContentVersion
+		_c.mutation.SetFeeContentVersion(v)
+	}
+	if _, ok := _c.mutation.FeeReviewVersion(); !ok {
+		v := order.DefaultFeeReviewVersion
+		_c.mutation.SetFeeReviewVersion(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := order.DefaultID()
 		_c.mutation.SetID(v)
@@ -1829,6 +1927,20 @@ func (_c *OrderCreate) check() error {
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "Order.version"`)}
+	}
+	if _, ok := _c.mutation.FeeReviewStatus(); !ok {
+		return &ValidationError{Name: "fee_review_status", err: errors.New(`ent: missing required field "Order.fee_review_status"`)}
+	}
+	if v, ok := _c.mutation.FeeReviewStatus(); ok {
+		if err := order.FeeReviewStatusValidator(v); err != nil {
+			return &ValidationError{Name: "fee_review_status", err: fmt.Errorf(`ent: validator failed for field "Order.fee_review_status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.FeeContentVersion(); !ok {
+		return &ValidationError{Name: "fee_content_version", err: errors.New(`ent: missing required field "Order.fee_content_version"`)}
+	}
+	if _, ok := _c.mutation.FeeReviewVersion(); !ok {
+		return &ValidationError{Name: "fee_review_version", err: errors.New(`ent: missing required field "Order.fee_review_version"`)}
 	}
 	if v, ok := _c.mutation.VesselVoyage(); ok {
 		if err := order.VesselVoyageValidator(v); err != nil {
@@ -2149,6 +2261,26 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(order.FieldVersion, field.TypeUint64, value)
 		_node.Version = value
+	}
+	if value, ok := _c.mutation.FeeReviewStatus(); ok {
+		_spec.SetField(order.FieldFeeReviewStatus, field.TypeEnum, value)
+		_node.FeeReviewStatus = value
+	}
+	if value, ok := _c.mutation.FeeContentVersion(); ok {
+		_spec.SetField(order.FieldFeeContentVersion, field.TypeUint64, value)
+		_node.FeeContentVersion = value
+	}
+	if value, ok := _c.mutation.FeeReviewVersion(); ok {
+		_spec.SetField(order.FieldFeeReviewVersion, field.TypeUint64, value)
+		_node.FeeReviewVersion = value
+	}
+	if value, ok := _c.mutation.CurrentFeeReviewEventID(); ok {
+		_spec.SetField(order.FieldCurrentFeeReviewEventID, field.TypeUUID, value)
+		_node.CurrentFeeReviewEventID = &value
+	}
+	if value, ok := _c.mutation.ApprovedFeeReviewEventID(); ok {
+		_spec.SetField(order.FieldApprovedFeeReviewEventID, field.TypeUUID, value)
+		_node.ApprovedFeeReviewEventID = &value
 	}
 	if value, ok := _c.mutation.OriginLocationID(); ok {
 		_spec.SetField(order.FieldOriginLocationID, field.TypeUUID, value)
@@ -2478,6 +2610,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderabnormalcase.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FeeReviewEventsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeReviewEventsTable,
+			Columns: []string{order.FeeReviewEventsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeereviewevent.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -3643,6 +3791,90 @@ func (u *OrderUpsert) UpdateVersion() *OrderUpsert {
 // AddVersion adds v to the "version" field.
 func (u *OrderUpsert) AddVersion(v uint64) *OrderUpsert {
 	u.Add(order.FieldVersion, v)
+	return u
+}
+
+// SetFeeReviewStatus sets the "fee_review_status" field.
+func (u *OrderUpsert) SetFeeReviewStatus(v order.FeeReviewStatus) *OrderUpsert {
+	u.Set(order.FieldFeeReviewStatus, v)
+	return u
+}
+
+// UpdateFeeReviewStatus sets the "fee_review_status" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateFeeReviewStatus() *OrderUpsert {
+	u.SetExcluded(order.FieldFeeReviewStatus)
+	return u
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (u *OrderUpsert) SetFeeContentVersion(v uint64) *OrderUpsert {
+	u.Set(order.FieldFeeContentVersion, v)
+	return u
+}
+
+// UpdateFeeContentVersion sets the "fee_content_version" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateFeeContentVersion() *OrderUpsert {
+	u.SetExcluded(order.FieldFeeContentVersion)
+	return u
+}
+
+// AddFeeContentVersion adds v to the "fee_content_version" field.
+func (u *OrderUpsert) AddFeeContentVersion(v uint64) *OrderUpsert {
+	u.Add(order.FieldFeeContentVersion, v)
+	return u
+}
+
+// SetFeeReviewVersion sets the "fee_review_version" field.
+func (u *OrderUpsert) SetFeeReviewVersion(v uint64) *OrderUpsert {
+	u.Set(order.FieldFeeReviewVersion, v)
+	return u
+}
+
+// UpdateFeeReviewVersion sets the "fee_review_version" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateFeeReviewVersion() *OrderUpsert {
+	u.SetExcluded(order.FieldFeeReviewVersion)
+	return u
+}
+
+// AddFeeReviewVersion adds v to the "fee_review_version" field.
+func (u *OrderUpsert) AddFeeReviewVersion(v uint64) *OrderUpsert {
+	u.Add(order.FieldFeeReviewVersion, v)
+	return u
+}
+
+// SetCurrentFeeReviewEventID sets the "current_fee_review_event_id" field.
+func (u *OrderUpsert) SetCurrentFeeReviewEventID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldCurrentFeeReviewEventID, v)
+	return u
+}
+
+// UpdateCurrentFeeReviewEventID sets the "current_fee_review_event_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateCurrentFeeReviewEventID() *OrderUpsert {
+	u.SetExcluded(order.FieldCurrentFeeReviewEventID)
+	return u
+}
+
+// ClearCurrentFeeReviewEventID clears the value of the "current_fee_review_event_id" field.
+func (u *OrderUpsert) ClearCurrentFeeReviewEventID() *OrderUpsert {
+	u.SetNull(order.FieldCurrentFeeReviewEventID)
+	return u
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (u *OrderUpsert) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderUpsert {
+	u.Set(order.FieldApprovedFeeReviewEventID, v)
+	return u
+}
+
+// UpdateApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateApprovedFeeReviewEventID() *OrderUpsert {
+	u.SetExcluded(order.FieldApprovedFeeReviewEventID)
+	return u
+}
+
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (u *OrderUpsert) ClearApprovedFeeReviewEventID() *OrderUpsert {
+	u.SetNull(order.FieldApprovedFeeReviewEventID)
 	return u
 }
 
@@ -5067,6 +5299,104 @@ func (u *OrderUpsertOne) AddVersion(v uint64) *OrderUpsertOne {
 func (u *OrderUpsertOne) UpdateVersion() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetFeeReviewStatus sets the "fee_review_status" field.
+func (u *OrderUpsertOne) SetFeeReviewStatus(v order.FeeReviewStatus) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFeeReviewStatus(v)
+	})
+}
+
+// UpdateFeeReviewStatus sets the "fee_review_status" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateFeeReviewStatus() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFeeReviewStatus()
+	})
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (u *OrderUpsertOne) SetFeeContentVersion(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFeeContentVersion(v)
+	})
+}
+
+// AddFeeContentVersion adds v to the "fee_content_version" field.
+func (u *OrderUpsertOne) AddFeeContentVersion(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddFeeContentVersion(v)
+	})
+}
+
+// UpdateFeeContentVersion sets the "fee_content_version" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateFeeContentVersion() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFeeContentVersion()
+	})
+}
+
+// SetFeeReviewVersion sets the "fee_review_version" field.
+func (u *OrderUpsertOne) SetFeeReviewVersion(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFeeReviewVersion(v)
+	})
+}
+
+// AddFeeReviewVersion adds v to the "fee_review_version" field.
+func (u *OrderUpsertOne) AddFeeReviewVersion(v uint64) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddFeeReviewVersion(v)
+	})
+}
+
+// UpdateFeeReviewVersion sets the "fee_review_version" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateFeeReviewVersion() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFeeReviewVersion()
+	})
+}
+
+// SetCurrentFeeReviewEventID sets the "current_fee_review_event_id" field.
+func (u *OrderUpsertOne) SetCurrentFeeReviewEventID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCurrentFeeReviewEventID(v)
+	})
+}
+
+// UpdateCurrentFeeReviewEventID sets the "current_fee_review_event_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateCurrentFeeReviewEventID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCurrentFeeReviewEventID()
+	})
+}
+
+// ClearCurrentFeeReviewEventID clears the value of the "current_fee_review_event_id" field.
+func (u *OrderUpsertOne) ClearCurrentFeeReviewEventID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCurrentFeeReviewEventID()
+	})
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (u *OrderUpsertOne) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetApprovedFeeReviewEventID(v)
+	})
+}
+
+// UpdateApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateApprovedFeeReviewEventID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateApprovedFeeReviewEventID()
+	})
+}
+
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (u *OrderUpsertOne) ClearApprovedFeeReviewEventID() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearApprovedFeeReviewEventID()
 	})
 }
 
@@ -6730,6 +7060,104 @@ func (u *OrderUpsertBulk) AddVersion(v uint64) *OrderUpsertBulk {
 func (u *OrderUpsertBulk) UpdateVersion() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetFeeReviewStatus sets the "fee_review_status" field.
+func (u *OrderUpsertBulk) SetFeeReviewStatus(v order.FeeReviewStatus) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFeeReviewStatus(v)
+	})
+}
+
+// UpdateFeeReviewStatus sets the "fee_review_status" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateFeeReviewStatus() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFeeReviewStatus()
+	})
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (u *OrderUpsertBulk) SetFeeContentVersion(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFeeContentVersion(v)
+	})
+}
+
+// AddFeeContentVersion adds v to the "fee_content_version" field.
+func (u *OrderUpsertBulk) AddFeeContentVersion(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddFeeContentVersion(v)
+	})
+}
+
+// UpdateFeeContentVersion sets the "fee_content_version" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateFeeContentVersion() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFeeContentVersion()
+	})
+}
+
+// SetFeeReviewVersion sets the "fee_review_version" field.
+func (u *OrderUpsertBulk) SetFeeReviewVersion(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetFeeReviewVersion(v)
+	})
+}
+
+// AddFeeReviewVersion adds v to the "fee_review_version" field.
+func (u *OrderUpsertBulk) AddFeeReviewVersion(v uint64) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.AddFeeReviewVersion(v)
+	})
+}
+
+// UpdateFeeReviewVersion sets the "fee_review_version" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateFeeReviewVersion() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateFeeReviewVersion()
+	})
+}
+
+// SetCurrentFeeReviewEventID sets the "current_fee_review_event_id" field.
+func (u *OrderUpsertBulk) SetCurrentFeeReviewEventID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetCurrentFeeReviewEventID(v)
+	})
+}
+
+// UpdateCurrentFeeReviewEventID sets the "current_fee_review_event_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateCurrentFeeReviewEventID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateCurrentFeeReviewEventID()
+	})
+}
+
+// ClearCurrentFeeReviewEventID clears the value of the "current_fee_review_event_id" field.
+func (u *OrderUpsertBulk) ClearCurrentFeeReviewEventID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearCurrentFeeReviewEventID()
+	})
+}
+
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (u *OrderUpsertBulk) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetApprovedFeeReviewEventID(v)
+	})
+}
+
+// UpdateApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateApprovedFeeReviewEventID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateApprovedFeeReviewEventID()
+	})
+}
+
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (u *OrderUpsertBulk) ClearApprovedFeeReviewEventID() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearApprovedFeeReviewEventID()
 	})
 }
 

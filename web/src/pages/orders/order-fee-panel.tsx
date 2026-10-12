@@ -1,5 +1,6 @@
 import { PlusOutlined, TagOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import React, {
@@ -14,6 +15,7 @@ import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerRoleType } from '@/enums.generated';
+import { useOrderFeeReview } from '@/features/orders/fee-review';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceBatchAssignOrderFeeTags,
@@ -31,6 +33,7 @@ import { generateUUID } from '@/utils/uuid';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
+import { OrderFeeReviewSection } from './components/fees/fee-review/OrderFeeReview';
 import { feeDirectionCode, RECEIVABLE } from './components/fees/feeConstants';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
@@ -53,6 +56,7 @@ export type OrderFeePanelRef = {
 const OrderFeePanel = forwardRef<OrderFeePanelRef>(
   function OrderFeePanel(_, ref) {
     const access = useAccess();
+    const queryClient = useQueryClient();
     const { message, modal } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
     const feeOptionsRequestRef = useRef(0);
@@ -79,8 +83,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const [_selectedFeeSetting, setSelectedFeeSetting] =
       useState<API.OrderFeeSettingOption>();
     const [financeLocked, setFinanceLocked] = useState(false);
-    const [financeLockReason, setFinanceLockReason] = useState('');
-    const [financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
+    const [_financeLockReason, setFinanceLockReason] = useState('');
+    const [_financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
       string[]
     >([]);
     const [customerName, setCustomerName] = useState('');
@@ -94,7 +98,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       state: lockState,
       loading: lockStateLoading,
       error: lockStateError,
-      refresh: refreshLockState,
     } = useOrderLockState(order?.id);
     const lockWritePolicy = getOrderBusinessWritePolicy({
       state: lockState,
@@ -102,11 +105,23 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       error: lockStateError,
       canOperate: access.canOperateOrganization(order?.organizationId),
     });
-    const feeWritesDisabled = financeLocked || lockWritePolicy.disabled;
+    const feeReview = useOrderFeeReview(order?.id, drawerOpen);
+    const feeWritesDisabled =
+      financeLocked ||
+      lockWritePolicy.disabled ||
+      feeReview.isError ||
+      feeReview.data?.canEdit !== true;
     const feeWritePolicyRef = useRef({ financeLocked, lockWritePolicy });
     feeWritePolicyRef.current = { financeLocked, lockWritePolicy };
 
     const ensureFeeWriteAllowed = () => {
+      if (feeReview.isError || feeReview.data?.canEdit !== true) {
+        message.warning(
+          feeReview.data?.blockedReasons?.join('；') ||
+            '费用审核信息未就绪或费用已冻结',
+        );
+        return false;
+      }
       const currentPolicy = feeWritePolicyRef.current;
       if (currentPolicy.lockWritePolicy.disabled) {
         message.warning(
@@ -115,7 +130,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         return false;
       }
       if (currentPolicy.financeLocked) {
-        message.warning('订单财务已锁定，请在提成管理中创建独立调整记录');
+        message.warning('存在有效提成，原费用不能直接修改；新增成本请申请补录');
         return false;
       }
       return true;
@@ -253,6 +268,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           });
           message.success('费用已删除');
           actionRef.current?.reload();
+          void queryClient.invalidateQueries({
+            queryKey: ['order-fee-review'],
+          });
         },
         { optional: true },
       );
@@ -341,6 +359,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         }
         setModalOpen(false);
         actionRef.current?.reload();
+        void queryClient.invalidateQueries({ queryKey: ['order-fee-review'] });
         return true;
       } catch (error) {
         const err = error as FeeRequestError;
@@ -381,28 +400,19 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           size={1280}
           destroyOnHidden
         >
+          {order?.id && (
+            <OrderFeeReviewSection
+              key={order.id}
+              orderId={order.id}
+              onChanged={() => actionRef.current?.reload()}
+            />
+          )}
           {feeOptionsError && (
             <Alert
               type="error"
               showIcon
               title="费用基础选项加载失败"
               description={feeOptionsError}
-              style={{ marginBottom: 16 }}
-            />
-          )}
-          {order?.id && lockWritePolicy.disabled && (
-            <Alert
-              type={
-                lockWritePolicy.reason?.includes('已锁定') ? 'warning' : 'error'
-              }
-              showIcon
-              title="订单业务费用当前为只读"
-              description={lockWritePolicy.reason}
-              action={
-                <Button size="small" onClick={() => void refreshLockState()}>
-                  重试锁状态
-                </Button>
-              }
               style={{ marginBottom: 16 }}
             />
           )}
@@ -414,16 +424,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               style={{ marginBottom: 16 }}
             />
           )}
-          {financeLocked && (
-            <Alert
-              type="warning"
-              showIcon
-              title="该订单费用已进入财务锁定"
-              description={`${financeLockReason || '关联提成已确认或已发放，原费用事实不可再修改。'}${financeLockCommissionNos.length > 0 ? ` 关联提成：${financeLockCommissionNos.join('、')}。` : ''} 后续差异请在提成管理中新增独立调整记录。`}
-              style={{ marginBottom: 16 }}
-            />
-          )}
-          {order?.id && (
+          {order && (
             <ProTable<API.OrderFee>
               actionRef={actionRef}
               rowKey="id"
@@ -506,6 +507,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setSelectedFeeIds([]);
             setSelectedFees([]);
             actionRef.current?.reload();
+            void queryClient.invalidateQueries({
+              queryKey: ['order-fee-review'],
+            });
           }}
           onCancel={() => setTagModalOpen(false)}
         />

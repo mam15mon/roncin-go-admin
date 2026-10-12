@@ -32,6 +32,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	attribution "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	eventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 )
 
@@ -544,6 +545,7 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		t.Fatalf("创建测试提成编号规则: %v", err)
 	}
 
+	seedApprovedFeeSnapshotForTest(t, data, fixture.orderID, fixture.actorID)
 	return fixture
 }
 
@@ -709,6 +711,14 @@ func (f *commissionPostgresFixture) cleanup() {
 		}},
 		{name: "订单费用", run: func() error {
 			_, err := f.data.db.OrderFee.Delete().Where(fee.HasOrderWith(orderent.OrganizationIDEQ(f.organizationID))).Exec(ctx)
+			return err
+		}},
+		{name: "费用批准事件", run: func() error {
+			_, err := f.data.db.Order.Update().Where(orderent.OrganizationIDEQ(f.organizationID)).ClearCurrentFeeReviewEventID().ClearApprovedFeeReviewEventID().Save(ctx)
+			if err != nil {
+				return err
+			}
+			_, err = f.data.db.OrderFeeReviewEvent.Delete().Where(eventent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},
 		{name: "订单", run: func() error {
@@ -1029,7 +1039,7 @@ func TestCommissionLifecycleAndDeduplicationPostgres(t *testing.T) {
 			t.Fatalf("确认人或时间缺失: by=%v at=%v", confirmed.ConfirmedBy, confirmed.ConfirmedAt)
 		}
 
-		paid, err := usecase.MarkPaid(ctx, fixture.organizationID, fixture.actorID, confirmed.ID, confirmed.Version)
+		paid, err := markCommissionPaidForTest(ctx, usecase, fixture.organizationID, fixture.actorID, confirmed.ID, confirmed.Version)
 		if err != nil {
 			t.Fatalf("发放提成失败: %v", err)
 		}
@@ -1122,7 +1132,7 @@ func TestCommissionLifecycleAndDeduplicationPostgres(t *testing.T) {
 			t.Fatalf("确认提成失败: %v", err)
 		}
 
-		paid, err := usecase.MarkPaid(ctx, fixture.organizationID, fixture.actorID, confirmed.ID, confirmed.Version)
+		paid, err := markCommissionPaidForTest(ctx, usecase, fixture.organizationID, fixture.actorID, confirmed.ID, confirmed.Version)
 		if err != nil {
 			t.Fatalf("发放提成失败: %v", err)
 		}

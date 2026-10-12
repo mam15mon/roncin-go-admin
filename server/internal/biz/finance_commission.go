@@ -16,6 +16,9 @@ import (
 )
 
 var (
+	ErrCommissionPaymentEvidence      = errors.Conflict("COMMISSION_PAYMENT_EVIDENCE_REQUIRED", "缺少实际发放证据或存在旧独立执行记录，请先核对提成付款")
+	ErrCommissionPendingSupplement    = errors.Conflict("COMMISSION_PENDING_FEE_SUPPLEMENT", "关联订单存在待审核补录，请处理后再确认或发放提成")
+	ErrCommissionPendingIncrease      = errors.Conflict("COMMISSION_PENDING_INCREASE", "存在未执行的已确认增提，请先处理增提再反核销或反对冲")
 	ErrCommissionNotFound             = errors.NotFound("FINANCE_COMMISSION_NOT_FOUND", "提成记录不存在")
 	ErrCommissionInvalid              = errors.BadRequest("FINANCE_COMMISSION_INVALID", "提成参数不合法")
 	ErrCommissionSource               = errors.Conflict("FINANCE_COMMISSION_SOURCE", "仅有效应收核销可计提，且必须存在可计算的已实现收入")

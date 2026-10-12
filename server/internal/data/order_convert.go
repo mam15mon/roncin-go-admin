@@ -46,7 +46,8 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 
 func orderToBiz(item *ent.Order) *biz.Order {
 	result := &biz.Order{
-		ID: item.ID, OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
+		FeeReview: &biz.OrderFeeReview{OrderID: item.ID, OrderNo: item.OrderNo, Status: string(item.FeeReviewStatus), ContentVersion: item.FeeContentVersion, ReviewVersion: item.FeeReviewVersion, ApprovedEventID: item.ApprovedFeeReviewEventID},
+		ID:        item.ID, OrganizationID: item.OrganizationID, OrganizationName: item.Edges.Organization.Name, OrderNo: item.OrderNo, CustomerID: item.CustomerID,
 		ShippingLineID: item.ShippingLineID, BookingAgentID: item.BookingAgentID, ForeignAgentID: item.ForeignAgentID, ShippingAgentID: item.ShippingAgentID, BusinessType: biz.OrderBusinessType(item.BusinessType),
 		CustomerReferenceNo: item.CustomerReferenceNo, BookingNo: item.BookingNo, InternalReferenceNo: item.InternalReferenceNo, ContractNo: item.ContractNo, CargoValue: item.CargoValue, CargoCurrency: item.CargoCurrency,
 		ShipperShortName: item.ShipperShortName, ConsigneeShortName: item.ConsigneeShortName, LockedAt: item.LockedAt, IsShared: item.IsShared,

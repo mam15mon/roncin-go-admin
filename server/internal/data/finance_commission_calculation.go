@@ -38,14 +38,15 @@ type commissionCalculationStore struct {
 	attributions  *ent.OrderCommissionAttributionClient
 	fees          *ent.OrderFeeClient
 	orders        *ent.OrderClient
+	client        *ent.Client
 }
 
 func commissionStoreFromClient(client *ent.Client) commissionCalculationStore {
-	return commissionCalculationStore{verifications: client.FinanceVerification, nettings: client.FinanceNetting, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, billLines: client.FinanceBillLine, attributions: client.OrderCommissionAttribution, fees: client.OrderFee, orders: client.Order}
+	return commissionCalculationStore{client: client, verifications: client.FinanceVerification, nettings: client.FinanceNetting, rules: client.FinanceCommissionRule, users: client.User, bills: client.FinanceBill, billLines: client.FinanceBillLine, attributions: client.OrderCommissionAttribution, fees: client.OrderFee, orders: client.Order}
 }
 
 func commissionStoreFromTx(tx *ent.Tx) commissionCalculationStore {
-	return commissionCalculationStore{verifications: tx.FinanceVerification, nettings: tx.FinanceNetting, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, billLines: tx.FinanceBillLine, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
+	return commissionCalculationStore{client: tx.Client(), verifications: tx.FinanceVerification, nettings: tx.FinanceNetting, rules: tx.FinanceCommissionRule, users: tx.User, bills: tx.FinanceBill, billLines: tx.FinanceBillLine, attributions: tx.OrderCommissionAttribution, fees: tx.OrderFee, orders: tx.Order}
 }
 
 func commissionCalculationBillsQuery(store commissionCalculationStore, org uuid.UUID, billIDs []uuid.UUID, lock bool) *ent.FinanceBillQuery {
@@ -131,6 +132,11 @@ func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verifica
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		if _, err := lockCommissionSourceOrders(ctx, commissionStoreFromClient(client), org, verificationID, nettingID); err != nil {
+			return nil, err
+		}
 	}
 	if nettingID != uuid.Nil {
 		query := client.FinanceNetting.Query().Where(nettingent.IDEQ(nettingID), nettingent.OrganizationIDEQ(org))
@@ -220,6 +226,14 @@ func calculateCommission(ctx context.Context, store commissionCalculationStore, 
 // RECEIVABLE 分摊）加载统一分摊条目，并锁定账单、订单、费用与账单行事实。
 // 多行加锁一律按主键稳定排序，固定加锁顺序防止并发提成创建死锁。
 func loadCommissionCalculationSource(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID uuid.UUID, lock bool) (*commissionCalculationSource, error) {
+	var lockedOrderIDs []uuid.UUID
+	if lock {
+		var err error
+		lockedOrderIDs, err = lockCommissionSourceOrders(ctx, store, org, verificationID, nettingID)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var (
 		fingerprintParts   []string
 		commissionDate     string
@@ -351,6 +365,11 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		return nil, biz.ErrCommissionSource
 	}
 	sort.Slice(orderIDs, func(i, j int) bool { return orderIDs[i].String() < orderIDs[j].String() })
+	if lock {
+		if !sameUUIDSet(orderIDs, lockedOrderIDs) {
+			return nil, biz.ErrCommissionSourceChanged
+		}
+	}
 	oq := store.orders.Query().Where(orderent.IDIn(orderIDs...), orderent.OrganizationIDEQ(org)).WithCustomer().Order(orderent.ByID())
 	if lock {
 		oq.ForUpdate()
@@ -368,9 +387,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		fingerprintParts = append(fingerprintParts, fmt.Sprintf("order|%s|%s|%s|%s|%d", item.ID, item.OrderNo, item.CustomerID, item.OrderDate, item.Version))
 	}
 	fq := store.fees.Query().Where(fee.OrderIDIn(orderIDs...)).WithSettlementParty().WithFinanceBillLines(effectiveBillLineFilter).Order(fee.ByOrderID(), fee.ByCreatedAt(), fee.ByID())
-	if lock {
-		fq.ForUpdate()
-	}
+
 	fees, err := fq.All(ctx)
 	if err != nil {
 		return nil, err
@@ -561,4 +578,59 @@ func optionalStringValue(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+// lockCommissionSourceOrders 只读定位完整来源订单，先按主键锁订单，再锁来源与账单。
+func lockCommissionSourceOrders(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID uuid.UUID) ([]uuid.UUID, error) {
+	var billIDs []uuid.UUID
+	if nettingID != uuid.Nil {
+		n, err := store.nettings.Query().Where(nettingent.IDEQ(nettingID), nettingent.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceNettingAllocationQuery) { q.Where(nettingalloc.ActiveEQ(true)) }).Only(ctx)
+		if err != nil {
+			return nil, mapEntError(err, biz.ErrCommissionSource, nil)
+		}
+		for _, a := range n.Edges.Allocations {
+			billIDs = append(billIDs, a.BillID)
+		}
+	} else {
+		v, err := store.verifications.Query().Where(verification.IDEQ(verificationID), verification.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceVerificationAllocationQuery) { q.Where(allocation.ActiveEQ(true)) }).Only(ctx)
+		if err != nil {
+			return nil, mapEntError(err, biz.ErrCommissionSource, nil)
+		}
+		for _, a := range v.Edges.Allocations {
+			billIDs = append(billIDs, a.BillID)
+		}
+	}
+	lines, err := store.billLines.Query().Where(billline.BillIDIn(billIDs...), billline.ActiveEQ(true)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]uuid.UUID, 0, len(lines))
+	for _, l := range lines {
+		ids = append(ids, l.OrderID)
+	}
+	ids = uniqueSortedUUIDs(ids)
+	locked, err := store.orders.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(org)).Order(orderent.ByID()).ForUpdate().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(locked) != len(ids) {
+		return nil, biz.ErrCommissionSource
+	}
+	if err := ensureCommissionOrdersReady(ctx, store.client, ids, false); err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+func sameUUIDSet(a, b []uuid.UUID) bool {
+	a = uniqueSortedUUIDs(a)
+	b = uniqueSortedUUIDs(b)
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

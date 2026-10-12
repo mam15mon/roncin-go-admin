@@ -189,10 +189,15 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
   });
   const options = await api(`/api/v1/orders/${order.id}/fee-options`);
   const feeSetting = options.feeSettings.find(
-    (item: { defaultBillingUnitId?: string; taxRate?: string }) =>
+    (item: {
+      defaultBillingUnitId?: string;
+      taxRate?: string;
+      defaultCurrency?: string;
+    }) =>
       item.defaultBillingUnitId &&
       item.taxRate !== undefined &&
-      Number(item.taxRate) === 0,
+      Number(item.taxRate) === 0 &&
+      item.defaultCurrency === 'CNY',
   );
   expect(feeSetting).toBeTruthy();
   await page.goto(`/orders/sea-export/${order.id}/fees`);
@@ -218,6 +223,38 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
     path: testInfo.outputPath('01-fee.png'),
     fullPage: true,
   });
+  await page
+    .getByRole('button', { name: '提交整票费用审核', exact: true })
+    .click();
+  const submitReview = page.getByRole('dialog', { name: '提交整票费用审核' });
+  await expect(
+    submitReview.getByRole('columnheader', { name: /^含税金额/ }),
+  ).toHaveCount(2);
+  await expect(
+    submitReview.getByText(feeSetting.nameZh, { exact: true }),
+  ).toBeVisible();
+  await submitReview.getByRole('checkbox').check();
+  await submitReview
+    .getByRole('button', { name: /确\s*定/ })
+    .last()
+    .click();
+  await expect(submitReview).not.toBeVisible();
+  await page.getByRole('button', { name: '批准整票费用', exact: true }).click();
+  const approveReview = page.getByRole('dialog', { name: '批准整票费用' });
+  await expect(
+    approveReview.getByRole('columnheader', { name: /^含税金额/ }),
+  ).toHaveCount(2);
+  await expect(
+    approveReview.getByText(feeSetting.nameZh, { exact: true }),
+  ).toBeVisible();
+  await approveReview
+    .getByRole('button', { name: /确\s*定/ })
+    .last()
+    .click();
+  await expect(approveReview).not.toBeVisible();
+  await expect(
+    page.getByRole('button', { name: '新增应收费用' }),
+  ).toBeDisabled();
   await page.locator('.ant-table-row input[type="checkbox"]').first().check();
   await page
     .getByRole('button', { name: /生成账单（1）/ })

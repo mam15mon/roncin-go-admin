@@ -432,6 +432,62 @@ func (_c *FinanceCommissionCreate) SetNillableConfirmedBy(v *uuid.UUID) *Finance
 	return _c
 }
 
+// SetPaidAmount sets the "paid_amount" field.
+func (_c *FinanceCommissionCreate) SetPaidAmount(v string) *FinanceCommissionCreate {
+	_c.mutation.SetPaidAmount(v)
+	return _c
+}
+
+// SetNillablePaidAmount sets the "paid_amount" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillablePaidAmount(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetPaidAmount(*v)
+	}
+	return _c
+}
+
+// SetPaymentKey sets the "payment_key" field.
+func (_c *FinanceCommissionCreate) SetPaymentKey(v string) *FinanceCommissionCreate {
+	_c.mutation.SetPaymentKey(v)
+	return _c
+}
+
+// SetNillablePaymentKey sets the "payment_key" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillablePaymentKey(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetPaymentKey(*v)
+	}
+	return _c
+}
+
+// SetPaymentFingerprint sets the "payment_fingerprint" field.
+func (_c *FinanceCommissionCreate) SetPaymentFingerprint(v string) *FinanceCommissionCreate {
+	_c.mutation.SetPaymentFingerprint(v)
+	return _c
+}
+
+// SetNillablePaymentFingerprint sets the "payment_fingerprint" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillablePaymentFingerprint(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetPaymentFingerprint(*v)
+	}
+	return _c
+}
+
+// SetPaymentSnapshot sets the "payment_snapshot" field.
+func (_c *FinanceCommissionCreate) SetPaymentSnapshot(v string) *FinanceCommissionCreate {
+	_c.mutation.SetPaymentSnapshot(v)
+	return _c
+}
+
+// SetNillablePaymentSnapshot sets the "payment_snapshot" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillablePaymentSnapshot(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetPaymentSnapshot(*v)
+	}
+	return _c
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (_c *FinanceCommissionCreate) SetPaidAt(v time.Time) *FinanceCommissionCreate {
 	_c.mutation.SetPaidAt(v)
@@ -897,6 +953,16 @@ func (_c *FinanceCommissionCreate) check() error {
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "FinanceCommission.version"`)}
 	}
+	if v, ok := _c.mutation.PaymentKey(); ok {
+		if err := financecommission.PaymentKeyValidator(v); err != nil {
+			return &ValidationError{Name: "payment_key", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.payment_key": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.PaymentFingerprint(); ok {
+		if err := financecommission.PaymentFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "payment_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.payment_fingerprint": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.CancellationReason(); ok {
 		if err := financecommission.CancellationReasonValidator(v); err != nil {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cancellation_reason": %w`, err)}
@@ -1079,6 +1145,22 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 	if value, ok := _c.mutation.ConfirmedAt(); ok {
 		_spec.SetField(financecommission.FieldConfirmedAt, field.TypeTime, value)
 		_node.ConfirmedAt = &value
+	}
+	if value, ok := _c.mutation.PaidAmount(); ok {
+		_spec.SetField(financecommission.FieldPaidAmount, field.TypeString, value)
+		_node.PaidAmount = &value
+	}
+	if value, ok := _c.mutation.PaymentKey(); ok {
+		_spec.SetField(financecommission.FieldPaymentKey, field.TypeString, value)
+		_node.PaymentKey = &value
+	}
+	if value, ok := _c.mutation.PaymentFingerprint(); ok {
+		_spec.SetField(financecommission.FieldPaymentFingerprint, field.TypeString, value)
+		_node.PaymentFingerprint = &value
+	}
+	if value, ok := _c.mutation.PaymentSnapshot(); ok {
+		_spec.SetField(financecommission.FieldPaymentSnapshot, field.TypeString, value)
+		_node.PaymentSnapshot = &value
 	}
 	if value, ok := _c.mutation.PaidAt(); ok {
 		_spec.SetField(financecommission.FieldPaidAt, field.TypeTime, value)
@@ -1790,6 +1872,78 @@ func (u *FinanceCommissionUpsert) ClearConfirmedBy() *FinanceCommissionUpsert {
 	return u
 }
 
+// SetPaidAmount sets the "paid_amount" field.
+func (u *FinanceCommissionUpsert) SetPaidAmount(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldPaidAmount, v)
+	return u
+}
+
+// UpdatePaidAmount sets the "paid_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdatePaidAmount() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldPaidAmount)
+	return u
+}
+
+// ClearPaidAmount clears the value of the "paid_amount" field.
+func (u *FinanceCommissionUpsert) ClearPaidAmount() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldPaidAmount)
+	return u
+}
+
+// SetPaymentKey sets the "payment_key" field.
+func (u *FinanceCommissionUpsert) SetPaymentKey(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldPaymentKey, v)
+	return u
+}
+
+// UpdatePaymentKey sets the "payment_key" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdatePaymentKey() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldPaymentKey)
+	return u
+}
+
+// ClearPaymentKey clears the value of the "payment_key" field.
+func (u *FinanceCommissionUpsert) ClearPaymentKey() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldPaymentKey)
+	return u
+}
+
+// SetPaymentFingerprint sets the "payment_fingerprint" field.
+func (u *FinanceCommissionUpsert) SetPaymentFingerprint(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldPaymentFingerprint, v)
+	return u
+}
+
+// UpdatePaymentFingerprint sets the "payment_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdatePaymentFingerprint() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldPaymentFingerprint)
+	return u
+}
+
+// ClearPaymentFingerprint clears the value of the "payment_fingerprint" field.
+func (u *FinanceCommissionUpsert) ClearPaymentFingerprint() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldPaymentFingerprint)
+	return u
+}
+
+// SetPaymentSnapshot sets the "payment_snapshot" field.
+func (u *FinanceCommissionUpsert) SetPaymentSnapshot(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldPaymentSnapshot, v)
+	return u
+}
+
+// UpdatePaymentSnapshot sets the "payment_snapshot" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdatePaymentSnapshot() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldPaymentSnapshot)
+	return u
+}
+
+// ClearPaymentSnapshot clears the value of the "payment_snapshot" field.
+func (u *FinanceCommissionUpsert) ClearPaymentSnapshot() *FinanceCommissionUpsert {
+	u.SetNull(financecommission.FieldPaymentSnapshot)
+	return u
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (u *FinanceCommissionUpsert) SetPaidAt(v time.Time) *FinanceCommissionUpsert {
 	u.Set(financecommission.FieldPaidAt, v)
@@ -2491,6 +2645,90 @@ func (u *FinanceCommissionUpsertOne) UpdateConfirmedBy() *FinanceCommissionUpser
 func (u *FinanceCommissionUpsertOne) ClearConfirmedBy() *FinanceCommissionUpsertOne {
 	return u.Update(func(s *FinanceCommissionUpsert) {
 		s.ClearConfirmedBy()
+	})
+}
+
+// SetPaidAmount sets the "paid_amount" field.
+func (u *FinanceCommissionUpsertOne) SetPaidAmount(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaidAmount(v)
+	})
+}
+
+// UpdatePaidAmount sets the "paid_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdatePaidAmount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaidAmount()
+	})
+}
+
+// ClearPaidAmount clears the value of the "paid_amount" field.
+func (u *FinanceCommissionUpsertOne) ClearPaidAmount() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaidAmount()
+	})
+}
+
+// SetPaymentKey sets the "payment_key" field.
+func (u *FinanceCommissionUpsertOne) SetPaymentKey(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaymentKey(v)
+	})
+}
+
+// UpdatePaymentKey sets the "payment_key" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdatePaymentKey() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaymentKey()
+	})
+}
+
+// ClearPaymentKey clears the value of the "payment_key" field.
+func (u *FinanceCommissionUpsertOne) ClearPaymentKey() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaymentKey()
+	})
+}
+
+// SetPaymentFingerprint sets the "payment_fingerprint" field.
+func (u *FinanceCommissionUpsertOne) SetPaymentFingerprint(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaymentFingerprint(v)
+	})
+}
+
+// UpdatePaymentFingerprint sets the "payment_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdatePaymentFingerprint() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaymentFingerprint()
+	})
+}
+
+// ClearPaymentFingerprint clears the value of the "payment_fingerprint" field.
+func (u *FinanceCommissionUpsertOne) ClearPaymentFingerprint() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaymentFingerprint()
+	})
+}
+
+// SetPaymentSnapshot sets the "payment_snapshot" field.
+func (u *FinanceCommissionUpsertOne) SetPaymentSnapshot(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaymentSnapshot(v)
+	})
+}
+
+// UpdatePaymentSnapshot sets the "payment_snapshot" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdatePaymentSnapshot() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaymentSnapshot()
+	})
+}
+
+// ClearPaymentSnapshot clears the value of the "payment_snapshot" field.
+func (u *FinanceCommissionUpsertOne) ClearPaymentSnapshot() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaymentSnapshot()
 	})
 }
 
@@ -3377,6 +3615,90 @@ func (u *FinanceCommissionUpsertBulk) UpdateConfirmedBy() *FinanceCommissionUpse
 func (u *FinanceCommissionUpsertBulk) ClearConfirmedBy() *FinanceCommissionUpsertBulk {
 	return u.Update(func(s *FinanceCommissionUpsert) {
 		s.ClearConfirmedBy()
+	})
+}
+
+// SetPaidAmount sets the "paid_amount" field.
+func (u *FinanceCommissionUpsertBulk) SetPaidAmount(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaidAmount(v)
+	})
+}
+
+// UpdatePaidAmount sets the "paid_amount" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdatePaidAmount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaidAmount()
+	})
+}
+
+// ClearPaidAmount clears the value of the "paid_amount" field.
+func (u *FinanceCommissionUpsertBulk) ClearPaidAmount() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaidAmount()
+	})
+}
+
+// SetPaymentKey sets the "payment_key" field.
+func (u *FinanceCommissionUpsertBulk) SetPaymentKey(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaymentKey(v)
+	})
+}
+
+// UpdatePaymentKey sets the "payment_key" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdatePaymentKey() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaymentKey()
+	})
+}
+
+// ClearPaymentKey clears the value of the "payment_key" field.
+func (u *FinanceCommissionUpsertBulk) ClearPaymentKey() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaymentKey()
+	})
+}
+
+// SetPaymentFingerprint sets the "payment_fingerprint" field.
+func (u *FinanceCommissionUpsertBulk) SetPaymentFingerprint(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaymentFingerprint(v)
+	})
+}
+
+// UpdatePaymentFingerprint sets the "payment_fingerprint" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdatePaymentFingerprint() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaymentFingerprint()
+	})
+}
+
+// ClearPaymentFingerprint clears the value of the "payment_fingerprint" field.
+func (u *FinanceCommissionUpsertBulk) ClearPaymentFingerprint() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaymentFingerprint()
+	})
+}
+
+// SetPaymentSnapshot sets the "payment_snapshot" field.
+func (u *FinanceCommissionUpsertBulk) SetPaymentSnapshot(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetPaymentSnapshot(v)
+	})
+}
+
+// UpdatePaymentSnapshot sets the "payment_snapshot" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdatePaymentSnapshot() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdatePaymentSnapshot()
+	})
+}
+
+// ClearPaymentSnapshot clears the value of the "payment_snapshot" field.
+func (u *FinanceCommissionUpsertBulk) ClearPaymentSnapshot() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.ClearPaymentSnapshot()
 	})
 }
 

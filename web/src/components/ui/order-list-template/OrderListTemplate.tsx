@@ -14,7 +14,7 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { useColumnSettings } from '../column-settings';
@@ -36,6 +36,9 @@ export function OrderListTemplate({
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
   customColumns,
   extraColumns = [],
+  trailingColumns = [],
+  showFeeReview = false,
+  completedSelectionIds,
   queryOrders,
   onCreateOrder,
   onCopyOrder,
@@ -64,6 +67,14 @@ export function OrderListTemplate({
     internalActionRef;
   const [selectedRows, setSelectedRows] = useState<OrderListItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  useEffect(() => {
+    if (!completedSelectionIds?.length) return;
+    const completed = new Set(completedSelectionIds);
+    setSelectedRows((rows) => rows.filter((row) => !completed.has(row.id)));
+    setSelectedRowKeys((keys) =>
+      keys.filter((key) => !completed.has(String(key))),
+    );
+  }, [completedSelectionIds]);
   const queryState = useListQueryState<OrderListFilterParams>({
     tabKey: queryStateIdentity?.tabKey ?? '',
     listId: queryStateIdentity?.listId ?? '',
@@ -540,8 +551,10 @@ export function OrderListTemplate({
           </Space>
         ),
       },
+      ...trailingColumns,
     ],
     [
+      trailingColumns,
       extraColumns,
       onViewDetail,
       onEditOrder,
@@ -565,7 +578,12 @@ export function OrderListTemplate({
   const columnSettings = useColumnSettings<ProColumns<OrderListItem>>({
     tableKey: columnSettingsKey,
     columns,
-    structuralKeys: ['option'],
+    structuralKeys: [
+      'option',
+      ...trailingColumns.map((column) =>
+        String(column.key ?? column.dataIndex),
+      ),
+    ],
   });
 
   return (
@@ -621,6 +639,7 @@ export function OrderListTemplate({
           onToggleFilter={() => setFilterVisible((prev) => !prev)}
           readonly={readonly}
           showManageTags={showManageTags}
+          showFeeReview={showFeeReview}
         />
 
         <ResponsiveProTable<OrderListItem>

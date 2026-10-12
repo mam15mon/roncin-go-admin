@@ -372,6 +372,11 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
+	approvalErr := validateApprovedOrderFees(ctx, client, item)
+	pending, pendingErr := hasPendingFeeSupplement(ctx, client, item.ID)
+	if pendingErr != nil {
+		return nil, pendingErr
+	}
 	detail := &biz.FeeLedgerOrderDetail{OrderID: item.ID.String(), OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerName: customer.LegalName, OrganizationID: item.OrganizationID, OrganizationName: organization.Name}
 	buckets := make(map[string]*biz.FeeLedgerBaseCurrencyAmount)
 	for _, feeEntity := range item.Edges.Fees {
@@ -379,7 +384,13 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 		if convertErr != nil {
 			return nil, convertErr
 		}
-		ledgerItem := &biz.FeeLedgerItem{Fee: fee, OrganizationID: item.OrganizationID, OrganizationName: organization.Name, OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName, FinancialProgress: biz.FeeLedgerUnbilled, FinanceLocked: financeLockNet.IsPositive()}
+		ledgerItem := &biz.FeeLedgerItem{FeeReviewStatus: string(item.FeeReviewStatus), HasPendingFeeSupplement: pending, CanBill: approvalErr == nil && !fee.HasActiveBill, Fee: fee, OrganizationID: item.OrganizationID, OrganizationName: organization.Name, OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName, FinancialProgress: biz.FeeLedgerUnbilled, FinanceLocked: financeLockNet.IsPositive()}
+		if approvalErr != nil {
+			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, approvalErr.Error())
+		}
+		if fee.HasActiveBill {
+			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, "费用已进入有效账单")
+		}
 		billLines, edgeErr := feeEntity.Edges.FinanceBillLinesOrErr()
 		if edgeErr != nil {
 			return nil, edgeErr
@@ -475,6 +486,16 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		predicates = append(predicates, feeLedgerFinancialProgressPredicate(filter.FinancialProgress))
 	}
 
+	if filter.FeeReviewStatus != "" {
+		predicates = append(predicates, orderfee.HasOrderWith(order.FeeReviewStatusEQ(order.FeeReviewStatus(filter.FeeReviewStatus))))
+	}
+	if filter.HasPendingFeeSupplement != nil {
+		p := orderHasPendingSupplementPredicate()
+		if !*filter.HasPendingFeeSupplement {
+			p = order.Not(p)
+		}
+		predicates = append(predicates, orderfee.HasOrderWith(p))
+	}
 	baseQuery := client.OrderFee.Query().Where(predicates...)
 	total, err := baseQuery.Clone().Count(ctx)
 	if err != nil {
@@ -528,6 +549,14 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 	if err != nil {
 		return nil, err
 	}
+	orders := make([]*ent.Order, 0, len(items))
+	for _, item := range items {
+		orders = append(orders, item.Edges.Order)
+	}
+	approvalCache, pendingCache, err := batchFeeReviewApprovalStates(ctx, client, orders)
+	if err != nil {
+		return nil, err
+	}
 	resultItems := make([]*biz.FeeLedgerItem, 0, len(items))
 	for _, item := range items {
 		fee, convertErr := orderFeeToBiz(item)
@@ -556,6 +585,16 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 			return nil, organizationErr
 		}
 		ledgerItem.OrganizationName = organization.Name
+		ledgerItem.FeeReviewStatus = string(businessOrder.FeeReviewStatus)
+		approvalErr := approvalCache[businessOrder.ID]
+		ledgerItem.HasPendingFeeSupplement = pendingCache[businessOrder.ID]
+		ledgerItem.CanBill = approvalErr == nil && !fee.HasActiveBill
+		if approvalErr != nil {
+			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, approvalErr.Error())
+		}
+		if fee.HasActiveBill {
+			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, "费用已进入有效账单")
+		}
 		financeLockLines, edgeErr := businessOrder.Edges.FinanceCommissionLinesOrErr()
 		if edgeErr != nil {
 			return nil, edgeErr

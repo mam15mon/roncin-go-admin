@@ -172,7 +172,7 @@ export default function FinanceFeeLedgerPage() {
   // 建账资格以既有账单信息为口径：关联账单号存在（含草稿账单占用）即不可建账；
   // 候选事实由服务端在最终建单事务内复核。
   const canCreateBill = (row: API.FeeLedgerItem) =>
-    access.canOperateOrganization(row.organizationId) && !row.billNo;
+    access.canOperateOrganization(row.organizationId) && row.canBill === true;
 
   const formatAmounts = (
     field: 'receivableBaseAmount' | 'payableBaseAmount' | 'profitBaseAmount',
@@ -424,7 +424,7 @@ export default function FinanceFeeLedgerPage() {
           const invalidRows = rows.filter((row) => !canCreateBill(row));
           if (invalidRows.length > 0) {
             message.warning(
-              '所选费用中包含不可建账的记录，请仅选择未建账且未入账单的费用',
+              '请选择整票已批准、无待审核补录且未建账的费用；具体原因见建账限制列',
             );
             return;
           }
@@ -457,7 +457,7 @@ export default function FinanceFeeLedgerPage() {
                     );
                     if (invalidRows.length > 0) {
                       message.warning(
-                        '所选费用中包含不可建账的记录，请仅选择未建账且未入账单的费用',
+                        '请选择整票已批准、无待审核补录且未建账的费用；具体原因见建账限制列',
                       );
                       return;
                     }
@@ -547,6 +547,13 @@ export default function FinanceFeeLedgerPage() {
             businessType: filterParams.businessType || undefined,
             direction: filterParams.direction || undefined,
             financialProgress: filterParams.financialProgress || undefined,
+            feeReviewStatus: filterParams.feeReviewStatus,
+            hasPendingFeeSupplement:
+              filterParams.hasPendingFeeSupplement === 'yes'
+                ? true
+                : filterParams.hasPendingFeeSupplement === 'no'
+                  ? false
+                  : undefined,
             customerId: filterParams.customerId || undefined,
             settlementPartyId: filterParams.settlementPartyId || undefined,
             currency: filterParams.currency || undefined,

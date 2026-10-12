@@ -556,6 +556,86 @@ func (_u *FinanceCommissionUpdate) ClearConfirmedBy() *FinanceCommissionUpdate {
 	return _u
 }
 
+// SetPaidAmount sets the "paid_amount" field.
+func (_u *FinanceCommissionUpdate) SetPaidAmount(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetPaidAmount(v)
+	return _u
+}
+
+// SetNillablePaidAmount sets the "paid_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillablePaidAmount(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetPaidAmount(*v)
+	}
+	return _u
+}
+
+// ClearPaidAmount clears the value of the "paid_amount" field.
+func (_u *FinanceCommissionUpdate) ClearPaidAmount() *FinanceCommissionUpdate {
+	_u.mutation.ClearPaidAmount()
+	return _u
+}
+
+// SetPaymentKey sets the "payment_key" field.
+func (_u *FinanceCommissionUpdate) SetPaymentKey(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetPaymentKey(v)
+	return _u
+}
+
+// SetNillablePaymentKey sets the "payment_key" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillablePaymentKey(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetPaymentKey(*v)
+	}
+	return _u
+}
+
+// ClearPaymentKey clears the value of the "payment_key" field.
+func (_u *FinanceCommissionUpdate) ClearPaymentKey() *FinanceCommissionUpdate {
+	_u.mutation.ClearPaymentKey()
+	return _u
+}
+
+// SetPaymentFingerprint sets the "payment_fingerprint" field.
+func (_u *FinanceCommissionUpdate) SetPaymentFingerprint(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetPaymentFingerprint(v)
+	return _u
+}
+
+// SetNillablePaymentFingerprint sets the "payment_fingerprint" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillablePaymentFingerprint(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetPaymentFingerprint(*v)
+	}
+	return _u
+}
+
+// ClearPaymentFingerprint clears the value of the "payment_fingerprint" field.
+func (_u *FinanceCommissionUpdate) ClearPaymentFingerprint() *FinanceCommissionUpdate {
+	_u.mutation.ClearPaymentFingerprint()
+	return _u
+}
+
+// SetPaymentSnapshot sets the "payment_snapshot" field.
+func (_u *FinanceCommissionUpdate) SetPaymentSnapshot(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetPaymentSnapshot(v)
+	return _u
+}
+
+// SetNillablePaymentSnapshot sets the "payment_snapshot" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillablePaymentSnapshot(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetPaymentSnapshot(*v)
+	}
+	return _u
+}
+
+// ClearPaymentSnapshot clears the value of the "payment_snapshot" field.
+func (_u *FinanceCommissionUpdate) ClearPaymentSnapshot() *FinanceCommissionUpdate {
+	_u.mutation.ClearPaymentSnapshot()
+	return _u
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (_u *FinanceCommissionUpdate) SetPaidAt(v time.Time) *FinanceCommissionUpdate {
 	_u.mutation.SetPaidAt(v)
@@ -968,6 +1048,16 @@ func (_u *FinanceCommissionUpdate) check() error {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.note": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PaymentKey(); ok {
+		if err := financecommission.PaymentKeyValidator(v); err != nil {
+			return &ValidationError{Name: "payment_key", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.payment_key": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PaymentFingerprint(); ok {
+		if err := financecommission.PaymentFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "payment_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.payment_fingerprint": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.CancellationReason(); ok {
 		if err := financecommission.CancellationReasonValidator(v); err != nil {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cancellation_reason": %w`, err)}
@@ -1122,6 +1212,30 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if _u.mutation.ConfirmedAtCleared() {
 		_spec.ClearField(financecommission.FieldConfirmedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.PaidAmount(); ok {
+		_spec.SetField(financecommission.FieldPaidAmount, field.TypeString, value)
+	}
+	if _u.mutation.PaidAmountCleared() {
+		_spec.ClearField(financecommission.FieldPaidAmount, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentKey(); ok {
+		_spec.SetField(financecommission.FieldPaymentKey, field.TypeString, value)
+	}
+	if _u.mutation.PaymentKeyCleared() {
+		_spec.ClearField(financecommission.FieldPaymentKey, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentFingerprint(); ok {
+		_spec.SetField(financecommission.FieldPaymentFingerprint, field.TypeString, value)
+	}
+	if _u.mutation.PaymentFingerprintCleared() {
+		_spec.ClearField(financecommission.FieldPaymentFingerprint, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentSnapshot(); ok {
+		_spec.SetField(financecommission.FieldPaymentSnapshot, field.TypeString, value)
+	}
+	if _u.mutation.PaymentSnapshotCleared() {
+		_spec.ClearField(financecommission.FieldPaymentSnapshot, field.TypeString)
 	}
 	if value, ok := _u.mutation.PaidAt(); ok {
 		_spec.SetField(financecommission.FieldPaidAt, field.TypeTime, value)
@@ -1934,6 +2048,86 @@ func (_u *FinanceCommissionUpdateOne) ClearConfirmedBy() *FinanceCommissionUpdat
 	return _u
 }
 
+// SetPaidAmount sets the "paid_amount" field.
+func (_u *FinanceCommissionUpdateOne) SetPaidAmount(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetPaidAmount(v)
+	return _u
+}
+
+// SetNillablePaidAmount sets the "paid_amount" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillablePaidAmount(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetPaidAmount(*v)
+	}
+	return _u
+}
+
+// ClearPaidAmount clears the value of the "paid_amount" field.
+func (_u *FinanceCommissionUpdateOne) ClearPaidAmount() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearPaidAmount()
+	return _u
+}
+
+// SetPaymentKey sets the "payment_key" field.
+func (_u *FinanceCommissionUpdateOne) SetPaymentKey(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetPaymentKey(v)
+	return _u
+}
+
+// SetNillablePaymentKey sets the "payment_key" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillablePaymentKey(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetPaymentKey(*v)
+	}
+	return _u
+}
+
+// ClearPaymentKey clears the value of the "payment_key" field.
+func (_u *FinanceCommissionUpdateOne) ClearPaymentKey() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearPaymentKey()
+	return _u
+}
+
+// SetPaymentFingerprint sets the "payment_fingerprint" field.
+func (_u *FinanceCommissionUpdateOne) SetPaymentFingerprint(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetPaymentFingerprint(v)
+	return _u
+}
+
+// SetNillablePaymentFingerprint sets the "payment_fingerprint" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillablePaymentFingerprint(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetPaymentFingerprint(*v)
+	}
+	return _u
+}
+
+// ClearPaymentFingerprint clears the value of the "payment_fingerprint" field.
+func (_u *FinanceCommissionUpdateOne) ClearPaymentFingerprint() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearPaymentFingerprint()
+	return _u
+}
+
+// SetPaymentSnapshot sets the "payment_snapshot" field.
+func (_u *FinanceCommissionUpdateOne) SetPaymentSnapshot(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetPaymentSnapshot(v)
+	return _u
+}
+
+// SetNillablePaymentSnapshot sets the "payment_snapshot" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillablePaymentSnapshot(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetPaymentSnapshot(*v)
+	}
+	return _u
+}
+
+// ClearPaymentSnapshot clears the value of the "payment_snapshot" field.
+func (_u *FinanceCommissionUpdateOne) ClearPaymentSnapshot() *FinanceCommissionUpdateOne {
+	_u.mutation.ClearPaymentSnapshot()
+	return _u
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (_u *FinanceCommissionUpdateOne) SetPaidAt(v time.Time) *FinanceCommissionUpdateOne {
 	_u.mutation.SetPaidAt(v)
@@ -2359,6 +2553,16 @@ func (_u *FinanceCommissionUpdateOne) check() error {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.note": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PaymentKey(); ok {
+		if err := financecommission.PaymentKeyValidator(v); err != nil {
+			return &ValidationError{Name: "payment_key", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.payment_key": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PaymentFingerprint(); ok {
+		if err := financecommission.PaymentFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "payment_fingerprint", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.payment_fingerprint": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.CancellationReason(); ok {
 		if err := financecommission.CancellationReasonValidator(v); err != nil {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommission.cancellation_reason": %w`, err)}
@@ -2530,6 +2734,30 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	}
 	if _u.mutation.ConfirmedAtCleared() {
 		_spec.ClearField(financecommission.FieldConfirmedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.PaidAmount(); ok {
+		_spec.SetField(financecommission.FieldPaidAmount, field.TypeString, value)
+	}
+	if _u.mutation.PaidAmountCleared() {
+		_spec.ClearField(financecommission.FieldPaidAmount, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentKey(); ok {
+		_spec.SetField(financecommission.FieldPaymentKey, field.TypeString, value)
+	}
+	if _u.mutation.PaymentKeyCleared() {
+		_spec.ClearField(financecommission.FieldPaymentKey, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentFingerprint(); ok {
+		_spec.SetField(financecommission.FieldPaymentFingerprint, field.TypeString, value)
+	}
+	if _u.mutation.PaymentFingerprintCleared() {
+		_spec.ClearField(financecommission.FieldPaymentFingerprint, field.TypeString)
+	}
+	if value, ok := _u.mutation.PaymentSnapshot(); ok {
+		_spec.SetField(financecommission.FieldPaymentSnapshot, field.TypeString, value)
+	}
+	if _u.mutation.PaymentSnapshotCleared() {
+		_spec.ClearField(financecommission.FieldPaymentSnapshot, field.TypeString)
 	}
 	if value, ok := _u.mutation.PaidAt(); ok {
 		_spec.SetField(financecommission.FieldPaidAt, field.TypeTime, value)

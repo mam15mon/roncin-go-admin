@@ -2,6 +2,7 @@ import { DeleteOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Tag, Typography } from 'antd';
 import React from 'react';
+import { FeeReviewStatus } from '@/features/orders/fee-review';
 import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
@@ -33,6 +34,26 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     width: 180,
     ellipsis: true,
     search: false,
+  },
+  {
+    title: '费用审核',
+    key: 'feeReviewStatus',
+    width: 190,
+    search: false,
+    render: (_, row) => (
+      <FeeReviewStatus
+        status={row.feeReviewStatus}
+        pendingSupplement={row.hasPendingFeeSupplement}
+      />
+    ),
+  },
+  {
+    title: '建账限制',
+    key: 'blockedReasons',
+    width: 200,
+    search: false,
+    render: (_, row) =>
+      row.canBill ? '可建账' : row.blockedReasons?.join('；') || '-',
   },
   { title: '费用名称', dataIndex: 'feeName', width: 130, search: false },
   {

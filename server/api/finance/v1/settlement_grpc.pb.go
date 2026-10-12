@@ -86,6 +86,7 @@ const (
 	SettlementService_PreviewCommission_FullMethodName                         = "/finance.v1.SettlementService/PreviewCommission"
 	SettlementService_CreateCommission_FullMethodName                          = "/finance.v1.SettlementService/CreateCommission"
 	SettlementService_ConfirmCommission_FullMethodName                         = "/finance.v1.SettlementService/ConfirmCommission"
+	SettlementService_PreviewCommissionPayment_FullMethodName                  = "/finance.v1.SettlementService/PreviewCommissionPayment"
 	SettlementService_MarkCommissionPaid_FullMethodName                        = "/finance.v1.SettlementService/MarkCommissionPaid"
 	SettlementService_CancelCommission_FullMethodName                          = "/finance.v1.SettlementService/CancelCommission"
 	SettlementService_CreateCommissionAdjustment_FullMethodName                = "/finance.v1.SettlementService/CreateCommissionAdjustment"
@@ -190,6 +191,7 @@ type SettlementServiceClient interface {
 	PreviewCommission(ctx context.Context, in *PreviewCommissionRequest, opts ...grpc.CallOption) (*PreviewCommissionResponse, error)
 	CreateCommission(ctx context.Context, in *CreateCommissionRequest, opts ...grpc.CallOption) (*CreateCommissionResponse, error)
 	ConfirmCommission(ctx context.Context, in *ConfirmCommissionRequest, opts ...grpc.CallOption) (*ConfirmCommissionResponse, error)
+	PreviewCommissionPayment(ctx context.Context, in *PreviewCommissionPaymentRequest, opts ...grpc.CallOption) (*PreviewCommissionPaymentResponse, error)
 	MarkCommissionPaid(ctx context.Context, in *MarkCommissionPaidRequest, opts ...grpc.CallOption) (*MarkCommissionPaidResponse, error)
 	CancelCommission(ctx context.Context, in *CancelCommissionRequest, opts ...grpc.CallOption) (*CancelCommissionResponse, error)
 	CreateCommissionAdjustment(ctx context.Context, in *CreateCommissionAdjustmentRequest, opts ...grpc.CallOption) (*CreateCommissionAdjustmentResponse, error)
@@ -896,6 +898,16 @@ func (c *settlementServiceClient) ConfirmCommission(ctx context.Context, in *Con
 	return out, nil
 }
 
+func (c *settlementServiceClient) PreviewCommissionPayment(ctx context.Context, in *PreviewCommissionPaymentRequest, opts ...grpc.CallOption) (*PreviewCommissionPaymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewCommissionPaymentResponse)
+	err := c.cc.Invoke(ctx, SettlementService_PreviewCommissionPayment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *settlementServiceClient) MarkCommissionPaid(ctx context.Context, in *MarkCommissionPaidRequest, opts ...grpc.CallOption) (*MarkCommissionPaidResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MarkCommissionPaidResponse)
@@ -1106,6 +1118,7 @@ type SettlementServiceServer interface {
 	PreviewCommission(context.Context, *PreviewCommissionRequest) (*PreviewCommissionResponse, error)
 	CreateCommission(context.Context, *CreateCommissionRequest) (*CreateCommissionResponse, error)
 	ConfirmCommission(context.Context, *ConfirmCommissionRequest) (*ConfirmCommissionResponse, error)
+	PreviewCommissionPayment(context.Context, *PreviewCommissionPaymentRequest) (*PreviewCommissionPaymentResponse, error)
 	MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error)
 	CancelCommission(context.Context, *CancelCommissionRequest) (*CancelCommissionResponse, error)
 	CreateCommissionAdjustment(context.Context, *CreateCommissionAdjustmentRequest) (*CreateCommissionAdjustmentResponse, error)
@@ -1342,6 +1355,9 @@ func (UnimplementedSettlementServiceServer) CreateCommission(context.Context, *C
 }
 func (UnimplementedSettlementServiceServer) ConfirmCommission(context.Context, *ConfirmCommissionRequest) (*ConfirmCommissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ConfirmCommission not implemented")
+}
+func (UnimplementedSettlementServiceServer) PreviewCommissionPayment(context.Context, *PreviewCommissionPaymentRequest) (*PreviewCommissionPaymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewCommissionPayment not implemented")
 }
 func (UnimplementedSettlementServiceServer) MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method MarkCommissionPaid not implemented")
@@ -2606,6 +2622,24 @@ func _SettlementService_ConfirmCommission_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SettlementService_PreviewCommissionPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewCommissionPaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).PreviewCommissionPayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_PreviewCommissionPayment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).PreviewCommissionPayment(ctx, req.(*PreviewCommissionPaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SettlementService_MarkCommissionPaid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MarkCommissionPaidRequest)
 	if err := dec(in); err != nil {
@@ -3096,6 +3130,10 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfirmCommission",
 			Handler:    _SettlementService_ConfirmCommission_Handler,
+		},
+		{
+			MethodName: "PreviewCommissionPayment",
+			Handler:    _SettlementService_PreviewCommissionPayment_Handler,
 		},
 		{
 			MethodName: "MarkCommissionPaid",

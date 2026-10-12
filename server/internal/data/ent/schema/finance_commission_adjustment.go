@@ -19,6 +19,7 @@ func (FinanceCommissionAdjustment) Mixin() []ent.Mixin { return []ent.Mixin{IDMi
 func (FinanceCommissionAdjustment) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Checks(map[string]string{
+			"commission_adjustment_execution_check":   "(execution_method IS NULL AND parent_payment_id IS NULL) OR (execution_method = 'OFFSET_WITH_PARENT' AND parent_payment_id = commission_id) OR (execution_method = 'SEPARATE' AND parent_payment_id IS NULL)",
 			"commission_adjustment_direction_check":   "direction IN ('INCREASE', 'DECREASE')",
 			"commission_adjustment_status_check":      "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
 			"commission_adjustment_amount_positive":   "amount > 0",
@@ -55,6 +56,8 @@ func (FinanceCommissionAdjustment) Fields() []ent.Field {
 		field.Uint64("version").Default(1),
 		field.Time("confirmed_at").Optional().Nillable(),
 		field.UUID("confirmed_by", uuid.Nil).Optional().Nillable(),
+		field.Enum("execution_method").Values("OFFSET_WITH_PARENT", "SEPARATE").Optional().Nillable(),
+		field.UUID("parent_payment_id", uuid.Nil).Optional().Nillable(),
 		field.Time("paid_at").Optional().Nillable(),
 		field.UUID("paid_by", uuid.Nil).Optional().Nillable(),
 		field.Time("cancelled_at").Optional().Nillable(),

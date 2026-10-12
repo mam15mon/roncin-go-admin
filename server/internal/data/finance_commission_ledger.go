@@ -11,6 +11,7 @@ import (
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
+	supplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -123,7 +124,11 @@ func (r *commissionRepo) GetByKey(ctx context.Context, org uuid.UUID, key string
 		return nil, err
 	}
 	x, err := client.FinanceCommission.Query().Where(commission.OrganizationIDEQ(org), commission.IdempotencyKeyEQ(key)).WithOrganization().WithLines(func(q *ent.FinanceCommissionLineQuery) {
-		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID())
+		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID()).WithOrder(func(q *ent.OrderQuery) {
+			q.WithFeeSupplementRequests(func(q *ent.OrderFeeSupplementRequestQuery) {
+				q.Where(supplementent.StatusEQ(supplementent.StatusPENDING))
+			})
+		})
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
 	}).Only(ctx)
@@ -145,7 +150,11 @@ func (r *commissionRepo) GetScoped(ctx context.Context, organizationIDs []uuid.U
 		return nil, err
 	}
 	x, err := client.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDIn(organizationIDs...)).WithOrganization().WithLines(func(q *ent.FinanceCommissionLineQuery) {
-		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID())
+		q.Order(commissionline.ByOrderNo(), commissionline.ByOrderID()).WithOrder(func(q *ent.OrderQuery) {
+			q.WithFeeSupplementRequests(func(q *ent.OrderFeeSupplementRequestQuery) {
+				q.Where(supplementent.StatusEQ(supplementent.StatusPENDING))
+			})
+		})
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
 		q.Order(adjustment.ByCreatedAt())
 	}).Only(ctx)

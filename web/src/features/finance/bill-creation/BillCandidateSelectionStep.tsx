@@ -46,7 +46,7 @@ export default function BillCandidateSelectionStep({
         type="info"
         showIcon
         title={`已从${sourceLabel || '业务页面'}带入 ${selectedIds.length} 笔未建账费用`}
-        description="结算维度和金额快照将在预览及最终建单事务中由服务端再次校验。"
+        description="费用必须已批准且无待审核补录；审核版本、结算维度和金额快照将在预览及最终建账时由服务端再次校验。"
       />
       <div style={{ marginTop: 12 }}>
         来源公司：
@@ -88,10 +88,12 @@ export default function BillCandidateSelectionStep({
           getCheckboxProps: (record) => {
             // 候选接口已按有效账单关联过滤未建账费用；billNo 为空作为展示层兜底，
             // 不在前端重建第二套状态判定。
-            const isSelectable = !record.billNo;
+            const isSelectable = record.canBill === true;
             return {
               disabled: !isSelectable,
-              title: !isSelectable ? `已进入账单 ${record.billNo}` : undefined,
+              title: !isSelectable
+                ? record.blockedReasons?.join('；') || '费用尚不符合建账条件'
+                : undefined,
             };
           },
         }}

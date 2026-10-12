@@ -45,6 +45,10 @@ type FinanceCommissionAdjustment struct {
 	Direction                                                         CommissionAdjustmentDirection
 	SourceType                                                        CommissionAdjustmentSourceType
 	SourceVerificationID                                              *uuid.UUID
+	ExecutionMethod                                                   *string
+	ParentPaymentID                                                   *uuid.UUID
+	CanExecute                                                        bool
+	ExecutionBlockedReason                                            *string
 	Status                                                            CommissionStatus
 	BaseCurrency                                                      string
 	Amount                                                            decimal.Decimal
@@ -173,6 +177,7 @@ type FinanceCommission struct {
 	CNYExchangeRateSource, CNYExchangeRateDate                            string
 	CNYExchangeRateSettingID                                              *uuid.UUID
 	CNYCommissionAmount                                                   decimal.Decimal
+	PaidAmount                                                            *decimal.Decimal
 	Note                                                                  *string
 	Version                                                               uint64
 	ConfirmedAt, PaidAt, CancelledAt                                      *time.Time
@@ -224,6 +229,11 @@ type CommissionReversalPlan struct {
 
 // PlanCommissionReversal 保留已支付历史，取消未支付权益，并把剩余有效提成冲减至零。
 func PlanCommissionReversal(status CommissionStatus, baseAmount decimal.Decimal, lines []CommissionReversalLine, adjustments []*FinanceCommissionAdjustment) (*CommissionReversalPlan, error) {
+	for _, a := range adjustments {
+		if status == CommissionPaid && a.Status == CommissionConfirmed && a.Direction == CommissionAdjustmentIncrease {
+			return nil, ErrCommissionPendingIncrease
+		}
+	}
 	plan := &CommissionReversalPlan{}
 	hasPaidExposure := status == CommissionPaid
 	for _, item := range adjustments {
@@ -554,6 +564,8 @@ type CommissionGenerationContext struct {
 }
 
 type CommissionRepo interface {
+	PreviewPayment(context.Context, uuid.UUID, uuid.UUID, uint64) (*CommissionPaymentPreview, error)
+	Pay(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionPaymentInput, *AuditEvent) (*FinanceCommission, error)
 	List(context.Context, uuid.UUID, CommissionFilter) (*CommissionListResult, error)
 	ListScoped(context.Context, []uuid.UUID, CommissionFilter) (*CommissionListResult, error)
 	Count(context.Context, uuid.UUID, CommissionFilter) (int64, error)

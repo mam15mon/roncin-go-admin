@@ -68,8 +68,8 @@ func (r *orderFeeSupplementRepo) EnqueueApprovalPendingNotifications(ctx context
 	return nil
 }
 
-// EnqueueDecreaseSuggestedNotifications 在审批事务内为实际生成冲减建议的员工
-// 逐人入队知情通知：任务 ID 与幂等键按「调整 + 员工」确定性生成；未产生建议
+// EnqueueDecreaseSuggestedNotifications 在审批事务内为实际生成已确认提成冲减的员工
+// 逐人入队知情通知：任务 ID 与幂等键按「调整 + 员工」确定性生成；未产生冲减
 // 的员工不通知。
 func (r *orderFeeSupplementRepo) EnqueueDecreaseSuggestedNotifications(ctx context.Context, organizationID uuid.UUID, orderNo string, suggestions []biz.OrderFeeSupplementDecreaseSuggestion) error {
 	if len(suggestions) == 0 {
@@ -85,7 +85,10 @@ func (r *orderFeeSupplementRepo) EnqueueDecreaseSuggestedNotifications(ctx conte
 	}
 	now := time.Now()
 	for _, suggestion := range suggestions {
-		summary := clampNotificationBytes(fmt.Sprintf("冲减建议 %s %s", suggestion.Amount.StringFixed(8), suggestion.BaseCurrency), 256)
+		if !suggestion.Amount.IsPositive() {
+			continue
+		}
+		summary := clampNotificationBytes(fmt.Sprintf("已确认提成冲减 %s %s", suggestion.Amount.StringFixed(8), suggestion.BaseCurrency), 256)
 		taskID := uuid.NewSHA1(dingTalkNotificationNamespace, []byte("commission-decrease-suggested:"+suggestion.AdjustmentID.String()+":"+suggestion.EmployeeID.String()))
 		if err := client.BackgroundTask.Create().
 			SetID(taskID).

@@ -131,6 +131,46 @@ func (_u *FinanceCommissionAdjustmentUpdate) ClearConfirmedBy() *FinanceCommissi
 	return _u
 }
 
+// SetExecutionMethod sets the "execution_method" field.
+func (_u *FinanceCommissionAdjustmentUpdate) SetExecutionMethod(v financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentUpdate {
+	_u.mutation.SetExecutionMethod(v)
+	return _u
+}
+
+// SetNillableExecutionMethod sets the "execution_method" field if the given value is not nil.
+func (_u *FinanceCommissionAdjustmentUpdate) SetNillableExecutionMethod(v *financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentUpdate {
+	if v != nil {
+		_u.SetExecutionMethod(*v)
+	}
+	return _u
+}
+
+// ClearExecutionMethod clears the value of the "execution_method" field.
+func (_u *FinanceCommissionAdjustmentUpdate) ClearExecutionMethod() *FinanceCommissionAdjustmentUpdate {
+	_u.mutation.ClearExecutionMethod()
+	return _u
+}
+
+// SetParentPaymentID sets the "parent_payment_id" field.
+func (_u *FinanceCommissionAdjustmentUpdate) SetParentPaymentID(v uuid.UUID) *FinanceCommissionAdjustmentUpdate {
+	_u.mutation.SetParentPaymentID(v)
+	return _u
+}
+
+// SetNillableParentPaymentID sets the "parent_payment_id" field if the given value is not nil.
+func (_u *FinanceCommissionAdjustmentUpdate) SetNillableParentPaymentID(v *uuid.UUID) *FinanceCommissionAdjustmentUpdate {
+	if v != nil {
+		_u.SetParentPaymentID(*v)
+	}
+	return _u
+}
+
+// ClearParentPaymentID clears the value of the "parent_payment_id" field.
+func (_u *FinanceCommissionAdjustmentUpdate) ClearParentPaymentID() *FinanceCommissionAdjustmentUpdate {
+	_u.mutation.ClearParentPaymentID()
+	return _u
+}
+
 // SetPaidAt sets the "paid_at" field.
 func (_u *FinanceCommissionAdjustmentUpdate) SetPaidAt(v time.Time) *FinanceCommissionAdjustmentUpdate {
 	_u.mutation.SetPaidAt(v)
@@ -359,6 +399,11 @@ func (_u *FinanceCommissionAdjustmentUpdate) check() error {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.note": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ExecutionMethod(); ok {
+		if err := financecommissionadjustment.ExecutionMethodValidator(v); err != nil {
+			return &ValidationError{Name: "execution_method", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.execution_method": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.CancellationReason(); ok {
 		if err := financecommissionadjustment.CancellationReasonValidator(v); err != nil {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.cancellation_reason": %w`, err)}
@@ -414,6 +459,18 @@ func (_u *FinanceCommissionAdjustmentUpdate) sqlSave(ctx context.Context) (_node
 	}
 	if _u.mutation.ConfirmedAtCleared() {
 		_spec.ClearField(financecommissionadjustment.FieldConfirmedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ExecutionMethod(); ok {
+		_spec.SetField(financecommissionadjustment.FieldExecutionMethod, field.TypeEnum, value)
+	}
+	if _u.mutation.ExecutionMethodCleared() {
+		_spec.ClearField(financecommissionadjustment.FieldExecutionMethod, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.ParentPaymentID(); ok {
+		_spec.SetField(financecommissionadjustment.FieldParentPaymentID, field.TypeUUID, value)
+	}
+	if _u.mutation.ParentPaymentIDCleared() {
+		_spec.ClearField(financecommissionadjustment.FieldParentPaymentID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.PaidAt(); ok {
 		_spec.SetField(financecommissionadjustment.FieldPaidAt, field.TypeTime, value)
@@ -638,6 +695,46 @@ func (_u *FinanceCommissionAdjustmentUpdateOne) SetNillableConfirmedBy(v *uuid.U
 // ClearConfirmedBy clears the value of the "confirmed_by" field.
 func (_u *FinanceCommissionAdjustmentUpdateOne) ClearConfirmedBy() *FinanceCommissionAdjustmentUpdateOne {
 	_u.mutation.ClearConfirmedBy()
+	return _u
+}
+
+// SetExecutionMethod sets the "execution_method" field.
+func (_u *FinanceCommissionAdjustmentUpdateOne) SetExecutionMethod(v financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentUpdateOne {
+	_u.mutation.SetExecutionMethod(v)
+	return _u
+}
+
+// SetNillableExecutionMethod sets the "execution_method" field if the given value is not nil.
+func (_u *FinanceCommissionAdjustmentUpdateOne) SetNillableExecutionMethod(v *financecommissionadjustment.ExecutionMethod) *FinanceCommissionAdjustmentUpdateOne {
+	if v != nil {
+		_u.SetExecutionMethod(*v)
+	}
+	return _u
+}
+
+// ClearExecutionMethod clears the value of the "execution_method" field.
+func (_u *FinanceCommissionAdjustmentUpdateOne) ClearExecutionMethod() *FinanceCommissionAdjustmentUpdateOne {
+	_u.mutation.ClearExecutionMethod()
+	return _u
+}
+
+// SetParentPaymentID sets the "parent_payment_id" field.
+func (_u *FinanceCommissionAdjustmentUpdateOne) SetParentPaymentID(v uuid.UUID) *FinanceCommissionAdjustmentUpdateOne {
+	_u.mutation.SetParentPaymentID(v)
+	return _u
+}
+
+// SetNillableParentPaymentID sets the "parent_payment_id" field if the given value is not nil.
+func (_u *FinanceCommissionAdjustmentUpdateOne) SetNillableParentPaymentID(v *uuid.UUID) *FinanceCommissionAdjustmentUpdateOne {
+	if v != nil {
+		_u.SetParentPaymentID(*v)
+	}
+	return _u
+}
+
+// ClearParentPaymentID clears the value of the "parent_payment_id" field.
+func (_u *FinanceCommissionAdjustmentUpdateOne) ClearParentPaymentID() *FinanceCommissionAdjustmentUpdateOne {
+	_u.mutation.ClearParentPaymentID()
 	return _u
 }
 
@@ -882,6 +979,11 @@ func (_u *FinanceCommissionAdjustmentUpdateOne) check() error {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.note": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ExecutionMethod(); ok {
+		if err := financecommissionadjustment.ExecutionMethodValidator(v); err != nil {
+			return &ValidationError{Name: "execution_method", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.execution_method": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.CancellationReason(); ok {
 		if err := financecommissionadjustment.CancellationReasonValidator(v); err != nil {
 			return &ValidationError{Name: "cancellation_reason", err: fmt.Errorf(`ent: validator failed for field "FinanceCommissionAdjustment.cancellation_reason": %w`, err)}
@@ -954,6 +1056,18 @@ func (_u *FinanceCommissionAdjustmentUpdateOne) sqlSave(ctx context.Context) (_n
 	}
 	if _u.mutation.ConfirmedAtCleared() {
 		_spec.ClearField(financecommissionadjustment.FieldConfirmedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.ExecutionMethod(); ok {
+		_spec.SetField(financecommissionadjustment.FieldExecutionMethod, field.TypeEnum, value)
+	}
+	if _u.mutation.ExecutionMethodCleared() {
+		_spec.ClearField(financecommissionadjustment.FieldExecutionMethod, field.TypeEnum)
+	}
+	if value, ok := _u.mutation.ParentPaymentID(); ok {
+		_spec.SetField(financecommissionadjustment.FieldParentPaymentID, field.TypeUUID, value)
+	}
+	if _u.mutation.ParentPaymentIDCleared() {
+		_spec.ClearField(financecommissionadjustment.FieldParentPaymentID, field.TypeUUID)
 	}
 	if value, ok := _u.mutation.PaidAt(); ok {
 		_spec.SetField(financecommissionadjustment.FieldPaidAt, field.TypeTime, value)

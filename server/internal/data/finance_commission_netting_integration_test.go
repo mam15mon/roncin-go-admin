@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
@@ -319,6 +318,9 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 	if confirmed.Status != biz.FinanceNettingConfirmed {
 		t.Fatalf("测试对冲单状态 = %s", confirmed.Status)
 	}
+	for _, orderID := range fixture.orderIDs {
+		seedApprovedFeeSnapshotForTest(t, data, orderID, fixture.actorID)
+	}
 	return fixture
 }
 
@@ -343,20 +345,18 @@ func (f *commissionNettingPostgresFixture) input(key string) biz.CreateCommissio
 	}
 }
 
-// requireFeeMutationLock 断言订单费用写入拦截的财务锁口径（净额 > 0 才锁）。
+// requireFeeMutationLock 分别核验提成财务锁净额及独立的费用批准冻结。
 func (f *commissionNettingPostgresFixture) requireFeeMutationLock(orderID uuid.UUID, wantLocked bool) {
 	f.t.Helper()
-	err := f.data.WithTx(context.Background(), func(tx *ent.Tx) error {
+	locked, err := f.data.db.Order.Query().Where(orderent.IDEQ(orderID), financeLockedOrderPredicate()).Exist(context.Background())
+	if err != nil || locked != wantLocked {
+		f.t.Fatalf("提成财务锁 = %v，预期 %v: %v", locked, wantLocked, err)
+	}
+	err = f.data.WithTx(context.Background(), func(tx *ent.Tx) error {
 		return lockOrderForFeeMutation(context.Background(), tx, f.organizationID, orderID)
 	})
-	if wantLocked {
-		if kratoserrors.FromError(err).Reason != biz.ErrOrderFeeFinanceLocked.Reason {
-			f.t.Fatalf("费用写入拦截应返回 ORDER_FEE_FINANCE_LOCKED，实际: %v", err)
-		}
-		return
-	}
-	if err != nil {
-		f.t.Fatalf("净提成归零后费用写入应放行，实际: %v", err)
+	if !errors.Is(err, biz.ErrFeeReviewFrozen) {
+		f.t.Fatalf("财务锁归零仍须保留费用批准冻结: %v", err)
 	}
 }
 
@@ -515,7 +515,7 @@ func TestCommissionNettingSourcePostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("确认提成失败: %v", err)
 		}
-		paid, err := usecase.MarkPaid(ctx, fixture.organizationID, fixture.actorID, confirmedCommission.ID, confirmedCommission.Version)
+		paid, err := markCommissionPaidForTest(ctx, usecase, fixture.organizationID, fixture.actorID, confirmedCommission.ID, confirmedCommission.Version)
 		if err != nil {
 			t.Fatalf("发放提成失败: %v", err)
 		}

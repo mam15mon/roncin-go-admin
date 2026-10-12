@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"os"
 	"strings"
 	"testing"
@@ -690,6 +691,7 @@ func TestOrderCommissionSummaryPrivacyPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建操作提成失败: %v", err)
 		}
+		seedApprovedFeeSnapshotForTest(t, f.data, orderMixID, actorID)
 		if _, err = usecase.Confirm(ctx, org.organizationID, actorID, confirmedCommission.ID, confirmedCommission.Version); err != nil {
 			t.Fatalf("确认操作提成失败: %v", err)
 		}
@@ -703,7 +705,7 @@ func TestOrderCommissionSummaryPrivacyPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("确认已发提成失败: %v", err)
 		}
-		if _, err = usecase.MarkPaid(ctx, org.organizationID, actorID, paidCommission.ID, confirmedPaid.Version); err != nil {
+		if _, err = markCommissionPaidForTest(ctx, usecase, org.organizationID, actorID, paidCommission.ID, confirmedPaid.Version); err != nil {
 			t.Fatalf("标记已发失败: %v", err)
 		}
 		// 操作提成的 DRAFT 冲减建议：待处理、尚未扣回。
@@ -727,11 +729,18 @@ func TestOrderCommissionSummaryPrivacyPostgres(t *testing.T) {
 		}
 		assertSummaryFacts(t, "冲减确认后", f.summaries(t, financePrincipal, targetOf(orderMixID))[orderMixID],
 			biz.OrderCommissionVisibilityOrganization, 0, 1, 1, 1, 0, "60.00000000", "30.00000000", "60.00000000", "")
-		if _, err = usecase.MarkAdjustmentPaid(ctx, org.organizationID, actorID, decrease.ID, confirmedDecrease.Version); err != nil {
-			t.Fatalf("标记冲减已扣回失败: %v", err)
+		if _, err = usecase.MarkAdjustmentPaid(ctx, org.organizationID, actorID, decrease.ID, confirmedDecrease.Version); !errors.Is(err, biz.ErrCommissionAdjustmentTransition) {
+			t.Fatalf("父单未付须阻止独立扣回: %v", err)
 		}
-		assertSummaryFacts(t, "冲减已扣回后", f.summaries(t, financePrincipal, targetOf(orderMixID))[orderMixID],
-			biz.OrderCommissionVisibilityOrganization, 0, 1, 1, 1, 0, "60.00000000", "30.00000000", "60.00000000", "")
+		parent, err := usecase.Get(ctx, org.organizationID, confirmedCommission.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := markCommissionPaidForTest(ctx, usecase, org.organizationID, actorID, parent.ID, parent.Version); err != nil {
+			t.Fatalf("含冲减的父单净额发放失败: %v", err)
+		}
+		assertSummaryFacts(t, "净额发放后原提成快照", f.summaries(t, financePrincipal, targetOf(orderMixID))[orderMixID], biz.OrderCommissionVisibilityOrganization, 0, 1, 0, 2, 0, "60.00000000", "", "90.00000000", "")
+
 	})
 
 	t.Run("预计机会随来源与基础提成单消长", func(t *testing.T) {

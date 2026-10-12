@@ -352,6 +352,7 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("修改来源费用制造指纹漂移失败: %v", err)
 	}
+	seedApprovedFeeSnapshotForTest(t, driftFixture.data, driftFixture.orderID, driftFixture.actorID)
 	if _, err := driftUsecase.Approve(ctx, driftScope, driftFixture.actorID, driftApplication.ID, 1); !errors.Is(err, biz.ErrCommissionSourceChanged) {
 		t.Fatalf("指纹变化的批准应返回来源已变化: %v", err)
 	}
@@ -387,6 +388,7 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("创建未建账阻断费用失败: %v", err)
 	}
+	seedApprovedFeeSnapshotForTest(t, draftFixture.data, draftFixture.orderID, draftFixture.actorID)
 	_, draftApplication := draftFixture.submitSingleLineApplication(t, "draftfee")
 	if _, err := draftUsecase.Approve(ctx, draftScope, draftFixture.actorID, draftApplication.ID, 1); !errors.Is(err, biz.ErrCommissionUnconfirmedFees) {
 		t.Fatalf("未建账费用阻断的批准应返回未确认费用: %v", err)

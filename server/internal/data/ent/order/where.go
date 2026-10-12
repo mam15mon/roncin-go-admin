@@ -246,6 +246,26 @@ func Version(v uint64) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldVersion, v))
 }
 
+// FeeContentVersion applies equality check predicate on the "fee_content_version" field. It's identical to FeeContentVersionEQ.
+func FeeContentVersion(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFeeContentVersion, v))
+}
+
+// FeeReviewVersion applies equality check predicate on the "fee_review_version" field. It's identical to FeeReviewVersionEQ.
+func FeeReviewVersion(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFeeReviewVersion, v))
+}
+
+// CurrentFeeReviewEventID applies equality check predicate on the "current_fee_review_event_id" field. It's identical to CurrentFeeReviewEventIDEQ.
+func CurrentFeeReviewEventID(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldCurrentFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventID applies equality check predicate on the "approved_fee_review_event_id" field. It's identical to ApprovedFeeReviewEventIDEQ.
+func ApprovedFeeReviewEventID(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldApprovedFeeReviewEventID, v))
+}
+
 // OriginLocationID applies equality check predicate on the "origin_location_id" field. It's identical to OriginLocationIDEQ.
 func OriginLocationID(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOriginLocationID, v))
@@ -2846,6 +2866,206 @@ func VersionLTE(v uint64) predicate.Order {
 	return predicate.Order(sql.FieldLTE(FieldVersion, v))
 }
 
+// FeeReviewStatusEQ applies the EQ predicate on the "fee_review_status" field.
+func FeeReviewStatusEQ(v FeeReviewStatus) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFeeReviewStatus, v))
+}
+
+// FeeReviewStatusNEQ applies the NEQ predicate on the "fee_review_status" field.
+func FeeReviewStatusNEQ(v FeeReviewStatus) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldFeeReviewStatus, v))
+}
+
+// FeeReviewStatusIn applies the In predicate on the "fee_review_status" field.
+func FeeReviewStatusIn(vs ...FeeReviewStatus) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldFeeReviewStatus, vs...))
+}
+
+// FeeReviewStatusNotIn applies the NotIn predicate on the "fee_review_status" field.
+func FeeReviewStatusNotIn(vs ...FeeReviewStatus) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldFeeReviewStatus, vs...))
+}
+
+// FeeContentVersionEQ applies the EQ predicate on the "fee_content_version" field.
+func FeeContentVersionEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionNEQ applies the NEQ predicate on the "fee_content_version" field.
+func FeeContentVersionNEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionIn applies the In predicate on the "fee_content_version" field.
+func FeeContentVersionIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldFeeContentVersion, vs...))
+}
+
+// FeeContentVersionNotIn applies the NotIn predicate on the "fee_content_version" field.
+func FeeContentVersionNotIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldFeeContentVersion, vs...))
+}
+
+// FeeContentVersionGT applies the GT predicate on the "fee_content_version" field.
+func FeeContentVersionGT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionGTE applies the GTE predicate on the "fee_content_version" field.
+func FeeContentVersionGTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionLT applies the LT predicate on the "fee_content_version" field.
+func FeeContentVersionLT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionLTE applies the LTE predicate on the "fee_content_version" field.
+func FeeContentVersionLTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldFeeContentVersion, v))
+}
+
+// FeeReviewVersionEQ applies the EQ predicate on the "fee_review_version" field.
+func FeeReviewVersionEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldFeeReviewVersion, v))
+}
+
+// FeeReviewVersionNEQ applies the NEQ predicate on the "fee_review_version" field.
+func FeeReviewVersionNEQ(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldFeeReviewVersion, v))
+}
+
+// FeeReviewVersionIn applies the In predicate on the "fee_review_version" field.
+func FeeReviewVersionIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldFeeReviewVersion, vs...))
+}
+
+// FeeReviewVersionNotIn applies the NotIn predicate on the "fee_review_version" field.
+func FeeReviewVersionNotIn(vs ...uint64) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldFeeReviewVersion, vs...))
+}
+
+// FeeReviewVersionGT applies the GT predicate on the "fee_review_version" field.
+func FeeReviewVersionGT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldFeeReviewVersion, v))
+}
+
+// FeeReviewVersionGTE applies the GTE predicate on the "fee_review_version" field.
+func FeeReviewVersionGTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldFeeReviewVersion, v))
+}
+
+// FeeReviewVersionLT applies the LT predicate on the "fee_review_version" field.
+func FeeReviewVersionLT(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldFeeReviewVersion, v))
+}
+
+// FeeReviewVersionLTE applies the LTE predicate on the "fee_review_version" field.
+func FeeReviewVersionLTE(v uint64) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldFeeReviewVersion, v))
+}
+
+// CurrentFeeReviewEventIDEQ applies the EQ predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldCurrentFeeReviewEventID, v))
+}
+
+// CurrentFeeReviewEventIDNEQ applies the NEQ predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldCurrentFeeReviewEventID, v))
+}
+
+// CurrentFeeReviewEventIDIn applies the In predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldCurrentFeeReviewEventID, vs...))
+}
+
+// CurrentFeeReviewEventIDNotIn applies the NotIn predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldCurrentFeeReviewEventID, vs...))
+}
+
+// CurrentFeeReviewEventIDGT applies the GT predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDGT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldCurrentFeeReviewEventID, v))
+}
+
+// CurrentFeeReviewEventIDGTE applies the GTE predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDGTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldCurrentFeeReviewEventID, v))
+}
+
+// CurrentFeeReviewEventIDLT applies the LT predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDLT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldCurrentFeeReviewEventID, v))
+}
+
+// CurrentFeeReviewEventIDLTE applies the LTE predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDLTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldCurrentFeeReviewEventID, v))
+}
+
+// CurrentFeeReviewEventIDIsNil applies the IsNil predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldCurrentFeeReviewEventID))
+}
+
+// CurrentFeeReviewEventIDNotNil applies the NotNil predicate on the "current_fee_review_event_id" field.
+func CurrentFeeReviewEventIDNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldCurrentFeeReviewEventID))
+}
+
+// ApprovedFeeReviewEventIDEQ applies the EQ predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDNEQ applies the NEQ predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDNEQ(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDIn applies the In predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldApprovedFeeReviewEventID, vs...))
+}
+
+// ApprovedFeeReviewEventIDNotIn applies the NotIn predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDNotIn(vs ...uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldApprovedFeeReviewEventID, vs...))
+}
+
+// ApprovedFeeReviewEventIDGT applies the GT predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDGT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDGTE applies the GTE predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDGTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDLT applies the LT predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDLT(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDLTE applies the LTE predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDLTE(v uuid.UUID) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDIsNil applies the IsNil predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldApprovedFeeReviewEventID))
+}
+
+// ApprovedFeeReviewEventIDNotNil applies the NotNil predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldApprovedFeeReviewEventID))
+}
+
 // OriginLocationIDEQ applies the EQ predicate on the "origin_location_id" field.
 func OriginLocationIDEQ(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOriginLocationID, v))
@@ -4733,6 +4953,29 @@ func HasAbnormalCases() predicate.Order {
 func HasAbnormalCasesWith(preds ...predicate.OrderAbnormalCase) predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {
 		step := newAbnormalCasesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFeeReviewEvents applies the HasEdge predicate on the "fee_review_events" edge.
+func HasFeeReviewEvents() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeeReviewEventsTable, FeeReviewEventsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeeReviewEventsWith applies the HasEdge predicate on the "fee_review_events" edge with a given conditions (other predicates).
+func HasFeeReviewEventsWith(preds ...predicate.OrderFeeReviewEvent) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newFeeReviewEventsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

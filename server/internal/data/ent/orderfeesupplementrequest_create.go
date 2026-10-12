@@ -69,6 +69,34 @@ func (_c *OrderFeeSupplementRequestCreate) SetOrderID(v uuid.UUID) *OrderFeeSupp
 	return _c
 }
 
+// SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
+func (_c *OrderFeeSupplementRequestCreate) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderFeeSupplementRequestCreate {
+	_c.mutation.SetApprovedFeeReviewEventID(v)
+	return _c
+}
+
+// SetNillableApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field if the given value is not nil.
+func (_c *OrderFeeSupplementRequestCreate) SetNillableApprovedFeeReviewEventID(v *uuid.UUID) *OrderFeeSupplementRequestCreate {
+	if v != nil {
+		_c.SetApprovedFeeReviewEventID(*v)
+	}
+	return _c
+}
+
+// SetApprovedFeeContentVersion sets the "approved_fee_content_version" field.
+func (_c *OrderFeeSupplementRequestCreate) SetApprovedFeeContentVersion(v uint64) *OrderFeeSupplementRequestCreate {
+	_c.mutation.SetApprovedFeeContentVersion(v)
+	return _c
+}
+
+// SetNillableApprovedFeeContentVersion sets the "approved_fee_content_version" field if the given value is not nil.
+func (_c *OrderFeeSupplementRequestCreate) SetNillableApprovedFeeContentVersion(v *uint64) *OrderFeeSupplementRequestCreate {
+	if v != nil {
+		_c.SetApprovedFeeContentVersion(*v)
+	}
+	return _c
+}
+
 // SetLockBasis sets the "lock_basis" field.
 func (_c *OrderFeeSupplementRequestCreate) SetLockBasis(v orderfeesupplementrequest.LockBasis) *OrderFeeSupplementRequestCreate {
 	_c.mutation.SetLockBasis(v)
@@ -835,6 +863,14 @@ func (_c *OrderFeeSupplementRequestCreate) createSpec() (*OrderFeeSupplementRequ
 		_spec.SetField(orderfeesupplementrequest.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.ApprovedFeeReviewEventID(); ok {
+		_spec.SetField(orderfeesupplementrequest.FieldApprovedFeeReviewEventID, field.TypeUUID, value)
+		_node.ApprovedFeeReviewEventID = &value
+	}
+	if value, ok := _c.mutation.ApprovedFeeContentVersion(); ok {
+		_spec.SetField(orderfeesupplementrequest.FieldApprovedFeeContentVersion, field.TypeUint64, value)
+		_node.ApprovedFeeContentVersion = &value
+	}
 	if value, ok := _c.mutation.LockBasis(); ok {
 		_spec.SetField(orderfeesupplementrequest.FieldLockBasis, field.TypeEnum, value)
 		_node.LockBasis = value
@@ -1260,6 +1296,12 @@ func (u *OrderFeeSupplementRequestUpsertOne) UpdateNewValues() *OrderFeeSuppleme
 		}
 		if _, exists := u.create.mutation.OrderID(); exists {
 			s.SetIgnore(orderfeesupplementrequest.FieldOrderID)
+		}
+		if _, exists := u.create.mutation.ApprovedFeeReviewEventID(); exists {
+			s.SetIgnore(orderfeesupplementrequest.FieldApprovedFeeReviewEventID)
+		}
+		if _, exists := u.create.mutation.ApprovedFeeContentVersion(); exists {
+			s.SetIgnore(orderfeesupplementrequest.FieldApprovedFeeContentVersion)
 		}
 		if _, exists := u.create.mutation.LockBasis(); exists {
 			s.SetIgnore(orderfeesupplementrequest.FieldLockBasis)
@@ -1700,6 +1742,12 @@ func (u *OrderFeeSupplementRequestUpsertBulk) UpdateNewValues() *OrderFeeSupplem
 			}
 			if _, exists := b.mutation.OrderID(); exists {
 				s.SetIgnore(orderfeesupplementrequest.FieldOrderID)
+			}
+			if _, exists := b.mutation.ApprovedFeeReviewEventID(); exists {
+				s.SetIgnore(orderfeesupplementrequest.FieldApprovedFeeReviewEventID)
+			}
+			if _, exists := b.mutation.ApprovedFeeContentVersion(); exists {
+				s.SetIgnore(orderfeesupplementrequest.FieldApprovedFeeContentVersion)
 			}
 			if _, exists := b.mutation.LockBasis(); exists {
 				s.SetIgnore(orderfeesupplementrequest.FieldLockBasis)

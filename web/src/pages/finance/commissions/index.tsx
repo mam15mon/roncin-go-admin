@@ -41,7 +41,6 @@ import {
   settlementServiceListCommissions,
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceMarkCommissionAdjustmentPaid,
-  settlementServiceMarkCommissionPaid,
 } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
@@ -58,6 +57,7 @@ import CommissionAdjustmentModal from './components/CommissionAdjustmentModal';
 import CommissionApplicationsPanel from './components/CommissionApplicationsPanel';
 import CommissionCreateModal from './components/CommissionCreateModal';
 import CommissionDetailDrawer from './components/CommissionDetailDrawer';
+import CommissionPaymentModal from './components/CommissionPaymentModal';
 import CommissionRulesDrawer from './components/CommissionRulesDrawer';
 import PendingDecreasePanel from './components/PendingDecreasePanel';
 import {
@@ -89,6 +89,7 @@ export default function FinanceCommissionsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState<API.FinanceCommission>();
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
+  const [paymentRecord, setPaymentRecord] = useState<API.FinanceCommission>();
   const [exporting, setExporting] = useState(false);
 
   // 筛选所属公司候选：历史无错误兜底，保持静默（仅请求层通知）。
@@ -284,6 +285,10 @@ export default function FinanceCommissionsPage() {
     target: 'CONFIRMED' | 'PAID',
   ) => {
     if (!record.id || !record.version) return;
+    if (target === 'PAID') {
+      setPaymentRecord(record);
+      return;
+    }
     const id = record.id;
     const version = record.version;
     const action = target === 'CONFIRMED' ? '确认' : '标记已发放';
@@ -296,11 +301,7 @@ export default function FinanceCommissionsPage() {
       onOk: async () => {
         try {
           const body = { id, expectedVersion: version };
-          if (target === 'CONFIRMED') {
-            await settlementServiceConfirmCommission({ id }, body);
-          } else {
-            await settlementServiceMarkCommissionPaid({ id }, body);
-          }
+          await settlementServiceConfirmCommission({ id }, body);
           message.success(`${action}成功`);
           reload();
           if (detail?.id === id) {
@@ -767,6 +768,18 @@ export default function FinanceCommissionsPage() {
         </>
       )}
 
+      {paymentRecord && (
+        <CommissionPaymentModal
+          key={`${paymentRecord.id}:${paymentRecord.version}`}
+          record={paymentRecord}
+          onClose={() => setPaymentRecord(undefined)}
+          onPaid={() => {
+            setPaymentRecord(undefined);
+            reload();
+            void refreshDetail();
+          }}
+        />
+      )}
       <CommissionDetailDrawer
         open={detailOpen}
         onClose={() => {

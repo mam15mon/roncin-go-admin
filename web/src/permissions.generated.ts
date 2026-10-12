@@ -32,6 +32,7 @@ export const manifestPermissionKeys = [
   'system.finance.fee_setting.create',
   'system.finance.fee_setting.update',
   'system.finance.fee.read',
+  'system.finance.fee.review',
   'system.finance.fee.tag',
   'system.finance.bill.configure',
   'system.finance.bill.read',

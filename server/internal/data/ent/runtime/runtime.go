@@ -71,6 +71,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
@@ -3118,8 +3119,16 @@ func init() {
 	financecommissionDescVersion := financecommissionFields[35].Descriptor()
 	// financecommission.DefaultVersion holds the default value on creation for the version field.
 	financecommission.DefaultVersion = financecommissionDescVersion.Default.(uint64)
+	// financecommissionDescPaymentKey is the schema descriptor for payment_key field.
+	financecommissionDescPaymentKey := financecommissionFields[39].Descriptor()
+	// financecommission.PaymentKeyValidator is a validator for the "payment_key" field. It is called by the builders before save.
+	financecommission.PaymentKeyValidator = financecommissionDescPaymentKey.Validators[0].(func(string) error)
+	// financecommissionDescPaymentFingerprint is the schema descriptor for payment_fingerprint field.
+	financecommissionDescPaymentFingerprint := financecommissionFields[40].Descriptor()
+	// financecommission.PaymentFingerprintValidator is a validator for the "payment_fingerprint" field. It is called by the builders before save.
+	financecommission.PaymentFingerprintValidator = financecommissionDescPaymentFingerprint.Validators[0].(func(string) error)
 	// financecommissionDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financecommissionDescCancellationReason := financecommissionFields[42].Descriptor()
+	financecommissionDescCancellationReason := financecommissionFields[46].Descriptor()
 	// financecommission.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financecommission.CancellationReasonValidator = financecommissionDescCancellationReason.Validators[0].(func(string) error)
 	// financecommissionDescID is the schema descriptor for id field.
@@ -3279,7 +3288,7 @@ func init() {
 	// financecommissionadjustment.DefaultVersion holds the default value on creation for the version field.
 	financecommissionadjustment.DefaultVersion = financecommissionadjustmentDescVersion.Default.(uint64)
 	// financecommissionadjustmentDescCancellationReason is the schema descriptor for cancellation_reason field.
-	financecommissionadjustmentDescCancellationReason := financecommissionadjustmentFields[25].Descriptor()
+	financecommissionadjustmentDescCancellationReason := financecommissionadjustmentFields[27].Descriptor()
 	// financecommissionadjustment.CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	financecommissionadjustment.CancellationReasonValidator = financecommissionadjustmentDescCancellationReason.Validators[0].(func(string) error)
 	// financecommissionadjustmentDescID is the schema descriptor for id field.
@@ -5126,76 +5135,84 @@ func init() {
 	orderDescVersion := orderFields[48].Descriptor()
 	// order.DefaultVersion holds the default value on creation for the version field.
 	order.DefaultVersion = orderDescVersion.Default.(uint64)
+	// orderDescFeeContentVersion is the schema descriptor for fee_content_version field.
+	orderDescFeeContentVersion := orderFields[50].Descriptor()
+	// order.DefaultFeeContentVersion holds the default value on creation for the fee_content_version field.
+	order.DefaultFeeContentVersion = orderDescFeeContentVersion.Default.(uint64)
+	// orderDescFeeReviewVersion is the schema descriptor for fee_review_version field.
+	orderDescFeeReviewVersion := orderFields[51].Descriptor()
+	// order.DefaultFeeReviewVersion holds the default value on creation for the fee_review_version field.
+	order.DefaultFeeReviewVersion = orderDescFeeReviewVersion.Default.(uint64)
 	// orderDescVesselVoyage is the schema descriptor for vessel_voyage field.
-	orderDescVesselVoyage := orderFields[53].Descriptor()
+	orderDescVesselVoyage := orderFields[58].Descriptor()
 	// order.VesselVoyageValidator is a validator for the "vessel_voyage" field. It is called by the builders before save.
 	order.VesselVoyageValidator = orderDescVesselVoyage.Validators[0].(func(string) error)
 	// orderDescEtd is the schema descriptor for etd field.
-	orderDescEtd := orderFields[54].Descriptor()
+	orderDescEtd := orderFields[59].Descriptor()
 	// order.EtdValidator is a validator for the "etd" field. It is called by the builders before save.
 	order.EtdValidator = orderDescEtd.Validators[0].(func(string) error)
 	// orderDescEta is the schema descriptor for eta field.
-	orderDescEta := orderFields[55].Descriptor()
+	orderDescEta := orderFields[60].Descriptor()
 	// order.EtaValidator is a validator for the "eta" field. It is called by the builders before save.
 	order.EtaValidator = orderDescEta.Validators[0].(func(string) error)
 	// orderDescSiCutoff is the schema descriptor for si_cutoff field.
-	orderDescSiCutoff := orderFields[56].Descriptor()
+	orderDescSiCutoff := orderFields[61].Descriptor()
 	// order.SiCutoffValidator is a validator for the "si_cutoff" field. It is called by the builders before save.
 	order.SiCutoffValidator = orderDescSiCutoff.Validators[0].(func(string) error)
 	// orderDescDocCutoff is the schema descriptor for doc_cutoff field.
-	orderDescDocCutoff := orderFields[57].Descriptor()
+	orderDescDocCutoff := orderFields[62].Descriptor()
 	// order.DocCutoffValidator is a validator for the "doc_cutoff" field. It is called by the builders before save.
 	order.DocCutoffValidator = orderDescDocCutoff.Validators[0].(func(string) error)
 	// orderDescCustomsCutoff is the schema descriptor for customs_cutoff field.
-	orderDescCustomsCutoff := orderFields[58].Descriptor()
+	orderDescCustomsCutoff := orderFields[63].Descriptor()
 	// order.CustomsCutoffValidator is a validator for the "customs_cutoff" field. It is called by the builders before save.
 	order.CustomsCutoffValidator = orderDescCustomsCutoff.Validators[0].(func(string) error)
 	// orderDescVgmCutoff is the schema descriptor for vgm_cutoff field.
-	orderDescVgmCutoff := orderFields[59].Descriptor()
+	orderDescVgmCutoff := orderFields[64].Descriptor()
 	// order.VgmCutoffValidator is a validator for the "vgm_cutoff" field. It is called by the builders before save.
 	order.VgmCutoffValidator = orderDescVgmCutoff.Validators[0].(func(string) error)
 	// orderDescGoodsDescription is the schema descriptor for goods_description field.
-	orderDescGoodsDescription := orderFields[60].Descriptor()
+	orderDescGoodsDescription := orderFields[65].Descriptor()
 	// order.GoodsDescriptionValidator is a validator for the "goods_description" field. It is called by the builders before save.
 	order.GoodsDescriptionValidator = orderDescGoodsDescription.Validators[0].(func(string) error)
 	// orderDescTotalGrossWeightKg is the schema descriptor for total_gross_weight_kg field.
-	orderDescTotalGrossWeightKg := orderFields[62].Descriptor()
+	orderDescTotalGrossWeightKg := orderFields[67].Descriptor()
 	// order.TotalGrossWeightKgValidator is a validator for the "total_gross_weight_kg" field. It is called by the builders before save.
 	order.TotalGrossWeightKgValidator = orderDescTotalGrossWeightKg.Validators[0].(func(float64) error)
 	// orderDescTotalVolumeCbm is the schema descriptor for total_volume_cbm field.
-	orderDescTotalVolumeCbm := orderFields[63].Descriptor()
+	orderDescTotalVolumeCbm := orderFields[68].Descriptor()
 	// order.TotalVolumeCbmValidator is a validator for the "total_volume_cbm" field. It is called by the builders before save.
 	order.TotalVolumeCbmValidator = orderDescTotalVolumeCbm.Validators[0].(func(float64) error)
 	// orderDescTotalPackageUnit is the schema descriptor for total_package_unit field.
-	orderDescTotalPackageUnit := orderFields[64].Descriptor()
+	orderDescTotalPackageUnit := orderFields[69].Descriptor()
 	// order.TotalPackageUnitValidator is a validator for the "total_package_unit" field. It is called by the builders before save.
 	order.TotalPackageUnitValidator = orderDescTotalPackageUnit.Validators[0].(func(string) error)
 	// orderDescSpecialRequirements is the schema descriptor for special_requirements field.
-	orderDescSpecialRequirements := orderFields[65].Descriptor()
+	orderDescSpecialRequirements := orderFields[70].Descriptor()
 	// order.SpecialRequirementsValidator is a validator for the "special_requirements" field. It is called by the builders before save.
 	order.SpecialRequirementsValidator = orderDescSpecialRequirements.Validators[0].(func(string) error)
 	// orderDescOrderDate is the schema descriptor for order_date field.
-	orderDescOrderDate := orderFields[66].Descriptor()
+	orderDescOrderDate := orderFields[71].Descriptor()
 	// order.OrderDateValidator is a validator for the "order_date" field. It is called by the builders before save.
 	order.OrderDateValidator = orderDescOrderDate.Validators[0].(func(string) error)
 	// orderDescBookingNo is the schema descriptor for booking_no field.
-	orderDescBookingNo := orderFields[67].Descriptor()
+	orderDescBookingNo := orderFields[72].Descriptor()
 	// order.BookingNoValidator is a validator for the "booking_no" field. It is called by the builders before save.
 	order.BookingNoValidator = orderDescBookingNo.Validators[0].(func(string) error)
 	// orderDescNotes is the schema descriptor for notes field.
-	orderDescNotes := orderFields[68].Descriptor()
+	orderDescNotes := orderFields[73].Descriptor()
 	// order.NotesValidator is a validator for the "notes" field. It is called by the builders before save.
 	order.NotesValidator = orderDescNotes.Validators[0].(func(string) error)
 	// orderDescBookingNotes is the schema descriptor for booking_notes field.
-	orderDescBookingNotes := orderFields[69].Descriptor()
+	orderDescBookingNotes := orderFields[74].Descriptor()
 	// order.BookingNotesValidator is a validator for the "booking_notes" field. It is called by the builders before save.
 	order.BookingNotesValidator = orderDescBookingNotes.Validators[0].(func(string) error)
 	// orderDescAllocationNotes is the schema descriptor for allocation_notes field.
-	orderDescAllocationNotes := orderFields[70].Descriptor()
+	orderDescAllocationNotes := orderFields[75].Descriptor()
 	// order.AllocationNotesValidator is a validator for the "allocation_notes" field. It is called by the builders before save.
 	order.AllocationNotesValidator = orderDescAllocationNotes.Validators[0].(func(string) error)
 	// orderDescOperationNotes is the schema descriptor for operation_notes field.
-	orderDescOperationNotes := orderFields[71].Descriptor()
+	orderDescOperationNotes := orderFields[76].Descriptor()
 	// order.OperationNotesValidator is a validator for the "operation_notes" field. It is called by the builders before save.
 	order.OperationNotesValidator = orderDescOperationNotes.Validators[0].(func(string) error)
 	// orderDescID is the schema descriptor for id field.
@@ -5809,6 +5826,91 @@ func init() {
 	orderfeeenterprisetagDescID := orderfeeenterprisetagMixinFields0[0].Descriptor()
 	// orderfeeenterprisetag.DefaultID holds the default value on creation for the id field.
 	orderfeeenterprisetag.DefaultID = orderfeeenterprisetagDescID.Default.(func() uuid.UUID)
+	orderfeerevieweventMixin := schema.OrderFeeReviewEvent{}.Mixin()
+	orderfeerevieweventMixinFields0 := orderfeerevieweventMixin[0].Fields()
+	_ = orderfeerevieweventMixinFields0
+	orderfeerevieweventMixinFields1 := orderfeerevieweventMixin[1].Fields()
+	_ = orderfeerevieweventMixinFields1
+	orderfeerevieweventFields := schema.OrderFeeReviewEvent{}.Fields()
+	_ = orderfeerevieweventFields
+	// orderfeerevieweventDescCreatedAt is the schema descriptor for created_at field.
+	orderfeerevieweventDescCreatedAt := orderfeerevieweventMixinFields1[0].Descriptor()
+	// orderfeereviewevent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	orderfeereviewevent.DefaultCreatedAt = orderfeerevieweventDescCreatedAt.Default.(func() time.Time)
+	// orderfeerevieweventDescUpdatedAt is the schema descriptor for updated_at field.
+	orderfeerevieweventDescUpdatedAt := orderfeerevieweventMixinFields1[1].Descriptor()
+	// orderfeereviewevent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	orderfeereviewevent.DefaultUpdatedAt = orderfeerevieweventDescUpdatedAt.Default.(func() time.Time)
+	// orderfeereviewevent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	orderfeereviewevent.UpdateDefaultUpdatedAt = orderfeerevieweventDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// orderfeerevieweventDescActorName is the schema descriptor for actor_name field.
+	orderfeerevieweventDescActorName := orderfeerevieweventFields[5].Descriptor()
+	// orderfeereviewevent.DefaultActorName holds the default value on creation for the actor_name field.
+	orderfeereviewevent.DefaultActorName = orderfeerevieweventDescActorName.Default.(string)
+	// orderfeerevieweventDescComment is the schema descriptor for comment field.
+	orderfeerevieweventDescComment := orderfeerevieweventFields[7].Descriptor()
+	// orderfeereviewevent.DefaultComment holds the default value on creation for the comment field.
+	orderfeereviewevent.DefaultComment = orderfeerevieweventDescComment.Default.(string)
+	// orderfeereviewevent.CommentValidator is a validator for the "comment" field. It is called by the builders before save.
+	orderfeereviewevent.CommentValidator = orderfeerevieweventDescComment.Validators[0].(func(string) error)
+	// orderfeerevieweventDescContentFingerprint is the schema descriptor for content_fingerprint field.
+	orderfeerevieweventDescContentFingerprint := orderfeerevieweventFields[9].Descriptor()
+	// orderfeereviewevent.ContentFingerprintValidator is a validator for the "content_fingerprint" field. It is called by the builders before save.
+	orderfeereviewevent.ContentFingerprintValidator = func() func(string) error {
+		validators := orderfeerevieweventDescContentFingerprint.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(content_fingerprint string) error {
+			for _, fn := range fns {
+				if err := fn(content_fingerprint); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeerevieweventDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	orderfeerevieweventDescIdempotencyKey := orderfeerevieweventFields[12].Descriptor()
+	// orderfeereviewevent.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	orderfeereviewevent.IdempotencyKeyValidator = func() func(string) error {
+		validators := orderfeerevieweventDescIdempotencyKey.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(idempotency_key string) error {
+			for _, fn := range fns {
+				if err := fn(idempotency_key); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeerevieweventDescRequestFingerprint is the schema descriptor for request_fingerprint field.
+	orderfeerevieweventDescRequestFingerprint := orderfeerevieweventFields[13].Descriptor()
+	// orderfeereviewevent.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
+	orderfeereviewevent.RequestFingerprintValidator = func() func(string) error {
+		validators := orderfeerevieweventDescRequestFingerprint.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(request_fingerprint string) error {
+			for _, fn := range fns {
+				if err := fn(request_fingerprint); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// orderfeerevieweventDescID is the schema descriptor for id field.
+	orderfeerevieweventDescID := orderfeerevieweventMixinFields0[0].Descriptor()
+	// orderfeereviewevent.DefaultID holds the default value on creation for the id field.
+	orderfeereviewevent.DefaultID = orderfeerevieweventDescID.Default.(func() uuid.UUID)
 	orderfeesupplementrequestMixin := schema.OrderFeeSupplementRequest{}.Mixin()
 	orderfeesupplementrequestMixinFields0 := orderfeesupplementrequestMixin[0].Fields()
 	_ = orderfeesupplementrequestMixinFields0
@@ -5827,15 +5929,15 @@ func init() {
 	// orderfeesupplementrequest.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	orderfeesupplementrequest.UpdateDefaultUpdatedAt = orderfeesupplementrequestDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// orderfeesupplementrequestDescFinancialLockEvidenceVersion is the schema descriptor for financial_lock_evidence_version field.
-	orderfeesupplementrequestDescFinancialLockEvidenceVersion := orderfeesupplementrequestFields[4].Descriptor()
+	orderfeesupplementrequestDescFinancialLockEvidenceVersion := orderfeesupplementrequestFields[6].Descriptor()
 	// orderfeesupplementrequest.FinancialLockEvidenceVersionValidator is a validator for the "financial_lock_evidence_version" field. It is called by the builders before save.
 	orderfeesupplementrequest.FinancialLockEvidenceVersionValidator = orderfeesupplementrequestDescFinancialLockEvidenceVersion.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescFinancialLockEvidenceHash is the schema descriptor for financial_lock_evidence_hash field.
-	orderfeesupplementrequestDescFinancialLockEvidenceHash := orderfeesupplementrequestFields[5].Descriptor()
+	orderfeesupplementrequestDescFinancialLockEvidenceHash := orderfeesupplementrequestFields[7].Descriptor()
 	// orderfeesupplementrequest.FinancialLockEvidenceHashValidator is a validator for the "financial_lock_evidence_hash" field. It is called by the builders before save.
 	orderfeesupplementrequest.FinancialLockEvidenceHashValidator = orderfeesupplementrequestDescFinancialLockEvidenceHash.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	orderfeesupplementrequestDescIdempotencyKey := orderfeesupplementrequestFields[7].Descriptor()
+	orderfeesupplementrequestDescIdempotencyKey := orderfeesupplementrequestFields[9].Descriptor()
 	// orderfeesupplementrequest.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	orderfeesupplementrequest.IdempotencyKeyValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescIdempotencyKey.Validators
@@ -5853,7 +5955,7 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	orderfeesupplementrequestDescRequestFingerprint := orderfeesupplementrequestFields[8].Descriptor()
+	orderfeesupplementrequestDescRequestFingerprint := orderfeesupplementrequestFields[10].Descriptor()
 	// orderfeesupplementrequest.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	orderfeesupplementrequest.RequestFingerprintValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescRequestFingerprint.Validators
@@ -5871,7 +5973,7 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescFeeCode is the schema descriptor for fee_code field.
-	orderfeesupplementrequestDescFeeCode := orderfeesupplementrequestFields[11].Descriptor()
+	orderfeesupplementrequestDescFeeCode := orderfeesupplementrequestFields[13].Descriptor()
 	// orderfeesupplementrequest.FeeCodeValidator is a validator for the "fee_code" field. It is called by the builders before save.
 	orderfeesupplementrequest.FeeCodeValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescFeeCode.Validators
@@ -5889,7 +5991,7 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescFeeName is the schema descriptor for fee_name field.
-	orderfeesupplementrequestDescFeeName := orderfeesupplementrequestFields[12].Descriptor()
+	orderfeesupplementrequestDescFeeName := orderfeesupplementrequestFields[14].Descriptor()
 	// orderfeesupplementrequest.FeeNameValidator is a validator for the "fee_name" field. It is called by the builders before save.
 	orderfeesupplementrequest.FeeNameValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescFeeName.Validators
@@ -5907,11 +6009,11 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescFeeNameEn is the schema descriptor for fee_name_en field.
-	orderfeesupplementrequestDescFeeNameEn := orderfeesupplementrequestFields[13].Descriptor()
+	orderfeesupplementrequestDescFeeNameEn := orderfeesupplementrequestFields[15].Descriptor()
 	// orderfeesupplementrequest.FeeNameEnValidator is a validator for the "fee_name_en" field. It is called by the builders before save.
 	orderfeesupplementrequest.FeeNameEnValidator = orderfeesupplementrequestDescFeeNameEn.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescBillingUnit is the schema descriptor for billing_unit field.
-	orderfeesupplementrequestDescBillingUnit := orderfeesupplementrequestFields[16].Descriptor()
+	orderfeesupplementrequestDescBillingUnit := orderfeesupplementrequestFields[18].Descriptor()
 	// orderfeesupplementrequest.BillingUnitValidator is a validator for the "billing_unit" field. It is called by the builders before save.
 	orderfeesupplementrequest.BillingUnitValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescBillingUnit.Validators
@@ -5929,15 +6031,15 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescTaxableServiceName is the schema descriptor for taxable_service_name field.
-	orderfeesupplementrequestDescTaxableServiceName := orderfeesupplementrequestFields[18].Descriptor()
+	orderfeesupplementrequestDescTaxableServiceName := orderfeesupplementrequestFields[20].Descriptor()
 	// orderfeesupplementrequest.TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
 	orderfeesupplementrequest.TaxableServiceNameValidator = orderfeesupplementrequestDescTaxableServiceName.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescTaxInclusive is the schema descriptor for tax_inclusive field.
-	orderfeesupplementrequestDescTaxInclusive := orderfeesupplementrequestFields[22].Descriptor()
+	orderfeesupplementrequestDescTaxInclusive := orderfeesupplementrequestFields[24].Descriptor()
 	// orderfeesupplementrequest.DefaultTaxInclusive holds the default value on creation for the tax_inclusive field.
 	orderfeesupplementrequest.DefaultTaxInclusive = orderfeesupplementrequestDescTaxInclusive.Default.(bool)
 	// orderfeesupplementrequestDescCurrency is the schema descriptor for currency field.
-	orderfeesupplementrequestDescCurrency := orderfeesupplementrequestFields[25].Descriptor()
+	orderfeesupplementrequestDescCurrency := orderfeesupplementrequestFields[27].Descriptor()
 	// orderfeesupplementrequest.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	orderfeesupplementrequest.CurrencyValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescCurrency.Validators
@@ -5956,7 +6058,7 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescExchangeRateDate is the schema descriptor for exchange_rate_date field.
-	orderfeesupplementrequestDescExchangeRateDate := orderfeesupplementrequestFields[28].Descriptor()
+	orderfeesupplementrequestDescExchangeRateDate := orderfeesupplementrequestFields[30].Descriptor()
 	// orderfeesupplementrequest.ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
 	orderfeesupplementrequest.ExchangeRateDateValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescExchangeRateDate.Validators
@@ -5975,7 +6077,7 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescBaseCurrency is the schema descriptor for base_currency field.
-	orderfeesupplementrequestDescBaseCurrency := orderfeesupplementrequestFields[30].Descriptor()
+	orderfeesupplementrequestDescBaseCurrency := orderfeesupplementrequestFields[32].Descriptor()
 	// orderfeesupplementrequest.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	orderfeesupplementrequest.BaseCurrencyValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescBaseCurrency.Validators
@@ -5994,7 +6096,7 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescExpenseDate is the schema descriptor for expense_date field.
-	orderfeesupplementrequestDescExpenseDate := orderfeesupplementrequestFields[32].Descriptor()
+	orderfeesupplementrequestDescExpenseDate := orderfeesupplementrequestFields[34].Descriptor()
 	// orderfeesupplementrequest.ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
 	orderfeesupplementrequest.ExpenseDateValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescExpenseDate.Validators
@@ -6013,11 +6115,11 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescNote is the schema descriptor for note field.
-	orderfeesupplementrequestDescNote := orderfeesupplementrequestFields[33].Descriptor()
+	orderfeesupplementrequestDescNote := orderfeesupplementrequestFields[35].Descriptor()
 	// orderfeesupplementrequest.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	orderfeesupplementrequest.NoteValidator = orderfeesupplementrequestDescNote.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescReason is the schema descriptor for reason field.
-	orderfeesupplementrequestDescReason := orderfeesupplementrequestFields[34].Descriptor()
+	orderfeesupplementrequestDescReason := orderfeesupplementrequestFields[36].Descriptor()
 	// orderfeesupplementrequest.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	orderfeesupplementrequest.ReasonValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescReason.Validators
@@ -6035,11 +6137,11 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescVersion is the schema descriptor for version field.
-	orderfeesupplementrequestDescVersion := orderfeesupplementrequestFields[38].Descriptor()
+	orderfeesupplementrequestDescVersion := orderfeesupplementrequestFields[40].Descriptor()
 	// orderfeesupplementrequest.DefaultVersion holds the default value on creation for the version field.
 	orderfeesupplementrequest.DefaultVersion = orderfeesupplementrequestDescVersion.Default.(uint64)
 	// orderfeesupplementrequestDescDecisionReason is the schema descriptor for decision_reason field.
-	orderfeesupplementrequestDescDecisionReason := orderfeesupplementrequestFields[41].Descriptor()
+	orderfeesupplementrequestDescDecisionReason := orderfeesupplementrequestFields[43].Descriptor()
 	// orderfeesupplementrequest.DecisionReasonValidator is a validator for the "decision_reason" field. It is called by the builders before save.
 	orderfeesupplementrequest.DecisionReasonValidator = orderfeesupplementrequestDescDecisionReason.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescID is the schema descriptor for id field.

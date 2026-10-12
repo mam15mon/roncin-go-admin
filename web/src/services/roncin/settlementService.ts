@@ -814,6 +814,28 @@ export async function settlementServiceMarkCommissionPaid(
   );
 }
 
+/** 此处后端没有提供注释 POST /api/v1/finance/commissions/${param0}/payment-preview */
+export async function settlementServicePreviewCommissionPayment(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServicePreviewCommissionPaymentParams,
+  body: API.PreviewCommissionPaymentRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.PreviewCommissionPaymentResponse>(
+    `/api/v1/finance/commissions/${param0}/payment-preview`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提
  候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，
  不再接受客户端指定规则。按 commission.manage 可写组织过滤。 GET /api/v1/finance/commissions/candidates */

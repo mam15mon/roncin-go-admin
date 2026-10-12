@@ -19,6 +19,7 @@ import (
 	numbersequenceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numbersequence"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	eventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 )
@@ -91,6 +92,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("相同幂等键并发创建返回同一账单", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("same-key")
+		fixture.approveFeePackage()
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		input := biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-same-key-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -114,6 +116,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("不同幂等键并发使用同一费用只有一个成功", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("different-key")
+		fixture.approveFeePackage()
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		first := biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-first-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -143,6 +146,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("审计失败回滚账单费用状态和单号序列", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("rollback")
+		fixture.approveFeePackage()
 		repo := &invalidAuditResultFinanceBillRepo{FinanceBillRepo: NewFinanceBillRepo(data)}
 		usecase := fixture.newUsecase(repo)
 
@@ -159,6 +163,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		settingID := fixture.createExchangeRateSetting("7.20000000")
 		feeID := fixture.createUnbilledFeeWithCurrency("rate-snapshot", "USD", "7.20000000", "720.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
+		fixture.approveFeePackage()
 		exchangeRepo := &pausingExchangeRateRepo{
 			ExchangeRateRepo: NewExchangeRateRepo(data), resolved: make(chan struct{}), release: make(chan struct{}),
 		}
@@ -224,6 +229,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("候选后账户停用会在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("account-disabled")
+		fixture.approveFeePackage()
 		candidates, err := data.db.PartnerAccount.Query().
 			Where(partneraccountent.IDEQ(fixture.accountID), partneraccountent.EnabledEQ(true)).
 			All(context.Background())
@@ -245,6 +251,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("不存在的账户在创建事务内返回领域错误", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("missing-account")
+		fixture.approveFeePackage()
 		_, err := fixture.newUsecase(NewFinanceBillRepo(data)).Create(context.Background(), fixture.organizationID, fixture.actorID, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-missing-account-" + fixture.suffix, SettlementAccountID: uuid.New(),
 		})
@@ -257,6 +264,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("错误结算单位账户在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("account-wrong-party")
+		fixture.approveFeePackage()
 		otherPartner, err := data.db.Partner.Create().
 			SetOrganizationID(fixture.organizationID).
 			SetCode("OTHER-" + fixture.suffix).
@@ -297,6 +305,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("错误币种账户在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("account-wrong-currency")
+		fixture.approveFeePackage()
 		_, err := fixture.newUsecase(NewFinanceBillRepo(data)).Create(context.Background(), fixture.organizationID, fixture.actorID, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-account-wrong-currency-" + fixture.suffix, SettlementAccountID: fixture.usdAccountID,
 		})
@@ -309,6 +318,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("错误用途账户在创建事务内被拒绝", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("account-wrong-usage")
+		fixture.approveFeePackage()
 		account, err := data.db.PartnerAccount.Create().
 			SetPartnerID(fixture.partnerID).
 			SetName("应付用途账户").
@@ -334,6 +344,7 @@ func TestFinanceBillCreateSharedTransactionPostgres(t *testing.T) {
 	t.Run("草稿换账户由事务重读并生成新快照", func(t *testing.T) {
 		fixture := newFinanceBillPostgresFixture(t, data)
 		feeID := fixture.createUnbilledFee("account-update")
+		fixture.approveFeePackage()
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		created, err := usecase.Create(context.Background(), fixture.organizationID, fixture.actorID, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate, IdempotencyKey: "bill-account-update-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -483,6 +494,11 @@ func newFinanceBillPostgresFixture(t *testing.T, data *Data) *financeBillPostgre
 		t: t, data: data, organizationID: organization.ID, actorID: uuid.New(), suffix: suffix,
 	}
 	t.Cleanup(fixture.cleanup)
+	actor, err := data.db.User.Create().SetDisplayName("账单事务操作人-" + suffix).Save(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixture.actorID = actor.ID
 
 	partner, err := data.db.Partner.Create().
 		SetOrganizationID(organization.ID).
@@ -712,12 +728,17 @@ func (f *financeBillPostgresFixture) cleanup() {
 			_, err := f.data.db.OrderFee.Delete().Where(orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(f.organizationID))).Exec(ctx)
 			return err
 		}},
+		{name: "费用审核事件", run: func() error {
+			_, err := f.data.db.OrderFeeReviewEvent.Delete().Where(eventent.OrderIDEQ(f.orderID)).Exec(ctx)
+			return err
+		}},
 		{name: "订单", run: func() error {
 			_, err := f.data.db.Order.Delete().Where(orderent.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},
+		{name: "操作人", run: func() error { return f.data.db.User.DeleteOneID(f.actorID).Exec(ctx) }},
 		{name: "结算账户", run: func() error {
-			_, err := f.data.db.PartnerAccount.Delete().Where(partneraccountent.PartnerID(f.partnerID)).Exec(ctx)
+			_, err := f.data.db.PartnerAccount.Delete().Where(partneraccountent.HasPartnerWith(partnerent.OrganizationIDEQ(f.organizationID))).Exec(ctx)
 			return err
 		}},
 		{name: "往来单位", run: func() error {
@@ -739,3 +760,42 @@ func (f *financeBillPostgresFixture) cleanup() {
 
 var _ biz.FinanceBillRepo = (*invalidAuditResultFinanceBillRepo)(nil)
 var _ biz.ExchangeRateRepo = (*pausingExchangeRateRepo)(nil)
+
+func (f *financeBillPostgresFixture) approveFeePackage() {
+	f.t.Helper()
+	seedApprovedFeeSnapshotForTest(f.t, f.data, f.orderID, f.actorID)
+}
+
+// revokeFeePackage 显式记录夹具纠错撤销；有效账单仍由同一服务端事实门禁拒绝。
+func (f *financeBillPostgresFixture) revokeFeePackage() {
+	f.t.Helper()
+	err := f.data.WithinTransaction(context.Background(), func(ctx context.Context) error {
+		client, err := f.data.client(ctx)
+		if err != nil {
+			return err
+		}
+		o, err := client.Order.Query().Where(orderent.IDEQ(f.orderID)).ForUpdate().Only(ctx)
+		if err != nil {
+			return err
+		}
+		occupied, err := client.FinanceBillLine.Query().Where(financebilllineent.OrderIDEQ(o.ID), effectiveBillLinePredicate()).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if occupied {
+			return biz.ErrOrderFeeBillOccupied
+		}
+		snapshot, fingerprint, err := loadFeeReviewSnapshot(ctx, client, o.ID)
+		if err != nil {
+			return err
+		}
+		event, err := appendFeeReviewEvent(ctx, client, o, f.actorID, "REVOKE", "集成夹具显式纠错撤销", uuid.NewString(), fingerprint, nil, nil, snapshot, fingerprint)
+		if err != nil {
+			return err
+		}
+		return client.Order.UpdateOneID(o.ID).SetFeeReviewStatus(orderent.FeeReviewStatusREVOKED).SetCurrentFeeReviewEventID(event.ID).ClearApprovedFeeReviewEventID().AddFeeReviewVersion(1).Exec(ctx)
+	})
+	if err != nil {
+		f.t.Fatalf("撤销夹具整票批准: %v", err)
+	}
+}

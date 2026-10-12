@@ -3,7 +3,6 @@ import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceCommissionStatus } from '@/enums.generated';
-import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCancelCommissionAdjustment,
   settlementServiceConfirmCommissionAdjustment,
@@ -73,13 +72,14 @@ function adjustmentRow(
     orderNo: 'SE20260901001',
     employeeName: '张三',
     direction: 'DECREASE',
-    status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+    status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
     baseCurrency: 'CNY',
     amount: '88.5',
     reason: '锁后费用补录自动冲减：漏录拖车费',
     version: '2',
     createdAt: '2026-09-10T10:00:00Z',
     sourceType: 'LOCKED_FEE_SUPPLEMENT',
+    canExecute: true,
     ...overrides,
   };
 }
@@ -103,13 +103,13 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
     } as Awaited<ReturnType<typeof listAdjustments>>);
   });
 
-  it('默认按 DECREASE + DRAFT + LOCKED_FEE_SUPPLEMENT 服务端过滤', async () => {
+  it('默认按已确认补录冲减服务端过滤', async () => {
     renderPanel();
     await waitFor(() => expect(listAdjustments).toHaveBeenCalledTimes(1));
     expect(listAdjustments).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
-      status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+      status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
       sourceType: 'LOCKED_FEE_SUPPLEMENT',
       keyword: undefined,
     });
@@ -150,8 +150,8 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
     } as Awaited<ReturnType<typeof listAdjustments>>);
     renderPanel();
 
-    expect(await screen.findByText('待处理')).toBeInTheDocument();
-    expect(screen.getByText('已确认')).toBeInTheDocument();
+    expect(await screen.findAllByText('已确认')).toHaveLength(2);
+
     expect(screen.getByText('已扣回')).toBeInTheDocument();
     // 列表默认不包含已取消；也不把待处理渲染成「冲减草稿」等旧文案。
     expect(screen.queryByText('冲减草稿')).not.toBeInTheDocument();
@@ -171,85 +171,39 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
     expect(screen.queryByText('忽略建议')).not.toBeInTheDocument();
   });
 
-  it('确认冲减成功后刷新列表', async () => {
-    confirmAdjustment.mockResolvedValue({
-      success: true,
-    } as Awaited<ReturnType<typeof confirmAdjustment>>);
+  it('补录冲减已在审批时确认，不再提供确认或忽略入口', async () => {
     listAdjustments.mockResolvedValue({
-      data: [adjustmentRow()],
+      data: [
+        adjustmentRow({
+          status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+        }),
+      ],
       total: '1',
       success: true,
-    } as Awaited<ReturnType<typeof listAdjustments>>);
-    renderPanel();
-
-    fireEvent.click(await screen.findByText('确认冲减'));
-    fireEvent.click(
-      await screen.findByRole('button', { name: /确\s*认\s*冲\s*减/ }),
-    );
-
-    await waitFor(() => expect(confirmAdjustment).toHaveBeenCalledTimes(1));
-    expect(confirmAdjustment.mock.calls[0][1]).toEqual({
-      id: 'adj-1',
-      expectedVersion: '2',
     });
-    await waitFor(() => expect(listAdjustments).toHaveBeenCalledTimes(2));
-  });
-
-  it('确认冲减超限冲突时提示刷新且不静默修改金额', async () => {
-    confirmAdjustment.mockRejectedValue(
-      Object.assign(new Error('超出可冲减余额'), {
-        data: {
-          reason: financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS,
-          message: '超出可冲减余额',
-        },
-      }),
-    );
-    listAdjustments.mockResolvedValue({
-      data: [adjustmentRow()],
-      total: '1',
-      success: true,
-    } as Awaited<ReturnType<typeof listAdjustments>>);
     renderPanel();
-
-    fireEvent.click(await screen.findByText('确认冲减'));
-    fireEvent.click(
-      await screen.findByRole('button', { name: /确\s*认\s*冲\s*减/ }),
-    );
-
-    expect(
-      (await screen.findAllByText('冲减金额超出可冲减余额')).length,
-    ).toBeGreaterThan(0);
-    await waitFor(() => expect(listAdjustments).toHaveBeenCalledTimes(2));
-  });
-
-  it('忽略建议必须填写原因', async () => {
-    cancelAdjustment.mockResolvedValue({
-      success: true,
-    } as Awaited<ReturnType<typeof cancelAdjustment>>);
-    listAdjustments.mockResolvedValue({
-      data: [adjustmentRow()],
-      total: '1',
-      success: true,
-    } as Awaited<ReturnType<typeof listAdjustments>>);
-    renderPanel();
-
-    fireEvent.click(await screen.findByText('忽略建议'));
-    const reasonInput = await screen.findByPlaceholderText(
-      '请输入忽略原因（必填）',
-    );
-    fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
-    expect(await screen.findByText('请输入忽略原因')).toBeInTheDocument();
+    expect(await screen.findByText('张三')).toBeInTheDocument();
+    expect(screen.queryByText('确认冲减')).not.toBeInTheDocument();
+    expect(screen.queryByText('忽略建议')).not.toBeInTheDocument();
+    expect(confirmAdjustment).not.toHaveBeenCalled();
     expect(cancelAdjustment).not.toHaveBeenCalled();
+  });
 
-    fireEvent.change(reasonInput, { target: { value: '费用与该员工无关' } });
-    fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
-
-    await waitFor(() => expect(cancelAdjustment).toHaveBeenCalledTimes(1));
-    expect(cancelAdjustment.mock.calls[0][1]).toEqual({
-      id: 'adj-1',
-      expectedVersion: '2',
-      reason: '费用与该员工无关',
+  it('父提成未发时显示随父净额执行，不允许独立扣回', async () => {
+    listAdjustments.mockResolvedValue({
+      data: [
+        adjustmentRow({
+          status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+          canExecute: false,
+          executionBlockedReason: '父提成尚未发放',
+        }),
+      ],
+      total: '1',
+      success: true,
     });
+    renderPanel();
+    expect(await screen.findByText('随父提成净额发放')).toBeInTheDocument();
+    expect(screen.queryByText('标记已扣回')).not.toBeInTheDocument();
   });
 
   it('已确认建议沿用标记已扣回动作', async () => {

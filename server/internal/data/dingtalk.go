@@ -197,6 +197,14 @@ func (p *dingTalkIdentityProvider) SendText(ctx context.Context, userID, content
 	}
 	userID = strings.TrimSpace(userID)
 	content = strings.TrimSpace(content)
+	// 机器人业务链接与已验证的钉钉登录回调使用同一站点，避免新增主机配置。
+	if strings.Contains(content, "订单入口：/orders/") {
+		origin, parseErr := url.Parse(p.redirectURI)
+		if parseErr != nil {
+			return fmt.Errorf("钉钉通知站点配置不合法")
+		}
+		content = strings.ReplaceAll(content, "订单入口：/orders/", "订单入口："+origin.Scheme+"://"+origin.Host+"/orders/")
+	}
 	if userID == "" || content == "" {
 		return fmt.Errorf("钉钉通知收件人或内容为空")
 	}

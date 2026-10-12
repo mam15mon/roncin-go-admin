@@ -9,6 +9,7 @@ import {
 } from '@/constants/statusMeta';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
+import { FeeReviewStatus } from '@/features/orders/fee-review';
 import { searchPartnerOptions } from '@/features/partners';
 import { history } from '@/router/history';
 import { formatAmount, trimDecimal } from '@/utils/format';
@@ -221,6 +222,27 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
         placeholder: '输入发票号',
       },
       render: (val) => val || '-',
+    },
+    {
+      title: '费用审核',
+      key: 'feeReviewStatus',
+      dataIndex: 'feeReviewStatus',
+      width: 190,
+      search: false,
+      render: (_, row) => (
+        <FeeReviewStatus
+          status={row.feeReviewStatus}
+          pendingSupplement={row.hasPendingFeeSupplement}
+        />
+      ),
+    },
+    {
+      title: '建账限制',
+      key: 'billBlockedReasons',
+      width: 220,
+      search: false,
+      render: (_, row) =>
+        row.canBill ? '可建账' : row.blockedReasons?.join('；') || '-',
     },
     {
       title: '财务进度',

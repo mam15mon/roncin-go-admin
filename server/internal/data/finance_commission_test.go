@@ -190,10 +190,10 @@ func TestCommissionRepoListUsesCommissionDateFilterAndStableOrdering(t *testing.
 func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
 	org := uuid.New()
 
-	t.Run("事务内首次读取核销单即FOR UPDATE", func(t *testing.T) {
+	t.Run("事务先定位来源订单，来源不存在时不获取行锁", func(t *testing.T) {
 		repo, mock := setupTestCommissionRepo(t)
 		mock.ExpectBegin()
-		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .*FOR UPDATE$`).
+		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .*LIMIT 2$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns))
 		mock.ExpectRollback()
 
@@ -205,7 +205,7 @@ func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
 			t.Fatalf("GetGenerationContext() error = %v, want %v", err, biz.ErrCommissionSource)
 		}
 		if err = mock.ExpectationsWereMet(); err != nil {
-			t.Fatalf("事务内生成上下文读取未对核销单加 FOR UPDATE: %v", err)
+			t.Fatalf("事务来源预定位应先于订单与来源行锁: %v", err)
 		}
 	})
 
@@ -332,7 +332,7 @@ func commissionExportScanRow(t *testing.T, org uuid.UUID) []driver.Value {
 		uuid.New(), "张三", 1, 2, 5, nil, "销售提成", "SALES", "REALIZED_PROFIT", 1, biz.CommissionCalculationVersion,
 		"fingerprint", "CONFIRMED", "USD", "500.00000000", "200.00000000", "300.00000000", "300.00000000",
 		"10.0000", "30.00000000", "2026-08-15", "0.50000000", "DERIVED", "2026-08-14", nil, "15.00000000",
-		0, nil, 1, nil, nil, nil, nil, nil, nil, nil,
+		0, nil, 1, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,
 	}
 }
 
@@ -424,6 +424,13 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 		cashflowID := uuid.New()
 		now := time.Now()
 
+		// 先只读定位来源及分摊，再锁完整订单集合；账单锁仍由生产路径取得。
+		orderID := uuid.New()
+		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* LIMIT 2$`).WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(verificationID, now, now, org, "VR202608300001", "key1", "ACTIVE", "RECEIVABLE", uuid.New(), "客户A", "USD", "100.00", "CNY", "720.00", "720.00", "720.00", "0.00", "2026-08-30", nil, 1, nil, nil, nil))
+		mock.ExpectQuery(`SELECT .* FROM "finance_verification_allocations" WHERE .*`).WillReturnRows(sqlmock.NewRows(financeverificationallocation.Columns).AddRow(uuid.New(), now, now, verificationID, cashflowID, billID1, "CF1", "BILL1", "100.00", "720.00", "720.00", "0.00", true))
+		mock.ExpectQuery(`SELECT .* FROM "finance_bill_lines" WHERE .*`).WillReturnRows(sqlmock.NewRows([]string{"id", "order_id"}).AddRow(uuid.New(), orderID))
+		mock.ExpectQuery(`SELECT .* FROM "orders" WHERE .* ORDER BY "orders"."id" FOR UPDATE$`).WillReturnRows(orderReferenceRows(orderID, org, uuid.New(), "SE-LOCK-001"))
+		mock.ExpectQuery(`SELECT .*"order_fee_supplement_requests".*`).WillReturnRows(sqlmock.NewRows([]string{"id"}))
 		// 1. 核销单查询 (lock=true -> FOR UPDATE)
 		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* FOR UPDATE$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(

@@ -310,6 +310,12 @@ func (_u *OrderFeeSupplementRequestUpdate) sqlSave(ctx context.Context) (_node i
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(orderfeesupplementrequest.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.ApprovedFeeReviewEventIDCleared() {
+		_spec.ClearField(orderfeesupplementrequest.FieldApprovedFeeReviewEventID, field.TypeUUID)
+	}
+	if _u.mutation.ApprovedFeeContentVersionCleared() {
+		_spec.ClearField(orderfeesupplementrequest.FieldApprovedFeeContentVersion, field.TypeUint64)
+	}
 	if _u.mutation.BusinessLockGenerationCleared() {
 		_spec.ClearField(orderfeesupplementrequest.FieldBusinessLockGeneration, field.TypeUint64)
 	}
@@ -810,6 +816,12 @@ func (_u *OrderFeeSupplementRequestUpdateOne) sqlSave(ctx context.Context) (_nod
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(orderfeesupplementrequest.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.ApprovedFeeReviewEventIDCleared() {
+		_spec.ClearField(orderfeesupplementrequest.FieldApprovedFeeReviewEventID, field.TypeUUID)
+	}
+	if _u.mutation.ApprovedFeeContentVersionCleared() {
+		_spec.ClearField(orderfeesupplementrequest.FieldApprovedFeeContentVersion, field.TypeUint64)
 	}
 	if _u.mutation.BusinessLockGenerationCleared() {
 		_spec.ClearField(orderfeesupplementrequest.FieldBusinessLockGeneration, field.TypeUint64)

@@ -24,6 +24,10 @@ const (
 	FieldOrganizationID = "organization_id"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
+	// FieldApprovedFeeReviewEventID holds the string denoting the approved_fee_review_event_id field in the database.
+	FieldApprovedFeeReviewEventID = "approved_fee_review_event_id"
+	// FieldApprovedFeeContentVersion holds the string denoting the approved_fee_content_version field in the database.
+	FieldApprovedFeeContentVersion = "approved_fee_content_version"
 	// FieldLockBasis holds the string denoting the lock_basis field in the database.
 	FieldLockBasis = "lock_basis"
 	// FieldBusinessLockGeneration holds the string denoting the business_lock_generation field in the database.
@@ -169,6 +173,8 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldOrganizationID,
 	FieldOrderID,
+	FieldApprovedFeeReviewEventID,
+	FieldApprovedFeeContentVersion,
 	FieldLockBasis,
 	FieldBusinessLockGeneration,
 	FieldFinancialLockEvidenceVersion,
@@ -276,6 +282,7 @@ const (
 	LockBasisBUSINESS  LockBasis = "BUSINESS"
 	LockBasisFINANCIAL LockBasis = "FINANCIAL"
 	LockBasisBOTH      LockBasis = "BOTH"
+	LockBasisAPPROVAL  LockBasis = "APPROVAL"
 )
 
 func (lb LockBasis) String() string {
@@ -285,7 +292,7 @@ func (lb LockBasis) String() string {
 // LockBasisValidator is a validator for the "lock_basis" field enum values. It is called by the builders before save.
 func LockBasisValidator(lb LockBasis) error {
 	switch lb {
-	case LockBasisBUSINESS, LockBasisFINANCIAL, LockBasisBOTH:
+	case LockBasisBUSINESS, LockBasisFINANCIAL, LockBasisBOTH, LockBasisAPPROVAL:
 		return nil
 	default:
 		return fmt.Errorf("orderfeesupplementrequest: invalid enum value for lock_basis field: %q", lb)
@@ -396,6 +403,16 @@ func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 // ByOrderID orders the results by the order_id field.
 func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
+}
+
+// ByApprovedFeeReviewEventID orders the results by the approved_fee_review_event_id field.
+func ByApprovedFeeReviewEventID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApprovedFeeReviewEventID, opts...).ToFunc()
+}
+
+// ByApprovedFeeContentVersion orders the results by the approved_fee_content_version field.
+func ByApprovedFeeContentVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApprovedFeeContentVersion, opts...).ToFunc()
 }
 
 // ByLockBasis orders the results by the lock_basis field.

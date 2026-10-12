@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -189,9 +190,11 @@ describe('PartnerQuickAddSelect 创建失败恢复', () => {
     );
     expect(onPartnerChange).toHaveBeenCalledTimes(1);
     await waitFor(() =>
-      expect(screen.getByRole('dialog')).toHaveClass('ant-zoom-leave'),
+      expect(screen.getByRole('dialog')).toHaveClass('ant-zoom-leave-active'),
     );
-    fireEvent.animationEnd(screen.getByRole('dialog'));
+    await act(async () => {
+      fireEvent.transitionEnd(screen.getByRole('dialog'));
+    });
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );

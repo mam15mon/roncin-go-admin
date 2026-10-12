@@ -318,6 +318,11 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 		if resolveErr != nil {
 			return resolveErr
 		}
+		// 审核决策对同一角色持共享锁；先锁父行再改权限关联，避免关联先删除
+		// 而角色标量更新仍在等待，使已撤权授权继续通过审批。
+		if _, queryErr := tx.Role.Query().Where(role.IDEQ(id), role.OrganizationIDEQ(roleOrgID)).ForUpdate().Only(ctx); queryErr != nil {
+			return mapEntError(queryErr, biz.ErrAdminRoleNotFound, nil)
+		}
 		target, targetErr := tx.Organization.Get(ctx, roleOrgID)
 		if targetErr != nil {
 			return targetErr
@@ -408,6 +413,11 @@ func rolesForOrganization(ctx context.Context, client *ent.Client, organizationI
 }
 
 func replaceRoleAssignments(ctx context.Context, tx *ent.Tx, membershipID uuid.UUID, roles []*ent.Role) error {
+	// 调用方先锁用户，再锁成员关系父行，与费用审核资格读取的共享锁顺序一致。
+	// 删除独立关联表本身不会与父行共享锁互斥，不能省略此锁。
+	if _, err := tx.Membership.Query().Where(membership.IDEQ(membershipID)).ForUpdate().Only(ctx); err != nil {
+		return mapEntError(err, biz.ErrAdminUserMembershipNotFound, nil)
+	}
 	if _, err := tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDEQ(membershipID)).Exec(ctx); err != nil {
 		return err
 	}

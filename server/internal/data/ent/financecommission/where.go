@@ -246,6 +246,26 @@ func ConfirmedBy(v uuid.UUID) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldConfirmedBy, v))
 }
 
+// PaidAmount applies equality check predicate on the "paid_amount" field. It's identical to PaidAmountEQ.
+func PaidAmount(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaidAmount, v))
+}
+
+// PaymentKey applies equality check predicate on the "payment_key" field. It's identical to PaymentKeyEQ.
+func PaymentKey(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaymentKey, v))
+}
+
+// PaymentFingerprint applies equality check predicate on the "payment_fingerprint" field. It's identical to PaymentFingerprintEQ.
+func PaymentFingerprint(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaymentFingerprint, v))
+}
+
+// PaymentSnapshot applies equality check predicate on the "payment_snapshot" field. It's identical to PaymentSnapshotEQ.
+func PaymentSnapshot(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaymentSnapshot, v))
+}
+
 // PaidAt applies equality check predicate on the "paid_at" field. It's identical to PaidAtEQ.
 func PaidAt(v time.Time) predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldEQ(FieldPaidAt, v))
@@ -2379,6 +2399,306 @@ func ConfirmedByIsNil() predicate.FinanceCommission {
 // ConfirmedByNotNil applies the NotNil predicate on the "confirmed_by" field.
 func ConfirmedByNotNil() predicate.FinanceCommission {
 	return predicate.FinanceCommission(sql.FieldNotNull(FieldConfirmedBy))
+}
+
+// PaidAmountEQ applies the EQ predicate on the "paid_amount" field.
+func PaidAmountEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaidAmount, v))
+}
+
+// PaidAmountNEQ applies the NEQ predicate on the "paid_amount" field.
+func PaidAmountNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldPaidAmount, v))
+}
+
+// PaidAmountIn applies the In predicate on the "paid_amount" field.
+func PaidAmountIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldPaidAmount, vs...))
+}
+
+// PaidAmountNotIn applies the NotIn predicate on the "paid_amount" field.
+func PaidAmountNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldPaidAmount, vs...))
+}
+
+// PaidAmountGT applies the GT predicate on the "paid_amount" field.
+func PaidAmountGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldPaidAmount, v))
+}
+
+// PaidAmountGTE applies the GTE predicate on the "paid_amount" field.
+func PaidAmountGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldPaidAmount, v))
+}
+
+// PaidAmountLT applies the LT predicate on the "paid_amount" field.
+func PaidAmountLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldPaidAmount, v))
+}
+
+// PaidAmountLTE applies the LTE predicate on the "paid_amount" field.
+func PaidAmountLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldPaidAmount, v))
+}
+
+// PaidAmountContains applies the Contains predicate on the "paid_amount" field.
+func PaidAmountContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldPaidAmount, v))
+}
+
+// PaidAmountHasPrefix applies the HasPrefix predicate on the "paid_amount" field.
+func PaidAmountHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldPaidAmount, v))
+}
+
+// PaidAmountHasSuffix applies the HasSuffix predicate on the "paid_amount" field.
+func PaidAmountHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldPaidAmount, v))
+}
+
+// PaidAmountIsNil applies the IsNil predicate on the "paid_amount" field.
+func PaidAmountIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldPaidAmount))
+}
+
+// PaidAmountNotNil applies the NotNil predicate on the "paid_amount" field.
+func PaidAmountNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldPaidAmount))
+}
+
+// PaidAmountEqualFold applies the EqualFold predicate on the "paid_amount" field.
+func PaidAmountEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldPaidAmount, v))
+}
+
+// PaidAmountContainsFold applies the ContainsFold predicate on the "paid_amount" field.
+func PaidAmountContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldPaidAmount, v))
+}
+
+// PaymentKeyEQ applies the EQ predicate on the "payment_key" field.
+func PaymentKeyEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaymentKey, v))
+}
+
+// PaymentKeyNEQ applies the NEQ predicate on the "payment_key" field.
+func PaymentKeyNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldPaymentKey, v))
+}
+
+// PaymentKeyIn applies the In predicate on the "payment_key" field.
+func PaymentKeyIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldPaymentKey, vs...))
+}
+
+// PaymentKeyNotIn applies the NotIn predicate on the "payment_key" field.
+func PaymentKeyNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldPaymentKey, vs...))
+}
+
+// PaymentKeyGT applies the GT predicate on the "payment_key" field.
+func PaymentKeyGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldPaymentKey, v))
+}
+
+// PaymentKeyGTE applies the GTE predicate on the "payment_key" field.
+func PaymentKeyGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldPaymentKey, v))
+}
+
+// PaymentKeyLT applies the LT predicate on the "payment_key" field.
+func PaymentKeyLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldPaymentKey, v))
+}
+
+// PaymentKeyLTE applies the LTE predicate on the "payment_key" field.
+func PaymentKeyLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldPaymentKey, v))
+}
+
+// PaymentKeyContains applies the Contains predicate on the "payment_key" field.
+func PaymentKeyContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldPaymentKey, v))
+}
+
+// PaymentKeyHasPrefix applies the HasPrefix predicate on the "payment_key" field.
+func PaymentKeyHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldPaymentKey, v))
+}
+
+// PaymentKeyHasSuffix applies the HasSuffix predicate on the "payment_key" field.
+func PaymentKeyHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldPaymentKey, v))
+}
+
+// PaymentKeyIsNil applies the IsNil predicate on the "payment_key" field.
+func PaymentKeyIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldPaymentKey))
+}
+
+// PaymentKeyNotNil applies the NotNil predicate on the "payment_key" field.
+func PaymentKeyNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldPaymentKey))
+}
+
+// PaymentKeyEqualFold applies the EqualFold predicate on the "payment_key" field.
+func PaymentKeyEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldPaymentKey, v))
+}
+
+// PaymentKeyContainsFold applies the ContainsFold predicate on the "payment_key" field.
+func PaymentKeyContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldPaymentKey, v))
+}
+
+// PaymentFingerprintEQ applies the EQ predicate on the "payment_fingerprint" field.
+func PaymentFingerprintEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintNEQ applies the NEQ predicate on the "payment_fingerprint" field.
+func PaymentFingerprintNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintIn applies the In predicate on the "payment_fingerprint" field.
+func PaymentFingerprintIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldPaymentFingerprint, vs...))
+}
+
+// PaymentFingerprintNotIn applies the NotIn predicate on the "payment_fingerprint" field.
+func PaymentFingerprintNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldPaymentFingerprint, vs...))
+}
+
+// PaymentFingerprintGT applies the GT predicate on the "payment_fingerprint" field.
+func PaymentFingerprintGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintGTE applies the GTE predicate on the "payment_fingerprint" field.
+func PaymentFingerprintGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintLT applies the LT predicate on the "payment_fingerprint" field.
+func PaymentFingerprintLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintLTE applies the LTE predicate on the "payment_fingerprint" field.
+func PaymentFingerprintLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintContains applies the Contains predicate on the "payment_fingerprint" field.
+func PaymentFingerprintContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintHasPrefix applies the HasPrefix predicate on the "payment_fingerprint" field.
+func PaymentFingerprintHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintHasSuffix applies the HasSuffix predicate on the "payment_fingerprint" field.
+func PaymentFingerprintHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintIsNil applies the IsNil predicate on the "payment_fingerprint" field.
+func PaymentFingerprintIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldPaymentFingerprint))
+}
+
+// PaymentFingerprintNotNil applies the NotNil predicate on the "payment_fingerprint" field.
+func PaymentFingerprintNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldPaymentFingerprint))
+}
+
+// PaymentFingerprintEqualFold applies the EqualFold predicate on the "payment_fingerprint" field.
+func PaymentFingerprintEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldPaymentFingerprint, v))
+}
+
+// PaymentFingerprintContainsFold applies the ContainsFold predicate on the "payment_fingerprint" field.
+func PaymentFingerprintContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldPaymentFingerprint, v))
+}
+
+// PaymentSnapshotEQ applies the EQ predicate on the "payment_snapshot" field.
+func PaymentSnapshotEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEQ(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotNEQ applies the NEQ predicate on the "payment_snapshot" field.
+func PaymentSnapshotNEQ(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNEQ(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotIn applies the In predicate on the "payment_snapshot" field.
+func PaymentSnapshotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIn(FieldPaymentSnapshot, vs...))
+}
+
+// PaymentSnapshotNotIn applies the NotIn predicate on the "payment_snapshot" field.
+func PaymentSnapshotNotIn(vs ...string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotIn(FieldPaymentSnapshot, vs...))
+}
+
+// PaymentSnapshotGT applies the GT predicate on the "payment_snapshot" field.
+func PaymentSnapshotGT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGT(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotGTE applies the GTE predicate on the "payment_snapshot" field.
+func PaymentSnapshotGTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldGTE(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotLT applies the LT predicate on the "payment_snapshot" field.
+func PaymentSnapshotLT(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLT(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotLTE applies the LTE predicate on the "payment_snapshot" field.
+func PaymentSnapshotLTE(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldLTE(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotContains applies the Contains predicate on the "payment_snapshot" field.
+func PaymentSnapshotContains(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContains(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotHasPrefix applies the HasPrefix predicate on the "payment_snapshot" field.
+func PaymentSnapshotHasPrefix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasPrefix(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotHasSuffix applies the HasSuffix predicate on the "payment_snapshot" field.
+func PaymentSnapshotHasSuffix(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldHasSuffix(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotIsNil applies the IsNil predicate on the "payment_snapshot" field.
+func PaymentSnapshotIsNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldIsNull(FieldPaymentSnapshot))
+}
+
+// PaymentSnapshotNotNil applies the NotNil predicate on the "payment_snapshot" field.
+func PaymentSnapshotNotNil() predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldNotNull(FieldPaymentSnapshot))
+}
+
+// PaymentSnapshotEqualFold applies the EqualFold predicate on the "payment_snapshot" field.
+func PaymentSnapshotEqualFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldEqualFold(FieldPaymentSnapshot, v))
+}
+
+// PaymentSnapshotContainsFold applies the ContainsFold predicate on the "payment_snapshot" field.
+func PaymentSnapshotContainsFold(v string) predicate.FinanceCommission {
+	return predicate.FinanceCommission(sql.FieldContainsFold(FieldPaymentSnapshot, v))
 }
 
 // PaidAtEQ applies the EQ predicate on the "paid_at" field.

@@ -282,6 +282,9 @@ func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, or
 	if err != nil {
 		return mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
+	if order.FeeReviewStatus == orderent.FeeReviewStatusPENDING || order.FeeReviewStatus == orderent.FeeReviewStatusAPPROVED {
+		return biz.ErrFeeReviewFrozen
+	}
 	if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
 		return err
 	}
@@ -443,6 +446,9 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 			Save(ctx)
 		if createErr != nil {
 			return mapEntConstraint(createErr, "orderfee_order_id_idempotency_key", biz.ErrOrderFeeIdempotencyConflict)
+		}
+		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
+			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
@@ -658,6 +664,9 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			audit.Details["bill.id"] = activeBill.ID.String()
 			audit.Details["bill.previous_version"] = decimal.NewFromInt(int64(activeBill.Version)).String()
 		}
+		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
+			return err
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -731,6 +740,9 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		audit.Details["fee.settlement_party_id"] = item.SettlementPartyID.String()
 		audit.Details["fee.settlement_party_name"] = party.LegalName
 		audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
+		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
+			return err
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 }
@@ -865,7 +877,7 @@ func (r *orderFeeRepo) BulkUpdate(ctx context.Context, organizationID, orderID u
 				}
 			}
 		}
-		return nil
+		return tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx)
 	})
 }
 
@@ -946,7 +958,7 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 				}
 			}
 		}
-		return nil
+		return tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx)
 	})
 }
 
@@ -991,6 +1003,7 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 	}
 	result := &biz.OrderFee{
 		ID:                    item.ID,
+		SupplementRequestID:   item.SupplementRequestID,
 		OrderID:               item.OrderID,
 		IdempotencyKey:        item.IdempotencyKey,
 		Direction:             biz.OrderFeeDirection(item.Direction),

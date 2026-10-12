@@ -1072,9 +1072,9 @@ type UpdateFeeRequest struct {
 	BillingUnitId        string                 `protobuf:"bytes,16,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
 	ExpectedVersion      uint64                 `protobuf:"varint,17,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
 	TaxInclusive         *bool                  `protobuf:"varint,18,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
-	// tax_rate 仅在修改已进入草稿账单的费用时作为目标税率；不传时沿用费用项目默认或现有税率。
+	// tax_rate 请求字段；审核中及已批准费用均禁止直接更新，既有草稿编辑配置不能绕过。
 	TaxRate *string `protobuf:"bytes,19,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
-	// fee_name 仅覆盖当前费用及其草稿账单行快照，不修改费用设置主数据。
+	// fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。
 	FeeName       *string `protobuf:"bytes,20,opt,name=fee_name,json=feeName,proto3,oneof" json:"fee_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2445,12 +2445,12 @@ func (x *BatchRemoveOrderFeeTagsResponse) GetTraceId() string {
 }
 
 // OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。
-// 锁依据字段由服务端在 Order 行锁内判定固化，客户端传入值一律被忽略。
+// 批准依据由服务端在 Order 行锁内固化，业务锁与提成财务锁不授予审批资格。
 type OrderFeeSupplementRequestData struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	OrderId string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	// 锁依据类型：BUSINESS / FINANCIAL / BOTH。
+	// 当前申请依据类型：APPROVAL；业务锁字段不参与新申请与动作判定。
 	LockBasis                    string  `protobuf:"bytes,3,opt,name=lock_basis,json=lockBasis,proto3" json:"lock_basis,omitempty"`
 	BusinessLockGeneration       *uint64 `protobuf:"varint,4,opt,name=business_lock_generation,json=businessLockGeneration,proto3,oneof" json:"business_lock_generation,omitempty"`
 	FinancialLockEvidenceVersion *string `protobuf:"bytes,5,opt,name=financial_lock_evidence_version,json=financialLockEvidenceVersion,proto3,oneof" json:"financial_lock_evidence_version,omitempty"`
@@ -2502,7 +2502,7 @@ type OrderFeeSupplementRequestData struct {
 	// APPROVED 申请生成的费用 ID；生成费用已专用撤销删除时为空，
 	// 前端据此展示「生成费用已删除」。
 	FeeId *string `protobuf:"bytes,46,opt,name=fee_id,json=feeId,proto3,oneof" json:"fee_id,omitempty"`
-	// 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
+	// 当前是否仍存在具备有效费用审核权限且组织范围匹配的审批人；提交后资格全部失效时申请保持
 	// PENDING 并投影 false，发起人仍可撤回。
 	ApproverAvailable bool `protobuf:"varint,48,opt,name=approver_available,json=approverAvailable,proto3" json:"approver_available,omitempty"`
 	// 展示姓名；requested_by / decided_by 仍用于身份与权限判断。
@@ -3320,6 +3320,8 @@ type ApproveOrderFeeSupplementRequest struct {
 	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Id              string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	PreviewToken    string                 `protobuf:"bytes,4,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Comment         string                 `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -3373,6 +3375,20 @@ func (x *ApproveOrderFeeSupplementRequest) GetExpectedVersion() uint64 {
 		return x.ExpectedVersion
 	}
 	return 0
+}
+
+func (x *ApproveOrderFeeSupplementRequest) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeSupplementRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
 }
 
 type PreviewOrderFeeSupplementApprovalRequest struct {
@@ -3442,13 +3458,15 @@ type PreviewOrderFeeSupplementApprovalData struct {
 	CurrentPayable    string                 `protobuf:"bytes,3,opt,name=current_payable,json=currentPayable,proto3" json:"current_payable,omitempty"`
 	CurrentProfit     string                 `protobuf:"bytes,4,opt,name=current_profit,json=currentProfit,proto3" json:"current_profit,omitempty"`
 	// 应收为零时为空，页面展示「不可计算」。
-	CurrentProfitRate   *string `protobuf:"bytes,5,opt,name=current_profit_rate,json=currentProfitRate,proto3,oneof" json:"current_profit_rate,omitempty"`
-	SupplementCost      string  `protobuf:"bytes,6,opt,name=supplement_cost,json=supplementCost,proto3" json:"supplement_cost,omitempty"`
-	ProjectedReceivable string  `protobuf:"bytes,7,opt,name=projected_receivable,json=projectedReceivable,proto3" json:"projected_receivable,omitempty"`
-	ProjectedPayable    string  `protobuf:"bytes,8,opt,name=projected_payable,json=projectedPayable,proto3" json:"projected_payable,omitempty"`
-	ProjectedProfit     string  `protobuf:"bytes,9,opt,name=projected_profit,json=projectedProfit,proto3" json:"projected_profit,omitempty"`
-	ProjectedProfitRate *string `protobuf:"bytes,10,opt,name=projected_profit_rate,json=projectedProfitRate,proto3,oneof" json:"projected_profit_rate,omitempty"`
-	ProfitChange        string  `protobuf:"bytes,11,opt,name=profit_change,json=profitChange,proto3" json:"profit_change,omitempty"`
+	CurrentProfitRate   *string                          `protobuf:"bytes,5,opt,name=current_profit_rate,json=currentProfitRate,proto3,oneof" json:"current_profit_rate,omitempty"`
+	SupplementCost      string                           `protobuf:"bytes,6,opt,name=supplement_cost,json=supplementCost,proto3" json:"supplement_cost,omitempty"`
+	ProjectedReceivable string                           `protobuf:"bytes,7,opt,name=projected_receivable,json=projectedReceivable,proto3" json:"projected_receivable,omitempty"`
+	ProjectedPayable    string                           `protobuf:"bytes,8,opt,name=projected_payable,json=projectedPayable,proto3" json:"projected_payable,omitempty"`
+	ProjectedProfit     string                           `protobuf:"bytes,9,opt,name=projected_profit,json=projectedProfit,proto3" json:"projected_profit,omitempty"`
+	ProjectedProfitRate *string                          `protobuf:"bytes,10,opt,name=projected_profit_rate,json=projectedProfitRate,proto3,oneof" json:"projected_profit_rate,omitempty"`
+	ProfitChange        string                           `protobuf:"bytes,11,opt,name=profit_change,json=profitChange,proto3" json:"profit_change,omitempty"`
+	PreviewToken        string                           `protobuf:"bytes,12,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	CommissionImpacts   []*FeeSupplementCommissionImpact `protobuf:"bytes,13,rep,name=commission_impacts,json=commissionImpacts,proto3" json:"commission_impacts,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -3558,6 +3576,20 @@ func (x *PreviewOrderFeeSupplementApprovalData) GetProfitChange() string {
 		return x.ProfitChange
 	}
 	return ""
+}
+
+func (x *PreviewOrderFeeSupplementApprovalData) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *PreviewOrderFeeSupplementApprovalData) GetCommissionImpacts() []*FeeSupplementCommissionImpact {
+	if x != nil {
+		return x.CommissionImpacts
+	}
+	return nil
 }
 
 type PreviewOrderFeeSupplementApprovalResponse struct {
@@ -4148,6 +4180,1923 @@ func (x *CancelApprovedOrderFeeSupplementResponse) GetData() *OrderFeeSupplement
 	return nil
 }
 
+type FeeSupplementCommissionImpact struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	CommissionId     string                 `protobuf:"bytes,1,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
+	CommissionNo     string                 `protobuf:"bytes,2,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
+	EmployeeId       string                 `protobuf:"bytes,3,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	EmployeeName     string                 `protobuf:"bytes,4,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	BaseCurrency     string                 `protobuf:"bytes,5,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	AmountBefore     string                 `protobuf:"bytes,6,opt,name=amount_before,json=amountBefore,proto3" json:"amount_before,omitempty"`
+	AmountAfter      string                 `protobuf:"bytes,7,opt,name=amount_after,json=amountAfter,proto3" json:"amount_after,omitempty"`
+	DecreaseAmount   string                 `protobuf:"bytes,8,opt,name=decrease_amount,json=decreaseAmount,proto3" json:"decrease_amount,omitempty"`
+	ExcessAmount     string                 `protobuf:"bytes,9,opt,name=excess_amount,json=excessAmount,proto3" json:"excess_amount,omitempty"`
+	CommissionStatus string                 `protobuf:"bytes,10,opt,name=commission_status,json=commissionStatus,proto3" json:"commission_status,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *FeeSupplementCommissionImpact) Reset() {
+	*x = FeeSupplementCommissionImpact{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FeeSupplementCommissionImpact) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FeeSupplementCommissionImpact) ProtoMessage() {}
+
+func (x *FeeSupplementCommissionImpact) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FeeSupplementCommissionImpact.ProtoReflect.Descriptor instead.
+func (*FeeSupplementCommissionImpact) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *FeeSupplementCommissionImpact) GetCommissionId() string {
+	if x != nil {
+		return x.CommissionId
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetCommissionNo() string {
+	if x != nil {
+		return x.CommissionNo
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetEmployeeId() string {
+	if x != nil {
+		return x.EmployeeId
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetEmployeeName() string {
+	if x != nil {
+		return x.EmployeeName
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetAmountBefore() string {
+	if x != nil {
+		return x.AmountBefore
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetAmountAfter() string {
+	if x != nil {
+		return x.AmountAfter
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetDecreaseAmount() string {
+	if x != nil {
+		return x.DecreaseAmount
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetExcessAmount() string {
+	if x != nil {
+		return x.ExcessAmount
+	}
+	return ""
+}
+
+func (x *FeeSupplementCommissionImpact) GetCommissionStatus() string {
+	if x != nil {
+		return x.CommissionStatus
+	}
+	return ""
+}
+
+// 审核动作绑定读取到的完整费用及审核版本；批准另带预览指纹。
+type GetOrderFeeReviewRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrderFeeReviewRequest) Reset() {
+	*x = GetOrderFeeReviewRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOrderFeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOrderFeeReviewRequest) ProtoMessage() {}
+
+func (x *GetOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*GetOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *GetOrderFeeReviewRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+type PreviewOrderFeeReviewRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewOrderFeeReviewRequest) Reset() {
+	*x = PreviewOrderFeeReviewRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewOrderFeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewOrderFeeReviewRequest) ProtoMessage() {}
+
+func (x *PreviewOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*PreviewOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *PreviewOrderFeeReviewRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+type SubmitOrderFeeReviewRequest struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedReviewVersion  uint64                 `protobuf:"varint,2,opt,name=expected_review_version,json=expectedReviewVersion,proto3" json:"expected_review_version,omitempty"`
+	ExpectedContentVersion uint64                 `protobuf:"varint,3,opt,name=expected_content_version,json=expectedContentVersion,proto3" json:"expected_content_version,omitempty"`
+	SubmissionId           string                 `protobuf:"bytes,4,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	PreviewToken           string                 `protobuf:"bytes,5,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Comment                string                 `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
+	IdempotencyKey         string                 `protobuf:"bytes,7,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	CompletenessConfirmed  bool                   `protobuf:"varint,8,opt,name=completeness_confirmed,json=completenessConfirmed,proto3" json:"completeness_confirmed,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *SubmitOrderFeeReviewRequest) Reset() {
+	*x = SubmitOrderFeeReviewRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitOrderFeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitOrderFeeReviewRequest) ProtoMessage() {}
+
+func (x *SubmitOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*SubmitOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetExpectedReviewVersion() uint64 {
+	if x != nil {
+		return x.ExpectedReviewVersion
+	}
+	return 0
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetExpectedContentVersion() uint64 {
+	if x != nil {
+		return x.ExpectedContentVersion
+	}
+	return 0
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *SubmitOrderFeeReviewRequest) GetCompletenessConfirmed() bool {
+	if x != nil {
+		return x.CompletenessConfirmed
+	}
+	return false
+}
+
+type WithdrawOrderFeeReviewRequest struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedReviewVersion  uint64                 `protobuf:"varint,2,opt,name=expected_review_version,json=expectedReviewVersion,proto3" json:"expected_review_version,omitempty"`
+	ExpectedContentVersion uint64                 `protobuf:"varint,3,opt,name=expected_content_version,json=expectedContentVersion,proto3" json:"expected_content_version,omitempty"`
+	SubmissionId           string                 `protobuf:"bytes,4,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	PreviewToken           string                 `protobuf:"bytes,5,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Comment                string                 `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
+	IdempotencyKey         string                 `protobuf:"bytes,7,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	CompletenessConfirmed  bool                   `protobuf:"varint,8,opt,name=completeness_confirmed,json=completenessConfirmed,proto3" json:"completeness_confirmed,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *WithdrawOrderFeeReviewRequest) Reset() {
+	*x = WithdrawOrderFeeReviewRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WithdrawOrderFeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WithdrawOrderFeeReviewRequest) ProtoMessage() {}
+
+func (x *WithdrawOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WithdrawOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*WithdrawOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetExpectedReviewVersion() uint64 {
+	if x != nil {
+		return x.ExpectedReviewVersion
+	}
+	return 0
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetExpectedContentVersion() uint64 {
+	if x != nil {
+		return x.ExpectedContentVersion
+	}
+	return 0
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeReviewRequest) GetCompletenessConfirmed() bool {
+	if x != nil {
+		return x.CompletenessConfirmed
+	}
+	return false
+}
+
+type ApproveOrderFeeReviewRequest struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedReviewVersion  uint64                 `protobuf:"varint,2,opt,name=expected_review_version,json=expectedReviewVersion,proto3" json:"expected_review_version,omitempty"`
+	ExpectedContentVersion uint64                 `protobuf:"varint,3,opt,name=expected_content_version,json=expectedContentVersion,proto3" json:"expected_content_version,omitempty"`
+	SubmissionId           string                 `protobuf:"bytes,4,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	PreviewToken           string                 `protobuf:"bytes,5,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Comment                string                 `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
+	IdempotencyKey         string                 `protobuf:"bytes,7,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	CompletenessConfirmed  bool                   `protobuf:"varint,8,opt,name=completeness_confirmed,json=completenessConfirmed,proto3" json:"completeness_confirmed,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ApproveOrderFeeReviewRequest) Reset() {
+	*x = ApproveOrderFeeReviewRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveOrderFeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveOrderFeeReviewRequest) ProtoMessage() {}
+
+func (x *ApproveOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*ApproveOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetExpectedReviewVersion() uint64 {
+	if x != nil {
+		return x.ExpectedReviewVersion
+	}
+	return 0
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetExpectedContentVersion() uint64 {
+	if x != nil {
+		return x.ExpectedContentVersion
+	}
+	return 0
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeReviewRequest) GetCompletenessConfirmed() bool {
+	if x != nil {
+		return x.CompletenessConfirmed
+	}
+	return false
+}
+
+type RejectOrderFeeReviewRequest struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedReviewVersion  uint64                 `protobuf:"varint,2,opt,name=expected_review_version,json=expectedReviewVersion,proto3" json:"expected_review_version,omitempty"`
+	ExpectedContentVersion uint64                 `protobuf:"varint,3,opt,name=expected_content_version,json=expectedContentVersion,proto3" json:"expected_content_version,omitempty"`
+	SubmissionId           string                 `protobuf:"bytes,4,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	PreviewToken           string                 `protobuf:"bytes,5,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Comment                string                 `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
+	IdempotencyKey         string                 `protobuf:"bytes,7,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	CompletenessConfirmed  bool                   `protobuf:"varint,8,opt,name=completeness_confirmed,json=completenessConfirmed,proto3" json:"completeness_confirmed,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RejectOrderFeeReviewRequest) Reset() {
+	*x = RejectOrderFeeReviewRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectOrderFeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectOrderFeeReviewRequest) ProtoMessage() {}
+
+func (x *RejectOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*RejectOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *RejectOrderFeeReviewRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeReviewRequest) GetExpectedReviewVersion() uint64 {
+	if x != nil {
+		return x.ExpectedReviewVersion
+	}
+	return 0
+}
+
+func (x *RejectOrderFeeReviewRequest) GetExpectedContentVersion() uint64 {
+	if x != nil {
+		return x.ExpectedContentVersion
+	}
+	return 0
+}
+
+func (x *RejectOrderFeeReviewRequest) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeReviewRequest) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeReviewRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeReviewRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeReviewRequest) GetCompletenessConfirmed() bool {
+	if x != nil {
+		return x.CompletenessConfirmed
+	}
+	return false
+}
+
+type RevokeOrderFeeReviewRequest struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedReviewVersion  uint64                 `protobuf:"varint,2,opt,name=expected_review_version,json=expectedReviewVersion,proto3" json:"expected_review_version,omitempty"`
+	ExpectedContentVersion uint64                 `protobuf:"varint,3,opt,name=expected_content_version,json=expectedContentVersion,proto3" json:"expected_content_version,omitempty"`
+	SubmissionId           string                 `protobuf:"bytes,4,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	PreviewToken           string                 `protobuf:"bytes,5,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Comment                string                 `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
+	IdempotencyKey         string                 `protobuf:"bytes,7,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	CompletenessConfirmed  bool                   `protobuf:"varint,8,opt,name=completeness_confirmed,json=completenessConfirmed,proto3" json:"completeness_confirmed,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RevokeOrderFeeReviewRequest) Reset() {
+	*x = RevokeOrderFeeReviewRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeOrderFeeReviewRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeOrderFeeReviewRequest) ProtoMessage() {}
+
+func (x *RevokeOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
+func (*RevokeOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetExpectedReviewVersion() uint64 {
+	if x != nil {
+		return x.ExpectedReviewVersion
+	}
+	return 0
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetExpectedContentVersion() uint64 {
+	if x != nil {
+		return x.ExpectedContentVersion
+	}
+	return 0
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *RevokeOrderFeeReviewRequest) GetCompletenessConfirmed() bool {
+	if x != nil {
+		return x.CompletenessConfirmed
+	}
+	return false
+}
+
+type OrderFeeReviewActionData struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	OrderId                string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	ExpectedReviewVersion  uint64                 `protobuf:"varint,2,opt,name=expected_review_version,json=expectedReviewVersion,proto3" json:"expected_review_version,omitempty"`
+	ExpectedContentVersion uint64                 `protobuf:"varint,3,opt,name=expected_content_version,json=expectedContentVersion,proto3" json:"expected_content_version,omitempty"`
+	SubmissionId           string                 `protobuf:"bytes,4,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	PreviewToken           string                 `protobuf:"bytes,5,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Comment                string                 `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
+	IdempotencyKey         string                 `protobuf:"bytes,7,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	CompletenessConfirmed  bool                   `protobuf:"varint,8,opt,name=completeness_confirmed,json=completenessConfirmed,proto3" json:"completeness_confirmed,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *OrderFeeReviewActionData) Reset() {
+	*x = OrderFeeReviewActionData{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderFeeReviewActionData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderFeeReviewActionData) ProtoMessage() {}
+
+func (x *OrderFeeReviewActionData) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderFeeReviewActionData.ProtoReflect.Descriptor instead.
+func (*OrderFeeReviewActionData) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *OrderFeeReviewActionData) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewActionData) GetExpectedReviewVersion() uint64 {
+	if x != nil {
+		return x.ExpectedReviewVersion
+	}
+	return 0
+}
+
+func (x *OrderFeeReviewActionData) GetExpectedContentVersion() uint64 {
+	if x != nil {
+		return x.ExpectedContentVersion
+	}
+	return 0
+}
+
+func (x *OrderFeeReviewActionData) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewActionData) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewActionData) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewActionData) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewActionData) GetCompletenessConfirmed() bool {
+	if x != nil {
+		return x.CompletenessConfirmed
+	}
+	return false
+}
+
+type OrderFeeReviewEventData struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Action         string                 `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	ActorId        string                 `protobuf:"bytes,3,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	ActorName      string                 `protobuf:"bytes,4,opt,name=actor_name,json=actorName,proto3" json:"actor_name,omitempty"`
+	Comment        string                 `protobuf:"bytes,5,opt,name=comment,proto3" json:"comment,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ContentVersion uint64                 `protobuf:"varint,7,opt,name=content_version,json=contentVersion,proto3" json:"content_version,omitempty"`
+	Summary        *OrderFeeReviewSummary `protobuf:"bytes,8,opt,name=summary,proto3" json:"summary,omitempty"`
+	SubmissionId   string                 `protobuf:"bytes,9,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *OrderFeeReviewEventData) Reset() {
+	*x = OrderFeeReviewEventData{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderFeeReviewEventData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderFeeReviewEventData) ProtoMessage() {}
+
+func (x *OrderFeeReviewEventData) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderFeeReviewEventData.ProtoReflect.Descriptor instead.
+func (*OrderFeeReviewEventData) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *OrderFeeReviewEventData) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewEventData) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewEventData) GetActorId() string {
+	if x != nil {
+		return x.ActorId
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewEventData) GetActorName() string {
+	if x != nil {
+		return x.ActorName
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewEventData) GetComment() string {
+	if x != nil {
+		return x.Comment
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewEventData) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewEventData) GetContentVersion() uint64 {
+	if x != nil {
+		return x.ContentVersion
+	}
+	return 0
+}
+
+func (x *OrderFeeReviewEventData) GetSummary() *OrderFeeReviewSummary {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
+func (x *OrderFeeReviewEventData) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+type OrderFeeReviewData struct {
+	state                    protoimpl.MessageState     `protogen:"open.v1"`
+	OrderId                  string                     `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo                  string                     `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	Status                   string                     `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	ContentVersion           uint64                     `protobuf:"varint,4,opt,name=content_version,json=contentVersion,proto3" json:"content_version,omitempty"`
+	ReviewVersion            uint64                     `protobuf:"varint,5,opt,name=review_version,json=reviewVersion,proto3" json:"review_version,omitempty"`
+	SubmissionId             string                     `protobuf:"bytes,6,opt,name=submission_id,json=submissionId,proto3" json:"submission_id,omitempty"`
+	ApprovedEventId          string                     `protobuf:"bytes,7,opt,name=approved_event_id,json=approvedEventId,proto3" json:"approved_event_id,omitempty"`
+	PreviewToken             string                     `protobuf:"bytes,8,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
+	Summary                  *OrderFeeReviewSummary     `protobuf:"bytes,9,opt,name=summary,proto3" json:"summary,omitempty"`
+	Fees                     []*OrderFee                `protobuf:"bytes,10,rep,name=fees,proto3" json:"fees,omitempty"`
+	History                  []*OrderFeeReviewEventData `protobuf:"bytes,11,rep,name=history,proto3" json:"history,omitempty"`
+	CanSubmit                bool                       `protobuf:"varint,12,opt,name=can_submit,json=canSubmit,proto3" json:"can_submit,omitempty"`
+	CanWithdraw              bool                       `protobuf:"varint,13,opt,name=can_withdraw,json=canWithdraw,proto3" json:"can_withdraw,omitempty"`
+	CanApprove               bool                       `protobuf:"varint,14,opt,name=can_approve,json=canApprove,proto3" json:"can_approve,omitempty"`
+	CanRevoke                bool                       `protobuf:"varint,15,opt,name=can_revoke,json=canRevoke,proto3" json:"can_revoke,omitempty"`
+	CanEdit                  bool                       `protobuf:"varint,16,opt,name=can_edit,json=canEdit,proto3" json:"can_edit,omitempty"`
+	CanBill                  bool                       `protobuf:"varint,17,opt,name=can_bill,json=canBill,proto3" json:"can_bill,omitempty"`
+	HasPendingSupplement     bool                       `protobuf:"varint,18,opt,name=has_pending_supplement,json=hasPendingSupplement,proto3" json:"has_pending_supplement,omitempty"`
+	BlockedReasons           []string                   `protobuf:"bytes,19,rep,name=blocked_reasons,json=blockedReasons,proto3" json:"blocked_reasons,omitempty"`
+	NotificationFailedCount  int32                      `protobuf:"varint,20,opt,name=notification_failed_count,json=notificationFailedCount,proto3" json:"notification_failed_count,omitempty"`
+	NotificationUnboundCount int32                      `protobuf:"varint,21,opt,name=notification_unbound_count,json=notificationUnboundCount,proto3" json:"notification_unbound_count,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *OrderFeeReviewData) Reset() {
+	*x = OrderFeeReviewData{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderFeeReviewData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderFeeReviewData) ProtoMessage() {}
+
+func (x *OrderFeeReviewData) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderFeeReviewData.ProtoReflect.Descriptor instead.
+func (*OrderFeeReviewData) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *OrderFeeReviewData) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewData) GetOrderNo() string {
+	if x != nil {
+		return x.OrderNo
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewData) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewData) GetContentVersion() uint64 {
+	if x != nil {
+		return x.ContentVersion
+	}
+	return 0
+}
+
+func (x *OrderFeeReviewData) GetReviewVersion() uint64 {
+	if x != nil {
+		return x.ReviewVersion
+	}
+	return 0
+}
+
+func (x *OrderFeeReviewData) GetSubmissionId() string {
+	if x != nil {
+		return x.SubmissionId
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewData) GetApprovedEventId() string {
+	if x != nil {
+		return x.ApprovedEventId
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewData) GetPreviewToken() string {
+	if x != nil {
+		return x.PreviewToken
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewData) GetSummary() *OrderFeeReviewSummary {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
+func (x *OrderFeeReviewData) GetFees() []*OrderFee {
+	if x != nil {
+		return x.Fees
+	}
+	return nil
+}
+
+func (x *OrderFeeReviewData) GetHistory() []*OrderFeeReviewEventData {
+	if x != nil {
+		return x.History
+	}
+	return nil
+}
+
+func (x *OrderFeeReviewData) GetCanSubmit() bool {
+	if x != nil {
+		return x.CanSubmit
+	}
+	return false
+}
+
+func (x *OrderFeeReviewData) GetCanWithdraw() bool {
+	if x != nil {
+		return x.CanWithdraw
+	}
+	return false
+}
+
+func (x *OrderFeeReviewData) GetCanApprove() bool {
+	if x != nil {
+		return x.CanApprove
+	}
+	return false
+}
+
+func (x *OrderFeeReviewData) GetCanRevoke() bool {
+	if x != nil {
+		return x.CanRevoke
+	}
+	return false
+}
+
+func (x *OrderFeeReviewData) GetCanEdit() bool {
+	if x != nil {
+		return x.CanEdit
+	}
+	return false
+}
+
+func (x *OrderFeeReviewData) GetCanBill() bool {
+	if x != nil {
+		return x.CanBill
+	}
+	return false
+}
+
+func (x *OrderFeeReviewData) GetHasPendingSupplement() bool {
+	if x != nil {
+		return x.HasPendingSupplement
+	}
+	return false
+}
+
+func (x *OrderFeeReviewData) GetBlockedReasons() []string {
+	if x != nil {
+		return x.BlockedReasons
+	}
+	return nil
+}
+
+func (x *OrderFeeReviewData) GetNotificationFailedCount() int32 {
+	if x != nil {
+		return x.NotificationFailedCount
+	}
+	return 0
+}
+
+func (x *OrderFeeReviewData) GetNotificationUnboundCount() int32 {
+	if x != nil {
+		return x.NotificationUnboundCount
+	}
+	return 0
+}
+
+type GetOrderFeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOrderFeeReviewResponse) Reset() {
+	*x = GetOrderFeeReviewResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOrderFeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOrderFeeReviewResponse) ProtoMessage() {}
+
+func (x *GetOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*GetOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *GetOrderFeeReviewResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetOrderFeeReviewResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetOrderFeeReviewResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetOrderFeeReviewResponse) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetOrderFeeReviewResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PreviewOrderFeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewOrderFeeReviewResponse) Reset() {
+	*x = PreviewOrderFeeReviewResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewOrderFeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewOrderFeeReviewResponse) ProtoMessage() {}
+
+func (x *PreviewOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*PreviewOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *PreviewOrderFeeReviewResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PreviewOrderFeeReviewResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PreviewOrderFeeReviewResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PreviewOrderFeeReviewResponse) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PreviewOrderFeeReviewResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SubmitOrderFeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitOrderFeeReviewResponse) Reset() {
+	*x = SubmitOrderFeeReviewResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitOrderFeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitOrderFeeReviewResponse) ProtoMessage() {}
+
+func (x *SubmitOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*SubmitOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *SubmitOrderFeeReviewResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SubmitOrderFeeReviewResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SubmitOrderFeeReviewResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SubmitOrderFeeReviewResponse) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SubmitOrderFeeReviewResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type WithdrawOrderFeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WithdrawOrderFeeReviewResponse) Reset() {
+	*x = WithdrawOrderFeeReviewResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WithdrawOrderFeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WithdrawOrderFeeReviewResponse) ProtoMessage() {}
+
+func (x *WithdrawOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WithdrawOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*WithdrawOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *WithdrawOrderFeeReviewResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *WithdrawOrderFeeReviewResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *WithdrawOrderFeeReviewResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *WithdrawOrderFeeReviewResponse) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *WithdrawOrderFeeReviewResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ApproveOrderFeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApproveOrderFeeReviewResponse) Reset() {
+	*x = ApproveOrderFeeReviewResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveOrderFeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveOrderFeeReviewResponse) ProtoMessage() {}
+
+func (x *ApproveOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*ApproveOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *ApproveOrderFeeReviewResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ApproveOrderFeeReviewResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ApproveOrderFeeReviewResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ApproveOrderFeeReviewResponse) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ApproveOrderFeeReviewResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type RejectOrderFeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RejectOrderFeeReviewResponse) Reset() {
+	*x = RejectOrderFeeReviewResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RejectOrderFeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RejectOrderFeeReviewResponse) ProtoMessage() {}
+
+func (x *RejectOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RejectOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*RejectOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *RejectOrderFeeReviewResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RejectOrderFeeReviewResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RejectOrderFeeReviewResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *RejectOrderFeeReviewResponse) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *RejectOrderFeeReviewResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type RevokeOrderFeeReviewResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeOrderFeeReviewResponse) Reset() {
+	*x = RevokeOrderFeeReviewResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeOrderFeeReviewResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeOrderFeeReviewResponse) ProtoMessage() {}
+
+func (x *RevokeOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
+func (*RevokeOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *RevokeOrderFeeReviewResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RevokeOrderFeeReviewResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RevokeOrderFeeReviewResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *RevokeOrderFeeReviewResponse) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *RevokeOrderFeeReviewResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PreviewOrderFeeReviewsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderIds      []string               `protobuf:"bytes,1,rep,name=order_ids,json=orderIds,proto3" json:"order_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewOrderFeeReviewsRequest) Reset() {
+	*x = PreviewOrderFeeReviewsRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewOrderFeeReviewsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewOrderFeeReviewsRequest) ProtoMessage() {}
+
+func (x *PreviewOrderFeeReviewsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewOrderFeeReviewsRequest.ProtoReflect.Descriptor instead.
+func (*PreviewOrderFeeReviewsRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *PreviewOrderFeeReviewsRequest) GetOrderIds() []string {
+	if x != nil {
+		return x.OrderIds
+	}
+	return nil
+}
+
+type PreviewOrderFeeReviewsResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Data          []*OrderFeeReviewResult `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                  `protobuf:"bytes,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewOrderFeeReviewsResponse) Reset() {
+	*x = PreviewOrderFeeReviewsResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewOrderFeeReviewsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewOrderFeeReviewsResponse) ProtoMessage() {}
+
+func (x *PreviewOrderFeeReviewsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewOrderFeeReviewsResponse.ProtoReflect.Descriptor instead.
+func (*PreviewOrderFeeReviewsResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *PreviewOrderFeeReviewsResponse) GetData() []*OrderFeeReviewResult {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PreviewOrderFeeReviewsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type ApproveOrderFeeReviewsRequest struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Items         []*OrderFeeReviewActionData `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApproveOrderFeeReviewsRequest) Reset() {
+	*x = ApproveOrderFeeReviewsRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveOrderFeeReviewsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveOrderFeeReviewsRequest) ProtoMessage() {}
+
+func (x *ApproveOrderFeeReviewsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveOrderFeeReviewsRequest.ProtoReflect.Descriptor instead.
+func (*ApproveOrderFeeReviewsRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *ApproveOrderFeeReviewsRequest) GetItems() []*OrderFeeReviewActionData {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+type ApproveOrderFeeReviewsResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Data          []*OrderFeeReviewResult `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                  `protobuf:"bytes,2,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApproveOrderFeeReviewsResponse) Reset() {
+	*x = ApproveOrderFeeReviewsResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveOrderFeeReviewsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveOrderFeeReviewsResponse) ProtoMessage() {}
+
+func (x *ApproveOrderFeeReviewsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveOrderFeeReviewsResponse.ProtoReflect.Descriptor instead.
+func (*ApproveOrderFeeReviewsResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{66}
+}
+
+func (x *ApproveOrderFeeReviewsResponse) GetData() []*OrderFeeReviewResult {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ApproveOrderFeeReviewsResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type OrderFeeReviewResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	Message       string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *OrderFeeReviewData    `protobuf:"bytes,5,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrderFeeReviewResult) Reset() {
+	*x = OrderFeeReviewResult{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderFeeReviewResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderFeeReviewResult) ProtoMessage() {}
+
+func (x *OrderFeeReviewResult) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderFeeReviewResult.ProtoReflect.Descriptor instead.
+func (*OrderFeeReviewResult) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *OrderFeeReviewResult) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewResult) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *OrderFeeReviewResult) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewResult) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *OrderFeeReviewResult) GetData() *OrderFeeReviewData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 var File_order_v1_order_fee_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_fee_proto_rawDesc = "" +
@@ -4509,15 +6458,17 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12@\n" +
 	"\x04data\x18\x04 \x01(\v2,.order.v1.ListOrderFeeSupplementRequestsDataR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x87\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xcb\x01\n" +
 	" ApproveOrderFeeSupplementRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
-	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\x8f\x01\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12(\n" +
+	"\rpreview_token\x18\x04 \x01(\tB\x03\xe0A\x02R\fpreviewToken\x12\x18\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\"\x8f\x01\n" +
 	"(PreviewOrderFeeSupplementApprovalRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
-	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xc4\x04\n" +
+	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xc1\x05\n" +
 	"%PreviewOrderFeeSupplementApprovalData\x12#\n" +
 	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x12-\n" +
 	"\x12current_receivable\x18\x02 \x01(\tR\x11currentReceivable\x12'\n" +
@@ -4530,7 +6481,9 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x10projected_profit\x18\t \x01(\tR\x0fprojectedProfit\x127\n" +
 	"\x15projected_profit_rate\x18\n" +
 	" \x01(\tH\x01R\x13projectedProfitRate\x88\x01\x01\x12#\n" +
-	"\rprofit_change\x18\v \x01(\tR\fprofitChangeB\x16\n" +
+	"\rprofit_change\x18\v \x01(\tR\fprofitChange\x12#\n" +
+	"\rpreview_token\x18\f \x01(\tR\fpreviewToken\x12V\n" +
+	"\x12commission_impacts\x18\r \x03(\v2'.order.v1.FeeSupplementCommissionImpactR\x11commissionImpactsB\x16\n" +
 	"\x14_current_profit_rateB\x18\n" +
 	"\x16_projected_profit_rate\"\xd3\x01\n" +
 	")PreviewOrderFeeSupplementApprovalResponse\x12\x18\n" +
@@ -4578,12 +6531,188 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12;\n" +
-	"\x04data\x18\x06 \x01(\v2'.order.v1.OrderFeeSupplementRequestDataR\x04dataJ\x04\b\x04\x10\x05R\x03fee*}\n" +
+	"\x04data\x18\x06 \x01(\v2'.order.v1.OrderFeeSupplementRequestDataR\x04dataJ\x04\b\x04\x10\x05R\x03fee\"\x97\x03\n" +
+	"\x1dFeeSupplementCommissionImpact\x12#\n" +
+	"\rcommission_id\x18\x01 \x01(\tR\fcommissionId\x12#\n" +
+	"\rcommission_no\x18\x02 \x01(\tR\fcommissionNo\x12\x1f\n" +
+	"\vemployee_id\x18\x03 \x01(\tR\n" +
+	"employeeId\x12#\n" +
+	"\remployee_name\x18\x04 \x01(\tR\femployeeName\x12#\n" +
+	"\rbase_currency\x18\x05 \x01(\tR\fbaseCurrency\x12#\n" +
+	"\ramount_before\x18\x06 \x01(\tR\famountBefore\x12!\n" +
+	"\famount_after\x18\a \x01(\tR\vamountAfter\x12'\n" +
+	"\x0fdecrease_amount\x18\b \x01(\tR\x0edecreaseAmount\x12#\n" +
+	"\rexcess_amount\x18\t \x01(\tR\fexcessAmount\x12+\n" +
+	"\x11commission_status\x18\n" +
+	" \x01(\tR\x10commissionStatus\"5\n" +
+	"\x18GetOrderFeeReviewRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\"9\n" +
+	"\x1cPreviewOrderFeeReviewRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\"\xee\x02\n" +
+	"\x1bSubmitOrderFeeReviewRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x126\n" +
+	"\x17expected_review_version\x18\x02 \x01(\x04R\x15expectedReviewVersion\x128\n" +
+	"\x18expected_content_version\x18\x03 \x01(\x04R\x16expectedContentVersion\x12#\n" +
+	"\rsubmission_id\x18\x04 \x01(\tR\fsubmissionId\x12#\n" +
+	"\rpreview_token\x18\x05 \x01(\tR\fpreviewToken\x12\x18\n" +
+	"\acomment\x18\x06 \x01(\tR\acomment\x12'\n" +
+	"\x0fidempotency_key\x18\a \x01(\tR\x0eidempotencyKey\x125\n" +
+	"\x16completeness_confirmed\x18\b \x01(\bR\x15completenessConfirmed\"\xf0\x02\n" +
+	"\x1dWithdrawOrderFeeReviewRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x126\n" +
+	"\x17expected_review_version\x18\x02 \x01(\x04R\x15expectedReviewVersion\x128\n" +
+	"\x18expected_content_version\x18\x03 \x01(\x04R\x16expectedContentVersion\x12#\n" +
+	"\rsubmission_id\x18\x04 \x01(\tR\fsubmissionId\x12#\n" +
+	"\rpreview_token\x18\x05 \x01(\tR\fpreviewToken\x12\x18\n" +
+	"\acomment\x18\x06 \x01(\tR\acomment\x12'\n" +
+	"\x0fidempotency_key\x18\a \x01(\tR\x0eidempotencyKey\x125\n" +
+	"\x16completeness_confirmed\x18\b \x01(\bR\x15completenessConfirmed\"\xef\x02\n" +
+	"\x1cApproveOrderFeeReviewRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x126\n" +
+	"\x17expected_review_version\x18\x02 \x01(\x04R\x15expectedReviewVersion\x128\n" +
+	"\x18expected_content_version\x18\x03 \x01(\x04R\x16expectedContentVersion\x12#\n" +
+	"\rsubmission_id\x18\x04 \x01(\tR\fsubmissionId\x12#\n" +
+	"\rpreview_token\x18\x05 \x01(\tR\fpreviewToken\x12\x18\n" +
+	"\acomment\x18\x06 \x01(\tR\acomment\x12'\n" +
+	"\x0fidempotency_key\x18\a \x01(\tR\x0eidempotencyKey\x125\n" +
+	"\x16completeness_confirmed\x18\b \x01(\bR\x15completenessConfirmed\"\xee\x02\n" +
+	"\x1bRejectOrderFeeReviewRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x126\n" +
+	"\x17expected_review_version\x18\x02 \x01(\x04R\x15expectedReviewVersion\x128\n" +
+	"\x18expected_content_version\x18\x03 \x01(\x04R\x16expectedContentVersion\x12#\n" +
+	"\rsubmission_id\x18\x04 \x01(\tR\fsubmissionId\x12#\n" +
+	"\rpreview_token\x18\x05 \x01(\tR\fpreviewToken\x12\x18\n" +
+	"\acomment\x18\x06 \x01(\tR\acomment\x12'\n" +
+	"\x0fidempotency_key\x18\a \x01(\tR\x0eidempotencyKey\x125\n" +
+	"\x16completeness_confirmed\x18\b \x01(\bR\x15completenessConfirmed\"\xee\x02\n" +
+	"\x1bRevokeOrderFeeReviewRequest\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x126\n" +
+	"\x17expected_review_version\x18\x02 \x01(\x04R\x15expectedReviewVersion\x128\n" +
+	"\x18expected_content_version\x18\x03 \x01(\x04R\x16expectedContentVersion\x12#\n" +
+	"\rsubmission_id\x18\x04 \x01(\tR\fsubmissionId\x12#\n" +
+	"\rpreview_token\x18\x05 \x01(\tR\fpreviewToken\x12\x18\n" +
+	"\acomment\x18\x06 \x01(\tR\acomment\x12'\n" +
+	"\x0fidempotency_key\x18\a \x01(\tR\x0eidempotencyKey\x125\n" +
+	"\x16completeness_confirmed\x18\b \x01(\bR\x15completenessConfirmed\"\xeb\x02\n" +
+	"\x18OrderFeeReviewActionData\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x126\n" +
+	"\x17expected_review_version\x18\x02 \x01(\x04R\x15expectedReviewVersion\x128\n" +
+	"\x18expected_content_version\x18\x03 \x01(\x04R\x16expectedContentVersion\x12#\n" +
+	"\rsubmission_id\x18\x04 \x01(\tR\fsubmissionId\x12#\n" +
+	"\rpreview_token\x18\x05 \x01(\tR\fpreviewToken\x12\x18\n" +
+	"\acomment\x18\x06 \x01(\tR\acomment\x12'\n" +
+	"\x0fidempotency_key\x18\a \x01(\tR\x0eidempotencyKey\x125\n" +
+	"\x16completeness_confirmed\x18\b \x01(\bR\x15completenessConfirmed\"\xbd\x02\n" +
+	"\x17OrderFeeReviewEventData\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06action\x18\x02 \x01(\tR\x06action\x12\x19\n" +
+	"\bactor_id\x18\x03 \x01(\tR\aactorId\x12\x1d\n" +
+	"\n" +
+	"actor_name\x18\x04 \x01(\tR\tactorName\x12\x18\n" +
+	"\acomment\x18\x05 \x01(\tR\acomment\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12'\n" +
+	"\x0fcontent_version\x18\a \x01(\x04R\x0econtentVersion\x129\n" +
+	"\asummary\x18\b \x01(\v2\x1f.order.v1.OrderFeeReviewSummaryR\asummary\x12#\n" +
+	"\rsubmission_id\x18\t \x01(\tR\fsubmissionId\"\xd9\x06\n" +
+	"\x12OrderFeeReviewData\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
+	"\border_no\x18\x02 \x01(\tR\aorderNo\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12'\n" +
+	"\x0fcontent_version\x18\x04 \x01(\x04R\x0econtentVersion\x12%\n" +
+	"\x0ereview_version\x18\x05 \x01(\x04R\rreviewVersion\x12#\n" +
+	"\rsubmission_id\x18\x06 \x01(\tR\fsubmissionId\x12*\n" +
+	"\x11approved_event_id\x18\a \x01(\tR\x0fapprovedEventId\x12#\n" +
+	"\rpreview_token\x18\b \x01(\tR\fpreviewToken\x129\n" +
+	"\asummary\x18\t \x01(\v2\x1f.order.v1.OrderFeeReviewSummaryR\asummary\x12&\n" +
+	"\x04fees\x18\n" +
+	" \x03(\v2\x12.order.v1.OrderFeeR\x04fees\x12;\n" +
+	"\ahistory\x18\v \x03(\v2!.order.v1.OrderFeeReviewEventDataR\ahistory\x12\x1d\n" +
+	"\n" +
+	"can_submit\x18\f \x01(\bR\tcanSubmit\x12!\n" +
+	"\fcan_withdraw\x18\r \x01(\bR\vcanWithdraw\x12\x1f\n" +
+	"\vcan_approve\x18\x0e \x01(\bR\n" +
+	"canApprove\x12\x1d\n" +
+	"\n" +
+	"can_revoke\x18\x0f \x01(\bR\tcanRevoke\x12\x19\n" +
+	"\bcan_edit\x18\x10 \x01(\bR\acanEdit\x12\x19\n" +
+	"\bcan_bill\x18\x11 \x01(\bR\acanBill\x124\n" +
+	"\x16has_pending_supplement\x18\x12 \x01(\bR\x14hasPendingSupplement\x12'\n" +
+	"\x0fblocked_reasons\x18\x13 \x03(\tR\x0eblockedReasons\x12:\n" +
+	"\x19notification_failed_count\x18\x14 \x01(\x05R\x17notificationFailedCount\x12<\n" +
+	"\x1anotification_unbound_count\x18\x15 \x01(\x05R\x18notificationUnboundCount\"\xb0\x01\n" +
+	"\x19GetOrderFeeReviewResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb4\x01\n" +
+	"\x1dPreviewOrderFeeReviewResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb3\x01\n" +
+	"\x1cSubmitOrderFeeReviewResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb5\x01\n" +
+	"\x1eWithdrawOrderFeeReviewResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb4\x01\n" +
+	"\x1dApproveOrderFeeReviewResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb3\x01\n" +
+	"\x1cRejectOrderFeeReviewResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb3\x01\n" +
+	"\x1cRevokeOrderFeeReviewResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"<\n" +
+	"\x1dPreviewOrderFeeReviewsRequest\x12\x1b\n" +
+	"\torder_ids\x18\x01 \x03(\tR\borderIds\"o\n" +
+	"\x1ePreviewOrderFeeReviewsResponse\x122\n" +
+	"\x04data\x18\x01 \x03(\v2\x1e.order.v1.OrderFeeReviewResultR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId\"Y\n" +
+	"\x1dApproveOrderFeeReviewsRequest\x128\n" +
+	"\x05items\x18\x01 \x03(\v2\".order.v1.OrderFeeReviewActionDataR\x05items\"o\n" +
+	"\x1eApproveOrderFeeReviewsResponse\x122\n" +
+	"\x04data\x18\x01 \x03(\v2\x1e.order.v1.OrderFeeReviewResultR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId\"\xaf\x01\n" +
+	"\x14OrderFeeReviewResult\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x18\n" +
+	"\asuccess\x18\x02 \x01(\bR\asuccess\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x18\n" +
+	"\amessage\x18\x04 \x01(\tR\amessage\x120\n" +
+	"\x04data\x18\x05 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data*}\n" +
 	"\x11OrderFeeDirection\x12#\n" +
 	"\x1fORDER_FEE_DIRECTION_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eORDER_FEE_DIRECTION_RECEIVABLE\x10\x01\x12\x1f\n" +
-	"\x1bORDER_FEE_DIRECTION_PAYABLE\x10\x022\xa9\x19\n" +
-	"\x0fOrderFeeService\x12\x94\x01\n" +
+	"\x1bORDER_FEE_DIRECTION_PAYABLE\x10\x022\xf1$\n" +
+	"\x0fOrderFeeService\x12\x9f\x01\n" +
+	"\x16PreviewOrderFeeReviews\x12'.order.v1.PreviewOrderFeeReviewsRequest\x1a(.order.v1.PreviewOrderFeeReviewsResponse\"2\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02&:\x01*\"!/api/v1/order-fee-reviews/preview\x12\x9f\x01\n" +
+	"\x16ApproveOrderFeeReviews\x12'.order.v1.ApproveOrderFeeReviewsRequest\x1a(.order.v1.ApproveOrderFeeReviewsResponse\"2\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02&:\x01*\"!/api/v1/order-fee-reviews/approve\x12\x90\x01\n" +
+	"\x11GetOrderFeeReview\x12\".order.v1.GetOrderFeeReviewRequest\x1a#.order.v1.GetOrderFeeReviewResponse\"2\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02&\x12$/api/v1/orders/{order_id}/fee-review\x12\xa4\x01\n" +
+	"\x15PreviewOrderFeeReview\x12&.order.v1.PreviewOrderFeeReviewRequest\x1a'.order.v1.PreviewOrderFeeReviewResponse\":\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02.\x12,/api/v1/orders/{order_id}/fee-review/preview\x12\xa3\x01\n" +
+	"\x14SubmitOrderFeeReview\x12%.order.v1.SubmitOrderFeeReviewRequest\x1a&.order.v1.SubmitOrderFeeReviewResponse\"<\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/orders/{order_id}/fee-review/submit\x12\xab\x01\n" +
+	"\x16WithdrawOrderFeeReview\x12'.order.v1.WithdrawOrderFeeReviewRequest\x1a(.order.v1.WithdrawOrderFeeReviewResponse\">\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x022:\x01*\"-/api/v1/orders/{order_id}/fee-review/withdraw\x12\xa7\x01\n" +
+	"\x15ApproveOrderFeeReview\x12&.order.v1.ApproveOrderFeeReviewRequest\x1a'.order.v1.ApproveOrderFeeReviewResponse\"=\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/orders/{order_id}/fee-review/approve\x12\xa3\x01\n" +
+	"\x14RejectOrderFeeReview\x12%.order.v1.RejectOrderFeeReviewRequest\x1a&.order.v1.RejectOrderFeeReviewResponse\"<\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/orders/{order_id}/fee-review/reject\x12\xa3\x01\n" +
+	"\x14RevokeOrderFeeReview\x12%.order.v1.RevokeOrderFeeReviewRequest\x1a&.order.v1.RevokeOrderFeeReviewResponse\"<\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x020:\x01*\"+/api/v1/orders/{order_id}/fee-review/revoke\x12\x94\x01\n" +
 	"\x0eListFeeOptions\x12\x1f.order.v1.ListFeeOptionsRequest\x1a .order.v1.ListFeeOptionsResponse\"?\x82\xb5\x18\x0e\b\x04\x1a\bfee.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/fee-options\x12{\n" +
 	"\bListFees\x12\x19.order.v1.ListFeesRequest\x1a\x1a.order.v1.ListFeesResponse\"8\x82\xb5\x18\x0e\b\x04\x1a\bfee.read \x02\x82\xd3\xe4\x93\x02 \x12\x1e/api/v1/orders/{order_id}/fees\x12\xb2\x01\n" +
 	"\x16ResolveFeeExchangeRate\x12'.order.v1.ResolveFeeExchangeRateRequest\x1a(.order.v1.ResolveFeeExchangeRateResponse\"E\x82\xb5\x18\x0e\b\x04\x1a\bfee.read \x02\x82\xd3\xe4\x93\x02-\x12+/api/v1/orders/{order_id}/fee-exchange-rate\x12z\n" +
@@ -4624,7 +6753,7 @@ func file_order_v1_order_fee_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_fee_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_order_v1_order_fee_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_order_v1_order_fee_proto_msgTypes = make([]protoimpl.MessageInfo, 68)
 var file_order_v1_order_fee_proto_goTypes = []any{
 	(OrderFeeDirection)(0),                            // 0: order.v1.OrderFeeDirection
 	(*OrderFee)(nil),                                  // 1: order.v1.OrderFee
@@ -4672,11 +6801,35 @@ var file_order_v1_order_fee_proto_goTypes = []any{
 	(*WithdrawOrderFeeSupplementResponse)(nil),        // 43: order.v1.WithdrawOrderFeeSupplementResponse
 	(*CancelApprovedOrderFeeSupplementRequest)(nil),   // 44: order.v1.CancelApprovedOrderFeeSupplementRequest
 	(*CancelApprovedOrderFeeSupplementResponse)(nil),  // 45: order.v1.CancelApprovedOrderFeeSupplementResponse
-	(*BusinessTagSummary)(nil),                        // 46: order.v1.BusinessTagSummary
+	(*FeeSupplementCommissionImpact)(nil),             // 46: order.v1.FeeSupplementCommissionImpact
+	(*GetOrderFeeReviewRequest)(nil),                  // 47: order.v1.GetOrderFeeReviewRequest
+	(*PreviewOrderFeeReviewRequest)(nil),              // 48: order.v1.PreviewOrderFeeReviewRequest
+	(*SubmitOrderFeeReviewRequest)(nil),               // 49: order.v1.SubmitOrderFeeReviewRequest
+	(*WithdrawOrderFeeReviewRequest)(nil),             // 50: order.v1.WithdrawOrderFeeReviewRequest
+	(*ApproveOrderFeeReviewRequest)(nil),              // 51: order.v1.ApproveOrderFeeReviewRequest
+	(*RejectOrderFeeReviewRequest)(nil),               // 52: order.v1.RejectOrderFeeReviewRequest
+	(*RevokeOrderFeeReviewRequest)(nil),               // 53: order.v1.RevokeOrderFeeReviewRequest
+	(*OrderFeeReviewActionData)(nil),                  // 54: order.v1.OrderFeeReviewActionData
+	(*OrderFeeReviewEventData)(nil),                   // 55: order.v1.OrderFeeReviewEventData
+	(*OrderFeeReviewData)(nil),                        // 56: order.v1.OrderFeeReviewData
+	(*GetOrderFeeReviewResponse)(nil),                 // 57: order.v1.GetOrderFeeReviewResponse
+	(*PreviewOrderFeeReviewResponse)(nil),             // 58: order.v1.PreviewOrderFeeReviewResponse
+	(*SubmitOrderFeeReviewResponse)(nil),              // 59: order.v1.SubmitOrderFeeReviewResponse
+	(*WithdrawOrderFeeReviewResponse)(nil),            // 60: order.v1.WithdrawOrderFeeReviewResponse
+	(*ApproveOrderFeeReviewResponse)(nil),             // 61: order.v1.ApproveOrderFeeReviewResponse
+	(*RejectOrderFeeReviewResponse)(nil),              // 62: order.v1.RejectOrderFeeReviewResponse
+	(*RevokeOrderFeeReviewResponse)(nil),              // 63: order.v1.RevokeOrderFeeReviewResponse
+	(*PreviewOrderFeeReviewsRequest)(nil),             // 64: order.v1.PreviewOrderFeeReviewsRequest
+	(*PreviewOrderFeeReviewsResponse)(nil),            // 65: order.v1.PreviewOrderFeeReviewsResponse
+	(*ApproveOrderFeeReviewsRequest)(nil),             // 66: order.v1.ApproveOrderFeeReviewsRequest
+	(*ApproveOrderFeeReviewsResponse)(nil),            // 67: order.v1.ApproveOrderFeeReviewsResponse
+	(*OrderFeeReviewResult)(nil),                      // 68: order.v1.OrderFeeReviewResult
+	(*BusinessTagSummary)(nil),                        // 69: order.v1.BusinessTagSummary
+	(*OrderFeeReviewSummary)(nil),                     // 70: order.v1.OrderFeeReviewSummary
 }
 var file_order_v1_order_fee_proto_depIdxs = []int32{
 	0,  // 0: order.v1.OrderFee.direction:type_name -> order.v1.OrderFeeDirection
-	46, // 1: order.v1.OrderFee.tags:type_name -> order.v1.BusinessTagSummary
+	69, // 1: order.v1.OrderFee.tags:type_name -> order.v1.BusinessTagSummary
 	4,  // 2: order.v1.ListFeeOptionsResponse.settlement_parties:type_name -> order.v1.OrderFeeSettlementPartyOption
 	5,  // 3: order.v1.ListFeeOptionsResponse.currencies:type_name -> order.v1.OrderFeeCurrencyOption
 	6,  // 4: order.v1.ListFeeOptionsResponse.fee_settings:type_name -> order.v1.OrderFeeSettingOption
@@ -4689,59 +6842,93 @@ var file_order_v1_order_fee_proto_depIdxs = []int32{
 	1,  // 11: order.v1.UpdateFeeResponse.data:type_name -> order.v1.OrderFee
 	18, // 12: order.v1.BulkUpdateOrderFeesRequest.targets:type_name -> order.v1.BulkOrderFeeTarget
 	18, // 13: order.v1.BulkRemoveOrderFeesRequest.targets:type_name -> order.v1.BulkOrderFeeTarget
-	46, // 14: order.v1.ListOrderFeeTagOptionsResponse.tags:type_name -> order.v1.BusinessTagSummary
+	69, // 14: order.v1.ListOrderFeeTagOptionsResponse.tags:type_name -> order.v1.BusinessTagSummary
 	0,  // 15: order.v1.OrderFeeSupplementRequestData.direction:type_name -> order.v1.OrderFeeDirection
 	0,  // 16: order.v1.CreateOrderFeeSupplementRequest.direction:type_name -> order.v1.OrderFeeDirection
 	29, // 17: order.v1.CreateOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
 	29, // 18: order.v1.ListOrderFeeSupplementRequestsData.items:type_name -> order.v1.OrderFeeSupplementRequestData
 	33, // 19: order.v1.ListOrderFeeSupplementRequestsResponse.data:type_name -> order.v1.ListOrderFeeSupplementRequestsData
-	37, // 20: order.v1.PreviewOrderFeeSupplementApprovalResponse.data:type_name -> order.v1.PreviewOrderFeeSupplementApprovalData
-	29, // 21: order.v1.ApproveOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	1,  // 22: order.v1.ApproveOrderFeeSupplementResponse.fee:type_name -> order.v1.OrderFee
-	29, // 23: order.v1.RejectOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	29, // 24: order.v1.WithdrawOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	29, // 25: order.v1.CancelApprovedOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	3,  // 26: order.v1.OrderFeeService.ListFeeOptions:input_type -> order.v1.ListFeeOptionsRequest
-	2,  // 27: order.v1.OrderFeeService.ListFees:input_type -> order.v1.ListFeesRequest
-	12, // 28: order.v1.OrderFeeService.ResolveFeeExchangeRate:input_type -> order.v1.ResolveFeeExchangeRateRequest
-	9,  // 29: order.v1.OrderFeeService.AddFee:input_type -> order.v1.AddFeeRequest
-	10, // 30: order.v1.OrderFeeService.UpdateFee:input_type -> order.v1.UpdateFeeRequest
-	11, // 31: order.v1.OrderFeeService.RemoveFee:input_type -> order.v1.RemoveFeeRequest
-	19, // 32: order.v1.OrderFeeService.BulkUpdateOrderFees:input_type -> order.v1.BulkUpdateOrderFeesRequest
-	21, // 33: order.v1.OrderFeeService.BulkRemoveOrderFees:input_type -> order.v1.BulkRemoveOrderFeesRequest
-	30, // 34: order.v1.OrderFeeService.CreateOrderFeeSupplement:input_type -> order.v1.CreateOrderFeeSupplementRequest
-	32, // 35: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:input_type -> order.v1.ListOrderFeeSupplementRequestsRequest
-	36, // 36: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:input_type -> order.v1.PreviewOrderFeeSupplementApprovalRequest
-	35, // 37: order.v1.OrderFeeService.ApproveOrderFeeSupplement:input_type -> order.v1.ApproveOrderFeeSupplementRequest
-	40, // 38: order.v1.OrderFeeService.RejectOrderFeeSupplement:input_type -> order.v1.RejectOrderFeeSupplementRequest
-	42, // 39: order.v1.OrderFeeService.WithdrawOrderFeeSupplement:input_type -> order.v1.WithdrawOrderFeeSupplementRequest
-	44, // 40: order.v1.OrderFeeService.CancelApprovedOrderFeeSupplement:input_type -> order.v1.CancelApprovedOrderFeeSupplementRequest
-	23, // 41: order.v1.OrderFeeService.ListOrderFeeTagOptions:input_type -> order.v1.ListOrderFeeTagOptionsRequest
-	25, // 42: order.v1.OrderFeeService.BatchAssignOrderFeeTags:input_type -> order.v1.BatchAssignOrderFeeTagsRequest
-	27, // 43: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:input_type -> order.v1.BatchRemoveOrderFeeTagsRequest
-	8,  // 44: order.v1.OrderFeeService.ListFeeOptions:output_type -> order.v1.ListFeeOptionsResponse
-	14, // 45: order.v1.OrderFeeService.ListFees:output_type -> order.v1.ListFeesResponse
-	13, // 46: order.v1.OrderFeeService.ResolveFeeExchangeRate:output_type -> order.v1.ResolveFeeExchangeRateResponse
-	15, // 47: order.v1.OrderFeeService.AddFee:output_type -> order.v1.AddFeeResponse
-	16, // 48: order.v1.OrderFeeService.UpdateFee:output_type -> order.v1.UpdateFeeResponse
-	17, // 49: order.v1.OrderFeeService.RemoveFee:output_type -> order.v1.RemoveFeeResponse
-	20, // 50: order.v1.OrderFeeService.BulkUpdateOrderFees:output_type -> order.v1.BulkUpdateOrderFeesResponse
-	22, // 51: order.v1.OrderFeeService.BulkRemoveOrderFees:output_type -> order.v1.BulkRemoveOrderFeesResponse
-	31, // 52: order.v1.OrderFeeService.CreateOrderFeeSupplement:output_type -> order.v1.CreateOrderFeeSupplementResponse
-	34, // 53: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:output_type -> order.v1.ListOrderFeeSupplementRequestsResponse
-	38, // 54: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:output_type -> order.v1.PreviewOrderFeeSupplementApprovalResponse
-	39, // 55: order.v1.OrderFeeService.ApproveOrderFeeSupplement:output_type -> order.v1.ApproveOrderFeeSupplementResponse
-	41, // 56: order.v1.OrderFeeService.RejectOrderFeeSupplement:output_type -> order.v1.RejectOrderFeeSupplementResponse
-	43, // 57: order.v1.OrderFeeService.WithdrawOrderFeeSupplement:output_type -> order.v1.WithdrawOrderFeeSupplementResponse
-	45, // 58: order.v1.OrderFeeService.CancelApprovedOrderFeeSupplement:output_type -> order.v1.CancelApprovedOrderFeeSupplementResponse
-	24, // 59: order.v1.OrderFeeService.ListOrderFeeTagOptions:output_type -> order.v1.ListOrderFeeTagOptionsResponse
-	26, // 60: order.v1.OrderFeeService.BatchAssignOrderFeeTags:output_type -> order.v1.BatchAssignOrderFeeTagsResponse
-	28, // 61: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:output_type -> order.v1.BatchRemoveOrderFeeTagsResponse
-	44, // [44:62] is the sub-list for method output_type
-	26, // [26:44] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	46, // 20: order.v1.PreviewOrderFeeSupplementApprovalData.commission_impacts:type_name -> order.v1.FeeSupplementCommissionImpact
+	37, // 21: order.v1.PreviewOrderFeeSupplementApprovalResponse.data:type_name -> order.v1.PreviewOrderFeeSupplementApprovalData
+	29, // 22: order.v1.ApproveOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	1,  // 23: order.v1.ApproveOrderFeeSupplementResponse.fee:type_name -> order.v1.OrderFee
+	29, // 24: order.v1.RejectOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	29, // 25: order.v1.WithdrawOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	29, // 26: order.v1.CancelApprovedOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	70, // 27: order.v1.OrderFeeReviewEventData.summary:type_name -> order.v1.OrderFeeReviewSummary
+	70, // 28: order.v1.OrderFeeReviewData.summary:type_name -> order.v1.OrderFeeReviewSummary
+	1,  // 29: order.v1.OrderFeeReviewData.fees:type_name -> order.v1.OrderFee
+	55, // 30: order.v1.OrderFeeReviewData.history:type_name -> order.v1.OrderFeeReviewEventData
+	56, // 31: order.v1.GetOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	56, // 32: order.v1.PreviewOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	56, // 33: order.v1.SubmitOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	56, // 34: order.v1.WithdrawOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	56, // 35: order.v1.ApproveOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	56, // 36: order.v1.RejectOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	56, // 37: order.v1.RevokeOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	68, // 38: order.v1.PreviewOrderFeeReviewsResponse.data:type_name -> order.v1.OrderFeeReviewResult
+	54, // 39: order.v1.ApproveOrderFeeReviewsRequest.items:type_name -> order.v1.OrderFeeReviewActionData
+	68, // 40: order.v1.ApproveOrderFeeReviewsResponse.data:type_name -> order.v1.OrderFeeReviewResult
+	56, // 41: order.v1.OrderFeeReviewResult.data:type_name -> order.v1.OrderFeeReviewData
+	64, // 42: order.v1.OrderFeeService.PreviewOrderFeeReviews:input_type -> order.v1.PreviewOrderFeeReviewsRequest
+	66, // 43: order.v1.OrderFeeService.ApproveOrderFeeReviews:input_type -> order.v1.ApproveOrderFeeReviewsRequest
+	47, // 44: order.v1.OrderFeeService.GetOrderFeeReview:input_type -> order.v1.GetOrderFeeReviewRequest
+	48, // 45: order.v1.OrderFeeService.PreviewOrderFeeReview:input_type -> order.v1.PreviewOrderFeeReviewRequest
+	49, // 46: order.v1.OrderFeeService.SubmitOrderFeeReview:input_type -> order.v1.SubmitOrderFeeReviewRequest
+	50, // 47: order.v1.OrderFeeService.WithdrawOrderFeeReview:input_type -> order.v1.WithdrawOrderFeeReviewRequest
+	51, // 48: order.v1.OrderFeeService.ApproveOrderFeeReview:input_type -> order.v1.ApproveOrderFeeReviewRequest
+	52, // 49: order.v1.OrderFeeService.RejectOrderFeeReview:input_type -> order.v1.RejectOrderFeeReviewRequest
+	53, // 50: order.v1.OrderFeeService.RevokeOrderFeeReview:input_type -> order.v1.RevokeOrderFeeReviewRequest
+	3,  // 51: order.v1.OrderFeeService.ListFeeOptions:input_type -> order.v1.ListFeeOptionsRequest
+	2,  // 52: order.v1.OrderFeeService.ListFees:input_type -> order.v1.ListFeesRequest
+	12, // 53: order.v1.OrderFeeService.ResolveFeeExchangeRate:input_type -> order.v1.ResolveFeeExchangeRateRequest
+	9,  // 54: order.v1.OrderFeeService.AddFee:input_type -> order.v1.AddFeeRequest
+	10, // 55: order.v1.OrderFeeService.UpdateFee:input_type -> order.v1.UpdateFeeRequest
+	11, // 56: order.v1.OrderFeeService.RemoveFee:input_type -> order.v1.RemoveFeeRequest
+	19, // 57: order.v1.OrderFeeService.BulkUpdateOrderFees:input_type -> order.v1.BulkUpdateOrderFeesRequest
+	21, // 58: order.v1.OrderFeeService.BulkRemoveOrderFees:input_type -> order.v1.BulkRemoveOrderFeesRequest
+	30, // 59: order.v1.OrderFeeService.CreateOrderFeeSupplement:input_type -> order.v1.CreateOrderFeeSupplementRequest
+	32, // 60: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:input_type -> order.v1.ListOrderFeeSupplementRequestsRequest
+	36, // 61: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:input_type -> order.v1.PreviewOrderFeeSupplementApprovalRequest
+	35, // 62: order.v1.OrderFeeService.ApproveOrderFeeSupplement:input_type -> order.v1.ApproveOrderFeeSupplementRequest
+	40, // 63: order.v1.OrderFeeService.RejectOrderFeeSupplement:input_type -> order.v1.RejectOrderFeeSupplementRequest
+	42, // 64: order.v1.OrderFeeService.WithdrawOrderFeeSupplement:input_type -> order.v1.WithdrawOrderFeeSupplementRequest
+	44, // 65: order.v1.OrderFeeService.CancelApprovedOrderFeeSupplement:input_type -> order.v1.CancelApprovedOrderFeeSupplementRequest
+	23, // 66: order.v1.OrderFeeService.ListOrderFeeTagOptions:input_type -> order.v1.ListOrderFeeTagOptionsRequest
+	25, // 67: order.v1.OrderFeeService.BatchAssignOrderFeeTags:input_type -> order.v1.BatchAssignOrderFeeTagsRequest
+	27, // 68: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:input_type -> order.v1.BatchRemoveOrderFeeTagsRequest
+	65, // 69: order.v1.OrderFeeService.PreviewOrderFeeReviews:output_type -> order.v1.PreviewOrderFeeReviewsResponse
+	67, // 70: order.v1.OrderFeeService.ApproveOrderFeeReviews:output_type -> order.v1.ApproveOrderFeeReviewsResponse
+	57, // 71: order.v1.OrderFeeService.GetOrderFeeReview:output_type -> order.v1.GetOrderFeeReviewResponse
+	58, // 72: order.v1.OrderFeeService.PreviewOrderFeeReview:output_type -> order.v1.PreviewOrderFeeReviewResponse
+	59, // 73: order.v1.OrderFeeService.SubmitOrderFeeReview:output_type -> order.v1.SubmitOrderFeeReviewResponse
+	60, // 74: order.v1.OrderFeeService.WithdrawOrderFeeReview:output_type -> order.v1.WithdrawOrderFeeReviewResponse
+	61, // 75: order.v1.OrderFeeService.ApproveOrderFeeReview:output_type -> order.v1.ApproveOrderFeeReviewResponse
+	62, // 76: order.v1.OrderFeeService.RejectOrderFeeReview:output_type -> order.v1.RejectOrderFeeReviewResponse
+	63, // 77: order.v1.OrderFeeService.RevokeOrderFeeReview:output_type -> order.v1.RevokeOrderFeeReviewResponse
+	8,  // 78: order.v1.OrderFeeService.ListFeeOptions:output_type -> order.v1.ListFeeOptionsResponse
+	14, // 79: order.v1.OrderFeeService.ListFees:output_type -> order.v1.ListFeesResponse
+	13, // 80: order.v1.OrderFeeService.ResolveFeeExchangeRate:output_type -> order.v1.ResolveFeeExchangeRateResponse
+	15, // 81: order.v1.OrderFeeService.AddFee:output_type -> order.v1.AddFeeResponse
+	16, // 82: order.v1.OrderFeeService.UpdateFee:output_type -> order.v1.UpdateFeeResponse
+	17, // 83: order.v1.OrderFeeService.RemoveFee:output_type -> order.v1.RemoveFeeResponse
+	20, // 84: order.v1.OrderFeeService.BulkUpdateOrderFees:output_type -> order.v1.BulkUpdateOrderFeesResponse
+	22, // 85: order.v1.OrderFeeService.BulkRemoveOrderFees:output_type -> order.v1.BulkRemoveOrderFeesResponse
+	31, // 86: order.v1.OrderFeeService.CreateOrderFeeSupplement:output_type -> order.v1.CreateOrderFeeSupplementResponse
+	34, // 87: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:output_type -> order.v1.ListOrderFeeSupplementRequestsResponse
+	38, // 88: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:output_type -> order.v1.PreviewOrderFeeSupplementApprovalResponse
+	39, // 89: order.v1.OrderFeeService.ApproveOrderFeeSupplement:output_type -> order.v1.ApproveOrderFeeSupplementResponse
+	41, // 90: order.v1.OrderFeeService.RejectOrderFeeSupplement:output_type -> order.v1.RejectOrderFeeSupplementResponse
+	43, // 91: order.v1.OrderFeeService.WithdrawOrderFeeSupplement:output_type -> order.v1.WithdrawOrderFeeSupplementResponse
+	45, // 92: order.v1.OrderFeeService.CancelApprovedOrderFeeSupplement:output_type -> order.v1.CancelApprovedOrderFeeSupplementResponse
+	24, // 93: order.v1.OrderFeeService.ListOrderFeeTagOptions:output_type -> order.v1.ListOrderFeeTagOptionsResponse
+	26, // 94: order.v1.OrderFeeService.BatchAssignOrderFeeTags:output_type -> order.v1.BatchAssignOrderFeeTagsResponse
+	28, // 95: order.v1.OrderFeeService.BatchRemoveOrderFeeTags:output_type -> order.v1.BatchRemoveOrderFeeTagsResponse
+	69, // [69:96] is the sub-list for method output_type
+	42, // [42:69] is the sub-list for method input_type
+	42, // [42:42] is the sub-list for extension type_name
+	42, // [42:42] is the sub-list for extension extendee
+	0,  // [0:42] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_fee_proto_init() }
@@ -4769,7 +6956,7 @@ func file_order_v1_order_fee_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_fee_proto_rawDesc), len(file_order_v1_order_fee_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   45,
+			NumMessages:   68,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

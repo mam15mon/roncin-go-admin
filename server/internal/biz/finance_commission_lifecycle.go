@@ -109,8 +109,17 @@ func commissionCreateAudit(org, actor, id uuid.UUID, snapshot *CommissionCNYSnap
 func (u *CommissionUsecase) Confirm(ctx context.Context, org, actor, id uuid.UUID, version uint64) (*FinanceCommission, error) {
 	return u.transition(ctx, org, actor, id, version, CommissionConfirmed, "")
 }
-func (u *CommissionUsecase) MarkPaid(ctx context.Context, org, actor, id uuid.UUID, version uint64) (*FinanceCommission, error) {
-	return u.transition(ctx, org, actor, id, version, CommissionPaid, "")
+func (u *CommissionUsecase) MarkPaid(ctx context.Context, org, actor, id uuid.UUID, version uint64, inputs ...CommissionPaymentInput) (*FinanceCommission, error) {
+	if len(inputs) != 1 || strings.TrimSpace(inputs[0].PreviewToken) == "" || strings.TrimSpace(inputs[0].IdempotencyKey) == "" || len(inputs[0].IdempotencyKey) > 128 || inputs[0].ActualAmount.IsNegative() || version == 0 {
+		return nil, ErrCommissionInvalid
+	}
+	return u.repo.Pay(ctx, org, id, actor, version, inputs[0], commissionAudit(org, actor, id, "finance.commission.paid"))
+}
+func (u *CommissionUsecase) PreviewPayment(ctx context.Context, org, id uuid.UUID, version uint64) (*CommissionPaymentPreview, error) {
+	if org == uuid.Nil || id == uuid.Nil || version == 0 {
+		return nil, ErrCommissionInvalid
+	}
+	return u.repo.PreviewPayment(ctx, org, id, version)
 }
 func (u *CommissionUsecase) Cancel(ctx context.Context, org, actor, id uuid.UUID, version uint64, reason string) (*FinanceCommission, error) {
 	return u.transition(ctx, org, actor, id, version, CommissionCancelled, strings.TrimSpace(reason))

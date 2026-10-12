@@ -103,6 +103,14 @@ type FinanceCommission struct {
 	ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
 	// ConfirmedBy holds the value of the "confirmed_by" field.
 	ConfirmedBy *uuid.UUID `json:"confirmed_by,omitempty"`
+	// PaidAmount holds the value of the "paid_amount" field.
+	PaidAmount *string `json:"paid_amount,omitempty"`
+	// PaymentKey holds the value of the "payment_key" field.
+	PaymentKey *string `json:"payment_key,omitempty"`
+	// PaymentFingerprint holds the value of the "payment_fingerprint" field.
+	PaymentFingerprint *string `json:"payment_fingerprint,omitempty"`
+	// PaymentSnapshot holds the value of the "payment_snapshot" field.
+	PaymentSnapshot *string `json:"payment_snapshot,omitempty"`
 	// PaidAt holds the value of the "paid_at" field.
 	PaidAt *time.Time `json:"paid_at,omitempty"`
 	// PaidBy holds the value of the "paid_by" field.
@@ -272,7 +280,7 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommission.FieldCustomerCount, financecommission.FieldOrderCount, financecommission.FieldFeeCount, financecommission.FieldRuleVersion, financecommission.FieldAdjustmentSequence, financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldNettingNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldCommissionDate, financecommission.FieldCnyExchangeRate, financecommission.FieldCnyExchangeRateSource, financecommission.FieldCnyExchangeRateDate, financecommission.FieldCnyCommissionAmount, financecommission.FieldNote, financecommission.FieldCancellationReason:
+		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldNettingNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldCommissionDate, financecommission.FieldCnyExchangeRate, financecommission.FieldCnyExchangeRateSource, financecommission.FieldCnyExchangeRateDate, financecommission.FieldCnyCommissionAmount, financecommission.FieldNote, financecommission.FieldPaidAmount, financecommission.FieldPaymentKey, financecommission.FieldPaymentFingerprint, financecommission.FieldPaymentSnapshot, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommission.FieldCreatedAt, financecommission.FieldUpdatedAt, financecommission.FieldConfirmedAt, financecommission.FieldPaidAt, financecommission.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -551,6 +559,34 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 				_m.ConfirmedBy = new(uuid.UUID)
 				*_m.ConfirmedBy = *value.S.(*uuid.UUID)
 			}
+		case financecommission.FieldPaidAmount:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field paid_amount", values[i])
+			} else if value.Valid {
+				_m.PaidAmount = new(string)
+				*_m.PaidAmount = value.String
+			}
+		case financecommission.FieldPaymentKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field payment_key", values[i])
+			} else if value.Valid {
+				_m.PaymentKey = new(string)
+				*_m.PaymentKey = value.String
+			}
+		case financecommission.FieldPaymentFingerprint:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field payment_fingerprint", values[i])
+			} else if value.Valid {
+				_m.PaymentFingerprint = new(string)
+				*_m.PaymentFingerprint = value.String
+			}
+		case financecommission.FieldPaymentSnapshot:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field payment_snapshot", values[i])
+			} else if value.Valid {
+				_m.PaymentSnapshot = new(string)
+				*_m.PaymentSnapshot = value.String
+			}
 		case financecommission.FieldPaidAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field paid_at", values[i])
@@ -819,6 +855,26 @@ func (_m *FinanceCommission) String() string {
 	if v := _m.ConfirmedBy; v != nil {
 		builder.WriteString("confirmed_by=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.PaidAmount; v != nil {
+		builder.WriteString("paid_amount=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.PaymentKey; v != nil {
+		builder.WriteString("payment_key=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.PaymentFingerprint; v != nil {
+		builder.WriteString("payment_fingerprint=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.PaymentSnapshot; v != nil {
+		builder.WriteString("payment_snapshot=")
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := _m.PaidAt; v != nil {

@@ -29,33 +29,39 @@ const (
 )
 
 type FeeLedgerFilter struct {
-	Page              int
-	PageSize          int
-	Keyword           string
-	BusinessType      string
-	Direction         OrderFeeDirection
-	FinancialProgress FeeLedgerFinancialProgress
-	SettlementPartyID *uuid.UUID
-	CustomerID        *uuid.UUID
-	Currency          string
-	BillNo            string
-	ExpenseDateFrom   string
-	ExpenseDateTo     string
-	FinanceLocked     *bool
-	TagIDs            []uuid.UUID
+	FeeReviewStatus         string
+	HasPendingFeeSupplement *bool
+	Page                    int
+	PageSize                int
+	Keyword                 string
+	BusinessType            string
+	Direction               OrderFeeDirection
+	FinancialProgress       FeeLedgerFinancialProgress
+	SettlementPartyID       *uuid.UUID
+	CustomerID              *uuid.UUID
+	Currency                string
+	BillNo                  string
+	ExpenseDateFrom         string
+	ExpenseDateTo           string
+	FinanceLocked           *bool
+	TagIDs                  []uuid.UUID
 }
 
 type FeeLedgerItem struct {
-	Fee               *OrderFee
-	OrganizationID    uuid.UUID
-	OrganizationName  string
-	OrderNo           string
-	Business          string
-	CustomerID        uuid.UUID
-	CustomerName      string
-	FinancialProgress FeeLedgerFinancialProgress
-	BillNo            string
-	FinanceLocked     bool
+	FeeReviewStatus         string
+	HasPendingFeeSupplement bool
+	CanBill                 bool
+	BlockedReasons          []string
+	Fee                     *OrderFee
+	OrganizationID          uuid.UUID
+	OrganizationName        string
+	OrderNo                 string
+	Business                string
+	CustomerID              uuid.UUID
+	CustomerName            string
+	FinancialProgress       FeeLedgerFinancialProgress
+	BillNo                  string
+	FinanceLocked           bool
 }
 
 // ResolveFeeLedgerFinancialProgress 依据账单事实解析费用台账的财务进度。

@@ -10,9 +10,46 @@ import "order/v1/order.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
 // OrderFeeService 订单费用录入服务。
-// 管理订单费用明细；费用保存后即为未建账状态，可直接维护或进入账单，
-// 进入账单后修改范围由财务自定义策略控制。
+// 管理整票费用录入与人工审核；费用批准后冻结，财务仅从有效批准费用建账。
 service OrderFeeService {
+
+  rpc PreviewOrderFeeReviews(PreviewOrderFeeReviewsRequest) returns (PreviewOrderFeeReviewsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/order-fee-reviews/preview" body: "*"};
+  }
+  rpc ApproveOrderFeeReviews(ApproveOrderFeeReviewsRequest) returns (ApproveOrderFeeReviewsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/order-fee-reviews/approve" body: "*"};
+  }
+  rpc GetOrderFeeReview(GetOrderFeeReviewRequest) returns (GetOrderFeeReviewResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-review"};
+  }
+  rpc PreviewOrderFeeReview(PreviewOrderFeeReviewRequest) returns (PreviewOrderFeeReviewResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-review/preview"};
+  }
+  rpc SubmitOrderFeeReview(SubmitOrderFeeReviewRequest) returns (SubmitOrderFeeReviewResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-review/submit" body: "*"};
+  }
+  rpc WithdrawOrderFeeReview(WithdrawOrderFeeReviewRequest) returns (WithdrawOrderFeeReviewResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-review/withdraw" body: "*"};
+  }
+  rpc ApproveOrderFeeReview(ApproveOrderFeeReviewRequest) returns (ApproveOrderFeeReviewResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-review/approve" body: "*"};
+  }
+  rpc RejectOrderFeeReview(RejectOrderFeeReviewRequest) returns (RejectOrderFeeReviewResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-review/reject" body: "*"};
+  }
+  rpc RevokeOrderFeeReview(RevokeOrderFeeReviewRequest) returns (RevokeOrderFeeReviewResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-review/revoke" body: "*"};
+  }
+
   // ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。
   rpc ListFeeOptions(ListFeeOptionsRequest) returns (ListFeeOptionsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -79,9 +116,9 @@ service OrderFeeService {
     };
   }
 
-  // CreateOrderFeeSupplement 在业务锁或提成净额财务锁成立期间发起锁后应付费用补录申请。
-  // 锁类型、锁代次与财务锁证据均由服务端在 Order 行锁内判定固化；双锁均不存在时
-  // 稳定拒绝并引导普通费用新增。
+  // CreateOrderFeeSupplement 基于有效整票费用批准发起受控正数应付成本补录。
+  // 批准事件与内容版本由服务端锁内固化；同订单只允许一条待审补录，并提醒
+  // 有效费用审核权限且组织范围匹配的候选人。
   rpc CreateOrderFeeSupplement(CreateOrderFeeSupplementRequest) returns (CreateOrderFeeSupplementResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -91,7 +128,7 @@ service OrderFeeService {
   }
 
   // ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权
-  // （fee.read 或发起人本人或实时 lock grant）在领域层执行，不得被组织级
+  // （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级
   // fee.read 注解提前挡住，也不泄露无权申请。
   rpc ListOrderFeeSupplementRequests(ListOrderFeeSupplementRequestsRequest) returns (ListOrderFeeSupplementRequestsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
@@ -104,8 +141,8 @@ service OrderFeeService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-supplement-requests/{id}/approval-preview"};
   }
 
-  // ApproveOrderFeeSupplement 审批通过补录申请：按申请固化的锁依据复核原始依据，
-  // 在同一事务创建补录费用、DECREASE+DRAFT 冲减建议并逐员工通知。
+  // ApproveOrderFeeSupplement 审批通过补录申请：复核固化的有效费用批准与整票利润、逐人提成预览，
+  // 在同一事务创建补录费用、DECREASE+CONFIRMED 冲减并逐员工通知。
   rpc ApproveOrderFeeSupplement(ApproveOrderFeeSupplementRequest) returns (ApproveOrderFeeSupplementResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -134,8 +171,8 @@ service OrderFeeService {
   }
 
   // CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
-  // 未被有效账单关联占用且关联冲减从未确认/扣回的补录；费用物理删除、仍为 DRAFT
-  // 的关联冲减建议在同一事务取消，APPROVED 申请保持不变，历史账单行快照保留。
+  // 未被有效账单关联占用且未产生确认冲减的补录；同事务物理删除费用并撤销
+  // 当前整票批准，APPROVED 申请事实及历史账单行快照保留。
   rpc CancelApprovedOrderFeeSupplement(CancelApprovedOrderFeeSupplementRequest) returns (CancelApprovedOrderFeeSupplementResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -300,9 +337,9 @@ message UpdateFeeRequest {
   string billing_unit_id = 16 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 17 [(google.api.field_behavior) = REQUIRED];
   optional bool tax_inclusive = 18;
-  // tax_rate 仅在修改已进入草稿账单的费用时作为目标税率；不传时沿用费用项目默认或现有税率。
+  // tax_rate 请求字段；审核中及已批准费用均禁止直接更新，既有草稿编辑配置不能绕过。
   optional string tax_rate = 19;
-  // fee_name 仅覆盖当前费用及其草稿账单行快照，不修改费用设置主数据。
+  // fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。
   optional string fee_name = 20;
 }
 
@@ -438,15 +475,15 @@ message BatchRemoveOrderFeeTagsResponse {
 }
 
 // -------------------------------------------------------------
-// 锁单后费用补录申请
+// 费用批准后的受控成本补录申请
 // -------------------------------------------------------------
 
 // OrderFeeSupplementRequestData 是补录申请及其不可变费用快照的投影。
-// 锁依据字段由服务端在 Order 行锁内判定固化，客户端传入值一律被忽略。
+// 批准依据由服务端在 Order 行锁内固化，业务锁与提成财务锁不授予审批资格。
 message OrderFeeSupplementRequestData {
   string id = 1;
   string order_id = 2;
-  // 锁依据类型：BUSINESS / FINANCIAL / BOTH。
+  // 当前申请依据类型：APPROVAL；业务锁字段不参与新申请与动作判定。
   string lock_basis = 3;
   optional uint64 business_lock_generation = 4;
   optional string financial_lock_evidence_version = 5;
@@ -500,7 +537,7 @@ message OrderFeeSupplementRequestData {
   optional string fee_id = 46;
   reserved 47;
   reserved "fee_status";
-  // 当前是否仍存在具备实时 lock grant 的审批人；提交后资格全部失效时申请保持
+  // 当前是否仍存在具备有效费用审核权限且组织范围匹配的审批人；提交后资格全部失效时申请保持
   // PENDING 并投影 false，发起人仍可撤回。
   bool approver_available = 48;
   // 展示姓名；requested_by / decided_by 仍用于身份与权限判断。
@@ -560,6 +597,8 @@ message ApproveOrderFeeSupplementRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string id = 2 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 3 [(google.api.field_behavior) = REQUIRED];
+  string preview_token = 4 [(google.api.field_behavior) = REQUIRED];
+  string comment = 5;
 }
 
 message PreviewOrderFeeSupplementApprovalRequest {
@@ -581,6 +620,8 @@ message PreviewOrderFeeSupplementApprovalData {
   string projected_profit = 9;
   optional string projected_profit_rate = 10;
   string profit_change = 11;
+  string preview_token = 12;
+  repeated FeeSupplementCommissionImpact commission_impacts = 13;
 }
 
 message PreviewOrderFeeSupplementApprovalResponse {
@@ -648,4 +689,168 @@ message CancelApprovedOrderFeeSupplementResponse {
   // 撤销成功后刷新的申请数据：申请保持 APPROVED，fee_id 为空表示生成费用已删除，
   // can_cancel=false 并携带阻断原因；不再返回已删除的费用实体。
   OrderFeeSupplementRequestData data = 6;
+}
+
+message FeeSupplementCommissionImpact {
+  string commission_id = 1; string commission_no = 2; string employee_id = 3; string employee_name = 4;
+  string base_currency = 5; string amount_before = 6; string amount_after = 7; string decrease_amount = 8;
+  string excess_amount = 9; string commission_status = 10;
+}
+
+// 审核动作绑定读取到的完整费用及审核版本；批准另带预览指纹。
+message GetOrderFeeReviewRequest { string order_id = 1; }
+message PreviewOrderFeeReviewRequest { string order_id = 1; }
+message SubmitOrderFeeReviewRequest {
+ string order_id = 1;
+ uint64 expected_review_version = 2;
+ uint64 expected_content_version = 3;
+ string submission_id = 4;
+ string preview_token = 5;
+ string comment = 6;
+ string idempotency_key = 7;
+ bool completeness_confirmed = 8;
+}
+message WithdrawOrderFeeReviewRequest {
+ string order_id = 1;
+ uint64 expected_review_version = 2;
+ uint64 expected_content_version = 3;
+ string submission_id = 4;
+ string preview_token = 5;
+ string comment = 6;
+ string idempotency_key = 7;
+ bool completeness_confirmed = 8;
+}
+message ApproveOrderFeeReviewRequest {
+ string order_id = 1;
+ uint64 expected_review_version = 2;
+ uint64 expected_content_version = 3;
+ string submission_id = 4;
+ string preview_token = 5;
+ string comment = 6;
+ string idempotency_key = 7;
+ bool completeness_confirmed = 8;
+}
+message RejectOrderFeeReviewRequest {
+ string order_id = 1;
+ uint64 expected_review_version = 2;
+ uint64 expected_content_version = 3;
+ string submission_id = 4;
+ string preview_token = 5;
+ string comment = 6;
+ string idempotency_key = 7;
+ bool completeness_confirmed = 8;
+}
+message RevokeOrderFeeReviewRequest {
+ string order_id = 1;
+ uint64 expected_review_version = 2;
+ uint64 expected_content_version = 3;
+ string submission_id = 4;
+ string preview_token = 5;
+ string comment = 6;
+ string idempotency_key = 7;
+ bool completeness_confirmed = 8;
+}
+message OrderFeeReviewActionData {
+ string order_id = 1;
+ uint64 expected_review_version = 2;
+ uint64 expected_content_version = 3;
+ string submission_id = 4;
+ string preview_token = 5;
+ string comment = 6;
+ string idempotency_key = 7;
+ bool completeness_confirmed = 8;
+}
+message OrderFeeReviewEventData {
+ string id = 1;
+ string action = 2;
+ string actor_id = 3;
+ string actor_name = 4;
+ string comment = 5;
+ string created_at = 6;
+ uint64 content_version = 7;
+ OrderFeeReviewSummary summary = 8;
+ string submission_id = 9;
+}
+message OrderFeeReviewData {
+ string order_id = 1;
+ string order_no = 2;
+ string status = 3;
+ uint64 content_version = 4;
+ uint64 review_version = 5;
+ string submission_id = 6;
+ string approved_event_id = 7;
+ string preview_token = 8;
+ OrderFeeReviewSummary summary = 9;
+ repeated OrderFee fees = 10;
+ repeated OrderFeeReviewEventData history = 11;
+ bool can_submit = 12;
+ bool can_withdraw = 13;
+ bool can_approve = 14;
+ bool can_revoke = 15;
+ bool can_edit = 16;
+ bool can_bill = 17;
+ bool has_pending_supplement = 18;
+ repeated string blocked_reasons = 19;
+ int32 notification_failed_count = 20;
+ int32 notification_unbound_count = 21;
+}
+message GetOrderFeeReviewResponse {
+ bool success = 1;
+ int32 code = 2;
+ string message = 3;
+ OrderFeeReviewData data = 4;
+ string trace_id = 5;
+}
+message PreviewOrderFeeReviewResponse {
+ bool success = 1;
+ int32 code = 2;
+ string message = 3;
+ OrderFeeReviewData data = 4;
+ string trace_id = 5;
+}
+message SubmitOrderFeeReviewResponse {
+ bool success = 1;
+ int32 code = 2;
+ string message = 3;
+ OrderFeeReviewData data = 4;
+ string trace_id = 5;
+}
+message WithdrawOrderFeeReviewResponse {
+ bool success = 1;
+ int32 code = 2;
+ string message = 3;
+ OrderFeeReviewData data = 4;
+ string trace_id = 5;
+}
+message ApproveOrderFeeReviewResponse {
+ bool success = 1;
+ int32 code = 2;
+ string message = 3;
+ OrderFeeReviewData data = 4;
+ string trace_id = 5;
+}
+message RejectOrderFeeReviewResponse {
+ bool success = 1;
+ int32 code = 2;
+ string message = 3;
+ OrderFeeReviewData data = 4;
+ string trace_id = 5;
+}
+message RevokeOrderFeeReviewResponse {
+ bool success = 1;
+ int32 code = 2;
+ string message = 3;
+ OrderFeeReviewData data = 4;
+ string trace_id = 5;
+}
+message PreviewOrderFeeReviewsRequest { repeated string order_ids = 1; }
+message PreviewOrderFeeReviewsResponse { repeated OrderFeeReviewResult data = 1; string trace_id = 2; }
+message ApproveOrderFeeReviewsRequest { repeated OrderFeeReviewActionData items = 1; }
+message ApproveOrderFeeReviewsResponse { repeated OrderFeeReviewResult data = 1; string trace_id = 2; }
+message OrderFeeReviewResult {
+ string order_id = 1;
+ bool success = 2;
+ string reason = 3;
+ string message = 4;
+ OrderFeeReviewData data = 5;
 }

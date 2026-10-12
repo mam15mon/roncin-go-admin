@@ -13,6 +13,18 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 		expectedChecks map[string]string
 	}{
 		{
+			tableName: "orders", table: OrdersTable,
+			expectedChecks: map[string]string{"orders_fee_review_status_check": "fee_review_status IN ('UNSUBMITTED', 'PENDING', 'APPROVED', 'REJECTED', 'REVOKED')"},
+		},
+		{
+			tableName: "order_fee_review_events", table: OrderFeeReviewEventsTable,
+			expectedChecks: map[string]string{"order_fee_review_events_action_check": "action IN ('SUBMIT','WITHDRAW','APPROVE','REJECT','REVOKE','SUPPLEMENT_APPROVE')"},
+		},
+		{
+			tableName: "finance_commission_adjustments", table: FinanceCommissionAdjustmentsTable,
+			expectedChecks: map[string]string{"commission_adjustment_execution_check": "(execution_method IS NULL AND parent_payment_id IS NULL) OR (execution_method = 'OFFSET_WITH_PARENT' AND parent_payment_id = commission_id) OR (execution_method = 'SEPARATE' AND parent_payment_id IS NULL)"},
+		},
+		{
 			tableName: "order_attachment_assets",
 			table:     OrderAttachmentAssetsTable,
 			expectedChecks: map[string]string{
@@ -136,7 +148,7 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			tableName: "order_fee_supplement_requests",
 			table:     OrderFeeSupplementRequestsTable,
 			expectedChecks: map[string]string{
-				"order_fee_supplement_requests_lock_basis_check": "(lock_basis = 'BUSINESS' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NULL AND financial_lock_evidence_hash IS NULL AND financial_lock_net_amount_snapshot IS NULL) OR (lock_basis = 'FINANCIAL' AND business_lock_generation IS NULL AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0) OR (lock_basis = 'BOTH' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0)",
+				"order_fee_supplement_requests_lock_basis_check": "(lock_basis = 'APPROVAL' AND approved_fee_review_event_id IS NOT NULL AND approved_fee_content_version > 0) OR (lock_basis = 'BUSINESS' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NULL AND financial_lock_evidence_hash IS NULL AND financial_lock_net_amount_snapshot IS NULL) OR (lock_basis = 'FINANCIAL' AND business_lock_generation IS NULL AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0) OR (lock_basis = 'BOTH' AND business_lock_generation IS NOT NULL AND business_lock_generation > 0 AND financial_lock_evidence_version IS NOT NULL AND financial_lock_evidence_hash IS NOT NULL AND financial_lock_net_amount_snapshot IS NOT NULL AND financial_lock_net_amount_snapshot > 0)",
 				"order_fee_supplement_requests_status_check":     "status IN ('PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN')",
 			},
 		},
@@ -144,7 +156,7 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 			tableName: "notification_deliveries",
 			table:     NotificationDeliveriesTable,
 			expectedChecks: map[string]string{
-				"notification_deliveries_template_check": "template IN ('ORDER_PERSONNEL_ASSIGNED', 'USER_AUTHORIZED', 'DINGTALK_REGISTRATION_PENDING', 'DINGTALK_REGISTRATION_REJECTED', 'DINGTALK_INVITATION_ACTIVATED', 'EXCHANGE_RATE_WEEKLY_REMINDER', 'FEE_SUPPLEMENT_APPROVAL_PENDING', 'COMMISSION_DECREASE_SUGGESTED')",
+				"notification_deliveries_template_check": "template IN ('ORDER_PERSONNEL_ASSIGNED', 'USER_AUTHORIZED', 'DINGTALK_REGISTRATION_PENDING', 'DINGTALK_REGISTRATION_REJECTED', 'DINGTALK_INVITATION_ACTIVATED', 'EXCHANGE_RATE_WEEKLY_REMINDER', 'FEE_SUPPLEMENT_APPROVAL_PENDING', 'COMMISSION_DECREASE_SUGGESTED', 'FEE_REVIEW_PENDING', 'FEE_REVIEW_RESULT')",
 			},
 		},
 		{

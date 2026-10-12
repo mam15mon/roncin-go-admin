@@ -76,6 +76,16 @@ func OrderID(v uuid.UUID) predicate.OrderFeeSupplementRequest {
 	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldOrderID, v))
 }
 
+// ApprovedFeeReviewEventID applies equality check predicate on the "approved_fee_review_event_id" field. It's identical to ApprovedFeeReviewEventIDEQ.
+func ApprovedFeeReviewEventID(v uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeContentVersion applies equality check predicate on the "approved_fee_content_version" field. It's identical to ApprovedFeeContentVersionEQ.
+func ApprovedFeeContentVersion(v uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldApprovedFeeContentVersion, v))
+}
+
 // BusinessLockGeneration applies equality check predicate on the "business_lock_generation" field. It's identical to BusinessLockGenerationEQ.
 func BusinessLockGeneration(v uint64) predicate.OrderFeeSupplementRequest {
 	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldBusinessLockGeneration, v))
@@ -374,6 +384,106 @@ func OrderIDIn(vs ...uuid.UUID) predicate.OrderFeeSupplementRequest {
 // OrderIDNotIn applies the NotIn predicate on the "order_id" field.
 func OrderIDNotIn(vs ...uuid.UUID) predicate.OrderFeeSupplementRequest {
 	return predicate.OrderFeeSupplementRequest(sql.FieldNotIn(FieldOrderID, vs...))
+}
+
+// ApprovedFeeReviewEventIDEQ applies the EQ predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDEQ(v uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDNEQ applies the NEQ predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDNEQ(v uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldNEQ(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDIn applies the In predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDIn(vs ...uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldIn(FieldApprovedFeeReviewEventID, vs...))
+}
+
+// ApprovedFeeReviewEventIDNotIn applies the NotIn predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDNotIn(vs ...uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldNotIn(FieldApprovedFeeReviewEventID, vs...))
+}
+
+// ApprovedFeeReviewEventIDGT applies the GT predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDGT(v uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldGT(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDGTE applies the GTE predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDGTE(v uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldGTE(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDLT applies the LT predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDLT(v uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldLT(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDLTE applies the LTE predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDLTE(v uuid.UUID) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldLTE(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDIsNil applies the IsNil predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDIsNil() predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldIsNull(FieldApprovedFeeReviewEventID))
+}
+
+// ApprovedFeeReviewEventIDNotNil applies the NotNil predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDNotNil() predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldNotNull(FieldApprovedFeeReviewEventID))
+}
+
+// ApprovedFeeContentVersionEQ applies the EQ predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionEQ(v uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldApprovedFeeContentVersion, v))
+}
+
+// ApprovedFeeContentVersionNEQ applies the NEQ predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionNEQ(v uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldNEQ(FieldApprovedFeeContentVersion, v))
+}
+
+// ApprovedFeeContentVersionIn applies the In predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionIn(vs ...uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldIn(FieldApprovedFeeContentVersion, vs...))
+}
+
+// ApprovedFeeContentVersionNotIn applies the NotIn predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionNotIn(vs ...uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldNotIn(FieldApprovedFeeContentVersion, vs...))
+}
+
+// ApprovedFeeContentVersionGT applies the GT predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionGT(v uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldGT(FieldApprovedFeeContentVersion, v))
+}
+
+// ApprovedFeeContentVersionGTE applies the GTE predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionGTE(v uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldGTE(FieldApprovedFeeContentVersion, v))
+}
+
+// ApprovedFeeContentVersionLT applies the LT predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionLT(v uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldLT(FieldApprovedFeeContentVersion, v))
+}
+
+// ApprovedFeeContentVersionLTE applies the LTE predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionLTE(v uint64) predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldLTE(FieldApprovedFeeContentVersion, v))
+}
+
+// ApprovedFeeContentVersionIsNil applies the IsNil predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionIsNil() predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldIsNull(FieldApprovedFeeContentVersion))
+}
+
+// ApprovedFeeContentVersionNotNil applies the NotNil predicate on the "approved_fee_content_version" field.
+func ApprovedFeeContentVersionNotNil() predicate.OrderFeeSupplementRequest {
+	return predicate.OrderFeeSupplementRequest(sql.FieldNotNull(FieldApprovedFeeContentVersion))
 }
 
 // LockBasisEQ applies the EQ predicate on the "lock_basis" field.

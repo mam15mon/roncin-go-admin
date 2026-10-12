@@ -6,12 +6,15 @@ import {
 } from '@/components/ui';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { feeReviewStatusOptions } from '@/features/orders/fee-review';
 import { searchPartnerOptions } from '@/features/partners';
 
 export type FeeLedgerFilterParams = {
   keyword?: string;
   direction?: string;
   financialProgress?: number;
+  feeReviewStatus?: string;
+  hasPendingFeeSupplement?: 'yes' | 'no';
   settlementPartyId?: string;
   customerId?: string;
   billNo?: string;
@@ -126,6 +129,24 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       request: ({ keyWords }) => searchPartnerOptions(keyWords),
     },
 
+    {
+      name: 'feeReviewStatus',
+      label: '费用审核',
+      type: 'select',
+      placeholder: '全部审核状态',
+      options: feeReviewStatusOptions,
+    },
+    {
+      name: 'hasPendingFeeSupplement',
+      label: '待审补录',
+      type: 'select',
+      placeholder: '全部',
+      options: [
+        { label: '有待审补录', value: 'yes' },
+        { label: '无待审补录', value: 'no' },
+      ],
+    },
+
     // --- 展开后展示的其余 17 项业务字段 (一行 6 列) ---
     {
       name: 'expenseDateRange',
@@ -224,11 +245,11 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
     },
     {
       name: 'financeLocked',
-      label: '费用锁定状态',
+      label: '提成保护',
       type: 'select',
       placeholder: '全部',
       options: [
-        { label: '因提成已锁定', value: 'LOCKED' },
+        { label: '存在有效提成', value: 'LOCKED' },
         { label: '未锁定', value: 'UNLOCKED' },
       ],
     },
@@ -245,7 +266,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       colSpan={4}
       collapsible={true}
       defaultCollapsed={true}
-      defaultVisibleCount={5}
+      defaultVisibleCount={6}
       items={items}
       onSearch={onSearch}
       onReset={onReset}

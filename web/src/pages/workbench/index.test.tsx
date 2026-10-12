@@ -437,7 +437,7 @@ describe('工作台财务卡与组织切换', () => {
     expect(await screen.findByText('财务与审批待办')).toBeInTheDocument();
     expect(screen.getByText('1 条待审批')).toBeInTheDocument();
     expect(screen.getByText('SE2026090099')).toBeInTheDocument();
-    expect(screen.queryByText('待处理冲减建议')).not.toBeInTheDocument();
+    expect(screen.queryByText('待执行提成冲减')).not.toBeInTheDocument();
     expect(
       screen.queryByText('已确认待发提成（组织范围）'),
     ).not.toBeInTheDocument();
