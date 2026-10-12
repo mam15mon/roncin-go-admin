@@ -567,7 +567,8 @@ export default function OrderFeesPage() {
     );
   }
 
-  if (loading) {
+  // 后台刷新保留已加载的费用工作台，避免卸载补录中的预填表单。
+  if (loading && !order) {
     return (
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
@@ -575,7 +576,6 @@ export default function OrderFeesPage() {
           orderKind={definition.kind}
           navigationTitle={definition.navigationTitle}
           orderId={orderId}
-          orderNo={order?.orderNo}
         />
         <div
           style={{
