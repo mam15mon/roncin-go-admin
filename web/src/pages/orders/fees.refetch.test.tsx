@@ -147,7 +147,8 @@ it('真实费用页撤回重提后，后台重查订单期间及完成后保留�
       }),
     ]);
   });
-  fireEvent.click(await screen.findByText('撤回并重提'));
+  // 真实 ProTable 在父查询之后异步调度列表，允许全量并发下的组件调度耗时。
+  fireEvent.click(await screen.findByText('撤回并重提', {}, { timeout: 5000 }));
   fireEvent.click(screen.getByRole('button', { name: '撤回并重提' }));
   await waitFor(() => expect(getOrder).toHaveBeenCalledTimes(2));
   await waitFor(() =>
