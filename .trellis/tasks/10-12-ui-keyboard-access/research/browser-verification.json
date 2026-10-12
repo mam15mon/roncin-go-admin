@@ -1,0 +1,72 @@
+{
+  "results": [
+    {
+      "name": "菜单键盘 企业资源 Enter",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 企业资源 Space",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 企业资源 ArrowDown",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 设置中心 Enter",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 设置中心 Space",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 设置中心 ArrowDown",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 切换当前组织 Enter",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 切换当前组织 Space",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "菜单键盘 切换当前组织 ArrowDown",
+      "passed": true,
+      "opens": true,
+      "escReturnsFocus": true
+    },
+    {
+      "name": "分节标题键盘折叠",
+      "passed": true,
+      "nativeButton": true,
+      "expandedAndControls": true
+    },
+    {
+      "name": "页签与关闭按钮焦点可见",
+      "passed": true,
+      "bothVisible": true
+    }
+  ],
+  "pageErrors": [],
+  "allPageWritesIntercepted": true,
+  "writesIntercepted": 0
+}

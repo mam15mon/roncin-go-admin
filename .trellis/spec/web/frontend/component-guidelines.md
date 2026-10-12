@@ -13,6 +13,21 @@
 | 主数据 / 通用 CRUD | `MasterDataTemplate` | 顶部指标统计卡、关键字+下拉筛选、标准分页表格、快捷模态表单 |
 | 表格列表页 | ProTable 高密度样式 | 搜索卡片与表格卡片细边框微圆角，操作列靠右 |
 
+## 公共键盘交互
+
+- `HeaderDropdown` 的 `keyboardAccessible` 为显式 opt-in；企业资源、设置中心和组织切换启用，
+  其它调用方默认行为不变。复用 Antd Dropdown/Menu 与原生 button，hover/click 都可打开；
+  Enter/Space 使用原生 click，ArrowDown 在触发层打开，键盘打开自动聚焦菜单。
+  触发器具有 aria-haspopup/aria-expanded；Escape 关闭并返回触发器焦点，不另建菜单键盘体系。
+- `SectionCard` 仅 `collapsible` 标题使用原生 type=button；`aria-expanded` 与真实 collapsed
+  同步，`aria-controls` 关联 useId 生成的唯一内容 ID。受控与非受控均保留原回调契约，
+  折叠内容 hidden 保挂载；非折叠标题不加入焦点，extra 仍独立，点击不得触发折叠。
+- 页签、关闭按钮、折叠标题使用品牌 focus-visible 反馈，不改变控件尺寸；鼠标点击不持久
+  显示键盘焦点装饰。页签关闭按钮 Enter/Space 停止冒泡，避免同时激活父 tab；关闭仍走
+  未保存确认与已确认查询清理。
+- 必须验证三个菜单的 Enter/Space/ArrowDown、Escape 返回焦点与原 hover/权限过滤；
+  可折叠标题两种状态模式、独立 extra、唯一关联 ID；页签/关闭键盘焦点与点击路径。
+
 ## 页面容器与宽度规范 (Container & Width Standards)
 
 - 全站页面统一以 `<PageContainer>` 作为顶级骨架，全局布局遵循 `web/config/defaultSettings.ts` 中的 `contentWidth: 'Fluid'` 流式全屏自适应，底色统一使用 `#f5f7fa`。

@@ -23,11 +23,9 @@
   "relatedFiles": [
     "web/src/components/layout/HeaderMenus.tsx",
     "web/src/app/AppLayout.tsx",
-    "web/src/router/adaptRoutes.tsx",
     "web/src/global.less",
-    "web/src/components/ui/order-template/OrderFormTemplate.tsx",
-    "web/src/components/ui/form-row/FormRow.tsx",
-    "web/src/pages/orders/templates/components/sea/SeaBasicInfoSection.tsx"
+    "web/src/pages/orders/templates/components/sea/SeaBillContentFormFields.tsx",
+    "web/src/pages/orders/order-plan-fields.tsx"
   ],
   "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
   "meta": {

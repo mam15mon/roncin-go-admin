@@ -409,6 +409,7 @@ export const TagsView: React.FC = () => {
                     aria-label={`关闭 ${tag.title}`}
                     className="roncin-chrome-tab-close"
                     onClick={(e) => handleClose(e, tag)}
+                    onKeyDown={(e) => e.stopPropagation()}
                   >
                     <CloseOutlined style={{ fontSize: 9 }} />
                   </button>

@@ -1583,3 +1583,11 @@ textarea.ant-input {
 .ant-tabs .ant-card-small > .ant-card-body {
   padding: 0 !important;
 }
+
+// 键盘焦点不占布局尺寸，鼠标操作仍使用已有 hover/active。
+.roncin-chrome-tab:focus-visible,
+.roncin-chrome-tab-close:focus-visible,
+.roncin-section-toggle:focus-visible {
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+}

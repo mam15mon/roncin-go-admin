@@ -129,6 +129,7 @@ export default function OrganizationSwitcher() {
   return (
     <>
       <HeaderDropdown
+        keyboardAccessible
         placement="bottomRight"
         menu={{ items: menuItems, onClick: handleMenuClick }}
       >

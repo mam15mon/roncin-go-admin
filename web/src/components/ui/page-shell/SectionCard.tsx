@@ -1,6 +1,6 @@
 import { DownOutlined, RightOutlined } from '@ant-design/icons';
 import { Card, Space, Typography } from 'antd';
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import type { SectionCardProps } from './types';
 
 const { Text } = Typography;
@@ -19,6 +19,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   bodyStyle,
   className,
 }) => {
+  const contentId = useId();
   const [uncontrolledCollapsed, setUncontrolledCollapsed] =
     useState(defaultCollapsed);
   const isControlled = controlledCollapsed !== undefined;
@@ -35,10 +36,20 @@ export const SectionCard: React.FC<SectionCardProps> = ({
     onCollapseChange?.(nextState);
   };
 
+  const TitleElement = collapsible ? 'button' : 'div';
   const titleNode = (
-    <div
+    <TitleElement
+      type={collapsible ? 'button' : undefined}
+      className={collapsible ? 'roncin-section-toggle' : undefined}
+      aria-expanded={collapsible ? !isCollapsed : undefined}
+      aria-controls={collapsible ? contentId : undefined}
       onClick={collapsible ? handleToggle : undefined}
       style={{
+        border: 0,
+        background: 'transparent',
+        padding: 0,
+        font: 'inherit',
+        textAlign: 'left',
         display: 'inline-flex',
         alignItems: 'center',
         gap: 8,
@@ -60,11 +71,14 @@ export const SectionCard: React.FC<SectionCardProps> = ({
         {title}
       </Text>
       {collapsible && (
-        <span style={{ fontSize: 12, color: '#94a3b8', marginLeft: 2 }}>
+        <span
+          aria-hidden="true"
+          style={{ fontSize: 12, color: '#94a3b8', marginLeft: 2 }}
+        >
           {isCollapsed ? <RightOutlined /> : <DownOutlined />}
         </span>
       )}
-    </div>
+    </TitleElement>
   );
 
   return (
@@ -105,7 +119,9 @@ export const SectionCard: React.FC<SectionCardProps> = ({
         },
       }}
     >
-      {children}
+      <div id={contentId} hidden={collapsible && isCollapsed}>
+        {children}
+      </div>
     </Card>
   );
 };

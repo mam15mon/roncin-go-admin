@@ -3,7 +3,7 @@
   "name": "ui-keyboard-access",
   "title": "公共键盘交互与焦点修复",
   "description": "修复A07/A08/A09：顶栏菜单键盘展开、分节折叠语义和页签焦点可见",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-12",
   "completedAt": null,
-  "branch": null,
+  "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -32,6 +32,7 @@
   "meta": {
     "audit_issue_ids": "A07 / A08 / A09",
     "planning_ready": true,
-    "implementation_approved": true
+    "implementation_approved": true,
+    "group_verified": true
   }
 }

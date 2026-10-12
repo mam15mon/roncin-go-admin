@@ -12,12 +12,12 @@ import {
   ShopOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
-import { useLocation } from 'react-router';
 import type { MenuProps } from 'antd';
 import { Button, Space } from 'antd';
 import React, { useMemo } from 'react';
+import { useLocation } from 'react-router';
+import { useAccess } from '@/app/access';
+import { history } from '@/router/history';
 import HeaderDropdown from '../HeaderDropdown';
 
 export interface HeaderMenusProps {
@@ -171,6 +171,7 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
     >
       {hasEnterprise && (
         <HeaderDropdown
+          keyboardAccessible
           placement="bottomRight"
           menu={{
             items: enterpriseResourceItems,
@@ -186,13 +187,17 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
             }`}
           >
             <span>企业资源</span>
-            <DownOutlined className="roncin-header-menu-icon" />
+            <DownOutlined
+              aria-hidden="true"
+              className="roncin-header-menu-icon"
+            />
           </Button>
         </HeaderDropdown>
       )}
 
       {hasSettings && (
         <HeaderDropdown
+          keyboardAccessible
           placement="bottomRight"
           menu={{
             items: settingsItems,
@@ -208,7 +213,10 @@ export const HeaderMenus: React.FC<HeaderMenusProps> = ({ className }) => {
             }`}
           >
             <span>设置中心</span>
-            <DownOutlined className="roncin-header-menu-icon" />
+            <DownOutlined
+              aria-hidden="true"
+              className="roncin-header-menu-icon"
+            />
           </Button>
         </HeaderDropdown>
       )}

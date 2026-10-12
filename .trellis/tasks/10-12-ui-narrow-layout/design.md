@@ -13,3 +13,9 @@
 - `web/src/components/ui/order-template/OrderFormTemplate.tsx`
 - `web/src/components/ui/form-row/FormRow.tsx`
 - `web/src/pages/orders/templates/components/sea/SeaBasicInfoSection.tsx`
+
+## 实施前定位收敛
+
+research/narrow-preflight.md及几何证据已锁定真实根因：SeaBillContentFormFields标题/操作flex与order-plan-fields箱计划inline-flex不可换行，FormRow降列已正确，不需要猜测修改模板网格。正式最薄修改首先仅两处具名窄屏wrap；没有新根因证据不修改FormRow、SeaBasicInfoSection或OrderFormTemplate。
+
+实际产品文件范围收敛为HeaderMenus/AppLayout、layout范围共享资源设置菜单数据、global.less，以及`web/src/pages/orders/templates/components/sea/SeaBillContentFormFields.tsx`和`web/src/pages/orders/order-plan-fields.tsx`。桌面与移动使用同一权限构造；导航隐藏断点严格<768，与ProLayout移动判定对齐。详见预研验收限制，不以临时CSS探针代替正式详情/有值箱计划验证。

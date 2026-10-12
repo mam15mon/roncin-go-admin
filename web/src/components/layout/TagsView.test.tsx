@@ -507,6 +507,21 @@ describe('TagsView Component', () => {
     expect(screen.queryByText('订单详情')).not.toBeInTheDocument();
   });
 
+  it('关闭按钮Enter和Space不冒泡切换页签，原生激活仍走dirty确认', () => {
+    mockPathname = '/partners/customers';
+    render(<TagsView />);
+    registerTabCloseGuard('/partners/customers', { isDirty: () => true });
+    const confirm = spyOnConfirm();
+    const close = screen.getByLabelText('关闭 客户');
+    fireEvent.keyDown(close, { key: 'Enter' });
+    fireEvent.keyDown(close, { key: ' ' });
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.click(close);
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.getByText('客户')).toBeInTheDocument();
+  });
+
   it('直接访问重定向入口 /orders 时只产生一个业务页签', () => {
     mockPathname = '/orders';
     const { rerender } = render(<TagsView />);
