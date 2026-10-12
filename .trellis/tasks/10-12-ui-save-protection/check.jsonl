@@ -2,3 +2,4 @@
 {"file": ".trellis/spec/web/frontend/state-management.md", "reason": "错误undefined契约、组织隔离及草稿生命周期"}
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "pnpm定向验证、禁TDD与门禁范围"}
 {"file": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md", "reason": "本子任务原始问题、证据边界与复现方式"}
+{"file": ".trellis/tasks/10-12-ui-save-protection/research/save-contract.md", "reason": "目标写接口实际响应与生成options、路由阻断技术入口核查"}
