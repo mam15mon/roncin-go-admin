@@ -3,7 +3,7 @@
   "name": "ui-interest-scope",
   "title": "移除未完成逾期计息入口",
   "description": "修复A03：移除未完成计息UI及生效承诺，保留已有结算能力，无后端或数据变更",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -11,7 +11,7 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-10-12",
-  "completedAt": null,
+  "completedAt": "2026-10-12",
   "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
@@ -25,12 +25,13 @@
     "web/src/pages/partners/components/SettlementSection.tsx",
     "web/src/pages/partners/components/InterestRuleModal.tsx"
   ],
-  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
+  "notes": "五组实现、独立复核、分组提交与最终前端门禁通过；本次移除未完成计息入口，完整计息延期。",
   "meta": {
     "audit_issue_ids": "A03",
     "planning_ready": true,
     "interest_decision": "remove_unfinished_ui",
     "implementation_approved": true,
-    "group_verified": true
+    "group_verified": true,
+    "final_gate": "check:web passed: 218 files / 1181 tests; 1 file / 12 tests skipped"
   }
 }

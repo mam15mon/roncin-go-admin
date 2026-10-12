@@ -3,7 +3,7 @@
   "name": "ui-list-state",
   "title": "列表筛选刷新与页签状态统一",
   "description": "修复A04/A05/A12：筛选收起回显一致、真实自动刷新和列表查询上下文恢复",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -11,7 +11,7 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-10-12",
-  "completedAt": null,
+  "completedAt": "2026-10-12",
   "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
@@ -32,11 +32,12 @@
     "web/src/pages/finance/bills/index.tsx",
     "web/src/pages/finance/cashflows/index.tsx"
   ],
-  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
+  "notes": "五组实现、独立复核、分组提交与最终前端门禁通过；本次移除未完成计息入口，完整计息延期。",
   "meta": {
     "audit_issue_ids": "A04 / A05 / A12",
     "planning_ready": true,
     "implementation_approved": true,
-    "group_verified": true
+    "group_verified": true,
+    "final_gate": "check:web passed: 218 files / 1181 tests; 1 file / 12 tests skipped"
   }
 }

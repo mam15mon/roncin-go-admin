@@ -7,7 +7,7 @@
 - [x] 主会话在批准后启动本子任务，dispatch trellis-implement；明确文件所有权，同文件不并发。
 - [x] 实现后补触发场景及相邻路径回归，dispatch trellis-check。
 - [x] 定向验证、修改文件Biome、必要tsc及git diff --check；按共同阶段计划提交。
-- [ ] 更新实际实现的spec与能力导航，验收通过再归档。
+- [x] 实际实现的spec与能力导航同步或无变更判断完成；验收通过，进入归档。
 
 ## 最小验证
 
@@ -25,3 +25,7 @@ pnpm --dir web exec vitest run src/pages/partners/partner-detail.test.tsx src/co
 ## 本组完成记录
 
 实现及独立复核完成，spec已同步。定向失败/路由/组织回归、Biome、tsc及真实浏览器6项通过；详情见research/save-check.md。当前按组提交；最终公共层门禁通过后再归档。
+
+## 最终集成验收
+
+2026-10-12完整`pnpm run check:web`退出码0；218测试文件、1181例通过，保留既有1文件/12例跳过。全部12项及62项浏览器证据通过，集成结果见同月archive中父任务research/final-acceptance.md。

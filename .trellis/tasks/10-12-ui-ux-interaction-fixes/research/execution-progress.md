@@ -6,6 +6,6 @@
 - 计息移除：de04cff4已提交并独立审查通过，入口及专属代码删除；21例回归、Biome、tsc与浏览器结算字段验证通过。
 - 列表状态：实现及独立审查通过，17suite88例、Biome/tsc/architecture与浏览器7项均通过，公共spec与能力导航同步；本组已提交73beedec，保持官方ProTable引擎。
 - 键盘交互：实现和独立复核完成，7suite64例、Biome/tsc与真实浏览器11项通过，公共交互spec已同步，ccb04bea已提交。
-- 窄屏布局：实现及独立复核通过，12suite65例、Biome/tsc/architecture与36项浏览器（24real+12GETfixture）通过；375通知人Segmented局部wrap补齐，完整门禁运行中。
+- 窄屏布局：实现及独立复核通过，12suite65例、Biome/tsc/architecture与36项浏览器（24real+12GETfixture）通过；375通知人Segmented局部wrap补齐，46bb6b92已提交。
 
-后端、生成物及真实业务数据未改。最终统一前端门禁及各子任务完整AC复测通过后归档。
+后端、生成物及真实业务数据未改。最终统一前端门禁通过（218文件/1181例），各子任务AC满足，62项浏览器记录通过；提成旧mock契约修正经3suite18例及独立复核。进入归档，详情见final-acceptance.md。

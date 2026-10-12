@@ -3,7 +3,7 @@
   "name": "ui-ux-interaction-fixes",
   "title": "UI交互审查问题修复",
   "description": "修复UI-UX审查确认的12项问题，统一保存保护、列表状态、键盘交互和窄屏行为",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -11,11 +11,11 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-10-12",
-  "completedAt": null,
-  "branch": null,
+  "completedAt": "2026-10-12",
+  "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "46bb6b92",
   "pr_url": null,
   "subtasks": [],
   "children": [
@@ -27,11 +27,20 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "用户已批准855e467d最终规划；按五组顺序实施，完整计息延期。",
+  "notes": "五组实现、独立复核、分组提交与最终前端门禁通过；本次移除未完成计息入口，完整计息延期。",
   "meta": {
     "audit_source": ".trellis/tasks/archive/2026-10/10-12-ui-ux-interaction-audit/audit-report.md",
     "interest_decision": "remove_unfinished_ui",
     "planning_ready": true,
-    "implementation_approved": true
+    "implementation_approved": true,
+    "final_gate": "check:web passed: 218 files / 1181 tests; 1 file / 12 tests skipped",
+    "work_commits": [
+      "82f2c67a",
+      "de04cff4",
+      "73beedec",
+      "ccb04bea",
+      "46bb6b92"
+    ],
+    "acceptance_report": "research/final-acceptance.md"
   }
 }

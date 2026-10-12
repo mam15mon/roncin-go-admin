@@ -10,6 +10,7 @@ import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderCommissionVisibilityMode } from '@/enums.generated';
+import type { useOrderListResources } from '../list-resources';
 import OrderCommissionSummaryCell from './OrderCommissionSummaryCell';
 import OrderCommissionSummaryModal from './OrderCommissionSummaryModal';
 
@@ -66,17 +67,21 @@ vi.mock('../list-query', () => ({
 }));
 
 vi.mock('../list-resources', () => ({
-  useOrderListResources: () => ({
+  useOrderListResources: (): ReturnType<typeof useOrderListResources> => ({
     masterOptions: [],
     ports: [],
     airports: [],
     customerMap: {},
     containerSpecOptions: [],
     containerSpecMap: {},
-    searchCustomers: vi.fn(),
-    searchOrderPorts: vi.fn(),
-    searchOrderCarriers: vi.fn(),
-    searchOrderPersonnel: vi.fn(),
+    serviceTypeOptions: [],
+    cargoCategoryOptions: [],
+    locationOptions: [],
+    searchLocations: vi.fn().mockResolvedValue([]),
+    searchCustomers: vi.fn().mockResolvedValue([]),
+    searchOrderPorts: vi.fn().mockResolvedValue([]),
+    searchOrderCarriers: vi.fn().mockResolvedValue([]),
+    searchOrderPersonnel: vi.fn().mockResolvedValue([]),
   }),
 }));
 
