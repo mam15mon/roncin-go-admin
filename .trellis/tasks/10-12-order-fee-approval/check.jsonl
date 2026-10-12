@@ -13,3 +13,4 @@
 {"file":".trellis/tasks/10-12-order-fee-approval/research/supplement-commission-design.md","reason":"核对完整写入口、权限范围、并发锁序、财务金额、界面与实际验收；研究备选以design.md最终取舍为准"}
 {"file":".trellis/tasks/10-12-order-fee-approval/research/frontend-approval-design.md","reason":"核对完整写入口、权限范围、并发锁序、财务金额、界面与实际验收；研究备选以design.md最终取舍为准"}
 {"file":".trellis/tasks/10-12-order-fee-approval/research/payment-contract-review.md","reason":"核对未发父单禁止独立调整执行、净额发放原子性及未执行增提的反转阻断"}
+{"file":".trellis/tasks/10-12-order-fee-approval/research/lock-overlap-review.md","reason":"核对交互不堆叠人工锁流程，财务保护与审核冻结独立成立，补录无需先解锁"}
