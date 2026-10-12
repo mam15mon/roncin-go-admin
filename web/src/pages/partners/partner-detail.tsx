@@ -2,10 +2,19 @@ import { CheckCircleOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer, ProForm } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { App, Button, Space, Spin, Tag, Typography } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { App, Button, Result, Space, Spin, Tag, Typography } from 'antd';
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useLocation, useParams, useSearchParams } from 'react-router';
 import { useAccess } from '@/app/access';
+import { resolveTabKey } from '@/components/layout/routeUtils';
+import { useTabCloseGuard } from '@/components/layout/tabCloseGuard';
+import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import {
   PageHeaderShell,
   StickyFooterBar,
@@ -138,6 +147,30 @@ export default function PartnerDetailPage() {
   const isCreate = !rawId || rawId === 'create';
   const hasValidUuid = isValidPartnerId(rawId);
   const partnerId = !isCreate && hasValidUuid ? rawId : undefined;
+  const identity = `${location.pathname}${location.search}`;
+  const dirtyRef = useRef(false);
+  const identityGenerationRef = useRef(0);
+  const initializedIdentityRef = useRef<string | undefined>(undefined);
+  const tabKey = resolveTabKey(location.pathname);
+  const markDirty = () => {
+    dirtyRef.current = true;
+  };
+  useTabCloseGuard({ tabKey, isDirty: () => dirtyRef.current });
+  useRouteLeaveGuard(tabKey, () => dirtyRef.current);
+  useLayoutEffect(() => {
+    identityGenerationRef.current += 1;
+    dirtyRef.current = false;
+    setSaving(false);
+    initializedIdentityRef.current = undefined;
+    setContacts([]);
+    setAliases([]);
+    setNewAliasInput('');
+    setSectionErrors({});
+    return () => {
+      identityGenerationRef.current += 1;
+    };
+  }, [identity]);
+
   const isInvalidId = !isCreate && Boolean(rawId) && !hasValidUuid;
 
   const canReadSettlementRules = Boolean(
@@ -169,8 +202,12 @@ export default function PartnerDetailPage() {
         // enabled 已保证；此处仅为类型收窄兜底。
         throw new Error('缺少档案标识');
       }
-      const res = await partnerServiceGetPartner({ id: partnerId });
-      return res.data ?? null;
+      const res = await partnerServiceGetPartner(
+        { id: partnerId },
+        { skipErrorHandler: true },
+      );
+      if (!res?.data?.id) throw new Error('加载档案详情失败');
+      return res.data;
     },
     meta: { errorMessage: '加载档案详情失败' },
   });
@@ -308,11 +345,17 @@ export default function PartnerDetailPage() {
   // 编辑模式回填：档案与结算规则都出结果后一次性填表；结算规则请求失败
   // （静默）时按「无规则」回填，仅填档案字段，不阻断主体渲染。
   useEffect(() => {
-    if (!partnerId) return;
+    if (
+      !partnerId ||
+      initializedIdentityRef.current === identity ||
+      dirtyRef.current
+    )
+      return;
     const p = partnerDetailQuery.data;
     if (!p) return;
     // 有读权限时等结算规则请求出结果再统一回填，避免结算字段先空后有的闪烁
     if (canReadSettlementRules && settlementRuleQuery.isPending) return;
+    initializedIdentityRef.current = identity;
     const currentRule = settlementRuleQuery.data ?? undefined;
 
     const profile = p.profile || {};
@@ -409,6 +452,7 @@ export default function PartnerDetailPage() {
         : {}),
     });
   }, [
+    identity,
     partnerId,
     partnerDetailQuery.data,
     settlementRuleQuery.data,
@@ -449,16 +493,19 @@ export default function PartnerDetailPage() {
       message.warning('该别名已存在');
       return;
     }
+    markDirty();
     setAliases([...aliases, newAliasInput.trim()]);
     setNewAliasInput('');
   };
 
   const handleRemoveAlias = (tagToRemove: string) => {
+    markDirty();
     setAliases(aliases.filter((t) => t !== tagToRemove));
   };
 
   // Submit Handler (Atomic Save)
   const handleSubmit = async () => {
+    const submittedGeneration = identityGenerationRef.current;
     if (!canSave) {
       message.error(isCreate ? '暂无创建权限' : '暂无编辑权限');
       return;
@@ -466,7 +513,8 @@ export default function PartnerDetailPage() {
 
     try {
       const values = await formRef.current?.validateFields();
-      if (!values) return;
+      if (!values || submittedGeneration !== identityGenerationRef.current)
+        return;
 
       setSaving(true);
 
@@ -583,7 +631,7 @@ export default function PartnerDetailPage() {
       );
 
       if (partnerId) {
-        await partnerServiceUpdatePartner(
+        const updateRes = await partnerServiceUpdatePartner(
           { id: partnerId },
           {
             id: partnerId,
@@ -602,6 +650,11 @@ export default function PartnerDetailPage() {
             aliases: aliasInputs,
           },
         );
+        if (submittedGeneration !== identityGenerationRef.current) return;
+        if (!updateRes) return;
+        if (!updateRes.data?.id || updateRes.success === false)
+          throw new Error('保存失败，请重试');
+        dirtyRef.current = false;
         message.success(`${roleLabel}档案已成功更新`);
       } else {
         const createRes = await partnerServiceCreatePartner({
@@ -618,15 +671,19 @@ export default function PartnerDetailPage() {
           contacts: contactInputs,
           aliases: aliasInputs,
         });
+        if (submittedGeneration !== identityGenerationRef.current) return;
+        if (!createRes) return;
+        if (!createRes.data?.id || createRes.success === false)
+          throw new Error('保存失败，请重试');
+        dirtyRef.current = false;
         message.success(`${roleLabel}档案已成功创建`);
-        if (createRes.data?.id) {
-          history.push(`${listUrl}/${createRes.data.id}`);
-          return;
-        }
+        history.push(`${listUrl}/${createRes.data.id}`);
+        return;
       }
 
       history.push(listUrl);
     } catch (err) {
+      if (submittedGeneration !== identityGenerationRef.current) return;
       if (isFormValidationError(err)) {
         const res = scrollToFirstFormError({
           errorFields: err.errorFields,
@@ -642,7 +699,8 @@ export default function PartnerDetailPage() {
         message.error(getErrorMessage(err, '保存失败，请重试'));
       }
     } finally {
-      setSaving(false);
+      if (submittedGeneration === identityGenerationRef.current)
+        setSaving(false);
     }
   };
 
@@ -687,6 +745,35 @@ export default function PartnerDetailPage() {
         <div style={{ padding: 48, textAlign: 'center' }}>
           <Spin description="无效的档案标识，正在返回列表..." />
         </div>
+      </PageContainer>
+    );
+  }
+
+  if (partnerId && !partner) {
+    return (
+      <PageContainer title={false} breadcrumbRender={false}>
+        <PageHeaderShell
+          title={`${roleLabel}详情`}
+          onBack={() => history.push(listUrl)}
+        />
+        {loading ? (
+          <Spin description="正在加载档案详情..." />
+        ) : (
+          <Result
+            status="error"
+            title="加载档案详情失败"
+            subTitle="请重试加载档案，已填写的信息不会被清除。"
+            extra={
+              <Button
+                type="primary"
+                loading={partnerDetailQuery.isFetching}
+                onClick={() => void partnerDetailQuery.refetch()}
+              >
+                重试
+              </Button>
+            }
+          />
+        )}
       </PageContainer>
     );
   }
@@ -744,7 +831,9 @@ export default function PartnerDetailPage() {
       {/* 2. Main Container */}
       <Spin spinning={loading}>
         <ProForm
+          key={identity}
           formRef={formRef}
+          onValuesChange={markDirty}
           submitter={false}
           disabled={!canOperate}
           layout="horizontal"
@@ -763,9 +852,15 @@ export default function PartnerDetailPage() {
             roleType={roleType}
             userSelectOptions={userSelectOptions}
             aliases={aliases}
-            onAliasesChange={setAliases}
+            onAliasesChange={(values) => {
+              markDirty();
+              setAliases(values);
+            }}
             newAliasInput={newAliasInput}
-            setNewAliasInput={setNewAliasInput}
+            setNewAliasInput={(value) => {
+              markDirty();
+              setNewAliasInput(value);
+            }}
             onAddAlias={handleAddAlias}
             onRemoveAlias={handleRemoveAlias}
             onTianyanchaVerify={handleTianyanchaVerify}
@@ -815,7 +910,10 @@ export default function PartnerDetailPage() {
               toggleSection('contacts', collapsed)
             }
             contacts={contacts}
-            onChange={setContacts}
+            onChange={(values) => {
+              markDirty();
+              setContacts(values);
+            }}
           />
 
           {/* Section 5: 常用信息 (Shipping Presets，依赖已保存档案与读权限，新建模式不展示) */}

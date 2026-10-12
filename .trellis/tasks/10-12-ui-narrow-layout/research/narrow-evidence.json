@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-12",
+  "kind": "修复前只读预研，不代表产品已修复",
+  "writeIsolation": "独立浏览器上下文，所有页面非GET/HEAD/OPTIONS请求在浏览器内阻断，认证session通过context.request管理；无业务写入。",
+  "newOrderWidths": [
+    {
+      "viewport": 390,
+      "pageWidth": 537
+    },
+    {
+      "viewport": 375,
+      "pageWidth": 537
+    },
+    {
+      "viewport": 767,
+      "pageWidth": 767
+    },
+    {
+      "viewport": 768,
+      "pageWidth": 768
+    },
+    {
+      "viewport": 769,
+      "pageWidth": 769
+    },
+    {
+      "viewport": 1440,
+      "pageWidth": 1440
+    }
+  ],
+  "temporaryStyleExperiments": [
+    {
+      "experiment": "only-flex-headings-wrap",
+      "pageWidth": 414,
+      "overflowElementCount": 8
+    },
+    {
+      "experiment": "flex-wrap",
+      "pageWidth": 390,
+      "overflowElementCount": 0
+    },
+    {
+      "experiment": "grid-zero",
+      "pageWidth": 537,
+      "overflowElementCount": 6
+    },
+    {
+      "experiment": "combined",
+      "pageWidth": 390,
+      "overflowElementCount": 0
+    }
+  ],
+  "navigation": [
+    {
+      "workspaceKind": 2,
+      "width": 390,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-xs ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "none"
+      ],
+      "mobileIcon": true,
+      "drawerMenus": [
+        "工作台",
+        "订单管理",
+        "费用管理"
+      ]
+    },
+    {
+      "workspaceKind": 2,
+      "width": 767,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-sm ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "none"
+      ],
+      "mobileIcon": true,
+      "drawerMenus": [
+        "工作台",
+        "订单管理",
+        "费用管理"
+      ]
+    },
+    {
+      "workspaceKind": 2,
+      "width": 768,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-md ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "none"
+      ],
+      "mobileIcon": false
+    },
+    {
+      "workspaceKind": 2,
+      "width": 769,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-md ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "flex"
+      ],
+      "mobileIcon": false
+    },
+    {
+      "workspaceKind": 1,
+      "width": 390,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-xs ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "none"
+      ],
+      "mobileIcon": true,
+      "drawerMenus": [
+        "工作台",
+        "费用管理"
+      ]
+    },
+    {
+      "workspaceKind": 1,
+      "width": 767,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-sm ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "none"
+      ],
+      "mobileIcon": true,
+      "drawerMenus": [
+        "工作台",
+        "费用管理"
+      ]
+    },
+    {
+      "workspaceKind": 1,
+      "width": 768,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-md ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "none"
+      ],
+      "mobileIcon": false
+    },
+    {
+      "workspaceKind": 1,
+      "width": 769,
+      "layoutClass": "css-dev-only-do-not-override-viwxw0 ant-design-pro ant-pro-layout screen-md ant-pro-layout-fix-siderbar ant-pro-layout-mix",
+      "headerMenuDisplay": [
+        "flex"
+      ],
+      "mobileIcon": false
+    }
+  ]
+}

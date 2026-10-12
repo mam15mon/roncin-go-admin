@@ -495,7 +495,7 @@ export default function FinanceCashflowsPage() {
         }}
         onFinish={async (v) => {
           try {
-            await settlementServiceCreateCashflow({
+            const response = await settlementServiceCreateCashflow({
               organizationId: v.organizationId,
               direction: v.direction,
               settlementPartyId: v.settlementPartyId,
@@ -510,6 +510,9 @@ export default function FinanceCashflowsPage() {
               note: v.note,
               idempotencyKey: generateUUID(),
             });
+            if (!response) return false;
+            if (!response.data?.id || response.success === false)
+              throw new Error('登记失败，请重试');
             message.success('资金流水已登记');
             setOpen(false);
             reload();

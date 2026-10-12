@@ -32,4 +32,4 @@ R2：移除未完成的编辑入口、启用摘要、自动计息说明及仅服
 ## 共同约束
 
 保持纯白高密度、PageContainer 流式全宽、12px 内容边距、既有权限和用户/组织隔离。复用现有能力，遵循 ProTable request/actionRef、ModalForm.onFinish；不加兼容回退，不手改生成物，不引入全站 KeepAlive 或自动保存平台。禁止 TDD，实现后按风险补回归验证；不修改真实业务数据进行验收。
-本子任务处于 planning，范围已确定，等待最终规划审阅；产品代码未变。
+最终规划已获用户批准，按总任务约定顺序实施；当前进度以 task.json 和 implement.md 为准。

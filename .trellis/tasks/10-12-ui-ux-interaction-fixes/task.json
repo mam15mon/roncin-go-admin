@@ -3,7 +3,7 @@
   "name": "ui-ux-interaction-fixes",
   "title": "UI交互审查问题修复",
   "description": "修复UI-UX审查确认的12项问题，统一保存保护、列表状态、键盘交互和窄屏行为",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",

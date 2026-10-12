@@ -1,0 +1,44 @@
+{
+  "results": [
+    {
+      "name": "客户取消离开被保护",
+      "passed": true,
+      "inputPreserved": true
+    },
+    {
+      "name": "客户关页签拒绝保持输入",
+      "passed": true,
+      "inputPreserved": true
+    },
+    {
+      "name": "客户侧栏离开单次确认",
+      "passed": true,
+      "inputPreservedOnReject": true,
+      "oneConfirmationOnAccept": true
+    },
+    {
+      "name": "组织切换拒绝和失败均保持编辑保护",
+      "passed": true,
+      "rejectionPreservedInput": true,
+      "failurePreservedInput": true,
+      "failureRestoredGuard": true,
+      "successfulSwitchOneConfirmation": true
+    },
+    {
+      "name": "客户GET失败恢复重试",
+      "passed": true,
+      "retrySucceeded": true
+    },
+    {
+      "name": "客户PUT失败保留输入无成功反馈",
+      "passed": true,
+      "writesIntercepted": 2,
+      "inputPreserved": true,
+      "noSuccessFeedback": true
+    }
+  ],
+  "pageErrors": [],
+  "allPageBusinessWritesIntercepted": true,
+  "writesIntercepted": 2,
+  "note": "页面所有业务写入拦截503；认证会话的登录、切组织成功和退出仅作用独立测试session。失败通知MutationObserver可重复捕获同一节点，未据此计数toast。"
+}

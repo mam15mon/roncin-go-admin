@@ -379,10 +379,13 @@ export default function OrderDetailPage() {
         order?.version || '0',
         values,
       );
-      await orderServiceUpdateOrder(
+      const response = await orderServiceUpdateOrder(
         { id: orderId },
         { ...payload, idempotencyKey: updateIdempotencyKeyRef.current },
       );
+      if (!response) return false;
+      if (!response.data?.id || response.success === false)
+        throw new Error('保存订单失败，请重试');
       updateIdempotencyKeyRef.current = generateUUID();
       message.success('保存订单成功');
       // 详情与锁状态刷新是 best-effort 后台任务：不阻塞成功返回，

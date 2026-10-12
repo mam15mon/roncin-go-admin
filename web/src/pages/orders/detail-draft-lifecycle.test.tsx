@@ -390,6 +390,12 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
 
     mockUpdateOrder.mockRejectedValueOnce(new Error('保存失败'));
+    mockUpdateOrder.mockResolvedValueOnce(undefined as never);
+    mockUpdateOrder.mockResolvedValueOnce({ data: {} } as never);
+    mockUpdateOrder.mockResolvedValueOnce({
+      success: false,
+      data: { id: 'ord-A' },
+    } as never);
 
     render(
       <App>
@@ -401,14 +407,15 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     const finish = templateLifecycleState.activeHandleFinish;
     expect(finish).toBeTruthy();
     let saveResult: boolean | undefined;
-    await act(async () => {
-      saveResult = finish
-        ? await finish(formRef.current.getFieldsValue())
-        : undefined;
-    });
-
-    expect(saveResult).toBe(false);
-    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
+    for (let attempt = 0; attempt < 4; attempt++) {
+      await act(async () => {
+        saveResult = finish
+          ? await finish(formRef.current.getFieldsValue())
+          : undefined;
+      });
+      expect(saveResult).toBe(false);
+      expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
+    }
   });
 
   it('更新接口成功后立即清草稿并复位 dirty，后台刷新失败不改判保存结果', async () => {
@@ -421,7 +428,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     saveFormDraft(draftKey, { customerReferenceNo: 'TEMP-MODIFIED' });
     expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
 
-    mockUpdateOrder.mockResolvedValueOnce({} as never);
+    mockUpdateOrder.mockResolvedValueOnce({ data: { id: 'ord-A' } } as never);
     detailTestState.loadData.mockRejectedValueOnce(new Error('网络刷新失败'));
 
     render(
@@ -453,8 +460,8 @@ describe('订单详情页草稿生命周期与记录身份', () => {
 
   it('草稿保存失败重试沿用同一幂等键，成功后重新生成', async () => {
     mockUpdateOrder.mockRejectedValueOnce(new Error('保存失败'));
-    mockUpdateOrder.mockResolvedValueOnce({} as never);
-    mockUpdateOrder.mockResolvedValueOnce({} as never);
+    mockUpdateOrder.mockResolvedValueOnce({ data: { id: 'ord-A' } } as never);
+    mockUpdateOrder.mockResolvedValueOnce({ data: { id: 'ord-A' } } as never);
 
     render(
       <App>

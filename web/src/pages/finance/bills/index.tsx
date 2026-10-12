@@ -259,7 +259,7 @@ export default function FinanceBillsPage() {
     const values = await form.validateFields();
     setSubmitting(true);
     try {
-      await settlementServiceUpdateBill(
+      const response = await settlementServiceUpdateBill(
         { id: editing.id },
         {
           id: editing.id,
@@ -274,6 +274,9 @@ export default function FinanceBillsPage() {
           estimatedInvoiceRate: values.estimatedInvoiceRate || undefined,
         },
       );
+      if (!response) return;
+      if (!response.data?.id || response.success === false)
+        throw new Error('更新账单失败，请重试');
       message.success('账单已成功更新并自动刷新汇率快照');
       setEditOpen(false);
       reload();

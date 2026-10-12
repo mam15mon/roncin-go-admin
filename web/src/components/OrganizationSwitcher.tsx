@@ -64,9 +64,7 @@ export default function OrganizationSwitcher() {
 
     switchInProgressRef.current = true;
     confirmIfAnyTabDirty(
-      () => {
-        void switchOrganization(target.id as string, target.name ?? '');
-      },
+      () => switchOrganization(target.id as string, target.name ?? ''),
       undefined,
       () => {
         switchInProgressRef.current = false;

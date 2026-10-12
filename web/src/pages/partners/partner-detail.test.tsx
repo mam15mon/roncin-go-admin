@@ -45,6 +45,10 @@ const accessState = vi.hoisted(() => ({
   canReadPartnerAudit: true,
 }));
 
+vi.mock('@/components/layout/useRouteLeaveGuard', () => ({
+  useRouteLeaveGuard: vi.fn(),
+}));
+
 vi.mock('@/router/history', () => ({
   history: { push: vi.fn(), replace: vi.fn() },
 }));
@@ -233,7 +237,10 @@ describe('PartnerDetailPage', () => {
       expect(screen.getByLabelText('公司抬头')).toHaveValue('服务端伙伴名称'),
     );
     expect(screen.getByLabelText('公司抬头')).not.toHaveValue('不应覆盖');
-    expect(partnerServiceGetPartner).toHaveBeenCalledWith({ id: VALID_UUID_1 });
+    expect(partnerServiceGetPartner).toHaveBeenCalledWith(
+      { id: VALID_UUID_1 },
+      { skipErrorHandler: true },
+    );
   });
 
   it('编辑散客档案时页头展示散客标签且单次合作开关开启', async () => {
@@ -305,7 +312,10 @@ describe('PartnerDetailPage', () => {
     );
 
     // 档案被调用，但子权限接口均未被调用
-    expect(partnerServiceGetPartner).toHaveBeenCalledWith({ id: VALID_UUID_1 });
+    expect(partnerServiceGetPartner).toHaveBeenCalledWith(
+      { id: VALID_UUID_1 },
+      { skipErrorHandler: true },
+    );
     expect(partnerServiceListPartnerSettlementRules).not.toHaveBeenCalled();
     expect(partnerServiceListPartnerContracts).not.toHaveBeenCalled();
     expect(partnerServiceListPartnerShippingPresets).not.toHaveBeenCalled();

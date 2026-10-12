@@ -31,6 +31,7 @@
   "meta": {
     "audit_issue_ids": "A01 / A02 / A06",
     "planning_ready": true,
-    "implementation_approved": true
+    "implementation_approved": true,
+    "group_verified": true
   }
 }

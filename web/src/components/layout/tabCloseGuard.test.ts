@@ -7,6 +7,7 @@ import {
   confirmIfTabsDirty,
   getAnyDirtyTabKey,
   getTabGuardMessage,
+  isTabDepartureConfirmed,
   isTabDirty,
   registerTabCloseGuard,
   useTabCloseGuard,
@@ -139,6 +140,31 @@ describe('tabCloseGuard', () => {
   });
 
   describe('confirmIfTabsDirty', () => {
+    it('批量确认仅放行目标脏守卫实例，异步失败后撤销全部放行', async () => {
+      registerTabCloseGuard('/first', { isDirty: () => true });
+      registerTabCloseGuard('/second', { isDirty: () => true });
+      registerTabCloseGuard('/other', { isDirty: () => true });
+      const modal = vi.fn();
+      let rejectAction: ((reason: Error) => void) | undefined;
+      confirmIfTabsDirty(
+        ['/first', '/second'],
+        () =>
+          new Promise<void>((_, reject) => {
+            rejectAction = reject;
+          }),
+        modal,
+      );
+      const action = modal.mock.calls[0][0].onOk();
+      expect(isTabDepartureConfirmed('/first')).toBe(true);
+      expect(isTabDepartureConfirmed('/second')).toBe(true);
+      expect(isTabDepartureConfirmed('/other')).toBe(false);
+      registerTabCloseGuard('/first', { isDirty: () => true });
+      expect(isTabDepartureConfirmed('/first')).toBe(false);
+      rejectAction?.(new Error('动作失败'));
+      await expect(action).rejects.toThrow('动作失败');
+      expect(isTabDepartureConfirmed('/second')).toBe(false);
+    });
+
     it('当没有任何 dirty tab 时，直接执行 onConfirm 并返回 true', () => {
       const onConfirm = vi.fn();
       const mockModal = vi.fn();

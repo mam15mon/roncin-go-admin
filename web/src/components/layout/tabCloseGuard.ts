@@ -33,6 +33,40 @@ export type TabCloseGuard = {
 };
 
 const guards = new Map<string, TabCloseGuard>();
+const confirmedDepartures = new Set<TabCloseGuard>();
+
+/** 已确认的关闭/组织切换动作期间，路由阻断复用这次确认；异步失败后自动撤销。 */
+function runConfirmedDeparture(
+  tabKeys: string[],
+  action: () => void | Promise<void>,
+) {
+  // 批量关闭一次确认覆盖本次关闭范围，不能只放行首个脏页签。
+  const departingGuards = tabKeys.flatMap((key) => {
+    const guard = guards.get(key);
+    return guard?.isDirty() ? [guard] : [];
+  });
+  for (const guard of departingGuards) confirmedDepartures.add(guard);
+  let asynchronous = false;
+  try {
+    const result = action();
+    if (result) {
+      asynchronous = true;
+      return result.finally(() => {
+        for (const guard of departingGuards) confirmedDepartures.delete(guard);
+      });
+    }
+  } finally {
+    if (!asynchronous)
+      for (const guard of departingGuards) confirmedDepartures.delete(guard);
+  }
+  return undefined;
+}
+
+/** 路由离开只复用当前已注册表单的确认，不放行其它表单或下一次导航。 */
+export function isTabDepartureConfirmed(tabKey: string): boolean {
+  const guard = guards.get(tabKey);
+  return Boolean(guard && confirmedDepartures.has(guard));
+}
 
 /**
  * 注册页签关闭守卫。当页签试图被关闭时，如果 isDirty() 为 true，则会拦截并弹出确认对话框。
@@ -88,7 +122,7 @@ export function getAnyDirtyTabKey(): string | undefined {
  * 由用户确认后再执行 onConfirm。onCancel 用于调用方解除自身的切换意图锁。
  */
 export function confirmIfAnyTabDirty(
-  onConfirm: () => void,
+  onConfirm: () => void | Promise<void>,
   customConfirmModal?: (props: Parameters<typeof Modal.confirm>[0]) => void,
   onCancel?: () => void,
 ): boolean {
@@ -105,7 +139,7 @@ export function confirmIfAnyTabDirty(
     okText: '确定离开',
     cancelText: '取消',
     centered: true,
-    onOk: onConfirm,
+    onOk: () => runConfirmedDeparture([dirtyTabKey], onConfirm),
     onCancel,
   });
 
@@ -119,7 +153,7 @@ export function confirmIfAnyTabDirty(
  */
 export function confirmIfTabsDirty(
   tabKeys: string[],
-  onConfirm: () => void,
+  onConfirm: () => void | Promise<void>,
   customConfirmModal?: (props: Parameters<typeof Modal.confirm>[0]) => void,
   draftScope?: string,
 ): boolean {
@@ -139,7 +173,7 @@ export function confirmIfTabsDirty(
     cancelText: '取消',
     centered: true,
     onOk: () => {
-      onConfirm();
+      return runConfirmedDeparture(tabKeys, onConfirm);
     },
   });
 
@@ -179,4 +213,5 @@ export function useTabCloseGuard(options: {
  */
 export function _clearAllTabCloseGuards(): void {
   guards.clear();
+  confirmedDepartures.clear();
 }

@@ -52,6 +52,11 @@
   转 reject，否则 403/5xx 之后会以
   `Cannot read properties of undefined (reading 'data')` 的 TypeError
   文案直达用户（案例：2026-09-21 总部用户新建订单）。
+- 命令式写入必须验证实际成功报文才显示成功、关闭表单、导航、刷新或清 dirty/草稿。
+  默认统一错误处理消费失败后返回 `undefined` 时立即返回失败，不追加重复错误提示；
+  携带实体的写接口还应验证必要 `data.id` 且 `success !== false`。各接口按真实契约判定，
+  禁止 `await api()` 后无条件执行成功逻辑。`ModalForm.onFinish` 失败返回 `false`；
+  订单已成功落库后的后台刷新继续 best-effort，不把刷新失败改判为保存失败。
 - 开发期走 Vite 代理，生产同域（Go 服务同时提供 `/api/*` 与静态资源）；
   修改打包或路由时两种路径都要验证。
 
@@ -59,6 +64,29 @@
 
 - 表单、弹窗开合等 UI 状态留在组件内；跨页面共享的 UI 偏好才考虑全局。
 - 不把接口响应镜像进全局 store 再派生——直接消费服务端状态层。
+
+## 场景：客商未保存离开与详情失败恢复
+
+- 客商表单不保存持久草稿；同步 dirty 引用覆盖 Form 字段、联系人、别名及待添加别名。
+  `useTabCloseGuard({ tabKey, isDirty })` 处理关闭/组织切换，
+  `useRouteLeaveGuard(tabKey, isDirty)` 使用 Data Router 的 `useBlocker` 处理 pathname/search
+  变化，含侧栏、其它页签、同菜单档案切换和浏览器 POP/replace。取消导航保留表单，
+  保存结果成功才清 dirty；无改动及保存成功导航不提示。
+- `confirmIfTabsDirty` / `confirmIfAnyTabDirty` 的确认动作接受 `void | Promise<void>`。
+  已确认动作期间仅对本次关闭范围内的当前 dirty guard 对象协调路由放行（含批量关闭）；异步组织切换必须返回 Promise，
+  动作结束或失败后撤销放行，不能把 dirty 清零或永久允许后续导航。
+- 客商完整 pathname+search 为表单资源身份；身份变化用 React key 重建 Form store，并在
+  layout effect 清外部联系人/别名/错误及首次回填标记。用户/组织继续由工作区 key 重建。
+- 主档 GET 显式 `skipErrorHandler` 外抛错误，由 React Query 的中文 meta 提示；空成功响应
+  也抛加载失败。首次 loading/失败不挂空表单，失败用 Result 提供重试和返回。
+  同一资源只首次成功回填，背景 refetch 成功或失败均不覆盖用户输入。
+- 客商保存发起时捕获身份代际。资源 layout effect 的 setup 与 cleanup 均递增同一代际，
+  响应、catch 与 finally 仅当前代际可清 dirty、导航、提示或改变 saving；旧请求不能影响
+  新档案，亦不能在 A→B→A 往返后作用于重新进入的 A。
+- 必须验证 reject / 全局消费后的 undefined / 缺实体 ID / success:false；真实 router
+  测试导航确认及取消、POP/replace、已确认关闭不重复提示和异步失败后再次保护。
+  详情测试首次失败重试、有数据重查不覆盖输入，以及在途保存跨身份和往返的迟到结果；
+  不能以 mock 关闭函数替代真实路由测试。
 
 ## 场景：跨页签表单草稿
 
