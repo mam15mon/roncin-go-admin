@@ -21,7 +21,7 @@ import (
 )
 
 // Submit 提交本人月度申请（仅用于新建）。事务内顺序：
-//  1. 员工 Membership 行 FOR UPDATE（稳定父行锁，与方案写路径同锁序）串行化
+//  1. 先锁员工 User 行 NO KEY UPDATE，再锁 Membership 行 FOR UPDATE，串行化
 //     同一员工的重复点击与并发提交；
 //  2. 按月度唯一键检查申请头：当月已存在任何状态的申请头返回稳定冲突并提示
 //     到申请详情操作——重提必须走 Resubmit 显式定位原申请，空提交不承担
@@ -67,9 +67,12 @@ func (r *financeCommissionApplicationRepo) Submit(ctx context.Context, scope biz
 	return result, nil
 }
 
-// lockApplicationMembership 按当前组织锁定员工成员关系父行并确认有效：与方案
-// 写路径共用「Membership → …」锁序，同一员工的并发申请提交在此串行化。
+// lockApplicationMembership 先锁 User 再锁当前组织 Membership，与费用审核及
+// 账号维护保持相同父行锁序；同一员工的并发申请在此串行化。
 func lockApplicationMembership(ctx context.Context, client *ent.Client, organizationID, userID uuid.UUID) error {
+	if _, err := commissionEmployeeSnapshotLock(client.User.Query().Where(user.IDEQ(userID))).Only(ctx); err != nil {
+		return mapEntError(err, biz.ErrCommissionApplicationEmployeeInvalid, nil)
+	}
 	rows, err := client.Membership.Query().
 		Where(membership.OrganizationIDEQ(organizationID), membership.UserIDEQ(userID)).
 		Order(membership.ByID()).
@@ -97,11 +100,11 @@ type applicationResubmitOutcome struct {
 }
 
 // Resubmit 显式重提本人被驳回的月度申请（design §5.3）。事务内顺序：
-//  1. 员工 Membership 行 FOR UPDATE 串行化同一员工的重提与提交竞争；
+//  1. 员工 User NO KEY UPDATE → Membership UPDATE 串行化同一员工的重提与提交竞争；
 //  2. 按申请 ID + 组织 + 本人锁定申请头：他人/跨组织申请按不存在处理；
 //     非 REJECTED 或 expected_version 不匹配返回「已被处理」稳定冲突；
 //  3. 按 commission_id 升序锁定原绑定明细，按来源升序逐笔按上游当前事实重新
-//     解析（来源 → 账单 → 订单 → 费用 → 归属 → 提成父单 → 方案固定锁序）：
+//     解析（完整来源订单联合预锁 → 来源 → 账单 → 费用 → 归属 → 提成父单 → 方案）：
 //     来源仍有效且指纹一致保持不变；指纹变化刷新提成父单与明细快照金额/方案/
 //     指纹；来源失效或提成已被取消/确认等失效场景把该明细从本次提交版本剔除；
 //  4. 全部明细被剔除时稳定拒绝并整体回滚，申请保持 REJECTED 与原明细集合；
@@ -139,7 +142,7 @@ func (r *financeCommissionApplicationRepo) Resubmit(ctx context.Context, scope b
 			return biz.ErrCommissionApplicationSourceConflict
 		}
 		store := commissionStoreFromClient(client)
-		employee, err := store.users.Query().Where(user.IDEQ(scope.UserID)).ForUpdate().Only(txCtx)
+		employee, err := commissionEmployeeSnapshotLock(store.users.Query().Where(user.IDEQ(scope.UserID))).Only(txCtx)
 		if err != nil {
 			return err
 		}
@@ -218,6 +221,13 @@ func (r *financeCommissionApplicationRepo) Resubmit(ctx context.Context, scope b
 // 明细快照，来源失效或提成不再是 DRAFT 的明细剔除。
 func (r *financeCommissionApplicationRepo) refreshApplicationLines(ctx context.Context, client *ent.Client, store commissionCalculationStore, scope biz.WorkbenchScope, employee *ent.User, header *ent.FinanceCommissionApplication, lines []*ent.FinanceCommissionApplicationLine) (*applicationResubmitOutcome, error) {
 	groups := groupApplicationLinesBySource(lines)
+	sources := make([]applicationSourceRef, 0, len(groups))
+	for _, group := range groups {
+		sources = append(sources, applicationSourceRef{verificationID: group.verificationID, nettingID: group.nettingID})
+	}
+	if err := lockCommissionSourceOrderSet(ctx, client, scope.OrganizationID, sources, nil); err != nil {
+		return nil, err
+	}
 	outcome := &applicationResubmitOutcome{kept: make([]*ent.FinanceCommissionApplicationLine, 0, len(lines))}
 	for _, group := range groups {
 		source, err := loadCommissionCalculationSource(ctx, store, scope.OrganizationID, group.verificationID, group.nettingID, true)

@@ -306,7 +306,7 @@ func (u *CommissionUsecase) Preview(ctx context.Context, org, verificationID, ne
 	if err != nil {
 		return nil, err
 	}
-	generation, err := u.repo.GetGenerationContext(ctx, org, verificationID, nettingID)
+	generation, err := u.repo.GetGenerationContext(ctx, org, verificationID, nettingID, employeeID)
 	if err != nil {
 		return nil, err
 	}

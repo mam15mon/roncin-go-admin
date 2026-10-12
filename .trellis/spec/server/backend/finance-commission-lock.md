@@ -29,6 +29,9 @@ net(order) = Σ 提成线金额(所属提成单 status ∈ {CONFIRMED, PAID})
 - **来源二选一**：提成单来源为核销单或对冲单之一，不做多态来源抽象；同幂等键换来源必返
   重复错误（幂等意图比对含两个来源字段）；计算指纹含 `src=` 来源段。对冲来源计算口径与
   核销同构：CONFIRMED 对冲单的 RECEIVABLE 分摊按 `分摊金额/账单总额` 摊入账单行本位币。
+- 需要重算员工快照的创建、确认与月度批准，先以 `NO KEY UPDATE` 锁员工 User（仅稳定非主键快照，同时允许方案分配外键 `KEY SHARE`），再锁申请头（存在时）及订单；月申提交/重提先 User→Membership，再申请头/订单。`GetGenerationContext` 接收 employeeID，在事务入口即遵守此序，不能在外层已锁 Order 后才靠内核补锁员工。
+- 单笔确认以完整来源订单集合预锁；整批确认与月申提交/重提须先合并所有来源订单，再按主键一次锁定联合集合。不得先锁员工归属的提成行子集或逐来源追加锁，否则不同员工/来源之间仍会形成反序。
+- 对冲计提预锁订单只从活跃 `RECEIVABLE` 分摊收集，与实际计提集合一致；应付在其他订单时不能误报 `FINANCE_COMMISSION_SOURCE_CHANGED`。预览、创建、确认及月度申请使用相同经济来源口径。
 - **冲减联动对称**：核销 REVERSE 与对冲 REVERSE 共用冲减助手
   （`reconcileCommissionsForSourceReversal`）：未支付取消、有支付敞口生成 CONFIRMED
   DECREASE 调整（`source_type` 分别为 VERIFICATION_REVERSAL / NETTING_REVERSAL，

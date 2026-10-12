@@ -75,6 +75,13 @@ func (uc *OrderFeeSupplementUsecase) PreviewApproval(ctx context.Context, caller
 		return nil, ErrFeeSupplementInvalidArgument
 	}
 	err := uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		qualified, grantErr := uc.repo.HasRealtimeLockGrant(txCtx, organizationID, orderID, caller.UserID, caller.IsBootstrapAdmin)
+		if grantErr != nil {
+			return grantErr
+		}
+		if !qualified {
+			return ErrPermissionDenied
+		}
 		if _, err := uc.repo.LockOrderForSupplement(txCtx, organizationID, orderID); err != nil {
 			return err
 		}
@@ -409,8 +416,8 @@ func verifyLockBasis(request *OrderFeeSupplementRequest, evidence *OrderFeeSuppl
 	return nil
 }
 
-// Approve 按 design 第 5 节九步固定顺序执行：Order 行锁 → 申请行锁校验版本与
-// 状态 → 实时费用审核资格 → 批准版本复核 → 固化汇率复核费用事实 → 按父单 UUID 升序
+// Approve 按固定顺序执行：授权父行锁与实时费用审核资格 → Order 行锁 →
+// 申请行锁校验版本与状态 → 批准版本复核 → 固化汇率复核费用事实 → 按父单 UUID 升序
 // 锁定提成上下文 → 边际计算与双层封顶 → 创建费用与确认冲减 → 新批准、申请终态、审计与
 // 逐员工通知。任何一步失败整体回滚，不允许部分成功。
 func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Principal, organizationID, orderID, requestID uuid.UUID, expectedVersion uint64, decision ...string) (*OrderFeeSupplementApproveResult, error) {
@@ -425,6 +432,13 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 	}
 	var result *OrderFeeSupplementApproveResult
 	err := uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		qualified, grantErr := uc.repo.HasRealtimeLockGrant(txCtx, organizationID, orderID, caller.UserID, caller.IsBootstrapAdmin)
+		if grantErr != nil {
+			return grantErr
+		}
+		if !qualified {
+			return ErrPermissionDenied
+		}
 		// 1. FOR UPDATE 锁定订单。
 		evidence, lockErr := uc.repo.LockOrderForSupplement(txCtx, organizationID, orderID)
 		if lockErr != nil {
@@ -440,14 +454,6 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 		}
 		if request.Version != expectedVersion || request.Status != OrderFeeSupplementPending {
 			return ErrFeeSupplementTransition
-		}
-		// 3. 实时校验费用审核权限与组织范围。
-		qualified, grantErr := uc.repo.HasRealtimeLockGrant(txCtx, organizationID, orderID, caller.UserID, caller.IsBootstrapAdmin)
-		if grantErr != nil {
-			return grantErr
-		}
-		if !qualified {
-			return ErrPermissionDenied
 		}
 		// 2b. 复核申请固化的批准事件与费用内容版本。
 		if basisErr := verifyLockBasis(request, evidence); basisErr != nil {
@@ -493,7 +499,7 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 			return ErrFeeSupplementTransition
 		}
 		comment := strings.TrimSpace(decision[1])
-		if utf8.RuneCountInString(comment) > 500 {
+		if utf8.RuneCountInString(comment) > 1000 {
 			return ErrFeeSupplementInvalidArgument
 		}
 		request.DecisionReason = &comment
@@ -646,7 +652,7 @@ func (uc *OrderFeeSupplementUsecase) Reject(ctx context.Context, caller *Princip
 	normalizedReason := ""
 	if reason != nil {
 		normalizedReason = strings.TrimSpace(*reason)
-		if normalizedReason == "" || utf8.RuneCountInString(normalizedReason) > 500 {
+		if normalizedReason == "" || utf8.RuneCountInString(normalizedReason) > 1000 {
 			return nil, ErrFeeSupplementInvalidArgument
 		}
 	}
@@ -658,6 +664,13 @@ func (uc *OrderFeeSupplementUsecase) Reject(ctx context.Context, caller *Princip
 	}
 	var updated *OrderFeeSupplementRequest
 	err := uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		qualified, grantErr := uc.repo.HasRealtimeLockGrant(txCtx, organizationID, orderID, caller.UserID, caller.IsBootstrapAdmin)
+		if grantErr != nil {
+			return grantErr
+		}
+		if !qualified {
+			return ErrPermissionDenied
+		}
 		if _, lockErr := uc.repo.LockOrderForSupplement(txCtx, organizationID, orderID); lockErr != nil {
 			return lockErr
 		}
@@ -670,13 +683,6 @@ func (uc *OrderFeeSupplementUsecase) Reject(ctx context.Context, caller *Princip
 		}
 		if request.Version != expectedVersion || request.Status != OrderFeeSupplementPending {
 			return ErrFeeSupplementTransition
-		}
-		qualified, grantErr := uc.repo.HasRealtimeLockGrant(txCtx, organizationID, orderID, caller.UserID, caller.IsBootstrapAdmin)
-		if grantErr != nil {
-			return grantErr
-		}
-		if !qualified {
-			return ErrPermissionDenied
 		}
 		now := uc.now().UTC()
 		request.Status = OrderFeeSupplementRejected

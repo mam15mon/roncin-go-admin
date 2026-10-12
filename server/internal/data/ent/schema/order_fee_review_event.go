@@ -24,7 +24,7 @@ func (OrderFeeReviewEvent) Fields() []ent.Field {
 		field.UUID("actor_id", uuid.Nil).Immutable(),
 		field.String("actor_name").Default("").Immutable(),
 		field.JSON("authorization_snapshot", map[string]string{}).Immutable(),
-		field.String("comment").Default("").MaxLen(1000).Immutable(),
+		field.String("comment").Default("").MaxRuneLen(1000).Immutable(),
 		field.Uint64("content_version").Immutable(),
 		field.String("content_fingerprint").NotEmpty().MaxLen(64).Immutable(),
 		field.JSON("snapshot", json.RawMessage{}).Immutable(),

@@ -4197,7 +4197,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "APPROVED", "REJECTED", "WITHDRAWN"}, Default: "PENDING"},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
-		{Name: "decision_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "decision_reason", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "requested_by", Type: field.TypeUUID},

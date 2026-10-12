@@ -127,13 +127,16 @@ func resolveCommissionRuleForDate(ctx context.Context, store commissionCalculati
 // CNY 折算汇率按归属日期解析，来源单不再携带汇率快照。
 // 事务内首次读取即加 ForUpdate：同一事务内的写入阶段还会对同一来源行 ForUpdate，
 // 若先 ForShare 再升级，两个并发创建事务可同持共享锁互等升级形成死锁，因此从入口
-// 串行化；普通上下文保持无锁读取。
-func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verificationID, nettingID uuid.UUID) (*biz.CommissionGenerationContext, error) {
+// 串行化；先锁员工 User 再锁订单及来源，与费用审核保持一致。普通上下文保持无锁读取。
+func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verificationID, nettingID, employeeID uuid.UUID) (*biz.CommissionGenerationContext, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if _, transactional := transactionFromContext(ctx); transactional {
+		if _, err := commissionEmployeeSnapshotLock(client.User.Query().Where(user.IDEQ(employeeID))).Only(ctx); err != nil {
+			return nil, mapEntError(err, biz.ErrCommissionInvalid, nil)
+		}
 		if _, err := lockCommissionSourceOrders(ctx, commissionStoreFromClient(client), org, verificationID, nettingID); err != nil {
 			return nil, err
 		}
@@ -188,17 +191,17 @@ type commissionSourceAllocation struct {
 }
 
 func calculateCommission(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID, employeeID uuid.UUID, personnelRole biz.CommissionPersonnelRole, lock bool) (*biz.CommissionCalculation, error) {
-	source, err := loadCommissionCalculationSource(ctx, store, org, verificationID, nettingID, lock)
-	if err != nil {
-		return nil, err
-	}
 	uq := store.users.Query().Where(user.IDEQ(employeeID))
 	if lock {
-		uq.ForUpdate()
+		commissionEmployeeSnapshotLock(uq)
 	}
 	employee, err := uq.Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrCommissionInvalid, nil)
+	}
+	source, err := loadCommissionCalculationSource(ctx, store, org, verificationID, nettingID, lock)
+	if err != nil {
+		return nil, err
 	}
 	// 员工已离职（账号停用、成员关系解除）不影响解析：历史资格只由来源日期、
 	// 方案区间与分配区间决定，不以当前账号状态抹除。
@@ -580,11 +583,32 @@ func optionalStringValue(value *string) string {
 	return *value
 }
 
-// lockCommissionSourceOrders 只读定位完整来源订单，先按主键锁订单，再锁来源与账单。
+// lockCommissionSourceOrders 只读定位应收计提订单，先按主键锁订单，再锁来源与账单。
 func lockCommissionSourceOrders(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID uuid.UUID) ([]uuid.UUID, error) {
+	ids, err := commissionSourceOrderIDs(ctx, store, org, verificationID, nettingID)
+	if err != nil {
+		return nil, err
+	}
+	locked, err := store.orders.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(org)).Order(orderent.ByID()).ForUpdate().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(locked) != len(ids) {
+		return nil, biz.ErrCommissionSource
+	}
+	if err := ensureCommissionOrdersReady(ctx, store.client, ids, false); err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+// commissionSourceOrderIDs 只读定位完整应收来源订单，供多来源写入口合并预锁。
+func commissionSourceOrderIDs(ctx context.Context, store commissionCalculationStore, org, verificationID, nettingID uuid.UUID) ([]uuid.UUID, error) {
 	var billIDs []uuid.UUID
 	if nettingID != uuid.Nil {
-		n, err := store.nettings.Query().Where(nettingent.IDEQ(nettingID), nettingent.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceNettingAllocationQuery) { q.Where(nettingalloc.ActiveEQ(true)) }).Only(ctx)
+		n, err := store.nettings.Query().Where(nettingent.IDEQ(nettingID), nettingent.OrganizationIDEQ(org)).WithAllocations(func(q *ent.FinanceNettingAllocationQuery) {
+			q.Where(nettingalloc.ActiveEQ(true), nettingalloc.DirectionEQ(nettingalloc.DirectionRECEIVABLE))
+		}).Only(ctx)
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrCommissionSource, nil)
 		}
@@ -608,19 +632,9 @@ func lockCommissionSourceOrders(ctx context.Context, store commissionCalculation
 	for _, l := range lines {
 		ids = append(ids, l.OrderID)
 	}
-	ids = uniqueSortedUUIDs(ids)
-	locked, err := store.orders.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(org)).Order(orderent.ByID()).ForUpdate().All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(locked) != len(ids) {
-		return nil, biz.ErrCommissionSource
-	}
-	if err := ensureCommissionOrdersReady(ctx, store.client, ids, false); err != nil {
-		return nil, err
-	}
-	return ids, nil
+	return uniqueSortedUUIDs(ids), nil
 }
+
 func sameUUIDSet(a, b []uuid.UUID) bool {
 	a = uniqueSortedUUIDs(a)
 	b = uniqueSortedUUIDs(b)

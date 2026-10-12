@@ -70,7 +70,7 @@ func (u *CommissionUsecase) Create(ctx context.Context, org, actor uuid.UUID, in
 	// 生成上下文读取与提成写入在同一共享事务内完成；CNY 快照不依赖预览结果，
 	// 按事务内固化（原币记账恒等口径，无需再解析外部汇率）。
 	err = u.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
-		generation, transactionErr := u.repo.GetGenerationContext(txCtx, org, in.VerificationID, in.NettingID)
+		generation, transactionErr := u.repo.GetGenerationContext(txCtx, org, in.VerificationID, in.NettingID, in.EmployeeID)
 		if transactionErr != nil {
 			return transactionErr
 		}

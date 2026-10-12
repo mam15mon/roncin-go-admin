@@ -190,15 +190,17 @@ func TestCommissionRepoListUsesCommissionDateFilterAndStableOrdering(t *testing.
 func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
 	org := uuid.New()
 
-	t.Run("事务先定位来源订单，来源不存在时不获取行锁", func(t *testing.T) {
+	t.Run("事务先锁员工再定位来源订单", func(t *testing.T) {
 		repo, mock := setupTestCommissionRepo(t)
 		mock.ExpectBegin()
+		mock.ExpectQuery(`SELECT .* FROM "users" WHERE .*LIMIT 2 FOR NO KEY UPDATE$`).
+			WillReturnRows(sqlmock.NewRows([]string{user.FieldID}).AddRow(uuid.New()))
 		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .*LIMIT 2$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns))
 		mock.ExpectRollback()
 
 		err := repo.data.WithinTransaction(context.Background(), func(ctx context.Context) error {
-			_, queryErr := repo.GetGenerationContext(ctx, org, uuid.New(), uuid.Nil)
+			_, queryErr := repo.GetGenerationContext(ctx, org, uuid.New(), uuid.Nil, uuid.New())
 			return queryErr
 		})
 		if !errors.Is(err, biz.ErrCommissionSource) {
@@ -215,7 +217,7 @@ func TestCommissionRepoGetGenerationContextLocking(t *testing.T) {
 		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .*LIMIT 2$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns))
 
-		if _, err := repo.GetGenerationContext(context.Background(), org, uuid.New(), uuid.Nil); !errors.Is(err, biz.ErrCommissionSource) {
+		if _, err := repo.GetGenerationContext(context.Background(), org, uuid.New(), uuid.Nil, uuid.New()); !errors.Is(err, biz.ErrCommissionSource) {
 			t.Fatalf("GetGenerationContext() error = %v, want %v", err, biz.ErrCommissionSource)
 		}
 		if err := mock.ExpectationsWereMet(); err != nil {

@@ -51,14 +51,7 @@ func hasRealtimeFeePermission(ctx context.Context, client *ent.Client, organizat
 		return false, err
 	}
 	if lock {
-		// 授权写入也锁这些父行；先锁父行，再重读角色关联，避免关联删除绕过共享锁。
-		if _, err := client.User.Query().Where(userent.IDEQ(userID)).ForShare().Only(ctx); err != nil {
-			return false, mapEntError(err, biz.ErrFeeReviewForbidden, nil)
-		}
-		if _, err := client.Membership.Query().Where(membershipent.UserIDEQ(userID)).Order(membershipent.ByID()).ForShare().All(ctx); err != nil {
-			return false, err
-		}
-		if _, err := client.Role.Query().Where(roleent.HasAssignmentsWith(assignmentent.HasMembershipWith(membershipent.UserIDEQ(userID)))).Order(roleent.ByID()).ForShare().All(ctx); err != nil {
+		if err := lockFeeAuthorizationParents(ctx, client, userID); err != nil {
 			return false, err
 		}
 	}
@@ -68,6 +61,21 @@ func hasRealtimeFeePermission(ctx context.Context, client *ent.Client, organizat
 	}
 	return client.RoleAssignment.Query().Where(qualifiedBusinessLockGrantPredicate(key, organizationID, ancestors, membershipent.UserIDEQ(userID), membershipent.HasUserWith(userent.EnabledEQ(true)), membershipent.HasOrganizationWith(organizationent.EnabledEQ(true)))).Exist(ctx)
 }
+
+// lockFeeAuthorizationParents 必须在订单行锁之前调用，与月度申请和账号维护
+// 共用 User → Membership → Role → Order 锁序。持有父锁后重读同一授权关联，
+// 防止成员、角色或权限在费用决策提交前失效。
+func lockFeeAuthorizationParents(ctx context.Context, client *ent.Client, userID uuid.UUID) error {
+	if _, err := client.User.Query().Where(userent.IDEQ(userID)).ForShare().Only(ctx); err != nil {
+		return mapEntError(err, biz.ErrFeeReviewForbidden, nil)
+	}
+	if _, err := client.Membership.Query().Where(membershipent.UserIDEQ(userID)).Order(membershipent.ByID()).ForShare().All(ctx); err != nil {
+		return err
+	}
+	_, err := client.Role.Query().Where(roleent.HasAssignmentsWith(assignmentent.HasMembershipWith(membershipent.UserIDEQ(userID)))).Order(roleent.ByID()).ForShare().All(ctx)
+	return err
+}
+
 func feeReviewReadable(ctx context.Context, client *ent.Client, p *biz.Principal, o *ent.Order) (bool, error) {
 	for _, key := range []string{access.FinanceFeeRead, access.OrderPermission(access.OrderBusinessType(o.BusinessType), access.OrderFeeRead), access.FinanceFeeReview} {
 		yes, err := hasRealtimeFeePermission(ctx, client, o.OrganizationID, p.UserID, key, false)
@@ -282,15 +290,18 @@ func (r *orderFeeReviewRepo) Act(ctx context.Context, p *biz.Principal, action s
 	requestHash := biz.FeeReviewHash(payload)
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		client := tx.Client()
+		if err := lockFeeAuthorizationParents(ctx, client, p.UserID); err != nil {
+			return err
+		}
 		o, err := client.Order.Query().Where(orderent.IDEQ(input.OrderID)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrOrderNotFound, nil)
 		}
 		authorized := false
 		if action == "SUBMIT" || action == "WITHDRAW" {
-			authorized, err = feeReviewSubmitter(ctx, client, p, o, true)
+			authorized, err = feeReviewSubmitter(ctx, client, p, o, false)
 		} else {
-			authorized, err = hasFeeReviewPermission(ctx, client, o.OrganizationID, p.UserID, true)
+			authorized, err = hasFeeReviewPermission(ctx, client, o.OrganizationID, p.UserID, false)
 		}
 		if err != nil {
 			return err

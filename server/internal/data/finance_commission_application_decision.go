@@ -30,10 +30,10 @@ func lockApplicationHeaderForDecision(ctx context.Context, client *ent.Client, o
 }
 
 // Approve 整单批准月度申请（design §5.2）。单个共享事务内顺序：
-//  1. 锁定申请头并校验 expected_version 与 PENDING_REVIEW——并发批准/驳回/重提
+//  1. 先锁员工 User，再锁定申请头并校验 expected_version 与 PENDING_REVIEW——并发批准/驳回/重提
 //     只有一个事务成功，其余稳定冲突；
 //  2. 按 commission_id 升序锁定申请明细，交由共享事务内的整批确认辅助
-//     （confirmCommissionsForApplicationApproval）按「来源订单 → 提成父单」
+//     （confirmCommissionsForApplicationApproval）按「员工 → 来源订单 → 提成父单」
 //     固定锁序逐笔重算指纹、阻断未建账费用并把 DRAFT 提成整批转为 CONFIRMED；
 //  3. 更新申请头为 APPROVED、记录决策人/时间、递增版本并写决策审计。
 //     任一步失败整体回滚，不产生部分批准。
@@ -43,6 +43,14 @@ func (r *financeCommissionApplicationRepo) Approve(ctx context.Context, organiza
 		client, clientErr := r.data.client(txCtx)
 		if clientErr != nil {
 			return clientErr
+		}
+		// 与本人重提保持 User → 申请头 → Order 顺序；锁后仍重读头并校验版本状态。
+		preHeader, lookupErr := client.FinanceCommissionApplication.Query().Where(applicationent.IDEQ(id), applicationent.OrganizationIDIn(organizationIDs...)).Only(txCtx)
+		if lookupErr != nil {
+			return mapEntError(lookupErr, biz.ErrCommissionApplicationNotFound, nil)
+		}
+		if lockErr := lockCommissionEmployees(txCtx, client, []uuid.UUID{preHeader.EmployeeID}); lockErr != nil {
+			return lockErr
 		}
 		header, lockErr := lockApplicationHeaderForDecision(txCtx, client, organizationIDs, id, expectedVersion)
 		if lockErr != nil {

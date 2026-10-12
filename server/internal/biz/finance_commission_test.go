@@ -87,7 +87,7 @@ func (s *commissionRepoStub) Preview(context.Context, uuid.UUID, uuid.UUID, uuid
 	return s.preview, nil
 }
 
-func (s *commissionRepoStub) GetGenerationContext(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error) {
+func (s *commissionRepoStub) GetGenerationContext(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) (*CommissionGenerationContext, error) {
 	return s.generation, nil
 }
 

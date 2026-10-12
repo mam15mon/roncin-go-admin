@@ -46,7 +46,7 @@ type FeeReviewSnapshot struct {
 func BuildFeeReviewSnapshot(fees []*OrderFee) (*FeeReviewSnapshot, string, error) {
 	snapshot := &FeeReviewSnapshot{EncodingVersion: "ORDER_FEE_REVIEW_V1", Fees: make([]*OrderFee, 0, len(fees))}
 	for _, fee := range fees {
-		if fee == nil || fee.ID == uuid.Nil || fee.BaseCurrency == "" || !fee.ExchangeRate.IsPositive() || !fee.BaseCurrencyAmount.Equal(fee.TotalAmount.Mul(fee.ExchangeRate).Round(8)) {
+		if fee == nil || fee.ID == uuid.Nil || fee.BaseCurrency == "" || !fee.ExchangeRate.IsPositive() || !fee.BaseCurrencyAmount.Equal(fee.TotalAmount.Mul(fee.ExchangeRate).RoundBank(8)) {
 			return nil, "", ErrFeeReviewInvalid
 		}
 		if snapshot.Summary.BaseCurrency == "" {

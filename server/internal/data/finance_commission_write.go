@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"entgo.io/ent/dialect/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +16,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 // Create 在事务内锁定来源并写入提成草稿与 CNY 快照，只负责写入并返回错误；
@@ -97,6 +99,18 @@ func financeCommissionLineBuildersFromCalculation(lineClient *ent.FinanceCommiss
 func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUID, version uint64, target biz.CommissionStatus, reason string, audit *biz.AuditEvent) (*biz.FinanceCommission, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 
+		// 确认需要锁内重算员工快照，必须先锁 User 再锁订单，保持与费用审核同序。
+		var snapshot *ent.FinanceCommission
+		if target == biz.CommissionConfirmed {
+			var lookupErr error
+			snapshot, lookupErr = tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
+			if lookupErr != nil {
+				return mapEntError(lookupErr, biz.ErrCommissionNotFound, nil)
+			}
+			if err := lockCommissionEmployees(ctx, tx.Client(), []uuid.UUID{snapshot.EmployeeID}); err != nil {
+				return err
+			}
+		}
 		// 提成状态迁移会改变订单财务锁证据集合；在修改提成行之前统一按 UUID
 		// 升序取得受影响 Order 行锁，保持 Order → 提成父单 → 调整的固定锁序，
 		// 避免补录审批复核证据后被并发改写。
@@ -104,7 +118,15 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 		if preLineErr != nil {
 			return preLineErr
 		}
-		if lockErr := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(preLines)); lockErr != nil {
+		orderIDs := orderUUIDsFromLines(preLines)
+		if snapshot != nil {
+			sourceIDs, err := commissionSourceOrderIDs(ctx, commissionStoreFromTx(tx), org, valueOrNilUUID(snapshot.VerificationID), valueOrNilUUID(snapshot.NettingID))
+			if err != nil {
+				return biz.ErrCommissionSourceChanged
+			}
+			orderIDs = append(orderIDs, sourceIDs...)
+		}
+		if lockErr := lockOrdersSortedForFinance(ctx, tx, orderIDs); lockErr != nil {
 			return lockErr
 		}
 
@@ -116,10 +138,6 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 			// 复算，与提成创建路径保持相同锁序。方案与员工
 			// 分配按快照的员工、身份与归属日期重新解析：已生效方案的历史快照
 			// 不被名单或方案后续变化重算，但解析失败或指纹漂移会拒绝确认。
-			snapshot, lookupErr := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).Only(ctx)
-			if lookupErr != nil {
-				return mapEntError(lookupErr, biz.ErrCommissionNotFound, nil)
-			}
 			current, calculateErr := calculateCommission(ctx, commissionStoreFromTx(tx), org, valueOrNilUUID(snapshot.VerificationID), valueOrNilUUID(snapshot.NettingID), snapshot.EmployeeID, derefCommissionPersonnelRole(snapshot.PersonnelRole), true)
 			if calculateErr != nil {
 				return biz.ErrCommissionSourceChanged
@@ -209,21 +227,31 @@ func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, o
 	if err != nil {
 		return err
 	}
-	if err := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(lineRows)); err != nil {
-		return err
-	}
-	if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lineRows), true); err != nil {
-		return err
-	}
 	parents, err := tx.FinanceCommission.Query().
 		Where(commission.IDIn(sorted...), commission.OrganizationIDEQ(org)).
-		Order(ent.Asc(commission.FieldID)).
-		All(ctx)
+		Order(ent.Asc(commission.FieldID)).All(ctx)
 	if err != nil {
 		return err
 	}
 	if len(parents) != len(sorted) {
 		return biz.ErrCommissionApplicationSourceConflict
+	}
+	employeeIDs := make([]uuid.UUID, 0, len(parents))
+	for _, parent := range parents {
+		employeeIDs = append(employeeIDs, parent.EmployeeID)
+	}
+	if err := lockCommissionEmployees(ctx, tx.Client(), employeeIDs); err != nil {
+		return err
+	}
+	sources := make([]applicationSourceRef, 0, len(parents))
+	for _, parent := range parents {
+		sources = append(sources, applicationSourceRef{verificationID: valueOrNilUUID(parent.VerificationID), nettingID: valueOrNilUUID(parent.NettingID)})
+	}
+	if err := lockCommissionSourceOrderSet(ctx, tx.Client(), org, sources, orderUUIDsFromLines(lineRows)); err != nil {
+		return err
+	}
+	if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lineRows), true); err != nil {
+		return err
 	}
 	for _, parent := range parents {
 		if parent.Status != commission.StatusDRAFT {
@@ -314,4 +342,50 @@ func lockOrdersSortedForFinance(ctx context.Context, tx *ent.Tx, orderIDs []uuid
 	sorted := uniqueSortedUUIDs(orderIDs)
 	_, err := tx.Order.Query().Where(orderent.IDIn(sorted...)).Order(ent.Asc(orderent.FieldID)).ForUpdate().All(ctx)
 	return err
+}
+
+// lockCommissionEmployees 在来源订单之前按 UUID 升序锁定计算所需的员工行。
+// 重入已持有的员工锁不会在订单之后引入新的授权父锁。
+func lockCommissionEmployees(ctx context.Context, client *ent.Client, employeeIDs []uuid.UUID) error {
+	ids := uniqueSortedUUIDs(employeeIDs)
+	rows, err := commissionEmployeeSnapshotLock(client.User.Query().Where(user.IDIn(ids...)).Order(user.ByID())).All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(rows) != len(ids) {
+		return biz.ErrCommissionInvalid
+	}
+	return nil
+}
+
+// lockCommissionSourceOrderSet 在任何逐来源行锁之前一次锁定完整联合订单集。
+// 无效来源仍交由后续解析按原有规则拒绝或剔除，不改变来源状态与指纹校验。
+func lockCommissionSourceOrderSet(ctx context.Context, client *ent.Client, org uuid.UUID, sources []applicationSourceRef, extraOrderIDs []uuid.UUID) error {
+	ids := append([]uuid.UUID(nil), extraOrderIDs...)
+	store := commissionStoreFromClient(client)
+	for _, ref := range sources {
+		orderIDs, err := commissionSourceOrderIDs(ctx, store, org, ref.verificationID, ref.nettingID)
+		if err != nil {
+			if isSkippableCommissionError(err) {
+				continue
+			}
+			return err
+		}
+		ids = append(ids, orderIDs...)
+	}
+	ids = uniqueSortedUUIDs(ids)
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := client.Order.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(org)).Order(orderent.ByID()).ForUpdate().All(ctx)
+	return err
+}
+
+// commissionEmployeeSnapshotLock 保护非主键员工快照并串行化本人提成操作。
+// NO KEY UPDATE 仍阻断账号修改和审核 SHARE，同时允许方案分配插入时的
+// 外键 KEY SHARE，避免 User 与 Membership/Rule 的隐式反序。
+func commissionEmployeeSnapshotLock(query *ent.UserQuery) *ent.UserQuery {
+	return query.ForUpdate(func(options *sql.LockOptions) {
+		options.Strength = sql.LockNoKeyUpdate
+	})
 }

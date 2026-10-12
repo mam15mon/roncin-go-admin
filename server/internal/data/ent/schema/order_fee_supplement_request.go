@@ -93,7 +93,7 @@ func (OrderFeeSupplementRequest) Fields() []ent.Field {
 		// 撤回事实记录在业务审计中。
 		field.UUID("decided_by", uuid.Nil).Optional().Nillable(),
 		field.Time("decided_at").Optional().Nillable(),
-		field.String("decision_reason").Optional().Nillable().MaxLen(500),
+		field.String("decision_reason").Optional().Nillable().MaxRuneLen(1000),
 	}
 }
 

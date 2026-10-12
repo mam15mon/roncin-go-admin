@@ -175,14 +175,14 @@ func earliestApplicationSourceDate(ctx context.Context, client *ent.Client, scop
 
 // resolveApplicationCandidates 全量解析「截止日以前、当前员工、当前组织、未取消、
 // 未被任何申请明细占用」的合格提成候选。lock=false 为只读路径（摘要与候选列表）；
-// lock=true 为提交事务路径：成员行锁之后按「来源 → 账单 → 订单 → 费用 → 方案 →
-// 归属 → 提成父单」固定锁序重解析，来源变更时由调用方整体回滚。
+// lock=true 为提交事务路径：User/Membership 父锁之后先合并来源订单并按主键预锁，
+// 再逐来源锁账单、费用、方案、归属及提成父单；来源变更时由调用方整体回滚。
 func (r *financeCommissionApplicationRepo) resolveApplicationCandidates(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope, coverageTo string, lock bool) ([]*applicationCandidate, error) {
 	store := commissionStoreFromClient(client)
 	// 员工已离职不影响历史资格：解析只依赖来源日期、方案区间与分配区间。
 	employeeQuery := store.users.Query().Where(user.IDEQ(scope.UserID))
 	if lock {
-		employeeQuery.ForUpdate()
+		commissionEmployeeSnapshotLock(employeeQuery)
 	}
 	employee, err := employeeQuery.Only(ctx)
 	if err != nil {
@@ -190,6 +190,26 @@ func (r *financeCommissionApplicationRepo) resolveApplicationCandidates(ctx cont
 			return []*applicationCandidate{}, nil
 		}
 		return nil, err
+	}
+	if lock {
+		// 所有来源先合并订单再一次按主键锁定，不能逐来源追加订单行锁。
+		sources, err := applicationCandidateSources(ctx, client, scope, "", coverageTo)
+		if err != nil {
+			return nil, err
+		}
+		if err := lockCommissionSourceOrderSet(ctx, client, scope.OrganizationID, sources, nil); err != nil {
+			return nil, err
+		}
+		candidates := make([]*applicationCandidate, 0)
+		for _, ref := range sources {
+			items, err := r.resolveCandidateSource(ctx, client, store, scope, employee, ref.verificationID, ref.nettingID, true)
+			if err != nil {
+				return nil, err
+			}
+			candidates = append(candidates, items...)
+		}
+		sortApplicationCandidates(candidates)
+		return candidates, nil
 	}
 	earliest, hasAny, err := earliestApplicationSourceDate(ctx, client, scope)
 	if err != nil {
@@ -213,6 +233,23 @@ func (r *financeCommissionApplicationRepo) resolveApplicationCandidates(ctx cont
 // resolveCandidateWindow 解析单个归属月窗口内的全部来源：核销与对冲来源合并后
 // 按来源 ID 升序处理，固定加锁顺序防止并发死锁。
 func (r *financeCommissionApplicationRepo) resolveCandidateWindow(ctx context.Context, client *ent.Client, store commissionCalculationStore, scope biz.WorkbenchScope, employee *ent.User, dateFrom, dateTo string, lock bool) ([]*applicationCandidate, error) {
+	sources, err := applicationCandidateSources(ctx, client, scope, dateFrom, dateTo)
+	if err != nil {
+		return nil, err
+	}
+	candidates := make([]*applicationCandidate, 0)
+	for _, ref := range sources {
+		batch, sourceErr := r.resolveCandidateSource(ctx, client, store, scope, employee, ref.verificationID, ref.nettingID, lock)
+		if sourceErr != nil {
+			return nil, sourceErr
+		}
+		candidates = append(candidates, batch...)
+	}
+	return candidates, nil
+}
+
+// applicationCandidateSources 只读发现轻量来源 ID；写入口预锁后复用同一集合。
+func applicationCandidateSources(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope, dateFrom, dateTo string) ([]applicationSourceRef, error) {
 	verificationItems, err := client.FinanceVerification.Query().
 		Where(applicationCandidateVerificationPredicates(scope, dateFrom, dateTo)...).
 		Select(verification.FieldID).
@@ -221,6 +258,10 @@ func (r *financeCommissionApplicationRepo) resolveCandidateWindow(ctx context.Co
 		return nil, err
 	}
 	nettingFrom, nettingTo := nettingUTCTimeWindow(dateFrom, dateTo)
+	if dateFrom == "" && dateTo != "" {
+		_, nettingTo = nettingUTCTimeWindow(dateTo, dateTo)
+	}
+
 	nettingItems, err := client.FinanceNetting.Query().
 		Where(applicationCandidateNettingPredicates(scope, nettingFrom, nettingTo)...).
 		Select(nettingent.FieldID).
@@ -236,15 +277,7 @@ func (r *financeCommissionApplicationRepo) resolveCandidateWindow(ctx context.Co
 		sources = append(sources, applicationSourceRef{nettingID: item.ID})
 	}
 	sort.Slice(sources, func(i, j int) bool { return sourceRefID(sources[i]).String() < sourceRefID(sources[j]).String() })
-	candidates := make([]*applicationCandidate, 0)
-	for _, ref := range sources {
-		batch, sourceErr := r.resolveCandidateSource(ctx, client, store, scope, employee, ref.verificationID, ref.nettingID, lock)
-		if sourceErr != nil {
-			return nil, sourceErr
-		}
-		candidates = append(candidates, batch...)
-	}
-	return candidates, nil
+	return sources, nil
 }
 
 func sourceRefID(ref applicationSourceRef) uuid.UUID {

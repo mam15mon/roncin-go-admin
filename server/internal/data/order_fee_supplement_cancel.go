@@ -160,21 +160,20 @@ func (r *orderFeeSupplementRepo) CancelApprovedFee(ctx context.Context, input *b
 	var result *biz.OrderFeeSupplementCancelResult
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		client := tx.Client()
-		// 1. Order FOR UPDATE 后实时复核费用审核资格；订单只作互斥点，不调用
-		// 会禁止锁后专用动作的普通费用内容门禁。
-		order, orderErr := tx.Order.Query().Where(orderent.IDEQ(input.OrderID), orderent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
-		if orderErr != nil {
-			return mapEntError(orderErr, biz.ErrFeeSupplementNotFound, nil)
-		}
-		if order.ID != input.OrderID {
-			return biz.ErrFeeSupplementNotFound
-		}
+		// 1. 先锁授权父行并复核资格，再锁 Order；普通费用内容门禁不适用于本受控入口。
 		qualified, grantErr := hasFeeReviewPermission(ctx, client, input.OrganizationID, input.OperatorID, true)
 		if grantErr != nil {
 			return grantErr
 		}
 		if !qualified {
 			return biz.ErrPermissionDenied
+		}
+		order, orderErr := tx.Order.Query().Where(orderent.IDEQ(input.OrderID), orderent.OrganizationIDEQ(input.OrganizationID)).ForUpdate().Only(ctx)
+		if orderErr != nil {
+			return mapEntError(orderErr, biz.ErrFeeSupplementNotFound, nil)
+		}
+		if order.ID != input.OrderID {
+			return biz.ErrFeeSupplementNotFound
 		}
 		// 2. 锁定 APPROVED 申请和生成费用，比较费用版本，确认状态与来源匹配。
 		request, requestErr := tx.OrderFeeSupplementRequest.Query().
