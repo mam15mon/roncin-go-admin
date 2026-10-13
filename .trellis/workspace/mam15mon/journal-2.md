@@ -1353,3 +1353,32 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 130: 钉钉扫码与组织成员管理实施
+<!-- trellis-session: v=2 fp=00da89835711b912 -->
+
+**Date**: 2026-10-13
+**Task**: 钉钉扫码与组织成员管理实施
+**Branch**: `codex/dingtalk-login-memberships`
+
+### Summary
+
+四项代码已实现并独立审查提交：取消主要组织、原子批量加入、初始管理员公司补齐、默认钉钉扫码；静态与生成检查通过，实际数据库及手机扫码验收未执行，任务保留待验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `46b2da23` | refactor: 取消主要组织配置并按成员维护角色 |
+| `58dd5c0c` | feat: 支持按组织选填角色并原子批量加入 |
+| `61a74a60` | feat: 新公司加入初始管理员并支持初始化授权补齐 |
+| `61056509` | feat: 默认展示钉钉扫码并提供管理员密码入口 |
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 独立数据库正式迁移、授权幂等及并发回滚验收；真实企业手机扫码与开发/生产回调联调。
