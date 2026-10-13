@@ -2,5 +2,5 @@
 {"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "提成净额保护与并发锁序"}
 {"file": ".trellis/tasks/10-13-fee-exception-closure/research/review.md", "reason": "五项审查的逐条代码证据与未决业务边界"}
 {"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "账单币种、历史快照、核销及对冲金额口径"}
-{"file": ".trellis/tasks/10-13-fee-commission-correction/research/accounting-design.md", "reason": "费用冲回、替代、账务义务与合并发票的代码证据和设计边界"}
-{"file": ".trellis/tasks/10-13-fee-commission-correction/research/commission-design.md", "reason": "原提成快照、系统调整净额及部分回款口径的研究"}
+{"file": ".trellis/tasks/archive/2026-10/10-13-fee-commission-correction/research/accounting-design.md", "reason": "费用冲回、替代、账务义务与合并发票的代码证据和设计边界"}
+{"file": ".trellis/tasks/archive/2026-10/10-13-fee-commission-correction/research/commission-design.md", "reason": "原提成快照、系统调整净额及部分回款口径的研究"}
