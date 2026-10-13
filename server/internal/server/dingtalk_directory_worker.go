@@ -9,22 +9,20 @@ import (
 	"time"
 )
 
-// 人工发起的同步固定每 2 秒检查，避免空闲退避导致长时间等待。
-const dingTalkDirectoryPollInterval = 2 * time.Second
-
 // DingTalkDirectoryWorker 在租约内执行有界通讯录同步，使用已有调度器接管重启任务。
 type DingTalkDirectoryWorker struct {
-	usecase *biz.DingTalkDirectoryUsecase
-	logger  *slog.Logger
-	ctx     context.Context
-	cancel  context.CancelFunc
-	done    chan struct{}
-	once    sync.Once
+	usecase   *biz.DingTalkDirectoryUsecase
+	logger    *slog.Logger
+	scheduler biz.BackgroundTaskScheduler
+	ctx       context.Context
+	cancel    context.CancelFunc
+	done      chan struct{}
+	once      sync.Once
 }
 
-func NewDingTalkDirectoryWorker(uc *biz.DingTalkDirectoryUsecase, logger *slog.Logger) *DingTalkDirectoryWorker {
+func NewDingTalkDirectoryWorker(uc *biz.DingTalkDirectoryUsecase, logger *slog.Logger, scheduler biz.BackgroundTaskScheduler) *DingTalkDirectoryWorker {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &DingTalkDirectoryWorker{usecase: uc, logger: logger, ctx: ctx, cancel: cancel, done: make(chan struct{})}
+	return &DingTalkDirectoryWorker{usecase: uc, logger: logger, scheduler: scheduler, ctx: ctx, cancel: cancel, done: make(chan struct{})}
 }
 func (w *DingTalkDirectoryWorker) Start(context.Context) error {
 	defer close(w.done)
@@ -32,10 +30,13 @@ func (w *DingTalkDirectoryWorker) Start(context.Context) error {
 		<-w.ctx.Done()
 		return nil
 	}
+	waiter := newWorkerScheduleWait(w.scheduler, biz.TaskConsumerDingTalkDirectory, false, w.logger)
+	defer waiter.close()
 	for {
 		if w.ctx.Err() != nil {
 			return nil
 		}
+		waiter.drain()
 		err := w.usecase.ProcessNext(w.ctx, 3*time.Minute)
 		if err == nil {
 			continue
@@ -43,7 +44,7 @@ func (w *DingTalkDirectoryWorker) Start(context.Context) error {
 		if !errors.Is(err, biz.ErrBackgroundTaskNoTask) {
 			w.logger.Error("钉钉通讯录同步执行失败", slog.Any("error", err))
 		}
-		if !waitForWorkerPoll(w.ctx, dingTalkDirectoryPollInterval) {
+		if !waiter.wait(w.ctx, !errors.Is(err, biz.ErrBackgroundTaskNoTask)) {
 			return nil
 		}
 	}

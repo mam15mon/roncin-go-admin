@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/telemetry"
 	"github.com/roncin/roncin-go-admin/server/internal/server"
@@ -39,7 +40,7 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server, notifications *server.NotificationWorker, approvals *server.DingTalkApprovalWorker, objectDeletions *server.ObjectDeletionWorker, exchangeRateReminders *server.ExchangeRateReminderWorker, directorySyncs *server.DingTalkDirectoryWorker) *kratos.App {
+func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server, notifications *server.NotificationWorker, approvals *server.DingTalkApprovalWorker, objectDeletions *server.ObjectDeletionWorker, exchangeRateReminders *server.ExchangeRateReminderWorker, directorySyncs *server.DingTalkDirectoryWorker, scheduler biz.BackgroundTaskScheduler) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -47,6 +48,7 @@ func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server, notifications
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
 		kratos.Server(
+			scheduler,
 			gs,
 			hs,
 			notifications,

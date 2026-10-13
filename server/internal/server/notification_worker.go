@@ -11,24 +11,24 @@ import (
 )
 
 const (
-	notificationInitialPollInterval = 2 * time.Second
-	notificationLeaseDuration       = 30 * time.Second
-	notificationSendTimeout         = 15 * time.Second
+	notificationLeaseDuration = 30 * time.Second
+	notificationSendTimeout   = 15 * time.Second
 )
 
 // NotificationWorker 通过 Kratos Server 生命周期消费通知发件箱。
 type NotificationWorker struct {
-	usecase *biz.NotificationUsecase
-	logger  *slog.Logger
-	ctx     context.Context
-	cancel  context.CancelFunc
-	done    chan struct{}
-	once    sync.Once
+	usecase   *biz.NotificationUsecase
+	logger    *slog.Logger
+	scheduler biz.BackgroundTaskScheduler
+	ctx       context.Context
+	cancel    context.CancelFunc
+	done      chan struct{}
+	once      sync.Once
 }
 
-func NewNotificationWorker(usecase *biz.NotificationUsecase, logger *slog.Logger) *NotificationWorker {
+func NewNotificationWorker(usecase *biz.NotificationUsecase, logger *slog.Logger, scheduler biz.BackgroundTaskScheduler) *NotificationWorker {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &NotificationWorker{usecase: usecase, logger: logger, ctx: ctx, cancel: cancel, done: make(chan struct{})}
+	return &NotificationWorker{usecase: usecase, logger: logger, scheduler: scheduler, ctx: ctx, cancel: cancel, done: make(chan struct{})}
 }
 
 func (w *NotificationWorker) Start(context.Context) error {
@@ -39,13 +39,15 @@ func (w *NotificationWorker) Start(context.Context) error {
 		return nil
 	}
 	w.logger.Info("notification worker started", slog.String("channel", "DINGTALK"))
-	backoff := newWorkerPollBackoff(notificationInitialPollInterval, backgroundWorkerMaxPollInterval)
+	waiter := newWorkerScheduleWait(w.scheduler, biz.TaskConsumerNotification, false, w.logger)
+	defer waiter.close()
 	for {
 		select {
 		case <-w.ctx.Done():
 			return nil
 		default:
 		}
+		waiter.drain()
 		processCtx, cancel := context.WithTimeout(w.ctx, notificationSendTimeout)
 		err := w.usecase.ProcessNext(processCtx, notificationLeaseDuration)
 		cancel()
@@ -53,10 +55,9 @@ func (w *NotificationWorker) Start(context.Context) error {
 			w.logger.Error("process notification", slog.String("channel", "DINGTALK"), slog.Any("error", err))
 		}
 		if err == nil {
-			backoff.Reset()
 			continue
 		}
-		if !waitForWorkerPoll(w.ctx, backoff.Next()) {
+		if !waiter.wait(w.ctx, !stderrors.Is(err, biz.ErrBackgroundTaskNoTask)) {
 			return nil
 		}
 	}

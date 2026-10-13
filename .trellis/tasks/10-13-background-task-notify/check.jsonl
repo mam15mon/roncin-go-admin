@@ -4,3 +4,4 @@
 {"file": ".trellis/spec/server/backend/capability-navigation.md", "reason": "复用现有后台任务与业务能力入口"}
 {"file": ".trellis/tasks/10-13-background-task-notify/design.md", "reason": "已收敛的通知唤醒架构与等待契约"}
 {"file": ".trellis/tasks/10-13-background-task-notify/research/current-state.md", "reason": "写表路径、独立审批收件箱和当前轮询证据"}
+{"file": ".trellis/spec/server/backend/background-task-notify.md", "reason": "本次形成的后台通知接口、连接生命周期、等待与验证契约"}
