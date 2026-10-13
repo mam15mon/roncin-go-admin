@@ -1,5 +1,5 @@
 {"file": ".trellis/spec/server/backend/order-fee-review.md", "reason": "整票审批、费用冻结、建账及补录的现有契约"}
 {"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "提成净额保护与并发锁序"}
-{"file": ".trellis/tasks/10-13-fee-exception-closure/research/review.md", "reason": "五项审查的逐条代码证据与未决业务边界"}
+{"file": ".trellis/tasks/archive/2026-10/10-13-fee-exception-closure/research/review.md", "reason": "五项审查的逐条代码证据与未决业务边界"}
 {"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "复用统一事务、正式迁移和并发锁序"}
 {"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "区分业务锁与生命周期命令"}

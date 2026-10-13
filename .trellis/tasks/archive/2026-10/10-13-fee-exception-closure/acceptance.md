@@ -24,6 +24,6 @@ R1 自动锁单金额判定、R2 批准/建账后费用更正、R3 补录与提�
 
 - 自动锁单：产品提交 `61ff8675`，任务 `10-13-auto-lock-settlement`。
 - 业务结案：产品提交 `45bd3731`，任务 `10-13-closure-pending-supplement`。
-- 费用/账务/提成更正：任务 `10-13-fee-commission-correction`；最终验收记录与独立审查记录随任务归档。
+- 费用/账务/提成更正：产品提交 `8e1107ca`，任务 `10-13-fee-commission-correction`；[最终验收](../10-13-fee-commission-correction/acceptance.md)与[独立审查](../10-13-fee-commission-correction/research/check-review.md)均已归档。
 
 更正子任务最终 `check:fast` 已通过（前端 1,215 用例通过）；更正实际 PostgreSQL 15 组、第一阶段联合回归 7 组均通过且零跳过，全部 AC 已满足。所有测试数据库均为独立临时环境；没有重置开发数据或操作生产。本次交付范围为本地实现、验证、提交和任务归档。
