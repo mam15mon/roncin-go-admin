@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 125
-- **Last Active**: 2026-10-12
+- **Total Sessions**: 126
+- **Last Active**: 2026-10-13
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1260 | Active |
+| `journal-2.md` | ~1298 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 126 | 2026-10-13 | 费用异常第一阶段修复验收 | `61ff8675`, `45bd3731` | `codex/fee-exception-phase-one` |
 | 125 | 2026-10-12 | 修复整票费用审核审查问题 | `4aa7c46b`, `d246c3d5`, `a41e8139`, `3c8ec084`, `ef2c5881` | `codex/order-fee-approval` |
 | 124 | 2026-10-12 | 整票费用包审批与精简表格交付 | `34d10ff5` | `codex/order-fee-approval` |
 | 123 | 2026-10-12 | UI交互12项修复与最终验收 | `82f2c67a`, `de04cff4`, `73beedec`, `ccb04bea`, `46bb6b92`, `b558131c` | `main` |
