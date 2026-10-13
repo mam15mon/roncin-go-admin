@@ -1296,3 +1296,37 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Next Steps
 
 - 继续费用更正与提成联动纠错子任务的技术设计；已确认审批与实际资金执行分离，费用完整性保持人工判断。
+
+
+## Session 127: 费用更正与提成联动设计研究
+<!-- trellis-session: v=2 fp=72d35dd58c5c3f81 -->
+
+**Date**: 2026-10-13
+**Task**: 费用更正与提成联动设计研究
+**Branch**: `codex/fee-exception-phase-one`
+
+### Summary
+
+继续第二阶段，补费用冲回与替代、资金执行、合并发票及提成净额研究。部分回款优惠后的提成口径已询问用户，尚未启动产品实现。
+
+### Main Changes
+
+- 形成账务与提成两份代码研究、设计和实施草案，补充全部消费方与数值验收矩阵。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `bebb3d0a` | docs: 补充费用更正账务与提成设计并记录待定计提口径 |
+
+### Testing
+
+- [OK] 任务 JSON/JSONL、Markdown 引用及 git diff --check 通过；本轮仅任务文档，未运行产品测试或操作数据库。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 收到 PRD Q1 答复后固定部分回款提成口径，完成来源配额/退款/内部对冲的具体算法与设计收敛，随后实施验证。
