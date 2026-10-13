@@ -11,7 +11,7 @@
 - `server/internal/data/ent/schema/finance_verification_allocation.go:17` 与 `finance_netting_allocation.go:26`：分摊字段归属 bill_id，无 order_id/order_fee_id。台账 `settlement.go:185`–`:225` 展示关联账单整体进度，并非持久化费用级结清分配。
 - `server/internal/data/order_auto_lock_integration_test.go:896`：现有测试覆盖超出单票金额时不锁，`:926` 明确规定整账单全收仍不锁。这是既有保守策略，不能描述为新出现的回归；该策略未防住差额恰好为零。
 
-建议先逐张确认相关应收账单结清，保留有效结清事实及其它资格条件，避免跨币种或跨账单轧差。整单全额收齐可以证明其行的应收已覆盖；部分收款若要区分票别则需要真正的分配契约。两者不要混淆。
+2026-10-13 用户已确认逐张检查相关应收账单全额结清，保留有效结清事实及其它资格条件，避免跨币种或跨账单轧差。整单全额收齐可以证明其行的应收已覆盖；部分收款若要区分票别则需要真正的分配契约。两者不要混淆。
 
 ## R2：更正范围（确认能力缺口，P1）
 
