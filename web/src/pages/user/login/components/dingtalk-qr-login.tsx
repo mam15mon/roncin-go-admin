@@ -78,8 +78,13 @@ function DingTalkFrame({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const retired = useRef(false);
   const [status, setStatus] = useState<
-    'loading' | 'ready' | 'expired' | 'failed' | 'authenticating'
-  >('loading');
+    | 'navigating'
+    | 'displayed'
+    | 'slow'
+    | 'expired'
+    | 'failed'
+    | 'authenticating'
+  >('navigating');
   const [failure, setFailure] = useState('钉钉二维码加载失败，请刷新重试');
 
   useEffect(() => {
@@ -169,11 +174,10 @@ function DingTalkFrame({
   }, [config, onAuthenticated]);
 
   useEffect(() => {
-    if (status !== 'loading') return;
+    if (status !== 'navigating') return;
     const timeout = window.setTimeout(() => {
-      retired.current = true;
-      setFailure('钉钉二维码加载超时，请检查网络后刷新');
-      setStatus('failed');
+      // 没有二维码就绪事件：慢导航只提示重试，不停用可能仍可扫码的实例。
+      setStatus('slow');
     }, 15000);
     return () => window.clearTimeout(timeout);
   }, [status]);
@@ -196,34 +200,44 @@ function DingTalkFrame({
     );
   }
   return (
-    <div className={styles.qrFrameWrapper}>
-      {status === 'loading' && (
-        <div className={styles.qrLoading}>
-          <Spin />
-          <span>正在加载钉钉二维码</span>
-        </div>
+    <div className={styles.qrFrameContent}>
+      {status === 'slow' && (
+        <Alert
+          type="warning"
+          showIcon
+          title="钉钉二维码加载较慢，请检查网络或刷新二维码"
+        />
       )}
-      <iframe
-        ref={iframeRef}
-        title="钉钉扫码登录二维码"
-        src={config.src}
-        className={styles.qrFrame}
-        style={{ visibility: status === 'loading' ? 'hidden' : 'visible' }}
-        onLoad={() => {
-          if (retired.current) return;
-          if (Date.now() >= config.expiresAt) {
+      <div className={styles.qrFrameWrapper}>
+        {status === 'navigating' && (
+          <div className={styles.qrLoading}>
+            <Spin />
+            <span>正在加载钉钉二维码</span>
+          </div>
+        )}
+        <iframe
+          ref={iframeRef}
+          title="钉钉扫码登录二维码"
+          src={config.src}
+          className={styles.qrFrame}
+          style={{ visibility: status === 'navigating' ? 'hidden' : 'visible' }}
+          onLoad={() => {
+            if (retired.current) return;
+            if (Date.now() >= config.expiresAt) {
+              retired.current = true;
+              setStatus('expired');
+            } else {
+              // 跨源 iframe 网络失败也会触发 load；这里只结束导航遮罩。
+              setStatus('displayed');
+            }
+          }}
+          onError={() => {
             retired.current = true;
-            setStatus('expired');
-          } else {
-            setStatus('ready');
-          }
-        }}
-        onError={() => {
-          retired.current = true;
-          setStatus('failed');
-        }}
-        referrerPolicy="no-referrer"
-      />
+            setStatus('failed');
+          }}
+          referrerPolicy="no-referrer"
+        />
+      </div>
     </div>
   );
 }
@@ -275,6 +289,11 @@ export function DingTalkQrLogin({ onAuthenticated }: Props) {
           <Alert type="info" showIcon title="钉钉登录暂未启用，请联系管理员" />
         )}
       </div>
+      {query.data?.enabled && !query.isError && (
+        <p className={styles.qrHint}>
+          若二维码未显示或加载失败，请检查网络后刷新二维码，或使用管理员账号登录。
+        </p>
+      )}
       <Button
         icon={<ReloadOutlined />}
         loading={query.isFetching}

@@ -284,6 +284,7 @@ export default function Login() {
                   <Button
                     type="primary"
                     htmlType="submit"
+                    aria-label={loading ? '登录中...' : '登录'}
                     loading={loading}
                     disabled={loading}
                     className={styles.submitButton}

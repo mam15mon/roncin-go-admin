@@ -20,6 +20,12 @@ GetDingTalkLoginConfig 保留 enabled/authorize_url，并在 Proto 补充 expire
 
 useEffect 只承担 iframe/事件/到期定时器的生命周期，不手写 useEffect 请求镜像状态。配置失败有可见错误和重试，不回退成密码表单；管理员入口始终可用。到期显示“二维码已过期，请刷新”，不自动轮询刷新。恢复前台时复核 expires_at，避免后台计时器延迟造成误显示。
 
+Review 修正（2026-10-13）：iframe load 在网络失败时也会触发，error 不能可靠判定
+跨源网络失败；已核验官方协议未提供二维码就绪消息。因此 load 只结束导航遮罩，
+页面始终显示二维码未显示或加载失败时的网络检查、刷新及管理员登录说明。
+15 秒导航未结束只提示加载较慢并露出 iframe，不让仍有效实例退役；官方失败消息、
+明确 error、过期或主动刷新仍立即退役。不会用普通导航事件声称二维码已经可扫。
+
 ## 消息与回调
 
 - 只接受 origin 精确等于 https://login.dingtalk.com 且 source 等于当前 iframe.contentWindow 的消息；不用包含域名的正则判断。

@@ -1,6 +1,7 @@
 import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
+import { DetachedBrowserFrame } from 'happy-dom';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Login from './index';
@@ -117,6 +118,10 @@ describe('Login', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // 扫码用例使用假配置与消息，保留 iframe/window 并阻止真实网络导航。
+    vi.spyOn(DetachedBrowserFrame.prototype, 'goto').mockImplementation(
+      () => new Promise(() => {}),
+    );
     assignMock = vi.fn<(url: string | URL) => void>();
     vi.spyOn(window.location, 'assign').mockImplementation(assignMock);
     authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
@@ -335,5 +340,30 @@ describe('Login', () => {
     });
     expect(sessionStorage.getItem('dingtalk_login_redirect')).toBe('/welcome');
     expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('扫码配置失败仍可进入管理员密码，并可返回扫码重试', async () => {
+    authServiceGetDingTalkLoginConfigMock.mockRejectedValueOnce(
+      new Error('获取钉钉登录配置失败，请重试'),
+    );
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+    expect(
+      await screen.findByText('获取钉钉登录配置失败，请重试'),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: '管理员账号登录' }));
+    expect(screen.getByRole('button', { name: '登录' })).toHaveAttribute(
+      'type',
+      'submit',
+    );
+    expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: '返回钉钉扫码登录' }));
+    expect(
+      await screen.findByText('钉钉登录暂未启用，请联系管理员'),
+    ).toBeVisible();
+    expect(screen.queryByPlaceholderText('请输入密码')).not.toBeInTheDocument();
   });
 });
