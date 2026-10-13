@@ -33,9 +33,10 @@
     "web/src/pages/user/login",
     "web/src/pages/admin/components/users"
   ],
-  "notes": "2026-10-13 用户批准实施；四个子任务代码已提交并完成独立审查。联合运行验收待完成，保持in_progress。",
+  "notes": "2026-10-13 四个子任务代码已提交；review 三项问题已修复，真实 PostgreSQL 认证回归及 check:fast 通过。真实企业扫码及其余联合验收待完成，保持 in_progress。",
   "meta": {
     "implementation": "four_children_committed",
-    "acceptance": "pending_runtime_verification"
+    "acceptance": "pending_runtime_verification",
+    "review_fixes": "implemented_and_verified"
   }
 }
