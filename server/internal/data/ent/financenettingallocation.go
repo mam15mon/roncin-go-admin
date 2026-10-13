@@ -13,6 +13,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 )
 
 // FinanceNettingAllocation is the model entity for the FinanceNettingAllocation schema.
@@ -24,6 +25,8 @@ type FinanceNettingAllocation struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SourceFeeID holds the value of the "source_fee_id" field.
+	SourceFeeID *uuid.UUID `json:"source_fee_id,omitempty"`
 	// NettingID holds the value of the "netting_id" field.
 	NettingID uuid.UUID `json:"netting_id,omitempty"`
 	// BillID holds the value of the "bill_id" field.
@@ -46,13 +49,26 @@ type FinanceNettingAllocation struct {
 
 // FinanceNettingAllocationEdges holds the relations/edges for other nodes in the graph.
 type FinanceNettingAllocationEdges struct {
+	// SourceFee holds the value of the source_fee edge.
+	SourceFee *OrderFee `json:"source_fee,omitempty"`
 	// Netting holds the value of the netting edge.
 	Netting *FinanceNetting `json:"netting,omitempty"`
 	// Bill holds the value of the bill edge.
 	Bill *FinanceBill `json:"bill,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
+}
+
+// SourceFeeOrErr returns the SourceFee value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceNettingAllocationEdges) SourceFeeOrErr() (*OrderFee, error) {
+	if e.SourceFee != nil {
+		return e.SourceFee, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: orderfee.Label}
+	}
+	return nil, &NotLoadedError{edge: "source_fee"}
 }
 
 // NettingOrErr returns the Netting value or an error if the edge
@@ -60,7 +76,7 @@ type FinanceNettingAllocationEdges struct {
 func (e FinanceNettingAllocationEdges) NettingOrErr() (*FinanceNetting, error) {
 	if e.Netting != nil {
 		return e.Netting, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: financenetting.Label}
 	}
 	return nil, &NotLoadedError{edge: "netting"}
@@ -71,7 +87,7 @@ func (e FinanceNettingAllocationEdges) NettingOrErr() (*FinanceNetting, error) {
 func (e FinanceNettingAllocationEdges) BillOrErr() (*FinanceBill, error) {
 	if e.Bill != nil {
 		return e.Bill, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: financebill.Label}
 	}
 	return nil, &NotLoadedError{edge: "bill"}
@@ -82,6 +98,8 @@ func (*FinanceNettingAllocation) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case financenettingallocation.FieldSourceFeeID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financenettingallocation.FieldActive:
 			values[i] = new(sql.NullBool)
 		case financenettingallocation.FieldBillNo, financenettingallocation.FieldDirection, financenettingallocation.FieldAmount, financenettingallocation.FieldBaseCurrencyAmount:
@@ -122,6 +140,13 @@ func (_m *FinanceNettingAllocation) assignValues(columns []string, values []any)
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financenettingallocation.FieldSourceFeeID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field source_fee_id", values[i])
+			} else if value.Valid {
+				_m.SourceFeeID = new(uuid.UUID)
+				*_m.SourceFeeID = *value.S.(*uuid.UUID)
 			}
 		case financenettingallocation.FieldNettingID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -178,6 +203,11 @@ func (_m *FinanceNettingAllocation) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QuerySourceFee queries the "source_fee" edge of the FinanceNettingAllocation entity.
+func (_m *FinanceNettingAllocation) QuerySourceFee() *OrderFeeQuery {
+	return NewFinanceNettingAllocationClient(_m.config).QuerySourceFee(_m)
+}
+
 // QueryNetting queries the "netting" edge of the FinanceNettingAllocation entity.
 func (_m *FinanceNettingAllocation) QueryNetting() *FinanceNettingQuery {
 	return NewFinanceNettingAllocationClient(_m.config).QueryNetting(_m)
@@ -216,6 +246,11 @@ func (_m *FinanceNettingAllocation) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := _m.SourceFeeID; v != nil {
+		builder.WriteString("source_fee_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("netting_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NettingID))

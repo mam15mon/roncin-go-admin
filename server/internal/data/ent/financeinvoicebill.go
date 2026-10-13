@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -28,6 +29,8 @@ type FinanceInvoiceBill struct {
 	InvoiceID uuid.UUID `json:"invoice_id,omitempty"`
 	// BillID holds the value of the "bill_id" field.
 	BillID uuid.UUID `json:"bill_id,omitempty"`
+	// SourceFeeIds holds the value of the "source_fee_ids" field.
+	SourceFeeIds []uuid.UUID `json:"source_fee_ids,omitempty"`
 	// BillNo holds the value of the "bill_no" field.
 	BillNo string `json:"bill_no,omitempty"`
 	// Amount holds the value of the "amount" field.
@@ -80,6 +83,8 @@ func (*FinanceInvoiceBill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case financeinvoicebill.FieldSourceFeeIds:
+			values[i] = new([]byte)
 		case financeinvoicebill.FieldActive:
 			values[i] = new(sql.NullBool)
 		case financeinvoicebill.FieldBillNo, financeinvoicebill.FieldAmount, financeinvoicebill.FieldTaxAmount:
@@ -132,6 +137,14 @@ func (_m *FinanceInvoiceBill) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field bill_id", values[i])
 			} else if value != nil {
 				_m.BillID = *value
+			}
+		case financeinvoicebill.FieldSourceFeeIds:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field source_fee_ids", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.SourceFeeIds); err != nil {
+					return fmt.Errorf("unmarshal field source_fee_ids: %w", err)
+				}
 			}
 		case financeinvoicebill.FieldBillNo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -214,6 +227,9 @@ func (_m *FinanceInvoiceBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("bill_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BillID))
+	builder.WriteString(", ")
+	builder.WriteString("source_fee_ids=")
+	builder.WriteString(fmt.Sprintf("%v", _m.SourceFeeIds))
 	builder.WriteString(", ")
 	builder.WriteString("bill_no=")
 	builder.WriteString(_m.BillNo)

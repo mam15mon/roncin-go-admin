@@ -80,6 +80,7 @@ type FinanceInvoiceLine struct {
 }
 
 type FinanceInvoiceBill struct {
+	SourceFeeIDs          []uuid.UUID
 	ID, InvoiceID, BillID uuid.UUID
 	BillNo                string
 	Amount, TaxAmount     decimal.Decimal
@@ -353,16 +354,27 @@ func buildFinanceInvoice(organizationID uuid.UUID, bills []*FinanceBill, profile
 	lineGroups := make(map[string]*FinanceInvoiceLine)
 	lineKeys := make([]string, 0)
 	for _, bill := range bills {
-		if bill.Status != FinanceBillConfirmed {
+		if bill.Status != FinanceBillConfirmed || bill.Purpose == FinanceBillCorrectionReversal {
 			return nil, ErrFinanceInvoiceBillInvalid
 		}
 		if bill.Direction != invoice.Direction || bill.SettlementPartyID != invoice.SettlementPartyID || bill.Currency != invoice.Currency || bill.BaseCurrency != invoice.BaseCurrency {
 			return nil, ErrFinanceInvoiceBillMismatch
 		}
-		invoice.TotalAmount = invoice.TotalAmount.Add(bill.TotalAmount)
-		invoice.NetAmount = invoice.NetAmount.Add(bill.NetAmount)
-		invoice.TaxAmount = invoice.TaxAmount.Add(bill.TaxAmount)
-		invoice.Links = append(invoice.Links, &FinanceInvoiceBill{ID: uuid.Must(uuid.NewV7()), InvoiceID: id, BillID: bill.ID, BillNo: bill.BillNo, Amount: bill.TotalAmount, TaxAmount: bill.TaxAmount, Active: true})
+		total, net, tax := bill.TotalAmount, bill.NetAmount, bill.TaxAmount
+		if bill.InvoiceableAmount != nil {
+			total, net, tax = *bill.InvoiceableAmount, *bill.InvoiceableNetAmount, *bill.InvoiceableTaxAmount
+		}
+		if !total.IsPositive() {
+			return nil, ErrFinanceInvoiceBillInvalid
+		}
+		invoice.TotalAmount = invoice.TotalAmount.Add(total)
+		invoice.NetAmount = invoice.NetAmount.Add(net)
+		invoice.TaxAmount = invoice.TaxAmount.Add(tax)
+		sourceFeeIDs := make([]uuid.UUID, 0, len(bill.Lines))
+		for _, line := range bill.Lines {
+			sourceFeeIDs = append(sourceFeeIDs, line.OrderFeeID)
+		}
+		invoice.Links = append(invoice.Links, &FinanceInvoiceBill{SourceFeeIDs: sourceFeeIDs, ID: uuid.Must(uuid.NewV7()), InvoiceID: id, BillID: bill.ID, BillNo: bill.BillNo, Amount: total, TaxAmount: tax, Active: true})
 		for _, billLine := range bill.Lines {
 			if billLine == nil || !billLine.Active || billLine.TaxRate == nil {
 				return nil, ErrFinanceInvoiceBillInvalid

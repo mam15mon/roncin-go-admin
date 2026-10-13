@@ -270,6 +270,7 @@ func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, sc
 		bill.OrganizationIDEQ(scope.OrganizationID),
 		bill.StatusEQ(bill.StatusCONFIRMED),
 		bill.DirectionEQ(bill.DirectionRECEIVABLE),
+		bill.PurposeEQ(bill.PurposeNORMAL),
 		bill.HasLinesWith(billline.OrderIDIn(scope.OrderIDs...), billline.ActiveEQ(true)),
 	).WithLines(func(q *ent.FinanceBillLineQuery) {
 		q.Where(billline.OrderIDIn(scope.OrderIDs...), billline.ActiveEQ(true))
@@ -278,7 +279,6 @@ func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, sc
 		return err
 	}
 	billTotalByID := make(map[uuid.UUID]decimal.Decimal, len(billRows))
-	billLinesByBill := make(map[uuid.UUID][]*ent.FinanceBillLine, len(billRows))
 	billIDs := make([]uuid.UUID, 0, len(billRows))
 	for _, billItem := range billRows {
 		total, parseErr := decimalOf(billItem.TotalAmount)
@@ -290,7 +290,6 @@ func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, sc
 		}
 		billIDs = append(billIDs, billItem.ID)
 		billTotalByID[billItem.ID] = total
-		billLinesByBill[billItem.ID] = billItem.Edges.Lines
 	}
 	if len(billIDs) == 0 {
 		return nil
@@ -334,6 +333,7 @@ func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, sc
 	nettings, err := client.FinanceNetting.Query().Where(
 		nettingent.OrganizationIDEQ(scope.OrganizationID),
 		nettingent.StatusEQ(nettingent.StatusCONFIRMED),
+		nettingent.CorrectionRequestIDIsNil(),
 		nettingent.HasAllocationsWith(nettingalloc.ActiveEQ(true), nettingalloc.DirectionEQ(nettingalloc.DirectionRECEIVABLE), nettingalloc.BillIDIn(billIDs...)),
 	).WithAllocations(func(q *ent.FinanceNettingAllocationQuery) {
 		q.Where(nettingalloc.ActiveEQ(true))
@@ -370,18 +370,27 @@ func appendOrderSummaryOpportunities(ctx context.Context, client *ent.Client, sc
 	if len(sources) == 0 {
 		return nil
 	}
-	// 与提成计算同口径：按「分摊金额 / 账单总额」把账单行本位币摊入订单。
+	// 机会的已实现收入与正式生成共用经济配额，内部对冲及超额来源不产生机会。
+	projections := make(map[uuid.UUID]*biz.CommissionEconomicOrderProjection, len(scope.OrderIDs))
+	for _, orderID := range scope.OrderIDs {
+		p, err := loadCommissionEconomicProjection(ctx, client, orderID, nil)
+		if err != nil {
+			return err
+		}
+		projections[orderID] = p
+	}
+	isVerification := make(map[uuid.UUID]bool, len(verificationIDs))
+	for _, id := range verificationIDs {
+		isVerification[id] = true
+	}
 	for _, source := range sources {
-		source.orderRealized = make(map[uuid.UUID]decimal.Decimal, len(scope.OrderIDs))
-		for billID, allocated := range source.billAmounts {
-			ratio := allocated.Div(billTotalByID[billID])
-			for _, line := range billLinesByBill[billID] {
-				base, parseErr := decimalOf(line.BaseCurrencyAmount)
-				if parseErr != nil {
-					return parseErr
-				}
-				source.orderRealized[line.OrderID] = source.orderRealized[line.OrderID].Add(base.Mul(ratio))
-			}
+		source.orderRealized = make(map[uuid.UUID]decimal.Decimal)
+		kind := "NETTING"
+		if isVerification[source.id] {
+			kind = "VERIFICATION"
+		}
+		for orderID, p := range projections {
+			source.orderRealized[orderID] = p.SourceRevenue(kind, source.id)
 		}
 	}
 

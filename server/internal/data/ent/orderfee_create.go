@@ -16,8 +16,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -299,6 +301,76 @@ func (_c *OrderFeeCreate) SetNillableSupplementRequestID(v *uuid.UUID) *OrderFee
 	return _c
 }
 
+// SetEconomicEffect sets the "economic_effect" field.
+func (_c *OrderFeeCreate) SetEconomicEffect(v orderfee.EconomicEffect) *OrderFeeCreate {
+	_c.mutation.SetEconomicEffect(v)
+	return _c
+}
+
+// SetNillableEconomicEffect sets the "economic_effect" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableEconomicEffect(v *orderfee.EconomicEffect) *OrderFeeCreate {
+	if v != nil {
+		_c.SetEconomicEffect(*v)
+	}
+	return _c
+}
+
+// SetAccountingRequired sets the "accounting_required" field.
+func (_c *OrderFeeCreate) SetAccountingRequired(v bool) *OrderFeeCreate {
+	_c.mutation.SetAccountingRequired(v)
+	return _c
+}
+
+// SetNillableAccountingRequired sets the "accounting_required" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableAccountingRequired(v *bool) *OrderFeeCreate {
+	if v != nil {
+		_c.SetAccountingRequired(*v)
+	}
+	return _c
+}
+
+// SetSourceFeeID sets the "source_fee_id" field.
+func (_c *OrderFeeCreate) SetSourceFeeID(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetSourceFeeID(v)
+	return _c
+}
+
+// SetNillableSourceFeeID sets the "source_fee_id" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableSourceFeeID(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetSourceFeeID(*v)
+	}
+	return _c
+}
+
+// SetCorrectionRequestID sets the "correction_request_id" field.
+func (_c *OrderFeeCreate) SetCorrectionRequestID(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetCorrectionRequestID(v)
+	return _c
+}
+
+// SetNillableCorrectionRequestID sets the "correction_request_id" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableCorrectionRequestID(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetCorrectionRequestID(*v)
+	}
+	return _c
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (_c *OrderFeeCreate) SetSupersededByRequestID(v uuid.UUID) *OrderFeeCreate {
+	_c.mutation.SetSupersededByRequestID(v)
+	return _c
+}
+
+// SetNillableSupersededByRequestID sets the "superseded_by_request_id" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableSupersededByRequestID(v *uuid.UUID) *OrderFeeCreate {
+	if v != nil {
+		_c.SetSupersededByRequestID(*v)
+	}
+	return _c
+}
+
 // SetVersion sets the "version" field.
 func (_c *OrderFeeCreate) SetVersion(v uint64) *OrderFeeCreate {
 	_c.mutation.SetVersion(v)
@@ -364,6 +436,66 @@ func (_c *OrderFeeCreate) SetBillingUnitRef(v *BillingUnit) *OrderFeeCreate {
 // SetSupplementRequest sets the "supplement_request" edge to the OrderFeeSupplementRequest entity.
 func (_c *OrderFeeCreate) SetSupplementRequest(v *OrderFeeSupplementRequest) *OrderFeeCreate {
 	return _c.SetSupplementRequestID(v.ID)
+}
+
+// SetCorrectionRequest sets the "correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_c *OrderFeeCreate) SetCorrectionRequest(v *OrderFeeCorrectionRequest) *OrderFeeCreate {
+	return _c.SetCorrectionRequestID(v.ID)
+}
+
+// SetSupersededByRequest sets the "superseded_by_request" edge to the OrderFeeCorrectionRequest entity.
+func (_c *OrderFeeCreate) SetSupersededByRequest(v *OrderFeeCorrectionRequest) *OrderFeeCreate {
+	return _c.SetSupersededByRequestID(v.ID)
+}
+
+// AddCorrectionNettingAllocationIDs adds the "correction_netting_allocations" edge to the FinanceNettingAllocation entity by IDs.
+func (_c *OrderFeeCreate) AddCorrectionNettingAllocationIDs(ids ...uuid.UUID) *OrderFeeCreate {
+	_c.mutation.AddCorrectionNettingAllocationIDs(ids...)
+	return _c
+}
+
+// AddCorrectionNettingAllocations adds the "correction_netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_c *OrderFeeCreate) AddCorrectionNettingAllocations(v ...*FinanceNettingAllocation) *OrderFeeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCorrectionNettingAllocationIDs(ids...)
+}
+
+// AddDerivedFeeIDs adds the "derived_fees" edge to the OrderFee entity by IDs.
+func (_c *OrderFeeCreate) AddDerivedFeeIDs(ids ...uuid.UUID) *OrderFeeCreate {
+	_c.mutation.AddDerivedFeeIDs(ids...)
+	return _c
+}
+
+// AddDerivedFees adds the "derived_fees" edges to the OrderFee entity.
+func (_c *OrderFeeCreate) AddDerivedFees(v ...*OrderFee) *OrderFeeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDerivedFeeIDs(ids...)
+}
+
+// SetSourceFee sets the "source_fee" edge to the OrderFee entity.
+func (_c *OrderFeeCreate) SetSourceFee(v *OrderFee) *OrderFeeCreate {
+	return _c.SetSourceFeeID(v.ID)
+}
+
+// AddTargetedCorrectionRequestIDs adds the "targeted_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_c *OrderFeeCreate) AddTargetedCorrectionRequestIDs(ids ...uuid.UUID) *OrderFeeCreate {
+	_c.mutation.AddTargetedCorrectionRequestIDs(ids...)
+	return _c
+}
+
+// AddTargetedCorrectionRequests adds the "targeted_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_c *OrderFeeCreate) AddTargetedCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderFeeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTargetedCorrectionRequestIDs(ids...)
 }
 
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
@@ -442,6 +574,14 @@ func (_c *OrderFeeCreate) defaults() {
 	if _, ok := _c.mutation.TaxInclusive(); !ok {
 		v := orderfee.DefaultTaxInclusive
 		_c.mutation.SetTaxInclusive(v)
+	}
+	if _, ok := _c.mutation.EconomicEffect(); !ok {
+		v := orderfee.DefaultEconomicEffect
+		_c.mutation.SetEconomicEffect(v)
+	}
+	if _, ok := _c.mutation.AccountingRequired(); !ok {
+		v := orderfee.DefaultAccountingRequired
+		_c.mutation.SetAccountingRequired(v)
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := orderfee.DefaultVersion
@@ -585,6 +725,17 @@ func (_c *OrderFeeCreate) check() error {
 		if err := orderfee.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFee.note": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.EconomicEffect(); !ok {
+		return &ValidationError{Name: "economic_effect", err: errors.New(`ent: missing required field "OrderFee.economic_effect"`)}
+	}
+	if v, ok := _c.mutation.EconomicEffect(); ok {
+		if err := orderfee.EconomicEffectValidator(v); err != nil {
+			return &ValidationError{Name: "economic_effect", err: fmt.Errorf(`ent: validator failed for field "OrderFee.economic_effect": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.AccountingRequired(); !ok {
+		return &ValidationError{Name: "accounting_required", err: errors.New(`ent: missing required field "OrderFee.accounting_required"`)}
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "OrderFee.version"`)}
@@ -731,6 +882,14 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_spec.SetField(orderfee.FieldNote, field.TypeString, value)
 		_node.Note = value
 	}
+	if value, ok := _c.mutation.EconomicEffect(); ok {
+		_spec.SetField(orderfee.FieldEconomicEffect, field.TypeEnum, value)
+		_node.EconomicEffect = value
+	}
+	if value, ok := _c.mutation.AccountingRequired(); ok {
+		_spec.SetField(orderfee.FieldAccountingRequired, field.TypeBool, value)
+		_node.AccountingRequired = value
+	}
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(orderfee.FieldVersion, field.TypeUint64, value)
 		_node.Version = value
@@ -818,6 +977,105 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.SupplementRequestID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CorrectionRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.CorrectionRequestTable,
+			Columns: []string{orderfee.CorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CorrectionRequestID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SupersededByRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.SupersededByRequestTable,
+			Columns: []string{orderfee.SupersededByRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SupersededByRequestID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CorrectionNettingAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.CorrectionNettingAllocationsTable,
+			Columns: []string{orderfee.CorrectionNettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DerivedFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.DerivedFeesTable,
+			Columns: []string{orderfee.DerivedFeesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SourceFeeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.SourceFeeTable,
+			Columns: []string{orderfee.SourceFeeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SourceFeeID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TargetedCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.TargetedCorrectionRequestsTable,
+			Columns: []string{orderfee.TargetedCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.FinanceBillLinesIDs(); len(nodes) > 0 {
@@ -1270,6 +1528,36 @@ func (u *OrderFeeUpsert) ClearNote() *OrderFeeUpsert {
 	return u
 }
 
+// SetAccountingRequired sets the "accounting_required" field.
+func (u *OrderFeeUpsert) SetAccountingRequired(v bool) *OrderFeeUpsert {
+	u.Set(orderfee.FieldAccountingRequired, v)
+	return u
+}
+
+// UpdateAccountingRequired sets the "accounting_required" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateAccountingRequired() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldAccountingRequired)
+	return u
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (u *OrderFeeUpsert) SetSupersededByRequestID(v uuid.UUID) *OrderFeeUpsert {
+	u.Set(orderfee.FieldSupersededByRequestID, v)
+	return u
+}
+
+// UpdateSupersededByRequestID sets the "superseded_by_request_id" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateSupersededByRequestID() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldSupersededByRequestID)
+	return u
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (u *OrderFeeUpsert) ClearSupersededByRequestID() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldSupersededByRequestID)
+	return u
+}
+
 // SetVersion sets the "version" field.
 func (u *OrderFeeUpsert) SetVersion(v uint64) *OrderFeeUpsert {
 	u.Set(orderfee.FieldVersion, v)
@@ -1313,6 +1601,15 @@ func (u *OrderFeeUpsertOne) UpdateNewValues() *OrderFeeUpsertOne {
 		}
 		if _, exists := u.create.mutation.SupplementRequestID(); exists {
 			s.SetIgnore(orderfee.FieldSupplementRequestID)
+		}
+		if _, exists := u.create.mutation.EconomicEffect(); exists {
+			s.SetIgnore(orderfee.FieldEconomicEffect)
+		}
+		if _, exists := u.create.mutation.SourceFeeID(); exists {
+			s.SetIgnore(orderfee.FieldSourceFeeID)
+		}
+		if _, exists := u.create.mutation.CorrectionRequestID(); exists {
+			s.SetIgnore(orderfee.FieldCorrectionRequestID)
 		}
 	}))
 	return u
@@ -1772,6 +2069,41 @@ func (u *OrderFeeUpsertOne) ClearNote() *OrderFeeUpsertOne {
 	})
 }
 
+// SetAccountingRequired sets the "accounting_required" field.
+func (u *OrderFeeUpsertOne) SetAccountingRequired(v bool) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetAccountingRequired(v)
+	})
+}
+
+// UpdateAccountingRequired sets the "accounting_required" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateAccountingRequired() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateAccountingRequired()
+	})
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (u *OrderFeeUpsertOne) SetSupersededByRequestID(v uuid.UUID) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetSupersededByRequestID(v)
+	})
+}
+
+// UpdateSupersededByRequestID sets the "superseded_by_request_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateSupersededByRequestID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateSupersededByRequestID()
+	})
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (u *OrderFeeUpsertOne) ClearSupersededByRequestID() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearSupersededByRequestID()
+	})
+}
+
 // SetVersion sets the "version" field.
 func (u *OrderFeeUpsertOne) SetVersion(v uint64) *OrderFeeUpsertOne {
 	return u.Update(func(s *OrderFeeUpsert) {
@@ -1984,6 +2316,15 @@ func (u *OrderFeeUpsertBulk) UpdateNewValues() *OrderFeeUpsertBulk {
 			}
 			if _, exists := b.mutation.SupplementRequestID(); exists {
 				s.SetIgnore(orderfee.FieldSupplementRequestID)
+			}
+			if _, exists := b.mutation.EconomicEffect(); exists {
+				s.SetIgnore(orderfee.FieldEconomicEffect)
+			}
+			if _, exists := b.mutation.SourceFeeID(); exists {
+				s.SetIgnore(orderfee.FieldSourceFeeID)
+			}
+			if _, exists := b.mutation.CorrectionRequestID(); exists {
+				s.SetIgnore(orderfee.FieldCorrectionRequestID)
 			}
 		}
 	}))
@@ -2441,6 +2782,41 @@ func (u *OrderFeeUpsertBulk) UpdateNote() *OrderFeeUpsertBulk {
 func (u *OrderFeeUpsertBulk) ClearNote() *OrderFeeUpsertBulk {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.ClearNote()
+	})
+}
+
+// SetAccountingRequired sets the "accounting_required" field.
+func (u *OrderFeeUpsertBulk) SetAccountingRequired(v bool) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetAccountingRequired(v)
+	})
+}
+
+// UpdateAccountingRequired sets the "accounting_required" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateAccountingRequired() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateAccountingRequired()
+	})
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (u *OrderFeeUpsertBulk) SetSupersededByRequestID(v uuid.UUID) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetSupersededByRequestID(v)
+	})
+}
+
+// UpdateSupersededByRequestID sets the "superseded_by_request_id" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateSupersededByRequestID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateSupersededByRequestID()
+	})
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (u *OrderFeeUpsertBulk) ClearSupersededByRequestID() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearSupersededByRequestID()
 	})
 }
 

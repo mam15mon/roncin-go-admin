@@ -66,6 +66,12 @@ func (_c *FinanceInvoiceBillCreate) SetBillID(v uuid.UUID) *FinanceInvoiceBillCr
 	return _c
 }
 
+// SetSourceFeeIds sets the "source_fee_ids" field.
+func (_c *FinanceInvoiceBillCreate) SetSourceFeeIds(v []uuid.UUID) *FinanceInvoiceBillCreate {
+	_c.mutation.SetSourceFeeIds(v)
+	return _c
+}
+
 // SetBillNo sets the "bill_no" field.
 func (_c *FinanceInvoiceBillCreate) SetBillNo(v string) *FinanceInvoiceBillCreate {
 	_c.mutation.SetBillNo(v)
@@ -165,6 +171,10 @@ func (_c *FinanceInvoiceBillCreate) defaults() {
 		v := financeinvoicebill.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.SourceFeeIds(); !ok {
+		v := financeinvoicebill.DefaultSourceFeeIds
+		_c.mutation.SetSourceFeeIds(v)
+	}
 	if _, ok := _c.mutation.Active(); !ok {
 		v := financeinvoicebill.DefaultActive
 		_c.mutation.SetActive(v)
@@ -188,6 +198,9 @@ func (_c *FinanceInvoiceBillCreate) check() error {
 	}
 	if _, ok := _c.mutation.BillID(); !ok {
 		return &ValidationError{Name: "bill_id", err: errors.New(`ent: missing required field "FinanceInvoiceBill.bill_id"`)}
+	}
+	if _, ok := _c.mutation.SourceFeeIds(); !ok {
+		return &ValidationError{Name: "source_fee_ids", err: errors.New(`ent: missing required field "FinanceInvoiceBill.source_fee_ids"`)}
 	}
 	if _, ok := _c.mutation.BillNo(); !ok {
 		return &ValidationError{Name: "bill_no", err: errors.New(`ent: missing required field "FinanceInvoiceBill.bill_no"`)}
@@ -255,6 +268,10 @@ func (_c *FinanceInvoiceBillCreate) createSpec() (*FinanceInvoiceBill, *sqlgraph
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeinvoicebill.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SourceFeeIds(); ok {
+		_spec.SetField(financeinvoicebill.FieldSourceFeeIds, field.TypeJSON, value)
+		_node.SourceFeeIds = value
 	}
 	if value, ok := _c.mutation.BillNo(); ok {
 		_spec.SetField(financeinvoicebill.FieldBillNo, field.TypeString, value)
@@ -407,6 +424,9 @@ func (u *FinanceInvoiceBillUpsertOne) UpdateNewValues() *FinanceInvoiceBillUpser
 		}
 		if _, exists := u.create.mutation.BillID(); exists {
 			s.SetIgnore(financeinvoicebill.FieldBillID)
+		}
+		if _, exists := u.create.mutation.SourceFeeIds(); exists {
+			s.SetIgnore(financeinvoicebill.FieldSourceFeeIds)
 		}
 		if _, exists := u.create.mutation.BillNo(); exists {
 			s.SetIgnore(financeinvoicebill.FieldBillNo)
@@ -667,6 +687,9 @@ func (u *FinanceInvoiceBillUpsertBulk) UpdateNewValues() *FinanceInvoiceBillUpse
 			}
 			if _, exists := b.mutation.BillID(); exists {
 				s.SetIgnore(financeinvoicebill.FieldBillID)
+			}
+			if _, exists := b.mutation.SourceFeeIds(); exists {
+				s.SetIgnore(financeinvoicebill.FieldSourceFeeIds)
 			}
 			if _, exists := b.mutation.BillNo(); exists {
 				s.SetIgnore(financeinvoicebill.FieldBillNo)

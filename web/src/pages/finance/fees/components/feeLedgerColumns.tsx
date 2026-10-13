@@ -171,13 +171,20 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
     {
       title: '费用名称',
       dataIndex: 'feeName',
+      render: (_, row) => (
+        <>
+          {row.feeName}{' '}
+          {row.economicEffect === 'DECREASE' && (
+            <Tag color="orange">更正冲回</Tag>
+          )}
+        </>
+      ),
       width: 120,
       ellipsis: true,
       order: 60,
       fieldProps: {
         placeholder: '输入费用科目 (如海运费)',
       },
-      render: (val) => <span style={{ fontWeight: 500 }}>{val}</span>,
     },
     {
       title: '币种',
@@ -233,6 +240,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
         <FeeReviewStatus
           status={row.feeReviewStatus}
           pendingSupplement={row.hasPendingFeeSupplement}
+          pendingCorrection={row.hasPendingFeeCorrection}
         />
       ),
     },

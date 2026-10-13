@@ -294,11 +294,14 @@ type OrderFeeSupplementCommissionLine struct {
 	TotalReceivableSnapshot *decimal.Decimal
 	TotalPayableSnapshot    *decimal.Decimal
 	// 双层余额：CONFIRMED/PAID 符号化合计与其他 DRAFT DECREASE 预留。
-	PriorSupplementBaseAmount decimal.Decimal
-	LineEffective             decimal.Decimal
-	LineDraftDecrease         decimal.Decimal
-	ParentEffective           decimal.Decimal
-	ParentDraftDecrease       decimal.Decimal
+	PriorSupplementBaseAmount                         decimal.Decimal
+	LineEffective                                     decimal.Decimal
+	LineDraftDecrease                                 decimal.Decimal
+	ParentEffective                                   decimal.Decimal
+	ParentDraftDecrease                               decimal.Decimal
+	SystemPaid, SystemPending, LineOther, ParentOther decimal.Decimal
+	PendingSystemAdjustmentIDs                        []uuid.UUID
+	EconomicFingerprint                               string
 }
 
 // OrderFeeSupplementImpactContext 是一次补录审批的边际影响计算上下文。
@@ -309,17 +312,19 @@ type OrderFeeSupplementImpactContext struct {
 
 // OrderFeeSupplementDecreaseSuggestion 是审批计算得出的单条确认冲减及预览影响。
 type OrderFeeSupplementDecreaseSuggestion struct {
-	AdjustmentID     uuid.UUID
-	CommissionID     uuid.UUID
-	CommissionNo     string
-	CommissionStatus string
-	OrderID          uuid.UUID
-	OrderNo          string
-	EmployeeID       uuid.UUID
-	EmployeeName     string
-	BaseCurrency     string
-	Amount           decimal.Decimal
-	Reason           string
+	AdjustmentID        uuid.UUID
+	Direction           CommissionAdjustmentDirection
+	CancelAdjustmentIDs []uuid.UUID
+	CommissionID        uuid.UUID
+	CommissionNo        string
+	CommissionStatus    string
+	OrderID             uuid.UUID
+	OrderNo             string
+	EmployeeID          uuid.UUID
+	EmployeeName        string
+	BaseCurrency        string
+	Amount              decimal.Decimal
+	Reason              string
 	// 计算审计：before/after 提成金额与理论边际、超出封顶金额。
 	AmountBefore  decimal.Decimal
 	AmountAfter   decimal.Decimal

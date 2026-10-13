@@ -46,6 +46,10 @@ const (
 	FieldFeeCount = "fee_count"
 	// FieldFeeSnapshot holds the string denoting the fee_snapshot field in the database.
 	FieldFeeSnapshot = "fee_snapshot"
+	// FieldFeeContentVersionSnapshot holds the string denoting the fee_content_version_snapshot field in the database.
+	FieldFeeContentVersionSnapshot = "fee_content_version_snapshot"
+	// FieldRealizationSnapshot holds the string denoting the realization_snapshot field in the database.
+	FieldRealizationSnapshot = "realization_snapshot"
 	// FieldEmployeeID holds the string denoting the employee_id field in the database.
 	FieldEmployeeID = "employee_id"
 	// FieldEmployeeName holds the string denoting the employee_name field in the database.
@@ -131,6 +135,8 @@ var Columns = []string{
 	FieldPersonnelAssignedAt,
 	FieldFeeCount,
 	FieldFeeSnapshot,
+	FieldFeeContentVersionSnapshot,
+	FieldRealizationSnapshot,
 	FieldEmployeeID,
 	FieldEmployeeName,
 	FieldPersonnelRole,
@@ -180,6 +186,10 @@ var (
 	FeeCountValidator func(int) error
 	// DefaultFeeSnapshot holds the default value on creation for the "fee_snapshot" field.
 	DefaultFeeSnapshot string
+	// DefaultFeeContentVersionSnapshot holds the default value on creation for the "fee_content_version_snapshot" field.
+	DefaultFeeContentVersionSnapshot uint64
+	// DefaultRealizationSnapshot holds the default value on creation for the "realization_snapshot" field.
+	DefaultRealizationSnapshot string
 	// EmployeeNameValidator is a validator for the "employee_name" field. It is called by the builders before save.
 	EmployeeNameValidator func(string) error
 	// PersonnelRoleValidator is a validator for the "personnel_role" field. It is called by the builders before save.
@@ -325,6 +335,16 @@ func ByFeeCount(opts ...sql.OrderTermOption) OrderOption {
 // ByFeeSnapshot orders the results by the fee_snapshot field.
 func ByFeeSnapshot(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFeeSnapshot, opts...).ToFunc()
+}
+
+// ByFeeContentVersionSnapshot orders the results by the fee_content_version_snapshot field.
+func ByFeeContentVersionSnapshot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeContentVersionSnapshot, opts...).ToFunc()
+}
+
+// ByRealizationSnapshot orders the results by the realization_snapshot field.
+func ByRealizationSnapshot(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRealizationSnapshot, opts...).ToFunc()
 }
 
 // ByEmployeeID orders the results by the employee_id field.

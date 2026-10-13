@@ -58,8 +58,8 @@ export default function MySupplementSourcePage() {
 
   return (
     <PageContainer
-      title="我的提成冲减来源"
-      subTitle="系统为您的提成生成的锁后费用补录冲减建议（仅供知情，实际处理由财务确认）"
+      title="我的提成调整来源"
+      subTitle="费用变更或收付款变化产生的提成调整；发放、补付与扣回由财务执行"
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       {loading ? (
@@ -70,7 +70,7 @@ export default function MySupplementSourcePage() {
         <Result
           status="404"
           title="记录不存在"
-          subTitle="未找到对应的冲减建议，或该记录与您无关。"
+          subTitle="未找到对应的提成调整，或该记录与您无关。"
           extra={
             <Button type="primary" href="/welcome">
               返回工作台
@@ -79,21 +79,32 @@ export default function MySupplementSourcePage() {
         />
       ) : (
         <>
-          <SectionCard title="冲减建议" style={{ marginBottom: 16 }}>
+          <SectionCard title="提成调整" style={{ marginBottom: 16 }}>
             <Descriptions
               size="small"
               column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
               bordered
             >
-              <Descriptions.Item label="建议编号">
+              <Descriptions.Item label="调整编号">
                 {source.adjustmentNo || '-'}
               </Descriptions.Item>
               <Descriptions.Item label="状态">
-                <Tag color={statusMeta?.color}>{statusMeta?.text || '-'}</Tag>
+                <Tag color={statusMeta?.color}>
+                  {status ===
+                    FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID &&
+                  source.direction === 'INCREASE'
+                    ? '已补付'
+                    : statusMeta?.text || '-'}
+                </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="建议金额">
-                <strong style={{ color: '#d4380d' }}>
-                  {`-${decimalText(source.suggestedAmount)} ${source.baseCurrency || ''}`}
+              <Descriptions.Item label="调整金额">
+                <strong
+                  style={{
+                    color:
+                      source.direction === 'INCREASE' ? '#389e0d' : '#d4380d',
+                  }}
+                >
+                  {`${source.direction === 'INCREASE' ? '+' : '-'}${decimalText(source.suggestedAmount)} ${source.baseCurrency || ''}`}
                 </strong>
               </Descriptions.Item>
               <Descriptions.Item label="生成时间">
@@ -102,34 +113,44 @@ export default function MySupplementSourcePage() {
               <Descriptions.Item label="订单号">
                 {source.orderNo || '-'}
               </Descriptions.Item>
+              <Descriptions.Item label="调整来源">
+                {{
+                  LOCKED_FEE_SUPPLEMENT: '费用补录',
+                  FEE_CORRECTION: '费用更正',
+                  ECONOMIC_REALLOCATION: '收付款重算',
+                }[source.sourceType || ''] || '-'}{' '}
+                {source.sourceNo || ''}
+              </Descriptions.Item>
               <Descriptions.Item label="原提成号">
                 {source.commissionNo || '-'}
               </Descriptions.Item>
             </Descriptions>
           </SectionCard>
 
-          <SectionCard title="补录费用摘要" style={{ marginBottom: 16 }}>
-            <Descriptions
-              size="small"
-              column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
-              bordered
-            >
-              <Descriptions.Item label="费用名称">
-                {source.feeName || source.feeCode || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="费用金额">
-                {`${decimalText(source.feeTotalAmount)} ${source.feeCurrency || ''}`}
-              </Descriptions.Item>
-              <Descriptions.Item label="本位币金额">
-                {`${decimalText(source.feeBaseCurrencyAmount)} ${source.feeBaseCurrency || ''}`}
-              </Descriptions.Item>
-              <Descriptions.Item label="费用发生日期">
-                {source.feeExpenseDate || '-'}
-              </Descriptions.Item>
-            </Descriptions>
-          </SectionCard>
+          {source.feeName && (
+            <SectionCard title="相关费用摘要" style={{ marginBottom: 16 }}>
+              <Descriptions
+                size="small"
+                column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
+                bordered
+              >
+                <Descriptions.Item label="费用名称">
+                  {source.feeName || source.feeCode || '-'}
+                </Descriptions.Item>
+                <Descriptions.Item label="费用金额">
+                  {`${decimalText(source.feeTotalAmount)} ${source.feeCurrency || ''}`}
+                </Descriptions.Item>
+                <Descriptions.Item label="本位币金额">
+                  {`${decimalText(source.feeBaseCurrencyAmount)} ${source.feeBaseCurrency || ''}`}
+                </Descriptions.Item>
+                <Descriptions.Item label="费用发生日期">
+                  {source.feeExpenseDate || '-'}
+                </Descriptions.Item>
+              </Descriptions>
+            </SectionCard>
+          )}
 
-          <SectionCard title="补录原因" style={{ marginBottom: 16 }}>
+          <SectionCard title="调整原因" style={{ marginBottom: 16 }}>
             {source.supplementReason || '-'}
           </SectionCard>
         </>

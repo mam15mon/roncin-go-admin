@@ -229,6 +229,7 @@ type WorkbenchMyCommission struct {
 
 // WorkbenchMyCommissionAdjustment 是本人调整单最小投影。
 type WorkbenchMyCommissionAdjustment struct {
+	SourceType   CommissionAdjustmentSourceType
 	ID           uuid.UUID
 	AdjustmentNo string
 	Direction    CommissionAdjustmentDirection

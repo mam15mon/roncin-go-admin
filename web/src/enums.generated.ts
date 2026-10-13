@@ -483,6 +483,15 @@ export const OrderFeeDirection = {
 
 export type OrderFeeDirection = (typeof OrderFeeDirection)[keyof typeof OrderFeeDirection];
 
+export const OrderFeeCorrectionOperation = {
+  ORDER_FEE_CORRECTION_OPERATION_UNSPECIFIED: 0,
+  ORDER_FEE_CORRECTION_OPERATION_ADD: 1,
+  ORDER_FEE_CORRECTION_OPERATION_REPLACE: 2,
+  ORDER_FEE_CORRECTION_OPERATION_VOID: 3,
+} as const;
+
+export type OrderFeeCorrectionOperation = (typeof OrderFeeCorrectionOperation)[keyof typeof OrderFeeCorrectionOperation];
+
 export const OrderPersonnelRole = {
   ORDER_PERSONNEL_ROLE_UNSPECIFIED: 0,
   ORDER_PERSONNEL_ROLE_CREATOR: 1,

@@ -18,6 +18,7 @@ func (FinanceBill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin
 
 func (FinanceBill) Fields() []ent.Field {
 	return []ent.Field{
+		field.Enum("purpose").Values("NORMAL", "CORRECTION_REVERSAL").Default("NORMAL").Immutable(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("bill_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
@@ -89,6 +90,7 @@ func (FinanceBill) Indexes() []ent.Index {
 
 func (FinanceBill) Annotations() []schema.Annotation {
 	return []schema.Annotation{entsql.Checks(map[string]string{
+		"finance_bills_purpose_check":                    "purpose IN ('NORMAL','CORRECTION_REVERSAL')",
 		"finance_bills_estimated_invoice_snapshot_check": "(estimated_invoice_currency IS NULL AND estimated_invoice_rate IS NULL AND estimated_invoice_amount IS NULL) OR (estimated_invoice_currency IS NOT NULL AND estimated_invoice_rate IS NOT NULL AND estimated_invoice_amount IS NOT NULL AND estimated_invoice_rate > 0 AND estimated_invoice_amount >= 0)",
 	})}
 }

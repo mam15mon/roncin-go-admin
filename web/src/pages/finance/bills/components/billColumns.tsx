@@ -63,6 +63,18 @@ export function getFinanceBillColumns({
       ),
     },
     {
+      title: '账单用途',
+      dataIndex: 'purpose',
+      width: 115,
+      search: false,
+      render: (_, row) =>
+        row.purpose === 'CORRECTION_REVERSAL' ? (
+          <Tag color="orange">更正冲回</Tag>
+        ) : (
+          '正常费用'
+        ),
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       width: 85,

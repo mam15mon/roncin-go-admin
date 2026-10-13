@@ -3,6 +3,8 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -55,6 +57,12 @@ func (OrderFee) Fields() []ent.Field {
 		// 不可变，普通费用入口不得携带该来源。补录费用的删除仅经由补录申请专用
 		// 撤销（物理删除），普通删除入口一律拒绝。
 		field.UUID("supplement_request_id", uuid.Nil).Optional().Nillable().Immutable(),
+		// 经济效果与收付款方向分离；冲回仍保留原收入/成本属性。
+		field.Enum("economic_effect").Values("INCREASE", "DECREASE").Default("INCREASE").Immutable(),
+		field.Bool("accounting_required").Default(true),
+		field.UUID("source_fee_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.UUID("correction_request_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.UUID("superseded_by_request_id", uuid.Nil).Optional().Nillable(),
 		field.Uint64("version").Default(1),
 	}
 }
@@ -66,6 +74,12 @@ func (OrderFee) Edges() []ent.Edge {
 		edge.From("settlement_party", Partner.Type).Ref("order_fees").Field("settlement_party_id").Unique().Required(),
 		edge.From("billing_unit_ref", BillingUnit.Type).Ref("order_fees").Field("billing_unit_id").Unique(),
 		edge.From("supplement_request", OrderFeeSupplementRequest.Type).Ref("fees").Field("supplement_request_id").Unique().Immutable(),
+		edge.From("correction_request", OrderFeeCorrectionRequest.Type).Ref("generated_fees").Field("correction_request_id").Unique().Immutable(),
+		edge.From("superseded_by_request", OrderFeeCorrectionRequest.Type).Ref("superseded_fees").Field("superseded_by_request_id").Unique(),
+		edge.To("correction_netting_allocations", FinanceNettingAllocation.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.To("derived_fees", OrderFee.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
+		edge.From("source_fee", OrderFee.Type).Ref("derived_fees").Field("source_fee_id").Unique().Immutable(),
+		edge.To("targeted_correction_requests", OrderFeeCorrectionRequest.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("finance_bill_lines", FinanceBillLine.Type),
 		edge.To("enterprise_tag_links", OrderFeeEnterpriseTag.Type),
 	}
@@ -76,9 +90,17 @@ func (OrderFee) Indexes() []ent.Index {
 		index.Fields("order_id", "idempotency_key").Unique(),
 		// 一条补录申请只能生成一条费用；PostgreSQL 唯一索引允许多行 NULL。
 		index.Fields("supplement_request_id").Unique(),
+		index.Fields("correction_request_id", "economic_effect").Unique(),
+		index.Fields("source_fee_id", "economic_effect").Unique().Annotations(entsql.IndexWhere("economic_effect = 'DECREASE'")),
 		index.Fields("order_id", "direction", "created_at"),
 		index.Fields("fee_setting_id"),
 		index.Fields("billing_unit_id"),
 		index.Fields("settlement_party_id", "direction", "currency"),
 	}
+}
+
+func (OrderFee) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{
+		"order_fee_economic_effect_check": "economic_effect IN ('INCREASE','DECREASE') AND (source_fee_id IS NULL OR (correction_request_id IS NOT NULL AND source_fee_id <> id)) AND (economic_effect = 'INCREASE' OR (source_fee_id IS NOT NULL AND correction_request_id IS NOT NULL AND superseded_by_request_id IS NULL))",
+	})}
 }

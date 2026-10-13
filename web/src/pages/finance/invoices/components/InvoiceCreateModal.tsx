@@ -144,12 +144,12 @@ export default function InvoiceCreateModal({
     {
       title: '金额',
       key: 'totalAmount',
-      render: (_, r) => `${formatAmount(r.totalAmount)} ${r.currency}`,
+      render: (_, r) => `${formatAmount(r.invoiceableAmount)} ${r.currency}`,
     },
     {
       title: '税额',
       dataIndex: 'taxAmount',
-      render: (_, r) => formatAmount(r.taxAmount),
+      render: (_, r) => formatAmount(r.invoiceableTaxAmount),
     },
   ];
 

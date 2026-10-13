@@ -131,6 +131,7 @@ func (Order) Edges() []ent.Edge {
 		edge.To("fee_review_events", OrderFeeReviewEvent.Type),
 		edge.To("fees", OrderFee.Type),
 		edge.To("fee_supplement_requests", OrderFeeSupplementRequest.Type),
+		edge.To("fee_correction_requests", OrderFeeCorrectionRequest.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("finance_bill_lines", FinanceBillLine.Type),
 		edge.To("finance_commission_lines", FinanceCommissionLine.Type),
 		edge.To("finance_commission_adjustments", FinanceCommissionAdjustment.Type),

@@ -383,13 +383,14 @@ func (f *feeSupplementPostgresFixture) createConfirmedCommissionWithSnapshot(ord
 
 func (f *feeSupplementPostgresFixture) insertCommission(order *ent.Order, commissionAmount, allocatedCost, realizedRevenue string, receivableSnapshot, payableSnapshot *decimal.Decimal, basis biz.CommissionCalculationBasis) *ent.FinanceCommission {
 	f.t.Helper()
+	sourceID, personnelRole := f.supplementCommissionSourceFixture(order)
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:8]
 	commissionNo := "FC-FSUP-" + suffix
 	// 数据库 CHECK 要求规则快照三元组完整：rule_id 与 rule_name 同时非空。
 	rule, ruleErr := f.data.db.FinanceCommissionRule.Create().
 		SetOrganizationID(f.organizationID).
 		SetName("补录测试规则-" + suffix).
-		SetPersonnelRole("SALES").
+		SetPersonnelRole(commissionruleent.PersonnelRole(personnelRole)).
 		SetCalculationBasis(commissionruleent.CalculationBasis(basis)).
 		SetRatePercent("10.0000").
 		SetEnabled(true).
@@ -402,6 +403,8 @@ func (f *feeSupplementPostgresFixture) insertCommission(order *ent.Order, commis
 		SetOrganizationID(f.organizationID).
 		SetCommissionNo(commissionNo).
 		SetIdempotencyKey("fsup-commission-" + suffix).
+		SetVerificationID(sourceID).
+		SetVerificationNo("测试核销").
 		SetEmployeeID(f.employeeID).
 		SetEmployeeName("补录员工-" + suffix).
 		SetCustomerCount(1).
@@ -409,7 +412,7 @@ func (f *feeSupplementPostgresFixture) insertCommission(order *ent.Order, commis
 		SetFeeCount(1).
 		SetRuleID(rule.ID).
 		SetRuleName("补录测试规则-" + suffix).
-		SetPersonnelRole("SALES").
+		SetPersonnelRole(personnelRole).
 		SetCalculationBasis(string(basis)).
 		SetCalculationVersion(biz.CommissionCalculationVersion).
 		SetSourceFingerprint(strings.Repeat("f", 64)).
@@ -459,7 +462,7 @@ func (f *feeSupplementPostgresFixture) insertCommission(order *ent.Order, commis
 		SetFeeSnapshot(string(feeSnapshot)).
 		SetEmployeeID(f.employeeID).
 		SetEmployeeName("补录员工-" + suffix).
-		SetPersonnelRole("SALES").
+		SetPersonnelRole(personnelRole).
 		SetCalculationBasis(string(basis)).
 		SetBaseCurrency("CNY").
 		SetRealizedRevenue(realizedRevenue).
@@ -551,6 +554,10 @@ func (f *feeSupplementPostgresFixture) insertDraftDecrease(order *ent.Order, par
 func (f *feeSupplementPostgresFixture) insertCommissionWithLineContext(order *ent.Order, calculationVersion string, basis biz.CommissionCalculationBasis, lineBaseCurrency string, withSnapshot bool) *ent.FinanceCommission {
 	f.t.Helper()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:8]
+	amount := "60.00000000"
+	if basis == biz.CommissionBasisRealizedRevenue {
+		amount = "100.00000000"
+	}
 	rule, ruleErr := f.data.db.FinanceCommissionRule.Create().
 		SetOrganizationID(f.organizationID).
 		SetName("补录路由规则-" + suffix).
@@ -563,10 +570,13 @@ func (f *feeSupplementPostgresFixture) insertCommissionWithLineContext(order *en
 	if ruleErr != nil {
 		f.t.Fatalf("插入路由规则: %v", ruleErr)
 	}
+	sourceID, personnelRole := f.supplementCommissionSourceFixture(order)
 	parent, err := f.data.db.FinanceCommission.Create().
 		SetOrganizationID(f.organizationID).
 		SetCommissionNo("FC-FSUP-" + suffix).
 		SetIdempotencyKey("fsup-route-" + suffix).
+		SetVerificationID(sourceID).
+		SetVerificationNo("测试核销").
 		SetEmployeeID(f.employeeID).
 		SetEmployeeName("补录员工-" + suffix).
 		SetCustomerCount(1).
@@ -574,7 +584,7 @@ func (f *feeSupplementPostgresFixture) insertCommissionWithLineContext(order *en
 		SetFeeCount(1).
 		SetRuleID(rule.ID).
 		SetRuleName("补录路由规则-" + suffix).
-		SetPersonnelRole("SALES").
+		SetPersonnelRole(personnelRole).
 		SetCalculationBasis(string(basis)).
 		SetCalculationVersion(calculationVersion).
 		SetSourceFingerprint(strings.Repeat("f", 64)).
@@ -585,12 +595,12 @@ func (f *feeSupplementPostgresFixture) insertCommissionWithLineContext(order *en
 		SetRealizedProfit("1000.00000000").
 		SetCommissionBaseAmount("1000.00000000").
 		SetRatePercent("10.0000").
-		SetCommissionAmount("60.00000000").
+		SetCommissionAmount(amount).
 		SetCommissionDate("2026-09-01").
 		SetCnyExchangeRate("1.00000000").
 		SetCnyExchangeRateSource(commissionent.CnyExchangeRateSourceBASE_CURRENCY).
 		SetCnyExchangeRateDate("2026-09-01").
-		SetCnyCommissionAmount("60.00000000").
+		SetCnyCommissionAmount(amount).
 		SetVersion(1).
 		Save(f.ctx)
 	if err != nil {
@@ -624,7 +634,7 @@ func (f *feeSupplementPostgresFixture) insertCommissionWithLineContext(order *en
 		SetFeeSnapshot(string(feeSnapshot)).
 		SetEmployeeID(f.employeeID).
 		SetEmployeeName("补录员工-" + suffix).
-		SetPersonnelRole("SALES").
+		SetPersonnelRole(personnelRole).
 		SetCalculationBasis(string(basis)).
 		SetBaseCurrency(lineBaseCurrency).
 		SetRealizedRevenue("1000.00000000").
@@ -632,7 +642,7 @@ func (f *feeSupplementPostgresFixture) insertCommissionWithLineContext(order *en
 		SetRealizedProfit("1000.00000000").
 		SetCommissionBaseAmount("1000.00000000").
 		SetRatePercent("10.0000").
-		SetCommissionAmount("60.00000000")
+		SetCommissionAmount(amount)
 	if withSnapshot {
 		lineCreate = lineCreate.
 			SetTotalReceivableSnapshot("1000.00000000").
@@ -815,7 +825,7 @@ func TestFeeSupplementConsecutiveHistoricalSnapshotPostgres(t *testing.T) {
 	f := newFeeSupplementFixture(t)
 	o := f.createOrder("COST-" + f.suffix)
 	f.approveInitialFees(o)
-	f.createConfirmedCommissionWithSnapshot(o, "60", "10", "1000", "400")
+	original := f.createConfirmedCommissionWithSnapshot(o, "60", "10", "1000", "400")
 	a := f.createSupplement(o, "cost-a")
 	first := f.approveSupplement(o, a.ID, a.Version)
 	later := f.createConfirmedCommissionWithSnapshot(o, "50", "10", "1000", "500")
@@ -828,10 +838,19 @@ func TestFeeSupplementConsecutiveHistoricalSnapshotPostgres(t *testing.T) {
 		t.Fatal("逐原单独立冲减")
 	}
 	for _, row := range rows {
-		if !decimal.RequireFromString(row.Amount).Equal(decimal.NewFromInt(10)) {
-			t.Fatalf("已含成本不可重复加入: %s", row.Amount)
+		expected := decimal.NewFromInt(10)
+		if row.CommissionID == original.ID {
+			expected = decimal.NewFromInt(20)
+		}
+		if !decimal.RequireFromString(row.Amount).Equal(expected) {
+			f.t.Fatalf("应按累计净额重建原单20、新单10: %s", row.Amount)
 		}
 	}
+	old := f.adjustmentsForRequest(a.ID)
+	if len(old) != 1 || old[0].Status != commissionadjustmentent.StatusCANCELLED {
+		t.Fatalf("先前未执行系统冲减应留取消历史: %+v", old)
+	}
+
 }
 
 func TestFeeSupplementWithdrawApproveRacePostgres(t *testing.T) {
@@ -897,7 +916,7 @@ func TestFeeSupplementRevenueAndCancellationPostgres(t *testing.T) {
 	f := newFeeSupplementFixture(t)
 	o := f.createOrder("REVENUE-" + f.suffix)
 	f.approveInitialFees(o)
-	f.insertCommissionWithLineContext(o, biz.CommissionCalculationVersion, biz.CommissionBasisRealizedRevenue, "CNY", false)
+	f.insertCommissionWithLineContext(o, biz.CommissionCalculationVersion, biz.CommissionBasisRealizedRevenue, "CNY", true)
 	r := f.createSupplement(o, "revenue-cost")
 	result := f.approveSupplement(o, r.ID, r.Version)
 	if len(f.adjustmentsForRequest(r.ID)) != 0 {

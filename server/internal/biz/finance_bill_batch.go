@@ -78,13 +78,16 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 		// 应收、应付费用分别形成各自的原始账单叶子。
 		if policy.Mode == "NORMAL" {
 			if direction == "" {
-				direction = fee.Direction
-			} else if direction != fee.Direction {
+				direction = SettlementDirection(fee)
+			} else if direction != SettlementDirection(fee) {
 				return nil, ErrFinanceBillMixedDirection
 			}
 		}
 		// 普通账单始终以费用币种拆分；币种是叶子身份的一部分，不能由请求覆盖。
-		parts := []string{string(fee.Direction), fee.SettlementPartyID.String(), fee.Currency, fee.BaseCurrency}
+		parts := []string{string(SettlementDirection(fee)), string(FinanceBillPurposeForFee(fee)), fee.SettlementPartyID.String(), fee.Currency, fee.BaseCurrency}
+		if fee.SourceFeeID != nil && fee.CorrectionRequestID != nil {
+			parts = append(parts, fee.CorrectionRequestID.String())
+		}
 		if policy.SplitByTaxRate {
 			parts = append(parts, fee.TaxRate.StringFixed(4))
 		}
@@ -94,7 +97,10 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 		raw := strings.Join(parts, "\x00")
 		group := groupsByRawKey[raw]
 		if group == nil {
-			group = &FinanceBillBatchPreviewGroup{GroupKey: financeSHA256(raw), Direction: fee.Direction, SettlementPartyID: fee.SettlementPartyID, SettlementPartyName: fee.SettlementPartyName, Currency: fee.Currency, BaseCurrency: fee.BaseCurrency, Fees: make([]*FinanceBillableFee, 0)}
+			group = &FinanceBillBatchPreviewGroup{GroupKey: financeSHA256(raw), Purpose: FinanceBillPurposeForFee(fee), Direction: SettlementDirection(fee), SettlementPartyID: fee.SettlementPartyID, SettlementPartyName: fee.SettlementPartyName, Currency: fee.Currency, BaseCurrency: fee.BaseCurrency, Fees: make([]*FinanceBillableFee, 0)}
+			if fee.SourceFeeID != nil {
+				group.CorrectionRequestID = fee.CorrectionRequestID
+			}
 			if policy.SplitByTaxRate {
 				value := *fee.TaxRate
 				group.TaxRate = &value
@@ -395,7 +401,7 @@ func (uc *FinanceBillUsecase) buildFixedCurrencyFinanceBill(ctx context.Context,
 	}
 	billID := uuid.Must(uuid.NewV7())
 	bill := &FinanceBill{
-		ID: billID, OrganizationID: organizationID, Direction: group.Direction, Status: FinanceBillDraft,
+		ID: billID, OrganizationID: organizationID, CorrectionRequestID: group.CorrectionRequestID, Purpose: group.Purpose, Direction: group.Direction, Status: FinanceBillDraft,
 		SettlementPartyID: group.SettlementPartyID, SettlementPartyName: group.SettlementPartyName,
 		SettlementAccountID: group.SettlementAccountID, Currency: group.Currency, BaseCurrency: group.BaseCurrency,
 		ExchangeRate: resolved.Rate.RoundBank(4), ExchangeRateSource: resolved.Source, ExchangeRateDate: billDate,

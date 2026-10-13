@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -26,6 +27,8 @@ type FinanceNetting struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// CorrectionRequestID holds the value of the "correction_request_id" field.
+	CorrectionRequestID *uuid.UUID `json:"correction_request_id,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// NettingNo holds the value of the "netting_no" field.
@@ -82,6 +85,10 @@ type FinanceNetting struct {
 
 // FinanceNettingEdges holds the relations/edges for other nodes in the graph.
 type FinanceNettingEdges struct {
+	// CorrectionRequest holds the value of the correction_request edge.
+	CorrectionRequest *OrderFeeCorrectionRequest `json:"correction_request,omitempty"`
+	// CommissionEconomicAdjustments holds the value of the commission_economic_adjustments edge.
+	CommissionEconomicAdjustments []*FinanceCommissionAdjustment `json:"commission_economic_adjustments,omitempty"`
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
 	// SettlementParty holds the value of the settlement_party edge.
@@ -100,7 +107,27 @@ type FinanceNettingEdges struct {
 	Commissions []*FinanceCommission `json:"commissions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [10]bool
+}
+
+// CorrectionRequestOrErr returns the CorrectionRequest value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceNettingEdges) CorrectionRequestOrErr() (*OrderFeeCorrectionRequest, error) {
+	if e.CorrectionRequest != nil {
+		return e.CorrectionRequest, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: orderfeecorrectionrequest.Label}
+	}
+	return nil, &NotLoadedError{edge: "correction_request"}
+}
+
+// CommissionEconomicAdjustmentsOrErr returns the CommissionEconomicAdjustments value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceNettingEdges) CommissionEconomicAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
+	if e.loadedTypes[1] {
+		return e.CommissionEconomicAdjustments, nil
+	}
+	return nil, &NotLoadedError{edge: "commission_economic_adjustments"}
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -108,7 +135,7 @@ type FinanceNettingEdges struct {
 func (e FinanceNettingEdges) OrganizationOrErr() (*Organization, error) {
 	if e.Organization != nil {
 		return e.Organization, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: organization.Label}
 	}
 	return nil, &NotLoadedError{edge: "organization"}
@@ -119,7 +146,7 @@ func (e FinanceNettingEdges) OrganizationOrErr() (*Organization, error) {
 func (e FinanceNettingEdges) SettlementPartyOrErr() (*Partner, error) {
 	if e.SettlementParty != nil {
 		return e.SettlementParty, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: partner.Label}
 	}
 	return nil, &NotLoadedError{edge: "settlement_party"}
@@ -130,7 +157,7 @@ func (e FinanceNettingEdges) SettlementPartyOrErr() (*Partner, error) {
 func (e FinanceNettingEdges) BatchOrErr() (*FinanceBillBatch, error) {
 	if e.Batch != nil {
 		return e.Batch, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: financebillbatch.Label}
 	}
 	return nil, &NotLoadedError{edge: "batch"}
@@ -141,7 +168,7 @@ func (e FinanceNettingEdges) BatchOrErr() (*FinanceBillBatch, error) {
 func (e FinanceNettingEdges) ConfirmedByUserOrErr() (*User, error) {
 	if e.ConfirmedByUser != nil {
 		return e.ConfirmedByUser, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "confirmed_by_user"}
@@ -152,7 +179,7 @@ func (e FinanceNettingEdges) ConfirmedByUserOrErr() (*User, error) {
 func (e FinanceNettingEdges) CancelledByUserOrErr() (*User, error) {
 	if e.CancelledByUser != nil {
 		return e.CancelledByUser, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[6] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
@@ -163,7 +190,7 @@ func (e FinanceNettingEdges) CancelledByUserOrErr() (*User, error) {
 func (e FinanceNettingEdges) ReversedByUserOrErr() (*User, error) {
 	if e.ReversedByUser != nil {
 		return e.ReversedByUser, nil
-	} else if e.loadedTypes[5] {
+	} else if e.loadedTypes[7] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "reversed_by_user"}
@@ -172,7 +199,7 @@ func (e FinanceNettingEdges) ReversedByUserOrErr() (*User, error) {
 // AllocationsOrErr returns the Allocations value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceNettingEdges) AllocationsOrErr() ([]*FinanceNettingAllocation, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[8] {
 		return e.Allocations, nil
 	}
 	return nil, &NotLoadedError{edge: "allocations"}
@@ -181,7 +208,7 @@ func (e FinanceNettingEdges) AllocationsOrErr() ([]*FinanceNettingAllocation, er
 // CommissionsOrErr returns the Commissions value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceNettingEdges) CommissionsOrErr() ([]*FinanceCommission, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[9] {
 		return e.Commissions, nil
 	}
 	return nil, &NotLoadedError{edge: "commissions"}
@@ -192,7 +219,7 @@ func (*FinanceNetting) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financenetting.FieldBatchID, financenetting.FieldConfirmedBy, financenetting.FieldCancelledBy, financenetting.FieldReversedBy:
+		case financenetting.FieldCorrectionRequestID, financenetting.FieldBatchID, financenetting.FieldConfirmedBy, financenetting.FieldCancelledBy, financenetting.FieldReversedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financenetting.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -234,6 +261,13 @@ func (_m *FinanceNetting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financenetting.FieldCorrectionRequestID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field correction_request_id", values[i])
+			} else if value.Valid {
+				_m.CorrectionRequestID = new(uuid.UUID)
+				*_m.CorrectionRequestID = *value.S.(*uuid.UUID)
 			}
 		case financenetting.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -402,6 +436,16 @@ func (_m *FinanceNetting) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
+// QueryCorrectionRequest queries the "correction_request" edge of the FinanceNetting entity.
+func (_m *FinanceNetting) QueryCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	return NewFinanceNettingClient(_m.config).QueryCorrectionRequest(_m)
+}
+
+// QueryCommissionEconomicAdjustments queries the "commission_economic_adjustments" edge of the FinanceNetting entity.
+func (_m *FinanceNetting) QueryCommissionEconomicAdjustments() *FinanceCommissionAdjustmentQuery {
+	return NewFinanceNettingClient(_m.config).QueryCommissionEconomicAdjustments(_m)
+}
+
 // QueryOrganization queries the "organization" edge of the FinanceNetting entity.
 func (_m *FinanceNetting) QueryOrganization() *OrganizationQuery {
 	return NewFinanceNettingClient(_m.config).QueryOrganization(_m)
@@ -470,6 +514,11 @@ func (_m *FinanceNetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	if v := _m.CorrectionRequestID; v != nil {
+		builder.WriteString("correction_request_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

@@ -36,6 +36,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -106,6 +107,8 @@ type UserQuery struct {
 	withDecidedOrderUnlockRequests                 *OrderUnlockRequestQuery
 	withOrderUnlockApproverCandidates              *OrderUnlockApproverCandidateQuery
 	withRequestedOrderFeeSupplementRequests        *OrderFeeSupplementRequestQuery
+	withRequestedFeeCorrectionRequests             *OrderFeeCorrectionRequestQuery
+	withDecidedFeeCorrectionRequests               *OrderFeeCorrectionRequestQuery
 	withDecidedOrderFeeSupplementRequests          *OrderFeeSupplementRequestQuery
 	withFinanceCommissionRuleAssignments           *FinanceCommissionRuleAssignmentQuery
 	withCreatedFinanceCommissionRuleAssignments    *FinanceCommissionRuleAssignmentQuery
@@ -1107,6 +1110,50 @@ func (_q *UserQuery) QueryRequestedOrderFeeSupplementRequests() *OrderFeeSupplem
 	return query
 }
 
+// QueryRequestedFeeCorrectionRequests chains the current query on the "requested_fee_correction_requests" edge.
+func (_q *UserQuery) QueryRequestedFeeCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RequestedFeeCorrectionRequestsTable, user.RequestedFeeCorrectionRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDecidedFeeCorrectionRequests chains the current query on the "decided_fee_correction_requests" edge.
+func (_q *UserQuery) QueryDecidedFeeCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DecidedFeeCorrectionRequestsTable, user.DecidedFeeCorrectionRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryDecidedOrderFeeSupplementRequests chains the current query on the "decided_order_fee_supplement_requests" edge.
 func (_q *UserQuery) QueryDecidedOrderFeeSupplementRequests() *OrderFeeSupplementRequestQuery {
 	query := (&OrderFeeSupplementRequestClient{config: _q.config}).Query()
@@ -1738,6 +1785,8 @@ func (_q *UserQuery) Clone() *UserQuery {
 		withDecidedOrderUnlockRequests:                 _q.withDecidedOrderUnlockRequests.Clone(),
 		withOrderUnlockApproverCandidates:              _q.withOrderUnlockApproverCandidates.Clone(),
 		withRequestedOrderFeeSupplementRequests:        _q.withRequestedOrderFeeSupplementRequests.Clone(),
+		withRequestedFeeCorrectionRequests:             _q.withRequestedFeeCorrectionRequests.Clone(),
+		withDecidedFeeCorrectionRequests:               _q.withDecidedFeeCorrectionRequests.Clone(),
 		withDecidedOrderFeeSupplementRequests:          _q.withDecidedOrderFeeSupplementRequests.Clone(),
 		withFinanceCommissionRuleAssignments:           _q.withFinanceCommissionRuleAssignments.Clone(),
 		withCreatedFinanceCommissionRuleAssignments:    _q.withCreatedFinanceCommissionRuleAssignments.Clone(),
@@ -2235,6 +2284,28 @@ func (_q *UserQuery) WithRequestedOrderFeeSupplementRequests(opts ...func(*Order
 	return _q
 }
 
+// WithRequestedFeeCorrectionRequests tells the query-builder to eager-load the nodes that are connected to
+// the "requested_fee_correction_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithRequestedFeeCorrectionRequests(opts ...func(*OrderFeeCorrectionRequestQuery)) *UserQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRequestedFeeCorrectionRequests = query
+	return _q
+}
+
+// WithDecidedFeeCorrectionRequests tells the query-builder to eager-load the nodes that are connected to
+// the "decided_fee_correction_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithDecidedFeeCorrectionRequests(opts ...func(*OrderFeeCorrectionRequestQuery)) *UserQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDecidedFeeCorrectionRequests = query
+	return _q
+}
+
 // WithDecidedOrderFeeSupplementRequests tells the query-builder to eager-load the nodes that are connected to
 // the "decided_order_fee_supplement_requests" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithDecidedOrderFeeSupplementRequests(opts ...func(*OrderFeeSupplementRequestQuery)) *UserQuery {
@@ -2511,7 +2582,7 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [61]bool{
+		loadedTypes = [63]bool{
 			_q.withMemberships != nil,
 			_q.withSessions != nil,
 			_q.withOrderPersonnel != nil,
@@ -2555,6 +2626,8 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			_q.withDecidedOrderUnlockRequests != nil,
 			_q.withOrderUnlockApproverCandidates != nil,
 			_q.withRequestedOrderFeeSupplementRequests != nil,
+			_q.withRequestedFeeCorrectionRequests != nil,
+			_q.withDecidedFeeCorrectionRequests != nil,
 			_q.withDecidedOrderFeeSupplementRequests != nil,
 			_q.withFinanceCommissionRuleAssignments != nil,
 			_q.withCreatedFinanceCommissionRuleAssignments != nil,
@@ -2969,6 +3042,24 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			func(n *User) { n.Edges.RequestedOrderFeeSupplementRequests = []*OrderFeeSupplementRequest{} },
 			func(n *User, e *OrderFeeSupplementRequest) {
 				n.Edges.RequestedOrderFeeSupplementRequests = append(n.Edges.RequestedOrderFeeSupplementRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRequestedFeeCorrectionRequests; query != nil {
+		if err := _q.loadRequestedFeeCorrectionRequests(ctx, query, nodes,
+			func(n *User) { n.Edges.RequestedFeeCorrectionRequests = []*OrderFeeCorrectionRequest{} },
+			func(n *User, e *OrderFeeCorrectionRequest) {
+				n.Edges.RequestedFeeCorrectionRequests = append(n.Edges.RequestedFeeCorrectionRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDecidedFeeCorrectionRequests; query != nil {
+		if err := _q.loadDecidedFeeCorrectionRequests(ctx, query, nodes,
+			func(n *User) { n.Edges.DecidedFeeCorrectionRequests = []*OrderFeeCorrectionRequest{} },
+			func(n *User, e *OrderFeeCorrectionRequest) {
+				n.Edges.DecidedFeeCorrectionRequests = append(n.Edges.DecidedFeeCorrectionRequests, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4508,6 +4599,69 @@ func (_q *UserQuery) loadRequestedOrderFeeSupplementRequests(ctx context.Context
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "requested_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadRequestedFeeCorrectionRequests(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*User, init func(*User), assign func(*User, *OrderFeeCorrectionRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeecorrectionrequest.FieldRequestedBy)
+	}
+	query.Where(predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.RequestedFeeCorrectionRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RequestedBy
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "requested_by" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadDecidedFeeCorrectionRequests(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*User, init func(*User), assign func(*User, *OrderFeeCorrectionRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeecorrectionrequest.FieldDecidedBy)
+	}
+	query.Where(predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.DecidedFeeCorrectionRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DecidedBy
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "decided_by" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "decided_by" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

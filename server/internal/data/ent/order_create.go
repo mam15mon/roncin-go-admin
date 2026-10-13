@@ -26,6 +26,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
@@ -1363,6 +1364,21 @@ func (_c *OrderCreate) AddFeeSupplementRequests(v ...*OrderFeeSupplementRequest)
 	return _c.AddFeeSupplementRequestIDs(ids...)
 }
 
+// AddFeeCorrectionRequestIDs adds the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_c *OrderCreate) AddFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderCreate {
+	_c.mutation.AddFeeCorrectionRequestIDs(ids...)
+	return _c
+}
+
+// AddFeeCorrectionRequests adds the "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_c *OrderCreate) AddFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeeCorrectionRequestIDs(ids...)
+}
+
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
 func (_c *OrderCreate) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderCreate {
 	_c.mutation.AddFinanceBillLineIDs(ids...)
@@ -2658,6 +2674,22 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeCorrectionRequestsTable,
+			Columns: []string{order.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -131,6 +131,16 @@ func FeeSnapshot(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldFeeSnapshot, v))
 }
 
+// FeeContentVersionSnapshot applies equality check predicate on the "fee_content_version_snapshot" field. It's identical to FeeContentVersionSnapshotEQ.
+func FeeContentVersionSnapshot(v uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldFeeContentVersionSnapshot, v))
+}
+
+// RealizationSnapshot applies equality check predicate on the "realization_snapshot" field. It's identical to RealizationSnapshotEQ.
+func RealizationSnapshot(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldRealizationSnapshot, v))
+}
+
 // EmployeeID applies equality check predicate on the "employee_id" field. It's identical to EmployeeIDEQ.
 func EmployeeID(v uuid.UUID) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldEmployeeID, v))
@@ -874,6 +884,111 @@ func FeeSnapshotEqualFold(v string) predicate.FinanceCommissionLine {
 // FeeSnapshotContainsFold applies the ContainsFold predicate on the "fee_snapshot" field.
 func FeeSnapshotContainsFold(v string) predicate.FinanceCommissionLine {
 	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldFeeSnapshot, v))
+}
+
+// FeeContentVersionSnapshotEQ applies the EQ predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotEQ(v uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldFeeContentVersionSnapshot, v))
+}
+
+// FeeContentVersionSnapshotNEQ applies the NEQ predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotNEQ(v uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldFeeContentVersionSnapshot, v))
+}
+
+// FeeContentVersionSnapshotIn applies the In predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotIn(vs ...uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldFeeContentVersionSnapshot, vs...))
+}
+
+// FeeContentVersionSnapshotNotIn applies the NotIn predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotNotIn(vs ...uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldFeeContentVersionSnapshot, vs...))
+}
+
+// FeeContentVersionSnapshotGT applies the GT predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotGT(v uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldFeeContentVersionSnapshot, v))
+}
+
+// FeeContentVersionSnapshotGTE applies the GTE predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotGTE(v uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldFeeContentVersionSnapshot, v))
+}
+
+// FeeContentVersionSnapshotLT applies the LT predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotLT(v uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldFeeContentVersionSnapshot, v))
+}
+
+// FeeContentVersionSnapshotLTE applies the LTE predicate on the "fee_content_version_snapshot" field.
+func FeeContentVersionSnapshotLTE(v uint64) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldFeeContentVersionSnapshot, v))
+}
+
+// RealizationSnapshotEQ applies the EQ predicate on the "realization_snapshot" field.
+func RealizationSnapshotEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEQ(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotNEQ applies the NEQ predicate on the "realization_snapshot" field.
+func RealizationSnapshotNEQ(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNEQ(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotIn applies the In predicate on the "realization_snapshot" field.
+func RealizationSnapshotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldIn(FieldRealizationSnapshot, vs...))
+}
+
+// RealizationSnapshotNotIn applies the NotIn predicate on the "realization_snapshot" field.
+func RealizationSnapshotNotIn(vs ...string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldNotIn(FieldRealizationSnapshot, vs...))
+}
+
+// RealizationSnapshotGT applies the GT predicate on the "realization_snapshot" field.
+func RealizationSnapshotGT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGT(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotGTE applies the GTE predicate on the "realization_snapshot" field.
+func RealizationSnapshotGTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldGTE(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotLT applies the LT predicate on the "realization_snapshot" field.
+func RealizationSnapshotLT(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLT(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotLTE applies the LTE predicate on the "realization_snapshot" field.
+func RealizationSnapshotLTE(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldLTE(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotContains applies the Contains predicate on the "realization_snapshot" field.
+func RealizationSnapshotContains(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContains(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotHasPrefix applies the HasPrefix predicate on the "realization_snapshot" field.
+func RealizationSnapshotHasPrefix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasPrefix(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotHasSuffix applies the HasSuffix predicate on the "realization_snapshot" field.
+func RealizationSnapshotHasSuffix(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldHasSuffix(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotEqualFold applies the EqualFold predicate on the "realization_snapshot" field.
+func RealizationSnapshotEqualFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldEqualFold(FieldRealizationSnapshot, v))
+}
+
+// RealizationSnapshotContainsFold applies the ContainsFold predicate on the "realization_snapshot" field.
+func RealizationSnapshotContainsFold(v string) predicate.FinanceCommissionLine {
+	return predicate.FinanceCommissionLine(sql.FieldContainsFold(FieldRealizationSnapshot, v))
 }
 
 // EmployeeIDEQ applies the EQ predicate on the "employee_id" field.

@@ -250,6 +250,7 @@ func workbenchMyCommissionToAPI(item *biz.WorkbenchMyCommission) *workbenchv1.Wo
 			Id:           adjustmentItem.ID.String(),
 			AdjustmentNo: adjustmentItem.AdjustmentNo,
 			Direction:    string(adjustmentItem.Direction),
+			SourceType:   string(adjustmentItem.SourceType),
 			Status:       workbenchStatusToAPI(adjustmentItem.Status),
 			Amount:       adjustmentItem.Amount.StringFixed(8),
 			Reason:       adjustmentItem.Reason,

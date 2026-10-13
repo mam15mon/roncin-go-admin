@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"time"
 	"unicode/utf8"
@@ -13,9 +12,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	bill "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	cash "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
-	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
-	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
-	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	nettingallocent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	ver "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	alloc "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -194,6 +190,19 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		}
 		cashIDs := sortedFinanceUUIDs(cashSet)
 		billIDs := sortedFinanceUUIDs(billSet)
+		affectedOrderIDs, e := commissionEconomicAffectedOrderIDs(ctx, tx.Client(), org, billIDs)
+		if e != nil {
+			return e
+		}
+		if e = lockOrdersForFinanceReversal(ctx, tx, affectedOrderIDs); e != nil {
+			return e
+		}
+		if e = validateFinanceEconomicOrderSet(ctx, tx.Client(), org, billIDs, affectedOrderIDs); e != nil {
+			return e
+		}
+		if e = validateOrdinaryFinanceSettlement(ctx, tx.Client(), billIDs); e != nil {
+			return e
+		}
 		cashs, e := tx.FinanceCashflow.Query().Where(cash.IDIn(cashIDs...), cash.OrganizationIDEQ(org)).Order(cash.ByID()).ForUpdate().All(ctx)
 		if e != nil {
 			return e
@@ -312,7 +321,10 @@ func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *
 		if e = writeAudit(ctx, tx.AuditLog, audit); e != nil {
 			return e
 		}
-		return nil
+		if err := validateFinanceCorrectionCoverages(ctx, tx.Client(), billIDs); err != nil {
+			return err
+		}
+		return reconcileCommissionEconomicSource(ctx, tx.Client(), org, actor, "VERIFICATION_CREATE", v.ID, 1)
 	})
 	if e != nil {
 		return nil, e
@@ -345,7 +357,7 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 		for _, a := range allocations {
 			billIDs = append(billIDs, a.BillID)
 		}
-		affectedOrderIDs, resolveErr := orderIDsForBills(ctx, tx.Client(), billIDs)
+		affectedOrderIDs, resolveErr := commissionEconomicAffectedOrderIDs(ctx, tx.Client(), org, billIDs)
 		if resolveErr != nil {
 			return resolveErr
 		}
@@ -353,6 +365,9 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 		//    订单已锁定不得阻止财务反转。
 		if lockErr := lockOrdersForFinanceReversal(ctx, tx, affectedOrderIDs); lockErr != nil {
 			return lockErr
+		}
+		if err := validateFinanceEconomicOrderSet(ctx, tx.Client(), org, billIDs, affectedOrderIDs); err != nil {
+			return err
 		}
 		// 3. 锁定来源单并重验版本、状态。
 		x, queryErr := tx.FinanceVerification.Query().Where(ver.IDEQ(id), ver.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
@@ -362,9 +377,7 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 		if x.Version != version || x.Status != ver.StatusACTIVE {
 			return biz.ErrVerificationTransition
 		}
-		if reconcileErr := reconcileCommissionsForSourceReversal(ctx, tx, org, commissionReversalSource{verificationID: id}, actor, reason); reconcileErr != nil {
-			return reconcileErr
-		}
+
 		if _, updateErr := tx.FinanceVerificationAllocation.Update().Where(alloc.VerificationIDEQ(id), alloc.ActiveEQ(true)).SetActive(false).Save(ctx); updateErr != nil {
 			return updateErr
 		}
@@ -372,175 +385,18 @@ func (r *verificationRepo) Reverse(ctx context.Context, org, id, actor uuid.UUID
 		if _, updateErr := tx.FinanceVerification.UpdateOneID(id).SetStatus(ver.StatusREVERSED).SetReversedAt(now).SetReversedBy(actor).SetReversalReason(reason).SetVersion(version + 1).Save(ctx); updateErr != nil {
 			return updateErr
 		}
+		if err := validateFinanceCorrectionCoverages(ctx, tx.Client(), billIDs); err != nil {
+			return err
+		}
+		if err := reconcileCommissionEconomicSource(ctx, tx.Client(), org, actor, "VERIFICATION_REVERSE", id, version+1); err != nil {
+			return err
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if e != nil {
 		return nil, e
 	}
 	return r.Get(ctx, org, id)
-}
-
-// commissionReversalSource 描述提成冲减联动的来源单：核销或对冲二选一。
-type commissionReversalSource struct {
-	verificationID uuid.UUID // 核销来源（与 nettingID 二选一）
-	nettingID      uuid.UUID // 对冲来源
-}
-
-// reconcileCommissionsForSourceReversal 在同一事务内对来源为指定核销/对冲单的提成执行
-// 与反核销同款处理：无已支付敞口时取消（含未支付调整），有敞口时生成 CONFIRMED
-// 冲减调整（Clawback），PAID 父单状态保持不变。费用财务锁的净额判定按调整单
-// 状态与金额自动覆盖两种来源，无需在此改锁。
-func reconcileCommissionsForSourceReversal(ctx context.Context, tx *ent.Tx, org uuid.UUID, source commissionReversalSource, actor uuid.UUID, reason string) error {
-	sourcePredicates := []predicate.FinanceCommission{
-		commission.OrganizationIDEQ(org),
-		commission.StatusNEQ(commission.StatusCANCELLED),
-	}
-	// 来源路由：按非空来源字段直连，不引入多态来源抽象。
-	sourceID := source.verificationID
-	sourceType := adjustment.SourceTypeVERIFICATION_REVERSAL
-	actionLabel := "核销撤销"
-	idempotencyPrefix := "vr"
-	if source.nettingID != uuid.Nil {
-		sourcePredicates = append(sourcePredicates, commission.NettingIDEQ(source.nettingID))
-		sourceID = source.nettingID
-		sourceType = adjustment.SourceTypeNETTING_REVERSAL
-		actionLabel = "对冲反转"
-		idempotencyPrefix = "nt"
-	} else {
-		sourcePredicates = append(sourcePredicates, commission.VerificationIDEQ(source.verificationID))
-	}
-	commissions, err := tx.FinanceCommission.Query().Where(sourcePredicates...).
-		Order(commission.ByID()).ForUpdate().All(ctx)
-	if err != nil {
-		return err
-	}
-	now := time.Now().UTC()
-	cancellationReason := limitedFinanceReason(actionLabel + "自动取消：" + reason)
-	recoveryReason := limitedFinanceReason(actionLabel + "自动冲减：" + reason)
-	for _, parent := range commissions {
-		lines, queryErr := tx.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(parent.ID)).Order(commissionline.ByID()).ForUpdate().All(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		adjustments, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
-			adjustment.CommissionIDEQ(parent.ID), adjustment.StatusNEQ(adjustment.StatusCANCELLED),
-		).Order(adjustment.ByCreatedAt(), adjustment.ByID()).ForUpdate().All(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		baseAmount, parseErr := decimalOf(parent.CommissionAmount)
-		if parseErr != nil {
-			return parseErr
-		}
-		domainLines := make([]biz.CommissionReversalLine, 0, len(lines))
-		lineByOrder := make(map[uuid.UUID]*ent.FinanceCommissionLine, len(lines))
-		for _, line := range lines {
-			lineAmount, amountErr := decimalOf(line.CommissionAmount)
-			if amountErr != nil {
-				return amountErr
-			}
-			domainLines = append(domainLines, biz.CommissionReversalLine{OrderID: line.OrderID, Amount: lineAmount})
-			lineByOrder[line.OrderID] = line
-		}
-		domainAdjustments := make([]*biz.FinanceCommissionAdjustment, 0, len(adjustments))
-		for _, item := range adjustments {
-			converted, convertErr := commissionAdjustmentToBiz(item)
-			if convertErr != nil {
-				return convertErr
-			}
-			domainAdjustments = append(domainAdjustments, converted)
-		}
-		if parent.Status != commission.StatusPAID {
-			for _, a := range domainAdjustments {
-				if a.Status == biz.CommissionPaid {
-					return biz.ErrCommissionPaymentEvidence
-				}
-			}
-		}
-		if parent.Status == commission.StatusPAID {
-			cash, err := commissionCashExposure(parent, adjustments)
-			if err != nil {
-				return err
-			}
-			reserved := decimal.Zero
-			for _, a := range domainAdjustments {
-				if a.Status == biz.CommissionConfirmed && a.Direction == biz.CommissionAdjustmentIncrease {
-					return biz.ErrCommissionPendingIncrease
-				}
-				if a.Status == biz.CommissionConfirmed && a.Direction == biz.CommissionAdjustmentDecrease {
-					reserved = reserved.Add(a.Amount)
-				}
-			}
-			if reserved.GreaterThan(cash) {
-				return biz.ErrCommissionPaymentEvidence
-			}
-		}
-		plan, planErr := biz.PlanCommissionReversal(biz.CommissionStatus(parent.Status), baseAmount, domainLines, domainAdjustments)
-		if planErr != nil {
-			return planErr
-		}
-		if parent.Status == commission.StatusPAID {
-			cash, err := commissionCashExposure(parent, adjustments)
-			if err != nil {
-				return err
-			}
-			reserved := decimal.Zero
-			for _, a := range domainAdjustments {
-				if a.Status == biz.CommissionConfirmed && a.Direction == biz.CommissionAdjustmentDecrease {
-					reserved = reserved.Add(a.Amount)
-				}
-			}
-			total := decimal.Zero
-			for _, r := range plan.Recoveries {
-				total = total.Add(r.Amount)
-			}
-			if total.Add(reserved).GreaterThan(cash) {
-				return biz.ErrCommissionPaymentEvidence
-			}
-		}
-		if len(plan.CancelAdjustmentIDs) > 0 {
-			if _, queryErr = tx.FinanceCommissionAdjustment.Update().Where(
-				adjustment.IDIn(plan.CancelAdjustmentIDs...),
-			).SetStatus(adjustment.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(cancellationReason).AddVersion(1).Save(ctx); queryErr != nil {
-				return queryErr
-			}
-		}
-		if plan.CancelCommission {
-			if _, queryErr = tx.FinanceCommission.UpdateOne(parent).SetStatus(commission.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(cancellationReason).AddVersion(1).Save(ctx); queryErr != nil {
-				return queryErr
-			}
-			continue
-		}
-		if len(plan.Recoveries) == 0 {
-			continue
-		}
-		sequence := parent.AdjustmentSequence
-		for _, recovery := range plan.Recoveries {
-			line := lineByOrder[recovery.OrderID]
-			if line == nil {
-				return biz.ErrCommissionSource
-			}
-			sequence++
-			idempotencyKey := fmt.Sprintf("%s:%s:%s:%s", idempotencyPrefix, sourceID, parent.ID, line.OrderID)
-			recoveryCreate := tx.FinanceCommissionAdjustment.Create().
-				SetID(uuid.Must(uuid.NewV7())).SetOrganizationID(org).SetCommissionID(parent.ID).SetOrderID(line.OrderID).
-				SetAdjustmentNo(fmt.Sprintf("%s-ADJ%03d", parent.CommissionNo, sequence)).SetIdempotencyKey(idempotencyKey).
-				SetCommissionNo(parent.CommissionNo).SetOrderNo(line.OrderNo).SetEmployeeID(parent.EmployeeID).SetEmployeeName(parent.EmployeeName).
-				SetSourceType(sourceType).
-				SetDirection(adjustment.DirectionDECREASE).SetStatus(adjustment.StatusCONFIRMED).SetBaseCurrency(parent.BaseCurrency).
-				SetAmount(recovery.Amount.StringFixed(8)).SetReason(recoveryReason).SetVersion(1).SetConfirmedAt(now).SetConfirmedBy(actor)
-			if sourceType == adjustment.SourceTypeVERIFICATION_REVERSAL {
-				recoveryCreate = recoveryCreate.SetSourceVerificationID(sourceID)
-			}
-			if _, createErr := recoveryCreate.Save(ctx); createErr != nil {
-				return createErr
-			}
-		}
-		if _, queryErr = tx.FinanceCommission.UpdateOne(parent).SetAdjustmentSequence(sequence).AddVersion(1).Save(ctx); queryErr != nil {
-			return queryErr
-		}
-	}
-	return nil
 }
 
 func limitedFinanceReason(value string) string {

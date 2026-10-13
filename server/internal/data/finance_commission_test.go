@@ -433,6 +433,7 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 		mock.ExpectQuery(`SELECT .* FROM "finance_bill_lines" WHERE .*`).WillReturnRows(sqlmock.NewRows([]string{"id", "order_id"}).AddRow(uuid.New(), orderID))
 		mock.ExpectQuery(`SELECT .* FROM "orders" WHERE .* ORDER BY "orders"."id" FOR UPDATE$`).WillReturnRows(orderReferenceRows(orderID, org, uuid.New(), "SE-LOCK-001"))
 		mock.ExpectQuery(`SELECT .*"order_fee_supplement_requests".*`).WillReturnRows(sqlmock.NewRows([]string{"id"}))
+		mock.ExpectQuery(`SELECT .*"order_fee_correction_requests".*`).WillReturnRows(sqlmock.NewRows([]string{"id"}))
 		// 1. 核销单查询 (lock=true -> FOR UPDATE)
 		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* FOR UPDATE$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(

@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// CorrectionRequestID applies equality check predicate on the "correction_request_id" field. It's identical to CorrectionRequestIDEQ.
+func CorrectionRequestID(v uuid.UUID) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEQ(FieldCorrectionRequestID, v))
+}
+
 // OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
 func OrganizationID(v uuid.UUID) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.FieldEQ(FieldOrganizationID, v))
@@ -259,6 +264,36 @@ func UpdatedAtLT(v time.Time) predicate.FinanceNetting {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// CorrectionRequestIDEQ applies the EQ predicate on the "correction_request_id" field.
+func CorrectionRequestIDEQ(v uuid.UUID) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldEQ(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDNEQ applies the NEQ predicate on the "correction_request_id" field.
+func CorrectionRequestIDNEQ(v uuid.UUID) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldNEQ(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDIn applies the In predicate on the "correction_request_id" field.
+func CorrectionRequestIDIn(vs ...uuid.UUID) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldIn(FieldCorrectionRequestID, vs...))
+}
+
+// CorrectionRequestIDNotIn applies the NotIn predicate on the "correction_request_id" field.
+func CorrectionRequestIDNotIn(vs ...uuid.UUID) predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldNotIn(FieldCorrectionRequestID, vs...))
+}
+
+// CorrectionRequestIDIsNil applies the IsNil predicate on the "correction_request_id" field.
+func CorrectionRequestIDIsNil() predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldIsNull(FieldCorrectionRequestID))
+}
+
+// CorrectionRequestIDNotNil applies the NotNil predicate on the "correction_request_id" field.
+func CorrectionRequestIDNotNil() predicate.FinanceNetting {
+	return predicate.FinanceNetting(sql.FieldNotNull(FieldCorrectionRequestID))
 }
 
 // OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
@@ -1504,6 +1539,52 @@ func ReversalReasonEqualFold(v string) predicate.FinanceNetting {
 // ReversalReasonContainsFold applies the ContainsFold predicate on the "reversal_reason" field.
 func ReversalReasonContainsFold(v string) predicate.FinanceNetting {
 	return predicate.FinanceNetting(sql.FieldContainsFold(FieldReversalReason, v))
+}
+
+// HasCorrectionRequest applies the HasEdge predicate on the "correction_request" edge.
+func HasCorrectionRequest() predicate.FinanceNetting {
+	return predicate.FinanceNetting(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CorrectionRequestTable, CorrectionRequestColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCorrectionRequestWith applies the HasEdge predicate on the "correction_request" edge with a given conditions (other predicates).
+func HasCorrectionRequestWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.FinanceNetting {
+	return predicate.FinanceNetting(func(s *sql.Selector) {
+		step := newCorrectionRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCommissionEconomicAdjustments applies the HasEdge predicate on the "commission_economic_adjustments" edge.
+func HasCommissionEconomicAdjustments() predicate.FinanceNetting {
+	return predicate.FinanceNetting(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CommissionEconomicAdjustmentsTable, CommissionEconomicAdjustmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCommissionEconomicAdjustmentsWith applies the HasEdge predicate on the "commission_economic_adjustments" edge with a given conditions (other predicates).
+func HasCommissionEconomicAdjustmentsWith(preds ...predicate.FinanceCommissionAdjustment) predicate.FinanceNetting {
+	return predicate.FinanceNetting(func(s *sql.Selector) {
+		step := newCommissionEconomicAdjustmentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

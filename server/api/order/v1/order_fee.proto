@@ -12,6 +12,35 @@ option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 // OrderFeeService 订单费用录入服务。
 // 管理整票费用录入与人工审核；费用批准后冻结，财务仅从有效批准费用建账。
 service OrderFeeService {
+  rpc CreateOrderFeeCorrection(CreateOrderFeeCorrectionRequest) returns (CreateOrderFeeCorrectionResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-correction-requests" body: "*"};
+  }
+  rpc ListOrderFeeCorrectionRequests(ListOrderFeeCorrectionRequestsRequest) returns (ListOrderFeeCorrectionRequestsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-correction-requests"};
+  }
+  rpc GetOrderFeeCorrectionRequest(GetOrderFeeCorrectionRequestRequest) returns (GetOrderFeeCorrectionRequestResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-correction-requests/{id}"};
+  }
+  rpc PreviewOrderFeeCorrectionApproval(PreviewOrderFeeCorrectionApprovalRequest) returns (PreviewOrderFeeCorrectionApprovalResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-correction-requests/{id}/approval-preview" body: "*"};
+  }
+  rpc ApproveOrderFeeCorrection(ApproveOrderFeeCorrectionRequest) returns (ApproveOrderFeeCorrectionResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-correction-requests/{id}/approve" body: "*"};
+  }
+  rpc RejectOrderFeeCorrection(RejectOrderFeeCorrectionRequest) returns (RejectOrderFeeCorrectionResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-correction-requests/{id}/reject" body: "*"};
+  }
+  rpc WithdrawOrderFeeCorrection(WithdrawOrderFeeCorrectionRequest) returns (WithdrawOrderFeeCorrectionResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-correction-requests/{id}/withdraw" body: "*"};
+  }
+
 
   rpc PreviewOrderFeeReviews(PreviewOrderFeeReviewsRequest) returns (PreviewOrderFeeReviewsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
@@ -241,6 +270,13 @@ message OrderFee {
   // 只读计算字段：是否存在有效账单关联（活动账单行且所属账单未取消，草稿账单
   // 同样构成占用）。不持久化、不接受请求写入，是否已建账由账单关联事实决定。
   bool has_active_bill = 37;
+  string economic_effect = 38;
+  bool accounting_required = 39;
+  optional string source_fee_id = 40;
+  optional string correction_request_id = 41;
+  optional string superseded_by_request_id = 42;
+  bool can_bill = 43;
+  bool can_correct = 44;
 }
 
 message ListFeesRequest {
@@ -695,6 +731,7 @@ message FeeSupplementCommissionImpact {
   string commission_id = 1; string commission_no = 2; string employee_id = 3; string employee_name = 4;
   string base_currency = 5; string amount_before = 6; string amount_after = 7; string decrease_amount = 8;
   string excess_amount = 9; string commission_status = 10;
+  string adjustment_direction = 11; string adjustment_amount = 12;
 }
 
 // 审核动作绑定读取到的完整费用及审核版本；批准另带预览指纹。
@@ -790,6 +827,8 @@ message OrderFeeReviewData {
  bool can_edit = 16;
  bool can_bill = 17;
  bool has_pending_supplement = 18;
+ bool has_pending_correction = 22;
+ bool has_pending_change = 23;
  repeated string blocked_reasons = 19;
  int32 notification_failed_count = 20;
  int32 notification_unbound_count = 21;
@@ -854,3 +893,75 @@ message OrderFeeReviewResult {
  string message = 4;
  OrderFeeReviewData data = 5;
 }
+
+// 更正目标是正常正数费用，整笔作废使用VOID，不接受0金额替代。
+enum OrderFeeCorrectionOperation {
+ ORDER_FEE_CORRECTION_OPERATION_UNSPECIFIED = 0;
+ ORDER_FEE_CORRECTION_OPERATION_ADD = 1;
+ ORDER_FEE_CORRECTION_OPERATION_REPLACE = 2;
+ ORDER_FEE_CORRECTION_OPERATION_VOID = 3;
+}
+message OrderFeeCorrectionTarget {
+ OrderFeeDirection direction = 1;
+ string fee_setting_id = 2;
+ string settlement_party_id = 3;
+ string billing_unit_id = 4;
+ string quantity = 5;
+ string unit_price = 6;
+ string currency = 7;
+ string expense_date = 8;
+ optional string note = 9;
+ optional string exchange_rate_override = 10;
+ optional bool tax_inclusive = 11;
+ optional string fee_name_override = 12;
+ optional string tax_rate_override = 13;
+}
+message CreateOrderFeeCorrectionRequest {
+ string order_id = 1;
+ OrderFeeCorrectionOperation operation = 2;
+ optional string source_fee_id = 3;
+ optional uint64 source_fee_expected_version = 4;
+ OrderFeeCorrectionTarget target_fee = 5;
+ string reason = 6;
+ string idempotency_key = 7;
+}
+message ListOrderFeeCorrectionRequestsRequest {string order_id = 1; int32 page = 2; int32 page_size = 3;}
+message GetOrderFeeCorrectionRequestRequest {string order_id = 1; string id = 2;}
+message PreviewOrderFeeCorrectionApprovalRequest {string order_id = 1; string id = 2; uint64 expected_version = 3;}
+message ApproveOrderFeeCorrectionRequest {string order_id = 1; string id = 2; uint64 expected_version = 3; string preview_token = 4; string comment = 5;}
+message RejectOrderFeeCorrectionRequest {string order_id = 1; string id = 2; uint64 expected_version = 3; string reason = 4;}
+message WithdrawOrderFeeCorrectionRequest {string order_id = 1; string id = 2; uint64 expected_version = 3;}
+message OrderFeeCorrectionRequestData {
+ string id = 1; string order_id = 2; string organization_id = 3;
+ OrderFeeCorrectionOperation operation = 4; string status = 5; uint64 version = 6;
+ optional string source_fee_id = 7; optional uint64 source_fee_version = 8;
+ OrderFee before_fee = 9; OrderFee after_fee = 10; string reason = 11;
+ string requested_by = 12; string requested_by_name = 13; string requested_at = 14;
+ optional string decided_by = 15; string decided_by_name = 16; optional string decided_at = 17; optional string decision_reason = 18;
+ optional string reversal_fee_id = 19; optional string replacement_fee_id = 20;
+ bool can_approve = 21; bool can_withdraw = 22; bool approver_available = 23;
+ string financial_status = 24;
+ repeated FeeCorrectionCommissionImpactData commission_impacts = 25;
+ OrderFeeReviewSummary approved_current_summary = 26;
+ OrderFeeReviewSummary approved_projected_summary = 27;
+}
+message FeeCorrectionCommissionImpactData {
+ string commission_id = 1; string commission_no = 2; string order_id = 3;
+ string employee_id = 4; string employee_name = 5; string base_currency = 6;
+ string original_amount = 7; string current_amount = 8; string target_amount = 9; string difference = 10;
+}
+message OrderFeeCorrectionApprovalData {
+ OrderFeeCorrectionRequestData request = 1; string base_currency = 2;
+ string current_receivable = 3; string current_payable = 4; string current_profit = 5;
+ string projected_receivable = 6; string projected_payable = 7; string projected_profit = 8; string profit_change = 9;
+ optional string projected_profit_rate = 10;
+ repeated FeeCorrectionCommissionImpactData commission_impacts = 11;
+ string preview_token = 12;
+}
+message CreateOrderFeeCorrectionResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionRequestData data = 4; string trace_id = 5;}
+message GetOrderFeeCorrectionRequestResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionRequestData data = 4; string trace_id = 5;}
+message PreviewOrderFeeCorrectionApprovalResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionApprovalData data = 4; string trace_id = 5;}
+message ApproveOrderFeeCorrectionResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionRequestData data = 4; string trace_id = 5;}
+message RejectOrderFeeCorrectionResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionRequestData data = 4; string trace_id = 5;}
+message WithdrawOrderFeeCorrectionResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionRequestData data = 4; string trace_id = 5;}
+message ListOrderFeeCorrectionRequestsResponse {bool success = 1; int32 code = 2; string message = 3; repeated OrderFeeCorrectionRequestData data = 4; int32 total = 5; int32 page = 6; int32 page_size = 7; string trace_id = 8;}

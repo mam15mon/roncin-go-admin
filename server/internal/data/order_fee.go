@@ -62,7 +62,7 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 		return nil, err
 	}
 	items, err := client.OrderFee.Query().
-		Where(orderfeeent.OrderIDEQ(orderID)).
+		Where(orderfeeent.OrderIDEQ(orderID), currentOrderFeePredicate()).
 		WithSettlementParty().
 		WithFinanceBillLines(effectiveBillLineFilter).
 		Order(orderfeeent.ByDirection(), orderfeeent.ByCreatedAt(), orderfeeent.ByID()).
@@ -497,6 +497,9 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
 		}
+		if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+			return biz.ErrFeeCorrectionProtected
+		}
 		if item.Version != input.Version {
 			return biz.ErrOrderFeeVersionConflict
 		}
@@ -701,6 +704,9 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		}
 		// 补录生成的费用只能经补录申请专用撤销删除：普通入口一律拒绝，防止绕开
 		// 审批资格、批准时间倒序与冲减联动规则。
+		if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+			return biz.ErrFeeCorrectionProtected
+		}
 		if item.SupplementRequestID != nil {
 			return biz.ErrOrderFeeSupplementDeleteForbidden
 		}
@@ -783,6 +789,9 @@ func lockOrderFeesForBulk(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, ta
 		}
 	}
 	for _, item := range items {
+		if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+			return nil, biz.ErrFeeCorrectionProtected
+		}
 		if item.Version != versions[item.ID] {
 			return nil, biz.BulkOrderFeeError(biz.ErrOrderFeeVersionConflict, item.ID, "已被其他操作人修改，请刷新后重试")
 		}
@@ -916,6 +925,9 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 				}
 				return biz.BulkOrderFeeError(biz.ErrOrderFeeBillOccupied, item.ID, fmt.Sprintf("已进入未取消的账单 %s，请先取消对应账单后再删除", bill.BillNo))
 			}
+			if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+				return biz.ErrFeeCorrectionProtected
+			}
 			if item.SupplementRequestID != nil {
 				return biz.BulkOrderFeeError(biz.ErrOrderFeeSupplementDeleteForbidden, item.ID, "补录生成的费用请通过补录申请专用撤销删除")
 			}
@@ -1002,8 +1014,9 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		return nil, err
 	}
 	result := &biz.OrderFee{
-		ID:                    item.ID,
-		SupplementRequestID:   item.SupplementRequestID,
+		ID:                  item.ID,
+		SupplementRequestID: item.SupplementRequestID,
+		EconomicEffect:      biz.OrderFeeEconomicEffect(item.EconomicEffect), AccountingRequired: item.AccountingRequired, SourceFeeID: item.SourceFeeID, CorrectionRequestID: item.CorrectionRequestID, SupersededByRequestID: item.SupersededByRequestID,
 		OrderID:               item.OrderID,
 		IdempotencyKey:        item.IdempotencyKey,
 		Direction:             biz.OrderFeeDirection(item.Direction),

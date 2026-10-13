@@ -300,17 +300,18 @@ func (r *workbenchRepo) workbenchEstimatedOpportunity(ctx context.Context, clien
 		verification.StatusEQ(verification.StatusACTIVE),
 		verification.DirectionEQ(verification.DirectionRECEIVABLE),
 		verification.HasAllocationsWith(allocation.ActiveEQ(true), allocation.HasBillWith(
-			bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderWith(attributedOrder)),
+			bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderFeeWith(fee.DirectionEQ(fee.DirectionRECEIVABLE), fee.EconomicEffectEQ(fee.EconomicEffectINCREASE)), billline.HasOrderWith(attributedOrder)),
 		)),
 	}
 	nettingPredicates := []predicate.FinanceNetting{
 		nettingent.OrganizationIDEQ(scope.OrganizationID),
 		nettingent.StatusEQ(nettingent.StatusCONFIRMED),
+		nettingent.CorrectionRequestIDIsNil(),
 		nettingent.ConfirmedAtNotNil(),
 		nettingent.HasAllocationsWith(
 			nettingalloc.ActiveEQ(true),
 			nettingalloc.DirectionEQ(nettingalloc.DirectionRECEIVABLE),
-			nettingalloc.HasBillWith(bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderWith(attributedOrder))),
+			nettingalloc.HasBillWith(bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderFeeWith(fee.DirectionEQ(fee.DirectionRECEIVABLE), fee.EconomicEffectEQ(fee.EconomicEffectINCREASE)), billline.HasOrderWith(attributedOrder))),
 		),
 	}
 	verificationTotal, err := client.FinanceVerification.Query().Where(verificationPredicates...).Count(ctx)
@@ -582,7 +583,7 @@ func (r *workbenchRepo) workbenchFinanceSummary(ctx context.Context, client *ent
 			adjustment.OrganizationIDEQ(scope.OrganizationID),
 			adjustment.DirectionEQ(adjustment.DirectionDECREASE),
 			adjustment.StatusEQ(adjustment.StatusCONFIRMED),
-			adjustment.SourceTypeEQ(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT),
+			adjustment.SourceTypeIn(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT, adjustment.SourceTypeFEE_CORRECTION, adjustment.SourceTypeECONOMIC_REALLOCATION),
 		).Count(ctx)
 		if err != nil {
 			return nil, err
@@ -714,6 +715,7 @@ func workbenchMyCommissionToBiz(item *ent.FinanceCommission) (*biz.WorkbenchMyCo
 			ID:           adjustmentItem.ID,
 			AdjustmentNo: adjustmentItem.AdjustmentNo,
 			Direction:    biz.CommissionAdjustmentDirection(adjustmentItem.Direction),
+			SourceType:   biz.CommissionAdjustmentSourceType(adjustmentItem.SourceType),
 			Status:       biz.CommissionStatus(adjustmentItem.Status),
 			Amount:       adjustmentAmount,
 			Reason:       adjustmentItem.Reason,

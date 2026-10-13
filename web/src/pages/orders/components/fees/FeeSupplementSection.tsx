@@ -334,7 +334,7 @@ export default function FeeSupplementSection({
         if (response?.success !== true || response.data?.id !== record.id)
           return;
         refreshCapabilities();
-        message.success('补录已批准，费用与应有的提成冲减已同步保存');
+        message.success('补录已批准，费用与提成净额调整已同步保存');
         if (reviewSequence === reviewSequenceRef.current) closeReview();
         reloadList();
         onFeeTablesReload();
@@ -920,7 +920,7 @@ export default function FeeSupplementSection({
                   <Alert
                     type="warning"
                     showIcon
-                    title="批准后同时确认下列提成冲减，冲减以原有效提成余额为上限；财务按净额发放或登记实际扣回。"
+                    title="批准后同时确认下列提成净额调整；保留已经发放或扣回的记录，财务按差额发放、补付或扣回。"
                   />
                   <Table<API.FeeSupplementCommissionImpact>
                     size="small"
@@ -937,9 +937,9 @@ export default function FeeSupplementSection({
                           `${formatAmount(item.amountBefore)} → ${formatAmount(item.amountAfter)}`,
                       },
                       {
-                        title: '本次冲减',
-                        dataIndex: 'decreaseAmount',
-                        render: (value) => formatAmount(value),
+                        title: '本次系统调整',
+                        render: (_, item) =>
+                          `${item.adjustmentDirection === 'INCREASE' ? '+' : item.adjustmentDirection === 'DECREASE' ? '-' : ''}${formatAmount(item.adjustmentAmount ?? '0')}`,
                       },
                       {
                         title: '超过余额未冲减部分',
@@ -1015,7 +1015,7 @@ export default function FeeSupplementSection({
                     type="secondary"
                     style={{ display: 'block', marginTop: 8 }}
                   >
-                    以上为当前时点估算。确认通过时服务端会按当前整票费用与汇率复核；批准后生成未建账应付费用并刷新整票费用批准，适用时直接确认提成冲减。
+                    以上为当前时点估算。确认通过时服务端会按当前整票费用与汇率复核；批准后生成未建账应付费用并刷新整票费用批准，适用时直接确认提成净额调整。
                   </Typography.Text>
                 </>
               )}

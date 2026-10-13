@@ -95,6 +95,7 @@ export function BatchFeeReviewModal({
             resultMap.get(row.orderId)?.success ? 'APPROVED' : row.data?.status
           }
           pendingSupplement={row.data?.hasPendingSupplement}
+          pendingCorrection={row.data?.hasPendingCorrection}
         />
       ),
     },

@@ -46,6 +46,9 @@ type FeeReviewSnapshot struct {
 func BuildFeeReviewSnapshot(fees []*OrderFee) (*FeeReviewSnapshot, string, error) {
 	snapshot := &FeeReviewSnapshot{EncodingVersion: "ORDER_FEE_REVIEW_V1", Fees: make([]*OrderFee, 0, len(fees))}
 	for _, fee := range fees {
+		if fee != nil && !IsCurrentFee(fee) {
+			continue
+		}
 		if fee == nil || fee.ID == uuid.Nil || fee.BaseCurrency == "" || !fee.ExchangeRate.IsPositive() || !fee.BaseCurrencyAmount.Equal(fee.TotalAmount.Mul(fee.ExchangeRate).RoundBank(8)) {
 			return nil, "", ErrFeeReviewInvalid
 		}
@@ -64,6 +67,7 @@ func BuildFeeReviewSnapshot(fees []*OrderFee) (*FeeReviewSnapshot, string, error
 		copy.ExchangeRateOverride = nil
 		copy.TaxRateOverride = nil
 		copy.FeeNameOverride = nil
+		copy.AccountingRequired = false
 		snapshot.Fees = append(snapshot.Fees, &copy)
 		switch fee.Direction {
 		case OrderFeeReceivable:
@@ -130,6 +134,8 @@ type OrderFeeReview struct {
 	CanEdit                  bool
 	CanBill                  bool
 	HasPendingSupplement     bool
+	HasPendingCorrection     bool
+	HasPendingChange         bool
 	BlockedReasons           []string
 	NotificationFailedCount  int
 	NotificationUnboundCount int

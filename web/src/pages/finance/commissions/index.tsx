@@ -611,7 +611,7 @@ export default function FinanceCommissionsPage() {
           options={[
             { label: '提成台账', value: 'ledger' },
             { label: '月度申请', value: 'applications' },
-            { label: '待处理冲减', value: 'pending-decrease' },
+            { label: '待执行调整', value: 'pending-decrease' },
           ]}
         />,
       ]}

@@ -159,6 +159,7 @@ func (r *commissionRepo) ListNettingCandidates(ctx context.Context, org uuid.UUI
 	predicates := []predicate.FinanceNetting{
 		nettingent.OrganizationIDEQ(org),
 		nettingent.StatusEQ(nettingent.StatusCONFIRMED),
+		nettingent.CorrectionRequestIDIsNil(),
 		nettingent.HasAllocationsWith(nettingalloc.ActiveEQ(true), nettingalloc.DirectionEQ(nettingalloc.DirectionRECEIVABLE)),
 	}
 	if f.Keyword != "" {

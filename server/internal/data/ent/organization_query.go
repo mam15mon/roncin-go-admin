@@ -43,6 +43,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
@@ -128,6 +129,7 @@ type OrganizationQuery struct {
 	withSeaOrderReassignmentEvents        *SeaOrderReassignmentEventQuery
 	withOrderLockRecords                  *OrderLockRecordQuery
 	withOrderFeeSupplementRequests        *OrderFeeSupplementRequestQuery
+	withFeeCorrectionRequests             *OrderFeeCorrectionRequestQuery
 	withOrderLockHouseBillSnapshots       *OrderLockHouseBillSnapshotQuery
 	withOrderUnlockRequests               *OrderUnlockRequestQuery
 	withSeaMasterBillVersions             *SeaMasterBillVersionQuery
@@ -1212,6 +1214,28 @@ func (_q *OrganizationQuery) QueryOrderFeeSupplementRequests() *OrderFeeSuppleme
 	return query
 }
 
+// QueryFeeCorrectionRequests chains the current query on the "fee_correction_requests" edge.
+func (_q *OrganizationQuery) QueryFeeCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FeeCorrectionRequestsTable, organization.FeeCorrectionRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryOrderLockHouseBillSnapshots chains the current query on the "order_lock_house_bill_snapshots" edge.
 func (_q *OrganizationQuery) QueryOrderLockHouseBillSnapshots() *OrderLockHouseBillSnapshotQuery {
 	query := (&OrderLockHouseBillSnapshotClient{config: _q.config}).Query()
@@ -1737,6 +1761,7 @@ func (_q *OrganizationQuery) Clone() *OrganizationQuery {
 		withSeaOrderReassignmentEvents:        _q.withSeaOrderReassignmentEvents.Clone(),
 		withOrderLockRecords:                  _q.withOrderLockRecords.Clone(),
 		withOrderFeeSupplementRequests:        _q.withOrderFeeSupplementRequests.Clone(),
+		withFeeCorrectionRequests:             _q.withFeeCorrectionRequests.Clone(),
 		withOrderLockHouseBillSnapshots:       _q.withOrderLockHouseBillSnapshots.Clone(),
 		withOrderUnlockRequests:               _q.withOrderUnlockRequests.Clone(),
 		withSeaMasterBillVersions:             _q.withSeaMasterBillVersions.Clone(),
@@ -2273,6 +2298,17 @@ func (_q *OrganizationQuery) WithOrderFeeSupplementRequests(opts ...func(*OrderF
 	return _q
 }
 
+// WithFeeCorrectionRequests tells the query-builder to eager-load the nodes that are connected to
+// the "fee_correction_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrganizationQuery) WithFeeCorrectionRequests(opts ...func(*OrderFeeCorrectionRequestQuery)) *OrganizationQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFeeCorrectionRequests = query
+	return _q
+}
+
 // WithOrderLockHouseBillSnapshots tells the query-builder to eager-load the nodes that are connected to
 // the "order_lock_house_bill_snapshots" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrganizationQuery) WithOrderLockHouseBillSnapshots(opts ...func(*OrderLockHouseBillSnapshotQuery)) *OrganizationQuery {
@@ -2494,7 +2530,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = _q.querySpec()
-		loadedTypes = [60]bool{
+		loadedTypes = [61]bool{
 			_q.withParent != nil,
 			_q.withChildren != nil,
 			_q.withMemberships != nil,
@@ -2542,6 +2578,7 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withSeaOrderReassignmentEvents != nil,
 			_q.withOrderLockRecords != nil,
 			_q.withOrderFeeSupplementRequests != nil,
+			_q.withFeeCorrectionRequests != nil,
 			_q.withOrderLockHouseBillSnapshots != nil,
 			_q.withOrderUnlockRequests != nil,
 			_q.withSeaMasterBillVersions != nil,
@@ -2960,6 +2997,15 @@ func (_q *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Organization) { n.Edges.OrderFeeSupplementRequests = []*OrderFeeSupplementRequest{} },
 			func(n *Organization, e *OrderFeeSupplementRequest) {
 				n.Edges.OrderFeeSupplementRequests = append(n.Edges.OrderFeeSupplementRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFeeCorrectionRequests; query != nil {
+		if err := _q.loadFeeCorrectionRequests(ctx, query, nodes,
+			func(n *Organization) { n.Edges.FeeCorrectionRequests = []*OrderFeeCorrectionRequest{} },
+			func(n *Organization, e *OrderFeeCorrectionRequest) {
+				n.Edges.FeeCorrectionRequests = append(n.Edges.FeeCorrectionRequests, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -4487,6 +4533,36 @@ func (_q *OrganizationQuery) loadOrderFeeSupplementRequests(ctx context.Context,
 	}
 	query.Where(predicate.OrderFeeSupplementRequest(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(organization.OrderFeeSupplementRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrganizationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrganizationQuery) loadFeeCorrectionRequests(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *OrderFeeCorrectionRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeecorrectionrequest.FieldOrganizationID)
+	}
+	query.Where(predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FeeCorrectionRequestsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

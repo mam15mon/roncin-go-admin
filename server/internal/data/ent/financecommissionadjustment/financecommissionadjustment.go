@@ -44,6 +44,12 @@ const (
 	FieldSourceVerificationID = "source_verification_id"
 	// FieldSourceFeeSupplementRequestID holds the string denoting the source_fee_supplement_request_id field in the database.
 	FieldSourceFeeSupplementRequestID = "source_fee_supplement_request_id"
+	// FieldSourceFeeCorrectionRequestID holds the string denoting the source_fee_correction_request_id field in the database.
+	FieldSourceFeeCorrectionRequestID = "source_fee_correction_request_id"
+	// FieldSourceNettingID holds the string denoting the source_netting_id field in the database.
+	FieldSourceNettingID = "source_netting_id"
+	// FieldSupersededByFeeCorrectionRequestID holds the string denoting the superseded_by_fee_correction_request_id field in the database.
+	FieldSupersededByFeeCorrectionRequestID = "superseded_by_fee_correction_request_id"
 	// FieldDirection holds the string denoting the direction field in the database.
 	FieldDirection = "direction"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -88,6 +94,12 @@ const (
 	EdgeSourceVerification = "source_verification"
 	// EdgeSourceFeeSupplementRequest holds the string denoting the source_fee_supplement_request edge name in mutations.
 	EdgeSourceFeeSupplementRequest = "source_fee_supplement_request"
+	// EdgeSourceFeeCorrectionRequest holds the string denoting the source_fee_correction_request edge name in mutations.
+	EdgeSourceFeeCorrectionRequest = "source_fee_correction_request"
+	// EdgeSupersededByFeeCorrectionRequest holds the string denoting the superseded_by_fee_correction_request edge name in mutations.
+	EdgeSupersededByFeeCorrectionRequest = "superseded_by_fee_correction_request"
+	// EdgeSourceNetting holds the string denoting the source_netting edge name in mutations.
+	EdgeSourceNetting = "source_netting"
 	// EdgeConfirmedByUser holds the string denoting the confirmed_by_user edge name in mutations.
 	EdgeConfirmedByUser = "confirmed_by_user"
 	// EdgePaidByUser holds the string denoting the paid_by_user edge name in mutations.
@@ -138,6 +150,27 @@ const (
 	SourceFeeSupplementRequestInverseTable = "order_fee_supplement_requests"
 	// SourceFeeSupplementRequestColumn is the table column denoting the source_fee_supplement_request relation/edge.
 	SourceFeeSupplementRequestColumn = "source_fee_supplement_request_id"
+	// SourceFeeCorrectionRequestTable is the table that holds the source_fee_correction_request relation/edge.
+	SourceFeeCorrectionRequestTable = "finance_commission_adjustments"
+	// SourceFeeCorrectionRequestInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	SourceFeeCorrectionRequestInverseTable = "order_fee_correction_requests"
+	// SourceFeeCorrectionRequestColumn is the table column denoting the source_fee_correction_request relation/edge.
+	SourceFeeCorrectionRequestColumn = "source_fee_correction_request_id"
+	// SupersededByFeeCorrectionRequestTable is the table that holds the superseded_by_fee_correction_request relation/edge.
+	SupersededByFeeCorrectionRequestTable = "finance_commission_adjustments"
+	// SupersededByFeeCorrectionRequestInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	SupersededByFeeCorrectionRequestInverseTable = "order_fee_correction_requests"
+	// SupersededByFeeCorrectionRequestColumn is the table column denoting the superseded_by_fee_correction_request relation/edge.
+	SupersededByFeeCorrectionRequestColumn = "superseded_by_fee_correction_request_id"
+	// SourceNettingTable is the table that holds the source_netting relation/edge.
+	SourceNettingTable = "finance_commission_adjustments"
+	// SourceNettingInverseTable is the table name for the FinanceNetting entity.
+	// It exists in this package in order to avoid circular dependency with the "financenetting" package.
+	SourceNettingInverseTable = "finance_nettings"
+	// SourceNettingColumn is the table column denoting the source_netting relation/edge.
+	SourceNettingColumn = "source_netting_id"
 	// ConfirmedByUserTable is the table that holds the confirmed_by_user relation/edge.
 	ConfirmedByUserTable = "finance_commission_adjustments"
 	// ConfirmedByUserInverseTable is the table name for the User entity.
@@ -178,6 +211,9 @@ var Columns = []string{
 	FieldSourceType,
 	FieldSourceVerificationID,
 	FieldSourceFeeSupplementRequestID,
+	FieldSourceFeeCorrectionRequestID,
+	FieldSourceNettingID,
+	FieldSupersededByFeeCorrectionRequestID,
 	FieldDirection,
 	FieldStatus,
 	FieldBaseCurrency,
@@ -249,6 +285,8 @@ const (
 	SourceTypeVERIFICATION_REVERSAL SourceType = "VERIFICATION_REVERSAL"
 	SourceTypeNETTING_REVERSAL      SourceType = "NETTING_REVERSAL"
 	SourceTypeLOCKED_FEE_SUPPLEMENT SourceType = "LOCKED_FEE_SUPPLEMENT"
+	SourceTypeFEE_CORRECTION        SourceType = "FEE_CORRECTION"
+	SourceTypeECONOMIC_REALLOCATION SourceType = "ECONOMIC_REALLOCATION"
 )
 
 func (st SourceType) String() string {
@@ -258,7 +296,7 @@ func (st SourceType) String() string {
 // SourceTypeValidator is a validator for the "source_type" field enum values. It is called by the builders before save.
 func SourceTypeValidator(st SourceType) error {
 	switch st {
-	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL, SourceTypeNETTING_REVERSAL, SourceTypeLOCKED_FEE_SUPPLEMENT:
+	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL, SourceTypeNETTING_REVERSAL, SourceTypeLOCKED_FEE_SUPPLEMENT, SourceTypeFEE_CORRECTION, SourceTypeECONOMIC_REALLOCATION:
 		return nil
 	default:
 		return fmt.Errorf("financecommissionadjustment: invalid enum value for source_type field: %q", st)
@@ -417,6 +455,21 @@ func BySourceFeeSupplementRequestID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSourceFeeSupplementRequestID, opts...).ToFunc()
 }
 
+// BySourceFeeCorrectionRequestID orders the results by the source_fee_correction_request_id field.
+func BySourceFeeCorrectionRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceFeeCorrectionRequestID, opts...).ToFunc()
+}
+
+// BySourceNettingID orders the results by the source_netting_id field.
+func BySourceNettingID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceNettingID, opts...).ToFunc()
+}
+
+// BySupersededByFeeCorrectionRequestID orders the results by the superseded_by_fee_correction_request_id field.
+func BySupersededByFeeCorrectionRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSupersededByFeeCorrectionRequestID, opts...).ToFunc()
+}
+
 // ByDirection orders the results by the direction field.
 func ByDirection(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDirection, opts...).ToFunc()
@@ -539,6 +592,27 @@ func BySourceFeeSupplementRequestField(field string, opts ...sql.OrderTermOption
 	}
 }
 
+// BySourceFeeCorrectionRequestField orders the results by source_fee_correction_request field.
+func BySourceFeeCorrectionRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSourceFeeCorrectionRequestStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySupersededByFeeCorrectionRequestField orders the results by superseded_by_fee_correction_request field.
+func BySupersededByFeeCorrectionRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSupersededByFeeCorrectionRequestStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySourceNettingField orders the results by source_netting field.
+func BySourceNettingField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSourceNettingStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByConfirmedByUserField orders the results by confirmed_by_user field.
 func ByConfirmedByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -599,6 +673,27 @@ func newSourceFeeSupplementRequestStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SourceFeeSupplementRequestInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeSupplementRequestTable, SourceFeeSupplementRequestColumn),
+	)
+}
+func newSourceFeeCorrectionRequestStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SourceFeeCorrectionRequestInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeCorrectionRequestTable, SourceFeeCorrectionRequestColumn),
+	)
+}
+func newSupersededByFeeCorrectionRequestStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SupersededByFeeCorrectionRequestInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SupersededByFeeCorrectionRequestTable, SupersededByFeeCorrectionRequestColumn),
+	)
+}
+func newSourceNettingStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SourceNettingInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SourceNettingTable, SourceNettingColumn),
 	)
 }
 func newConfirmedByUserStep() *sqlgraph.Step {

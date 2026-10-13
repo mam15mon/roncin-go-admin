@@ -19,6 +19,8 @@ import (
 	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
+	supplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraccountent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneraccount"
 	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
@@ -392,7 +394,7 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 		if err := validateApprovedOrderFees(ctx, client, businessOrder); err != nil {
 			return nil, err
 		}
-		result = append(result, &biz.FinanceBillableFee{FeeReviewStatus: string(businessOrder.FeeReviewStatus), CanBill: !fee.HasActiveBill, Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType), SettlementPartyIsCasual: isCasual})
+		result = append(result, &biz.FinanceBillableFee{FeeReviewStatus: string(businessOrder.FeeReviewStatus), CanBill: !fee.HasActiveBill && biz.RequiresAccounting(fee), Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }
@@ -489,12 +491,16 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 		return nil, err
 	}
 	// 候选口径 = 未被有效账单关联占用（活动账单行且所属账单未取消，含草稿账单）。
-	predicates := []predicate.OrderFee{orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))}
+	predicates := []predicate.OrderFee{orderfeeent.AccountingRequiredEQ(true), orderfeeent.SupersededByRequestIDIsNil(), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))}
 	if filter.Keyword != "" {
 		predicates = append(predicates, orderfeeent.Or(orderfeeent.FeeCodeContainsFold(filter.Keyword), orderfeeent.FeeNameContainsFold(filter.Keyword), orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(filter.Keyword)), orderfeeent.HasSettlementPartyWith(partnerent.Or(partnerent.CodeContainsFold(filter.Keyword), partnerent.LegalNameContainsFold(filter.Keyword), partnerent.SearchKeywordsContainsFold(filter.Keyword), partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(filter.Keyword), partneraliasent.SearchKeywordsContainsFold(filter.Keyword)))))))
 	}
 	if filter.Direction != "" {
-		predicates = append(predicates, orderfeeent.DirectionEQ(orderfeeent.Direction(filter.Direction)))
+		opposite := orderfeeent.DirectionPAYABLE
+		if filter.Direction == biz.OrderFeePayable {
+			opposite = orderfeeent.DirectionRECEIVABLE
+		}
+		predicates = append(predicates, orderfeeent.Or(orderfeeent.And(orderfeeent.EconomicEffectEQ(orderfeeent.EconomicEffectINCREASE), orderfeeent.DirectionEQ(orderfeeent.Direction(filter.Direction))), orderfeeent.And(orderfeeent.EconomicEffectEQ(orderfeeent.EconomicEffectDECREASE), orderfeeent.DirectionEQ(opposite))))
 	}
 	query := client.OrderFee.Query().Where(predicates...)
 	total, err := query.Clone().Count(ctx)
@@ -505,13 +511,36 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
+	if len(items) == 0 {
+		return &biz.FinanceBillCreationCandidateResult{Items: []*biz.FinanceBillableFee{}, Total: int64(total)}, nil
+	}
 	orders := make([]*ent.Order, 0, len(items))
 	for _, item := range items {
 		orders = append(orders, item.Edges.Order)
 	}
-	approvalStates, pendingStates, err := batchFeeReviewApprovalStates(ctx, client, orders)
+	approvalStates, _, err := batchFeeReviewApprovalStates(ctx, client, orders)
 	if err != nil {
 		return nil, err
+	}
+	orderIDs := make([]uuid.UUID, 0, len(orders))
+	for _, o := range orders {
+		orderIDs = append(orderIDs, o.ID)
+	}
+	corrections, err := client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDIn(orderIDs...), correctionent.StatusEQ(correctionent.StatusPENDING)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	pendingCorrections := make(map[uuid.UUID]bool)
+	for _, r := range corrections {
+		pendingCorrections[r.OrderID] = true
+	}
+	supplements, err := client.OrderFeeSupplementRequest.Query().Where(supplementent.OrderIDIn(orderIDs...), supplementent.StatusEQ(supplementent.StatusPENDING)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	pendingSupplements := make(map[uuid.UUID]bool)
+	for _, r := range supplements {
+		pendingSupplements[r.OrderID] = true
 	}
 	result := &biz.FinanceBillCreationCandidateResult{Items: make([]*biz.FinanceBillableFee, 0, len(items)), Total: int64(total)}
 	for _, item := range items {
@@ -529,12 +558,11 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 			isCasual = party.IsCasual
 		}
 		approvalErr := approvalStates[order.ID]
-		pending := pendingStates[order.ID]
 		blocked := []string{}
 		if approvalErr != nil {
 			blocked = append(blocked, approvalErr.Error())
 		}
-		result.Items = append(result.Items, &biz.FinanceBillableFee{FeeReviewStatus: string(order.FeeReviewStatus), HasPendingFeeSupplement: pending, CanBill: approvalErr == nil, BlockedReasons: blocked, Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType), SettlementPartyIsCasual: isCasual})
+		result.Items = append(result.Items, &biz.FinanceBillableFee{FeeReviewStatus: string(order.FeeReviewStatus), HasPendingFeeSupplement: pendingSupplements[order.ID], HasPendingFeeCorrection: pendingCorrections[order.ID], CanBill: approvalErr == nil, BlockedReasons: blocked, Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }

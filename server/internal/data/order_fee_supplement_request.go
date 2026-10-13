@@ -26,7 +26,7 @@ func (r *orderFeeSupplementRepo) Create(ctx context.Context, request *biz.OrderF
 		if !ent.IsNotFound(queryErr) {
 			return queryErr
 		}
-		pending, err := tx.OrderFeeSupplementRequest.Query().Where(orderfeesupplementent.OrderIDEQ(request.OrderID), orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusPENDING)).Exist(ctx)
+		pending, err := hasPendingFeeSupplement(ctx, tx.Client(), request.OrderID)
 		if err != nil {
 			return err
 		}

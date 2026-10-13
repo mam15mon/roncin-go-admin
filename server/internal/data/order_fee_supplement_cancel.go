@@ -83,6 +83,11 @@ func evaluateCancelCapability(ctx context.Context, client *ent.Client, organizat
 		return nil, err
 	}
 	result.FeeID = &fee.ID
+	if fee.CorrectionRequestID != nil || fee.SupersededByRequestID != nil {
+		result.BlockReasonCode = "FEE_CORRECTED"
+		result.BlockReason = "补录费用已进入更正链，请通过费用更正继续处理"
+		return result, nil
+	}
 	blocked := func(code, reason string) (*biz.OrderFeeSupplementCancelCapability, error) {
 		result.Cancellable = false
 		result.BlockReasonCode = code

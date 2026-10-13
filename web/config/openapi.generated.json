@@ -9055,6 +9055,320 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/fee-correction-requests": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_ListOrderFeeCorrectionRequests",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListOrderFeeCorrectionRequestsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_CreateOrderFeeCorrection",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.CreateOrderFeeCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.CreateOrderFeeCorrectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-correction-requests/{id}": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_GetOrderFeeCorrectionRequest",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetOrderFeeCorrectionRequestResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-correction-requests/{id}/approval-preview": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_PreviewOrderFeeCorrectionApproval",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewOrderFeeCorrectionApprovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewOrderFeeCorrectionApprovalResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-correction-requests/{id}/approve": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_ApproveOrderFeeCorrection",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ApproveOrderFeeCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ApproveOrderFeeCorrectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-correction-requests/{id}/reject": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_RejectOrderFeeCorrection",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.RejectOrderFeeCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.RejectOrderFeeCorrectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/orders/{orderId}/fee-correction-requests/{id}/withdraw": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "operationId": "OrderFeeService_WithdrawOrderFeeCorrection",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.WithdrawOrderFeeCorrectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.WithdrawOrderFeeCorrectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/fee-exchange-rate": {
       "get": {
         "tags": [
@@ -19006,6 +19320,15 @@
             "items": {
               "type": "string"
             }
+          },
+          "economicEffect": {
+            "type": "string"
+          },
+          "correctionRequestId": {
+            "type": "string"
+          },
+          "hasPendingFeeCorrection": {
+            "type": "boolean"
           }
         }
       },
@@ -19415,6 +19738,18 @@
           "overdueDays": {
             "type": "integer",
             "format": "int32"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "invoiceableAmount": {
+            "type": "string"
+          },
+          "invoiceableNetAmount": {
+            "type": "string"
+          },
+          "invoiceableTaxAmount": {
+            "type": "string"
           }
         }
       },
@@ -19913,6 +20248,18 @@
           },
           "executionBlockedReason": {
             "type": "string"
+          },
+          "sourceFeeCorrectionRequestId": {
+            "type": "string"
+          },
+          "sourceFeeSupplementRequestId": {
+            "type": "string"
+          },
+          "sourceEconomicVerificationId": {
+            "type": "string"
+          },
+          "sourceEconomicNettingId": {
+            "type": "string"
           }
         }
       },
@@ -20364,6 +20711,12 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "sourceFeeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -20536,6 +20889,9 @@
           },
           "exchangeGainLoss": {
             "type": "string"
+          },
+          "correctionRequestId": {
+            "type": "string"
           }
         },
         "description": "FinanceNetting 只保存双方共同账单币种的抵销金额，不产生混合币种总额。"
@@ -20563,6 +20919,9 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "sourceFeeId": {
+            "type": "string"
           }
         }
       },
@@ -22115,6 +22474,18 @@
             "type": "string"
           },
           "supplementReason": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "sourceReferenceId": {
+            "type": "string"
+          },
+          "sourceNo": {
             "type": "string"
           }
         }
@@ -25104,6 +25475,47 @@
         },
         "description": "AddShippingDocumentResponse 单条提单响应。"
       },
+      "order.v1.ApproveOrderFeeCorrectionRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ApproveOrderFeeCorrectionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionRequestData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.ApproveOrderFeeReviewRequest": {
         "type": "object",
         "properties": {
@@ -25672,6 +26084,54 @@
           },
           "data": {
             "$ref": "#/components/schemas/order.v1.SeaSharedContainer"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.CreateOrderFeeCorrectionRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "sourceFeeId": {
+            "type": "string"
+          },
+          "sourceFeeExpectedVersion": {
+            "type": "string"
+          },
+          "targetFee": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionTarget"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.CreateOrderFeeCorrectionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionRequestData"
           },
           "traceId": {
             "type": "string"
@@ -26498,6 +26958,41 @@
           }
         }
       },
+      "order.v1.FeeCorrectionCommissionImpactData": {
+        "type": "object",
+        "properties": {
+          "commissionId": {
+            "type": "string"
+          },
+          "commissionNo": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "employeeId": {
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "originalAmount": {
+            "type": "string"
+          },
+          "currentAmount": {
+            "type": "string"
+          },
+          "targetAmount": {
+            "type": "string"
+          },
+          "difference": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.FeeSupplementCommissionImpact": {
         "type": "object",
         "properties": {
@@ -26529,6 +27024,33 @@
             "type": "string"
           },
           "commissionStatus": {
+            "type": "string"
+          },
+          "adjustmentDirection": {
+            "type": "string"
+          },
+          "adjustmentAmount": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.GetOrderFeeCorrectionRequestResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionRequestData"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -26975,6 +27497,42 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderConsolidationSummary"
             }
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ListOrderFeeCorrectionRequestsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionRequestData"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           },
           "traceId": {
             "type": "string"
@@ -28368,6 +28926,27 @@
           "hasActiveBill": {
             "type": "boolean",
             "description": "只读计算字段：是否存在有效账单关联（活动账单行且所属账单未取消，草稿账单\n 同样构成占用）。不持久化、不接受请求写入，是否已建账由账单关联事实决定。"
+          },
+          "economicEffect": {
+            "type": "string"
+          },
+          "accountingRequired": {
+            "type": "boolean"
+          },
+          "sourceFeeId": {
+            "type": "string"
+          },
+          "correctionRequestId": {
+            "type": "string"
+          },
+          "supersededByRequestId": {
+            "type": "string"
+          },
+          "canBill": {
+            "type": "boolean"
+          },
+          "canCorrect": {
+            "type": "boolean"
           }
         },
         "description": "OrderFee 是一条订单应收或应付费用。\n 所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。"
@@ -28386,6 +28965,185 @@
           },
           "quantityMustBeInteger": {
             "type": "boolean"
+          }
+        }
+      },
+      "order.v1.OrderFeeCorrectionApprovalData": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionRequestData"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "currentReceivable": {
+            "type": "string"
+          },
+          "currentPayable": {
+            "type": "string"
+          },
+          "currentProfit": {
+            "type": "string"
+          },
+          "projectedReceivable": {
+            "type": "string"
+          },
+          "projectedPayable": {
+            "type": "string"
+          },
+          "projectedProfit": {
+            "type": "string"
+          },
+          "profitChange": {
+            "type": "string"
+          },
+          "projectedProfitRate": {
+            "type": "string"
+          },
+          "commissionImpacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.FeeCorrectionCommissionImpactData"
+            }
+          },
+          "previewToken": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.OrderFeeCorrectionRequestData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "sourceFeeId": {
+            "type": "string"
+          },
+          "sourceFeeVersion": {
+            "type": "string"
+          },
+          "beforeFee": {
+            "$ref": "#/components/schemas/order.v1.OrderFee"
+          },
+          "afterFee": {
+            "$ref": "#/components/schemas/order.v1.OrderFee"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "requestedByName": {
+            "type": "string"
+          },
+          "requestedAt": {
+            "type": "string"
+          },
+          "decidedBy": {
+            "type": "string"
+          },
+          "decidedByName": {
+            "type": "string"
+          },
+          "decidedAt": {
+            "type": "string"
+          },
+          "decisionReason": {
+            "type": "string"
+          },
+          "reversalFeeId": {
+            "type": "string"
+          },
+          "replacementFeeId": {
+            "type": "string"
+          },
+          "canApprove": {
+            "type": "boolean"
+          },
+          "canWithdraw": {
+            "type": "boolean"
+          },
+          "approverAvailable": {
+            "type": "boolean"
+          },
+          "financialStatus": {
+            "type": "string"
+          },
+          "commissionImpacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.FeeCorrectionCommissionImpactData"
+            }
+          },
+          "approvedCurrentSummary": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewSummary"
+          },
+          "approvedProjectedSummary": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeReviewSummary"
+          }
+        }
+      },
+      "order.v1.OrderFeeCorrectionTarget": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "feeSettingId": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "billingUnitId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "exchangeRateOverride": {
+            "type": "string"
+          },
+          "taxInclusive": {
+            "type": "boolean"
+          },
+          "feeNameOverride": {
+            "type": "string"
+          },
+          "taxRateOverride": {
+            "type": "string"
           }
         }
       },
@@ -28496,6 +29254,12 @@
           "hasPendingSupplement": {
             "type": "boolean"
           },
+          "hasPendingCorrection": {
+            "type": "boolean"
+          },
+          "hasPendingChange": {
+            "type": "boolean"
+          },
           "blockedReasons": {
             "type": "array",
             "items": {
@@ -28582,6 +29346,12 @@
           },
           "summary": {
             "$ref": "#/components/schemas/order.v1.OrderFeeReviewSummary"
+          },
+          "hasPendingCorrection": {
+            "type": "boolean"
+          },
+          "hasPendingChange": {
+            "type": "boolean"
           }
         }
       },
@@ -29431,6 +30201,41 @@
         },
         "description": "PreviewChangeSeaDocumentModeResponse 预览模式切换响应。"
       },
+      "order.v1.PreviewOrderFeeCorrectionApprovalRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.PreviewOrderFeeCorrectionApprovalResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionApprovalData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.PreviewOrderFeeReviewResponse": {
         "type": "object",
         "properties": {
@@ -29856,6 +30661,44 @@
           }
         },
         "description": "RegisterAttachmentResponse 单条订单附件响应。"
+      },
+      "order.v1.RejectOrderFeeCorrectionRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.RejectOrderFeeCorrectionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionRequestData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.RejectOrderFeeReviewRequest": {
         "type": "object",
@@ -33565,6 +34408,41 @@
           }
         }
       },
+      "order.v1.WithdrawOrderFeeCorrectionRequest": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.WithdrawOrderFeeCorrectionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.OrderFeeCorrectionRequestData"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.WithdrawOrderFeeReviewRequest": {
         "type": "object",
         "properties": {
@@ -36509,6 +37387,9 @@
             "type": "string"
           },
           "createdAt": {
+            "type": "string"
+          },
+          "sourceType": {
             "type": "string"
           }
         }

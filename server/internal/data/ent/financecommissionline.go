@@ -51,6 +51,10 @@ type FinanceCommissionLine struct {
 	FeeCount int `json:"fee_count,omitempty"`
 	// FeeSnapshot holds the value of the "fee_snapshot" field.
 	FeeSnapshot string `json:"fee_snapshot,omitempty"`
+	// FeeContentVersionSnapshot holds the value of the "fee_content_version_snapshot" field.
+	FeeContentVersionSnapshot uint64 `json:"fee_content_version_snapshot,omitempty"`
+	// RealizationSnapshot holds the value of the "realization_snapshot" field.
+	RealizationSnapshot string `json:"realization_snapshot,omitempty"`
 	// EmployeeID holds the value of the "employee_id" field.
 	EmployeeID uuid.UUID `json:"employee_id,omitempty"`
 	// EmployeeName holds the value of the "employee_name" field.
@@ -144,9 +148,9 @@ func (*FinanceCommissionLine) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommissionline.FieldFeeCount:
+		case financecommissionline.FieldFeeCount, financecommissionline.FieldFeeContentVersionSnapshot:
 			values[i] = new(sql.NullInt64)
-		case financecommissionline.FieldOrderNo, financecommissionline.FieldOrderDate, financecommissionline.FieldCustomerCode, financecommissionline.FieldCustomerName, financecommissionline.FieldFeeSnapshot, financecommissionline.FieldEmployeeName, financecommissionline.FieldPersonnelRole, financecommissionline.FieldCalculationBasis, financecommissionline.FieldBaseCurrency, financecommissionline.FieldRealizedRevenue, financecommissionline.FieldAllocatedCost, financecommissionline.FieldRealizedProfit, financecommissionline.FieldCommissionBaseAmount, financecommissionline.FieldRatePercent, financecommissionline.FieldCommissionAmount, financecommissionline.FieldTotalReceivableSnapshot, financecommissionline.FieldTotalPayableSnapshot, financecommissionline.FieldSnapshotStatus, financecommissionline.FieldSnapshotSource, financecommissionline.FieldSnapshotBackfillVersion, financecommissionline.FieldSnapshotEvidenceHash, financecommissionline.FieldSnapshotUnavailableReasonCode:
+		case financecommissionline.FieldOrderNo, financecommissionline.FieldOrderDate, financecommissionline.FieldCustomerCode, financecommissionline.FieldCustomerName, financecommissionline.FieldFeeSnapshot, financecommissionline.FieldRealizationSnapshot, financecommissionline.FieldEmployeeName, financecommissionline.FieldPersonnelRole, financecommissionline.FieldCalculationBasis, financecommissionline.FieldBaseCurrency, financecommissionline.FieldRealizedRevenue, financecommissionline.FieldAllocatedCost, financecommissionline.FieldRealizedProfit, financecommissionline.FieldCommissionBaseAmount, financecommissionline.FieldRatePercent, financecommissionline.FieldCommissionAmount, financecommissionline.FieldTotalReceivableSnapshot, financecommissionline.FieldTotalPayableSnapshot, financecommissionline.FieldSnapshotStatus, financecommissionline.FieldSnapshotSource, financecommissionline.FieldSnapshotBackfillVersion, financecommissionline.FieldSnapshotEvidenceHash, financecommissionline.FieldSnapshotUnavailableReasonCode:
 			values[i] = new(sql.NullString)
 		case financecommissionline.FieldCreatedAt, financecommissionline.FieldUpdatedAt, financecommissionline.FieldPersonnelAssignedAt:
 			values[i] = new(sql.NullTime)
@@ -262,6 +266,18 @@ func (_m *FinanceCommissionLine) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field fee_snapshot", values[i])
 			} else if value.Valid {
 				_m.FeeSnapshot = value.String
+			}
+		case financecommissionline.FieldFeeContentVersionSnapshot:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_content_version_snapshot", values[i])
+			} else if value.Valid {
+				_m.FeeContentVersionSnapshot = uint64(value.Int64)
+			}
+		case financecommissionline.FieldRealizationSnapshot:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field realization_snapshot", values[i])
+			} else if value.Valid {
+				_m.RealizationSnapshot = value.String
 			}
 		case financecommissionline.FieldEmployeeID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -473,6 +489,12 @@ func (_m *FinanceCommissionLine) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("fee_snapshot=")
 	builder.WriteString(_m.FeeSnapshot)
+	builder.WriteString(", ")
+	builder.WriteString("fee_content_version_snapshot=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeeContentVersionSnapshot))
+	builder.WriteString(", ")
+	builder.WriteString("realization_snapshot=")
+	builder.WriteString(_m.RealizationSnapshot)
 	builder.WriteString(", ")
 	builder.WriteString("employee_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EmployeeID))

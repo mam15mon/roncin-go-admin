@@ -207,11 +207,11 @@ func financeNettingToAPI(item *biz.FinanceNetting) *v1.FinanceNetting {
 		allocations = append(allocations, &v1.FinanceNettingAllocation{
 			Id: allocation.ID.String(), BillId: allocation.BillID.String(), BillNo: allocation.BillNo,
 			Direction: string(allocation.Direction), Amount: allocation.Amount.StringFixed(8),
-			BaseCurrencyAmount: allocation.BaseCurrencyAmount.StringFixed(8), Active: allocation.Active,
+			SourceFeeId: uuidStringPtr(allocation.SourceFeeID), BaseCurrencyAmount: allocation.BaseCurrencyAmount.StringFixed(8), Active: allocation.Active,
 		})
 	}
 	return &v1.FinanceNetting{
-		Id: item.ID.String(), NettingNo: item.NettingNo, Status: financeNettingStatusToAPI(item.Status),
+		CorrectionRequestId: uuidStringPtr(item.CorrectionRequestID), Id: item.ID.String(), NettingNo: item.NettingNo, Status: financeNettingStatusToAPI(item.Status),
 		OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName,
 		Currency: item.Currency, Amount: item.Amount.StringFixed(8), BaseCurrency: item.BaseCurrency,

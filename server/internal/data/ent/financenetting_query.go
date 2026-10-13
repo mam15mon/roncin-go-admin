@@ -16,8 +16,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -27,19 +29,21 @@ import (
 // FinanceNettingQuery is the builder for querying FinanceNetting entities.
 type FinanceNettingQuery struct {
 	config
-	ctx                 *QueryContext
-	order               []financenetting.OrderOption
-	inters              []Interceptor
-	predicates          []predicate.FinanceNetting
-	withOrganization    *OrganizationQuery
-	withSettlementParty *PartnerQuery
-	withBatch           *FinanceBillBatchQuery
-	withConfirmedByUser *UserQuery
-	withCancelledByUser *UserQuery
-	withReversedByUser  *UserQuery
-	withAllocations     *FinanceNettingAllocationQuery
-	withCommissions     *FinanceCommissionQuery
-	modifiers           []func(*sql.Selector)
+	ctx                               *QueryContext
+	order                             []financenetting.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.FinanceNetting
+	withCorrectionRequest             *OrderFeeCorrectionRequestQuery
+	withCommissionEconomicAdjustments *FinanceCommissionAdjustmentQuery
+	withOrganization                  *OrganizationQuery
+	withSettlementParty               *PartnerQuery
+	withBatch                         *FinanceBillBatchQuery
+	withConfirmedByUser               *UserQuery
+	withCancelledByUser               *UserQuery
+	withReversedByUser                *UserQuery
+	withAllocations                   *FinanceNettingAllocationQuery
+	withCommissions                   *FinanceCommissionQuery
+	modifiers                         []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -74,6 +78,50 @@ func (_q *FinanceNettingQuery) Unique(unique bool) *FinanceNettingQuery {
 func (_q *FinanceNettingQuery) Order(o ...financenetting.OrderOption) *FinanceNettingQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryCorrectionRequest chains the current query on the "correction_request" edge.
+func (_q *FinanceNettingQuery) QueryCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.CorrectionRequestTable, financenetting.CorrectionRequestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCommissionEconomicAdjustments chains the current query on the "commission_economic_adjustments" edge.
+func (_q *FinanceNettingQuery) QueryCommissionEconomicAdjustments() *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, selector),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.CommissionEconomicAdjustmentsTable, financenetting.CommissionEconomicAdjustmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryOrganization chains the current query on the "organization" edge.
@@ -439,23 +487,47 @@ func (_q *FinanceNettingQuery) Clone() *FinanceNettingQuery {
 		return nil
 	}
 	return &FinanceNettingQuery{
-		config:              _q.config,
-		ctx:                 _q.ctx.Clone(),
-		order:               append([]financenetting.OrderOption{}, _q.order...),
-		inters:              append([]Interceptor{}, _q.inters...),
-		predicates:          append([]predicate.FinanceNetting{}, _q.predicates...),
-		withOrganization:    _q.withOrganization.Clone(),
-		withSettlementParty: _q.withSettlementParty.Clone(),
-		withBatch:           _q.withBatch.Clone(),
-		withConfirmedByUser: _q.withConfirmedByUser.Clone(),
-		withCancelledByUser: _q.withCancelledByUser.Clone(),
-		withReversedByUser:  _q.withReversedByUser.Clone(),
-		withAllocations:     _q.withAllocations.Clone(),
-		withCommissions:     _q.withCommissions.Clone(),
+		config:                            _q.config,
+		ctx:                               _q.ctx.Clone(),
+		order:                             append([]financenetting.OrderOption{}, _q.order...),
+		inters:                            append([]Interceptor{}, _q.inters...),
+		predicates:                        append([]predicate.FinanceNetting{}, _q.predicates...),
+		withCorrectionRequest:             _q.withCorrectionRequest.Clone(),
+		withCommissionEconomicAdjustments: _q.withCommissionEconomicAdjustments.Clone(),
+		withOrganization:                  _q.withOrganization.Clone(),
+		withSettlementParty:               _q.withSettlementParty.Clone(),
+		withBatch:                         _q.withBatch.Clone(),
+		withConfirmedByUser:               _q.withConfirmedByUser.Clone(),
+		withCancelledByUser:               _q.withCancelledByUser.Clone(),
+		withReversedByUser:                _q.withReversedByUser.Clone(),
+		withAllocations:                   _q.withAllocations.Clone(),
+		withCommissions:                   _q.withCommissions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithCorrectionRequest tells the query-builder to eager-load the nodes that are connected to
+// the "correction_request" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceNettingQuery) WithCorrectionRequest(opts ...func(*OrderFeeCorrectionRequestQuery)) *FinanceNettingQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCorrectionRequest = query
+	return _q
+}
+
+// WithCommissionEconomicAdjustments tells the query-builder to eager-load the nodes that are connected to
+// the "commission_economic_adjustments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceNettingQuery) WithCommissionEconomicAdjustments(opts ...func(*FinanceCommissionAdjustmentQuery)) *FinanceNettingQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCommissionEconomicAdjustments = query
+	return _q
 }
 
 // WithOrganization tells the query-builder to eager-load the nodes that are connected to
@@ -624,7 +696,9 @@ func (_q *FinanceNettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*FinanceNetting{}
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [10]bool{
+			_q.withCorrectionRequest != nil,
+			_q.withCommissionEconomicAdjustments != nil,
 			_q.withOrganization != nil,
 			_q.withSettlementParty != nil,
 			_q.withBatch != nil,
@@ -655,6 +729,21 @@ func (_q *FinanceNettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+	if query := _q.withCorrectionRequest; query != nil {
+		if err := _q.loadCorrectionRequest(ctx, query, nodes, nil,
+			func(n *FinanceNetting, e *OrderFeeCorrectionRequest) { n.Edges.CorrectionRequest = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCommissionEconomicAdjustments; query != nil {
+		if err := _q.loadCommissionEconomicAdjustments(ctx, query, nodes,
+			func(n *FinanceNetting) { n.Edges.CommissionEconomicAdjustments = []*FinanceCommissionAdjustment{} },
+			func(n *FinanceNetting, e *FinanceCommissionAdjustment) {
+				n.Edges.CommissionEconomicAdjustments = append(n.Edges.CommissionEconomicAdjustments, e)
+			}); err != nil {
+			return nil, err
+		}
 	}
 	if query := _q.withOrganization; query != nil {
 		if err := _q.loadOrganization(ctx, query, nodes, nil,
@@ -711,6 +800,71 @@ func (_q *FinanceNettingQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	return nodes, nil
 }
 
+func (_q *FinanceNettingQuery) loadCorrectionRequest(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*FinanceNetting, init func(*FinanceNetting), assign func(*FinanceNetting, *OrderFeeCorrectionRequest)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceNetting)
+	for i := range nodes {
+		if nodes[i].CorrectionRequestID == nil {
+			continue
+		}
+		fk := *nodes[i].CorrectionRequestID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfeecorrectionrequest.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "correction_request_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceNettingQuery) loadCommissionEconomicAdjustments(ctx context.Context, query *FinanceCommissionAdjustmentQuery, nodes []*FinanceNetting, init func(*FinanceNetting), assign func(*FinanceNetting, *FinanceCommissionAdjustment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceNetting)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financecommissionadjustment.FieldSourceNettingID)
+	}
+	query.Where(predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financenetting.CommissionEconomicAdjustmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SourceNettingID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "source_netting_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "source_netting_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (_q *FinanceNettingQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*FinanceNetting, init func(*FinanceNetting), assign func(*FinanceNetting, *Organization)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FinanceNetting)
@@ -988,6 +1142,9 @@ func (_q *FinanceNettingQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != financenetting.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withCorrectionRequest != nil {
+			_spec.Node.AddColumnOnce(financenetting.FieldCorrectionRequestID)
 		}
 		if _q.withOrganization != nil {
 			_spec.Node.AddColumnOnce(financenetting.FieldOrganizationID)

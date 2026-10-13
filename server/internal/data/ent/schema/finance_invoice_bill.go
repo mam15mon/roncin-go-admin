@@ -18,6 +18,8 @@ func (FinanceInvoiceBill) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("invoice_id", uuid.Nil).Immutable(),
 		field.UUID("bill_id", uuid.Nil).Immutable(),
+		// 固化本次票据覆盖的费用集合，合并账单红冲后按费用范围重开。
+		field.JSON("source_fee_ids", []uuid.UUID{}).Default([]uuid.UUID{}).Immutable(),
 		field.String("bill_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("tax_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),

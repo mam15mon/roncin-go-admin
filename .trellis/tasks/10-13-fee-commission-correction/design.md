@@ -205,7 +205,7 @@ type FinanceSettlementContribution struct {
 
 按有效发生时间+源ID+allocationID稳定重放。核销原事件时间created_at；对冲原事件必须confirmed_at，因为现有DRAFT创建时已有allocation但尚未生效，不能用allocation.created_at提前分摊。反转在parent.reversed_at产生单独撤销事件。只取当前active会丢历史：应包括ACTIVE/REVERSED核销原事件、CONFIRMED/REVERSED对冲原事件；DRAFT/CANCELLED未确认对冲不产生结算。
 
-原事件将allocation Amount按当时合法行Remaining比例RoundBank(8)，bill line按ID升序，最后一行得到amount减已分配的尾差；不得超过该行余额，整体输入非法则业务错误不钳零。不拿前端float。内部更正allocation按指定source_fee_id定点消耗，不散到别行。
+原事件将 allocation Amount 按当时合法行 Remaining 比例计算，高精度比例先截断至 8 位，再按小数余数降序、bill line ID 升序分配剩余 0.00000001；合计必须精确等于来源金额，各行不得超过余额。采用最大余数分配是为避免多行逐笔四舍五入后，末行尾差变负或超余额；整体输入非法则业务错误不钳零。不拿前端float。内部更正allocation按指定source_fee_id定点消耗，不散到别行。
 
 算法在内存缓存原allocation的精确line分摊。反转按该缓存原分摊逐行释放，标原Contribution.ReversedAt，不重新按当时比例分配撤销；随后既有事件的发生顺序不改。例：付款V1后付款V2，后来反V1，V2依旧保留当时A/B原归属；不能先剔除V1再让V2多分A。既有原金额/生效/反转时间及确定性规则是证据，免加持久贡献表。
 
@@ -246,7 +246,7 @@ type FinanceSettlementContribution struct {
 }
 ```
 
-实现对全部原发生和反转事件稳定重放：核销发生用created_at，商业/内部对冲发生用confirmed_at（不能用草稿allocation.created_at）；同一时刻按事件类型、来源UUID、allocation UUID排序，反转使用reversed_at作为后续释放事件。普通发生按**当时账单行剩余金额**比例分摊，经济更正对冲按source_fee_id定点清偿；原allocation→line归属在重放内存中固定，反转准确释放原分配，不使后来的既有事件重新分配。保留已REVERSED来源原发生及反转时间，不能查询时直接删掉所有历史事件。尾差采用会计统一的RoundBank(8)+稳定末行补差，禁止提成自己另建另一舍入口径。
+实现对全部原发生和反转事件稳定重放：核销发生用created_at，商业/内部对冲发生用confirmed_at（不能用草稿allocation.created_at）；同一时刻按事件类型、来源UUID、allocation UUID排序，反转使用reversed_at作为后续释放事件。普通发生按**当时账单行剩余金额**比例分摊，经济更正对冲按source_fee_id定点清偿；原allocation→line归属在重放内存中固定，反转准确释放原分配，不使后来的既有事件重新分配。保留已REVERSED来源原发生及反转时间，不能查询时直接删掉所有历史事件。行归属与退款的比例分摊统一采用截断 8 位后按余数和稳定 ID 分配最小单位的最大余数法，禁止提成自己另建另一分摊口径；V3 提成计算本身的 Round(8) 不变。
 
 原A1000+B200合并账收400，投影先分A333.33333333、B66.66666667；A更正100后内部对冲定点清偿旧A剩666.66666667。随后旧账收133.33333333全部归B，不能再次按1000:200分到已清偿A。历史400分摊不改。
 

@@ -21,7 +21,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	orderfeeenterprisetag "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
+	supplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneralias "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
@@ -373,9 +375,13 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 		return nil, err
 	}
 	approvalErr := validateApprovedOrderFees(ctx, client, item)
-	pending, pendingErr := hasPendingFeeSupplement(ctx, client, item.ID)
+	pending, pendingErr := client.OrderFeeSupplementRequest.Query().Where(supplementent.OrderIDEQ(item.ID), supplementent.StatusEQ(supplementent.StatusPENDING)).Exist(ctx)
 	if pendingErr != nil {
 		return nil, pendingErr
+	}
+	pendingCorrection, err := client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDEQ(item.ID), correctionent.StatusEQ(correctionent.StatusPENDING)).Exist(ctx)
+	if err != nil {
+		return nil, err
 	}
 	detail := &biz.FeeLedgerOrderDetail{OrderID: item.ID.String(), OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerName: customer.LegalName, OrganizationID: item.OrganizationID, OrganizationName: organization.Name}
 	buckets := make(map[string]*biz.FeeLedgerBaseCurrencyAmount)
@@ -384,7 +390,10 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 		if convertErr != nil {
 			return nil, convertErr
 		}
-		ledgerItem := &biz.FeeLedgerItem{FeeReviewStatus: string(item.FeeReviewStatus), HasPendingFeeSupplement: pending, CanBill: approvalErr == nil && !fee.HasActiveBill, Fee: fee, OrganizationID: item.OrganizationID, OrganizationName: organization.Name, OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName, FinancialProgress: biz.FeeLedgerUnbilled, FinanceLocked: financeLockNet.IsPositive()}
+		if !biz.IsCurrentFee(fee) && !(fee.EconomicEffect == biz.OrderFeeEconomicDecrease && fee.AccountingRequired) {
+			continue
+		}
+		ledgerItem := &biz.FeeLedgerItem{FeeReviewStatus: string(item.FeeReviewStatus), HasPendingFeeSupplement: pending, HasPendingFeeCorrection: pendingCorrection, CanBill: approvalErr == nil && biz.RequiresAccounting(fee) && !fee.HasActiveBill, Fee: fee, OrganizationID: item.OrganizationID, OrganizationName: organization.Name, OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName, FinancialProgress: biz.FeeLedgerUnbilled, FinanceLocked: financeLockNet.IsPositive()}
 		if approvalErr != nil {
 			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, approvalErr.Error())
 		}
@@ -405,9 +414,13 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 			buckets[fee.BaseCurrency] = bucket
 		}
 		if fee.Direction == biz.OrderFeeReceivable {
-			bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(fee.BaseCurrencyAmount)
+			if biz.IsCurrentFee(fee) {
+				bucket.ReceivableBaseAmount = bucket.ReceivableBaseAmount.Add(fee.BaseCurrencyAmount)
+			}
 		} else {
-			bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(fee.BaseCurrencyAmount)
+			if biz.IsCurrentFee(fee) {
+				bucket.PayableBaseAmount = bucket.PayableBaseAmount.Add(fee.BaseCurrencyAmount)
+			}
 		}
 	}
 	for _, bucket := range buckets {
@@ -425,7 +438,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 	if err != nil {
 		return nil, err
 	}
-	predicates := []predicate.OrderFee{orderfee.HasOrderWith(order.OrganizationIDIn(organizationIDs...))}
+	predicates := []predicate.OrderFee{orderfee.HasOrderWith(order.OrganizationIDIn(organizationIDs...)), orderfee.Or(currentOrderFeePredicate(), orderfee.And(orderfee.EconomicEffectEQ(orderfee.EconomicEffectDECREASE), accountingOrderFeePredicate()))}
 	if filter.Keyword != "" {
 		predicates = append(predicates, orderfee.Or(
 			orderfee.FeeCodeContainsFold(filter.Keyword),
@@ -490,7 +503,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		predicates = append(predicates, orderfee.HasOrderWith(order.FeeReviewStatusEQ(order.FeeReviewStatus(filter.FeeReviewStatus))))
 	}
 	if filter.HasPendingFeeSupplement != nil {
-		p := orderHasPendingSupplementPredicate()
+		p := order.HasFeeSupplementRequestsWith(supplementent.StatusEQ(supplementent.StatusPENDING))
 		if !*filter.HasPendingFeeSupplement {
 			p = order.Not(p)
 		}
@@ -502,7 +515,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		return nil, err
 	}
 	summaryRows := make([]feeLedgerSummaryRow, 0)
-	if err := baseQuery.Clone().
+	if err := baseQuery.Clone().Where(currentOrderFeePredicate()).
 		GroupBy(orderfee.FieldDirection, orderfee.FieldBaseCurrency).
 		Aggregate(
 			ent.As(ent.Count(), "active_count"),
@@ -549,13 +562,36 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 	if err != nil {
 		return nil, err
 	}
+	if len(items) == 0 {
+		return &biz.FeeLedgerResult{Items: []*biz.FeeLedgerItem{}, Total: int64(total), Summary: summary}, nil
+	}
 	orders := make([]*ent.Order, 0, len(items))
 	for _, item := range items {
 		orders = append(orders, item.Edges.Order)
 	}
-	approvalCache, pendingCache, err := batchFeeReviewApprovalStates(ctx, client, orders)
+	approvalCache, _, err := batchFeeReviewApprovalStates(ctx, client, orders)
 	if err != nil {
 		return nil, err
+	}
+	orderIDs := make([]uuid.UUID, 0, len(orders))
+	for _, row := range orders {
+		orderIDs = append(orderIDs, row.ID)
+	}
+	supplements, err := client.OrderFeeSupplementRequest.Query().Where(supplementent.OrderIDIn(orderIDs...), supplementent.StatusEQ(supplementent.StatusPENDING)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	corrections, err := client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDIn(orderIDs...), correctionent.StatusEQ(correctionent.StatusPENDING)).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	pendingSupplements := map[uuid.UUID]bool{}
+	pendingCorrections := map[uuid.UUID]bool{}
+	for _, row := range supplements {
+		pendingSupplements[row.OrderID] = true
+	}
+	for _, row := range corrections {
+		pendingCorrections[row.OrderID] = true
 	}
 	resultItems := make([]*biz.FeeLedgerItem, 0, len(items))
 	for _, item := range items {
@@ -587,8 +623,9 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		ledgerItem.OrganizationName = organization.Name
 		ledgerItem.FeeReviewStatus = string(businessOrder.FeeReviewStatus)
 		approvalErr := approvalCache[businessOrder.ID]
-		ledgerItem.HasPendingFeeSupplement = pendingCache[businessOrder.ID]
-		ledgerItem.CanBill = approvalErr == nil && !fee.HasActiveBill
+		ledgerItem.HasPendingFeeSupplement = pendingSupplements[businessOrder.ID]
+		ledgerItem.HasPendingFeeCorrection = pendingCorrections[businessOrder.ID]
+		ledgerItem.CanBill = approvalErr == nil && biz.RequiresAccounting(fee) && !fee.HasActiveBill
 		if approvalErr != nil {
 			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, approvalErr.Error())
 		}

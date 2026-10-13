@@ -80,6 +80,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("sea_order_reassignment_events", SeaOrderReassignmentEvent.Type),
 		edge.To("order_lock_records", OrderLockRecord.Type),
 		edge.To("order_fee_supplement_requests", OrderFeeSupplementRequest.Type),
+		edge.To("fee_correction_requests", OrderFeeCorrectionRequest.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("order_lock_house_bill_snapshots", OrderLockHouseBillSnapshot.Type),
 		edge.To("order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("sea_master_bill_versions", SeaMasterBillVersion.Type),

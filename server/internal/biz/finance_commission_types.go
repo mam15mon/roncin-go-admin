@@ -33,32 +33,35 @@ const (
 	CommissionAdjustmentSourceNettingReversal      CommissionAdjustmentSourceType = "NETTING_REVERSAL"
 	// CommissionAdjustmentSourceLockedFeeSupplement 锁后费用补录的系统冲减建议
 	// 来源，必须携带补录申请关联并由数据库 CHECK 强制双向对应。
-	CommissionAdjustmentSourceLockedFeeSupplement CommissionAdjustmentSourceType = "LOCKED_FEE_SUPPLEMENT"
-	cnyCurrency                                                                  = "CNY"
+	CommissionAdjustmentSourceLockedFeeSupplement  CommissionAdjustmentSourceType = "LOCKED_FEE_SUPPLEMENT"
+	CommissionAdjustmentSourceFeeCorrection        CommissionAdjustmentSourceType = "FEE_CORRECTION"
+	CommissionAdjustmentSourceEconomicReallocation CommissionAdjustmentSourceType = "ECONOMIC_REALLOCATION"
+	cnyCurrency                                                                   = "CNY"
 )
 
 // FinanceCommissionAdjustment 以独立单据记录原始提成确认后的增提或冲减。
 type FinanceCommissionAdjustment struct {
-	ID, OrganizationID, CommissionID, OrderID, EmployeeID             uuid.UUID
-	AdjustmentNo, IdempotencyKey, CommissionNo, OrderNo, EmployeeName string
-	OrganizationName                                                  string
-	Direction                                                         CommissionAdjustmentDirection
-	SourceType                                                        CommissionAdjustmentSourceType
-	SourceVerificationID                                              *uuid.UUID
-	ExecutionMethod                                                   *string
-	ParentPaymentID                                                   *uuid.UUID
-	CanExecute                                                        bool
-	ExecutionBlockedReason                                            *string
-	Status                                                            CommissionStatus
-	BaseCurrency                                                      string
-	Amount                                                            decimal.Decimal
-	Reason                                                            string
-	Note                                                              *string
-	Version                                                           uint64
-	ConfirmedAt, PaidAt, CancelledAt                                  *time.Time
-	ConfirmedBy, PaidBy, CancelledBy                                  *uuid.UUID
-	CancellationReason                                                *string
-	CreatedAt, UpdatedAt                                              time.Time
+	ID, OrganizationID, CommissionID, OrderID, EmployeeID                                                           uuid.UUID
+	AdjustmentNo, IdempotencyKey, CommissionNo, OrderNo, EmployeeName                                               string
+	OrganizationName                                                                                                string
+	Direction                                                                                                       CommissionAdjustmentDirection
+	SourceType                                                                                                      CommissionAdjustmentSourceType
+	SourceVerificationID                                                                                            *uuid.UUID
+	SourceFeeSupplementRequestID, SourceFeeCorrectionRequestID, SourceNettingID, SupersededByFeeCorrectionRequestID *uuid.UUID
+	ExecutionMethod                                                                                                 *string
+	ParentPaymentID                                                                                                 *uuid.UUID
+	CanExecute                                                                                                      bool
+	ExecutionBlockedReason                                                                                          *string
+	Status                                                                                                          CommissionStatus
+	BaseCurrency                                                                                                    string
+	Amount                                                                                                          decimal.Decimal
+	Reason                                                                                                          string
+	Note                                                                                                            *string
+	Version                                                                                                         uint64
+	ConfirmedAt, PaidAt, CancelledAt                                                                                *time.Time
+	ConfirmedBy, PaidBy, CancelledBy                                                                                *uuid.UUID
+	CancellationReason                                                                                              *string
+	CreatedAt, UpdatedAt                                                                                            time.Time
 }
 
 // CommissionFeeDetail 是逐订单提成中的费用明细快照。
@@ -82,6 +85,8 @@ type FinanceCommissionLine struct {
 	RatePercent, CommissionAmount                                                                                             decimal.Decimal
 	TotalReceivableSnapshot, TotalPayableSnapshot                                                                             decimal.Decimal
 	SnapshotStatus, SnapshotSource                                                                                            string
+	FeeContentVersionSnapshot                                                                                                 uint64
+	RealizationSnapshot                                                                                                       *CommissionEconomicOrderProjection
 	CustomerAssignedAt, CreatedAt, UpdatedAt                                                                                  time.Time
 	FeeCount                                                                                                                  int
 	Fees                                                                                                                      []*CommissionFeeDetail
@@ -449,6 +454,10 @@ type CommissionAdjustmentListResult struct {
 // 原提成号、补录费用摘要、建议金额、调整状态与生成时间，不包含父单其他订单行、
 // 其他员工数据或财务明细。
 type MyFeeSupplementAdjustmentSource struct {
+	SourceType            CommissionAdjustmentSourceType
+	Direction             CommissionAdjustmentDirection
+	SourceReferenceID     *uuid.UUID
+	SourceNo              *string
 	AdjustmentID          uuid.UUID
 	AdjustmentNo          string
 	OrderNo               string
@@ -535,7 +544,7 @@ func validCommissionAdjustmentSourceType(source CommissionAdjustmentSourceType) 
 	case CommissionAdjustmentSourceManual,
 		CommissionAdjustmentSourceVerificationReversal,
 		CommissionAdjustmentSourceNettingReversal,
-		CommissionAdjustmentSourceLockedFeeSupplement:
+		CommissionAdjustmentSourceLockedFeeSupplement, CommissionAdjustmentSourceFeeCorrection, CommissionAdjustmentSourceEconomicReallocation:
 		return true
 	default:
 		return false

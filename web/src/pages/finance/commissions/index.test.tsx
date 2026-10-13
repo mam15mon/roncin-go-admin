@@ -275,7 +275,7 @@ describe('提成导出按钮', () => {
       screen.queryByTestId('pending-decrease-panel'),
     ).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('待处理冲减'));
+    fireEvent.click(screen.getByText('待执行调整'));
 
     expect(screen.getByTestId('pending-decrease-panel')).toBeInTheDocument();
 

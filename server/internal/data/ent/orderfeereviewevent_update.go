@@ -104,6 +104,9 @@ func (_u *OrderFeeReviewEventUpdate) sqlSave(ctx context.Context) (_node int, er
 	if _u.mutation.SupplementRequestIDCleared() {
 		_spec.ClearField(orderfeereviewevent.FieldSupplementRequestID, field.TypeUUID)
 	}
+	if _u.mutation.CorrectionRequestIDCleared() {
+		_spec.ClearField(orderfeereviewevent.FieldCorrectionRequestID, field.TypeUUID)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{orderfeereviewevent.Label}
@@ -229,6 +232,9 @@ func (_u *OrderFeeReviewEventUpdateOne) sqlSave(ctx context.Context) (_node *Ord
 	}
 	if _u.mutation.SupplementRequestIDCleared() {
 		_spec.ClearField(orderfeereviewevent.FieldSupplementRequestID, field.TypeUUID)
+	}
+	if _u.mutation.CorrectionRequestIDCleared() {
+		_spec.ClearField(orderfeereviewevent.FieldCorrectionRequestID, field.TypeUUID)
 	}
 	_node = &OrderFeeReviewEvent{config: _u.config}
 	_spec.Assign = _node.assignValues

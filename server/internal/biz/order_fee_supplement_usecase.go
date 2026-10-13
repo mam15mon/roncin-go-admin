@@ -510,7 +510,7 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 			return feeCreateErr
 		}
 		for _, suggestion := range suggestions {
-			if !suggestion.Amount.IsPositive() {
+			if !suggestion.Amount.IsPositive() && len(suggestion.CancelAdjustmentIDs) == 0 {
 				continue
 			}
 			if suggestErr := uc.repo.CreateDecreaseSuggestion(txCtx, organizationID, request.ID, &suggestion, commissionAdjustmentAudit(organizationID, caller.UserID, suggestion.AdjustmentID, "finance.commission_adjustment.create")); suggestErr != nil {
@@ -539,63 +539,43 @@ func (uc *OrderFeeSupplementUsecase) Approve(ctx context.Context, caller *Princi
 	return result, nil
 }
 
-// computeSuggestions 对每条原提成订单行独立计算边际影响：按 calculation_version
-// 路由成本敏感性（未知版本失败关闭）；成本敏感行要求 READY 快照且本位币与新
-// 费用一致；此前未作废补录进入 before 基线；建议金额按订单行与父单双层封顶。
-func (uc *OrderFeeSupplementUsecase) computeSuggestions(impact *OrderFeeSupplementImpactContext, fee *OrderFee, supplementReason string) ([]OrderFeeSupplementDecreaseSuggestion, map[string]string, error) {
-	auditDetails := make(map[string]string)
-	suggestions := make([]OrderFeeSupplementDecreaseSuggestion, 0, len(impact.Lines))
-	for _, line := range impact.Lines {
-		sensitive, sensitivityErr := CommissionSupplementCostSensitivity(line.CalculationVersion, line.CalculationBasis)
-		if sensitivityErr != nil {
-			return nil, nil, sensitivityErr
-		}
-		if !sensitive {
-			suggestions = append(suggestions, OrderFeeSupplementDecreaseSuggestion{CommissionID: line.CommissionID, CommissionNo: line.CommissionNo, CommissionStatus: line.CommissionStatus, OrderID: line.OrderID, OrderNo: line.OrderNo, EmployeeID: line.EmployeeID, EmployeeName: line.EmployeeName, BaseCurrency: line.LineBaseCurrency, AmountBefore: line.LineCommissionAmount, AmountAfter: line.LineCommissionAmount})
-			continue
-		}
-		// 缺失原始计算快照不得放行。
-		if line.SnapshotStatus != "READY" || line.TotalReceivableSnapshot == nil || line.TotalPayableSnapshot == nil {
+// computeSuggestions 与费用更正使用同一当前经济目标及系统累计对账算法。
+func (uc *OrderFeeSupplementUsecase) computeSuggestions(impact *OrderFeeSupplementImpactContext, fee *OrderFee, reason string) ([]OrderFeeSupplementDecreaseSuggestion, map[string]string, error) {
+	result := make([]OrderFeeSupplementDecreaseSuggestion, 0, len(impact.Lines))
+	details := make(map[string]string)
+	for _, l := range impact.Lines {
+		if l.SnapshotStatus != "READY" || l.TotalReceivableSnapshot == nil || l.TotalPayableSnapshot == nil {
 			return nil, nil, ErrCommissionSnapshotUnavailable
 		}
-		if line.LineBaseCurrency != fee.BaseCurrency {
+		if l.LineBaseCurrency != fee.BaseCurrency {
 			return nil, nil, ErrCommissionBaseCurrencyMismatch
 		}
-		impactResult := ComputeSupplementMarginalImpact(
-			line.RealizedRevenue, *line.TotalReceivableSnapshot, *line.TotalPayableSnapshot,
-			line.PriorSupplementBaseAmount, fee.BaseCurrencyAmount, line.CalculationRatePercent, line.CalculationBasis,
-		)
-		lineKey := "impact." + line.CommissionID.String() + "." + line.OrderID.String()
-		auditDetails[lineKey+".before"] = impactResult.AmountBefore.StringFixed(8)
-		auditDetails[lineKey+".after"] = impactResult.AmountAfter.StringFixed(8)
-		auditDetails[lineKey+".marginal"] = impactResult.Delta.StringFixed(8)
-
-		lineAvailable := line.LineEffective.Sub(line.LineDraftDecrease)
-		parentAvailable := line.ParentEffective.Sub(line.ParentDraftDecrease)
-		suggested, excess := CapSupplementSuggestion(impactResult.Delta, lineAvailable, parentAvailable)
-		auditDetails[lineKey+".line_available"] = lineAvailable.StringFixed(8)
-		auditDetails[lineKey+".parent_available"] = parentAvailable.StringFixed(8)
-		auditDetails[lineKey+".excess"] = excess.StringFixed(8)
-
-		suggestions = append(suggestions, OrderFeeSupplementDecreaseSuggestion{
-			AdjustmentID:     uuid.Must(uuid.NewV7()),
-			CommissionID:     line.CommissionID,
-			CommissionNo:     line.CommissionNo,
-			CommissionStatus: line.CommissionStatus,
-			OrderID:          line.OrderID,
-			OrderNo:          line.OrderNo,
-			EmployeeID:       line.EmployeeID,
-			EmployeeName:     line.EmployeeName,
-			BaseCurrency:     fee.BaseCurrency,
-			Amount:           suggested,
-			Reason:           clampRunes("费用补录已确认提成冲减："+supplementReason, 500),
-			AmountBefore:     impactResult.AmountBefore,
-			AmountAfter:      impactResult.AmountAfter,
-			MarginalDelta:    impactResult.Delta,
-			ExcessAmount:     excess,
-		})
+		before, err := CommissionEconomicTarget(l.CalculationVersion, l.CalculationBasis, l.RealizedRevenue, *l.TotalReceivableSnapshot, *l.TotalPayableSnapshot, l.CalculationRatePercent)
+		if err != nil {
+			return nil, nil, err
+		}
+		after, err := CommissionEconomicTarget(l.CalculationVersion, l.CalculationBasis, l.RealizedRevenue, *l.TotalReceivableSnapshot, l.TotalPayableSnapshot.Add(fee.BaseCurrencyAmount), l.CalculationRatePercent)
+		if err != nil {
+			return nil, nil, err
+		}
+		desired, rebuild, excess := PlanCommissionSystemAdjustment(l.LineCommissionAmount, after, l.SystemPaid, l.SystemPending, l.LineOther, l.ParentOther, l.LineDraftDecrease, l.ParentDraftDecrease)
+		direction := CommissionAdjustmentIncrease
+		if rebuild.IsNegative() {
+			direction = CommissionAdjustmentDecrease
+		}
+		cancel := l.PendingSystemAdjustmentIDs
+		if desired.Equal(l.SystemPaid.Add(l.SystemPending)) {
+			cancel = nil
+		}
+		result = append(result, OrderFeeSupplementDecreaseSuggestion{AdjustmentID: uuid.Must(uuid.NewV7()), Direction: direction, CancelAdjustmentIDs: cancel, CommissionID: l.CommissionID, CommissionNo: l.CommissionNo, CommissionStatus: l.CommissionStatus, OrderID: l.OrderID, OrderNo: l.OrderNo, EmployeeID: l.EmployeeID, EmployeeName: l.EmployeeName, BaseCurrency: l.LineBaseCurrency, Amount: rebuild.Abs(), Reason: clampRunes("费用补录后的系统净额调整："+reason, 500), AmountBefore: before, AmountAfter: after, MarginalDelta: before.Sub(after), ExcessAmount: excess})
+		key := "impact." + l.CommissionID.String() + "." + l.OrderID.String()
+		details[key+".target"] = after.StringFixed(8)
+		details[key+".desired_system"] = desired.StringFixed(8)
+		details[key+".rebuild"] = rebuild.StringFixed(8)
+		details[key+".excess"] = excess.StringFixed(8)
+		details[key+".economics"] = l.EconomicFingerprint
 	}
-	return suggestions, auditDetails, nil
+	return result, details, nil
 }
 
 // clampRunes 按字符数上限安全截断文本。

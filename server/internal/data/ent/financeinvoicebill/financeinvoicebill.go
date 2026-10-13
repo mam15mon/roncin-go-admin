@@ -23,6 +23,8 @@ const (
 	FieldInvoiceID = "invoice_id"
 	// FieldBillID holds the string denoting the bill_id field in the database.
 	FieldBillID = "bill_id"
+	// FieldSourceFeeIds holds the string denoting the source_fee_ids field in the database.
+	FieldSourceFeeIds = "source_fee_ids"
 	// FieldBillNo holds the string denoting the bill_no field in the database.
 	FieldBillNo = "bill_no"
 	// FieldAmount holds the string denoting the amount field in the database.
@@ -60,6 +62,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldInvoiceID,
 	FieldBillID,
+	FieldSourceFeeIds,
 	FieldBillNo,
 	FieldAmount,
 	FieldTaxAmount,
@@ -83,6 +86,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultSourceFeeIds holds the default value on creation for the "source_fee_ids" field.
+	DefaultSourceFeeIds []uuid.UUID
 	// BillNoValidator is a validator for the "bill_no" field. It is called by the builders before save.
 	BillNoValidator func(string) error
 	// DefaultActive holds the default value on creation for the "active" field.

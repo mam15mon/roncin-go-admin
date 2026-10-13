@@ -293,6 +293,8 @@ message OrderFeeReviewProjection {
  bool can_bill = 9;
  repeated string blocked_reasons = 10;
  OrderFeeReviewSummary summary = 11;
+ bool has_pending_correction = 12;
+ bool has_pending_change = 13;
 }
 
 message Order {

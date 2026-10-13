@@ -566,9 +566,16 @@ func autoLockLifecycleBlockReason(order *ent.Order) string {
 //   - 关联的每张应收账单均已确认，且整张账单总额等于有效核销与对冲合计；
 //     合并账单部分结清不推断订单归属，不同账单或币种不互相抵消。
 func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.UUID) (eligible bool, reasonCode string, err error) {
-	// 1) 任意方向的未建账费用都阻止自动锁定。
+	pending, pendingErr := hasPendingFeeSupplement(ctx, tx.Client(), orderID)
+	if pendingErr != nil {
+		return false, "", pendingErr
+	}
+	if pending {
+		return false, biz.AutoLockReasonUnbilledFee, nil
+	}
+	// 1) 需建账的未建费用阻止自动锁定。
 	unbilledFeeExists, err := tx.OrderFee.Query().
-		Where(orderfeeent.OrderIDEQ(orderID), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).
+		Where(orderfeeent.OrderIDEQ(orderID), accountingOrderFeePredicate(), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).
 		Exist(ctx)
 	if err != nil {
 		return false, "", err

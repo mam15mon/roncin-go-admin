@@ -16,19 +16,21 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
 // FinanceNettingAllocationQuery is the builder for querying FinanceNettingAllocation entities.
 type FinanceNettingAllocationQuery struct {
 	config
-	ctx         *QueryContext
-	order       []financenettingallocation.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.FinanceNettingAllocation
-	withNetting *FinanceNettingQuery
-	withBill    *FinanceBillQuery
-	modifiers   []func(*sql.Selector)
+	ctx           *QueryContext
+	order         []financenettingallocation.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.FinanceNettingAllocation
+	withSourceFee *OrderFeeQuery
+	withNetting   *FinanceNettingQuery
+	withBill      *FinanceBillQuery
+	modifiers     []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,6 +65,28 @@ func (_q *FinanceNettingAllocationQuery) Unique(unique bool) *FinanceNettingAllo
 func (_q *FinanceNettingAllocationQuery) Order(o ...financenettingallocation.OrderOption) *FinanceNettingAllocationQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QuerySourceFee chains the current query on the "source_fee" edge.
+func (_q *FinanceNettingAllocationQuery) QuerySourceFee() *OrderFeeQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenettingallocation.Table, financenettingallocation.FieldID, selector),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenettingallocation.SourceFeeTable, financenettingallocation.SourceFeeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryNetting chains the current query on the "netting" edge.
@@ -296,17 +320,29 @@ func (_q *FinanceNettingAllocationQuery) Clone() *FinanceNettingAllocationQuery 
 		return nil
 	}
 	return &FinanceNettingAllocationQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]financenettingallocation.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.FinanceNettingAllocation{}, _q.predicates...),
-		withNetting: _q.withNetting.Clone(),
-		withBill:    _q.withBill.Clone(),
+		config:        _q.config,
+		ctx:           _q.ctx.Clone(),
+		order:         append([]financenettingallocation.OrderOption{}, _q.order...),
+		inters:        append([]Interceptor{}, _q.inters...),
+		predicates:    append([]predicate.FinanceNettingAllocation{}, _q.predicates...),
+		withSourceFee: _q.withSourceFee.Clone(),
+		withNetting:   _q.withNetting.Clone(),
+		withBill:      _q.withBill.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithSourceFee tells the query-builder to eager-load the nodes that are connected to
+// the "source_fee" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceNettingAllocationQuery) WithSourceFee(opts ...func(*OrderFeeQuery)) *FinanceNettingAllocationQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSourceFee = query
+	return _q
 }
 
 // WithNetting tells the query-builder to eager-load the nodes that are connected to
@@ -409,7 +445,8 @@ func (_q *FinanceNettingAllocationQuery) sqlAll(ctx context.Context, hooks ...qu
 	var (
 		nodes       = []*FinanceNettingAllocation{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
+			_q.withSourceFee != nil,
 			_q.withNetting != nil,
 			_q.withBill != nil,
 		}
@@ -435,6 +472,12 @@ func (_q *FinanceNettingAllocationQuery) sqlAll(ctx context.Context, hooks ...qu
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withSourceFee; query != nil {
+		if err := _q.loadSourceFee(ctx, query, nodes, nil,
+			func(n *FinanceNettingAllocation, e *OrderFee) { n.Edges.SourceFee = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withNetting; query != nil {
 		if err := _q.loadNetting(ctx, query, nodes, nil,
 			func(n *FinanceNettingAllocation, e *FinanceNetting) { n.Edges.Netting = e }); err != nil {
@@ -450,6 +493,38 @@ func (_q *FinanceNettingAllocationQuery) sqlAll(ctx context.Context, hooks ...qu
 	return nodes, nil
 }
 
+func (_q *FinanceNettingAllocationQuery) loadSourceFee(ctx context.Context, query *OrderFeeQuery, nodes []*FinanceNettingAllocation, init func(*FinanceNettingAllocation), assign func(*FinanceNettingAllocation, *OrderFee)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceNettingAllocation)
+	for i := range nodes {
+		if nodes[i].SourceFeeID == nil {
+			continue
+		}
+		fk := *nodes[i].SourceFeeID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfee.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "source_fee_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *FinanceNettingAllocationQuery) loadNetting(ctx context.Context, query *FinanceNettingQuery, nodes []*FinanceNettingAllocation, init func(*FinanceNettingAllocation), assign func(*FinanceNettingAllocation, *FinanceNetting)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FinanceNettingAllocation)
@@ -536,6 +611,9 @@ func (_q *FinanceNettingAllocationQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != financenettingallocation.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withSourceFee != nil {
+			_spec.Node.AddColumnOnce(financenettingallocation.FieldSourceFeeID)
 		}
 		if _q.withNetting != nil {
 			_spec.Node.AddColumnOnce(financenettingallocation.FieldNettingID)

@@ -336,6 +336,22 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ApproveOrderFeeCorrectionRequest = {
+    orderId?: string;
+    id?: string;
+    expectedVersion?: string;
+    previewToken?: string;
+    comment?: string;
+  };
+
+  type ApproveOrderFeeCorrectionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeCorrectionRequestData;
+    traceId?: string;
+  };
+
   type ApproveOrderFeeReviewRequest = {
     orderId?: string;
     expectedReviewVersion?: string;
@@ -1494,6 +1510,24 @@ declare namespace API {
     traceId?: string;
   };
 
+  type CreateOrderFeeCorrectionRequest = {
+    orderId?: string;
+    operation?: number;
+    sourceFeeId?: string;
+    sourceFeeExpectedVersion?: string;
+    targetFee?: OrderFeeCorrectionTarget;
+    reason?: string;
+    idempotencyKey?: string;
+  };
+
+  type CreateOrderFeeCorrectionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeCorrectionRequestData;
+    traceId?: string;
+  };
+
   type CreateOrderFeeSupplementRequest = {
     orderId: string;
     /** 补录仅接受正数应付成本；应收方向在服务边界与领域边界双重拒绝。 */
@@ -2479,6 +2513,19 @@ declare namespace API {
     id: string;
   };
 
+  type FeeCorrectionCommissionImpactData = {
+    commissionId?: string;
+    commissionNo?: string;
+    orderId?: string;
+    employeeId?: string;
+    employeeName?: string;
+    baseCurrency?: string;
+    originalAmount?: string;
+    currentAmount?: string;
+    targetAmount?: string;
+    difference?: string;
+  };
+
   type FeeLedgerBaseCurrencyAmount = {
     baseCurrency?: string;
     receivableBaseAmount?: string;
@@ -2524,6 +2571,9 @@ declare namespace API {
     hasPendingFeeSupplement?: boolean;
     canBill?: boolean;
     blockedReasons?: string[];
+    economicEffect?: string;
+    correctionRequestId?: string;
+    hasPendingFeeCorrection?: boolean;
   };
 
   type FeeLedgerOrderDetail = {
@@ -2603,6 +2653,8 @@ declare namespace API {
     decreaseAmount?: string;
     excessAmount?: string;
     commissionStatus?: string;
+    adjustmentDirection?: string;
+    adjustmentAmount?: string;
   };
 
   type FetchExchangeRatesRequest = {
@@ -2678,6 +2730,10 @@ declare namespace API {
     /** netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。 */
     nettedAmount?: string;
     overdueDays?: number;
+    purpose?: string;
+    invoiceableAmount?: string;
+    invoiceableNetAmount?: string;
+    invoiceableTaxAmount?: string;
   };
 
   type FinanceBillBatch = {
@@ -2845,6 +2901,10 @@ declare namespace API {
     parentPaymentId?: string;
     canExecute?: boolean;
     executionBlockedReason?: string;
+    sourceFeeCorrectionRequestId?: string;
+    sourceFeeSupplementRequestId?: string;
+    sourceEconomicVerificationId?: string;
+    sourceEconomicNettingId?: string;
   };
 
   type FinanceCommissionApplication = {
@@ -2997,6 +3057,7 @@ declare namespace API {
     amount?: string;
     taxAmount?: string;
     active?: boolean;
+    sourceFeeIds?: string[];
   };
 
   type FinanceInvoiceLine = {
@@ -3057,6 +3118,7 @@ declare namespace API {
     batchNo?: string;
     payableBaseAmount?: string;
     exchangeGainLoss?: string;
+    correctionRequestId?: string;
   };
 
   type FinanceNettingAllocation = {
@@ -3067,6 +3129,7 @@ declare namespace API {
     amount?: string;
     baseCurrencyAmount?: string;
     active?: boolean;
+    sourceFeeId?: string;
   };
 
   type FinanceNettingBaseCurrencyAmount = {
@@ -3322,6 +3385,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceNetting;
+    traceId?: string;
+  };
+
+  type GetOrderFeeCorrectionRequestResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeCorrectionRequestData;
     traceId?: string;
   };
 
@@ -3992,6 +4063,17 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListOrderFeeCorrectionRequestsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeCorrectionRequestData[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
   type ListOrderFeeSupplementRequestsData = {
     items?: OrderFeeSupplementRequestData[];
     total?: number;
@@ -4561,6 +4643,10 @@ declare namespace API {
     feeBaseCurrencyAmount?: string;
     feeExpenseDate?: string;
     supplementReason?: string;
+    sourceType?: string;
+    direction?: string;
+    sourceReferenceId?: string;
+    sourceNo?: string;
   };
 
   type NettingBillExpectedVersion = {
@@ -4909,6 +4995,13 @@ declare namespace API {
     /** 只读计算字段：是否存在有效账单关联（活动账单行且所属账单未取消，草稿账单
  同样构成占用）。不持久化、不接受请求写入，是否已建账由账单关联事实决定。 */
     hasActiveBill?: boolean;
+    economicEffect?: string;
+    accountingRequired?: boolean;
+    sourceFeeId?: string;
+    correctionRequestId?: string;
+    supersededByRequestId?: string;
+    canBill?: boolean;
+    canCorrect?: boolean;
   };
 
   type OrderFeeBillingUnitOption = {
@@ -4916,6 +5009,67 @@ declare namespace API {
     code?: string;
     name?: string;
     quantityMustBeInteger?: boolean;
+  };
+
+  type OrderFeeCorrectionApprovalData = {
+    request?: OrderFeeCorrectionRequestData;
+    baseCurrency?: string;
+    currentReceivable?: string;
+    currentPayable?: string;
+    currentProfit?: string;
+    projectedReceivable?: string;
+    projectedPayable?: string;
+    projectedProfit?: string;
+    profitChange?: string;
+    projectedProfitRate?: string;
+    commissionImpacts?: FeeCorrectionCommissionImpactData[];
+    previewToken?: string;
+  };
+
+  type OrderFeeCorrectionRequestData = {
+    id?: string;
+    orderId?: string;
+    organizationId?: string;
+    operation?: number;
+    status?: string;
+    version?: string;
+    sourceFeeId?: string;
+    sourceFeeVersion?: string;
+    beforeFee?: OrderFee;
+    afterFee?: OrderFee;
+    reason?: string;
+    requestedBy?: string;
+    requestedByName?: string;
+    requestedAt?: string;
+    decidedBy?: string;
+    decidedByName?: string;
+    decidedAt?: string;
+    decisionReason?: string;
+    reversalFeeId?: string;
+    replacementFeeId?: string;
+    canApprove?: boolean;
+    canWithdraw?: boolean;
+    approverAvailable?: boolean;
+    financialStatus?: string;
+    commissionImpacts?: FeeCorrectionCommissionImpactData[];
+    approvedCurrentSummary?: OrderFeeReviewSummary;
+    approvedProjectedSummary?: OrderFeeReviewSummary;
+  };
+
+  type OrderFeeCorrectionTarget = {
+    direction?: number;
+    feeSettingId?: string;
+    settlementPartyId?: string;
+    billingUnitId?: string;
+    quantity?: string;
+    unitPrice?: string;
+    currency?: string;
+    expenseDate?: string;
+    note?: string;
+    exchangeRateOverride?: string;
+    taxInclusive?: boolean;
+    feeNameOverride?: string;
+    taxRateOverride?: string;
   };
 
   type OrderFeeCurrencyOption = {
@@ -4954,6 +5108,8 @@ declare namespace API {
     canEdit?: boolean;
     canBill?: boolean;
     hasPendingSupplement?: boolean;
+    hasPendingCorrection?: boolean;
+    hasPendingChange?: boolean;
     blockedReasons?: string[];
     notificationFailedCount?: number;
     notificationUnboundCount?: number;
@@ -4983,6 +5139,8 @@ declare namespace API {
     canBill?: boolean;
     blockedReasons?: string[];
     summary?: OrderFeeReviewSummary;
+    hasPendingCorrection?: boolean;
+    hasPendingChange?: boolean;
   };
 
   type OrderFeeReviewResult = {
@@ -5007,6 +5165,11 @@ declare namespace API {
 
   type OrderFeeServiceAddFeeParams = {
     orderId: string;
+  };
+
+  type OrderFeeServiceApproveOrderFeeCorrectionParams = {
+    orderId: string;
+    id: string;
   };
 
   type OrderFeeServiceApproveOrderFeeReviewParams = {
@@ -5039,8 +5202,17 @@ declare namespace API {
     id: string;
   };
 
+  type OrderFeeServiceCreateOrderFeeCorrectionParams = {
+    orderId: string;
+  };
+
   type OrderFeeServiceCreateOrderFeeSupplementParams = {
     orderId: string;
+  };
+
+  type OrderFeeServiceGetOrderFeeCorrectionRequestParams = {
+    orderId: string;
+    id: string;
   };
 
   type OrderFeeServiceGetOrderFeeReviewParams = {
@@ -5053,6 +5225,12 @@ declare namespace API {
 
   type OrderFeeServiceListFeesParams = {
     orderId: string;
+  };
+
+  type OrderFeeServiceListOrderFeeCorrectionRequestsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type OrderFeeServiceListOrderFeeSupplementRequestsParams = {
@@ -5068,6 +5246,11 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type OrderFeeServicePreviewOrderFeeCorrectionApprovalParams = {
+    orderId: string;
+    id: string;
+  };
+
   type OrderFeeServicePreviewOrderFeeReviewParams = {
     orderId: string;
   };
@@ -5076,6 +5259,11 @@ declare namespace API {
     orderId: string;
     id: string;
     expectedVersion?: string;
+  };
+
+  type OrderFeeServiceRejectOrderFeeCorrectionParams = {
+    orderId: string;
+    id: string;
   };
 
   type OrderFeeServiceRejectOrderFeeReviewParams = {
@@ -5111,6 +5299,11 @@ declare namespace API {
   };
 
   type OrderFeeServiceUpdateFeeParams = {
+    orderId: string;
+    id: string;
+  };
+
+  type OrderFeeServiceWithdrawOrderFeeCorrectionParams = {
     orderId: string;
     id: string;
   };
@@ -6168,6 +6361,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PreviewOrderFeeCorrectionApprovalRequest = {
+    orderId?: string;
+    id?: string;
+    expectedVersion?: string;
+  };
+
+  type PreviewOrderFeeCorrectionApprovalResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeCorrectionApprovalData;
+    traceId?: string;
+  };
+
   type PreviewOrderFeeReviewResponse = {
     success?: boolean;
     code?: number;
@@ -6355,6 +6562,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceCommissionApplication;
+    traceId?: string;
+  };
+
+  type RejectOrderFeeCorrectionRequest = {
+    orderId?: string;
+    id?: string;
+    expectedVersion?: string;
+    reason?: string;
+  };
+
+  type RejectOrderFeeCorrectionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeCorrectionRequestData;
     traceId?: string;
   };
 
@@ -8907,6 +9129,20 @@ declare namespace API {
     isDifferent?: boolean;
   };
 
+  type WithdrawOrderFeeCorrectionRequest = {
+    orderId?: string;
+    id?: string;
+    expectedVersion?: string;
+  };
+
+  type WithdrawOrderFeeCorrectionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: OrderFeeCorrectionRequestData;
+    traceId?: string;
+  };
+
   type WithdrawOrderFeeReviewRequest = {
     orderId?: string;
     expectedReviewVersion?: string;
@@ -9075,6 +9311,7 @@ declare namespace API {
     amount?: string;
     reason?: string;
     createdAt?: string;
+    sourceType?: string;
   };
 
   type WorkbenchMyCommissionApplication = {

@@ -140,6 +140,10 @@ const (
 	EdgeOrderUnlockApproverCandidates = "order_unlock_approver_candidates"
 	// EdgeRequestedOrderFeeSupplementRequests holds the string denoting the requested_order_fee_supplement_requests edge name in mutations.
 	EdgeRequestedOrderFeeSupplementRequests = "requested_order_fee_supplement_requests"
+	// EdgeRequestedFeeCorrectionRequests holds the string denoting the requested_fee_correction_requests edge name in mutations.
+	EdgeRequestedFeeCorrectionRequests = "requested_fee_correction_requests"
+	// EdgeDecidedFeeCorrectionRequests holds the string denoting the decided_fee_correction_requests edge name in mutations.
+	EdgeDecidedFeeCorrectionRequests = "decided_fee_correction_requests"
 	// EdgeDecidedOrderFeeSupplementRequests holds the string denoting the decided_order_fee_supplement_requests edge name in mutations.
 	EdgeDecidedOrderFeeSupplementRequests = "decided_order_fee_supplement_requests"
 	// EdgeFinanceCommissionRuleAssignments holds the string denoting the finance_commission_rule_assignments edge name in mutations.
@@ -479,6 +483,20 @@ const (
 	RequestedOrderFeeSupplementRequestsInverseTable = "order_fee_supplement_requests"
 	// RequestedOrderFeeSupplementRequestsColumn is the table column denoting the requested_order_fee_supplement_requests relation/edge.
 	RequestedOrderFeeSupplementRequestsColumn = "requested_by"
+	// RequestedFeeCorrectionRequestsTable is the table that holds the requested_fee_correction_requests relation/edge.
+	RequestedFeeCorrectionRequestsTable = "order_fee_correction_requests"
+	// RequestedFeeCorrectionRequestsInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	RequestedFeeCorrectionRequestsInverseTable = "order_fee_correction_requests"
+	// RequestedFeeCorrectionRequestsColumn is the table column denoting the requested_fee_correction_requests relation/edge.
+	RequestedFeeCorrectionRequestsColumn = "requested_by"
+	// DecidedFeeCorrectionRequestsTable is the table that holds the decided_fee_correction_requests relation/edge.
+	DecidedFeeCorrectionRequestsTable = "order_fee_correction_requests"
+	// DecidedFeeCorrectionRequestsInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	DecidedFeeCorrectionRequestsInverseTable = "order_fee_correction_requests"
+	// DecidedFeeCorrectionRequestsColumn is the table column denoting the decided_fee_correction_requests relation/edge.
+	DecidedFeeCorrectionRequestsColumn = "decided_by"
 	// DecidedOrderFeeSupplementRequestsTable is the table that holds the decided_order_fee_supplement_requests relation/edge.
 	DecidedOrderFeeSupplementRequestsTable = "order_fee_supplement_requests"
 	// DecidedOrderFeeSupplementRequestsInverseTable is the table name for the OrderFeeSupplementRequest entity.
@@ -1384,6 +1402,34 @@ func ByRequestedOrderFeeSupplementRequests(term sql.OrderTerm, terms ...sql.Orde
 	}
 }
 
+// ByRequestedFeeCorrectionRequestsCount orders the results by requested_fee_correction_requests count.
+func ByRequestedFeeCorrectionRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRequestedFeeCorrectionRequestsStep(), opts...)
+	}
+}
+
+// ByRequestedFeeCorrectionRequests orders the results by requested_fee_correction_requests terms.
+func ByRequestedFeeCorrectionRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRequestedFeeCorrectionRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDecidedFeeCorrectionRequestsCount orders the results by decided_fee_correction_requests count.
+func ByDecidedFeeCorrectionRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDecidedFeeCorrectionRequestsStep(), opts...)
+	}
+}
+
+// ByDecidedFeeCorrectionRequests orders the results by decided_fee_correction_requests terms.
+func ByDecidedFeeCorrectionRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDecidedFeeCorrectionRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByDecidedOrderFeeSupplementRequestsCount orders the results by decided_order_fee_supplement_requests count.
 func ByDecidedOrderFeeSupplementRequestsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1927,6 +1973,20 @@ func newRequestedOrderFeeSupplementRequestsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RequestedOrderFeeSupplementRequestsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, RequestedOrderFeeSupplementRequestsTable, RequestedOrderFeeSupplementRequestsColumn),
+	)
+}
+func newRequestedFeeCorrectionRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RequestedFeeCorrectionRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RequestedFeeCorrectionRequestsTable, RequestedFeeCorrectionRequestsColumn),
+	)
+}
+func newDecidedFeeCorrectionRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DecidedFeeCorrectionRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DecidedFeeCorrectionRequestsTable, DecidedFeeCorrectionRequestsColumn),
 	)
 }
 func newDecidedOrderFeeSupplementRequestsStep() *sqlgraph.Step {

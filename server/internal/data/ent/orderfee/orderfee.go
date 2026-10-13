@@ -76,6 +76,16 @@ const (
 	FieldNote = "note"
 	// FieldSupplementRequestID holds the string denoting the supplement_request_id field in the database.
 	FieldSupplementRequestID = "supplement_request_id"
+	// FieldEconomicEffect holds the string denoting the economic_effect field in the database.
+	FieldEconomicEffect = "economic_effect"
+	// FieldAccountingRequired holds the string denoting the accounting_required field in the database.
+	FieldAccountingRequired = "accounting_required"
+	// FieldSourceFeeID holds the string denoting the source_fee_id field in the database.
+	FieldSourceFeeID = "source_fee_id"
+	// FieldCorrectionRequestID holds the string denoting the correction_request_id field in the database.
+	FieldCorrectionRequestID = "correction_request_id"
+	// FieldSupersededByRequestID holds the string denoting the superseded_by_request_id field in the database.
+	FieldSupersededByRequestID = "superseded_by_request_id"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
@@ -88,6 +98,18 @@ const (
 	EdgeBillingUnitRef = "billing_unit_ref"
 	// EdgeSupplementRequest holds the string denoting the supplement_request edge name in mutations.
 	EdgeSupplementRequest = "supplement_request"
+	// EdgeCorrectionRequest holds the string denoting the correction_request edge name in mutations.
+	EdgeCorrectionRequest = "correction_request"
+	// EdgeSupersededByRequest holds the string denoting the superseded_by_request edge name in mutations.
+	EdgeSupersededByRequest = "superseded_by_request"
+	// EdgeCorrectionNettingAllocations holds the string denoting the correction_netting_allocations edge name in mutations.
+	EdgeCorrectionNettingAllocations = "correction_netting_allocations"
+	// EdgeDerivedFees holds the string denoting the derived_fees edge name in mutations.
+	EdgeDerivedFees = "derived_fees"
+	// EdgeSourceFee holds the string denoting the source_fee edge name in mutations.
+	EdgeSourceFee = "source_fee"
+	// EdgeTargetedCorrectionRequests holds the string denoting the targeted_correction_requests edge name in mutations.
+	EdgeTargetedCorrectionRequests = "targeted_correction_requests"
 	// EdgeFinanceBillLines holds the string denoting the finance_bill_lines edge name in mutations.
 	EdgeFinanceBillLines = "finance_bill_lines"
 	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
@@ -129,6 +151,42 @@ const (
 	SupplementRequestInverseTable = "order_fee_supplement_requests"
 	// SupplementRequestColumn is the table column denoting the supplement_request relation/edge.
 	SupplementRequestColumn = "supplement_request_id"
+	// CorrectionRequestTable is the table that holds the correction_request relation/edge.
+	CorrectionRequestTable = "order_fees"
+	// CorrectionRequestInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	CorrectionRequestInverseTable = "order_fee_correction_requests"
+	// CorrectionRequestColumn is the table column denoting the correction_request relation/edge.
+	CorrectionRequestColumn = "correction_request_id"
+	// SupersededByRequestTable is the table that holds the superseded_by_request relation/edge.
+	SupersededByRequestTable = "order_fees"
+	// SupersededByRequestInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	SupersededByRequestInverseTable = "order_fee_correction_requests"
+	// SupersededByRequestColumn is the table column denoting the superseded_by_request relation/edge.
+	SupersededByRequestColumn = "superseded_by_request_id"
+	// CorrectionNettingAllocationsTable is the table that holds the correction_netting_allocations relation/edge.
+	CorrectionNettingAllocationsTable = "finance_netting_allocations"
+	// CorrectionNettingAllocationsInverseTable is the table name for the FinanceNettingAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "financenettingallocation" package.
+	CorrectionNettingAllocationsInverseTable = "finance_netting_allocations"
+	// CorrectionNettingAllocationsColumn is the table column denoting the correction_netting_allocations relation/edge.
+	CorrectionNettingAllocationsColumn = "source_fee_id"
+	// DerivedFeesTable is the table that holds the derived_fees relation/edge.
+	DerivedFeesTable = "order_fees"
+	// DerivedFeesColumn is the table column denoting the derived_fees relation/edge.
+	DerivedFeesColumn = "source_fee_id"
+	// SourceFeeTable is the table that holds the source_fee relation/edge.
+	SourceFeeTable = "order_fees"
+	// SourceFeeColumn is the table column denoting the source_fee relation/edge.
+	SourceFeeColumn = "source_fee_id"
+	// TargetedCorrectionRequestsTable is the table that holds the targeted_correction_requests relation/edge.
+	TargetedCorrectionRequestsTable = "order_fee_correction_requests"
+	// TargetedCorrectionRequestsInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	TargetedCorrectionRequestsInverseTable = "order_fee_correction_requests"
+	// TargetedCorrectionRequestsColumn is the table column denoting the targeted_correction_requests relation/edge.
+	TargetedCorrectionRequestsColumn = "source_fee_id"
 	// FinanceBillLinesTable is the table that holds the finance_bill_lines relation/edge.
 	FinanceBillLinesTable = "finance_bill_lines"
 	// FinanceBillLinesInverseTable is the table name for the FinanceBillLine entity.
@@ -178,6 +236,11 @@ var Columns = []string{
 	FieldExpenseDate,
 	FieldNote,
 	FieldSupplementRequestID,
+	FieldEconomicEffect,
+	FieldAccountingRequired,
+	FieldSourceFeeID,
+	FieldCorrectionRequestID,
+	FieldSupersededByRequestID,
 	FieldVersion,
 }
 
@@ -222,6 +285,8 @@ var (
 	ExpenseDateValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	NoteValidator func(string) error
+	// DefaultAccountingRequired holds the default value on creation for the "accounting_required" field.
+	DefaultAccountingRequired bool
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
 	// DefaultID holds the default value on creation for the "id" field.
@@ -275,6 +340,32 @@ func ExchangeRateSourceValidator(ers ExchangeRateSource) error {
 		return nil
 	default:
 		return fmt.Errorf("orderfee: invalid enum value for exchange_rate_source field: %q", ers)
+	}
+}
+
+// EconomicEffect defines the type for the "economic_effect" enum field.
+type EconomicEffect string
+
+// EconomicEffectINCREASE is the default value of the EconomicEffect enum.
+const DefaultEconomicEffect = EconomicEffectINCREASE
+
+// EconomicEffect values.
+const (
+	EconomicEffectINCREASE EconomicEffect = "INCREASE"
+	EconomicEffectDECREASE EconomicEffect = "DECREASE"
+)
+
+func (ee EconomicEffect) String() string {
+	return string(ee)
+}
+
+// EconomicEffectValidator is a validator for the "economic_effect" field enum values. It is called by the builders before save.
+func EconomicEffectValidator(ee EconomicEffect) error {
+	switch ee {
+	case EconomicEffectINCREASE, EconomicEffectDECREASE:
+		return nil
+	default:
+		return fmt.Errorf("orderfee: invalid enum value for economic_effect field: %q", ee)
 	}
 }
 
@@ -436,6 +527,31 @@ func BySupplementRequestID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSupplementRequestID, opts...).ToFunc()
 }
 
+// ByEconomicEffect orders the results by the economic_effect field.
+func ByEconomicEffect(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEconomicEffect, opts...).ToFunc()
+}
+
+// ByAccountingRequired orders the results by the accounting_required field.
+func ByAccountingRequired(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountingRequired, opts...).ToFunc()
+}
+
+// BySourceFeeID orders the results by the source_fee_id field.
+func BySourceFeeID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceFeeID, opts...).ToFunc()
+}
+
+// ByCorrectionRequestID orders the results by the correction_request_id field.
+func ByCorrectionRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrectionRequestID, opts...).ToFunc()
+}
+
+// BySupersededByRequestID orders the results by the superseded_by_request_id field.
+func BySupersededByRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSupersededByRequestID, opts...).ToFunc()
+}
+
 // ByVersion orders the results by the version field.
 func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
@@ -473,6 +589,69 @@ func ByBillingUnitRefField(field string, opts ...sql.OrderTermOption) OrderOptio
 func BySupplementRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSupplementRequestStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCorrectionRequestField orders the results by correction_request field.
+func ByCorrectionRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCorrectionRequestStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// BySupersededByRequestField orders the results by superseded_by_request field.
+func BySupersededByRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSupersededByRequestStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCorrectionNettingAllocationsCount orders the results by correction_netting_allocations count.
+func ByCorrectionNettingAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCorrectionNettingAllocationsStep(), opts...)
+	}
+}
+
+// ByCorrectionNettingAllocations orders the results by correction_netting_allocations terms.
+func ByCorrectionNettingAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCorrectionNettingAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDerivedFeesCount orders the results by derived_fees count.
+func ByDerivedFeesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDerivedFeesStep(), opts...)
+	}
+}
+
+// ByDerivedFees orders the results by derived_fees terms.
+func ByDerivedFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDerivedFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySourceFeeField orders the results by source_fee field.
+func BySourceFeeField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSourceFeeStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTargetedCorrectionRequestsCount orders the results by targeted_correction_requests count.
+func ByTargetedCorrectionRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTargetedCorrectionRequestsStep(), opts...)
+	}
+}
+
+// ByTargetedCorrectionRequests orders the results by targeted_correction_requests terms.
+func ByTargetedCorrectionRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTargetedCorrectionRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -536,6 +715,48 @@ func newSupplementRequestStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SupplementRequestInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, SupplementRequestTable, SupplementRequestColumn),
+	)
+}
+func newCorrectionRequestStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CorrectionRequestInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CorrectionRequestTable, CorrectionRequestColumn),
+	)
+}
+func newSupersededByRequestStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SupersededByRequestInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SupersededByRequestTable, SupersededByRequestColumn),
+	)
+}
+func newCorrectionNettingAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CorrectionNettingAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CorrectionNettingAllocationsTable, CorrectionNettingAllocationsColumn),
+	)
+}
+func newDerivedFeesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DerivedFeesTable, DerivedFeesColumn),
+	)
+}
+func newSourceFeeStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(Table, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeTable, SourceFeeColumn),
+	)
+}
+func newTargetedCorrectionRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TargetedCorrectionRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TargetedCorrectionRequestsTable, TargetedCorrectionRequestsColumn),
 	)
 }
 func newFinanceBillLinesStep() *sqlgraph.Step {

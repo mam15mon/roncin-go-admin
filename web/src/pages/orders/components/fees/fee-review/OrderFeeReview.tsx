@@ -246,6 +246,7 @@ export function OrderFeeReviewSection({
             <FeeReviewStatus
               status={review.data.status}
               pendingSupplement={review.data.hasPendingSupplement}
+              pendingCorrection={review.data.hasPendingCorrection}
             />
             <Button onClick={() => setOpen(true)}>
               查看整票费用包与审核记录
@@ -319,6 +320,7 @@ export function OrderFeeReviewDrawer({
           <FeeReviewStatus
             status={review.data.status}
             pendingSupplement={review.data.hasPendingSupplement}
+            pendingCorrection={review.data.hasPendingCorrection}
           />
           <FeeReviewSummary summary={review.data.summary} />
           {!!review.data.blockedReasons?.length && (

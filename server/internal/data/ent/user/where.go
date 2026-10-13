@@ -2140,6 +2140,52 @@ func HasRequestedOrderFeeSupplementRequestsWith(preds ...predicate.OrderFeeSuppl
 	})
 }
 
+// HasRequestedFeeCorrectionRequests applies the HasEdge predicate on the "requested_fee_correction_requests" edge.
+func HasRequestedFeeCorrectionRequests() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RequestedFeeCorrectionRequestsTable, RequestedFeeCorrectionRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRequestedFeeCorrectionRequestsWith applies the HasEdge predicate on the "requested_fee_correction_requests" edge with a given conditions (other predicates).
+func HasRequestedFeeCorrectionRequestsWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newRequestedFeeCorrectionRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDecidedFeeCorrectionRequests applies the HasEdge predicate on the "decided_fee_correction_requests" edge.
+func HasDecidedFeeCorrectionRequests() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DecidedFeeCorrectionRequestsTable, DecidedFeeCorrectionRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDecidedFeeCorrectionRequestsWith applies the HasEdge predicate on the "decided_fee_correction_requests" edge with a given conditions (other predicates).
+func HasDecidedFeeCorrectionRequestsWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newDecidedFeeCorrectionRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasDecidedOrderFeeSupplementRequests applies the HasEdge predicate on the "decided_order_fee_supplement_requests" edge.
 func HasDecidedOrderFeeSupplementRequests() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

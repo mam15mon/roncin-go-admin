@@ -19,6 +19,7 @@ func (FinanceNettingAllocation) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin
 
 func (FinanceNettingAllocation) Fields() []ent.Field {
 	return []ent.Field{
+		field.UUID("source_fee_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("netting_id", uuid.Nil).Immutable(),
 		field.UUID("bill_id", uuid.Nil).Immutable(),
 		field.String("bill_no").NotEmpty().MaxLen(64).Immutable(),
@@ -31,6 +32,7 @@ func (FinanceNettingAllocation) Fields() []ent.Field {
 
 func (FinanceNettingAllocation) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("source_fee", OrderFee.Type).Ref("correction_netting_allocations").Field("source_fee_id").Unique().Immutable(),
 		edge.From("netting", FinanceNetting.Type).Ref("allocations").Field("netting_id").Unique().Required().Immutable(),
 		edge.From("bill", FinanceBill.Type).Ref("netting_allocations").Field("bill_id").Unique().Required().Immutable(),
 	}

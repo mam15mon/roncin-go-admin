@@ -331,6 +331,26 @@ func UpdatedAtLTE(v time.Time) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
+// PurposeEQ applies the EQ predicate on the "purpose" field.
+func PurposeEQ(v Purpose) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldEQ(FieldPurpose, v))
+}
+
+// PurposeNEQ applies the NEQ predicate on the "purpose" field.
+func PurposeNEQ(v Purpose) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNEQ(FieldPurpose, v))
+}
+
+// PurposeIn applies the In predicate on the "purpose" field.
+func PurposeIn(vs ...Purpose) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldIn(FieldPurpose, vs...))
+}
+
+// PurposeNotIn applies the NotIn predicate on the "purpose" field.
+func PurposeNotIn(vs ...Purpose) predicate.FinanceBill {
+	return predicate.FinanceBill(sql.FieldNotIn(FieldPurpose, vs...))
+}
+
 // OrganizationIDEQ applies the EQ predicate on the "organization_id" field.
 func OrganizationIDEQ(v uuid.UUID) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.FieldEQ(FieldOrganizationID, v))

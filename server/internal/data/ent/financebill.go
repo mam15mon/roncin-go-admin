@@ -26,6 +26,8 @@ type FinanceBill struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Purpose holds the value of the "purpose" field.
+	Purpose financebill.Purpose `json:"purpose,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// BillNo holds the value of the "bill_no" field.
@@ -248,7 +250,7 @@ func (*FinanceBill) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financebill.FieldFeeCount, financebill.FieldPaymentTermsDays, financebill.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldSettlementAccountName, financebill.FieldSettlementAccountHolder, financebill.FieldSettlementBankName, financebill.FieldSettlementBankAccount, financebill.FieldSettlementAccountCurrency, financebill.FieldSettlementSwiftCode, financebill.FieldEstimatedInvoiceCurrency, financebill.FieldEstimatedInvoiceRate, financebill.FieldEstimatedInvoiceAmount, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldExchangeRate, financebill.FieldExchangeRateSource, financebill.FieldExchangeRateDate, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
+		case financebill.FieldPurpose, financebill.FieldBillNo, financebill.FieldIdempotencyKey, financebill.FieldDirection, financebill.FieldStatus, financebill.FieldSettlementPartyName, financebill.FieldSettlementAccountName, financebill.FieldSettlementAccountHolder, financebill.FieldSettlementBankName, financebill.FieldSettlementBankAccount, financebill.FieldSettlementAccountCurrency, financebill.FieldSettlementSwiftCode, financebill.FieldEstimatedInvoiceCurrency, financebill.FieldEstimatedInvoiceRate, financebill.FieldEstimatedInvoiceAmount, financebill.FieldCurrency, financebill.FieldBaseCurrency, financebill.FieldExchangeRate, financebill.FieldExchangeRateSource, financebill.FieldExchangeRateDate, financebill.FieldTotalAmount, financebill.FieldNetAmount, financebill.FieldTaxAmount, financebill.FieldBaseCurrencyAmount, financebill.FieldBillDate, financebill.FieldStatementTitle, financebill.FieldDueDate, financebill.FieldNote, financebill.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financebill.FieldCreatedAt, financebill.FieldUpdatedAt, financebill.FieldConfirmedAt, financebill.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -286,6 +288,12 @@ func (_m *FinanceBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financebill.FieldPurpose:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field purpose", values[i])
+			} else if value.Valid {
+				_m.Purpose = financebill.Purpose(value.String)
 			}
 		case financebill.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -632,6 +640,9 @@ func (_m *FinanceBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("purpose=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Purpose))
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

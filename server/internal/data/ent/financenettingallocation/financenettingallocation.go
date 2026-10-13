@@ -20,6 +20,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldSourceFeeID holds the string denoting the source_fee_id field in the database.
+	FieldSourceFeeID = "source_fee_id"
 	// FieldNettingID holds the string denoting the netting_id field in the database.
 	FieldNettingID = "netting_id"
 	// FieldBillID holds the string denoting the bill_id field in the database.
@@ -34,12 +36,21 @@ const (
 	FieldBaseCurrencyAmount = "base_currency_amount"
 	// FieldActive holds the string denoting the active field in the database.
 	FieldActive = "active"
+	// EdgeSourceFee holds the string denoting the source_fee edge name in mutations.
+	EdgeSourceFee = "source_fee"
 	// EdgeNetting holds the string denoting the netting edge name in mutations.
 	EdgeNetting = "netting"
 	// EdgeBill holds the string denoting the bill edge name in mutations.
 	EdgeBill = "bill"
 	// Table holds the table name of the financenettingallocation in the database.
 	Table = "finance_netting_allocations"
+	// SourceFeeTable is the table that holds the source_fee relation/edge.
+	SourceFeeTable = "finance_netting_allocations"
+	// SourceFeeInverseTable is the table name for the OrderFee entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfee" package.
+	SourceFeeInverseTable = "order_fees"
+	// SourceFeeColumn is the table column denoting the source_fee relation/edge.
+	SourceFeeColumn = "source_fee_id"
 	// NettingTable is the table that holds the netting relation/edge.
 	NettingTable = "finance_netting_allocations"
 	// NettingInverseTable is the table name for the FinanceNetting entity.
@@ -61,6 +72,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldSourceFeeID,
 	FieldNettingID,
 	FieldBillID,
 	FieldBillNo,
@@ -136,6 +148,11 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
+// BySourceFeeID orders the results by the source_fee_id field.
+func BySourceFeeID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceFeeID, opts...).ToFunc()
+}
+
 // ByNettingID orders the results by the netting_id field.
 func ByNettingID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNettingID, opts...).ToFunc()
@@ -171,6 +188,13 @@ func ByActive(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActive, opts...).ToFunc()
 }
 
+// BySourceFeeField orders the results by source_fee field.
+func BySourceFeeField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSourceFeeStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByNettingField orders the results by netting field.
 func ByNettingField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -183,6 +207,13 @@ func ByBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newBillStep(), sql.OrderByField(field, opts...))
 	}
+}
+func newSourceFeeStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SourceFeeInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeTable, SourceFeeColumn),
+	)
 }
 func newNettingStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

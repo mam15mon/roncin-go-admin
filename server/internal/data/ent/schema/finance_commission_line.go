@@ -43,6 +43,8 @@ func (FinanceCommissionLine) Fields() []ent.Field {
 		field.Time("personnel_assigned_at").Immutable(),
 		field.Int("fee_count").NonNegative().Immutable(),
 		field.String("fee_snapshot").Default("[]").SchemaType(map[string]string{dialect.Postgres: "jsonb"}).Immutable(),
+		field.Uint64("fee_content_version_snapshot").Default(1).Immutable(),
+		field.String("realization_snapshot").Default("{}").SchemaType(map[string]string{dialect.Postgres: "jsonb"}).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
 		field.String("personnel_role").NotEmpty().MaxLen(20).Immutable(),

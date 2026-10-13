@@ -103,14 +103,13 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
     } as Awaited<ReturnType<typeof listAdjustments>>);
   });
 
-  it('默认按已确认补录冲减服务端过滤', async () => {
+  it('默认按已确认调整服务端过滤，包含更正补付与扣回', async () => {
     renderPanel();
     await waitFor(() => expect(listAdjustments).toHaveBeenCalledTimes(1));
     expect(listAdjustments).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
       status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
-      sourceType: 'LOCKED_FEE_SUPPLEMENT',
       keyword: undefined,
     });
   });
@@ -125,7 +124,6 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
       page: 1,
       pageSize: 20,
       status: 2,
-      sourceType: 'LOCKED_FEE_SUPPLEMENT',
       keyword: 'SE-100',
     });
   });
@@ -231,5 +229,23 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
       id: 'adj-1',
       expectedVersion: '2',
     });
+  });
+  it('费用更正增提显示补付动作和正金额', async () => {
+    listAdjustments.mockResolvedValue({
+      data: [
+        adjustmentRow({
+          direction: 'INCREASE',
+          sourceType: 'FEE_CORRECTION',
+          amount: '90',
+          status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
+        }),
+      ],
+      total: '1',
+      success: true,
+    });
+    renderPanel();
+    expect(await screen.findByText('+90.00 CNY')).toBeInTheDocument();
+    expect(screen.getByText('标记已补付')).toBeInTheDocument();
+    expect(screen.queryByText('标记已扣回')).not.toBeInTheDocument();
   });
 });

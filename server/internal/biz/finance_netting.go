@@ -44,6 +44,7 @@ const (
 
 // FinanceNettingAllocation 是对冲确认后在原始账单上形成的抵销分摊；只有 active 分摊参与可用余额。
 type FinanceNettingAllocation struct {
+	SourceFeeID        *uuid.UUID
 	ID                 uuid.UUID
 	NettingID          uuid.UUID
 	BillID             uuid.UUID
@@ -58,6 +59,7 @@ type FinanceNettingAllocation struct {
 // BaseCurrencyAmount 语义固化为应收侧抵销本位币；PayableBaseAmount 为应付侧抵销本位币，
 // ExchangeGainLoss 为应付侧减应收侧的对冲汇差（同币种同汇率时为 0，可为负）。
 type FinanceNetting struct {
+	CorrectionRequestID  *uuid.UUID
 	ID                   uuid.UUID
 	OrganizationID       uuid.UUID
 	OrganizationName     string
@@ -91,6 +93,9 @@ type FinanceNetting struct {
 
 // FinanceNettingBill 是锁内读取的账单余额事实；可用余额 = 总额 - 有效核销 - 有效对冲。
 type FinanceNettingBill struct {
+	EligibleAmount      *decimal.Decimal
+	SourceFeeID         *uuid.UUID
+	CorrectionRequestID *uuid.UUID
 	ID                  uuid.UUID
 	BillNo              string
 	BillDate            string
@@ -108,6 +113,9 @@ type FinanceNettingBill struct {
 }
 
 func (b *FinanceNettingBill) AvailableAmount() decimal.Decimal {
+	if b.EligibleAmount != nil {
+		return *b.EligibleAmount
+	}
 	available := b.TotalAmount.Sub(b.VerifiedAmount).Sub(b.NettedAmount)
 	if available.IsNegative() {
 		return decimal.Zero
@@ -258,6 +266,7 @@ func ApplyFinanceNettingPreviewAmounts(preview *FinanceNettingPreview) {
 }
 
 type financeNettingPlan struct {
+	CorrectionRequestID *uuid.UUID
 	SettlementPartyID   uuid.UUID
 	SettlementPartyName string
 	Currency            string
@@ -291,6 +300,12 @@ func PlanFinanceNetting(bills []*FinanceNettingBill, expectedVersions []FinanceN
 	receivableTotal, payableTotal := decimal.Zero, decimal.Zero
 	hasReceivable, hasPayable := false, false
 	plan := &financeNettingPlan{}
+	for _, bill := range bills {
+		if bill != nil && bill.CorrectionRequestID != nil {
+			plan.CorrectionRequestID = bill.CorrectionRequestID
+			break
+		}
+	}
 	for _, bill := range bills {
 		if bill == nil || bill.ID == uuid.Nil {
 			return nil, ErrFinanceNettingMismatch
@@ -347,7 +362,7 @@ func PlanFinanceNetting(bills []*FinanceNettingBill, expectedVersions []FinanceN
 				continue
 			}
 			plan.Allocations = append(plan.Allocations, &FinanceNettingAllocation{
-				BillID: bill.ID, BillNo: bill.BillNo, Direction: direction,
+				SourceFeeID: bill.SourceFeeID, BillID: bill.ID, BillNo: bill.BillNo, Direction: direction,
 				Amount: allocated, BaseCurrencyAmount: allocated.Mul(bill.ExchangeRate).RoundBank(8),
 			})
 			remaining = remaining.Sub(allocated)
@@ -390,8 +405,14 @@ func ValidateFinanceNettingConfirmation(netting *FinanceNetting, bills []*Financ
 		if bill.Status != FinanceBillConfirmed {
 			return ErrFinanceNettingBillNotConfirmed
 		}
+		if (netting.CorrectionRequestID == nil) != (bill.CorrectionRequestID == nil) || (netting.CorrectionRequestID != nil && *netting.CorrectionRequestID != *bill.CorrectionRequestID) {
+			return ErrFinanceNettingTransition
+		}
 		if allocation.Direction != bill.Direction {
 			return ErrFinanceNettingInvalid
+		}
+		if (allocation.SourceFeeID == nil) != (bill.SourceFeeID == nil) || (allocation.SourceFeeID != nil && *allocation.SourceFeeID != *bill.SourceFeeID) {
+			return ErrFinanceNettingTransition
 		}
 		if bill.AvailableAmount().LessThan(allocation.Amount) {
 			return ErrFinanceNettingBalance
@@ -444,7 +465,7 @@ func (uc *FinanceNettingUsecase) Create(ctx context.Context, organizationID, act
 		}
 		id := uuid.Must(uuid.NewV7())
 		netting := &FinanceNetting{
-			ID: id, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash,
+			CorrectionRequestID: plan.CorrectionRequestID, ID: id, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash,
 			Status: FinanceNettingDraft, SettlementPartyID: plan.SettlementPartyID, SettlementPartyName: plan.SettlementPartyName,
 			Currency: plan.Currency, Amount: plan.Amount, BaseCurrency: plan.BaseCurrency, BaseCurrencyAmount: plan.BaseCurrencyAmount,
 			PayableBaseAmount: plan.PayableBaseAmount, ExchangeGainLoss: plan.ExchangeGainLoss,
@@ -581,6 +602,7 @@ func planBatchFinanceNettings(organizationID, batchID uuid.UUID, batchKey string
 		settlementPartyID   uuid.UUID
 		settlementPartyName string
 		currency, base      string
+		correctionRequestID *uuid.UUID
 		receivable, payable []*FinanceBill
 	}
 	pairs := make(map[string]*pairBills)
@@ -591,9 +613,12 @@ func planBatchFinanceNettings(organizationID, batchID uuid.UUID, batchKey string
 			return nil, ErrFinanceNettingInvalid
 		}
 		key := bill.SettlementPartyID.String() + "|" + bill.Currency
+		if bill.CorrectionRequestID != nil {
+			key += "|" + bill.CorrectionRequestID.String()
+		}
 		pair := pairs[key]
 		if pair == nil {
-			pair = &pairBills{settlementPartyID: bill.SettlementPartyID, settlementPartyName: bill.SettlementPartyName, currency: bill.Currency, base: bill.BaseCurrency}
+			pair = &pairBills{settlementPartyID: bill.SettlementPartyID, settlementPartyName: bill.SettlementPartyName, currency: bill.Currency, base: bill.BaseCurrency, correctionRequestID: bill.CorrectionRequestID}
 			pairs[key] = pair
 			keys = append(keys, key)
 		}
@@ -614,7 +639,7 @@ func planBatchFinanceNettings(organizationID, batchID uuid.UUID, batchKey string
 			return nil, ErrFinanceNettingSingleDirection
 		}
 		netting := &FinanceNetting{
-			ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, BatchID: &batchID,
+			CorrectionRequestID: pair.correctionRequestID, ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, BatchID: &batchID,
 			IdempotencyKey: financeBillBatchNettingKey(batchKey, pair.settlementPartyID, pair.currency),
 			Status:         FinanceNettingDraft, SettlementPartyID: pair.settlementPartyID, SettlementPartyName: pair.settlementPartyName,
 			Currency: pair.currency, BaseCurrency: pair.base, Version: 1,
@@ -650,8 +675,17 @@ func planBatchFinanceNettings(organizationID, batchID uuid.UUID, batchKey string
 					continue
 				}
 				baseAmount := allocated.Mul(bill.ExchangeRate).RoundBank(8)
+				var sourceFeeID *uuid.UUID
+				if bill.CorrectionRequestID != nil {
+					if len(bill.Lines) != 1 {
+						return nil, ErrFinanceNettingMismatch
+					}
+					id := bill.Lines[0].OrderFeeID
+					sourceFeeID = &id
+				}
 				netting.Allocations = append(netting.Allocations, &FinanceNettingAllocation{
-					ID: uuid.Must(uuid.NewV7()), NettingID: netting.ID, BillID: bill.ID, BillNo: bill.BillNo,
+					SourceFeeID: sourceFeeID,
+					ID:          uuid.Must(uuid.NewV7()), NettingID: netting.ID, BillID: bill.ID, BillNo: bill.BillNo,
 					Direction: direction, Amount: allocated, BaseCurrencyAmount: baseAmount,
 				})
 				if direction == OrderFeeReceivable {

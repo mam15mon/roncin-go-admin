@@ -15,8 +15,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -26,20 +28,23 @@ import (
 // FinanceCommissionAdjustmentQuery is the builder for querying FinanceCommissionAdjustment entities.
 type FinanceCommissionAdjustmentQuery struct {
 	config
-	ctx                            *QueryContext
-	order                          []financecommissionadjustment.OrderOption
-	inters                         []Interceptor
-	predicates                     []predicate.FinanceCommissionAdjustment
-	withOrganization               *OrganizationQuery
-	withCommission                 *FinanceCommissionQuery
-	withOrder                      *OrderQuery
-	withEmployee                   *UserQuery
-	withSourceVerification         *FinanceVerificationQuery
-	withSourceFeeSupplementRequest *OrderFeeSupplementRequestQuery
-	withConfirmedByUser            *UserQuery
-	withPaidByUser                 *UserQuery
-	withCancelledByUser            *UserQuery
-	modifiers                      []func(*sql.Selector)
+	ctx                                  *QueryContext
+	order                                []financecommissionadjustment.OrderOption
+	inters                               []Interceptor
+	predicates                           []predicate.FinanceCommissionAdjustment
+	withOrganization                     *OrganizationQuery
+	withCommission                       *FinanceCommissionQuery
+	withOrder                            *OrderQuery
+	withEmployee                         *UserQuery
+	withSourceVerification               *FinanceVerificationQuery
+	withSourceFeeSupplementRequest       *OrderFeeSupplementRequestQuery
+	withSourceFeeCorrectionRequest       *OrderFeeCorrectionRequestQuery
+	withSupersededByFeeCorrectionRequest *OrderFeeCorrectionRequestQuery
+	withSourceNetting                    *FinanceNettingQuery
+	withConfirmedByUser                  *UserQuery
+	withPaidByUser                       *UserQuery
+	withCancelledByUser                  *UserQuery
+	modifiers                            []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -201,6 +206,72 @@ func (_q *FinanceCommissionAdjustmentQuery) QuerySourceFeeSupplementRequest() *O
 			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, selector),
 			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SourceFeeSupplementRequestTable, financecommissionadjustment.SourceFeeSupplementRequestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySourceFeeCorrectionRequest chains the current query on the "source_fee_correction_request" edge.
+func (_q *FinanceCommissionAdjustmentQuery) QuerySourceFeeCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SourceFeeCorrectionRequestTable, financecommissionadjustment.SourceFeeCorrectionRequestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySupersededByFeeCorrectionRequest chains the current query on the "superseded_by_fee_correction_request" edge.
+func (_q *FinanceCommissionAdjustmentQuery) QuerySupersededByFeeCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SupersededByFeeCorrectionRequestTable, financecommissionadjustment.SupersededByFeeCorrectionRequestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySourceNetting chains the current query on the "source_netting" edge.
+func (_q *FinanceCommissionAdjustmentQuery) QuerySourceNetting() *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, selector),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SourceNettingTable, financecommissionadjustment.SourceNettingColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -461,20 +532,23 @@ func (_q *FinanceCommissionAdjustmentQuery) Clone() *FinanceCommissionAdjustment
 		return nil
 	}
 	return &FinanceCommissionAdjustmentQuery{
-		config:                         _q.config,
-		ctx:                            _q.ctx.Clone(),
-		order:                          append([]financecommissionadjustment.OrderOption{}, _q.order...),
-		inters:                         append([]Interceptor{}, _q.inters...),
-		predicates:                     append([]predicate.FinanceCommissionAdjustment{}, _q.predicates...),
-		withOrganization:               _q.withOrganization.Clone(),
-		withCommission:                 _q.withCommission.Clone(),
-		withOrder:                      _q.withOrder.Clone(),
-		withEmployee:                   _q.withEmployee.Clone(),
-		withSourceVerification:         _q.withSourceVerification.Clone(),
-		withSourceFeeSupplementRequest: _q.withSourceFeeSupplementRequest.Clone(),
-		withConfirmedByUser:            _q.withConfirmedByUser.Clone(),
-		withPaidByUser:                 _q.withPaidByUser.Clone(),
-		withCancelledByUser:            _q.withCancelledByUser.Clone(),
+		config:                               _q.config,
+		ctx:                                  _q.ctx.Clone(),
+		order:                                append([]financecommissionadjustment.OrderOption{}, _q.order...),
+		inters:                               append([]Interceptor{}, _q.inters...),
+		predicates:                           append([]predicate.FinanceCommissionAdjustment{}, _q.predicates...),
+		withOrganization:                     _q.withOrganization.Clone(),
+		withCommission:                       _q.withCommission.Clone(),
+		withOrder:                            _q.withOrder.Clone(),
+		withEmployee:                         _q.withEmployee.Clone(),
+		withSourceVerification:               _q.withSourceVerification.Clone(),
+		withSourceFeeSupplementRequest:       _q.withSourceFeeSupplementRequest.Clone(),
+		withSourceFeeCorrectionRequest:       _q.withSourceFeeCorrectionRequest.Clone(),
+		withSupersededByFeeCorrectionRequest: _q.withSupersededByFeeCorrectionRequest.Clone(),
+		withSourceNetting:                    _q.withSourceNetting.Clone(),
+		withConfirmedByUser:                  _q.withConfirmedByUser.Clone(),
+		withPaidByUser:                       _q.withPaidByUser.Clone(),
+		withCancelledByUser:                  _q.withCancelledByUser.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -544,6 +618,39 @@ func (_q *FinanceCommissionAdjustmentQuery) WithSourceFeeSupplementRequest(opts 
 		opt(query)
 	}
 	_q.withSourceFeeSupplementRequest = query
+	return _q
+}
+
+// WithSourceFeeCorrectionRequest tells the query-builder to eager-load the nodes that are connected to
+// the "source_fee_correction_request" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionAdjustmentQuery) WithSourceFeeCorrectionRequest(opts ...func(*OrderFeeCorrectionRequestQuery)) *FinanceCommissionAdjustmentQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSourceFeeCorrectionRequest = query
+	return _q
+}
+
+// WithSupersededByFeeCorrectionRequest tells the query-builder to eager-load the nodes that are connected to
+// the "superseded_by_fee_correction_request" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionAdjustmentQuery) WithSupersededByFeeCorrectionRequest(opts ...func(*OrderFeeCorrectionRequestQuery)) *FinanceCommissionAdjustmentQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSupersededByFeeCorrectionRequest = query
+	return _q
+}
+
+// WithSourceNetting tells the query-builder to eager-load the nodes that are connected to
+// the "source_netting" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceCommissionAdjustmentQuery) WithSourceNetting(opts ...func(*FinanceNettingQuery)) *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceNettingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSourceNetting = query
 	return _q
 }
 
@@ -658,13 +765,16 @@ func (_q *FinanceCommissionAdjustmentQuery) sqlAll(ctx context.Context, hooks ..
 	var (
 		nodes       = []*FinanceCommissionAdjustment{}
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [12]bool{
 			_q.withOrganization != nil,
 			_q.withCommission != nil,
 			_q.withOrder != nil,
 			_q.withEmployee != nil,
 			_q.withSourceVerification != nil,
 			_q.withSourceFeeSupplementRequest != nil,
+			_q.withSourceFeeCorrectionRequest != nil,
+			_q.withSupersededByFeeCorrectionRequest != nil,
+			_q.withSourceNetting != nil,
 			_q.withConfirmedByUser != nil,
 			_q.withPaidByUser != nil,
 			_q.withCancelledByUser != nil,
@@ -726,6 +836,28 @@ func (_q *FinanceCommissionAdjustmentQuery) sqlAll(ctx context.Context, hooks ..
 			func(n *FinanceCommissionAdjustment, e *OrderFeeSupplementRequest) {
 				n.Edges.SourceFeeSupplementRequest = e
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSourceFeeCorrectionRequest; query != nil {
+		if err := _q.loadSourceFeeCorrectionRequest(ctx, query, nodes, nil,
+			func(n *FinanceCommissionAdjustment, e *OrderFeeCorrectionRequest) {
+				n.Edges.SourceFeeCorrectionRequest = e
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSupersededByFeeCorrectionRequest; query != nil {
+		if err := _q.loadSupersededByFeeCorrectionRequest(ctx, query, nodes, nil,
+			func(n *FinanceCommissionAdjustment, e *OrderFeeCorrectionRequest) {
+				n.Edges.SupersededByFeeCorrectionRequest = e
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSourceNetting; query != nil {
+		if err := _q.loadSourceNetting(ctx, query, nodes, nil,
+			func(n *FinanceCommissionAdjustment, e *FinanceNetting) { n.Edges.SourceNetting = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -930,6 +1062,102 @@ func (_q *FinanceCommissionAdjustmentQuery) loadSourceFeeSupplementRequest(ctx c
 	}
 	return nil
 }
+func (_q *FinanceCommissionAdjustmentQuery) loadSourceFeeCorrectionRequest(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*FinanceCommissionAdjustment, init func(*FinanceCommissionAdjustment), assign func(*FinanceCommissionAdjustment, *OrderFeeCorrectionRequest)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceCommissionAdjustment)
+	for i := range nodes {
+		if nodes[i].SourceFeeCorrectionRequestID == nil {
+			continue
+		}
+		fk := *nodes[i].SourceFeeCorrectionRequestID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfeecorrectionrequest.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "source_fee_correction_request_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceCommissionAdjustmentQuery) loadSupersededByFeeCorrectionRequest(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*FinanceCommissionAdjustment, init func(*FinanceCommissionAdjustment), assign func(*FinanceCommissionAdjustment, *OrderFeeCorrectionRequest)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceCommissionAdjustment)
+	for i := range nodes {
+		if nodes[i].SupersededByFeeCorrectionRequestID == nil {
+			continue
+		}
+		fk := *nodes[i].SupersededByFeeCorrectionRequestID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfeecorrectionrequest.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "superseded_by_fee_correction_request_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *FinanceCommissionAdjustmentQuery) loadSourceNetting(ctx context.Context, query *FinanceNettingQuery, nodes []*FinanceCommissionAdjustment, init func(*FinanceCommissionAdjustment), assign func(*FinanceCommissionAdjustment, *FinanceNetting)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*FinanceCommissionAdjustment)
+	for i := range nodes {
+		if nodes[i].SourceNettingID == nil {
+			continue
+		}
+		fk := *nodes[i].SourceNettingID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(financenetting.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "source_netting_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *FinanceCommissionAdjustmentQuery) loadConfirmedByUser(ctx context.Context, query *UserQuery, nodes []*FinanceCommissionAdjustment, init func(*FinanceCommissionAdjustment), assign func(*FinanceCommissionAdjustment, *User)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FinanceCommissionAdjustment)
@@ -1072,6 +1300,15 @@ func (_q *FinanceCommissionAdjustmentQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withSourceFeeSupplementRequest != nil {
 			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldSourceFeeSupplementRequestID)
+		}
+		if _q.withSourceFeeCorrectionRequest != nil {
+			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldSourceFeeCorrectionRequestID)
+		}
+		if _q.withSupersededByFeeCorrectionRequest != nil {
+			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldSupersededByFeeCorrectionRequestID)
+		}
+		if _q.withSourceNetting != nil {
+			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldSourceNettingID)
 		}
 		if _q.withConfirmedByUser != nil {
 			_spec.Node.AddColumnOnce(financecommissionadjustment.FieldConfirmedBy)

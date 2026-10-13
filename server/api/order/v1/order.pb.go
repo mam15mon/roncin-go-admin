@@ -1256,6 +1256,8 @@ type OrderFeeReviewProjection struct {
 	CanBill              bool                   `protobuf:"varint,9,opt,name=can_bill,json=canBill,proto3" json:"can_bill,omitempty"`
 	BlockedReasons       []string               `protobuf:"bytes,10,rep,name=blocked_reasons,json=blockedReasons,proto3" json:"blocked_reasons,omitempty"`
 	Summary              *OrderFeeReviewSummary `protobuf:"bytes,11,opt,name=summary,proto3" json:"summary,omitempty"`
+	HasPendingCorrection bool                   `protobuf:"varint,12,opt,name=has_pending_correction,json=hasPendingCorrection,proto3" json:"has_pending_correction,omitempty"`
+	HasPendingChange     bool                   `protobuf:"varint,13,opt,name=has_pending_change,json=hasPendingChange,proto3" json:"has_pending_change,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -1365,6 +1367,20 @@ func (x *OrderFeeReviewProjection) GetSummary() *OrderFeeReviewSummary {
 		return x.Summary
 	}
 	return nil
+}
+
+func (x *OrderFeeReviewProjection) GetHasPendingCorrection() bool {
+	if x != nil {
+		return x.HasPendingCorrection
+	}
+	return false
+}
+
+func (x *OrderFeeReviewProjection) GetHasPendingChange() bool {
+	if x != nil {
+		return x.HasPendingChange
+	}
+	return false
 }
 
 type Order struct {
@@ -6821,7 +6837,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rpayable_count\x18\a \x01(\x05R\fpayableCount\x12*\n" +
 	"\x11submitted_by_name\x18\b \x01(\tR\x0fsubmittedByName\x12!\n" +
 	"\fsubmitted_at\x18\t \x01(\tR\vsubmittedAtB\x0e\n" +
-	"\f_profit_rate\"\xc4\x03\n" +
+	"\f_profit_rate\"\xa8\x04\n" +
 	"\x18OrderFeeReviewProjection\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12'\n" +
 	"\x0fcontent_version\x18\x02 \x01(\x04R\x0econtentVersion\x12%\n" +
@@ -6835,7 +6851,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\bcan_bill\x18\t \x01(\bR\acanBill\x12'\n" +
 	"\x0fblocked_reasons\x18\n" +
 	" \x03(\tR\x0eblockedReasons\x129\n" +
-	"\asummary\x18\v \x01(\v2\x1f.order.v1.OrderFeeReviewSummaryR\asummary\"\xcf2\n" +
+	"\asummary\x18\v \x01(\v2\x1f.order.v1.OrderFeeReviewSummaryR\asummary\x124\n" +
+	"\x16has_pending_correction\x18\f \x01(\bR\x14hasPendingCorrection\x12,\n" +
+	"\x12has_pending_change\x18\r \x01(\bR\x10hasPendingChange\"\xcf2\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +

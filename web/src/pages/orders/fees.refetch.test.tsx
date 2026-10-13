@@ -64,6 +64,9 @@ vi.mock('@/services/roncin/orderService', () => ({
 }));
 vi.mock('@/services/roncin/orderFeeService', async (original) => ({
   ...(await original<typeof import('@/services/roncin/orderFeeService')>()),
+  orderFeeServiceListOrderFeeCorrectionRequests: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: [], total: 0 }),
   orderFeeServiceListFeeOptions: vi.fn().mockResolvedValue({
     currencies: [{ code: 'CNY', name: '人民币' }],
     settlementParties: [{ id: 'p1', name: '供应商' }],
@@ -77,6 +80,7 @@ vi.mock('@/services/roncin/orderFeeService', async (original) => ({
         orderId: 'o1',
         status: 'APPROVED',
         hasPendingSupplement: state.pending,
+        hasPendingChange: state.pending,
         canBill: !state.pending,
       },
     })),

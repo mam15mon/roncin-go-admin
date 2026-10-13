@@ -158,6 +158,20 @@ func (_c *OrderFeeReviewEventCreate) SetNillableSupplementRequestID(v *uuid.UUID
 	return _c
 }
 
+// SetCorrectionRequestID sets the "correction_request_id" field.
+func (_c *OrderFeeReviewEventCreate) SetCorrectionRequestID(v uuid.UUID) *OrderFeeReviewEventCreate {
+	_c.mutation.SetCorrectionRequestID(v)
+	return _c
+}
+
+// SetNillableCorrectionRequestID sets the "correction_request_id" field if the given value is not nil.
+func (_c *OrderFeeReviewEventCreate) SetNillableCorrectionRequestID(v *uuid.UUID) *OrderFeeReviewEventCreate {
+	if v != nil {
+		_c.SetCorrectionRequestID(*v)
+	}
+	return _c
+}
+
 // SetIdempotencyKey sets the "idempotency_key" field.
 func (_c *OrderFeeReviewEventCreate) SetIdempotencyKey(v string) *OrderFeeReviewEventCreate {
 	_c.mutation.SetIdempotencyKey(v)
@@ -406,6 +420,10 @@ func (_c *OrderFeeReviewEventCreate) createSpec() (*OrderFeeReviewEvent, *sqlgra
 		_spec.SetField(orderfeereviewevent.FieldSupplementRequestID, field.TypeUUID, value)
 		_node.SupplementRequestID = &value
 	}
+	if value, ok := _c.mutation.CorrectionRequestID(); ok {
+		_spec.SetField(orderfeereviewevent.FieldCorrectionRequestID, field.TypeUUID, value)
+		_node.CorrectionRequestID = &value
+	}
 	if value, ok := _c.mutation.IdempotencyKey(); ok {
 		_spec.SetField(orderfeereviewevent.FieldIdempotencyKey, field.TypeString, value)
 		_node.IdempotencyKey = value
@@ -550,6 +568,9 @@ func (u *OrderFeeReviewEventUpsertOne) UpdateNewValues() *OrderFeeReviewEventUps
 		}
 		if _, exists := u.create.mutation.SupplementRequestID(); exists {
 			s.SetIgnore(orderfeereviewevent.FieldSupplementRequestID)
+		}
+		if _, exists := u.create.mutation.CorrectionRequestID(); exists {
+			s.SetIgnore(orderfeereviewevent.FieldCorrectionRequestID)
 		}
 		if _, exists := u.create.mutation.IdempotencyKey(); exists {
 			s.SetIgnore(orderfeereviewevent.FieldIdempotencyKey)
@@ -823,6 +844,9 @@ func (u *OrderFeeReviewEventUpsertBulk) UpdateNewValues() *OrderFeeReviewEventUp
 			}
 			if _, exists := b.mutation.SupplementRequestID(); exists {
 				s.SetIgnore(orderfeereviewevent.FieldSupplementRequestID)
+			}
+			if _, exists := b.mutation.CorrectionRequestID(); exists {
+				s.SetIgnore(orderfeereviewevent.FieldCorrectionRequestID)
 			}
 			if _, exists := b.mutation.IdempotencyKey(); exists {
 				s.SetIgnore(orderfeereviewevent.FieldIdempotencyKey)

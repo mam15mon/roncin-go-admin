@@ -144,6 +144,30 @@ func (r *financeNettingRepo) LockNetting(ctx context.Context, organizationIDs []
 	if err != nil {
 		return nil, err
 	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		allocations, err := client.FinanceNettingAllocation.Query().Where(financenettingallocationent.NettingIDEQ(id)).All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		ids := make([]uuid.UUID, 0, len(allocations))
+		for _, a := range allocations {
+			ids = append(ids, a.BillID)
+		}
+		parent, err := client.FinanceNetting.Query().Where(financenettingent.IDEQ(id), financenettingent.OrganizationIDIn(organizationIDs...)).Only(ctx)
+		if err != nil {
+			return nil, mapEntError(err, biz.ErrFinanceNettingNotFound, nil)
+		}
+		orders, err := commissionEconomicAffectedOrderIDs(ctx, client, parent.OrganizationID, ids)
+		if err != nil {
+			return nil, err
+		}
+		if err := lockFinanceEconomicOrders(ctx, client, orders); err != nil {
+			return nil, err
+		}
+		if err := validateFinanceEconomicOrderSet(ctx, client, parent.OrganizationID, ids, orders); err != nil {
+			return nil, err
+		}
+	}
 	query := financeNettingQueryWithRelations(client.FinanceNetting.Query()).
 		Where(financenettingent.IDEQ(id), financenettingent.OrganizationIDIn(organizationIDs...))
 	if _, transactional := transactionFromContext(ctx); transactional {
@@ -272,9 +296,21 @@ func (r *financeNettingRepo) LockNettingBills(ctx context.Context, organizationI
 	if err != nil {
 		return nil, err
 	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		orders, err := commissionEconomicAffectedOrderIDs(ctx, client, organizationID, billIDs)
+		if err != nil {
+			return nil, err
+		}
+		if err := lockFinanceEconomicOrders(ctx, client, orders); err != nil {
+			return nil, err
+		}
+		if err := validateFinanceEconomicOrderSet(ctx, client, organizationID, billIDs, orders); err != nil {
+			return nil, err
+		}
+	}
 	query := client.FinanceBill.Query().
 		Where(financebillent.OrganizationIDEQ(organizationID), financebillent.IDIn(billIDs...)).
-		WithSettlementParty().Order(financebillent.ByID())
+		WithLines(func(q *ent.FinanceBillLineQuery) { q.WithOrderFee() }).WithSettlementParty().Order(financebillent.ByID())
 	if _, transactional := transactionFromContext(ctx); transactional {
 		query.ForUpdate()
 	}
@@ -317,6 +353,9 @@ func (r *financeNettingRepo) LockNettingBills(ctx context.Context, organizationI
 			Version: bill.Version,
 		})
 	}
+	if err := applyFinanceCorrectionNettingEligibility(ctx, client, bills, result); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -334,7 +373,7 @@ func (r *financeNettingRepo) Create(ctx context.Context, organizationID, _ uuid.
 		_, err = tx.FinanceNetting.Create().
 			SetID(netting.ID).SetOrganizationID(organizationID).SetNettingNo(netting.NettingNo).
 			SetIdempotencyKey(netting.IdempotencyKey).SetRequestHash(netting.RequestHash).
-			SetNillableBatchID(netting.BatchID).SetStatus(financenettingent.StatusDRAFT).
+			SetNillableCorrectionRequestID(netting.CorrectionRequestID).SetNillableBatchID(netting.BatchID).SetStatus(financenettingent.StatusDRAFT).
 			SetSettlementPartyID(netting.SettlementPartyID).SetSettlementPartyName(netting.SettlementPartyName).
 			SetCurrency(netting.Currency).SetAmount(netting.Amount.StringFixed(8)).
 			SetBaseCurrency(netting.BaseCurrency).SetBaseCurrencyAmount(netting.BaseCurrencyAmount.StringFixed(8)).
@@ -347,7 +386,7 @@ func (r *financeNettingRepo) Create(ctx context.Context, organizationID, _ uuid.
 		builders := make([]*ent.FinanceNettingAllocationCreate, 0, len(netting.Allocations))
 		for _, allocation := range netting.Allocations {
 			builders = append(builders, tx.FinanceNettingAllocation.Create().
-				SetID(allocation.ID).SetNettingID(netting.ID).SetBillID(allocation.BillID).SetBillNo(allocation.BillNo).
+				SetNillableSourceFeeID(allocation.SourceFeeID).SetID(allocation.ID).SetNettingID(netting.ID).SetBillID(allocation.BillID).SetBillNo(allocation.BillNo).
 				SetDirection(financenettingallocationent.Direction(allocation.Direction)).
 				SetAmount(allocation.Amount.StringFixed(8)).SetBaseCurrencyAmount(allocation.BaseCurrencyAmount.StringFixed(8)).
 				SetActive(false))
@@ -366,28 +405,52 @@ func (r *financeNettingRepo) Create(ctx context.Context, organizationID, _ uuid.
 }
 
 func (r *financeNettingRepo) Confirm(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceNetting, error) {
-	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, err := tx.FinanceNetting.Query().Where(financenettingent.IDEQ(id), financenettingent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if err != nil {
-			return mapEntError(err, biz.ErrFinanceNettingNotFound, nil)
-		}
-		if item.Version != expectedVersion {
-			return biz.ErrFinanceNettingVersionConflict
-		}
-		if item.Status != financenettingent.StatusDRAFT {
-			return biz.ErrFinanceNettingTransition
-		}
-		// 分摊在确认时才生效；生效后立即参与账单可用余额计算。
-		if _, err = tx.FinanceNettingAllocation.Update().Where(financenettingallocationent.NettingIDEQ(id), financenettingallocationent.ActiveEQ(false)).SetActive(true).Save(ctx); err != nil {
-			return err
-		}
-		now := time.Now().UTC()
-		if _, err = tx.FinanceNetting.UpdateOneID(id).
-			SetStatus(financenettingent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).
-			SetVersion(item.Version + 1).Save(ctx); err != nil {
-			return err
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
+	if err := r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
+		return r.data.WithTx(txCtx, func(tx *ent.Tx) error {
+			ctx := txCtx
+			locked, err := r.LockNetting(ctx, []uuid.UUID{organizationID}, id)
+			if err != nil {
+				return err
+			}
+			ids := make([]uuid.UUID, 0, len(locked.Allocations))
+			for _, allocation := range locked.Allocations {
+				ids = append(ids, allocation.BillID)
+			}
+			facts, err := r.LockNettingBills(ctx, organizationID, ids)
+			if err != nil {
+				return err
+			}
+			if err := biz.ValidateFinanceNettingConfirmation(locked, facts); err != nil {
+				return err
+			}
+			item, err := tx.FinanceNetting.Query().Where(financenettingent.IDEQ(id), financenettingent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+			if err != nil {
+				return mapEntError(err, biz.ErrFinanceNettingNotFound, nil)
+			}
+			if item.Version != expectedVersion {
+				return biz.ErrFinanceNettingVersionConflict
+			}
+			if item.Status != financenettingent.StatusDRAFT {
+				return biz.ErrFinanceNettingTransition
+			}
+			// 分摊在确认时才生效；生效后立即参与账单可用余额计算。
+			if _, err = tx.FinanceNettingAllocation.Update().Where(financenettingallocationent.NettingIDEQ(id), financenettingallocationent.ActiveEQ(false)).SetActive(true).Save(ctx); err != nil {
+				return err
+			}
+			now := time.Now().UTC()
+			if _, err = tx.FinanceNetting.UpdateOneID(id).
+				SetStatus(financenettingent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).
+				SetVersion(item.Version + 1).Save(ctx); err != nil {
+				return err
+			}
+			if err := validateFinanceCorrectionCoverages(ctx, tx.Client(), ids); err != nil {
+				return err
+			}
+			if err := reconcileCommissionEconomicSource(ctx, tx.Client(), organizationID, actorID, "NETTING_CONFIRM", id, expectedVersion+1); err != nil {
+				return err
+			}
+			return writeAudit(ctx, tx.AuditLog, audit)
+		})
 	}); err != nil {
 		return nil, err
 	}
@@ -437,7 +500,7 @@ func (r *financeNettingRepo) Reverse(ctx context.Context, organizationID, actorI
 		for _, allocation := range allocations {
 			billIDs = append(billIDs, allocation.BillID)
 		}
-		affectedOrderIDs, resolveErr := orderIDsForBills(ctx, tx.Client(), billIDs)
+		affectedOrderIDs, resolveErr := commissionEconomicAffectedOrderIDs(ctx, tx.Client(), organizationID, billIDs)
 		if resolveErr != nil {
 			return resolveErr
 		}
@@ -445,6 +508,9 @@ func (r *financeNettingRepo) Reverse(ctx context.Context, organizationID, actorI
 		//    订单已锁定不得阻止财务反转。
 		if lockErr := lockOrdersForFinanceReversal(ctx, tx, affectedOrderIDs); lockErr != nil {
 			return lockErr
+		}
+		if err := validateFinanceEconomicOrderSet(ctx, tx.Client(), organizationID, billIDs, affectedOrderIDs); err != nil {
+			return err
 		}
 		// 3. 锁定来源单并重验版本、状态。
 		item, err := tx.FinanceNetting.Query().Where(financenettingent.IDEQ(id), financenettingent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
@@ -457,9 +523,7 @@ func (r *financeNettingRepo) Reverse(ctx context.Context, organizationID, actorI
 		if item.Status != financenettingent.StatusCONFIRMED {
 			return biz.ErrFinanceNettingTransition
 		}
-		if reconcileErr := reconcileCommissionsForSourceReversal(ctx, tx, organizationID, commissionReversalSource{nettingID: id}, actorID, reason); reconcileErr != nil {
-			return reconcileErr
-		}
+
 		if _, err = tx.FinanceNettingAllocation.Update().Where(financenettingallocationent.NettingIDEQ(id), financenettingallocationent.ActiveEQ(true)).SetActive(false).Save(ctx); err != nil {
 			return err
 		}
@@ -467,6 +531,12 @@ func (r *financeNettingRepo) Reverse(ctx context.Context, organizationID, actorI
 		if _, err = tx.FinanceNetting.UpdateOneID(id).
 			SetStatus(financenettingent.StatusREVERSED).SetReversedAt(now).SetReversedBy(actorID).
 			SetReversalReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
+			return err
+		}
+		if err := validateFinanceCorrectionCoverages(ctx, tx.Client(), billIDs); err != nil {
+			return err
+		}
+		if err := reconcileCommissionEconomicSource(ctx, tx.Client(), organizationID, actorID, "NETTING_REVERSE", id, expectedVersion+1); err != nil {
 			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -494,7 +564,7 @@ func financeNettingToBiz(item *ent.FinanceNetting) (*biz.FinanceNetting, error) 
 		return nil, err
 	}
 	result := &biz.FinanceNetting{
-		ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, NettingNo: item.NettingNo,
+		CorrectionRequestID: item.CorrectionRequestID, ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, NettingNo: item.NettingNo,
 		IdempotencyKey: item.IdempotencyKey, RequestHash: item.RequestHash, Status: biz.FinanceNettingStatus(item.Status),
 		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName,
 		Currency: item.Currency, Amount: amount, BaseCurrency: item.BaseCurrency, BaseCurrencyAmount: baseAmount,
@@ -522,7 +592,7 @@ func financeNettingToBiz(item *ent.FinanceNetting) (*biz.FinanceNetting, error) 
 			return nil, parseErr
 		}
 		result.Allocations = append(result.Allocations, &biz.FinanceNettingAllocation{
-			ID: allocation.ID, NettingID: allocation.NettingID, BillID: allocation.BillID, BillNo: allocation.BillNo,
+			SourceFeeID: allocation.SourceFeeID, ID: allocation.ID, NettingID: allocation.NettingID, BillID: allocation.BillID, BillNo: allocation.BillNo,
 			Direction: biz.OrderFeeDirection(allocation.Direction), Amount: allocationAmount, BaseCurrencyAmount: allocationBaseAmount,
 			Active: allocation.Active,
 		})

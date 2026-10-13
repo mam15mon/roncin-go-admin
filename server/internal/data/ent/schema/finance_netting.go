@@ -19,6 +19,7 @@ func (FinanceNetting) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (FinanceNetting) Fields() []ent.Field {
 	return []ent.Field{
+		field.UUID("correction_request_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("netting_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
@@ -48,6 +49,8 @@ func (FinanceNetting) Fields() []ent.Field {
 
 func (FinanceNetting) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("correction_request", OrderFeeCorrectionRequest.Type).Ref("nettings").Field("correction_request_id").Unique().Immutable(),
+		edge.To("commission_economic_adjustments", FinanceCommissionAdjustment.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.From("organization", Organization.Type).Ref("finance_nettings").Field("organization_id").Unique().Required().Immutable(),
 		edge.From("settlement_party", Partner.Type).Ref("finance_nettings").Field("settlement_party_id").Unique().Required().Immutable(),
 		edge.From("batch", FinanceBillBatch.Type).Ref("nettings").Field("batch_id").Unique().Immutable(),

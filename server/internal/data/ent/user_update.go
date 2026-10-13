@@ -35,6 +35,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -1012,6 +1013,36 @@ func (_u *UserUpdate) AddRequestedOrderFeeSupplementRequests(v ...*OrderFeeSuppl
 		ids[i] = v[i].ID
 	}
 	return _u.AddRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// AddRequestedFeeCorrectionRequestIDs adds the "requested_fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *UserUpdate) AddRequestedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddRequestedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddRequestedFeeCorrectionRequests adds the "requested_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdate) AddRequestedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRequestedFeeCorrectionRequestIDs(ids...)
+}
+
+// AddDecidedFeeCorrectionRequestIDs adds the "decided_fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *UserUpdate) AddDecidedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddDecidedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddDecidedFeeCorrectionRequests adds the "decided_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdate) AddDecidedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDecidedFeeCorrectionRequestIDs(ids...)
 }
 
 // AddDecidedOrderFeeSupplementRequestIDs adds the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
@@ -2180,6 +2211,48 @@ func (_u *UserUpdate) RemoveRequestedOrderFeeSupplementRequests(v ...*OrderFeeSu
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// ClearRequestedFeeCorrectionRequests clears all "requested_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdate) ClearRequestedFeeCorrectionRequests() *UserUpdate {
+	_u.mutation.ClearRequestedFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveRequestedFeeCorrectionRequestIDs removes the "requested_fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *UserUpdate) RemoveRequestedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveRequestedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveRequestedFeeCorrectionRequests removes "requested_fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *UserUpdate) RemoveRequestedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRequestedFeeCorrectionRequestIDs(ids...)
+}
+
+// ClearDecidedFeeCorrectionRequests clears all "decided_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdate) ClearDecidedFeeCorrectionRequests() *UserUpdate {
+	_u.mutation.ClearDecidedFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveDecidedFeeCorrectionRequestIDs removes the "decided_fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *UserUpdate) RemoveDecidedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveDecidedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveDecidedFeeCorrectionRequests removes "decided_fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *UserUpdate) RemoveDecidedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDecidedFeeCorrectionRequestIDs(ids...)
 }
 
 // ClearDecidedOrderFeeSupplementRequests clears all "decided_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
@@ -4670,6 +4743,96 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.RequestedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedFeeCorrectionRequestsTable,
+			Columns: []string{user.RequestedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRequestedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.RequestedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedFeeCorrectionRequestsTable,
+			Columns: []string{user.RequestedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RequestedFeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedFeeCorrectionRequestsTable,
+			Columns: []string{user.RequestedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DecidedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedFeeCorrectionRequestsTable,
+			Columns: []string{user.DecidedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDecidedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.DecidedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedFeeCorrectionRequestsTable,
+			Columns: []string{user.DecidedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DecidedFeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedFeeCorrectionRequestsTable,
+			Columns: []string{user.DecidedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.DecidedOrderFeeSupplementRequestsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -6429,6 +6592,36 @@ func (_u *UserUpdateOne) AddRequestedOrderFeeSupplementRequests(v ...*OrderFeeSu
 	return _u.AddRequestedOrderFeeSupplementRequestIDs(ids...)
 }
 
+// AddRequestedFeeCorrectionRequestIDs adds the "requested_fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *UserUpdateOne) AddRequestedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddRequestedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddRequestedFeeCorrectionRequests adds the "requested_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdateOne) AddRequestedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRequestedFeeCorrectionRequestIDs(ids...)
+}
+
+// AddDecidedFeeCorrectionRequestIDs adds the "decided_fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *UserUpdateOne) AddDecidedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddDecidedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddDecidedFeeCorrectionRequests adds the "decided_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdateOne) AddDecidedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDecidedFeeCorrectionRequestIDs(ids...)
+}
+
 // AddDecidedOrderFeeSupplementRequestIDs adds the "decided_order_fee_supplement_requests" edge to the OrderFeeSupplementRequest entity by IDs.
 func (_u *UserUpdateOne) AddDecidedOrderFeeSupplementRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddDecidedOrderFeeSupplementRequestIDs(ids...)
@@ -7595,6 +7788,48 @@ func (_u *UserUpdateOne) RemoveRequestedOrderFeeSupplementRequests(v ...*OrderFe
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveRequestedOrderFeeSupplementRequestIDs(ids...)
+}
+
+// ClearRequestedFeeCorrectionRequests clears all "requested_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdateOne) ClearRequestedFeeCorrectionRequests() *UserUpdateOne {
+	_u.mutation.ClearRequestedFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveRequestedFeeCorrectionRequestIDs removes the "requested_fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *UserUpdateOne) RemoveRequestedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveRequestedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveRequestedFeeCorrectionRequests removes "requested_fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *UserUpdateOne) RemoveRequestedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRequestedFeeCorrectionRequestIDs(ids...)
+}
+
+// ClearDecidedFeeCorrectionRequests clears all "decided_fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *UserUpdateOne) ClearDecidedFeeCorrectionRequests() *UserUpdateOne {
+	_u.mutation.ClearDecidedFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveDecidedFeeCorrectionRequestIDs removes the "decided_fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *UserUpdateOne) RemoveDecidedFeeCorrectionRequestIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveDecidedFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveDecidedFeeCorrectionRequests removes "decided_fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *UserUpdateOne) RemoveDecidedFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDecidedFeeCorrectionRequestIDs(ids...)
 }
 
 // ClearDecidedOrderFeeSupplementRequests clears all "decided_order_fee_supplement_requests" edges to the OrderFeeSupplementRequest entity.
@@ -10108,6 +10343,96 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RequestedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedFeeCorrectionRequestsTable,
+			Columns: []string{user.RequestedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRequestedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.RequestedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedFeeCorrectionRequestsTable,
+			Columns: []string{user.RequestedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RequestedFeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RequestedFeeCorrectionRequestsTable,
+			Columns: []string{user.RequestedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DecidedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedFeeCorrectionRequestsTable,
+			Columns: []string{user.DecidedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDecidedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.DecidedFeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedFeeCorrectionRequestsTable,
+			Columns: []string{user.DecidedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DecidedFeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.DecidedFeeCorrectionRequestsTable,
+			Columns: []string{user.DecidedFeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

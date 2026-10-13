@@ -12,6 +12,7 @@ import (
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	correction "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	supplement "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/shopspring/decimal"
 )
@@ -81,8 +82,8 @@ func populateAdjustmentExecutionCapability(result *biz.FinanceCommissionAdjustme
 		return
 	}
 	for _, l := range parent.Edges.Lines {
-		if l.Edges.Order != nil && len(l.Edges.Order.Edges.FeeSupplementRequests) > 0 {
-			blocked("关联订单存在待审核补录，请处理后再执行调整")
+		if l.Edges.Order != nil && (len(l.Edges.Order.Edges.FeeSupplementRequests) > 0 || len(l.Edges.Order.Edges.FeeCorrectionRequests) > 0) {
+			blocked("关联订单存在待审核补录或费用更正，请处理后再执行调整")
 			return
 		}
 	}
@@ -98,6 +99,13 @@ func ensureCommissionOrdersReady(ctx context.Context, client *ent.Client, orderI
 	}
 	if pending {
 		return biz.ErrCommissionPendingSupplement
+	}
+	pending, err = client.OrderFeeCorrectionRequest.Query().Where(correction.OrderIDIn(orderIDs...), correction.StatusEQ(correction.StatusPENDING)).Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if pending {
+		return biz.ErrFeeCorrectionPending
 	}
 	if !requireApproval {
 		return nil

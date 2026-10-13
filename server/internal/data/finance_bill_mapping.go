@@ -44,7 +44,7 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 		estimatedAmount = &value
 	}
 	result := &biz.FinanceBill{
-		ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, BillNo: item.BillNo, IdempotencyKey: item.IdempotencyKey,
+		Purpose: biz.FinanceBillPurpose(item.Purpose), ID: item.ID, OrganizationID: item.OrganizationID, BatchID: item.BatchID, BillNo: item.BillNo, IdempotencyKey: item.IdempotencyKey,
 		Direction: biz.OrderFeeDirection(item.Direction), Status: biz.FinanceBillStatus(item.Status),
 		SettlementPartyID: item.SettlementPartyID, SettlementPartyName: item.SettlementPartyName, SettlementAccountID: item.SettlementAccountID, SettlementAccountName: item.SettlementAccountName, SettlementAccountHolder: item.SettlementAccountHolder, SettlementBankName: item.SettlementBankName, SettlementBankAccount: item.SettlementBankAccount, SettlementAccountCurrency: item.SettlementAccountCurrency, SettlementSwiftCode: item.SettlementSwiftCode, EstimatedInvoiceCurrency: item.EstimatedInvoiceCurrency, EstimatedInvoiceRate: estimatedRate, EstimatedInvoiceAmount: estimatedAmount,
 		Currency: item.Currency, BaseCurrency: item.BaseCurrency, TotalAmount: totalAmount, NetAmount: netAmount, TaxAmount: taxAmount,

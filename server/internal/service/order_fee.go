@@ -22,10 +22,11 @@ type OrderFeeService struct {
 	tagUsecase *biz.BusinessTagUsecase
 	supplement *biz.OrderFeeSupplementUsecase
 	review     *biz.OrderFeeReviewUsecase
+	correction *biz.OrderFeeCorrectionUsecase
 }
 
-func NewOrderFeeService(usecase *biz.OrderFeeUsecase, tagUsecase *biz.BusinessTagUsecase, supplement *biz.OrderFeeSupplementUsecase, review *biz.OrderFeeReviewUsecase) *OrderFeeService {
-	return &OrderFeeService{usecase: usecase, tagUsecase: tagUsecase, supplement: supplement, review: review}
+func NewOrderFeeService(usecase *biz.OrderFeeUsecase, tagUsecase *biz.BusinessTagUsecase, supplement *biz.OrderFeeSupplementUsecase, review *biz.OrderFeeReviewUsecase, correction *biz.OrderFeeCorrectionUsecase) *OrderFeeService {
+	return &OrderFeeService{usecase: usecase, tagUsecase: tagUsecase, supplement: supplement, review: review, correction: correction}
 }
 
 func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFeeOptionsRequest) (*v1.ListFeeOptionsResponse, error) {
@@ -281,9 +282,21 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		BaseCurrencyAmount:  value.BaseCurrencyAmount.StringFixed(8),
 		Version:             value.Version,
 		Note:                value.Note,
-		HasActiveBill:       value.HasActiveBill,
-		CreatedAt:           value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:           value.UpdatedAt.UTC().Format(time.RFC3339),
+		HasActiveBill:       value.HasActiveBill, EconomicEffect: string(value.EconomicEffect), AccountingRequired: value.AccountingRequired, CanBill: biz.RequiresAccounting(value) && !value.HasActiveBill, CanCorrect: biz.IsCurrentFee(value),
+		CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339),
+	}
+	if value.SourceFeeID != nil {
+		v := value.SourceFeeID.String()
+		result.SourceFeeId = &v
+	}
+	if value.CorrectionRequestID != nil {
+		v := value.CorrectionRequestID.String()
+		result.CorrectionRequestId = &v
+	}
+	if value.SupersededByRequestID != nil {
+		v := value.SupersededByRequestID.String()
+		result.SupersededByRequestId = &v
 	}
 	if value.FeeSettingID != nil {
 		settingID := value.FeeSettingID.String()

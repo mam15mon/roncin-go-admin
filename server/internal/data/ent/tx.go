@@ -140,6 +140,8 @@ type Tx struct {
 	OrderEnterpriseTag *OrderEnterpriseTagClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
+	// OrderFeeCorrectionRequest is the client for interacting with the OrderFeeCorrectionRequest builders.
+	OrderFeeCorrectionRequest *OrderFeeCorrectionRequestClient
 	// OrderFeeEnterpriseTag is the client for interacting with the OrderFeeEnterpriseTag builders.
 	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
 	// OrderFeeReviewEvent is the client for interacting with the OrderFeeReviewEvent builders.
@@ -431,6 +433,7 @@ func (tx *Tx) init() {
 	tx.OrderContainerRequest = NewOrderContainerRequestClient(tx.config)
 	tx.OrderEnterpriseTag = NewOrderEnterpriseTagClient(tx.config)
 	tx.OrderFee = NewOrderFeeClient(tx.config)
+	tx.OrderFeeCorrectionRequest = NewOrderFeeCorrectionRequestClient(tx.config)
 	tx.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(tx.config)
 	tx.OrderFeeReviewEvent = NewOrderFeeReviewEventClient(tx.config)
 	tx.OrderFeeSupplementRequest = NewOrderFeeSupplementRequestClient(tx.config)

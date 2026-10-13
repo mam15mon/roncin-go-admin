@@ -37,7 +37,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
 	if r := item.FeeReview; r != nil {
-		result.FeeReview = &v1.OrderFeeReviewProjection{Status: r.Status, ContentVersion: r.ContentVersion, ReviewVersion: r.ReviewVersion, HasPendingSupplement: r.HasPendingSupplement, CanApprove: r.CanApprove, CanEdit: r.CanEdit, CanBill: r.CanBill, BlockedReasons: r.BlockedReasons, Summary: feeReviewSummaryToAPI(r.Summary)}
+		result.FeeReview = &v1.OrderFeeReviewProjection{Status: r.Status, ContentVersion: r.ContentVersion, ReviewVersion: r.ReviewVersion, HasPendingSupplement: r.HasPendingSupplement, HasPendingCorrection: r.HasPendingCorrection, HasPendingChange: r.HasPendingChange, CanApprove: r.CanApprove, CanEdit: r.CanEdit, CanBill: r.CanBill, BlockedReasons: r.BlockedReasons, Summary: feeReviewSummaryToAPI(r.Summary)}
 		if r.SubmissionID != nil {
 			result.FeeReview.SubmissionId = r.SubmissionID.String()
 		}

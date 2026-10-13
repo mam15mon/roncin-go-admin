@@ -569,6 +569,9 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		}
 		lockedFeesMap := make(map[uuid.UUID]*ent.OrderFee, len(fees))
 		for _, f := range fees {
+			if f.CorrectionRequestID != nil || f.SupersededByRequestID != nil {
+				return biz.ErrSeaOrderSplitBlocked
+			}
 			lockedFeesMap[f.ID] = f
 		}
 		// 门禁方向：存在有效账单关联（活动账单行且所属账单未取消）的费用即已建账，

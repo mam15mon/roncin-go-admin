@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.FinanceNettingAllocation {
 	return predicate.FinanceNettingAllocation(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// SourceFeeID applies equality check predicate on the "source_fee_id" field. It's identical to SourceFeeIDEQ.
+func SourceFeeID(v uuid.UUID) predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(sql.FieldEQ(FieldSourceFeeID, v))
+}
+
 // NettingID applies equality check predicate on the "netting_id" field. It's identical to NettingIDEQ.
 func NettingID(v uuid.UUID) predicate.FinanceNettingAllocation {
 	return predicate.FinanceNettingAllocation(sql.FieldEQ(FieldNettingID, v))
@@ -174,6 +179,36 @@ func UpdatedAtLT(v time.Time) predicate.FinanceNettingAllocation {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.FinanceNettingAllocation {
 	return predicate.FinanceNettingAllocation(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// SourceFeeIDEQ applies the EQ predicate on the "source_fee_id" field.
+func SourceFeeIDEQ(v uuid.UUID) predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(sql.FieldEQ(FieldSourceFeeID, v))
+}
+
+// SourceFeeIDNEQ applies the NEQ predicate on the "source_fee_id" field.
+func SourceFeeIDNEQ(v uuid.UUID) predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(sql.FieldNEQ(FieldSourceFeeID, v))
+}
+
+// SourceFeeIDIn applies the In predicate on the "source_fee_id" field.
+func SourceFeeIDIn(vs ...uuid.UUID) predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(sql.FieldIn(FieldSourceFeeID, vs...))
+}
+
+// SourceFeeIDNotIn applies the NotIn predicate on the "source_fee_id" field.
+func SourceFeeIDNotIn(vs ...uuid.UUID) predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(sql.FieldNotIn(FieldSourceFeeID, vs...))
+}
+
+// SourceFeeIDIsNil applies the IsNil predicate on the "source_fee_id" field.
+func SourceFeeIDIsNil() predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(sql.FieldIsNull(FieldSourceFeeID))
+}
+
+// SourceFeeIDNotNil applies the NotNil predicate on the "source_fee_id" field.
+func SourceFeeIDNotNil() predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(sql.FieldNotNull(FieldSourceFeeID))
 }
 
 // NettingIDEQ applies the EQ predicate on the "netting_id" field.
@@ -439,6 +474,29 @@ func ActiveEQ(v bool) predicate.FinanceNettingAllocation {
 // ActiveNEQ applies the NEQ predicate on the "active" field.
 func ActiveNEQ(v bool) predicate.FinanceNettingAllocation {
 	return predicate.FinanceNettingAllocation(sql.FieldNEQ(FieldActive, v))
+}
+
+// HasSourceFee applies the HasEdge predicate on the "source_fee" edge.
+func HasSourceFee() predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeTable, SourceFeeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSourceFeeWith applies the HasEdge predicate on the "source_fee" edge with a given conditions (other predicates).
+func HasSourceFeeWith(preds ...predicate.OrderFee) predicate.FinanceNettingAllocation {
+	return predicate.FinanceNettingAllocation(func(s *sql.Selector) {
+		step := newSourceFeeStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasNetting applies the HasEdge predicate on the "netting" edge.

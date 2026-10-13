@@ -15,8 +15,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -54,6 +56,20 @@ func (_c *FinanceNettingCreate) SetUpdatedAt(v time.Time) *FinanceNettingCreate 
 func (_c *FinanceNettingCreate) SetNillableUpdatedAt(v *time.Time) *FinanceNettingCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetCorrectionRequestID sets the "correction_request_id" field.
+func (_c *FinanceNettingCreate) SetCorrectionRequestID(v uuid.UUID) *FinanceNettingCreate {
+	_c.mutation.SetCorrectionRequestID(v)
+	return _c
+}
+
+// SetNillableCorrectionRequestID sets the "correction_request_id" field if the given value is not nil.
+func (_c *FinanceNettingCreate) SetNillableCorrectionRequestID(v *uuid.UUID) *FinanceNettingCreate {
+	if v != nil {
+		_c.SetCorrectionRequestID(*v)
 	}
 	return _c
 }
@@ -310,6 +326,26 @@ func (_c *FinanceNettingCreate) SetNillableID(v *uuid.UUID) *FinanceNettingCreat
 		_c.SetID(*v)
 	}
 	return _c
+}
+
+// SetCorrectionRequest sets the "correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_c *FinanceNettingCreate) SetCorrectionRequest(v *OrderFeeCorrectionRequest) *FinanceNettingCreate {
+	return _c.SetCorrectionRequestID(v.ID)
+}
+
+// AddCommissionEconomicAdjustmentIDs adds the "commission_economic_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_c *FinanceNettingCreate) AddCommissionEconomicAdjustmentIDs(ids ...uuid.UUID) *FinanceNettingCreate {
+	_c.mutation.AddCommissionEconomicAdjustmentIDs(ids...)
+	return _c
+}
+
+// AddCommissionEconomicAdjustments adds the "commission_economic_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_c *FinanceNettingCreate) AddCommissionEconomicAdjustments(v ...*FinanceCommissionAdjustment) *FinanceNettingCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCommissionEconomicAdjustmentIDs(ids...)
 }
 
 // SetOrganization sets the "organization" edge to the Organization entity.
@@ -692,6 +728,39 @@ func (_c *FinanceNettingCreate) createSpec() (*FinanceNetting, *sqlgraph.CreateS
 	if value, ok := _c.mutation.ReversalReason(); ok {
 		_spec.SetField(financenetting.FieldReversalReason, field.TypeString, value)
 		_node.ReversalReason = &value
+	}
+	if nodes := _c.mutation.CorrectionRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financenetting.CorrectionRequestTable,
+			Columns: []string{financenetting.CorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CorrectionRequestID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CommissionEconomicAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionEconomicAdjustmentsTable,
+			Columns: []string{financenetting.CommissionEconomicAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1102,6 +1171,9 @@ func (u *FinanceNettingUpsertOne) UpdateNewValues() *FinanceNettingUpsertOne {
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(financenetting.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.CorrectionRequestID(); exists {
+			s.SetIgnore(financenetting.FieldCorrectionRequestID)
 		}
 		if _, exists := u.create.mutation.OrganizationID(); exists {
 			s.SetIgnore(financenetting.FieldOrganizationID)
@@ -1596,6 +1668,9 @@ func (u *FinanceNettingUpsertBulk) UpdateNewValues() *FinanceNettingUpsertBulk {
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(financenetting.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.CorrectionRequestID(); exists {
+				s.SetIgnore(financenetting.FieldCorrectionRequestID)
 			}
 			if _, exists := b.mutation.OrganizationID(); exists {
 				s.SetIgnore(financenetting.FieldOrganizationID)

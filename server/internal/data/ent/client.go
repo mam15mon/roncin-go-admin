@@ -80,6 +80,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
@@ -263,6 +264,8 @@ type Client struct {
 	OrderEnterpriseTag *OrderEnterpriseTagClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
+	// OrderFeeCorrectionRequest is the client for interacting with the OrderFeeCorrectionRequest builders.
+	OrderFeeCorrectionRequest *OrderFeeCorrectionRequestClient
 	// OrderFeeEnterpriseTag is the client for interacting with the OrderFeeEnterpriseTag builders.
 	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
 	// OrderFeeReviewEvent is the client for interacting with the OrderFeeReviewEvent builders.
@@ -434,6 +437,7 @@ func (c *Client) init() {
 	c.OrderContainerRequest = NewOrderContainerRequestClient(c.config)
 	c.OrderEnterpriseTag = NewOrderEnterpriseTagClient(c.config)
 	c.OrderFee = NewOrderFeeClient(c.config)
+	c.OrderFeeCorrectionRequest = NewOrderFeeCorrectionRequestClient(c.config)
 	c.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(c.config)
 	c.OrderFeeReviewEvent = NewOrderFeeReviewEventClient(c.config)
 	c.OrderFeeSupplementRequest = NewOrderFeeSupplementRequestClient(c.config)
@@ -638,6 +642,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OrderContainerRequest:            NewOrderContainerRequestClient(cfg),
 		OrderEnterpriseTag:               NewOrderEnterpriseTagClient(cfg),
 		OrderFee:                         NewOrderFeeClient(cfg),
+		OrderFeeCorrectionRequest:        NewOrderFeeCorrectionRequestClient(cfg),
 		OrderFeeEnterpriseTag:            NewOrderFeeEnterpriseTagClient(cfg),
 		OrderFeeReviewEvent:              NewOrderFeeReviewEventClient(cfg),
 		OrderFeeSupplementRequest:        NewOrderFeeSupplementRequestClient(cfg),
@@ -769,6 +774,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OrderContainerRequest:            NewOrderContainerRequestClient(cfg),
 		OrderEnterpriseTag:               NewOrderEnterpriseTagClient(cfg),
 		OrderFee:                         NewOrderFeeClient(cfg),
+		OrderFeeCorrectionRequest:        NewOrderFeeCorrectionRequestClient(cfg),
 		OrderFeeEnterpriseTag:            NewOrderFeeEnterpriseTagClient(cfg),
 		OrderFeeReviewEvent:              NewOrderFeeReviewEventClient(cfg),
 		OrderFeeSupplementRequest:        NewOrderFeeSupplementRequestClient(cfg),
@@ -868,10 +874,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
 		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
-		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
-		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeCorrectionRequest,
+		c.OrderFeeEnterpriseTag, c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest,
+		c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot, c.OrderLockRecord,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
 		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
 		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
@@ -914,10 +920,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
 		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
 		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
-		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeEnterpriseTag,
-		c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
-		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderMilestone,
-		c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
+		c.OrderEnterpriseTag, c.OrderFee, c.OrderFeeCorrectionRequest,
+		c.OrderFeeEnterpriseTag, c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest,
+		c.OrderLifecycleEvent, c.OrderLockHouseBillSnapshot, c.OrderLockRecord,
+		c.OrderMilestone, c.OrderPersonnel, c.OrderReleasePod, c.OrderServiceType,
 		c.OrderShippingDocument, c.OrderUnlockApproverCandidate, c.OrderUnlockRequest,
 		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
 		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
@@ -1065,6 +1071,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrderEnterpriseTag.mutate(ctx, m)
 	case *OrderFeeMutation:
 		return c.OrderFee.mutate(ctx, m)
+	case *OrderFeeCorrectionRequestMutation:
+		return c.OrderFeeCorrectionRequest.mutate(ctx, m)
 	case *OrderFeeEnterpriseTagMutation:
 		return c.OrderFeeEnterpriseTag.mutate(ctx, m)
 	case *OrderFeeReviewEventMutation:
@@ -7027,6 +7035,54 @@ func (c *FinanceCommissionAdjustmentClient) QuerySourceFeeSupplementRequest(_m *
 	return query
 }
 
+// QuerySourceFeeCorrectionRequest queries the source_fee_correction_request edge of a FinanceCommissionAdjustment.
+func (c *FinanceCommissionAdjustmentClient) QuerySourceFeeCorrectionRequest(_m *FinanceCommissionAdjustment) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SourceFeeCorrectionRequestTable, financecommissionadjustment.SourceFeeCorrectionRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySupersededByFeeCorrectionRequest queries the superseded_by_fee_correction_request edge of a FinanceCommissionAdjustment.
+func (c *FinanceCommissionAdjustmentClient) QuerySupersededByFeeCorrectionRequest(_m *FinanceCommissionAdjustment) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SupersededByFeeCorrectionRequestTable, financecommissionadjustment.SupersededByFeeCorrectionRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySourceNetting queries the source_netting edge of a FinanceCommissionAdjustment.
+func (c *FinanceCommissionAdjustmentClient) QuerySourceNetting(_m *FinanceCommissionAdjustment) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financecommissionadjustment.Table, financecommissionadjustment.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financecommissionadjustment.SourceNettingTable, financecommissionadjustment.SourceNettingColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryConfirmedByUser queries the confirmed_by_user edge of a FinanceCommissionAdjustment.
 func (c *FinanceCommissionAdjustmentClient) QueryConfirmedByUser(_m *FinanceCommissionAdjustment) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
@@ -8949,6 +9005,38 @@ func (c *FinanceNettingClient) GetX(ctx context.Context, id uuid.UUID) *FinanceN
 	return obj
 }
 
+// QueryCorrectionRequest queries the correction_request edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryCorrectionRequest(_m *FinanceNetting) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenetting.CorrectionRequestTable, financenetting.CorrectionRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCommissionEconomicAdjustments queries the commission_economic_adjustments edge of a FinanceNetting.
+func (c *FinanceNettingClient) QueryCommissionEconomicAdjustments(_m *FinanceNetting) *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenetting.Table, financenetting.FieldID, id),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financenetting.CommissionEconomicAdjustmentsTable, financenetting.CommissionEconomicAdjustmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOrganization queries the organization edge of a FinanceNetting.
 func (c *FinanceNettingClient) QueryOrganization(_m *FinanceNetting) *OrganizationQuery {
 	query := (&OrganizationClient{config: c.config}).Query()
@@ -9208,6 +9296,22 @@ func (c *FinanceNettingAllocationClient) GetX(ctx context.Context, id uuid.UUID)
 		panic(err)
 	}
 	return obj
+}
+
+// QuerySourceFee queries the source_fee edge of a FinanceNettingAllocation.
+func (c *FinanceNettingAllocationClient) QuerySourceFee(_m *FinanceNettingAllocation) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financenettingallocation.Table, financenettingallocation.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financenettingallocation.SourceFeeTable, financenettingallocation.SourceFeeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // QueryNetting queries the netting edge of a FinanceNettingAllocation.
@@ -11190,6 +11294,22 @@ func (c *OrderClient) QueryFeeSupplementRequests(_m *Order) *OrderFeeSupplementR
 			sqlgraph.From(order.Table, order.FieldID, id),
 			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.FeeSupplementRequestsTable, order.FeeSupplementRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeeCorrectionRequests queries the fee_correction_requests edge of a Order.
+func (c *OrderClient) QueryFeeCorrectionRequests(_m *Order) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.FeeCorrectionRequestsTable, order.FeeCorrectionRequestsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -13311,6 +13431,102 @@ func (c *OrderFeeClient) QuerySupplementRequest(_m *OrderFee) *OrderFeeSupplemen
 	return query
 }
 
+// QueryCorrectionRequest queries the correction_request edge of a OrderFee.
+func (c *OrderFeeClient) QueryCorrectionRequest(_m *OrderFee) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.CorrectionRequestTable, orderfee.CorrectionRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySupersededByRequest queries the superseded_by_request edge of a OrderFee.
+func (c *OrderFeeClient) QuerySupersededByRequest(_m *OrderFee) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SupersededByRequestTable, orderfee.SupersededByRequestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCorrectionNettingAllocations queries the correction_netting_allocations edge of a OrderFee.
+func (c *OrderFeeClient) QueryCorrectionNettingAllocations(_m *OrderFee) *FinanceNettingAllocationQuery {
+	query := (&FinanceNettingAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.CorrectionNettingAllocationsTable, orderfee.CorrectionNettingAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDerivedFees queries the derived_fees edge of a OrderFee.
+func (c *OrderFeeClient) QueryDerivedFees(_m *OrderFee) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.DerivedFeesTable, orderfee.DerivedFeesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySourceFee queries the source_fee edge of a OrderFee.
+func (c *OrderFeeClient) QuerySourceFee(_m *OrderFee) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SourceFeeTable, orderfee.SourceFeeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTargetedCorrectionRequests queries the targeted_correction_requests edge of a OrderFee.
+func (c *OrderFeeClient) QueryTargetedCorrectionRequests(_m *OrderFee) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.TargetedCorrectionRequestsTable, orderfee.TargetedCorrectionRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryFinanceBillLines queries the finance_bill_lines edge of a OrderFee.
 func (c *OrderFeeClient) QueryFinanceBillLines(_m *OrderFee) *FinanceBillLineQuery {
 	query := (&FinanceBillLineClient{config: c.config}).Query()
@@ -13365,6 +13581,299 @@ func (c *OrderFeeClient) mutate(ctx context.Context, m *OrderFeeMutation) (Value
 		return (&OrderFeeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown OrderFee mutation op: %q", m.Op())
+	}
+}
+
+// OrderFeeCorrectionRequestClient is a client for the OrderFeeCorrectionRequest schema.
+type OrderFeeCorrectionRequestClient struct {
+	config
+}
+
+// NewOrderFeeCorrectionRequestClient returns a client for the OrderFeeCorrectionRequest from the given config.
+func NewOrderFeeCorrectionRequestClient(c config) *OrderFeeCorrectionRequestClient {
+	return &OrderFeeCorrectionRequestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `orderfeecorrectionrequest.Hooks(f(g(h())))`.
+func (c *OrderFeeCorrectionRequestClient) Use(hooks ...Hook) {
+	c.hooks.OrderFeeCorrectionRequest = append(c.hooks.OrderFeeCorrectionRequest, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `orderfeecorrectionrequest.Intercept(f(g(h())))`.
+func (c *OrderFeeCorrectionRequestClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OrderFeeCorrectionRequest = append(c.inters.OrderFeeCorrectionRequest, interceptors...)
+}
+
+// Create returns a builder for creating a OrderFeeCorrectionRequest entity.
+func (c *OrderFeeCorrectionRequestClient) Create() *OrderFeeCorrectionRequestCreate {
+	mutation := newOrderFeeCorrectionRequestMutation(c.config, OpCreate)
+	return &OrderFeeCorrectionRequestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OrderFeeCorrectionRequest entities.
+func (c *OrderFeeCorrectionRequestClient) CreateBulk(builders ...*OrderFeeCorrectionRequestCreate) *OrderFeeCorrectionRequestCreateBulk {
+	return &OrderFeeCorrectionRequestCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OrderFeeCorrectionRequestClient) MapCreateBulk(slice any, setFunc func(*OrderFeeCorrectionRequestCreate, int)) *OrderFeeCorrectionRequestCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OrderFeeCorrectionRequestCreateBulk{err: fmt.Errorf("calling to OrderFeeCorrectionRequestClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OrderFeeCorrectionRequestCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OrderFeeCorrectionRequestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) Update() *OrderFeeCorrectionRequestUpdate {
+	mutation := newOrderFeeCorrectionRequestMutation(c.config, OpUpdate)
+	return &OrderFeeCorrectionRequestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OrderFeeCorrectionRequestClient) UpdateOne(_m *OrderFeeCorrectionRequest) *OrderFeeCorrectionRequestUpdateOne {
+	mutation := newOrderFeeCorrectionRequestMutation(c.config, OpUpdateOne, withOrderFeeCorrectionRequest(_m))
+	return &OrderFeeCorrectionRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OrderFeeCorrectionRequestClient) UpdateOneID(id uuid.UUID) *OrderFeeCorrectionRequestUpdateOne {
+	mutation := newOrderFeeCorrectionRequestMutation(c.config, OpUpdateOne, withOrderFeeCorrectionRequestID(id))
+	return &OrderFeeCorrectionRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) Delete() *OrderFeeCorrectionRequestDelete {
+	mutation := newOrderFeeCorrectionRequestMutation(c.config, OpDelete)
+	return &OrderFeeCorrectionRequestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OrderFeeCorrectionRequestClient) DeleteOne(_m *OrderFeeCorrectionRequest) *OrderFeeCorrectionRequestDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OrderFeeCorrectionRequestClient) DeleteOneID(id uuid.UUID) *OrderFeeCorrectionRequestDeleteOne {
+	builder := c.Delete().Where(orderfeecorrectionrequest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OrderFeeCorrectionRequestDeleteOne{builder}
+}
+
+// Query returns a query builder for OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) Query() *OrderFeeCorrectionRequestQuery {
+	return &OrderFeeCorrectionRequestQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOrderFeeCorrectionRequest},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OrderFeeCorrectionRequest entity by its id.
+func (c *OrderFeeCorrectionRequestClient) Get(ctx context.Context, id uuid.UUID) (*OrderFeeCorrectionRequest, error) {
+	return c.Query().Where(orderfeecorrectionrequest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OrderFeeCorrectionRequestClient) GetX(ctx context.Context, id uuid.UUID) *OrderFeeCorrectionRequest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryOrganization(_m *OrderFeeCorrectionRequest) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeecorrectionrequest.OrganizationTable, orderfeecorrectionrequest.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryOrder(_m *OrderFeeCorrectionRequest) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeecorrectionrequest.OrderTable, orderfeecorrectionrequest.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRequestedByUser queries the requested_by_user edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryRequestedByUser(_m *OrderFeeCorrectionRequest) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeecorrectionrequest.RequestedByUserTable, orderfeecorrectionrequest.RequestedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDecidedByUser queries the decided_by_user edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryDecidedByUser(_m *OrderFeeCorrectionRequest) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeecorrectionrequest.DecidedByUserTable, orderfeecorrectionrequest.DecidedByUserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySourceFee queries the source_fee edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QuerySourceFee(_m *OrderFeeCorrectionRequest) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeecorrectionrequest.SourceFeeTable, orderfeecorrectionrequest.SourceFeeColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNettings queries the nettings edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryNettings(_m *OrderFeeCorrectionRequest) *FinanceNettingQuery {
+	query := (&FinanceNettingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(financenetting.Table, financenetting.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfeecorrectionrequest.NettingsTable, orderfeecorrectionrequest.NettingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCommissionAdjustments queries the commission_adjustments edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryCommissionAdjustments(_m *OrderFeeCorrectionRequest) *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfeecorrectionrequest.CommissionAdjustmentsTable, orderfeecorrectionrequest.CommissionAdjustmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySupersededCommissionAdjustments queries the superseded_commission_adjustments edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QuerySupersededCommissionAdjustments(_m *OrderFeeCorrectionRequest) *FinanceCommissionAdjustmentQuery {
+	query := (&FinanceCommissionAdjustmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(financecommissionadjustment.Table, financecommissionadjustment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfeecorrectionrequest.SupersededCommissionAdjustmentsTable, orderfeecorrectionrequest.SupersededCommissionAdjustmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGeneratedFees queries the generated_fees edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryGeneratedFees(_m *OrderFeeCorrectionRequest) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfeecorrectionrequest.GeneratedFeesTable, orderfeecorrectionrequest.GeneratedFeesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySupersededFees queries the superseded_fees edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QuerySupersededFees(_m *OrderFeeCorrectionRequest) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfeecorrectionrequest.SupersededFeesTable, orderfeecorrectionrequest.SupersededFeesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OrderFeeCorrectionRequestClient) Hooks() []Hook {
+	return c.hooks.OrderFeeCorrectionRequest
+}
+
+// Interceptors returns the client interceptors.
+func (c *OrderFeeCorrectionRequestClient) Interceptors() []Interceptor {
+	return c.inters.OrderFeeCorrectionRequest
+}
+
+func (c *OrderFeeCorrectionRequestClient) mutate(ctx context.Context, m *OrderFeeCorrectionRequestMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OrderFeeCorrectionRequestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OrderFeeCorrectionRequestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OrderFeeCorrectionRequestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OrderFeeCorrectionRequestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OrderFeeCorrectionRequest mutation op: %q", m.Op())
 	}
 }
 
@@ -16766,6 +17275,22 @@ func (c *OrganizationClient) QueryOrderFeeSupplementRequests(_m *Organization) *
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.OrderFeeSupplementRequestsTable, organization.OrderFeeSupplementRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeeCorrectionRequests queries the fee_correction_requests edge of a Organization.
+func (c *OrganizationClient) QueryFeeCorrectionRequests(_m *Organization) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FeeCorrectionRequestsTable, organization.FeeCorrectionRequestsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -24885,6 +25410,38 @@ func (c *UserClient) QueryRequestedOrderFeeSupplementRequests(_m *User) *OrderFe
 	return query
 }
 
+// QueryRequestedFeeCorrectionRequests queries the requested_fee_correction_requests edge of a User.
+func (c *UserClient) QueryRequestedFeeCorrectionRequests(_m *User) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.RequestedFeeCorrectionRequestsTable, user.RequestedFeeCorrectionRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDecidedFeeCorrectionRequests queries the decided_fee_correction_requests edge of a User.
+func (c *UserClient) QueryDecidedFeeCorrectionRequests(_m *User) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.DecidedFeeCorrectionRequestsTable, user.DecidedFeeCorrectionRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryDecidedOrderFeeSupplementRequests queries the decided_order_fee_supplement_requests edge of a User.
 func (c *UserClient) QueryDecidedOrderFeeSupplementRequests(_m *User) *OrderFeeSupplementRequestQuery {
 	query := (&OrderFeeSupplementRequestClient{config: c.config}).Query()
@@ -25221,19 +25778,19 @@ type (
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
-		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeReviewEvent,
-		OrderFeeSupplementRequest, OrderLifecycleEvent, OrderLockHouseBillSnapshot,
-		OrderLockRecord, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, OrderUnlockApproverCandidate,
-		OrderUnlockRequest, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
-		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
-		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
-		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
-		SeaSharedContainerAllocation, SeaTransportExecution,
-		SeaTransportExecutionVersion, Session, ShippingLine,
+		OrderEnterpriseTag, OrderFee, OrderFeeCorrectionRequest, OrderFeeEnterpriseTag,
+		OrderFeeReviewEvent, OrderFeeSupplementRequest, OrderLifecycleEvent,
+		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
+		OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
+		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
+		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
+		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
@@ -25256,19 +25813,19 @@ type (
 		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
 		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
-		OrderEnterpriseTag, OrderFee, OrderFeeEnterpriseTag, OrderFeeReviewEvent,
-		OrderFeeSupplementRequest, OrderLifecycleEvent, OrderLockHouseBillSnapshot,
-		OrderLockRecord, OrderMilestone, OrderPersonnel, OrderReleasePod,
-		OrderServiceType, OrderShippingDocument, OrderUnlockApproverCandidate,
-		OrderUnlockRequest, Organization, Partner, PartnerAccount, PartnerAlias,
-		PartnerAssignment, PartnerAttachment, PartnerContact, PartnerContract,
-		PartnerInvoiceProfile, PartnerProfile, PartnerRole, PartnerSettlementRule,
-		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
-		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
-		SeaSharedContainerAllocation, SeaTransportExecution,
-		SeaTransportExecutionVersion, Session, ShippingLine,
+		OrderEnterpriseTag, OrderFee, OrderFeeCorrectionRequest, OrderFeeEnterpriseTag,
+		OrderFeeReviewEvent, OrderFeeSupplementRequest, OrderLifecycleEvent,
+		OrderLockHouseBillSnapshot, OrderLockRecord, OrderMilestone, OrderPersonnel,
+		OrderReleasePod, OrderServiceType, OrderShippingDocument,
+		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
+		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
+		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
+		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
+		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
+		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

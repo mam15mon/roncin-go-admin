@@ -19,7 +19,6 @@ import {
   commissionDecreaseStatusMeta,
   decimalText,
   getBusinessReason,
-  LOCKED_FEE_SUPPLEMENT_SOURCE,
 } from '../types';
 
 type Adjustment = API.FinanceCommissionAdjustment;
@@ -40,7 +39,7 @@ export const DECREASE_STATUS_FILTER_OPTIONS = [
     value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
   },
   {
-    label: '已扣回',
+    label: '已执行',
     value: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
   },
   {
@@ -50,16 +49,23 @@ export const DECREASE_STATUS_FILTER_OPTIONS = [
 ];
 
 /** 状态文案严格按服务端状态机投影，不混淆待处理/已确认/已扣回。 */
-export function decreaseStatusTag(status?: number) {
+export function decreaseStatusTag(status?: number, direction?: string) {
   const meta =
     commissionDecreaseStatusMeta[
       status ?? FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT
     ];
-  return <Tag color={meta?.color || 'default'}>{meta?.text || '-'}</Tag>;
+  return (
+    <Tag color={meta?.color || 'default'}>
+      {status === FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID &&
+      direction === 'INCREASE'
+        ? '已补付'
+        : meta?.text || '-'}
+    </Tag>
+  );
 }
 
 /**
- * 待处理冲减视图：默认展示费用补录批准后生成的已确认冲减，
+ * 待处理冲减视图：默认展示费用变更与手工产生的已确认调整，
  * 服务端分页 + 过滤，不在前端循环翻页。
  */
 export default function PendingDecreasePanel({
@@ -79,18 +85,21 @@ export default function PendingDecreasePanel({
     if (!record.id || !record.version) return;
     const id = record.id;
     const version = record.version;
+    const increase = record.direction === 'INCREASE';
+    const action = increase ? '补付' : '扣回';
     modal.confirm({
-      title: `标记已扣回 ${record.adjustmentNo || ''}？`,
-      content:
-        '原提成已发放后，确认该笔金额已在线下实际扣回。父提成尚未发放时，请登记父单净额发放，系统会一并抵扣。',
-      okText: '标记已扣回',
+      title: `标记已${action} ${record.adjustmentNo || ''}？`,
+      content: increase
+        ? '确认该笔提成已实际补付。'
+        : '原提成已发放后，确认该笔金额已在线下实际扣回。父提成尚未发放时，请登记父单净额发放，系统会一并抵扣。',
+      okText: `标记已${action}`,
       onOk: async () => {
         try {
           await settlementServiceMarkCommissionAdjustmentPaid(
             { id },
             { id, expectedVersion: version },
           );
-          message.success('冲减已标记为已扣回');
+          message.success(`调整已标记为已${action}`);
           reload();
         } catch (error: unknown) {
           const reason = getBusinessReason(error);
@@ -102,7 +111,7 @@ export default function PendingDecreasePanel({
             reload();
             return;
           }
-          message.error((error as Error).message || '标记已扣回失败');
+          message.error((error as Error).message || '标记执行失败');
         }
       },
     });
@@ -133,18 +142,38 @@ export default function PendingDecreasePanel({
       title: '状态',
       dataIndex: 'status',
       width: 90,
-      render: (_, record) => decreaseStatusTag(record.status),
+      render: (_, record) => decreaseStatusTag(record.status, record.direction),
     },
     {
-      title: '建议金额',
+      title: '调整金额',
       dataIndex: 'amount',
       width: 140,
       align: 'right',
       render: (_, record) => (
-        <strong style={{ color: '#d4380d' }}>
-          {`-${decimalText(record.amount)} ${record.baseCurrency || ''}`}
+        <strong
+          style={{
+            color: record.direction === 'INCREASE' ? '#389e0d' : '#d4380d',
+          }}
+        >
+          {`${record.direction === 'INCREASE' ? '+' : '-'}${decimalText(record.amount)} ${record.baseCurrency || ''}`}
         </strong>
       ),
+    },
+    {
+      title: '调整来源',
+      dataIndex: 'sourceType',
+      width: 120,
+      renderText: (value: string) =>
+        ({
+          LOCKED_FEE_SUPPLEMENT: '费用补录',
+          FEE_CORRECTION: '费用更正',
+          ECONOMIC_REALLOCATION: '收付款重算',
+          VERIFICATION_REVERSAL: '核销撤销',
+          NETTING_REVERSAL: '对冲撤销',
+          MANUAL: '手工调整',
+        })[value] ||
+        value ||
+        '-',
     },
     {
       title: '原因',
@@ -175,7 +204,7 @@ export default function PendingDecreasePanel({
           actions.push(
             record.canExecute ? (
               <a key="paid" onClick={() => markPaid(record)}>
-                标记已扣回
+                {record.direction === 'INCREASE' ? '标记已补付' : '标记已扣回'}
               </a>
             ) : (
               <Tooltip key="blocked" title={record.executionBlockedReason}>
@@ -187,7 +216,7 @@ export default function PendingDecreasePanel({
           );
         }
         actions.push(
-          <Tooltip key="drill" title="查看原提成单与补录费用来源">
+          <Tooltip key="drill" title="查看原提成单与调整来源">
             <a
               onClick={() =>
                 record.commissionId &&
@@ -252,7 +281,7 @@ export default function PendingDecreasePanel({
         }}
       />
       <ProTable<Adjustment>
-        headerTitle="费用补录已确认冲减"
+        headerTitle="待执行提成调整"
         actionRef={actionRef}
         rowKey="id"
         columns={columnSettings.columns}
@@ -264,7 +293,7 @@ export default function PendingDecreasePanel({
           style: { borderRadius: 8, border: '1px solid #f0f0f0' },
         }}
         request={async (params) => {
-          // 默认展示费用补录已确认的冲减，实际执行需核对父提成付款。
+          // 默认展示全部已确认调整，执行资格由服务端返回。
           const filters = committedFiltersRef.current;
           const response = await settlementServiceListCommissionAdjustments({
             page: params.current ?? 1,
@@ -272,7 +301,6 @@ export default function PendingDecreasePanel({
             status:
               filters.status ??
               FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
-            sourceType: LOCKED_FEE_SUPPLEMENT_SOURCE,
             keyword: filters.keyword,
           });
           return toTableRequest(response);

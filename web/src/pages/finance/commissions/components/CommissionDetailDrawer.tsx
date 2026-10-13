@@ -67,6 +67,10 @@ export default function CommissionDetailDrawer({
       render: (value: string) =>
         value === 'LOCKED_FEE_SUPPLEMENT' ? (
           <Tag color="blue">费用补录</Tag>
+        ) : value === 'FEE_CORRECTION' ? (
+          <Tag color="blue">费用更正</Tag>
+        ) : value === 'ECONOMIC_REALLOCATION' ? (
+          <Tag color="blue">收付款重算</Tag>
         ) : value === 'VERIFICATION_REVERSAL' ? (
           <Tag color="volcano">核销撤销</Tag>
         ) : value === 'NETTING_REVERSAL' ? (
@@ -127,6 +131,11 @@ export default function CommissionDetailDrawer({
       width: 160,
       render: (_: unknown, record: API.FinanceCommissionAdjustment) => {
         const isReversal = isReversalAdjustment(record.sourceType);
+        const isEconomic = [
+          'LOCKED_FEE_SUPPLEMENT',
+          'FEE_CORRECTION',
+          'ECONOMIC_REALLOCATION',
+        ].includes(record.sourceType || '');
         const isDecrease = record.direction === 'DECREASE';
 
         return (
@@ -139,6 +148,7 @@ export default function CommissionDetailDrawer({
                 </Typography.Text>
               )}
             {!isReversal &&
+              !isEconomic &&
               record.status ===
                 FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT &&
               canManage && (
@@ -168,7 +178,7 @@ export default function CommissionDetailDrawer({
               )}
 
             {!isReversal &&
-              record.sourceType !== 'LOCKED_FEE_SUPPLEMENT' &&
+              !isEconomic &&
               (record.status ===
                 FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT ||
                 record.status ===

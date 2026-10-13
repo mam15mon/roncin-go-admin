@@ -88,7 +88,11 @@ func (r *orderFeeSupplementRepo) EnqueueDecreaseSuggestedNotifications(ctx conte
 		if !suggestion.Amount.IsPositive() {
 			continue
 		}
-		summary := clampNotificationBytes(fmt.Sprintf("已确认提成冲减 %s %s", suggestion.Amount.StringFixed(8), suggestion.BaseCurrency), 256)
+		label := "冲减"
+		if suggestion.Direction == biz.CommissionAdjustmentIncrease {
+			label = "增提"
+		}
+		summary := clampNotificationBytes(fmt.Sprintf("已确认提成%s %s %s", label, suggestion.Amount.StringFixed(8), suggestion.BaseCurrency), 256)
 		taskID := uuid.NewSHA1(dingTalkNotificationNamespace, []byte("commission-decrease-suggested:"+suggestion.AdjustmentID.String()+":"+suggestion.EmployeeID.String()))
 		if err := client.BackgroundTask.Create().
 			SetID(taskID).

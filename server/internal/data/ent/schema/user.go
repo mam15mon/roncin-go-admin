@@ -104,6 +104,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("decided_order_unlock_requests", OrderUnlockRequest.Type),
 		edge.To("order_unlock_approver_candidates", OrderUnlockApproverCandidate.Type),
 		edge.To("requested_order_fee_supplement_requests", OrderFeeSupplementRequest.Type),
+		edge.To("requested_fee_correction_requests", OrderFeeCorrectionRequest.Type),
+		edge.To("decided_fee_correction_requests", OrderFeeCorrectionRequest.Type),
 		edge.To("decided_order_fee_supplement_requests", OrderFeeSupplementRequest.Type),
 		// 提成方案员工分配：员工作为分配对象与创建人是永久审计事实（NO ACTION，
 		// 删除用户不得清空分配历史）；撤销/终止操作者是可逆审计引用（SET NULL）。

@@ -129,6 +129,9 @@ export default function OrderListPage() {
                 pendingSupplement={
                   row.rawRecord?.feeReview?.hasPendingSupplement
                 }
+                pendingCorrection={
+                  row.rawRecord?.feeReview?.hasPendingCorrection
+                }
               />
             )}
           </Button>

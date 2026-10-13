@@ -121,6 +121,21 @@ func SourceFeeSupplementRequestID(v uuid.UUID) predicate.FinanceCommissionAdjust
 	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceFeeSupplementRequestID, v))
 }
 
+// SourceFeeCorrectionRequestID applies equality check predicate on the "source_fee_correction_request_id" field. It's identical to SourceFeeCorrectionRequestIDEQ.
+func SourceFeeCorrectionRequestID(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceFeeCorrectionRequestID, v))
+}
+
+// SourceNettingID applies equality check predicate on the "source_netting_id" field. It's identical to SourceNettingIDEQ.
+func SourceNettingID(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceNettingID, v))
+}
+
+// SupersededByFeeCorrectionRequestID applies equality check predicate on the "superseded_by_fee_correction_request_id" field. It's identical to SupersededByFeeCorrectionRequestIDEQ.
+func SupersededByFeeCorrectionRequestID(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSupersededByFeeCorrectionRequestID, v))
+}
+
 // BaseCurrency applies equality check predicate on the "base_currency" field. It's identical to BaseCurrencyEQ.
 func BaseCurrency(v string) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldBaseCurrency, v))
@@ -749,6 +764,96 @@ func SourceFeeSupplementRequestIDIsNil() predicate.FinanceCommissionAdjustment {
 // SourceFeeSupplementRequestIDNotNil applies the NotNil predicate on the "source_fee_supplement_request_id" field.
 func SourceFeeSupplementRequestIDNotNil() predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldSourceFeeSupplementRequestID))
+}
+
+// SourceFeeCorrectionRequestIDEQ applies the EQ predicate on the "source_fee_correction_request_id" field.
+func SourceFeeCorrectionRequestIDEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceFeeCorrectionRequestID, v))
+}
+
+// SourceFeeCorrectionRequestIDNEQ applies the NEQ predicate on the "source_fee_correction_request_id" field.
+func SourceFeeCorrectionRequestIDNEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNEQ(FieldSourceFeeCorrectionRequestID, v))
+}
+
+// SourceFeeCorrectionRequestIDIn applies the In predicate on the "source_fee_correction_request_id" field.
+func SourceFeeCorrectionRequestIDIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIn(FieldSourceFeeCorrectionRequestID, vs...))
+}
+
+// SourceFeeCorrectionRequestIDNotIn applies the NotIn predicate on the "source_fee_correction_request_id" field.
+func SourceFeeCorrectionRequestIDNotIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotIn(FieldSourceFeeCorrectionRequestID, vs...))
+}
+
+// SourceFeeCorrectionRequestIDIsNil applies the IsNil predicate on the "source_fee_correction_request_id" field.
+func SourceFeeCorrectionRequestIDIsNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIsNull(FieldSourceFeeCorrectionRequestID))
+}
+
+// SourceFeeCorrectionRequestIDNotNil applies the NotNil predicate on the "source_fee_correction_request_id" field.
+func SourceFeeCorrectionRequestIDNotNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldSourceFeeCorrectionRequestID))
+}
+
+// SourceNettingIDEQ applies the EQ predicate on the "source_netting_id" field.
+func SourceNettingIDEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSourceNettingID, v))
+}
+
+// SourceNettingIDNEQ applies the NEQ predicate on the "source_netting_id" field.
+func SourceNettingIDNEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNEQ(FieldSourceNettingID, v))
+}
+
+// SourceNettingIDIn applies the In predicate on the "source_netting_id" field.
+func SourceNettingIDIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIn(FieldSourceNettingID, vs...))
+}
+
+// SourceNettingIDNotIn applies the NotIn predicate on the "source_netting_id" field.
+func SourceNettingIDNotIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotIn(FieldSourceNettingID, vs...))
+}
+
+// SourceNettingIDIsNil applies the IsNil predicate on the "source_netting_id" field.
+func SourceNettingIDIsNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIsNull(FieldSourceNettingID))
+}
+
+// SourceNettingIDNotNil applies the NotNil predicate on the "source_netting_id" field.
+func SourceNettingIDNotNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldSourceNettingID))
+}
+
+// SupersededByFeeCorrectionRequestIDEQ applies the EQ predicate on the "superseded_by_fee_correction_request_id" field.
+func SupersededByFeeCorrectionRequestIDEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldEQ(FieldSupersededByFeeCorrectionRequestID, v))
+}
+
+// SupersededByFeeCorrectionRequestIDNEQ applies the NEQ predicate on the "superseded_by_fee_correction_request_id" field.
+func SupersededByFeeCorrectionRequestIDNEQ(v uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNEQ(FieldSupersededByFeeCorrectionRequestID, v))
+}
+
+// SupersededByFeeCorrectionRequestIDIn applies the In predicate on the "superseded_by_fee_correction_request_id" field.
+func SupersededByFeeCorrectionRequestIDIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIn(FieldSupersededByFeeCorrectionRequestID, vs...))
+}
+
+// SupersededByFeeCorrectionRequestIDNotIn applies the NotIn predicate on the "superseded_by_fee_correction_request_id" field.
+func SupersededByFeeCorrectionRequestIDNotIn(vs ...uuid.UUID) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotIn(FieldSupersededByFeeCorrectionRequestID, vs...))
+}
+
+// SupersededByFeeCorrectionRequestIDIsNil applies the IsNil predicate on the "superseded_by_fee_correction_request_id" field.
+func SupersededByFeeCorrectionRequestIDIsNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldIsNull(FieldSupersededByFeeCorrectionRequestID))
+}
+
+// SupersededByFeeCorrectionRequestIDNotNil applies the NotNil predicate on the "superseded_by_fee_correction_request_id" field.
+func SupersededByFeeCorrectionRequestIDNotNil() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(sql.FieldNotNull(FieldSupersededByFeeCorrectionRequestID))
 }
 
 // DirectionEQ applies the EQ predicate on the "direction" field.
@@ -1626,6 +1731,75 @@ func HasSourceFeeSupplementRequest() predicate.FinanceCommissionAdjustment {
 func HasSourceFeeSupplementRequestWith(preds ...predicate.OrderFeeSupplementRequest) predicate.FinanceCommissionAdjustment {
 	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
 		step := newSourceFeeSupplementRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSourceFeeCorrectionRequest applies the HasEdge predicate on the "source_fee_correction_request" edge.
+func HasSourceFeeCorrectionRequest() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeCorrectionRequestTable, SourceFeeCorrectionRequestColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSourceFeeCorrectionRequestWith applies the HasEdge predicate on the "source_fee_correction_request" edge with a given conditions (other predicates).
+func HasSourceFeeCorrectionRequestWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := newSourceFeeCorrectionRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSupersededByFeeCorrectionRequest applies the HasEdge predicate on the "superseded_by_fee_correction_request" edge.
+func HasSupersededByFeeCorrectionRequest() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SupersededByFeeCorrectionRequestTable, SupersededByFeeCorrectionRequestColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSupersededByFeeCorrectionRequestWith applies the HasEdge predicate on the "superseded_by_fee_correction_request" edge with a given conditions (other predicates).
+func HasSupersededByFeeCorrectionRequestWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := newSupersededByFeeCorrectionRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSourceNetting applies the HasEdge predicate on the "source_netting" edge.
+func HasSourceNetting() predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SourceNettingTable, SourceNettingColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSourceNettingWith applies the HasEdge predicate on the "source_netting" edge with a given conditions (other predicates).
+func HasSourceNettingWith(preds ...predicate.FinanceNetting) predicate.FinanceCommissionAdjustment {
+	return predicate.FinanceCommissionAdjustment(func(s *sql.Selector) {
+		step := newSourceNettingStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

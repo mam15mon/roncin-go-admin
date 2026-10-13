@@ -63,7 +63,7 @@ describe('费用补录审核', () => {
     expect(body.expectedVersion).toBe('3');
     await waitFor(() => expect(onFeeTablesReload).toHaveBeenCalled());
     expect(
-      await screen.findByText('补录已批准，费用与应有的提成冲减已同步保存'),
+      await screen.findByText('补录已批准，费用与提成净额调整已同步保存'),
     ).toBeInTheDocument();
   });
   it('预览失败时禁止通过，但仍可按原流程驳回', async () => {
@@ -182,5 +182,43 @@ describe('费用补录审核', () => {
     const [, body] = rejectSupplement.mock.calls[0];
     expect(body.reason).toBe('金额与实际不符');
     expect(body.expectedVersion).toBe('3');
+  });
+  it('已有执行历史时按服务端方向展示补录后的净额增提', async () => {
+    previewSupplement.mockResolvedValue({
+      data: {
+        previewToken: 'net-rebuild',
+        baseCurrency: 'CNY',
+        currentReceivable: '1000',
+        currentPayable: '100',
+        currentProfit: '900',
+        projectedReceivable: '1000',
+        projectedPayable: '150',
+        projectedProfit: '850',
+        supplementCost: '50',
+        commissionImpacts: [
+          {
+            commissionId: 'c1',
+            commissionNo: 'COM-1',
+            baseCurrency: 'CNY',
+            amountBefore: '90',
+            amountAfter: '85',
+            decreaseAmount: '0',
+            adjustmentDirection: 'INCREASE',
+            adjustmentAmount: '85',
+          },
+        ],
+      },
+    });
+    listSupplements.mockResolvedValue(
+      listResponse([supplementRow({ canApprove: true })]),
+    );
+    render(
+      <App>
+        <FeeSupplementSection {...makeProps('order-1')} />
+      </App>,
+    );
+    fireEvent.click(await screen.findByText('审核'));
+    expect(await screen.findByText('+85.00')).toBeInTheDocument();
+    expect(screen.getByText('90.00 → 85.00')).toBeInTheDocument();
   });
 });

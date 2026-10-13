@@ -29,7 +29,7 @@ func feeReviewToAPI(r *biz.OrderFeeReview) *v1.OrderFeeReviewData {
 	if r == nil {
 		return nil
 	}
-	out := &v1.OrderFeeReviewData{OrderId: r.OrderID.String(), OrderNo: r.OrderNo, Status: r.Status, ContentVersion: r.ContentVersion, ReviewVersion: r.ReviewVersion, PreviewToken: r.PreviewToken, Summary: feeReviewSummaryToAPI(r.Summary), CanSubmit: r.CanSubmit, CanWithdraw: r.CanWithdraw, CanApprove: r.CanApprove, CanRevoke: r.CanRevoke, CanEdit: r.CanEdit, CanBill: r.CanBill, HasPendingSupplement: r.HasPendingSupplement, BlockedReasons: r.BlockedReasons, NotificationFailedCount: int32(r.NotificationFailedCount), NotificationUnboundCount: int32(r.NotificationUnboundCount)}
+	out := &v1.OrderFeeReviewData{OrderId: r.OrderID.String(), OrderNo: r.OrderNo, Status: r.Status, ContentVersion: r.ContentVersion, ReviewVersion: r.ReviewVersion, PreviewToken: r.PreviewToken, Summary: feeReviewSummaryToAPI(r.Summary), CanSubmit: r.CanSubmit, CanWithdraw: r.CanWithdraw, CanApprove: r.CanApprove, CanRevoke: r.CanRevoke, CanEdit: r.CanEdit, CanBill: r.CanBill, HasPendingSupplement: r.HasPendingSupplement, HasPendingCorrection: r.HasPendingCorrection, HasPendingChange: r.HasPendingChange, BlockedReasons: r.BlockedReasons, NotificationFailedCount: int32(r.NotificationFailedCount), NotificationUnboundCount: int32(r.NotificationUnboundCount)}
 	if r.SubmissionID != nil {
 		out.SubmissionId = r.SubmissionID.String()
 	}

@@ -15,8 +15,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -150,6 +152,48 @@ func (_c *FinanceCommissionAdjustmentCreate) SetSourceFeeSupplementRequestID(v u
 func (_c *FinanceCommissionAdjustmentCreate) SetNillableSourceFeeSupplementRequestID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
 	if v != nil {
 		_c.SetSourceFeeSupplementRequestID(*v)
+	}
+	return _c
+}
+
+// SetSourceFeeCorrectionRequestID sets the "source_fee_correction_request_id" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceFeeCorrectionRequestID(v uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetSourceFeeCorrectionRequestID(v)
+	return _c
+}
+
+// SetNillableSourceFeeCorrectionRequestID sets the "source_fee_correction_request_id" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableSourceFeeCorrectionRequestID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetSourceFeeCorrectionRequestID(*v)
+	}
+	return _c
+}
+
+// SetSourceNettingID sets the "source_netting_id" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceNettingID(v uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetSourceNettingID(v)
+	return _c
+}
+
+// SetNillableSourceNettingID sets the "source_netting_id" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableSourceNettingID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetSourceNettingID(*v)
+	}
+	return _c
+}
+
+// SetSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field.
+func (_c *FinanceCommissionAdjustmentCreate) SetSupersededByFeeCorrectionRequestID(v uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	_c.mutation.SetSupersededByFeeCorrectionRequestID(v)
+	return _c
+}
+
+// SetNillableSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field if the given value is not nil.
+func (_c *FinanceCommissionAdjustmentCreate) SetNillableSupersededByFeeCorrectionRequestID(v *uuid.UUID) *FinanceCommissionAdjustmentCreate {
+	if v != nil {
+		_c.SetSupersededByFeeCorrectionRequestID(*v)
 	}
 	return _c
 }
@@ -388,6 +432,21 @@ func (_c *FinanceCommissionAdjustmentCreate) SetSourceVerification(v *FinanceVer
 // SetSourceFeeSupplementRequest sets the "source_fee_supplement_request" edge to the OrderFeeSupplementRequest entity.
 func (_c *FinanceCommissionAdjustmentCreate) SetSourceFeeSupplementRequest(v *OrderFeeSupplementRequest) *FinanceCommissionAdjustmentCreate {
 	return _c.SetSourceFeeSupplementRequestID(v.ID)
+}
+
+// SetSourceFeeCorrectionRequest sets the "source_fee_correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceFeeCorrectionRequest(v *OrderFeeCorrectionRequest) *FinanceCommissionAdjustmentCreate {
+	return _c.SetSourceFeeCorrectionRequestID(v.ID)
+}
+
+// SetSupersededByFeeCorrectionRequest sets the "superseded_by_fee_correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_c *FinanceCommissionAdjustmentCreate) SetSupersededByFeeCorrectionRequest(v *OrderFeeCorrectionRequest) *FinanceCommissionAdjustmentCreate {
+	return _c.SetSupersededByFeeCorrectionRequestID(v.ID)
+}
+
+// SetSourceNetting sets the "source_netting" edge to the FinanceNetting entity.
+func (_c *FinanceCommissionAdjustmentCreate) SetSourceNetting(v *FinanceNetting) *FinanceCommissionAdjustmentCreate {
+	return _c.SetSourceNettingID(v.ID)
 }
 
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
@@ -863,6 +922,57 @@ func (_c *FinanceCommissionAdjustmentCreate) createSpec() (*FinanceCommissionAdj
 		_node.SourceFeeSupplementRequestID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.SourceFeeCorrectionRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SourceFeeCorrectionRequestTable,
+			Columns: []string{financecommissionadjustment.SourceFeeCorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SourceFeeCorrectionRequestID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SupersededByFeeCorrectionRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SupersededByFeeCorrectionRequestTable,
+			Columns: []string{financecommissionadjustment.SupersededByFeeCorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SupersededByFeeCorrectionRequestID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.SourceNettingIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SourceNettingTable,
+			Columns: []string{financecommissionadjustment.SourceNettingColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenetting.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SourceNettingID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.ConfirmedByUserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -975,6 +1085,24 @@ func (u *FinanceCommissionAdjustmentUpsert) SetUpdatedAt(v time.Time) *FinanceCo
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *FinanceCommissionAdjustmentUpsert) UpdateUpdatedAt() *FinanceCommissionAdjustmentUpsert {
 	u.SetExcluded(financecommissionadjustment.FieldUpdatedAt)
+	return u
+}
+
+// SetSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field.
+func (u *FinanceCommissionAdjustmentUpsert) SetSupersededByFeeCorrectionRequestID(v uuid.UUID) *FinanceCommissionAdjustmentUpsert {
+	u.Set(financecommissionadjustment.FieldSupersededByFeeCorrectionRequestID, v)
+	return u
+}
+
+// UpdateSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsert) UpdateSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpsert {
+	u.SetExcluded(financecommissionadjustment.FieldSupersededByFeeCorrectionRequestID)
+	return u
+}
+
+// ClearSupersededByFeeCorrectionRequestID clears the value of the "superseded_by_fee_correction_request_id" field.
+func (u *FinanceCommissionAdjustmentUpsert) ClearSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpsert {
+	u.SetNull(financecommissionadjustment.FieldSupersededByFeeCorrectionRequestID)
 	return u
 }
 
@@ -1244,6 +1372,12 @@ func (u *FinanceCommissionAdjustmentUpsertOne) UpdateNewValues() *FinanceCommiss
 		if _, exists := u.create.mutation.SourceFeeSupplementRequestID(); exists {
 			s.SetIgnore(financecommissionadjustment.FieldSourceFeeSupplementRequestID)
 		}
+		if _, exists := u.create.mutation.SourceFeeCorrectionRequestID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldSourceFeeCorrectionRequestID)
+		}
+		if _, exists := u.create.mutation.SourceNettingID(); exists {
+			s.SetIgnore(financecommissionadjustment.FieldSourceNettingID)
+		}
 		if _, exists := u.create.mutation.Direction(); exists {
 			s.SetIgnore(financecommissionadjustment.FieldDirection)
 		}
@@ -1298,6 +1432,27 @@ func (u *FinanceCommissionAdjustmentUpsertOne) SetUpdatedAt(v time.Time) *Financ
 func (u *FinanceCommissionAdjustmentUpsertOne) UpdateUpdatedAt() *FinanceCommissionAdjustmentUpsertOne {
 	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) SetSupersededByFeeCorrectionRequestID(v uuid.UUID) *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetSupersededByFeeCorrectionRequestID(v)
+	})
+}
+
+// UpdateSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertOne) UpdateSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateSupersededByFeeCorrectionRequestID()
+	})
+}
+
+// ClearSupersededByFeeCorrectionRequestID clears the value of the "superseded_by_fee_correction_request_id" field.
+func (u *FinanceCommissionAdjustmentUpsertOne) ClearSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpsertOne {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearSupersededByFeeCorrectionRequestID()
 	})
 }
 
@@ -1768,6 +1923,12 @@ func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateNewValues() *FinanceCommis
 			if _, exists := b.mutation.SourceFeeSupplementRequestID(); exists {
 				s.SetIgnore(financecommissionadjustment.FieldSourceFeeSupplementRequestID)
 			}
+			if _, exists := b.mutation.SourceFeeCorrectionRequestID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldSourceFeeCorrectionRequestID)
+			}
+			if _, exists := b.mutation.SourceNettingID(); exists {
+				s.SetIgnore(financecommissionadjustment.FieldSourceNettingID)
+			}
 			if _, exists := b.mutation.Direction(); exists {
 				s.SetIgnore(financecommissionadjustment.FieldDirection)
 			}
@@ -1823,6 +1984,27 @@ func (u *FinanceCommissionAdjustmentUpsertBulk) SetUpdatedAt(v time.Time) *Finan
 func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateUpdatedAt() *FinanceCommissionAdjustmentUpsertBulk {
 	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) SetSupersededByFeeCorrectionRequestID(v uuid.UUID) *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.SetSupersededByFeeCorrectionRequestID(v)
+	})
+}
+
+// UpdateSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field to the value that was provided on create.
+func (u *FinanceCommissionAdjustmentUpsertBulk) UpdateSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.UpdateSupersededByFeeCorrectionRequestID()
+	})
+}
+
+// ClearSupersededByFeeCorrectionRequestID clears the value of the "superseded_by_fee_correction_request_id" field.
+func (u *FinanceCommissionAdjustmentUpsertBulk) ClearSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpsertBulk {
+	return u.Update(func(s *FinanceCommissionAdjustmentUpsert) {
+		s.ClearSupersededByFeeCorrectionRequestID()
 	})
 }
 

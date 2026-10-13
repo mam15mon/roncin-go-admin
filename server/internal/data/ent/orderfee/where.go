@@ -196,6 +196,26 @@ func SupplementRequestID(v uuid.UUID) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldSupplementRequestID, v))
 }
 
+// AccountingRequired applies equality check predicate on the "accounting_required" field. It's identical to AccountingRequiredEQ.
+func AccountingRequired(v bool) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldAccountingRequired, v))
+}
+
+// SourceFeeID applies equality check predicate on the "source_fee_id" field. It's identical to SourceFeeIDEQ.
+func SourceFeeID(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSourceFeeID, v))
+}
+
+// CorrectionRequestID applies equality check predicate on the "correction_request_id" field. It's identical to CorrectionRequestIDEQ.
+func CorrectionRequestID(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldCorrectionRequestID, v))
+}
+
+// SupersededByRequestID applies equality check predicate on the "superseded_by_request_id" field. It's identical to SupersededByRequestIDEQ.
+func SupersededByRequestID(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSupersededByRequestID, v))
+}
+
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
 func Version(v uint64) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldVersion, v))
@@ -1786,6 +1806,126 @@ func SupplementRequestIDNotNil() predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldNotNull(FieldSupplementRequestID))
 }
 
+// EconomicEffectEQ applies the EQ predicate on the "economic_effect" field.
+func EconomicEffectEQ(v EconomicEffect) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldEconomicEffect, v))
+}
+
+// EconomicEffectNEQ applies the NEQ predicate on the "economic_effect" field.
+func EconomicEffectNEQ(v EconomicEffect) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldEconomicEffect, v))
+}
+
+// EconomicEffectIn applies the In predicate on the "economic_effect" field.
+func EconomicEffectIn(vs ...EconomicEffect) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldEconomicEffect, vs...))
+}
+
+// EconomicEffectNotIn applies the NotIn predicate on the "economic_effect" field.
+func EconomicEffectNotIn(vs ...EconomicEffect) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldEconomicEffect, vs...))
+}
+
+// AccountingRequiredEQ applies the EQ predicate on the "accounting_required" field.
+func AccountingRequiredEQ(v bool) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldAccountingRequired, v))
+}
+
+// AccountingRequiredNEQ applies the NEQ predicate on the "accounting_required" field.
+func AccountingRequiredNEQ(v bool) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldAccountingRequired, v))
+}
+
+// SourceFeeIDEQ applies the EQ predicate on the "source_fee_id" field.
+func SourceFeeIDEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSourceFeeID, v))
+}
+
+// SourceFeeIDNEQ applies the NEQ predicate on the "source_fee_id" field.
+func SourceFeeIDNEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldSourceFeeID, v))
+}
+
+// SourceFeeIDIn applies the In predicate on the "source_fee_id" field.
+func SourceFeeIDIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldSourceFeeID, vs...))
+}
+
+// SourceFeeIDNotIn applies the NotIn predicate on the "source_fee_id" field.
+func SourceFeeIDNotIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldSourceFeeID, vs...))
+}
+
+// SourceFeeIDIsNil applies the IsNil predicate on the "source_fee_id" field.
+func SourceFeeIDIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldSourceFeeID))
+}
+
+// SourceFeeIDNotNil applies the NotNil predicate on the "source_fee_id" field.
+func SourceFeeIDNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldSourceFeeID))
+}
+
+// CorrectionRequestIDEQ applies the EQ predicate on the "correction_request_id" field.
+func CorrectionRequestIDEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDNEQ applies the NEQ predicate on the "correction_request_id" field.
+func CorrectionRequestIDNEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDIn applies the In predicate on the "correction_request_id" field.
+func CorrectionRequestIDIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldCorrectionRequestID, vs...))
+}
+
+// CorrectionRequestIDNotIn applies the NotIn predicate on the "correction_request_id" field.
+func CorrectionRequestIDNotIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldCorrectionRequestID, vs...))
+}
+
+// CorrectionRequestIDIsNil applies the IsNil predicate on the "correction_request_id" field.
+func CorrectionRequestIDIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldCorrectionRequestID))
+}
+
+// CorrectionRequestIDNotNil applies the NotNil predicate on the "correction_request_id" field.
+func CorrectionRequestIDNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldCorrectionRequestID))
+}
+
+// SupersededByRequestIDEQ applies the EQ predicate on the "superseded_by_request_id" field.
+func SupersededByRequestIDEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSupersededByRequestID, v))
+}
+
+// SupersededByRequestIDNEQ applies the NEQ predicate on the "superseded_by_request_id" field.
+func SupersededByRequestIDNEQ(v uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldSupersededByRequestID, v))
+}
+
+// SupersededByRequestIDIn applies the In predicate on the "superseded_by_request_id" field.
+func SupersededByRequestIDIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldSupersededByRequestID, vs...))
+}
+
+// SupersededByRequestIDNotIn applies the NotIn predicate on the "superseded_by_request_id" field.
+func SupersededByRequestIDNotIn(vs ...uuid.UUID) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldSupersededByRequestID, vs...))
+}
+
+// SupersededByRequestIDIsNil applies the IsNil predicate on the "superseded_by_request_id" field.
+func SupersededByRequestIDIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldSupersededByRequestID))
+}
+
+// SupersededByRequestIDNotNil applies the NotNil predicate on the "superseded_by_request_id" field.
+func SupersededByRequestIDNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldSupersededByRequestID))
+}
+
 // VersionEQ applies the EQ predicate on the "version" field.
 func VersionEQ(v uint64) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldVersion, v))
@@ -1933,6 +2073,144 @@ func HasSupplementRequest() predicate.OrderFee {
 func HasSupplementRequestWith(preds ...predicate.OrderFeeSupplementRequest) predicate.OrderFee {
 	return predicate.OrderFee(func(s *sql.Selector) {
 		step := newSupplementRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCorrectionRequest applies the HasEdge predicate on the "correction_request" edge.
+func HasCorrectionRequest() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CorrectionRequestTable, CorrectionRequestColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCorrectionRequestWith applies the HasEdge predicate on the "correction_request" edge with a given conditions (other predicates).
+func HasCorrectionRequestWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newCorrectionRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSupersededByRequest applies the HasEdge predicate on the "superseded_by_request" edge.
+func HasSupersededByRequest() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SupersededByRequestTable, SupersededByRequestColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSupersededByRequestWith applies the HasEdge predicate on the "superseded_by_request" edge with a given conditions (other predicates).
+func HasSupersededByRequestWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newSupersededByRequestStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCorrectionNettingAllocations applies the HasEdge predicate on the "correction_netting_allocations" edge.
+func HasCorrectionNettingAllocations() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CorrectionNettingAllocationsTable, CorrectionNettingAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCorrectionNettingAllocationsWith applies the HasEdge predicate on the "correction_netting_allocations" edge with a given conditions (other predicates).
+func HasCorrectionNettingAllocationsWith(preds ...predicate.FinanceNettingAllocation) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newCorrectionNettingAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDerivedFees applies the HasEdge predicate on the "derived_fees" edge.
+func HasDerivedFees() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DerivedFeesTable, DerivedFeesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDerivedFeesWith applies the HasEdge predicate on the "derived_fees" edge with a given conditions (other predicates).
+func HasDerivedFeesWith(preds ...predicate.OrderFee) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newDerivedFeesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSourceFee applies the HasEdge predicate on the "source_fee" edge.
+func HasSourceFee() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, SourceFeeTable, SourceFeeColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSourceFeeWith applies the HasEdge predicate on the "source_fee" edge with a given conditions (other predicates).
+func HasSourceFeeWith(preds ...predicate.OrderFee) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newSourceFeeStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTargetedCorrectionRequests applies the HasEdge predicate on the "targeted_correction_requests" edge.
+func HasTargetedCorrectionRequests() predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TargetedCorrectionRequestsTable, TargetedCorrectionRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTargetedCorrectionRequestsWith applies the HasEdge predicate on the "targeted_correction_requests" edge with a given conditions (other predicates).
+func HasTargetedCorrectionRequestsWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.OrderFee {
+	return predicate.OrderFee(func(s *sql.Selector) {
+		step := newTargetedCorrectionRequestsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

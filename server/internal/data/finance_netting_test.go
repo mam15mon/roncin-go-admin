@@ -34,7 +34,7 @@ func TestFinanceNettingLoadPreviewRejectsTooManyBills(t *testing.T) {
 	// 按 financebillent.Columns 顺序构造一行可完整扫描的已确认账单，
 	// 重复 biz.MaxFinanceNettingBills+1 行触发预览上限。
 	row := []driver.Value{
-		uuid.New(), now, now, organizationID, "B0001", "idem-1", nil,
+		uuid.New(), now, now, "NORMAL", organizationID, "B0001", "idem-1", nil,
 		"RECEIVABLE", "CONFIRMED", partyID, "测试伙伴",
 		uuid.New(), "测试账户", "测试持有人", "测试银行", "6222000000000000", "CNY", nil,
 		nil, nil, nil,

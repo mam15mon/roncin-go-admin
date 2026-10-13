@@ -18,7 +18,7 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 		},
 		{
 			tableName: "order_fee_review_events", table: OrderFeeReviewEventsTable,
-			expectedChecks: map[string]string{"order_fee_review_events_action_check": "action IN ('SUBMIT','WITHDRAW','APPROVE','REJECT','REVOKE','SUPPLEMENT_APPROVE')"},
+			expectedChecks: map[string]string{"order_fee_review_events_action_check": "action IN ('SUBMIT','WITHDRAW','APPROVE','REJECT','REVOKE','SUPPLEMENT_APPROVE','CORRECTION_APPROVE')"},
 		},
 		{
 			tableName: "finance_commission_adjustments", table: FinanceCommissionAdjustmentsTable,
@@ -106,7 +106,7 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 				"commission_adjustment_amount_positive":         "amount > 0",
 				"commission_adjustment_direction_check":         "direction IN ('INCREASE', 'DECREASE')",
 				"commission_adjustment_source_supplement_check": "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
-				"commission_adjustment_source_type_check":       "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
+				"commission_adjustment_source_type_check":       "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT','FEE_CORRECTION','ECONOMIC_REALLOCATION')",
 				"commission_adjustment_status_check":            "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
 			},
 		},

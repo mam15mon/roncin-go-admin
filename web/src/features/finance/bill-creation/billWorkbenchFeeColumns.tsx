@@ -44,6 +44,7 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
       <FeeReviewStatus
         status={row.feeReviewStatus}
         pendingSupplement={row.hasPendingFeeSupplement}
+        pendingCorrection={row.hasPendingFeeCorrection}
       />
     ),
   },
@@ -55,7 +56,20 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     render: (_, row) =>
       row.canBill ? '可建账' : row.blockedReasons?.join('；') || '-',
   },
-  { title: '费用名称', dataIndex: 'feeName', width: 130, search: false },
+  {
+    title: '费用名称',
+    dataIndex: 'feeName',
+    width: 160,
+    search: false,
+    render: (_, row) => (
+      <>
+        {row.feeName}{' '}
+        {row.economicEffect === 'DECREASE' && (
+          <Tag color="orange">更正冲回</Tag>
+        )}
+      </>
+    ),
+  },
   {
     title: '税率',
     dataIndex: 'taxRate',

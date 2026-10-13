@@ -5030,6 +5030,29 @@ func HasFeeSupplementRequestsWith(preds ...predicate.OrderFeeSupplementRequest) 
 	})
 }
 
+// HasFeeCorrectionRequests applies the HasEdge predicate on the "fee_correction_requests" edge.
+func HasFeeCorrectionRequests() predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeeCorrectionRequestsTable, FeeCorrectionRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeeCorrectionRequestsWith applies the HasEdge predicate on the "fee_correction_requests" edge with a given conditions (other predicates).
+func HasFeeCorrectionRequestsWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.Order {
+	return predicate.Order(func(s *sql.Selector) {
+		step := newFeeCorrectionRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasFinanceBillLines applies the HasEdge predicate on the "finance_bill_lines" edge.
 func HasFinanceBillLines() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {

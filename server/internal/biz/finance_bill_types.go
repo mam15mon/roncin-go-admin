@@ -16,57 +16,74 @@ const (
 	FinanceBillCancelled FinanceBillStatus = "CANCELLED"
 )
 
+type FinanceBillPurpose string
+
+const (
+	FinanceBillNormal             FinanceBillPurpose = "NORMAL"
+	FinanceBillCorrectionReversal FinanceBillPurpose = "CORRECTION_REVERSAL"
+)
+
+func FinanceBillPurposeForFee(fee *OrderFee) FinanceBillPurpose {
+	if fee.EconomicEffect == OrderFeeEconomicDecrease {
+		return FinanceBillCorrectionReversal
+	}
+	return FinanceBillNormal
+}
+
 type FinanceBill struct {
-	ID                        uuid.UUID
-	OrganizationID            uuid.UUID
-	OrganizationName          string
-	BatchID                   *uuid.UUID
-	BatchNo                   string
-	BillNo                    string
-	IdempotencyKey            string
-	Direction                 OrderFeeDirection
-	Status                    FinanceBillStatus
-	SettlementPartyID         uuid.UUID
-	SettlementPartyName       string
-	SettlementAccountID       uuid.UUID
-	SettlementAccountName     string
-	SettlementAccountHolder   string
-	SettlementBankName        string
-	SettlementBankAccount     string
-	SettlementAccountCurrency string
-	SettlementSwiftCode       string
-	EstimatedInvoiceCurrency  *string
-	EstimatedInvoiceRate      *decimal.Decimal
-	EstimatedInvoiceAmount    *decimal.Decimal
-	Currency                  string
-	BaseCurrency              string
-	ExchangeRate              decimal.Decimal
-	ExchangeRateSource        string
-	ExchangeRateDate          string
-	ExchangeRateSettingID     *uuid.UUID
-	TotalAmount               decimal.Decimal
-	NetAmount                 decimal.Decimal
-	TaxAmount                 decimal.Decimal
-	BaseCurrencyAmount        decimal.Decimal
-	VerifiedAmount            decimal.Decimal
-	NettedAmount              decimal.Decimal
-	UnverifiedAmount          decimal.Decimal
-	OverdueDays               int32
-	FeeCount                  int
-	BillDate                  string
-	StatementTitle            *string
-	PaymentTermsDays          *int
-	DueDate                   *string
-	Note                      *string
-	Version                   uint64
-	ConfirmedAt               *time.Time
-	ConfirmedBy               *uuid.UUID
-	CancelledAt               *time.Time
-	CancelledBy               *uuid.UUID
-	CancellationReason        *string
-	Lines                     []*FinanceBillLine
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
+	CorrectionRequestID                                           *uuid.UUID
+	InvoiceableAmount, InvoiceableNetAmount, InvoiceableTaxAmount *decimal.Decimal
+	Purpose                                                       FinanceBillPurpose
+	ID                                                            uuid.UUID
+	OrganizationID                                                uuid.UUID
+	OrganizationName                                              string
+	BatchID                                                       *uuid.UUID
+	BatchNo                                                       string
+	BillNo                                                        string
+	IdempotencyKey                                                string
+	Direction                                                     OrderFeeDirection
+	Status                                                        FinanceBillStatus
+	SettlementPartyID                                             uuid.UUID
+	SettlementPartyName                                           string
+	SettlementAccountID                                           uuid.UUID
+	SettlementAccountName                                         string
+	SettlementAccountHolder                                       string
+	SettlementBankName                                            string
+	SettlementBankAccount                                         string
+	SettlementAccountCurrency                                     string
+	SettlementSwiftCode                                           string
+	EstimatedInvoiceCurrency                                      *string
+	EstimatedInvoiceRate                                          *decimal.Decimal
+	EstimatedInvoiceAmount                                        *decimal.Decimal
+	Currency                                                      string
+	BaseCurrency                                                  string
+	ExchangeRate                                                  decimal.Decimal
+	ExchangeRateSource                                            string
+	ExchangeRateDate                                              string
+	ExchangeRateSettingID                                         *uuid.UUID
+	TotalAmount                                                   decimal.Decimal
+	NetAmount                                                     decimal.Decimal
+	TaxAmount                                                     decimal.Decimal
+	BaseCurrencyAmount                                            decimal.Decimal
+	VerifiedAmount                                                decimal.Decimal
+	NettedAmount                                                  decimal.Decimal
+	UnverifiedAmount                                              decimal.Decimal
+	OverdueDays                                                   int32
+	FeeCount                                                      int
+	BillDate                                                      string
+	StatementTitle                                                *string
+	PaymentTermsDays                                              *int
+	DueDate                                                       *string
+	Note                                                          *string
+	Version                                                       uint64
+	ConfirmedAt                                                   *time.Time
+	ConfirmedBy                                                   *uuid.UUID
+	CancelledAt                                                   *time.Time
+	CancelledBy                                                   *uuid.UUID
+	CancellationReason                                            *string
+	Lines                                                         []*FinanceBillLine
+	CreatedAt                                                     time.Time
+	UpdatedAt                                                     time.Time
 }
 
 type FinanceBillLine struct {
@@ -96,6 +113,7 @@ type FinanceBillLine struct {
 type FinanceBillableFee struct {
 	FeeReviewStatus         string
 	HasPendingFeeSupplement bool
+	HasPendingFeeCorrection bool
 	CanBill                 bool
 	BlockedReasons          []string
 	Fee                     *OrderFee
@@ -192,6 +210,8 @@ type FinanceBillGroupingPolicy struct {
 }
 
 type FinanceBillBatchPreviewGroup struct {
+	CorrectionRequestID                                   *uuid.UUID
+	Purpose                                               FinanceBillPurpose
 	GroupKey, SettlementPartyName, Currency, BaseCurrency string
 	Direction                                             OrderFeeDirection
 	SettlementPartyID                                     uuid.UUID

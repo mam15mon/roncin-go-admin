@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -253,6 +254,21 @@ func (_u *FinanceNettingUpdate) ClearReversalReason() *FinanceNettingUpdate {
 	return _u
 }
 
+// AddCommissionEconomicAdjustmentIDs adds the "commission_economic_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *FinanceNettingUpdate) AddCommissionEconomicAdjustmentIDs(ids ...uuid.UUID) *FinanceNettingUpdate {
+	_u.mutation.AddCommissionEconomicAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddCommissionEconomicAdjustments adds the "commission_economic_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceNettingUpdate) AddCommissionEconomicAdjustments(v ...*FinanceCommissionAdjustment) *FinanceNettingUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionEconomicAdjustmentIDs(ids...)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_u *FinanceNettingUpdate) SetConfirmedByUserID(id uuid.UUID) *FinanceNettingUpdate {
 	_u.mutation.SetConfirmedByUserID(id)
@@ -343,6 +359,27 @@ func (_u *FinanceNettingUpdate) AddCommissions(v ...*FinanceCommission) *Finance
 // Mutation returns the FinanceNettingMutation object of the builder.
 func (_u *FinanceNettingUpdate) Mutation() *FinanceNettingMutation {
 	return _u.mutation
+}
+
+// ClearCommissionEconomicAdjustments clears all "commission_economic_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceNettingUpdate) ClearCommissionEconomicAdjustments() *FinanceNettingUpdate {
+	_u.mutation.ClearCommissionEconomicAdjustments()
+	return _u
+}
+
+// RemoveCommissionEconomicAdjustmentIDs removes the "commission_economic_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *FinanceNettingUpdate) RemoveCommissionEconomicAdjustmentIDs(ids ...uuid.UUID) *FinanceNettingUpdate {
+	_u.mutation.RemoveCommissionEconomicAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveCommissionEconomicAdjustments removes "commission_economic_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *FinanceNettingUpdate) RemoveCommissionEconomicAdjustments(v ...*FinanceCommissionAdjustment) *FinanceNettingUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionEconomicAdjustmentIDs(ids...)
 }
 
 // ClearConfirmedByUser clears the "confirmed_by_user" edge to the User entity.
@@ -531,6 +568,51 @@ func (_u *FinanceNettingUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if _u.mutation.ReversalReasonCleared() {
 		_spec.ClearField(financenetting.FieldReversalReason, field.TypeString)
+	}
+	if _u.mutation.CommissionEconomicAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionEconomicAdjustmentsTable,
+			Columns: []string{financenetting.CommissionEconomicAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionEconomicAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.CommissionEconomicAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionEconomicAdjustmentsTable,
+			Columns: []string{financenetting.CommissionEconomicAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionEconomicAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionEconomicAdjustmentsTable,
+			Columns: []string{financenetting.CommissionEconomicAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ConfirmedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -950,6 +1032,21 @@ func (_u *FinanceNettingUpdateOne) ClearReversalReason() *FinanceNettingUpdateOn
 	return _u
 }
 
+// AddCommissionEconomicAdjustmentIDs adds the "commission_economic_adjustments" edge to the FinanceCommissionAdjustment entity by IDs.
+func (_u *FinanceNettingUpdateOne) AddCommissionEconomicAdjustmentIDs(ids ...uuid.UUID) *FinanceNettingUpdateOne {
+	_u.mutation.AddCommissionEconomicAdjustmentIDs(ids...)
+	return _u
+}
+
+// AddCommissionEconomicAdjustments adds the "commission_economic_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceNettingUpdateOne) AddCommissionEconomicAdjustments(v ...*FinanceCommissionAdjustment) *FinanceNettingUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCommissionEconomicAdjustmentIDs(ids...)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_u *FinanceNettingUpdateOne) SetConfirmedByUserID(id uuid.UUID) *FinanceNettingUpdateOne {
 	_u.mutation.SetConfirmedByUserID(id)
@@ -1040,6 +1137,27 @@ func (_u *FinanceNettingUpdateOne) AddCommissions(v ...*FinanceCommission) *Fina
 // Mutation returns the FinanceNettingMutation object of the builder.
 func (_u *FinanceNettingUpdateOne) Mutation() *FinanceNettingMutation {
 	return _u.mutation
+}
+
+// ClearCommissionEconomicAdjustments clears all "commission_economic_adjustments" edges to the FinanceCommissionAdjustment entity.
+func (_u *FinanceNettingUpdateOne) ClearCommissionEconomicAdjustments() *FinanceNettingUpdateOne {
+	_u.mutation.ClearCommissionEconomicAdjustments()
+	return _u
+}
+
+// RemoveCommissionEconomicAdjustmentIDs removes the "commission_economic_adjustments" edge to FinanceCommissionAdjustment entities by IDs.
+func (_u *FinanceNettingUpdateOne) RemoveCommissionEconomicAdjustmentIDs(ids ...uuid.UUID) *FinanceNettingUpdateOne {
+	_u.mutation.RemoveCommissionEconomicAdjustmentIDs(ids...)
+	return _u
+}
+
+// RemoveCommissionEconomicAdjustments removes "commission_economic_adjustments" edges to FinanceCommissionAdjustment entities.
+func (_u *FinanceNettingUpdateOne) RemoveCommissionEconomicAdjustments(v ...*FinanceCommissionAdjustment) *FinanceNettingUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCommissionEconomicAdjustmentIDs(ids...)
 }
 
 // ClearConfirmedByUser clears the "confirmed_by_user" edge to the User entity.
@@ -1258,6 +1376,51 @@ func (_u *FinanceNettingUpdateOne) sqlSave(ctx context.Context) (_node *FinanceN
 	}
 	if _u.mutation.ReversalReasonCleared() {
 		_spec.ClearField(financenetting.FieldReversalReason, field.TypeString)
+	}
+	if _u.mutation.CommissionEconomicAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionEconomicAdjustmentsTable,
+			Columns: []string{financenetting.CommissionEconomicAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCommissionEconomicAdjustmentsIDs(); len(nodes) > 0 && !_u.mutation.CommissionEconomicAdjustmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionEconomicAdjustmentsTable,
+			Columns: []string{financenetting.CommissionEconomicAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CommissionEconomicAdjustmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financenetting.CommissionEconomicAdjustmentsTable,
+			Columns: []string{financenetting.CommissionEconomicAdjustmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financecommissionadjustment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ConfirmedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{

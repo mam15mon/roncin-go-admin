@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 )
 
 // FinanceNettingAllocationCreate is the builder for creating a FinanceNettingAllocation entity.
@@ -50,6 +51,20 @@ func (_c *FinanceNettingAllocationCreate) SetUpdatedAt(v time.Time) *FinanceNett
 func (_c *FinanceNettingAllocationCreate) SetNillableUpdatedAt(v *time.Time) *FinanceNettingAllocationCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetSourceFeeID sets the "source_fee_id" field.
+func (_c *FinanceNettingAllocationCreate) SetSourceFeeID(v uuid.UUID) *FinanceNettingAllocationCreate {
+	_c.mutation.SetSourceFeeID(v)
+	return _c
+}
+
+// SetNillableSourceFeeID sets the "source_fee_id" field if the given value is not nil.
+func (_c *FinanceNettingAllocationCreate) SetNillableSourceFeeID(v *uuid.UUID) *FinanceNettingAllocationCreate {
+	if v != nil {
+		_c.SetSourceFeeID(*v)
 	}
 	return _c
 }
@@ -116,6 +131,11 @@ func (_c *FinanceNettingAllocationCreate) SetNillableID(v *uuid.UUID) *FinanceNe
 		_c.SetID(*v)
 	}
 	return _c
+}
+
+// SetSourceFee sets the "source_fee" edge to the OrderFee entity.
+func (_c *FinanceNettingAllocationCreate) SetSourceFee(v *OrderFee) *FinanceNettingAllocationCreate {
+	return _c.SetSourceFeeID(v.ID)
 }
 
 // SetNetting sets the "netting" edge to the FinanceNetting entity.
@@ -290,6 +310,23 @@ func (_c *FinanceNettingAllocationCreate) createSpec() (*FinanceNettingAllocatio
 		_spec.SetField(financenettingallocation.FieldActive, field.TypeBool, value)
 		_node.Active = value
 	}
+	if nodes := _c.mutation.SourceFeeIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financenettingallocation.SourceFeeTable,
+			Columns: []string{financenettingallocation.SourceFeeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.SourceFeeID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.NettingIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -419,6 +456,9 @@ func (u *FinanceNettingAllocationUpsertOne) UpdateNewValues() *FinanceNettingAll
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(financenettingallocation.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.SourceFeeID(); exists {
+			s.SetIgnore(financenettingallocation.FieldSourceFeeID)
 		}
 		if _, exists := u.create.mutation.NettingID(); exists {
 			s.SetIgnore(financenettingallocation.FieldNettingID)
@@ -682,6 +722,9 @@ func (u *FinanceNettingAllocationUpsertBulk) UpdateNewValues() *FinanceNettingAl
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(financenettingallocation.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.SourceFeeID(); exists {
+				s.SetIgnore(financenettingallocation.FieldSourceFeeID)
 			}
 			if _, exists := b.mutation.NettingID(); exists {
 				s.SetIgnore(financenettingallocation.FieldNettingID)

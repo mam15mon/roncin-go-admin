@@ -152,7 +152,7 @@ func (r *orderRepo) ClosureReadiness(ctx context.Context, organizationID, id uui
 	if err != nil {
 		return nil, err
 	}
-	hasUnbilledFees, err := client.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
+	hasUnbilledFees, err := client.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), accountingOrderFeePredicate(), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 			if readinessErr != nil {
 				return readinessErr
 			}
-			hasUnbilledFees, readinessErr := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
+			hasUnbilledFees, readinessErr := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), accountingOrderFeePredicate(), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
 			if readinessErr != nil {
 				return readinessErr
 			}

@@ -314,7 +314,7 @@ func financeNettingSummaryAllocation(billID uuid.UUID, amount, baseCurrencyAmoun
 func financeNettingSummaryAllocationRows(items ...financeNettingSummaryAllocationInput) *sqlmock.Rows {
 	rows := sqlmock.NewRows(financenettingallocationent.Columns)
 	for _, item := range items {
-		rows.AddRow(uuid.New(), time.Now(), time.Now(), uuid.New(), item.billID, "BILL", "RECEIVABLE", item.amount, item.baseCurrencyAmount, true)
+		rows.AddRow(uuid.New(), time.Now(), time.Now(), nil, uuid.New(), item.billID, "BILL", "RECEIVABLE", item.amount, item.baseCurrencyAmount, true)
 	}
 	return rows
 }

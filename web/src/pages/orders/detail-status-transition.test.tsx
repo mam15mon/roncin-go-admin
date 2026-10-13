@@ -294,7 +294,7 @@ describe('订单详情状态卡流转编排', () => {
       ...testState.order,
       flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED,
       allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE],
-      feeReview: { hasPendingSupplement: true },
+      feeReview: { hasPendingSupplement: true, hasPendingChange: true },
     };
     const { rerender } = render(
       <App>
@@ -305,7 +305,7 @@ describe('订单详情状态卡流转编排', () => {
     expect(close).toBeDisabled();
     fireEvent.mouseOver(close.parentElement as HTMLElement);
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
-      '存在待审核补录，请先处理后再结案',
+      '存在待审批费用变更，请先处理后再结案',
     );
     fireEvent.click(close);
     expect(mockConfirmClosure).not.toHaveBeenCalled();
@@ -340,7 +340,7 @@ describe('订单详情状态卡流转编排', () => {
     expect(options?.canSubmit?.()).toBe(true);
     testState.order = {
       ...testState.order,
-      feeReview: { hasPendingSupplement: true },
+      feeReview: { hasPendingSupplement: true, hasPendingChange: true },
     };
     rerender(
       <App>
@@ -351,7 +351,7 @@ describe('订单详情状态卡流转编排', () => {
       expect(options?.canSubmit?.()).toBe(false);
     });
     expect(
-      await screen.findByText('存在待审核补录，请先处理后再结案'),
+      await screen.findByText('存在待审批费用变更，请先处理后再结案'),
     ).toBeInTheDocument();
     expect(testState.loadData).not.toHaveBeenCalled();
   });
@@ -361,7 +361,7 @@ describe('订单详情状态卡流转编排', () => {
       ...testState.order,
       closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
       allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN],
-      feeReview: { hasPendingSupplement: true },
+      feeReview: { hasPendingSupplement: true, hasPendingChange: true },
     };
     render(
       <App>
@@ -391,5 +391,19 @@ describe('订单详情状态卡流转编排', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: '完结订单' }));
     expect(mockConfirmClosure).toHaveBeenCalledOnce();
+  });
+  it('只有待审批更正也阻止结案，不依赖补录标志', async () => {
+    testState.order = {
+      ...testState.order,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE],
+      feeReview: { hasPendingCorrection: true, hasPendingChange: true },
+    };
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    expect(screen.getByRole('button', { name: '完结订单' })).toBeDisabled();
+    await act(async () => {});
   });
 });

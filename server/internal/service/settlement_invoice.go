@@ -220,7 +220,11 @@ func financeInvoiceToAPI(item *biz.FinanceInvoice) *v1.FinanceInvoice {
 	}
 	links := make([]*v1.FinanceInvoiceBill, 0, len(item.Links))
 	for _, l := range item.Links {
-		links = append(links, &v1.FinanceInvoiceBill{Id: l.ID.String(), BillId: l.BillID.String(), BillNo: l.BillNo, Amount: l.Amount.StringFixed(8), TaxAmount: l.TaxAmount.StringFixed(8), Active: l.Active})
+		sourceIDs := make([]string, 0, len(l.SourceFeeIDs))
+		for _, id := range l.SourceFeeIDs {
+			sourceIDs = append(sourceIDs, id.String())
+		}
+		links = append(links, &v1.FinanceInvoiceBill{SourceFeeIds: sourceIDs, Id: l.ID.String(), BillId: l.BillID.String(), BillNo: l.BillNo, Amount: l.Amount.StringFixed(8), TaxAmount: l.TaxAmount.StringFixed(8), Active: l.Active})
 	}
 	lines := make([]*v1.FinanceInvoiceLine, 0, len(item.Lines))
 	for _, line := range item.Lines {

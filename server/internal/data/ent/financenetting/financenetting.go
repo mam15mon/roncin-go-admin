@@ -20,6 +20,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldCorrectionRequestID holds the string denoting the correction_request_id field in the database.
+	FieldCorrectionRequestID = "correction_request_id"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
 	// FieldNettingNo holds the string denoting the netting_no field in the database.
@@ -68,6 +70,10 @@ const (
 	FieldReversedBy = "reversed_by"
 	// FieldReversalReason holds the string denoting the reversal_reason field in the database.
 	FieldReversalReason = "reversal_reason"
+	// EdgeCorrectionRequest holds the string denoting the correction_request edge name in mutations.
+	EdgeCorrectionRequest = "correction_request"
+	// EdgeCommissionEconomicAdjustments holds the string denoting the commission_economic_adjustments edge name in mutations.
+	EdgeCommissionEconomicAdjustments = "commission_economic_adjustments"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeSettlementParty holds the string denoting the settlement_party edge name in mutations.
@@ -86,6 +92,20 @@ const (
 	EdgeCommissions = "commissions"
 	// Table holds the table name of the financenetting in the database.
 	Table = "finance_nettings"
+	// CorrectionRequestTable is the table that holds the correction_request relation/edge.
+	CorrectionRequestTable = "finance_nettings"
+	// CorrectionRequestInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	CorrectionRequestInverseTable = "order_fee_correction_requests"
+	// CorrectionRequestColumn is the table column denoting the correction_request relation/edge.
+	CorrectionRequestColumn = "correction_request_id"
+	// CommissionEconomicAdjustmentsTable is the table that holds the commission_economic_adjustments relation/edge.
+	CommissionEconomicAdjustmentsTable = "finance_commission_adjustments"
+	// CommissionEconomicAdjustmentsInverseTable is the table name for the FinanceCommissionAdjustment entity.
+	// It exists in this package in order to avoid circular dependency with the "financecommissionadjustment" package.
+	CommissionEconomicAdjustmentsInverseTable = "finance_commission_adjustments"
+	// CommissionEconomicAdjustmentsColumn is the table column denoting the commission_economic_adjustments relation/edge.
+	CommissionEconomicAdjustmentsColumn = "source_netting_id"
 	// OrganizationTable is the table that holds the organization relation/edge.
 	OrganizationTable = "finance_nettings"
 	// OrganizationInverseTable is the table name for the Organization entity.
@@ -149,6 +169,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldCorrectionRequestID,
 	FieldOrganizationID,
 	FieldNettingNo,
 	FieldIdempotencyKey,
@@ -260,6 +281,11 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByCorrectionRequestID orders the results by the correction_request_id field.
+func ByCorrectionRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrectionRequestID, opts...).ToFunc()
 }
 
 // ByOrganizationID orders the results by the organization_id field.
@@ -382,6 +408,27 @@ func ByReversalReason(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReversalReason, opts...).ToFunc()
 }
 
+// ByCorrectionRequestField orders the results by correction_request field.
+func ByCorrectionRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCorrectionRequestStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCommissionEconomicAdjustmentsCount orders the results by commission_economic_adjustments count.
+func ByCommissionEconomicAdjustmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommissionEconomicAdjustmentsStep(), opts...)
+	}
+}
+
+// ByCommissionEconomicAdjustments orders the results by commission_economic_adjustments terms.
+func ByCommissionEconomicAdjustments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommissionEconomicAdjustmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrganizationField orders the results by organization field.
 func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -450,6 +497,20 @@ func ByCommissions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newCommissionsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newCorrectionRequestStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CorrectionRequestInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CorrectionRequestTable, CorrectionRequestColumn),
+	)
+}
+func newCommissionEconomicAdjustmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommissionEconomicAdjustmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommissionEconomicAdjustmentsTable, CommissionEconomicAdjustmentsColumn),
+	)
 }
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

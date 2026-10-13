@@ -141,6 +141,8 @@ type OrganizationEdges struct {
 	OrderLockRecords []*OrderLockRecord `json:"order_lock_records,omitempty"`
 	// OrderFeeSupplementRequests holds the value of the order_fee_supplement_requests edge.
 	OrderFeeSupplementRequests []*OrderFeeSupplementRequest `json:"order_fee_supplement_requests,omitempty"`
+	// FeeCorrectionRequests holds the value of the fee_correction_requests edge.
+	FeeCorrectionRequests []*OrderFeeCorrectionRequest `json:"fee_correction_requests,omitempty"`
 	// OrderLockHouseBillSnapshots holds the value of the order_lock_house_bill_snapshots edge.
 	OrderLockHouseBillSnapshots []*OrderLockHouseBillSnapshot `json:"order_lock_house_bill_snapshots,omitempty"`
 	// OrderUnlockRequests holds the value of the order_unlock_requests edge.
@@ -169,7 +171,7 @@ type OrganizationEdges struct {
 	DingtalkRegistrationRequests []*User `json:"dingtalk_registration_requests,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [60]bool
+	loadedTypes [61]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
@@ -597,10 +599,19 @@ func (e OrganizationEdges) OrderFeeSupplementRequestsOrErr() ([]*OrderFeeSupplem
 	return nil, &NotLoadedError{edge: "order_fee_supplement_requests"}
 }
 
+// FeeCorrectionRequestsOrErr returns the FeeCorrectionRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FeeCorrectionRequestsOrErr() ([]*OrderFeeCorrectionRequest, error) {
+	if e.loadedTypes[47] {
+		return e.FeeCorrectionRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "fee_correction_requests"}
+}
+
 // OrderLockHouseBillSnapshotsOrErr returns the OrderLockHouseBillSnapshots value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrderLockHouseBillSnapshotsOrErr() ([]*OrderLockHouseBillSnapshot, error) {
-	if e.loadedTypes[47] {
+	if e.loadedTypes[48] {
 		return e.OrderLockHouseBillSnapshots, nil
 	}
 	return nil, &NotLoadedError{edge: "order_lock_house_bill_snapshots"}
@@ -609,7 +620,7 @@ func (e OrganizationEdges) OrderLockHouseBillSnapshotsOrErr() ([]*OrderLockHouse
 // OrderUnlockRequestsOrErr returns the OrderUnlockRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, error) {
-	if e.loadedTypes[48] {
+	if e.loadedTypes[49] {
 		return e.OrderUnlockRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "order_unlock_requests"}
@@ -618,7 +629,7 @@ func (e OrganizationEdges) OrderUnlockRequestsOrErr() ([]*OrderUnlockRequest, er
 // SeaMasterBillVersionsOrErr returns the SeaMasterBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion, error) {
-	if e.loadedTypes[49] {
+	if e.loadedTypes[50] {
 		return e.SeaMasterBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_master_bill_versions"}
@@ -627,7 +638,7 @@ func (e OrganizationEdges) SeaMasterBillVersionsOrErr() ([]*SeaMasterBillVersion
 // SeaHouseBillVersionsOrErr returns the SeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[50] {
+	if e.loadedTypes[51] {
 		return e.SeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_house_bill_versions"}
@@ -636,7 +647,7 @@ func (e OrganizationEdges) SeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, 
 // IssuedSeaHouseBillVersionsOrErr returns the IssuedSeaHouseBillVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) IssuedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVersion, error) {
-	if e.loadedTypes[51] {
+	if e.loadedTypes[52] {
 		return e.IssuedSeaHouseBillVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "issued_sea_house_bill_versions"}
@@ -645,7 +656,7 @@ func (e OrganizationEdges) IssuedSeaHouseBillVersionsOrErr() ([]*SeaHouseBillVer
 // DingtalkApprovalDispatchesOrErr returns the DingtalkApprovalDispatches value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) DingtalkApprovalDispatchesOrErr() ([]*DingTalkApprovalDispatch, error) {
-	if e.loadedTypes[52] {
+	if e.loadedTypes[53] {
 		return e.DingtalkApprovalDispatches, nil
 	}
 	return nil, &NotLoadedError{edge: "dingtalk_approval_dispatches"}
@@ -654,7 +665,7 @@ func (e OrganizationEdges) DingtalkApprovalDispatchesOrErr() ([]*DingTalkApprova
 // SeaDocumentVoidEventsOrErr returns the SeaDocumentVoidEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent, error) {
-	if e.loadedTypes[53] {
+	if e.loadedTypes[54] {
 		return e.SeaDocumentVoidEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_document_void_events"}
@@ -663,7 +674,7 @@ func (e OrganizationEdges) SeaDocumentVoidEventsOrErr() ([]*SeaDocumentVoidEvent
 // SeaTransportExecutionVersionsOrErr returns the SeaTransportExecutionVersions value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransportExecutionVersion, error) {
-	if e.loadedTypes[54] {
+	if e.loadedTypes[55] {
 		return e.SeaTransportExecutionVersions, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_transport_execution_versions"}
@@ -672,7 +683,7 @@ func (e OrganizationEdges) SeaTransportExecutionVersionsOrErr() ([]*SeaTransport
 // SeaDocumentModeChangeEventsOrErr returns the SeaDocumentModeChangeEvents value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) SeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentModeChangeEvent, error) {
-	if e.loadedTypes[55] {
+	if e.loadedTypes[56] {
 		return e.SeaDocumentModeChangeEvents, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_document_mode_change_events"}
@@ -681,7 +692,7 @@ func (e OrganizationEdges) SeaDocumentModeChangeEventsOrErr() ([]*SeaDocumentMod
 // SeaSharedContainersOrErr returns the SeaSharedContainers value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) SeaSharedContainersOrErr() ([]*SeaSharedContainer, error) {
-	if e.loadedTypes[56] {
+	if e.loadedTypes[57] {
 		return e.SeaSharedContainers, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_shared_containers"}
@@ -690,7 +701,7 @@ func (e OrganizationEdges) SeaSharedContainersOrErr() ([]*SeaSharedContainer, er
 // SeaSharedContainerAllocationsOrErr returns the SeaSharedContainerAllocations value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) SeaSharedContainerAllocationsOrErr() ([]*SeaSharedContainerAllocation, error) {
-	if e.loadedTypes[57] {
+	if e.loadedTypes[58] {
 		return e.SeaSharedContainerAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "sea_shared_container_allocations"}
@@ -699,7 +710,7 @@ func (e OrganizationEdges) SeaSharedContainerAllocationsOrErr() ([]*SeaSharedCon
 // DingtalkInvitationsOrErr returns the DingtalkInvitations value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) DingtalkInvitationsOrErr() ([]*DingTalkInvitation, error) {
-	if e.loadedTypes[58] {
+	if e.loadedTypes[59] {
 		return e.DingtalkInvitations, nil
 	}
 	return nil, &NotLoadedError{edge: "dingtalk_invitations"}
@@ -708,7 +719,7 @@ func (e OrganizationEdges) DingtalkInvitationsOrErr() ([]*DingTalkInvitation, er
 // DingtalkRegistrationRequestsOrErr returns the DingtalkRegistrationRequests value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrganizationEdges) DingtalkRegistrationRequestsOrErr() ([]*User, error) {
-	if e.loadedTypes[59] {
+	if e.loadedTypes[60] {
 		return e.DingtalkRegistrationRequests, nil
 	}
 	return nil, &NotLoadedError{edge: "dingtalk_registration_requests"}
@@ -1062,6 +1073,11 @@ func (_m *Organization) QueryOrderLockRecords() *OrderLockRecordQuery {
 // QueryOrderFeeSupplementRequests queries the "order_fee_supplement_requests" edge of the Organization entity.
 func (_m *Organization) QueryOrderFeeSupplementRequests() *OrderFeeSupplementRequestQuery {
 	return NewOrganizationClient(_m.config).QueryOrderFeeSupplementRequests(_m)
+}
+
+// QueryFeeCorrectionRequests queries the "fee_correction_requests" edge of the Organization entity.
+func (_m *Organization) QueryFeeCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	return NewOrganizationClient(_m.config).QueryFeeCorrectionRequests(_m)
 }
 
 // QueryOrderLockHouseBillSnapshots queries the "order_lock_house_bill_snapshots" edge of the Organization entity.

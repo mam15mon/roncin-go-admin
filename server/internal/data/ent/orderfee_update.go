@@ -15,8 +15,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -447,6 +449,40 @@ func (_u *OrderFeeUpdate) ClearNote() *OrderFeeUpdate {
 	return _u
 }
 
+// SetAccountingRequired sets the "accounting_required" field.
+func (_u *OrderFeeUpdate) SetAccountingRequired(v bool) *OrderFeeUpdate {
+	_u.mutation.SetAccountingRequired(v)
+	return _u
+}
+
+// SetNillableAccountingRequired sets the "accounting_required" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableAccountingRequired(v *bool) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetAccountingRequired(*v)
+	}
+	return _u
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (_u *OrderFeeUpdate) SetSupersededByRequestID(v uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.SetSupersededByRequestID(v)
+	return _u
+}
+
+// SetNillableSupersededByRequestID sets the "superseded_by_request_id" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableSupersededByRequestID(v *uuid.UUID) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetSupersededByRequestID(*v)
+	}
+	return _u
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (_u *OrderFeeUpdate) ClearSupersededByRequestID() *OrderFeeUpdate {
+	_u.mutation.ClearSupersededByRequestID()
+	return _u
+}
+
 // SetVersion sets the "version" field.
 func (_u *OrderFeeUpdate) SetVersion(v uint64) *OrderFeeUpdate {
 	_u.mutation.ResetVersion()
@@ -500,6 +536,56 @@ func (_u *OrderFeeUpdate) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFeeUp
 // SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
 func (_u *OrderFeeUpdate) SetBillingUnitRef(v *BillingUnit) *OrderFeeUpdate {
 	return _u.SetBillingUnitRefID(v.ID)
+}
+
+// SetSupersededByRequest sets the "superseded_by_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdate) SetSupersededByRequest(v *OrderFeeCorrectionRequest) *OrderFeeUpdate {
+	return _u.SetSupersededByRequestID(v.ID)
+}
+
+// AddCorrectionNettingAllocationIDs adds the "correction_netting_allocations" edge to the FinanceNettingAllocation entity by IDs.
+func (_u *OrderFeeUpdate) AddCorrectionNettingAllocationIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.AddCorrectionNettingAllocationIDs(ids...)
+	return _u
+}
+
+// AddCorrectionNettingAllocations adds the "correction_netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *OrderFeeUpdate) AddCorrectionNettingAllocations(v ...*FinanceNettingAllocation) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCorrectionNettingAllocationIDs(ids...)
+}
+
+// AddDerivedFeeIDs adds the "derived_fees" edge to the OrderFee entity by IDs.
+func (_u *OrderFeeUpdate) AddDerivedFeeIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.AddDerivedFeeIDs(ids...)
+	return _u
+}
+
+// AddDerivedFees adds the "derived_fees" edges to the OrderFee entity.
+func (_u *OrderFeeUpdate) AddDerivedFees(v ...*OrderFee) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDerivedFeeIDs(ids...)
+}
+
+// AddTargetedCorrectionRequestIDs adds the "targeted_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *OrderFeeUpdate) AddTargetedCorrectionRequestIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.AddTargetedCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddTargetedCorrectionRequests adds the "targeted_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdate) AddTargetedCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTargetedCorrectionRequestIDs(ids...)
 }
 
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
@@ -559,6 +645,75 @@ func (_u *OrderFeeUpdate) ClearSettlementParty() *OrderFeeUpdate {
 func (_u *OrderFeeUpdate) ClearBillingUnitRef() *OrderFeeUpdate {
 	_u.mutation.ClearBillingUnitRef()
 	return _u
+}
+
+// ClearSupersededByRequest clears the "superseded_by_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdate) ClearSupersededByRequest() *OrderFeeUpdate {
+	_u.mutation.ClearSupersededByRequest()
+	return _u
+}
+
+// ClearCorrectionNettingAllocations clears all "correction_netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *OrderFeeUpdate) ClearCorrectionNettingAllocations() *OrderFeeUpdate {
+	_u.mutation.ClearCorrectionNettingAllocations()
+	return _u
+}
+
+// RemoveCorrectionNettingAllocationIDs removes the "correction_netting_allocations" edge to FinanceNettingAllocation entities by IDs.
+func (_u *OrderFeeUpdate) RemoveCorrectionNettingAllocationIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.RemoveCorrectionNettingAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveCorrectionNettingAllocations removes "correction_netting_allocations" edges to FinanceNettingAllocation entities.
+func (_u *OrderFeeUpdate) RemoveCorrectionNettingAllocations(v ...*FinanceNettingAllocation) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCorrectionNettingAllocationIDs(ids...)
+}
+
+// ClearDerivedFees clears all "derived_fees" edges to the OrderFee entity.
+func (_u *OrderFeeUpdate) ClearDerivedFees() *OrderFeeUpdate {
+	_u.mutation.ClearDerivedFees()
+	return _u
+}
+
+// RemoveDerivedFeeIDs removes the "derived_fees" edge to OrderFee entities by IDs.
+func (_u *OrderFeeUpdate) RemoveDerivedFeeIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.RemoveDerivedFeeIDs(ids...)
+	return _u
+}
+
+// RemoveDerivedFees removes "derived_fees" edges to OrderFee entities.
+func (_u *OrderFeeUpdate) RemoveDerivedFees(v ...*OrderFee) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDerivedFeeIDs(ids...)
+}
+
+// ClearTargetedCorrectionRequests clears all "targeted_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdate) ClearTargetedCorrectionRequests() *OrderFeeUpdate {
+	_u.mutation.ClearTargetedCorrectionRequests()
+	return _u
+}
+
+// RemoveTargetedCorrectionRequestIDs removes the "targeted_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *OrderFeeUpdate) RemoveTargetedCorrectionRequestIDs(ids ...uuid.UUID) *OrderFeeUpdate {
+	_u.mutation.RemoveTargetedCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveTargetedCorrectionRequests removes "targeted_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *OrderFeeUpdate) RemoveTargetedCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderFeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTargetedCorrectionRequestIDs(ids...)
 }
 
 // ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
@@ -806,6 +961,9 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.NoteCleared() {
 		_spec.ClearField(orderfee.FieldNote, field.TypeString)
 	}
+	if value, ok := _u.mutation.AccountingRequired(); ok {
+		_spec.SetField(orderfee.FieldAccountingRequired, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(orderfee.FieldVersion, field.TypeUint64, value)
 	}
@@ -921,6 +1079,170 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SupersededByRequestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.SupersededByRequestTable,
+			Columns: []string{orderfee.SupersededByRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SupersededByRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.SupersededByRequestTable,
+			Columns: []string{orderfee.SupersededByRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CorrectionNettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.CorrectionNettingAllocationsTable,
+			Columns: []string{orderfee.CorrectionNettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCorrectionNettingAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CorrectionNettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.CorrectionNettingAllocationsTable,
+			Columns: []string{orderfee.CorrectionNettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CorrectionNettingAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.CorrectionNettingAllocationsTable,
+			Columns: []string{orderfee.CorrectionNettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DerivedFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.DerivedFeesTable,
+			Columns: []string{orderfee.DerivedFeesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDerivedFeesIDs(); len(nodes) > 0 && !_u.mutation.DerivedFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.DerivedFeesTable,
+			Columns: []string{orderfee.DerivedFeesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DerivedFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.DerivedFeesTable,
+			Columns: []string{orderfee.DerivedFeesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TargetedCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.TargetedCorrectionRequestsTable,
+			Columns: []string{orderfee.TargetedCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTargetedCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.TargetedCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.TargetedCorrectionRequestsTable,
+			Columns: []string{orderfee.TargetedCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TargetedCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.TargetedCorrectionRequestsTable,
+			Columns: []string{orderfee.TargetedCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1450,6 +1772,40 @@ func (_u *OrderFeeUpdateOne) ClearNote() *OrderFeeUpdateOne {
 	return _u
 }
 
+// SetAccountingRequired sets the "accounting_required" field.
+func (_u *OrderFeeUpdateOne) SetAccountingRequired(v bool) *OrderFeeUpdateOne {
+	_u.mutation.SetAccountingRequired(v)
+	return _u
+}
+
+// SetNillableAccountingRequired sets the "accounting_required" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableAccountingRequired(v *bool) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetAccountingRequired(*v)
+	}
+	return _u
+}
+
+// SetSupersededByRequestID sets the "superseded_by_request_id" field.
+func (_u *OrderFeeUpdateOne) SetSupersededByRequestID(v uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.SetSupersededByRequestID(v)
+	return _u
+}
+
+// SetNillableSupersededByRequestID sets the "superseded_by_request_id" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableSupersededByRequestID(v *uuid.UUID) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetSupersededByRequestID(*v)
+	}
+	return _u
+}
+
+// ClearSupersededByRequestID clears the value of the "superseded_by_request_id" field.
+func (_u *OrderFeeUpdateOne) ClearSupersededByRequestID() *OrderFeeUpdateOne {
+	_u.mutation.ClearSupersededByRequestID()
+	return _u
+}
+
 // SetVersion sets the "version" field.
 func (_u *OrderFeeUpdateOne) SetVersion(v uint64) *OrderFeeUpdateOne {
 	_u.mutation.ResetVersion()
@@ -1503,6 +1859,56 @@ func (_u *OrderFeeUpdateOne) SetNillableBillingUnitRefID(id *uuid.UUID) *OrderFe
 // SetBillingUnitRef sets the "billing_unit_ref" edge to the BillingUnit entity.
 func (_u *OrderFeeUpdateOne) SetBillingUnitRef(v *BillingUnit) *OrderFeeUpdateOne {
 	return _u.SetBillingUnitRefID(v.ID)
+}
+
+// SetSupersededByRequest sets the "superseded_by_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdateOne) SetSupersededByRequest(v *OrderFeeCorrectionRequest) *OrderFeeUpdateOne {
+	return _u.SetSupersededByRequestID(v.ID)
+}
+
+// AddCorrectionNettingAllocationIDs adds the "correction_netting_allocations" edge to the FinanceNettingAllocation entity by IDs.
+func (_u *OrderFeeUpdateOne) AddCorrectionNettingAllocationIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.AddCorrectionNettingAllocationIDs(ids...)
+	return _u
+}
+
+// AddCorrectionNettingAllocations adds the "correction_netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *OrderFeeUpdateOne) AddCorrectionNettingAllocations(v ...*FinanceNettingAllocation) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddCorrectionNettingAllocationIDs(ids...)
+}
+
+// AddDerivedFeeIDs adds the "derived_fees" edge to the OrderFee entity by IDs.
+func (_u *OrderFeeUpdateOne) AddDerivedFeeIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.AddDerivedFeeIDs(ids...)
+	return _u
+}
+
+// AddDerivedFees adds the "derived_fees" edges to the OrderFee entity.
+func (_u *OrderFeeUpdateOne) AddDerivedFees(v ...*OrderFee) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDerivedFeeIDs(ids...)
+}
+
+// AddTargetedCorrectionRequestIDs adds the "targeted_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *OrderFeeUpdateOne) AddTargetedCorrectionRequestIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.AddTargetedCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddTargetedCorrectionRequests adds the "targeted_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdateOne) AddTargetedCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTargetedCorrectionRequestIDs(ids...)
 }
 
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
@@ -1562,6 +1968,75 @@ func (_u *OrderFeeUpdateOne) ClearSettlementParty() *OrderFeeUpdateOne {
 func (_u *OrderFeeUpdateOne) ClearBillingUnitRef() *OrderFeeUpdateOne {
 	_u.mutation.ClearBillingUnitRef()
 	return _u
+}
+
+// ClearSupersededByRequest clears the "superseded_by_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdateOne) ClearSupersededByRequest() *OrderFeeUpdateOne {
+	_u.mutation.ClearSupersededByRequest()
+	return _u
+}
+
+// ClearCorrectionNettingAllocations clears all "correction_netting_allocations" edges to the FinanceNettingAllocation entity.
+func (_u *OrderFeeUpdateOne) ClearCorrectionNettingAllocations() *OrderFeeUpdateOne {
+	_u.mutation.ClearCorrectionNettingAllocations()
+	return _u
+}
+
+// RemoveCorrectionNettingAllocationIDs removes the "correction_netting_allocations" edge to FinanceNettingAllocation entities by IDs.
+func (_u *OrderFeeUpdateOne) RemoveCorrectionNettingAllocationIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.RemoveCorrectionNettingAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveCorrectionNettingAllocations removes "correction_netting_allocations" edges to FinanceNettingAllocation entities.
+func (_u *OrderFeeUpdateOne) RemoveCorrectionNettingAllocations(v ...*FinanceNettingAllocation) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveCorrectionNettingAllocationIDs(ids...)
+}
+
+// ClearDerivedFees clears all "derived_fees" edges to the OrderFee entity.
+func (_u *OrderFeeUpdateOne) ClearDerivedFees() *OrderFeeUpdateOne {
+	_u.mutation.ClearDerivedFees()
+	return _u
+}
+
+// RemoveDerivedFeeIDs removes the "derived_fees" edge to OrderFee entities by IDs.
+func (_u *OrderFeeUpdateOne) RemoveDerivedFeeIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.RemoveDerivedFeeIDs(ids...)
+	return _u
+}
+
+// RemoveDerivedFees removes "derived_fees" edges to OrderFee entities.
+func (_u *OrderFeeUpdateOne) RemoveDerivedFees(v ...*OrderFee) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDerivedFeeIDs(ids...)
+}
+
+// ClearTargetedCorrectionRequests clears all "targeted_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderFeeUpdateOne) ClearTargetedCorrectionRequests() *OrderFeeUpdateOne {
+	_u.mutation.ClearTargetedCorrectionRequests()
+	return _u
+}
+
+// RemoveTargetedCorrectionRequestIDs removes the "targeted_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *OrderFeeUpdateOne) RemoveTargetedCorrectionRequestIDs(ids ...uuid.UUID) *OrderFeeUpdateOne {
+	_u.mutation.RemoveTargetedCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveTargetedCorrectionRequests removes "targeted_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *OrderFeeUpdateOne) RemoveTargetedCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderFeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTargetedCorrectionRequestIDs(ids...)
 }
 
 // ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
@@ -1839,6 +2314,9 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	if _u.mutation.NoteCleared() {
 		_spec.ClearField(orderfee.FieldNote, field.TypeString)
 	}
+	if value, ok := _u.mutation.AccountingRequired(); ok {
+		_spec.SetField(orderfee.FieldAccountingRequired, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(orderfee.FieldVersion, field.TypeUint64, value)
 	}
@@ -1954,6 +2432,170 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(billingunit.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.SupersededByRequestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.SupersededByRequestTable,
+			Columns: []string{orderfee.SupersededByRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SupersededByRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfee.SupersededByRequestTable,
+			Columns: []string{orderfee.SupersededByRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CorrectionNettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.CorrectionNettingAllocationsTable,
+			Columns: []string{orderfee.CorrectionNettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedCorrectionNettingAllocationsIDs(); len(nodes) > 0 && !_u.mutation.CorrectionNettingAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.CorrectionNettingAllocationsTable,
+			Columns: []string{orderfee.CorrectionNettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CorrectionNettingAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.CorrectionNettingAllocationsTable,
+			Columns: []string{orderfee.CorrectionNettingAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DerivedFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.DerivedFeesTable,
+			Columns: []string{orderfee.DerivedFeesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDerivedFeesIDs(); len(nodes) > 0 && !_u.mutation.DerivedFeesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.DerivedFeesTable,
+			Columns: []string{orderfee.DerivedFeesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DerivedFeesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.DerivedFeesTable,
+			Columns: []string{orderfee.DerivedFeesColumn},
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfee.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TargetedCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.TargetedCorrectionRequestsTable,
+			Columns: []string{orderfee.TargetedCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTargetedCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.TargetedCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.TargetedCorrectionRequestsTable,
+			Columns: []string{orderfee.TargetedCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TargetedCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderfee.TargetedCorrectionRequestsTable,
+			Columns: []string{orderfee.TargetedCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

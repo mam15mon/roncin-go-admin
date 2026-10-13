@@ -1525,6 +1525,7 @@ type WorkbenchMyCommissionAdjustment struct {
 	Amount        string                    `protobuf:"bytes,5,opt,name=amount,proto3" json:"amount,omitempty"`
 	Reason        string                    `protobuf:"bytes,6,opt,name=reason,proto3" json:"reason,omitempty"`
 	CreatedAt     string                    `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	SourceType    string                    `protobuf:"bytes,8,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1604,6 +1605,13 @@ func (x *WorkbenchMyCommissionAdjustment) GetReason() string {
 func (x *WorkbenchMyCommissionAdjustment) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *WorkbenchMyCommissionAdjustment) GetSourceType() string {
+	if x != nil {
+		return x.SourceType
 	}
 	return ""
 }
@@ -3329,7 +3337,7 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"_rule_nameB\x14\n" +
 	"\x12_calculation_basisB\x12\n" +
 	"\x10_verification_noB\r\n" +
-	"\v_netting_no\"\x84\x02\n" +
+	"\v_netting_no\"\xa5\x02\n" +
 	"\x1fWorkbenchMyCommissionAdjustment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12\x1c\n" +
@@ -3338,7 +3346,9 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\x06amount\x18\x05 \x01(\tR\x06amount\x12\x16\n" +
 	"\x06reason\x18\x06 \x01(\tR\x06reason\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\a \x01(\tR\tcreatedAt\"K\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1f\n" +
+	"\vsource_type\x18\b \x01(\tR\n" +
+	"sourceType\"K\n" +
 	"\x18ListMyReceivablesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xfe\x01\n" +

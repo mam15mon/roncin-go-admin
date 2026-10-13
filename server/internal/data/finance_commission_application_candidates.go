@@ -19,6 +19,7 @@ import (
 	verification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	attribution "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
+	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	user "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -74,7 +75,7 @@ func applicationCandidateVerificationPredicates(scope biz.WorkbenchScope, dateFr
 		verification.StatusEQ(verification.StatusACTIVE),
 		verification.DirectionEQ(verification.DirectionRECEIVABLE),
 		verification.HasAllocationsWith(allocation.ActiveEQ(true), allocation.HasBillWith(
-			bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderWith(attributedOrder)),
+			bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderFeeWith(fee.DirectionEQ(fee.DirectionRECEIVABLE), fee.EconomicEffectEQ(fee.EconomicEffectINCREASE)), billline.HasOrderWith(attributedOrder)),
 		)),
 	}
 	if dateFrom != "" {
@@ -93,11 +94,12 @@ func applicationCandidateNettingPredicates(scope biz.WorkbenchScope, from, to *t
 	preds := []predicate.FinanceNetting{
 		nettingent.OrganizationIDEQ(scope.OrganizationID),
 		nettingent.StatusEQ(nettingent.StatusCONFIRMED),
+		nettingent.CorrectionRequestIDIsNil(),
 		nettingent.ConfirmedAtNotNil(),
 		nettingent.HasAllocationsWith(
 			nettingalloc.ActiveEQ(true),
 			nettingalloc.DirectionEQ(nettingalloc.DirectionRECEIVABLE),
-			nettingalloc.HasBillWith(bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderWith(attributedOrder))),
+			nettingalloc.HasBillWith(bill.HasLinesWith(billline.ActiveEQ(true), billline.HasOrderFeeWith(fee.DirectionEQ(fee.DirectionRECEIVABLE), fee.EconomicEffectEQ(fee.EconomicEffectINCREASE)), billline.HasOrderWith(attributedOrder))),
 		),
 	}
 	if from != nil {

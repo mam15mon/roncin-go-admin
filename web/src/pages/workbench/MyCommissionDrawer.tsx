@@ -279,12 +279,16 @@ function AdjustmentTable({
       key: 'actions',
       width: 130,
       render: (_, item) =>
-        item.direction === 'DECREASE' && item.id ? (
-          <Tooltip title="查看锁后补录来源详情">
+        [
+          'LOCKED_FEE_SUPPLEMENT',
+          'FEE_CORRECTION',
+          'ECONOMIC_REALLOCATION',
+        ].includes(item.sourceType || '') && item.id ? (
+          <Tooltip title="查看提成调整来源详情">
             <Link
               to={`/commission-adjustments/${item.id}/my-supplement-source`}
             >
-              补录来源
+              调整来源
             </Link>
           </Tooltip>
         ) : (

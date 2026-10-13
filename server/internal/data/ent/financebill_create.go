@@ -61,6 +61,20 @@ func (_c *FinanceBillCreate) SetNillableUpdatedAt(v *time.Time) *FinanceBillCrea
 	return _c
 }
 
+// SetPurpose sets the "purpose" field.
+func (_c *FinanceBillCreate) SetPurpose(v financebill.Purpose) *FinanceBillCreate {
+	_c.mutation.SetPurpose(v)
+	return _c
+}
+
+// SetNillablePurpose sets the "purpose" field if the given value is not nil.
+func (_c *FinanceBillCreate) SetNillablePurpose(v *financebill.Purpose) *FinanceBillCreate {
+	if v != nil {
+		_c.SetPurpose(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *FinanceBillCreate) SetOrganizationID(v uuid.UUID) *FinanceBillCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -622,6 +636,10 @@ func (_c *FinanceBillCreate) defaults() {
 		v := financebill.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.Purpose(); !ok {
+		v := financebill.DefaultPurpose
+		_c.mutation.SetPurpose(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financebill.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -643,6 +661,14 @@ func (_c *FinanceBillCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinanceBill.updated_at"`)}
+	}
+	if _, ok := _c.mutation.Purpose(); !ok {
+		return &ValidationError{Name: "purpose", err: errors.New(`ent: missing required field "FinanceBill.purpose"`)}
+	}
+	if v, ok := _c.mutation.Purpose(); ok {
+		if err := financebill.PurposeValidator(v); err != nil {
+			return &ValidationError{Name: "purpose", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.purpose": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FinanceBill.organization_id"`)}
@@ -883,6 +909,10 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financebill.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.Purpose(); ok {
+		_spec.SetField(financebill.FieldPurpose, field.TypeEnum, value)
+		_node.Purpose = value
 	}
 	if value, ok := _c.mutation.BillNo(); ok {
 		_spec.SetField(financebill.FieldBillNo, field.TypeString, value)
@@ -1741,6 +1771,9 @@ func (u *FinanceBillUpsertOne) UpdateNewValues() *FinanceBillUpsertOne {
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(financebill.FieldCreatedAt)
 		}
+		if _, exists := u.create.mutation.Purpose(); exists {
+			s.SetIgnore(financebill.FieldPurpose)
+		}
 		if _, exists := u.create.mutation.OrganizationID(); exists {
 			s.SetIgnore(financebill.FieldOrganizationID)
 		}
@@ -2544,6 +2577,9 @@ func (u *FinanceBillUpsertBulk) UpdateNewValues() *FinanceBillUpsertBulk {
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(financebill.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.Purpose(); exists {
+				s.SetIgnore(financebill.FieldPurpose)
 			}
 			if _, exists := b.mutation.OrganizationID(); exists {
 				s.SetIgnore(financebill.FieldOrganizationID)

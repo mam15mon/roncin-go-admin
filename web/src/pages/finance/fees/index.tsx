@@ -424,7 +424,7 @@ export default function FinanceFeeLedgerPage() {
           const invalidRows = rows.filter((row) => !canCreateBill(row));
           if (invalidRows.length > 0) {
             message.warning(
-              '请选择整票已批准、无待审核补录且未建账的费用；具体原因见建账限制列',
+              '请选择整票已批准、无待审批补录或更正且未建账的费用；具体原因见建账限制列',
             );
             return;
           }
@@ -457,7 +457,7 @@ export default function FinanceFeeLedgerPage() {
                     );
                     if (invalidRows.length > 0) {
                       message.warning(
-                        '请选择整票已批准、无待审核补录且未建账的费用；具体原因见建账限制列',
+                        '请选择整票已批准、无待审批补录或更正且未建账的费用；具体原因见建账限制列',
                       );
                       return;
                     }

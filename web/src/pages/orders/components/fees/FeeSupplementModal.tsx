@@ -2,6 +2,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ModalForm,
   ProFormDatePicker,
+  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -36,6 +37,8 @@ type FeeSupplementModalProps = FeeSupplementOptions & {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: FeeSupplementFormValues) => Promise<boolean>;
   initialRequest?: API.OrderFeeSupplementRequestData;
+  correction?: boolean;
+  initialDirection?: number;
 };
 
 /** 锁后费用补录表单：复用普通费用字段，固定应付方向并要求补录原因。 */
@@ -49,6 +52,8 @@ export default function FeeSupplementModal({
   billingUnits,
   onSubmit,
   initialRequest,
+  correction = false,
+  initialDirection = PAYABLE,
 }: FeeSupplementModalProps) {
   const access = useAccess();
   const [confirmSystemRate, setConfirmSystemRate] = useState(false);
@@ -112,7 +117,7 @@ export default function FeeSupplementModal({
     manualRate && !access.canOverrideFeeExchangeRate;
   const prefill: Partial<FeeSupplementFormValues> = initialRequest
     ? {
-        direction: PAYABLE,
+        direction: initialDirection,
         feeSettingId,
         settlementPartyId,
         billingUnitId,
@@ -128,7 +133,7 @@ export default function FeeSupplementModal({
           ? initialRequest.exchangeRate
           : undefined,
       }
-    : { direction: PAYABLE, currency: 'CNY', quantity: '1' };
+    : { direction: initialDirection, currency: 'CNY', quantity: '1' };
 
   useEffect(() => {
     if (!open) return;
@@ -149,7 +154,7 @@ export default function FeeSupplementModal({
 
   return (
     <ModalForm<FeeSupplementFormValues>
-      title="补录费用（应付）"
+      title={correction ? '填写更正后的费用' : '补录费用（应付）'}
       open={open}
       formRef={internalFormRef}
       initialValues={prefill}
@@ -171,6 +176,7 @@ export default function FeeSupplementModal({
       }}
       onValuesChange={(changedValues) => {
         const rateBasisChanged =
+          'direction' in changedValues ||
           'feeSettingId' in changedValues ||
           'currency' in changedValues ||
           'expenseDate' in changedValues;
@@ -207,10 +213,14 @@ export default function FeeSupplementModal({
       <Alert
         type="info"
         showIcon
-        title="补录仅用于锁定订单追加真实发生的应付成本；审批通过后生成一条新的未建账应付费用，不会修改原有费用。应收方向不支持补录。"
+        title={
+          correction
+            ? '请填写更正后的完整费用；审批后保留原费用，生成对应冲回和替代记录。'
+            : '补录仅用于锁定订单追加真实发生的应付成本；审批通过后生成一条新的未建账应付费用，不会修改原有费用。应收方向不支持补录。'
+        }
         style={{ marginBottom: 16 }}
       />
-      {initialRequest && (
+      {initialRequest && !correction && (
         <Alert
           type="info"
           showIcon
@@ -261,6 +271,17 @@ export default function FeeSupplementModal({
           title="费用项目、币种或发生日期已变化，原手动汇率已清除"
           description="请重新指定手动汇率，或核对当前系统汇率后提交。"
           style={{ marginBottom: 16 }}
+        />
+      )}
+      {correction && (
+        <ProFormSelect
+          name="direction"
+          label="费用方向"
+          rules={[{ required: true }]}
+          options={[
+            { label: '应收', value: 1 },
+            { label: '应付', value: 2 },
+          ]}
         />
       )}
       <Row gutter={16}>
@@ -408,12 +429,20 @@ export default function FeeSupplementModal({
         <Col span={24}>
           <ProFormTextArea
             name="reason"
-            label="补录原因"
+            label={correction ? '更正原因' : '补录原因'}
             rules={[
-              { required: true, message: '请填写补录原因' },
+              {
+                required: true,
+                whitespace: true,
+                message: correction ? '请填写更正原因' : '请填写补录原因',
+              },
               { max: 500, message: '补录原因不能超过 500 个字符' },
             ]}
-            placeholder="请说明漏录成本的原因与业务背景（必填）"
+            placeholder={
+              correction
+                ? '请说明更正原因与业务背景（必填）'
+                : '请说明漏录成本的原因与业务背景（必填）'
+            }
             fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
           />
         </Col>

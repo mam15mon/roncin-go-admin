@@ -19,7 +19,7 @@ func (OrderFeeReviewEvent) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.UUID("order_id", uuid.Nil).Immutable(),
-		field.Enum("action").Values("SUBMIT", "WITHDRAW", "APPROVE", "REJECT", "REVOKE", "SUPPLEMENT_APPROVE").Immutable(),
+		field.Enum("action").Values("SUBMIT", "WITHDRAW", "APPROVE", "REJECT", "REVOKE", "SUPPLEMENT_APPROVE", "CORRECTION_APPROVE").Immutable(),
 		field.UUID("submission_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("actor_id", uuid.Nil).Immutable(),
 		field.String("actor_name").Default("").Immutable(),
@@ -29,6 +29,7 @@ func (OrderFeeReviewEvent) Fields() []ent.Field {
 		field.String("content_fingerprint").NotEmpty().MaxLen(64).Immutable(),
 		field.JSON("snapshot", json.RawMessage{}).Immutable(),
 		field.UUID("supplement_request_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.UUID("correction_request_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
 		field.String("request_fingerprint").NotEmpty().MaxLen(64).Immutable(),
 	}
@@ -40,5 +41,5 @@ func (OrderFeeReviewEvent) Indexes() []ent.Index {
 	return []ent.Index{index.Fields("order_id", "idempotency_key").Unique(), index.Fields("organization_id", "order_id", "created_at")}
 }
 func (OrderFeeReviewEvent) Annotations() []schema.Annotation {
-	return []schema.Annotation{entsql.Checks(map[string]string{"order_fee_review_events_action_check": "action IN ('SUBMIT','WITHDRAW','APPROVE','REJECT','REVOKE','SUPPLEMENT_APPROVE')"})}
+	return []schema.Annotation{entsql.Checks(map[string]string{"order_fee_review_events_action_check": "action IN ('SUBMIT','WITHDRAW','APPROVE','REJECT','REVOKE','SUPPLEMENT_APPROVE','CORRECTION_APPROVE')"})}
 }

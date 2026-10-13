@@ -17,8 +17,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -28,18 +30,24 @@ import (
 // OrderFeeQuery is the builder for querying OrderFee entities.
 type OrderFeeQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []orderfee.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.OrderFee
-	withOrder              *OrderQuery
-	withFeeSetting         *FeeSettingQuery
-	withSettlementParty    *PartnerQuery
-	withBillingUnitRef     *BillingUnitQuery
-	withSupplementRequest  *OrderFeeSupplementRequestQuery
-	withFinanceBillLines   *FinanceBillLineQuery
-	withEnterpriseTagLinks *OrderFeeEnterpriseTagQuery
-	modifiers              []func(*sql.Selector)
+	ctx                              *QueryContext
+	order                            []orderfee.OrderOption
+	inters                           []Interceptor
+	predicates                       []predicate.OrderFee
+	withOrder                        *OrderQuery
+	withFeeSetting                   *FeeSettingQuery
+	withSettlementParty              *PartnerQuery
+	withBillingUnitRef               *BillingUnitQuery
+	withSupplementRequest            *OrderFeeSupplementRequestQuery
+	withCorrectionRequest            *OrderFeeCorrectionRequestQuery
+	withSupersededByRequest          *OrderFeeCorrectionRequestQuery
+	withCorrectionNettingAllocations *FinanceNettingAllocationQuery
+	withDerivedFees                  *OrderFeeQuery
+	withSourceFee                    *OrderFeeQuery
+	withTargetedCorrectionRequests   *OrderFeeCorrectionRequestQuery
+	withFinanceBillLines             *FinanceBillLineQuery
+	withEnterpriseTagLinks           *OrderFeeEnterpriseTagQuery
+	modifiers                        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -179,6 +187,138 @@ func (_q *OrderFeeQuery) QuerySupplementRequest() *OrderFeeSupplementRequestQuer
 			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
 			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SupplementRequestTable, orderfee.SupplementRequestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCorrectionRequest chains the current query on the "correction_request" edge.
+func (_q *OrderFeeQuery) QueryCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.CorrectionRequestTable, orderfee.CorrectionRequestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySupersededByRequest chains the current query on the "superseded_by_request" edge.
+func (_q *OrderFeeQuery) QuerySupersededByRequest() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SupersededByRequestTable, orderfee.SupersededByRequestColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCorrectionNettingAllocations chains the current query on the "correction_netting_allocations" edge.
+func (_q *OrderFeeQuery) QueryCorrectionNettingAllocations() *FinanceNettingAllocationQuery {
+	query := (&FinanceNettingAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(financenettingallocation.Table, financenettingallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.CorrectionNettingAllocationsTable, orderfee.CorrectionNettingAllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDerivedFees chains the current query on the "derived_fees" edge.
+func (_q *OrderFeeQuery) QueryDerivedFees() *OrderFeeQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.DerivedFeesTable, orderfee.DerivedFeesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySourceFee chains the current query on the "source_fee" edge.
+func (_q *OrderFeeQuery) QuerySourceFee() *OrderFeeQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(orderfee.Table, orderfee.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfee.SourceFeeTable, orderfee.SourceFeeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTargetedCorrectionRequests chains the current query on the "targeted_correction_requests" edge.
+func (_q *OrderFeeQuery) QueryTargetedCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.TargetedCorrectionRequestsTable, orderfee.TargetedCorrectionRequestsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -417,18 +557,24 @@ func (_q *OrderFeeQuery) Clone() *OrderFeeQuery {
 		return nil
 	}
 	return &OrderFeeQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]orderfee.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.OrderFee{}, _q.predicates...),
-		withOrder:              _q.withOrder.Clone(),
-		withFeeSetting:         _q.withFeeSetting.Clone(),
-		withSettlementParty:    _q.withSettlementParty.Clone(),
-		withBillingUnitRef:     _q.withBillingUnitRef.Clone(),
-		withSupplementRequest:  _q.withSupplementRequest.Clone(),
-		withFinanceBillLines:   _q.withFinanceBillLines.Clone(),
-		withEnterpriseTagLinks: _q.withEnterpriseTagLinks.Clone(),
+		config:                           _q.config,
+		ctx:                              _q.ctx.Clone(),
+		order:                            append([]orderfee.OrderOption{}, _q.order...),
+		inters:                           append([]Interceptor{}, _q.inters...),
+		predicates:                       append([]predicate.OrderFee{}, _q.predicates...),
+		withOrder:                        _q.withOrder.Clone(),
+		withFeeSetting:                   _q.withFeeSetting.Clone(),
+		withSettlementParty:              _q.withSettlementParty.Clone(),
+		withBillingUnitRef:               _q.withBillingUnitRef.Clone(),
+		withSupplementRequest:            _q.withSupplementRequest.Clone(),
+		withCorrectionRequest:            _q.withCorrectionRequest.Clone(),
+		withSupersededByRequest:          _q.withSupersededByRequest.Clone(),
+		withCorrectionNettingAllocations: _q.withCorrectionNettingAllocations.Clone(),
+		withDerivedFees:                  _q.withDerivedFees.Clone(),
+		withSourceFee:                    _q.withSourceFee.Clone(),
+		withTargetedCorrectionRequests:   _q.withTargetedCorrectionRequests.Clone(),
+		withFinanceBillLines:             _q.withFinanceBillLines.Clone(),
+		withEnterpriseTagLinks:           _q.withEnterpriseTagLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -487,6 +633,72 @@ func (_q *OrderFeeQuery) WithSupplementRequest(opts ...func(*OrderFeeSupplementR
 		opt(query)
 	}
 	_q.withSupplementRequest = query
+	return _q
+}
+
+// WithCorrectionRequest tells the query-builder to eager-load the nodes that are connected to
+// the "correction_request" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithCorrectionRequest(opts ...func(*OrderFeeCorrectionRequestQuery)) *OrderFeeQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCorrectionRequest = query
+	return _q
+}
+
+// WithSupersededByRequest tells the query-builder to eager-load the nodes that are connected to
+// the "superseded_by_request" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithSupersededByRequest(opts ...func(*OrderFeeCorrectionRequestQuery)) *OrderFeeQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSupersededByRequest = query
+	return _q
+}
+
+// WithCorrectionNettingAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "correction_netting_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithCorrectionNettingAllocations(opts ...func(*FinanceNettingAllocationQuery)) *OrderFeeQuery {
+	query := (&FinanceNettingAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCorrectionNettingAllocations = query
+	return _q
+}
+
+// WithDerivedFees tells the query-builder to eager-load the nodes that are connected to
+// the "derived_fees" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithDerivedFees(opts ...func(*OrderFeeQuery)) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDerivedFees = query
+	return _q
+}
+
+// WithSourceFee tells the query-builder to eager-load the nodes that are connected to
+// the "source_fee" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithSourceFee(opts ...func(*OrderFeeQuery)) *OrderFeeQuery {
+	query := (&OrderFeeClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withSourceFee = query
+	return _q
+}
+
+// WithTargetedCorrectionRequests tells the query-builder to eager-load the nodes that are connected to
+// the "targeted_correction_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeQuery) WithTargetedCorrectionRequests(opts ...func(*OrderFeeCorrectionRequestQuery)) *OrderFeeQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTargetedCorrectionRequests = query
 	return _q
 }
 
@@ -590,12 +802,18 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 	var (
 		nodes       = []*OrderFee{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [13]bool{
 			_q.withOrder != nil,
 			_q.withFeeSetting != nil,
 			_q.withSettlementParty != nil,
 			_q.withBillingUnitRef != nil,
 			_q.withSupplementRequest != nil,
+			_q.withCorrectionRequest != nil,
+			_q.withSupersededByRequest != nil,
+			_q.withCorrectionNettingAllocations != nil,
+			_q.withDerivedFees != nil,
+			_q.withSourceFee != nil,
+			_q.withTargetedCorrectionRequests != nil,
 			_q.withFinanceBillLines != nil,
 			_q.withEnterpriseTagLinks != nil,
 		}
@@ -648,6 +866,49 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 	if query := _q.withSupplementRequest; query != nil {
 		if err := _q.loadSupplementRequest(ctx, query, nodes, nil,
 			func(n *OrderFee, e *OrderFeeSupplementRequest) { n.Edges.SupplementRequest = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCorrectionRequest; query != nil {
+		if err := _q.loadCorrectionRequest(ctx, query, nodes, nil,
+			func(n *OrderFee, e *OrderFeeCorrectionRequest) { n.Edges.CorrectionRequest = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSupersededByRequest; query != nil {
+		if err := _q.loadSupersededByRequest(ctx, query, nodes, nil,
+			func(n *OrderFee, e *OrderFeeCorrectionRequest) { n.Edges.SupersededByRequest = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCorrectionNettingAllocations; query != nil {
+		if err := _q.loadCorrectionNettingAllocations(ctx, query, nodes,
+			func(n *OrderFee) { n.Edges.CorrectionNettingAllocations = []*FinanceNettingAllocation{} },
+			func(n *OrderFee, e *FinanceNettingAllocation) {
+				n.Edges.CorrectionNettingAllocations = append(n.Edges.CorrectionNettingAllocations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDerivedFees; query != nil {
+		if err := _q.loadDerivedFees(ctx, query, nodes,
+			func(n *OrderFee) { n.Edges.DerivedFees = []*OrderFee{} },
+			func(n *OrderFee, e *OrderFee) { n.Edges.DerivedFees = append(n.Edges.DerivedFees, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withSourceFee; query != nil {
+		if err := _q.loadSourceFee(ctx, query, nodes, nil,
+			func(n *OrderFee, e *OrderFee) { n.Edges.SourceFee = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTargetedCorrectionRequests; query != nil {
+		if err := _q.loadTargetedCorrectionRequests(ctx, query, nodes,
+			func(n *OrderFee) { n.Edges.TargetedCorrectionRequests = []*OrderFeeCorrectionRequest{} },
+			func(n *OrderFee, e *OrderFeeCorrectionRequest) {
+				n.Edges.TargetedCorrectionRequests = append(n.Edges.TargetedCorrectionRequests, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -824,6 +1085,201 @@ func (_q *OrderFeeQuery) loadSupplementRequest(ctx context.Context, query *Order
 	}
 	return nil
 }
+func (_q *OrderFeeQuery) loadCorrectionRequest(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *OrderFeeCorrectionRequest)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderFee)
+	for i := range nodes {
+		if nodes[i].CorrectionRequestID == nil {
+			continue
+		}
+		fk := *nodes[i].CorrectionRequestID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfeecorrectionrequest.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "correction_request_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderFeeQuery) loadSupersededByRequest(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *OrderFeeCorrectionRequest)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderFee)
+	for i := range nodes {
+		if nodes[i].SupersededByRequestID == nil {
+			continue
+		}
+		fk := *nodes[i].SupersededByRequestID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfeecorrectionrequest.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "superseded_by_request_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderFeeQuery) loadCorrectionNettingAllocations(ctx context.Context, query *FinanceNettingAllocationQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *FinanceNettingAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderFee)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financenettingallocation.FieldSourceFeeID)
+	}
+	query.Where(predicate.FinanceNettingAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderfee.CorrectionNettingAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SourceFeeID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "source_fee_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "source_fee_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderFeeQuery) loadDerivedFees(ctx context.Context, query *OrderFeeQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *OrderFee)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderFee)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfee.FieldSourceFeeID)
+	}
+	query.Where(predicate.OrderFee(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderfee.DerivedFeesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SourceFeeID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "source_fee_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "source_fee_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderFeeQuery) loadSourceFee(ctx context.Context, query *OrderFeeQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *OrderFee)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderFee)
+	for i := range nodes {
+		if nodes[i].SourceFeeID == nil {
+			continue
+		}
+		fk := *nodes[i].SourceFeeID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderfee.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "source_fee_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *OrderFeeQuery) loadTargetedCorrectionRequests(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *OrderFeeCorrectionRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderFee)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeecorrectionrequest.FieldSourceFeeID)
+	}
+	query.Where(predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderfee.TargetedCorrectionRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SourceFeeID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "source_fee_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "source_fee_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (_q *OrderFeeQuery) loadFinanceBillLines(ctx context.Context, query *FinanceBillLineQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *FinanceBillLine)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*OrderFee)
@@ -927,6 +1383,15 @@ func (_q *OrderFeeQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withSupplementRequest != nil {
 			_spec.Node.AddColumnOnce(orderfee.FieldSupplementRequestID)
+		}
+		if _q.withCorrectionRequest != nil {
+			_spec.Node.AddColumnOnce(orderfee.FieldCorrectionRequestID)
+		}
+		if _q.withSupersededByRequest != nil {
+			_spec.Node.AddColumnOnce(orderfee.FieldSupersededByRequestID)
+		}
+		if _q.withSourceFee != nil {
+			_spec.Node.AddColumnOnce(orderfee.FieldSourceFeeID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

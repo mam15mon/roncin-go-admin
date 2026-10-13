@@ -20,6 +20,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldPurpose holds the string denoting the purpose field in the database.
+	FieldPurpose = "purpose"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
 	// FieldBillNo holds the string denoting the bill_no field in the database.
@@ -199,6 +201,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldPurpose,
 	FieldOrganizationID,
 	FieldBillNo,
 	FieldIdempotencyKey,
@@ -304,6 +307,32 @@ var (
 	DefaultID func() uuid.UUID
 )
 
+// Purpose defines the type for the "purpose" enum field.
+type Purpose string
+
+// PurposeNORMAL is the default value of the Purpose enum.
+const DefaultPurpose = PurposeNORMAL
+
+// Purpose values.
+const (
+	PurposeNORMAL              Purpose = "NORMAL"
+	PurposeCORRECTION_REVERSAL Purpose = "CORRECTION_REVERSAL"
+)
+
+func (pu Purpose) String() string {
+	return string(pu)
+}
+
+// PurposeValidator is a validator for the "purpose" field enum values. It is called by the builders before save.
+func PurposeValidator(pu Purpose) error {
+	switch pu {
+	case PurposeNORMAL, PurposeCORRECTION_REVERSAL:
+		return nil
+	default:
+		return fmt.Errorf("financebill: invalid enum value for purpose field: %q", pu)
+	}
+}
+
 // Direction defines the type for the "direction" enum field.
 type Direction string
 
@@ -397,6 +426,11 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByPurpose orders the results by the purpose field.
+func ByPurpose(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPurpose, opts...).ToFunc()
 }
 
 // ByOrganizationID orders the results by the organization_id field.

@@ -131,6 +131,8 @@ const (
 	EdgeOrderLockRecords = "order_lock_records"
 	// EdgeOrderFeeSupplementRequests holds the string denoting the order_fee_supplement_requests edge name in mutations.
 	EdgeOrderFeeSupplementRequests = "order_fee_supplement_requests"
+	// EdgeFeeCorrectionRequests holds the string denoting the fee_correction_requests edge name in mutations.
+	EdgeFeeCorrectionRequests = "fee_correction_requests"
 	// EdgeOrderLockHouseBillSnapshots holds the string denoting the order_lock_house_bill_snapshots edge name in mutations.
 	EdgeOrderLockHouseBillSnapshots = "order_lock_house_bill_snapshots"
 	// EdgeOrderUnlockRequests holds the string denoting the order_unlock_requests edge name in mutations.
@@ -482,6 +484,13 @@ const (
 	OrderFeeSupplementRequestsInverseTable = "order_fee_supplement_requests"
 	// OrderFeeSupplementRequestsColumn is the table column denoting the order_fee_supplement_requests relation/edge.
 	OrderFeeSupplementRequestsColumn = "organization_id"
+	// FeeCorrectionRequestsTable is the table that holds the fee_correction_requests relation/edge.
+	FeeCorrectionRequestsTable = "order_fee_correction_requests"
+	// FeeCorrectionRequestsInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	FeeCorrectionRequestsInverseTable = "order_fee_correction_requests"
+	// FeeCorrectionRequestsColumn is the table column denoting the fee_correction_requests relation/edge.
+	FeeCorrectionRequestsColumn = "organization_id"
 	// OrderLockHouseBillSnapshotsTable is the table that holds the order_lock_house_bill_snapshots relation/edge.
 	OrderLockHouseBillSnapshotsTable = "order_lock_house_bill_snapshots"
 	// OrderLockHouseBillSnapshotsInverseTable is the table name for the OrderLockHouseBillSnapshot entity.
@@ -1356,6 +1365,20 @@ func ByOrderFeeSupplementRequests(term sql.OrderTerm, terms ...sql.OrderTerm) Or
 	}
 }
 
+// ByFeeCorrectionRequestsCount orders the results by fee_correction_requests count.
+func ByFeeCorrectionRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeeCorrectionRequestsStep(), opts...)
+	}
+}
+
+// ByFeeCorrectionRequests orders the results by fee_correction_requests terms.
+func ByFeeCorrectionRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeCorrectionRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByOrderLockHouseBillSnapshotsCount orders the results by order_lock_house_bill_snapshots count.
 func ByOrderLockHouseBillSnapshotsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1864,6 +1887,13 @@ func newOrderFeeSupplementRequestsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrderFeeSupplementRequestsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeSupplementRequestsTable, OrderFeeSupplementRequestsColumn),
+	)
+}
+func newFeeCorrectionRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeCorrectionRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeeCorrectionRequestsTable, FeeCorrectionRequestsColumn),
 	)
 }
 func newOrderLockHouseBillSnapshotsStep() *sqlgraph.Step {

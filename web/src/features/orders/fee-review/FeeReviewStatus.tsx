@@ -20,9 +20,11 @@ const colors: Record<string, string> = {
 export function FeeReviewStatus({
   status,
   pendingSupplement,
+  pendingCorrection,
 }: {
   status?: string;
   pendingSupplement?: boolean;
+  pendingCorrection?: boolean;
 }) {
   return (
     <>
@@ -31,6 +33,7 @@ export function FeeReviewStatus({
           '未提交'}
       </Tag>
       {pendingSupplement && <Tag color="warning">有补录待审核</Tag>}
+      {pendingCorrection && <Tag color="warning">有更正待审核</Tag>}
     </>
   );
 }

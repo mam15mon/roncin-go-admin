@@ -9,6 +9,7 @@ import (
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/shopspring/decimal"
 )
 
 // orderFeeSupplementToAPI 把补录申请领域对象转换为 API DTO；十进制字段与
@@ -234,7 +235,11 @@ func (s *OrderFeeService) PreviewOrderFeeSupplementApproval(ctx context.Context,
 		PreviewToken:        preview.PreviewToken,
 	}
 	for _, a := range preview.CommissionImpacts {
-		data.CommissionImpacts = append(data.CommissionImpacts, &v1.FeeSupplementCommissionImpact{CommissionId: a.CommissionID.String(), CommissionNo: a.CommissionNo, EmployeeId: a.EmployeeID.String(), EmployeeName: a.EmployeeName, BaseCurrency: a.BaseCurrency, AmountBefore: a.AmountBefore.StringFixed(8), AmountAfter: a.AmountAfter.StringFixed(8), DecreaseAmount: a.Amount.StringFixed(8), ExcessAmount: a.ExcessAmount.StringFixed(8), CommissionStatus: a.CommissionStatus})
+		decrease := decimal.Zero
+		if a.Direction == biz.CommissionAdjustmentDecrease {
+			decrease = a.Amount
+		}
+		data.CommissionImpacts = append(data.CommissionImpacts, &v1.FeeSupplementCommissionImpact{CommissionId: a.CommissionID.String(), CommissionNo: a.CommissionNo, EmployeeId: a.EmployeeID.String(), EmployeeName: a.EmployeeName, BaseCurrency: a.BaseCurrency, AmountBefore: a.AmountBefore.StringFixed(8), AmountAfter: a.AmountAfter.StringFixed(8), DecreaseAmount: decrease.StringFixed(8), AdjustmentDirection: string(a.Direction), AdjustmentAmount: a.Amount.StringFixed(8), ExcessAmount: a.ExcessAmount.StringFixed(8), CommissionStatus: a.CommissionStatus})
 	}
 	if preview.CurrentProfitRate != nil {
 		value := preview.CurrentProfitRate.StringFixed(4)

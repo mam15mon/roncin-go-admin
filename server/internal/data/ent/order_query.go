@@ -27,6 +27,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
@@ -78,6 +79,7 @@ type OrderQuery struct {
 	withFeeReviewEvents               *OrderFeeReviewEventQuery
 	withFees                          *OrderFeeQuery
 	withFeeSupplementRequests         *OrderFeeSupplementRequestQuery
+	withFeeCorrectionRequests         *OrderFeeCorrectionRequestQuery
 	withFinanceBillLines              *FinanceBillLineQuery
 	withFinanceCommissionLines        *FinanceCommissionLineQuery
 	withFinanceCommissionAdjustments  *FinanceCommissionAdjustmentQuery
@@ -521,6 +523,28 @@ func (_q *OrderQuery) QueryFeeSupplementRequests() *OrderFeeSupplementRequestQue
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(orderfeesupplementrequest.Table, orderfeesupplementrequest.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.FeeSupplementRequestsTable, order.FeeSupplementRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFeeCorrectionRequests chains the current query on the "fee_correction_requests" edge.
+func (_q *OrderQuery) QueryFeeCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(order.Table, order.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, order.FeeCorrectionRequestsTable, order.FeeCorrectionRequestsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1112,6 +1136,7 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withFeeReviewEvents:               _q.withFeeReviewEvents.Clone(),
 		withFees:                          _q.withFees.Clone(),
 		withFeeSupplementRequests:         _q.withFeeSupplementRequests.Clone(),
+		withFeeCorrectionRequests:         _q.withFeeCorrectionRequests.Clone(),
 		withFinanceBillLines:              _q.withFinanceBillLines.Clone(),
 		withFinanceCommissionLines:        _q.withFinanceCommissionLines.Clone(),
 		withFinanceCommissionAdjustments:  _q.withFinanceCommissionAdjustments.Clone(),
@@ -1330,6 +1355,17 @@ func (_q *OrderQuery) WithFeeSupplementRequests(opts ...func(*OrderFeeSupplement
 		opt(query)
 	}
 	_q.withFeeSupplementRequests = query
+	return _q
+}
+
+// WithFeeCorrectionRequests tells the query-builder to eager-load the nodes that are connected to
+// the "fee_correction_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderQuery) WithFeeCorrectionRequests(opts ...func(*OrderFeeCorrectionRequestQuery)) *OrderQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFeeCorrectionRequests = query
 	return _q
 }
 
@@ -1598,7 +1634,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [35]bool{
+		loadedTypes = [36]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withShippingLine != nil,
@@ -1617,6 +1653,7 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			_q.withFeeReviewEvents != nil,
 			_q.withFees != nil,
 			_q.withFeeSupplementRequests != nil,
+			_q.withFeeCorrectionRequests != nil,
 			_q.withFinanceBillLines != nil,
 			_q.withFinanceCommissionLines != nil,
 			_q.withFinanceCommissionAdjustments != nil,
@@ -1782,6 +1819,15 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 			func(n *Order) { n.Edges.FeeSupplementRequests = []*OrderFeeSupplementRequest{} },
 			func(n *Order, e *OrderFeeSupplementRequest) {
 				n.Edges.FeeSupplementRequests = append(n.Edges.FeeSupplementRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFeeCorrectionRequests; query != nil {
+		if err := _q.loadFeeCorrectionRequests(ctx, query, nodes,
+			func(n *Order) { n.Edges.FeeCorrectionRequests = []*OrderFeeCorrectionRequest{} },
+			func(n *Order, e *OrderFeeCorrectionRequest) {
+				n.Edges.FeeCorrectionRequests = append(n.Edges.FeeCorrectionRequests, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2456,6 +2502,36 @@ func (_q *OrderQuery) loadFeeSupplementRequests(ctx context.Context, query *Orde
 	}
 	query.Where(predicate.OrderFeeSupplementRequest(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.FeeSupplementRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OrderID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderQuery) loadFeeCorrectionRequests(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderFeeCorrectionRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Order)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeecorrectionrequest.FieldOrderID)
+	}
+	query.Where(predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(order.FeeCorrectionRequestsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -40,7 +40,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		}
 		for _, fee := range fees {
 			line := expected[fee.ID]
-			if line == nil || string(fee.Direction) != string(bill.Direction) || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
+			if line == nil || entFeeSettlementDirection(fee) != bill.Direction || entFeeBillPurpose(fee) != bill.Purpose || !fee.AccountingRequired || fee.SupersededByRequestID != nil || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
 				return biz.ErrFinanceBillFeeInvalid
 			}
 		}
@@ -67,7 +67,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		}
 		_, err = tx.FinanceBill.Create().
 			SetID(bill.ID).SetOrganizationID(bill.OrganizationID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).
-			SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
+			SetPurpose(financebillent.Purpose(bill.Purpose)).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
 			SetNillableBatchID(bill.BatchID).
 			SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).
 			SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).
@@ -115,6 +115,13 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUI
 		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(input.ID), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
+		}
+		protected, err := tx.OrderFee.Query().Where(orderfeeent.SupersededByRequestIDNotNil(), orderfeeent.HasFinanceBillLinesWith(financebilllineent.BillIDEQ(input.ID), financebilllineent.ActiveEQ(true))).Exist(ctx)
+		if err != nil {
+			return err
+		}
+		if protected {
+			return biz.ErrFeeCorrectionProtected
 		}
 		if item.Version != input.ExpectedVersion {
 			return biz.ErrFinanceBillVersionConflict
@@ -277,6 +284,11 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 		if len(fees) != len(feeIDs) {
 			return biz.ErrFinanceBillFeeInvalid
 		}
+		for _, fee := range fees {
+			if fee.SupersededByRequestID != nil {
+				return biz.ErrFeeCorrectionProtected
+			}
+		}
 		// 取消以账单行为准：先停用本账单的有效行，再依据「费用仍被其他有效关联
 		// 占用则拒绝」的口径复核；费用行已锁定，版本递增不再依赖状态条件。
 		affected, err := tx.OrderFee.Update().Where(orderfeeent.IDIn(feeIDs...)).AddVersion(1).Save(ctx)
@@ -352,4 +364,21 @@ func hydrateFinanceBillSettlementAccounts(ctx context.Context, tx *ent.Tx, bills
 		bill.SettlementSwiftCode = account.SwiftCode
 	}
 	return nil
+}
+
+func entFeeSettlementDirection(fee *ent.OrderFee) biz.OrderFeeDirection {
+	direction := biz.OrderFeeDirection(fee.Direction)
+	if fee.EconomicEffect != orderfeeent.EconomicEffectDECREASE {
+		return direction
+	}
+	if direction == biz.OrderFeeReceivable {
+		return biz.OrderFeePayable
+	}
+	return biz.OrderFeeReceivable
+}
+func entFeeBillPurpose(fee *ent.OrderFee) biz.FinanceBillPurpose {
+	if fee.EconomicEffect == orderfeeent.EconomicEffectDECREASE {
+		return biz.FinanceBillCorrectionReversal
+	}
+	return biz.FinanceBillNormal
 }

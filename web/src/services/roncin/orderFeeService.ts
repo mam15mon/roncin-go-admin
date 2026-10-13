@@ -38,6 +38,152 @@ export async function orderFeeServicePreviewOrderFeeReviews(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-correction-requests */
+export async function orderFeeServiceListOrderFeeCorrectionRequests(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceListOrderFeeCorrectionRequestsParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.ListOrderFeeCorrectionRequestsResponse>(
+    `/api/v1/orders/${param0}/fee-correction-requests`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-correction-requests */
+export async function orderFeeServiceCreateOrderFeeCorrection(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceCreateOrderFeeCorrectionParams,
+  body: API.CreateOrderFeeCorrectionRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.CreateOrderFeeCorrectionResponse>(
+    `/api/v1/orders/${param0}/fee-correction-requests`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-correction-requests/${param1} */
+export async function orderFeeServiceGetOrderFeeCorrectionRequest(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceGetOrderFeeCorrectionRequestParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.GetOrderFeeCorrectionRequestResponse>(
+    `/api/v1/orders/${param0}/fee-correction-requests/${param1}`,
+    {
+      method: "GET",
+      params: { ...queryParams },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-correction-requests/${param1}/approval-preview */
+export async function orderFeeServicePreviewOrderFeeCorrectionApproval(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServicePreviewOrderFeeCorrectionApprovalParams,
+  body: API.PreviewOrderFeeCorrectionApprovalRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.PreviewOrderFeeCorrectionApprovalResponse>(
+    `/api/v1/orders/${param0}/fee-correction-requests/${param1}/approval-preview`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-correction-requests/${param1}/approve */
+export async function orderFeeServiceApproveOrderFeeCorrection(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceApproveOrderFeeCorrectionParams,
+  body: API.ApproveOrderFeeCorrectionRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.ApproveOrderFeeCorrectionResponse>(
+    `/api/v1/orders/${param0}/fee-correction-requests/${param1}/approve`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-correction-requests/${param1}/reject */
+export async function orderFeeServiceRejectOrderFeeCorrection(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceRejectOrderFeeCorrectionParams,
+  body: API.RejectOrderFeeCorrectionRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.RejectOrderFeeCorrectionResponse>(
+    `/api/v1/orders/${param0}/fee-correction-requests/${param1}/reject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-correction-requests/${param1}/withdraw */
+export async function orderFeeServiceWithdrawOrderFeeCorrection(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceWithdrawOrderFeeCorrectionParams,
+  body: API.WithdrawOrderFeeCorrectionRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, id: param1, ...queryParams } = params;
+  return request<API.WithdrawOrderFeeCorrectionResponse>(
+    `/api/v1/orders/${param0}/fee-correction-requests/${param1}/withdraw`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。 GET /api/v1/orders/${param0}/fee-exchange-rate */
 export async function orderFeeServiceResolveFeeExchangeRate(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

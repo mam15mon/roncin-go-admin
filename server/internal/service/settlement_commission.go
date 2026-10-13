@@ -770,7 +770,7 @@ func (s *SettlementService) GetMyFeeSupplementAdjustmentSource(ctx context.Conte
 		FeeCode: source.FeeCode, FeeName: source.FeeName, FeeCurrency: source.FeeCurrency,
 		FeeTotalAmount: source.FeeTotalAmount.StringFixed(8), FeeBaseCurrency: source.FeeBaseCurrency,
 		FeeBaseCurrencyAmount: source.FeeBaseCurrencyAmount.StringFixed(8), FeeExpenseDate: source.FeeExpenseDate,
-		SupplementReason: source.SupplementReason,
+		SupplementReason: source.SupplementReason, SourceType: string(source.SourceType), Direction: string(source.Direction), SourceReferenceId: uuidStringPtr(source.SourceReferenceID), SourceNo: source.SourceNo,
 	}}), nil
 }
 
@@ -851,6 +851,7 @@ func commissionAdjustmentToAPI(x *biz.FinanceCommissionAdjustment) *v1.FinanceCo
 		PaidAt: financeTime(x.PaidAt), PaidBy: uuidStringPtr(x.PaidBy),
 		CancelledAt: financeTime(x.CancelledAt), CancelledBy: uuidStringPtr(x.CancelledBy), CancellationReason: x.CancellationReason,
 		SourceType: string(x.SourceType), SourceVerificationId: uuidStringPtr(x.SourceVerificationID),
+		SourceFeeCorrectionRequestId: uuidStringPtr(x.SourceFeeCorrectionRequestID), SourceFeeSupplementRequestId: uuidStringPtr(x.SourceFeeSupplementRequestID), SourceEconomicVerificationId: uuidStringPtr(x.SourceVerificationID), SourceEconomicNettingId: uuidStringPtr(x.SourceNettingID),
 		CreatedAt: x.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: x.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 }

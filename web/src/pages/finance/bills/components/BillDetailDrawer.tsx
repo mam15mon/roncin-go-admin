@@ -99,6 +99,11 @@ export default function BillDetailDrawer({
               detail.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
             )}
           </Descriptions.Item>
+          <Descriptions.Item label="账单用途">
+            {detail.purpose === 'CORRECTION_REVERSAL'
+              ? '费用更正冲回'
+              : '正常费用'}
+          </Descriptions.Item>
           <Descriptions.Item label="方向">
             {detail.direction === 'RECEIVABLE' ? '应收' : '应付'}
           </Descriptions.Item>

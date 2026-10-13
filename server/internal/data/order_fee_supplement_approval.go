@@ -2,9 +2,7 @@ package data
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -88,88 +86,66 @@ func (r *orderFeeSupplementRepo) ResolveFeeFactsForApproval(ctx context.Context,
 	return fee, nil
 }
 
-// LockCommissionImpactContext 按父单 UUID 升序 FOR UPDATE 锁定包含目标订单的
-// CONFIRMED/PAID 提成父单、目标订单行与全部相关调整，并固化边际影响计算上下文。
-func (r *orderFeeSupplementRepo) LockCommissionImpactContext(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeSupplementImpactContext, error) {
+// LockCommissionImpactContext 复用当前经济配额和原快照规则，费用系统与人工净额分开。
+func (r *orderFeeSupplementRepo) LockCommissionImpactContext(ctx context.Context, org, orderID uuid.UUID) (*biz.OrderFeeSupplementImpactContext, error) {
 	var result *biz.OrderFeeSupplementImpactContext
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		client := tx.Client()
-		// 此前已审批且未专用撤销的补录应付合计：已撤销的费用已物理删除，天然不进基线。
-		priorFees, err := client.OrderFee.Query().Where(
-			orderfeeent.OrderIDEQ(orderID),
-			orderfeeent.SupplementRequestIDNotNil(),
-		).All(ctx)
+		p, err := loadCommissionEconomicProjection(ctx, tx.Client(), orderID, nil)
 		if err != nil {
 			return err
 		}
-		lines, err := client.FinanceCommissionLine.Query().Where(
-			commissionlineent.OrganizationIDEQ(organizationID),
-			commissionlineent.OrderIDEQ(orderID),
-			commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID)),
-		).All(ctx)
+		plans, err := planCommissionEconomicRows(ctx, tx.Client(), org, orderID, p, true)
 		if err != nil {
 			return err
 		}
-		commissionIDs := make([]uuid.UUID, 0, len(lines))
-		for _, line := range lines {
-			commissionIDs = append(commissionIDs, line.CommissionID)
-		}
-		// 多张父单按 UUID 升序一次性加锁，固定加锁顺序防死锁。
-		sort.Slice(commissionIDs, func(i, j int) bool { return commissionIDs[i].String() < commissionIDs[j].String() })
-		result = &biz.OrderFeeSupplementImpactContext{Lines: make([]*biz.OrderFeeSupplementCommissionLine, 0, len(commissionIDs))}
-		lineByCommission := make(map[uuid.UUID]*ent.FinanceCommissionLine, len(lines))
-		for _, line := range lines {
-			lineByCommission[line.CommissionID] = line
-		}
-		parents, err := tx.FinanceCommission.Query().Where(commissionent.IDIn(commissionIDs...), commissionent.OrganizationIDEQ(organizationID)).Order(commissionent.ByID()).ForUpdate().All(ctx)
-		if err != nil {
-			return err
-		}
-		allAdjustments, err := tx.FinanceCommissionAdjustment.Query().Where(commissionadjustmentent.CommissionIDIn(commissionIDs...)).Order(commissionadjustmentent.ByID()).ForUpdate().All(ctx)
-		if err != nil {
-			return err
-		}
-		byParent := make(map[uuid.UUID][]*ent.FinanceCommissionAdjustment, len(parents))
-		for _, a := range allAdjustments {
-			byParent[a.CommissionID] = append(byParent[a.CommissionID], a)
-		}
-		for _, parent := range parents {
-			line := lineByCommission[parent.ID]
-			adjustments := byParent[parent.ID]
-			contextLine, convertErr := commissionImpactLineToBiz(parent, line, adjustments)
-			if convertErr != nil {
-				return convertErr
+		result = &biz.OrderFeeSupplementImpactContext{Lines: make([]*biz.OrderFeeSupplementCommissionLine, 0, len(plans))}
+		for _, plan := range plans {
+			l, err := commissionImpactLineToBiz(plan.Parent, plan.Line, plan.Rows)
+			if err != nil {
+				return err
 			}
-			var snapshot []*biz.CommissionFeeDetail
-			if err := json.Unmarshal([]byte(line.FeeSnapshot), &snapshot); err != nil {
-				return biz.ErrCommissionSnapshotUnavailable
+			revenue, cost := p.Receivable, p.Payable
+			l.TotalReceivableSnapshot = &revenue
+			l.TotalPayableSnapshot = &cost
+			kind, id := "VERIFICATION", uuid.Nil
+			if plan.Parent.VerificationID != nil {
+				id = *plan.Parent.VerificationID
+			} else if plan.Parent.NettingID != nil {
+				kind, id = "NETTING", *plan.Parent.NettingID
 			}
-			included := make(map[uuid.UUID]bool, len(snapshot))
-			for _, f := range snapshot {
-				if f != nil {
-					included[f.FeeID] = true
+			l.RealizedRevenue = p.SourceRevenue(kind, id)
+			l.EconomicFingerprint = p.Fingerprint
+			l.ParentOther, err = decimalOf(plan.Parent.CommissionAmount)
+			if err != nil {
+				return err
+			}
+			for _, row := range plan.Rows {
+				if row.Status != commissionadjustmentent.StatusCONFIRMED && row.Status != commissionadjustmentent.StatusPAID {
+					continue
+				}
+				v, err := commissionSignedAdjustment(row)
+				if err != nil {
+					return err
+				}
+				if row.OrderID == orderID && commissionSystemSource(row.SourceType) {
+					if row.Status == commissionadjustmentent.StatusPAID {
+						l.SystemPaid = l.SystemPaid.Add(v)
+					} else {
+						l.SystemPending = l.SystemPending.Add(v)
+						l.PendingSystemAdjustmentIDs = append(l.PendingSystemAdjustmentIDs, row.ID)
+					}
+				} else {
+					l.ParentOther = l.ParentOther.Add(v)
+					if row.OrderID == orderID {
+						l.LineOther = l.LineOther.Add(v)
+					}
 				}
 			}
-			for _, f := range priorFees {
-				if !included[f.ID] {
-					if f.BaseCurrency != line.BaseCurrency {
-						return biz.ErrCommissionBaseCurrencyMismatch
-					}
-					amount, err := decimalOf(f.BaseCurrencyAmount)
-					if err != nil {
-						return err
-					}
-					contextLine.PriorSupplementBaseAmount = contextLine.PriorSupplementBaseAmount.Add(amount)
-				}
-			}
-			result.Lines = append(result.Lines, contextLine)
+			result.Lines = append(result.Lines, l)
 		}
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+	return result, err
 }
 
 // CreateApprovedFee 在审批事务内创建与申请一对一关联的 CONFIRMED 补录费用：
@@ -261,6 +237,18 @@ func (r *orderFeeSupplementRepo) CreateDecreaseSuggestion(ctx context.Context, o
 		if err != nil {
 			return mapEntError(err, biz.ErrCommissionAdjustmentInvalid, nil)
 		}
+		if len(suggestion.CancelAdjustmentIDs) > 0 {
+			if _, err := tx.FinanceCommissionAdjustment.Update().Where(commissionadjustmentent.IDIn(suggestion.CancelAdjustmentIDs...), commissionadjustmentent.CommissionIDEQ(parent.ID), commissionadjustmentent.StatusEQ(commissionadjustmentent.StatusCONFIRMED)).SetStatus(commissionadjustmentent.StatusCANCELLED).SetCancelledAt(time.Now().UTC()).SetNillableCancelledBy(audit.UserID).SetCancellationReason("补录后按系统累计净额重建").AddVersion(1).Save(ctx); err != nil {
+				return err
+			}
+		}
+		if !suggestion.Amount.IsPositive() {
+			return writeAudit(ctx, tx.AuditLog, audit)
+		}
+		direction := commissionadjustmentent.Direction(suggestion.Direction)
+		if direction == "" {
+			return biz.ErrCommissionAdjustmentInvalid
+		}
 		sequence := parent.AdjustmentSequence + 1
 		idempotencyKey := fmt.Sprintf("lfs:%s:%s:%s", requestID, suggestion.CommissionID, suggestion.OrderID)
 		if _, err = tx.FinanceCommissionAdjustment.Create().
@@ -276,7 +264,7 @@ func (r *orderFeeSupplementRepo) CreateDecreaseSuggestion(ctx context.Context, o
 			SetEmployeeName(parent.EmployeeName).
 			SetSourceType(commissionadjustmentent.SourceTypeLOCKED_FEE_SUPPLEMENT).
 			SetSourceFeeSupplementRequestID(requestID).
-			SetDirection(commissionadjustmentent.DirectionDECREASE).
+			SetDirection(direction).
 			SetStatus(commissionadjustmentent.StatusCONFIRMED).
 			SetConfirmedAt(time.Now().UTC()).
 			SetNillableConfirmedBy(audit.UserID).

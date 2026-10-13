@@ -326,7 +326,7 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 		if transactionErr = uc.repo.ValidateBillCurrencies(txCtx, currencies); transactionErr != nil {
 			return transactionErr
 		}
-		group := &FinanceBillBatchPreviewGroup{Direction: current.Direction, SettlementPartyID: current.SettlementPartyID, SettlementPartyName: current.SettlementPartyName, Currency: current.Currency, BaseCurrency: current.BaseCurrency, BillDate: input.BillDate, SettlementAccountID: input.SettlementAccountID, Fees: lockedFees, config: FinanceBillBatchPreviewGroupConfig{BillDate: input.BillDate, SettlementAccountID: input.SettlementAccountID, EstimatedInvoiceCurrency: input.EstimatedInvoiceCurrency, EstimatedInvoiceRate: input.EstimatedInvoiceRate}}
+		group := &FinanceBillBatchPreviewGroup{Purpose: current.Purpose, Direction: current.Direction, SettlementPartyID: current.SettlementPartyID, SettlementPartyName: current.SettlementPartyName, Currency: current.Currency, BaseCurrency: current.BaseCurrency, BillDate: input.BillDate, SettlementAccountID: input.SettlementAccountID, Fees: lockedFees, config: FinanceBillBatchPreviewGroupConfig{BillDate: input.BillDate, SettlementAccountID: input.SettlementAccountID, EstimatedInvoiceCurrency: input.EstimatedInvoiceCurrency, EstimatedInvoiceRate: input.EstimatedInvoiceRate}}
 		rebuilt, transactionErr := uc.buildFixedCurrencyFinanceBill(txCtx, current.OrganizationID, group, input.BillDate)
 		if transactionErr != nil {
 			return transactionErr
@@ -364,7 +364,7 @@ func validateLockedFinanceBillSourceFees(bill *FinanceBill, fees []*FinanceBilla
 	}
 	for _, item := range fees {
 		fee, line := item.Fee, lines[item.Fee.ID]
-		if line == nil || !fee.HasActiveBill || fee.Direction != bill.Direction || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != line.Currency || !fee.TotalAmount.Equal(line.TotalAmount) || !fee.NetAmount.Equal(line.NetAmount) || !fee.TaxAmount.Equal(line.TaxAmount) {
+		if line == nil || !fee.HasActiveBill || SettlementDirection(fee) != bill.Direction || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != line.Currency || !fee.TotalAmount.Equal(line.TotalAmount) || !fee.NetAmount.Equal(line.NetAmount) || !fee.TaxAmount.Equal(line.TaxAmount) {
 			return ErrFinanceBillPreviewStale
 		}
 	}
@@ -426,10 +426,14 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 	if first == nil || first.Fee == nil || first.Fee.HasActiveBill {
 		return nil, ErrFinanceBillFeeInvalid
 	}
+	var correctionID *uuid.UUID
+	if first.Fee.SourceFeeID != nil {
+		correctionID = first.Fee.CorrectionRequestID
+	}
 	billID := uuid.Must(uuid.NewV7())
 	bill := &FinanceBill{
 		ID: billID, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey,
-		Direction: first.Fee.Direction, Status: FinanceBillDraft, SettlementPartyID: first.Fee.SettlementPartyID,
+		CorrectionRequestID: correctionID, Purpose: FinanceBillPurposeForFee(first.Fee), Direction: SettlementDirection(first.Fee), Status: FinanceBillDraft, SettlementPartyID: first.Fee.SettlementPartyID,
 		SettlementPartyName: first.Fee.SettlementPartyName, SettlementAccountID: input.SettlementAccountID, Currency: first.Fee.Currency, BaseCurrency: first.Fee.BaseCurrency,
 		BillDate: input.BillDate, StatementTitle: input.StatementTitle, PaymentTermsDays: input.PaymentTermsDays, DueDate: input.DueDate, Note: input.Note, Version: 1,
 		Lines: make([]*FinanceBillLine, 0, len(fees)),
@@ -442,7 +446,13 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 			return nil, ErrFinanceBillFeeInvalid
 		}
 		fee := item.Fee
-		if fee.Direction != bill.Direction || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency {
+		if fee.SourceFeeID != nil && (bill.CorrectionRequestID == nil || fee.CorrectionRequestID == nil || *bill.CorrectionRequestID != *fee.CorrectionRequestID) {
+			return nil, ErrFinanceBillFeeMismatch
+		}
+		if fee.SourceFeeID == nil && bill.CorrectionRequestID != nil {
+			return nil, ErrFinanceBillFeeMismatch
+		}
+		if FinanceBillPurposeForFee(fee) != bill.Purpose || SettlementDirection(fee) != bill.Direction || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency {
 			return nil, ErrFinanceBillFeeMismatch
 		}
 		bill.TotalAmount = bill.TotalAmount.Add(fee.TotalAmount)

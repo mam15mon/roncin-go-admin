@@ -111,6 +111,11 @@ func SupplementRequestID(v uuid.UUID) predicate.OrderFeeReviewEvent {
 	return predicate.OrderFeeReviewEvent(sql.FieldEQ(FieldSupplementRequestID, v))
 }
 
+// CorrectionRequestID applies equality check predicate on the "correction_request_id" field. It's identical to CorrectionRequestIDEQ.
+func CorrectionRequestID(v uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldEQ(FieldCorrectionRequestID, v))
+}
+
 // IdempotencyKey applies equality check predicate on the "idempotency_key" field. It's identical to IdempotencyKeyEQ.
 func IdempotencyKey(v string) predicate.OrderFeeReviewEvent {
 	return predicate.OrderFeeReviewEvent(sql.FieldEQ(FieldIdempotencyKey, v))
@@ -654,6 +659,56 @@ func SupplementRequestIDIsNil() predicate.OrderFeeReviewEvent {
 // SupplementRequestIDNotNil applies the NotNil predicate on the "supplement_request_id" field.
 func SupplementRequestIDNotNil() predicate.OrderFeeReviewEvent {
 	return predicate.OrderFeeReviewEvent(sql.FieldNotNull(FieldSupplementRequestID))
+}
+
+// CorrectionRequestIDEQ applies the EQ predicate on the "correction_request_id" field.
+func CorrectionRequestIDEQ(v uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldEQ(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDNEQ applies the NEQ predicate on the "correction_request_id" field.
+func CorrectionRequestIDNEQ(v uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldNEQ(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDIn applies the In predicate on the "correction_request_id" field.
+func CorrectionRequestIDIn(vs ...uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldIn(FieldCorrectionRequestID, vs...))
+}
+
+// CorrectionRequestIDNotIn applies the NotIn predicate on the "correction_request_id" field.
+func CorrectionRequestIDNotIn(vs ...uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldNotIn(FieldCorrectionRequestID, vs...))
+}
+
+// CorrectionRequestIDGT applies the GT predicate on the "correction_request_id" field.
+func CorrectionRequestIDGT(v uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldGT(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDGTE applies the GTE predicate on the "correction_request_id" field.
+func CorrectionRequestIDGTE(v uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldGTE(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDLT applies the LT predicate on the "correction_request_id" field.
+func CorrectionRequestIDLT(v uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldLT(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDLTE applies the LTE predicate on the "correction_request_id" field.
+func CorrectionRequestIDLTE(v uuid.UUID) predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldLTE(FieldCorrectionRequestID, v))
+}
+
+// CorrectionRequestIDIsNil applies the IsNil predicate on the "correction_request_id" field.
+func CorrectionRequestIDIsNil() predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldIsNull(FieldCorrectionRequestID))
+}
+
+// CorrectionRequestIDNotNil applies the NotNil predicate on the "correction_request_id" field.
+func CorrectionRequestIDNotNil() predicate.OrderFeeReviewEvent {
+	return predicate.OrderFeeReviewEvent(sql.FieldNotNull(FieldCorrectionRequestID))
 }
 
 // IdempotencyKeyEQ applies the EQ predicate on the "idempotency_key" field.

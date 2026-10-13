@@ -88,7 +88,7 @@ describe('MySupplementSourcePage 员工本人冲减来源详情', () => {
 
     expect(await screen.findByText('记录不存在')).toBeInTheDocument();
     expect(
-      screen.getByText('未找到对应的冲减建议，或该记录与您无关。'),
+      screen.getByText('未找到对应的提成调整，或该记录与您无关。'),
     ).toBeInTheDocument();
   });
 
@@ -102,5 +102,27 @@ describe('MySupplementSourcePage 员工本人冲减来源详情', () => {
 
     await waitFor(() => expect(getSource).not.toHaveBeenCalled());
     expect(await screen.findByText('记录不存在')).toBeInTheDocument();
+  });
+  it('更正已执行的增提显示补付正金额，收付款来源不伪造费用摘要', async () => {
+    getSource.mockResolvedValue({
+      data: {
+        adjustmentNo: 'ADJ-PLUS',
+        sourceType: 'ECONOMIC_REALLOCATION',
+        direction: 'INCREASE',
+        status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_PAID,
+        suggestedAmount: '90',
+        baseCurrency: 'CNY',
+        sourceNo: 'VERIFY-2',
+        supplementReason: '退款撤销重算',
+      },
+    });
+    render(
+      <App>
+        <MySupplementSourcePage />
+      </App>,
+    );
+    expect(await screen.findByText('+90.00 CNY')).toBeInTheDocument();
+    expect(screen.getByText('已补付')).toBeInTheDocument();
+    expect(screen.queryByText('相关费用摘要')).not.toBeInTheDocument();
   });
 });

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -33,6 +34,26 @@ func (_u *FinanceCommissionAdjustmentUpdate) Where(ps ...predicate.FinanceCommis
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceCommissionAdjustmentUpdate) SetUpdatedAt(v time.Time) *FinanceCommissionAdjustmentUpdate {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field.
+func (_u *FinanceCommissionAdjustmentUpdate) SetSupersededByFeeCorrectionRequestID(v uuid.UUID) *FinanceCommissionAdjustmentUpdate {
+	_u.mutation.SetSupersededByFeeCorrectionRequestID(v)
+	return _u
+}
+
+// SetNillableSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field if the given value is not nil.
+func (_u *FinanceCommissionAdjustmentUpdate) SetNillableSupersededByFeeCorrectionRequestID(v *uuid.UUID) *FinanceCommissionAdjustmentUpdate {
+	if v != nil {
+		_u.SetSupersededByFeeCorrectionRequestID(*v)
+	}
+	return _u
+}
+
+// ClearSupersededByFeeCorrectionRequestID clears the value of the "superseded_by_fee_correction_request_id" field.
+func (_u *FinanceCommissionAdjustmentUpdate) ClearSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpdate {
+	_u.mutation.ClearSupersededByFeeCorrectionRequestID()
 	return _u
 }
 
@@ -271,6 +292,11 @@ func (_u *FinanceCommissionAdjustmentUpdate) ClearCancellationReason() *FinanceC
 	return _u
 }
 
+// SetSupersededByFeeCorrectionRequest sets the "superseded_by_fee_correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *FinanceCommissionAdjustmentUpdate) SetSupersededByFeeCorrectionRequest(v *OrderFeeCorrectionRequest) *FinanceCommissionAdjustmentUpdate {
+	return _u.SetSupersededByFeeCorrectionRequestID(v.ID)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_u *FinanceCommissionAdjustmentUpdate) SetConfirmedByUserID(id uuid.UUID) *FinanceCommissionAdjustmentUpdate {
 	_u.mutation.SetConfirmedByUserID(id)
@@ -331,6 +357,12 @@ func (_u *FinanceCommissionAdjustmentUpdate) SetCancelledByUser(v *User) *Financ
 // Mutation returns the FinanceCommissionAdjustmentMutation object of the builder.
 func (_u *FinanceCommissionAdjustmentUpdate) Mutation() *FinanceCommissionAdjustmentMutation {
 	return _u.mutation
+}
+
+// ClearSupersededByFeeCorrectionRequest clears the "superseded_by_fee_correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *FinanceCommissionAdjustmentUpdate) ClearSupersededByFeeCorrectionRequest() *FinanceCommissionAdjustmentUpdate {
+	_u.mutation.ClearSupersededByFeeCorrectionRequest()
+	return _u
 }
 
 // ClearConfirmedByUser clears the "confirmed_by_user" edge to the User entity.
@@ -490,6 +522,35 @@ func (_u *FinanceCommissionAdjustmentUpdate) sqlSave(ctx context.Context) (_node
 	if _u.mutation.CancellationReasonCleared() {
 		_spec.ClearField(financecommissionadjustment.FieldCancellationReason, field.TypeString)
 	}
+	if _u.mutation.SupersededByFeeCorrectionRequestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SupersededByFeeCorrectionRequestTable,
+			Columns: []string{financecommissionadjustment.SupersededByFeeCorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SupersededByFeeCorrectionRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SupersededByFeeCorrectionRequestTable,
+			Columns: []string{financecommissionadjustment.SupersededByFeeCorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.ConfirmedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -600,6 +661,26 @@ type FinanceCommissionAdjustmentUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceCommissionAdjustmentUpdateOne) SetUpdatedAt(v time.Time) *FinanceCommissionAdjustmentUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field.
+func (_u *FinanceCommissionAdjustmentUpdateOne) SetSupersededByFeeCorrectionRequestID(v uuid.UUID) *FinanceCommissionAdjustmentUpdateOne {
+	_u.mutation.SetSupersededByFeeCorrectionRequestID(v)
+	return _u
+}
+
+// SetNillableSupersededByFeeCorrectionRequestID sets the "superseded_by_fee_correction_request_id" field if the given value is not nil.
+func (_u *FinanceCommissionAdjustmentUpdateOne) SetNillableSupersededByFeeCorrectionRequestID(v *uuid.UUID) *FinanceCommissionAdjustmentUpdateOne {
+	if v != nil {
+		_u.SetSupersededByFeeCorrectionRequestID(*v)
+	}
+	return _u
+}
+
+// ClearSupersededByFeeCorrectionRequestID clears the value of the "superseded_by_fee_correction_request_id" field.
+func (_u *FinanceCommissionAdjustmentUpdateOne) ClearSupersededByFeeCorrectionRequestID() *FinanceCommissionAdjustmentUpdateOne {
+	_u.mutation.ClearSupersededByFeeCorrectionRequestID()
 	return _u
 }
 
@@ -838,6 +919,11 @@ func (_u *FinanceCommissionAdjustmentUpdateOne) ClearCancellationReason() *Finan
 	return _u
 }
 
+// SetSupersededByFeeCorrectionRequest sets the "superseded_by_fee_correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *FinanceCommissionAdjustmentUpdateOne) SetSupersededByFeeCorrectionRequest(v *OrderFeeCorrectionRequest) *FinanceCommissionAdjustmentUpdateOne {
+	return _u.SetSupersededByFeeCorrectionRequestID(v.ID)
+}
+
 // SetConfirmedByUserID sets the "confirmed_by_user" edge to the User entity by ID.
 func (_u *FinanceCommissionAdjustmentUpdateOne) SetConfirmedByUserID(id uuid.UUID) *FinanceCommissionAdjustmentUpdateOne {
 	_u.mutation.SetConfirmedByUserID(id)
@@ -898,6 +984,12 @@ func (_u *FinanceCommissionAdjustmentUpdateOne) SetCancelledByUser(v *User) *Fin
 // Mutation returns the FinanceCommissionAdjustmentMutation object of the builder.
 func (_u *FinanceCommissionAdjustmentUpdateOne) Mutation() *FinanceCommissionAdjustmentMutation {
 	return _u.mutation
+}
+
+// ClearSupersededByFeeCorrectionRequest clears the "superseded_by_fee_correction_request" edge to the OrderFeeCorrectionRequest entity.
+func (_u *FinanceCommissionAdjustmentUpdateOne) ClearSupersededByFeeCorrectionRequest() *FinanceCommissionAdjustmentUpdateOne {
+	_u.mutation.ClearSupersededByFeeCorrectionRequest()
+	return _u
 }
 
 // ClearConfirmedByUser clears the "confirmed_by_user" edge to the User entity.
@@ -1086,6 +1178,35 @@ func (_u *FinanceCommissionAdjustmentUpdateOne) sqlSave(ctx context.Context) (_n
 	}
 	if _u.mutation.CancellationReasonCleared() {
 		_spec.ClearField(financecommissionadjustment.FieldCancellationReason, field.TypeString)
+	}
+	if _u.mutation.SupersededByFeeCorrectionRequestCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SupersededByFeeCorrectionRequestTable,
+			Columns: []string{financecommissionadjustment.SupersededByFeeCorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.SupersededByFeeCorrectionRequestIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   financecommissionadjustment.SupersededByFeeCorrectionRequestTable,
+			Columns: []string{financecommissionadjustment.SupersededByFeeCorrectionRequestColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.ConfirmedByUserCleared() {
 		edge := &sqlgraph.EdgeSpec{

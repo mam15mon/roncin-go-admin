@@ -1317,6 +1317,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "purpose", Type: field.TypeEnum, Enums: []string{"NORMAL", "CORRECTION_REVERSAL"}, Default: "NORMAL"},
 		{Name: "bill_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
@@ -1366,31 +1367,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_bills_finance_bill_batches_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[38]},
+				Columns:    []*schema.Column{FinanceBillsColumns[39]},
 				RefColumns: []*schema.Column{FinanceBillBatchesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_bills_organizations_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[39]},
+				Columns:    []*schema.Column{FinanceBillsColumns[40]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_partners_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[40]},
+				Columns:    []*schema.Column{FinanceBillsColumns[41]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_users_confirmed_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[41]},
+				Columns:    []*schema.Column{FinanceBillsColumns[42]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_bills_users_cancelled_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[42]},
+				Columns:    []*schema.Column{FinanceBillsColumns[43]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1404,32 +1405,32 @@ var (
 			{
 				Name:    "financebill_organization_id_bill_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[39], FinanceBillsColumns[3]},
+				Columns: []*schema.Column{FinanceBillsColumns[40], FinanceBillsColumns[4]},
 			},
 			{
 				Name:    "financebill_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[39], FinanceBillsColumns[4]},
+				Columns: []*schema.Column{FinanceBillsColumns[40], FinanceBillsColumns[5]},
 			},
 			{
 				Name:    "financebill_organization_id_status_bill_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[39], FinanceBillsColumns[6], FinanceBillsColumns[29]},
+				Columns: []*schema.Column{FinanceBillsColumns[40], FinanceBillsColumns[7], FinanceBillsColumns[30]},
 			},
 			{
 				Name:    "financebill_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[40], FinanceBillsColumns[5], FinanceBillsColumns[18]},
+				Columns: []*schema.Column{FinanceBillsColumns[41], FinanceBillsColumns[6], FinanceBillsColumns[19]},
 			},
 			{
 				Name:    "financebill_settlement_account_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[8]},
+				Columns: []*schema.Column{FinanceBillsColumns[9]},
 			},
 			{
 				Name:    "financebill_batch_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[38]},
+				Columns: []*schema.Column{FinanceBillsColumns[39]},
 			},
 		},
 	}
@@ -1904,7 +1905,7 @@ var (
 		{Name: "commission_no", Type: field.TypeString, Size: 64},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "employee_name", Type: field.TypeString, Size: 100},
-		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT"}, Default: "MANUAL"},
+		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT", "FEE_CORRECTION", "ECONOMIC_REALLOCATION"}, Default: "MANUAL"},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"INCREASE", "DECREASE"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "PAID", "CANCELLED"}, Default: "DRAFT"},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -1919,8 +1920,11 @@ var (
 		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "commission_id", Type: field.TypeUUID},
+		{Name: "source_netting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "source_verification_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "source_fee_correction_request_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "superseded_by_fee_correction_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "source_fee_supplement_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "employee_id", Type: field.TypeUUID},
@@ -1941,50 +1945,68 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "finance_commission_adjustments_finance_verifications_commission_reversal_adjustments",
+				Symbol:     "finance_commission_adjustments_finance_nettings_commission_economic_adjustments",
 				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[23]},
+				RefColumns: []*schema.Column{FinanceNettingsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_adjustments_finance_verifications_commission_reversal_adjustments",
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[24]},
 				RefColumns: []*schema.Column{FinanceVerificationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_orders_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[24]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[25]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "finance_commission_adjustments_order_fee_correction_requests_commission_adjustments",
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[26]},
+				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_commission_adjustments_order_fee_correction_requests_superseded_commission_adjustments",
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[27]},
+				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "finance_commission_adjustments_order_fee_supplement_requests_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[25]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[28]},
 				RefColumns: []*schema.Column{OrderFeeSupplementRequestsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_organizations_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[26]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[29]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[27]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[30]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_confirmed_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[28]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[31]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_paid_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[29]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[32]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commission_adjustments_users_cancelled_finance_commission_adjustments",
-				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[30]},
+				Columns:    []*schema.Column{FinanceCommissionAdjustmentsColumns[33]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1998,12 +2020,12 @@ var (
 			{
 				Name:    "financecommissionadjustment_organization_id_adjustment_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[26], FinanceCommissionAdjustmentsColumns[3]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[29], FinanceCommissionAdjustmentsColumns[3]},
 			},
 			{
 				Name:    "financecommissionadjustment_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[26], FinanceCommissionAdjustmentsColumns[4]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[29], FinanceCommissionAdjustmentsColumns[4]},
 			},
 			{
 				Name:    "financecommissionadjustment_commission_id_status_created_at",
@@ -2013,17 +2035,25 @@ var (
 			{
 				Name:    "financecommissionadjustment_order_id_status",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[24], FinanceCommissionAdjustmentsColumns[10]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[25], FinanceCommissionAdjustmentsColumns[10]},
 			},
 			{
 				Name:    "financecommissionadjustment_commission_id_order_id_source_type_source_verification_id",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[24], FinanceCommissionAdjustmentsColumns[8], FinanceCommissionAdjustmentsColumns[23]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[25], FinanceCommissionAdjustmentsColumns[8], FinanceCommissionAdjustmentsColumns[24]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "source_type <> 'ECONOMIC_REALLOCATION'",
+				},
+			},
+			{
+				Name:    "financecommissionadjustment_commission_id_order_id_source_fee_correction_request_id",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[25], FinanceCommissionAdjustmentsColumns[26]},
 			},
 			{
 				Name:    "financecommissionadjustment_commission_id_order_id_source_type_source_fee_supplement_request_id",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[24], FinanceCommissionAdjustmentsColumns[8], FinanceCommissionAdjustmentsColumns[25]},
+				Columns: []*schema.Column{FinanceCommissionAdjustmentsColumns[22], FinanceCommissionAdjustmentsColumns[25], FinanceCommissionAdjustmentsColumns[8], FinanceCommissionAdjustmentsColumns[28]},
 			},
 		},
 	}
@@ -2195,6 +2225,8 @@ var (
 		{Name: "personnel_assigned_at", Type: field.TypeTime},
 		{Name: "fee_count", Type: field.TypeInt},
 		{Name: "fee_snapshot", Type: field.TypeString, Default: "[]", SchemaType: map[string]string{"postgres": "jsonb"}},
+		{Name: "fee_content_version_snapshot", Type: field.TypeUint64, Default: 1},
+		{Name: "realization_snapshot", Type: field.TypeString, Default: "{}", SchemaType: map[string]string{"postgres": "jsonb"}},
 		{Name: "employee_id", Type: field.TypeUUID},
 		{Name: "employee_name", Type: field.TypeString, Size: 100},
 		{Name: "personnel_role", Type: field.TypeString, Size: 20},
@@ -2225,19 +2257,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_commission_lines_finance_commissions_lines",
-				Columns:    []*schema.Column{FinanceCommissionLinesColumns[31]},
+				Columns:    []*schema.Column{FinanceCommissionLinesColumns[33]},
 				RefColumns: []*schema.Column{FinanceCommissionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_lines_orders_finance_commission_lines",
-				Columns:    []*schema.Column{FinanceCommissionLinesColumns[32]},
+				Columns:    []*schema.Column{FinanceCommissionLinesColumns[34]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commission_lines_organizations_finance_commission_lines",
-				Columns:    []*schema.Column{FinanceCommissionLinesColumns[33]},
+				Columns:    []*schema.Column{FinanceCommissionLinesColumns[35]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2251,22 +2283,22 @@ var (
 			{
 				Name:    "financecommissionline_commission_id_order_id",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionLinesColumns[31], FinanceCommissionLinesColumns[32]},
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[33], FinanceCommissionLinesColumns[34]},
 			},
 			{
 				Name:    "financecommissionline_organization_id_employee_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionLinesColumns[33], FinanceCommissionLinesColumns[13]},
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[35], FinanceCommissionLinesColumns[15]},
 			},
 			{
 				Name:    "financecommissionline_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionLinesColumns[32]},
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[34]},
 			},
 			{
 				Name:    "financecommissionline_order_id_employee_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionLinesColumns[32], FinanceCommissionLinesColumns[13]},
+				Columns: []*schema.Column{FinanceCommissionLinesColumns[34], FinanceCommissionLinesColumns[15]},
 			},
 		},
 	}
@@ -2592,6 +2624,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "source_fee_ids", Type: field.TypeJSON},
 		{Name: "bill_no", Type: field.TypeString, Size: 64},
 		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -2607,13 +2640,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_invoice_bills_finance_bills_invoice_links",
-				Columns:    []*schema.Column{FinanceInvoiceBillsColumns[7]},
+				Columns:    []*schema.Column{FinanceInvoiceBillsColumns[8]},
 				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoice_bills_finance_invoices_bill_links",
-				Columns:    []*schema.Column{FinanceInvoiceBillsColumns[8]},
+				Columns:    []*schema.Column{FinanceInvoiceBillsColumns[9]},
 				RefColumns: []*schema.Column{FinanceInvoicesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2627,12 +2660,12 @@ var (
 			{
 				Name:    "financeinvoicebill_invoice_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoiceBillsColumns[8], FinanceInvoiceBillsColumns[6]},
+				Columns: []*schema.Column{FinanceInvoiceBillsColumns[9], FinanceInvoiceBillsColumns[7]},
 			},
 			{
 				Name:    "financeinvoicebill_bill_id_active",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoiceBillsColumns[7], FinanceInvoiceBillsColumns[6]},
+				Columns: []*schema.Column{FinanceInvoiceBillsColumns[8], FinanceInvoiceBillsColumns[7]},
 			},
 		},
 	}
@@ -2702,6 +2735,7 @@ var (
 		{Name: "reversed_at", Type: field.TypeTime, Nullable: true},
 		{Name: "reversal_reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "batch_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "correction_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
 		{Name: "confirmed_by", Type: field.TypeUUID, Nullable: true},
@@ -2721,32 +2755,38 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "finance_nettings_organizations_finance_nettings",
+				Symbol:     "finance_nettings_order_fee_correction_requests_nettings",
 				Columns:    []*schema.Column{FinanceNettingsColumns[22]},
+				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_nettings_organizations_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[23]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_nettings_partners_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[23]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[24]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_nettings_users_confirmed_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[24]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "finance_nettings_users_cancelled_finance_nettings",
 				Columns:    []*schema.Column{FinanceNettingsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "finance_nettings_users_reversed_finance_nettings",
+				Symbol:     "finance_nettings_users_cancelled_finance_nettings",
 				Columns:    []*schema.Column{FinanceNettingsColumns[26]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_nettings_users_reversed_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[27]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -2760,22 +2800,22 @@ var (
 			{
 				Name:    "financenetting_organization_id_netting_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceNettingsColumns[22], FinanceNettingsColumns[3]},
+				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[3]},
 			},
 			{
 				Name:    "financenetting_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceNettingsColumns[22], FinanceNettingsColumns[4]},
+				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[4]},
 			},
 			{
 				Name:    "financenetting_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[22], FinanceNettingsColumns[6], FinanceNettingsColumns[1]},
+				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[6], FinanceNettingsColumns[1]},
 			},
 			{
 				Name:    "financenetting_settlement_party_id_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[8]},
+				Columns: []*schema.Column{FinanceNettingsColumns[24], FinanceNettingsColumns[8]},
 			},
 			{
 				Name:    "financenetting_batch_id",
@@ -2796,6 +2836,7 @@ var (
 		{Name: "active", Type: field.TypeBool, Default: false},
 		{Name: "bill_id", Type: field.TypeUUID},
 		{Name: "netting_id", Type: field.TypeUUID},
+		{Name: "source_fee_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// FinanceNettingAllocationsTable holds the schema information for the "finance_netting_allocations" table.
 	FinanceNettingAllocationsTable = &schema.Table{
@@ -2813,6 +2854,12 @@ var (
 				Symbol:     "finance_netting_allocations_finance_nettings_allocations",
 				Columns:    []*schema.Column{FinanceNettingAllocationsColumns[9]},
 				RefColumns: []*schema.Column{FinanceNettingsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_netting_allocations_order_fees_correction_netting_allocations",
+				Columns:    []*schema.Column{FinanceNettingAllocationsColumns[10]},
+				RefColumns: []*schema.Column{OrderFeesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
@@ -3963,10 +4010,15 @@ var (
 		{Name: "base_currency_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "expense_date", Type: field.TypeString, Size: 16},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "economic_effect", Type: field.TypeEnum, Enums: []string{"INCREASE", "DECREASE"}, Default: "INCREASE"},
+		{Name: "accounting_required", Type: field.TypeBool, Default: true},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
 		{Name: "billing_unit_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "fee_setting_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "source_fee_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "correction_request_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "superseded_by_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "supplement_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "settlement_party_id", Type: field.TypeUUID},
 	}
@@ -3978,31 +4030,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_fees_billing_units_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[27]},
+				Columns:    []*schema.Column{OrderFeesColumns[29]},
 				RefColumns: []*schema.Column{BillingUnitsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_fee_settings_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[28]},
+				Columns:    []*schema.Column{OrderFeesColumns[30]},
 				RefColumns: []*schema.Column{FeeSettingsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_orders_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[29]},
+				Columns:    []*schema.Column{OrderFeesColumns[31]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "order_fees_order_fees_derived_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[32]},
+				RefColumns: []*schema.Column{OrderFeesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fees_order_fee_correction_requests_generated_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[33]},
+				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fees_order_fee_correction_requests_superseded_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[34]},
+				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "order_fees_order_fee_supplement_requests_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[30]},
+				Columns:    []*schema.Column{OrderFeesColumns[35]},
 				RefColumns: []*schema.Column{OrderFeeSupplementRequestsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_partners_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[31]},
+				Columns:    []*schema.Column{OrderFeesColumns[36]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4016,32 +4086,136 @@ var (
 			{
 				Name:    "orderfee_order_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[29], OrderFeesColumns[3]},
+				Columns: []*schema.Column{OrderFeesColumns[31], OrderFeesColumns[3]},
 			},
 			{
 				Name:    "orderfee_supplement_request_id",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[30]},
+				Columns: []*schema.Column{OrderFeesColumns[35]},
+			},
+			{
+				Name:    "orderfee_correction_request_id_economic_effect",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[26]},
+			},
+			{
+				Name:    "orderfee_source_fee_id_economic_effect",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[26]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "economic_effect = 'DECREASE'",
+				},
 			},
 			{
 				Name:    "orderfee_order_id_direction_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[29], OrderFeesColumns[4], OrderFeesColumns[1]},
+				Columns: []*schema.Column{OrderFeesColumns[31], OrderFeesColumns[4], OrderFeesColumns[1]},
 			},
 			{
 				Name:    "orderfee_fee_setting_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[28]},
+				Columns: []*schema.Column{OrderFeesColumns[30]},
 			},
 			{
 				Name:    "orderfee_billing_unit_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[27]},
+				Columns: []*schema.Column{OrderFeesColumns[29]},
 			},
 			{
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[31], OrderFeesColumns[4], OrderFeesColumns[17]},
+				Columns: []*schema.Column{OrderFeesColumns[36], OrderFeesColumns[4], OrderFeesColumns[17]},
+			},
+		},
+	}
+	// OrderFeeCorrectionRequestsColumns holds the columns for the "order_fee_correction_requests" table.
+	OrderFeeCorrectionRequestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "operation", Type: field.TypeEnum, Enums: []string{"ADD", "REPLACE", "VOID"}},
+		{Name: "source_fee_version", Type: field.TypeUint64, Nullable: true},
+		{Name: "before_snapshot", Type: field.TypeJSON, Nullable: true},
+		{Name: "after_snapshot", Type: field.TypeJSON, Nullable: true},
+		{Name: "approved_fee_review_event_id", Type: field.TypeUUID},
+		{Name: "approved_fee_content_version", Type: field.TypeUint64},
+		{Name: "approved_fee_review_version", Type: field.TypeUint64},
+		{Name: "approval_result_snapshot", Type: field.TypeJSON, Nullable: true},
+		{Name: "reason", Type: field.TypeString, Size: 1000},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Size: 64},
+		{Name: "requested_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "APPROVED", "REJECTED", "WITHDRAWN"}, Default: "PENDING"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "decided_at", Type: field.TypeTime, Nullable: true},
+		{Name: "decision_reason", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "approval_token", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "source_fee_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "requested_by", Type: field.TypeUUID},
+		{Name: "decided_by", Type: field.TypeUUID, Nullable: true},
+	}
+	// OrderFeeCorrectionRequestsTable holds the schema information for the "order_fee_correction_requests" table.
+	OrderFeeCorrectionRequestsTable = &schema.Table{
+		Name:       "order_fee_correction_requests",
+		Columns:    OrderFeeCorrectionRequestsColumns,
+		PrimaryKey: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "order_fee_correction_requests_orders_fee_correction_requests",
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[20]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_correction_requests_order_fees_targeted_correction_requests",
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[21]},
+				RefColumns: []*schema.Column{OrderFeesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_correction_requests_organizations_fee_correction_requests",
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[22]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_correction_requests_users_requested_fee_correction_requests",
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[23]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fee_correction_requests_users_decided_fee_correction_requests",
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[24]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "orderfeecorrectionrequest_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[2]},
+			},
+			{
+				Name:    "orderfeecorrectionrequest_organization_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[22], OrderFeeCorrectionRequestsColumns[12]},
+			},
+			{
+				Name:    "orderfeecorrectionrequest_organization_id_order_id_requested_at",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[22], OrderFeeCorrectionRequestsColumns[20], OrderFeeCorrectionRequestsColumns[14]},
+			},
+			{
+				Name:    "order_fee_correction_one_pending",
+				Unique:  true,
+				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[20]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status = 'PENDING'",
+				},
 			},
 		},
 	}
@@ -4108,7 +4282,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "organization_id", Type: field.TypeUUID},
-		{Name: "action", Type: field.TypeEnum, Enums: []string{"SUBMIT", "WITHDRAW", "APPROVE", "REJECT", "REVOKE", "SUPPLEMENT_APPROVE"}},
+		{Name: "action", Type: field.TypeEnum, Enums: []string{"SUBMIT", "WITHDRAW", "APPROVE", "REJECT", "REVOKE", "SUPPLEMENT_APPROVE", "CORRECTION_APPROVE"}},
 		{Name: "submission_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "actor_id", Type: field.TypeUUID},
 		{Name: "actor_name", Type: field.TypeString, Default: ""},
@@ -4118,6 +4292,7 @@ var (
 		{Name: "content_fingerprint", Type: field.TypeString, Size: 64},
 		{Name: "snapshot", Type: field.TypeJSON},
 		{Name: "supplement_request_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "correction_request_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "request_fingerprint", Type: field.TypeString, Size: 64},
 		{Name: "order_id", Type: field.TypeUUID},
@@ -4130,7 +4305,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_fee_review_events_orders_fee_review_events",
-				Columns:    []*schema.Column{OrderFeeReviewEventsColumns[16]},
+				Columns:    []*schema.Column{OrderFeeReviewEventsColumns[17]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4144,12 +4319,12 @@ var (
 			{
 				Name:    "orderfeereviewevent_order_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeeReviewEventsColumns[16], OrderFeeReviewEventsColumns[14]},
+				Columns: []*schema.Column{OrderFeeReviewEventsColumns[17], OrderFeeReviewEventsColumns[15]},
 			},
 			{
 				Name:    "orderfeereviewevent_organization_id_order_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeeReviewEventsColumns[3], OrderFeeReviewEventsColumns[16], OrderFeeReviewEventsColumns[1]},
+				Columns: []*schema.Column{OrderFeeReviewEventsColumns[3], OrderFeeReviewEventsColumns[17], OrderFeeReviewEventsColumns[1]},
 			},
 		},
 	}
@@ -7227,6 +7402,7 @@ var (
 		OrderContainerRequestsTable,
 		OrderEnterpriseTagsTable,
 		OrderFeesTable,
+		OrderFeeCorrectionRequestsTable,
 		OrderFeeEnterpriseTagsTable,
 		OrderFeeReviewEventsTable,
 		OrderFeeSupplementRequestsTable,
@@ -7332,6 +7508,7 @@ func init() {
 	FinanceBillsTable.Annotation = &entsql.Annotation{}
 	FinanceBillsTable.Annotation.Checks = map[string]string{
 		"finance_bills_estimated_invoice_snapshot_check": "(estimated_invoice_currency IS NULL AND estimated_invoice_rate IS NULL AND estimated_invoice_amount IS NULL) OR (estimated_invoice_currency IS NOT NULL AND estimated_invoice_rate IS NOT NULL AND estimated_invoice_amount IS NOT NULL AND estimated_invoice_rate > 0 AND estimated_invoice_amount >= 0)",
+		"finance_bills_purpose_check":                    "purpose IN ('NORMAL','CORRECTION_REVERSAL')",
 	}
 	FinanceBillBatchesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceBillBatchesTable.ForeignKeys[1].RefTable = UsersTable
@@ -7358,22 +7535,27 @@ func init() {
 	FinanceCommissionsTable.ForeignKeys[6].RefTable = UsersTable
 	FinanceCommissionsTable.ForeignKeys[7].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[0].RefTable = FinanceCommissionsTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[1].RefTable = FinanceVerificationsTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[2].RefTable = OrdersTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[3].RefTable = OrderFeeSupplementRequestsTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[4].RefTable = OrganizationsTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[5].RefTable = UsersTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[6].RefTable = UsersTable
-	FinanceCommissionAdjustmentsTable.ForeignKeys[7].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[1].RefTable = FinanceNettingsTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[2].RefTable = FinanceVerificationsTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[3].RefTable = OrdersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[4].RefTable = OrderFeeCorrectionRequestsTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[5].RefTable = OrderFeeCorrectionRequestsTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[6].RefTable = OrderFeeSupplementRequestsTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[7].RefTable = OrganizationsTable
 	FinanceCommissionAdjustmentsTable.ForeignKeys[8].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[9].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[10].RefTable = UsersTable
+	FinanceCommissionAdjustmentsTable.ForeignKeys[11].RefTable = UsersTable
 	FinanceCommissionAdjustmentsTable.Annotation = &entsql.Annotation{}
 	FinanceCommissionAdjustmentsTable.Annotation.Checks = map[string]string{
-		"commission_adjustment_amount_positive":         "amount > 0",
-		"commission_adjustment_direction_check":         "direction IN ('INCREASE', 'DECREASE')",
-		"commission_adjustment_execution_check":         "(execution_method IS NULL AND parent_payment_id IS NULL) OR (execution_method = 'OFFSET_WITH_PARENT' AND parent_payment_id = commission_id) OR (execution_method = 'SEPARATE' AND parent_payment_id IS NULL)",
-		"commission_adjustment_source_supplement_check": "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
-		"commission_adjustment_source_type_check":       "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT')",
-		"commission_adjustment_status_check":            "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
+		"commission_adjustment_amount_positive":           "amount > 0",
+		"commission_adjustment_direction_check":           "direction IN ('INCREASE', 'DECREASE')",
+		"commission_adjustment_execution_check":           "(execution_method IS NULL AND parent_payment_id IS NULL) OR (execution_method = 'OFFSET_WITH_PARENT' AND parent_payment_id = commission_id) OR (execution_method = 'SEPARATE' AND parent_payment_id IS NULL)",
+		"commission_adjustment_source_correction_check":   "(source_type = 'FEE_CORRECTION' AND source_fee_correction_request_id IS NOT NULL) OR (source_type <> 'FEE_CORRECTION' AND source_fee_correction_request_id IS NULL)",
+		"commission_adjustment_source_reallocation_check": "source_type <> 'ECONOMIC_REALLOCATION' OR ((source_verification_id IS NOT NULL AND source_netting_id IS NULL) OR (source_verification_id IS NULL AND source_netting_id IS NOT NULL))",
+		"commission_adjustment_source_supplement_check":   "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
+		"commission_adjustment_source_type_check":         "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT','FEE_CORRECTION','ECONOMIC_REALLOCATION')",
+		"commission_adjustment_status_check":              "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
 	}
 	FinanceCommissionApplicationsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceCommissionApplicationsTable.ForeignKeys[1].RefTable = UsersTable
@@ -7427,11 +7609,12 @@ func init() {
 	FinanceInvoiceBillsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
 	FinanceInvoiceLinesTable.ForeignKeys[0].RefTable = FinanceInvoicesTable
 	FinanceNettingsTable.ForeignKeys[0].RefTable = FinanceBillBatchesTable
-	FinanceNettingsTable.ForeignKeys[1].RefTable = OrganizationsTable
-	FinanceNettingsTable.ForeignKeys[2].RefTable = PartnersTable
-	FinanceNettingsTable.ForeignKeys[3].RefTable = UsersTable
+	FinanceNettingsTable.ForeignKeys[1].RefTable = OrderFeeCorrectionRequestsTable
+	FinanceNettingsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	FinanceNettingsTable.ForeignKeys[3].RefTable = PartnersTable
 	FinanceNettingsTable.ForeignKeys[4].RefTable = UsersTable
 	FinanceNettingsTable.ForeignKeys[5].RefTable = UsersTable
+	FinanceNettingsTable.ForeignKeys[6].RefTable = UsersTable
 	FinanceNettingsTable.Annotation = &entsql.Annotation{}
 	FinanceNettingsTable.Annotation.Checks = map[string]string{
 		"financenetting_amount_positive":                  "amount > 0",
@@ -7441,6 +7624,7 @@ func init() {
 	}
 	FinanceNettingAllocationsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceNettingAllocationsTable.ForeignKeys[1].RefTable = FinanceNettingsTable
+	FinanceNettingAllocationsTable.ForeignKeys[2].RefTable = OrderFeesTable
 	FinanceNettingAllocationsTable.Annotation = &entsql.Annotation{}
 	FinanceNettingAllocationsTable.Annotation.Checks = map[string]string{
 		"financenettingallocation_amount_positive": "amount > 0",
@@ -7498,15 +7682,33 @@ func init() {
 	OrderFeesTable.ForeignKeys[0].RefTable = BillingUnitsTable
 	OrderFeesTable.ForeignKeys[1].RefTable = FeeSettingsTable
 	OrderFeesTable.ForeignKeys[2].RefTable = OrdersTable
-	OrderFeesTable.ForeignKeys[3].RefTable = OrderFeeSupplementRequestsTable
-	OrderFeesTable.ForeignKeys[4].RefTable = PartnersTable
+	OrderFeesTable.ForeignKeys[3].RefTable = OrderFeesTable
+	OrderFeesTable.ForeignKeys[4].RefTable = OrderFeeCorrectionRequestsTable
+	OrderFeesTable.ForeignKeys[5].RefTable = OrderFeeCorrectionRequestsTable
+	OrderFeesTable.ForeignKeys[6].RefTable = OrderFeeSupplementRequestsTable
+	OrderFeesTable.ForeignKeys[7].RefTable = PartnersTable
+	OrderFeesTable.Annotation = &entsql.Annotation{}
+	OrderFeesTable.Annotation.Checks = map[string]string{
+		"order_fee_economic_effect_check": "economic_effect IN ('INCREASE','DECREASE') AND (source_fee_id IS NULL OR (correction_request_id IS NOT NULL AND source_fee_id <> id)) AND (economic_effect = 'INCREASE' OR (source_fee_id IS NOT NULL AND correction_request_id IS NOT NULL AND superseded_by_request_id IS NULL))",
+	}
+	OrderFeeCorrectionRequestsTable.ForeignKeys[0].RefTable = OrdersTable
+	OrderFeeCorrectionRequestsTable.ForeignKeys[1].RefTable = OrderFeesTable
+	OrderFeeCorrectionRequestsTable.ForeignKeys[2].RefTable = OrganizationsTable
+	OrderFeeCorrectionRequestsTable.ForeignKeys[3].RefTable = UsersTable
+	OrderFeeCorrectionRequestsTable.ForeignKeys[4].RefTable = UsersTable
+	OrderFeeCorrectionRequestsTable.Annotation = &entsql.Annotation{}
+	OrderFeeCorrectionRequestsTable.Annotation.Checks = map[string]string{
+		"order_fee_correction_approval_basis_check": "approved_fee_content_version > 0 AND version > 0",
+		"order_fee_correction_operation_check":      "(operation = 'ADD' AND source_fee_id IS NULL AND before_snapshot IS NULL AND after_snapshot IS NOT NULL) OR (operation = 'REPLACE' AND source_fee_id IS NOT NULL AND before_snapshot IS NOT NULL AND after_snapshot IS NOT NULL) OR (operation = 'VOID' AND source_fee_id IS NOT NULL AND before_snapshot IS NOT NULL AND after_snapshot IS NULL)",
+		"order_fee_correction_status_check":         "status IN ('PENDING','APPROVED','REJECTED','WITHDRAWN')",
+	}
 	OrderFeeEnterpriseTagsTable.ForeignKeys[0].RefTable = EnterpriseResourcesTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[1].RefTable = OrderFeesTable
 	OrderFeeEnterpriseTagsTable.ForeignKeys[2].RefTable = OrganizationsTable
 	OrderFeeReviewEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderFeeReviewEventsTable.Annotation = &entsql.Annotation{}
 	OrderFeeReviewEventsTable.Annotation.Checks = map[string]string{
-		"order_fee_review_events_action_check": "action IN ('SUBMIT','WITHDRAW','APPROVE','REJECT','REVOKE','SUPPLEMENT_APPROVE')",
+		"order_fee_review_events_action_check": "action IN ('SUBMIT','WITHDRAW','APPROVE','REJECT','REVOKE','SUPPLEMENT_APPROVE','CORRECTION_APPROVE')",
 	}
 	OrderFeeSupplementRequestsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderFeeSupplementRequestsTable.ForeignKeys[1].RefTable = OrganizationsTable

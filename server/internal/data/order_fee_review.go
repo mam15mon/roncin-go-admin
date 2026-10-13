@@ -18,6 +18,7 @@ import (
 	noticeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	eventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	supplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -117,7 +118,11 @@ func loadFeeReviewSnapshot(ctx context.Context, client *ent.Client, orderID uuid
 	return biz.BuildFeeReviewSnapshot(fees)
 }
 func hasPendingFeeSupplement(ctx context.Context, client *ent.Client, orderID uuid.UUID) (bool, error) {
-	return client.OrderFeeSupplementRequest.Query().Where(supplementent.OrderIDEQ(orderID), supplementent.StatusEQ(supplementent.StatusPENDING)).Exist(ctx)
+	pending, err := client.OrderFeeSupplementRequest.Query().Where(supplementent.OrderIDEQ(orderID), supplementent.StatusEQ(supplementent.StatusPENDING)).Exist(ctx)
+	if err != nil || pending {
+		return pending, err
+	}
+	return client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDEQ(orderID), correctionent.StatusEQ(correctionent.StatusPENDING)).Exist(ctx)
 }
 func validateOrderApprovalSnapshot(ctx context.Context, client *ent.Client, o *ent.Order) error {
 	if o.FeeReviewStatus != orderent.FeeReviewStatusAPPROVED || o.ApprovedFeeReviewEventID == nil {
@@ -127,7 +132,7 @@ func validateOrderApprovalSnapshot(ctx context.Context, client *ent.Client, o *e
 	if err != nil {
 		return mapEntError(err, biz.ErrFeeReviewNotApproved, nil)
 	}
-	if event.OrderID != o.ID || event.OrganizationID != o.OrganizationID || event.ContentVersion != o.FeeContentVersion || (event.Action != eventent.ActionAPPROVE && event.Action != eventent.ActionSUPPLEMENT_APPROVE) {
+	if event.OrderID != o.ID || event.OrganizationID != o.OrganizationID || event.ContentVersion != o.FeeContentVersion || (event.Action != eventent.ActionAPPROVE && event.Action != eventent.ActionSUPPLEMENT_APPROVE && event.Action != eventent.ActionCORRECTION_APPROVE) {
 		return biz.ErrFeeReviewNotApproved
 	}
 	_, fingerprint, err := loadFeeReviewSnapshot(ctx, client, o.ID)
@@ -188,14 +193,21 @@ func buildOrderFeeReview(ctx context.Context, client *ent.Client, p *biz.Princip
 		if convertErr != nil {
 			return nil, convertErr
 		}
-		displayFees = append(displayFees, fee)
+		if biz.IsCurrentFee(fee) {
+			displayFees = append(displayFees, fee)
+		}
 	}
 	result := &biz.OrderFeeReview{OrderID: o.ID, OrderNo: o.OrderNo, Status: string(o.FeeReviewStatus), ContentVersion: o.FeeContentVersion, ReviewVersion: o.FeeReviewVersion, ApprovedEventID: o.ApprovedFeeReviewEventID, Summary: &snapshot.Summary, Fees: displayFees, PreviewToken: feeReviewPreviewToken(o, fingerprint)}
 	pending, err := hasPendingFeeSupplement(ctx, client, o.ID)
 	if err != nil {
 		return nil, err
 	}
-	result.HasPendingSupplement = pending
+	result.HasPendingChange = pending
+	result.HasPendingCorrection, err = client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDEQ(o.ID), correctionent.StatusEQ(correctionent.StatusPENDING)).Exist(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result.HasPendingSupplement = pending && !result.HasPendingCorrection
 	qualified, err := hasFeeReviewPermission(ctx, client, o.OrganizationID, p.UserID, false)
 	if err != nil {
 		return nil, err
@@ -242,7 +254,11 @@ func buildOrderFeeReview(ctx context.Context, client *ent.Client, p *biz.Princip
 		result.BlockedReasons = append(result.BlockedReasons, "存在有效账单，撤销批准前请先取消账单")
 	}
 	if pending {
-		result.BlockedReasons = append(result.BlockedReasons, "存在待审核的费用补录，暂停新建账及相关提成处理")
+		label := "费用补录"
+		if result.HasPendingCorrection {
+			label = "费用更正"
+		}
+		result.BlockedReasons = append(result.BlockedReasons, "存在待审核的"+label+"，暂停新建账及相关提成处理")
 	}
 	billPermission, err := hasRealtimeFeePermission(ctx, client, o.OrganizationID, p.UserID, access.FinanceBillCreate, false)
 	if err != nil {
@@ -427,7 +443,7 @@ func (r *orderFeeReviewRepo) Act(ctx context.Context, p *biz.Principal, action s
 	}
 	return r.Get(ctx, p, input.OrderID)
 }
-func appendFeeReviewEvent(ctx context.Context, client *ent.Client, o *ent.Order, actorID uuid.UUID, action, comment, key, requestHash string, submissionID, supplementID *uuid.UUID, snapshot *biz.FeeReviewSnapshot, fingerprint string) (*ent.OrderFeeReviewEvent, error) {
+func appendFeeReviewEvent(ctx context.Context, client *ent.Client, o *ent.Order, actorID uuid.UUID, action, comment, key, requestHash string, submissionID, supplementID *uuid.UUID, snapshot *biz.FeeReviewSnapshot, fingerprint string, correctionID ...*uuid.UUID) (*ent.OrderFeeReviewEvent, error) {
 	actor, err := client.User.Get(ctx, actorID)
 	if err != nil {
 		return nil, err
@@ -451,7 +467,11 @@ func appendFeeReviewEvent(ctx context.Context, client *ent.Client, o *ent.Order,
 			}
 		}
 	}
-	return client.OrderFeeReviewEvent.Create().SetOrganizationID(o.OrganizationID).SetOrderID(o.ID).SetAction(eventent.Action(action)).SetActorID(actorID).SetActorName(actor.DisplayName).SetAuthorizationSnapshot(authorization).SetComment(comment).SetContentVersion(o.FeeContentVersion).SetContentFingerprint(fingerprint).SetSnapshot(payload).SetIdempotencyKey(key).SetRequestFingerprint(requestHash).SetNillableSubmissionID(submissionID).SetNillableSupplementRequestID(supplementID).Save(ctx)
+	builder := client.OrderFeeReviewEvent.Create().SetOrganizationID(o.OrganizationID).SetOrderID(o.ID).SetAction(eventent.Action(action)).SetActorID(actorID).SetActorName(actor.DisplayName).SetAuthorizationSnapshot(authorization).SetComment(comment).SetContentVersion(o.FeeContentVersion).SetContentFingerprint(fingerprint).SetSnapshot(payload).SetIdempotencyKey(key).SetRequestFingerprint(requestHash).SetNillableSubmissionID(submissionID).SetNillableSupplementRequestID(supplementID)
+	if len(correctionID) > 0 {
+		builder.SetNillableCorrectionRequestID(correctionID[0])
+	}
+	return builder.Save(ctx)
 }
 func bumpFeeReviewVersion(ctx context.Context, client *ent.Client, orderID uuid.UUID) error {
 	return client.Order.UpdateOneID(orderID).AddFeeReviewVersion(1).Exec(ctx)
@@ -568,7 +588,7 @@ func qualifiedFeeReviewCandidates(ctx context.Context, client *ent.Client, organ
 }
 
 func orderHasPendingSupplementPredicate() predicate.Order {
-	return orderent.HasFeeSupplementRequestsWith(supplementent.StatusEQ(supplementent.StatusPENDING))
+	return orderent.Or(orderent.HasFeeSupplementRequestsWith(supplementent.StatusEQ(supplementent.StatusPENDING)), orderent.HasFeeCorrectionRequestsWith(correctionent.StatusEQ(correctionent.StatusPENDING)))
 }
 
 // attachOrderFeeReviewProjections 仅批量读取当前页费用与事件；无费用读权限时不投影金额。
@@ -642,6 +662,13 @@ func attachOrderFeeReviewProjections(ctx context.Context, client *ent.Client, it
 	for _, request := range pending {
 		pendingSet[request.OrderID] = true
 	}
+	corrections, err := client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDIn(ids...), correctionent.StatusEQ(correctionent.StatusPENDING)).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, request := range corrections {
+		pendingSet[request.OrderID] = true
+	}
 	events, err := client.OrderFeeReviewEvent.Query().Where(eventent.IDIn(eventsIDs...)).All(ctx)
 	if err != nil {
 		return err
@@ -659,7 +686,14 @@ func attachOrderFeeReviewProjections(ctx context.Context, client *ent.Client, it
 		if r == nil {
 			continue
 		}
-		r.HasPendingSupplement = pendingSet[o.ID]
+		r.HasPendingChange = pendingSet[o.ID]
+		for _, c := range corrections {
+			if c.OrderID == o.ID {
+				r.HasPendingCorrection = true
+				break
+			}
+		}
+		r.HasPendingSupplement = r.HasPendingChange && !r.HasPendingCorrection
 		r.CanApprove = reviewer[o.ID] && o.FeeReviewStatus == orderent.FeeReviewStatusPENDING
 		if readable[o.ID] {
 			snapshot, fingerprint, err := biz.BuildFeeReviewSnapshot(grouped[o.ID])
@@ -754,13 +788,20 @@ func batchFeeReviewApprovalStates(ctx context.Context, client *ent.Client, order
 	for _, request := range requests {
 		pending[request.OrderID] = true
 	}
+	corrections, err := client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDIn(ids...), correctionent.StatusEQ(correctionent.StatusPENDING)).All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, request := range corrections {
+		pending[request.OrderID] = true
+	}
 	for id, o := range unique {
 		states[id] = biz.ErrFeeReviewNotApproved
 		if o.FeeReviewStatus != orderent.FeeReviewStatusAPPROVED || o.ApprovedFeeReviewEventID == nil {
 			continue
 		}
 		e := eventMap[*o.ApprovedFeeReviewEventID]
-		if e == nil || e.OrderID != id || e.OrganizationID != o.OrganizationID || e.ContentVersion != o.FeeContentVersion || (e.Action != eventent.ActionAPPROVE && e.Action != eventent.ActionSUPPLEMENT_APPROVE) {
+		if e == nil || e.OrderID != id || e.OrganizationID != o.OrganizationID || e.ContentVersion != o.FeeContentVersion || (e.Action != eventent.ActionAPPROVE && e.Action != eventent.ActionSUPPLEMENT_APPROVE && e.Action != eventent.ActionCORRECTION_APPROVE) {
 			continue
 		}
 		_, fingerprint, err := biz.BuildFeeReviewSnapshot(grouped[id])

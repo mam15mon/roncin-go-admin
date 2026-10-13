@@ -89,9 +89,39 @@ func loadFinancialLockEvidence(ctx context.Context, client *ent.Client, organiza
 // 业务锁与提成净额财务锁的受控例外：这里不执行普通费用写入口的内容门禁与
 // 财务锁拒绝，但财务证据计算必须复用净额口径并在 Order 行锁内读取。
 func lockOrderForSupplementInternal(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) (*biz.OrderFeeSupplementLockEvidence, error) {
-	order, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+	ids, err := commissionEconomicExpandOrderIDs(ctx, tx.Client(), organizationID, []uuid.UUID{orderID})
 	if err != nil {
-		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
+		return nil, err
+	}
+	orders, err := tx.Order.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(organizationID)).Order(orderent.ByID()).ForUpdate().All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(orders) != len(ids) {
+		return nil, biz.ErrOrderNotFound
+	}
+	// 预读后可能有新提成父单提交；持有订单锁后复核集合，不在半途补锁其他订单。
+	freshIDs, err := commissionEconomicExpandOrderIDs(ctx, tx.Client(), organizationID, []uuid.UUID{orderID})
+	if err != nil {
+		return nil, err
+	}
+	if len(freshIDs) != len(ids) {
+		return nil, biz.ErrOrderStatusConflict
+	}
+	for i, id := range ids {
+		if freshIDs[i] != id {
+			return nil, biz.ErrOrderStatusConflict
+		}
+	}
+	var order *ent.Order
+	for _, candidate := range orders {
+		if candidate.ID == orderID {
+			order = candidate
+			break
+		}
+	}
+	if order == nil {
+		return nil, biz.ErrOrderNotFound
 	}
 	return supplementLockEvidenceForOrder(ctx, tx.Client(), organizationID, orderID, order)
 }

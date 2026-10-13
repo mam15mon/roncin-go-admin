@@ -48,6 +48,8 @@ type OrderFeeReviewEvent struct {
 	Snapshot json.RawMessage `json:"snapshot,omitempty"`
 	// SupplementRequestID holds the value of the "supplement_request_id" field.
 	SupplementRequestID *uuid.UUID `json:"supplement_request_id,omitempty"`
+	// CorrectionRequestID holds the value of the "correction_request_id" field.
+	CorrectionRequestID *uuid.UUID `json:"correction_request_id,omitempty"`
 	// IdempotencyKey holds the value of the "idempotency_key" field.
 	IdempotencyKey string `json:"idempotency_key,omitempty"`
 	// RequestFingerprint holds the value of the "request_fingerprint" field.
@@ -83,7 +85,7 @@ func (*OrderFeeReviewEvent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfeereviewevent.FieldSubmissionID, orderfeereviewevent.FieldSupplementRequestID:
+		case orderfeereviewevent.FieldSubmissionID, orderfeereviewevent.FieldSupplementRequestID, orderfeereviewevent.FieldCorrectionRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderfeereviewevent.FieldAuthorizationSnapshot, orderfeereviewevent.FieldSnapshot:
 			values[i] = new([]byte)
@@ -206,6 +208,13 @@ func (_m *OrderFeeReviewEvent) assignValues(columns []string, values []any) erro
 				_m.SupplementRequestID = new(uuid.UUID)
 				*_m.SupplementRequestID = *value.S.(*uuid.UUID)
 			}
+		case orderfeereviewevent.FieldCorrectionRequestID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field correction_request_id", values[i])
+			} else if value.Valid {
+				_m.CorrectionRequestID = new(uuid.UUID)
+				*_m.CorrectionRequestID = *value.S.(*uuid.UUID)
+			}
 		case orderfeereviewevent.FieldIdempotencyKey:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field idempotency_key", values[i])
@@ -302,6 +311,11 @@ func (_m *OrderFeeReviewEvent) String() string {
 	builder.WriteString(", ")
 	if v := _m.SupplementRequestID; v != nil {
 		builder.WriteString("supplement_request_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CorrectionRequestID; v != nil {
+		builder.WriteString("correction_request_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

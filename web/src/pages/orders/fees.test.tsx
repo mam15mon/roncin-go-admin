@@ -31,6 +31,7 @@ vi.mock('@/features/orders/fee-review', async (original) => ({
       canEdit: !feeTestState.lockState.isLocked,
       canBill: !feeTestState.hasPendingSupplement,
       hasPendingSupplement: feeTestState.hasPendingSupplement,
+      hasPendingChange: feeTestState.hasPendingSupplement,
       status: feeTestState.lockState.isLocked ? 'APPROVED' : 'UNSUBMITTED',
     },
     refetch: vi.fn(),
@@ -123,6 +124,9 @@ vi.mock('@/services/roncin/feeCatalogService', () => ({
 
 vi.mock('@/services/roncin/orderFeeService', async (original) => ({
   ...(await original<typeof import('@/services/roncin/orderFeeService')>()),
+  orderFeeServiceListOrderFeeCorrectionRequests: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: [], total: 0 }),
   orderFeeServicePreviewOrderFeeReview: vi.fn().mockResolvedValue({
     data: { canEdit: true, canBill: true, status: 'UNSUBMITTED' },
   }),

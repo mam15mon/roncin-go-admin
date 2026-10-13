@@ -54,8 +54,8 @@ func TestBuildFinanceInvoiceAggregatesConfirmedBills(t *testing.T) {
 
 func TestBuildFinanceInvoiceRejectsMixedParties(t *testing.T) {
 	bills := []*FinanceBill{
-		{ID: uuid.Must(uuid.NewV7()), Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: uuid.Must(uuid.NewV7()), Currency: "CNY", BaseCurrency: "CNY"},
-		{ID: uuid.Must(uuid.NewV7()), Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: uuid.Must(uuid.NewV7()), Currency: "CNY", BaseCurrency: "CNY"},
+		{ID: uuid.Must(uuid.NewV7()), TotalAmount: decimal.NewFromInt(100), Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: uuid.Must(uuid.NewV7()), Currency: "CNY", BaseCurrency: "CNY"},
+		{ID: uuid.Must(uuid.NewV7()), TotalAmount: decimal.NewFromInt(100), Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: uuid.Must(uuid.NewV7()), Currency: "CNY", BaseCurrency: "CNY"},
 	}
 	organizationID := uuid.Must(uuid.NewV7())
 	profile := &PartnerInvoiceProfile{ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, PartnerID: bills[0].SettlementPartyID, InvoiceTitle: "客户", TaxpayerIdentificationNo: "91310000TEST", Enabled: true}

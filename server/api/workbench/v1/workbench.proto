@@ -279,6 +279,7 @@ message WorkbenchMyCommissionAdjustment {
   string amount = 5;
   string reason = 6;
   string created_at = 7;
+ string source_type = 8;
 }
 
 message ListMyReceivablesRequest {

@@ -12,8 +12,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -52,6 +54,12 @@ type FinanceCommissionAdjustment struct {
 	SourceVerificationID *uuid.UUID `json:"source_verification_id,omitempty"`
 	// SourceFeeSupplementRequestID holds the value of the "source_fee_supplement_request_id" field.
 	SourceFeeSupplementRequestID *uuid.UUID `json:"source_fee_supplement_request_id,omitempty"`
+	// SourceFeeCorrectionRequestID holds the value of the "source_fee_correction_request_id" field.
+	SourceFeeCorrectionRequestID *uuid.UUID `json:"source_fee_correction_request_id,omitempty"`
+	// SourceNettingID holds the value of the "source_netting_id" field.
+	SourceNettingID *uuid.UUID `json:"source_netting_id,omitempty"`
+	// SupersededByFeeCorrectionRequestID holds the value of the "superseded_by_fee_correction_request_id" field.
+	SupersededByFeeCorrectionRequestID *uuid.UUID `json:"superseded_by_fee_correction_request_id,omitempty"`
 	// Direction holds the value of the "direction" field.
 	Direction financecommissionadjustment.Direction `json:"direction,omitempty"`
 	// Status holds the value of the "status" field.
@@ -104,6 +112,12 @@ type FinanceCommissionAdjustmentEdges struct {
 	SourceVerification *FinanceVerification `json:"source_verification,omitempty"`
 	// SourceFeeSupplementRequest holds the value of the source_fee_supplement_request edge.
 	SourceFeeSupplementRequest *OrderFeeSupplementRequest `json:"source_fee_supplement_request,omitempty"`
+	// SourceFeeCorrectionRequest holds the value of the source_fee_correction_request edge.
+	SourceFeeCorrectionRequest *OrderFeeCorrectionRequest `json:"source_fee_correction_request,omitempty"`
+	// SupersededByFeeCorrectionRequest holds the value of the superseded_by_fee_correction_request edge.
+	SupersededByFeeCorrectionRequest *OrderFeeCorrectionRequest `json:"superseded_by_fee_correction_request,omitempty"`
+	// SourceNetting holds the value of the source_netting edge.
+	SourceNetting *FinanceNetting `json:"source_netting,omitempty"`
 	// ConfirmedByUser holds the value of the confirmed_by_user edge.
 	ConfirmedByUser *User `json:"confirmed_by_user,omitempty"`
 	// PaidByUser holds the value of the paid_by_user edge.
@@ -112,7 +126,7 @@ type FinanceCommissionAdjustmentEdges struct {
 	CancelledByUser *User `json:"cancelled_by_user,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [12]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -181,12 +195,45 @@ func (e FinanceCommissionAdjustmentEdges) SourceFeeSupplementRequestOrErr() (*Or
 	return nil, &NotLoadedError{edge: "source_fee_supplement_request"}
 }
 
+// SourceFeeCorrectionRequestOrErr returns the SourceFeeCorrectionRequest value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceCommissionAdjustmentEdges) SourceFeeCorrectionRequestOrErr() (*OrderFeeCorrectionRequest, error) {
+	if e.SourceFeeCorrectionRequest != nil {
+		return e.SourceFeeCorrectionRequest, nil
+	} else if e.loadedTypes[6] {
+		return nil, &NotFoundError{label: orderfeecorrectionrequest.Label}
+	}
+	return nil, &NotLoadedError{edge: "source_fee_correction_request"}
+}
+
+// SupersededByFeeCorrectionRequestOrErr returns the SupersededByFeeCorrectionRequest value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceCommissionAdjustmentEdges) SupersededByFeeCorrectionRequestOrErr() (*OrderFeeCorrectionRequest, error) {
+	if e.SupersededByFeeCorrectionRequest != nil {
+		return e.SupersededByFeeCorrectionRequest, nil
+	} else if e.loadedTypes[7] {
+		return nil, &NotFoundError{label: orderfeecorrectionrequest.Label}
+	}
+	return nil, &NotLoadedError{edge: "superseded_by_fee_correction_request"}
+}
+
+// SourceNettingOrErr returns the SourceNetting value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FinanceCommissionAdjustmentEdges) SourceNettingOrErr() (*FinanceNetting, error) {
+	if e.SourceNetting != nil {
+		return e.SourceNetting, nil
+	} else if e.loadedTypes[8] {
+		return nil, &NotFoundError{label: financenetting.Label}
+	}
+	return nil, &NotLoadedError{edge: "source_netting"}
+}
+
 // ConfirmedByUserOrErr returns the ConfirmedByUser value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FinanceCommissionAdjustmentEdges) ConfirmedByUserOrErr() (*User, error) {
 	if e.ConfirmedByUser != nil {
 		return e.ConfirmedByUser, nil
-	} else if e.loadedTypes[6] {
+	} else if e.loadedTypes[9] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "confirmed_by_user"}
@@ -197,7 +244,7 @@ func (e FinanceCommissionAdjustmentEdges) ConfirmedByUserOrErr() (*User, error) 
 func (e FinanceCommissionAdjustmentEdges) PaidByUserOrErr() (*User, error) {
 	if e.PaidByUser != nil {
 		return e.PaidByUser, nil
-	} else if e.loadedTypes[7] {
+	} else if e.loadedTypes[10] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "paid_by_user"}
@@ -208,7 +255,7 @@ func (e FinanceCommissionAdjustmentEdges) PaidByUserOrErr() (*User, error) {
 func (e FinanceCommissionAdjustmentEdges) CancelledByUserOrErr() (*User, error) {
 	if e.CancelledByUser != nil {
 		return e.CancelledByUser, nil
-	} else if e.loadedTypes[8] {
+	} else if e.loadedTypes[11] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "cancelled_by_user"}
@@ -219,7 +266,7 @@ func (*FinanceCommissionAdjustment) scanValues(columns []string) ([]any, error) 
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financecommissionadjustment.FieldSourceVerificationID, financecommissionadjustment.FieldSourceFeeSupplementRequestID, financecommissionadjustment.FieldConfirmedBy, financecommissionadjustment.FieldParentPaymentID, financecommissionadjustment.FieldPaidBy, financecommissionadjustment.FieldCancelledBy:
+		case financecommissionadjustment.FieldSourceVerificationID, financecommissionadjustment.FieldSourceFeeSupplementRequestID, financecommissionadjustment.FieldSourceFeeCorrectionRequestID, financecommissionadjustment.FieldSourceNettingID, financecommissionadjustment.FieldSupersededByFeeCorrectionRequestID, financecommissionadjustment.FieldConfirmedBy, financecommissionadjustment.FieldParentPaymentID, financecommissionadjustment.FieldPaidBy, financecommissionadjustment.FieldCancelledBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommissionadjustment.FieldVersion:
 			values[i] = new(sql.NullInt64)
@@ -335,6 +382,27 @@ func (_m *FinanceCommissionAdjustment) assignValues(columns []string, values []a
 			} else if value.Valid {
 				_m.SourceFeeSupplementRequestID = new(uuid.UUID)
 				*_m.SourceFeeSupplementRequestID = *value.S.(*uuid.UUID)
+			}
+		case financecommissionadjustment.FieldSourceFeeCorrectionRequestID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field source_fee_correction_request_id", values[i])
+			} else if value.Valid {
+				_m.SourceFeeCorrectionRequestID = new(uuid.UUID)
+				*_m.SourceFeeCorrectionRequestID = *value.S.(*uuid.UUID)
+			}
+		case financecommissionadjustment.FieldSourceNettingID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field source_netting_id", values[i])
+			} else if value.Valid {
+				_m.SourceNettingID = new(uuid.UUID)
+				*_m.SourceNettingID = *value.S.(*uuid.UUID)
+			}
+		case financecommissionadjustment.FieldSupersededByFeeCorrectionRequestID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field superseded_by_fee_correction_request_id", values[i])
+			} else if value.Valid {
+				_m.SupersededByFeeCorrectionRequestID = new(uuid.UUID)
+				*_m.SupersededByFeeCorrectionRequestID = *value.S.(*uuid.UUID)
 			}
 		case financecommissionadjustment.FieldDirection:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -485,6 +553,21 @@ func (_m *FinanceCommissionAdjustment) QuerySourceFeeSupplementRequest() *OrderF
 	return NewFinanceCommissionAdjustmentClient(_m.config).QuerySourceFeeSupplementRequest(_m)
 }
 
+// QuerySourceFeeCorrectionRequest queries the "source_fee_correction_request" edge of the FinanceCommissionAdjustment entity.
+func (_m *FinanceCommissionAdjustment) QuerySourceFeeCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	return NewFinanceCommissionAdjustmentClient(_m.config).QuerySourceFeeCorrectionRequest(_m)
+}
+
+// QuerySupersededByFeeCorrectionRequest queries the "superseded_by_fee_correction_request" edge of the FinanceCommissionAdjustment entity.
+func (_m *FinanceCommissionAdjustment) QuerySupersededByFeeCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	return NewFinanceCommissionAdjustmentClient(_m.config).QuerySupersededByFeeCorrectionRequest(_m)
+}
+
+// QuerySourceNetting queries the "source_netting" edge of the FinanceCommissionAdjustment entity.
+func (_m *FinanceCommissionAdjustment) QuerySourceNetting() *FinanceNettingQuery {
+	return NewFinanceCommissionAdjustmentClient(_m.config).QuerySourceNetting(_m)
+}
+
 // QueryConfirmedByUser queries the "confirmed_by_user" edge of the FinanceCommissionAdjustment entity.
 func (_m *FinanceCommissionAdjustment) QueryConfirmedByUser() *UserQuery {
 	return NewFinanceCommissionAdjustmentClient(_m.config).QueryConfirmedByUser(_m)
@@ -566,6 +649,21 @@ func (_m *FinanceCommissionAdjustment) String() string {
 	builder.WriteString(", ")
 	if v := _m.SourceFeeSupplementRequestID; v != nil {
 		builder.WriteString("source_fee_supplement_request_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SourceFeeCorrectionRequestID; v != nil {
+		builder.WriteString("source_fee_correction_request_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SourceNettingID; v != nil {
+		builder.WriteString("source_netting_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SupersededByFeeCorrectionRequestID; v != nil {
+		builder.WriteString("superseded_by_fee_correction_request_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

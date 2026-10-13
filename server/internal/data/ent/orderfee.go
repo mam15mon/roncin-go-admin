@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 )
@@ -83,6 +84,16 @@ type OrderFee struct {
 	Note string `json:"note,omitempty"`
 	// SupplementRequestID holds the value of the "supplement_request_id" field.
 	SupplementRequestID *uuid.UUID `json:"supplement_request_id,omitempty"`
+	// EconomicEffect holds the value of the "economic_effect" field.
+	EconomicEffect orderfee.EconomicEffect `json:"economic_effect,omitempty"`
+	// AccountingRequired holds the value of the "accounting_required" field.
+	AccountingRequired bool `json:"accounting_required,omitempty"`
+	// SourceFeeID holds the value of the "source_fee_id" field.
+	SourceFeeID *uuid.UUID `json:"source_fee_id,omitempty"`
+	// CorrectionRequestID holds the value of the "correction_request_id" field.
+	CorrectionRequestID *uuid.UUID `json:"correction_request_id,omitempty"`
+	// SupersededByRequestID holds the value of the "superseded_by_request_id" field.
+	SupersededByRequestID *uuid.UUID `json:"superseded_by_request_id,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -103,13 +114,25 @@ type OrderFeeEdges struct {
 	BillingUnitRef *BillingUnit `json:"billing_unit_ref,omitempty"`
 	// SupplementRequest holds the value of the supplement_request edge.
 	SupplementRequest *OrderFeeSupplementRequest `json:"supplement_request,omitempty"`
+	// CorrectionRequest holds the value of the correction_request edge.
+	CorrectionRequest *OrderFeeCorrectionRequest `json:"correction_request,omitempty"`
+	// SupersededByRequest holds the value of the superseded_by_request edge.
+	SupersededByRequest *OrderFeeCorrectionRequest `json:"superseded_by_request,omitempty"`
+	// CorrectionNettingAllocations holds the value of the correction_netting_allocations edge.
+	CorrectionNettingAllocations []*FinanceNettingAllocation `json:"correction_netting_allocations,omitempty"`
+	// DerivedFees holds the value of the derived_fees edge.
+	DerivedFees []*OrderFee `json:"derived_fees,omitempty"`
+	// SourceFee holds the value of the source_fee edge.
+	SourceFee *OrderFee `json:"source_fee,omitempty"`
+	// TargetedCorrectionRequests holds the value of the targeted_correction_requests edge.
+	TargetedCorrectionRequests []*OrderFeeCorrectionRequest `json:"targeted_correction_requests,omitempty"`
 	// FinanceBillLines holds the value of the finance_bill_lines edge.
 	FinanceBillLines []*FinanceBillLine `json:"finance_bill_lines,omitempty"`
 	// EnterpriseTagLinks holds the value of the enterprise_tag_links edge.
 	EnterpriseTagLinks []*OrderFeeEnterpriseTag `json:"enterprise_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [13]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -167,10 +190,70 @@ func (e OrderFeeEdges) SupplementRequestOrErr() (*OrderFeeSupplementRequest, err
 	return nil, &NotLoadedError{edge: "supplement_request"}
 }
 
+// CorrectionRequestOrErr returns the CorrectionRequest value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeEdges) CorrectionRequestOrErr() (*OrderFeeCorrectionRequest, error) {
+	if e.CorrectionRequest != nil {
+		return e.CorrectionRequest, nil
+	} else if e.loadedTypes[5] {
+		return nil, &NotFoundError{label: orderfeecorrectionrequest.Label}
+	}
+	return nil, &NotLoadedError{edge: "correction_request"}
+}
+
+// SupersededByRequestOrErr returns the SupersededByRequest value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeEdges) SupersededByRequestOrErr() (*OrderFeeCorrectionRequest, error) {
+	if e.SupersededByRequest != nil {
+		return e.SupersededByRequest, nil
+	} else if e.loadedTypes[6] {
+		return nil, &NotFoundError{label: orderfeecorrectionrequest.Label}
+	}
+	return nil, &NotLoadedError{edge: "superseded_by_request"}
+}
+
+// CorrectionNettingAllocationsOrErr returns the CorrectionNettingAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderFeeEdges) CorrectionNettingAllocationsOrErr() ([]*FinanceNettingAllocation, error) {
+	if e.loadedTypes[7] {
+		return e.CorrectionNettingAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "correction_netting_allocations"}
+}
+
+// DerivedFeesOrErr returns the DerivedFees value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderFeeEdges) DerivedFeesOrErr() ([]*OrderFee, error) {
+	if e.loadedTypes[8] {
+		return e.DerivedFees, nil
+	}
+	return nil, &NotLoadedError{edge: "derived_fees"}
+}
+
+// SourceFeeOrErr returns the SourceFee value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeEdges) SourceFeeOrErr() (*OrderFee, error) {
+	if e.SourceFee != nil {
+		return e.SourceFee, nil
+	} else if e.loadedTypes[9] {
+		return nil, &NotFoundError{label: orderfee.Label}
+	}
+	return nil, &NotLoadedError{edge: "source_fee"}
+}
+
+// TargetedCorrectionRequestsOrErr returns the TargetedCorrectionRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderFeeEdges) TargetedCorrectionRequestsOrErr() ([]*OrderFeeCorrectionRequest, error) {
+	if e.loadedTypes[10] {
+		return e.TargetedCorrectionRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "targeted_correction_requests"}
+}
+
 // FinanceBillLinesOrErr returns the FinanceBillLines value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[11] {
 		return e.FinanceBillLines, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bill_lines"}
@@ -179,7 +262,7 @@ func (e OrderFeeEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
 // EnterpriseTagLinksOrErr returns the EnterpriseTagLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeEdges) EnterpriseTagLinksOrErr() ([]*OrderFeeEnterpriseTag, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[12] {
 		return e.EnterpriseTagLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "enterprise_tag_links"}
@@ -190,13 +273,13 @@ func (*OrderFee) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID, orderfee.FieldSupplementRequestID:
+		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID, orderfee.FieldSupplementRequestID, orderfee.FieldSourceFeeID, orderfee.FieldCorrectionRequestID, orderfee.FieldSupersededByRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case orderfee.FieldTaxInclusive:
+		case orderfee.FieldTaxInclusive, orderfee.FieldAccountingRequired:
 			values[i] = new(sql.NullBool)
 		case orderfee.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case orderfee.FieldIdempotencyKey, orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldNetAmount, orderfee.FieldTaxAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldBaseCurrency, orderfee.FieldBaseCurrencyAmount, orderfee.FieldExpenseDate, orderfee.FieldNote:
+		case orderfee.FieldIdempotencyKey, orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldNetAmount, orderfee.FieldTaxAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldBaseCurrency, orderfee.FieldBaseCurrencyAmount, orderfee.FieldExpenseDate, orderfee.FieldNote, orderfee.FieldEconomicEffect:
 			values[i] = new(sql.NullString)
 		case orderfee.FieldCreatedAt, orderfee.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -410,6 +493,39 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 				_m.SupplementRequestID = new(uuid.UUID)
 				*_m.SupplementRequestID = *value.S.(*uuid.UUID)
 			}
+		case orderfee.FieldEconomicEffect:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field economic_effect", values[i])
+			} else if value.Valid {
+				_m.EconomicEffect = orderfee.EconomicEffect(value.String)
+			}
+		case orderfee.FieldAccountingRequired:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field accounting_required", values[i])
+			} else if value.Valid {
+				_m.AccountingRequired = value.Bool
+			}
+		case orderfee.FieldSourceFeeID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field source_fee_id", values[i])
+			} else if value.Valid {
+				_m.SourceFeeID = new(uuid.UUID)
+				*_m.SourceFeeID = *value.S.(*uuid.UUID)
+			}
+		case orderfee.FieldCorrectionRequestID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field correction_request_id", values[i])
+			} else if value.Valid {
+				_m.CorrectionRequestID = new(uuid.UUID)
+				*_m.CorrectionRequestID = *value.S.(*uuid.UUID)
+			}
+		case orderfee.FieldSupersededByRequestID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field superseded_by_request_id", values[i])
+			} else if value.Valid {
+				_m.SupersededByRequestID = new(uuid.UUID)
+				*_m.SupersededByRequestID = *value.S.(*uuid.UUID)
+			}
 		case orderfee.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field version", values[i])
@@ -452,6 +568,36 @@ func (_m *OrderFee) QueryBillingUnitRef() *BillingUnitQuery {
 // QuerySupplementRequest queries the "supplement_request" edge of the OrderFee entity.
 func (_m *OrderFee) QuerySupplementRequest() *OrderFeeSupplementRequestQuery {
 	return NewOrderFeeClient(_m.config).QuerySupplementRequest(_m)
+}
+
+// QueryCorrectionRequest queries the "correction_request" edge of the OrderFee entity.
+func (_m *OrderFee) QueryCorrectionRequest() *OrderFeeCorrectionRequestQuery {
+	return NewOrderFeeClient(_m.config).QueryCorrectionRequest(_m)
+}
+
+// QuerySupersededByRequest queries the "superseded_by_request" edge of the OrderFee entity.
+func (_m *OrderFee) QuerySupersededByRequest() *OrderFeeCorrectionRequestQuery {
+	return NewOrderFeeClient(_m.config).QuerySupersededByRequest(_m)
+}
+
+// QueryCorrectionNettingAllocations queries the "correction_netting_allocations" edge of the OrderFee entity.
+func (_m *OrderFee) QueryCorrectionNettingAllocations() *FinanceNettingAllocationQuery {
+	return NewOrderFeeClient(_m.config).QueryCorrectionNettingAllocations(_m)
+}
+
+// QueryDerivedFees queries the "derived_fees" edge of the OrderFee entity.
+func (_m *OrderFee) QueryDerivedFees() *OrderFeeQuery {
+	return NewOrderFeeClient(_m.config).QueryDerivedFees(_m)
+}
+
+// QuerySourceFee queries the "source_fee" edge of the OrderFee entity.
+func (_m *OrderFee) QuerySourceFee() *OrderFeeQuery {
+	return NewOrderFeeClient(_m.config).QuerySourceFee(_m)
+}
+
+// QueryTargetedCorrectionRequests queries the "targeted_correction_requests" edge of the OrderFee entity.
+func (_m *OrderFee) QueryTargetedCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	return NewOrderFeeClient(_m.config).QueryTargetedCorrectionRequests(_m)
 }
 
 // QueryFinanceBillLines queries the "finance_bill_lines" edge of the OrderFee entity.
@@ -588,6 +734,27 @@ func (_m *OrderFee) String() string {
 	builder.WriteString(", ")
 	if v := _m.SupplementRequestID; v != nil {
 		builder.WriteString("supplement_request_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("economic_effect=")
+	builder.WriteString(fmt.Sprintf("%v", _m.EconomicEffect))
+	builder.WriteString(", ")
+	builder.WriteString("accounting_required=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AccountingRequired))
+	builder.WriteString(", ")
+	if v := _m.SourceFeeID; v != nil {
+		builder.WriteString("source_fee_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.CorrectionRequestID; v != nil {
+		builder.WriteString("correction_request_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.SupersededByRequestID; v != nil {
+		builder.WriteString("superseded_by_request_id=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

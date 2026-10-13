@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	correction "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -110,7 +112,7 @@ func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context,
 	x, err := client.FinanceCommissionAdjustment.Query().Where(
 		adjustment.IDEQ(id),
 		adjustment.EmployeeIDEQ(userID),
-		adjustment.SourceTypeEQ(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT),
+		adjustment.SourceTypeIn(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT, adjustment.SourceTypeFEE_CORRECTION, adjustment.SourceTypeECONOMIC_REALLOCATION),
 		adjustment.HasOrganizationWith(
 			organizationent.EnabledEQ(true),
 			organizationent.HasMembershipsWith(membership.UserIDEQ(userID), membership.EnabledEQ(true)),
@@ -118,6 +120,51 @@ func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context,
 	).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrCommissionAdjustmentNotFound, nil)
+	}
+	if x.SourceType != adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT {
+		amount, err := decimalOf(x.Amount)
+		if err != nil {
+			return nil, err
+		}
+		result := &biz.MyFeeSupplementAdjustmentSource{AdjustmentID: x.ID, AdjustmentNo: x.AdjustmentNo, OrderNo: x.OrderNo, CommissionNo: x.CommissionNo, Status: biz.CommissionStatus(x.Status), SuggestedAmount: amount, BaseCurrency: x.BaseCurrency, CreatedAt: x.CreatedAt, SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), Direction: biz.CommissionAdjustmentDirection(x.Direction), SupplementReason: x.Reason}
+		if x.SourceFeeCorrectionRequestID != nil {
+			request, err := client.OrderFeeCorrectionRequest.Get(ctx, *x.SourceFeeCorrectionRequestID)
+			if err != nil {
+				return nil, biz.ErrCommissionAdjustmentNotFound
+			}
+			result.SourceReferenceID = x.SourceFeeCorrectionRequestID
+			result.SupplementReason = request.Reason
+			var f biz.OrderFee
+			raw := request.AfterSnapshot
+			if len(raw) == 0 {
+				raw = request.BeforeSnapshot
+			}
+			if err := json.Unmarshal(raw, &f); err != nil {
+				return nil, biz.ErrCommissionSnapshotUnavailable
+			}
+			result.FeeCode = f.FeeCode
+			result.FeeName = f.FeeName
+			result.FeeCurrency = f.Currency
+			result.FeeTotalAmount = f.TotalAmount
+			result.FeeBaseCurrency = f.BaseCurrency
+			result.FeeBaseCurrencyAmount = f.BaseCurrencyAmount
+			result.FeeExpenseDate = f.ExpenseDate
+		} else if x.SourceVerificationID != nil {
+			v, err := client.FinanceVerification.Get(ctx, *x.SourceVerificationID)
+			if err != nil {
+				return nil, biz.ErrCommissionAdjustmentNotFound
+			}
+			result.SourceReferenceID = x.SourceVerificationID
+			result.SourceNo = &v.VerificationNo
+		} else if x.SourceNettingID != nil {
+			n, err := client.FinanceNetting.Get(ctx, *x.SourceNettingID)
+			if err != nil {
+				return nil, biz.ErrCommissionAdjustmentNotFound
+			}
+			result.SourceReferenceID = x.SourceNettingID
+			result.SourceNo = &n.NettingNo
+		}
+		return result, nil
 	}
 	requestID := uuid.Nil
 	if x.SourceFeeSupplementRequestID != nil {
@@ -146,7 +193,7 @@ func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context,
 	}
 	return &biz.MyFeeSupplementAdjustmentSource{
 		AdjustmentID: x.ID, AdjustmentNo: x.AdjustmentNo, OrderNo: x.OrderNo, CommissionNo: x.CommissionNo,
-		Status: biz.CommissionStatus(x.Status), SuggestedAmount: amount, BaseCurrency: x.BaseCurrency, CreatedAt: x.CreatedAt,
+		Status: biz.CommissionStatus(x.Status), SuggestedAmount: amount, BaseCurrency: x.BaseCurrency, CreatedAt: x.CreatedAt, SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), Direction: biz.CommissionAdjustmentDirection(x.Direction), SourceReferenceID: x.SourceFeeSupplementRequestID,
 		FeeCode: request.FeeCode, FeeName: request.FeeName, FeeCurrency: request.Currency, FeeTotalAmount: feeTotal,
 		FeeBaseCurrency: request.BaseCurrency, FeeBaseCurrencyAmount: feeBase, FeeExpenseDate: request.ExpenseDate,
 		SupplementReason: request.Reason,
@@ -241,6 +288,9 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 		update := tx.FinanceCommissionAdjustment.UpdateOne(x).SetVersion(version + 1)
 		switch target {
 		case biz.CommissionConfirmed:
+			if commissionSystemSource(x.SourceType) {
+				return biz.ErrCommissionAdjustmentTransition
+			}
 			if x.Status != adjustment.StatusDRAFT || (parent.Status != commission.StatusCONFIRMED && parent.Status != commission.StatusPAID) {
 				return biz.ErrCommissionAdjustmentTransition
 			}
@@ -336,7 +386,7 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 			}
 			update.SetStatus(adjustment.StatusPAID).SetPaidAt(now).SetPaidBy(actor).SetExecutionMethod(adjustment.ExecutionMethodSEPARATE)
 		case biz.CommissionCancelled:
-			if x.SourceType == adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT {
+			if commissionSystemSource(x.SourceType) {
 				// 补录批准直接确认系统冲减，任何状态均不可通过通用接口忽略。
 				return biz.ErrCommissionAdjustmentCancelNotAllowed
 			}
@@ -368,7 +418,7 @@ func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.Finance
 		ID: x.ID, OrganizationID: x.OrganizationID, CommissionID: x.CommissionID, OrderID: x.OrderID,
 		AdjustmentNo: x.AdjustmentNo, IdempotencyKey: x.IdempotencyKey, CommissionNo: x.CommissionNo,
 		OrderNo: x.OrderNo, EmployeeID: x.EmployeeID, EmployeeName: x.EmployeeName,
-		Direction: biz.CommissionAdjustmentDirection(x.Direction), SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), SourceVerificationID: x.SourceVerificationID, Status: biz.CommissionStatus(x.Status),
+		Direction: biz.CommissionAdjustmentDirection(x.Direction), SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), SourceVerificationID: x.SourceVerificationID, SourceFeeSupplementRequestID: x.SourceFeeSupplementRequestID, SourceFeeCorrectionRequestID: x.SourceFeeCorrectionRequestID, SourceNettingID: x.SourceNettingID, SupersededByFeeCorrectionRequestID: x.SupersededByFeeCorrectionRequestID, Status: biz.CommissionStatus(x.Status),
 		BaseCurrency: x.BaseCurrency, Amount: amount, Reason: x.Reason, Note: x.Note, Version: x.Version,
 		ConfirmedAt: x.ConfirmedAt, ConfirmedBy: x.ConfirmedBy, PaidAt: x.PaidAt, PaidBy: x.PaidBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy,
 		ExecutionMethod: executionMethodText(x.ExecutionMethod), ParentPaymentID: x.ParentPaymentID,
@@ -396,6 +446,7 @@ func executionMethodText(value *adjustment.ExecutionMethod) *string {
 func commissionAdjustmentParentProjection(q *ent.FinanceCommissionQuery) {
 	q.WithAdjustments().WithLines(func(q *ent.FinanceCommissionLineQuery) {
 		q.WithOrder(func(q *ent.OrderQuery) {
+			q.WithFeeCorrectionRequests(func(q *ent.OrderFeeCorrectionRequestQuery) { q.Where(correction.StatusEQ(correction.StatusPENDING)) })
 			q.WithFeeSupplementRequests(func(q *ent.OrderFeeSupplementRequestQuery) {
 				q.Where(orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusPENDING))
 			})

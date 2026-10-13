@@ -64,7 +64,9 @@ describe('InvoiceCreateModal 发票创建组织候选', () => {
               settlementPartyId: `party-${organizationId}`,
               settlementPartyName: `结算单位 ${organizationId}`,
               currency: 'CNY',
-              totalAmount: '100.00000000',
+              totalAmount: '1200.00000000',
+              invoiceableAmount: '100.00000000',
+              invoiceableTaxAmount: '6.00000000',
               taxAmount: '6.00000000',
             },
           ],
@@ -98,6 +100,8 @@ describe('InvoiceCreateModal 发票创建组织候选', () => {
       ),
     );
     expect(await screen.findByText('BILL-A')).toBeInTheDocument();
+    expect(screen.getByText('100.00 CNY')).toBeInTheDocument();
+    expect(screen.queryByText('1,200.00 CNY')).not.toBeInTheDocument();
   });
 
   it('切换公司清空账单和资料，并忽略迟到的旧账单资料响应', async () => {

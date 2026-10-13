@@ -860,6 +860,9 @@ type FeeLedgerItem struct {
 	HasPendingFeeSupplement bool                       `protobuf:"varint,38,opt,name=has_pending_fee_supplement,json=hasPendingFeeSupplement,proto3" json:"has_pending_fee_supplement,omitempty"`
 	CanBill                 bool                       `protobuf:"varint,39,opt,name=can_bill,json=canBill,proto3" json:"can_bill,omitempty"`
 	BlockedReasons          []string                   `protobuf:"bytes,40,rep,name=blocked_reasons,json=blockedReasons,proto3" json:"blocked_reasons,omitempty"`
+	EconomicEffect          string                     `protobuf:"bytes,41,opt,name=economic_effect,json=economicEffect,proto3" json:"economic_effect,omitempty"`
+	CorrectionRequestId     *string                    `protobuf:"bytes,42,opt,name=correction_request_id,json=correctionRequestId,proto3,oneof" json:"correction_request_id,omitempty"`
+	HasPendingFeeCorrection bool                       `protobuf:"varint,43,opt,name=has_pending_fee_correction,json=hasPendingFeeCorrection,proto3" json:"has_pending_fee_correction,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -1151,6 +1154,27 @@ func (x *FeeLedgerItem) GetBlockedReasons() []string {
 		return x.BlockedReasons
 	}
 	return nil
+}
+
+func (x *FeeLedgerItem) GetEconomicEffect() string {
+	if x != nil {
+		return x.EconomicEffect
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetCorrectionRequestId() string {
+	if x != nil && x.CorrectionRequestId != nil {
+		return *x.CorrectionRequestId
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetHasPendingFeeCorrection() bool {
+	if x != nil {
+		return x.HasPendingFeeCorrection
+	}
+	return false
 }
 
 type FeeLedgerBaseCurrencyAmount struct {
@@ -3209,10 +3233,14 @@ type FinanceBill struct {
 	EstimatedInvoiceRate      *string                `protobuf:"bytes,47,opt,name=estimated_invoice_rate,json=estimatedInvoiceRate,proto3,oneof" json:"estimated_invoice_rate,omitempty"`
 	EstimatedInvoiceAmount    *string                `protobuf:"bytes,48,opt,name=estimated_invoice_amount,json=estimatedInvoiceAmount,proto3,oneof" json:"estimated_invoice_amount,omitempty"`
 	// netted_amount 是有效对冲分摊合计；unverified_amount 已扣除该抵销额。
-	NettedAmount  string `protobuf:"bytes,49,opt,name=netted_amount,json=nettedAmount,proto3" json:"netted_amount,omitempty"`
-	OverdueDays   int32  `protobuf:"varint,50,opt,name=overdue_days,json=overdueDays,proto3" json:"overdue_days,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	NettedAmount         string  `protobuf:"bytes,49,opt,name=netted_amount,json=nettedAmount,proto3" json:"netted_amount,omitempty"`
+	OverdueDays          int32   `protobuf:"varint,50,opt,name=overdue_days,json=overdueDays,proto3" json:"overdue_days,omitempty"`
+	Purpose              string  `protobuf:"bytes,51,opt,name=purpose,proto3" json:"purpose,omitempty"`
+	InvoiceableAmount    *string `protobuf:"bytes,52,opt,name=invoiceable_amount,json=invoiceableAmount,proto3,oneof" json:"invoiceable_amount,omitempty"`
+	InvoiceableNetAmount *string `protobuf:"bytes,53,opt,name=invoiceable_net_amount,json=invoiceableNetAmount,proto3,oneof" json:"invoiceable_net_amount,omitempty"`
+	InvoiceableTaxAmount *string `protobuf:"bytes,54,opt,name=invoiceable_tax_amount,json=invoiceableTaxAmount,proto3,oneof" json:"invoiceable_tax_amount,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *FinanceBill) Reset() {
@@ -3593,6 +3621,34 @@ func (x *FinanceBill) GetOverdueDays() int32 {
 		return x.OverdueDays
 	}
 	return 0
+}
+
+func (x *FinanceBill) GetPurpose() string {
+	if x != nil {
+		return x.Purpose
+	}
+	return ""
+}
+
+func (x *FinanceBill) GetInvoiceableAmount() string {
+	if x != nil && x.InvoiceableAmount != nil {
+		return *x.InvoiceableAmount
+	}
+	return ""
+}
+
+func (x *FinanceBill) GetInvoiceableNetAmount() string {
+	if x != nil && x.InvoiceableNetAmount != nil {
+		return *x.InvoiceableNetAmount
+	}
+	return ""
+}
+
+func (x *FinanceBill) GetInvoiceableTaxAmount() string {
+	if x != nil && x.InvoiceableTaxAmount != nil {
+		return *x.InvoiceableTaxAmount
+	}
+	return ""
 }
 
 type BillGroupingPolicy struct {
@@ -6185,6 +6241,7 @@ type FinanceInvoiceBill struct {
 	Amount        string                 `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
 	TaxAmount     string                 `protobuf:"bytes,5,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
 	Active        bool                   `protobuf:"varint,6,opt,name=active,proto3" json:"active,omitempty"`
+	SourceFeeIds  []string               `protobuf:"bytes,7,rep,name=source_fee_ids,json=sourceFeeIds,proto3" json:"source_fee_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -6259,6 +6316,13 @@ func (x *FinanceInvoiceBill) GetActive() bool {
 		return x.Active
 	}
 	return false
+}
+
+func (x *FinanceInvoiceBill) GetSourceFeeIds() []string {
+	if x != nil {
+		return x.SourceFeeIds
+	}
+	return nil
 }
 
 type FinanceInvoiceLine struct {
@@ -10094,6 +10158,7 @@ type FinanceNettingAllocation struct {
 	Amount             string                 `protobuf:"bytes,5,opt,name=amount,proto3" json:"amount,omitempty"`
 	BaseCurrencyAmount string                 `protobuf:"bytes,6,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
 	Active             bool                   `protobuf:"varint,7,opt,name=active,proto3" json:"active,omitempty"`
+	SourceFeeId        *string                `protobuf:"bytes,8,opt,name=source_fee_id,json=sourceFeeId,proto3,oneof" json:"source_fee_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -10177,6 +10242,13 @@ func (x *FinanceNettingAllocation) GetActive() bool {
 	return false
 }
 
+func (x *FinanceNettingAllocation) GetSourceFeeId() string {
+	if x != nil && x.SourceFeeId != nil {
+		return *x.SourceFeeId
+	}
+	return ""
+}
+
 // FinanceNetting 只保存双方共同账单币种的抵销金额，不产生混合币种总额。
 type FinanceNetting struct {
 	state               protoimpl.MessageState      `protogen:"open.v1"`
@@ -10205,6 +10277,7 @@ type FinanceNetting struct {
 	BatchNo             *string                     `protobuf:"bytes,23,opt,name=batch_no,json=batchNo,proto3,oneof" json:"batch_no,omitempty"`
 	PayableBaseAmount   string                      `protobuf:"bytes,24,opt,name=payable_base_amount,json=payableBaseAmount,proto3" json:"payable_base_amount,omitempty"`
 	ExchangeGainLoss    string                      `protobuf:"bytes,25,opt,name=exchange_gain_loss,json=exchangeGainLoss,proto3" json:"exchange_gain_loss,omitempty"`
+	CorrectionRequestId *string                     `protobuf:"bytes,26,opt,name=correction_request_id,json=correctionRequestId,proto3,oneof" json:"correction_request_id,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -10410,6 +10483,13 @@ func (x *FinanceNetting) GetPayableBaseAmount() string {
 func (x *FinanceNetting) GetExchangeGainLoss() string {
 	if x != nil {
 		return x.ExchangeGainLoss
+	}
+	return ""
+}
+
+func (x *FinanceNetting) GetCorrectionRequestId() string {
+	if x != nil && x.CorrectionRequestId != nil {
+		return *x.CorrectionRequestId
 	}
 	return ""
 }
@@ -14569,6 +14649,10 @@ type MyFeeSupplementAdjustmentSource struct {
 	FeeBaseCurrencyAmount string                  `protobuf:"bytes,14,opt,name=fee_base_currency_amount,json=feeBaseCurrencyAmount,proto3" json:"fee_base_currency_amount,omitempty"`
 	FeeExpenseDate        string                  `protobuf:"bytes,15,opt,name=fee_expense_date,json=feeExpenseDate,proto3" json:"fee_expense_date,omitempty"`
 	SupplementReason      string                  `protobuf:"bytes,16,opt,name=supplement_reason,json=supplementReason,proto3" json:"supplement_reason,omitempty"`
+	SourceType            string                  `protobuf:"bytes,17,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
+	Direction             string                  `protobuf:"bytes,18,opt,name=direction,proto3" json:"direction,omitempty"`
+	SourceReferenceId     *string                 `protobuf:"bytes,19,opt,name=source_reference_id,json=sourceReferenceId,proto3,oneof" json:"source_reference_id,omitempty"`
+	SourceNo              *string                 `protobuf:"bytes,20,opt,name=source_no,json=sourceNo,proto3,oneof" json:"source_no,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -14711,6 +14795,34 @@ func (x *MyFeeSupplementAdjustmentSource) GetFeeExpenseDate() string {
 func (x *MyFeeSupplementAdjustmentSource) GetSupplementReason() string {
 	if x != nil {
 		return x.SupplementReason
+	}
+	return ""
+}
+
+func (x *MyFeeSupplementAdjustmentSource) GetSourceType() string {
+	if x != nil {
+		return x.SourceType
+	}
+	return ""
+}
+
+func (x *MyFeeSupplementAdjustmentSource) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *MyFeeSupplementAdjustmentSource) GetSourceReferenceId() string {
+	if x != nil && x.SourceReferenceId != nil {
+		return *x.SourceReferenceId
+	}
+	return ""
+}
+
+func (x *MyFeeSupplementAdjustmentSource) GetSourceNo() string {
+	if x != nil && x.SourceNo != nil {
+		return *x.SourceNo
 	}
 	return ""
 }
@@ -15618,41 +15730,45 @@ func (x *ListCommissionCandidatesResponse) GetPageSize() int32 {
 }
 
 type FinanceCommissionAdjustment struct {
-	state                  protoimpl.MessageState  `protogen:"open.v1"`
-	Id                     string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	AdjustmentNo           string                  `protobuf:"bytes,2,opt,name=adjustment_no,json=adjustmentNo,proto3" json:"adjustment_no,omitempty"`
-	CommissionId           string                  `protobuf:"bytes,3,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
-	CommissionNo           string                  `protobuf:"bytes,4,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
-	OrderId                string                  `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	OrderNo                string                  `protobuf:"bytes,6,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	EmployeeId             string                  `protobuf:"bytes,7,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
-	EmployeeName           string                  `protobuf:"bytes,8,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
-	Direction              string                  `protobuf:"bytes,9,opt,name=direction,proto3" json:"direction,omitempty"`
-	Status                 FinanceCommissionStatus `protobuf:"varint,10,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus" json:"status,omitempty"`
-	BaseCurrency           string                  `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	Amount                 string                  `protobuf:"bytes,12,opt,name=amount,proto3" json:"amount,omitempty"`
-	Reason                 string                  `protobuf:"bytes,13,opt,name=reason,proto3" json:"reason,omitempty"`
-	Note                   *string                 `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version                uint64                  `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
-	ConfirmedAt            *string                 `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
-	PaidAt                 *string                 `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
-	CancelledAt            *string                 `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
-	CancellationReason     *string                 `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
-	CreatedAt              string                  `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt              string                  `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	SourceType             string                  `protobuf:"bytes,22,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
-	SourceVerificationId   *string                 `protobuf:"bytes,23,opt,name=source_verification_id,json=sourceVerificationId,proto3,oneof" json:"source_verification_id,omitempty"`
-	OrganizationId         string                  `protobuf:"bytes,24,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrganizationName       string                  `protobuf:"bytes,25,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	ConfirmedBy            *string                 `protobuf:"bytes,26,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
-	PaidBy                 *string                 `protobuf:"bytes,27,opt,name=paid_by,json=paidBy,proto3,oneof" json:"paid_by,omitempty"`
-	CancelledBy            *string                 `protobuf:"bytes,28,opt,name=cancelled_by,json=cancelledBy,proto3,oneof" json:"cancelled_by,omitempty"`
-	ExecutionMethod        *string                 `protobuf:"bytes,29,opt,name=execution_method,json=executionMethod,proto3,oneof" json:"execution_method,omitempty"`
-	ParentPaymentId        *string                 `protobuf:"bytes,30,opt,name=parent_payment_id,json=parentPaymentId,proto3,oneof" json:"parent_payment_id,omitempty"`
-	CanExecute             bool                    `protobuf:"varint,31,opt,name=can_execute,json=canExecute,proto3" json:"can_execute,omitempty"`
-	ExecutionBlockedReason *string                 `protobuf:"bytes,32,opt,name=execution_blocked_reason,json=executionBlockedReason,proto3,oneof" json:"execution_blocked_reason,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                        protoimpl.MessageState  `protogen:"open.v1"`
+	Id                           string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	AdjustmentNo                 string                  `protobuf:"bytes,2,opt,name=adjustment_no,json=adjustmentNo,proto3" json:"adjustment_no,omitempty"`
+	CommissionId                 string                  `protobuf:"bytes,3,opt,name=commission_id,json=commissionId,proto3" json:"commission_id,omitempty"`
+	CommissionNo                 string                  `protobuf:"bytes,4,opt,name=commission_no,json=commissionNo,proto3" json:"commission_no,omitempty"`
+	OrderId                      string                  `protobuf:"bytes,5,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo                      string                  `protobuf:"bytes,6,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	EmployeeId                   string                  `protobuf:"bytes,7,opt,name=employee_id,json=employeeId,proto3" json:"employee_id,omitempty"`
+	EmployeeName                 string                  `protobuf:"bytes,8,opt,name=employee_name,json=employeeName,proto3" json:"employee_name,omitempty"`
+	Direction                    string                  `protobuf:"bytes,9,opt,name=direction,proto3" json:"direction,omitempty"`
+	Status                       FinanceCommissionStatus `protobuf:"varint,10,opt,name=status,proto3,enum=finance.v1.FinanceCommissionStatus" json:"status,omitempty"`
+	BaseCurrency                 string                  `protobuf:"bytes,11,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	Amount                       string                  `protobuf:"bytes,12,opt,name=amount,proto3" json:"amount,omitempty"`
+	Reason                       string                  `protobuf:"bytes,13,opt,name=reason,proto3" json:"reason,omitempty"`
+	Note                         *string                 `protobuf:"bytes,14,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version                      uint64                  `protobuf:"varint,15,opt,name=version,proto3" json:"version,omitempty"`
+	ConfirmedAt                  *string                 `protobuf:"bytes,16,opt,name=confirmed_at,json=confirmedAt,proto3,oneof" json:"confirmed_at,omitempty"`
+	PaidAt                       *string                 `protobuf:"bytes,17,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
+	CancelledAt                  *string                 `protobuf:"bytes,18,opt,name=cancelled_at,json=cancelledAt,proto3,oneof" json:"cancelled_at,omitempty"`
+	CancellationReason           *string                 `protobuf:"bytes,19,opt,name=cancellation_reason,json=cancellationReason,proto3,oneof" json:"cancellation_reason,omitempty"`
+	CreatedAt                    string                  `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                    string                  `protobuf:"bytes,21,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SourceType                   string                  `protobuf:"bytes,22,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
+	SourceVerificationId         *string                 `protobuf:"bytes,23,opt,name=source_verification_id,json=sourceVerificationId,proto3,oneof" json:"source_verification_id,omitempty"`
+	OrganizationId               string                  `protobuf:"bytes,24,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrganizationName             string                  `protobuf:"bytes,25,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
+	ConfirmedBy                  *string                 `protobuf:"bytes,26,opt,name=confirmed_by,json=confirmedBy,proto3,oneof" json:"confirmed_by,omitempty"`
+	PaidBy                       *string                 `protobuf:"bytes,27,opt,name=paid_by,json=paidBy,proto3,oneof" json:"paid_by,omitempty"`
+	CancelledBy                  *string                 `protobuf:"bytes,28,opt,name=cancelled_by,json=cancelledBy,proto3,oneof" json:"cancelled_by,omitempty"`
+	ExecutionMethod              *string                 `protobuf:"bytes,29,opt,name=execution_method,json=executionMethod,proto3,oneof" json:"execution_method,omitempty"`
+	ParentPaymentId              *string                 `protobuf:"bytes,30,opt,name=parent_payment_id,json=parentPaymentId,proto3,oneof" json:"parent_payment_id,omitempty"`
+	CanExecute                   bool                    `protobuf:"varint,31,opt,name=can_execute,json=canExecute,proto3" json:"can_execute,omitempty"`
+	ExecutionBlockedReason       *string                 `protobuf:"bytes,32,opt,name=execution_blocked_reason,json=executionBlockedReason,proto3,oneof" json:"execution_blocked_reason,omitempty"`
+	SourceFeeCorrectionRequestId *string                 `protobuf:"bytes,33,opt,name=source_fee_correction_request_id,json=sourceFeeCorrectionRequestId,proto3,oneof" json:"source_fee_correction_request_id,omitempty"`
+	SourceFeeSupplementRequestId *string                 `protobuf:"bytes,34,opt,name=source_fee_supplement_request_id,json=sourceFeeSupplementRequestId,proto3,oneof" json:"source_fee_supplement_request_id,omitempty"`
+	SourceEconomicVerificationId *string                 `protobuf:"bytes,35,opt,name=source_economic_verification_id,json=sourceEconomicVerificationId,proto3,oneof" json:"source_economic_verification_id,omitempty"`
+	SourceEconomicNettingId      *string                 `protobuf:"bytes,36,opt,name=source_economic_netting_id,json=sourceEconomicNettingId,proto3,oneof" json:"source_economic_netting_id,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *FinanceCommissionAdjustment) Reset() {
@@ -15905,6 +16021,34 @@ func (x *FinanceCommissionAdjustment) GetCanExecute() bool {
 func (x *FinanceCommissionAdjustment) GetExecutionBlockedReason() string {
 	if x != nil && x.ExecutionBlockedReason != nil {
 		return *x.ExecutionBlockedReason
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetSourceFeeCorrectionRequestId() string {
+	if x != nil && x.SourceFeeCorrectionRequestId != nil {
+		return *x.SourceFeeCorrectionRequestId
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetSourceFeeSupplementRequestId() string {
+	if x != nil && x.SourceFeeSupplementRequestId != nil {
+		return *x.SourceFeeSupplementRequestId
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetSourceEconomicVerificationId() string {
+	if x != nil && x.SourceEconomicVerificationId != nil {
+		return *x.SourceEconomicVerificationId
+	}
+	return ""
+}
+
+func (x *FinanceCommissionAdjustment) GetSourceEconomicNettingId() string {
+	if x != nil && x.SourceEconomicNettingId != nil {
+		return *x.SourceEconomicNettingId
 	}
 	return ""
 }
@@ -20278,7 +20422,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\b_bill_noB\x11\n" +
 	"\x0f_finance_lockedB\x12\n" +
 	"\x10_organization_idB\x1d\n" +
-	"\x1b_has_pending_fee_supplementJ\x04\b\x06\x10\aR\x06status\"\x8c\v\n" +
+	"\x1b_has_pending_fee_supplementJ\x04\b\x06\x10\aR\x06status\"\xc5\f\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -20323,11 +20467,15 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x11fee_review_status\x18% \x01(\tR\x0ffeeReviewStatus\x12;\n" +
 	"\x1ahas_pending_fee_supplement\x18& \x01(\bR\x17hasPendingFeeSupplement\x12\x19\n" +
 	"\bcan_bill\x18' \x01(\bR\acanBill\x12'\n" +
-	"\x0fblocked_reasons\x18( \x03(\tR\x0eblockedReasonsB\a\n" +
+	"\x0fblocked_reasons\x18( \x03(\tR\x0eblockedReasons\x12'\n" +
+	"\x0feconomic_effect\x18) \x01(\tR\x0eeconomicEffect\x127\n" +
+	"\x15correction_request_id\x18* \x01(\tH\x03R\x13correctionRequestId\x88\x01\x01\x12;\n" +
+	"\x1ahas_pending_fee_correction\x18+ \x01(\bR\x17hasPendingFeeCorrectionB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +
-	"\b_bill_noJ\x04\b\x06\x10\aJ\x04\b \x10\"R\x06status\"\xd6\x01\n" +
+	"\b_bill_noB\x18\n" +
+	"\x16_correction_request_idJ\x04\b\x06\x10\aJ\x04\b \x10\"R\x06status\"\xd6\x01\n" +
 	"\x1bFeeLedgerBaseCurrencyAmount\x12#\n" +
 	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x124\n" +
 	"\x16receivable_base_amount\x18\x02 \x01(\tR\x14receivableBaseAmount\x12.\n" +
@@ -20541,7 +20689,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\bquantity\x18\x11 \x01(\tR\bquantity\x12\x1d\n" +
 	"\n" +
 	"unit_price\x18\x12 \x01(\tR\tunitPriceB\v\n" +
-	"\t_tax_rate\"\x91\x13\n" +
+	"\t_tax_rate\"\xa2\x15\n" +
 	"\vFinanceBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\abill_no\x18\x02 \x01(\tR\x06billNo\x12\x1c\n" +
@@ -20598,7 +20746,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x16estimated_invoice_rate\x18/ \x01(\tH\rR\x14estimatedInvoiceRate\x88\x01\x01\x12=\n" +
 	"\x18estimated_invoice_amount\x180 \x01(\tH\x0eR\x16estimatedInvoiceAmount\x88\x01\x01\x12#\n" +
 	"\rnetted_amount\x181 \x01(\tR\fnettedAmount\x12!\n" +
-	"\foverdue_days\x182 \x01(\x05R\voverdueDaysB\v\n" +
+	"\foverdue_days\x182 \x01(\x05R\voverdueDays\x12\x18\n" +
+	"\apurpose\x183 \x01(\tR\apurpose\x122\n" +
+	"\x12invoiceable_amount\x184 \x01(\tH\x0fR\x11invoiceableAmount\x88\x01\x01\x129\n" +
+	"\x16invoiceable_net_amount\x185 \x01(\tH\x10R\x14invoiceableNetAmount\x88\x01\x01\x129\n" +
+	"\x16invoiceable_tax_amount\x186 \x01(\tH\x11R\x14invoiceableTaxAmount\x88\x01\x01B\v\n" +
 	"\t_due_dateB\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\x0f\n" +
@@ -20613,7 +20765,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x19_exchange_rate_setting_idB\x1d\n" +
 	"\x1b_estimated_invoice_currencyB\x19\n" +
 	"\x17_estimated_invoice_rateB\x1b\n" +
-	"\x19_estimated_invoice_amount\"\x97\x01\n" +
+	"\x19_estimated_invoice_amountB\x15\n" +
+	"\x13_invoiceable_amountB\x19\n" +
+	"\x17_invoiceable_net_amountB\x19\n" +
+	"\x17_invoiceable_tax_amount\"\x97\x01\n" +
 	"\x12BillGroupingPolicy\x12$\n" +
 	"\x0esplit_by_order\x18\x01 \x01(\bR\fsplitByOrder\x12)\n" +
 	"\x11split_by_tax_rate\x18\x02 \x01(\bR\x0esplitByTaxRate\x120\n" +
@@ -20853,7 +21008,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12)\n" +
 	"\x0ered_invoice_no\x18\x03 \x01(\tB\x03\xe0A\x02R\fredInvoiceNo\x12-\n" +
 	"\x10red_invoice_date\x18\x04 \x01(\tB\x03\xe0A\x02R\x0eredInvoiceDate\x12\x1b\n" +
-	"\x06reason\x18\x05 \x01(\tB\x03\xe0A\x02R\x06reason\"\xa5\x01\n" +
+	"\x06reason\x18\x05 \x01(\tB\x03\xe0A\x02R\x06reason\"\xcb\x01\n" +
 	"\x12FinanceInvoiceBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\abill_id\x18\x02 \x01(\tR\x06billId\x12\x17\n" +
@@ -20861,7 +21016,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x06amount\x18\x04 \x01(\tR\x06amount\x12\x1d\n" +
 	"\n" +
 	"tax_amount\x18\x05 \x01(\tR\ttaxAmount\x12\x16\n" +
-	"\x06active\x18\x06 \x01(\bR\x06active\"\xbb\x02\n" +
+	"\x06active\x18\x06 \x01(\bR\x06active\x12$\n" +
+	"\x0esource_fee_ids\x18\a \x03(\tR\fsourceFeeIds\"\xbb\x02\n" +
 	"\x12FinanceInvoiceLine\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\aline_no\x18\x02 \x01(\x05R\x06lineNo\x12\x1b\n" +
@@ -21281,7 +21437,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.finance.v1.FinanceVerificationR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xdc\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x97\x02\n" +
 	"\x18FinanceNettingAllocation\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\abill_id\x18\x02 \x01(\tR\x06billId\x12\x17\n" +
@@ -21289,7 +21445,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\tdirection\x18\x04 \x01(\tR\tdirection\x12\x16\n" +
 	"\x06amount\x18\x05 \x01(\tR\x06amount\x120\n" +
 	"\x14base_currency_amount\x18\x06 \x01(\tR\x12baseCurrencyAmount\x12\x16\n" +
-	"\x06active\x18\a \x01(\bR\x06active\"\xf0\b\n" +
+	"\x06active\x18\a \x01(\bR\x06active\x12'\n" +
+	"\rsource_fee_id\x18\b \x01(\tH\x00R\vsourceFeeId\x88\x01\x01B\x10\n" +
+	"\x0e_source_fee_id\"\xc3\t\n" +
 	"\x0eFinanceNetting\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -21320,7 +21478,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\bbatch_id\x18\x16 \x01(\tH\x06R\abatchId\x88\x01\x01\x12\x1e\n" +
 	"\bbatch_no\x18\x17 \x01(\tH\aR\abatchNo\x88\x01\x01\x12.\n" +
 	"\x13payable_base_amount\x18\x18 \x01(\tR\x11payableBaseAmount\x12,\n" +
-	"\x12exchange_gain_loss\x18\x19 \x01(\tR\x10exchangeGainLossB\a\n" +
+	"\x12exchange_gain_loss\x18\x19 \x01(\tR\x10exchangeGainLoss\x127\n" +
+	"\x15correction_request_id\x18\x1a \x01(\tH\bR\x13correctionRequestId\x88\x01\x01B\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\x0f\n" +
 	"\r_cancelled_atB\x16\n" +
@@ -21328,7 +21487,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\f_reversed_atB\x12\n" +
 	"\x10_reversal_reasonB\v\n" +
 	"\t_batch_idB\v\n" +
-	"\t_batch_no\"\xa0\x02\n" +
+	"\t_batch_noB\x18\n" +
+	"\x16_correction_request_id\"\xa0\x02\n" +
 	"\x19FinanceNettingBillBalance\x12\x17\n" +
 	"\abill_id\x18\x01 \x01(\tR\x06billId\x12\x17\n" +
 	"\abill_no\x18\x02 \x01(\tR\x06billNo\x12\x1b\n" +
@@ -21713,7 +21873,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\a_statusB\x0e\n" +
 	"\f_source_typeB\x0e\n" +
 	"\f_employee_idB\x12\n" +
-	"\x10_organization_id\"\x96\x05\n" +
+	"\x10_organization_id\"\xd2\x06\n" +
 	"\x1fMyFeeSupplementAdjustmentSource\x12#\n" +
 	"\radjustment_id\x18\x01 \x01(\tR\fadjustmentId\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12\x19\n" +
@@ -21732,7 +21892,15 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x11fee_base_currency\x18\r \x01(\tR\x0ffeeBaseCurrency\x127\n" +
 	"\x18fee_base_currency_amount\x18\x0e \x01(\tR\x15feeBaseCurrencyAmount\x12(\n" +
 	"\x10fee_expense_date\x18\x0f \x01(\tR\x0efeeExpenseDate\x12+\n" +
-	"\x11supplement_reason\x18\x10 \x01(\tR\x10supplementReason\"\xd0\x03\n" +
+	"\x11supplement_reason\x18\x10 \x01(\tR\x10supplementReason\x12\x1f\n" +
+	"\vsource_type\x18\x11 \x01(\tR\n" +
+	"sourceType\x12\x1c\n" +
+	"\tdirection\x18\x12 \x01(\tR\tdirection\x123\n" +
+	"\x13source_reference_id\x18\x13 \x01(\tH\x00R\x11sourceReferenceId\x88\x01\x01\x12 \n" +
+	"\tsource_no\x18\x14 \x01(\tH\x01R\bsourceNo\x88\x01\x01B\x16\n" +
+	"\x14_source_reference_idB\f\n" +
+	"\n" +
+	"_source_no\"\xd0\x03\n" +
 	"\x13CommissionFeeDetail\x12\x15\n" +
 	"\x06fee_id\x18\x01 \x01(\tR\x05feeId\x12\x1c\n" +
 	"\tdirection\x18\x02 \x01(\tR\tdirection\x12\x19\n" +
@@ -21846,7 +22014,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x19\n" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12\x12\n" +
 	"\x04page\x18\a \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\x9e\v\n" +
+	"\tpage_size\x18\b \x01(\x05R\bpageSize\"\xd3\x0e\n" +
 	"\x1bFinanceCommissionAdjustment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12#\n" +
@@ -21886,7 +22054,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"R\x0fparentPaymentId\x88\x01\x01\x12\x1f\n" +
 	"\vcan_execute\x18\x1f \x01(\bR\n" +
 	"canExecute\x12=\n" +
-	"\x18execution_blocked_reason\x18  \x01(\tH\vR\x16executionBlockedReason\x88\x01\x01B\a\n" +
+	"\x18execution_blocked_reason\x18  \x01(\tH\vR\x16executionBlockedReason\x88\x01\x01\x12K\n" +
+	" source_fee_correction_request_id\x18! \x01(\tH\fR\x1csourceFeeCorrectionRequestId\x88\x01\x01\x12K\n" +
+	" source_fee_supplement_request_id\x18\" \x01(\tH\rR\x1csourceFeeSupplementRequestId\x88\x01\x01\x12J\n" +
+	"\x1fsource_economic_verification_id\x18# \x01(\tH\x0eR\x1csourceEconomicVerificationId\x88\x01\x01\x12@\n" +
+	"\x1asource_economic_netting_id\x18$ \x01(\tH\x0fR\x17sourceEconomicNettingId\x88\x01\x01B\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\n" +
 	"\n" +
@@ -21900,7 +22072,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\r_cancelled_byB\x13\n" +
 	"\x11_execution_methodB\x14\n" +
 	"\x12_parent_payment_idB\x1b\n" +
-	"\x19_execution_blocked_reason\"\xec\x02\n" +
+	"\x19_execution_blocked_reasonB#\n" +
+	"!_source_fee_correction_request_idB#\n" +
+	"!_source_fee_supplement_request_idB\"\n" +
+	" _source_economic_verification_idB\x1d\n" +
+	"\x1b_source_economic_netting_id\"\xec\x02\n" +
 	"!ListCommissionApplicationsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12$\n" +
@@ -23098,6 +23274,7 @@ func file_finance_v1_settlement_proto_init() {
 	file_finance_v1_settlement_proto_msgTypes[90].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[95].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[98].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[103].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[104].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[110].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[118].OneofWrappers = []any{}
@@ -23114,6 +23291,7 @@ func file_finance_v1_settlement_proto_init() {
 	file_finance_v1_settlement_proto_msgTypes[147].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[155].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[159].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[160].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[163].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[166].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[167].OneofWrappers = []any{}

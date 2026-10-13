@@ -1,41 +1,41 @@
 import { PageContainer } from '@ant-design/pro-components';
-import { App, Descriptions, type TableColumnsType, Tag } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Descriptions, type TableColumnsType, Tag } from 'antd';
+import React from 'react';
 import { useParams } from 'react-router';
+import { useInitialState } from '@/app/AppProvider';
 import {
   PageHeaderShell,
   SectionCard,
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { history } from '@/router/history';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import { formatAmount } from '@/utils/format';
 
 export default function FinanceFeeDetailPage() {
   const { orderId = '' } = useParams<{ orderId: string }>();
-  const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-  const [detail, setDetail] = useState<API.FeeLedgerOrderDetail>();
-
-  useEffect(() => {
-    if (!orderId) return;
-    let cancelled = false;
-    setLoading(true);
-    void settlementServiceGetFeeLedgerOrderDetail({ orderId })
-      .then((response) => {
-        if (!cancelled) setDetail(response.data);
-      })
-      .catch((error: Error) => {
-        if (!cancelled) message.error(error.message || '加载费用台账详情失败');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+  const { initialState } = useInitialState();
+  const query = useQuery({
+    queryKey: [
+      'finance',
+      'fee-detail',
+      initialState?.currentUser?.currentOrganization?.id,
+      orderId,
+    ],
+    enabled: Boolean(orderId),
+    queryFn: async () => {
+      const response = await settlementServiceGetFeeLedgerOrderDetail({
+        orderId,
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [message, orderId]);
+      if (!response?.data) throw new Error('费用台账详情加载失败');
+      return response.data;
+    },
+  });
+  const detail = query.data;
+  const loading = query.isFetching;
 
   const feeColumns: TableColumnsType<API.FeeLedgerItem> = [
     { title: '费用名称', dataIndex: 'feeName' },
@@ -134,6 +134,9 @@ export default function FinanceFeeDetailPage() {
           dataSource={detail?.fees ?? []}
           columns={feeColumnSettings.columns}
         />
+      </SectionCard>
+      <SectionCard title="费用更正记录与审核">
+        <FeeCorrectionSection key={orderId} orderId={orderId} />
       </SectionCard>
     </PageContainer>
   );

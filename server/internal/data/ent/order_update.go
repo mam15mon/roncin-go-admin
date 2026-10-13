@@ -25,6 +25,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
@@ -1777,6 +1778,21 @@ func (_u *OrderUpdate) AddFeeSupplementRequests(v ...*OrderFeeSupplementRequest)
 	return _u.AddFeeSupplementRequestIDs(ids...)
 }
 
+// AddFeeCorrectionRequestIDs adds the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *OrderUpdate) AddFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.AddFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddFeeCorrectionRequests adds the "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderUpdate) AddFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeCorrectionRequestIDs(ids...)
+}
+
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
 func (_u *OrderUpdate) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdate {
 	_u.mutation.AddFinanceBillLineIDs(ids...)
@@ -2372,6 +2388,27 @@ func (_u *OrderUpdate) RemoveFeeSupplementRequests(v ...*OrderFeeSupplementReque
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeSupplementRequestIDs(ids...)
+}
+
+// ClearFeeCorrectionRequests clears all "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderUpdate) ClearFeeCorrectionRequests() *OrderUpdate {
+	_u.mutation.ClearFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveFeeCorrectionRequestIDs removes the "fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *OrderUpdate) RemoveFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderUpdate {
+	_u.mutation.RemoveFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveFeeCorrectionRequests removes "fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *OrderUpdate) RemoveFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeCorrectionRequestIDs(ids...)
 }
 
 // ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
@@ -4191,6 +4228,51 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeCorrectionRequestsTable,
+			Columns: []string{order.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeCorrectionRequestsTable,
+			Columns: []string{order.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeCorrectionRequestsTable,
+			Columns: []string{order.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -6680,6 +6762,21 @@ func (_u *OrderUpdateOne) AddFeeSupplementRequests(v ...*OrderFeeSupplementReque
 	return _u.AddFeeSupplementRequestIDs(ids...)
 }
 
+// AddFeeCorrectionRequestIDs adds the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *OrderUpdateOne) AddFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.AddFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddFeeCorrectionRequests adds the "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderUpdateOne) AddFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeCorrectionRequestIDs(ids...)
+}
+
 // AddFinanceBillLineIDs adds the "finance_bill_lines" edge to the FinanceBillLine entity by IDs.
 func (_u *OrderUpdateOne) AddFinanceBillLineIDs(ids ...uuid.UUID) *OrderUpdateOne {
 	_u.mutation.AddFinanceBillLineIDs(ids...)
@@ -7275,6 +7372,27 @@ func (_u *OrderUpdateOne) RemoveFeeSupplementRequests(v ...*OrderFeeSupplementRe
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFeeSupplementRequestIDs(ids...)
+}
+
+// ClearFeeCorrectionRequests clears all "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderUpdateOne) ClearFeeCorrectionRequests() *OrderUpdateOne {
+	_u.mutation.ClearFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveFeeCorrectionRequestIDs removes the "fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *OrderUpdateOne) RemoveFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderUpdateOne {
+	_u.mutation.RemoveFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveFeeCorrectionRequests removes "fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *OrderUpdateOne) RemoveFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeCorrectionRequestIDs(ids...)
 }
 
 // ClearFinanceBillLines clears all "finance_bill_lines" edges to the FinanceBillLine entity.
@@ -9124,6 +9242,51 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderfeesupplementrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeCorrectionRequestsTable,
+			Columns: []string{order.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeCorrectionRequestsTable,
+			Columns: []string{order.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   order.FeeCorrectionRequestsTable,
+			Columns: []string{order.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

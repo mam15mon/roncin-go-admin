@@ -53,12 +53,16 @@ func enqueueFeeReviewNotifications(ctx context.Context, client *ent.Client, o *e
 }
 
 func enqueueFeeReviewResultForUser(ctx context.Context, client *ent.Client, o *ent.Order, eventID, recipientID uuid.UUID, actorName, result string) error {
-	taskID := uuid.NewSHA1(dingTalkNotificationNamespace, []byte("fee-review-result:"+eventID.String()+":"+recipientID.String()))
+	return enqueueFeeReviewNoticeForUser(ctx, client, o, eventID, recipientID, actorName, result, noticeent.TemplateFEE_REVIEW_RESULT, "fee-review-result:")
+}
+
+func enqueueFeeReviewNoticeForUser(ctx context.Context, client *ent.Client, o *ent.Order, eventID, recipientID uuid.UUID, actorName, result string, template noticeent.Template, prefix string) error {
+	taskID := uuid.NewSHA1(dingTalkNotificationNamespace, []byte(prefix+eventID.String()+":"+recipientID.String()))
 	if err := client.BackgroundTask.Create().SetID(taskID).SetOrganizationID(o.OrganizationID).SetKind(taskent.KindDINGTALK_NOTIFICATION).SetIdempotencyKey("dingtalk-notice:" + taskID.String()).SetStatus(taskent.StatusPENDING).SetAttempts(0).SetMaxAttempts(5).SetNextRunAt(time.Now()).OnConflict(entsql.DoNothing()).Exec(ctx); err != nil {
 		return err
 	}
 	parameter := actorName + "：" + result + feeReviewOrderEntry(o)
-	return client.NotificationDelivery.Create().SetBackgroundTaskID(taskID).SetRecipientUserID(recipientID).SetChannel(noticeent.ChannelDINGTALK).SetTemplate(noticeent.TemplateFEE_REVIEW_RESULT).SetResourceType("ORDER").SetResourceID(o.ID).SetReferenceCode(clampNotificationBytes(o.OrderNo, 64)).SetParameter(clampNotificationBytes(parameter, 256)).OnConflict(entsql.DoNothing()).Exec(ctx)
+	return client.NotificationDelivery.Create().SetBackgroundTaskID(taskID).SetRecipientUserID(recipientID).SetChannel(noticeent.ChannelDINGTALK).SetTemplate(template).SetResourceType("ORDER").SetResourceID(o.ID).SetReferenceCode(clampNotificationBytes(o.OrderNo, 64)).SetParameter(clampNotificationBytes(parameter, 256)).OnConflict(entsql.DoNothing()).Exec(ctx)
 }
 
 // 仅为前端已注册的业务类型提供入口；其余类型保留订单编码，避免生成不可打开的链接。

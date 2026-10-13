@@ -56,6 +56,7 @@ func commissionCalculationBillsQuery(store commissionCalculationStore, org uuid.
 			bill.OrganizationIDEQ(org),
 			bill.StatusEQ(bill.StatusCONFIRMED),
 			bill.DirectionEQ(bill.DirectionRECEIVABLE),
+			bill.PurposeEQ(bill.PurposeNORMAL),
 		).
 		WithLines().
 		Order(bill.ByID())
@@ -150,7 +151,7 @@ func (r *commissionRepo) GetGenerationContext(ctx context.Context, org, verifica
 		if queryErr != nil {
 			return nil, mapEntError(queryErr, biz.ErrCommissionSource, nil)
 		}
-		if item.Status != nettingent.StatusCONFIRMED || item.ConfirmedAt == nil {
+		if item.Status != nettingent.StatusCONFIRMED || item.ConfirmedAt == nil || item.CorrectionRequestID != nil {
 			return nil, biz.ErrCommissionSource
 		}
 		return &biz.CommissionGenerationContext{CommissionDate: item.ConfirmedAt.UTC().Format("2006-01-02"), BaseCurrency: item.BaseCurrency}, nil
@@ -181,6 +182,7 @@ type commissionCalculationSource struct {
 	feesByOrder       map[uuid.UUID][]*ent.OrderFee
 	billLineBaseByFee map[uuid.UUID]decimal.Decimal
 	fingerprintBase   []string
+	economicByOrder   map[uuid.UUID]*biz.CommissionEconomicOrderProjection
 }
 
 // commissionSourceAllocation 是核销/对冲分摊的统一条目，供下游同一聚合管线消费。
@@ -255,7 +257,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrCommissionSource, nil)
 		}
-		if item.Status != nettingent.StatusCONFIRMED || item.ConfirmedAt == nil {
+		if item.Status != nettingent.StatusCONFIRMED || item.ConfirmedAt == nil || item.CorrectionRequestID != nil {
 			return nil, biz.ErrCommissionSource
 		}
 		nettingEntity = item
@@ -331,47 +333,49 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	if err != nil {
 		return nil, err
 	}
-	if len(bills) != len(billIDs) {
+	if len(bills) == 0 {
 		return nil, biz.ErrCommissionSource
 	}
 	orderRealized := make(map[uuid.UUID]decimal.Decimal)
 	baseCurrency := ""
-	for _, billItem := range bills {
-		total, parseErr := decimalOf(billItem.TotalAmount)
-		if parseErr != nil || !total.IsPositive() {
-			return nil, biz.ErrCommissionSource
-		}
-		ratio := allocationByBill[billItem.ID].Div(total)
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("bill|%s|%s|%s|%s|%s|%d", billItem.ID, billItem.BillNo, billItem.Status, billItem.TotalAmount, billItem.BaseCurrencyAmount, billItem.Version))
-		for _, billLine := range billItem.Edges.Lines {
-			if !billLine.Active {
-				continue
+	rawIDs := make([]uuid.UUID, 0)
+	for _, b := range bills {
+		for _, l := range b.Edges.Lines {
+			if l.Active {
+				rawIDs = append(rawIDs, l.OrderID)
 			}
-			base, parseErr := decimalOf(billLine.BaseCurrencyAmount)
-			if parseErr != nil {
-				return nil, parseErr
-			}
-			if baseCurrency == "" {
-				baseCurrency = billLine.BaseCurrency
-			} else if baseCurrency != billLine.BaseCurrency {
-				return nil, biz.ErrCommissionSource
-			}
-			orderRealized[billLine.OrderID] = orderRealized[billLine.OrderID].Add(base.Mul(ratio))
-			fingerprintParts = append(fingerprintParts, fmt.Sprintf("bill_line|%s|%s|%s|%s|%s|%t", billLine.ID, billLine.OrderFeeID, billLine.OrderID, billLine.BaseCurrencyAmount, billLine.BaseCurrency, billLine.Active))
 		}
 	}
-	orderIDs := make([]uuid.UUID, 0, len(orderRealized))
-	for id := range orderRealized {
-		orderIDs = append(orderIDs, id)
+	rawIDs = uniqueSortedUUIDs(rawIDs)
+	if lock && !sameUUIDSet(rawIDs, lockedOrderIDs) {
+		return nil, biz.ErrCommissionSourceChanged
+	}
+	economicByOrder := make(map[uuid.UUID]*biz.CommissionEconomicOrderProjection)
+	orderIDs := make([]uuid.UUID, 0, len(rawIDs))
+	sourceKind, sourceID := "VERIFICATION", verificationID
+	if nettingID != uuid.Nil {
+		sourceKind, sourceID = "NETTING", nettingID
+	}
+	for _, id := range rawIDs {
+		p, err := loadCommissionEconomicProjection(ctx, store.client, id, nil)
+		if err != nil {
+			return nil, err
+		}
+		if baseCurrency == "" {
+			baseCurrency = p.BaseCurrency
+		} else if baseCurrency != p.BaseCurrency {
+			return nil, biz.ErrCommissionBaseCurrencyMismatch
+		}
+		economicByOrder[id] = p
+		fingerprintParts = append(fingerprintParts, "economics|"+id.String()+"|"+p.Fingerprint)
+		realized := p.SourceRevenue(sourceKind, sourceID)
+		if realized.IsPositive() {
+			orderIDs = append(orderIDs, id)
+			orderRealized[id] = realized
+		}
 	}
 	if len(orderIDs) == 0 || baseCurrency == "" {
 		return nil, biz.ErrCommissionSource
-	}
-	sort.Slice(orderIDs, func(i, j int) bool { return orderIDs[i].String() < orderIDs[j].String() })
-	if lock {
-		if !sameUUIDSet(orderIDs, lockedOrderIDs) {
-			return nil, biz.ErrCommissionSourceChanged
-		}
 	}
 	oq := store.orders.Query().Where(orderent.IDIn(orderIDs...), orderent.OrganizationIDEQ(org)).WithCustomer().Order(orderent.ByID())
 	if lock {
@@ -397,7 +401,9 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 	}
 	feesByOrder := make(map[uuid.UUID][]*ent.OrderFee)
 	for _, item := range fees {
-		feesByOrder[item.OrderID] = append(feesByOrder[item.OrderID], item)
+		if item.EconomicEffect == fee.EconomicEffectINCREASE && item.SupersededByRequestID == nil {
+			feesByOrder[item.OrderID] = append(feesByOrder[item.OrderID], item)
+		}
 	}
 	// B3：分母聚合拉齐分子口径。分子（已实现收入）按账单行本位币快照计算，
 	// 分母（订单总应收/总应付）改用各费用关联账单行的本位币合计；尚未建账的费用
@@ -431,6 +437,7 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		orderIDs:     orderIDs, orderRealized: orderRealized, orderByID: orderByID, feesByOrder: feesByOrder,
 		billLineBaseByFee: billLineBaseByFee,
 		fingerprintBase:   fingerprintParts,
+		economicByOrder:   economicByOrder,
 	}, nil
 }
 
@@ -521,7 +528,7 @@ func calculateCommissionFromSource(source *commissionCalculationSource, ruleItem
 			// 总应收/总应付分母优先使用关联账单行的本位币快照（账单日口径），
 			// 未建账费用回落到费用自身快照，避免分子分母汇率基准混用。
 			aggregateBase := baseAmount
-			if billedBase, billed := source.billLineBaseByFee[feeItem.ID]; billed {
+			if billedBase, billed := source.billLineBaseByFee[feeItem.ID]; billed && feeItem.CorrectionRequestID == nil && feeItem.SupplementRequestID == nil {
 				aggregateBase = billedBase
 			}
 			if feeItem.Direction == fee.DirectionRECEIVABLE {
@@ -540,6 +547,11 @@ func calculateCommissionFromSource(source *commissionCalculationSource, ruleItem
 		line.FeeCount = len(line.Fees)
 		totalReceivable := line.RealizedRevenue.Round(8)
 		totalPayable := line.AllocatedCost.Round(8)
+		if projection := source.economicByOrder[orderID]; projection != nil {
+			totalReceivable, totalPayable = projection.Receivable, projection.Payable
+			line.FeeContentVersionSnapshot = projection.FeeContentVersion
+			line.RealizationSnapshot = projection
+		}
 		realized := source.orderRealized[orderID].Round(8)
 		cost, profit, commissionBase, amount, calculateErr := biz.CalculateCommissionLine(realized, totalReceivable, totalPayable, rate, result.CalculationBasis)
 		if calculateErr != nil {
@@ -624,7 +636,7 @@ func commissionSourceOrderIDs(ctx context.Context, store commissionCalculationSt
 			billIDs = append(billIDs, a.BillID)
 		}
 	}
-	lines, err := store.billLines.Query().Where(billline.BillIDIn(billIDs...), billline.ActiveEQ(true)).All(ctx)
+	lines, err := store.billLines.Query().Where(billline.BillIDIn(billIDs...), billline.ActiveEQ(true), billline.HasBillWith(bill.PurposeEQ(bill.PurposeNORMAL), bill.DirectionEQ(bill.DirectionRECEIVABLE)), billline.HasOrderFeeWith(fee.DirectionEQ(fee.DirectionRECEIVABLE), fee.EconomicEffectEQ(fee.EconomicEffectINCREASE))).All(ctx)
 	if err != nil {
 		return nil, err
 	}

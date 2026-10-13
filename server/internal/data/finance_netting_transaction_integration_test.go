@@ -13,6 +13,7 @@ import (
 	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	numberruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
+	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/shopspring/decimal"
 )
 
@@ -58,6 +59,20 @@ func newNettingPostgresFixture(t *testing.T, data *Data) *nettingPostgresFixture
 		t.Fatalf("创建测试应付账单: %v", err)
 	}
 	fixture.payableBillID = payable.ID
+	for _, row := range []struct {
+		id        uuid.UUID
+		amount    string
+		direction orderfeeent.Direction
+	}{{receivable.ID, "100", orderfeeent.DirectionRECEIVABLE}, {payable.ID, "60", orderfeeent.DirectionPAYABLE}} {
+		feeID := fixture.createUnbilledFee("netting-line-" + row.id.String())
+		fee, err := data.db.OrderFee.UpdateOneID(feeID).SetDirection(row.direction).SetUnitPrice(row.amount).SetTotalAmount(row.amount).SetNetAmount(row.amount).SetBaseCurrencyAmount(row.amount).Save(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := data.db.FinanceBillLine.Create().SetBillID(row.id).SetOrderFeeID(fee.ID).SetOrderID(fee.OrderID).SetOrderNo("SE" + fixture.suffix).SetFeeCode(fee.FeeCode).SetFeeName(fee.FeeName).SetQuantity("1").SetUnitPrice(row.amount).SetTotalAmount(row.amount).SetNetAmount(row.amount).SetTaxAmount("0").SetTaxRate("0").SetCurrency("CNY").SetExchangeRate("1").SetBaseCurrency("CNY").SetBaseCurrencyAmount(row.amount).SetActive(true).Save(ctx); err != nil {
+			t.Fatal(err)
+		}
+	}
 	return fixture
 }
 

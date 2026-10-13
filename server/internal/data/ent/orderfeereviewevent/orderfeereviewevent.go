@@ -44,6 +44,8 @@ const (
 	FieldSnapshot = "snapshot"
 	// FieldSupplementRequestID holds the string denoting the supplement_request_id field in the database.
 	FieldSupplementRequestID = "supplement_request_id"
+	// FieldCorrectionRequestID holds the string denoting the correction_request_id field in the database.
+	FieldCorrectionRequestID = "correction_request_id"
 	// FieldIdempotencyKey holds the string denoting the idempotency_key field in the database.
 	FieldIdempotencyKey = "idempotency_key"
 	// FieldRequestFingerprint holds the string denoting the request_fingerprint field in the database.
@@ -78,6 +80,7 @@ var Columns = []string{
 	FieldContentFingerprint,
 	FieldSnapshot,
 	FieldSupplementRequestID,
+	FieldCorrectionRequestID,
 	FieldIdempotencyKey,
 	FieldRequestFingerprint,
 }
@@ -126,6 +129,7 @@ const (
 	ActionREJECT             Action = "REJECT"
 	ActionREVOKE             Action = "REVOKE"
 	ActionSUPPLEMENT_APPROVE Action = "SUPPLEMENT_APPROVE"
+	ActionCORRECTION_APPROVE Action = "CORRECTION_APPROVE"
 )
 
 func (a Action) String() string {
@@ -135,7 +139,7 @@ func (a Action) String() string {
 // ActionValidator is a validator for the "action" field enum values. It is called by the builders before save.
 func ActionValidator(a Action) error {
 	switch a {
-	case ActionSUBMIT, ActionWITHDRAW, ActionAPPROVE, ActionREJECT, ActionREVOKE, ActionSUPPLEMENT_APPROVE:
+	case ActionSUBMIT, ActionWITHDRAW, ActionAPPROVE, ActionREJECT, ActionREVOKE, ActionSUPPLEMENT_APPROVE, ActionCORRECTION_APPROVE:
 		return nil
 	default:
 		return fmt.Errorf("orderfeereviewevent: invalid enum value for action field: %q", a)
@@ -208,6 +212,11 @@ func ByContentFingerprint(opts ...sql.OrderTermOption) OrderOption {
 // BySupplementRequestID orders the results by the supplement_request_id field.
 func BySupplementRequestID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSupplementRequestID, opts...).ToFunc()
+}
+
+// ByCorrectionRequestID orders the results by the correction_request_id field.
+func ByCorrectionRequestID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrectionRequestID, opts...).ToFunc()
 }
 
 // ByIdempotencyKey orders the results by the idempotency_key field.

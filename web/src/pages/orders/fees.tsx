@@ -17,6 +17,7 @@ import { useAccess } from '@/app/access';
 import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
 import { OrderFlowStatus, PartnerRoleType } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
+import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { useOrderFeeReview } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
@@ -31,6 +32,7 @@ import { normalizeDecimalInput } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
+import FeeCorrectionCreate from './components/fees/FeeCorrectionCreate';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
@@ -549,13 +551,20 @@ export default function OrderFeesPage() {
             onChanged={() => void feeReview.refetch()}
           />
         </SectionCard>
+        <SectionCard title="费用更正审核">
+          <FeeCorrectionSection
+            key={targetOrderId}
+            orderId={targetOrderId}
+            onChanged={() => void feeReview.refetch()}
+          />
+        </SectionCard>
         <SectionCard title="费用补录审核">
           <FeeSupplementSection
             key={targetOrderId}
             orderId={targetOrderId}
             canCreate={false}
             feeReviewApproved={false}
-            hasPendingSupplement={Boolean(feeReview.data?.hasPendingSupplement)}
+            hasPendingSupplement={Boolean(feeReview.data?.hasPendingChange)}
             feeSettings={[]}
             settlementParties={[]}
             currencies={[]}
@@ -754,12 +763,43 @@ export default function OrderFeesPage() {
             access.canOrder(order.businessType, 'fee.create')
           }
           feeReviewApproved={feeReview.data?.status === 'APPROVED'}
-          hasPendingSupplement={Boolean(feeReview.data?.hasPendingSupplement)}
+          hasPendingSupplement={Boolean(feeReview.data?.hasPendingChange)}
           feeSettings={feeSettings}
           settlementParties={settlementParties}
           currencies={currencies}
           billingUnits={billingUnits}
           onFeeTablesReload={reloadFeeTables}
+        />
+      </SectionCard>
+
+      <SectionCard title="费用更正" collapsible>
+        <FeeCorrectionSection
+          key={targetOrderId}
+          orderId={orderId || ''}
+          onChanged={reloadFeeTables}
+          renderCreate={(refresh) => (
+            <FeeCorrectionCreate
+              orderId={orderId || ''}
+              fees={[...allReceivableItems, ...allPayableItems]}
+              canCreate={
+                access.canOperateOrganization(order.organizationId) &&
+                access.canOrder(order.businessType || '', 'fee.create')
+              }
+              canUpdate={
+                access.canOperateOrganization(order.organizationId) &&
+                access.canOrder(order.businessType || '', 'fee.update')
+              }
+              disabled={
+                feeReview.data?.status !== 'APPROVED' ||
+                Boolean(feeReview.data?.hasPendingChange)
+              }
+              feeSettings={feeSettings}
+              settlementParties={settlementParties}
+              currencies={currencies}
+              billingUnits={billingUnits}
+              onCreated={refresh}
+            />
+          )}
         />
       </SectionCard>
 

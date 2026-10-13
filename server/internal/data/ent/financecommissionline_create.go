@@ -141,6 +141,34 @@ func (_c *FinanceCommissionLineCreate) SetNillableFeeSnapshot(v *string) *Financ
 	return _c
 }
 
+// SetFeeContentVersionSnapshot sets the "fee_content_version_snapshot" field.
+func (_c *FinanceCommissionLineCreate) SetFeeContentVersionSnapshot(v uint64) *FinanceCommissionLineCreate {
+	_c.mutation.SetFeeContentVersionSnapshot(v)
+	return _c
+}
+
+// SetNillableFeeContentVersionSnapshot sets the "fee_content_version_snapshot" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableFeeContentVersionSnapshot(v *uint64) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetFeeContentVersionSnapshot(*v)
+	}
+	return _c
+}
+
+// SetRealizationSnapshot sets the "realization_snapshot" field.
+func (_c *FinanceCommissionLineCreate) SetRealizationSnapshot(v string) *FinanceCommissionLineCreate {
+	_c.mutation.SetRealizationSnapshot(v)
+	return _c
+}
+
+// SetNillableRealizationSnapshot sets the "realization_snapshot" field if the given value is not nil.
+func (_c *FinanceCommissionLineCreate) SetNillableRealizationSnapshot(v *string) *FinanceCommissionLineCreate {
+	if v != nil {
+		_c.SetRealizationSnapshot(*v)
+	}
+	return _c
+}
+
 // SetEmployeeID sets the "employee_id" field.
 func (_c *FinanceCommissionLineCreate) SetEmployeeID(v uuid.UUID) *FinanceCommissionLineCreate {
 	_c.mutation.SetEmployeeID(v)
@@ -381,6 +409,14 @@ func (_c *FinanceCommissionLineCreate) defaults() {
 		v := financecommissionline.DefaultFeeSnapshot
 		_c.mutation.SetFeeSnapshot(v)
 	}
+	if _, ok := _c.mutation.FeeContentVersionSnapshot(); !ok {
+		v := financecommissionline.DefaultFeeContentVersionSnapshot
+		_c.mutation.SetFeeContentVersionSnapshot(v)
+	}
+	if _, ok := _c.mutation.RealizationSnapshot(); !ok {
+		v := financecommissionline.DefaultRealizationSnapshot
+		_c.mutation.SetRealizationSnapshot(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := financecommissionline.DefaultID()
 		_c.mutation.SetID(v)
@@ -458,6 +494,12 @@ func (_c *FinanceCommissionLineCreate) check() error {
 	}
 	if _, ok := _c.mutation.FeeSnapshot(); !ok {
 		return &ValidationError{Name: "fee_snapshot", err: errors.New(`ent: missing required field "FinanceCommissionLine.fee_snapshot"`)}
+	}
+	if _, ok := _c.mutation.FeeContentVersionSnapshot(); !ok {
+		return &ValidationError{Name: "fee_content_version_snapshot", err: errors.New(`ent: missing required field "FinanceCommissionLine.fee_content_version_snapshot"`)}
+	}
+	if _, ok := _c.mutation.RealizationSnapshot(); !ok {
+		return &ValidationError{Name: "realization_snapshot", err: errors.New(`ent: missing required field "FinanceCommissionLine.realization_snapshot"`)}
 	}
 	if _, ok := _c.mutation.EmployeeID(); !ok {
 		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "FinanceCommissionLine.employee_id"`)}
@@ -629,6 +671,14 @@ func (_c *FinanceCommissionLineCreate) createSpec() (*FinanceCommissionLine, *sq
 	if value, ok := _c.mutation.FeeSnapshot(); ok {
 		_spec.SetField(financecommissionline.FieldFeeSnapshot, field.TypeString, value)
 		_node.FeeSnapshot = value
+	}
+	if value, ok := _c.mutation.FeeContentVersionSnapshot(); ok {
+		_spec.SetField(financecommissionline.FieldFeeContentVersionSnapshot, field.TypeUint64, value)
+		_node.FeeContentVersionSnapshot = value
+	}
+	if value, ok := _c.mutation.RealizationSnapshot(); ok {
+		_spec.SetField(financecommissionline.FieldRealizationSnapshot, field.TypeString, value)
+		_node.RealizationSnapshot = value
 	}
 	if value, ok := _c.mutation.EmployeeID(); ok {
 		_spec.SetField(financecommissionline.FieldEmployeeID, field.TypeUUID, value)
@@ -875,6 +925,12 @@ func (u *FinanceCommissionLineUpsertOne) UpdateNewValues() *FinanceCommissionLin
 		}
 		if _, exists := u.create.mutation.FeeSnapshot(); exists {
 			s.SetIgnore(financecommissionline.FieldFeeSnapshot)
+		}
+		if _, exists := u.create.mutation.FeeContentVersionSnapshot(); exists {
+			s.SetIgnore(financecommissionline.FieldFeeContentVersionSnapshot)
+		}
+		if _, exists := u.create.mutation.RealizationSnapshot(); exists {
+			s.SetIgnore(financecommissionline.FieldRealizationSnapshot)
 		}
 		if _, exists := u.create.mutation.EmployeeID(); exists {
 			s.SetIgnore(financecommissionline.FieldEmployeeID)
@@ -1199,6 +1255,12 @@ func (u *FinanceCommissionLineUpsertBulk) UpdateNewValues() *FinanceCommissionLi
 			}
 			if _, exists := b.mutation.FeeSnapshot(); exists {
 				s.SetIgnore(financecommissionline.FieldFeeSnapshot)
+			}
+			if _, exists := b.mutation.FeeContentVersionSnapshot(); exists {
+				s.SetIgnore(financecommissionline.FieldFeeContentVersionSnapshot)
+			}
+			if _, exists := b.mutation.RealizationSnapshot(); exists {
+				s.SetIgnore(financecommissionline.FieldRealizationSnapshot)
 			}
 			if _, exists := b.mutation.EmployeeID(); exists {
 				s.SetIgnore(financecommissionline.FieldEmployeeID)

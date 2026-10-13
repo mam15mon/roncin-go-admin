@@ -50,6 +50,7 @@ type FeeLedgerFilter struct {
 type FeeLedgerItem struct {
 	FeeReviewStatus         string
 	HasPendingFeeSupplement bool
+	HasPendingFeeCorrection bool
 	CanBill                 bool
 	BlockedReasons          []string
 	Fee                     *OrderFee

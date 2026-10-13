@@ -156,6 +156,12 @@ func commissionLineToBiz(x *ent.FinanceCommissionLine) (*biz.FinanceCommissionLi
 		}
 		result.TotalPayableSnapshot = payable
 	}
+	result.FeeContentVersionSnapshot = x.FeeContentVersionSnapshot
+	if x.RealizationSnapshot != "" && x.RealizationSnapshot != "{}" {
+		if err := json.Unmarshal([]byte(x.RealizationSnapshot), &result.RealizationSnapshot); err != nil {
+			return nil, err
+		}
+	}
 	return result, nil
 }
 
