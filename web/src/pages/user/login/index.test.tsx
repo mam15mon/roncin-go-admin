@@ -59,7 +59,6 @@ const singleOrgChoices: API.OrganizationChoice[] = [
     organizationId: 'org-1',
     organizationName: '天津公司',
     organizationCode: 'TJ',
-    isDefault: true,
   },
 ];
 
@@ -68,13 +67,11 @@ const multiOrgChoices: API.OrganizationChoice[] = [
     organizationId: 'org-1',
     organizationName: '天津公司',
     organizationCode: 'TJ',
-    isDefault: true,
   },
   {
     organizationId: 'org-2',
     organizationName: '北京公司',
     organizationCode: 'BJ',
-    isDefault: false,
   },
 ];
 
@@ -188,7 +185,7 @@ describe('Login', () => {
     expect(assignMock).not.toHaveBeenCalled();
   });
 
-  it('多组织用户选择默认组织：直接进入，不发起切换', async () => {
+  it('多组织用户选择本次会话组织：直接进入，不发起切换', async () => {
     mockLoginResponse(multiOrgChoices);
 
     render(
@@ -246,7 +243,7 @@ describe('Login', () => {
     await submitLogin();
 
     expect(await screen.findByText('选择进入的组织')).toBeInTheDocument();
-    // 会话组织（默认）高亮预选，点击直接进入
+    // 会话组织点击后直接进入，卡片不显示默认标记
     fireEvent.click(screen.getByRole('button', { name: '进入天津公司' }));
     await waitFor(() => {
       expect(assignMock).toHaveBeenCalledWith('/');

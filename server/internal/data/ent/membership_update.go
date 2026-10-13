@@ -67,20 +67,6 @@ func (_u *MembershipUpdate) SetNillableOrganizationID(v *uuid.UUID) *MembershipU
 	return _u
 }
 
-// SetPrimary sets the "primary" field.
-func (_u *MembershipUpdate) SetPrimary(v bool) *MembershipUpdate {
-	_u.mutation.SetPrimary(v)
-	return _u
-}
-
-// SetNillablePrimary sets the "primary" field if the given value is not nil.
-func (_u *MembershipUpdate) SetNillablePrimary(v *bool) *MembershipUpdate {
-	if v != nil {
-		_u.SetPrimary(*v)
-	}
-	return _u
-}
-
 // SetEnabled sets the "enabled" field.
 func (_u *MembershipUpdate) SetEnabled(v bool) *MembershipUpdate {
 	_u.mutation.SetEnabled(v)
@@ -255,9 +241,6 @@ func (_u *MembershipUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(membership.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.Primary(); ok {
-		_spec.SetField(membership.FieldPrimary, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(membership.FieldEnabled, field.TypeBool, value)
@@ -460,20 +443,6 @@ func (_u *MembershipUpdateOne) SetOrganizationID(v uuid.UUID) *MembershipUpdateO
 func (_u *MembershipUpdateOne) SetNillableOrganizationID(v *uuid.UUID) *MembershipUpdateOne {
 	if v != nil {
 		_u.SetOrganizationID(*v)
-	}
-	return _u
-}
-
-// SetPrimary sets the "primary" field.
-func (_u *MembershipUpdateOne) SetPrimary(v bool) *MembershipUpdateOne {
-	_u.mutation.SetPrimary(v)
-	return _u
-}
-
-// SetNillablePrimary sets the "primary" field if the given value is not nil.
-func (_u *MembershipUpdateOne) SetNillablePrimary(v *bool) *MembershipUpdateOne {
-	if v != nil {
-		_u.SetPrimary(*v)
 	}
 	return _u
 }
@@ -682,9 +651,6 @@ func (_u *MembershipUpdateOne) sqlSave(ctx context.Context) (_node *Membership, 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(membership.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.Primary(); ok {
-		_spec.SetField(membership.FieldPrimary, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(membership.FieldEnabled, field.TypeBool, value)

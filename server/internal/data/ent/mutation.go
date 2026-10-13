@@ -69500,7 +69500,6 @@ type MembershipMutation struct {
 	id                                      *uuid.UUID
 	created_at                              *time.Time
 	updated_at                              *time.Time
-	primary                                 *bool
 	enabled                                 *bool
 	clearedFields                           map[string]struct{}
 	user                                    *uuid.UUID
@@ -69766,42 +69765,6 @@ func (m *MembershipMutation) ResetOrganizationID() {
 	m.organization = nil
 }
 
-// SetPrimary sets the "primary" field.
-func (m *MembershipMutation) SetPrimary(b bool) {
-	m.primary = &b
-}
-
-// Primary returns the value of the "primary" field in the mutation.
-func (m *MembershipMutation) Primary() (r bool, exists bool) {
-	v := m.primary
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPrimary returns the old "primary" field's value of the Membership entity.
-// If the Membership object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *MembershipMutation) OldPrimary(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPrimary is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPrimary requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPrimary: %w", err)
-	}
-	return oldValue.Primary, nil
-}
-
-// ResetPrimary resets all changes to the "primary" field.
-func (m *MembershipMutation) ResetPrimary() {
-	m.primary = nil
-}
-
 // SetEnabled sets the "enabled" field.
 func (m *MembershipMutation) SetEnabled(b bool) {
 	m.enabled = &b
@@ -70034,7 +69997,7 @@ func (m *MembershipMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MembershipMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.created_at != nil {
 		fields = append(fields, membership.FieldCreatedAt)
 	}
@@ -70046,9 +70009,6 @@ func (m *MembershipMutation) Fields() []string {
 	}
 	if m.organization != nil {
 		fields = append(fields, membership.FieldOrganizationID)
-	}
-	if m.primary != nil {
-		fields = append(fields, membership.FieldPrimary)
 	}
 	if m.enabled != nil {
 		fields = append(fields, membership.FieldEnabled)
@@ -70069,8 +70029,6 @@ func (m *MembershipMutation) Field(name string) (ent.Value, bool) {
 		return m.UserID()
 	case membership.FieldOrganizationID:
 		return m.OrganizationID()
-	case membership.FieldPrimary:
-		return m.Primary()
 	case membership.FieldEnabled:
 		return m.Enabled()
 	}
@@ -70090,8 +70048,6 @@ func (m *MembershipMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldUserID(ctx)
 	case membership.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
-	case membership.FieldPrimary:
-		return m.OldPrimary(ctx)
 	case membership.FieldEnabled:
 		return m.OldEnabled(ctx)
 	}
@@ -70130,13 +70086,6 @@ func (m *MembershipMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrganizationID(v)
-		return nil
-	case membership.FieldPrimary:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPrimary(v)
 		return nil
 	case membership.FieldEnabled:
 		v, ok := value.(bool)
@@ -70205,9 +70154,6 @@ func (m *MembershipMutation) ResetField(name string) error {
 		return nil
 	case membership.FieldOrganizationID:
 		m.ResetOrganizationID()
-		return nil
-	case membership.FieldPrimary:
-		m.ResetPrimary()
 		return nil
 	case membership.FieldEnabled:
 		m.ResetEnabled()

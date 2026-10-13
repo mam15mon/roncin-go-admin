@@ -155,12 +155,12 @@ func parseSameSite(value string) nethttp.SameSite {
 func organizationChoicesToAPI(choices []biz.OrganizationChoice) []*v1.OrganizationChoice {
 	result := make([]*v1.OrganizationChoice, 0, len(choices))
 	for _, choice := range choices {
-		result = append(result, &v1.OrganizationChoice{OrganizationId: choice.OrganizationID.String(), OrganizationName: choice.OrganizationName, OrganizationCode: choice.OrganizationCode, IsDefault: choice.IsDefault, Kind: authOrganizationKindToAPI(choice.Kind)})
+		result = append(result, &v1.OrganizationChoice{OrganizationId: choice.OrganizationID.String(), OrganizationName: choice.OrganizationName, OrganizationCode: choice.OrganizationCode, Kind: authOrganizationKindToAPI(choice.Kind)})
 	}
 	return result
 }
 
-// parseOptionalOrganizationID 解析登录请求可选的所选组织；空串表示未选择（沿用默认组织）。
+// parseOptionalOrganizationID 解析登录请求可选的所选组织；空串表示未选择，由排序后的有效候选首项建立初始会话。
 func parseOptionalOrganizationID(raw string) (uuid.UUID, error) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {

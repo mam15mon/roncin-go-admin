@@ -816,7 +816,6 @@ type OrganizationChoice struct {
 	OrganizationId   string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	OrganizationName string                 `protobuf:"bytes,2,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
 	OrganizationCode string                 `protobuf:"bytes,3,opt,name=organization_code,json=organizationCode,proto3" json:"organization_code,omitempty"`
-	IsDefault        bool                   `protobuf:"varint,4,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
 	// 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。
 	Kind          OrganizationKind `protobuf:"varint,5,opt,name=kind,proto3,enum=auth.v1.OrganizationKind" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -872,13 +871,6 @@ func (x *OrganizationChoice) GetOrganizationCode() string {
 		return x.OrganizationCode
 	}
 	return ""
-}
-
-func (x *OrganizationChoice) GetIsDefault() bool {
-	if x != nil {
-		return x.IsDefault
-	}
-	return false
 }
 
 func (x *OrganizationChoice) GetKind() OrganizationKind {
@@ -1429,14 +1421,13 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12(\n" +
 	"\x04data\x18\x04 \x01(\v2\x14.auth.v1.CurrentUserR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12N\n" +
-	"\x14organization_choices\x18\x06 \x03(\v2\x1b.auth.v1.OrganizationChoiceR\x13organizationChoices\"\xf4\x01\n" +
+	"\x14organization_choices\x18\x06 \x03(\v2\x1b.auth.v1.OrganizationChoiceR\x13organizationChoices\"\xe7\x01\n" +
 	"\x12OrganizationChoice\x12,\n" +
 	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x120\n" +
 	"\x11organization_name\x18\x02 \x01(\tB\x03\xe0A\x02R\x10organizationName\x120\n" +
-	"\x11organization_code\x18\x03 \x01(\tB\x03\xe0A\x02R\x10organizationCode\x12\x1d\n" +
-	"\n" +
-	"is_default\x18\x04 \x01(\bR\tisDefault\x12-\n" +
-	"\x04kind\x18\x05 \x01(\x0e2\x19.auth.v1.OrganizationKindR\x04kind\"s\n" +
+	"\x11organization_code\x18\x03 \x01(\tB\x03\xe0A\x02R\x10organizationCode\x12-\n" +
+	"\x04kind\x18\x05 \x01(\x0e2\x19.auth.v1.OrganizationKindR\x04kindJ\x04\b\x04\x10\x05R\n" +
+	"is_default\"s\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

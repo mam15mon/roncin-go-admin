@@ -133,7 +133,6 @@ func newAuthPrincipalFixture(t *testing.T) *authPrincipalFixture {
 	if _, err := data.db.Membership.Create().
 		SetUserID(bootstrapUser.ID).
 		SetOrganizationID(systemWorkspace.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx); err != nil {
 		t.Fatalf("创建 bootstrap 管理员成员关系失败: %v", err)
@@ -149,7 +148,6 @@ func newAuthPrincipalFixture(t *testing.T) *authPrincipalFixture {
 	if _, err := data.db.Membership.Create().
 		SetUserID(normalUser.ID).
 		SetOrganizationID(systemWorkspace.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx); err != nil {
 		t.Fatalf("创建普通用户成员关系失败: %v", err)
@@ -230,7 +228,7 @@ func TestAuthRepoBootstrapCandidatesRequireMembership(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(choices) != 1 || choices[0].OrganizationID != f.systemWorkspace || !choices[0].IsDefault {
+	if len(choices) != 1 || choices[0].OrganizationID != f.systemWorkspace {
 		t.Fatalf("候选仅来自成员资格: %#v", choices)
 	}
 }
@@ -336,7 +334,6 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 	hqMembership, err := data.db.Membership.Create().
 		SetUserID(dualUser.ID).
 		SetOrganizationID(systemWorkspace.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -367,7 +364,6 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 	if _, err := data.db.Membership.Create().
 		SetUserID(deptOnlyUser.ID).
 		SetOrganizationID(department.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx); err != nil {
 		t.Fatalf("创建仅部门成员关系失败: %v", err)
@@ -451,8 +447,8 @@ func TestAuthRepoListEnabledMembershipOrganizationsRoundsDepartmentUpToCompany(t
 	if len(deptOnlyChoices) != 1 {
 		t.Fatalf("仅部门成员用户候选数 = %d，期望 1: %#v", len(deptOnlyChoices), deptOnlyChoices)
 	}
-	if deptOnlyChoices[0].OrganizationID != fixture.company || !deptOnlyChoices[0].IsDefault {
-		t.Fatalf("部门成员关系应取整为默认公司候选: %#v", deptOnlyChoices)
+	if deptOnlyChoices[0].OrganizationID != fixture.company {
+		t.Fatalf("部门成员关系应取整为公司候选: %#v", deptOnlyChoices)
 	}
 
 	dualChoices, err := fixture.repo.ListEnabledMembershipOrganizations(ctx, fixture.dualUserID)
@@ -466,11 +462,11 @@ func TestAuthRepoListEnabledMembershipOrganizationsRoundsDepartmentUpToCompany(t
 	if len(dualChoices) != 2 {
 		t.Fatalf("双职用户候选数 = %d，期望 2: %#v", len(dualChoices), dualChoices)
 	}
-	if choice, ok := byID[fixture.systemWorkspace]; !ok || !choice.IsDefault {
-		t.Fatalf("系统管理成员关系（primary）应映射为默认系统管理候选: %#v", choice)
+	if choice, ok := byID[fixture.systemWorkspace]; !ok {
+		t.Fatalf("系统管理成员关系应映射为系统管理候选: %#v", choice)
 	}
-	if choice, ok := byID[fixture.company]; !ok || choice.IsDefault {
-		t.Fatalf("部门成员关系应映射出公司候选且不标记默认: %#v", choice)
+	if choice, ok := byID[fixture.company]; !ok {
+		t.Fatalf("部门成员关系应映射出公司候选: %#v", choice)
 	}
 	if _, ok := byID[fixture.department]; ok {
 		t.Fatalf("部门不是工作台，不应进入候选: %#v", dualChoices)

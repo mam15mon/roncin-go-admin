@@ -75,35 +75,31 @@ func TestPreferAdminAnchorMembership(t *testing.T) {
 	earliest := time.Now().Add(-3 * time.Hour)
 	middle := time.Now().Add(-2 * time.Hour)
 	latest := time.Now().Add(-time.Hour)
-	newMembership := func(primary, enabled bool, createdAt time.Time) *ent.Membership {
-		return &ent.Membership{Primary: primary, Enabled: enabled, CreatedAt: createdAt, ID: uuid.New()}
+	newMembership := func(enabled bool, createdAt time.Time) *ent.Membership {
+		return &ent.Membership{Enabled: enabled, CreatedAt: createdAt, ID: uuid.New()}
 	}
 
 	tests := []struct {
 		name        string
 		candidates  []*ent.Membership
-		wantPrimary bool
 		wantEnabled bool
 		wantCreated time.Time
 	}{
 		{
-			name:        "primary 优先于启用关系",
-			candidates:  []*ent.Membership{newMembership(false, true, earliest), newMembership(true, false, latest)},
-			wantPrimary: true,
-			wantEnabled: false,
-			wantCreated: latest,
+			name:        "启用关系优先于停用关系",
+			candidates:  []*ent.Membership{newMembership(true, earliest), newMembership(false, latest)},
+			wantEnabled: true,
+			wantCreated: earliest,
 		},
 		{
-			name:        "无 primary 时取最早创建的启用关系",
-			candidates:  []*ent.Membership{newMembership(false, true, latest), newMembership(false, true, earliest), newMembership(false, false, middle)},
-			wantPrimary: false,
+			name:        "取最早创建的启用关系",
+			candidates:  []*ent.Membership{newMembership(true, latest), newMembership(true, earliest), newMembership(false, middle)},
 			wantEnabled: true,
 			wantCreated: earliest,
 		},
 		{
 			name:        "全部停用时取最早创建的任一关系",
-			candidates:  []*ent.Membership{newMembership(false, false, latest), newMembership(false, false, earliest)},
-			wantPrimary: false,
+			candidates:  []*ent.Membership{newMembership(false, latest), newMembership(false, earliest)},
 			wantEnabled: false,
 			wantCreated: earliest,
 		},
@@ -114,9 +110,9 @@ func TestPreferAdminAnchorMembership(t *testing.T) {
 			if anchor == nil {
 				t.Fatal("锚定成员关系不应为空")
 			}
-			if anchor.Primary != test.wantPrimary || anchor.Enabled != test.wantEnabled || !anchor.CreatedAt.Equal(test.wantCreated) {
-				t.Fatalf("锚定成员关系 = primary=%v enabled=%v createdAt=%v, want primary=%v enabled=%v createdAt=%v",
-					anchor.Primary, anchor.Enabled, anchor.CreatedAt, test.wantPrimary, test.wantEnabled, test.wantCreated)
+			if anchor.Enabled != test.wantEnabled || !anchor.CreatedAt.Equal(test.wantCreated) {
+				t.Fatalf("锚定成员关系 = enabled=%v createdAt=%v, want enabled=%v createdAt=%v",
+					anchor.Enabled, anchor.CreatedAt, test.wantEnabled, test.wantCreated)
 			}
 		})
 	}
@@ -199,8 +195,8 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 		}
 		return account
 	}
-	newMembership := func(userID, organizationID uuid.UUID, primary bool) *ent.Membership {
-		record, createErr := data.db.Membership.Create().SetUserID(userID).SetOrganizationID(organizationID).SetPrimary(primary).SetEnabled(true).Save(ctx)
+	newMembership := func(userID, organizationID uuid.UUID) *ent.Membership {
+		record, createErr := data.db.Membership.Create().SetUserID(userID).SetOrganizationID(organizationID).SetEnabled(true).Save(ctx)
 		if createErr != nil {
 			t.Fatalf("创建成员关系: %v", createErr)
 		}
@@ -209,25 +205,25 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 
 	// deptUser 仅在公司A的部门有成员关系：系统管理工作台可见可编辑，公司B工作台不可见。
 	deptUser := newUser("部门用户", "dept.user")
-	deptMembership := newMembership(deptUser.ID, deptA1.ID, true)
+	deptMembership := newMembership(deptUser.ID, deptA1.ID)
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(deptMembership.ID).SetRoleID(roleDept.ID).Save(ctx); err != nil {
 		t.Fatalf("分配部门角色: %v", err)
 	}
 
 	// removedUser 回归用户报告场景：系统管理成员关系被移除后仍保留公司A成员关系。
 	removedUser := newUser("被移除用户", "removed.user")
-	hqMembership := newMembership(removedUser.ID, systemWorkspace.ID, true)
+	hqMembership := newMembership(removedUser.ID, systemWorkspace.ID)
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(hqMembership.ID).SetRoleID(roleHQ.ID).Save(ctx); err != nil {
 		t.Fatalf("分配系统管理角色: %v", err)
 	}
-	companyAMembership := newMembership(removedUser.ID, companyA.ID, false)
+	companyAMembership := newMembership(removedUser.ID, companyA.ID)
 	if _, err := data.db.RoleAssignment.Create().SetMembershipID(companyAMembership.ID).SetRoleID(roleA.ID).Save(ctx); err != nil {
 		t.Fatalf("分配公司A角色: %v", err)
 	}
 
 	// outsiderUser 仅在公司B有成员关系：公司A工作台不可见、不可办理离职。
 	outsiderUser := newUser("外部用户", "outsider.user")
-	newMembership(outsiderUser.ID, companyB.ID, true)
+	newMembership(outsiderUser.ID, companyB.ID)
 
 	// 1. 系统管理工作台列表包含仅有部门/公司成员关系的用户。
 	systemWorkspaceList, err := adminRepo.ListUsers(ctx, systemWorkspace.ID, biz.AdminUserListOptions{Page: 1, PageSize: 200})
@@ -264,7 +260,7 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 		t.Fatalf("跨公司读取用户 error = %v, want ErrAdminUserNotFound", err)
 	}
 
-	// 3. 锚定成员关系按 primary 优先：部门用户锚定部门关系，角色与 CurrentOrganizationID 随锚定关系。
+	// 3. 启用成员按创建时间确定展示摘要，角色写入始终指定成员关系。
 	deptView, err := adminRepo.GetUser(ctx, systemWorkspace.ID, deptUser.ID)
 	if err != nil {
 		t.Fatalf("系统管理工作台读取部门用户: %v", err)
@@ -291,7 +287,7 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 		ID:          removedUser.ID,
 		DisplayName: "被移除用户-新名",
 		Enabled:     true,
-	}, []uuid.UUID{roleA.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update"))
+	}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update"))
 	if err != nil {
 		t.Fatalf("移除系统管理成员关系后编辑用户: %v", err)
 	}
@@ -300,15 +296,14 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	}
 	anchors, err := data.db.RoleAssignment.Query().Where(roleassignment.MembershipIDEQ(companyAMembership.ID)).All(ctx)
 	if err != nil || len(anchors) != 1 || anchors[0].RoleID != roleA.ID {
-		t.Fatalf("角色应写入锚定的公司A成员关系: %v, error = %v", anchors, err)
+		t.Fatalf("资料更新应保留公司A成员关系上的既有角色: %v, error = %v", anchors, err)
 	}
 
-	// 5. 角色按锚定成员关系所属工作台的角色库校验：部门锚定用户挂所属公司角色成功、
-	// 跨工作台角色被拒。
-	if _, err := adminRepo.UpdateUser(ctx, systemWorkspace.ID, deptUser.ID, &biz.AdminUser{ID: deptUser.ID, DisplayName: "部门用户", Enabled: true}, []uuid.UUID{roleB.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update")); err != biz.ErrAdminRoleNotFound {
+	// 5. 角色编辑明确定位部门成员关系，跨工作台角色被拒。
+	if _, err := adminRepo.UpdateUserMembership(ctx, &biz.AdminUserMembership{ID: deptMembership.ID, UserID: deptUser.ID, Enabled: true}, []uuid.UUID{roleB.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update")); err != biz.ErrAdminRoleNotFound {
 		t.Fatalf("错配组织角色 error = %v, want ErrAdminRoleNotFound", err)
 	}
-	if _, err := adminRepo.UpdateUser(ctx, companyA.ID, deptUser.ID, &biz.AdminUser{ID: deptUser.ID, DisplayName: "部门用户-新名", Enabled: true}, []uuid.UUID{roleDept.ID}, adminLifecycleAudit(companyA.ID, "admin.user.update")); err != nil {
+	if _, err := adminRepo.UpdateUserMembership(ctx, &biz.AdminUserMembership{ID: deptMembership.ID, UserID: deptUser.ID, Enabled: true}, []uuid.UUID{roleDept.ID}, adminLifecycleAudit(companyA.ID, "admin.user.update")); err != nil {
 		t.Fatalf("锚定组织角色更新: %v", err)
 	}
 

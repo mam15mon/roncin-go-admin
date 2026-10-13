@@ -921,7 +921,6 @@ type UpdateUserRequest struct {
 	DisplayName   *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
 	Email         *string                `protobuf:"bytes,3,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	Enabled       bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	RoleIds       []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -984,13 +983,6 @@ func (x *UpdateUserRequest) GetEnabled() bool {
 	return false
 }
 
-func (x *UpdateUserRequest) GetRoleIds() []string {
-	if x != nil {
-		return x.RoleIds
-	}
-	return nil
-}
-
 type ListUserMembershipsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -1040,7 +1032,6 @@ type CreateUserMembershipRequest struct {
 	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	RoleIds        []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	Primary        bool                   `protobuf:"varint,4,opt,name=primary,proto3" json:"primary,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1096,20 +1087,12 @@ func (x *CreateUserMembershipRequest) GetRoleIds() []string {
 	return nil
 }
 
-func (x *CreateUserMembershipRequest) GetPrimary() bool {
-	if x != nil {
-		return x.Primary
-	}
-	return false
-}
-
 type UpdateUserMembershipRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
 	RoleIds       []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	Enabled       bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	Primary       bool                   `protobuf:"varint,5,opt,name=primary,proto3" json:"primary,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1168,13 +1151,6 @@ func (x *UpdateUserMembershipRequest) GetRoleIds() []string {
 func (x *UpdateUserMembershipRequest) GetEnabled() bool {
 	if x != nil {
 		return x.Enabled
-	}
-	return false
-}
-
-func (x *UpdateUserMembershipRequest) GetPrimary() bool {
-	if x != nil {
-		return x.Primary
 	}
 	return false
 }
@@ -1665,7 +1641,6 @@ type AdminUserOrganizationSummary struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	OrganizationId   string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	OrganizationName string                 `protobuf:"bytes,2,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	Primary          bool                   `protobuf:"varint,3,opt,name=primary,proto3" json:"primary,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -1714,13 +1689,6 @@ func (x *AdminUserOrganizationSummary) GetOrganizationName() string {
 	return ""
 }
 
-func (x *AdminUserOrganizationSummary) GetPrimary() bool {
-	if x != nil {
-		return x.Primary
-	}
-	return false
-}
-
 type AdminUserMembership struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1729,7 +1697,6 @@ type AdminUserMembership struct {
 	OrganizationCode string                 `protobuf:"bytes,4,opt,name=organization_code,json=organizationCode,proto3" json:"organization_code,omitempty"`
 	OrganizationName string                 `protobuf:"bytes,5,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
 	OrganizationKind OrganizationKind       `protobuf:"varint,6,opt,name=organization_kind,json=organizationKind,proto3,enum=admin.v1.OrganizationKind" json:"organization_kind,omitempty"`
-	Primary          bool                   `protobuf:"varint,7,opt,name=primary,proto3" json:"primary,omitempty"`
 	Enabled          bool                   `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	RoleIds          []string               `protobuf:"bytes,9,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
 	RoleCodes        []string               `protobuf:"bytes,10,rep,name=role_codes,json=roleCodes,proto3" json:"role_codes,omitempty"`
@@ -1810,13 +1777,6 @@ func (x *AdminUserMembership) GetOrganizationKind() OrganizationKind {
 		return x.OrganizationKind
 	}
 	return OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
-}
-
-func (x *AdminUserMembership) GetPrimary() bool {
-	if x != nil {
-		return x.Primary
-	}
-	return false
 }
 
 func (x *AdminUserMembership) GetEnabled() bool {
@@ -4762,28 +4722,25 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\bpassword\x18\x03 \x01(\tB\x03\xe0A\x02R\bpassword\x12\x19\n" +
 	"\x05email\x18\x04 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x19\n" +
 	"\brole_ids\x18\x05 \x03(\tR\aroleIdsB\b\n" +
-	"\x06_email\"\xbb\x01\n" +
+	"\x06_email\"\xb0\x01\n" +
 	"\x11UpdateUserRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12&\n" +
 	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\x19\n" +
 	"\x05email\x18\x03 \x01(\tH\x01R\x05email\x88\x01\x01\x12\x18\n" +
-	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x19\n" +
-	"\brole_ids\x18\x05 \x03(\tR\aroleIdsB\x0f\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabledB\x0f\n" +
 	"\r_display_nameB\b\n" +
-	"\x06_email\":\n" +
+	"\x06_emailJ\x04\b\x05\x10\x06R\brole_ids\":\n" +
 	"\x1aListUserMembershipsRequest\x12\x1c\n" +
-	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\"\x9e\x01\n" +
+	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\"\x93\x01\n" +
 	"\x1bCreateUserMembershipRequest\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12,\n" +
 	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x19\n" +
-	"\brole_ids\x18\x03 \x03(\tR\aroleIds\x12\x18\n" +
-	"\aprimary\x18\x04 \x01(\bR\aprimary\"\x9f\x01\n" +
+	"\brole_ids\x18\x03 \x03(\tR\aroleIdsJ\x04\b\x04\x10\x05R\aprimary\"\x94\x01\n" +
 	"\x1bUpdateUserMembershipRequest\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12\x19\n" +
 	"\brole_ids\x18\x03 \x03(\tR\aroleIds\x12\x18\n" +
-	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x18\n" +
-	"\aprimary\x18\x05 \x01(\bR\aprimary\"P\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabledJ\x04\b\x05\x10\x06R\aprimary\"P\n" +
 	"\x1bDeleteUserMembershipRequest\x12\x1c\n" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"+\n" +
@@ -4838,11 +4795,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x17_dingtalk_mobile_maskedB\x1a\n" +
 	"\x18_dingtalk_last_synced_atJ\x04\b\n" +
 	"\x10\vJ\x04\b\v\x10\fR\fwecom_useridR\n" +
-	"wecom_name\"\x8e\x01\n" +
+	"wecom_name\"\x83\x01\n" +
 	"\x1cAdminUserOrganizationSummary\x12'\n" +
 	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18\x02 \x01(\tR\x10organizationName\x12\x18\n" +
-	"\aprimary\x18\x03 \x01(\bR\aprimary\"\xd5\x03\n" +
+	"\x11organization_name\x18\x02 \x01(\tR\x10organizationNameJ\x04\b\x03\x10\x04R\aprimary\"\xca\x03\n" +
 	"\x13AdminUserMembership\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12'\n" +
@@ -4850,7 +4806,6 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x11organization_code\x18\x04 \x01(\tR\x10organizationCode\x12+\n" +
 	"\x11organization_name\x18\x05 \x01(\tR\x10organizationName\x12G\n" +
 	"\x11organization_kind\x18\x06 \x01(\x0e2\x1a.admin.v1.OrganizationKindR\x10organizationKind\x12\x18\n" +
-	"\aprimary\x18\a \x01(\bR\aprimary\x12\x18\n" +
 	"\aenabled\x18\b \x01(\bR\aenabled\x12\x19\n" +
 	"\brole_ids\x18\t \x03(\tR\aroleIds\x12\x1d\n" +
 	"\n" +
@@ -4861,7 +4816,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\r \x01(\tR\tupdatedAt\"\xe6\x01\n" +
+	"updated_at\x18\r \x01(\tR\tupdatedAtJ\x04\b\a\x10\bR\aprimary\"\xe6\x01\n" +
 	"\x11ListUsersResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

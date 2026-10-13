@@ -119,19 +119,18 @@ export function buildUserColumns({
                   </Text>
                 );
               }
-              const primary =
-                userOrgs.find((item) => item.primary) ?? userOrgs[0];
-              const primaryOrg = organizations?.find(
-                (item) => item.id === primary.organizationId,
+              const summary = userOrgs[0];
+              const summaryOrg = organizations?.find(
+                (item) => item.id === summary.organizationId,
               );
-              const primaryName =
+              const summaryName =
                 (organizations
-                  ? formatOrganizationHierarchyName(primaryOrg, organizations)
-                  : '') || primary.organizationName;
+                  ? formatOrganizationHierarchyName(summaryOrg, organizations)
+                  : '') || summary.organizationName;
               const label =
                 userOrgs.length > 1
-                  ? `${primaryName} 等 ${userOrgs.length} 个组织`
-                  : primaryName;
+                  ? `${summaryName} 等 ${userOrgs.length} 个组织`
+                  : summaryName;
               const tooltipText = userOrgs
                 .map((item) => {
                   const o = organizations?.find(

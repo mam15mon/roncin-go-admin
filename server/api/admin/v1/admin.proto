@@ -271,7 +271,8 @@ message UpdateUserRequest {
   optional string display_name = 2;
   optional string email = 3;
   bool enabled = 4;
-  repeated string role_ids = 5;
+  reserved 5;
+  reserved "role_ids";
 }
 
 message ListUserMembershipsRequest {
@@ -282,7 +283,8 @@ message CreateUserMembershipRequest {
   string user_id = 1 [(google.api.field_behavior) = REQUIRED];
   string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
   repeated string role_ids = 3;
-  bool primary = 4;
+  reserved 4;
+  reserved "primary";
 }
 
 message UpdateUserMembershipRequest {
@@ -290,7 +292,8 @@ message UpdateUserMembershipRequest {
   string id = 2 [(google.api.field_behavior) = REQUIRED];
   repeated string role_ids = 3;
   bool enabled = 4;
-  bool primary = 5;
+  reserved 5;
+  reserved "primary";
 }
 
 message DeleteUserMembershipRequest {
@@ -352,7 +355,8 @@ message AdminUser {
 message AdminUserOrganizationSummary {
   string organization_id = 1;
   string organization_name = 2;
-  bool primary = 3;
+  reserved 3;
+  reserved "primary";
 }
 
 message AdminUserMembership {
@@ -362,7 +366,8 @@ message AdminUserMembership {
   string organization_code = 4;
   string organization_name = 5;
   OrganizationKind organization_kind = 6;
-  bool primary = 7;
+  reserved 7;
+  reserved "primary";
   bool enabled = 8;
   repeated string role_ids = 9;
   repeated string role_codes = 10;

@@ -65,7 +65,6 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	membershipRecord, err := data.db.Membership.Create().
 		SetUserID(account.ID).
 		SetOrganizationID(systemWorkspace.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -125,7 +124,7 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		ID:          account.ID,
 		DisplayName: "",
 		Enabled:     true,
-	}, []uuid.UUID{role.ID}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
+	}, adminLifecycleAudit(systemWorkspace.ID, "admin.user.update")); err != biz.ErrAdminUserAuthorizationRequired {
 		t.Fatalf("普通编辑绕过外部身份授权 error = %v, want ErrAdminUserAuthorizationRequired", err)
 	}
 
@@ -288,7 +287,6 @@ func TestAdminDepartmentInheritsCompanyRolesPostgres(t *testing.T) {
 	membershipBiz, err := adminRepo.CreateUserMembership(ctx, &biz.AdminUserMembership{
 		UserID:         userAccount.ID,
 		OrganizationID: dept.ID,
-		Primary:        true,
 	}, []uuid.UUID{financeRole.ID}, adminLifecycleAudit(company.ID, "admin.user.membership.create"))
 	if err != nil {
 		t.Fatalf("在部门下创建成员关系并分配角色失败: %v", err)

@@ -1,11 +1,11 @@
-# 整体实施与验收计划（待批准）
+# 整体实施与验收计划（已批准）
 
 ## 启动前提
 
 - [x] 任务创建获授权，D1–D8 产品决策已确认。
 - [x] 父子任务 PRD、设计、实施计划及上下文清单齐备。
-- [ ] 用户在最新整体摘要之后明确批准实施。尚未运行 task.py start。
-- [ ] 实施前 git status、确认独立分支和子任务基线；按需加载 trellis-before-dev 及前端规范。
+- [x] 用户于 2026-10-13 在最新整体摘要后回复“开始”，明确批准实施。
+- [x] 实施前 git status、确认独立分支和子任务基线；按需加载 trellis-before-dev 及前端规范。
 
 工作区：/home/vince/roncin-go-admin-worktrees/dingtalk-login-memberships；分支 codex/dingtalk-login-memberships，创建时基线为 main 的 8f866832；最终规划同步 cee4bffb（默认公司仅北京/成都、开发数据归属北京）。实施启动前仍需检查 main 是否继续推进，保留相邻改动。旧 background-task-notify 分支中同名任务只是此前规划版本，不覆盖当前文档。
 

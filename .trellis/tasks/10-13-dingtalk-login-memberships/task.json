@@ -3,7 +3,7 @@
   "name": "dingtalk-login-memberships",
   "title": "钉钉扫码优先与组织成员管理简化",
   "description": "规划钉钉二维码主登录、取消主要组织、多选加入组织及新公司管理员自动加入与 bootstrap 补齐",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": "auth/admin",
   "package": null,
@@ -33,6 +33,6 @@
     "web/src/pages/user/login",
     "web/src/pages/admin/components/users"
   ],
-  "notes": "D1–D8 产品规则已收敛，PRD/设计/实施计划及上下文清单齐备；等待最新整体方案审阅后明确批准实施，保持 planning。",
+  "notes": "2026-10-13 用户在最新完整方案后明确回复“开始”，批准实施；按父任务实施计划串行激活子任务。",
   "meta": {}
 }

@@ -113,7 +113,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	roleMembership, err := data.db.Membership.Create().
 		SetUserID(roleUser.ID).
 		SetOrganizationID(org.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -140,7 +139,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	normalMembership, err := data.db.Membership.Create().
 		SetUserID(normalUser.ID).
 		SetOrganizationID(org.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {

@@ -795,7 +795,6 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 	if _, err = data.db.Membership.Create().
 		SetUserID(actor.ID).
 		SetOrganizationID(organization.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试成员关系: %v", err)

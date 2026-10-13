@@ -40,10 +40,10 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 		t.Fatal(err)
 	}
 	uc := biz.NewAdminUsecase(repo)
-	if _, err := uc.CreateUserMembership(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, f.systemWorkspace, false, []uuid.UUID{systemRole.ID}); err != biz.ErrAdminPrivilegeEscalation {
+	if _, err := uc.CreateUserMembership(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, f.systemWorkspace, []uuid.UUID{systemRole.ID}); err != biz.ErrAdminPrivilegeEscalation {
 		t.Fatalf("有限系统用户管理者不得授予系统管理员: %v", err)
 	}
-	_, err = uc.CreateUserMembership(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, f.branch, false, []uuid.UUID{companyRole.ID})
+	_, err = uc.CreateUserMembership(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, f.branch, []uuid.UUID{companyRole.ID})
 	if err != nil {
 		t.Fatalf("系统管理应能显式分配公司管理员: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 		t.Fatalf("公司不得停用全局账号: %v", err)
 	}
 
-	if _, err := uc.CreateUserMembership(companyCtx, f.branch, f.normalUserID, f.normalUserID, f.systemWorkspace, false, nil); err != biz.ErrAdminPrivilegeEscalation {
+	if _, err := uc.CreateUserMembership(companyCtx, f.branch, f.normalUserID, f.normalUserID, f.systemWorkspace, nil); err != biz.ErrAdminPrivilegeEscalation {
 		t.Fatalf("空角色也不得加入系统工作台: %v", err)
 	}
 	memberships, err := repo.ListUserMemberships(companyCtx, f.normalUserID)

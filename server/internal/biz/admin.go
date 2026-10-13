@@ -20,7 +20,7 @@ type AdminRepo interface {
 	ListUsers(context.Context, uuid.UUID, AdminUserListOptions) (*AdminUserList, error)
 	GetUser(context.Context, uuid.UUID, uuid.UUID) (*AdminUser, error)
 	CreateUser(context.Context, uuid.UUID, *AdminUser, string, []uuid.UUID, *AuditEvent) (*AdminUser, error)
-	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID, *AuditEvent) (*AdminUser, error)
+	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, *AuditEvent) (*AdminUser, error)
 	ListUserMemberships(context.Context, uuid.UUID) ([]*AdminUserMembership, error)
 	GetUserMembership(context.Context, uuid.UUID, uuid.UUID) (*AdminUserMembership, error)
 	CreateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID, *AuditEvent) (*AdminUserMembership, error)

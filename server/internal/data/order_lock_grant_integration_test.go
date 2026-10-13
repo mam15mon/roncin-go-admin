@@ -95,7 +95,6 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		m, membershipErr := data.db.Membership.Create().
 			SetUserID(u.ID).
 			SetOrganizationID(org.ID).
-			SetPrimary(true).
 			SetEnabled(true).
 			Save(ctx)
 		if membershipErr != nil {

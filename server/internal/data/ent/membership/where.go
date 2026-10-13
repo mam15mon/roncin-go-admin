@@ -76,11 +76,6 @@ func OrganizationID(v uuid.UUID) predicate.Membership {
 	return predicate.Membership(sql.FieldEQ(FieldOrganizationID, v))
 }
 
-// Primary applies equality check predicate on the "primary" field. It's identical to PrimaryEQ.
-func Primary(v bool) predicate.Membership {
-	return predicate.Membership(sql.FieldEQ(FieldPrimary, v))
-}
-
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
 func Enabled(v bool) predicate.Membership {
 	return predicate.Membership(sql.FieldEQ(FieldEnabled, v))
@@ -204,16 +199,6 @@ func OrganizationIDIn(vs ...uuid.UUID) predicate.Membership {
 // OrganizationIDNotIn applies the NotIn predicate on the "organization_id" field.
 func OrganizationIDNotIn(vs ...uuid.UUID) predicate.Membership {
 	return predicate.Membership(sql.FieldNotIn(FieldOrganizationID, vs...))
-}
-
-// PrimaryEQ applies the EQ predicate on the "primary" field.
-func PrimaryEQ(v bool) predicate.Membership {
-	return predicate.Membership(sql.FieldEQ(FieldPrimary, v))
-}
-
-// PrimaryNEQ applies the NEQ predicate on the "primary" field.
-func PrimaryNEQ(v bool) predicate.Membership {
-	return predicate.Membership(sql.FieldNEQ(FieldPrimary, v))
 }
 
 // EnabledEQ applies the EQ predicate on the "enabled" field.

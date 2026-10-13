@@ -68,20 +68,6 @@ func (_c *MembershipCreate) SetOrganizationID(v uuid.UUID) *MembershipCreate {
 	return _c
 }
 
-// SetPrimary sets the "primary" field.
-func (_c *MembershipCreate) SetPrimary(v bool) *MembershipCreate {
-	_c.mutation.SetPrimary(v)
-	return _c
-}
-
-// SetNillablePrimary sets the "primary" field if the given value is not nil.
-func (_c *MembershipCreate) SetNillablePrimary(v *bool) *MembershipCreate {
-	if v != nil {
-		_c.SetPrimary(*v)
-	}
-	return _c
-}
-
 // SetEnabled sets the "enabled" field.
 func (_c *MembershipCreate) SetEnabled(v bool) *MembershipCreate {
 	_c.mutation.SetEnabled(v)
@@ -193,10 +179,6 @@ func (_c *MembershipCreate) defaults() {
 		v := membership.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := _c.mutation.Primary(); !ok {
-		v := membership.DefaultPrimary
-		_c.mutation.SetPrimary(v)
-	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := membership.DefaultEnabled
 		_c.mutation.SetEnabled(v)
@@ -220,9 +202,6 @@ func (_c *MembershipCreate) check() error {
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "Membership.organization_id"`)}
-	}
-	if _, ok := _c.mutation.Primary(); !ok {
-		return &ValidationError{Name: "primary", err: errors.New(`ent: missing required field "Membership.primary"`)}
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Membership.enabled"`)}
@@ -276,10 +255,6 @@ func (_c *MembershipCreate) createSpec() (*Membership, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(membership.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
-	}
-	if value, ok := _c.mutation.Primary(); ok {
-		_spec.SetField(membership.FieldPrimary, field.TypeBool, value)
-		_node.Primary = value
 	}
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(membership.FieldEnabled, field.TypeBool, value)
@@ -439,18 +414,6 @@ func (u *MembershipUpsert) UpdateOrganizationID() *MembershipUpsert {
 	return u
 }
 
-// SetPrimary sets the "primary" field.
-func (u *MembershipUpsert) SetPrimary(v bool) *MembershipUpsert {
-	u.Set(membership.FieldPrimary, v)
-	return u
-}
-
-// UpdatePrimary sets the "primary" field to the value that was provided on create.
-func (u *MembershipUpsert) UpdatePrimary() *MembershipUpsert {
-	u.SetExcluded(membership.FieldPrimary)
-	return u
-}
-
 // SetEnabled sets the "enabled" field.
 func (u *MembershipUpsert) SetEnabled(v bool) *MembershipUpsert {
 	u.Set(membership.FieldEnabled, v)
@@ -553,20 +516,6 @@ func (u *MembershipUpsertOne) SetOrganizationID(v uuid.UUID) *MembershipUpsertOn
 func (u *MembershipUpsertOne) UpdateOrganizationID() *MembershipUpsertOne {
 	return u.Update(func(s *MembershipUpsert) {
 		s.UpdateOrganizationID()
-	})
-}
-
-// SetPrimary sets the "primary" field.
-func (u *MembershipUpsertOne) SetPrimary(v bool) *MembershipUpsertOne {
-	return u.Update(func(s *MembershipUpsert) {
-		s.SetPrimary(v)
-	})
-}
-
-// UpdatePrimary sets the "primary" field to the value that was provided on create.
-func (u *MembershipUpsertOne) UpdatePrimary() *MembershipUpsertOne {
-	return u.Update(func(s *MembershipUpsert) {
-		s.UpdatePrimary()
 	})
 }
 
@@ -841,20 +790,6 @@ func (u *MembershipUpsertBulk) SetOrganizationID(v uuid.UUID) *MembershipUpsertB
 func (u *MembershipUpsertBulk) UpdateOrganizationID() *MembershipUpsertBulk {
 	return u.Update(func(s *MembershipUpsert) {
 		s.UpdateOrganizationID()
-	})
-}
-
-// SetPrimary sets the "primary" field.
-func (u *MembershipUpsertBulk) SetPrimary(v bool) *MembershipUpsertBulk {
-	return u.Update(func(s *MembershipUpsert) {
-		s.SetPrimary(v)
-	})
-}
-
-// UpdatePrimary sets the "primary" field to the value that was provided on create.
-func (u *MembershipUpsertBulk) UpdatePrimary() *MembershipUpsertBulk {
-	return u.Update(func(s *MembershipUpsert) {
-		s.UpdatePrimary()
 	})
 }
 

@@ -31,7 +31,6 @@ import UserMembershipModal from './UserMembershipModal';
 import {
   formatOrganizationHierarchyName,
   organizationKindLabels,
-  resolveAnchorOrganizationId,
   type UserFormValues,
 } from './userConstants';
 
@@ -97,32 +96,9 @@ export default function UserFormModal({
     (membership) => !membership.enabled,
   );
 
-  const anchorOrganizationId = resolveAnchorOrganizationId(memberships);
-  const anchorRolesQuery = useQuery({
-    queryKey: ['admin-users', 'organization-roles', anchorOrganizationId],
-    enabled: Boolean(open && anchorOrganizationId),
-    queryFn: async () =>
-      unwrapList(
-        ensureListResponse(
-          await adminServiceListOrganizationRoles({
-            organizationId: anchorOrganizationId ?? '',
-          }),
-          '读取组织角色失败',
-        ),
-      ),
-  });
-  const anchorRoles = anchorRolesQuery.data ?? [];
   const loadMemberships = async (_userId: string) => {
     await queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   };
-  useEffect(() => {
-    if (!open || !membershipsQuery.data) return;
-    const anchor = memberships.find(
-      (membership) => membership.organizationId === anchorOrganizationId,
-    );
-    formRef.current?.setFieldValue('roleIds', anchor?.roleIds ?? []);
-  }, [open, membershipsQuery.data, anchorOrganizationId, formRef]);
-
   const openCreateMembership = () => {
     setMembershipEditing(undefined);
     setMembershipRoles([]);
@@ -159,7 +135,6 @@ export default function UserFormModal({
           <div>
             <Space size={6}>
               <Text strong>{fullName}</Text>
-              {membership.primary && <Tag color="blue">主要</Tag>}
             </Space>
             <div>
               <Text type="secondary" style={{ fontSize: 11 }}>
@@ -264,10 +239,7 @@ export default function UserFormModal({
           : {
               submitButtonProps: {
                 disabled:
-                  membershipsQuery.isFetching ||
-                  membershipsQuery.isError ||
-                  anchorRolesQuery.isFetching ||
-                  anchorRolesQuery.isError,
+                  membershipsQuery.isFetching || membershipsQuery.isError,
               },
             }
       }
@@ -294,7 +266,6 @@ export default function UserFormModal({
                   }
                 : {}),
               enabled: true,
-              roleIds: values.roleIds ?? [],
             },
           );
           if (!response) return false;
@@ -382,19 +353,20 @@ export default function UserFormModal({
         placeholder="例如：user@roncin.com"
         rules={[{ type: 'email', message: '请输入有效的邮箱地址' }]}
       />
-      <ProFormSearchableSelect
-        disabled={Boolean(editing) && !canUpdateUserProfile}
-        name="roleIds"
-        label={editing ? '当前组织角色' : '分配角色'}
-        mode="multiple"
-        placeholder="请选择角色"
-        options={(anchorOrganizationId ? anchorRoles : roles).map((role) => ({
-          label: `${role.name} (${role.code})`,
-          value: role.id,
-          code: role.code,
-          name: role.name,
-        }))}
-      />
+      {!editing && (
+        <ProFormSearchableSelect
+          name="roleIds"
+          label="分配角色"
+          mode="multiple"
+          placeholder="请选择角色"
+          options={roles.map((role) => ({
+            label: `${role.name} (${role.code})`,
+            value: role.id,
+            code: role.code,
+            name: role.name,
+          }))}
+        />
+      )}
       {editing && canReadUserMemberships && (
         <div style={{ marginTop: 8 }}>
           <Space

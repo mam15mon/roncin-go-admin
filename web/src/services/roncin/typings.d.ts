@@ -272,7 +272,6 @@ declare namespace API {
     organizationCode?: string;
     organizationName?: string;
     organizationKind?: number;
-    primary?: boolean;
     enabled?: boolean;
     roleIds?: string[];
     roleCodes?: string[];
@@ -284,7 +283,6 @@ declare namespace API {
   type AdminUserOrganizationSummary = {
     organizationId?: string;
     organizationName?: string;
-    primary?: boolean;
   };
 
   type Airline = {
@@ -1833,7 +1831,6 @@ declare namespace API {
     userId: string;
     organizationId: string;
     roleIds?: string[];
-    primary?: boolean;
   };
 
   type CreateUserMembershipResponse = {
@@ -5790,7 +5787,6 @@ declare namespace API {
     organizationId: string;
     organizationName: string;
     organizationCode: string;
-    isDefault?: boolean;
     /** 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。 */
     kind?: number;
   };
@@ -9083,7 +9079,6 @@ declare namespace API {
     id: string;
     roleIds?: string[];
     enabled?: boolean;
-    primary?: boolean;
   };
 
   type UpdateUserMembershipResponse = {
@@ -9099,7 +9094,6 @@ declare namespace API {
     displayName?: string;
     email?: string;
     enabled?: boolean;
-    roleIds?: string[];
   };
 
   type UpdateUserResponse = {

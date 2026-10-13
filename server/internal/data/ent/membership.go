@@ -28,8 +28,6 @@ type Membership struct {
 	UserID uuid.UUID `json:"user_id,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
-	// Primary holds the value of the "primary" field.
-	Primary bool `json:"primary,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -98,7 +96,7 @@ func (*Membership) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case membership.FieldPrimary, membership.FieldEnabled:
+		case membership.FieldEnabled:
 			values[i] = new(sql.NullBool)
 		case membership.FieldCreatedAt, membership.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -148,12 +146,6 @@ func (_m *Membership) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field organization_id", values[i])
 			} else if value != nil {
 				_m.OrganizationID = *value
-			}
-		case membership.FieldPrimary:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field primary", values[i])
-			} else if value.Valid {
-				_m.Primary = value.Bool
 			}
 		case membership.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -228,9 +220,6 @@ func (_m *Membership) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))
-	builder.WriteString(", ")
-	builder.WriteString("primary=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Primary))
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))

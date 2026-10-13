@@ -80,7 +80,6 @@ func TestAdminRoleDeletePostgres(t *testing.T) {
 	membershipRecord, err := data.db.Membership.Create().
 		SetUserID(account.ID).
 		SetOrganizationID(systemWorkspace.ID).
-		SetPrimary(true).
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {

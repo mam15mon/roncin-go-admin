@@ -182,14 +182,6 @@ function renderModal(
   );
 }
 
-function requiredSelect(name: string) {
-  const props = searchableSelectState.get(name);
-  if (!props) {
-    throw new Error(`未找到字段 ${name} 的选择组件`);
-  }
-  return props;
-}
-
 async function submitForm(values: Record<string, unknown>) {
   const onFinish = modalState.props?.onFinish;
   if (typeof onFinish !== 'function') {
@@ -213,13 +205,10 @@ beforeEach(() => {
 });
 
 describe('UserFormModal 角色数据源与账号资料管理', () => {
-  it('普通编辑流程只用当前组织角色，不触发跨组织角色请求', async () => {
+  it('普通编辑流程只保存资料，不触发组织角色请求', async () => {
     renderModal(normalUser, {});
 
-    const roleSelect = requiredSelect('roleIds');
-    expect(roleSelect.options).toEqual([
-      expect.objectContaining({ value: 'role-1' }),
-    ]);
+    expect(searchableSelectState.get('roleIds')).toBeUndefined();
     expect(searchableSelectState.get('organizationId')).toBeUndefined();
     expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
 
@@ -249,11 +238,9 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
     expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
   });
 
-  it('编辑时按锚定成员关系所在组织拉取角色选项', async () => {
+  it('编辑时成员关系只用于展示，不隐式选取角色编辑对象', async () => {
     serviceMocks.listUserMemberships.mockResolvedValue({
-      data: [
-        { id: 'm-1', organizationId: 'org-2', primary: true, enabled: true },
-      ],
+      data: [{ id: 'm-1', organizationId: 'org-2', enabled: true }],
     });
     serviceMocks.listOrganizationRoles.mockResolvedValue({
       data: [{ id: 'role-9', name: '锚定组织角色', code: 'anchor_role' }],
@@ -262,23 +249,23 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
     renderModal(normalUser, { canReadUserMemberships: true });
 
     await act(async () => {});
-    await waitFor(() =>
-      expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
-        organizationId: 'org-2',
-      }),
-    );
-    await waitFor(() =>
-      expect(requiredSelect('roleIds').options).toEqual([
-        expect.objectContaining({ value: 'role-9' }),
-      ]),
-    );
-    expect(formState.setFieldValue).toHaveBeenCalledWith('roleIds', []);
+    expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
+    expect(searchableSelectState.get('roleIds')).toBeUndefined();
+    expect(formState.setFieldValue).not.toHaveBeenCalled();
 
     await submitForm({ displayName: '张三', roleIds: ['role-9'] });
-    expect(serviceMocks.updateUser).toHaveBeenCalled();
+    expect(serviceMocks.updateUser).toHaveBeenCalledWith(
+      { id: normalUser.id },
+      {
+        id: normalUser.id,
+        displayName: '张三',
+        enabled: true,
+        email: undefined,
+      },
+    );
   });
 
-  it('移出当前锚定组织后，外层表单改用剩余组织的角色', async () => {
+  it('移出组织后刷新成员列表，资料表单不回填其他组织角色', async () => {
     const onReload = vi.fn();
     serviceMocks.listUserMemberships
       .mockResolvedValueOnce({
@@ -286,14 +273,12 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
           {
             id: 'm-system',
             organizationId: 'org-system',
-            primary: true,
             enabled: true,
             roleIds: ['role-system'],
           },
           {
             id: 'm-company',
             organizationId: 'org-company',
-            primary: false,
             enabled: true,
             roleIds: ['role-company'],
           },
@@ -304,14 +289,12 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
           {
             id: 'm-system',
             organizationId: 'org-system',
-            primary: false,
             enabled: false,
             roleIds: [],
           },
           {
             id: 'm-company',
             organizationId: 'org-company',
-            primary: true,
             enabled: true,
             roleIds: ['role-company'],
           },
@@ -325,10 +308,9 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
     });
     await act(async () => {});
     await waitFor(() =>
-      expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
-        'role-system',
-      ]),
+      expect(serviceMocks.listUserMemberships).toHaveBeenCalled(),
     );
+    expect(formState.setFieldValue).not.toHaveBeenCalled();
     expect(screen.getByTestId('membership-m-system')).toBeInTheDocument();
     expect(screen.getByTestId('membership-m-company')).toBeInTheDocument();
 
@@ -341,13 +323,10 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
     });
     expect(onReload).toHaveBeenCalledOnce();
     await waitFor(() =>
-      expect(formState.setFieldValue).toHaveBeenLastCalledWith('roleIds', [
-        'role-company',
-      ]),
+      expect(serviceMocks.listUserMemberships).toHaveBeenCalledTimes(2),
     );
-    expect(serviceMocks.listOrganizationRoles).toHaveBeenLastCalledWith({
-      organizationId: 'org-company',
-    });
+    expect(formState.setFieldValue).not.toHaveBeenCalled();
+    expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
     expect(screen.queryByTestId('membership-m-system')).not.toBeInTheDocument();
     expect(screen.getByTestId('membership-m-company')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '当前 (1)' })).toHaveAttribute(
@@ -368,22 +347,19 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
     expect(screen.getByRole('button', { name: '编辑' })).toBeInTheDocument();
   });
 
-  it('编辑时无 primary 成员关系则取第一条启用关系的组织', async () => {
+  it('存在停用成员关系时资料编辑仍不自动请求角色', async () => {
     serviceMocks.listUserMemberships.mockResolvedValue({
       data: [
-        { id: 'm-1', organizationId: 'org-9', primary: false, enabled: false },
-        { id: 'm-2', organizationId: 'org-3', primary: false, enabled: true },
+        { id: 'm-1', organizationId: 'org-9', enabled: false },
+        { id: 'm-2', organizationId: 'org-3', enabled: true },
       ],
     });
 
     renderModal(normalUser, { canReadUserMemberships: true });
 
     await act(async () => {});
-    await waitFor(() =>
-      expect(serviceMocks.listOrganizationRoles).toHaveBeenCalledWith({
-        organizationId: 'org-3',
-      }),
-    );
+    expect(serviceMocks.listOrganizationRoles).not.toHaveBeenCalled();
+    expect(searchableSelectState.get('roleIds')).toBeUndefined();
   });
 
   it('钉钉资料编辑不会提交姓名或邮箱', async () => {
@@ -395,7 +371,7 @@ describe('UserFormModal 角色数据源与账号资料管理', () => {
     });
     expect(serviceMocks.updateUser).toHaveBeenCalledWith(
       { id: normalUser.id },
-      { id: normalUser.id, enabled: true, roleIds: ['role-1'] },
+      { id: normalUser.id, enabled: true },
     );
     expect(serviceMocks.authorizeDingTalkUser).not.toHaveBeenCalled();
   });

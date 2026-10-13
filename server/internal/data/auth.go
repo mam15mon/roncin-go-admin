@@ -33,7 +33,7 @@ func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Cr
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrInvalidCredentials, nil)
 	}
-	return r.credentialForAccount(ctx, account)
+	return credentialFromAccount(account), nil
 }
 
 func (r *authRepo) LoginRateLimitExceeded(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int) (bool, error) {
@@ -114,17 +114,14 @@ func (r *authRepo) FindDingTalkCredential(ctx context.Context, identity *biz.Din
 	if account.DingtalkUserid == nil || *account.DingtalkUserid != identity.UserID {
 		return nil, biz.ErrDingTalkIdentityConflict
 	}
-	// 状态判定先于工作台解析，无组织待分配人员没有业务凭证。
-	if account.PendingAssignment || !account.Enabled {
-		return credentialFromAccount(account, uuid.Nil), nil
-	}
-	return r.credentialForAccount(ctx, account)
+	// 账号状态由用例先判定，通过后再查询工作台候选。
+	return credentialFromAccount(account), nil
 }
 
 func authOrganizationNodes(nodes []*ent.Organization) map[uuid.UUID]authOrgNode {
 	result := make(map[uuid.UUID]authOrgNode, len(nodes))
 	for _, node := range nodes {
-		result[node.ID] = authOrgNode{ID: node.ID, ParentID: node.ParentID, Kind: string(node.Kind), Enabled: node.Enabled}
+		result[node.ID] = authOrgNode{ID: node.ID, ParentID: node.ParentID, Kind: string(node.Kind), Name: node.Name, Enabled: node.Enabled}
 	}
 	return result
 }
@@ -200,48 +197,38 @@ func workspaceMembershipScopeIDs(nodes map[uuid.UUID]authOrgNode, workspaceID uu
 // membershipRef 是工作台映射所需的成员关系最小投影。
 type membershipRef struct {
 	OrganizationID uuid.UUID
-	Primary        bool
 }
 
 func membershipRefsFromEnt(memberships []*ent.Membership) []membershipRef {
 	refs := make([]membershipRef, 0, len(memberships))
 	for _, member := range memberships {
-		refs = append(refs, membershipRef{OrganizationID: member.OrganizationID, Primary: member.Primary})
+		refs = append(refs, membershipRef{OrganizationID: member.OrganizationID})
 	}
 	return refs
 }
 
-// resolveMembershipWorkspaces 把启用成员关系向上取整到所属工作台：成员关系节点沿父链
-// 归入最近的工作台 kind 祖先（部门/小组成员关系归属所属公司，系统管理成员关系归属系统管理
-// 本身）；最近工作台祖先停用时不向上越级回退，直接丢弃。返回去重后的启用工作台集合
-// 与 primary 工作台（primary 成员关系映射出的工作台，primary 缺失或不可用时回退
-// 第一个可用工作台）。
-func resolveMembershipWorkspaces(memberships []membershipRef, nodes map[uuid.UUID]authOrgNode) (workspaceIDs []uuid.UUID, primaryWorkspaceID uuid.UUID) {
+// resolveMembershipWorkspaces 将有效成员关系映射为去重的启用工作台，按名称和 ID 排序。
+// 部门和组归入所属公司，最近工作台停用时不越级进入其他工作台。
+func resolveMembershipWorkspaces(memberships []membershipRef, nodes map[uuid.UUID]authOrgNode) (workspaceIDs []uuid.UUID) {
 	seen := make(map[uuid.UUID]struct{}, len(memberships))
-	fallback := uuid.Nil
 	for _, member := range memberships {
 		workspaceID := workspaceAncestorID(nodes, member.OrganizationID)
-		if workspaceID == uuid.Nil {
+		if workspaceID == uuid.Nil || !nodes[workspaceID].Enabled {
 			continue
 		}
-		if workspace := nodes[workspaceID]; !workspace.Enabled {
+		if _, exists := seen[workspaceID]; exists {
 			continue
 		}
-		if _, duplicated := seen[workspaceID]; !duplicated {
-			seen[workspaceID] = struct{}{}
-			workspaceIDs = append(workspaceIDs, workspaceID)
-		}
-		if fallback == uuid.Nil {
-			fallback = workspaceID
-		}
-		if primaryWorkspaceID == uuid.Nil && member.Primary {
-			primaryWorkspaceID = workspaceID
-		}
+		seen[workspaceID] = struct{}{}
+		workspaceIDs = append(workspaceIDs, workspaceID)
 	}
-	if primaryWorkspaceID == uuid.Nil {
-		primaryWorkspaceID = fallback
-	}
-	return workspaceIDs, primaryWorkspaceID
+	sort.Slice(workspaceIDs, func(i, j int) bool {
+		if nodes[workspaceIDs[i]].Name != nodes[workspaceIDs[j]].Name {
+			return nodes[workspaceIDs[i]].Name < nodes[workspaceIDs[j]].Name
+		}
+		return workspaceIDs[i].String() < workspaceIDs[j].String()
+	})
+	return workspaceIDs
 }
 
 // collectWorkspaceRoleGrants 收集工作台范围内启用成员关系上的启用角色并集（按角色
@@ -296,38 +283,14 @@ func loadOrganizationTree(ctx context.Context, client *ent.Client) ([]*ent.Organ
 		All(ctx)
 }
 
-func credentialFromAccount(account *ent.User, organizationID uuid.UUID) *biz.Credential {
-	return &biz.Credential{PendingAssignment: account.PendingAssignment, UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: organizationID}
-}
-
-// credentialForAccount 计算登录默认工作台：primary 成员关系所在组织向上取整到所属
-// 工作台节点（部门/小组 → 所属公司，系统管理 → 系统管理）；primary 缺失或其工作台不可用时
-// 回退第一个可用工作台。primary 标记语义不变，只影响默认落点。
-func (r *authRepo) credentialForAccount(ctx context.Context, account *ent.User) (*biz.Credential, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	refs, err := r.loadEnabledMembershipRefs(ctx, client, account.ID)
-	if err != nil {
-		return nil, err
-	}
-	nodes, err := loadOrganizationTree(ctx, client)
-	if err != nil {
-		return nil, err
-	}
-	_, primaryWorkspaceID := resolveMembershipWorkspaces(refs, authOrganizationNodes(nodes))
-	if primaryWorkspaceID == uuid.Nil {
-		return nil, biz.ErrOrganizationForbidden
-	}
-	return &biz.Credential{PendingAssignment: account.PendingAssignment, UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin, PrimaryOrganizationID: primaryWorkspaceID}, nil
+func credentialFromAccount(account *ent.User) *biz.Credential {
+	return &biz.Credential{PendingAssignment: account.PendingAssignment, UserID: account.ID, Username: account.Username, DisplayName: account.DisplayName, Email: account.Email, PasswordHash: account.PasswordHash, Enabled: account.Enabled, IsBootstrapAdmin: account.IsBootstrapAdmin}
 }
 
 // ListEnabledMembershipOrganizations 返回普通用户的工作台候选快照，供登录组织选择与
 // 应用内切换入口共用同一谓词：系统管理节点要求本人在系统管理节点本身有启用成员关系；公司节点
 // 要求本人在该公司节点或其子树内任一启用节点有启用成员关系（部门/小组成员关系让所属
 // 公司成为候选）。候选均为启用中工作台节点，部门/团队任何情况下不进入候选。
-// IsDefault 按 primary 成员关系映射出的工作台标记，排序由 biz 统一处理。
 func (r *authRepo) ListEnabledMembershipOrganizations(ctx context.Context, userID uuid.UUID) ([]biz.OrganizationChoice, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -345,14 +308,14 @@ func (r *authRepo) ListEnabledMembershipOrganizations(ctx context.Context, userI
 	for _, node := range nodes {
 		organizationsByID[node.ID] = node
 	}
-	workspaceIDs, primaryWorkspaceID := resolveMembershipWorkspaces(refs, authOrganizationNodes(nodes))
+	workspaceIDs := resolveMembershipWorkspaces(refs, authOrganizationNodes(nodes))
 	choices := make([]biz.OrganizationChoice, 0, len(workspaceIDs))
 	for _, workspaceID := range workspaceIDs {
 		org, ok := organizationsByID[workspaceID]
 		if !ok {
 			return nil, biz.ErrOrganizationForbidden
 		}
-		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, IsDefault: workspaceID == primaryWorkspaceID, Kind: biz.OrganizationKind(org.Kind)})
+		choices = append(choices, biz.OrganizationChoice{OrganizationID: org.ID, OrganizationName: org.Name, OrganizationCode: org.Code, Kind: biz.OrganizationKind(org.Kind)})
 	}
 	return choices, nil
 }
@@ -393,7 +356,7 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 		// 会话工作区必须落在候选内，角色按工作台范围收集（系统管理只取系统管理节点本身，
 		// 公司聚合公司子树），公司之间互不泄漏。
 		nodeMap := authOrganizationNodes(nodes)
-		workspaceIDs, _ := resolveMembershipWorkspaces(membershipRefsFromEnt(memberships), nodeMap)
+		workspaceIDs := resolveMembershipWorkspaces(membershipRefsFromEnt(memberships), nodeMap)
 		organizations = make([]biz.Organization, 0, len(workspaceIDs))
 		for _, workspaceID := range workspaceIDs {
 			org, ok := organizationsByID[workspaceID]
@@ -420,7 +383,12 @@ func (r *authRepo) ResolvePrincipal(ctx context.Context, userID, organizationID 
 	if current == nil {
 		return nil, biz.ErrOrganizationForbidden
 	}
-	sort.Slice(organizations, func(i, j int) bool { return organizations[i].Code < organizations[j].Code })
+	sort.Slice(organizations, func(i, j int) bool {
+		if organizations[i].Name != organizations[j].Name {
+			return organizations[i].Name < organizations[j].Name
+		}
+		return organizations[i].ID.String() < organizations[j].ID.String()
+	})
 	sort.Slice(roleGrants, func(i, j int) bool {
 		if roleGrants[i].RoleID == roleGrants[j].RoleID {
 			return roleGrants[i].RoleCode < roleGrants[j].RoleCode
@@ -587,6 +555,7 @@ type authOrgNode struct {
 	ID       uuid.UUID
 	ParentID *uuid.UUID
 	Kind     string
+	Name     string
 	Enabled  bool
 }
 

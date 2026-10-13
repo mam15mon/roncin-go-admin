@@ -128,7 +128,7 @@ func newFeeSupplementFixture(t *testing.T) *feeSupplementPostgresFixture {
 		return u
 	}
 	newMembership := func(u *ent.User) *ent.Membership {
-		m, memberErr := data.db.Membership.Create().SetUserID(u.ID).SetOrganizationID(org.ID).SetPrimary(true).SetEnabled(true).Save(ctx)
+		m, memberErr := data.db.Membership.Create().SetUserID(u.ID).SetOrganizationID(org.ID).SetEnabled(true).Save(ctx)
 		if memberErr != nil {
 			t.Fatalf("创建成员关系: %v", memberErr)
 		}

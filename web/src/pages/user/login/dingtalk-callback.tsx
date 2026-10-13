@@ -27,8 +27,10 @@ export default function DingTalkCallback() {
   const { setInitialState } = useInitialState();
   const { message } = App.useApp();
   const [failure, setFailure] = useState<string>();
-  const [organizationOptions, setOrganizationOptions] =
-    useState<LoginOrganizationOption[]>();
+  const [organizationSelection, setOrganizationSelection] = useState<{
+    options: LoginOrganizationOption[];
+    currentOrganizationId?: string;
+  }>();
   const pendingRedirectRef = useRef('/');
   const handled = useRef(false);
   const login = useMutation({
@@ -66,7 +68,10 @@ export default function DingTalkCallback() {
       );
       if (options.length > 1) {
         pendingRedirectRef.current = storedRedirect();
-        setOrganizationOptions(options);
+        setOrganizationSelection({
+          options,
+          currentOrganizationId: data.currentUser.currentOrganization?.id,
+        });
         return;
       }
       message.success('钉钉登录成功');
@@ -106,7 +111,7 @@ export default function DingTalkCallback() {
       <Helmet>
         <title>钉钉认证 - {Settings.title}</title>
       </Helmet>
-      {organizationOptions ? (
+      {organizationSelection ? (
         <div
           style={{
             width: '100%',
@@ -116,7 +121,8 @@ export default function DingTalkCallback() {
           }}
         >
           <OrganizationPicker
-            options={organizationOptions}
+            options={organizationSelection.options}
+            currentOrganizationId={organizationSelection.currentOrganizationId}
             onEnter={() => {
               message.success('钉钉登录成功');
               window.location.replace(pendingRedirectRef.current);

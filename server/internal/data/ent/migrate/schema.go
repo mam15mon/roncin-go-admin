@@ -3106,7 +3106,6 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "primary", Type: field.TypeBool, Default: false},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "user_id", Type: field.TypeUUID},
@@ -3119,13 +3118,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "memberships_organizations_memberships",
-				Columns:    []*schema.Column{MembershipsColumns[5]},
+				Columns:    []*schema.Column{MembershipsColumns[4]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "memberships_users_memberships",
-				Columns:    []*schema.Column{MembershipsColumns[6]},
+				Columns:    []*schema.Column{MembershipsColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -3139,12 +3138,12 @@ var (
 			{
 				Name:    "membership_user_id_organization_id",
 				Unique:  true,
-				Columns: []*schema.Column{MembershipsColumns[6], MembershipsColumns[5]},
+				Columns: []*schema.Column{MembershipsColumns[5], MembershipsColumns[4]},
 			},
 			{
 				Name:    "membership_organization_id_enabled",
 				Unique:  false,
-				Columns: []*schema.Column{MembershipsColumns[5], MembershipsColumns[4]},
+				Columns: []*schema.Column{MembershipsColumns[4], MembershipsColumns[3]},
 			},
 		},
 	}

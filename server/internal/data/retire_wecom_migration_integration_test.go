@@ -60,7 +60,7 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 			VALUES($1,now(),now(),$2,'保留姓名',$3,$4,'已删除来源',$5,$6,'保留钉钉姓名',$7,false,$8)`, account.id, account.name, account.hash, account.oldID, account.unionID, account.userID, account.enabled, searchtext.Build("保留姓名", "已删除来源", "保留钉钉姓名")); err != nil {
 			t.Fatal(err)
 		}
-		member, err := data.db.Membership.Create().SetUserID(account.id).SetOrganizationID(org.ID).SetPrimary(true).SetEnabled(true).Save(ctx)
+		member, err := data.db.Membership.Create().SetUserID(account.id).SetOrganizationID(org.ID).SetEnabled(true).Save(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}

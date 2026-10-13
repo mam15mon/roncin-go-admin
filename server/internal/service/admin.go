@@ -133,11 +133,7 @@ func (s *AdminService) UpdateUser(ctx context.Context, request *v1.UpdateUserReq
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
-	if err != nil {
-		return nil, err
-	}
-	updated, err := s.usecase.UpdateUser(ctx, principal.Organization.ID, principal.UserID, userID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil), Enabled: request.GetEnabled()}, roles)
+	updated, err := s.usecase.UpdateUser(ctx, principal.Organization.ID, principal.UserID, userID, &biz.AdminUser{ID: userID, DisplayName: request.GetDisplayName(), Email: optionalString(request.GetEmail(), request.Email != nil), Enabled: request.GetEnabled()})
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +176,7 @@ func (s *AdminService) CreateUserMembership(ctx context.Context, request *v1.Cre
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.CreateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, organizationID, request.GetPrimary(), roleIDs)
+	created, err := s.usecase.CreateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, organizationID, roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +200,7 @@ func (s *AdminService) UpdateUserMembership(ctx context.Context, request *v1.Upd
 	if err != nil {
 		return nil, err
 	}
-	updated, err := s.usecase.UpdateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, membershipID, request.GetEnabled(), request.GetPrimary(), roleIDs)
+	updated, err := s.usecase.UpdateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, membershipID, request.GetEnabled(), roleIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -519,7 +515,7 @@ func userToAPI(value *biz.AdminUser, includeOrganizations bool) *v1.AdminUser {
 	if includeOrganizations {
 		organizations := make([]*v1.AdminUserOrganizationSummary, 0, len(value.Organizations))
 		for _, organization := range value.Organizations {
-			organizations = append(organizations, &v1.AdminUserOrganizationSummary{OrganizationId: organization.OrganizationID.String(), OrganizationName: organization.Name, Primary: organization.Primary})
+			organizations = append(organizations, &v1.AdminUserOrganizationSummary{OrganizationId: organization.OrganizationID.String(), OrganizationName: organization.Name})
 		}
 		result.Organizations = organizations
 	}
@@ -553,7 +549,6 @@ func userMembershipToAPI(value *biz.AdminUserMembership) *v1.AdminUserMembership
 		OrganizationCode: value.OrganizationCode,
 		OrganizationName: value.OrganizationName,
 		OrganizationKind: organizationKindToAPI(value.OrganizationKind),
-		Primary:          value.Primary,
 		Enabled:          value.Enabled,
 		RoleIds:          uuidStrings(value.RoleIDs),
 		RoleCodes:        value.RoleCodes,

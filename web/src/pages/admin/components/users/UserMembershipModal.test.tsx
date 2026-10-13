@@ -55,27 +55,26 @@ function mount(membershipEditing?: API.AdminUserMembership) {
     values: Record<string, unknown>,
   ) => Promise<boolean>;
 }
-describe('公司成员默认工作台保护', () => {
-  it('公司新增成员不设置全局主要组织，即使提交值要求开启', async () => {
+describe('组织成员关系保存', () => {
+  it('新增成员保存组织及选填角色', async () => {
     const finish = mount();
     expect(state.switches).not.toContain('primary');
-    await finish({ organizationId: 'company', primary: true });
+    await finish({ organizationId: 'company' });
     expect(state.create).toHaveBeenCalledWith(
       { userId: 'user' },
       {
         userId: 'user',
         organizationId: 'company',
-        primary: false,
         roleIds: [],
       },
     );
   });
-  it.each([true, false])('公司更新成员保留原主要组织值 %s', async (primary) => {
-    const finish = mount({ id: 'membership', primary });
-    await finish({ primary: !primary, enabled: true });
+  it('编辑成员保存指定关系的角色与状态', async () => {
+    const finish = mount({ id: 'membership' });
+    await finish({ enabled: true });
     expect(state.update).toHaveBeenCalledWith(
       { userId: 'user', id: 'membership' },
-      { userId: 'user', id: 'membership', primary, enabled: true, roleIds: [] },
+      { userId: 'user', id: 'membership', enabled: true, roleIds: [] },
     );
   });
 });

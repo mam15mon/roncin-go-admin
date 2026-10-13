@@ -162,13 +162,11 @@ func TestMembershipToUserBuildsOrganizationSummaries(t *testing.T) {
 		Edges: ent.UserEdges{
 			Memberships: []*ent.Membership{
 				{
-					Primary: false,
 					Edges: ent.MembershipEdges{
 						Organization: &ent.Organization{ID: secondaryOrgID, Name: "B 公司", Enabled: true},
 					},
 				},
 				{
-					Primary: true,
 					Edges: ent.MembershipEdges{
 						Organization: &ent.Organization{ID: primaryOrgID, Name: "A 公司", Enabled: true},
 					},
@@ -186,7 +184,7 @@ func TestMembershipToUserBuildsOrganizationSummaries(t *testing.T) {
 	if len(result.Organizations) != 2 {
 		t.Fatalf("组织摘要数量不符合预期: %d", len(result.Organizations))
 	}
-	if !result.Organizations[0].Primary || result.Organizations[0].Name != "A 公司" {
+	if result.Organizations[0].Name != "A 公司" {
 		t.Fatalf("主组织应排在首位: %#v", result.Organizations[0])
 	}
 	if result.Organizations[0].OrganizationID != primaryOrgID || result.Organizations[1].OrganizationID != secondaryOrgID {

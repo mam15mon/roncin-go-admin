@@ -70,11 +70,8 @@ func preferAdminAnchorMembership(candidates []*ent.Membership) *ent.Membership {
 }
 
 // betterAdminAnchorMembership 报告 candidate 是否比 current 更适合作为锚定成员
-// 关系：primary 优先，其次启用关系，再则创建时间最早；ID 升序做稳定兜底。
+// 关系：优先启用关系，再取创建时间最早；ID 升序做稳定兜底。
 func betterAdminAnchorMembership(candidate, current *ent.Membership) bool {
-	if candidate.Primary != current.Primary {
-		return candidate.Primary
-	}
 	if candidate.Enabled != current.Enabled {
 		return candidate.Enabled
 	}
@@ -199,7 +196,7 @@ func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, in
 		if createErr != nil {
 			return mapEntError(createErr, nil, biz.ErrAdminUsernameExists)
 		}
-		membershipRecord, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(organizationID).SetPrimary(true).SetEnabled(true).Save(ctx)
+		membershipRecord, createErr := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(organizationID).SetEnabled(true).Save(ctx)
 		if createErr != nil {
 			return createErr
 		}
@@ -215,7 +212,7 @@ func (r *adminRepo) CreateUser(ctx context.Context, organizationID uuid.UUID, in
 	return r.findUser(ctx, organizationID, account.ID)
 }
 
-func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUser, error) {
+func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID, input *biz.AdminUser, audit *biz.AuditEvent) (*biz.AdminUser, error) {
 	if _, ok := biz.PrincipalFromContext(ctx); ok && !biz.IsSystemWorkspace(ctx) {
 		return nil, biz.ErrPermissionDenied
 	}
@@ -256,11 +253,6 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		if !account.Enabled && input.Enabled && account.DingtalkUnionid != nil {
 			return biz.ErrAdminUserAuthorizationRequired
 		}
-		// 角色必须与锚定成员关系同组织（既有规则不变）：按锚定组织校验后写入该成员关系。
-		roles, queryErr := rolesForOrganization(ctx, tx.Client(), anchor.OrganizationID, roleIDs)
-		if queryErr != nil {
-			return queryErr
-		}
 		update := tx.User.UpdateOneID(id).SetEnabled(input.Enabled)
 		if account.DingtalkUnionid == nil {
 			update.SetDisplayName(input.DisplayName)
@@ -272,9 +264,6 @@ func (r *adminRepo) UpdateUser(ctx context.Context, organizationID, id uuid.UUID
 		}
 		if _, updateErr := update.Save(ctx); updateErr != nil {
 			return mapEntError(updateErr, biz.ErrAdminUserNotFound, nil)
-		}
-		if replaceErr := replaceRoleAssignments(ctx, tx, anchor.ID, roles); replaceErr != nil {
-			return replaceErr
 		}
 		audit.Details["value"] = account.Username
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -318,7 +307,7 @@ func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.U
 				return deleteErr
 			}
 		}
-		if _, updateErr := tx.Membership.Update().Where(membership.UserIDEQ(id)).SetEnabled(false).SetPrimary(false).Save(ctx); updateErr != nil {
+		if _, updateErr := tx.Membership.Update().Where(membership.UserIDEQ(id)).SetEnabled(false).Save(ctx); updateErr != nil {
 			return updateErr
 		}
 		if _, updateErr := tx.User.UpdateOneID(id).SetEnabled(false).Save(ctx); updateErr != nil {
@@ -418,14 +407,14 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 					return err
 				}
 			}
-			if _, err = tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).SetPrimary(false).Save(txCtx); err != nil {
+			if _, err = tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).Save(txCtx); err != nil {
 				return err
 			}
 			member, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(targetOrganizationID)).Only(txCtx)
 			if ent.IsNotFound(err) {
-				member, err = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).SetPrimary(true).Save(txCtx)
+				member, err = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).Save(txCtx)
 			} else if err == nil {
-				member, err = tx.Membership.UpdateOne(member).SetEnabled(true).SetPrimary(true).Save(txCtx)
+				member, err = tx.Membership.UpdateOne(member).SetEnabled(true).Save(txCtx)
 			}
 			if err != nil {
 				return err
@@ -563,14 +552,13 @@ func membershipToUser(item *ent.Membership) *biz.AdminUser {
 		result.Organizations = append(result.Organizations, &biz.AdminUserOrganizationSummary{
 			OrganizationID: organizationRecord.ID,
 			Name:           organizationRecord.Name,
-			Primary:        membershipRecord.Primary,
 		})
 	}
 	sort.Slice(result.Organizations, func(i, j int) bool {
-		if result.Organizations[i].Primary != result.Organizations[j].Primary {
-			return result.Organizations[i].Primary
+		if result.Organizations[i].Name != result.Organizations[j].Name {
+			return result.Organizations[i].Name < result.Organizations[j].Name
 		}
-		return result.Organizations[i].Name < result.Organizations[j].Name
+		return result.Organizations[i].OrganizationID.String() < result.Organizations[j].OrganizationID.String()
 	})
 	result.Status = adminUserStatus(account, item, len(account.Edges.Memberships) > 0)
 	return result

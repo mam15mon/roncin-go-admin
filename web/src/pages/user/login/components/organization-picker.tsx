@@ -1,6 +1,5 @@
 import { RightOutlined } from '@ant-design/icons';
-import { App, Spin, Tag } from 'antd';
-import clsx from 'clsx';
+import { App, Spin } from 'antd';
 import React, { useState } from 'react';
 import { authServiceSwitchOrganization } from '@/services/roncin/authService';
 import styles from './organization-picker.module.less';
@@ -10,16 +9,9 @@ export interface LoginOrganizationOption {
   organizationId: string;
   organizationName: string;
   organizationCode: string;
-  isDefault: boolean;
 }
 
-/**
- * 解析登录后的候选组织列表。
- *
- * 优先使用登录响应的 organizationChoices（服务端已按默认组织置首并标记）；
- * 钉钉登录响应不携带候选列表，回退到 principal organizations，
- * 并把当前会话组织视为默认组织（未显式选择时的进入组织）。
- */
+/** 密码登录使用服务端候选，钉钉登录使用相同排序口径的工作台集合。 */
 export function resolveLoginOrganizationOptions(
   organizationChoices: API.OrganizationChoice[] | undefined,
   currentUser?: API.CurrentUser,
@@ -31,35 +23,29 @@ export function resolveLoginOrganizationOptions(
         organizationId: choice.organizationId,
         organizationName: choice.organizationName,
         organizationCode: choice.organizationCode,
-        isDefault: Boolean(choice.isDefault),
       }));
   }
-  const currentOrganizationId = currentUser?.currentOrganization?.id;
   return (currentUser?.organizations ?? [])
     .filter((organization) => organization.id)
     .map((organization) => ({
       organizationId: organization.id as string,
       organizationName: organization.name ?? '',
       organizationCode: organization.code ?? '',
-      isDefault: organization.id === currentOrganizationId,
     }));
 }
 
 interface OrganizationPickerProps {
   /** 候选组织（调用方保证多于 1 个才渲染本组件）。 */
   options: LoginOrganizationOption[];
+  currentOrganizationId?: string;
   /** 进入所选组织后完成登录导航。 */
   onEnter: () => void;
 }
 
-/**
- * 登录后的组织选择视图。
- *
- * 登录会话已按默认组织建立：选默认组织直接进入；选其他组织时经
- * switch-organization 换发会话（新凭据由服务端下发），成功后才进入。
- */
+/** 用户明确选择当前会话工作台时直接进入，其他选择通过会话轮转进入。 */
 export function OrganizationPicker({
   options,
+  currentOrganizationId,
   onEnter,
 }: OrganizationPickerProps) {
   const { message } = App.useApp();
@@ -67,7 +53,7 @@ export function OrganizationPicker({
 
   const handleSelect = async (option: LoginOrganizationOption) => {
     if (switchingOrgId) return;
-    if (option.isDefault) {
+    if (option.organizationId === currentOrganizationId) {
       onEnter();
       return;
     }
@@ -104,10 +90,7 @@ export function OrganizationPicker({
             <button
               key={option.organizationId}
               type="button"
-              className={clsx(
-                styles.orgCard,
-                option.isDefault && styles.orgCardDefault,
-              )}
+              className={styles.orgCard}
               disabled={Boolean(switchingOrgId)}
               aria-label={`进入${option.organizationName}`}
               title={option.organizationName}
@@ -120,11 +103,6 @@ export function OrganizationPicker({
                   <span className={styles.orgName}>
                     {option.organizationName}
                   </span>
-                  {option.isDefault && (
-                    <Tag color="blue" className={styles.defaultTag}>
-                      默认
-                    </Tag>
-                  )}
                 </div>
                 <span className={styles.orgCode}>
                   {option.organizationCode}

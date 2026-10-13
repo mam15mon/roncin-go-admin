@@ -23,8 +23,6 @@ const (
 	FieldUserID = "user_id"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
-	// FieldPrimary holds the string denoting the primary field in the database.
-	FieldPrimary = "primary"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
 	// EdgeUser holds the string denoting the user edge name in mutations.
@@ -74,7 +72,6 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldUserID,
 	FieldOrganizationID,
-	FieldPrimary,
 	FieldEnabled,
 }
 
@@ -95,8 +92,6 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultPrimary holds the default value on creation for the "primary" field.
-	DefaultPrimary bool
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
 	// DefaultID holds the default value on creation for the "id" field.
@@ -129,11 +124,6 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 // ByOrganizationID orders the results by the organization_id field.
 func ByOrganizationID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrganizationID, opts...).ToFunc()
-}
-
-// ByPrimary orders the results by the primary field.
-func ByPrimary(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPrimary, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.

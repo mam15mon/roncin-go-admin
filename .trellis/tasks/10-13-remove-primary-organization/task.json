@@ -3,7 +3,7 @@
   "name": "remove-primary-organization",
   "title": "取消主要组织配置并明确角色编辑目标",
   "description": "移除主要组织配置及其登录和角色编辑依赖，按成员关系明确维护组织角色",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": "auth/admin",
   "package": null,
@@ -33,6 +33,6 @@
     "web/src/pages/user/login",
     "web/src/pages/admin/components/users"
   ],
-  "notes": "D1–D8 产品规则已收敛，PRD/设计/实施计划及上下文清单齐备；等待最新整体方案审阅后明确批准实施，保持 planning。",
+  "notes": "2026-10-13 用户在最新完整方案后明确回复“开始”，批准实施；按父任务实施计划串行激活子任务。",
   "meta": {}
 }

@@ -4787,12 +4787,8 @@ func init() {
 	membership.DefaultUpdatedAt = membershipDescUpdatedAt.Default.(func() time.Time)
 	// membership.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	membership.UpdateDefaultUpdatedAt = membershipDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// membershipDescPrimary is the schema descriptor for primary field.
-	membershipDescPrimary := membershipFields[2].Descriptor()
-	// membership.DefaultPrimary holds the default value on creation for the primary field.
-	membership.DefaultPrimary = membershipDescPrimary.Default.(bool)
 	// membershipDescEnabled is the schema descriptor for enabled field.
-	membershipDescEnabled := membershipFields[3].Descriptor()
+	membershipDescEnabled := membershipFields[2].Descriptor()
 	// membership.DefaultEnabled holds the default value on creation for the enabled field.
 	membership.DefaultEnabled = membershipDescEnabled.Default.(bool)
 	// membershipDescID is the schema descriptor for id field.

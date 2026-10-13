@@ -64,7 +64,8 @@ func TestAuthUsecaseDingTalkAuthorizedLoginCreatesSession(t *testing.T) {
 	organizationID := uuid.New()
 	userID := uuid.New()
 	repo := &authRepoStub{
-		credential: &Credential{UserID: userID, PrimaryOrganizationID: organizationID, Enabled: true},
+		credential: &Credential{UserID: userID, Enabled: true},
+		choices:    []OrganizationChoice{{OrganizationID: organizationID}},
 	}
 	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
 	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, nil)

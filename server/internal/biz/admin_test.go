@@ -83,7 +83,7 @@ func (s *adminRepoStub) CreateUser(_ context.Context, _ uuid.UUID, input *AdminU
 	return input, nil
 }
 
-func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, _ []uuid.UUID, audit *AuditEvent) (*AdminUser, error) {
+func (s *adminRepoStub) UpdateUser(_ context.Context, _ uuid.UUID, _ uuid.UUID, input *AdminUser, audit *AuditEvent) (*AdminUser, error) {
 	s.auditEvent = audit
 	return input, nil
 }
@@ -650,12 +650,12 @@ func TestNormalizeRoleRejectsUnspecifiedDataScope(t *testing.T) {
 
 func TestAdminUsecaseUpdateUserRejectsNilID(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{})
-	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.Nil, &AdminUser{ID: uuid.Nil, DisplayName: "用户"}, nil); err != ErrAdminInvalidArgument {
+	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.Nil, &AdminUser{ID: uuid.Nil, DisplayName: "用户"}); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUser() error = %v, want ErrAdminInvalidArgument", err)
 	}
 }
 
-func TestAdminUsecaseUpdateUserValidatesRolesAgainstAnchorOrganization(t *testing.T) {
+func TestAdminUsecaseUpdateUserLeavesRolesUnchanged(t *testing.T) {
 	workspaceID, actorID, userID := uuid.New(), uuid.New(), uuid.New()
 	anchorOrganizationID, roleID := uuid.New(), uuid.New()
 	repo := &adminRepoStub{
@@ -665,16 +665,16 @@ func TestAdminUsecaseUpdateUserValidatesRolesAgainstAnchorOrganization(t *testin
 	repo.roleProfiles = []*AdminRoleProfile{{ID: roleID, Code: "operator", DataScope: DataScopeOrganization, PermissionKeys: []string{"user_update"}}}
 	usecase := NewAdminUsecase(repo)
 
-	updated, err := usecase.UpdateUser(context.Background(), workspaceID, actorID, userID, &AdminUser{ID: userID, DisplayName: "锚定用户"}, []uuid.UUID{roleID})
+	updated, err := usecase.UpdateUser(context.Background(), workspaceID, actorID, userID, &AdminUser{ID: userID, DisplayName: "锚定用户"})
 	if err != nil {
 		t.Fatalf("UpdateUser() error = %v", err)
 	}
 	if updated == nil || updated.ID != userID {
 		t.Fatalf("UpdateUser() 结果 = %#v", updated)
 	}
-	// 角色提权校验的目标组织必须是锚定成员关系所在组织，而不是当前工作台组织。
-	if repo.roleProfileTarget != anchorOrganizationID {
-		t.Fatalf("角色校验目标组织 = %v, want 锚定组织 %v", repo.roleProfileTarget, anchorOrganizationID)
+	// 资料编辑不读取或修改任何组织的角色。
+	if repo.roleProfileTarget != uuid.Nil {
+		t.Fatalf("资料编辑不应校验角色：%v", repo.roleProfileTarget)
 	}
 }
 
@@ -682,7 +682,7 @@ func TestAdminUsecaseUpdateUserPropagatesAnchorNotFound(t *testing.T) {
 	repo := &adminRepoStub{userAnchorErr: ErrAdminUserNotFound}
 	usecase := NewAdminUsecase(repo)
 
-	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), &AdminUser{DisplayName: "任意"}, nil); err != ErrAdminUserNotFound {
+	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), &AdminUser{DisplayName: "任意"}); err != ErrAdminUserNotFound {
 		t.Fatalf("UpdateUser() error = %v, want ErrAdminUserNotFound", err)
 	}
 	if repo.auditEvent != nil {
@@ -698,14 +698,14 @@ func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
 	organizationID := uuid.New()
 	roleID := uuid.New()
 
-	if _, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, uuid.Nil, false, nil); err != ErrAdminInvalidArgument {
+	if _, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, uuid.Nil, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("CreateUserMembership() missing organization error = %v", err)
 	}
-	created, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, organizationID, true, []uuid.UUID{roleID})
+	created, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, organizationID, []uuid.UUID{roleID})
 	if err != nil {
 		t.Fatalf("CreateUserMembership() error = %v", err)
 	}
-	if created.OrganizationID != organizationID || !created.Enabled || !created.Primary {
+	if created.OrganizationID != organizationID || !created.Enabled {
 		t.Fatalf("created membership = %#v", created)
 	}
 	if len(repo.membershipRoleIDs) != 1 || repo.membershipRoleIDs[0] != roleID {
@@ -716,13 +716,13 @@ func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
 	}
 }
 
-func TestAdminUsecaseUpdateUserMembershipRejectsDisabledPrimary(t *testing.T) {
+func TestAdminUsecaseUpdateUserMembershipRejectsInvalidArgumentAndSelfDisable(t *testing.T) {
 	usecase := NewAdminUsecase(&adminRepoStub{})
-	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), false, true, nil); err != ErrAdminInvalidArgument {
+	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.Nil, uuid.New(), uuid.New(), uuid.New(), false, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUserMembership() error = %v, want ErrAdminInvalidArgument", err)
 	}
 	actorID := uuid.New()
-	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), actorID, actorID, uuid.New(), false, false, nil); err != ErrAdminUserSelfDelete {
+	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.New(), actorID, actorID, uuid.New(), false, nil); err != ErrAdminUserSelfDelete {
 		t.Fatalf("UpdateUserMembership() self-disable error = %v, want ErrAdminUserSelfDelete", err)
 	}
 }

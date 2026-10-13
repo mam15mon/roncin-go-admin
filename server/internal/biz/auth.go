@@ -58,12 +58,11 @@ type Organization struct {
 
 // OrganizationChoice 是登录组织选择与应用内切换器共用的「工作台」候选视图。
 // 工作台 = 组织树中 kind ∈ {system, company} 的启用节点；部门/团队任何情况下
-// 不是工作台，不进入候选。IsDefault 对应用户 primary 成员关系映射出的工作台。
+// 不是工作台，不进入候选。
 type OrganizationChoice struct {
 	OrganizationID   uuid.UUID
 	OrganizationName string
 	OrganizationCode string
-	IsDefault        bool
 	// Kind 供前端推导主数据维护视角（系统管理/公司）；部门/团队不进入候选。
 	Kind OrganizationKind
 }
@@ -109,8 +108,7 @@ type Credential struct {
 	PasswordHash      *string
 	Enabled           bool
 	// IsBootstrapAdmin 仅标记初始化管理员，不赋予成员资格或跨公司权限。
-	IsBootstrapAdmin      bool
-	PrimaryOrganizationID uuid.UUID
+	IsBootstrapAdmin bool
 }
 
 type DingTalkIdentity struct {
@@ -456,8 +454,7 @@ type AuthRepo interface {
 	FindDingTalkCredential(context.Context, *DingTalkIdentity) (*Credential, error)
 	// ListEnabledMembershipOrganizations 返回普通用户的工作台候选：系统管理节点要求本人
 	// 系统管理节点本身的启用成员关系；公司节点要求本人在该公司节点或其子树内任一启用节点
-	// 有启用成员关系（部门成员关系让所属公司成为候选）。IsDefault 按 primary 成员
-	// 关系映射出的工作台标记。
+	// 有启用成员关系（部门成员关系让所属公司成为候选）。
 	ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error)
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session, string, *AuditEvent) error
@@ -510,8 +507,8 @@ const (
 )
 
 // Login 校验账号口令后建立会话；requestedOrganizationID 非空时必须属于当前账号的
-// 工作台候选（有效成员关系向上取整出的启用系统管理/公司节点），否则返回参数错误（不静默回退默认组织）。未指定时沿用
-// 默认工作台（primary 成员关系所在组织向上取整到所属系统管理/公司）。
+// 工作台候选，否则返回参数错误。未指定时按名称和 ID 排序后的首项建立初始会话；
+// 多工作台用户仍需在前端明确选择当次工作台。
 func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string, requestedOrganizationID uuid.UUID, userAgent, ipAddress string) (*AuthSessionResult, error) {
 	normalizedUsername := strings.ToLower(strings.TrimSpace(username))
 	now := time.Now().UTC()
@@ -542,11 +539,14 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string
 	if !matched {
 		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
 	}
-	organizationID := credential.PrimaryOrganizationID
 	choices, err := uc.listOrganizationChoices(ctx, credential.UserID)
 	if err != nil {
 		return nil, err
 	}
+	if len(choices) == 0 {
+		return nil, ErrOrganizationForbidden
+	}
+	organizationID := choices[0].OrganizationID
 	if requestedOrganizationID != uuid.Nil {
 		if !organizationChoicesContain(choices, requestedOrganizationID) {
 			return nil, ErrAuthOrganizationInvalid
@@ -623,7 +623,14 @@ func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expec
 	if !credential.Enabled {
 		return &DingTalkLoginResult{Status: DingTalkLoginStatusDisabled, Message: "账号已停用，请联系管理员", DisplayName: credential.DisplayName}, nil
 	}
-	result, err := uc.createSession(ctx, credential, credential.PrimaryOrganizationID, nil, userAgent, "auth.dingtalk.login", "")
+	choices, err := uc.listOrganizationChoices(ctx, credential.UserID)
+	if err != nil {
+		return nil, err
+	}
+	if len(choices) == 0 {
+		return nil, ErrOrganizationForbidden
+	}
+	result, err := uc.createSession(ctx, credential, choices[0].OrganizationID, choices, userAgent, "auth.dingtalk.login", "")
 	if err != nil {
 		return nil, err
 	}
@@ -715,7 +722,7 @@ func (uc *AuthUsecase) listOrganizationChoices(ctx context.Context, userID uuid.
 
 // listEnabledMembershipOrganizations 返回登录组织选择与切换入口共用的普通用户工作台
 // 候选列表（谓词实现见仓储 ListEnabledMembershipOrganizations），
-// 默认工作台置首并标记，其余按组织名称稳定排序。
+// 按组织名称和 ID 稳定排序。
 func (uc *AuthUsecase) listEnabledMembershipOrganizations(ctx context.Context, userID uuid.UUID) ([]OrganizationChoice, error) {
 	choices, err := uc.repo.ListEnabledMembershipOrganizations(ctx, userID)
 	if err != nil {
@@ -727,9 +734,6 @@ func (uc *AuthUsecase) listEnabledMembershipOrganizations(ctx context.Context, u
 
 func sortOrganizationChoices(choices []OrganizationChoice) {
 	sort.SliceStable(choices, func(i, j int) bool {
-		if choices[i].IsDefault != choices[j].IsDefault {
-			return choices[i].IsDefault
-		}
 		if choices[i].OrganizationName != choices[j].OrganizationName {
 			return choices[i].OrganizationName < choices[j].OrganizationName
 		}

@@ -185,7 +185,7 @@ func bootstrapWithMigrations(ctx context.Context, config *bootstrapConfig, migra
 		if err != nil {
 			return fmt.Errorf("create administrator: %w", err)
 		}
-		membership, err := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(organization.ID).SetPrimary(true).Save(ctx)
+		membership, err := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(organization.ID).Save(ctx)
 		if err != nil {
 			return fmt.Errorf("create administrator membership: %w", err)
 		}

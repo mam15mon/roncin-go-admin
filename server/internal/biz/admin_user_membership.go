@@ -20,7 +20,6 @@ type AdminUserMembership struct {
 	OrganizationCode string
 	OrganizationName string
 	OrganizationKind OrganizationKind
-	Primary          bool
 	Enabled          bool
 	RoleIDs          []uuid.UUID
 	RoleCodes        []string
@@ -36,7 +35,7 @@ func (uc *AdminUsecase) ListUserMemberships(ctx context.Context, userID uuid.UUI
 	return uc.repo.ListUserMemberships(ctx, userID)
 }
 
-func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorOrganizationID, actorID, userID, organizationID uuid.UUID, primary bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorOrganizationID, actorID, userID, organizationID uuid.UUID, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
 	if actorOrganizationID == uuid.Nil || actorID == uuid.Nil || userID == uuid.Nil || organizationID == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
@@ -46,14 +45,13 @@ func (uc *AdminUsecase) CreateUserMembership(ctx context.Context, actorOrganizat
 	created, err := uc.repo.CreateUserMembership(ctx, &AdminUserMembership{
 		UserID:         userID,
 		OrganizationID: organizationID,
-		Primary:        primary,
 		Enabled:        true,
 	}, roleIDs, adminAuditEvent(ctx, actorID, &userID, "admin.user.membership.create", organizationID.String()))
 	return created, err
 }
 
-func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorOrganizationID, actorID, userID, membershipID uuid.UUID, enabled, primary bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
-	if actorOrganizationID == uuid.Nil || actorID == uuid.Nil || userID == uuid.Nil || membershipID == uuid.Nil || (primary && !enabled) {
+func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorOrganizationID, actorID, userID, membershipID uuid.UUID, enabled bool, roleIDs []uuid.UUID) (*AdminUserMembership, error) {
+	if actorOrganizationID == uuid.Nil || actorID == uuid.Nil || userID == uuid.Nil || membershipID == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
 	if actorID == userID && !enabled {
@@ -70,7 +68,6 @@ func (uc *AdminUsecase) UpdateUserMembership(ctx context.Context, actorOrganizat
 		ID:      membershipID,
 		UserID:  userID,
 		Enabled: enabled,
-		Primary: primary,
 	}, roleIDs, adminAuditEvent(ctx, actorID, &userID, "admin.user.membership.update", currentMembership.OrganizationID.String()))
 	return updated, err
 }

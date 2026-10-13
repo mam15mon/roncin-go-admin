@@ -114,7 +114,6 @@ describe('buildUserColumns 按页签隐藏操作列', () => {
             {
               organizationId: 'dept-1',
               organizationName: '北京财务',
-              primary: true,
             },
           ],
         } as API.AdminUser)}

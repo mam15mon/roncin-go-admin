@@ -43,8 +43,10 @@ export default function Login() {
   const [passwordValue, setPasswordValue] = useState('');
   const [dingtalkEnabled, setDingtalkEnabled] = useState(false);
   const [dingtalkLoading, setDingtalkLoading] = useState(false);
-  const [organizationOptions, setOrganizationOptions] =
-    useState<LoginOrganizationOption[]>();
+  const [organizationSelection, setOrganizationSelection] = useState<{
+    options: LoginOrganizationOption[];
+    currentOrganizationId?: string;
+  }>();
   const [pendingRedirect, setPendingRedirect] = useState('/');
   useEffect(() => {
     authServiceGetDingTalkLoginConfig({ skipErrorHandler: true })
@@ -74,11 +76,14 @@ export default function Login() {
       startTransition(() => {
         setInitialState((state) => ({ ...state, currentUser: response.data }));
       });
-      // 多组织用户先选择进入组织：会话已按默认组织建立，
+      // 多组织用户先选择进入组织：会话已按候选顺序建立，
       // 选其他组织时由选择视图经 switch-organization 换发会话后进入。
       if (options.length > 1) {
         setPendingRedirect(redirect);
-        setOrganizationOptions(options);
+        setOrganizationSelection({
+          options,
+          currentOrganizationId: response.data.currentOrganization?.id,
+        });
         return;
       }
       finishLogin(redirect);
@@ -148,9 +153,10 @@ export default function Login() {
 
       {/* ── 右侧：认证表单区 / 登录后组织选择区 ── */}
       <div className={styles.formSection}>
-        {organizationOptions && organizationOptions.length > 1 ? (
+        {organizationSelection && organizationSelection.options.length > 1 ? (
           <OrganizationPicker
-            options={organizationOptions}
+            options={organizationSelection.options}
+            currentOrganizationId={organizationSelection.currentOrganizationId}
             onEnter={() => {
               finishLogin(pendingRedirect);
             }}

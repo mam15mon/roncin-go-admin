@@ -162,7 +162,7 @@ describe('DingTalkCallback', () => {
     );
   });
 
-  it('多组织用户选默认组织不发起切换', async () => {
+  it('多组织用户选本次会话组织不发起切换', async () => {
     sessionStorage.setItem('dingtalk_login_redirect', '/welcome');
     const organizations = [
       { id: 'org-1', code: 'TJ', name: '天津公司' },

@@ -91,43 +91,43 @@ func authServicePasswordHash(t *testing.T) *string {
 }
 
 func TestAuthServiceLoginResponseIncludesOrganizationChoices(t *testing.T) {
-	primaryID, branchID := uuid.New(), uuid.New()
+	firstID, branchID := uuid.New(), uuid.New()
 	userID := uuid.New()
 	repo := &authServiceRepoStub{
-		credential: &biz.Credential{UserID: userID, PasswordHash: authServicePasswordHash(t), Enabled: true, PrimaryOrganizationID: primaryID},
+		credential: &biz.Credential{UserID: userID, PasswordHash: authServicePasswordHash(t), Enabled: true},
 		choices: []biz.OrganizationChoice{
-			{OrganizationID: primaryID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
+			{OrganizationID: firstID, OrganizationName: "北京公司", OrganizationCode: "BJ"},
 			{OrganizationID: branchID, OrganizationName: "成都公司", OrganizationCode: "CD"},
 		},
-		principalsByOrg: map[uuid.UUID]*biz.Principal{primaryID: {UserID: userID, Organization: biz.Organization{ID: primaryID, Name: "北京公司", Code: "BJ"}}},
+		principalsByOrg: map[uuid.UUID]*biz.Principal{firstID: {UserID: userID, Organization: biz.Organization{ID: firstID, Name: "北京公司", Code: "BJ"}}},
 	}
 
 	response, err := newAuthServiceForTest(repo).Login(context.Background(), requestWithOrganization("admin", "correct-password", ""))
 	if err != nil {
 		t.Fatalf("Login() error = %v", err)
 	}
-	if response.Data.CurrentOrganization.Id != primaryID.String() {
-		t.Fatalf("默认登录当前组织 = %s，期望 %s", response.Data.CurrentOrganization.Id, primaryID)
+	if response.Data.CurrentOrganization.Id != firstID.String() {
+		t.Fatalf("初始会话当前工作台 = %s，期望 %s", response.Data.CurrentOrganization.Id, firstID)
 	}
 	if len(response.OrganizationChoices) != 2 {
 		t.Fatalf("登录响应候选组织 = %#v", response.OrganizationChoices)
 	}
 	first, second := response.OrganizationChoices[0], response.OrganizationChoices[1]
-	if first.OrganizationId != primaryID.String() || first.OrganizationName != "北京公司" || first.OrganizationCode != "BJ" || !first.IsDefault {
-		t.Fatalf("默认候选映射不完整: %#v", first)
+	if first.OrganizationId != firstID.String() || first.OrganizationName != "北京公司" || first.OrganizationCode != "BJ" {
+		t.Fatalf("首项候选映射不完整: %#v", first)
 	}
-	if second.OrganizationId != branchID.String() || second.IsDefault {
-		t.Fatalf("非默认候选映射不完整: %#v", second)
+	if second.OrganizationId != branchID.String() {
+		t.Fatalf("第二项候选映射不完整: %#v", second)
 	}
 }
 
 func TestAuthServiceLoginPassesThroughRequestedOrganization(t *testing.T) {
-	primaryID, branchID := uuid.New(), uuid.New()
+	firstID, branchID := uuid.New(), uuid.New()
 	userID := uuid.New()
 	repo := &authServiceRepoStub{
-		credential: &biz.Credential{UserID: userID, PasswordHash: authServicePasswordHash(t), Enabled: true, PrimaryOrganizationID: primaryID},
+		credential: &biz.Credential{UserID: userID, PasswordHash: authServicePasswordHash(t), Enabled: true},
 		choices: []biz.OrganizationChoice{
-			{OrganizationID: primaryID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
+			{OrganizationID: firstID, OrganizationName: "北京公司", OrganizationCode: "BJ"},
 			{OrganizationID: branchID, OrganizationName: "成都公司", OrganizationCode: "CD"},
 		},
 		principalsByOrg: map[uuid.UUID]*biz.Principal{branchID: {UserID: userID, Organization: biz.Organization{ID: branchID, Name: "成都公司", Code: "CD"}}},
@@ -146,7 +146,7 @@ func TestAuthServiceLoginPassesThroughRequestedOrganization(t *testing.T) {
 }
 
 func TestAuthServiceLoginRejectsInvalidOrganizationID(t *testing.T) {
-	repo := &authServiceRepoStub{credential: &biz.Credential{UserID: uuid.New(), PasswordHash: authServicePasswordHash(t), Enabled: true, PrimaryOrganizationID: uuid.New()}}
+	repo := &authServiceRepoStub{credential: &biz.Credential{UserID: uuid.New(), PasswordHash: authServicePasswordHash(t), Enabled: true}}
 
 	_, err := newAuthServiceForTest(repo).Login(context.Background(), requestWithOrganization("admin", "correct-password", "not-a-uuid"))
 	if err != biz.ErrAuthOrganizationInvalid {
@@ -162,7 +162,7 @@ func TestAuthServiceSwitchOrganizationResponseSameShapeAsLogin(t *testing.T) {
 	userID := uuid.New()
 	repo := &authServiceRepoStub{
 		choices: []biz.OrganizationChoice{
-			{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
+			{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ"},
 			{OrganizationID: targetID, OrganizationName: "成都公司", OrganizationCode: "CD"},
 		},
 		principalsByOrg: map[uuid.UUID]*biz.Principal{targetID: {UserID: userID, Organization: biz.Organization{ID: targetID, Name: "成都公司", Code: "CD"}}},
@@ -190,7 +190,7 @@ func TestAuthServiceSwitchOrganizationResponseSameShapeAsLogin(t *testing.T) {
 func TestAuthServiceSwitchOrganizationForbidden(t *testing.T) {
 	sourceID := uuid.New()
 	repo := &authServiceRepoStub{
-		choices: []biz.OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true}},
+		choices: []biz.OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ"}},
 	}
 	ctx := biz.WithPrincipal(context.Background(), &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"})
 

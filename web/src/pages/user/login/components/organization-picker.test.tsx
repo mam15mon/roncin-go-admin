@@ -39,13 +39,11 @@ const multiOrgOptions = [
     organizationId: 'org-1',
     organizationName: '天津公司',
     organizationCode: 'TJ',
-    isDefault: true,
   },
   {
     organizationId: 'org-2',
     organizationName: '北京公司',
     organizationCode: 'BJ',
-    isDefault: false,
   },
 ];
 
@@ -55,7 +53,11 @@ function renderPicker(
 ) {
   return render(
     <App>
-      <OrganizationPicker options={options} onEnter={onEnter} />
+      <OrganizationPicker
+        options={options}
+        currentOrganizationId="org-1"
+        onEnter={onEnter}
+      />
     </App>,
   );
 }
@@ -69,7 +71,7 @@ describe('OrganizationPicker', () => {
     cleanup();
   });
 
-  it('渲染候选组织卡片：名称、编码与默认标记', () => {
+  it('渲染候选组织卡片：名称、编码且没有默认标记', () => {
     renderPicker();
 
     expect(screen.getByText('选择进入的组织')).toBeInTheDocument();
@@ -81,10 +83,10 @@ describe('OrganizationPicker', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('TJ')).toBeInTheDocument();
     expect(screen.getByText('BJ')).toBeInTheDocument();
-    expect(screen.getByText('默认')).toBeInTheDocument();
+    expect(screen.queryByText('默认')).not.toBeInTheDocument();
   });
 
-  it('点击默认组织：不调用切换接口，直接进入', () => {
+  it('点击本次会话组织：不调用切换接口，直接进入', () => {
     const onEnter = vi.fn();
     renderPicker(multiOrgOptions, onEnter);
 
@@ -152,19 +154,17 @@ describe('OrganizationPicker', () => {
 });
 
 describe('resolveLoginOrganizationOptions', () => {
-  it('登录响应携带候选列表时优先使用并保留默认标记', () => {
+  it('登录响应携带候选列表时优先使用服务端排序结果', () => {
     const choices: API.OrganizationChoice[] = [
       {
         organizationId: 'org-1',
         organizationName: '天津公司',
         organizationCode: 'TJ',
-        isDefault: true,
       },
       {
         organizationId: 'org-2',
         organizationName: '北京公司',
         organizationCode: 'BJ',
-        isDefault: false,
       },
     ];
 
@@ -173,18 +173,16 @@ describe('resolveLoginOrganizationOptions', () => {
         organizationId: 'org-1',
         organizationName: '天津公司',
         organizationCode: 'TJ',
-        isDefault: true,
       },
       {
         organizationId: 'org-2',
         organizationName: '北京公司',
         organizationCode: 'BJ',
-        isDefault: false,
       },
     ]);
   });
 
-  it('无候选列表时回退 principal organizations，会话组织视为默认', () => {
+  it('无候选列表时回退 principal organizations，使用相同工作台集合', () => {
     const currentUser: API.CurrentUser = {
       id: 'user-1',
       currentOrganization: { id: 'org-bj', code: 'BJ', name: '北京公司' },
@@ -199,13 +197,11 @@ describe('resolveLoginOrganizationOptions', () => {
         organizationId: 'org-bj',
         organizationName: '北京公司',
         organizationCode: 'BJ',
-        isDefault: true,
       },
       {
         organizationId: 'org-cd',
         organizationName: '成都公司',
         organizationCode: 'CD',
-        isDefault: false,
       },
     ]);
   });

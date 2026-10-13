@@ -109,12 +109,12 @@ func TestAuthUsecaseSuccessfulLoginClearsOnlyAccountBucket(t *testing.T) {
 	if err != nil {
 		t.Fatalf("password.Hash() error = %v", err)
 	}
-	organizationID := uuid.New()
 	userID := uuid.New()
 	accountKey, keys := loginRateLimitKeys("admin", "127.0.0.1")
 	ipKey := keys[1]
 	repo := &loginRateLimitRepoStub{
-		loginCredential: &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true, PrimaryOrganizationID: organizationID},
+		authRepoStub:    authRepoStub{choices: []OrganizationChoice{{OrganizationID: uuid.New()}}},
+		loginCredential: &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true},
 		counts:          map[string]int{accountKey: 2, ipKey: 2},
 	}
 
@@ -134,7 +134,7 @@ func TestAuthUsecaseEmptyPasswordHashRecordsFailure(t *testing.T) {
 	_, keys := loginRateLimitKeys("zhaofang", "127.0.0.1")
 	emptyHash := ""
 	repo := &loginRateLimitRepoStub{
-		loginCredential: &Credential{UserID: uuid.New(), PasswordHash: &emptyHash, PrimaryOrganizationID: uuid.New()},
+		loginCredential: &Credential{UserID: uuid.New(), PasswordHash: &emptyHash},
 		counts:          make(map[string]int),
 	}
 

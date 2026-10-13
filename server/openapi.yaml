@@ -8592,8 +8592,6 @@ components:
                 organizationKind:
                     type: integer
                     format: enum
-                primary:
-                    type: boolean
                 enabled:
                     type: boolean
                 roleIds:
@@ -8619,8 +8617,6 @@ components:
                     type: string
                 organizationName:
                     type: string
-                primary:
-                    type: boolean
             description: 用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。
         admin.v1.AuthorizeDingTalkUserRequest:
             required:
@@ -8762,8 +8758,6 @@ components:
                     type: array
                     items:
                         type: string
-                primary:
-                    type: boolean
         admin.v1.CreateUserMembershipResponse:
             type: object
             properties:
@@ -9215,8 +9209,6 @@ components:
                         type: string
                 enabled:
                     type: boolean
-                primary:
-                    type: boolean
         admin.v1.UpdateUserMembershipResponse:
             type: object
             properties:
@@ -9244,10 +9236,6 @@ components:
                     type: string
                 enabled:
                     type: boolean
-                roleIds:
-                    type: array
-                    items:
-                        type: string
         admin.v1.UpdateUserResponse:
             type: object
             properties:
@@ -9440,8 +9428,6 @@ components:
                     type: string
                 organizationCode:
                     type: string
-                isDefault:
-                    type: boolean
                 kind:
                     type: integer
                     description: 组织节点类型，供前端推导主数据维护视角（系统管理/公司）。

@@ -26,7 +26,6 @@ var (
 type AdminUserOrganizationSummary struct {
 	OrganizationID uuid.UUID
 	Name           string
-	Primary        bool
 }
 
 type AdminUser struct {
@@ -111,20 +110,16 @@ func (uc *AdminUsecase) CreateUser(ctx context.Context, organizationID, actorID 
 	return uc.repo.CreateUser(ctx, organizationID, normalized, hash, roleIDs, adminAuditEvent(ctx, actorID, nil, "admin.user.create", normalized.Username))
 }
 
-func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID, id uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
+func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID, id uuid.UUID, input *AdminUser) (*AdminUser, error) {
 	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {
 		return nil, ErrPermissionDenied
 	}
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || input == nil {
 		return nil, ErrAdminInvalidArgument
 	}
-	// 先取工作台管理范围下的锚定视图：角色必须与锚定成员关系同组织，提权校验与
-	// 事务内写入都按锚定组织执行（与成员关系编辑的校验顺序一致）。
+	// 基础资料保存只校验当前工作台可见用户，角色通过明确的成员关系独立维护。
 	current, err := uc.repo.GetUser(ctx, organizationID, id)
 	if err != nil {
-		return nil, err
-	}
-	if err := uc.validateRolesPrivilege(ctx, organizationID, actorID, current.CurrentOrganizationID, roleIDs); err != nil {
 		return nil, err
 	}
 	normalized := input
@@ -134,7 +129,7 @@ func (uc *AdminUsecase) UpdateUser(ctx context.Context, organizationID, actorID,
 			return nil, err
 		}
 	}
-	return uc.repo.UpdateUser(ctx, organizationID, id, normalized, roleIDs, adminAuditEvent(ctx, actorID, &id, "admin.user.update", ""))
+	return uc.repo.UpdateUser(ctx, organizationID, id, normalized, adminAuditEvent(ctx, actorID, &id, "admin.user.update", ""))
 }
 func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
 	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {

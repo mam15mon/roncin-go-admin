@@ -8,6 +8,7 @@ import (
 )
 
 type authRepoStub struct {
+	choices        []OrganizationChoice
 	credential     *Credential
 	createdSession *Session
 	auditActions   []string
@@ -48,7 +49,7 @@ func (s *authRepoStub) FindSession(context.Context, string, time.Time) (*Session
 }
 
 func (s *authRepoStub) ListEnabledMembershipOrganizations(context.Context, uuid.UUID) ([]OrganizationChoice, error) {
-	return nil, nil
+	return s.choices, nil
 }
 
 func (s *authRepoStub) RotateSession(_ context.Context, _ string, _ *Session, _ time.Time, audit *AuditEvent) error {

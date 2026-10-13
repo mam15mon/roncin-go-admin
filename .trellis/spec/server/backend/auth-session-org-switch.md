@@ -11,7 +11,7 @@
 POST /api/v1/auth/login                     body 可选 organization_id（显式选择进组织）
 POST /api/v1/auth/switch-organization       body organization_id（REQUIRED，需有效会话）
 LoginResponse / SwitchOrganizationResponse: organization_choices[]（与登录同构）
-OrganizationChoice: organization_id/name/code/is_default（默认置首标记，名称+ID 确定性排序）
+OrganizationChoice: organization_id/name/code（名称+ID 确定性排序，无默认工作台配置）
 ```
 
 ```go
@@ -41,10 +41,14 @@ RotateSession(ctx, userID, currentTokenHash, targetOrgID, ...)  // 单事务轮�
 - **工作台经营边界**：系统管理工作台仅管理公共资料、公司授权及无组织待分配人员；经营读取和办理须进入启用公司。登录、auth/me 与切换响应输出相同有效权限集合，全部经营读写权限在系统管理工作台不可用；账号原始授权不因投影过滤而删除。跨组织详情查询临时定位组织必须保留 `Principal.WorkspaceOrganizationID`，不能当作实际切换。
 - **权限随组织重算**：切换后 `ResolvePrincipal(userID, targetOrgID)` 重算权限集；
   principal/token 一律取自会话（`RequirePrincipal`），请求体只携带目标组织。
-- **primary 语义不变**：不显式选择时登录进 primary；每次登录默认回 primary，选择只影响
-  当次会话（不记忆）。
-- 钉钉登录响应不携带 organization_choices（设计范围），前端以 principal
-  organizations 兜底派生候选，经切换进入非默认组织。
+- **工作台选择**：成员关系没有 primary 字段，组织管理不提供默认进入配置。仅一个有效
+  工作台时直接进入；多个有效工作台时，密码与钉钉登录均先展示选择页。后端可按名称+ID
+  的稳定顺序建立初始会话，该内部顺序不向用户表达为默认推荐，也不记忆上次选择。
+- 密码登录响应使用 organization_choices；钉钉登录以 principal.organizations 派生同构
+  候选。选择当前会话所属工作台直接进入，选择其他工作台通过 SwitchOrganization 轮转；
+  当前组织依据会话 organization_id 判断，禁止使用候选位置推断。
+- **角色编辑目标**：成员角色只通过明确的 membership_id 编辑；用户基本资料更新不接受
+  role_ids，也不从成员列表中猜测角色写入目标。创建用户时仍可设置已明确初始组织的角色。
 
 ## 4. Validation & Error Matrix
 

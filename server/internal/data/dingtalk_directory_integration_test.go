@@ -22,7 +22,7 @@ func directoryAdministrator(t *testing.T, data *Data, sys uuid.UUID) (context.Co
 	if err != nil {
 		t.Fatal(err)
 	}
-	member, err := data.db.Membership.Create().SetUserID(actor.ID).SetOrganizationID(sys).SetEnabled(true).SetPrimary(true).Save(ctx)
+	member, err := data.db.Membership.Create().SetUserID(actor.ID).SetOrganizationID(sys).SetEnabled(true).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 	if success != 1 || conflicts != 1 {
 		t.Fatalf("两管理员开通 %d成功 %d冲突", success, conflicts)
 	}
-	if credential, err := (&authRepo{data: data}).FindDingTalkCredential(ctx, &biz.DingTalkIdentity{UnionID: "union-a", UserID: "user-a", Name: "扫码昵称"}); err != nil || credential.PrimaryOrganizationID != company.ID || credential.DisplayName != "待分配人员" {
+	if credential, err := (&authRepo{data: data}).FindDingTalkCredential(ctx, &biz.DingTalkIdentity{UnionID: "union-a", UserID: "user-a", Name: "扫码昵称"}); err != nil || credential.UserID != person.ID || credential.DisplayName != "待分配人员" {
 		t.Fatalf("默认公司和姓名来源: %+v %v", credential, err)
 	}
 
@@ -248,10 +248,10 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 	if n, err := data.db.Membership.Query().Where(membership.UserIDEQ(invalidPerson.ID)).Count(ctx); err != nil || n != 0 {
 		t.Fatalf("失败开通残留成员关系: %d %v", n, err)
 	}
-	if _, err := uc.UpdateUser(ctx, sys.ID, actor, person.ID, &biz.AdminUser{ID: person.ID, DisplayName: "擅自改名", Enabled: true}, []uuid.UUID{r.ID}); err != biz.ErrDingTalkProfileReadOnly {
+	if _, err := uc.UpdateUser(ctx, sys.ID, actor, person.ID, &biz.AdminUser{ID: person.ID, DisplayName: "擅自改名", Enabled: true}); err != biz.ErrDingTalkProfileReadOnly {
 		t.Fatalf("资料只读未生效: %v", err)
 	}
-	if _, err := uc.UpdateUser(ctx, sys.ID, actor, person.ID, &biz.AdminUser{ID: person.ID, Enabled: true}, []uuid.UUID{r.ID}); err != nil {
+	if _, err := uc.UpdateUser(ctx, sys.ID, actor, person.ID, &biz.AdminUser{ID: person.ID, Enabled: true}); err != nil {
 		t.Fatalf("基础资料只读误伤角色编辑: %v", err)
 	}
 	if err := uc.TerminateUser(ctx, sys.ID, actor, person.ID); err != nil {

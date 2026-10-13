@@ -67,18 +67,18 @@ func organizationSwitchPasswordHash(t *testing.T) string {
 	return hash
 }
 
-func TestAuthUsecaseLoginUsesPrimaryOrganizationAndReturnsSortedChoices(t *testing.T) {
-	primaryID, branchID := uuid.New(), uuid.New()
+func TestAuthUsecaseLoginUsesSortedOrganizationChoices(t *testing.T) {
+	firstID, branchID := uuid.New(), uuid.New()
 	userID := uuid.New()
 	passwordHash := organizationSwitchPasswordHash(t)
 	repo := &organizationSwitchRepoStub{
-		credential: &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true, PrimaryOrganizationID: primaryID},
+		credential: &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true},
 		// 故意乱序返回，排序必须由用例统一完成。
 		choices: []OrganizationChoice{
 			{OrganizationID: branchID, OrganizationName: "成都公司", OrganizationCode: "CD"},
-			{OrganizationID: primaryID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
+			{OrganizationID: firstID, OrganizationName: "北京公司", OrganizationCode: "BJ"},
 		},
-		principalsByOrg: map[uuid.UUID]*Principal{primaryID: {UserID: userID, Organization: Organization{ID: primaryID, Name: "北京公司"}}},
+		principalsByOrg: map[uuid.UUID]*Principal{firstID: {UserID: userID, Organization: Organization{ID: firstID, Name: "北京公司"}}},
 	}
 
 	result, err := newOrganizationSwitchUsecase(repo).Login(context.Background(), "admin", "correct-password", uuid.Nil, "test", "127.0.0.1")
@@ -88,28 +88,28 @@ func TestAuthUsecaseLoginUsesPrimaryOrganizationAndReturnsSortedChoices(t *testi
 	if result.Token == "" || result.ExpiresAt.Before(time.Now()) {
 		t.Fatalf("Login() 令牌/过期时间异常: %#v", result)
 	}
-	if result.Principal.Organization.ID != primaryID {
-		t.Fatalf("未指定组织时应沿用默认组织，实际 %v", result.Principal.Organization.ID)
+	if result.Principal.Organization.ID != firstID {
+		t.Fatalf("未指定组织时应沿用排序首项工作台，实际 %v", result.Principal.Organization.ID)
 	}
-	if len(repo.createdSessions) != 1 || repo.createdSessions[0].OrganizationID != primaryID {
-		t.Fatalf("会话应建立在默认组织上: %#v", repo.createdSessions)
+	if len(repo.createdSessions) != 1 || repo.createdSessions[0].OrganizationID != firstID {
+		t.Fatalf("会话应建立在排序首项工作台上: %#v", repo.createdSessions)
 	}
 	if len(repo.createAuditActions) != 1 || repo.createAuditActions[0] != "auth.login" {
 		t.Fatalf("登录审计 = %v", repo.createAuditActions)
 	}
-	if len(result.OrganizationChoices) != 2 || result.OrganizationChoices[0].OrganizationID != primaryID || !result.OrganizationChoices[0].IsDefault || result.OrganizationChoices[1].OrganizationID != branchID {
-		t.Fatalf("候选组织应默认置首并按名称排序: %#v", result.OrganizationChoices)
+	if len(result.OrganizationChoices) != 2 || result.OrganizationChoices[0].OrganizationID != firstID || result.OrganizationChoices[1].OrganizationID != branchID {
+		t.Fatalf("候选组织应按名称与 ID 排序: %#v", result.OrganizationChoices)
 	}
 }
 
 func TestAuthUsecaseLoginWithExplicitOrganizationEntersChosenOrganization(t *testing.T) {
-	primaryID, branchID := uuid.New(), uuid.New()
+	firstID, branchID := uuid.New(), uuid.New()
 	userID := uuid.New()
 	passwordHash := organizationSwitchPasswordHash(t)
 	repo := &organizationSwitchRepoStub{
-		credential: &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true, PrimaryOrganizationID: primaryID},
+		credential: &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true},
 		choices: []OrganizationChoice{
-			{OrganizationID: primaryID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
+			{OrganizationID: firstID, OrganizationName: "北京公司", OrganizationCode: "BJ"},
 			{OrganizationID: branchID, OrganizationName: "成都公司", OrganizationCode: "CD"},
 		},
 		principalsByOrg: map[uuid.UUID]*Principal{branchID: {UserID: userID, Organization: Organization{ID: branchID, Name: "成都公司"}}},
@@ -128,11 +128,11 @@ func TestAuthUsecaseLoginWithExplicitOrganizationEntersChosenOrganization(t *tes
 }
 
 func TestAuthUsecaseLoginRejectsOrganizationOutsideCandidates(t *testing.T) {
-	primaryID := uuid.New()
+	firstID := uuid.New()
 	passwordHash := organizationSwitchPasswordHash(t)
 	repo := &organizationSwitchRepoStub{
-		credential: &Credential{UserID: uuid.New(), PasswordHash: &passwordHash, Enabled: true, PrimaryOrganizationID: primaryID},
-		choices:    []OrganizationChoice{{OrganizationID: primaryID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true}},
+		credential: &Credential{UserID: uuid.New(), PasswordHash: &passwordHash, Enabled: true},
+		choices:    []OrganizationChoice{{OrganizationID: firstID, OrganizationName: "北京公司", OrganizationCode: "BJ"}},
 	}
 
 	result, err := newOrganizationSwitchUsecase(repo).Login(context.Background(), "admin", "correct-password", uuid.New(), "test", "127.0.0.1")
@@ -152,7 +152,7 @@ func TestAuthUsecaseSwitchOrganizationRotatesCurrentSessionToken(t *testing.T) {
 	userID := uuid.New()
 	repo := &organizationSwitchRepoStub{
 		choices: []OrganizationChoice{
-			{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true},
+			{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ"},
 			{OrganizationID: targetID, OrganizationName: "成都公司", OrganizationCode: "CD"},
 		},
 		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, OrganizationNodes: scopeNodes(targetID), Organization: Organization{Kind: OrganizationKindCompany, ID: targetID, Name: "成都公司"}, RoleGrants: []RoleGrant{roleGrant("branch-operator", DataScopeOrganization, []string{"business.order.se.read"})}}},
@@ -201,7 +201,7 @@ func TestAuthUsecaseSwitchOrganizationRejectsOutsideCandidates(t *testing.T) {
 	sourceID := uuid.New()
 	userID := uuid.New()
 	repo := &organizationSwitchRepoStub{
-		choices: []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ", IsDefault: true}},
+		choices: []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "北京公司", OrganizationCode: "BJ"}},
 	}
 	current := &Principal{UserID: userID, Organization: Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"}
 
@@ -218,13 +218,13 @@ func TestAuthUsecaseSwitchOrganizationRejectsOutsideCandidates(t *testing.T) {
 }
 
 func TestAuthUsecaseLoginBootstrapAdminRejectsNonMembershipOrganization(t *testing.T) {
-	primaryID, branchID := uuid.New(), uuid.New()
+	firstID, branchID := uuid.New(), uuid.New()
 	userID := uuid.New()
 	passwordHash := organizationSwitchPasswordHash(t)
 	repo := &organizationSwitchRepoStub{
 		// 初始化管理员只在系统管理有成员资格，不能进入未授权公司。
-		credential:      &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true, IsBootstrapAdmin: true, PrimaryOrganizationID: primaryID},
-		choices:         []OrganizationChoice{{OrganizationID: primaryID, OrganizationName: "系统管理", OrganizationCode: "HQ", IsDefault: true}},
+		credential:      &Credential{UserID: userID, PasswordHash: &passwordHash, Enabled: true, IsBootstrapAdmin: true},
+		choices:         []OrganizationChoice{{OrganizationID: firstID, OrganizationName: "系统管理", OrganizationCode: "HQ"}},
 		principalsByOrg: map[uuid.UUID]*Principal{branchID: {UserID: userID, IsBootstrapAdmin: true, Organization: Organization{ID: branchID, Name: "北京财务"}}},
 	}
 
@@ -240,7 +240,7 @@ func TestAuthUsecaseSwitchOrganizationBootstrapAdminRejectsNonMembershipOrganiza
 	userID := uuid.New()
 	repo := &organizationSwitchRepoStub{
 		// 初始化管理员与普通用户共用成员资格候选。
-		choices:         []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "系统管理", OrganizationCode: "HQ", IsDefault: true}},
+		choices:         []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "系统管理", OrganizationCode: "HQ"}},
 		principalsByOrg: map[uuid.UUID]*Principal{targetID: {UserID: userID, IsBootstrapAdmin: true, OrganizationNodes: scopeNodes(targetID), Organization: Organization{Kind: OrganizationKindCompany, ID: targetID, Name: "北京财务"}}},
 	}
 	current := &Principal{UserID: userID, IsBootstrapAdmin: true, Organization: Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"}
@@ -255,7 +255,7 @@ func TestAuthUsecaseSwitchOrganizationBootstrapAdminRejectsNonMembershipOrganiza
 func TestAuthUsecaseSwitchOrganizationBootstrapAdminStillRejectsDisabledOrganization(t *testing.T) {
 	sourceID := uuid.New()
 	repo := &organizationSwitchRepoStub{
-		choices: []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "系统管理", OrganizationCode: "HQ", IsDefault: true}},
+		choices: []OrganizationChoice{{OrganizationID: sourceID, OrganizationName: "系统管理", OrganizationCode: "HQ"}},
 	}
 	current := &Principal{UserID: uuid.New(), IsBootstrapAdmin: true, Organization: Organization{ID: sourceID}, SessionTokenHash: "current-token-hash"}
 
@@ -270,7 +270,7 @@ func TestSortOrganizationChoicesDefaultFirstThenNameStable(t *testing.T) {
 	choices := []OrganizationChoice{
 		{OrganizationID: betaID, OrganizationName: "成都公司"},
 		{OrganizationID: alphaID, OrganizationName: "北京公司"},
-		{OrganizationID: defaultID, OrganizationName: "系统管理", IsDefault: true},
+		{OrganizationID: defaultID, OrganizationName: "系统管理"},
 		{OrganizationID: gammaID, OrganizationName: "成都公司"},
 	}
 	if gammaID.String() < betaID.String() {
@@ -278,14 +278,11 @@ func TestSortOrganizationChoicesDefaultFirstThenNameStable(t *testing.T) {
 	}
 
 	sortOrganizationChoices(choices)
-	want := []uuid.UUID{defaultID, alphaID, minUUID(betaID, gammaID), maxUUID(betaID, gammaID)}
+	want := []uuid.UUID{alphaID, minUUID(betaID, gammaID), maxUUID(betaID, gammaID), defaultID}
 	for index, organizationID := range want {
 		if choices[index].OrganizationID != organizationID {
 			t.Fatalf("候选排序第 %d 位 = %v，期望 %v（整体 %#v）", index, choices[index].OrganizationID, organizationID, choices)
 		}
-	}
-	if !choices[0].IsDefault {
-		t.Fatal("默认组织应置首并保留标记")
 	}
 }
 

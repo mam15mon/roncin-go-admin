@@ -305,7 +305,7 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 		}
 		cm, err := tx.Membership.Query().Where(membershipent.UserID(u.ID), membershipent.OrganizationIDEQ(company.ID)).Only(ctx)
 		if ent.IsNotFound(err) {
-			cm, err = tx.Membership.Create().SetUserID(u.ID).SetOrganizationID(company.ID).SetPrimary(true).SetEnabled(true).Save(ctx)
+			cm, err = tx.Membership.Create().SetUserID(u.ID).SetOrganizationID(company.ID).SetEnabled(true).Save(ctx)
 		}
 		if err != nil {
 			return fmt.Errorf("确保公司测试成员: %w", err)

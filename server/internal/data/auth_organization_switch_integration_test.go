@@ -79,19 +79,17 @@ func newAuthOrganizationSwitchFixture(t *testing.T) *authOrganizationSwitchFixtu
 	}
 	memberships := []struct {
 		organizationID uuid.UUID
-		primary        bool
 		enabled        bool
 	}{
-		{organizationID: systemWorkspace.ID, primary: true, enabled: true},
-		{organizationID: branch.ID, primary: false, enabled: true},
-		{organizationID: extra.ID, primary: false, enabled: false},
-		{organizationID: disabledOrg.ID, primary: false, enabled: true},
+		{organizationID: systemWorkspace.ID, enabled: true},
+		{organizationID: branch.ID, enabled: true},
+		{organizationID: extra.ID, enabled: false},
+		{organizationID: disabledOrg.ID, enabled: true},
 	}
 	for _, membership := range memberships {
 		if _, err := data.db.Membership.Create().
 			SetUserID(account.ID).
 			SetOrganizationID(membership.organizationID).
-			SetPrimary(membership.primary).
 			SetEnabled(membership.enabled).
 			Save(ctx); err != nil {
 			t.Fatalf("创建成员资格失败: %v", err)
@@ -139,12 +137,12 @@ func TestAuthRepoListEnabledMembershipOrganizationsFiltersDisabled(t *testing.T)
 		byID[choice.OrganizationID] = choice
 	}
 	systemWorkspaceChoice, ok := byID[fixture.systemWorkspace]
-	if !ok || !systemWorkspaceChoice.IsDefault || systemWorkspaceChoice.OrganizationCode != "HQ-"+fixture.suffix || systemWorkspaceChoice.OrganizationName != "系统管理-"+fixture.suffix {
-		t.Fatalf("默认候选组织异常: %#v", systemWorkspaceChoice)
+	if !ok || systemWorkspaceChoice.OrganizationCode != "HQ-"+fixture.suffix || systemWorkspaceChoice.OrganizationName != "系统管理-"+fixture.suffix {
+		t.Fatalf("系统管理候选组织异常: %#v", systemWorkspaceChoice)
 	}
 	branchChoice, ok := byID[fixture.branch]
-	if !ok || branchChoice.IsDefault {
-		t.Fatalf("非默认候选组织异常: %#v", branchChoice)
+	if !ok {
+		t.Fatalf("公司候选组织异常: %#v", branchChoice)
 	}
 	if _, filtered := byID[fixture.extra]; filtered {
 		t.Fatal("成员资格停用的组织不应进入候选列表")
