@@ -466,12 +466,21 @@ func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.T
 	return &biz.Session{TokenHash: stored.TokenHash, UserID: stored.UserID, OrganizationID: stored.OrganizationID, ExpiresAt: stored.ExpiresAt, UserAgent: stored.UserAgent}, nil
 }
 
-// RotateSession 在同一事务内完成会话令牌轮转：校验目标准入（ForShare）→ 锁定当前
+// RotateSession 在同一事务内完成会话令牌轮转：锁定账号（ForShare）→ 校验目标准入（ForShare）→ 锁定当前
 // 会话行（ForUpdate）→ 新建目标组织会话（沿用当前会话的 UA/IP）→ 失效旧令牌 → 写审计。
 // 普通用户准入 = 目标为启用中工作台节点，且系统管理要求本人系统管理启用成员关系、公司要求本人
 // 于公司子树内任一启用节点有启用成员关系（子树口径）；初始化管理员同样适用。只轮转当前令牌，同一用户其他设备的会话不受影响。
 func (r *authRepo) RotateSession(ctx context.Context, tokenHash string, next *biz.Session, now time.Time, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		// 与成员授权、公司管理员补齐及账号停用统一按用户→组织→成员→会话加锁。
+		// 若先锁组织/成员，插入会话取得用户外键 KEY SHARE 时会与授权写入反向等待。
+		account, accountErr := tx.User.Query().Where(user.IDEQ(next.UserID)).ForShare().Only(ctx)
+		if accountErr != nil {
+			return mapEntError(accountErr, biz.ErrSessionExpired, nil)
+		}
+		if !account.Enabled || account.PendingAssignment {
+			return biz.ErrSessionExpired
+		}
 		// 事务内复核准入，防止校验与轮转之间资格被停用（TOCTOU）。
 		{
 			// 普通用户复核目标工作台：部门/团队不是工作台；系统管理与公司按各自口径复核。
