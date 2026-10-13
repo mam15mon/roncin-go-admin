@@ -102,7 +102,7 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
 - **约束放宽**：`awb_prefix` 与 `name_zh` 均为可选字段，既兼容全球各类小型区域航司，又为骨干货代业务提供完整的单号识别支持。
 
 ### 4. 机场主数据 (OurAirports)
-- **数据源**：支持从 OurAirports 官方拉取全球机场数据（或读取本地 `airports.csv`）。
+- **数据源**：默认从 [OurAirports 官方 GitHub 下载地址](https://davidmegginson.github.io/ourairports-data/airports.csv) 获取每日更新的全球机场数据，也支持显式指定本地 `airports.csv`。下载保留 TLS 证书校验，失败直接报错，不自动改用缓存。
 - **三字码索引**：严格校验 IATA 3 字码与 ICAO 4 字码唯一性，支持按中英文及拼音联想检索。
 
 ---

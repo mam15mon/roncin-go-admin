@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	ourAirportsURL    = "https://ourairports.com/data/airports.csv"
+	ourAirportsURL    = "https://davidmegginson.github.io/ourairports-data/airports.csv"
 	ourAirportsSource = "OURAIRPORTS"
 	requestTimeout    = 30 * time.Second
 	maxDownloadSize   = 100 << 20

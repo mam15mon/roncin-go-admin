@@ -112,16 +112,28 @@ func bootstrapWithMigrations(ctx context.Context, config *bootstrapConfig, migra
 		return fmt.Errorf("check existing users: %w", err)
 	}
 	if exists {
-		return fmt.Errorf("users already exist; bootstrap is only allowed on a fresh database")
+		return fmt.Errorf("数据库已有账号，管理员初始化仅允许在账号为空时执行")
 	}
 	passwordHash, err := password.Hash(config.plainPassword)
 	if err != nil {
 		return err
 	}
 	return data.WithClientTx(ctx, client, func(tx *ent.Tx) error {
-		organization, err := tx.Organization.Create().SetCode(config.organizationCode).SetName(config.organizationName).SetKind("system").SetBaseCurrency("CNY").Save(ctx)
+		organization, err := tx.Organization.Query().Where(organizationent.CodeEQ(config.organizationCode)).ForUpdate().Only(ctx)
+		if ent.IsNotFound(err) {
+			organization, err = tx.Organization.Create().SetCode(config.organizationCode).SetName(config.organizationName).SetKind("system").SetBaseCurrency("CNY").Save(ctx)
+		}
 		if err != nil {
-			return fmt.Errorf("create organization: %w", err)
+			return fmt.Errorf("初始化系统管理组织失败: %w", err)
+		}
+		if organization.Kind != organizationent.KindSystem || !organization.Enabled {
+			return fmt.Errorf("组织 %s 必须是启用的系统管理工作台", config.organizationCode)
+		}
+		// 复用组织时以该行锁串行化初始化，并在锁内重查，禁止并发重复创建管理员。
+		if exists, err := tx.User.Query().Exist(ctx); err != nil {
+			return fmt.Errorf("检查现有账号失败: %w", err)
+		} else if exists {
+			return fmt.Errorf("数据库已有账号，管理员初始化仅允许在账号为空时执行")
 		}
 		// A 型主数据种子按 kind+code 幂等跳过；迁移种子（如费用类别）已落的行不重复写入。
 		if err := data.CreateDefaultOrderOptions(ctx, tx); err != nil {
@@ -157,7 +169,15 @@ func bootstrapWithMigrations(ctx context.Context, config *bootstrapConfig, migra
 		if _, err := data.CreateDefaultBranchCompanies(ctx, tx, organization.ID); err != nil {
 			return fmt.Errorf("create default branch companies: %w", err)
 		}
-		adminRole, err := tx.Role.Create().SetOrganizationID(organization.ID).SetCode("administrator").SetName("系统管理员").SetDataScope(role.DataScopeAll).AddPermissions(permissions...).Save(ctx)
+		adminRole, err := tx.Role.Query().Where(role.OrganizationIDEQ(organization.ID), role.CodeEQ("administrator")).Only(ctx)
+		if ent.IsNotFound(err) {
+			adminRole, err = tx.Role.Create().SetOrganizationID(organization.ID).SetCode("administrator").SetName("系统管理员").SetDataScope(role.DataScopeAll).AddPermissions(permissions...).Save(ctx)
+		} else if err == nil {
+			if !adminRole.Enabled {
+				return fmt.Errorf("系统管理员角色已停用，请先恢复角色后初始化账号")
+			}
+			adminRole, err = adminRole.Update().SetDataScope(role.DataScopeAll).ClearPermissions().AddPermissions(permissions...).Save(ctx)
+		}
 		if err != nil {
 			return fmt.Errorf("create administrator role: %w", err)
 		}
@@ -191,7 +211,7 @@ func syncPermissions(ctx context.Context, databaseSource string) (*data.Permissi
 }
 
 // seedBranchCompanies 在已完成 bootstrap 的库上幂等补建默认分公司种子。
-// 完整 bootstrap 只允许跑在全新库上，存量开发库通过本入口补齐新增加的分公司。
+// 此入口不创建管理员账号，仅补齐新增加的分公司。
 func seedBranchCompanies(ctx context.Context, databaseSource string) (int, error) {
 	sqlDB, err := sql.Open("pgx", databaseSource)
 	if err != nil {

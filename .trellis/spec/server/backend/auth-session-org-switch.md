@@ -22,6 +22,14 @@ RotateSession(ctx, userID, currentTokenHash, targetOrgID, ...)  // 单事务轮�
 
 ## 3. Contracts
 
+- **管理员初始化**：`pnpm run bootstrap:admin` 仅允许账号表为空。目标组织编码已存在时，
+  必须是启用的 `system` 工作台，复用组织 ID、名称及管理员角色；不得把公司改成系统
+  工作台或自动启用停用组织/角色。组织锁内再次检查账号表，账号、成员关系、角色绑定
+  和权限同步在同一事务中完成；保留公司配置，不自动授予公司成员资格。
+- **清空账号后重建**：保留组织与行业数据的开发库可以重新初始化一个管理员，已有
+  任意账号时明确拒绝，不覆盖账号或重设密码。验证范本为
+  `server/cmd/bootstrap-admin/main_integration_test.go` 的正式迁移真实库用例。
+
 - **系统与公司分离**：system与company均为独立根工作台；bootstrap标记不提供公司准入或权限范围旁路。公司经营读写固定当前公司，系统管理权限不自动带来经营数据访问。
 - **成员资格是唯一入场券**：候选 = membership enabled × 组织 enabled；登录显式组织校验、
   登录响应组装、切换校验三处共用同一谓词，禁止旁路查询。
