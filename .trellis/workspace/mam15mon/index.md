@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 127
+- **Total Sessions**: 128
 - **Last Active**: 2026-10-13
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1332 | Active |
+| `journal-2.md` | ~1355 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 128 | 2026-10-13 | 完成费用更正与账务提成闭环并验收归档 | `b16d23a3`, `8e1107ca` | `codex/fee-exception-phase-one` |
 | 127 | 2026-10-13 | 费用更正与提成联动设计研究 | `bebb3d0a` | `codex/fee-exception-phase-one` |
 | 126 | 2026-10-13 | 费用异常第一阶段修复验收 | `61ff8675`, `45bd3731` | `codex/fee-exception-phase-one` |
 | 125 | 2026-10-12 | 修复整票费用审核审查问题 | `4aa7c46b`, `d246c3d5`, `a41e8139`, `3c8ec084`, `ef2c5881` | `codex/order-fee-approval` |
