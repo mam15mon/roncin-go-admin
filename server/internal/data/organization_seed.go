@@ -18,8 +18,6 @@ type branchCompanySeed struct {
 var defaultBranchCompanySeeds = []branchCompanySeed{
 	{Code: "BJ", Name: "融迅（北京）供应链管理有限公司"},
 	{Code: "CD", Name: "融迅（成都）供应链管理有限公司"},
-	{Code: "SH", Name: "融迅（上海）供应链管理有限公司"},
-	{Code: "CQ", Name: "融迅（重庆）供应链管理有限公司"},
 }
 
 // CreateDefaultBranchCompanies 幂等补建默认公司种子：编码已存在的

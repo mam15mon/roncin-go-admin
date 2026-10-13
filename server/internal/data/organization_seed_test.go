@@ -53,6 +53,13 @@ func TestCreateDefaultBranchCompaniesSeedsAndIsIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("查询分公司失败: %v", err)
 	}
+	codes := make([]string, 0, len(companies))
+	for _, company := range companies {
+		codes = append(codes, company.Code)
+	}
+	if !slices.Equal(codes, []string{"BJ", "CD"}) {
+		t.Fatalf("默认分公司编码 = %v，期望仅有北京 BJ 和成都 CD", codes)
+	}
 	if len(companies) != len(defaultBranchCompanySeeds) {
 		t.Fatalf("分公司数量 = %d, 期望 %d", len(companies), len(defaultBranchCompanySeeds))
 	}

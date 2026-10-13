@@ -58,6 +58,9 @@ func TestDevelopmentSeedPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if first.company.Code != "BJ" {
+		t.Fatalf("开发数据归属公司 = %s，期望北京 BJ", first.company.Code)
+	}
 	counts := func() string {
 		var result string
 		err := db.QueryRowContext(ctx, `SELECT concat((SELECT count(*) FROM organizations),',',(SELECT count(*) FROM memberships),',',(SELECT count(*) FROM orders),',',(SELECT count(*) FROM order_fees),',',(SELECT count(*) FROM finance_bills),',',(SELECT count(*) FROM sea_house_bill_versions))`).Scan(&result)
@@ -74,6 +77,7 @@ func TestDevelopmentSeedPostgres(t *testing.T) {
 		t.Fatalf("重复注入产生额外记录: %s -> %s", before, after)
 	}
 	checks := map[string]string{
+		"不补建上海重庆":  `SELECT count(*) FROM organizations WHERE code IN ('SH','CQ')`,
 		"员工无系统身份":  `SELECT count(*) FROM memberships m JOIN organizations o ON o.id=m.organization_id WHERE o.kind='system'`,
 		"角色公司一致":   `SELECT count(*) FROM role_assignments a JOIN memberships m ON m.id=a.membership_id JOIN roles r ON r.id=a.role_id WHERE m.organization_id<>r.organization_id`,
 		"公司必须为独立根": `SELECT count(*) FROM organizations WHERE kind='company' AND parent_id IS NOT NULL`,

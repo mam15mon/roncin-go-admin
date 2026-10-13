@@ -244,14 +244,14 @@ func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 		return err
 	}
 
-	// 开发数据明确归属上海公司，不向其他公司隐式写入。
+	// 开发数据明确归属北京公司，不向其他公司隐式写入。
 	company, companyErr := tx.Organization.Query().Where(
 		organizationent.KindEQ(organizationent.KindCompany),
 		organizationent.EnabledEQ(true),
-		organizationent.CodeEQ("SH"),
+		organizationent.CodeEQ("BJ"),
 	).First(ctx)
 	if companyErr != nil {
-		return fmt.Errorf("缺少启用的上海公司作为开发数据归属组织: %w", companyErr)
+		return fmt.Errorf("缺少启用的北京公司作为开发数据归属组织: %w", companyErr)
 	}
 	sc.company = company
 
