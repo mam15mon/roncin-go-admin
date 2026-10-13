@@ -1,10 +1,5 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,6 +12,7 @@ const {
   messageSuccessMock,
   messageErrorMock,
   setInitialStateMock,
+  historyReplaceMock,
 } = vi.hoisted(() => ({
   authServiceLoginMock: vi.fn(),
   authServiceSwitchOrganizationMock: vi.fn(),
@@ -24,6 +20,7 @@ const {
   messageSuccessMock: vi.fn(),
   messageErrorMock: vi.fn(),
   setInitialStateMock: vi.fn(),
+  historyReplaceMock: vi.fn(),
 }));
 
 vi.mock('react-helmet-async', async (importOriginal) => {
@@ -33,6 +30,10 @@ vi.mock('react-helmet-async', async (importOriginal) => {
     Helmet: ({ children }: { children?: React.ReactNode }) => children,
   };
 });
+
+vi.mock('@/router/history', () => ({
+  history: { replace: historyReplaceMock },
+}));
 
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({ setInitialState: setInitialStateMock }),
@@ -98,13 +99,14 @@ function mockLoginResponse(
 }
 
 async function submitLogin(): Promise<void> {
+  fireEvent.click(screen.getByRole('button', { name: '管理员账号登录' }));
   fireEvent.change(screen.getByPlaceholderText('用户名 / 邮箱'), {
     target: { value: 'operator' },
   });
   fireEvent.change(screen.getByPlaceholderText('请输入密码'), {
     target: { value: 'secret' },
   });
-  fireEvent.click(screen.getByRole('button', { name: /登录/ }));
+  fireEvent.click(screen.getByRole('button', { name: /^登录$/ }));
   await waitFor(() => {
     expect(authServiceLoginMock).toHaveBeenCalledTimes(1);
   });
@@ -271,7 +273,11 @@ describe('Login', () => {
 
   it('钉钉启用时提示管理员开通，不展示注册链接', async () => {
     authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
-      data: { enabled: true, authorizeUrl: 'https://dingtalk.login/auth' },
+      data: {
+        enabled: true,
+        authorizeUrl: `https://login.dingtalk.com/oauth2/auth?client_id=app&scope=openid&response_type=code&state=sample-state&redirect_uri=${encodeURIComponent(`${window.location.origin}/user/login/dingtalk/callback`)}`,
+        expiresAt: new Date(Date.now() + 300000).toISOString(),
+      },
     });
     window.history.replaceState({}, '', '/user/login');
 
@@ -281,23 +287,24 @@ describe('Login', () => {
       </App>,
     );
 
+    expect(await screen.findByTitle('钉钉扫码登录二维码')).toBeInTheDocument();
     expect(
-      await screen.findByRole('button', { name: /钉钉登录/ }),
+      screen.getByRole('button', { name: '管理员账号登录' }),
     ).toBeInTheDocument();
-    expect(
-      screen
-        .getAllByRole('button', { name: /登录/ })
-        .map((button) => button.textContent?.trim()),
-    ).toEqual(['登录', '钉钉登录']);
+    expect(screen.queryByPlaceholderText('请输入密码')).not.toBeInTheDocument();
     expect(
       screen.getByText('使用前请联系管理员同步人员并分配组织和角色'),
     ).toBeInTheDocument();
     expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
   });
 
-  it('钉钉登录保留安全回跳地址并跳转授权页', async () => {
+  it('钉钉扫码保留安全回跳地址并进入本站认证回调', async () => {
     authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
-      data: { enabled: true, authorizeUrl: 'https://dingtalk.login/auth' },
+      data: {
+        enabled: true,
+        authorizeUrl: `https://login.dingtalk.com/oauth2/auth?client_id=app&scope=openid&response_type=code&state=sample-state&redirect_uri=${encodeURIComponent(`${window.location.origin}/user/login/dingtalk/callback`)}`,
+        expiresAt: new Date(Date.now() + 300000).toISOString(),
+      },
     });
     window.history.replaceState({}, '', '/user/login?redirect=%2Fwelcome');
 
@@ -307,11 +314,26 @@ describe('Login', () => {
       </App>,
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: /钉钉登录/ }));
+    const iframe = (await screen.findByTitle(
+      '钉钉扫码登录二维码',
+    )) as HTMLIFrameElement;
+    fireEvent(
+      window,
+      new MessageEvent('message', {
+        origin: 'https://login.dingtalk.com',
+        source: iframe.contentWindow,
+        data: {
+          success: true,
+          redirectUrl: `${window.location.origin}/user/login/dingtalk/callback?authCode=sample-code&state=sample-state`,
+        },
+      }),
+    );
     await waitFor(() => {
-      expect(assignMock).toHaveBeenCalledWith('https://dingtalk.login/auth');
+      expect(historyReplaceMock).toHaveBeenCalledWith(
+        '/user/login/dingtalk/callback?authCode=sample-code&state=sample-state',
+      );
     });
     expect(sessionStorage.getItem('dingtalk_login_redirect')).toBe('/welcome');
-    expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledTimes(2);
+    expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledTimes(1);
   });
 });

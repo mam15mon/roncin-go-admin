@@ -1,23 +1,21 @@
 import {
   ArrowRightOutlined,
-  DingdingOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   LockOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { App, Button, Checkbox, Divider, Form, Input } from 'antd';
-import React, { startTransition, useEffect, useState } from 'react';
+import { App, Button, Checkbox, Form, Input } from 'antd';
+import React, { startTransition, useCallback, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import { QuarterRing } from '@/components/ui';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
-import {
-  authServiceGetDingTalkLoginConfig,
-  authServiceLogin,
-} from '@/services/roncin/authService';
+import { history } from '@/router/history';
+import { authServiceLogin } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import { AnimatedCharacters } from './components/animated-characters';
+import { DingTalkQrLogin } from './components/dingtalk-qr-login';
 import {
   type LoginOrganizationOption,
   OrganizationPicker,
@@ -41,18 +39,14 @@ export default function Login() {
   const [isTyping, setIsTyping] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState('');
-  const [dingtalkEnabled, setDingtalkEnabled] = useState(false);
-  const [dingtalkLoading, setDingtalkLoading] = useState(false);
+  const [loginMode, setLoginMode] = useState<'dingtalk' | 'password'>(
+    'dingtalk',
+  );
   const [organizationSelection, setOrganizationSelection] = useState<{
     options: LoginOrganizationOption[];
     currentOrganizationId?: string;
   }>();
   const [pendingRedirect, setPendingRedirect] = useState('/');
-  useEffect(() => {
-    authServiceGetDingTalkLoginConfig({ skipErrorHandler: true })
-      .then((response) => setDingtalkEnabled(response.data?.enabled ?? false))
-      .catch(() => setDingtalkEnabled(false));
-  }, []);
 
   const finishLogin = (redirect: string) => {
     message.success('登录成功');
@@ -95,27 +89,11 @@ export default function Login() {
     }
   };
 
-  const handleDingTalkLogin = async () => {
-    setDingtalkLoading(true);
-    try {
-      const response = await authServiceGetDingTalkLoginConfig({
-        skipErrorHandler: true,
-      });
-      if (!response.data?.enabled || !response.data.authorizeUrl) {
-        message.warning('钉钉登录暂未启用');
-        return;
-      }
-      const redirect = new URL(window.location.href).searchParams.get(
-        'redirect',
-      );
-      sessionStorage.setItem('dingtalk_login_redirect', safeRedirect(redirect));
-      window.location.assign(response.data.authorizeUrl);
-    } catch (error) {
-      message.error(getRequestErrorMessage(error, '钉钉登录启动失败'));
-    } finally {
-      setDingtalkLoading(false);
-    }
-  };
+  const handleDingTalkAuthenticated = useCallback((callbackPath: string) => {
+    const redirect = new URL(window.location.href).searchParams.get('redirect');
+    sessionStorage.setItem('dingtalk_login_redirect', safeRedirect(redirect));
+    history.replace(callbackPath);
+  }, []);
 
   return (
     <div className={styles.loginContainer}>
@@ -186,163 +164,157 @@ export default function Login() {
 
             {/* 表单头部 */}
             <div>
-              <h1 className={styles.headerTitle}>登录</h1>
+              <h1 className={styles.headerTitle}>
+                {loginMode === 'dingtalk' ? '钉钉扫码登录' : '管理员账号登录'}
+              </h1>
             </div>
 
-            {/* 登录表单 */}
-            <Form<API.LoginRequest>
-              form={form}
-              layout="vertical"
-              requiredMark={false}
-              onFinish={handleSubmit}
-              initialValues={{ username: '', password: '' }}
-            >
-              {/* 用户名 */}
-              <Form.Item
-                name="username"
-                rules={[{ required: true, message: '请输入用户名' }]}
-                style={{ marginBottom: 20 }}
+            {loginMode === 'dingtalk' ? (
+              <DingTalkQrLogin onAuthenticated={handleDingTalkAuthenticated} />
+            ) : (
+              <Form<API.LoginRequest>
+                form={form}
+                layout="vertical"
+                requiredMark={false}
+                onFinish={handleSubmit}
+                initialValues={{ username: '', password: '' }}
               >
-                <div>
-                  <label className={styles.inputLabel} htmlFor="login_username">
-                    账号
-                  </label>
-                  <Input
-                    id="login_username"
-                    size="large"
-                    placeholder="用户名 / 邮箱"
-                    prefix={
-                      <UserOutlined
-                        style={{
-                          color: '#94a3b8',
-                          fontSize: 16,
-                          marginRight: 6,
-                        }}
-                      />
-                    }
-                    className={styles.pillInput}
-                    disabled={loading}
-                    onFocus={() => setIsTyping(true)}
-                    onBlur={() => setIsTyping(false)}
-                  />
-                </div>
-              </Form.Item>
+                {/* 用户名 */}
+                <Form.Item
+                  name="username"
+                  rules={[{ required: true, message: '请输入用户名' }]}
+                  style={{ marginBottom: 20 }}
+                >
+                  <div>
+                    <label
+                      className={styles.inputLabel}
+                      htmlFor="login_username"
+                    >
+                      账号
+                    </label>
+                    <Input
+                      id="login_username"
+                      size="large"
+                      placeholder="用户名 / 邮箱"
+                      prefix={
+                        <UserOutlined
+                          style={{
+                            color: '#94a3b8',
+                            fontSize: 16,
+                            marginRight: 6,
+                          }}
+                        />
+                      }
+                      className={styles.pillInput}
+                      disabled={loading}
+                      onFocus={() => setIsTyping(true)}
+                      onBlur={() => setIsTyping(false)}
+                    />
+                  </div>
+                </Form.Item>
 
-              {/* 密码 */}
-              <Form.Item
-                name="password"
-                rules={[{ required: true, message: '请输入密码' }]}
-                style={{ marginBottom: 20 }}
-              >
-                <div>
-                  <label className={styles.inputLabel} htmlFor="login_password">
-                    密码
-                  </label>
-                  <Input.Password
-                    id="login_password"
-                    size="large"
-                    placeholder="请输入密码"
-                    prefix={
-                      <LockOutlined
-                        style={{
-                          color: '#94a3b8',
-                          fontSize: 16,
-                          marginRight: 6,
-                        }}
-                      />
-                    }
-                    className={styles.pillInput}
+                {/* 密码 */}
+                <Form.Item
+                  name="password"
+                  rules={[{ required: true, message: '请输入密码' }]}
+                  style={{ marginBottom: 20 }}
+                >
+                  <div>
+                    <label
+                      className={styles.inputLabel}
+                      htmlFor="login_password"
+                    >
+                      密码
+                    </label>
+                    <Input.Password
+                      id="login_password"
+                      size="large"
+                      placeholder="请输入密码"
+                      prefix={
+                        <LockOutlined
+                          style={{
+                            color: '#94a3b8',
+                            fontSize: 16,
+                            marginRight: 6,
+                          }}
+                        />
+                      }
+                      className={styles.pillInput}
+                      disabled={loading}
+                      iconRender={(visible) =>
+                        visible ? (
+                          <EyeOutlined style={{ color: '#64748b' }} />
+                        ) : (
+                          <EyeInvisibleOutlined style={{ color: '#94a3b8' }} />
+                        )
+                      }
+                      visibilityToggle={{
+                        visible: showPassword,
+                        onVisibleChange: (visible) => setShowPassword(visible),
+                      }}
+                      onChange={(e) => setPasswordValue(e.target.value)}
+                      onFocus={() => setIsTyping(true)}
+                      onBlur={() => setIsTyping(false)}
+                    />
+                  </div>
+                </Form.Item>
+
+                {/* 辅助操作栏 */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 24,
+                    paddingLeft: 6,
+                    paddingRight: 6,
+                  }}
+                >
+                  <Checkbox
+                    defaultChecked
                     disabled={loading}
-                    iconRender={(visible) =>
-                      visible ? (
-                        <EyeOutlined style={{ color: '#64748b' }} />
+                    style={{ fontSize: 13, color: '#64748b' }}
+                  >
+                    保持登录
+                  </Checkbox>
+                </div>
+
+                {/* 登录操作按钮 */}
+                <Form.Item style={{ marginBottom: 0 }}>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    disabled={loading}
+                    className={styles.submitButton}
+                    icon={
+                      loading ? (
+                        <QuarterRing size={16} strokeWidth="2px" />
                       ) : (
-                        <EyeInvisibleOutlined style={{ color: '#94a3b8' }} />
+                        <ArrowRightOutlined />
                       )
                     }
-                    visibilityToggle={{
-                      visible: showPassword,
-                      onVisibleChange: (visible) => setShowPassword(visible),
-                    }}
-                    onChange={(e) => setPasswordValue(e.target.value)}
-                    onFocus={() => setIsTyping(true)}
-                    onBlur={() => setIsTyping(false)}
-                  />
-                </div>
-              </Form.Item>
-
-              {/* 辅助操作栏 */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 24,
-                  paddingLeft: 6,
-                  paddingRight: 6,
-                }}
-              >
-                <Checkbox
-                  defaultChecked
-                  disabled={loading}
-                  style={{ fontSize: 13, color: '#64748b' }}
-                >
-                  保持登录
-                </Checkbox>
-              </div>
-
-              {/* 登录操作按钮 */}
-              <Form.Item style={{ marginBottom: 0 }}>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={loading}
-                  disabled={loading}
-                  className={styles.submitButton}
-                  icon={
-                    loading ? (
-                      <QuarterRing size={16} strokeWidth="2px" />
-                    ) : (
-                      <ArrowRightOutlined />
-                    )
-                  }
-                  iconPlacement="end"
-                >
-                  {loading ? '登录中...' : '登录'}
-                </Button>
-              </Form.Item>
-            </Form>
-
-            {dingtalkEnabled && (
-              <>
-                <Divider plain className={styles.loginDivider}>
-                  或
-                </Divider>
-                <div
-                  style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
-                >
-                  <Button
-                    block
-                    size="large"
-                    icon={<DingdingOutlined />}
-                    loading={dingtalkLoading}
-                    disabled={loading || dingtalkLoading}
-                    onClick={handleDingTalkLogin}
+                    iconPlacement="end"
                   >
-                    钉钉登录
+                    {loading ? '登录中...' : '登录'}
                   </Button>
-                  <div
-                    style={{
-                      textAlign: 'center',
-                      fontSize: 12,
-                      color: '#8c8c8c',
-                    }}
-                  >
-                    使用前请联系管理员同步人员并分配组织和角色
-                  </div>
-                </div>
-              </>
+                </Form.Item>
+              </Form>
             )}
+            <Button
+              type="link"
+              className={styles.loginModeSwitch}
+              disabled={loading}
+              onClick={() => {
+                setIsTyping(false);
+                setShowPassword(false);
+                setLoginMode((mode) =>
+                  mode === 'dingtalk' ? 'password' : 'dingtalk',
+                );
+              }}
+            >
+              {loginMode === 'dingtalk' ? '管理员账号登录' : '返回钉钉扫码登录'}
+            </Button>
           </div>
         )}
       </div>

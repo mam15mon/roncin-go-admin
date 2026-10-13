@@ -1987,6 +1987,8 @@ declare namespace API {
   type DingTalkLoginConfig = {
     enabled?: boolean;
     authorizeUrl?: string;
+    /** 与本次授权 state Cookie 相同的到期时间（RFC 3339）。 */
+    expiresAt?: string;
   };
 
   type DingTalkLoginRequest = {
@@ -4434,7 +4436,7 @@ declare namespace API {
     message?: string;
     data?: CurrentUser;
     traceId?: string;
-    /** 本人启用中成员资格组织候选列表（默认组织置首并标记）。 */
+    /** 本人启用中成员资格工作台候选，按名称和 ID 稳定排序。 */
     organizationChoices?: OrganizationChoice[];
   };
 

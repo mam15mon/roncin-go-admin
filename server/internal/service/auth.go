@@ -42,6 +42,10 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 }
 
 func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingTalkLoginConfigRequest) (*v1.GetDingTalkLoginConfigResponse, error) {
+	if tr, ok := transport.FromServerContext(ctx); ok {
+		tr.ReplyHeader().Set("Cache-Control", "no-store")
+		tr.ReplyHeader().Set("Pragma", "no-cache")
+	}
 	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartDingTalkLogin()
 	if err != nil {
 		return nil, err
@@ -49,6 +53,8 @@ func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingT
 	config := &v1.DingTalkLoginConfig{Enabled: enabled}
 	if enabled {
 		config.AuthorizeUrl = &authorizeURL
+		expires := expiresAt.Format(time.RFC3339)
+		config.ExpiresAt = &expires
 		s.setCookieNamed(ctx, s.dingTalkStateCookieName(), state, expiresAt, 300)
 	}
 	return ok(ctx, &v1.GetDingTalkLoginConfigResponse{Data: config}), nil

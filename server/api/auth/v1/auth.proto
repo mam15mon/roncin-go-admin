@@ -76,6 +76,8 @@ message GetDingTalkLoginConfigResponse {
 message DingTalkLoginConfig {
   bool enabled = 1;
   optional string authorize_url = 2;
+  // 与本次授权 state Cookie 相同的到期时间（RFC 3339）。
+  optional string expires_at = 3;
 }
 
 message SwitchOrganizationRequest {
@@ -88,7 +90,7 @@ message LoginResponse {
   string message = 3;
   CurrentUser data = 4;
   string trace_id = 5;
-  // 本人启用中成员资格组织候选列表（默认组织置首并标记）。
+  // 本人启用中成员资格工作台候选，按名称和 ID 稳定排序。
   repeated OrganizationChoice organization_choices = 6;
 }
 

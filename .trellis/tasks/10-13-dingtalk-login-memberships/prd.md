@@ -77,5 +77,5 @@
 - 父任务及四个子任务的 prd.md、design.md、implement.md 已形成完整审阅稿。
 - research/current-state.md 记录代码事实、官方扫码脚本核验及环境限制。
 - implement.jsonl / check.jsonl 按子任务职责配置真实规范与研究引用。
-- 尚未 task.py start，未修改产品代码，未执行数据库迁移或 bootstrap。
+- 已按实施计划激活子任务；取消主要组织、批量成员加入、公司管理员补齐已实现并本地提交，扫码子任务实施中。未对实际业务库执行迁移或 bootstrap。
 - 用户已明确批准最新整体方案，按实施计划逐个激活子任务。

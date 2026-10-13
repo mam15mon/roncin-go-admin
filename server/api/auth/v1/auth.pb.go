@@ -325,9 +325,11 @@ func (x *GetDingTalkLoginConfigResponse) GetTraceId() string {
 }
 
 type DingTalkLoginConfig struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	AuthorizeUrl  *string                `protobuf:"bytes,2,opt,name=authorize_url,json=authorizeUrl,proto3,oneof" json:"authorize_url,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Enabled      bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	AuthorizeUrl *string                `protobuf:"bytes,2,opt,name=authorize_url,json=authorizeUrl,proto3,oneof" json:"authorize_url,omitempty"`
+	// 与本次授权 state Cookie 相同的到期时间（RFC 3339）。
+	ExpiresAt     *string `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -372,6 +374,13 @@ func (x *DingTalkLoginConfig) GetEnabled() bool {
 func (x *DingTalkLoginConfig) GetAuthorizeUrl() string {
 	if x != nil && x.AuthorizeUrl != nil {
 		return *x.AuthorizeUrl
+	}
+	return ""
+}
+
+func (x *DingTalkLoginConfig) GetExpiresAt() string {
+	if x != nil && x.ExpiresAt != nil {
+		return *x.ExpiresAt
 	}
 	return ""
 }
@@ -427,7 +436,7 @@ type LoginResponse struct {
 	Message string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	Data    *CurrentUser           `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
 	TraceId string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	// 本人启用中成员资格组织候选列表（默认组织置首并标记）。
+	// 本人启用中成员资格工作台候选，按名称和 ID 稳定排序。
 	OrganizationChoices []*OrganizationChoice `protobuf:"bytes,6,rep,name=organization_choices,json=organizationChoices,proto3" json:"organization_choices,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
@@ -1381,11 +1390,14 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.auth.v1.DingTalkLoginConfigR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"k\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9e\x01\n" +
 	"\x13DingTalkLoginConfig\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12(\n" +
-	"\rauthorize_url\x18\x02 \x01(\tH\x00R\fauthorizeUrl\x88\x01\x01B\x10\n" +
-	"\x0e_authorize_url\"I\n" +
+	"\rauthorize_url\x18\x02 \x01(\tH\x00R\fauthorizeUrl\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\tH\x01R\texpiresAt\x88\x01\x01B\x10\n" +
+	"\x0e_authorize_urlB\r\n" +
+	"\v_expires_at\"I\n" +
 	"\x19SwitchOrganizationRequest\x12,\n" +
 	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xec\x01\n" +
 	"\rLoginResponse\x12\x18\n" +
