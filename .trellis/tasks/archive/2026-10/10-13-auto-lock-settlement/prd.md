@@ -6,7 +6,7 @@
 
 ## 已确认事实
 
-证据基线和详细行号见 [总审查记录 R1](../../../10-13-fee-exception-closure/research/review.md)。`order_auto_lock.go:598` 汇总订单行金额，`:611` / `:622` 获取整张账单分摊，`:653` 判断差额为零；未分币种。当前分摊实体只有 bill_id，无 order_id/order_fee_id。
+证据基线和详细行号见 [总审查记录 R1](../10-13-fee-exception-closure/research/review.md)。`order_auto_lock.go:598` 汇总订单行金额，`:611` / `:622` 获取整张账单分摊，`:653` 判断差额为零；未分币种。当前分摊实体只有 bill_id，无 order_id/order_fee_id。
 
 `order_auto_lock_integration_test.go:896` 的旧测试明确要求合并账单全额结清也不锁，这是保守策略而非新增回归；未覆盖部分核销恰好等于一票金额。
 
