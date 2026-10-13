@@ -2,6 +2,9 @@
 ALTER TABLE "finance_bills" ADD COLUMN "purpose" character varying NOT NULL DEFAULT 'NORMAL';
 ALTER TABLE "finance_commission_adjustments" ADD CONSTRAINT "commission_adjustment_source_correction_check" CHECK ((source_type = 'FEE_CORRECTION' AND source_fee_correction_request_id IS NOT NULL) OR (source_type <> 'FEE_CORRECTION' AND source_fee_correction_request_id IS NULL)), ADD CONSTRAINT "commission_adjustment_source_reallocation_check" CHECK (source_type <> 'ECONOMIC_REALLOCATION' OR ((source_verification_id IS NOT NULL AND source_netting_id IS NULL) OR (source_verification_id IS NULL AND source_netting_id IS NOT NULL))), ADD COLUMN "source_netting_id" uuid NULL, ADD COLUMN "source_fee_correction_request_id" uuid NULL, ADD COLUMN "superseded_by_fee_correction_request_id" uuid NULL;
 DROP INDEX "financecommissionadjustment_reversal_source";
+-- 开发库中已确认存在 Ent 生成的同列无条件唯一索引；正式迁移冷启动没有该索引。
+-- 两个旧索引必须一并移除，否则同名重建失败，或旧约束继续阻止经济重分配。
+DROP INDEX IF EXISTS "financecommissionadjustment_co_36fb58015f1b066e73dc271e344c49a4";
 CREATE UNIQUE INDEX "financecommissionadjustment_co_36fb58015f1b066e73dc271e344c49a4" ON "finance_commission_adjustments" ("commission_id", "order_id", "source_type", "source_verification_id") WHERE source_type <> 'ECONOMIC_REALLOCATION';
 CREATE UNIQUE INDEX "financecommissionadjustment_co_a23fb6e30d6c19c42833706d375fe141" ON "finance_commission_adjustments" ("commission_id", "order_id", "source_fee_correction_request_id");
 ALTER TABLE "finance_commission_lines" ADD COLUMN "fee_content_version_snapshot" bigint NOT NULL DEFAULT 1, ADD COLUMN "realization_snapshot" jsonb NOT NULL DEFAULT '{}';
