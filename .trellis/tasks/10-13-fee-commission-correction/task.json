@@ -3,8 +3,8 @@
   "name": "fee-commission-correction",
   "title": "补齐费用更正与提成联动纠错",
   "description": "规划应收追加、应收应付调减、错录及补录纠错的受控审批与财务提成调整闭环。",
-  "status": "planning",
-  "dev_type": null,
+  "status": "in_progress",
+  "dev_type": "fullstack",
   "scope": null,
   "package": null,
   "priority": "P1",
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-13",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/fee-exception-phase-one",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "10-13-fee-exception-closure",
   "relatedFiles": [],
-  "notes": "第一阶段已验收，用户要求继续完成。已补账务/提成研究及设计实施草案；部分回款优惠后的提成口径（PRD Q1）待用户答复，尚未启动产品实现。",
+  "notes": "用户已要求继续完成并确认按真实已收金额重算（25元）。继续本任务实现与验证，复用现有批准/资金执行分离边界。",
   "meta": {}
 }

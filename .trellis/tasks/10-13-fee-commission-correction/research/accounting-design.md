@@ -4,6 +4,8 @@
 - 范围：仓库内部；只读现有代码与规范，本文件为设计研究，未修改产品代码。
 - 日期：2026-10-13
 
+> 最终方案状态（2026-10-13）：用户已选择按真实已收金额重算提成（讨论例的正确提成25元），并授权继续原任务；全额经济冲回+替代方案已选，追加/替换/整笔作废均纳入本期。前文早期比较保留为研究过程，“待选择”表述以本状态及文末最终实施合同为准。不新增普通费用必须填写的root_id，根由可空source_fee_id链确定。
+
 ## 研究结论
 
 ### 1. 已确认范围与推荐结果
@@ -225,3 +227,163 @@
 4. 对应整张开票范围中的其他订单必须在数据范围内才能实际整体红冲重开；审批人可批准当前单经济变化，财务实际操作仍须拥有全部相关范围。不能让单票权限自动获得别单经济明细。
 5. 待审互斥、已批准未建调整阻断自动锁、CLOSED继续可更正及已锁不自动解锁均为本次确认边界。提成未发/已发更正效果不同，由原合法方案快照联动调整，不采用当前新比例。
 6. 真正需要产品选择的是：是否接受首期全额冲回+新重立及整张发票红冲重开；是否需要更正为零/撤销整条费用（当前正数替代只覆盖本次已述金额更改）；缺提成计算快照时可否先经济批准并标明待人工处理，还是应阻断（不能静默吞提成影响）。不应向用户询问已有明确批准的“业务/回款分离”“第五条人工判断”。
+
+## 可直接并入 design：最终数据字段与接口
+
+### A. 最少持久字段与不变量
+
+`OrderFee`新增五字段，普通费用夹具继续有合法默认值：
+
+| 字段 | Ent契约 | 语义 |
+| --- | --- | --- |
+| economic_effect | Enum(INCREASE,DECREASE), Default(INCREASE), Immutable | 金额正数；经济方向不变，INCREASE加/DECREASE减。 |
+| source_fee_id | UUID Optional Nillable Immutable | 冲回/替代指向原费；普通/ADD为空；沿链找到空即根。 |
+| correction_request_id | UUID Optional Nillable Immutable | 专用批准生成行的来源，旧普通/补录空。 |
+| superseded_by_request_id | UUID Optional Nillable | 原行批准替代后写一次，不能再次作为目标。 |
+| accounting_required | Bool Default(true) | 原无有效bill时原行及冲回false；已有bill原行及冲回true；ADD/替代恒true。 |
+
+沿用原`version`；原fee批准后只变替代关联/是否需建账与version，不改金额、对象、方向等原值。角色由字段组合推导，免增role列：DECREASE是冲回；INCREASE+source非空是替代；INCREASE+source空是普通或ADD。CHECK要求DECREASE有source和correction，source非空有correction，DECREASE不能被替代，source不能等自身；同订单及无环由锁内校验。`(correction_request_id,economic_effect)`唯一（NULL普通多行合法）；`source_fee_id WHERE economic_effect='DECREASE'`唯一。来源FK NO ACTION，普通删除不得删除任何更正链参与行。
+
+新增`OrderFeeCorrectionRequest`使用IDMixin/TimeMixin：
+
+- organization_id/order_id不可变UUID；operation ADD/REPLACE/VOID不可变；source_fee_id、source_fee_version可空不可变。ADD来源空；REPLACE/VOID来源有且version>0。
+- approved_fee_review_event_id、approved_fee_content_version、approved_fee_review_version不可变，绑定提交时合法完整批准。
+- requested_by/requested_at不可变；reason必填 MaxRuneLen(1000)；idempotency_key MaxLen128、request_fingerprint MaxLen128不可变。
+- before_fee_snapshot、after_fee_snapshot为可空JSON不可变领域快照：ADD前空后有；REPLACE前后有；VOID前有后空。金额/汇率/税费快照按现有领域编码，不保存Ent/Proto对象。
+- status PENDING/APPROVED/REJECTED/WITHDRAWN默认PENDING；version默认1；decided_by/decided_at/decision_reason可空，仅一次终态决策。
+- approval_result_snapshot可空JSON，批准时固化经济、提成和相关财务事实。生成费用按其correction_request_id反查，免增结果费用ID持久列；申请详情返回derived IDs。
+- 唯一(organization_id,idempotency_key)；部分唯一order_id WHERE status=PENDING；动作与快照完整性CHECK与Ent同源。跨补录表互斥必须Order锁内统一检查。
+
+`FinanceBill`新增purpose NORMAL/CORRECTION_REVERSAL默认NORMAL；请求不用传purpose，后端按fee effect推导。NORMAL替代费也按根链单独分组，更正链不得与无关新费混成一张新bill。旧合并bill保留。BillLine继续既有OrderFeeID关联不可删除来源，不新增必填root。可按生成规范补经济来源快照，但不能建立另一套可写来源真相。
+
+`FinanceNetting`新增nullable correction_request_id；内部清偿用途由服务端来源验证后写入，普通为空。`FinanceNettingAllocation`新增nullable source_fee_id，内部清偿明确指定本bill中的原/冲回/替代fee，普通空。避免给整bill贴标签后侵占无关行。`FinanceCommissionAdjustment`新增nullable source_fee_correction_request_id，具体提成计算字段见专项合同。
+
+### B. Proto接口与准确载荷
+
+`OrderFeeService`追加CreateOrderFeeCorrection、ListOrderFeeCorrectionRequests、GetOrderFeeCorrectionRequest、PreviewOrderFeeCorrectionApproval、ApproveOrderFeeCorrection、RejectOrderFeeCorrection、WithdrawOrderFeeCorrection。路由为`/api/v1/orders/{order_id}/fee-correction-requests`，详情`/{id}`，预览`/{id}/approval-preview`，终态操作`/{id}/approve|reject|withdraw`。响应沿用success/code/message/data/trace_id，分页沿用page>=1、1<=pageSize<=200。
+
+所有RPC注解AUTHENTICATED，用例实际授权：ADD要求品类fee.create；REPLACE/VOID要求fee.update；审批依system.finance.fee.review及真实组织grant；本人仅撤回PENDING。详情/列表资格为该品类fee.read、申请本人或合法审核人，沿用补录逐行授权，不能只判断已登录。
+
+精确创建载荷候选：
+
+```proto
+enum OrderFeeCorrectionOperation {
+  ORDER_FEE_CORRECTION_OPERATION_UNSPECIFIED = 0;
+  ORDER_FEE_CORRECTION_OPERATION_ADD = 1;
+  ORDER_FEE_CORRECTION_OPERATION_REPLACE = 2;
+  ORDER_FEE_CORRECTION_OPERATION_VOID = 3;
+}
+message OrderFeeCorrectionTarget {
+  OrderFeeDirection direction = 1;
+  string fee_setting_id = 2;
+  string settlement_party_id = 3;
+  string billing_unit_id = 4;
+  string quantity = 5;
+  string unit_price = 6;
+  string currency = 7;
+  string expense_date = 8;
+  optional string note = 9;
+  optional string exchange_rate_override = 10;
+  optional bool tax_inclusive = 11;
+}
+message CreateOrderFeeCorrectionRequest {
+  string order_id = 1;
+  OrderFeeCorrectionOperation operation = 2;
+  optional string source_fee_id = 3;
+  optional uint64 source_fee_expected_version = 4;
+  OrderFeeCorrectionTarget target_fee = 5;
+  string reason = 6;
+  string idempotency_key = 7;
+}
+message ListOrderFeeCorrectionRequestsRequest {
+  string order_id = 1; int32 page = 2; int32 page_size = 3;
+}
+message GetOrderFeeCorrectionRequestRequest { string order_id = 1; string id = 2; }
+message PreviewOrderFeeCorrectionApprovalRequest {
+  string order_id = 1; string id = 2; uint64 expected_version = 3;
+}
+message ApproveOrderFeeCorrectionRequest {
+  string order_id = 1; string id = 2; uint64 expected_version = 3;
+  string preview_token = 4; string comment = 5;
+}
+message RejectOrderFeeCorrectionRequest {
+  string order_id = 1; string id = 2; uint64 expected_version = 3; string reason = 4;
+}
+message WithdrawOrderFeeCorrectionRequest {
+  string order_id = 1; string id = 2; uint64 expected_version = 3;
+}
+```
+
+ADD要求来源ID/version均空、target有；REPLACE要求来源ID/version与target均有；VOID要求来源ID/version有、target空。target所有数量单价正数，金额由服务端计算，零目标请使用VOID。方向错误允许替代的新direction不同；冲回保留旧direction。reason/comment最多1000Unicode；驳回reason必填，亏损批准仍意见必填。
+
+RequestData返回id/order_id/organization_id/operation/status/version、source_fee_id/version、before_fee/after_fee只读OrderFee快照、reason、requested_by/name/at、decided_by/name/at/reason、derived reversal_fee_id/replacement_fee_id、can_approve/can_withdraw/approver_available、financial_status。ApprovalData返回request、base_currency/current与projected收入成本利润/profit_change/profit_rate可空、commission_impacts、按对象/币种/方向分组financial_impacts、preview_token。全部金额decimal string。服务端返回对象负责预览净额，不能依赖前端浮点自行做审批金额。
+
+OrderFeeReviewData增加has_pending_correction及合并pending-change投影；OrderFee返回effect/source/correction/superseded/accounting_required和derived can_bill/can_correct。旧has_active_bill仅真实账务占用，不能把免建账历史强置为true骗原门禁。
+
+## 可直接并入 design：账务操作约束
+
+### C. 三动作与财务阶段
+
+- ADD：生成INCREASE正常费，source空、需建账。
+- REPLACE：原fee必须当前INCREASE且未替代、version一致；写superseded_by，创建全额DECREASE冲回+一个INCREASE替代，source均指原费。原无有效bill则原/冲回免建账；原有DRAFT/CONFIRMED有效bill则原/冲回需建账。替代恒需建账。
+- VOID：同REPLACE但没有新替代行，禁止创建金额0费用；原无账无需新账，原有账须建反向，原未结部分对冲、已付部分实际退款/追回。后续重新收费走ADD；不能撤销已APPROVED更正、解冻旧行或物理删除。
+
+| 费用 | 经济direction | effect | 资金bill direction | purpose |
+| --- | --- | --- | --- | --- |
+| 正常应收/替代应收 | RECEIVABLE | INCREASE | RECEIVABLE | NORMAL |
+| 正常成本/替代成本 | PAYABLE | INCREASE | PAYABLE | NORMAL |
+| 应收全冲回 | RECEIVABLE | DECREASE | PAYABLE | CORRECTION_REVERSAL |
+| 成本全冲回 | PAYABLE | DECREASE | RECEIVABLE | CORRECTION_REVERSAL |
+
+普通修改/删除/拆票转移拒绝DECREASE、已替代及更正链参与行。单/批量建账共同检查需建账、是否可建、合法整票经济批准、无任何PENDING；用途由来源推导。已替代原行即使其原bill后续取消也永不能普通重建。
+
+批准前原DRAFT可按原规则确认或取消，批准锁内决定原是否有效占用；批准后原DRAFT允许确认、拒绝取消。已CONFIRMED原账只允许沿正常资金/票据流程保留历史，原账取消一律被更正依赖拒绝。反向/替代账尚无有效核销/对冲/开票时可显式取消重建，经济批准不撤销、需建账不清零；新替代行再次被更正后，其bill成为该步原账，同样保护。
+
+已有原invoice：批准保留其状态；财务按原权限与版本整张红冲/草稿取消；新有效经济内容不得在原票仍占用时重复开。发票候选按有效正常经济行，CORRECTION_REVERSAL不入普通票；红冲不取消受保护原账。
+
+### D. 对冲端点服务端推导合法链
+
+保留CreateFinanceNetting请求所选bill+expectedVersion+note+idempotencyKey，不加客户端可写purpose、skipCommission或任意指定source_fee_id。锁内读取选中账单行费来源，沿source找到根及对应APPROVED申请。每次内部清偿只涉及一个合法更正步骤：反向费可以对冲其source原费，或者同一申请的替代费。所有参与必须同组织、对象、币种，不能以同root为由跨步骤随意配债，也不能混入其他正常费用获得计提排除标签。
+
+系统确定correction_request_id与每allocation的source_fee_id，只消费对应行额度。仅选原+反向或反向+替代均可，不强制三账同时选择。旧bill虽可含其他行，内部allocation只能明确指向当前合法源费；新反向/替代账单分组按链隔离。混入无关账单/多条更正步骤/不完整来源拒绝并提示分别对冲，不默认为更正或通过普通标签逃过计提。
+
+现有PlanFinanceNetting增加领域只读EligibleAmount，在真实bill剩余额基础上按本步骤目标行余额限额；bill.TotalAmount等历史字段不改。对冲金额min(本次两方合法额度)并按ID稳定分配。确认时锁内重算同一来源和额度，不相信草稿创建时快照。普通无更正对冲按原商业规则；一旦涉及更正反向账就必须经过来源闭合验证。
+
+### E. 单一账单行结算投影（无新贡献表、无缺表回退）
+
+全部账务余额与提成共同消费同一纯领域算法，输入为bill line初始正数金额、完整核销/对冲原事件及反转事实、内部allocation.source_fee_id、关联经济替代时间。Go建议对象：
+
+```go
+type FinanceBillLineSettlement struct {
+  BillID, BillLineID, FeeID uuid.UUID
+  Direction OrderFeeDirection // 资金方向
+  TotalAmount, SettledAmount, RemainingAmount decimal.Decimal
+  Contributions []FinanceSettlementContribution
+}
+type FinanceSettlementContribution struct {
+  SourceType string // VERIFICATION / NETTING
+  SourceID, AllocationID uuid.UUID
+  EffectiveAt time.Time
+  Amount decimal.Decimal
+  IsCorrectionSettlement bool
+  ReversedAt *time.Time
+}
+```
+
+按有效发生时间+源ID+allocationID稳定重放。核销原事件时间created_at；对冲原事件必须confirmed_at，因为现有DRAFT创建时已有allocation但尚未生效，不能用allocation.created_at提前分摊。反转在parent.reversed_at产生单独撤销事件。只取当前active会丢历史：应包括ACTIVE/REVERSED核销原事件、CONFIRMED/REVERSED对冲原事件；DRAFT/CANCELLED未确认对冲不产生结算。
+
+原事件将allocation Amount按当时合法行Remaining比例RoundBank(8)，bill line按ID升序，最后一行得到amount减已分配的尾差；不得超过该行余额，整体输入非法则业务错误不钳零。不拿前端float。内部更正allocation按指定source_fee_id定点消耗，不散到别行。
+
+算法在内存缓存原allocation的精确line分摊。反转按该缓存原分摊逐行释放，标原Contribution.ReversedAt，不重新按当时比例分配撤销；随后既有事件的发生顺序不改。例：付款V1后付款V2，后来反V1，V2依旧保留当时A/B原归属；不能先剔除V1再让V2多分A。既有原金额/生效/反转时间及确定性规则是证据，免加持久贡献表。
+
+更正批准后原混合bill中已替代费尚有未结余额时，普通核销/普通商业对冲拒绝该原bill并提示先完成指定费内部抵销；真实资金仍可以先登记cashflow留未核销，不伪造资金。内部抵销把旧目标费Remaining清至0后，原bill可继续普通核销其尚有效未结行。这条局部门禁使普通操作不用替用户选择被废费/退款链，代码成本最低；所有后来事件只分配合法Remaining>0普通行。
+
+必验例：旧bill A1000+B200，实收400；普通分摊A333.33333333、B66.66666667。A更正100，原bill余额800，但原A可内部抵销只有666.66666667；不能把整800抵到A冲回。原bill随后剩B133.33333333；反向A剩333.33333333，与新A100抵销后应退233.33333333。后续B收133.33333333只归B，A不被二次分摊。整个内部对冲不生营业收入/提成。
+
+注：反转先前事件导致后续已执行内部抵销额度大于该步骤复原后合法余额时必须阻断反转并给出依赖对冲，先显式反转后续依赖。不可重排历史或静默削减分摊。已有确认/已付提成来源保护继续依专项合同校验。
+
+### F. 待审、结案、自动锁与事务
+
+补录与更正创建均Order锁下跨表检查，最多一个PENDING。待审阻止新建账、相关提成确认/发放及结案；CLOSED后仍可提交/批准/驳回/撤回，既有业务锁不自动解除。accounting_required=false历史不算未建账；批准后反向/替代需建未建阻止新的自动锁。VOID不能因收入归零跳过至少有效结清事实的原自动锁条件。
+
+经济内容、原fee版本/替代事实、批准基线、预览提成/财务事实不一致返回409并保留PENDING。授权父锁User→Membership→Role先于Order，随后申请/相关bill/fee/提成父与调整按统一顺序，动作实际锁序由主design记录。费用、更正申请终态、系统提成调整、完整新批准快照、审计/outbox一次提交；重复请求返回原结果，不重复冲回或计提。

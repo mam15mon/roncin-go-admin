@@ -3,7 +3,7 @@
 - 研究问题：成本补录 1,000→100 如何联动原 CONFIRMED/PAID 提成及已确认/已执行冲减；连续补录封顶、首次计提、应收优惠、部分回款与更换结算对象如何避免重复计提或恢复。
 - 范围：仓库内部
 - 日期：2026-10-13
-- 状态：技术候选设计；部分回款下优惠的计提口径已由主会话向用户提问，尚未得到回答。不得将下面推荐算法视为已批准业务合同。
+- 状态：用户已确认按真实已收金额重算，Q1 定稿为25元；全额冲回+新费已选定。前文保留研究过程，权威实施算法见文末「9. 提成确定算法」。
 
 ## 研究结论
 
@@ -47,7 +47,7 @@
 
 全收案例有确定底线：原应收 1,000、成本 100、原核销 1,000、利润率提成 10%=90。应收优惠到 900 后，总可实现收入不能仍是 1,000，正确全部经济目标为 (900−100)×10%=80。仅改分母900却保留 realized1000 将算88.88888889，错误。
 
-部分收款有两种不同业务结果，原代码不能替用户决定。主会话已提问：原 R=1,000/K=400/收500/10%=30，优惠后 R=800，按实际已收500与新总应收比例重新分摊成本，目标25；保持原来源50%覆盖比例则实现收入400，目标20。推荐前者，更符合“回款是回款”，但必须等待答复。
+用户已确认：原 R=1,000/K=400/收500/10%=30，优惠后 R=800，按实际已收500与新总应收比例重新分摊成本，目标25。实现中不得冻结原来源覆盖比例；以下初稿配额候选已由文末的单一清偿投影和稳定来源占额规则取代。
 
 若用户选择实际回款口径，候选规则如下：
 
@@ -141,7 +141,7 @@ Schema必需正式迁移、Ent生成；Proto/OpenAPI/客户端同组生成。没
 | 原K已更正100后新来源收500 | 新原行用当前K100且修订检查点固定；以后补50只对新变化算影响，不重复旧900修正。 |
 | C0=100/手工-80/系统实际-20，目标从0→90 | 系统仅恢复10，人工-80保留；DRAFT减提仅作为预算。 |
 | 原R1000/K100/全收1000/10%，优惠R900 | 目标80而非88.88888889；真正退款100执行前后目标仍80，无额外收入核销/重复减提。 |
-| 原R1000/K400/收500/10%，优惠R800 | 用户待答：实际回款口径25，固定50%覆盖口径20。 |
+| 原R1000/K400/收500/10%，优惠R800 | 用户已确认实际回款口径25。 |
 | 两个真实来源各收500，优惠900 | 总有效来源收入900，原规则各10%时总80；配额450+450，尾差守恒，按各原率计算。 |
 | 原账单冲回+替代+CORRECTION_SETTLEMENT | 更正清算不产生新提成候选；旧真实来源仅继承一次；后续真新收款才增加配额。 |
 | 原收款反核销后更正成本 | 不恢复反核销来源的提成；其他有效来源配额按选定规则重算，真实追回不双减。 |
@@ -160,8 +160,124 @@ Schema必需正式迁移、Ent生成；Proto/OpenAPI/客户端同组生成。没
 
 ## 限制与未决项
 
-- 唯一最高价值用户问题是部分回款优惠后的计提口径；问题已由主会话提出，当前未答。不得把25或20写成已确认验收，也不能悄悄删掉应收优惠用例。
+- Q1已确认25，最终算法必须覆盖已收500、优惠后R800/K400；应收优惠用例属于实施范围。
 - 实际回款配额路线覆盖更广，但必须包括真实资金事件与来源反转的联动；只在费用批准算一次不足以闭环。经济配额跨来源的分摊规则是候选技术实现，应随用户口径写入design，不是现有代码合同。
 - 已付原行仅有逐订单realized收入；没有原费用级贡献和经济根、修订快照。新字段若历史不可可信还原必须明确UNAVAILABLE，不能用当前账单/当前汇率兜底。
 - 现有数据库没有 EXECUTED 状态，执行完成为 PAID；无新状态必要。
 - 本研究只读代码并写本文件；没有改产品/规格、运行测试或提交Git。
+
+## 9. 提成确定算法（Q1确认后的权威实施合同）
+
+本章取代前文来源按全部贡献比例分额度的候选。用户已确认真实已收金额口径：R1000/K400/实收500/10%，优惠至R800后目标25。沿用全额经济冲回+新费用重立；不冻结原收入覆盖比例。
+
+### 9.1 唯一账单行清偿投影
+
+财务与提成共用 `biz.FinanceBillLineSettlement`，由会计worker实现；提成不另做静态原账单比例分摊。
+
+```go
+type FinanceBillLineSettlement struct {
+    BillID, BillLineID, FeeID uuid.UUID
+    Direction OrderFeeDirection // 资金方向
+    TotalAmount, SettledAmount, RemainingAmount decimal.Decimal // 账单原币
+    Contributions []FinanceSettlementContribution
+}
+type FinanceSettlementContribution struct {
+    SourceType string // VERIFICATION / NETTING
+    SourceID, AllocationID uuid.UUID
+    EffectiveAt time.Time
+    Amount decimal.Decimal // 本allocation归属本账单行的原币金额
+    IsCorrectionSettlement bool
+    ReversedAt *time.Time
+}
+```
+
+实现对全部原发生和反转事件稳定重放：核销发生用created_at，商业/内部对冲发生用confirmed_at（不能用草稿allocation.created_at）；同一时刻按事件类型、来源UUID、allocation UUID排序，反转使用reversed_at作为后续释放事件。普通发生按**当时账单行剩余金额**比例分摊，经济更正对冲按source_fee_id定点清偿；原allocation→line归属在重放内存中固定，反转准确释放原分配，不使后来的既有事件重新分配。保留已REVERSED来源原发生及反转时间，不能查询时直接删掉所有历史事件。尾差采用会计统一的RoundBank(8)+稳定末行补差，禁止提成自己另建另一舍入口径。
+
+原A1000+B200合并账收400，投影先分A333.33333333、B66.66666667；A更正100后内部对冲定点清偿旧A剩666.66666667。随后旧账收133.33333333全部归B，不能再次按1000:200分到已清偿A。历史400分摊不改。
+
+更正旧账尚未完成必要定点清偿时，拒绝在该旧账新增普通核销，允许先登记未核销资金；完成后普通分摊只分给仍有合法剩余的普通经济行。此保护由会计投影负责，提成只消费已通过财务准入的行归属。
+
+### 9.2 经济根、对象和币种桶
+
+沿正常/替代费的source_fee_id链确定 `EconomicRootID`；链首正常费是根，冲回行不独立建根。新增费用是新根。链必须同Order、同经济方向且无环；Root查找结果可批量缓存，不新建通用根实体或事件平台。
+
+经济应收根f的当前叶子给出 `CurrentFeeID/SettlementPartyID/Currency/Amount/BaseCurrency/CalculationBaseAmount`。桶键为(root,settlementParty,currency)，当前叶子匹配的桶才有当前应收经济额度，其余历史桶上限0。换对象/币种不能自动把旧对象旧币现金当新对象新币回款；旧退款与新真实回款分别执行。成本根无收入额度，追回成本即使账单资金方向RECEIVABLE也不入计提收入。
+
+`CalculationBaseAmount`是明确的有效经济计提基数：普通原费用沿用其有效正常账单行的冻结本位币基数，未建账时费用快照；受控补录/更正生成的新经济内容使用提交/批准固化的经济基数，不因后来资金账单汇率改变而二次重算已批准费用影响。当前费用经济helper及初次计提必须统一这条规则。原行仍保存原R/K/率/计算版本；不能用当前市场汇率修改历史快照。
+
+### 9.3 真实贡献、退款与配额
+
+只从9.1行归属构造真实贡献，不从账单头Amount重新猜。
+
+1. 正贡献：有效正常营业应收行上的真实应收核销，或purpose=NORMAL商业对冲的应收行归属。每份记录(source kind/id,allocation id,bill line id,root,party,currency,effectiveAt,native amount)。旧原费用虽已被替代，其真实正贡献仍跟随同根、同对象、同币桶保留。
+2. 内部purpose=CORRECTION_SETTLEMENT全部贡献恒0；旧→反向→新清偿不生成第二份正贡献，不消耗或增加真实贡献。继承通过原根查询已有来源，不复制新source。
+3. 退款贡献：营业应收根对应CORRECTION_REVERSAL应付行上的真实PAYABLE核销，或者NORMAL商业对冲清偿该应付行。按9.1归属追到同根/对象/币种；冲回成本的收款不当退款，也不当收入。
+4. 真实正贡献、退款发生及它们的反转按同一稳定时间规则重放。每次退款在该桶中已有的未退正贡献之间按余额比例分配，使用同一8位尾差函数；缓存退款allocation→原正贡献扣减份额，退款反转恢复原份额，不把后来的新回款分给更早退款。先退款后新收款时只新收款增加新可用份额。
+5. 原正来源反转移除该源原贡献；若尚有依赖它的有效退款，使该桶任一真实来源净余额负数或总退款超过真实入账，则拒绝本次反转并要求先反转关联退款核销。不制造负回款、不静默挪给别对象/币种。反转发生与拒绝都不受订单业务锁/CLOSED影响。
+6. 当前根原币可计提收入 `Q=min(CurrentAmount,max(0,Σ同桶净真实贡献))`。对净贡献按(原发生EffectiveAt, SourceType, SourceID, AllocationID, BillLineID)升序依次占额：`q_i=min(net_i,remainingQ)`，扣减remainingQ，来源份额是其所有q_i之和。先来的真实来源先占额，过量后来的来源份额0；客户多付不能让旧提成被挪到新超额来源。
+7. 原币q按当前有效经济快照折本币：`sourceBase=q/CurrentAmount*CalculationBaseAmount`；按稳定贡献顺序分摊根的整体base目标，统一尾差确保 ΣsourceBase=Q/CurrentAmount*CalculationBaseAmount。CurrentAmount=0时所有配额/base=0，禁止除零。跨币种只在各原币桶内分配，最后在同一组织本位币汇总，不把USD与CNY原币裸加。
+
+例如两来源各收500，应收优惠至900：按来源先后分配500、400，总实现900；同为10%且成本100，总提成80。原收1000优惠至900，再多收100：旧源仍900，新超额源0。原R1000/K400/收500优惠R800：q仍500，成本分摊250，利润250，提成25。优惠审批降低经济上限；退款实际执行扣净贡献，已全收1000→优惠900→退款100时实现额始终900，不重复减少。
+
+### 9.4 初次计提与已存在父提成
+
+对每个真实商业来源、员工与岗位，r为9.3给该source在所属订单全部应收根的base配额。R/K取当前有效经济费用的统一基数。计算仍按原V3逐步骤Round(8)，原CONFIRMED/PAID使用各自原rate/basis/employee/role，不读当前方案；尚未计提才按既有来源日期方案解析。`r=0`或`R=0`的目标直接0；亏损按零；收入模式目标r×原率，不受K影响。
+
+新来源r=0不生成空壳提成候选；r>0而利润0可沿既有零金额提成规则。初次行固化经济版本、R/K、配额证据，后续补录/更正从当前经济投影计算目标，不再把全部历史补录累加到已经包含补录的R/K中。
+
+现有DRAFT只允许通过显式重新生成得到新原快照：经济指纹改变后不得确认旧金额；月申仍按已提交快照拒绝批准，先退回后显式重提并重新生成未确认来源。原CONFIRMED/PAID行不可原地重算，使用下节调整。
+
+### 9.5 一次净调整计划
+
+复用本文件4/5节公式，但费用系统集合统一包括LOCKED_FEE_SUPPLEMENT、FEE_CORRECTION、ECONOMIC_REALLOCATION。有效源的新理论T来自9.4；C0是原行。人工M独立保留，负目标按订单行和父单预算封顶，DRAFT减提仅预留预算。目标系统累计A*与**已实际系统累计净额**对账，绝不恢复此前未扣掉的封顶额。
+
+审批或真实来源变化若目标发生变化：专用取消本行所有未执行系统调整（保留确认/取消历史与本动作来源），不动PAID调整；新CONFIRMED调整金额=abs(A*−F_paid)，符号按差额。相同目标与当前系统累计一致时零写调整，只保留审批/动作证据。父CONFIRMED净发放，父PAID真实补付/追回。
+
+**真实来源反转是同一个计划，不能再执行旧reconcileCommissionsForSourceReversal之后重复重算：** 被反转源未付父单，取消其未执行调整与父单，保留原来源与月申历史；被反转源PAID父单保持PAID，真实目标0，取消其所有未执行调整，按原行付款证据 `lineCash=C0+Σ该行PAID有符号调整` 创建待追回lineCash（0不创建）。此处来源失效同时失去该来源未执行人工加减资格；人工已实际执行也进入真实现金追回，但不改历史。校验各行lineCash≥0且ΣlineCash等于commissionCashExposure；不猜缺付款证据。其他仍有效源因配额变化，继续按原率和人工分离公式重算。统一锁内计划计算全部旧/新系统调整，既有反转helper改为调用此计划，避免两套追回叠加。
+
+退款等导致有效源份额变0而源未反转：父单仍存在且原人工调整保留，按费用系统目标处理，不把它误当来源反转的整单取消。
+
+### 9.6 共享事务与幂等触发
+
+不新建事件平台。现有核销Create/Reverse、商业/内部对冲Confirm/Reverse在自己的共享事务中完成资金分摊，再直接调用同一 `ReconcileCommissionEconomics(txCtx, org, actor, orderIDs, trigger)`；来源反转事件先写active/reversed_at，再在提交前按新的完整投影生成一次计划，失败整体回滚。CORRECTION_SETTLEMENT通常目标不变，但仍复核投影；真实退款PAYABLE核销也会触发，不仅RECEIVABLE核销。
+
+```go
+type CommissionEconomicTrigger struct {
+    Kind string // FEE_CORRECTION / VERIFICATION_CREATE / VERIFICATION_REVERSE /
+                // NETTING_CONFIRM / NETTING_REVERSE
+    ID uuid.UUID
+    Version uint64 // 已完成该动作后的实体version
+}
+type CommissionSourceQuota struct {
+    SourceType string
+    SourceID, AllocationID, BillLineID, EconomicRootID uuid.UUID
+    SettlementPartyID uuid.UUID
+    Currency, BaseCurrency string
+    EffectiveAt time.Time
+    NativeNetAmount, NativeQuota, BaseQuota decimal.Decimal
+}
+type CommissionEconomicOrderProjection struct {
+    OrderID uuid.UUID
+    FeeContentVersion uint64
+    BaseCurrency string
+    Receivable, Payable decimal.Decimal
+    Quotas []CommissionSourceQuota
+    Fingerprint string
+}
+```
+
+核心已定义的 `FeeCorrectionCommissionRepo.PreviewCorrectionImpact(ctx,org,order,request,currentFees,projectedFees)` 返回逐行target/current/difference及Fingerprint；`ReconcileCorrectionImpact(ctx,org,order,actor,request,impact)` 在共享事务锁内重算后执行净计划。提成worker给普通补录一个同算法adapter，不再保留旧仅成本边际算法。内部方法建议 `LoadCommissionEconomicProjection`（调用唯一行清偿投影）、`PlanCommissionEconomicReconciliation`（纯Go）、`ApplyCommissionEconomicReconciliation`（Ent/审计）。
+
+新调整FEE_CORRECTION关联申请；ECONOMIC_REALLOCATION关联触发的source_verification_id或source_netting_id，含真实退款PAYABLE核销。幂等键为sha256(kind+id+version+commissionID+orderID)加短前缀，不溢出128字符；来源字段数据库CHECK与真实类型对应。普通动作重试先复用既有幂等资金事实，不能重复执行改变目标；最终调整本身唯一键兜底。旧“parent/order/source_verification_id唯一”仅对原反核销来源适用，新事件可发生create与reverse不同版本，必须修改为按新幂等键去重。
+
+锁序：需员工资格快照的初次生成/确认先User；费用审批先授权User→Membership→Role。随后先解析受影响全部Order，包括本资金事件账单的订单及同根来源涉及的父单所有订单，按UUID一次FOR UPDATE；再申请（费用更正时）、Cashflow（核销时）、当前来源、Bill按UUID、BillLine/费用按UUID、Commission父按UUID、CommissionLine按UUID、Adjustment按UUID。不得在持Bill/Cashflow/Commission后追加Order，也不得在持Order后为重算原快照再锁员工User。现有核销Create的Cashflow→Bill入口必须移到先Order；NettingConfirm不能先锁来源再回头锁Order。确认提成已有Order→来源→Bill路径沿用相同序。授权与经营范围锁内重读，所有repo经Data.client(txCtx)。
+
+使用Order锁稳定整个根及共享父单目标，不需新增可写配额状态/version镜像。预读定位与锁内源集合不一致即409重新开始，不能增量追加未排序订单。费用、请求、整票批准、调整作废/新建、来源状态、审计/outbox在同一事务，失败不留半笔资金或半笔提成。
+
+### 9.7 最薄持久字段和实施回归
+
+沿用core新增字段：adjustment的source_fee_correction_request_id/source_netting_id/superseded_by_fee_correction_request_id及FEE_CORRECTION、ECONOMIC_REALLOCATION；line的fee_content_version_snapshot、realization_snapshot JSON。realization_snapshot保存本次9.3全部参与配额证据与经济根/币种/原币/base/排序/指纹；原JSON不用于猜当前费用版本。更正申请commission_impact_snapshot固化计划及封顶。真实清偿投影用既有allocation、confirmed/created/reversed_at重放，不新建通用事件或分摊表。
+
+正式迁移从原费用/账单/有效与反转分摊确定性生成经济根和原证据；只生成可证明数据，缺失则明确UNAVAILABLE及原因码，禁运行时“缺字段按当前比例猜”。开发样例同步新字段，不重置库。初次计提/工作台/月申所有调用共用新投影和原规则解析，来源候选不把内部对冲、成本追回当新提成。
+
+必须验收Q1=25、全收优惠90→80、共享账A更正后后续收款仅归B、退款及退款反转恢复、原来源有退款依赖时反转拒绝、两来源额度500+400、后续超额源0、换对象/币种旧贡献不跨桶、连续补录跨零/封顶恢复仅实际差、CONFIRMED/PAID/OFFSET_WITH_PARENT四种执行证据、手工-80不抹除、源反转单一追回、来源回款后旧父单净调整、同刻稳定顺序/8位尾差及共享事务竞态。
