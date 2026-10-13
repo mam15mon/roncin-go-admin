@@ -12,13 +12,22 @@
 | server/internal/data/dingtalk.go:92 | OAuth2 授权，scope 为 openid corpid；服务端换码并校验企业 |
 | server/internal/data/auth.go:219、:306 | primary 影响初始工作台；部门/组映射到所属工作台 |
 
-## 嵌入扫码外部调研边界
+## 嵌入扫码外部调研（2026-10-13 补充）
 
-官方入口：[实现网页方式登录应用](https://open.dingtalk.com/document/orgapp/tutorial-obtaining-user-personal-information)、[实现登录第三方网站](https://open.dingtalk.com/document/isvapp-server/tutorial-enabling-login-to-third-party-websites)。本轮工具只读取到动态页面标题，未取得 SDK 参数正文，不能声称验证了 SDK 签名和同源规则。
+官方入口：[实现网页方式登录应用](https://open.dingtalk.com/document/orgapp/tutorial-obtaining-user-personal-information)、[实现登录第三方网站](https://open.dingtalk.com/document/isvapp-server/tutorial-enabling-login-to-third-party-websites)。动态文档工具仍只返回标题，未取得文档正文。
 
-[官方端外扫码示例](https://github.com/open-dingtalk/h5app-out-login-demo) 可确认存在扫码页面与回调配置示例，但 README 使用 sns 临时授权码流程，不能直接作为本仓库 OAuth2 替换方案。搜索摘要出现 DTFrameLogin，尚未以可读取的当前官方正文核实，未定 SDK 版本/API。
+本轮使用 Python urllib 直接读取[钉钉托管的 0.21.0 登录脚本](https://g.alicdn.com/dingding/h5-dingtalk-login/0.21.0/ddlogin.js)，响应为 2232 字符，未执行或存入仓库。可直接验证：
 
-后续核验 SDK 来源与版本、OAuth2匹配、回调、state 生命周期、刷新和卸载行为，并用真实应用验证。未读取环境秘密，未调用企业接口。
+- 导出 DTFrameLogin，创建 login.dingtalk.com/oauth2/auth 的 iframe，使用 iframe=true。
+- 必需 client_id、redirect_uri、response_type、scope；转发 state、prompt、corpId、org_type 等参数。
+- 监听 message；成功结果带 redirectUrl，从中读取 authCode、state；失败有 error/errorMsg。
+- 该版本通过匿名 window message 监听处理结果，没有暴露销毁函数或 removeEventListener 调用。多次初始化会增加监听。
+
+据此设计最小本地 iframe 包装，沿用服务端 authorizeUrl 的 OAuth2 参数；组件自己以可移除函数管理 message，精确验证 origin、source、state 与回调 URL。这个选择避免复制整个 SDK 或引入拦截全局事件监听的补丁，不新增通用扫码框架。
+
+[官方端外扫码示例](https://github.com/open-dingtalk/h5app-out-login-demo) 的 README 使用 sns 临时授权码流程，仅作为历史参考，不替换本仓库 OAuth2 链路。没有依据搜索中第三方文章决定参数或版本。
+
+尚未验证：真实企业应用是否在当前回调域名下正常展示二维码、扫码消息是否来自预期 iframe、回调及开发代理/生产同域行为。上述为实施第一阶段的技术验证项，不降低“打开即扫”的验收标准；失败时明确报告，不降级成按钮跳转并宣称完成。未读取环境秘密或调用企业接口。
 
 ## 成员和角色
 
@@ -50,8 +59,14 @@
 - .trellis/tasks/10-09-dingtalk-directory-provisioning/prd.md：默认工作台由管理员维护、多组织沿用单条维护；仅替代相关局部要求，不改变通讯录与人员状态机。
 - 根 AGENTS.md 的迁移、生成物、权限、事务、锁序与秘密保护要求继续适用。
 
-## 建议依赖（尚未作为批准实施计划）
+## 已收敛依赖与决策
 
-扫码 SDK 核验可独立推进；取消 primary 后，多选加入与公司管理员补齐采用最终成员契约，共享 auth/admin/bootstrap 文件按顺序交付。最终验收：创建公司 → 管理员配置 → 员工多组织分配 → 扫码 → 选择工作台 → 明确成员角色编辑。
+实施顺序见父任务 implement.md：先确认扫码协议在本应用可用，再依次取消 primary、批量加入、公司管理员补齐、扫码主页面和整体验收。协议核验不改授权逻辑。共享 auth/admin/bootstrap 文件按顺序交付。
 
-管理员账号范围已由父任务 D5 确认，仅限 bootstrap 创建的初始管理员；多选角色交互已由 D6 确认为各组织逐行选填、一次保存；D7 明确本批全部成功才保存，失败整批回滚并保留表单。管理员授权补齐的组织及停用恢复边界仍待收敛，不能将代码事实当作用户对此的批准。
+D5 确认仅初始管理员自动加入；D6 确认逐组织选填角色；D7 确认整批原子保存；D8 确认系统管理及启用公司、只补缺失而不恢复停用。产品决策已收敛，等待最新完整设计与计划的整体批准。
+
+## 工作区说明
+
+2026-10-13 本会话发现原工作区切回 main（8f866832），任务文档仍在 codex/background-task-notify。创建独立工作区 `/home/vince/roncin-go-admin-worktrees/dingtalk-login-memberships` 与分支 `codex/dingtalk-login-memberships`，只 cherry-pick 本任务四次文档提交（e94a2117、1b9d5227、e4a9df0f、ba49449f），未引入后台任务代码。后续在本独立分支继续；不要从旧分支覆盖本次收敛稿。
+
+随后发现 main 新增 cee4bffb：默认公司种子删去 SH/CQ，仅 BJ/CD，sync:dev 改归北京。最终规划同步此基线；不恢复删除的默认种子。子任务中“北京/上海”的角色示例仅说明任意实际公司组合，不是创建上海公司的要求。

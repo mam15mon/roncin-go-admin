@@ -12,15 +12,22 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-13",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/dingtalk-login-memberships",
   "base_branch": "main",
-  "worktree_path": null,
+  "worktree_path": "/home/vince/roncin-go-admin-worktrees/dingtalk-login-memberships",
   "commit": null,
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": "10-13-dingtalk-login-memberships",
-  "relatedFiles": [],
-  "notes": "用户已授权任务规划；需求收敛中，尚未批准实施。见父任务 PRD 的待收敛决策。",
+  "relatedFiles": [
+    "server/api/auth/v1/auth.proto",
+    "server/internal/service/auth.go",
+    "server/internal/data/dingtalk.go",
+    "web/src/pages/user/login/index.tsx",
+    "web/src/pages/user/login/dingtalk-callback.tsx",
+    "web/src/pages/user/login/components/organization-picker.tsx"
+  ],
+  "notes": "D1–D8 产品规则已收敛，PRD/设计/实施计划及上下文清单齐备；等待最新整体方案审阅后明确批准实施，保持 planning。",
   "meta": {}
 }

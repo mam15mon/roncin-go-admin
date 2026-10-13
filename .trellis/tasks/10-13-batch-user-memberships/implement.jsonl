@@ -1,4 +1,9 @@
-{"file": ".trellis/spec/domain/architecture-map.md", "reason": "组织成员、权限和工作台领域边界"}
-{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "现行认证契约；primary 与 bootstrap 局部条款待本任务明确替代，其他权限和轮转约束保留"}
-{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "前端请求与异步状态约定"}
-{"file": ".trellis/tasks/10-13-dingtalk-login-memberships/research/current-state.md", "reason": "代码事实、外部资料核验限制与需求变更依据"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "组织、成员、权限与工作台领域边界"}
+{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "现行认证底线；primary 与 bootstrap 局部行为按本任务 D1–D8 和设计替代，成员准入及会话轮转约束保留"}
+{"file": ".trellis/tasks/10-13-dingtalk-login-memberships/research/current-state.md", "reason": "代码证据、官方扫码协议验证、D5–D8 确认及工作区信息"}
+{"file": ".trellis/spec/server/backend/directory-structure.md", "reason": "服务端分层与领域类型边界"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "统一事务、锁、迁移与真实数据库验证"}
+{"file": ".trellis/spec/server/backend/role-workspace-ownership.md", "reason": "工作台角色归属和部门复用公司角色的约束"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "公共表单、ModalForm 生命周期与页面组件规范"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query 请求状态和生成客户端使用约定"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "异步候选隔离与回调稳定性"}
