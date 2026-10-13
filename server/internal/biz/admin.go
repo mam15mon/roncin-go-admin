@@ -23,7 +23,7 @@ type AdminRepo interface {
 	UpdateUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, *AuditEvent) (*AdminUser, error)
 	ListUserMemberships(context.Context, uuid.UUID) ([]*AdminUserMembership, error)
 	GetUserMembership(context.Context, uuid.UUID, uuid.UUID) (*AdminUserMembership, error)
-	CreateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID, *AuditEvent) (*AdminUserMembership, error)
+	CreateUserMemberships(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, []AdminUserMembershipCreation, []*AuditEvent) ([]uuid.UUID, error)
 	UpdateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID, *AuditEvent) (*AdminUserMembership, error)
 	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
 	TerminateUser(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
@@ -41,11 +41,12 @@ type AdminRepo interface {
 }
 
 type AdminUsecase struct {
-	repo AdminRepo
+	repo       AdminRepo
+	transactor Transactor
 }
 
-func NewAdminUsecase(repo AdminRepo) *AdminUsecase {
-	return &AdminUsecase{repo: repo}
+func NewAdminUsecase(repo AdminRepo, transactor Transactor) *AdminUsecase {
+	return &AdminUsecase{repo: repo, transactor: transactor}
 }
 
 func adminAuditEvent(ctx context.Context, userID uuid.UUID, resourceID *uuid.UUID, action, value string) *AuditEvent {

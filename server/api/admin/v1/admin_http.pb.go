@@ -22,7 +22,7 @@ const OperationAdminServiceBatchAuthorizeDingTalkUsers = "/admin.v1.AdminService
 const OperationAdminServiceCreateOrganization = "/admin.v1.AdminService/CreateOrganization"
 const OperationAdminServiceCreateRole = "/admin.v1.AdminService/CreateRole"
 const OperationAdminServiceCreateUser = "/admin.v1.AdminService/CreateUser"
-const OperationAdminServiceCreateUserMembership = "/admin.v1.AdminService/CreateUserMembership"
+const OperationAdminServiceCreateUserMemberships = "/admin.v1.AdminService/CreateUserMemberships"
 const OperationAdminServiceDeleteRole = "/admin.v1.AdminService/DeleteRole"
 const OperationAdminServiceDeleteUserMembership = "/admin.v1.AdminService/DeleteUserMembership"
 const OperationAdminServiceGetDingTalkDirectorySync = "/admin.v1.AdminService/GetDingTalkDirectorySync"
@@ -48,7 +48,7 @@ type AdminServiceHTTPServer interface {
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
-	CreateUserMembership(context.Context, *CreateUserMembershipRequest) (*CreateUserMembershipResponse, error)
+	CreateUserMemberships(context.Context, *CreateUserMembershipsRequest) (*CreateUserMembershipsResponse, error)
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
 	DeleteUserMembership(context.Context, *DeleteUserMembershipRequest) (*DeleteUserMembershipResponse, error)
 	GetDingTalkDirectorySync(context.Context, *GetDingTalkDirectorySyncRequest) (*GetDingTalkDirectorySyncResponse, error)
@@ -79,7 +79,7 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("POST", "/api/v1/admin/users", _AdminService_CreateUser0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/users/{id}", _AdminService_UpdateUser0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/users/{user_id}/memberships", _AdminService_ListUserMemberships0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/admin/users/{user_id}/memberships", _AdminService_CreateUserMembership0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/admin/users/{user_id}/memberships:batchCreate", _AdminService_CreateUserMemberships0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_UpdateUserMembership0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/admin/users/{user_id}/memberships/{id}", _AdminService_DeleteUserMembership0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/admin/users/{id}/termination", _AdminService_TerminateUser0_HTTP_Handler(srv))
@@ -240,24 +240,24 @@ func _AdminService_ListUserMemberships0_HTTP_Handler(srv AdminServiceHTTPServer)
 	}
 }
 
-func _AdminService_CreateUserMembership0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+func _AdminService_CreateUserMemberships0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in CreateUserMembershipRequest
+		var in CreateUserMembershipsRequest
 		if err := ctx.Bind(&in); err != nil {
 			return err
 		}
 		if err := ctx.BindVars(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationAdminServiceCreateUserMembership)
+		http.SetOperation(ctx, OperationAdminServiceCreateUserMemberships)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CreateUserMembership(ctx, req.(*CreateUserMembershipRequest))
+			return srv.CreateUserMemberships(ctx, req.(*CreateUserMembershipsRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*CreateUserMembershipResponse)
+		reply := out.(*CreateUserMembershipsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -599,7 +599,7 @@ type AdminServiceHTTPClient interface {
 	CreateOrganization(ctx context.Context, req *CreateOrganizationRequest, opts ...http.CallOption) (rsp *CreateOrganizationResponse, err error)
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleResponse, err error)
 	CreateUser(ctx context.Context, req *CreateUserRequest, opts ...http.CallOption) (rsp *CreateUserResponse, err error)
-	CreateUserMembership(ctx context.Context, req *CreateUserMembershipRequest, opts ...http.CallOption) (rsp *CreateUserMembershipResponse, err error)
+	CreateUserMemberships(ctx context.Context, req *CreateUserMembershipsRequest, opts ...http.CallOption) (rsp *CreateUserMembershipsResponse, err error)
 	DeleteRole(ctx context.Context, req *DeleteRoleRequest, opts ...http.CallOption) (rsp *DeleteRoleResponse, err error)
 	DeleteUserMembership(ctx context.Context, req *DeleteUserMembershipRequest, opts ...http.CallOption) (rsp *DeleteUserMembershipResponse, err error)
 	GetDingTalkDirectorySync(ctx context.Context, req *GetDingTalkDirectorySyncRequest, opts ...http.CallOption) (rsp *GetDingTalkDirectorySyncResponse, err error)
@@ -714,14 +714,14 @@ func (c *AdminServiceHTTPClientImpl) CreateUser(ctx context.Context, in *CreateU
 	return &out, nil
 }
 
-func (c *AdminServiceHTTPClientImpl) CreateUserMembership(ctx context.Context, in *CreateUserMembershipRequest, opts ...http.CallOption) (*CreateUserMembershipResponse, error) {
-	var out CreateUserMembershipResponse
-	pattern := "/api/v1/admin/users/{user_id}/memberships"
+func (c *AdminServiceHTTPClientImpl) CreateUserMemberships(ctx context.Context, in *CreateUserMembershipsRequest, opts ...http.CallOption) (*CreateUserMembershipsResponse, error) {
+	var out CreateUserMembershipsResponse
+	pattern := "/api/v1/admin/users/{user_id}/memberships:batchCreate"
 	path := http.BuildPath(pattern, in)
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
-		http.Operation(OperationAdminServiceCreateUserMembership),
+		http.Operation(OperationAdminServiceCreateUserMemberships),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

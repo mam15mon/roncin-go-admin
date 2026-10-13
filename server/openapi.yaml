@@ -462,29 +462,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.ListUserMembershipsResponse'
-        post:
-            tags:
-                - AdminService
-            operationId: AdminService_CreateUserMembership
-            parameters:
-                - name: userId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/admin.v1.CreateUserMembershipRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/admin.v1.CreateUserMembershipResponse'
     /api/v1/admin/users/{userId}/memberships/{id}:
         put:
             tags:
@@ -536,6 +513,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/admin.v1.DeleteUserMembershipResponse'
+    /api/v1/admin/users/{userId}/memberships:batchCreate:
+        post:
+            tags:
+                - AdminService
+            operationId: AdminService_CreateUserMemberships
+            parameters:
+                - name: userId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/admin.v1.CreateUserMembershipsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/admin.v1.CreateUserMembershipsResponse'
     /api/v1/auth/dingtalk/login:
         post:
             tags:
@@ -8744,21 +8745,19 @@ components:
                     $ref: '#/components/schemas/admin.v1.AdminRole'
                 traceId:
                     type: string
-        admin.v1.CreateUserMembershipRequest:
+        admin.v1.CreateUserMembershipsRequest:
             required:
                 - userId
-                - organizationId
+                - items
             type: object
             properties:
                 userId:
                     type: string
-                organizationId:
-                    type: string
-                roleIds:
+                items:
                     type: array
                     items:
-                        type: string
-        admin.v1.CreateUserMembershipResponse:
+                        $ref: '#/components/schemas/admin.v1.UserMembershipCreation'
+        admin.v1.CreateUserMembershipsResponse:
             type: object
             properties:
                 success:
@@ -8769,7 +8768,9 @@ components:
                 message:
                     type: string
                 data:
-                    $ref: '#/components/schemas/admin.v1.AdminUserMembership'
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/admin.v1.AdminUserMembership'
                 traceId:
                     type: string
         admin.v1.CreateUserRequest:
@@ -9250,6 +9251,17 @@ components:
                     $ref: '#/components/schemas/admin.v1.AdminUser'
                 traceId:
                     type: string
+        admin.v1.UserMembershipCreation:
+            required:
+                - organizationId
+            type: object
+            properties:
+                organizationId:
+                    type: string
+                roleIds:
+                    type: array
+                    items:
+                        type: string
         auth.v1.CurrentUser:
             type: object
             properties:

@@ -326,24 +326,35 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 		if err != nil {
 			return err
 		}
-		account, err := client.User.Query().Where(userent.IDEQ(input.ID)).ForUpdate().Only(txCtx)
+		if audit.UserID == nil {
+			return biz.ErrPermissionDenied
+		}
+		accounts, err := client.User.Query().Where(userent.IDIn(input.ID, *audit.UserID)).Order(userent.ByID()).ForUpdate().All(txCtx)
 		if err != nil {
-			return mapEntError(err, biz.ErrAdminUserNotFound, nil)
+			return err
+		}
+		var account *ent.User
+		for _, candidate := range accounts {
+			if candidate.ID == input.ID {
+				account = candidate
+			}
+		}
+		if account == nil {
+			return biz.ErrAdminUserNotFound
 		}
 		if account.Enabled || account.IsBootstrapAdmin || account.DingtalkUnionid == nil || account.DingtalkUserid == nil || account.DingtalkLastSyncedAt == nil {
 			return biz.ErrDingTalkAssignmentConflict
 		}
 		// 停用人员可人工重新开通，首次与返聘都必须明确组织角色；已开通者绝不能覆盖。
-		source, err := client.Organization.Query().Where(organization.IDEQ(sourceOrganizationID), organization.KindEQ(organization.KindSystem), organization.EnabledEQ(true)).ForShare().Only(txCtx)
-		if err != nil {
-			return mapEntError(err, biz.ErrPermissionDenied, nil)
-		}
-		_ = source
 		nodes, err := client.Organization.Query().Order(organization.ByID()).ForShare().All(txCtx)
 		if err != nil {
 			return err
 		}
 		nodeMap := authOrganizationNodes(nodes)
+		source, exists := nodeMap[sourceOrganizationID]
+		if !exists || source.Kind != string(organization.KindSystem) || !source.Enabled {
+			return biz.ErrPermissionDenied
+		}
 		target, ok := nodeMap[targetOrganizationID]
 		if !ok || !target.Enabled {
 			return biz.ErrAdminOrganizationNotFound
@@ -372,7 +383,7 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 		if _, err = client.User.Query().Where(userent.IDEQ(*audit.UserID), userent.EnabledEQ(true)).ForShare().Only(txCtx); err != nil {
 			return biz.ErrPermissionDenied
 		}
-		if _, err = client.Membership.Query().Where(membership.UserIDEQ(*audit.UserID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true)).Order(membership.ByID()).ForShare().All(txCtx); err != nil {
+		if _, err = client.Membership.Query().Where(membership.UserIDIn(*audit.UserID, input.ID)).Order(membership.ByID()).ForUpdate().All(txCtx); err != nil {
 			return err
 		}
 		lockedRoles, err := client.Role.Query().Where(roleent.Or(roleent.IDIn(roleIDs...), roleent.HasAssignmentsWith(roleassignment.HasMembershipWith(membership.UserIDEQ(*audit.UserID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true))))).Order(roleent.ByID()).ForShare().All(txCtx)
@@ -394,7 +405,7 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 		if !actorPrincipal.HasPermission(access.UserAuthorizeDingTalk) {
 			return biz.ErrPermissionDenied
 		}
-		if err = biz.NewAdminUsecase(r).ValidateDingTalkAssignmentPrivilege(biz.WithPrincipal(txCtx, actorPrincipal), sourceOrganizationID, *audit.UserID, targetOrganizationID, roleIDs); err != nil {
+		if err = biz.NewAdminUsecase(r, r.data).ValidateDingTalkAssignmentPrivilege(biz.WithPrincipal(txCtx, actorPrincipal), sourceOrganizationID, *audit.UserID, targetOrganizationID, roleIDs); err != nil {
 			return err
 		}
 		return r.data.WithTx(txCtx, func(tx *ent.Tx) error {

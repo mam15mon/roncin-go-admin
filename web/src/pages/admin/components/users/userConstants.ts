@@ -10,6 +10,8 @@ export type UserFormValues = {
 };
 
 export type UserMembershipFormValues = {
+  organizationIds?: string[];
+  rolesByOrganization?: Record<string, string[]>;
   organizationId?: string;
   roleIds?: string[];
   enabled?: boolean;

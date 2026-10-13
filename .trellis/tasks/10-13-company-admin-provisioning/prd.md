@@ -41,4 +41,4 @@
 
 ## 依赖
 
-D5/D8 已确认账号、组织与停用范围；身份识别、事务和失败报告见 design.md。实施同步 auth-session-org-switch、bootstrap 文档及测试。与取消主要组织共用 bootstrap 和成员契约，按 implement.md 有序修改；等待整体方案批准。
+D5/D8 已确认账号、组织与停用范围；身份识别、事务和失败报告见 design.md。实施同步 auth-session-org-switch、bootstrap 文档及测试。与取消主要组织共用 bootstrap 和成员契约，按 implement.md 有序修改；用户已于 2026-10-13 回复“开始”，批准整体实施。

@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -39,11 +40,27 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	uc := biz.NewAdminUsecase(repo)
-	if _, err := uc.CreateUserMembership(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, f.systemWorkspace, []uuid.UUID{systemRole.ID}); err != biz.ErrAdminPrivilegeEscalation {
+	// 批量入口不再信任传入的权限快照，有限管理员必须在真实授权夹具中建立。
+	userUpdate, err := f.data.db.Permission.Create().SetKey(access.UserUpdate).SetName("成员管理").SetGroup("系统").Save(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	managerRole, err := f.data.db.Role.Create().SetOrganizationID(f.systemWorkspace).SetCode("user-manager").SetName("成员管理员").SetDataScope(role.DataScopeOrganization).AddPermissionIDs(userUpdate.ID).Save(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	managerMembership, err := f.data.db.Membership.Query().Where(membership.UserIDEQ(f.bootstrapUserID), membership.OrganizationIDEQ(f.systemWorkspace)).Only(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = f.data.db.RoleAssignment.Create().SetMembershipID(managerMembership.ID).SetRoleID(managerRole.ID).Save(ctx); err != nil {
+		t.Fatal(err)
+	}
+	uc := biz.NewAdminUsecase(repo, f.data)
+	if _, err := uc.CreateUserMemberships(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, []biz.AdminUserMembershipCreation{{OrganizationID: f.systemWorkspace, RoleIDs: []uuid.UUID{systemRole.ID}}}); !errors.Is(err, biz.ErrAdminPrivilegeEscalation) {
 		t.Fatalf("有限系统用户管理者不得授予系统管理员: %v", err)
 	}
-	_, err = uc.CreateUserMembership(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, f.branch, []uuid.UUID{companyRole.ID})
+	_, err = uc.CreateUserMemberships(biz.WithPrincipal(ctx, principal), f.systemWorkspace, f.bootstrapUserID, f.normalUserID, []biz.AdminUserMembershipCreation{{OrganizationID: f.branch, RoleIDs: []uuid.UUID{companyRole.ID}}})
 	if err != nil {
 		t.Fatalf("系统管理应能显式分配公司管理员: %v", err)
 	}
@@ -59,7 +76,7 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 		t.Fatalf("公司不得停用全局账号: %v", err)
 	}
 
-	if _, err := uc.CreateUserMembership(companyCtx, f.branch, f.normalUserID, f.normalUserID, f.systemWorkspace, nil); err != biz.ErrAdminPrivilegeEscalation {
+	if _, err := uc.CreateUserMemberships(companyCtx, f.branch, f.normalUserID, f.normalUserID, []biz.AdminUserMembershipCreation{{OrganizationID: f.systemWorkspace}}); !errors.Is(err, biz.ErrAdminPrivilegeEscalation) {
 		t.Fatalf("空角色也不得加入系统工作台: %v", err)
 	}
 	memberships, err := repo.ListUserMemberships(companyCtx, f.normalUserID)
@@ -94,7 +111,7 @@ func TestSystemDirectoryAssignmentCannotGrantSystemIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	ctx, actor := directoryAdministrator(t, f.data, f.systemWorkspace)
-	_, err = biz.NewAdminUsecase(&adminRepo{data: f.data}).AuthorizeDingTalkUser(ctx, f.systemWorkspace, f.systemWorkspace, actor, &biz.AdminUser{ID: account.ID}, []uuid.UUID{uuid.New()})
+	_, err = biz.NewAdminUsecase(&adminRepo{data: f.data}, f.data).AuthorizeDingTalkUser(ctx, f.systemWorkspace, f.systemWorkspace, actor, &biz.AdminUser{ID: account.ID}, []uuid.UUID{uuid.New()})
 	if err != biz.ErrAdminOrganizationNotFound {
 		t.Fatalf("通讯录员工不得被分配至系统工作台: %v", err)
 	}

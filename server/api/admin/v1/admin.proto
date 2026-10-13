@@ -56,10 +56,10 @@ service AdminService {
     option (google.api.http) = {get: "/api/v1/admin/users/{user_id}/memberships"};
   }
 
-  rpc CreateUserMembership(CreateUserMembershipRequest) returns (CreateUserMembershipResponse) {
+  rpc CreateUserMemberships(CreateUserMembershipsRequest) returns (CreateUserMembershipsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.user.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
-      post: "/api/v1/admin/users/{user_id}/memberships"
+      post: "/api/v1/admin/users/{user_id}/memberships:batchCreate"
       body: "*"
     };
   }
@@ -279,12 +279,14 @@ message ListUserMembershipsRequest {
   string user_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message CreateUserMembershipRequest {
+message UserMembershipCreation {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated string role_ids = 2;
+}
+
+message CreateUserMembershipsRequest {
   string user_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
-  repeated string role_ids = 3;
-  reserved 4;
-  reserved "primary";
+  repeated UserMembershipCreation items = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 message UpdateUserMembershipRequest {
@@ -411,11 +413,11 @@ message ListUserMembershipsResponse {
   string trace_id = 5;
 }
 
-message CreateUserMembershipResponse {
+message CreateUserMembershipsResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
-  AdminUserMembership data = 4;
+  repeated AdminUserMembership data = 4;
   string trace_id = 5;
 }
 

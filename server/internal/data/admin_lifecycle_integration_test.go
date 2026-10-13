@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -205,7 +206,7 @@ func adminLifecycleAudit(organizationID uuid.UUID, action string) *biz.AuditEven
 
 // TestAdminDepartmentInheritsCompanyRolesPostgres 验证部门/团队公用所属公司的角色与工作区：
 // 1. 查询部门角色（ListRoles）自动返回所属公司的角色库；
-// 2. 为部门成员分配角色（CreateUserMembership）及提权校验通过；
+// 2. 为部门成员分配角色（CreateUserMemberships）及提权校验通过；
 // 3. 用户在部门下的成员关系在所属公司工作台下能正确收集角色画像（actorRolesPrivilegeProfiles）。
 func TestAdminDepartmentInheritsCompanyRolesPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
@@ -284,13 +285,26 @@ func TestAdminDepartmentInheritsCompanyRolesPostgres(t *testing.T) {
 		t.Fatalf("创建用户失败: %v", err)
 	}
 
-	membershipBiz, err := adminRepo.CreateUserMembership(ctx, &biz.AdminUserMembership{
-		UserID:         userAccount.ID,
-		OrganizationID: dept.ID,
-	}, []uuid.UUID{financeRole.ID}, adminLifecycleAudit(company.ID, "admin.user.membership.create"))
+	// 批量入口复核真实操作者权限，原部门角色夹具增加明确的用户管理授权。
+	permission, err := data.db.Permission.Create().SetKey(access.UserUpdate).SetName("管理组织成员").SetGroup("system").Save(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = data.db.Role.UpdateOne(financeRole).AddPermissions(permission).Save(ctx); err != nil {
+		t.Fatal(err)
+	}
+	actorMembership, err := data.db.Membership.Create().SetUserID(userAccount.ID).SetOrganizationID(company.ID).Save(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = data.db.RoleAssignment.Create().SetMembershipID(actorMembership.ID).SetRoleID(financeRole.ID).Save(ctx); err != nil {
+		t.Fatal(err)
+	}
+	createdMemberships, err := biz.NewAdminUsecase(adminRepo, data).CreateUserMemberships(ctx, company.ID, userAccount.ID, userAccount.ID, []biz.AdminUserMembershipCreation{{OrganizationID: dept.ID, RoleIDs: []uuid.UUID{financeRole.ID}}})
 	if err != nil {
 		t.Fatalf("在部门下创建成员关系并分配角色失败: %v", err)
 	}
+	membershipBiz := createdMemberships[0]
 	if membershipBiz.OrganizationID != dept.ID {
 		t.Fatalf("成员关系组织 ID 不匹配: got %v, want %v", membershipBiz.OrganizationID, dept.ID)
 	}

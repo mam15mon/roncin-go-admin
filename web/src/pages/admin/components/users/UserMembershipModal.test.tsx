@@ -1,4 +1,5 @@
-import { cleanup, render } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { cleanup } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import UserMembershipModal from './UserMembershipModal';
 
@@ -17,6 +18,7 @@ vi.mock('@ant-design/pro-components', () => ({
     state.props = props;
     return <>{props.children as React.ReactNode}</>;
   },
+  ProFormDependency: () => null,
   ProFormSwitch: ({ name }: { name: string }) => {
     state.switches.push(name);
     return null;
@@ -28,7 +30,7 @@ vi.mock('antd', () => ({
   App: { useApp: () => ({ message: { success: vi.fn() } }) },
 }));
 vi.mock('@/services/roncin/adminService', () => ({
-  adminServiceCreateUserMembership: state.create,
+  adminServiceCreateUserMemberships: state.create,
   adminServiceUpdateUserMembership: state.update,
   adminServiceListOrganizationRoles: vi.fn(),
 }));
@@ -38,7 +40,7 @@ afterEach(() => {
   state.switches = [];
 });
 function mount(membershipEditing?: API.AdminUserMembership) {
-  render(
+  renderWithClient(
     <UserMembershipModal
       open
       onOpenChange={vi.fn()}
@@ -46,8 +48,6 @@ function mount(membershipEditing?: API.AdminUserMembership) {
       membershipEditing={membershipEditing}
       memberships={[]}
       organizations={[]}
-      membershipRoles={[]}
-      onMembershipRolesChange={vi.fn()}
       onSaved={vi.fn()}
     />,
   );
@@ -59,13 +59,12 @@ describe('组织成员关系保存', () => {
   it('新增成员保存组织及选填角色', async () => {
     const finish = mount();
     expect(state.switches).not.toContain('primary');
-    await finish({ organizationId: 'company' });
+    await finish({ organizationIds: ['company'] });
     expect(state.create).toHaveBeenCalledWith(
       { userId: 'user' },
       {
         userId: 'user',
-        organizationId: 'company',
-        roleIds: [],
+        items: [{ organizationId: 'company', roleIds: [] }],
       },
     );
   });

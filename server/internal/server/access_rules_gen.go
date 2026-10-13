@@ -13,7 +13,7 @@ var operationAccessRules = map[string]accessRule{
 	"/admin.v1.AdminService/CreateOrganization":                                                 {mode: accessModePermission, permission: "system.organization.create", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/CreateRole":                                                         {mode: accessModePermission, permission: "system.role.create", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/CreateUser":                                                         {mode: accessModePermission, permission: "system.user.create", scope: biz.DataScopeOrganization},
-	"/admin.v1.AdminService/CreateUserMembership":                                               {mode: accessModePermission, permission: "system.user.update", scope: biz.DataScopeOrganization},
+	"/admin.v1.AdminService/CreateUserMemberships":                                              {mode: accessModePermission, permission: "system.user.update", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/DeleteRole":                                                         {mode: accessModePermission, permission: "system.role.delete", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/DeleteUserMembership":                                               {mode: accessModePermission, permission: "system.user.update", scope: biz.DataScopeOrganization},
 	"/admin.v1.AdminService/GetDingTalkDirectorySync":                                           {mode: accessModePermission, permission: "system.user.dingtalk_directory.sync", scope: biz.DataScopeAll},

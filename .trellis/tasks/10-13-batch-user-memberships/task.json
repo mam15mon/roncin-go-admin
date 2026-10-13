@@ -3,7 +3,7 @@
   "name": "batch-user-memberships",
   "title": "加入其他组织支持多选",
   "description": "为单个已开通用户一次加入多个组织，角色保持选填，逐项校验组织范围与授权",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": "auth/admin",
   "package": null,

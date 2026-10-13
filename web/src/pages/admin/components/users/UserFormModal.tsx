@@ -22,7 +22,6 @@ import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   adminServiceCreateUser,
   adminServiceDeleteUserMembership,
-  adminServiceListOrganizationRoles,
   adminServiceListUserMemberships,
   adminServiceUpdateUser,
 } from '@/services/roncin/adminService';
@@ -71,7 +70,6 @@ export default function UserFormModal({
   const [membershipModalOpen, setMembershipModalOpen] = useState(false);
   const [membershipEditing, setMembershipEditing] =
     useState<API.AdminUserMembership>();
-  const [membershipRoles, setMembershipRoles] = useState<API.AdminRole[]>([]);
   useEffect(() => {
     if (open) setMembershipView('active');
   }, [open, editing?.id]);
@@ -101,22 +99,12 @@ export default function UserFormModal({
   };
   const openCreateMembership = () => {
     setMembershipEditing(undefined);
-    setMembershipRoles([]);
     setMembershipModalOpen(true);
   };
 
-  const openEditMembership = async (membership: API.AdminUserMembership) => {
+  const openEditMembership = (membership: API.AdminUserMembership) => {
     setMembershipEditing(membership);
-    setMembershipRoles([]);
     setMembershipModalOpen(true);
-    if (membership.organizationId) {
-      const response = await adminServiceListOrganizationRoles({
-        organizationId: membership.organizationId,
-      });
-      setMembershipRoles(
-        unwrapList(ensureListResponse(response, '读取组织角色失败')),
-      );
-    }
   };
 
   const membershipColumns: ColumnsType<API.AdminUserMembership> = [
@@ -434,8 +422,6 @@ export default function UserFormModal({
         membershipEditing={membershipEditing}
         memberships={memberships}
         organizations={organizations}
-        membershipRoles={membershipRoles}
-        onMembershipRolesChange={setMembershipRoles}
         currentUserId={currentUserId}
         onSaved={async () => {
           if (editing?.id) await loadMemberships(editing.id);

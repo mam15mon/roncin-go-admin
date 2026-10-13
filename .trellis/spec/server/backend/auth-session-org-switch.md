@@ -47,6 +47,9 @@ RotateSession(ctx, userID, currentTokenHash, targetOrgID, ...)  // 单事务轮�
 - 密码登录响应使用 organization_choices；钉钉登录以 principal.organizations 派生同构
   候选。选择当前会话所属工作台直接进入，选择其他工作台通过 SwitchOrganization 轮转；
   当前组织依据会话 organization_id 判断，禁止使用候选位置推断。
+- 前端选择页的候选及 currentOrganizationId 必须同步来自本次认证响应，并放在同一份
+  本地选择状态；不能从经 startTransition 延后更新的 initialState 读取当前组织，否则
+  旧会话组织 ID 可能导致本次选择错误跳过轮转。
 - **角色编辑目标**：成员角色只通过明确的 membership_id 编辑；用户基本资料更新不接受
   role_ids，也不从成员列表中猜测角色写入目标。创建用户时仍可设置已明确初始组织的角色。
 

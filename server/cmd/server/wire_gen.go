@@ -65,7 +65,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	partnerInvoiceProfileUsecase := biz.NewPartnerInvoiceProfileUsecase(partnerInvoiceProfileRepo)
 	partnerService := service.NewPartnerService(partnerUsecase, partnerAccountUsecase, partnerContractUsecase, partnerSettlementRuleUsecase, partnerAttachmentUsecase, partnerShippingPresetUsecase, partnerInvoiceProfileUsecase)
 	adminRepo := data.NewAdminRepo(dataData)
-	adminUsecase := biz.NewAdminUsecase(adminRepo)
+	adminUsecase := biz.NewAdminUsecase(adminRepo, dataData)
 	dingTalkDirectoryRepo := data.NewDingTalkDirectoryRepo(dataData)
 	backgroundTaskRepo := data.NewBackgroundTaskRepo(dataData)
 	backgroundTaskUsecase := biz.NewBackgroundTaskUsecase(backgroundTaskRepo)

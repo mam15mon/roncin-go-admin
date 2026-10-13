@@ -161,7 +161,7 @@ declare namespace API {
     id: string;
   };
 
-  type AdminServiceCreateUserMembershipParams = {
+  type AdminServiceCreateUserMembershipsParams = {
     userId: string;
   };
 
@@ -1827,17 +1827,16 @@ declare namespace API {
     traceId?: string;
   };
 
-  type CreateUserMembershipRequest = {
+  type CreateUserMembershipsRequest = {
     userId: string;
-    organizationId: string;
-    roleIds?: string[];
+    items: UserMembershipCreation[];
   };
 
-  type CreateUserMembershipResponse = {
+  type CreateUserMembershipsResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: AdminUserMembership;
+    data?: AdminUserMembership[];
     traceId?: string;
   };
 
@@ -9102,6 +9101,11 @@ declare namespace API {
     message?: string;
     data?: AdminUser;
     traceId?: string;
+  };
+
+  type UserMembershipCreation = {
+    organizationId: string;
+    roleIds?: string[];
   };
 
   type VerificationAllocationInput = {

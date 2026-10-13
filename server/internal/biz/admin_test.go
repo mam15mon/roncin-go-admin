@@ -93,15 +93,25 @@ func (s *adminRepoStub) ListUserMemberships(_ context.Context, _ uuid.UUID) ([]*
 }
 
 func (s *adminRepoStub) GetUserMembership(_ context.Context, userID, membershipID uuid.UUID) (*AdminUserMembership, error) {
+	for _, item := range s.memberships {
+		if item.ID == membershipID {
+			return item, nil
+		}
+	}
 	return &AdminUserMembership{ID: membershipID, UserID: userID, OrganizationID: uuid.New(), Enabled: true}, nil
 }
 
-func (s *adminRepoStub) CreateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID, audit *AuditEvent) (*AdminUserMembership, error) {
-	s.membershipInput = input
-	s.membershipRoleIDs = roleIDs
-	input.ID = uuid.New()
-	s.auditEvent = audit
-	return input, nil
+func (s *adminRepoStub) CreateUserMemberships(_ context.Context, _, _, userID uuid.UUID, items []AdminUserMembershipCreation, audits []*AuditEvent) ([]uuid.UUID, error) {
+	ids := make([]uuid.UUID, 0, len(items))
+	for i, item := range items {
+		input := &AdminUserMembership{ID: uuid.New(), UserID: userID, OrganizationID: item.OrganizationID, Enabled: true}
+		s.membershipInput = input
+		s.membershipRoleIDs = item.RoleIDs
+		s.memberships = append(s.memberships, input)
+		s.auditEvent = audits[i]
+		ids = append(ids, input.ID)
+	}
+	return ids, nil
 }
 
 func (s *adminRepoStub) UpdateUserMembership(_ context.Context, input *AdminUserMembership, roleIDs []uuid.UUID, audit *AuditEvent) (*AdminUserMembership, error) {
@@ -199,7 +209,7 @@ func (s *adminRepoStub) GetRolesPrivilegeProfiles(_ context.Context, targetOrgan
 
 func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	organizationID := uuid.New()
 
 	_, err := usecase.ListUsers(context.Background(), organizationID, AdminUserListOptions{Page: 2, PageSize: 20, Keyword: "  Alice  "})
@@ -222,7 +232,7 @@ func TestAdminUsecaseListUsersNormalizesOptions(t *testing.T) {
 }
 
 func TestAdminUsecaseAuthorizeDingTalkUserRequiresTargetAndRole(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
 	input := &AdminUser{ID: uuid.New(), DisplayName: "张三"}
 	systemID := uuid.New()
 	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: systemID, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: systemID, Kind: OrganizationKindSystem}}})
@@ -236,7 +246,7 @@ func TestAdminUsecaseAuthorizeDingTalkUserRequiresTargetAndRole(t *testing.T) {
 
 func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	userID := uuid.New()
 	systemID := uuid.New()
 	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: systemID, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: systemID, Kind: OrganizationKindSystem}}})
@@ -255,7 +265,7 @@ func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T
 
 func TestAdminUsecaseAuthorizeDingTalkUserRejectsCompanyWorkspace(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	source := uuid.New()
 	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: source, Kind: OrganizationKindCompany}})
 	if _, err := usecase.AuthorizeDingTalkUser(ctx, source, uuid.New(), uuid.New(), &AdminUser{ID: uuid.New()}, []uuid.UUID{uuid.New()}); err != ErrPermissionDenied {
@@ -267,7 +277,7 @@ func TestAdminUsecaseAuthorizeDingTalkUserRejectsCompanyWorkspace(t *testing.T) 
 }
 
 func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
 	if _, err := usecase.ListOrganizations(context.Background(), uuid.Nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("ListOrganizations() error = %v, want ErrAdminInvalidArgument", err)
 	}
@@ -276,7 +286,7 @@ func TestAdminUsecaseListOrganizationsRequiresOrganizationScope(t *testing.T) {
 func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 	parentID := uuid.New()
 	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindSystem, BaseCurrency: "CNY"}}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " branch ", Name: " 分公司 ", Kind: OrganizationKindCompany, BaseCurrency: "usd"})
 	if err != nil {
@@ -300,7 +310,7 @@ func TestAdminUsecaseCreateOrganizationValidatesParent(t *testing.T) {
 
 func TestAdminUsecaseCreateOrganizationRejectsRoot(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	if _, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{Code: " root ", Name: " 根组织 ", Kind: OrganizationKindDepartment}); err != ErrAdminOrganizationParentRequired {
 		t.Fatalf("root organization error = %v, want ErrAdminOrganizationParentRequired", err)
@@ -310,7 +320,7 @@ func TestAdminUsecaseCreateOrganizationRejectsRoot(t *testing.T) {
 func TestAdminUsecaseCreateOrganizationValidatesHierarchy(t *testing.T) {
 	parentID := uuid.New()
 	repo := &adminRepoStub{organization: &AdminOrganization{ID: parentID, Kind: OrganizationKindCompany, BaseCurrency: "CNY"}}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	created, err := usecase.CreateOrganization(context.Background(), uuid.New(), &AdminOrganization{
 		Code: "finance", Name: "财务部", Kind: OrganizationKindDepartment, ParentID: &parentID,
@@ -342,7 +352,7 @@ func TestAdminUsecaseCreateOrganizationValidatesHierarchy(t *testing.T) {
 }
 
 func TestAdminUsecaseListAuditLogsRejectsReversedTimeRange(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
 	start := time.Date(2026, 8, 20, 12, 0, 0, 0, time.UTC)
 	end := start.Add(-time.Minute)
 	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), AdminAuditLogListOptions{Page: 1, PageSize: 20, StartTime: &start, EndTime: &end}); err != ErrAdminInvalidArgument {
@@ -351,7 +361,7 @@ func TestAdminUsecaseListAuditLogsRejectsReversedTimeRange(t *testing.T) {
 }
 
 func TestAdminUsecaseListAuditLogsRejectsLongResourceFilter(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
 	if _, err := usecase.ListAuditLogs(context.Background(), uuid.New(), AdminAuditLogListOptions{
 		Page: 1, PageSize: 20, ResourceType: strings.Repeat("x", 101),
 	}); err != ErrAdminInvalidArgument {
@@ -361,7 +371,7 @@ func TestAdminUsecaseListAuditLogsRejectsLongResourceFilter(t *testing.T) {
 
 func TestAdminUsecaseCreateRoleNormalizesPermissionKeysAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -394,7 +404,7 @@ func TestAdminUsecaseCreateRoleNormalizesPermissionKeysAndAudits(t *testing.T) {
 
 func TestAdminUsecaseCreateRoleExpandsPermissionDependencies(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	if _, err := usecase.CreateRole(
 		context.Background(),
@@ -412,7 +422,7 @@ func TestAdminUsecaseCreateRoleExpandsPermissionDependencies(t *testing.T) {
 
 func TestAdminUsecaseUpdateRoleExpandsPermissionDependencies(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	if _, err := usecase.UpdateRole(
 		context.Background(),
@@ -435,7 +445,7 @@ func TestAdminUsecaseCreateRoleDependencyExpansionRespectsActorPrivilege(t *test
 		DataScope:      DataScopeOrganization,
 		PermissionKeys: []string{"business.partner.update"},
 	}}}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	if _, err := usecase.CreateRole(
 		context.Background(),
@@ -453,7 +463,7 @@ func TestAdminUsecaseCreateRoleDependencyExpansionRespectsActorPrivilege(t *test
 
 func TestAdminUsecaseCreateRoleGeneratesCodeWhenMissing(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	first, err := usecase.CreateRole(
 		context.Background(),
@@ -485,7 +495,7 @@ func TestAdminUsecaseCreateRoleGeneratesCodeWhenMissing(t *testing.T) {
 
 func TestAdminUsecaseCreateUserRequiresStrongPasswordAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -513,7 +523,7 @@ func TestAdminUsecaseCreateUserRequiresStrongPasswordAndAudits(t *testing.T) {
 
 func TestAdminUsecaseResetUserPasswordHashesAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	userID := uuid.New()
@@ -580,7 +590,7 @@ func TestAdminUsecaseBuildsActorPrivilegeProfile(t *testing.T) {
 		{Code: "viewer", DataScope: DataScopeSelf, PermissionKeys: []string{"system.user.read"}},
 		{Code: "manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.user.read", "system.user.update"}},
 	}}
-	profile, err := NewAdminUsecase(repo).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
+	profile, err := NewAdminUsecase(repo, inlineTransactor{}).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
 	if err != nil {
 		t.Fatalf("getActorPrivilegeProfile() error = %v", err)
 	}
@@ -606,7 +616,7 @@ func TestAdminUsecaseUpdateRoleRejectsAdministratorAndScopeEscalation(t *testing
 		actorRoleProfiles: []*AdminRoleProfile{{Code: "role_manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.role.update"}}},
 		currentRole:       &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator", DataScope: DataScopeAll},
 	}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "系统管理员", DataScope: DataScopeOrganization, Enabled: true}, []string{"system.role.update"}); err != ErrAdminPrivilegeEscalation {
 		t.Fatalf("UpdateRole() administrator error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
@@ -619,7 +629,7 @@ func TestAdminUsecaseUpdateRoleRejectsAdministratorAndScopeEscalation(t *testing
 
 func TestAdminUsecaseTerminateUserRejectsSelfAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	organizationID := uuid.New()
 	actorID := uuid.New()
 
@@ -649,7 +659,7 @@ func TestNormalizeRoleRejectsUnspecifiedDataScope(t *testing.T) {
 }
 
 func TestAdminUsecaseUpdateUserRejectsNilID(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
 	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.Nil, &AdminUser{ID: uuid.Nil, DisplayName: "用户"}); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUser() error = %v, want ErrAdminInvalidArgument", err)
 	}
@@ -663,7 +673,7 @@ func TestAdminUsecaseUpdateUserLeavesRolesUnchanged(t *testing.T) {
 		actorRoleProfiles: []*AdminRoleProfile{{Code: "operator", DataScope: DataScopeOrganization, PermissionKeys: []string{"user_update"}}},
 	}
 	repo.roleProfiles = []*AdminRoleProfile{{ID: roleID, Code: "operator", DataScope: DataScopeOrganization, PermissionKeys: []string{"user_update"}}}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	updated, err := usecase.UpdateUser(context.Background(), workspaceID, actorID, userID, &AdminUser{ID: userID, DisplayName: "锚定用户"})
 	if err != nil {
@@ -680,7 +690,7 @@ func TestAdminUsecaseUpdateUserLeavesRolesUnchanged(t *testing.T) {
 
 func TestAdminUsecaseUpdateUserPropagatesAnchorNotFound(t *testing.T) {
 	repo := &adminRepoStub{userAnchorErr: ErrAdminUserNotFound}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	if _, err := usecase.UpdateUser(context.Background(), uuid.New(), uuid.New(), uuid.New(), &AdminUser{DisplayName: "任意"}); err != ErrAdminUserNotFound {
 		t.Fatalf("UpdateUser() error = %v, want ErrAdminUserNotFound", err)
@@ -690,22 +700,22 @@ func TestAdminUsecaseUpdateUserPropagatesAnchorNotFound(t *testing.T) {
 	}
 }
 
-func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
+func TestAdminUsecaseCreateUserMembershipsValidatesAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	actorID := uuid.New()
 	userID := uuid.New()
 	organizationID := uuid.New()
 	roleID := uuid.New()
 
-	if _, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, uuid.Nil, nil); err != ErrAdminInvalidArgument {
-		t.Fatalf("CreateUserMembership() missing organization error = %v", err)
+	if _, err := usecase.CreateUserMemberships(context.Background(), organizationID, actorID, userID, []AdminUserMembershipCreation{{OrganizationID: uuid.Nil}}); err != ErrAdminInvalidArgument {
+		t.Fatalf("CreateUserMemberships() missing organization error = %v", err)
 	}
-	created, err := usecase.CreateUserMembership(context.Background(), organizationID, actorID, userID, organizationID, []uuid.UUID{roleID})
+	created, err := usecase.CreateUserMemberships(context.Background(), organizationID, actorID, userID, []AdminUserMembershipCreation{{OrganizationID: organizationID, RoleIDs: []uuid.UUID{roleID}}})
 	if err != nil {
-		t.Fatalf("CreateUserMembership() error = %v", err)
+		t.Fatalf("CreateUserMemberships() error = %v", err)
 	}
-	if created.OrganizationID != organizationID || !created.Enabled {
+	if len(created) != 1 || created[0].OrganizationID != organizationID || !created[0].Enabled {
 		t.Fatalf("created membership = %#v", created)
 	}
 	if len(repo.membershipRoleIDs) != 1 || repo.membershipRoleIDs[0] != roleID {
@@ -717,7 +727,7 @@ func TestAdminUsecaseCreateUserMembershipValidatesAndAudits(t *testing.T) {
 }
 
 func TestAdminUsecaseUpdateUserMembershipRejectsInvalidArgumentAndSelfDisable(t *testing.T) {
-	usecase := NewAdminUsecase(&adminRepoStub{})
+	usecase := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
 	if _, err := usecase.UpdateUserMembership(context.Background(), uuid.Nil, uuid.New(), uuid.New(), uuid.New(), false, nil); err != ErrAdminInvalidArgument {
 		t.Fatalf("UpdateUserMembership() error = %v, want ErrAdminInvalidArgument", err)
 	}
@@ -729,7 +739,7 @@ func TestAdminUsecaseUpdateUserMembershipRejectsInvalidArgumentAndSelfDisable(t 
 
 func TestAdminUsecaseDeleteUserMembershipRejectsSelfAndAudits(t *testing.T) {
 	repo := &adminRepoStub{}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	actorID := uuid.New()
 	membershipID := uuid.New()
 
@@ -809,7 +819,7 @@ func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
 	repo := &adminRepoStub{
 		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator", DataScope: DataScopeAll},
 	}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != ErrAdminRoleProtected {
 		t.Fatalf("DeleteRole() administrator error = %v, want ErrAdminRoleProtected", err)
 	}
@@ -821,7 +831,7 @@ func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
 	repo = &adminRepoStub{
 		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization, AssignmentsCount: 2},
 	}
-	usecase = NewAdminUsecase(repo)
+	usecase = NewAdminUsecase(repo, inlineTransactor{})
 	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != ErrAdminRoleAssigned {
 		t.Fatalf("DeleteRole() assigned error = %v, want ErrAdminRoleAssigned", err)
 	}
@@ -833,7 +843,7 @@ func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
 	repo = &adminRepoStub{
 		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization},
 	}
-	usecase = NewAdminUsecase(repo)
+	usecase = NewAdminUsecase(repo, inlineTransactor{})
 	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != nil {
 		t.Fatalf("DeleteRole() error = %v", err)
 	}
@@ -858,7 +868,7 @@ func TestAdminUsecaseUpdateOrganizationBaseCurrencyImmutable(t *testing.T) {
 			BaseCurrency: "CNY",
 		},
 	}
-	usecase := NewAdminUsecase(repo)
+	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	// 1. 尝试修改为不同的本币 -> 必须被拦截并返回 ErrAdminOrganizationBaseCurrencyImmutable
 	_, err := usecase.UpdateOrganization(context.Background(), userID, orgID, orgID, "更新名称", true, "USD")
@@ -895,7 +905,7 @@ func TestAdminUsecaseUpdateOrganizationBaseCurrencyImmutable(t *testing.T) {
 }
 
 func TestCreateAndUpdateRoleRejectDisabledSelf(t *testing.T) {
-	uc := NewAdminUsecase(&adminRepoStub{})
+	uc := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
 	input := &AdminRole{Name: "历史角色", DataScope: DataScopeSelf}
 	if _, err := uc.CreateRole(context.Background(), uuid.New(), uuid.New(), input, nil); err != ErrAdminRoleScopeDisabled {
 		t.Fatalf("新建 self 角色错误 = %v", err)
@@ -907,7 +917,7 @@ func TestCreateAndUpdateRoleRejectDisabledSelf(t *testing.T) {
 
 func TestDisabledAdministratorCannotEscalateRolePrivileges(t *testing.T) {
 	repo := &adminRepoStub{actorRoleProfiles: []*AdminRoleProfile{{Code: "administrator", DataScope: DataScopeSelf, PermissionKeys: []string{"system.role.create"}}}}
-	profile, err := NewAdminUsecase(repo).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
+	profile, err := NewAdminUsecase(repo, inlineTransactor{}).getActorPrivilegeProfile(context.Background(), uuid.New(), uuid.New())
 	if err != nil {
 		t.Fatal(err)
 	}

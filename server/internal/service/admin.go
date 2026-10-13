@@ -159,28 +159,41 @@ func (s *AdminService) ListUserMemberships(ctx context.Context, request *v1.List
 	return okList(ctx, &v1.ListUserMembershipsResponse{Data: data}), nil
 }
 
-func (s *AdminService) CreateUserMembership(ctx context.Context, request *v1.CreateUserMembershipRequest) (*v1.CreateUserMembershipResponse, error) {
+func (s *AdminService) CreateUserMemberships(ctx context.Context, request *v1.CreateUserMembershipsRequest) (*v1.CreateUserMembershipsResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
 		return nil, err
 	}
 	userID, err := uuid.Parse(request.GetUserId())
-	if err != nil {
+	if err != nil || userID == uuid.Nil || len(request.GetItems()) == 0 {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	organizationID, err := uuid.Parse(request.GetOrganizationId())
-	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
+	items := make([]biz.AdminUserMembershipCreation, 0, len(request.GetItems()))
+	seen := make(map[uuid.UUID]struct{}, len(request.GetItems()))
+	for _, item := range request.GetItems() {
+		organizationID, err := uuid.Parse(item.GetOrganizationId())
+		if err != nil || organizationID == uuid.Nil {
+			return nil, biz.ErrAdminInvalidArgument
+		}
+		if _, exists := seen[organizationID]; exists {
+			return nil, biz.ErrAdminInvalidArgument
+		}
+		seen[organizationID] = struct{}{}
+		roleIDs, err := parseUniqueUUIDValues(item.GetRoleIds(), biz.ErrAdminInvalidArgument)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, biz.AdminUserMembershipCreation{OrganizationID: organizationID, RoleIDs: roleIDs})
 	}
-	roleIDs, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
+	created, err := s.usecase.CreateUserMemberships(ctx, principal.Organization.ID, principal.UserID, userID, items)
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.CreateUserMembership(ctx, principal.Organization.ID, principal.UserID, userID, organizationID, roleIDs)
-	if err != nil {
-		return nil, err
+	data := make([]*v1.AdminUserMembership, 0, len(created))
+	for _, item := range created {
+		data = append(data, userMembershipToAPI(item))
 	}
-	return ok(ctx, &v1.CreateUserMembershipResponse{Data: userMembershipToAPI(created)}), nil
+	return okList(ctx, &v1.CreateUserMembershipsResponse{Data: data}), nil
 }
 
 func (s *AdminService) UpdateUserMembership(ctx context.Context, request *v1.UpdateUserMembershipRequest) (*v1.UpdateUserMembershipResponse, error) {

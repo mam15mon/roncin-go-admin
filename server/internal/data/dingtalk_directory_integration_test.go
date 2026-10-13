@@ -165,7 +165,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	uc := biz.NewAdminUsecase(&adminRepo{data: data})
+	uc := biz.NewAdminUsecase(&adminRepo{data: data}, data)
 	var wg sync.WaitGroup
 	errs := make(chan error, 2)
 	for i := 0; i < 2; i++ {

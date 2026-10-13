@@ -5,11 +5,13 @@ import (
 	"sort"
 	"time"
 
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -53,63 +55,120 @@ func (r *adminRepo) GetUserMembership(ctx context.Context, userID, membershipID 
 	return r.findUserMembership(ctx, userID, membershipID)
 }
 
-func (r *adminRepo) CreateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUserMembership, error) {
-	var created *ent.Membership
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if principal, ok := biz.PrincipalFromContext(ctx); ok {
-			scope, err := adminWorkspaceScope(ctx, tx.Client(), principal.Organization.ID)
+// CreateUserMemberships 在用例共享事务中锁定授权依据并执行本批写入，返回提交后重读所需 ID。
+func (r *adminRepo) CreateUserMemberships(ctx context.Context, actorOrganizationID, actorID, userID uuid.UUID, items []biz.AdminUserMembershipCreation, audits []*biz.AuditEvent) ([]uuid.UUID, error) {
+	var createdIDs []uuid.UUID
+	err := r.data.WithinTransaction(ctx, func(ctx context.Context) error {
+		return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+			client := tx.Client()
+			// 两个用户均从入口按主键顺序独占锁定，避免操作者/目标用户互换时交叉等待。
+			accounts, err := client.User.Query().Where(userent.IDIn(actorID, userID)).Order(userent.ByID()).ForUpdate().All(ctx)
 			if err != nil {
 				return err
 			}
-			if !uuidInValues(scope, input.OrganizationID) {
-				return biz.ErrAdminOrganizationNotFound
+			var account *ent.User
+			for _, candidate := range accounts {
+				if candidate.ID == userID {
+					account = candidate
+				}
 			}
-		}
-
-		account, queryErr := tx.User.Query().Where(userent.IDEQ(input.UserID)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrAdminUserNotFound, nil)
-		}
-		if account.PendingAssignment {
-			return biz.ErrAdminUserAuthorizationRequired
-		}
-		if exists, queryErr := tx.Organization.Query().Where(organization.IDEQ(input.OrganizationID), organization.EnabledEQ(true)).Exist(ctx); queryErr != nil {
-			return queryErr
-		} else if !exists {
-			return biz.ErrAdminOrganizationNotFound
-		}
-		roles, rolesErr := rolesForOrganization(ctx, tx.Client(), input.OrganizationID, roleIDs)
-		if rolesErr != nil {
-			return rolesErr
-		}
-		var saveErr error
-		created, saveErr = tx.Membership.Query().
-			Where(membership.UserIDEQ(input.UserID), membership.OrganizationIDEQ(input.OrganizationID)).
-			Only(ctx)
-		if saveErr == nil {
-			if created.Enabled {
-				return biz.ErrAdminUserMembershipExists
+			if account == nil {
+				return biz.ErrAdminUserNotFound
 			}
-			created, saveErr = tx.Membership.UpdateOneID(created.ID).SetEnabled(true).Save(ctx)
-		} else if ent.IsNotFound(saveErr) {
-			created, saveErr = tx.Membership.Create().
-				SetUserID(input.UserID).
-				SetOrganizationID(input.OrganizationID).
-				SetEnabled(true).
-				Save(ctx)
-		}
-		if saveErr != nil {
-			return saveErr
-		}
-		if replaceErr := replaceRoleAssignments(ctx, tx, created.ID, roles); replaceErr != nil {
-			return replaceErr
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
+			if account.PendingAssignment {
+				return biz.ErrAdminUserAuthorizationRequired
+			}
+			if !account.Enabled {
+				return biz.ErrAdminUserInactive
+			}
+			// 组织树规模小；按固定顺序锁全树，父链与工作台范围在事务结束前保持不变。
+			nodes, err := client.Organization.Query().Order(organization.ByID()).ForShare().All(ctx)
+			if err != nil {
+				return err
+			}
+			nodeMap := authOrganizationNodes(nodes)
+			members, err := client.Membership.Query().Where(membership.UserIDIn(actorID, userID)).Order(membership.ByID()).ForUpdate().All(ctx)
+			if err != nil {
+				return err
+			}
+			roleIDs := make([]uuid.UUID, 0)
+			for _, item := range items {
+				roleIDs = append(roleIDs, item.RoleIDs...)
+			}
+			// 成员父行锁保护角色绑定的替换；角色共享锁保护角色状态、权限与数据范围。
+			_, err = client.Role.Query().Where(roleent.Or(roleent.IDIn(roleIDs...), roleent.HasAssignmentsWith(roleassignment.HasMembershipWith(membership.UserIDEQ(actorID))))).Order(roleent.ByID()).ForShare().All(ctx)
+			if err != nil {
+				return err
+			}
+			actorPrincipal, err := (&authRepo{data: r.data}).ResolvePrincipal(ctx, actorID, actorOrganizationID)
+			if err != nil {
+				return err
+			}
+			if !actorPrincipal.HasPermission(access.UserUpdate) {
+				return biz.ErrPermissionDenied
+			}
+			lockedCtx := biz.WithPrincipal(ctx, actorPrincipal)
+			allowed, err := adminOrganizationManagementScope(lockedCtx, client, actorOrganizationID)
+			if err != nil {
+				return err
+			}
+			rolesByItem := make([][]*ent.Role, len(items))
+			for i, item := range items {
+				if !uuidInValues(allowed, item.OrganizationID) {
+					return biz.ErrAdminPrivilegeEscalation
+				}
+				target := nodeMap[item.OrganizationID]
+				itemError := func(err error) error { return biz.AdminUserMembershipItemError(target.Name, err) }
+				anchor := workspaceAncestorID(nodeMap, item.OrganizationID)
+				if anchor == uuid.Nil {
+					return itemError(biz.ErrAdminOrganizationNotFound)
+				}
+				for current := item.OrganizationID; ; {
+					node := nodeMap[current]
+					if !node.Enabled {
+						return itemError(biz.ErrAdminOrganizationNotFound)
+					}
+					if current == anchor {
+						break
+					}
+					current = *node.ParentID
+				}
+				if err = biz.NewAdminUsecase(r, r.data).ValidateUserMembershipRolesPrivilege(lockedCtx, actorOrganizationID, actorID, item.OrganizationID, item.RoleIDs); err != nil {
+					return itemError(err)
+				}
+				rolesByItem[i], err = rolesForOrganization(lockedCtx, client, item.OrganizationID, item.RoleIDs)
+				if err != nil {
+					return itemError(err)
+				}
+				for _, existing := range members {
+					if existing.UserID == userID && existing.OrganizationID == item.OrganizationID {
+						return itemError(biz.ErrAdminUserMembershipExists)
+					}
+				}
+			}
+			for i, item := range items {
+				member, err := client.Membership.Create().SetUserID(userID).SetOrganizationID(item.OrganizationID).SetEnabled(true).Save(lockedCtx)
+				if err != nil {
+					return biz.AdminUserMembershipItemError(nodeMap[item.OrganizationID].Name, mapEntError(err, nil, biz.ErrAdminUserMembershipExists))
+				}
+				// 新成员在当前事务中尚不可见，无需在持有角色锁后再次升级已有成员锁。
+				for _, assignedRole := range rolesByItem[i] {
+					if _, err = client.RoleAssignment.Create().SetMembershipID(member.ID).SetRoleID(assignedRole.ID).Save(lockedCtx); err != nil {
+						return mapEntError(err, nil, biz.ErrAdminUserMembershipExists)
+					}
+				}
+				if err = writeAudit(lockedCtx, tx.AuditLog, audits[i]); err != nil {
+					return err
+				}
+				createdIDs = append(createdIDs, member.ID)
+			}
+			return nil
+		})
 	})
 	if err != nil {
 		return nil, err
 	}
-	return r.findUserMembership(ctx, input.UserID, created.ID)
+	return createdIDs, nil
 }
 
 func (r *adminRepo) UpdateUserMembership(ctx context.Context, input *biz.AdminUserMembership, roleIDs []uuid.UUID, audit *biz.AuditEvent) (*biz.AdminUserMembership, error) {
