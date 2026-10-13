@@ -33,6 +33,9 @@
     "web/src/pages/user/login",
     "web/src/pages/admin/components/users"
   ],
-  "notes": "2026-10-13 用户在最新完整方案后明确回复“开始”，批准实施；按父任务实施计划串行激活子任务。",
-  "meta": {}
+  "notes": "2026-10-13 用户批准实施；四个子任务代码已提交并完成独立审查。联合运行验收待完成，保持in_progress。",
+  "meta": {
+    "implementation": "four_children_committed",
+    "acceptance": "pending_runtime_verification"
+  }
 }

@@ -15,7 +15,7 @@
   "branch": "codex/dingtalk-login-memberships",
   "base_branch": "main",
   "worktree_path": "/home/vince/roncin-go-admin-worktrees/dingtalk-login-memberships",
-  "commit": null,
+  "commit": "61a74a60",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -28,6 +28,9 @@
     "server/cmd/bootstrap-admin/main_integration_test.go",
     "server/internal/data/system_company_authorization_integration_test.go"
   ],
-  "notes": "2026-10-13 用户在最新完整方案后明确回复“开始”，批准实施；按父任务实施计划串行激活子任务。",
-  "meta": {}
+  "notes": "2026-10-13 用户批准实施；代码已本地提交，静态审查通过；实际数据库、浏览器和扫码验收未执行，保留任务待验收、不归档。",
+  "meta": {
+    "implementation": "committed",
+    "acceptance": "pending_runtime_verification"
+  }
 }
