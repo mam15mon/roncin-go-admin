@@ -3,7 +3,7 @@
   "name": "company-admin-provisioning",
   "title": "新公司管理员自动加入与初始化补齐",
   "description": "创建公司时初始化公司管理员角色并加入指定管理员，bootstrap:admin 为现有公司补齐管理员成员关系与角色",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "backend",
   "scope": "server",
   "package": null,

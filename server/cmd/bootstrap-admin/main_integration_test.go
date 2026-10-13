@@ -57,11 +57,11 @@ func TestBootstrapFormalMigrationsAndWorkspaceBoundaries(t *testing.T) {
 	if err = isolated.QueryRow(`SELECT count(*) FROM roles r JOIN organizations o ON o.id=r.organization_id WHERE o.kind='company' AND r.code='administrator'`).Scan(&companyRoles); err != nil {
 		t.Fatal(err)
 	}
-	if companies != 2 || memberships != 0 || systemRules != 0 || companyRoles != 2 {
+	if companies != 2 || memberships != 2 || systemRules != 0 || companyRoles != 2 {
 		t.Fatalf("初始化边界不符 company=%d membership=%d systemRules=%d roles=%d", companies, memberships, systemRules, companyRoles)
 	}
-	if err := bootstrapWithMigrations(context.Background(), cfg, filepath.Join("..", "..", "migrations")); err == nil {
-		t.Fatal("重复初始化应拒绝")
+	if err := bootstrapWithMigrations(context.Background(), cfg, filepath.Join("..", "..", "migrations")); err != nil {
+		t.Fatalf("重复执行应补齐且保持幂等: %v", err)
 	}
 	var organizationID, roleID string
 	if err := isolated.QueryRow(`SELECT o.id,r.id FROM organizations o JOIN roles r ON r.organization_id=o.id
@@ -109,7 +109,7 @@ func TestBootstrapFormalMigrationsAndWorkspaceBoundaries(t *testing.T) {
 			expectedPermissions++
 		}
 	}
-	if organizations != 3 || roles != 3 || users != 1 || companyMemberships != 0 || rolePermissions != expectedPermissions {
+	if organizations != 3 || roles != 3 || users != 1 || companyMemberships != 2 || rolePermissions != expectedPermissions {
 		t.Fatalf("重新初始化边界不符：组织=%d，角色=%d，账号=%d，公司成员=%d，管理员权限=%d", organizations, roles, users, companyMemberships, rolePermissions)
 	}
 	clearAccounts()

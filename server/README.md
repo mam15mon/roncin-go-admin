@@ -10,7 +10,7 @@ Protobuf 契约优先（HTTP + gRPC 双传输）、Ent + PostgreSQL 持久化、
 api/                  Protobuf 契约与生成的绑定代码（唯一契约真相源）
 cmd/                  入口指令
   server/               主服务入口
-  bootstrap-admin/      按正式迁移冷启动系统管理工作台与管理员；--sync-permissions 手工同步权限
+  bootstrap-admin/      按正式迁移创建唯一初始管理员或补齐其工作台授权；--sync-permissions 手工同步权限
   migrate/              版本化迁移执行器（迁移后自动同步权限清单）
   sync-airports/        OurAirports 机场同步 CLI
   sync-regions/         全国行政区划同步 CLI
@@ -52,6 +52,29 @@ go run ./cmd/server -conf ./configs
 默认端口见 `configs/config.yaml`：HTTP `0.0.0.0:8000`、gRPC `0.0.0.0:9000`。
 开发期推荐在仓库根目录使用 `pnpm dev` / `pnpm run dev:server`（Air 热重载），
 数据库迁移与初始化使用 `pnpm run migrate:server` 和 `pnpm run bootstrap:admin`。
+
+首次初始化按 `.env.example` 设置 `BOOTSTRAP_ADMIN_USERNAME`、`BOOTSTRAP_ADMIN_DISPLAY_NAME`
+和至少 12 位的 `BOOTSTRAP_ADMIN_PASSWORD`，执行 `pnpm run bootstrap:admin`。命令先建立
+唯一初始管理员身份，再创建默认北京（BJ）/成都（CD）公司，并为系统管理及所有实际启用公司
+补齐成员关系与各公司独立的 `administrator` 绑定。公司角色只包含公司允许的权限，
+部门/团队复用公司工作台，不重复加入；后来手工授予系统管理员角色的普通账号不自动加公司。
+后台手工创建公司也在同一事务内把此初始管理员加入，要求其系统成员、管理员角色及绑定完整有效；
+缺失时明确要求先执行 bootstrap 补齐，再创建公司，不在创建公司时顺带恢复系统资格。
+
+重复执行同一命令时，只补缺失项，保留原账号姓名、密码、已分配的其他角色及公司配置。
+此时用户名、姓名、密码可留空；若提供用户名必须匹配原初始管理员，
+`BOOTSTRAP_ORGANIZATION_CODE` 必须匹配原系统工作台。账号表非空却没有初始管理员、
+存在多个初始管理员或身份配置冲突时明确失败，不会接管普通同名账号。
+系统工作台必须唯一，配置编码不得指向另一套工作台；角色 `self` 数据范围已失效，保持配置并要求人工处理。
+停用的初始账号或系统管理/系统管理员资格使整次授权失败；停用公司、公司管理员角色
+或原公司成员关系保持停用并逐公司报告跳过原因，需人工恢复后重跑。数据库/审计错误
+回滚整次可处理项，成功摘要区分新增成员、绑定、已满足和跳过，含跳过项时不表示全部成功。
+
+已有环境补建默认公司可执行 `pnpm run bootstrap:admin --seed-branches`（同一管理员补齐及停用规则）。
+开发业务种子必须先执行 `pnpm run bootstrap:admin`，再执行 `pnpm run sync:dev`；
+开发人员及经营数据仍明确归属北京公司，不恢复已移除的上海/重庆默认种子，也不隐式启用
+任何初始管理员资格。权限目录常规更新仍由 `migrate:server` 同步；bootstrap 的身份和
+系统资格检查先于授权写入，不调用会修改全部管理员角色的全局权限同步。
 
 ## 测试与检查
 

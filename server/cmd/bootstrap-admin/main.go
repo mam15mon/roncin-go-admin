@@ -11,11 +11,9 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 
@@ -36,7 +34,7 @@ func main() {
 	args := os.Args[1:]
 	syncOnly := slices.Contains(args, "--sync-permissions")
 	seedBranchesOnly := slices.Contains(args, "--seed-branches")
-	config, err := loadConfig(syncOnly || seedBranchesOnly)
+	config, err := loadConfig()
 	if err != nil {
 		logger.Error("bootstrap configuration invalid", "error", err)
 		os.Exit(1)
@@ -51,22 +49,23 @@ func main() {
 		return
 	}
 	if seedBranchesOnly {
-		created, seedErr := seedBranchCompanies(context.Background(), config.databaseSource)
+		summary, seedErr := seedBranchCompanies(context.Background(), config.databaseSource)
 		if seedErr != nil {
 			logger.Error("seed default branch companies failed", "error", seedErr)
 			os.Exit(1)
 		}
-		logger.Info("default branch companies seeded", "created", created)
+		logProvisioningSummary(logger, summary, "默认公司种子及初始管理员授权已处理")
 		return
 	}
-	if err := bootstrap(context.Background(), config); err != nil {
+	summary, err := bootstrapWithSummary(context.Background(), config, "migrations")
+	if err != nil {
 		logger.Error("bootstrap admin failed", "error", err)
 		os.Exit(1)
 	}
-	logger.Info("bootstrap admin completed", "username", config.username, "organization.code", config.organizationCode)
+	logProvisioningSummary(logger, summary, "初始管理员初始化或补齐已处理")
 }
 
-func loadConfig(toolsOnly bool) (*bootstrapConfig, error) {
+func loadConfig() (*bootstrapConfig, error) {
 	config := &bootstrapConfig{
 		databaseSource:   os.Getenv("DATABASE_SOURCE"),
 		username:         strings.ToLower(strings.TrimSpace(os.Getenv("BOOTSTRAP_ADMIN_USERNAME"))),
@@ -84,116 +83,49 @@ func loadConfig(toolsOnly bool) (*bootstrapConfig, error) {
 	if config.organizationName == "" {
 		config.organizationName = "系统管理"
 	}
-	if toolsOnly {
-		return config, nil
-	}
-	if config.username == "" || config.displayName == "" || config.plainPassword == "" || config.organizationCode == "" || config.organizationName == "" {
-		return nil, fmt.Errorf("all BOOTSTRAP_* variables are required for full bootstrap")
-	}
+	// 首次创建所需账号资料在事务内确认账号表为空后校验；重复执行不要求密码。
 	return config, nil
 }
 
-func bootstrap(ctx context.Context, config *bootstrapConfig) error {
-	return bootstrapWithMigrations(ctx, config, "migrations")
+func bootstrapWithMigrations(ctx context.Context, config *bootstrapConfig, migrationDirectory string) error {
+	_, err := bootstrapWithSummary(ctx, config, migrationDirectory)
+	return err
 }
 
-func bootstrapWithMigrations(ctx context.Context, config *bootstrapConfig, migrationDirectory string) error {
+func bootstrapWithSummary(ctx context.Context, config *bootstrapConfig, migrationDirectory string) (*data.AdministratorProvisioningSummary, error) {
 	sqlDB, err := sql.Open("pgx", config.databaseSource)
 	if err != nil {
-		return fmt.Errorf("open database: %w", err)
+		return nil, fmt.Errorf("open database: %w", err)
 	}
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, sqlDB)))
 	defer client.Close()
 	if err := migration.Apply(ctx, sqlDB, migrationDirectory); err != nil {
-		return fmt.Errorf("apply formal migrations: %w", err)
+		return nil, fmt.Errorf("apply formal migrations: %w", err)
 	}
-	exists, err := client.User.Query().Exist(ctx)
-	if err != nil {
-		return fmt.Errorf("check existing users: %w", err)
-	}
-	if exists {
-		return fmt.Errorf("数据库已有账号，管理员初始化仅允许在账号为空时执行")
-	}
-	passwordHash, err := password.Hash(config.plainPassword)
-	if err != nil {
-		return err
-	}
-	return data.WithClientTx(ctx, client, func(tx *ent.Tx) error {
-		organization, err := tx.Organization.Query().Where(organizationent.CodeEQ(config.organizationCode)).ForUpdate().Only(ctx)
-		if ent.IsNotFound(err) {
-			organization, err = tx.Organization.Create().SetCode(config.organizationCode).SetName(config.organizationName).SetKind("system").SetBaseCurrency("CNY").Save(ctx)
-		}
-		if err != nil {
-			return fmt.Errorf("初始化系统管理组织失败: %w", err)
-		}
-		if organization.Kind != organizationent.KindSystem || !organization.Enabled {
-			return fmt.Errorf("组织 %s 必须是启用的系统管理工作台", config.organizationCode)
-		}
-		// 复用组织时以该行锁串行化初始化，并在锁内重查，禁止并发重复创建管理员。
-		if exists, err := tx.User.Query().Exist(ctx); err != nil {
-			return fmt.Errorf("检查现有账号失败: %w", err)
-		} else if exists {
-			return fmt.Errorf("数据库已有账号，管理员初始化仅允许在账号为空时执行")
-		}
-		// A 型主数据种子按 kind+code 幂等跳过；迁移种子（如费用类别）已落的行不重复写入。
-		if err := data.CreateDefaultOrderOptions(ctx, tx); err != nil {
-			return err
-		}
-		if err := data.CreateDefaultCountries(ctx, tx); err != nil {
-			return err
-		}
-		existingPermissions, err := tx.Permission.Query().All(ctx)
-		if err != nil {
-			return fmt.Errorf("query existing permissions: %w", err)
-		}
-		existingPermissionsByKey := make(map[string]*ent.Permission, len(existingPermissions))
-		for _, item := range existingPermissions {
-			existingPermissionsByKey[item.Key] = item
-		}
-		permissions := make([]*ent.Permission, 0, len(access.Manifest()))
-		for _, definition := range access.Manifest() {
-			permission := existingPermissionsByKey[definition.Key]
-			if permission == nil {
-				permission, err = tx.Permission.Create().SetKey(definition.Key).SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx)
-			} else {
-				permission, err = permission.Update().SetName(definition.Name).SetGroup(definition.Group).SetDescription(definition.Description).Save(ctx)
-			}
-			if err != nil {
-				return fmt.Errorf("synchronize permission %s: %w", definition.Key, err)
-			}
-			if access.PermissionAllowedInWorkspace(permission.Key, true) {
-				permissions = append(permissions, permission)
-			}
-		}
-		// 默认分公司在权限目录同步后落库，使分公司内置的 administrator 角色直接携带全量权限。
-		if _, err := data.CreateDefaultBranchCompanies(ctx, tx, organization.ID); err != nil {
-			return fmt.Errorf("create default branch companies: %w", err)
-		}
-		adminRole, err := tx.Role.Query().Where(role.OrganizationIDEQ(organization.ID), role.CodeEQ("administrator")).Only(ctx)
-		if ent.IsNotFound(err) {
-			adminRole, err = tx.Role.Create().SetOrganizationID(organization.ID).SetCode("administrator").SetName("系统管理员").SetDataScope(role.DataScopeAll).AddPermissions(permissions...).Save(ctx)
-		} else if err == nil {
-			if !adminRole.Enabled {
-				return fmt.Errorf("系统管理员角色已停用，请先恢复角色后初始化账号")
-			}
-			adminRole, err = adminRole.Update().SetDataScope(role.DataScopeAll).ClearPermissions().AddPermissions(permissions...).Save(ctx)
-		}
-		if err != nil {
-			return fmt.Errorf("create administrator role: %w", err)
-		}
-		account, err := tx.User.Create().SetUsername(config.username).SetDisplayName(config.displayName).SetPasswordHash(passwordHash).SetIsBootstrapAdmin(true).Save(ctx)
-		if err != nil {
-			return fmt.Errorf("create administrator: %w", err)
-		}
-		membership, err := tx.Membership.Create().SetUserID(account.ID).SetOrganizationID(organization.ID).Save(ctx)
-		if err != nil {
-			return fmt.Errorf("create administrator membership: %w", err)
-		}
-		if _, err := tx.RoleAssignment.Create().SetMembershipID(membership.ID).SetRoleID(adminRole.ID).Save(ctx); err != nil {
-			return fmt.Errorf("assign administrator role: %w", err)
-		}
-		return nil
+	var summary *data.AdministratorProvisioningSummary
+	err = data.WithClientTx(ctx, client, func(tx *ent.Tx) error {
+		var provisionErr error
+		summary, provisionErr = data.BootstrapAdministrator(ctx, tx, data.BootstrapAdministratorInput{
+			Username: config.username, DisplayName: config.displayName, PlainPassword: config.plainPassword, HashPassword: password.Hash,
+			OrganizationCode: config.organizationCode, OrganizationName: config.organizationName,
+		})
+		return provisionErr
 	})
+	if err != nil {
+		return nil, err
+	}
+	return summary, nil
+}
+
+func logProvisioningSummary(logger *slog.Logger, summary *data.AdministratorProvisioningSummary, message string) {
+	result := "已完成全部可用工作台授权"
+	if len(summary.Skipped) > 0 {
+		result = "已完成可处理项，仍有跳过项，请人工恢复后重跑"
+	}
+	logger.Info(message, "result", result, "username", summary.Username, "account.created", summary.AccountCreated, "companies.created", summary.CompaniesCreated, "memberships.created", summary.MembershipsCreated, "bindings.created", summary.BindingsCreated, "workspaces.satisfied", summary.Satisfied, "companies.skipped", len(summary.Skipped))
+	for _, item := range summary.Skipped {
+		logger.Warn("公司管理员授权已跳过", "organization.id", item.OrganizationID.String(), "organization.code", item.OrganizationCode, "reason", item.Reason)
+	}
 }
 
 // syncPermissions 按 access.Manifest 幂等同步权限目录。完整流程已由 cmd/migrate
@@ -211,27 +143,30 @@ func syncPermissions(ctx context.Context, databaseSource string) (*data.Permissi
 }
 
 // seedBranchCompanies 在已完成 bootstrap 的库上幂等补建默认分公司种子。
-// 此入口不创建管理员账号，仅补齐新增加的分公司。
-func seedBranchCompanies(ctx context.Context, databaseSource string) (int, error) {
+// 此入口不创建账号；补建默认公司并补齐唯一初始管理员的实际工作台授权。
+func seedBranchCompanies(ctx context.Context, databaseSource string) (*data.AdministratorProvisioningSummary, error) {
 	sqlDB, err := sql.Open("pgx", databaseSource)
 	if err != nil {
-		return 0, fmt.Errorf("open database: %w", err)
+		return nil, fmt.Errorf("open database: %w", err)
 	}
 	defer sqlDB.Close()
 	if err := sqlDB.PingContext(ctx); err != nil {
-		return 0, fmt.Errorf("connect database: %w", err)
+		return nil, fmt.Errorf("connect database: %w", err)
 	}
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, sqlDB)))
 	defer client.Close()
 	systemWorkspace, err := client.Organization.Query().Where(organizationent.KindEQ(organizationent.KindSystem)).Only(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("locate systemWorkspace: %w", err)
+		return nil, fmt.Errorf("locate systemWorkspace: %w", err)
 	}
-	created := 0
+	var summary *data.AdministratorProvisioningSummary
 	err = data.WithClientTx(ctx, client, func(tx *ent.Tx) error {
 		var seedErr error
-		created, seedErr = data.CreateDefaultBranchCompanies(ctx, tx, systemWorkspace.ID)
+		summary, seedErr = data.CreateDefaultBranchCompanies(ctx, tx, systemWorkspace.ID)
 		return seedErr
 	})
-	return created, err
+	if err != nil {
+		return nil, err
+	}
+	return summary, nil
 }

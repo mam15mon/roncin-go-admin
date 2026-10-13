@@ -9,6 +9,10 @@ import (
 )
 
 var (
+	ErrAdminBootstrapSystemRequired           = errors.Conflict("ADMIN_BOOTSTRAP_SYSTEM_REQUIRED", "初始管理员系统资格缺失，请先运行 bootstrap:admin 补齐后再创建公司")
+	ErrAdminBootstrapIdentityInvalid          = errors.Conflict("ADMIN_BOOTSTRAP_IDENTITY_INVALID", "必须存在唯一初始管理员，请先核对管理员初始化状态")
+	ErrAdminBootstrapInactive                 = errors.Conflict("ADMIN_BOOTSTRAP_INACTIVE", "初始管理员账号已停用或待分配，请人工恢复后重跑")
+	ErrAdminBootstrapSystemInactive           = errors.Conflict("ADMIN_BOOTSTRAP_SYSTEM_INACTIVE", "系统工作台或其管理员资格不可用，请人工恢复或核对系统工作台配置")
 	ErrAdminOrganizationNotFound              = errors.NotFound("ADMIN_ORGANIZATION_NOT_FOUND", "组织不存在")
 	ErrAdminOrganizationCodeExists            = errors.Conflict("ADMIN_ORGANIZATION_CODE_EXISTS", "组织编码已存在")
 	ErrAdminOrganizationParentRequired        = errors.BadRequest("ADMIN_ORGANIZATION_PARENT_REQUIRED", "新建组织必须指定上级组织")

@@ -81,22 +81,23 @@ import (
 )
 
 type seedContext struct {
-	tx              *ent.Tx
-	systemWorkspace *ent.Organization
-	company         *ent.Organization
-	adminUser       *ent.User
-	users           map[string]*ent.User
-	ports           map[string]*ent.Port
-	shippingLines   map[string]*ent.ShippingLine
-	billingUnits    map[string]*ent.BillingUnit
-	taxableSvcs     map[string]*ent.TaxableService
-	chargeCats      map[string]*ent.MasterDataItem
-	containerSpecs  map[string]*ent.MasterDataItem
-	feeSettings     map[string]*ent.FeeSetting
-	partners        map[string]*ent.Partner
-	orders          map[string]*ent.Order
-	newOrderIDs     map[uuid.UUID]bool
-	orderFees       map[string]*ent.OrderFee
+	administratorProvisioning *data.AdministratorProvisioningSummary
+	tx                        *ent.Tx
+	systemWorkspace           *ent.Organization
+	company                   *ent.Organization
+	adminUser                 *ent.User
+	users                     map[string]*ent.User
+	ports                     map[string]*ent.Port
+	shippingLines             map[string]*ent.ShippingLine
+	billingUnits              map[string]*ent.BillingUnit
+	taxableSvcs               map[string]*ent.TaxableService
+	chargeCats                map[string]*ent.MasterDataItem
+	containerSpecs            map[string]*ent.MasterDataItem
+	feeSettings               map[string]*ent.FeeSetting
+	partners                  map[string]*ent.Partner
+	orders                    map[string]*ent.Order
+	newOrderIDs               map[uuid.UUID]bool
+	orderFees                 map[string]*ent.OrderFee
 }
 
 func main() {
@@ -200,6 +201,11 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 }
 
 func printSeedSummary(sc *seedContext) {
+	summary := sc.administratorProvisioning
+	fmt.Printf("初始管理员授权：新增成员 %d，新增绑定 %d，已满足 %d，跳过 %d\n", summary.MembershipsCreated, summary.BindingsCreated, summary.Satisfied, len(summary.Skipped))
+	for _, item := range summary.Skipped {
+		fmt.Printf("公司 %s 授权已跳过：%s\n", item.OrganizationCode, item.Reason)
+	}
 	fmt.Println("==================================================")
 	fmt.Println("🎉 开发测试数据同步完成 (sync:dev successful)！")
 	fmt.Printf("✔ 组织体系: 系统管理 [%s] + 独立公司已完备；经营数据归属 [%s]，员工具备公司身份\n", sc.systemWorkspace.Name, sc.company.Name)
@@ -219,30 +225,23 @@ func printSeedSummary(sc *seedContext) {
 // 1. 组织架构与人员
 func seedOrganizationAndStaff(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
-	systemWorkspace, err := tx.Organization.Query().Where(organizationent.KindEQ(organizationent.KindSystem)).First(ctx)
-	if err != nil && !ent.IsNotFound(err) {
+	// 开发全库种子后续会写员工；先按统一顺序锁全部现有用户，避免持初始用户
+	// 后再等待员工，与成员批量授权的员工→初始用户顺序形成锁环。
+	if _, err := tx.User.Query().Order(userent.ByID()).ForUpdate().All(ctx); err != nil {
 		return err
 	}
-	if systemWorkspace == nil {
-		created, createErr := tx.Organization.Create().
-			SetCode("SYSTEM").
-			SetName("系统管理").
-			SetKind(organizationent.KindSystem).
-			SetBaseCurrency("CNY").
-			SetEnabledCurrencies([]string{"CNY", "USD", "EUR", "HKD"}).
-			SetEnabled(true).
-			Save(ctx)
-		if createErr != nil {
-			return fmt.Errorf("创建系统管理工作台: %w", createErr)
-		}
-		systemWorkspace = created
+	systemWorkspace, err := tx.Organization.Query().Where(organizationent.KindEQ(organizationent.KindSystem)).Only(ctx)
+	if err != nil {
+		return fmt.Errorf("缺少唯一系统工作台，请先完成 bootstrap:admin 初始化: %w", err)
 	}
 	sc.systemWorkspace = systemWorkspace
 
 	// 补充独立公司；公共管理工作台不作为公司父节点。
-	if _, err := data.CreateDefaultBranchCompanies(ctx, tx, systemWorkspace.ID); err != nil {
-		return err
+	summary, err := data.CreateDefaultBranchCompanies(ctx, tx, systemWorkspace.ID)
+	if err != nil {
+		return fmt.Errorf("请先完成 bootstrap:admin 初始化，再同步开发数据: %w", err)
 	}
+	sc.administratorProvisioning = summary
 
 	// 开发数据明确归属北京公司，不向其他公司隐式写入。
 	company, companyErr := tx.Organization.Query().Where(

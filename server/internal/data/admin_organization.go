@@ -57,6 +57,14 @@ func (r *adminRepo) GetOrganization(ctx context.Context, id uuid.UUID) (*biz.Adm
 func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrganization, audit *biz.AuditEvent) (*biz.AdminOrganization, error) {
 	var created *ent.Organization
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		var initialAdministrator *ent.User
+		if input.Kind == biz.OrganizationKindCompany {
+			var initialErr error
+			initialAdministrator, initialErr = prepareCompanyInitialAdministrator(ctx, tx.Client())
+			if initialErr != nil {
+				return initialErr
+			}
+		}
 		create := tx.Organization.Create().SetCode(input.Code).SetName(input.Name).SetKind(organization.Kind(input.Kind))
 		if input.Kind == biz.OrganizationKindCompany || input.Kind == biz.OrganizationKindSystem {
 			if currencyErr := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); currencyErr != nil {
@@ -79,7 +87,7 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 			return defaultErr
 		}
 		if input.Kind == biz.OrganizationKindCompany {
-			if err := initializeCompanyAdministrator(ctx, tx.Client(), created.ID); err != nil {
+			if err := provisionAdministratorPlan(ctx, tx.Client(), initialAdministrator, &administratorWorkspacePlan{organization: created}, "admin.organization.create", audit.UserID, &AdministratorProvisioningSummary{}); err != nil {
 				return err
 			}
 			if err := initializeCompanyFeeSettings(ctx, tx.Client(), created.ID); err != nil {

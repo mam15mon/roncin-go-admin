@@ -26,12 +26,17 @@ func TestCreateDefaultBranchCompaniesSeedsAndIsIdempotent(t *testing.T) {
 		t.Fatalf("创建总部组织失败: %v", err)
 	}
 
+	if _, err := data.db.User.Create().SetDisplayName("初始管理员").SetIsBootstrapAdmin(true).Save(ctx); err != nil {
+		t.Fatal(err)
+	}
 	seedBranches := func() int {
 		t.Helper()
 		created := 0
 		if err := data.WithTx(ctx, func(tx *ent.Tx) error {
-			var seedErr error
-			created, seedErr = CreateDefaultBranchCompanies(ctx, tx, headquarters.ID)
+			summary, seedErr := CreateDefaultBranchCompanies(ctx, tx, headquarters.ID)
+			if seedErr == nil {
+				created = summary.CompaniesCreated
+			}
 			return seedErr
 		}); err != nil {
 			t.Fatalf("补建默认分公司种子失败: %v", err)

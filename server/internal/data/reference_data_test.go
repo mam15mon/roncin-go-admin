@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 )
 
 func TestReferenceDataOrganizationCurrencyEnablement(t *testing.T) {
@@ -110,6 +112,17 @@ func TestAdminCreateOrganizationInitializesEnabledCurrencies(t *testing.T) {
 	adminRepo := NewAdminRepo(data)
 	refRepo := NewReferenceDataRepo(data)
 	hqID, _ := newCrossCalcOrgTree(t, data)
+	systemOrganization, err := data.db.Organization.Get(ctx, hqID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	systemCode := systemOrganization.Code
+	if err := data.WithTx(ctx, func(tx *ent.Tx) error {
+		_, err := BootstrapAdministrator(ctx, tx, BootstrapAdministratorInput{Username: "initial.admin", DisplayName: "初始管理员", PlainPassword: "test-password-123456", HashPassword: password.Hash, OrganizationCode: systemCode, OrganizationName: "系统管理"})
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
 
 	newCompany, err := adminRepo.CreateOrganization(ctx, &biz.AdminOrganization{
 		Code:         "NEW-BRANCH-01",
