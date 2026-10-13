@@ -1382,3 +1382,26 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Next Steps
 
 - 独立数据库正式迁移、授权幂等及并发回滚验收；真实企业手机扫码与开发/生产回调联调。
+
+
+## Session 131: 修复组织登录审查问题
+<!-- trellis-session: v=2 fp=9130c79b6aedc8ba -->
+
+**Date**: 2026-10-13
+**Task**: 修复组织登录审查问题
+**Branch**: `codex/dingtalk-login-memberships`
+
+### Summary
+
+修复组织切换与授权操作锁序、扫码网络失败恢复提示及密码按钮测试；9项真实PostgreSQL认证回归通过，旧代码双场景死锁可复现，前端定向32项及check:fast通过。真实企业扫码与既有公司权限夹具问题保留记录。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `614e1966` | fix: 统一组织切换与授权操作的用户锁序 |
+| `ec71a78b` | fix: 修正扫码加载恢复提示与登录按钮可访问名称 |
+
+### Status
+
+[OK] **Completed**
