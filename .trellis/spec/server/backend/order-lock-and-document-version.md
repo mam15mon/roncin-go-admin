@@ -40,6 +40,17 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 ## 3. Contracts（请求 / 响应 / 配置）
 
+### 结清触发的自动锁定
+
+- `evaluateAutoLockEligibility(ctx, tx, orderID)` 在现有订单锁事务内，先阻断任意方向未建账费用，再按活动订单行定位关联应收账单。订单行只确定账单集合，不用于减去整账单核销金额。
+- 每张关联应收账单必须为 CONFIRMED，且原币总额精确等于该账单有效核销与对冲合计；有效核销要求 allocation.active 且核销单 ACTIVE，有效对冲要求 allocation.active 且对冲单 CONFIRMED。两类分摊分别读取并按 BillID 汇总，不直接 join 后求和。
+- DRAFT 账单不能视为结清；无有效结清事实不自动锁。不同账单、不同币种不相抵，超额分摊也不钳成零冒充结清。
+- 合并账单部分回款不能推断某票先结清；整账单全额结清后，各订单继续按原生命周期、未建账费用、共享 MBL 整组资格判断。自动业务锁不改变结案状态，不要求应付全额支付。
+- 复用单票 Order 锁及共享组既有固定锁序；反核销/反对冲通过 Order 优先锁序与自动检查串行化。重复触发保留既有幂等语义，不另建资金分配或锁模型。
+
+### 业务锁与生命周期
+
+
 - `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 和去除空白后非空的 `idempotency_key`。
 - `RequestOrderUnlockRequest` 使用相同并发与幂等字段；`reason` 可选，管理员紧急解锁不得伪造默认原因。
 - 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色数据范围覆盖目标订单组织——`ORGANIZATION` 要求 membership 组织即目标组织，`ORGANIZATION_TREE` 要求 membership 组织是目标组织或其祖先（沿 parent 链计算，带环保护），`ALL` 覆盖任意组织；锁权限只依赖同类型 read/update，不得跨类型授权。
@@ -64,6 +75,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 | 订单已结案（`closure_status != OPEN`），调用内容写入口 | `ORDER_CLOSED`（409，“订单已结案，不允许修改业务数据”） |
 | 目标订单已业务锁定，调用普通写入口 | `ORDER_BUSINESS_LOCKED`，metadata 含订单、代次、时间和锁定人 |
 | 已终止订单残留历史锁信息 | 优先返回终止类错误，不得误提示“先解锁即可编辑” |
+| 合并账单部分回款或任一关联应收账单未全额结清 | NOT_ELIGIBLE_UNSETTLED_RECEIVABLE，不自动锁定 |
 | 锁定的 `DOCUMENT_RELEASED` 订单执行结案、`TERMINATING/TERMINATED` 执行完成/取消/恢复 | 生命周期命令放行，不得被内容门禁误杀 |
 | 锁定订单发起退关（`ACTIVE → TERMINATING`） | `ORDER_BUSINESS_LOCKED`，保持“锁定资料不可发起退关” |
 | 调用人（非 bootstrap）没有覆盖目标组织的有效 lock grant | `ORDER_LOCK_ROLE_REQUIRED` |
@@ -79,6 +91,10 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 ## 5. Good / Base / Bad Cases
 
+- Good：A=100、B=200 合并应收300，收100时两票都不因金额巧合锁定，累计收300后再分别检查其它锁定资格。
+- Bad：A=B=100、合账200收100时，给两票各减100并都判结清；或用一张账单超额抵另一张账单欠款。
+
+
 - Good：按 UUID 升序一次性锁住共享 MBL 的全部活动成员 Order，再锁 MBL、目标 Link、TransportExecution；锁后重验成员集合，随后执行共享写入。
 - Good：SE 订单完成退关的事务先锁 Order，再按 Link ID 锁定并结束唯一活动 Link，随后写生命周期事件与审计，任一步失败整体回滚。
 - Base：普通订单字段更新不携带 MBL 身份、权威航程或 `MasterBillContent` 写入时，只锁目标 Order 并执行统一内容写门禁（生命周期 + 业务锁）。
@@ -89,6 +105,9 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Bad：退关完成时发现多条活动 Link 后静默结束全部或仅结束其一；必须 fail-closed 返回结构冲突。
 
 ## 6. Tests Required
+
+- 自动锁真实 PostgreSQL：非共享订单与共享 MBL 下的合并部分等额回款、全额结清、同票多行去重、多账单/多币种、草稿/取消账单、有效父状态、纯对冲及混合结清、反转并发和重复触发；断言锁代次、审计及整组零部分写入。正式迁移初始化，SKIP 不算通过。
+
 
 - Biz：锁定/三路解锁资格、bootstrap 优先、幂等同键同/异指纹、错误 metadata。
 - Data/PostgreSQL 锁资格矩阵：组织内 ORG 角色、上级组织 TREE 角色（按真实上级 membership/role 快照）、ALL 范围 `administrator` 角色、无锁权限的 `administrator` 角色、bootstrap（可锁、应急解锁、不进候选池）、ORG 范围越组织与 TREE 范围兄弟组织拒绝、撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。
@@ -102,6 +121,12 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Service/Web：分页 1/200/201、允许动作 fail-closed、锁定详情、三种解锁入口和稳定状态文本。
 
 ## 7. Wrong vs Correct
+
+```text
+错误：本订单账单行金额 - 关联整张账单的全部核销/对冲 == 0。
+正确：定位关联应收账单；每张均 CONFIRMED 且整账单总额 == 该账单有效核销 + 有效对冲，再检查其它资格。
+```
+
 
 ### Wrong
 

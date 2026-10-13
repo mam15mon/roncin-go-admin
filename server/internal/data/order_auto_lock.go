@@ -563,8 +563,8 @@ func autoLockLifecycleBlockReason(order *ent.Order) string {
 //   - 任意方向存在未建账费用即阻止（未建账应收同时构成未结清应收，
 //     未建账应付不再因原已确认身份绕过阻断）；
 //   - 至少一笔有效应收结清事实（有效核销或已确认对冲分摊命中本订单应收账单）；
-//   - 订单级未结清已确认应收为零（应收账单行合计 − 有效核销分摊 − 已确认对冲
-//     分摊推导；已反转/已取消/失效分摊不计入）。
+//   - 关联的每张应收账单均已确认，且整张账单总额等于有效核销与对冲合计；
+//     合并账单部分结清不推断订单归属，不同账单或币种不互相抵消。
 func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.UUID) (eligible bool, reasonCode string, err error) {
 	// 1) 任意方向的未建账费用都阻止自动锁定。
 	unbilledFeeExists, err := tx.OrderFee.Query().
@@ -577,32 +577,30 @@ func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.U
 		return false, biz.AutoLockReasonUnbilledFee, nil
 	}
 
-	// 2) 订单关联的应收账单行（含未确认账单的行，仍是未结清应收事实）。
-	lines, err := tx.FinanceBillLine.Query().
+	// 2) 活动订单行只确定相关账单集合，账单级查询天然去重。
+	// 草稿账单仍是有效建账关联，但不能证明应收已结清。
+	bills, err := tx.FinanceBill.Query().
 		Where(
-			financebilllineent.OrderIDEQ(orderID),
-			financebilllineent.ActiveEQ(true),
-			financebilllineent.HasBillWith(
-				financebillent.DirectionEQ(financebillent.DirectionRECEIVABLE),
-				financebillent.StatusIn(financebillent.StatusDRAFT, financebillent.StatusCONFIRMED),
+			financebillent.DirectionEQ(financebillent.DirectionRECEIVABLE),
+			financebillent.StatusIn(financebillent.StatusDRAFT, financebillent.StatusCONFIRMED),
+			financebillent.HasLinesWith(
+				financebilllineent.OrderIDEQ(orderID),
+				financebilllineent.ActiveEQ(true),
 			),
 		).
 		All(ctx)
 	if err != nil {
 		return false, "", err
 	}
-	if len(lines) == 0 {
+	if len(bills) == 0 {
 		return false, biz.AutoLockReasonNoSettlement, nil
 	}
-	billIDs := make([]uuid.UUID, 0, len(lines))
-	lineSum := decimal.Zero
-	for _, line := range lines {
-		billIDs = append(billIDs, line.BillID)
-		amount, parseErr := decimalOf(line.TotalAmount)
-		if parseErr != nil {
-			return false, "", parseErr
+	billIDs := make([]uuid.UUID, 0, len(bills))
+	for _, bill := range bills {
+		if bill.Status != financebillent.StatusCONFIRMED {
+			return false, biz.AutoLockReasonUnsettledReceivable, nil
 		}
-		lineSum = lineSum.Add(amount)
+		billIDs = append(billIDs, bill.ID)
 	}
 
 	// 3) 有效核销分摊：分摊有效且核销单仍然 ACTIVE。
@@ -627,32 +625,37 @@ func evaluateAutoLockEligibility(ctx context.Context, tx *ent.Tx, orderID uuid.U
 	if err != nil {
 		return false, "", err
 	}
-	settledSum := decimal.Zero
+	// 核销和对冲分别读取再按账单聚合，避免关联多张分摊表导致金额倍增。
+	settledByBill := make(map[uuid.UUID]decimal.Decimal, len(bills))
 	for _, allocation := range verifications {
 		amount, parseErr := decimalOf(allocation.Amount)
 		if parseErr != nil {
 			return false, "", parseErr
 		}
-		settledSum = settledSum.Add(amount)
+		settledByBill[allocation.BillID] = settledByBill[allocation.BillID].Add(amount)
 	}
 	for _, allocation := range nettings {
 		amount, parseErr := decimalOf(allocation.Amount)
 		if parseErr != nil {
 			return false, "", parseErr
 		}
-		settledSum = settledSum.Add(amount)
+		settledByBill[allocation.BillID] = settledByBill[allocation.BillID].Add(amount)
 	}
 
 	// 从未发生有效应收结清事件的订单绝不因余额为零进入检查。
 	if len(verifications) == 0 && len(nettings) == 0 {
 		return false, biz.AutoLockReasonNoSettlement, nil
 	}
-	// 跨订单账单的分摊是账单级事实，只能按订单行推导；无论剩余为正还是分摊
-	// 超过该订单行合计（负值），都无法据此刻定本订单已全额结清，一律 fail-closed
-	// 放弃自动锁定（漏锁由人工兜底），不得把负 unsettled 误判为已结清。
-	unsettled := lineSum.Sub(settledSum)
-	if !unsettled.IsZero() {
-		return false, biz.AutoLockReasonUnsettledReceivable, nil
+	// 整张合并账单全额结清才能覆盖其订单行；逐账单比较原币金额，
+	// 不用其他账单的超额抵消欠款，也不把超额异常钳成零余额。
+	for _, bill := range bills {
+		total, parseErr := decimalOf(bill.TotalAmount)
+		if parseErr != nil {
+			return false, "", parseErr
+		}
+		if !total.Equal(settledByBill[bill.ID]) {
+			return false, biz.AutoLockReasonUnsettledReceivable, nil
+		}
 	}
 	return true, "", nil
 }

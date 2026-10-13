@@ -210,7 +210,40 @@ func (f *autoLockPostgresFixture) createPlainOrder(orderNo string, businessType 
 // 账单行合计，每张订单挂一条等额账单行。返回账单 ID。
 func (f *autoLockPostgresFixture) createReceivableBill(orders []*ent.Order, lineAmount string) uuid.UUID {
 	f.t.Helper()
-	total := decimal.RequireFromString(lineAmount).Mul(decimal.NewFromInt(int64(len(orders))))
+	amounts := make([]string, len(orders))
+	for i := range amounts {
+		amounts[i] = lineAmount
+	}
+	return f.createReceivableBillAmounts(orders, amounts, "USD")
+}
+
+// createReceivableBillAmounts 支持不同订单行金额与币种，整单金额始终等于行合计。
+func (f *autoLockPostgresFixture) createReceivableBillAmounts(orders []*ent.Order, amounts []string, currency string) uuid.UUID {
+	f.t.Helper()
+	if len(orders) != len(amounts) {
+		f.t.Fatal("订单与费用金额数量不一致")
+	}
+	total := decimal.Zero
+	for _, amount := range amounts {
+		total = total.Add(decimal.RequireFromString(amount))
+	}
+	accountID := f.usdAccountOrCreate()
+	if currency != "USD" {
+		account, err := f.data.db.PartnerAccount.Create().
+			SetPartnerID(f.partnerID).
+			SetName("自动锁定测试结算账户-" + currency + "-" + f.suffix).
+			SetAccountHolder(f.partnerID.String()).
+			SetBankName("集成测试银行").
+			SetAccountNo("AL-" + currency + "-" + uuid.NewString()[:8]).
+			SetCurrency(currency).
+			SetUsage(partneraccountent.UsageBOTH).
+			SetEnabled(true).
+			Save(f.ctx)
+		if err != nil {
+			f.t.Fatalf("创建 %s 结算账户: %v", currency, err)
+		}
+		accountID = account.ID
+	}
 	billNo := "BILL-AL-" + uuid.NewString()[:8]
 	billCreate := f.data.db.FinanceBill.Create().
 		SetOrganizationID(f.organizationID).
@@ -220,7 +253,7 @@ func (f *autoLockPostgresFixture) createReceivableBill(orders []*ent.Order, line
 		SetStatus(financebillent.StatusCONFIRMED).
 		SetSettlementPartyID(f.partnerID).
 		SetSettlementPartyName("自动锁定测试客户").
-		SetCurrency("USD").
+		SetCurrency(currency).
 		SetBaseCurrency("CNY").
 		SetExchangeRate("7.20000000").
 		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
@@ -232,11 +265,12 @@ func (f *autoLockPostgresFixture) createReceivableBill(orders []*ent.Order, line
 		SetFeeCount(len(orders)).
 		SetBillDate(financeBillIntegrationDate).
 		SetVersion(1)
-	bill, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, f.usdAccountOrCreate(), "USD").Save(f.ctx)
+	bill, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, accountID, currency).Save(f.ctx)
 	if err != nil {
 		f.t.Fatalf("创建应收账单 %s: %v", billNo, err)
 	}
-	for _, order := range orders {
+	for i, order := range orders {
+		lineAmount := amounts[i]
 		fee, feeErr := f.data.db.OrderFee.Create().
 			SetOrderID(order.ID).
 			SetIdempotencyKey("fee-" + order.OrderNo + "-" + uuid.NewString()[:8]).
@@ -250,7 +284,7 @@ func (f *autoLockPostgresFixture) createReceivableBill(orders []*ent.Order, line
 			SetTotalAmount(lineAmount).
 			SetNetAmount(lineAmount).
 			SetTaxAmount("0.00000000").
-			SetCurrency("USD").
+			SetCurrency(currency).
 			SetExchangeRate("7.20000000").
 			SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
 			SetExchangeRateDate(financeBillIntegrationDate).
@@ -274,7 +308,7 @@ func (f *autoLockPostgresFixture) createReceivableBill(orders []*ent.Order, line
 			SetTotalAmount(lineAmount).
 			SetNetAmount(lineAmount).
 			SetTaxAmount("0.00000000").
-			SetCurrency("USD").
+			SetCurrency(currency).
 			SetExchangeRate("7.20000000").
 			SetBaseCurrency("CNY").
 			SetBaseCurrencyAmount(decimal.RequireFromString(lineAmount).Mul(decimal.RequireFromString("7.2")).StringFixed(8)).
@@ -289,6 +323,10 @@ func (f *autoLockPostgresFixture) createReceivableBill(orders []*ent.Order, line
 // settleOnBill 通过有效核销分摊为指定账单结清指定金额。
 func (f *autoLockPostgresFixture) settleOnBill(billID uuid.UUID, amount string) uuid.UUID {
 	f.t.Helper()
+	bill, err := f.data.db.FinanceBill.Get(f.ctx, billID)
+	if err != nil {
+		f.t.Fatalf("查询核销账单: %v", err)
+	}
 	verificationID := uuid.Must(uuid.NewV7())
 	if _, err := f.data.db.FinanceVerification.Create().
 		SetID(verificationID).
@@ -299,7 +337,7 @@ func (f *autoLockPostgresFixture) settleOnBill(billID uuid.UUID, amount string) 
 		SetDirection(financeverificationent.DirectionRECEIVABLE).
 		SetSettlementPartyID(f.partnerID).
 		SetSettlementPartyName("自动锁定测试客户").
-		SetCurrency("USD").
+		SetCurrency(bill.Currency).
 		SetAmount(amount).
 		SetBaseCurrency("CNY").
 		SetBaseAmount("720.00000000").
@@ -313,7 +351,7 @@ func (f *autoLockPostgresFixture) settleOnBill(billID uuid.UUID, amount string) 
 	}
 	if _, err := f.data.db.FinanceVerificationAllocation.Create().
 		SetVerificationID(verificationID).
-		SetCashflowID(f.cashflowOrCreate()).
+		SetCashflowID(f.cashflowForCurrency(bill.Currency)).
 		SetBillID(billID).
 		SetCashflowNo("FLOW-AL").
 		SetBillNo("BILL-AL-" + f.suffix).
@@ -339,18 +377,22 @@ func (f *autoLockPostgresFixture) settle(order *ent.Order, amount string) uuid.U
 }
 
 func (f *autoLockPostgresFixture) cashflowOrCreate() uuid.UUID {
-	if f.cashflowID != uuid.Nil {
+	return f.cashflowForCurrency("USD")
+}
+
+func (f *autoLockPostgresFixture) cashflowForCurrency(currency string) uuid.UUID {
+	if currency == "USD" && f.cashflowID != uuid.Nil {
 		return f.cashflowID
 	}
 	cashflow, err := f.data.db.FinanceCashflow.Create().
 		SetOrganizationID(f.organizationID).
-		SetFlowNo("FLOW-AL-" + f.suffix).
-		SetIdempotencyKey("cashflow-alock-" + f.suffix).
+		SetFlowNo("FLOW-AL-" + uuid.NewString()).
+		SetIdempotencyKey("cashflow-alock-" + uuid.NewString()).
 		SetDirection(financecashflowent.DirectionRECEIVABLE).
 		SetStatus(financecashflowent.StatusCONFIRMED).
 		SetSettlementPartyID(f.partnerID).
 		SetSettlementPartyName("自动锁定测试客户").
-		SetCurrency("USD").
+		SetCurrency(currency).
 		SetAmount("100000.00000000").
 		SetExchangeRate("7.25000000").
 		SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).
@@ -365,7 +407,9 @@ func (f *autoLockPostgresFixture) cashflowOrCreate() uuid.UUID {
 	if err != nil {
 		f.t.Fatalf("创建资金流水: %v", err)
 	}
-	f.cashflowID = cashflow.ID
+	if currency == "USD" {
+		f.cashflowID = cashflow.ID
+	}
 	return cashflow.ID
 }
 
@@ -469,6 +513,8 @@ func (f *autoLockPostgresFixture) cleanup() {
 		`DELETE FROM finance_verification_allocations WHERE verification_id IN (SELECT id FROM finance_verifications WHERE organization_id = $1)`,
 		`DELETE FROM finance_verifications WHERE organization_id = $1`,
 		`DELETE FROM finance_cashflows WHERE organization_id = $1`,
+		`DELETE FROM finance_netting_allocations WHERE netting_id IN (SELECT id FROM finance_nettings WHERE organization_id = $1)`,
+		`DELETE FROM finance_nettings WHERE organization_id = $1`,
 		`DELETE FROM finance_bill_lines WHERE bill_id IN (SELECT id FROM finance_bills WHERE organization_id = $1)`,
 		`DELETE FROM finance_bills WHERE organization_id = $1`,
 		`DELETE FROM number_sequences WHERE rule_id IN (SELECT id FROM number_rules WHERE organization_id = $1)`,
@@ -893,13 +939,12 @@ func TestAutoOrderLock_SettlementTriggerPostgres(t *testing.T) {
 	})
 }
 
-func TestAutoOrderLock_CrossOrderBillFailClosedPostgres(t *testing.T) {
+func TestAutoOrderLock_CrossOrderBillSettlementPostgres(t *testing.T) {
 	data, cleanup := newAutoLockTestContext(t)
 	defer cleanup()
 
-	// 回归：跨订单账单的账单级分摊超过单订单行合计时，订单不得因负 unsettled
-	// 被误判结清并锁定；必须 fail-closed 放弃自动锁定（漏锁走人工兜底）。
-	t.Run("跨订单账单分摊超额不得误判结清且整组零写入", func(t *testing.T) {
+	// 合并账单部分结清不能推断订单归属，全收后各票都可以满足结清资格。
+	t.Run("跨订单账单部分结清不锁且全额结清后均锁定", func(t *testing.T) {
 		fixture := newAutoLockPostgresFixture(t, data)
 		orderA := fixture.createPlainOrder("AI-"+fixture.suffix+"-CA", orderent.BusinessTypeAI)
 		orderB := fixture.createPlainOrder("AI-"+fixture.suffix+"-CB", orderent.BusinessTypeAI)
@@ -923,17 +968,16 @@ func TestAutoOrderLock_CrossOrderBillFailClosedPostgres(t *testing.T) {
 			t.Fatalf("B 审计原因码 = %q，期望 fail-closed %s", reason, biz.AutoLockReasonUnsettledReceivable)
 		}
 
-		// 即使账单全额核销（累计分摊 200 覆盖两行合计），账单级分摊仍无法按订单行
-		// 归属：两单均保持 fail-closed 不自动锁定，由人工兜底。
+		// 账单全额核销（累计分摊 200）后，整单应收覆盖其全部订单行。
 		fullVerification := fixture.settleOnBill(billID, "50.00000000")
 		if err := fixture.triggerVerification(fullVerification); err != nil {
 			t.Fatalf("补足核销后触发失败: %v", err)
 		}
-		if reloaded := fixture.reload(orderA.ID); reloaded.LockedAt != nil {
-			t.Fatal("跨订单账单全额核销后 A 被误锁")
+		if reloaded := fixture.reload(orderA.ID); reloaded.LockedAt == nil {
+			t.Fatal("跨订单账单全额核销后 A 未锁定")
 		}
-		if reloaded := fixture.reload(orderB.ID); reloaded.LockedAt != nil {
-			t.Fatal("跨订单账单全额核销后 B 被误锁")
+		if reloaded := fixture.reload(orderB.ID); reloaded.LockedAt == nil {
+			t.Fatal("跨订单账单全额核销后 B 未锁定")
 		}
 	})
 }
