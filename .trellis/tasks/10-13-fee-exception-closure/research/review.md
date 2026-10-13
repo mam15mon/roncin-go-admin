@@ -35,9 +35,9 @@
 - `server/internal/biz/order_transition.go:151`：业务终点/终止、活动异常、未建账费用三类条件，无待审补录。
 - `server/internal/data/order_write_lifecycle.go:142`–`:159`、`:174`–`:190`：只读资格与事务内复核均遗漏 PENDING 补录。
 - `server/internal/data/order_fee_supplement_lock.go:112`–`:144`：只校验有效费用批准和锁事实，无结案检查；`order_fee_review.go:122`–`:140` 的快照验证同样无生命周期门禁。
-- `server/internal/biz/order_fee_supplement_usecase.go:256` / `:443`：提交与批准使用该入口。原审查「先结案后批准补录，利润再变」有静态代码依据；此外先结案再创建补录也需要按最终规则控制。
+- `server/internal/biz/order_fee_supplement_usecase.go:256` / `:443`：提交与批准使用该入口。原审查「先结案后批准补录，利润再变」有静态代码依据。但按用户后来确认的业务规则，结案后受控补录及利润变化是允许行为，本身不是缺陷；缺陷是结案动作未阻断当时已存在的待审补录。
 
-不能把结案自动等同财务全清。推荐业务完结允许后续收付款，但改费先反结案；此为产品选择，尚待用户确认。
+2026-10-13 用户确认业务与回款分离：结案后继续收付款及受控补录/更正，不要求反结案。撤回“补录入口缺少 CLOSED 拒绝属于缺陷”的初始候选判断；不增加该限制。并发验收按实际先后区分，不能禁止所有 CLOSED + PENDING 状态。
 
 ## R5：完整性声明（事实成立，用户决定不增强）
 
