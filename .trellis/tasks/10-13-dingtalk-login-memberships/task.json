@@ -1,0 +1,31 @@
+{
+  "id": "dingtalk-login-memberships",
+  "name": "dingtalk-login-memberships",
+  "title": "钉钉扫码优先与组织成员管理简化",
+  "description": "规划钉钉二维码主登录、取消主要组织、多选加入组织及新公司管理员自动加入与 bootstrap 补齐",
+  "status": "planning",
+  "dev_type": "fullstack",
+  "scope": "auth/admin",
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "10-13-dingtalk-qr-login",
+    "10-13-remove-primary-organization",
+    "10-13-batch-user-memberships",
+    "10-13-company-admin-provisioning"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "用户已授权任务规划；需求收敛中，尚未批准实施。见父任务 PRD 的待收敛决策。",
+  "meta": {}
+}
