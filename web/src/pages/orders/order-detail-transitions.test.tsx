@@ -7,7 +7,7 @@ import {
   OrderTerminationStatus,
 } from '@/enums.generated';
 import {
-  orderServiceTransitionOrderClosure,
+  type orderServiceTransitionOrderClosure,
   orderServiceTransitionOrderStatus,
   orderServiceTransitionOrderTermination,
 } from '@/services/roncin/orderService';
@@ -17,15 +17,23 @@ import {
   confirmOrderTermination,
 } from './order-detail-transitions';
 
+// 请求层吞错时会返回空值，结案 mock 显式覆盖这一运行时契约。
+const transitionClosure = vi.hoisted(() =>
+  vi.fn<
+    (
+      ...args: Parameters<typeof orderServiceTransitionOrderClosure>
+    ) => Promise<API.TransitionOrderClosureResponse | undefined>
+  >(),
+);
+
 vi.mock('@/services/roncin/orderService', () => ({
-  orderServiceTransitionOrderClosure: vi.fn(),
+  orderServiceTransitionOrderClosure: transitionClosure,
   orderServiceTransitionOrderStatus: vi.fn(),
   orderServiceTransitionOrderTermination: vi.fn(),
 }));
 
 const transitionStatus = vi.mocked(orderServiceTransitionOrderStatus);
 const transitionTermination = vi.mocked(orderServiceTransitionOrderTermination);
-const transitionClosure = vi.mocked(orderServiceTransitionOrderClosure);
 
 function createApp() {
   let config: any;
@@ -150,4 +158,35 @@ describe('订单详情状态确认函数', () => {
     expect(app.message.error).toHaveBeenCalledWith(errorMessage);
     expect(transitionClosure).not.toHaveBeenCalled();
   });
+
+  it.each(['empty', 'rejected'] as const)(
+    '后台新增待审导致结案%s失败时不报成功、不刷新',
+    async (failure) => {
+      const { app, getConfig } = createApp();
+      const onCompleted = vi.fn();
+      if (failure === 'empty')
+        transitionClosure.mockResolvedValueOnce(undefined);
+      else
+        transitionClosure.mockRejectedValueOnce(
+          new Error('存在待审核补录，请先处理后再结案'),
+        );
+      confirmOrderClosure(
+        app,
+        { id: 'order-1', version: '9' },
+        OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+        onCompleted,
+      );
+      render(getConfig().content);
+      fireEvent.change(screen.getByPlaceholderText('请输入完结原因（必填）'), {
+        target: { value: '业务已完成' },
+      });
+      if (failure === 'empty') {
+        await expect(getConfig().onOk()).rejects.toBeUndefined();
+      } else {
+        await expect(getConfig().onOk()).rejects.toThrow('存在待审核补录');
+      }
+      expect(app.message.success).not.toHaveBeenCalled();
+      expect(onCompleted).not.toHaveBeenCalled();
+    },
+  );
 });

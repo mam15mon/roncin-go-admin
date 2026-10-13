@@ -63,7 +63,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - 列表分页必须满足 `page >= 1`、`1 <= page_size <= 200`；缺省值由 service 统一补齐。
 - 统一内容写门禁（`internal/data/order_lock.go` 的 `ensureOrderBusinessContentEditable`）：所有订单业务资料及子资源写入口在 Order `FOR UPDATE` 后校验，订单必须满足 `termination_status = ACTIVE`、`closure_status = OPEN` 且未业务锁定；校验顺序为先生命周期后业务锁，禁止另写第二套重复门禁（如原 `ensureReleasePodOrderEditable` 已删除并复用统一实现）。单证变更（MBL/HBL 改单、作废、模式变更）与订单级变更（共享航程船期更新、改配）同样复用该门禁：对事务内已按主键序 `FOR UPDATE` 锁定的目标及全部成员订单逐单校验，任一不满足即整体 409 回滚。
 - **门禁的预读面同源**：预览与按钮接口与 Execute 同口径感知门禁，避免"预览通过、提交才被拒"——单证/船期/改配预览将门禁事实并入 Impacts（`ORDER_BUSINESS_LOCK` 阻断事实，Executable=false）；`PreviewSplit` 写入 `ValidationErrors`（Reason=ORDER_GATE，预览正常返回）；`GetChangeActions` 将 `CanSplit/CanReassign` 置 false 并追加含订单号的原因（`orderBusinessEditBlockReason` 统一文案提取）。预读不做锁、不改变 Execute 的 409 语义；改配的终止/结案仍走既有 `SEA_ORDER_REASSIGNMENT_BLOCKED` 文案口径（`GateBlockedError` 仅透传业务锁 409）。
-- 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 不校验业务锁，已锁定的 `DOCUMENT_RELEASED` 订单允许结案，反结案不受历史业务锁阻断，结案 readiness 在事务内重验。
+- 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 不校验业务锁，已锁定的 `DOCUMENT_RELEASED` 订单允许结案，反结案不受历史业务锁阻断，结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。结案后仍允许受控补录，不能将 CLOSED 与 PENDING 设为静态互斥（见费用审核规范）。
 - SE 订单流转到 `TERMINATED` 时在同一事务结束活动 Link：按 Link ID 排序 `FOR UPDATE`，超过一条活动 Link 返回 `SEA_DOCUMENT_STRUCTURE_CONFLICT`（fail-closed，不静默修复）；更新为 `ENDED`、写入 UTC `ended_at`、固定中文 `ended_reason = "订单退关"` 并递增 Link 版本，不修改 MBL/TransportExecution 版本；Order、Link、生命周期事件、审计任一步失败全部回滚。`TERMINATED → ACTIVE` 只恢复订单状态，历史 Link 保持不可变。
 
 ## 4. Validation & Error Matrix
@@ -75,6 +75,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 | 订单已结案（`closure_status != OPEN`），调用内容写入口 | `ORDER_CLOSED`（409，“订单已结案，不允许修改业务数据”） |
 | 目标订单已业务锁定，调用普通写入口 | `ORDER_BUSINESS_LOCKED`，metadata 含订单、代次、时间和锁定人 |
 | 已终止订单残留历史锁信息 | 优先返回终止类错误，不得误提示“先解锁即可编辑” |
+| 执行结案时存在 PENDING 补录 | ORDER_CLOSURE_BLOCKED（409，“存在待审核补录，请先处理后再结案”），无状态/事件部分写入 |
 | 合并账单部分回款或任一关联应收账单未全额结清 | NOT_ELIGIBLE_UNSETTLED_RECEIVABLE，不自动锁定 |
 | 锁定的 `DOCUMENT_RELEASED` 订单执行结案、`TERMINATING/TERMINATED` 执行完成/取消/恢复 | 生命周期命令放行，不得被内容门禁误杀 |
 | 锁定订单发起退关（`ACTIVE → TERMINATING`） | `ORDER_BUSINESS_LOCKED`，保持“锁定资料不可发起退关” |

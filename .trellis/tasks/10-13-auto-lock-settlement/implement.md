@@ -6,12 +6,12 @@ PRD 的逐账单结清方案已获业务确认；本文件及 design.md 的第�
 
 ## 顺序
 
-- [ ] 修改 `server/internal/data/order_auto_lock.go`：按 BillID 去重加载相关账单，分别聚合核销/对冲并逐账单精确结清；保留其它门禁与既有锁序。
-- [ ] 更新注释及旧合并账单测试预期，补 PRD AC1–AC6：100+200 收100、100+100 收100、全收300、多币种/多账单、纯对冲/混合、反转、草稿账单、共享 MBL 和幂等。
-- [ ] 使用 `getIntegrationData` 创建隔离 Schema 并重放正式 SQL 迁移；只使用专用 `RONCIN_INTEGRATION_DATABASE_SOURCE`，不输出凭据、不重置日常数据库。
-- [ ] 定向验证后检查差异，复核反转与自动锁的并发顺序；记录实际 PASS，SKIP 不算通过。
-- [ ] 同步 `.trellis/spec/server/backend/order-lock-and-document-version.md` 中受影响契约；不把未实现的更正模型写入现行规范。
-- [ ] 由主会话按可验证的一组提交代码、回归及规范；第一阶段与结案子任务集成后执行完整门禁。
+- [x] 修改 `server/internal/data/order_auto_lock.go`：按 BillID 去重加载相关账单，分别聚合核销/对冲并逐账单精确结清；保留其它门禁与既有锁序。
+- [x] 更新注释及旧合并账单测试预期，补 PRD AC1–AC6：100+200 收100、100+100 收100、全收300、多币种/多账单、纯对冲/混合、反转、草稿账单、共享 MBL 和幂等。
+- [x] 使用 `getIntegrationData` 创建隔离 Schema 并重放正式 SQL 迁移；只使用专用 `RONCIN_INTEGRATION_DATABASE_SOURCE`，不输出凭据、不重置日常数据库。
+- [x] 定向验证后检查差异，复核反转与自动锁的并发顺序；记录实际 PASS，SKIP 不算通过。
+- [x] 同步 `.trellis/spec/server/backend/order-lock-and-document-version.md` 中受影响契约；不把未实现的更正模型写入现行规范。
+- [x] 由主会话按可验证的一组提交代码、回归及规范；第一阶段与结案子任务集成后执行完整门禁。
 
 ## 验证命令
 
@@ -27,6 +27,6 @@ git diff --check
 
 ## 检查与交付
 
-- [ ] check 代理确认非共享订单及共享组都无误锁，不同币种不轧差，未改变 CLOSED/TERMINATED 的既有自动锁定资格。
-- [ ] acceptance.md 记录测试命令、环境隔离方式、结果与限制，不写连接串。
-- [ ] 合并账单全收旧策略已一次性更新，无兼容分支；未修改无关工作。
+- [x] check 代理确认非共享订单及共享组都无误锁，不同币种不轧差，未改变 CLOSED/TERMINATED 的既有自动锁定资格。
+- [x] acceptance.md 记录测试命令、环境隔离方式、结果与限制，不写连接串。
+- [x] 合并账单全收旧策略已一次性更新，无兼容分支；未修改无关工作。

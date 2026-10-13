@@ -6,6 +6,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 )
 
@@ -32,11 +33,17 @@ type OrderLifecycleChangedEvent struct {
 
 // OrderClosureReadiness 是结案前从持久化层读取的业务事实。
 type OrderClosureReadiness struct {
-	FlowStatus           OrderFlowStatus
-	TerminationStatus    OrderTerminationStatus
-	ClosureStatus        OrderClosureStatus
-	HasActiveException   bool
-	HasUnbilledOrderFees bool
+	FlowStatus              OrderFlowStatus
+	TerminationStatus       OrderTerminationStatus
+	ClosureStatus           OrderClosureStatus
+	HasActiveException      bool
+	HasUnbilledOrderFees    bool
+	HasPendingFeeSupplement bool
+}
+
+// OrderClosurePendingSupplementError 保持结案错误码，返回当前请求的具体阻断原因。
+func OrderClosurePendingSupplementError() *errors.Error {
+	return errors.Conflict(ErrOrderClosureBlocked.Reason, "存在待审核补录，请先处理后再结案")
 }
 
 var allowedSEFlowTransitions = map[OrderFlowStatus][]OrderFlowStatus{
@@ -132,7 +139,7 @@ func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationI
 //
 // 结案与反结案是生命周期命令，不经过内容写门禁也不校验业务锁：已业务锁定的
 // DOCUMENT_RELEASED 订单允许结案；结案 readiness（主流程完成或终止完成、无
-// 活动异常、无未开账费用）由仓储层在事务内重验。
+// 活动异常、无未开账费用、无待审核补录）由仓储层在事务内重验。
 func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, target OrderClosureStatus, reason string) (*Order, error) {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || !target.Valid() || reason == "" || utf8.RuneCountInString(reason) > 500 {
@@ -146,6 +153,9 @@ func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, a
 		return nil, ErrOrderClosureInvalid
 	}
 	if target == OrderClosureClosed {
+		if readiness.HasPendingFeeSupplement {
+			return nil, OrderClosurePendingSupplementError()
+		}
 		flowFinished := readiness.FlowStatus == OrderFlowDocumentReleased
 		terminated := readiness.TerminationStatus == OrderTerminationTerminated
 		if (!flowFinished && !terminated) || readiness.HasActiveException || readiness.HasUnbilledOrderFees {

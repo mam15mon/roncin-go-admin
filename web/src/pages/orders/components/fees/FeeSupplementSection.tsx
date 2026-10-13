@@ -219,6 +219,7 @@ export default function FeeSupplementSection({
   const reloadList = () => actionRef.current?.reload();
   const refreshCapabilities = () => {
     void queryClient.invalidateQueries({ queryKey: ['order-fee-review'] });
+    void queryClient.invalidateQueries({ queryKey: ['order-detail'] });
     void queryClient.invalidateQueries({ queryKey: ['orders'] });
     void queryClient.invalidateQueries({ queryKey: ['finance'] });
   };

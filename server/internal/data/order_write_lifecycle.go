@@ -156,7 +156,11 @@ func (r *orderRepo) ClosureReadiness(ctx context.Context, organizationID, id uui
 	if err != nil {
 		return nil, err
 	}
-	return &biz.OrderClosureReadiness{FlowStatus: biz.OrderFlowStatus(item.FlowStatus), TerminationStatus: biz.OrderTerminationStatus(item.TerminationStatus), ClosureStatus: biz.OrderClosureStatus(item.ClosureStatus), HasActiveException: hasActiveException, HasUnbilledOrderFees: hasUnbilledFees}, nil
+	hasPendingSupplement, err := hasPendingFeeSupplement(ctx, client, id)
+	if err != nil {
+		return nil, err
+	}
+	return &biz.OrderClosureReadiness{FlowStatus: biz.OrderFlowStatus(item.FlowStatus), TerminationStatus: biz.OrderTerminationStatus(item.TerminationStatus), ClosureStatus: biz.OrderClosureStatus(item.ClosureStatus), HasActiveException: hasActiveException, HasUnbilledOrderFees: hasUnbilledFees, HasPendingFeeSupplement: hasPendingSupplement}, nil
 }
 
 func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderClosureStatus, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
@@ -172,6 +176,13 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 			return biz.ErrOrderStatusConflict
 		}
 		if target == biz.OrderClosureClosed {
+			hasPendingSupplement, readinessErr := hasPendingFeeSupplement(ctx, tx.Client(), id)
+			if readinessErr != nil {
+				return readinessErr
+			}
+			if hasPendingSupplement {
+				return biz.OrderClosurePendingSupplementError()
+			}
 			flowFinished := biz.OrderFlowStatus(existing.FlowStatus) == biz.OrderFlowDocumentReleased
 			terminated := biz.OrderTerminationStatus(existing.TerminationStatus) == biz.OrderTerminationTerminated
 			if !flowFinished && !terminated {

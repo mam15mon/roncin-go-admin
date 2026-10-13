@@ -563,6 +563,31 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 }
 
+func TestOrderClosurePendingSupplement(t *testing.T) {
+	readiness := &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasPendingFeeSupplement: true}
+	repo := &orderRepoStub{closureReadiness: readiness}
+	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	organizationID, actorID, id := uuid.New(), uuid.New(), uuid.New()
+	_, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "确认结案")
+	detail := errors.FromError(err)
+	if detail.Code != 409 || detail.Reason != "ORDER_CLOSURE_BLOCKED" || detail.Message != "存在待审核补录，请先处理后再结案" || repo.closureEvent != nil {
+		t.Fatalf("待审补录必须拒绝结案且不调用写入: err=%v event=%v", err, repo.closureEvent)
+	}
+	if ErrOrderClosureBlocked.Message != "订单尚未满足结案条件" {
+		t.Fatal("具体原因不得修改共享错误")
+	}
+	readiness.HasPendingFeeSupplement = false
+	if _, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "补录已处理"); err != nil {
+		t.Fatalf("清理待审后应可结案: %v", err)
+	}
+	readiness.ClosureStatus = OrderClosureClosed
+	readiness.HasPendingFeeSupplement = true
+	readiness.HasUnbilledOrderFees = true
+	if _, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 9, OrderClosureOpen, "重新办理业务"); err != nil {
+		t.Fatalf("反结案不检查待审与未建账: %v", err)
+	}
+}
+
 func TestOrderStatusChangedEventFields(t *testing.T) {
 	organizationID := uuid.New()
 	actorID := uuid.New()

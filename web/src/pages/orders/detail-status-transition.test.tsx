@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -287,5 +287,109 @@ describe('订单详情状态卡流转编排', () => {
     expect(screen.getByRole('textbox', { name: '未保存表单' })).toHaveValue(
       '待保存内容',
     );
+  });
+
+  it('待审核补录禁用完结按钮并显示原因，投影刷新后恢复入口', async () => {
+    testState.order = {
+      ...testState.order,
+      flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE],
+      feeReview: { hasPendingSupplement: true },
+    };
+    const { rerender } = render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    const close = screen.getByRole('button', { name: '完结订单' });
+    expect(close).toBeDisabled();
+    fireEvent.mouseOver(close.parentElement as HTMLElement);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      '存在待审核补录，请先处理后再结案',
+    );
+    fireEvent.click(close);
+    expect(mockConfirmClosure).not.toHaveBeenCalled();
+
+    testState.order = {
+      ...testState.order,
+      feeReview: { hasPendingSupplement: false },
+    };
+    rerender(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '完结订单' }));
+    expect(mockConfirmClosure).toHaveBeenCalledOnce();
+    await act(async () => {});
+  });
+
+  it('结案确认打开后投影变为待审，提交前重新检查阻断', async () => {
+    testState.order = {
+      ...testState.order,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE],
+      feeReview: { hasPendingSupplement: false },
+    };
+    const { rerender } = render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '完结订单' }));
+    const options = mockConfirmClosure.mock.calls[0][4];
+    expect(options?.canSubmit?.()).toBe(true);
+    testState.order = {
+      ...testState.order,
+      feeReview: { hasPendingSupplement: true },
+    };
+    rerender(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    await act(async () => {
+      expect(options?.canSubmit?.()).toBe(false);
+    });
+    expect(
+      await screen.findByText('存在待审核补录，请先处理后再结案'),
+    ).toBeInTheDocument();
+    expect(testState.loadData).not.toHaveBeenCalled();
+  });
+
+  it('已结案有待审补录仍显示反结案动作', () => {
+    testState.order = {
+      ...testState.order,
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN],
+      feeReview: { hasPendingSupplement: true },
+    };
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '反结案' }));
+    expect(mockConfirmClosure).toHaveBeenCalledWith(
+      expect.anything(),
+      testState.order,
+      OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+      expect.any(Function),
+      expect.anything(),
+    );
+    expect(mockConfirmClosure.mock.calls[0][4]?.canSubmit?.()).toBe(true);
+  });
+
+  it('未提供费用投影时提交结案，由服务端复核准入', () => {
+    testState.order = {
+      ...testState.order,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE],
+    };
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '完结订单' }));
+    expect(mockConfirmClosure).toHaveBeenCalledOnce();
   });
 });

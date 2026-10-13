@@ -1,4 +1,5 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { useQuery } from '@tanstack/react-query';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
@@ -118,8 +119,19 @@ vi.mock('./FeeSupplementModal', () => ({
 }));
 function Harness() {
   const review = useOrderFeeReview('o1');
+  const order = useQuery({
+    queryKey: ['order-detail', 'o1'],
+    queryFn: async () => ({
+      closureStatus: 'CLOSED',
+      hasPendingSupplement: state.pending,
+    }),
+  });
   return (
     <>
+      <output data-testid="order-pending">
+        {String(order.data?.hasPendingSupplement)}
+      </output>
+      <output data-testid="closure">{order.data?.closureStatus}</output>
       <output data-testid="bill">{String(review.data?.canBill)}</output>
       <output data-testid="pending">
         {String(review.data?.hasPendingSupplement)}
@@ -159,6 +171,8 @@ it('创建立即阻止建账，待审保留撤回重提，撤回成功预填并�
     expect(screen.getByTestId('pending')).toHaveTextContent('true'),
   );
   expect(screen.getByTestId('bill')).toHaveTextContent('false');
+  expect(screen.getByTestId('order-pending')).toHaveTextContent('true');
+  expect(screen.getByTestId('closure')).toHaveTextContent('CLOSED');
   expect(
     screen.queryByRole('button', { name: '补录费用' }),
   ).not.toBeInTheDocument();
@@ -168,6 +182,7 @@ it('创建立即阻止建账，待审保留撤回重提，撤回成功预填并�
     expect(screen.getByTestId('pending')).toHaveTextContent('false'),
   );
   expect(screen.getByTestId('bill')).toHaveTextContent('true');
+  expect(screen.getByTestId('order-pending')).toHaveTextContent('false');
   expect(screen.getByTestId('draft')).toHaveAttribute('data-prefill-id', 's1');
   expect(orderFeeServiceCreateOrderFeeSupplement).toHaveBeenCalledOnce();
   await act(async () => {});
@@ -209,6 +224,8 @@ it.each(['withdraw', 'approve', 'reject'] as const)(
       expect(screen.getByTestId('pending')).toHaveTextContent('false'),
     );
     expect(screen.getByTestId('bill')).toHaveTextContent('true');
+    expect(screen.getByTestId('order-pending')).toHaveTextContent('false');
+    expect(screen.getByTestId('closure')).toHaveTextContent('CLOSED');
     expect(
       screen.getByRole('button', { name: '补录费用' }),
     ).toBeInTheDocument();

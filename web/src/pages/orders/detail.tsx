@@ -534,6 +534,13 @@ export default function OrderDetailPage() {
       message.warning('请切换至订单所属分公司工作台办理');
       return false;
     }
+    if (
+      action === OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE &&
+      currentOrder.feeReview?.hasPendingSupplement === true
+    ) {
+      message.warning('存在待审核补录，请先处理后再结案');
+      return false;
+    }
     if (currentOrder.allowedActions?.includes(action) !== true) {
       message.warning('订单状态已变化，请刷新后重试');
       return false;
@@ -702,10 +709,17 @@ export default function OrderDetailPage() {
         ? {
             onClick: () =>
               confirmClosure(OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED),
+            disabled: order.feeReview?.hasPendingSupplement === true,
+            disabledReason:
+              order.feeReview?.hasPendingSupplement === true
+                ? '存在待审核补录，请先处理后再结案'
+                : undefined,
           }
         : undefined,
       closureDisabledReason: canOperateOrderWorkspace
-        ? '当前订单暂不可完结'
+        ? order.feeReview?.hasPendingSupplement === true
+          ? '存在待审核补录，请先处理后再结案'
+          : '当前订单暂不可完结'
         : '请切换至订单所属分公司工作台办理',
       reopen: canUseAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN)
         ? {
