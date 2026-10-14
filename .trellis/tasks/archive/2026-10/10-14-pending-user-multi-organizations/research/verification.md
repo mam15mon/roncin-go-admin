@@ -41,4 +41,8 @@
 
 ## 交付状态
 
-产品修复、规范同步、生成、定向与全量门禁、独立审查及测试资源清理均完成。提交、本地 main 合并、分支安全删除和任务归档由主会话接续并核验。
+- 产品修复、规范同步、生成、定向与全量门禁、独立审查及测试资源清理均完成。
+- 工作提交：96b75125832b69917bc3c9243ac8f91cffc864a7（fix: 统一待分配人员的多组织开通与角色选择），35 文件，按本任务路径显式暂存；未重写或覆盖已有登录页提交。
+- 已 git switch main + git merge --ff-only codex/pending-user-multi-organizations，本地 main 包含修复与其他会话的既有 f1552321/97f1b8d2 提交；分别以 git merge-base --is-ancestor 验证可达。
+- 已 git branch -d codex/pending-user-multi-organizations，分支列表确认不存在，未使用强制删除。
+- 最后按 trellis-finish-work 归档本任务并记录会话；其他任务和分支保持其原有状态。
