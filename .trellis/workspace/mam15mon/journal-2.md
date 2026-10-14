@@ -1405,3 +1405,36 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 132: 待分配多组织开通修复与安全合并
+<!-- trellis-session: v=2 fp=2c470ac30934ef85 -->
+
+**Date**: 2026-10-14
+**Task**: 待分配多组织开通修复与安全合并
+**Branch**: `main`
+
+### Summary
+
+分析并修复待分配单组织开通限制，统一逐组织角色选择与原子开通，生成契约、真实PostgreSQL和完整门禁通过；已合并本地main、安全删除任务分支、清理测试库并归档。
+
+### Main Changes
+
+- 单人/批量开通使用items；每组织角色选填、整体至少一角色；复用两个入口的组织角色字段。
+- 每人所有成员、角色、状态、通知与审计原子提交；人员独立失败重试；CI显式执行真实PostgreSQL开通测试。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `96b75125` | fix: 统一待分配人员的多组织开通与角色选择 |
+
+### Testing
+
+- [OK] check:fast通过：1228前端测试PASS，12个既有测试SKIP另记；Go全包、vet、lint、类型与架构门禁通过。
+- [OK] 真实PostgreSQL五个顶层用例PASS、无SKIP；两个真实表单suite十例PASS；实际HTTP契约与生成幂等PASS。
+- [OK] 临时测试Schema、库、角色和凭据全部清理；修复提交可达、任务分支已-d删除。
+
+### Status
+
+[OK] **Completed**
