@@ -101,13 +101,45 @@ describe('钉钉二维码生命周期', () => {
     expect(onAuthenticated).not.toHaveBeenCalled();
   });
 
-  it('过期移除扫码实例并忽略旧消息', async () => {
+  it('过期后自动获取新配置并装载新二维码，旧实例消息被忽略', async () => {
     const { iframe, onAuthenticated } = await mount();
-    const source = iframe.contentWindow;
+    const oldSource = iframe.contentWindow;
+    getConfig.mockImplementation(async () => config('state-2'));
     await act(async () => vi.advanceTimersByTimeAsync(300000));
+    await act(async () => vi.advanceTimersByTimeAsync(1));
+
+    expect(getConfig).toHaveBeenCalledTimes(2);
+    send(oldSource);
+    expect(onAuthenticated).not.toHaveBeenCalled();
+    const next = screen.getByTitle('钉钉扫码登录二维码') as HTMLIFrameElement;
+    expect(next.src).toContain('state=state-2');
+    send(next.contentWindow);
+    expect(onAuthenticated).not.toHaveBeenCalled();
+    send(next.contentWindow, {
+      success: true,
+      redirectUrl: `${callback()}?authCode=new-code&state=state-2`,
+    });
+    expect(onAuthenticated).toHaveBeenCalledWith(
+      '/user/login/dingtalk/callback?authCode=new-code&state=state-2',
+    );
+  });
+
+  it('新配置一返回就过期时限流自动刷新，退回手动刷新提示', async () => {
+    const { onAuthenticated } = await mount();
+    const expiredConfig = {
+      data: {
+        enabled: true,
+        authorizeUrl: `${origin}/oauth2/auth?client_id=app&scope=openid&response_type=code&state=state-2&redirect_uri=${encodeURIComponent(callback())}`,
+        expiresAt: new Date(Date.now() - 60000).toISOString(),
+      },
+    };
+    getConfig.mockImplementation(async () => expiredConfig);
+    await act(async () => vi.advanceTimersByTimeAsync(300000));
+    await act(async () => vi.advanceTimersByTimeAsync(1));
+
+    expect(getConfig).toHaveBeenCalledTimes(2);
     expect(screen.getByText('二维码已过期，请刷新')).toBeVisible();
     expect(screen.queryByTitle('钉钉扫码登录二维码')).not.toBeInTheDocument();
-    send(source);
     expect(onAuthenticated).not.toHaveBeenCalled();
   });
 

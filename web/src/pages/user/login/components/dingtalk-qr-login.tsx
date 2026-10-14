@@ -1,7 +1,7 @@
 import { ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Spin } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { authServiceGetDingTalkLoginConfig } from '@/services/roncin/authService';
@@ -74,9 +74,13 @@ async function loadConfig(): Promise<LoginConfig> {
 function DingTalkFrame({
   config,
   onAuthenticated,
-}: Props & { config: FrameConfig }) {
+  onExpired,
+}: Props & { config: FrameConfig; onExpired: () => void }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const retired = useRef(false);
+  // 经 ref 消费回调，父组件重渲染不会重置到期定时器与消息监听。
+  const onExpiredRef = useRef(onExpired);
+  onExpiredRef.current = onExpired;
   const [status, setStatus] = useState<
     | 'navigating'
     | 'displayed'
@@ -95,6 +99,7 @@ function DingTalkFrame({
       if (active && !handled && Date.now() >= config.expiresAt) {
         retired.current = true;
         setStatus('expired');
+        onExpiredRef.current();
       }
     };
     const timeout = window.setTimeout(
@@ -244,6 +249,7 @@ function DingTalkFrame({
 
 export function DingTalkQrLogin({ onAuthenticated }: Props) {
   const [retiredState, setRetiredState] = useState<string>();
+  const lastAutoRefreshAt = useRef(0);
   const query = useQuery({
     // 固定 key 且不取消在途请求，StrictMode 与快速切换共用一次 Cookie 写入。
     queryKey: CONFIG_QUERY_KEY,
@@ -257,9 +263,24 @@ export function DingTalkQrLogin({ onAuthenticated }: Props) {
     meta: { silent: true },
   });
 
+  const refresh = useCallback(() => {
+    if (query.isFetching) return;
+    // 先同步卸载旧 iframe/监听，再发出会覆盖 state Cookie 的配置请求。
+    flushSync(() =>
+      setRetiredState(query.data?.enabled ? query.data.frame.state : undefined),
+    );
+    void query.refetch({ cancelRefetch: false });
+  }, [query]);
+
+  const refreshOnExpired = useCallback(() => {
+    // 客户端时钟快于服务端时新配置会一到手就过期，限流防止自动刷新演变成请求风暴。
+    if (Date.now() - lastAutoRefreshAt.current < 1000) return;
+    lastAutoRefreshAt.current = Date.now();
+    refresh();
+  }, [refresh]);
+
   return (
     <div className={styles.qrLogin}>
-      <p className={styles.qrDescription}>请使用钉钉扫描二维码登录</p>
       <div className={styles.qrContent} aria-live="polite">
         {query.isFetching ||
         query.isPending ||
@@ -284,36 +305,36 @@ export function DingTalkQrLogin({ onAuthenticated }: Props) {
             key={query.data.frame.state}
             config={query.data.frame}
             onAuthenticated={onAuthenticated}
+            onExpired={refreshOnExpired}
           />
         ) : (
           <Alert type="info" showIcon title="钉钉登录暂未启用，请联系管理员" />
         )}
       </div>
-      {query.data?.enabled && !query.isError && (
-        <p className={styles.qrHint}>
-          若二维码未显示或加载失败，请检查网络后刷新二维码，或使用管理员账号登录。
-        </p>
-      )}
-      <Button
-        icon={<ReloadOutlined />}
-        loading={query.isFetching}
-        disabled={query.isFetching}
-        onClick={() => {
-          if (query.isFetching) return;
-          // 先同步卸载旧 iframe/监听，再发出会覆盖 state Cookie 的配置请求。
-          flushSync(() =>
-            setRetiredState(
-              query.data?.enabled ? query.data.frame.state : undefined,
-            ),
-          );
-          void query.refetch({ cancelRefetch: false });
-        }}
-      >
-        刷新二维码
-      </Button>
-      <p className={styles.qrHint}>
-        使用前请联系管理员同步人员并分配组织和角色
-      </p>
+
+      <div className={styles.qrFooter}>
+        <Button
+          type="link"
+          size="small"
+          icon={<ReloadOutlined />}
+          loading={query.isFetching}
+          disabled={query.isFetching}
+          className={styles.qrRefreshBtn}
+          onClick={refresh}
+        >
+          刷新二维码
+        </Button>
+        <div className={styles.qrHintGroup}>
+          {query.data?.enabled && !query.isError && (
+            <p className={styles.qrHint}>
+              若二维码未显示或加载失败，请检查网络后刷新二维码，或使用管理员账号登录。
+            </p>
+          )}
+          <p className={styles.qrHint}>
+            使用前请联系管理员同步人员并分配组织和角色
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
