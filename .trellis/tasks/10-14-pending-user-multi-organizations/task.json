@@ -1,0 +1,32 @@
+{
+  "id": "pending-user-multi-organizations",
+  "name": "pending-user-multi-organizations",
+  "title": "统一待分配人员的多组织加入与角色选择",
+  "description": "待分配人员一次开通到多个组织，各组织独立选择公司角色，与已开通的加入组织交互保持一致",
+  "status": "in_progress",
+  "dev_type": "fullstack",
+  "scope": "admin-users",
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-14",
+  "completedAt": null,
+  "branch": "codex/pending-user-multi-organizations",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "server/api/admin/v1/admin.proto",
+    "server/internal/data/admin_user.go",
+    "web/src/pages/admin/components/users/DingTalkAssignmentModal.tsx",
+    "web/src/pages/admin/components/users/OrganizationRolesField.tsx",
+    ".github/workflows/ci.yml"
+  ],
+  "notes": "用户持续目标明确授权修复、合并和安全删分支。产品、生成幂等、真实PG、全量门禁和独立审查已完成；保留其他会话登录页提交。",
+  "meta": {}
+}

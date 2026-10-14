@@ -207,12 +207,15 @@ type DingTalkAssignmentResult struct {
 	Reason, Message string
 }
 
-func (uc *AdminUsecase) BatchAuthorizeDingTalkUsers(ctx context.Context, sourceOrg, targetOrg, actor uuid.UUID, userIDs, roleIDs []uuid.UUID) ([]*DingTalkAssignmentResult, error) {
+func (uc *AdminUsecase) BatchAuthorizeDingTalkUsers(ctx context.Context, sourceOrg, actor uuid.UUID, userIDs []uuid.UUID, items []AdminUserMembershipCreation) ([]*DingTalkAssignmentResult, error) {
 	if !IsSystemWorkspace(ctx) {
 		return nil, ErrPermissionDenied
 	}
-	if sourceOrg == uuid.Nil || targetOrg == uuid.Nil || actor == uuid.Nil || len(userIDs) == 0 || len(userIDs) > MaxListPageSize || len(roleIDs) == 0 {
+	if sourceOrg == uuid.Nil || actor == uuid.Nil || len(userIDs) == 0 || len(userIDs) > MaxListPageSize {
 		return nil, ErrAdminInvalidArgument
+	}
+	if err := validateDingTalkAssignmentItems(items); err != nil {
+		return nil, err
 	}
 	for _, id := range userIDs {
 		if id == uuid.Nil {
@@ -226,7 +229,7 @@ func (uc *AdminUsecase) BatchAuthorizeDingTalkUsers(ctx context.Context, sourceO
 			continue
 		}
 		seen[id] = true
-		_, err := uc.AuthorizeDingTalkUser(ctx, sourceOrg, targetOrg, actor, &AdminUser{ID: id}, roleIDs)
+		_, err := uc.AuthorizeDingTalkUser(ctx, sourceOrg, actor, &AdminUser{ID: id}, items)
 		item := &DingTalkAssignmentResult{UserID: id, Success: err == nil, Message: "开通成功"}
 		if err != nil {
 			e := errors.FromError(err)

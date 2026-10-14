@@ -143,15 +143,46 @@ func (uc *AdminUsecase) TerminateUser(ctx context.Context, organizationID, actor
 	}
 	return uc.repo.TerminateUser(ctx, organizationID, id, adminAuditEvent(ctx, actorID, &id, "admin.user.terminate", ""))
 }
-func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID, actorID uuid.UUID, input *AdminUser, roleIDs []uuid.UUID) (*AdminUser, error) {
+func (uc *AdminUsecase) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, actorID uuid.UUID, input *AdminUser, items []AdminUserMembershipCreation) (*AdminUser, error) {
 	if !IsSystemWorkspace(ctx) {
 		return nil, ErrPermissionDenied
 	}
-	if sourceOrganizationID == uuid.Nil || targetOrganizationID == uuid.Nil || actorID == uuid.Nil || input == nil || input.ID == uuid.Nil || len(roleIDs) == 0 {
+	if sourceOrganizationID == uuid.Nil || actorID == uuid.Nil || input == nil || input.ID == uuid.Nil {
 		return nil, ErrAdminInvalidArgument
 	}
+	if err := validateDingTalkAssignmentItems(items); err != nil {
+		return nil, err
+	}
 	notification := NewDingTalkUserAuthorizedNotification(input.ID)
-	return uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, targetOrganizationID, &AdminUser{ID: input.ID}, roleIDs, notification, adminAuditEvent(ctx, actorID, &input.ID, "admin.user.dingtalk.authorize", ""))
+	return uc.repo.AuthorizeDingTalkUser(ctx, sourceOrganizationID, &AdminUser{ID: input.ID}, items, notification, adminAuditEvent(ctx, actorID, &input.ID, "admin.user.dingtalk.authorize", ""))
+}
+
+// validateDingTalkAssignmentItems 允许组织角色选填，但首次开通整体必须具备角色。
+func validateDingTalkAssignmentItems(items []AdminUserMembershipCreation) error {
+	if len(items) == 0 || len(items) > MaxListPageSize {
+		return ErrAdminInvalidArgument
+	}
+	seen := make(map[uuid.UUID]struct{}, len(items))
+	hasRole := false
+	for _, item := range items {
+		if item.OrganizationID == uuid.Nil {
+			return ErrAdminInvalidArgument
+		}
+		if _, exists := seen[item.OrganizationID]; exists {
+			return ErrAdminInvalidArgument
+		}
+		seen[item.OrganizationID] = struct{}{}
+		for _, id := range item.RoleIDs {
+			if id == uuid.Nil {
+				return ErrAdminInvalidArgument
+			}
+			hasRole = true
+		}
+	}
+	if !hasRole {
+		return ErrAdminInvalidArgument
+	}
+	return nil
 }
 func (uc *AdminUsecase) ResetUserPassword(ctx context.Context, organizationID, actorID, id uuid.UUID, plainPassword string, username *string) error {
 	if principal, ok := PrincipalFromContext(ctx); ok && !principalIsSystemWorkspace(principal) {

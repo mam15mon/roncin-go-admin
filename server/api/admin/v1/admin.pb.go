@@ -1296,12 +1296,11 @@ func (x *TerminateUserRequest) GetId() string {
 }
 
 type AuthorizeDingTalkUserRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	RoleIds        []string               `protobuf:"bytes,5,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	Id            string                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Items         []*UserMembershipCreation `protobuf:"bytes,6,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AuthorizeDingTalkUserRequest) Reset() {
@@ -1341,16 +1340,9 @@ func (x *AuthorizeDingTalkUserRequest) GetId() string {
 	return ""
 }
 
-func (x *AuthorizeDingTalkUserRequest) GetOrganizationId() string {
+func (x *AuthorizeDingTalkUserRequest) GetItems() []*UserMembershipCreation {
 	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
-func (x *AuthorizeDingTalkUserRequest) GetRoleIds() []string {
-	if x != nil {
-		return x.RoleIds
+		return x.Items
 	}
 	return nil
 }
@@ -3862,12 +3854,11 @@ func (x *DingTalkDepartment) GetName() string {
 }
 
 type BatchAuthorizeDingTalkUsersRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	UserIds        []string               `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	RoleIds        []string               `protobuf:"bytes,3,rep,name=role_ids,json=roleIds,proto3" json:"role_ids,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	UserIds       []string                  `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	Items         []*UserMembershipCreation `protobuf:"bytes,4,rep,name=items,proto3" json:"items,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BatchAuthorizeDingTalkUsersRequest) Reset() {
@@ -3907,16 +3898,9 @@ func (x *BatchAuthorizeDingTalkUsersRequest) GetUserIds() []string {
 	return nil
 }
 
-func (x *BatchAuthorizeDingTalkUsersRequest) GetOrganizationId() string {
+func (x *BatchAuthorizeDingTalkUsersRequest) GetItems() []*UserMembershipCreation {
 	if x != nil {
-		return x.OrganizationId
-	}
-	return ""
-}
-
-func (x *BatchAuthorizeDingTalkUsersRequest) GetRoleIds() []string {
-	if x != nil {
-		return x.RoleIds
+		return x.Items
 	}
 	return nil
 }
@@ -4791,11 +4775,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x06userId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"+\n" +
 	"\x14TerminateUserRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x8d\x01\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xa3\x01\n" +
 	"\x1cAuthorizeDingTalkUserRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12,\n" +
-	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x1e\n" +
-	"\brole_ids\x18\x05 \x03(\tB\x03\xe0A\x02R\aroleIdsJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05\"~\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12;\n" +
+	"\x05items\x18\x06 \x03(\v2 .admin.v1.UserMembershipCreationB\x03\xe0A\x02R\x05itemsJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06R\x0forganization_idR\brole_ids\"~\n" +
 	"\x18ResetUserPasswordRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\x12\x1f\n" +
@@ -5043,11 +5026,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\btrace_id\x18\b \x01(\tR\atraceId\"8\n" +
 	"\x12DingTalkDepartment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\x92\x01\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\xa8\x01\n" +
 	"\"BatchAuthorizeDingTalkUsersRequest\x12\x1e\n" +
-	"\buser_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\auserIds\x12,\n" +
-	"\x0forganization_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12\x1e\n" +
-	"\brole_ids\x18\x03 \x03(\tB\x03\xe0A\x02R\aroleIds\"\x7f\n" +
+	"\buser_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\auserIds\x12;\n" +
+	"\x05items\x18\x04 \x03(\v2 .admin.v1.UserMembershipCreationB\x03\xe0A\x02R\x05itemsJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x0forganization_idR\brole_ids\"\x7f\n" +
 	"\x18DingTalkAssignmentResult\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
 	"\asuccess\x18\x02 \x01(\bR\asuccess\x12\x16\n" +
@@ -5258,85 +5240,87 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	6,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
 	2,  // 5: admin.v1.ListUsersRequest.status:type_name -> admin.v1.AdminUserStatus
 	15, // 6: admin.v1.CreateUserMembershipsRequest.items:type_name -> admin.v1.UserMembershipCreation
-	2,  // 7: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
-	24, // 8: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
-	51, // 9: admin.v1.AdminUser.dingtalk_departments:type_name -> admin.v1.DingTalkDepartment
-	1,  // 10: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
-	23, // 11: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
-	23, // 12: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
-	23, // 13: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
-	25, // 14: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
-	25, // 15: admin.v1.CreateUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
-	25, // 16: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	23, // 17: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
-	0,  // 18: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 19: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 20: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	38, // 21: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
-	38, // 22: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
-	38, // 23: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
-	38, // 24: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
-	46, // 25: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	63, // 26: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
-	49, // 27: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
-	53, // 28: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
-	58, // 29: admin.v1.DingTalkDirectorySync.failures:type_name -> admin.v1.DingTalkDirectorySyncFailure
-	59, // 30: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	59, // 31: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	59, // 32: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	3,  // 33: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	4,  // 34: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	5,  // 35: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	11, // 36: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	12, // 37: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	13, // 38: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	14, // 39: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
-	16, // 40: admin.v1.AdminService.CreateUserMemberships:input_type -> admin.v1.CreateUserMembershipsRequest
-	17, // 41: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
-	18, // 42: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
-	19, // 43: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
-	20, // 44: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	21, // 45: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	35, // 46: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	22, // 47: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	36, // 48: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	37, // 49: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	43, // 50: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
-	45, // 51: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	48, // 52: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	52, // 53: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
-	55, // 54: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
-	56, // 55: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
-	57, // 56: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
-	7,  // 57: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	9,  // 58: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	10, // 59: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	26, // 60: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	27, // 61: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	28, // 62: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	29, // 63: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
-	30, // 64: admin.v1.AdminService.CreateUserMemberships:output_type -> admin.v1.CreateUserMembershipsResponse
-	31, // 65: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
-	32, // 66: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
-	33, // 67: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
-	34, // 68: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	8,  // 69: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	39, // 70: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	40, // 71: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	41, // 72: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	42, // 73: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	44, // 74: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
-	47, // 75: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	50, // 76: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	54, // 77: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
-	60, // 78: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
-	61, // 79: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
-	62, // 80: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
-	57, // [57:81] is the sub-list for method output_type
-	33, // [33:57] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	15, // 7: admin.v1.AuthorizeDingTalkUserRequest.items:type_name -> admin.v1.UserMembershipCreation
+	2,  // 8: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
+	24, // 9: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
+	51, // 10: admin.v1.AdminUser.dingtalk_departments:type_name -> admin.v1.DingTalkDepartment
+	1,  // 11: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
+	23, // 12: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
+	23, // 13: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
+	23, // 14: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
+	25, // 15: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	25, // 16: admin.v1.CreateUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	25, // 17: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	23, // 18: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
+	0,  // 19: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 20: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
+	0,  // 21: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
+	38, // 22: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
+	38, // 23: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
+	38, // 24: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
+	38, // 25: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
+	46, // 26: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
+	63, // 27: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	49, // 28: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
+	15, // 29: admin.v1.BatchAuthorizeDingTalkUsersRequest.items:type_name -> admin.v1.UserMembershipCreation
+	53, // 30: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
+	58, // 31: admin.v1.DingTalkDirectorySync.failures:type_name -> admin.v1.DingTalkDirectorySyncFailure
+	59, // 32: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	59, // 33: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	59, // 34: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	3,  // 35: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	4,  // 36: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	5,  // 37: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	11, // 38: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	12, // 39: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	13, // 40: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	14, // 41: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	16, // 42: admin.v1.AdminService.CreateUserMemberships:input_type -> admin.v1.CreateUserMembershipsRequest
+	17, // 43: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	18, // 44: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	19, // 45: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
+	20, // 46: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	21, // 47: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	35, // 48: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	22, // 49: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	36, // 50: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	37, // 51: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	43, // 52: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
+	45, // 53: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	48, // 54: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	52, // 55: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
+	55, // 56: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
+	56, // 57: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
+	57, // 58: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
+	7,  // 59: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	9,  // 60: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	10, // 61: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	26, // 62: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	27, // 63: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	28, // 64: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	29, // 65: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	30, // 66: admin.v1.AdminService.CreateUserMemberships:output_type -> admin.v1.CreateUserMembershipsResponse
+	31, // 67: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	32, // 68: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	33, // 69: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
+	34, // 70: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	8,  // 71: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	39, // 72: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	40, // 73: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	41, // 74: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	42, // 75: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	44, // 76: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
+	47, // 77: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	50, // 78: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	54, // 79: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
+	60, // 80: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
+	61, // 81: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
+	62, // 82: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
+	59, // [59:83] is the sub-list for method output_type
+	35, // [35:59] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }

@@ -15,10 +15,6 @@ func (s *AdminService) BatchAuthorizeDingTalkUsers(ctx context.Context, request 
 	if err != nil {
 		return nil, err
 	}
-	target, err := uuid.Parse(request.GetOrganizationId())
-	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
-	}
 	// 限制原始载荷规模，不能通过重复 ID 绕过批次上限。
 	if len(request.GetUserIds()) == 0 || len(request.GetUserIds()) > biz.MaxListPageSize {
 		return nil, biz.ErrAdminInvalidArgument
@@ -27,11 +23,16 @@ func (s *AdminService) BatchAuthorizeDingTalkUsers(ctx context.Context, request 
 	if err != nil {
 		return nil, err
 	}
-	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
+	for _, userID := range users {
+		if userID == uuid.Nil {
+			return nil, biz.ErrAdminInvalidArgument
+		}
+	}
+	items, err := parseUserMembershipCreations(request.GetItems())
 	if err != nil {
 		return nil, err
 	}
-	results, err := s.usecase.BatchAuthorizeDingTalkUsers(ctx, principal.Organization.ID, target, principal.UserID, users, roles)
+	results, err := s.usecase.BatchAuthorizeDingTalkUsers(ctx, principal.Organization.ID, principal.UserID, users, items)
 	if err != nil {
 		return nil, err
 	}

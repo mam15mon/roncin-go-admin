@@ -1,19 +1,18 @@
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
-import { ModalForm } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
+import { ModalForm, ProFormDependency } from '@ant-design/pro-components';
 import { Alert, App, Space, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import { AdminOrganizationKind } from '@/enums.generated';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
-import {
-  adminServiceBatchAuthorizeDingTalkUsers,
-  adminServiceListOrganizationRoles,
-} from '@/services/roncin/adminService';
-import { ensureListResponse, unwrapList } from '@/utils/api';
+import { adminServiceBatchAuthorizeDingTalkUsers } from '@/services/roncin/adminService';
+import OrganizationRolesField from './OrganizationRolesField';
 import { formatOrganizationHierarchyName } from './userConstants';
 
-type AssignmentValues = { organizationId: string; roleIds: string[] };
+type AssignmentValues = {
+  organizationIds: string[];
+  rolesByOrganization?: Record<string, string[]>;
+};
 interface Props {
   users: API.AdminUser[];
   organizations: API.AdminOrganization[];
@@ -31,22 +30,8 @@ export default function DingTalkAssignmentModal({
 }: Props) {
   const { message } = App.useApp();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
-  const [organizationId, setOrganizationId] = useState<string>();
   const [requestFailure, setRequestFailure] = useState<string>();
   const [results, setResults] = useState<API.DingTalkAssignmentResult[]>([]);
-  const rolesQuery = useQuery({
-    queryKey: ['admin-users', 'organization-roles', organizationId],
-    enabled: Boolean(organizationId && users.length),
-    queryFn: async () =>
-      unwrapList(
-        ensureListResponse(
-          await adminServiceListOrganizationRoles({
-            organizationId: organizationId ?? '',
-          }),
-          '读取公司角色失败',
-        ),
-      ),
-  });
   const companyOrganizations = organizations.filter((org) => {
     if (
       !org.enabled ||
@@ -77,6 +62,7 @@ export default function DingTalkAssignmentModal({
       }
       open={users.length > 0}
       formRef={formRef}
+      initialValues={{ organizationIds: [], rolesByOrganization: {} }}
       modalProps={{ width: 600, destroyOnHidden: true }}
       onOpenChange={(open) => {
         if (!open) onClose();
@@ -88,19 +74,36 @@ export default function DingTalkAssignmentModal({
         },
       }}
       onFinish={async (values) => {
+        if (requestFailure) return false;
+        const items = (values.organizationIds ?? []).map((organizationId) => ({
+          organizationId,
+          roleIds: values.rolesByOrganization?.[organizationId] ?? [],
+        }));
+        if (!items.length || !items.some((item) => item.roleIds.length > 0)) {
+          formRef.current?.setFields([
+            { name: 'organizationIds', errors: ['请至少为一个组织分配角色'] },
+          ]);
+          return false;
+        }
         setRequestFailure(undefined);
         try {
           const response = await adminServiceBatchAuthorizeDingTalkUsers(
             {
               userIds: users.flatMap((user) => (user.id ? [user.id] : [])),
-              organizationId: values.organizationId,
-              roleIds: values.roleIds,
+              items,
             },
             { skipErrorHandler: true },
           );
           if (
-            !response?.data ||
+            !response?.success ||
+            !Array.isArray(response.data) ||
             response.data.length !== users.length ||
+            response.data.some(
+              (result) =>
+                result.success !== true &&
+                ((result.success !== false && result.success !== undefined) ||
+                  !result.reason?.trim()),
+            ) ||
             users.some(
               (user) =>
                 !response.data?.some((result) => result.userId === user.id),
@@ -148,7 +151,7 @@ export default function DingTalkAssignmentModal({
         style={{ marginBottom: 16 }}
       />
       <Typography.Paragraph type="secondary">
-        本批人员分配相同组织和角色。每人独立开通，已成功人员保留结果，失败人员可单独重试。
+        本批人员使用相同的组织配置，每个组织独立选择角色；至少为一个组织分配角色。每人独立开通，已成功人员保留结果，失败人员可单独重试。
       </Typography.Paragraph>
       {requestFailure && (
         <Alert
@@ -179,39 +182,58 @@ export default function DingTalkAssignmentModal({
         />
       )}
       <ProFormSearchableSelect
-        name="organizationId"
+        name="organizationIds"
         label="所属组织"
-        placeholder="请选择公司、部门或组"
+        mode="multiple"
+        placeholder="请选择公司、部门或组，可多选"
         options={companyOrganizations.map((org) => ({
           value: org.id,
           label: formatOrganizationHierarchyName(org, organizations),
           code: org.code,
           name: org.name,
         }))}
-        rules={[{ required: true, message: '请选择所属组织' }]}
+        validateTrigger={[]}
+        rules={[
+          { required: true, message: '请选择所属组织' },
+          ({ getFieldValue }) => ({
+            validator: async (_, organizationIds: string[] = []) => {
+              const rolesByOrganization =
+                getFieldValue('rolesByOrganization') ?? {};
+              if (
+                organizationIds.length &&
+                !organizationIds.some((id) => rolesByOrganization[id]?.length)
+              ) {
+                throw new Error('请至少为一个组织分配角色');
+              }
+            },
+          }),
+        ]}
         fieldProps={{
-          onChange: (id: string) => {
-            formRef.current?.setFieldValue('roleIds', []);
-            setOrganizationId(id);
+          onChange: (organizationIds: string[]) => {
+            const previous =
+              formRef.current?.getFieldValue('rolesByOrganization') ?? {};
+            formRef.current?.setFieldValue(
+              'rolesByOrganization',
+              Object.fromEntries(
+                organizationIds.map((id) => [id, previous[id] ?? []]),
+              ),
+            );
           },
         }}
       />
-      <ProFormSearchableSelect
-        name="roleIds"
-        label="公司角色"
-        mode="multiple"
-        placeholder="请至少选择一个角色"
-        disabled={!organizationId || rolesQuery.isFetching}
-        options={(rolesQuery.data ?? [])
-          .filter((role) => role.enabled)
-          .map((role) => ({
-            value: role.id,
-            label: role.name,
-            code: role.code,
-            name: role.name,
-          }))}
-        rules={[{ required: true, message: '请至少分配一个角色' }]}
-      />
+      <ProFormDependency name={['organizationIds']}>
+        {({ organizationIds }) =>
+          (organizationIds ?? []).map((organizationId: string) => (
+            <OrganizationRolesField
+              key={organizationId}
+              organizationId={organizationId}
+              label={`${formatOrganizationHierarchyName(organizationId, organizations)} · 角色（选填）`}
+              name={['rolesByOrganization', organizationId]}
+              open={users.length > 0}
+            />
+          ))
+        }
+      </ProFormDependency>
     </ModalForm>
   );
 }

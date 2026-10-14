@@ -27,7 +27,7 @@ type AdminRepo interface {
 	UpdateUserMembership(context.Context, *AdminUserMembership, []uuid.UUID, *AuditEvent) (*AdminUserMembership, error)
 	DeleteUserMembership(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
 	TerminateUser(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
-	AuthorizeDingTalkUser(context.Context, uuid.UUID, uuid.UUID, *AdminUser, []uuid.UUID, *NotificationIntent, *AuditEvent) (*AdminUser, error)
+	AuthorizeDingTalkUser(context.Context, uuid.UUID, *AdminUser, []AdminUserMembershipCreation, *NotificationIntent, *AuditEvent) (*AdminUser, error)
 	ResetUserPassword(context.Context, uuid.UUID, uuid.UUID, string, *string, *AuditEvent) error
 	ListRoles(context.Context, uuid.UUID) ([]*AdminRole, error)
 	GetRole(context.Context, uuid.UUID, uuid.UUID) (*AdminRole, error)

@@ -172,7 +172,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, department.ID, actor, &biz.AdminUser{ID: person.ID}, []uuid.UUID{r.ID})
+			_, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, actor, &biz.AdminUser{ID: person.ID}, []biz.AdminUserMembershipCreation{{OrganizationID: department.ID, RoleIDs: []uuid.UUID{r.ID}}})
 			errs <- err
 		}()
 	}
@@ -205,7 +205,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 		}
 		userIDs = append(userIDs, pending.ID)
 	}
-	results, err := uc.BatchAuthorizeDingTalkUsers(ctx, sys.ID, department.ID, actor, userIDs, []uuid.UUID{r.ID})
+	results, err := uc.BatchAuthorizeDingTalkUsers(ctx, sys.ID, actor, userIDs, []biz.AdminUserMembershipCreation{{OrganizationID: department.ID, RoleIDs: []uuid.UUID{r.ID}}})
 	if err != nil || len(results) != 10 {
 		t.Fatalf("批量: %+v %v", results, err)
 	}
@@ -226,7 +226,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 	if _, err = data.db.Role.UpdateOne(r).SetEnabled(false).Save(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, department.ID, actor, &biz.AdminUser{ID: invalidPerson.ID}, []uuid.UUID{r.ID}); err != biz.ErrAdminRoleNotFound {
+	if _, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, actor, &biz.AdminUser{ID: invalidPerson.ID}, []biz.AdminUserMembershipCreation{{OrganizationID: department.ID, RoleIDs: []uuid.UUID{r.ID}}}); err != biz.ErrAdminRoleNotFound {
 		t.Fatalf("停用角色未拒绝: %v", err)
 	}
 	if _, err = data.db.Role.UpdateOne(r).SetEnabled(true).Save(ctx); err != nil {
@@ -235,7 +235,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 	if _, err = data.db.Organization.UpdateOne(department).SetEnabled(false).Save(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, department.ID, actor, &biz.AdminUser{ID: invalidPerson.ID}, []uuid.UUID{r.ID}); err != biz.ErrAdminOrganizationNotFound {
+	if _, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, actor, &biz.AdminUser{ID: invalidPerson.ID}, []biz.AdminUserMembershipCreation{{OrganizationID: department.ID, RoleIDs: []uuid.UUID{r.ID}}}); err != biz.ErrAdminOrganizationNotFound {
 		t.Fatalf("停用组织未拒绝: %v", err)
 	}
 	if _, err = data.db.Organization.UpdateOne(department).SetEnabled(true).Save(ctx); err != nil {
@@ -257,7 +257,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 	if err := uc.TerminateUser(ctx, sys.ID, actor, person.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, department.ID, actor, &biz.AdminUser{ID: person.ID}, []uuid.UUID{r.ID}); err != nil {
+	if _, err := uc.AuthorizeDingTalkUser(ctx, sys.ID, actor, &biz.AdminUser{ID: person.ID}, []biz.AdminUserMembershipCreation{{OrganizationID: department.ID, RoleIDs: []uuid.UUID{r.ID}}}); err != nil {
 		t.Fatalf("人工返聘: %v", err)
 	}
 	if count, err := data.db.RoleAssignment.Query().Where(roleassignment.HasMembershipWith(membership.UserIDEQ(person.ID))).Count(ctx); err != nil || count != 1 {

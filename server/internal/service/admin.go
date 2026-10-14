@@ -168,22 +168,9 @@ func (s *AdminService) CreateUserMemberships(ctx context.Context, request *v1.Cr
 	if err != nil || userID == uuid.Nil || len(request.GetItems()) == 0 {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	items := make([]biz.AdminUserMembershipCreation, 0, len(request.GetItems()))
-	seen := make(map[uuid.UUID]struct{}, len(request.GetItems()))
-	for _, item := range request.GetItems() {
-		organizationID, err := uuid.Parse(item.GetOrganizationId())
-		if err != nil || organizationID == uuid.Nil {
-			return nil, biz.ErrAdminInvalidArgument
-		}
-		if _, exists := seen[organizationID]; exists {
-			return nil, biz.ErrAdminInvalidArgument
-		}
-		seen[organizationID] = struct{}{}
-		roleIDs, err := parseUniqueUUIDValues(item.GetRoleIds(), biz.ErrAdminInvalidArgument)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, biz.AdminUserMembershipCreation{OrganizationID: organizationID, RoleIDs: roleIDs})
+	items, err := parseUserMembershipCreations(request.GetItems())
+	if err != nil {
+		return nil, err
 	}
 	created, err := s.usecase.CreateUserMemberships(ctx, principal.Organization.ID, principal.UserID, userID, items)
 	if err != nil {
@@ -260,18 +247,14 @@ func (s *AdminService) AuthorizeDingTalkUser(ctx context.Context, request *v1.Au
 		return nil, err
 	}
 	userID, err := uuid.Parse(request.GetId())
-	if err != nil {
+	if err != nil || userID == uuid.Nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	targetOrganizationID, err := uuid.Parse(request.GetOrganizationId())
-	if err != nil {
-		return nil, biz.ErrAdminInvalidArgument
-	}
-	roles, err := parseUniqueUUIDValues(request.GetRoleIds(), biz.ErrAdminInvalidArgument)
+	items, err := parseUserMembershipCreations(request.GetItems())
 	if err != nil {
 		return nil, err
 	}
-	authorized, err := s.usecase.AuthorizeDingTalkUser(ctx, principal.Organization.ID, targetOrganizationID, principal.UserID, &biz.AdminUser{ID: userID}, roles)
+	authorized, err := s.usecase.AuthorizeDingTalkUser(ctx, principal.Organization.ID, principal.UserID, &biz.AdminUser{ID: userID}, items)
 	if err != nil {
 		return nil, err
 	}
@@ -608,4 +591,34 @@ func adminUserStatusFromAPI(value v1.AdminUserStatus) (biz.AdminUserStatus, erro
 	default:
 		return "", biz.ErrAdminInvalidArgument
 	}
+}
+
+// parseUserMembershipCreations 统一成员加入与人员开通的组织项边界校验。
+func parseUserMembershipCreations(values []*v1.UserMembershipCreation) ([]biz.AdminUserMembershipCreation, error) {
+	if len(values) == 0 || len(values) > biz.MaxListPageSize {
+		return nil, biz.ErrAdminInvalidArgument
+	}
+	items := make([]biz.AdminUserMembershipCreation, 0, len(values))
+	seen := make(map[uuid.UUID]struct{}, len(values))
+	for _, item := range values {
+		organizationID, err := uuid.Parse(item.GetOrganizationId())
+		if err != nil || organizationID == uuid.Nil {
+			return nil, biz.ErrAdminInvalidArgument
+		}
+		if _, exists := seen[organizationID]; exists {
+			return nil, biz.ErrAdminInvalidArgument
+		}
+		seen[organizationID] = struct{}{}
+		roleIDs, err := parseUniqueUUIDValues(item.GetRoleIds(), biz.ErrAdminInvalidArgument)
+		if err != nil {
+			return nil, err
+		}
+		for _, roleID := range roleIDs {
+			if roleID == uuid.Nil {
+				return nil, biz.ErrAdminInvalidArgument
+			}
+		}
+		items = append(items, biz.AdminUserMembershipCreation{OrganizationID: organizationID, RoleIDs: roleIDs})
+	}
+	return items, nil
 }

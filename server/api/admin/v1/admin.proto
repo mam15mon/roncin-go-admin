@@ -309,9 +309,9 @@ message TerminateUserRequest {
 
 message AuthorizeDingTalkUserRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
-  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
-  reserved 3, 4;
-  repeated string role_ids = 5 [(google.api.field_behavior) = REQUIRED];
+  reserved 2, 3, 4, 5;
+  reserved "organization_id", "role_ids";
+  repeated UserMembershipCreation items = 6 [(google.api.field_behavior) = REQUIRED];
 }
 
 message ResetUserPasswordRequest {
@@ -592,8 +592,9 @@ message DingTalkDepartment {
 
 message BatchAuthorizeDingTalkUsersRequest {
   repeated string user_ids = 1 [(google.api.field_behavior) = REQUIRED];
-  string organization_id = 2 [(google.api.field_behavior) = REQUIRED];
-  repeated string role_ids = 3 [(google.api.field_behavior) = REQUIRED];
+  reserved 2, 3;
+  reserved "organization_id", "role_ids";
+  repeated UserMembershipCreation items = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 message DingTalkAssignmentResult {

@@ -11,31 +11,34 @@ import (
 )
 
 type adminRepoStub struct {
-	organization      *AdminOrganization
-	organizationID    uuid.UUID
-	organizationInput *AdminOrganization
-	userListOptions   AdminUserListOptions
-	userAnchor        *AdminUser
-	userAnchorErr     error
-	roleKeys          []string
-	updatedRoleKeys   []string
-	userPassword      string
-	userInput         *AdminUser
-	resetPassword     string
-	resetUsername     *string
-	deletedUserID     uuid.UUID
-	deleteOrgID       uuid.UUID
-	memberships       []*AdminUserMembership
-	membershipInput   *AdminUserMembership
-	membershipRoleIDs []uuid.UUID
-	deletedMembership uuid.UUID
-	actorRoleProfiles []*AdminRoleProfile
-	roleProfiles      []*AdminRoleProfile
-	roleProfileTarget uuid.UUID
-	currentRole       *AdminRole
-	deletedRoleID     uuid.UUID
-	notification      *NotificationIntent
-	auditEvent        *AuditEvent
+	organization        *AdminOrganization
+	organizationID      uuid.UUID
+	organizationInput   *AdminOrganization
+	userListOptions     AdminUserListOptions
+	userAnchor          *AdminUser
+	userAnchorErr       error
+	roleKeys            []string
+	updatedRoleKeys     []string
+	userPassword        string
+	userInput           *AdminUser
+	resetPassword       string
+	resetUsername       *string
+	deletedUserID       uuid.UUID
+	deleteOrgID         uuid.UUID
+	memberships         []*AdminUserMembership
+	membershipInput     *AdminUserMembership
+	membershipRoleIDs   []uuid.UUID
+	deletedMembership   uuid.UUID
+	actorRoleProfiles   []*AdminRoleProfile
+	roleProfiles        []*AdminRoleProfile
+	roleProfileTarget   uuid.UUID
+	currentRole         *AdminRole
+	deletedRoleID       uuid.UUID
+	authorizationItems  []AdminUserMembershipCreation
+	authorizationUsers  []uuid.UUID
+	authorizationErrors map[uuid.UUID]error
+	notification        *NotificationIntent
+	auditEvent          *AuditEvent
 }
 
 func (s *adminRepoStub) ListOrganizations(context.Context) ([]*AdminOrganization, error) {
@@ -135,9 +138,14 @@ func (s *adminRepoStub) TerminateUser(_ context.Context, organizationID, id uuid
 	return nil
 }
 
-func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _, targetOrganizationID uuid.UUID, input *AdminUser, _ []uuid.UUID, notification *NotificationIntent, audit *AuditEvent) (*AdminUser, error) {
+func (s *adminRepoStub) AuthorizeDingTalkUser(_ context.Context, _ uuid.UUID, input *AdminUser, items []AdminUserMembershipCreation, notification *NotificationIntent, audit *AuditEvent) (*AdminUser, error) {
+	s.authorizationUsers = append(s.authorizationUsers, input.ID)
+	s.authorizationItems = items
+	if err := s.authorizationErrors[input.ID]; err != nil {
+		return nil, err
+	}
 	input.Enabled = true
-	s.organizationID = targetOrganizationID
+	s.organizationID = items[0].OrganizationID
 	s.notification = notification
 	s.auditEvent = audit
 	return input, nil
@@ -236,10 +244,10 @@ func TestAdminUsecaseAuthorizeDingTalkUserRequiresTargetAndRole(t *testing.T) {
 	input := &AdminUser{ID: uuid.New(), DisplayName: "张三"}
 	systemID := uuid.New()
 	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: systemID, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: systemID, Kind: OrganizationKindSystem}}})
-	if _, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.Nil, uuid.New(), input, []uuid.UUID{uuid.New()}); err != ErrAdminInvalidArgument {
+	if _, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.New(), input, []AdminUserMembershipCreation{{OrganizationID: uuid.Nil, RoleIDs: []uuid.UUID{uuid.New()}}}); err != ErrAdminInvalidArgument {
 		t.Fatalf("missing target organization error = %v", err)
 	}
-	if _, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminInvalidArgument {
+	if _, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.New(), input, []AdminUserMembershipCreation{{OrganizationID: uuid.New(), RoleIDs: nil}}); err != ErrAdminInvalidArgument {
 		t.Fatalf("missing roles error = %v", err)
 	}
 }
@@ -251,7 +259,7 @@ func TestAdminUsecaseAuthorizeDingTalkUserCreatesNotificationIntent(t *testing.T
 	systemID := uuid.New()
 	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: systemID, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: systemID, Kind: OrganizationKindSystem}}})
 
-	authorized, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.New(), uuid.New(), &AdminUser{ID: userID, DisplayName: "张三"}, []uuid.UUID{uuid.New()})
+	authorized, err := usecase.AuthorizeDingTalkUser(ctx, uuid.New(), uuid.New(), &AdminUser{ID: userID, DisplayName: "张三"}, []AdminUserMembershipCreation{{OrganizationID: uuid.New(), RoleIDs: []uuid.UUID{uuid.New()}}})
 	if err != nil {
 		t.Fatalf("AuthorizeDingTalkUser() error = %v", err)
 	}
@@ -268,7 +276,7 @@ func TestAdminUsecaseAuthorizeDingTalkUserRejectsCompanyWorkspace(t *testing.T) 
 	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	source := uuid.New()
 	ctx := WithPrincipal(context.Background(), &Principal{Organization: Organization{ID: source, Kind: OrganizationKindCompany}})
-	if _, err := usecase.AuthorizeDingTalkUser(ctx, source, uuid.New(), uuid.New(), &AdminUser{ID: uuid.New()}, []uuid.UUID{uuid.New()}); err != ErrPermissionDenied {
+	if _, err := usecase.AuthorizeDingTalkUser(ctx, source, uuid.New(), &AdminUser{ID: uuid.New()}, []AdminUserMembershipCreation{{OrganizationID: uuid.New(), RoleIDs: []uuid.UUID{uuid.New()}}}); err != ErrPermissionDenied {
 		t.Fatalf("公司工作台不得开通全局待分配人员: %v", err)
 	}
 	if repo.notification != nil || repo.auditEvent != nil {

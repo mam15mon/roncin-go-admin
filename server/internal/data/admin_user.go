@@ -320,23 +320,26 @@ func (r *adminRepo) TerminateUser(ctx context.Context, organizationID, id uuid.U
 	})
 }
 
-func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID, targetOrganizationID uuid.UUID, input *biz.AdminUser, roleIDs []uuid.UUID, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.AdminUser, error) {
+func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizationID uuid.UUID, input *biz.AdminUser, items []biz.AdminUserMembershipCreation, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.AdminUser, error) {
 	err := r.data.WithinTransaction(ctx, func(txCtx context.Context) error {
 		client, err := r.data.client(txCtx)
 		if err != nil {
 			return err
 		}
-		if audit.UserID == nil {
+		if audit == nil || audit.UserID == nil {
 			return biz.ErrPermissionDenied
 		}
 		accounts, err := client.User.Query().Where(userent.IDIn(input.ID, *audit.UserID)).Order(userent.ByID()).ForUpdate().All(txCtx)
 		if err != nil {
 			return err
 		}
-		var account *ent.User
+		var account, actor *ent.User
 		for _, candidate := range accounts {
 			if candidate.ID == input.ID {
 				account = candidate
+			}
+			if candidate.ID == *audit.UserID {
+				actor = candidate
 			}
 		}
 		if account == nil {
@@ -345,7 +348,10 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 		if account.Enabled || account.IsBootstrapAdmin || account.DingtalkUnionid == nil || account.DingtalkUserid == nil || account.DingtalkLastSyncedAt == nil {
 			return biz.ErrDingTalkAssignmentConflict
 		}
-		// 停用人员可人工重新开通，首次与返聘都必须明确组织角色；已开通者绝不能覆盖。
+		if actor == nil || !actor.Enabled {
+			return biz.ErrPermissionDenied
+		}
+		// 停用人员可人工重新开通；用户→组织→成员→角色均按主键固定锁序。
 		nodes, err := client.Organization.Query().Order(organization.ByID()).ForShare().All(txCtx)
 		if err != nil {
 			return err
@@ -355,49 +361,19 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 		if !exists || source.Kind != string(organization.KindSystem) || !source.Enabled {
 			return biz.ErrPermissionDenied
 		}
-		target, ok := nodeMap[targetOrganizationID]
-		if !ok || !target.Enabled {
-			return biz.ErrAdminOrganizationNotFound
-		}
-		for current := targetOrganizationID; current != uuid.Nil; {
-			node := nodeMap[current]
-			if !node.Enabled {
-				return biz.ErrAdminOrganizationNotFound
-			}
-			if isWorkspaceKind(node.Kind) {
-				break
-			}
-			if node.ParentID == nil {
-				return biz.ErrAdminOrganizationNotFound
-			}
-			current = *node.ParentID
-		}
-		anchor := workspaceAncestorID(nodeMap, targetOrganizationID)
-		workspace, ok := nodeMap[anchor]
-		if !ok || !workspace.Enabled || workspace.Kind != string(organization.KindCompany) {
-			return biz.ErrAdminOrganizationNotFound
-		}
-		if audit.UserID == nil {
-			return biz.ErrPermissionDenied
-		}
-		if _, err = client.User.Query().Where(userent.IDEQ(*audit.UserID), userent.EnabledEQ(true)).ForShare().Only(txCtx); err != nil {
-			return biz.ErrPermissionDenied
-		}
-		if _, err = client.Membership.Query().Where(membership.UserIDIn(*audit.UserID, input.ID)).Order(membership.ByID()).ForUpdate().All(txCtx); err != nil {
-			return err
-		}
-		lockedRoles, err := client.Role.Query().Where(roleent.Or(roleent.IDIn(roleIDs...), roleent.HasAssignmentsWith(roleassignment.HasMembershipWith(membership.UserIDEQ(*audit.UserID), membership.OrganizationIDEQ(sourceOrganizationID), membership.EnabledEQ(true))))).Order(roleent.ByID()).ForShare().All(txCtx)
+		members, err := client.Membership.Query().Where(membership.UserIDIn(*audit.UserID, input.ID)).Order(membership.ByID()).ForUpdate().All(txCtx)
 		if err != nil {
 			return err
 		}
-		if len(lockedRoles) < len(uniqueUUIDs(roleIDs)) {
-			return biz.ErrAdminRoleNotFound
+		allRoleIDs := make([]uuid.UUID, 0)
+		for _, item := range items {
+			allRoleIDs = append(allRoleIDs, item.RoleIDs...)
 		}
-		roles, err := rolesForOrganization(txCtx, client, targetOrganizationID, roleIDs)
+		// 一次锁入全部目标及操作者角色，不能逐目标取得成员/角色锁。
+		_, err = client.Role.Query().Where(roleent.Or(roleent.IDIn(allRoleIDs...), roleent.HasAssignmentsWith(roleassignment.HasMembershipWith(membership.UserIDEQ(*audit.UserID))))).Order(roleent.ByID()).ForShare().All(txCtx)
 		if err != nil {
 			return err
 		}
-		// 新鲜操作者授权与目标角色画像均在同一共享事务复核，避免锁外提权预检空窗。
 		actorPrincipal, err := (&authRepo{data: r.data}).ResolvePrincipal(txCtx, *audit.UserID, sourceOrganizationID)
 		if err != nil {
 			return err
@@ -405,43 +381,80 @@ func (r *adminRepo) AuthorizeDingTalkUser(ctx context.Context, sourceOrganizatio
 		if !actorPrincipal.HasPermission(access.UserAuthorizeDingTalk) {
 			return biz.ErrPermissionDenied
 		}
-		if err = biz.NewAdminUsecase(r, r.data).ValidateDingTalkAssignmentPrivilege(biz.WithPrincipal(txCtx, actorPrincipal), sourceOrganizationID, *audit.UserID, targetOrganizationID, roleIDs); err != nil {
-			return err
-		}
-		return r.data.WithTx(txCtx, func(tx *ent.Tx) error {
-			ids, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID)).IDs(txCtx)
+		lockedCtx := biz.WithPrincipal(txCtx, actorPrincipal)
+		rolesByItem := make([][]*ent.Role, len(items))
+		var notificationOrganizationID uuid.UUID
+		for i, item := range items {
+			target, exists := nodeMap[item.OrganizationID]
+			if !exists || !target.Enabled {
+				return biz.ErrAdminOrganizationNotFound
+			}
+			anchor := workspaceAncestorID(nodeMap, item.OrganizationID)
+			workspace, exists := nodeMap[anchor]
+			if !exists || !workspace.Enabled || workspace.Kind != string(organization.KindCompany) {
+				return biz.ErrAdminOrganizationNotFound
+			}
+			for current := item.OrganizationID; current != anchor; {
+				node := nodeMap[current]
+				if !node.Enabled || node.ParentID == nil {
+					return biz.ErrAdminOrganizationNotFound
+				}
+				current = *node.ParentID
+			}
+			if err = biz.NewAdminUsecase(r, r.data).ValidateDingTalkAssignmentPrivilege(lockedCtx, sourceOrganizationID, *audit.UserID, item.OrganizationID, item.RoleIDs); err != nil {
+				return err
+			}
+			rolesByItem[i], err = rolesForOrganization(lockedCtx, client, item.OrganizationID, item.RoleIDs)
 			if err != nil {
 				return err
 			}
-			if len(ids) > 0 {
-				if _, err = tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(ids...)).Exec(txCtx); err != nil {
+			if i == 0 {
+				notificationOrganizationID = anchor
+			}
+		}
+		return r.data.WithTx(lockedCtx, func(tx *ent.Tx) error {
+			memberIDs := make([]uuid.UUID, 0)
+			membersByOrganization := make(map[uuid.UUID]*ent.Membership)
+			for _, member := range members {
+				if member.UserID == input.ID {
+					memberIDs = append(memberIDs, member.ID)
+					membersByOrganization[member.OrganizationID] = member
+				}
+			}
+			if len(memberIDs) > 0 {
+				if _, err = tx.RoleAssignment.Delete().Where(roleassignment.MembershipIDIn(memberIDs...)).Exec(lockedCtx); err != nil {
 					return err
 				}
 			}
-			if _, err = tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).Save(txCtx); err != nil {
+			if _, err = tx.Membership.Update().Where(membership.UserIDEQ(input.ID)).SetEnabled(false).Save(lockedCtx); err != nil {
 				return err
 			}
-			member, err := tx.Membership.Query().Where(membership.UserIDEQ(input.ID), membership.OrganizationIDEQ(targetOrganizationID)).Only(txCtx)
-			if ent.IsNotFound(err) {
-				member, err = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(targetOrganizationID).SetEnabled(true).Save(txCtx)
-			} else if err == nil {
-				member, err = tx.Membership.UpdateOne(member).SetEnabled(true).Save(txCtx)
+			for i, item := range items {
+				member, exists := membersByOrganization[item.OrganizationID]
+				if exists {
+					member, err = tx.Membership.UpdateOne(member).SetEnabled(true).Save(lockedCtx)
+				} else {
+					member, err = tx.Membership.Create().SetUserID(input.ID).SetOrganizationID(item.OrganizationID).SetEnabled(true).Save(lockedCtx)
+				}
+				if err != nil {
+					return mapEntError(err, nil, biz.ErrAdminUserMembershipExists)
+				}
+				// 既有成员已在角色锁前独占锁定；新成员仅当前事务可见，无需升级锁。
+				for _, assignedRole := range rolesByItem[i] {
+					if _, err = tx.RoleAssignment.Create().SetMembershipID(member.ID).SetRoleID(assignedRole.ID).Save(lockedCtx); err != nil {
+						return mapEntError(err, nil, biz.ErrAdminUserMembershipExists)
+					}
+				}
 			}
-			if err != nil {
-				return err
-			}
-			if err = replaceRoleAssignments(txCtx, tx, member.ID, roles); err != nil {
-				return err
-			}
-			if _, err = tx.User.UpdateOne(account).SetPendingAssignment(false).SetEnabled(true).Save(txCtx); err != nil {
+			if _, err = tx.User.UpdateOne(account).SetPendingAssignment(false).SetEnabled(true).Save(lockedCtx); err != nil {
 				return err
 			}
 			if notification != nil {
-				if err = enqueueDingTalkUserAuthorizedNotification(txCtx, tx, anchor, account, notification); err != nil {
+				if err = enqueueDingTalkUserAuthorizedNotification(lockedCtx, tx, notificationOrganizationID, account, notification); err != nil {
 					return err
 				}
 			}
-			return writeAudit(txCtx, tx.AuditLog, audit)
+			return writeAudit(lockedCtx, tx.AuditLog, audit)
 		})
 	})
 	if err != nil {

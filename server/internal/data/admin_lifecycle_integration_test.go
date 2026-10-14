@@ -130,10 +130,10 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 	}
 
 	notification := biz.NewDingTalkUserAuthorizedNotification(account.ID)
-	authorized, err := adminRepo.AuthorizeDingTalkUser(assignmentCtx, intakeWorkspace.ID, systemWorkspace.ID, &biz.AdminUser{
+	authorized, err := adminRepo.AuthorizeDingTalkUser(assignmentCtx, intakeWorkspace.ID, &biz.AdminUser{
 		ID:          account.ID,
 		DisplayName: "返聘员工",
-	}, []uuid.UUID{role.ID}, notification, &biz.AuditEvent{OrganizationID: &intakeWorkspace.ID, UserID: &actorID, Action: "admin.user.dingtalk.authorize", Result: "success", Details: map[string]string{}})
+	}, []biz.AdminUserMembershipCreation{{OrganizationID: systemWorkspace.ID, RoleIDs: []uuid.UUID{role.ID}}}, notification, &biz.AuditEvent{OrganizationID: &intakeWorkspace.ID, UserID: &actorID, Action: "admin.user.dingtalk.authorize", Result: "success", Details: map[string]string{}})
 	if err != nil {
 		t.Fatalf("返聘重新授权: %v", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"testing"
 	"time"
@@ -41,7 +42,7 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 		t.Fatal(err)
 	}
 	// 批量入口不再信任传入的权限快照，有限管理员必须在真实授权夹具中建立。
-	userUpdate, err := f.data.db.Permission.Create().SetKey(access.UserUpdate).SetName("成员管理").SetGroup("系统").Save(ctx)
+	userUpdate, err := f.data.db.Permission.Query().Where(permission.KeyEQ(access.UserUpdate)).Only(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +67,7 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 	}
 	companyPrincipal := &biz.Principal{UserID: f.normalUserID, Organization: biz.Organization{ID: f.branch, Kind: biz.OrganizationKindCompany}, OrganizationNodes: principal.OrganizationNodes, RoleGrants: []biz.RoleGrant{{RoleCode: "administrator", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.UserUpdate: {}}}}}
 	companyCtx := biz.WithPrincipal(ctx, companyPrincipal)
-	if _, err := uc.AuthorizeDingTalkUser(companyCtx, f.branch, f.branch, f.normalUserID, &biz.AdminUser{ID: f.bootstrapUserID, DisplayName: "不能全局授权"}, []uuid.UUID{companyRole.ID}); err != biz.ErrPermissionDenied {
+	if _, err := uc.AuthorizeDingTalkUser(companyCtx, f.branch, f.normalUserID, &biz.AdminUser{ID: f.bootstrapUserID, DisplayName: "不能全局授权"}, []biz.AdminUserMembershipCreation{{OrganizationID: f.branch, RoleIDs: []uuid.UUID{companyRole.ID}}}); err != biz.ErrPermissionDenied {
 		t.Fatalf("公司不得全局重启钉钉账号: %v", err)
 	}
 	if err := uc.ResetUserPassword(companyCtx, f.branch, f.normalUserID, f.bootstrapUserID, "long-enough-password", nil); err != biz.ErrPermissionDenied {
@@ -111,7 +112,7 @@ func TestSystemDirectoryAssignmentCannotGrantSystemIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	ctx, actor := directoryAdministrator(t, f.data, f.systemWorkspace)
-	_, err = biz.NewAdminUsecase(&adminRepo{data: f.data}, f.data).AuthorizeDingTalkUser(ctx, f.systemWorkspace, f.systemWorkspace, actor, &biz.AdminUser{ID: account.ID}, []uuid.UUID{uuid.New()})
+	_, err = biz.NewAdminUsecase(&adminRepo{data: f.data}, f.data).AuthorizeDingTalkUser(ctx, f.systemWorkspace, actor, &biz.AdminUser{ID: account.ID}, []biz.AdminUserMembershipCreation{{OrganizationID: f.systemWorkspace, RoleIDs: []uuid.UUID{uuid.New()}}})
 	if err != biz.ErrAdminOrganizationNotFound {
 		t.Fatalf("通讯录员工不得被分配至系统工作台: %v", err)
 	}

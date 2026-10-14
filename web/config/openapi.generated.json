@@ -14138,21 +14138,17 @@
       "admin.v1.AuthorizeDingTalkUserRequest": {
         "required": [
           "id",
-          "organizationId",
-          "roleIds"
+          "items"
         ],
         "type": "object",
         "properties": {
           "id": {
             "type": "string"
           },
-          "organizationId": {
-            "type": "string"
-          },
-          "roleIds": {
+          "items": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/admin.v1.UserMembershipCreation"
             }
           }
         }
@@ -14181,8 +14177,7 @@
       "admin.v1.BatchAuthorizeDingTalkUsersRequest": {
         "required": [
           "userIds",
-          "organizationId",
-          "roleIds"
+          "items"
         ],
         "type": "object",
         "properties": {
@@ -14192,13 +14187,10 @@
               "type": "string"
             }
           },
-          "organizationId": {
-            "type": "string"
-          },
-          "roleIds": {
+          "items": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/admin.v1.UserMembershipCreation"
             }
           }
         }

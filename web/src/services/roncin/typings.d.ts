@@ -425,8 +425,7 @@ declare namespace API {
 
   type AuthorizeDingTalkUserRequest = {
     id: string;
-    organizationId: string;
-    roleIds: string[];
+    items: UserMembershipCreation[];
   };
 
   type AuthorizeDingTalkUserResponse = {
@@ -541,8 +540,7 @@ declare namespace API {
 
   type BatchAuthorizeDingTalkUsersRequest = {
     userIds: string[];
-    organizationId: string;
-    roleIds: string[];
+    items: UserMembershipCreation[];
   };
 
   type BatchAuthorizeDingTalkUsersResponse = {
