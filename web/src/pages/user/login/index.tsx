@@ -1,5 +1,6 @@
 import {
   ArrowRightOutlined,
+  DingdingOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
   LockOutlined,
@@ -101,7 +102,7 @@ export default function Login() {
         <title>登录 - {Settings.title}</title>
       </Helmet>
 
-      {/* ── 左侧：深色科技交互区 ── */}
+      {/* ── 左侧：潮趣卡通小人交互区 ── */}
       <div className={styles.heroSection}>
         {/* 弥散光晕 */}
         <div className={styles.glowTopLeft} />
@@ -129,7 +130,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ── 右侧：认证表单区 / 登录后组织选择区 ── */}
+      {/* ── 右侧：重构后的现代化高品质认证表单区 ── */}
       <div className={styles.formSection}>
         {organizationSelection && organizationSelection.options.length > 1 ? (
           <OrganizationPicker
@@ -162,11 +163,16 @@ export default function Login() {
               </div>
             </div>
 
-            {/* 表单头部 */}
-            <div>
+            {/* 表单头部：精炼极简 */}
+            <div className={styles.formHeader}>
               <h1 className={styles.headerTitle}>
                 {loginMode === 'dingtalk' ? '钉钉扫码登录' : '管理员账号登录'}
               </h1>
+              <p className={styles.headerSubtitle}>
+                {loginMode === 'dingtalk'
+                  ? '打开手机钉钉「扫一扫」快速登录'
+                  : '请输入管理账号与密码登录系统'}
+              </p>
             </div>
 
             {loginMode === 'dingtalk' ? (
@@ -183,7 +189,7 @@ export default function Login() {
                 <Form.Item
                   name="username"
                   rules={[{ required: true, message: '请输入用户名' }]}
-                  style={{ marginBottom: 20 }}
+                  style={{ marginBottom: 18 }}
                 >
                   <div>
                     <label
@@ -205,7 +211,7 @@ export default function Login() {
                           }}
                         />
                       }
-                      className={styles.pillInput}
+                      className={styles.cleanInput}
                       disabled={loading}
                       onFocus={() => setIsTyping(true)}
                       onBlur={() => setIsTyping(false)}
@@ -217,7 +223,7 @@ export default function Login() {
                 <Form.Item
                   name="password"
                   rules={[{ required: true, message: '请输入密码' }]}
-                  style={{ marginBottom: 20 }}
+                  style={{ marginBottom: 18 }}
                 >
                   <div>
                     <label
@@ -239,7 +245,7 @@ export default function Login() {
                           }}
                         />
                       }
-                      className={styles.pillInput}
+                      className={styles.cleanInput}
                       disabled={loading}
                       iconRender={(visible) =>
                         visible ? (
@@ -265,17 +271,15 @@ export default function Login() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginBottom: 24,
-                    paddingLeft: 6,
-                    paddingRight: 6,
+                    marginBottom: 20,
                   }}
                 >
                   <Checkbox
                     defaultChecked
                     disabled={loading}
-                    style={{ fontSize: 13, color: '#64748b' }}
+                    style={{ fontSize: 13, color: '#475569' }}
                   >
-                    保持登录
+                    保持登录状态
                   </Checkbox>
                 </div>
 
@@ -302,20 +306,47 @@ export default function Login() {
                 </Form.Item>
               </Form>
             )}
-            <Button
-              type="link"
-              className={styles.loginModeSwitch}
-              disabled={loading}
-              onClick={() => {
-                setIsTyping(false);
-                setShowPassword(false);
-                setLoginMode((mode) =>
-                  mode === 'dingtalk' ? 'password' : 'dingtalk',
-                );
-              }}
-            >
-              {loginMode === 'dingtalk' ? '管理员账号登录' : '返回钉钉扫码登录'}
-            </Button>
+
+            {/* 切换认证方式：极简文字按钮 */}
+            <div className={styles.modeSwitchWrapper}>
+              <Button
+                type="link"
+                className={styles.loginModeSwitch}
+                aria-label={
+                  loginMode === 'dingtalk'
+                    ? '管理员账号登录'
+                    : '返回钉钉扫码登录'
+                }
+                disabled={loading}
+                icon={
+                  <span aria-hidden="true" style={{ display: 'inline-flex' }}>
+                    {loginMode === 'dingtalk' ? (
+                      <UserOutlined />
+                    ) : (
+                      <DingdingOutlined />
+                    )}
+                  </span>
+                }
+                onClick={() => {
+                  setIsTyping(false);
+                  setShowPassword(false);
+                  setLoginMode((mode) =>
+                    mode === 'dingtalk' ? 'password' : 'dingtalk',
+                  );
+                }}
+              >
+                {loginMode === 'dingtalk'
+                  ? '管理员账号登录'
+                  : '返回钉钉扫码登录'}
+              </Button>
+            </div>
+
+            {/* 页脚版权 */}
+            <div className={styles.formFooter}>
+              <div className={styles.copyrightText}>
+                © {new Date().getFullYear()} Roncin Global Logistics
+              </div>
+            </div>
           </div>
         )}
       </div>
