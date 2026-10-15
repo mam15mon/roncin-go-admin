@@ -3,6 +3,7 @@ import { fileURLToPath, URL as NodeURL } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { dingTalkLoginBootstrap } from './config/dingtalkLoginBootstrap';
 import { getProxyConfig } from './config/proxy';
 
 const webRoot = fileURLToPath(new NodeURL('.', import.meta.url));
@@ -21,7 +22,11 @@ function resolveCommitHash(): string {
 }
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    ...(process.env.VITEST ? [] : [dingTalkLoginBootstrap()]),
+  ],
   resolve: {
     alias: [
       { find: /^@\/(.*)/, replacement: `${webRoot}src/$1` },
@@ -62,7 +67,10 @@ export default defineConfig(({ mode }) => ({
     environment: 'happy-dom',
     globals: true,
     setupFiles: ['./tests/setupTests.ts'],
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: [
+      'src/**/*.{test,spec}.{ts,tsx}',
+      'config/dingtalkLoginBootstrap.test.ts',
+    ],
     fileParallelism: true,
     maxConcurrency: 32,
     exclude: ['node_modules', 'dist'],

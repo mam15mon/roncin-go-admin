@@ -10,6 +10,12 @@
 GET /api/v1/auth/dingtalk/login-config
 data: enabled, authorizeUrl?, expiresAt?
 回调：/user/login/dingtalk/callback?authCode=...&state=...
+
+GET /user/login（首次 HTML 导航）
+响应头：Cache-Control: no-store、Pragma: no-cache
+响应正文：<script type="application/json" id="roncin-dingtalk-login-config">...</script>
+节点内容：复用 GetDingTalkLoginConfigResponse 的 ProtoJSON camelCase 信封
+配置生成失败：{"success":false,"code":500,"message":"钉钉登录配置加载失败，请稍后重试"}
 ```
 
 ```text
@@ -23,10 +29,25 @@ Query key：['auth', 'dingtalk-login-config']
 - 默认展示真实钉钉 OAuth2 iframe，次级“管理员账号登录”切换密码，可返回扫码。保留品牌资源，配置失败不静默改成密码表单。
 - HTML 入口通过 `preconnect` 和 `dns-prefetch` 提前准备 `https://login.dingtalk.com`
   连接；不预取带 state 的钉钉授权页面，不把授权 URL 写入静态 HTML。
-- 首次直接打开 `/user/login` 时，在 React 首次渲染前预取登录配置，与路由页面资源
-  加载并行；启动入口与扫码组件消费同一 QueryClient、固定 key 和查询定义。
-  预取已完成和仍在途时都不能在组件挂载后重复请求；预取失败须直接展示错误，
-  不允许借挂载触发隐式重试。其他业务页与钉钉回调入口不预取登录配置。
+- 首次直接打开 `/user/login` 时，Go 服务复用认证 Service 创建本次配置和 Cookie，
+  在同一个 HTML 响应中返回。每次导航独立生成，不缓存配置或共享 state；配置
+  使用现有 Proto DTO 序列化，静态资源层只接收 JSON 和 Cookie，不做领域转换。
+- HTML 内嵌节点是不可执行的 JSON；插入前必须转义 `<`、`>`、`&` 等字符，
+  禁止直接拼接授权 URL 或将配置赋到可执行全局脚本。只包含公开登录配置，
+  不包含 clientSecret、会话令牌或换码令牌。
+- 内嵌配置对应的 Cookie 与 HTML 必须同一次响应写入，保留 HttpOnly、Secure、
+  SameSite、Path、有效期属性。登录页 GET 忽略条件缓存，不返回 304；HEAD、
+  业务页、回调页、静态文件、API 与健康检查不生成登录配置或覆盖 Cookie。
+- Vite 开发服务器只处理同一路径的 HTML GET，在服务器侧请求既有配置接口，
+  将响应 Cookie 原样转发并把同一信封注入经 Vite 转换的 HTML；沿用当前开发/
+  测试/预发代理目标，不新增浏览器配置请求，不把配置写回磁盘或构建产物。
+- React 首次渲染前的配置预热，优先一次性消费并移除 HTML 内嵌节点，通过已有
+  QueryClient、固定 key 和查询定义缓存。内嵌成功配置的首屏配置 GET 次数为 0。
+  节点不存在时（SPA 返回登录页、静态构建预览）仍通过生成客户端获取配置。
+  节点存在但内容无效、配置生成失败或参数不合法时直接显示错误，不自动再 GET。
+- 已完成和仍在途的预热不能在组件挂载后重复请求；失败不能借挂载隐式重试。
+  其他业务页与钉钉回调入口不预取登录配置。内嵌节点只能消费一次，手动刷新、
+  到期自动刷新或管理员返回扫码仍获取新配置。
 - 配置 Cookie、state、expiresAt 来自同一次服务端响应，响应 Cache-Control=no-store。clientSecret 与换码令牌仅在服务端；前端不记录授权码或 state。
 - React Query 固定 key 去重，配置请求不消费 AbortSignal，避免取消后的响应仍更新 Cookie 并覆盖新实例。禁止焦点/重连自动刷新及自动重试；管理员模式返回扫码时显式获取新配置，刷新串行 refetch(cancelRefetch:false)。
 - 预取缓存保留 5 分钟，组件挂载默认复用本次配置；已经过期的配置必须重新获取，
@@ -55,6 +76,10 @@ Query key：['auth', 'dingtalk-login-config']
 | 条件 | 结果 |
 | --- | --- |
 | 钉钉未启用 | 显示未启用，管理员入口可达 |
+| 首次登录 HTML 携带合法内嵌配置 | 消费一次并移除节点，组件直接显示二维码，配置 GET 为 0 |
+| 内嵌配置失败、非法 JSON 或参数不合法 | 显示配置错误，不自动 GET，保留管理员入口 |
+| 连续两次 HTML 导航 | 两组不同 state，分别与各自响应 Cookie 一致，均为 no-store |
+| 登录 HTML 附带条件缓存请求头 | 返回新 HTML 与本次 Cookie，不返回 304 |
 | 首屏配置预取在途或已完成 | 挂载复用同一请求或结果，只写入一次本次 state Cookie |
 | 首屏配置预取失败 | 挂载展示失败，用户显式刷新或切回扫码后才重试 |
 | 已缓存配置到期后挂载 | 获取新配置，不展示过期二维码 |
@@ -77,6 +102,9 @@ Query key：['auth', 'dingtalk-login-config']
 ## 6. 必要验证
 
 - StrictMode、快速切换、连续刷新、旧请求响应和 state Cookie 一致性。
+- Go HTML 的配置与 Cookie 对应、连续请求隔离、条件缓存与 HEAD/非登录路径边界。
+- 开发服务器注入、Cookie 透传与代理目标；恶意闭合 script 的字符正确转义。
+- 内嵌配置成功/禁用/错误/坏 JSON/坏参数、StrictMode 首屏零 GET 与节点只消费一次。
 - 首屏预取在途、早于挂载完成、失败、缓存到期和管理员返回扫码时的请求去重。
 - 已预热配置进入换码回调时不请求新配置，认证失败后返回登录页获取新 state。
 - iframe 的 load 事件触发前已可见，加载提示与二维码区域互不遮挡。

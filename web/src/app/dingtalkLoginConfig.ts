@@ -14,9 +14,24 @@ export type FrameConfig = {
 
 type LoginConfig = { enabled: false } | { enabled: true; frame: FrameConfig };
 
-function parseConfig(config: API.DingTalkLoginConfig): LoginConfig {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseConfig(config: unknown): LoginConfig {
+  if (
+    !isRecord(config) ||
+    (config.enabled !== undefined && typeof config.enabled !== 'boolean')
+  ) {
+    throw new Error('钉钉登录配置不完整，请联系管理员');
+  }
   if (!config.enabled) return { enabled: false };
-  if (!config.authorizeUrl || !config.expiresAt) {
+  if (
+    typeof config.authorizeUrl !== 'string' ||
+    !config.authorizeUrl ||
+    typeof config.expiresAt !== 'string' ||
+    !config.expiresAt
+  ) {
     throw new Error('钉钉登录配置不完整，请联系管理员');
   }
   const authorize = new URL(config.authorizeUrl);
@@ -46,16 +61,33 @@ function parseConfig(config: API.DingTalkLoginConfig): LoginConfig {
 }
 
 async function loadConfig(): Promise<LoginConfig> {
-  // 不消费 AbortSignal：已发出的配置响应会写 Cookie，必须由同一 Query 串行收齐。
-  const response = await authServiceGetDingTalkLoginConfig({
-    skipErrorHandler: true,
-  });
-  if (!response?.data || response.success === false) {
-    throw new Error('获取钉钉登录配置失败，请重试');
-  }
   try {
+    let response: unknown;
+    const bootstrap = document.getElementById('roncin-dingtalk-login-config');
+    if (bootstrap) {
+      // 一次性配置与本次 HTML 的 Cookie 对应，先移除，后续刷新必须请求新 state。
+      bootstrap.remove();
+      if (
+        bootstrap.tagName !== 'SCRIPT' ||
+        bootstrap.getAttribute('type') !== 'application/json'
+      ) {
+        throw new Error('钉钉登录配置格式不正确，请刷新页面');
+      }
+      response = JSON.parse(bootstrap.textContent ?? '');
+    } else {
+      // 不消费 AbortSignal：已发出的配置响应会写 Cookie，必须由同一 Query 串行收齐。
+      response = await authServiceGetDingTalkLoginConfig({
+        skipErrorHandler: true,
+      });
+    }
+    if (!isRecord(response) || !response.data || response.success === false) {
+      throw new Error('获取钉钉登录配置失败，请重试');
+    }
     return parseConfig(response.data);
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error('钉钉登录配置格式不正确，请刷新页面');
+    }
     if (error instanceof TypeError) {
       throw new Error('钉钉登录配置或回调地址不正确，请联系管理员');
     }

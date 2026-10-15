@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	nethttp "net/http"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/go-kratos/kratos/v3/transport"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type AuthService struct {
@@ -46,18 +48,45 @@ func (s *AuthService) GetDingTalkLoginConfig(ctx context.Context, _ *v1.GetDingT
 		tr.ReplyHeader().Set("Cache-Control", "no-store")
 		tr.ReplyHeader().Set("Pragma", "no-cache")
 	}
-	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartDingTalkLogin()
+	response, cookie, err := s.prepareDingTalkLoginConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
+	if cookie != nil {
+		if tr, ok := transport.FromServerContext(ctx); ok {
+			tr.ReplyHeader().Add("Set-Cookie", cookie.String())
+		}
+	}
+	return response, nil
+}
+
+// DingTalkLoginBootstrap 复用登录配置 DTO，为首屏 HTML 提供独立校验信息及 Cookie。
+func (s *AuthService) DingTalkLoginBootstrap(ctx context.Context) (json.RawMessage, *nethttp.Cookie, error) {
+	response, cookie, err := s.prepareDingTalkLoginConfig(ctx)
+	if err != nil {
+		// 显式错误信封保留管理员登录入口，不把内部错误或敏感配置带入 HTML。
+		response = &v1.GetDingTalkLoginConfigResponse{Code: 500, Message: "钉钉登录配置加载失败，请稍后重试"}
+		payload, marshalErr := (protojson.MarshalOptions{EmitDefaultValues: true}).Marshal(response)
+		return payload, nil, marshalErr
+	}
+	payload, err := protojson.Marshal(response)
+	return payload, cookie, err
+}
+
+func (s *AuthService) prepareDingTalkLoginConfig(ctx context.Context) (*v1.GetDingTalkLoginConfigResponse, *nethttp.Cookie, error) {
+	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartDingTalkLogin()
+	if err != nil {
+		return nil, nil, err
+	}
 	config := &v1.DingTalkLoginConfig{Enabled: enabled}
+	var cookie *nethttp.Cookie
 	if enabled {
 		config.AuthorizeUrl = &authorizeURL
 		expires := expiresAt.Format(time.RFC3339)
 		config.ExpiresAt = &expires
-		s.setCookieNamed(ctx, s.dingTalkStateCookieName(), state, expiresAt, 300)
+		cookie = s.newCookie(s.dingTalkStateCookieName(), state, expiresAt, 300)
 	}
-	return ok(ctx, &v1.GetDingTalkLoginConfigResponse{Data: config}), nil
+	return ok(ctx, &v1.GetDingTalkLoginConfigResponse{Data: config}), cookie, nil
 }
 
 func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLoginRequest) (*v1.DingTalkLoginResponse, error) {
@@ -133,9 +162,13 @@ func (s *AuthService) setCookie(ctx context.Context, value string, expires time.
 
 func (s *AuthService) setCookieNamed(ctx context.Context, name, value string, expires time.Time, maxAge int) {
 	if tr, ok := transport.FromServerContext(ctx); ok {
-		cookie := &nethttp.Cookie{Name: name, Value: value, Path: "/", Expires: expires, MaxAge: maxAge, HttpOnly: true, Secure: s.policy.Secure, SameSite: parseSameSite(s.policy.SameSite)}
+		cookie := s.newCookie(name, value, expires, maxAge)
 		tr.ReplyHeader().Add("Set-Cookie", cookie.String())
 	}
+}
+
+func (s *AuthService) newCookie(name, value string, expires time.Time, maxAge int) *nethttp.Cookie {
+	return &nethttp.Cookie{Name: name, Value: value, Path: "/", Expires: expires, MaxAge: maxAge, HttpOnly: true, Secure: s.policy.Secure, SameSite: parseSameSite(s.policy.SameSite)}
 }
 
 func (s *AuthService) dingTalkStateCookieName() string {

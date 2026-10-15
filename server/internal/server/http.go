@@ -75,6 +75,6 @@ func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 	registerDingTalkApprovalCallback(srv, approvalUsecase, logger)
 	registerHealthHandlers(srv, readiness)
 	srv.Handle("/metrics", promhttp.Handler())
-	srv.HandlePrefix("/", webassets.Handler())
+	srv.HandlePrefix("/", webassets.Handler(auth.DingTalkLoginBootstrap))
 	return srv
 }
