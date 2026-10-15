@@ -1474,3 +1474,38 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Next Steps
 
 - 部署后使用真实企业账号验证扫码；当前结果未包含真实钉钉网络耗时测量
+
+
+## Session 134: 登录方式切换即时恢复有效钉钉二维码
+<!-- trellis-session: v=2 fp=aaed648bef7391e6 -->
+
+**Date**: 2026-10-15
+**Task**: 登录方式切换即时恢复有效钉钉二维码
+**Branch**: `codex/dingtalk-html-frame`
+
+### Summary
+
+保留同一iframe浏览上下文，切回有效二维码不再显示占位、不请求配置或授权页面；隐藏时暂停认证与定位，过期后返回按需刷新。前端门禁、最终回归、真实浏览器和独立审查通过。
+
+### Main Changes
+
+- 扫码组件保持挂载，active控制显示与消息，密码模式不遮挡和接受认证；修订扫码规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `54b2955a` | perf: 保留有效钉钉二维码以加速登录方式切换 |
+
+### Testing
+
+- [OK] check:web通过：1292项通过、12项跳过；最终新切换套件16项、tsc、Biome通过
+- [OK] 真实Chromium验证HTML与动态两类各3次切换，同DOM/contentWindow、无额外GET/导航/占位，隐藏过期返回与回调恢复通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 部署后用真实企业账号验证扫码；本次协议模拟不替代真实扫码验收
