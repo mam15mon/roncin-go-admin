@@ -388,11 +388,6 @@ export function DingTalkQrLogin({ active = true, onAuthenticated }: Props) {
           刷新二维码
         </Button>
         <div className={styles.qrHintGroup}>
-          {query.data?.enabled && !query.isError && (
-            <p className={styles.qrHint}>
-              若二维码未显示或加载失败，请检查网络后刷新二维码，或使用管理员账号登录。
-            </p>
-          )}
           <p className={styles.qrHint}>
             使用前请联系管理员同步人员并分配组织和角色
           </p>

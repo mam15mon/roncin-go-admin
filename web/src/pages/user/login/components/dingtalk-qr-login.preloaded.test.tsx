@@ -145,7 +145,6 @@ describe('HTML 二维码实例接管', () => {
     expect(
       screen.queryByText('钉钉二维码加载较慢，请检查网络或刷新二维码'),
     ).not.toBeInTheDocument();
-    expect(screen.getByText(/若二维码未显示或加载失败/)).toBeVisible();
   });
 
   it('早期明确失败立即移除预载实例并允许手动恢复', async () => {

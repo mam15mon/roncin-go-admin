@@ -12,8 +12,6 @@ vi.mock('@/services/roncin/authService', () => ({
 
 const origin = 'https://login.dingtalk.com';
 const callback = () => `${window.location.origin}/user/login/dingtalk/callback`;
-const recovery =
-  '若二维码未显示或加载失败，请检查网络后刷新二维码，或使用管理员账号登录。';
 
 function config(state = 'state-1') {
   return {
@@ -65,14 +63,13 @@ describe('钉钉二维码生命周期', () => {
     vi.useRealTimers();
   });
 
-  it('网络失败也触发 load 时保留可见恢复说明和刷新入口', async () => {
+  it('网络失败也触发 load 时保留刷新入口', async () => {
     const { iframe, onAuthenticated } = await mount();
     expect(iframe).toBeVisible();
     expect(screen.getByText('正在加载钉钉二维码')).toBeVisible();
     fireEvent.load(iframe);
     await act(async () => vi.advanceTimersByTimeAsync(16000));
 
-    expect(screen.getByText(recovery)).toBeVisible();
     expect(screen.getByRole('button', { name: /刷新二维码/ })).toBeEnabled();
     expect(screen.queryByText('正在加载钉钉二维码')).not.toBeInTheDocument();
     expect(onAuthenticated).not.toHaveBeenCalled();
