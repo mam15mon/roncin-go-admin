@@ -1509,3 +1509,25 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Next Steps
 
 - 部署后用真实企业账号验证扫码；本次协议模拟不替代真实扫码验收
+
+
+## Session 135: 登录页参照钉钉优化卡片与顶部切换
+<!-- trellis-session: v=2 fp=caea5b906ec37690 -->
+
+**Date**: 2026-10-15
+**Task**: 登录页参照钉钉优化卡片与顶部切换
+**Branch**: `codex/dingtalk-html-frame`
+
+### Summary
+
+完成顶部Segmented、统一白色卡片、浅色品牌区、独立版权和窄屏适配，保留HTML提前加载及有效二维码复用。定向61测试、完整前端1294通过/12既有跳过、8种尺寸Chromium和独立审查通过；真实企业扫码未测，既有范围外网络日志已记录。仅归档本任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `298db52a` | style: 优化登录页卡片布局与登录方式切换 |
+
+### Status
+
+[OK] **Completed**
