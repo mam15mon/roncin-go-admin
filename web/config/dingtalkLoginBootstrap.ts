@@ -1,7 +1,26 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { Plugin } from 'vite';
+import {
+  PRELOADED_FRAME_ID,
+  parseDingTalkLoginResponse,
+} from '../src/app/dingtalkLoginProtocol';
 import { getProxyConfig } from './proxy';
+
+function preloadedFrame(payload: unknown, origin: string): string {
+  try {
+    const config = parseDingTalkLoginResponse(payload, origin);
+    if (!config.enabled || config.frame.expiresAt <= Date.now()) return '';
+    const src = config.frame.src
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return `<iframe id="${PRELOADED_FRAME_ID}" title="钉钉扫码登录二维码" src="${src}" data-expires-at="${config.frame.expiresAt}" style="position:absolute;visibility:hidden;width:280px;height:280px;border:0" referrerpolicy="no-referrer" onload="this.dataset.navigation='loaded'" onerror="this.dataset.navigation='failed'"></iframe>`;
+  } catch {
+    return '';
+  }
+}
 
 const failure = {
   success: false,
@@ -60,13 +79,18 @@ export function dingTalkLoginBootstrap(): Plugin {
             resolve(server.config.root, 'index.html'),
             'utf8',
           );
+          const protocol = server.config.server?.https ? 'https' : 'http';
+          const origin = `${protocol}://${request.headers.host}`;
+          const frame = preloadedFrame(payload, origin);
           const html = await server.transformIndexHtml(
             request.url ?? '/user/login',
-            template.replace(
-              '</head>',
-              () =>
-                `<script type="application/json" id="roncin-dingtalk-login-config">${serialized}</script></head>`,
-            ),
+            template
+              .replace('</body>', () => `${frame}</body>`)
+              .replace(
+                '</head>',
+                () =>
+                  `<script type="application/json" id="roncin-dingtalk-login-config">${serialized}</script></head>`,
+              ),
             request.originalUrl,
           );
           response.statusCode = 200;

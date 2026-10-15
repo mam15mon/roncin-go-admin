@@ -1,0 +1,28 @@
+{
+  "id": "dingtalk-html-frame",
+  "name": "dingtalk-html-frame",
+  "title": "登录页HTML直接加载钉钉二维码",
+  "description": "HTML解析即加载钉钉iframe，前端复用实例，减少首屏启动等待",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-15",
+  "completedAt": null,
+  "branch": "codex/dingtalk-html-frame",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "validation": "check:fast、生产构建、开发/Go同域浏览器验收及独立审查全部通过"
+  }
+}

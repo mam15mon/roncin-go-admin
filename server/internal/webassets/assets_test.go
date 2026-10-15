@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"html"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -156,5 +158,98 @@ func TestLoginEntryFileErrorsDoNotGenerateState(t *testing.T) {
 		if response.Code != http.StatusInternalServerError || calls != 0 || len(response.Result().Cookies()) != 0 {
 			t.Fatalf("入口文件错误时生成了 state: %d %d %v", response.Code, calls, response.Header())
 		}
+	}
+}
+
+func framePayload(t *testing.T) map[string]any {
+	t.Helper()
+	authorize := &url.URL{Scheme: "https", Host: "login.dingtalk.com", Path: "/oauth2/auth"}
+	authorize.RawQuery = url.Values{"client_id": {"app"}, "response_type": {"code"}, "scope": {"openid"}, "state": {`sample<&"state`}, "redirect_uri": {"http://example.com/user/login/dingtalk/callback"}}.Encode()
+	return map[string]any{"success": true, "data": map[string]any{"enabled": true, "authorizeUrl": authorize.String(), "expiresAt": "2037-01-01T00:00:00Z"}}
+}
+
+func TestLoginEntryPreloadsFrameOutsideReactRoot(t *testing.T) {
+	payload, err := json.Marshal(framePayload(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := newTestHandler(func(context.Context) (json.RawMessage, *http.Cookie, error) {
+		return payload, &http.Cookie{Name: "login_state", Value: "same-response", Path: "/", HttpOnly: true}, nil
+	})
+	response := httptest.NewRecorder()
+	h.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "http://example.com/user/login", nil))
+	body := response.Body.String()
+	start := strings.Index(body, `<iframe id="roncin-dingtalk-login-frame"`)
+	if start < strings.Index(body, `<div id="root"></div>`) || strings.Count(body, "<iframe") != 1 || len(response.Result().Cookies()) != 1 {
+		t.Fatalf("预载实例位置或同响应 Cookie 错误: %s", body)
+	}
+	frame := body[start:]
+	srcStart := strings.Index(frame, `src="`) + len(`src="`)
+	srcEnd := strings.Index(frame[srcStart:], `"`) + srcStart
+	src, err := url.Parse(html.UnescapeString(frame[srcStart:srcEnd]))
+	if err != nil || src.Query().Get("iframe") != "true" || src.Query().Get("state") != `sample<&"state` {
+		t.Fatalf("iframe URL 转义或参数错误: %v %s", err, frame)
+	}
+	if !strings.Contains(frame, `visibility:hidden`) || !strings.Contains(frame, `data-expires-at="2114380800000"`) || !strings.Contains(frame, `onload="this.dataset.navigation='loaded'"`) || strings.Contains(frame, `sample<&"state`) {
+		t.Fatalf("预载实例未隐藏或属性未转义: %s", frame)
+	}
+}
+
+func TestLoginEntryDoesNotPreloadInvalidConfig(t *testing.T) {
+	for _, kind := range []string{"disabled", "failure", "expired", "missing-client", "wrong-origin", "wrong-callback", "credentials", "invalid-date", "wrong-enabled-type"} {
+		t.Run(kind, func(t *testing.T) {
+			payload := framePayload(t)
+			data := payload["data"].(map[string]any)
+			authorize, _ := url.Parse(data["authorizeUrl"].(string))
+			query := authorize.Query()
+			switch kind {
+			case "disabled":
+				data["enabled"] = false
+			case "failure":
+				payload["success"] = false
+			case "expired":
+				data["expiresAt"] = "2000-01-01T00:00:00Z"
+			case "missing-client":
+				query.Del("client_id")
+			case "wrong-origin":
+				authorize.Host = "example.net"
+			case "wrong-callback":
+				query.Set("redirect_uri", "https://evil.example/user/login/dingtalk/callback")
+			case "credentials":
+				authorize.User = url.User("unexpected")
+			case "invalid-date":
+				data["expiresAt"] = "bad-date"
+			case "wrong-enabled-type":
+				data["enabled"] = "true"
+			}
+			authorize.RawQuery = query.Encode()
+			data["authorizeUrl"] = authorize.String()
+			encoded, _ := json.Marshal(payload)
+			h := newTestHandler(func(context.Context) (json.RawMessage, *http.Cookie, error) { return encoded, nil, nil })
+			response := httptest.NewRecorder()
+			h.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "http://example.com/user/login", nil))
+			if response.Code != http.StatusOK || strings.Contains(response.Body.String(), "<iframe") {
+				t.Fatalf("非法配置被预载: %d %s", response.Code, response.Body.String())
+			}
+		})
+	}
+}
+
+func TestLoginFrameUsesProxyProtocol(t *testing.T) {
+	payload := framePayload(t)
+	data := payload["data"].(map[string]any)
+	authorize, _ := url.Parse(data["authorizeUrl"].(string))
+	query := authorize.Query()
+	query.Set("redirect_uri", "https://example.com/user/login/dingtalk/callback")
+	authorize.RawQuery = query.Encode()
+	data["authorizeUrl"] = authorize.String()
+	encoded, _ := json.Marshal(payload)
+	request := httptest.NewRequest(http.MethodGet, "http://example.com/user/login", nil)
+	if preloadedLoginFrame(encoded, request) != "" {
+		t.Fatal("协议不匹配时不应预载")
+	}
+	request.Header.Set("X-Forwarded-Proto", "https")
+	if preloadedLoginFrame(encoded, request) == "" {
+		t.Fatal("HTTPS 代理入口应预载")
 	}
 }

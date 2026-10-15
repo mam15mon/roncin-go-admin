@@ -12,6 +12,7 @@ import React, { startTransition, useCallback, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import { refreshDingTalkLoginConfig } from '@/app/dingtalkLoginConfig';
+import { discardPreloadedDingTalkFrame } from '@/app/dingtalkPreloadedFrame';
 import { QuarterRing } from '@/components/ui';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
@@ -331,6 +332,7 @@ export default function Login() {
                   </span>
                 }
                 onClick={() => {
+                  discardPreloadedDingTalkFrame();
                   setIsTyping(false);
                   setShowPassword(false);
                   if (loginMode === 'password') {

@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/dingtalk-qr-login.md", "reason": "现有扫码安全和生命周期契约；本任务将扩展 HTML iframe 接管"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "复用 React Query 配置串行查询"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "监听生命周期及稳定回调"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Go、Vite 与浏览器共享 HTML 契约"}

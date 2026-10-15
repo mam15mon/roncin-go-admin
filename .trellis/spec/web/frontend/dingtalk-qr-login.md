@@ -15,6 +15,9 @@ GET /user/login（首次 HTML 导航）
 响应头：Cache-Control: no-store、Pragma: no-cache
 响应正文：<script type="application/json" id="roncin-dingtalk-login-config">...</script>
 节点内容：复用 GetDingTalkLoginConfigResponse 的 ProtoJSON camelCase 信封
+合法启用配置：在 #root 外输出 <iframe id="roncin-dingtalk-login-frame" ...>
+iframe 属性：官方授权 src、data-expires-at（Unix 毫秒）、referrerpolicy=no-referrer
+早期导航标记：固定 onload/onerror 仅写 data-navigation=loaded/failed，不拼接配置到脚本
 配置生成失败：{"success":false,"code":500,"message":"钉钉登录配置加载失败，请稍后重试"}
 ```
 
@@ -28,13 +31,24 @@ Query key：['auth', 'dingtalk-login-config']
 
 - 默认展示真实钉钉 OAuth2 iframe，次级“管理员账号登录”切换密码，可返回扫码。保留品牌资源，配置失败不静默改成密码表单。
 - HTML 入口通过 `preconnect` 和 `dns-prefetch` 提前准备 `https://login.dingtalk.com`
-  连接；不预取带 state 的钉钉授权页面，不把授权 URL 写入静态 HTML。
+  连接；仅在本次动态登录 HTML 响应中输出带 state 的 iframe，构建产物不含授权 URL。
 - 首次直接打开 `/user/login` 时，Go 服务复用认证 Service 创建本次配置和 Cookie，
   在同一个 HTML 响应中返回。每次导航独立生成，不缓存配置或共享 state；配置
   使用现有 Proto DTO 序列化，静态资源层只接收 JSON 和 Cookie，不做领域转换。
-- HTML 内嵌节点是不可执行的 JSON；插入前必须转义 `<`、`>`、`&` 等字符，
-  禁止直接拼接授权 URL 或将配置赋到可执行全局脚本。只包含公开登录配置，
+- HTML 内嵌配置节点是不可执行的 JSON；插入前必须转义 `<`、`>`、`&` 等字符。
+  iframe 的 src 使用标准 URL 工具追加 `iframe=true` 并进行 HTML 属性转义；
+  禁止把授权 URL、state 或配置拼入可执行脚本。只包含公开登录配置，
   不包含 clientSecret、会话令牌或换码令牌。
+- Go 与 Vite 仅对合法、启用、未到期且回调同源的配置输出提前加载的 iframe，
+  与内嵌 JSON 和 Cookie 对应同次响应。配置失败、禁用、非法或过期不提前导航。
+- 提前加载的 iframe 保持在 `#root` 之外的 HTML 原位置，避免 `createRoot`
+  清空节点或 DOM 重挂载重置浏览上下文。前端匹配授权参数与到期信息后认领原实例，
+  不改 `src`、不改父节点，通过位置样式与扫码占位区对齐。
+- iframe 在认证监听安装前隐藏，接管后显示；早期 `load/error` 通过固定 dataset
+  标记传给前端，接管后沿用现有导航状态语义。不得把 `load` 标记解释成二维码就绪。
+  几何对齐必须覆盖窄屏、窗口变化、卡片移动与文档滚动，且不持续进行无变化的 DOM 写入。
+- 刷新、过期、管理员模式、认证开始和路由退出均清理提前加载的实例；StrictMode
+  的模拟清理与重挂载不得销毁仍待认领的实例，真实卸载后不得遗留 iframe 或监听。
 - 内嵌配置对应的 Cookie 与 HTML 必须同一次响应写入，保留 HttpOnly、Secure、
   SameSite、Path、有效期属性。登录页 GET 忽略条件缓存，不返回 304；HEAD、
   业务页、回调页、静态文件、API 与健康检查不生成登录配置或覆盖 Cookie。
@@ -76,7 +90,11 @@ Query key：['auth', 'dingtalk-login-config']
 | 条件 | 结果 |
 | --- | --- |
 | 钉钉未启用 | 显示未启用，管理员入口可达 |
-| 首次登录 HTML 携带合法内嵌配置 | 消费一次并移除节点，组件直接显示二维码，配置 GET 为 0 |
+| 首次登录 HTML 携带合法内嵌配置 | 消费一次并移除配置节点，认领 HTML 已请求的同一 iframe，配置 GET 为 0 |
+| 前端主程序被阻塞 | HTML iframe 已请求授权页；认证监听安装前隐藏 |
+| 前端接管提前加载的 iframe | 同一 DOM 节点、同一浏览上下文、仅一次授权导航，不改 src 或父节点 |
+| 提前 iframe 已触发 load/error | 接管读取 dataset 标记，不再次等待 load；error 按既有失败恢复处理 |
+| 切换密码模式或离开登录页 | 旧实例退役并移除，不残留遮挡层、监听或定时器 |
 | 内嵌配置失败、非法 JSON 或参数不合法 | 显示配置错误，不自动 GET，保留管理员入口 |
 | 连续两次 HTML 导航 | 两组不同 state，分别与各自响应 Cookie 一致，均为 no-store |
 | 登录 HTML 附带条件缓存请求头 | 返回新 HTML 与本次 Cookie，不返回 304 |
@@ -104,7 +122,10 @@ Query key：['auth', 'dingtalk-login-config']
 - StrictMode、快速切换、连续刷新、旧请求响应和 state Cookie 一致性。
 - Go HTML 的配置与 Cookie 对应、连续请求隔离、条件缓存与 HEAD/非登录路径边界。
 - 开发服务器注入、Cookie 透传与代理目标；恶意闭合 script 的字符正确转义。
-- 内嵌配置成功/禁用/错误/坏 JSON/坏参数、StrictMode 首屏零 GET 与节点只消费一次。
+- 内嵌配置成功/禁用/错误/坏 JSON/坏参数、StrictMode 首屏零 GET 与配置节点只消费一次。
+- 阻塞主程序的真实浏览器验证：授权请求先发出、接管复用原节点与浏览上下文、无第二次授权导航。
+- Go 和 Vite 使用相同属性、转义及参数判断；参数顺序或编码差异不导致错误重建。
+- 提前 load/error、窄屏与滚动对齐、刷新/密码切换/路由退出清理，不残留外部 iframe。
 - 首屏预取在途、早于挂载完成、失败、缓存到期和管理员返回扫码时的请求去重。
 - 已预热配置进入换码回调时不请求新配置，认证失败后返回登录页获取新 state。
 - iframe 的 load 事件触发前已可见，加载提示与二维码区域互不遮挡。
@@ -121,4 +142,7 @@ Query key：['auth', 'dingtalk-login-config']
 
 错误：刷新先GET config再保留旧扫码实例；焦点自动GET覆盖state Cookie。
 正确：先卸载旧实例，固定Query key串行刷新，焦点只复核期限。
+
+错误：把已加载 iframe appendChild 到 React 容器，或改写其 src 以对齐字符串。
+正确：保留 #root 外原节点和 src，校验同次配置后仅更新定位样式，刷新时才销毁。
 ```

@@ -1,64 +1,18 @@
 import { type QueryClient, queryOptions } from '@tanstack/react-query';
 import { authServiceGetDingTalkLoginConfig } from '@/services/roncin/authService';
+import {
+  type LoginConfig,
+  parseDingTalkLoginResponse,
+} from './dingtalkLoginProtocol';
+import { discardPreloadedDingTalkFrame } from './dingtalkPreloadedFrame';
 
-export const DINGTALK_ORIGIN = 'https://login.dingtalk.com';
-export const CALLBACK_PATH = '/user/login/dingtalk/callback';
+export {
+  CALLBACK_PATH,
+  DINGTALK_ORIGIN,
+  type FrameConfig,
+} from './dingtalkLoginProtocol';
+
 const CONFIG_QUERY_KEY = ['auth', 'dingtalk-login-config'] as const;
-
-export type FrameConfig = {
-  src: string;
-  state: string;
-  expiresAt: number;
-  callback: URL;
-};
-
-type LoginConfig = { enabled: false } | { enabled: true; frame: FrameConfig };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function parseConfig(config: unknown): LoginConfig {
-  if (
-    !isRecord(config) ||
-    (config.enabled !== undefined && typeof config.enabled !== 'boolean')
-  ) {
-    throw new Error('钉钉登录配置不完整，请联系管理员');
-  }
-  if (!config.enabled) return { enabled: false };
-  if (
-    typeof config.authorizeUrl !== 'string' ||
-    !config.authorizeUrl ||
-    typeof config.expiresAt !== 'string' ||
-    !config.expiresAt
-  ) {
-    throw new Error('钉钉登录配置不完整，请联系管理员');
-  }
-  const authorize = new URL(config.authorizeUrl);
-  const callback = new URL(authorize.searchParams.get('redirect_uri') ?? '');
-  const state = authorize.searchParams.get('state');
-  const expiresAt = Date.parse(config.expiresAt);
-  if (
-    authorize.origin !== DINGTALK_ORIGIN ||
-    authorize.pathname !== '/oauth2/auth' ||
-    callback.origin !== window.location.origin ||
-    callback.pathname !== CALLBACK_PATH ||
-    callback.username ||
-    callback.password ||
-    !state ||
-    !authorize.searchParams.get('client_id') ||
-    authorize.searchParams.get('response_type') !== 'code' ||
-    !authorize.searchParams.get('scope') ||
-    !Number.isFinite(expiresAt)
-  ) {
-    throw new Error('钉钉登录配置或回调地址不正确，请联系管理员');
-  }
-  authorize.searchParams.set('iframe', 'true');
-  return {
-    enabled: true,
-    frame: { src: authorize.href, state, expiresAt, callback },
-  };
-}
 
 async function loadConfig(): Promise<LoginConfig> {
   try {
@@ -80,11 +34,13 @@ async function loadConfig(): Promise<LoginConfig> {
         skipErrorHandler: true,
       });
     }
-    if (!isRecord(response) || !response.data || response.success === false) {
-      throw new Error('获取钉钉登录配置失败，请重试');
+    const config = parseDingTalkLoginResponse(response, window.location.origin);
+    if (!config.enabled || config.frame.expiresAt <= Date.now()) {
+      discardPreloadedDingTalkFrame();
     }
-    return parseConfig(response.data);
+    return config;
   } catch (error) {
+    discardPreloadedDingTalkFrame();
     if (error instanceof SyntaxError) {
       throw new Error('钉钉登录配置格式不正确，请刷新页面');
     }
@@ -123,6 +79,7 @@ export function preloadDingTalkLoginConfig(
 }
 
 export function refreshDingTalkLoginConfig(queryClient: QueryClient): void {
+  discardPreloadedDingTalkFrame();
   // fetchQuery 复用同 key 在途请求，不取消仍可能写 Cookie 的响应。
   // 失败留在查询中由扫码区展示；显式返回扫码允许重新获取配置。
   void queryClient

@@ -1,7 +1,13 @@
 import { ReloadOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Spin } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { flushSync } from 'react-dom';
 import {
   CALLBACK_PATH,
@@ -9,6 +15,11 @@ import {
   dingTalkLoginConfigOptions,
   type FrameConfig,
 } from '@/app/dingtalkLoginConfig';
+import {
+  alignPreloadedDingTalkFrame,
+  claimPreloadedDingTalkFrame,
+  discardPreloadedDingTalkFrame,
+} from '@/app/dingtalkPreloadedFrame';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import styles from '../index.module.less';
 
@@ -20,7 +31,12 @@ function DingTalkFrame({
   onExpired,
 }: Props & { config: FrameConfig; onExpired: () => void }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
+  const lifecycle = useRef(0);
   const retired = useRef(false);
+  const handled = useRef(false);
+  const onAuthenticatedRef = useRef(onAuthenticated);
+  onAuthenticatedRef.current = onAuthenticated;
   // 经 ref 消费回调，父组件重渲染不会重置到期定时器与消息监听。
   const onExpiredRef = useRef(onExpired);
   onExpiredRef.current = onExpired;
@@ -34,13 +50,36 @@ function DingTalkFrame({
   >('navigating');
   const [failure, setFailure] = useState('钉钉二维码加载失败，请刷新重试');
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const slot = slotRef.current;
+    if (!slot) return;
+    const generation = ++lifecycle.current;
     let active = true;
-    let handled = false;
-    retired.current = false;
+    let stopAlign = () => {};
+    const destroy = () => {
+      stopAlign();
+      iframeRef.current?.remove();
+      iframeRef.current = null;
+    };
+    const onLoad = () => {
+      if (!active || retired.current) return;
+      if (Date.now() >= config.expiresAt) {
+        expire();
+      } else {
+        // load 只结束导航提示，不代表跨源二维码已就绪。
+        setStatus('displayed');
+      }
+    };
+    const onError = () => {
+      if (!active || retired.current) return;
+      retired.current = true;
+      destroy();
+      setStatus('failed');
+    };
     const expire = () => {
-      if (active && !handled && Date.now() >= config.expiresAt) {
+      if (active && !handled.current && Date.now() >= config.expiresAt) {
         retired.current = true;
+        destroy();
         setStatus('expired');
         onExpiredRef.current();
       }
@@ -57,7 +96,7 @@ function DingTalkFrame({
       if (
         !active ||
         retired.current ||
-        handled ||
+        handled.current ||
         Date.now() >= config.expiresAt ||
         event.origin !== DINGTALK_ORIGIN ||
         !source ||
@@ -70,6 +109,7 @@ function DingTalkFrame({
       const data = event.data as Record<string, unknown>;
       if (data.success === false) {
         retired.current = true;
+        destroy();
         setFailure('钉钉扫码未完成，请刷新二维码后重试');
         setStatus('failed');
         return;
@@ -93,15 +133,16 @@ function DingTalkFrame({
         !authCode?.trim()
       )
         return;
-      handled = true;
+      handled.current = true;
       retired.current = true;
+      destroy();
       setStatus('authenticating');
       // 只导航到本站固定回调，绝不直接打开 message 提供的 redirectUrl。
       const callback = new URL(CALLBACK_PATH, window.location.origin);
       callback.searchParams.set('authCode', authCode);
       callback.searchParams.set('state', config.state);
       try {
-        onAuthenticated(`${callback.pathname}${callback.search}`);
+        onAuthenticatedRef.current(`${callback.pathname}${callback.search}`);
       } catch {
         setFailure('无法继续钉钉登录，请刷新页面后重试');
         setStatus('failed');
@@ -110,16 +151,49 @@ function DingTalkFrame({
     window.addEventListener('message', onMessage);
     window.addEventListener('focus', expire);
     document.addEventListener('visibilitychange', onVisibility);
+    let frame = iframeRef.current;
+    if (!retired.current && Date.now() < config.expiresAt) {
+      frame ??= claimPreloadedDingTalkFrame(config) ?? null;
+      if (!frame) {
+        frame = document.createElement('iframe');
+        frame.title = '钉钉扫码登录二维码';
+        frame.src = config.src;
+        frame.referrerPolicy = 'no-referrer';
+        frame.className = styles.qrFrame;
+        slot.appendChild(frame);
+      }
+      iframeRef.current = frame;
+      frame.addEventListener('load', onLoad);
+      frame.addEventListener('error', onError);
+      // 固定 HTML 事件只记录导航结果；接管后改用可清理的原生监听。
+      frame.removeAttribute('onload');
+      frame.removeAttribute('onerror');
+      if (frame.dataset.navigation === 'failed') onError();
+      else {
+        if (frame.parentElement === slot) frame.style.visibility = 'visible';
+        else stopAlign = alignPreloadedDingTalkFrame(frame, slot);
+        if (frame.dataset.navigation === 'loaded') onLoad();
+      }
+    }
     expire();
     return () => {
       active = false;
-      retired.current = true;
+      stopAlign();
+      if (frame) {
+        frame.style.visibility = 'hidden';
+        frame.removeEventListener('load', onLoad);
+        frame.removeEventListener('error', onError);
+      }
+      // StrictMode 会立即重演 setup；保留同一浏览上下文，真实卸载则在微任务销毁。
+      queueMicrotask(() => {
+        if (lifecycle.current === generation) destroy();
+      });
       window.clearTimeout(timeout);
       window.removeEventListener('message', onMessage);
       window.removeEventListener('focus', expire);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [config, onAuthenticated]);
+  }, [config]);
 
   useEffect(() => {
     if (status !== 'navigating') return;
@@ -162,29 +236,7 @@ function DingTalkFrame({
           <span>正在加载钉钉二维码</span>
         </div>
       )}
-      <div className={styles.qrFrameWrapper}>
-        <iframe
-          ref={iframeRef}
-          title="钉钉扫码登录二维码"
-          src={config.src}
-          className={styles.qrFrame}
-          onLoad={() => {
-            if (retired.current) return;
-            if (Date.now() >= config.expiresAt) {
-              retired.current = true;
-              setStatus('expired');
-            } else {
-              // 跨源 iframe 网络失败也会触发 load；这里只结束旁边的加载提示。
-              setStatus('displayed');
-            }
-          }}
-          onError={() => {
-            retired.current = true;
-            setStatus('failed');
-          }}
-          referrerPolicy="no-referrer"
-        />
-      </div>
+      <div ref={slotRef} className={styles.qrFrameWrapper} />
     </div>
   );
 }
@@ -196,6 +248,7 @@ export function DingTalkQrLogin({ onAuthenticated }: Props) {
 
   const refresh = useCallback(() => {
     if (query.isFetching) return;
+    discardPreloadedDingTalkFrame();
     // 先同步卸载旧 iframe/监听，再发出会覆盖 state Cookie 的配置请求。
     flushSync(() =>
       setRetiredState(query.data?.enabled ? query.data.frame.state : undefined),
