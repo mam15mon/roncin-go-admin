@@ -1,0 +1,31 @@
+{
+  "id": "login-ui-card",
+  "name": "login-ui-card",
+  "title": "参照钉钉优化登录页布局与视觉层级",
+  "description": "将登录方式切换移至卡片顶部，统一扫码和账号表单布局，收紧扫码区域并优化桌面及窄屏视觉，同时保留二维码提前加载与切换复用。",
+  "status": "in_progress",
+  "dev_type": "frontend",
+  "scope": "web",
+  "package": "web",
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-15",
+  "completedAt": null,
+  "branch": "codex/dingtalk-html-frame",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "web/src/pages/user/login/index.tsx",
+    "web/src/pages/user/login/index.module.less",
+    "web/src/pages/user/login/index.test.tsx",
+    ".trellis/spec/web/frontend/dingtalk-qr-login.md"
+  ],
+  "notes": "顶部切换与卡片视觉完成；定向61测试、完整前端1294通过/12既有跳过、8种尺寸浏览器与独立审查通过。真实企业扫码未测，既有范围外网络日志已记录于acceptance.md。",
+  "meta": {}
+}

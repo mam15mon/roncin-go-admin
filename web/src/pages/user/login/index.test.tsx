@@ -106,7 +106,7 @@ function mockLoginResponse(
 }
 
 async function submitLogin(): Promise<void> {
-  fireEvent.click(screen.getByRole('button', { name: '管理员账号登录' }));
+  fireEvent.click(screen.getByRole('radio', { name: '管理员账号' }));
   fireEvent.change(screen.getByPlaceholderText('用户名 / 邮箱'), {
     target: { value: 'operator' },
   });
@@ -218,9 +218,9 @@ describe('Login', () => {
       );
     await submitLogin();
     expect(frame).not.toBeVisible();
-    expect(
-      screen.getByRole('button', { name: '返回钉钉扫码登录' }),
-    ).toBeDisabled();
+    expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: '管理员账号' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: '管理员账号' })).toBeChecked();
     sendHiddenMessage(false);
     sendHiddenMessage(true);
     expect(historyReplaceMock).not.toHaveBeenCalled();
@@ -345,9 +345,8 @@ describe('Login', () => {
     );
 
     expect(await screen.findByTitle('钉钉扫码登录二维码')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: '管理员账号登录' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: '管理员账号' })).not.toBeChecked();
+    expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeChecked();
     expect(screen.queryByPlaceholderText('请输入密码')).not.toBeInTheDocument();
     expect(
       screen.getByText('使用前请联系管理员同步人员并分配组织和角色'),
@@ -357,11 +356,13 @@ describe('Login', () => {
     const source = iframe.contentWindow;
     fireEvent.load(iframe);
     for (let count = 0; count < 3; count++) {
-      fireEvent.click(screen.getByRole('button', { name: '管理员账号登录' }));
+      fireEvent.click(screen.getByRole('radio', { name: '管理员账号' }));
+      expect(screen.getByRole('radio', { name: '管理员账号' })).toBeChecked();
       expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
       expect(iframe).not.toBeVisible();
       expect(screen.getByText('刷新二维码')).not.toBeVisible();
-      fireEvent.click(screen.getByRole('button', { name: '返回钉钉扫码登录' }));
+      fireEvent.click(screen.getByRole('radio', { name: '钉钉扫码' }));
+      expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeChecked();
       expect(screen.getByTitle('钉钉扫码登录二维码')).toBe(iframe);
       expect(iframe.contentWindow).toBe(source);
       expect(iframe).toBeVisible();
@@ -370,6 +371,16 @@ describe('Login', () => {
         screen.queryByText('正在获取钉钉登录配置'),
       ).not.toBeInTheDocument();
     }
+    fireEvent.keyDown(screen.getByRole('radio', { name: '钉钉扫码' }), {
+      key: 'ArrowRight',
+    });
+    expect(screen.getByRole('radio', { name: '管理员账号' })).toBeChecked();
+    expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
+    fireEvent.keyDown(screen.getByRole('radio', { name: '管理员账号' }), {
+      key: 'ArrowLeft',
+    });
+    expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeChecked();
+    expect(screen.getByTitle('钉钉扫码登录二维码')).toBe(iframe);
     expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledOnce();
   });
 
@@ -424,13 +435,13 @@ describe('Login', () => {
     expect(
       await screen.findByText('获取钉钉登录配置失败，请重试'),
     ).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: '管理员账号登录' }));
+    fireEvent.click(screen.getByRole('radio', { name: '管理员账号' }));
     expect(screen.getByRole('button', { name: '登录' })).toHaveAttribute(
       'type',
       'submit',
     );
     expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: '返回钉钉扫码登录' }));
+    fireEvent.click(screen.getByRole('radio', { name: '钉钉扫码' }));
     expect(
       await screen.findByText('钉钉登录暂未启用，请联系管理员'),
     ).toBeVisible();

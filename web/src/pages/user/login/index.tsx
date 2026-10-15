@@ -6,7 +6,7 @@ import {
   LockOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { App, Button, Checkbox, Form, Input } from 'antd';
+import { App, Button, Checkbox, Form, Input, Segmented } from 'antd';
 import React, { startTransition, useCallback, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
@@ -102,13 +102,8 @@ export default function Login() {
         <title>登录 - {Settings.title}</title>
       </Helmet>
 
-      {/* ── 左侧：潮趣卡通小人交互区 ── */}
+      {/* 品牌与互动角色 */}
       <div className={styles.heroSection}>
-        {/* 弥散光晕 */}
-        <div className={styles.glowTopLeft} />
-        <div className={styles.glowBottomRight} />
-
-        {/* 顶部品牌 Logo */}
         <div className={styles.brandLogoWrapper}>
           <img
             src="/images/logo-only.webp"
@@ -120,7 +115,7 @@ export default function Login() {
           />
         </div>
 
-        {/* 核心互动动画角色 */}
+        {/* 保留角色跟随输入与密码可见性的交互 */}
         <div className={styles.charactersWrapper}>
           <AnimatedCharacters
             isTyping={isTyping}
@@ -130,227 +125,206 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ── 右侧：重构后的现代化高品质认证表单区 ── */}
+      {/* 认证主体与独立页脚 */}
       <div className={styles.formSection}>
-        {organizationSelection && organizationSelection.options.length > 1 ? (
-          <OrganizationPicker
-            options={organizationSelection.options}
-            currentOrganizationId={organizationSelection.currentOrganizationId}
-            onEnter={() => {
-              finishLogin(pendingRedirect);
-            }}
-          />
-        ) : (
-          <div className={styles.formCard}>
-            {/* 移动端 Logo 展示 */}
-            <div className={styles.mobileLogo}>
-              <img
-                src="/logo.svg"
-                alt="Roncin"
-                style={{ height: 32, width: 'auto' }}
-              />
-              <div>
-                <span
-                  style={{
-                    fontWeight: 800,
-                    fontSize: 18,
-                    letterSpacing: '0.08em',
-                    color: '#0f172a',
-                  }}
-                >
-                  RONCIN
-                </span>
-              </div>
-            </div>
-
-            {/* 表单头部：精炼极简 */}
-            <div className={styles.formHeader}>
-              <h1 className={styles.headerTitle}>
-                {loginMode === 'dingtalk' ? '钉钉扫码登录' : '管理员账号登录'}
-              </h1>
-              <p className={styles.headerSubtitle}>
-                {loginMode === 'dingtalk'
-                  ? '打开手机钉钉「扫一扫」快速登录'
-                  : '请输入管理账号与密码登录系统'}
-              </p>
-            </div>
-
-            <DingTalkQrLogin
-              active={loginMode === 'dingtalk' && !loading}
-              onAuthenticated={handleDingTalkAuthenticated}
+        <div className={styles.mobileLogo}>
+          <img src="/images/logo-mark.png" alt="" />
+          <span>RONCIN</span>
+        </div>
+        <main className={styles.formMain}>
+          {organizationSelection && organizationSelection.options.length > 1 ? (
+            <OrganizationPicker
+              options={organizationSelection.options}
+              currentOrganizationId={
+                organizationSelection.currentOrganizationId
+              }
+              onEnter={() => {
+                finishLogin(pendingRedirect);
+              }}
             />
-            {loginMode === 'password' && (
-              <Form<API.LoginRequest>
-                form={form}
-                layout="vertical"
-                requiredMark={false}
-                onFinish={handleSubmit}
-                initialValues={{ username: '', password: '' }}
-              >
-                {/* 用户名 */}
-                <Form.Item
-                  name="username"
-                  rules={[{ required: true, message: '请输入用户名' }]}
-                  style={{ marginBottom: 18 }}
-                >
-                  <div>
-                    <label
-                      className={styles.inputLabel}
-                      htmlFor="login_username"
-                    >
-                      账号
-                    </label>
-                    <Input
-                      id="login_username"
-                      size="large"
-                      placeholder="用户名 / 邮箱"
-                      prefix={
-                        <UserOutlined
-                          style={{
-                            color: '#94a3b8',
-                            fontSize: 16,
-                            marginRight: 6,
-                          }}
-                        />
-                      }
-                      className={styles.cleanInput}
-                      disabled={loading}
-                      onFocus={() => setIsTyping(true)}
-                      onBlur={() => setIsTyping(false)}
-                    />
-                  </div>
-                </Form.Item>
-
-                {/* 密码 */}
-                <Form.Item
-                  name="password"
-                  rules={[{ required: true, message: '请输入密码' }]}
-                  style={{ marginBottom: 18 }}
-                >
-                  <div>
-                    <label
-                      className={styles.inputLabel}
-                      htmlFor="login_password"
-                    >
-                      密码
-                    </label>
-                    <Input.Password
-                      id="login_password"
-                      size="large"
-                      placeholder="请输入密码"
-                      prefix={
-                        <LockOutlined
-                          style={{
-                            color: '#94a3b8',
-                            fontSize: 16,
-                            marginRight: 6,
-                          }}
-                        />
-                      }
-                      className={styles.cleanInput}
-                      disabled={loading}
-                      iconRender={(visible) =>
-                        visible ? (
-                          <EyeOutlined style={{ color: '#64748b' }} />
-                        ) : (
-                          <EyeInvisibleOutlined style={{ color: '#94a3b8' }} />
-                        )
-                      }
-                      visibilityToggle={{
-                        visible: showPassword,
-                        onVisibleChange: (visible) => setShowPassword(visible),
-                      }}
-                      onChange={(e) => setPasswordValue(e.target.value)}
-                      onFocus={() => setIsTyping(true)}
-                      onBlur={() => setIsTyping(false)}
-                    />
-                  </div>
-                </Form.Item>
-
-                {/* 辅助操作栏 */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 20,
-                  }}
-                >
-                  <Checkbox
-                    defaultChecked
-                    disabled={loading}
-                    style={{ fontSize: 13, color: '#475569' }}
-                  >
-                    保持登录状态
-                  </Checkbox>
-                </div>
-
-                {/* 登录操作按钮 */}
-                <Form.Item style={{ marginBottom: 0 }}>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    aria-label={loading ? '登录中...' : '登录'}
-                    loading={loading}
-                    disabled={loading}
-                    className={styles.submitButton}
-                    icon={
-                      loading ? (
-                        <QuarterRing size={16} strokeWidth="2px" />
-                      ) : (
-                        <ArrowRightOutlined />
-                      )
-                    }
-                    iconPlacement="end"
-                  >
-                    {loading ? '登录中...' : '登录'}
-                  </Button>
-                </Form.Item>
-              </Form>
-            )}
-
-            {/* 切换认证方式：极简文字按钮 */}
-            <div className={styles.modeSwitchWrapper}>
-              <Button
-                type="link"
+          ) : (
+            <section className={styles.formCard} aria-label="登录">
+              <Segmented<'dingtalk' | 'password'>
+                block
+                name="login-mode"
+                aria-label="登录方式"
                 className={styles.loginModeSwitch}
-                aria-label={
-                  loginMode === 'dingtalk'
-                    ? '管理员账号登录'
-                    : '返回钉钉扫码登录'
-                }
+                size="large"
+                value={loginMode}
+                options={[
+                  { label: '钉钉扫码', value: 'dingtalk' },
+                  { label: '管理员账号', value: 'password' },
+                ]}
                 disabled={loading}
-                icon={
-                  <span aria-hidden="true" style={{ display: 'inline-flex' }}>
-                    {loginMode === 'dingtalk' ? (
-                      <UserOutlined />
-                    ) : (
-                      <DingdingOutlined />
-                    )}
-                  </span>
-                }
-                onClick={() => {
+                onChange={(mode) => {
                   setIsTyping(false);
                   setShowPassword(false);
-                  setLoginMode((mode) =>
-                    mode === 'dingtalk' ? 'password' : 'dingtalk',
-                  );
+                  setLoginMode(mode);
                 }}
-              >
-                {loginMode === 'dingtalk'
-                  ? '管理员账号登录'
-                  : '返回钉钉扫码登录'}
-              </Button>
-            </div>
+              />
 
-            {/* 页脚版权 */}
-            <div className={styles.formFooter}>
-              <div className={styles.copyrightText}>
-                © {new Date().getFullYear()} Roncin Global Logistics
+              <div className={styles.formHeader}>
+                <div className={styles.authIcon} aria-hidden="true">
+                  {loginMode === 'dingtalk' ? (
+                    <DingdingOutlined />
+                  ) : (
+                    <UserOutlined />
+                  )}
+                </div>
+                <h1 className={styles.headerTitle}>
+                  {loginMode === 'dingtalk' ? '钉钉扫码登录' : '管理员账号登录'}
+                </h1>
+                <p className={styles.headerSubtitle}>
+                  {loginMode === 'dingtalk'
+                    ? '打开手机钉钉「扫一扫」快速登录'
+                    : '请输入管理账号与密码登录系统'}
+                </p>
               </div>
-            </div>
-          </div>
-        )}
+
+              <div className={styles.authContent}>
+                <DingTalkQrLogin
+                  active={loginMode === 'dingtalk' && !loading}
+                  onAuthenticated={handleDingTalkAuthenticated}
+                />
+                {loginMode === 'password' && (
+                  <Form<API.LoginRequest>
+                    form={form}
+                    layout="vertical"
+                    requiredMark={false}
+                    onFinish={handleSubmit}
+                    initialValues={{ username: '', password: '' }}
+                  >
+                    {/* 用户名 */}
+                    <Form.Item
+                      name="username"
+                      rules={[{ required: true, message: '请输入用户名' }]}
+                      style={{ marginBottom: 18 }}
+                    >
+                      <div>
+                        <label
+                          className={styles.inputLabel}
+                          htmlFor="login_username"
+                        >
+                          账号
+                        </label>
+                        <Input
+                          id="login_username"
+                          size="large"
+                          placeholder="用户名 / 邮箱"
+                          prefix={
+                            <UserOutlined
+                              style={{
+                                color: '#94a3b8',
+                                fontSize: 16,
+                                marginRight: 6,
+                              }}
+                            />
+                          }
+                          className={styles.cleanInput}
+                          disabled={loading}
+                          onFocus={() => setIsTyping(true)}
+                          onBlur={() => setIsTyping(false)}
+                        />
+                      </div>
+                    </Form.Item>
+
+                    {/* 密码 */}
+                    <Form.Item
+                      name="password"
+                      rules={[{ required: true, message: '请输入密码' }]}
+                      style={{ marginBottom: 18 }}
+                    >
+                      <div>
+                        <label
+                          className={styles.inputLabel}
+                          htmlFor="login_password"
+                        >
+                          密码
+                        </label>
+                        <Input.Password
+                          id="login_password"
+                          size="large"
+                          placeholder="请输入密码"
+                          prefix={
+                            <LockOutlined
+                              style={{
+                                color: '#94a3b8',
+                                fontSize: 16,
+                                marginRight: 6,
+                              }}
+                            />
+                          }
+                          className={styles.cleanInput}
+                          disabled={loading}
+                          iconRender={(visible) =>
+                            visible ? (
+                              <EyeOutlined style={{ color: '#64748b' }} />
+                            ) : (
+                              <EyeInvisibleOutlined
+                                style={{ color: '#94a3b8' }}
+                              />
+                            )
+                          }
+                          visibilityToggle={{
+                            visible: showPassword,
+                            onVisibleChange: (visible) =>
+                              setShowPassword(visible),
+                          }}
+                          onChange={(e) => setPasswordValue(e.target.value)}
+                          onFocus={() => setIsTyping(true)}
+                          onBlur={() => setIsTyping(false)}
+                        />
+                      </div>
+                    </Form.Item>
+
+                    {/* 辅助操作栏 */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: 20,
+                      }}
+                    >
+                      <Checkbox
+                        defaultChecked
+                        disabled={loading}
+                        style={{ fontSize: 13, color: '#475569' }}
+                      >
+                        保持登录状态
+                      </Checkbox>
+                    </div>
+
+                    {/* 登录操作按钮 */}
+                    <Form.Item style={{ marginBottom: 0 }}>
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        aria-label={loading ? '登录中...' : '登录'}
+                        loading={loading}
+                        disabled={loading}
+                        className={styles.submitButton}
+                        icon={
+                          loading ? (
+                            <QuarterRing size={16} strokeWidth="2px" />
+                          ) : (
+                            <ArrowRightOutlined />
+                          )
+                        }
+                        iconPlacement="end"
+                      >
+                        {loading ? '登录中...' : '登录'}
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                )}
+              </div>
+            </section>
+          )}
+        </main>
+        <footer className={styles.formFooter}>
+          © {new Date().getFullYear()} Roncin Global Logistics
+        </footer>
       </div>
     </div>
   );
