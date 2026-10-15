@@ -10,6 +10,7 @@ import { RouterProvider } from 'react-router';
 import { layoutCssVariables } from '../config/layout';
 import { themeConfig } from '../config/theme';
 import { AppProvider } from './app/AppProvider';
+import { preloadDingTalkLoginConfig } from './app/dingtalkLoginConfig';
 import { QuarterRing } from './components/ui';
 import { router } from './router';
 import { AppFeedbackBridge } from './utils/appFeedback';
@@ -18,6 +19,9 @@ import { queryClient } from './utils/queryClient';
 import 'dayjs/locale/zh-cn';
 import './global.less';
 import '../tailwind.css';
+
+// 与初始化、登录路由资源并行准备配置，扫码组件复用同一查询结果。
+void preloadDingTalkLoginConfig(queryClient, window.location.pathname);
 
 dayjs.locale('zh-cn');
 

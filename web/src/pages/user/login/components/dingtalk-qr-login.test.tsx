@@ -67,6 +67,8 @@ describe('钉钉二维码生命周期', () => {
 
   it('网络失败也触发 load 时保留可见恢复说明和刷新入口', async () => {
     const { iframe, onAuthenticated } = await mount();
+    expect(iframe).toBeVisible();
+    expect(screen.getByText('正在加载钉钉二维码')).toBeVisible();
     fireEvent.load(iframe);
     await act(async () => vi.advanceTimersByTimeAsync(16000));
 

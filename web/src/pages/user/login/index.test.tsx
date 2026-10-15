@@ -365,5 +365,6 @@ describe('Login', () => {
       await screen.findByText('钉钉登录暂未启用，请联系管理员'),
     ).toBeVisible();
     expect(screen.queryByPlaceholderText('请输入密码')).not.toBeInTheDocument();
+    expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledTimes(2);
   });
 });

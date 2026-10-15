@@ -6,10 +6,12 @@ import {
   LockOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { App, Button, Checkbox, Form, Input } from 'antd';
 import React, { startTransition, useCallback, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
+import { refreshDingTalkLoginConfig } from '@/app/dingtalkLoginConfig';
 import { QuarterRing } from '@/components/ui';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
@@ -33,6 +35,7 @@ function safeRedirect(value: string | null): string {
 
 export default function Login() {
   const { setInitialState } = useInitialState();
+  const queryClient = useQueryClient();
   const { message } = App.useApp();
   const [form] = Form.useForm<API.LoginRequest>();
 
@@ -330,6 +333,9 @@ export default function Login() {
                 onClick={() => {
                   setIsTyping(false);
                   setShowPassword(false);
+                  if (loginMode === 'password') {
+                    refreshDingTalkLoginConfig(queryClient);
+                  }
                   setLoginMode((mode) =>
                     mode === 'dingtalk' ? 'password' : 'dingtalk',
                   );

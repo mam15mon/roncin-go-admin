@@ -1,8 +1,24 @@
-import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  createTestQueryClient,
+  renderWithClient,
+} from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App } from 'antd';
+import { DetachedBrowserFrame } from 'happy-dom';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  dingTalkLoginConfigOptions,
+  preloadDingTalkLoginConfig,
+} from '@/app/dingtalkLoginConfig';
+import { DingTalkQrLogin } from './components/dingtalk-qr-login';
 import DingTalkCallback from './dingtalk-callback';
 
 const {
@@ -10,12 +26,14 @@ const {
   registerDingTalkUser,
   switchOrganization,
   getInvitationInfo,
+  getConfig,
   messageSuccessMock,
 } = vi.hoisted(() => ({
   dingTalkLogin: vi.fn(),
   registerDingTalkUser: vi.fn(),
   switchOrganization: vi.fn(),
   getInvitationInfo: vi.fn(),
+  getConfig: vi.fn(),
   messageSuccessMock: vi.fn(),
 }));
 
@@ -46,6 +64,7 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceRegisterDingTalkUser: registerDingTalkUser,
   authServiceSwitchOrganization: switchOrganization,
   authServiceGetDingTalkInvitationInfo: getInvitationInfo,
+  authServiceGetDingTalkLoginConfig: getConfig,
 }));
 
 function authenticatedUser(
@@ -125,6 +144,80 @@ describe('DingTalkCallback', () => {
     expect(screen.queryByText('选择进入的组织')).not.toBeInTheDocument();
     expect(switchOrganization).not.toHaveBeenCalled();
   });
+
+  it.each(['认证请求失败', '人员尚未同步'])(
+    '%s后返回扫码重新获取配置，回调期间不覆盖state Cookie',
+    async (scenario) => {
+      vi.spyOn(DetachedBrowserFrame.prototype, 'goto').mockImplementation(
+        () => new Promise(() => {}),
+      );
+      const client = createTestQueryClient();
+      const configResponse = (state: string) => {
+        const authorize = new URL('https://login.dingtalk.com/oauth2/auth');
+        authorize.search = new URLSearchParams({
+          client_id: 'app',
+          scope: 'openid',
+          response_type: 'code',
+          state,
+          redirect_uri: `${window.location.origin}/user/login/dingtalk/callback`,
+        }).toString();
+        return {
+          data: {
+            enabled: true,
+            authorizeUrl: authorize.href,
+            expiresAt: new Date(Date.now() + 300000).toISOString(),
+          },
+        };
+      };
+      getConfig
+        .mockResolvedValueOnce(configResponse('state'))
+        .mockResolvedValueOnce(configResponse('new-state'));
+      await preloadDingTalkLoginConfig(client, '/user/login');
+      dingTalkLogin.mockImplementationOnce(async () => {
+        // 必须在换码请求发出前标记已消费，且不能发起覆盖 Cookie 的 GET。
+        expect(
+          client.getQueryState(dingTalkLoginConfigOptions.queryKey)
+            ?.isInvalidated,
+        ).toBe(true);
+        expect(getConfig).toHaveBeenCalledTimes(1);
+        if (scenario === '认证请求失败') throw new Error('认证网络失败');
+        return { data: { status: 2 } };
+      });
+      const view = render(
+        <React.StrictMode>
+          <QueryClientProvider client={client}>
+            <App>
+              <DingTalkCallback />
+            </App>
+          </QueryClientProvider>
+        </React.StrictMode>,
+      );
+      expect(await screen.findByText('返回登录')).toBeVisible();
+      expect(dingTalkLogin).toHaveBeenCalledTimes(1);
+      expect(getConfig).toHaveBeenCalledTimes(1);
+
+      view.rerender(
+        <React.StrictMode>
+          <QueryClientProvider client={client}>
+            <DingTalkQrLogin onAuthenticated={vi.fn()} />
+          </QueryClientProvider>
+        </React.StrictMode>,
+      );
+      expect(screen.queryByTitle('钉钉扫码登录二维码')).not.toBeInTheDocument();
+      const iframe = await screen.findByTitle('钉钉扫码登录二维码');
+      expect(iframe).toHaveAttribute(
+        'src',
+        expect.stringContaining('state=new-state'),
+      );
+      expect(getConfig).toHaveBeenCalledTimes(2);
+      expect(
+        client.getQueryState(dingTalkLoginConfigOptions.queryKey)
+          ?.isInvalidated,
+      ).toBe(false);
+      view.unmount();
+      client.clear();
+    },
+  );
 
   it('多组织用户认证后先选组织，选其他组织经切换进入', async () => {
     sessionStorage.setItem('dingtalk_login_redirect', '/welcome');

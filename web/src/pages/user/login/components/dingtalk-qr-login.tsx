@@ -3,73 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Spin } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
+import {
+  CALLBACK_PATH,
+  DINGTALK_ORIGIN,
+  dingTalkLoginConfigOptions,
+  type FrameConfig,
+} from '@/app/dingtalkLoginConfig';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
-import { authServiceGetDingTalkLoginConfig } from '@/services/roncin/authService';
 import styles from '../index.module.less';
 
-const DINGTALK_ORIGIN = 'https://login.dingtalk.com';
-const CALLBACK_PATH = '/user/login/dingtalk/callback';
-const CONFIG_QUERY_KEY = ['auth', 'dingtalk-login-config'] as const;
-
-type FrameConfig = {
-  src: string;
-  state: string;
-  expiresAt: number;
-  callback: URL;
-};
-
-type LoginConfig = { enabled: false } | { enabled: true; frame: FrameConfig };
-
 type Props = { onAuthenticated: (callbackPath: string) => void };
-
-function parseConfig(config: API.DingTalkLoginConfig): LoginConfig {
-  if (!config.enabled) return { enabled: false };
-  if (!config.authorizeUrl || !config.expiresAt) {
-    throw new Error('钉钉登录配置不完整，请联系管理员');
-  }
-  const authorize = new URL(config.authorizeUrl);
-  const callback = new URL(authorize.searchParams.get('redirect_uri') ?? '');
-  const state = authorize.searchParams.get('state');
-  const expiresAt = Date.parse(config.expiresAt);
-  if (
-    authorize.origin !== DINGTALK_ORIGIN ||
-    authorize.pathname !== '/oauth2/auth' ||
-    callback.origin !== window.location.origin ||
-    callback.pathname !== CALLBACK_PATH ||
-    callback.username ||
-    callback.password ||
-    !state ||
-    !authorize.searchParams.get('client_id') ||
-    authorize.searchParams.get('response_type') !== 'code' ||
-    !authorize.searchParams.get('scope') ||
-    !Number.isFinite(expiresAt)
-  ) {
-    throw new Error('钉钉登录配置或回调地址不正确，请联系管理员');
-  }
-  authorize.searchParams.set('iframe', 'true');
-  return {
-    enabled: true,
-    frame: { src: authorize.href, state, expiresAt, callback },
-  };
-}
-
-async function loadConfig(): Promise<LoginConfig> {
-  // 不消费 AbortSignal：已发出的配置响应会写 Cookie，必须由同一 Query 串行收齐。
-  const response = await authServiceGetDingTalkLoginConfig({
-    skipErrorHandler: true,
-  });
-  if (!response?.data || response.success === false) {
-    throw new Error('获取钉钉登录配置失败，请重试');
-  }
-  try {
-    return parseConfig(response.data);
-  } catch (error) {
-    if (error instanceof TypeError) {
-      throw new Error('钉钉登录配置或回调地址不正确，请联系管理员');
-    }
-    throw error;
-  }
-}
 
 function DingTalkFrame({
   config,
@@ -213,26 +156,25 @@ function DingTalkFrame({
           title="钉钉二维码加载较慢，请检查网络或刷新二维码"
         />
       )}
+      {status === 'navigating' && (
+        <div className={styles.qrLoading}>
+          <Spin size="small" />
+          <span>正在加载钉钉二维码</span>
+        </div>
+      )}
       <div className={styles.qrFrameWrapper}>
-        {status === 'navigating' && (
-          <div className={styles.qrLoading}>
-            <Spin />
-            <span>正在加载钉钉二维码</span>
-          </div>
-        )}
         <iframe
           ref={iframeRef}
           title="钉钉扫码登录二维码"
           src={config.src}
           className={styles.qrFrame}
-          style={{ visibility: status === 'navigating' ? 'hidden' : 'visible' }}
           onLoad={() => {
             if (retired.current) return;
             if (Date.now() >= config.expiresAt) {
               retired.current = true;
               setStatus('expired');
             } else {
-              // 跨源 iframe 网络失败也会触发 load；这里只结束导航遮罩。
+              // 跨源 iframe 网络失败也会触发 load；这里只结束旁边的加载提示。
               setStatus('displayed');
             }
           }}
@@ -250,18 +192,7 @@ function DingTalkFrame({
 export function DingTalkQrLogin({ onAuthenticated }: Props) {
   const [retiredState, setRetiredState] = useState<string>();
   const lastAutoRefreshAt = useRef(0);
-  const query = useQuery({
-    // 固定 key 且不取消在途请求，StrictMode 与快速切换共用一次 Cookie 写入。
-    queryKey: CONFIG_QUERY_KEY,
-    queryFn: loadConfig,
-    retry: false,
-    staleTime: Infinity,
-    gcTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    meta: { silent: true },
-  });
+  const query = useQuery(dingTalkLoginConfigOptions);
 
   const refresh = useCallback(() => {
     if (query.isFetching) return;

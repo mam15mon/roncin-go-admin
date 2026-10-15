@@ -1,9 +1,10 @@
 import { DingdingOutlined } from '@ant-design/icons';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Result, Spin } from 'antd';
 import React, { startTransition, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
+import { dingTalkLoginConfigOptions } from '@/app/dingtalkLoginConfig';
 import { DingTalkLoginStatus } from '@/enums.generated';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
@@ -25,6 +26,7 @@ function storedRedirect(): string {
 
 export default function DingTalkCallback() {
   const { setInitialState } = useInitialState();
+  const queryClient = useQueryClient();
   const { message } = App.useApp();
   const [failure, setFailure] = useState<string>();
   const [organizationSelection, setOrganizationSelection] = useState<{
@@ -35,6 +37,12 @@ export default function DingTalkCallback() {
   const handled = useRef(false);
   const login = useMutation({
     mutationFn: async (credentials: API.DingTalkLoginRequest) => {
+      // 换码会消费 state Cookie；仅标记缓存失效，返回扫码页时再取新配置。
+      await queryClient.invalidateQueries({
+        queryKey: dingTalkLoginConfigOptions.queryKey,
+        exact: true,
+        refetchType: 'none',
+      });
       const response = await authServiceDingTalkLogin(credentials, {
         skipErrorHandler: true,
       });
