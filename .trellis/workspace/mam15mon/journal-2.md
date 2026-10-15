@@ -1438,3 +1438,39 @@ fee-status-review-fixes：①迁移冲减守卫收紧——DRAFT/CONFIRMED/PAID 
 ### Status
 
 [OK] **Completed**
+
+
+## Session 133: 登录页HTML提前加载钉钉二维码验收
+<!-- trellis-session: v=2 fp=38c1f7c28d4bf542 -->
+
+**Date**: 2026-10-15
+**Task**: 登录页HTML提前加载钉钉二维码验收
+**Branch**: `codex/dingtalk-html-frame`
+
+### Summary
+
+HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与Go同域生产阻塞主程序均确认提前请求、零配置GET与接管不重载，完整门禁、构建和独立审查通过。真实企业扫码未实测。
+
+### Main Changes
+
+- Go与Vite同响应输出安全转义的隐藏iframe，接管后显示；保留状态与Cookie一致性及严格消息校验
+- 同步扫码规范并归档本次任务，未处理其他历史待验收任务
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6ad4a3b2` | perf: 在登录页HTML提前加载钉钉二维码并复用实例 |
+
+### Testing
+
+- [OK] check:fast通过：前端1278通过/12跳过，后端完整门禁通过；pnpm run build通过
+- [OK] 真实Chromium覆盖开发与Go同域：提前请求、同实例接管、窄屏、刷新、密码切换及失败回调返回；独立审查无问题
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 部署后使用真实企业账号验证扫码；当前结果未包含真实钉钉网络耗时测量
