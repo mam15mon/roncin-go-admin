@@ -6,6 +6,6 @@
 - [x] 运行 Go webassets/service 定向测试、相关 Vitest、改动文件 Biome 和类型检查。
 - [x] 独立检查 agent 审阅全链路并修复；主会话浏览器阻塞主程序证明提前请求与接管不重复加载，覆盖开发和 Go 同域生产。
 - [x] 更新扫码规范；运行 pnpm run check:fast 和生产构建，记录真实企业扫码验证限制。
-- [ ] 中文 Conventional Commit 提交，归档本任务并记录日志。
+- [x] 中文 Conventional Commit 提交，归档本任务并记录日志。
 
 风险文件：server/internal/webassets/assets.go、web/config/dingtalkLoginBootstrap.ts、web/src/app/dingtalkLoginConfig.ts、扫码组件与其接管模块。只修改本任务范围，完整回退本组提交为回滚点。
