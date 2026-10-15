@@ -5,4 +5,4 @@
 - [x] 功能完成后补测试，覆盖两类实例同上下文、隐藏消息、过期返回按需刷新、错误恢复及卸载。
 - [x] 定向 Vitest、Biome、tsc；独立 check 审阅并修正。
 - [x] 主会话真实 Chromium 验证连续切换零额外请求与占位不重现；运行 check:web（本期仅前端生命周期变更）。
-- [ ] 更新扫码规范，中文 Conventional Commit 提交，归档和记录验收。
+- [x] 更新扫码规范，中文 Conventional Commit 提交，归档和记录验收。
