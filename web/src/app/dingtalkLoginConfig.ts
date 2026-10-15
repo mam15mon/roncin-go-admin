@@ -51,7 +51,7 @@ async function loadConfig(): Promise<LoginConfig> {
   }
 }
 
-// 预热完成到扫码组件挂载之间保留结果；模式返回由显式刷新启动新一轮。
+// 预热完成到扫码组件挂载之间保留结果；模式切回保留有效实例，失效后才按需刷新。
 export const dingTalkLoginConfigOptions = queryOptions({
   queryKey: CONFIG_QUERY_KEY,
   queryFn: loadConfig,

@@ -1,0 +1,28 @@
+{
+  "id": "dingtalk-login-switch",
+  "name": "dingtalk-login-switch",
+  "title": "登录方式切换保留有效钉钉二维码",
+  "description": "返回扫码复用原二维码与浏览上下文，不重复请求和加载占位，失效时按需刷新",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-15",
+  "completedAt": null,
+  "branch": "codex/dingtalk-html-frame",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "validation": "check:web、最终定向/类型/Biome和真实Chromium连续切换均通过"
+  }
+}

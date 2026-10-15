@@ -1,5 +1,5 @@
 import { ReloadOutlined } from '@ant-design/icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Spin } from 'antd';
 import {
   useCallback,
@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { flushSync } from 'react-dom';
 import {
   CALLBACK_PATH,
   DINGTALK_ORIGIN,
@@ -23,16 +22,32 @@ import {
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import styles from '../index.module.less';
 
-type Props = { onAuthenticated: (callbackPath: string) => void };
+type Props = {
+  active?: boolean;
+  onAuthenticated: (callbackPath: string) => void;
+};
 
 function DingTalkFrame({
   config,
+  active = true,
   onAuthenticated,
   onExpired,
-}: Props & { config: FrameConfig; onExpired: () => void }) {
+  onUnavailable,
+  retireFrame,
+}: Props & {
+  config: FrameConfig;
+  onExpired: () => void;
+  onUnavailable: (state: string) => void;
+  retireFrame: React.RefObject<(() => void) | null>;
+}) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const lifecycle = useRef(0);
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const updateVisibility = useRef<() => void>(() => {});
+  const onUnavailableRef = useRef(onUnavailable);
+  onUnavailableRef.current = onUnavailable;
   const retired = useRef(false);
   const handled = useRef(false);
   const onAuthenticatedRef = useRef(onAuthenticated);
@@ -54,15 +69,35 @@ function DingTalkFrame({
     const slot = slotRef.current;
     if (!slot) return;
     const generation = ++lifecycle.current;
-    let active = true;
+    let mounted = true;
     let stopAlign = () => {};
     const destroy = () => {
       stopAlign();
       iframeRef.current?.remove();
       iframeRef.current = null;
     };
+    retireFrame.current = () => {
+      retired.current = true;
+      destroy();
+    };
+    updateVisibility.current = () => {
+      stopAlign();
+      const frame = iframeRef.current;
+      if (!frame || retired.current) return;
+      if (Date.now() >= config.expiresAt) {
+        expire();
+        return;
+      }
+      const visible = activeRef.current;
+      frame.hidden = !visible;
+      frame.tabIndex = visible ? 0 : -1;
+      frame.setAttribute('aria-hidden', String(!visible));
+      if (!visible) frame.style.visibility = 'hidden';
+      else if (frame.parentElement === slot) frame.style.visibility = 'visible';
+      else stopAlign = alignPreloadedDingTalkFrame(frame, slot);
+    };
     const onLoad = () => {
-      if (!active || retired.current) return;
+      if (!mounted || retired.current) return;
       if (Date.now() >= config.expiresAt) {
         expire();
       } else {
@@ -71,16 +106,23 @@ function DingTalkFrame({
       }
     };
     const onError = () => {
-      if (!active || retired.current) return;
+      if (!mounted || retired.current) return;
       retired.current = true;
       destroy();
       setStatus('failed');
+      onUnavailableRef.current(config.state);
     };
     const expire = () => {
-      if (active && !handled.current && Date.now() >= config.expiresAt) {
+      if (
+        mounted &&
+        !retired.current &&
+        !handled.current &&
+        Date.now() >= config.expiresAt
+      ) {
         retired.current = true;
         destroy();
         setStatus('expired');
+        onUnavailableRef.current(config.state);
         onExpiredRef.current();
       }
     };
@@ -94,7 +136,8 @@ function DingTalkFrame({
     const onMessage = (event: MessageEvent<unknown>) => {
       const source = iframeRef.current?.contentWindow;
       if (
-        !active ||
+        !mounted ||
+        !activeRef.current ||
         retired.current ||
         handled.current ||
         Date.now() >= config.expiresAt ||
@@ -112,6 +155,7 @@ function DingTalkFrame({
         destroy();
         setFailure('钉钉扫码未完成，请刷新二维码后重试');
         setStatus('failed');
+        onUnavailableRef.current(config.state);
         return;
       }
       if (data.success !== true || typeof data.redirectUrl !== 'string') return;
@@ -133,6 +177,7 @@ function DingTalkFrame({
         !authCode?.trim()
       )
         return;
+      onUnavailableRef.current(config.state);
       handled.current = true;
       retired.current = true;
       destroy();
@@ -170,14 +215,15 @@ function DingTalkFrame({
       frame.removeAttribute('onerror');
       if (frame.dataset.navigation === 'failed') onError();
       else {
-        if (frame.parentElement === slot) frame.style.visibility = 'visible';
-        else stopAlign = alignPreloadedDingTalkFrame(frame, slot);
+        updateVisibility.current();
         if (frame.dataset.navigation === 'loaded') onLoad();
       }
     }
     expire();
     return () => {
-      active = false;
+      mounted = false;
+      retireFrame.current = null;
+      updateVisibility.current = () => {};
       stopAlign();
       if (frame) {
         frame.style.visibility = 'hidden';
@@ -193,7 +239,11 @@ function DingTalkFrame({
       window.removeEventListener('focus', expire);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [config]);
+  }, [config, retireFrame]);
+
+  useLayoutEffect(() => {
+    updateVisibility.current();
+  }, [active]);
 
   useEffect(() => {
     if (status !== 'navigating') return;
@@ -241,30 +291,54 @@ function DingTalkFrame({
   );
 }
 
-export function DingTalkQrLogin({ onAuthenticated }: Props) {
+export function DingTalkQrLogin({ active = true, onAuthenticated }: Props) {
   const [retiredState, setRetiredState] = useState<string>();
   const lastAutoRefreshAt = useRef(0);
-  const query = useQuery(dingTalkLoginConfigOptions);
+  const queryClient = useQueryClient();
+  const query = useQuery({ ...dingTalkLoginConfigOptions, enabled: active });
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const wasActive = useRef(active);
+  const unavailableState = useRef<string | undefined>(undefined);
+  const retireFrame = useRef<(() => void) | null>(null);
 
   const refresh = useCallback(() => {
     if (query.isFetching) return;
+    retireFrame.current?.();
     discardPreloadedDingTalkFrame();
-    // 先同步卸载旧 iframe/监听，再发出会覆盖 state Cookie 的配置请求。
-    flushSync(() =>
-      setRetiredState(query.data?.enabled ? query.data.frame.state : undefined),
-    );
+    // 先同步退役实例，再发出会覆盖 state Cookie 的配置请求。
+    setRetiredState(query.data?.enabled ? query.data.frame.state : undefined);
+    unavailableState.current = undefined;
     void query.refetch({ cancelRefetch: false });
   }, [query]);
 
   const refreshOnExpired = useCallback(() => {
+    if (!activeRef.current) return;
     // 客户端时钟快于服务端时新配置会一到手就过期，限流防止自动刷新演变成请求风暴。
     if (Date.now() - lastAutoRefreshAt.current < 1000) return;
     lastAutoRefreshAt.current = Date.now();
     refresh();
   }, [refresh]);
 
+  useLayoutEffect(() => {
+    const returning = active && !wasActive.current;
+    wasActive.current = active;
+    const state = queryClient.getQueryState(
+      dingTalkLoginConfigOptions.queryKey,
+    );
+    if (
+      returning &&
+      ((state?.data?.enabled &&
+        unavailableState.current === state.data.frame.state) ||
+        state?.status === 'error' ||
+        state?.isInvalidated ||
+        (state?.data?.enabled && state.data.frame.expiresAt <= Date.now()))
+    )
+      refresh();
+  }, [active, queryClient, refresh]);
+
   return (
-    <div className={styles.qrLogin}>
+    <div className={styles.qrLogin} hidden={!active}>
       <div className={styles.qrContent} aria-live="polite">
         {query.isFetching ||
         query.isPending ||
@@ -288,6 +362,11 @@ export function DingTalkQrLogin({ onAuthenticated }: Props) {
           <DingTalkFrame
             key={query.data.frame.state}
             config={query.data.frame}
+            active={active}
+            retireFrame={retireFrame}
+            onUnavailable={(state) => {
+              unavailableState.current = state;
+            }}
             onAuthenticated={onAuthenticated}
             onExpired={refreshOnExpired}
           />

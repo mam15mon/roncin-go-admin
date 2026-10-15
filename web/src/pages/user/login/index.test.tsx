@@ -1,5 +1,11 @@
 import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { App } from 'antd';
 import { DetachedBrowserFrame } from 'happy-dom';
 import React from 'react';
@@ -171,17 +177,63 @@ describe('Login', () => {
     });
   });
 
-  it('多组织用户登录后先出现组织选择视图', async () => {
-    mockLoginResponse(multiOrgChoices);
+  it('密码认证期间与多组织选择视图均忽略隐藏二维码消息', async () => {
+    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
+      data: {
+        enabled: true,
+        authorizeUrl: `https://login.dingtalk.com/oauth2/auth?client_id=app&scope=openid&response_type=code&state=sample-state&redirect_uri=${encodeURIComponent(`${window.location.origin}/user/login/dingtalk/callback`)}`,
+        expiresAt: new Date(Date.now() + 300000).toISOString(),
+      },
+    });
+    let completeLogin: (response: {
+      data: API.CurrentUser;
+      organizationChoices: API.OrganizationChoice[];
+    }) => void = () => {};
+    authServiceLoginMock.mockReturnValue(
+      new Promise((resolve) => {
+        completeLogin = resolve;
+      }),
+    );
 
     render(
       <App>
         <Login />
       </App>,
     );
+    const frame = (await screen.findByTitle(
+      '钉钉扫码登录二维码',
+    )) as HTMLIFrameElement;
+    const source = frame.contentWindow;
+    const sendHiddenMessage = (success: boolean) =>
+      fireEvent(
+        window,
+        new MessageEvent('message', {
+          origin: 'https://login.dingtalk.com',
+          source,
+          data: {
+            success,
+            redirectUrl: `${window.location.origin}/user/login/dingtalk/callback?authCode=code&state=sample-state`,
+          },
+        }),
+      );
     await submitLogin();
-
+    expect(frame).not.toBeVisible();
+    expect(
+      screen.getByRole('button', { name: '返回钉钉扫码登录' }),
+    ).toBeDisabled();
+    sendHiddenMessage(false);
+    sendHiddenMessage(true);
+    expect(historyReplaceMock).not.toHaveBeenCalled();
+    await act(async () =>
+      completeLogin({
+        data: currentUser(),
+        organizationChoices: multiOrgChoices,
+      }),
+    );
     expect(await screen.findByText('选择进入的组织')).toBeInTheDocument();
+    sendHiddenMessage(true);
+    expect(historyReplaceMock).not.toHaveBeenCalled();
+    expect(frame).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: '进入天津公司' }),
     ).toBeInTheDocument();
@@ -301,6 +353,24 @@ describe('Login', () => {
       screen.getByText('使用前请联系管理员同步人员并分配组织和角色'),
     ).toBeInTheDocument();
     expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
+    const iframe = screen.getByTitle('钉钉扫码登录二维码') as HTMLIFrameElement;
+    const source = iframe.contentWindow;
+    fireEvent.load(iframe);
+    for (let count = 0; count < 3; count++) {
+      fireEvent.click(screen.getByRole('button', { name: '管理员账号登录' }));
+      expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
+      expect(iframe).not.toBeVisible();
+      expect(screen.getByText('刷新二维码')).not.toBeVisible();
+      fireEvent.click(screen.getByRole('button', { name: '返回钉钉扫码登录' }));
+      expect(screen.getByTitle('钉钉扫码登录二维码')).toBe(iframe);
+      expect(iframe.contentWindow).toBe(source);
+      expect(iframe).toBeVisible();
+      expect(screen.queryByText('正在加载钉钉二维码')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('正在获取钉钉登录配置'),
+      ).not.toBeInTheDocument();
+    }
+    expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledOnce();
   });
 
   it('钉钉扫码保留安全回跳地址并进入本站认证回调', async () => {
