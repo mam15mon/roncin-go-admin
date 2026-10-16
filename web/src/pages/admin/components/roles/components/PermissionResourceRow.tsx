@@ -5,6 +5,7 @@ import {
   UpOutlined,
 } from '@ant-design/icons';
 import { Button, Checkbox, Space, Tag, Tooltip } from 'antd';
+import { getPermissionGroupSegments } from '../../permissionGrouping';
 import {
   getResourceState,
   type PermissionAction,
@@ -72,26 +73,10 @@ export default function PermissionResourceRow({
         {/* Left: Resource Name */}
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
+            flex: 1,
             minWidth: 210,
           }}
         >
-          {resource.subModule && (
-            <Tag
-              color="blue"
-              variant="filled"
-              style={{
-                margin: 0,
-                fontSize: 10,
-                lineHeight: '16px',
-                padding: '0 4px',
-              }}
-            >
-              {resource.subModule}
-            </Tag>
-          )}
           <span
             style={{
               fontWeight: 600,
@@ -101,9 +86,12 @@ export default function PermissionResourceRow({
           >
             {resource.name}
           </span>
-          <span style={{ fontSize: 10, color: '#94a3b8' }}>
+          <span style={{ marginLeft: 8, fontSize: 10, color: '#94a3b8' }}>
             ({resource.allKeys.length}项)
           </span>
+          <div style={{ marginTop: 2, fontSize: 11, color: '#64748b' }}>
+            {getPermissionGroupSegments(resource.fullPath).join(' → ')}
+          </div>
         </div>
 
         {/* Center: Quick Read / Write Checkboxes */}

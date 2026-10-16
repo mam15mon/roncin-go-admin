@@ -337,7 +337,7 @@ export default function RoleFormModal({
     >
       <RoleBasicFormFields editing={editing} />
 
-      {/* Huawei Cloud IAM Style Permission Policy Matrix */}
+      {/* 按业务模块与功能配置权限 */}
       <div style={{ marginTop: 8 }}>
         <PermissionMatrixHeader
           selectedCount={selectedPermissionKeys.length}

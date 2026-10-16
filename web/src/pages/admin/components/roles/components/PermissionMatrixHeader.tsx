@@ -53,7 +53,7 @@ export default function PermissionMatrixHeader({
             }}
           />
           <Text strong style={{ fontSize: 13, color: '#1e293b' }}>
-            功能权限配置（华为云 IAM 策略模式）
+            功能权限配置
           </Text>
           <Tag color="blue" variant="filled">
             已选 {selectedCount} / {totalCount} 项
@@ -93,7 +93,8 @@ export default function PermissionMatrixHeader({
 
       {/* Search Bar */}
       <Input
-        placeholder="搜索功能对象、业务线或权限操作（如：海运、用户、账单、delete）..."
+        aria-label="搜索角色权限"
+        placeholder="搜索模块、业务线、功能、权限码或说明（如：海运、账单）"
         prefix={<SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />}
         allowClear
         size="small"

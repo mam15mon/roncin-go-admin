@@ -1,4 +1,4 @@
-import { act, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -59,8 +59,14 @@ vi.mock('antd', () => ({
     </label>
   ),
   Col: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Empty: () => null,
-  Input: () => null,
+  Empty: ({ description }: { description: string }) => <div>{description}</div>,
+  Input: ({
+    value,
+    onChange,
+    'aria-label': ariaLabel,
+  }: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <input aria-label={ariaLabel} value={value} onChange={onChange} />
+  ),
   Row: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Space: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Tag: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
@@ -270,5 +276,60 @@ describe('RoleFormModal 角色提交载荷', () => {
     });
 
     expect(setSelectedPermissionKeys).toHaveBeenCalledWith([]);
+  });
+
+  it('搜索显示完整归属，清除与切换模块保留勾选及依赖联动', async () => {
+    const permissions: API.AdminPermission[] = [
+      { key: 'bill.read', name: '查看账单', group: '费用管理 · 应收 · 账单' },
+      {
+        key: 'bill.create',
+        name: '创建账单',
+        group: '费用管理 · 应收 · 账单',
+        requires: ['bill.read'],
+      },
+      { key: 'user.read', name: '查看用户', group: '系统管理 · 用户' },
+    ];
+    function DiscoveryHarness() {
+      const [selectedKeys, setSelectedKeys] = React.useState(['user.read']);
+      return (
+        <RoleFormModal
+          open
+          onOpenChange={vi.fn()}
+          formRef={{ current: undefined }}
+          permissions={permissions}
+          selectedPermissionKeys={selectedKeys}
+          setSelectedPermissionKeys={setSelectedKeys}
+          onSuccess={vi.fn()}
+        />
+      );
+    }
+    render(<DiscoveryHarness />);
+    expect(screen.getByText('费用管理 → 应收 → 账单')).toBeInTheDocument();
+    expect(screen.queryByText(/华为云|IAM/)).not.toBeInTheDocument();
+    const searchInput = screen.getByRole('textbox', { name: '搜索角色权限' });
+    fireEvent.change(searchInput, { target: { value: '创建账单' } });
+    expect(screen.getByText('费用管理 → 应收 → 账单')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: '创建账单' }));
+    expect(screen.getByRole('checkbox', { name: '查看账单' })).toBeChecked();
+
+    fireEvent.change(searchInput, { target: { value: '没有匹配' } });
+    expect(screen.getByText('未找到匹配的权限项')).toBeInTheDocument();
+    fireEvent.change(searchInput, { target: { value: '' } });
+    fireEvent.click(screen.getByText('系统管理'));
+    fireEvent.click(screen.getByRole('button', { name: /展开操作/ }));
+    expect(screen.getByRole('checkbox', { name: '查看用户' })).toBeChecked();
+    await act(async () => {
+      await requiredOnFinish()({ name: '业务员', dataScope: 2 });
+    });
+    expect(serviceMocks.createRole.mock.calls[0][0].permissionKeys).toEqual(
+      expect.arrayContaining(['user.read', 'bill.read', 'bill.create']),
+    );
+
+    fireEvent.click(screen.getByText('费用管理'));
+    fireEvent.click(screen.getByRole('button', { name: /展开操作/ }));
+    fireEvent.click(screen.getByRole('checkbox', { name: '查看账单' }));
+    expect(
+      screen.getByRole('checkbox', { name: '创建账单' }),
+    ).not.toBeChecked();
   });
 });

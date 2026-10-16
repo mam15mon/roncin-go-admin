@@ -1,3 +1,4 @@
+import { getPermissionGroupSegments } from '../permissionGrouping';
 import { applyPermissionLinkage } from './permissionLinkage';
 
 export type PermissionDefinition = {
@@ -85,7 +86,7 @@ export function isReadPermission(key: string, name?: string): boolean {
 }
 
 /**
- * 将平铺的权限清单构造成按华为云 IAM 风格组织的服务-资源矩阵模型。
+ * 将平铺的权限清单按业务模块、业务线与功能组织为权限矩阵。
  */
 export function buildPermissionMatrix(
   permissions: PermissionDefinition[],
@@ -127,10 +128,7 @@ export function buildPermissionMatrix(
     };
     permissionByKey[key] = action;
 
-    const segments = group
-      .split('·')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const segments = getPermissionGroupSegments(group);
     const moduleName = segments[0] || '其他功能';
     const subModuleName = segments.length >= 3 ? segments[1] : undefined;
     const resourceName =
