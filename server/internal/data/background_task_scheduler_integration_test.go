@@ -290,7 +290,7 @@ func TestBackgroundTaskSchedulerPostgres(t *testing.T) {
 }
 
 func TestBackgroundTaskSchedulerMigrationUpgrade(t *testing.T) {
-	d, cleanup := getIntegrationDataBeforeMigration(t, "20261013150000_background_task_notify.sql")
+	d, cleanup := getIntegrationDataBeforeMigration(t, "20261016090000_background_task_notify.sql")
 	defer cleanup()
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -310,7 +310,7 @@ func TestBackgroundTaskSchedulerMigrationUpgrade(t *testing.T) {
 	if err := d.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM pg_trigger WHERE tgrelid IN ('background_tasks'::regclass,'ding_talk_approval_inbox_events'::regclass) AND NOT tgisinternal`).Scan(&triggers); err != nil {
 		t.Fatal(err)
 	}
-	if err := d.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM schema_migrations WHERE version='20261013150000_background_task_notify'`).Scan(&revisions); err != nil {
+	if err := d.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM schema_migrations WHERE version='20261016090000_background_task_notify'`).Scan(&revisions); err != nil {
 		t.Fatal(err)
 	}
 	if triggers != 2 || revisions != 1 {
