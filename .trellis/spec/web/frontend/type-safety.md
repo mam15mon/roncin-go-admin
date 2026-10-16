@@ -132,18 +132,17 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 ## 权限能力与数据范围契约
 
 ### 1. 适用范围
-修改 auth/me、access.ts、角色范围配置、按钮/路由/页面查询门控时适用。
+修改 auth/me、access.ts、角色配置、按钮/路由/页面查询门控时适用。角色范围配置已退役，详见服务端 retire-role-data-scope.md。
 
 ### 2. 签名
 `CurrentUser.permissionCapabilities: PermissionCapability[]`，每项为
 `{ key: string, dataScope: string }`；由 auth.proto 生成客户端类型。
 
 ### 3. 契约
-- 服务端从持有具体权限的有效角色中取最高范围，并应用当前工作台限制。
+- 服务端从启用角色的具体权限与当前工作台推导有效能力：公司 organization、系统 all；角色本身不再存储或接受可配置范围。
 - 前端只能按该权限的 dataScope 判断动作所需范围；roleScopes 只展示角色，
   permissions 只用于展示权限列表/计数，不可作为旧契约回退。
-- 有效范围为 organization、organization_tree、all。self 已停用，旧值清晰展示
-  “已停用/需调整”，新建和保存拒绝；禁止自动改为 organization。
+- 新增/编辑角色、角色列表与工作台摘要不再显示或提交 dataScope；Auth.RoleScope 只包含角色标识与名称。旧 self 由正式迁移停用，不因删字段自动成为有效授权。
 - 同权限码可能用于不同范围接口：用户列表要求组织级，全部成员关系要求 all，
   调用点应选择正确阈值，不把同码理解为全部接口可用。
 - auth/me 只控制入口；真实记录所属组织、状态与审批资格由后端请求时校验。
@@ -163,7 +162,7 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 - 错误：用所有角色中的最高范围扩大某一个权限。
 
 ### 6. 必需验证
-覆盖跨角色范围拼接、同权限多角色、self 停用、缺字段拒绝、工作区切换、
+覆盖权限来源绑定、同权限多角色、停用角色无能力、缺字段拒绝、工作区切换、
 具体业务类型请求门控；保留 lock 补录审批与本人工作台/提成入口。
 
 ### 7. 错误与正确

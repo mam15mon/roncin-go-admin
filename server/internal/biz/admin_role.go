@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	ErrAdminRoleScopeDisabled   = errors.BadRequest("ADMIN_ROLE_SCOPE_DISABLED", "仅本人数据范围已停用，请明确选择其他数据范围")
 	ErrAdminRoleNotFound        = errors.NotFound("ADMIN_ROLE_NOT_FOUND", "角色不存在")
 	ErrAdminRoleCodeExists      = errors.Conflict("ADMIN_ROLE_CODE_EXISTS", "角色编码已存在")
 	ErrAdminRoleAnchorInvalid   = errors.BadRequest("ADMIN_ROLE_ANCHOR_INVALID", "角色只能在公司/系统管理维护")
@@ -30,7 +29,6 @@ type AdminRole struct {
 	OrganizationID uuid.UUID
 	Code           string
 	Name           string
-	DataScope      DataScope
 	Enabled        bool
 	PermissionKeys []string
 	// AssignmentsCount 是角色当前被分配到的成员关系数量，仅作展示与删除前置判断；
@@ -190,7 +188,7 @@ func (uc *AdminUsecase) CreateRole(ctx context.Context, organizationID, actorID 
 		return nil, err
 	}
 	granted := access.ResolveDependencies(normalizeKeys(permissionKeys))
-	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.Code == "administrator"); err != nil {
+	if err := checkRoleFunctionalPrivileges(profile, granted, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
 	return uc.repo.CreateRole(ctx, organizationID, normalized, granted, adminAuditEvent(ctx, actorID, nil, "admin.role.create", normalized.Code))
@@ -216,7 +214,7 @@ func (uc *AdminUsecase) UpdateRole(ctx context.Context, organizationID, actorID,
 		return nil, ErrAdminPrivilegeEscalation
 	}
 	granted := access.ResolveDependencies(normalizeKeys(permissionKeys))
-	if err := checkPrivilegeEscalation(profile, normalized.DataScope, granted, normalized.Code == "administrator"); err != nil {
+	if err := checkRoleFunctionalPrivileges(profile, granted, normalized.Code == "administrator"); err != nil {
 		return nil, err
 	}
 	return uc.repo.UpdateRole(ctx, organizationID, id, normalized, granted, adminAuditEvent(ctx, actorID, &id, "admin.role.update", currentRole.Code))
@@ -249,16 +247,32 @@ func normalizeRole(input *AdminRole) (*AdminRole, error) {
 	if input == nil {
 		return nil, ErrAdminInvalidArgument
 	}
-	if input.DataScope == DataScopeSelf {
-		return nil, ErrAdminRoleScopeDisabled
-	}
 	output := *input
 	output.Code = strings.ToLower(strings.TrimSpace(output.Code))
 	output.Name = strings.TrimSpace(output.Name)
-	if output.Name == "" || !output.DataScope.Valid() {
+	if output.Name == "" {
 		return nil, ErrAdminInvalidArgument
 	}
 	return &output, nil
+}
+
+// checkRoleFunctionalPrivileges 校验同工作台的功能权限子集；角色范围已由工作台固定。
+func checkRoleFunctionalPrivileges(profile *AdminPrivilegeProfile, permissionKeys []string, isAdministratorRole bool) error {
+	if profile == nil {
+		return ErrAdminPrivilegeEscalation
+	}
+	if profile.IsSuperAdmin {
+		return nil
+	}
+	if isAdministratorRole {
+		return ErrAdminPrivilegeEscalation
+	}
+	for _, key := range permissionKeys {
+		if len(actorRolesWithPermission(profile.RoleProfiles, key)) == 0 {
+			return ErrAdminPrivilegeEscalation
+		}
+	}
+	return nil
 }
 
 // generateRoleCode 为未指定编码的角色生成机器标识，仅用于审计与调试对照；

@@ -34,6 +34,7 @@ isWorkspaceKindValue(kind?: number): boolean  // 取自 @/enums.generated，禁�
 
 ## 3. Contracts
 
+- **范围配置已退役**：角色不再持久化或接收 `data_scope`；有效范围由工作台推导，公司固定本公司、系统固定治理范围。迁移与候选规则见 [角色范围退役](./retire-role-data-scope.md)。
 - **归属**：角色库只归属工作台节点（系统管理/公司）；部门与团队**共享所属工作台的角色库**，
   不自建角色库。公司之间不共享（既有隔离设计）。
 - **读路径**：`ListRoles` / `GetRole` / `rolesPrivilegeProfiles` / `actorRolesPrivilegeProfiles`

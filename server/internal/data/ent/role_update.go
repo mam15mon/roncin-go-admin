@@ -68,20 +68,6 @@ func (_u *RoleUpdate) SetNillableName(v *string) *RoleUpdate {
 	return _u
 }
 
-// SetDataScope sets the "data_scope" field.
-func (_u *RoleUpdate) SetDataScope(v role.DataScope) *RoleUpdate {
-	_u.mutation.SetDataScope(v)
-	return _u
-}
-
-// SetNillableDataScope sets the "data_scope" field if the given value is not nil.
-func (_u *RoleUpdate) SetNillableDataScope(v *role.DataScope) *RoleUpdate {
-	if v != nil {
-		_u.SetDataScope(*v)
-	}
-	return _u
-}
-
 // SetEnabled sets the "enabled" field.
 func (_u *RoleUpdate) SetEnabled(v bool) *RoleUpdate {
 	_u.mutation.SetEnabled(v)
@@ -299,11 +285,6 @@ func (_u *RoleUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Role.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.DataScope(); ok {
-		if err := role.DataScopeValidator(v); err != nil {
-			return &ValidationError{Name: "data_scope", err: fmt.Errorf(`ent: validator failed for field "Role.data_scope": %w`, err)}
-		}
-	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Role.organization"`)
 	}
@@ -327,9 +308,6 @@ func (_u *RoleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.DataScope(); ok {
-		_spec.SetField(role.FieldDataScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(role.FieldEnabled, field.TypeBool, value)
@@ -597,20 +575,6 @@ func (_u *RoleUpdateOne) SetNillableName(v *string) *RoleUpdateOne {
 	return _u
 }
 
-// SetDataScope sets the "data_scope" field.
-func (_u *RoleUpdateOne) SetDataScope(v role.DataScope) *RoleUpdateOne {
-	_u.mutation.SetDataScope(v)
-	return _u
-}
-
-// SetNillableDataScope sets the "data_scope" field if the given value is not nil.
-func (_u *RoleUpdateOne) SetNillableDataScope(v *role.DataScope) *RoleUpdateOne {
-	if v != nil {
-		_u.SetDataScope(*v)
-	}
-	return _u
-}
-
 // SetEnabled sets the "enabled" field.
 func (_u *RoleUpdateOne) SetEnabled(v bool) *RoleUpdateOne {
 	_u.mutation.SetEnabled(v)
@@ -841,11 +805,6 @@ func (_u *RoleUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Role.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.DataScope(); ok {
-		if err := role.DataScopeValidator(v); err != nil {
-			return &ValidationError{Name: "data_scope", err: fmt.Errorf(`ent: validator failed for field "Role.data_scope": %w`, err)}
-		}
-	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Role.organization"`)
 	}
@@ -886,9 +845,6 @@ func (_u *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.DataScope(); ok {
-		_spec.SetField(role.FieldDataScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(role.FieldEnabled, field.TypeBool, value)

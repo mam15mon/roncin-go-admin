@@ -65,7 +65,7 @@ func TestPrincipalPermissionsAreDerivedOnlyFromRoleGrants(t *testing.T) {
 	if got := principal.PermissionKeys(); !slices.Equal(got, []string{permission}) {
 		t.Fatalf("登录响应权限投影 = %#v，期望 %#v", got, []string{permission})
 	}
-	if got := principal.RoleScopes(); len(got) != 1 || got[0] != (RoleScope{RoleCode: "reader", DataScope: DataScopeOrganization, RoleName: "只读角色"}) {
+	if got := principal.RoleScopes(); len(got) != 1 || got[0] != (RoleScope{RoleCode: "reader", RoleName: "只读角色"}) {
 		t.Fatalf("登录响应角色范围投影 = %#v", got)
 	}
 	if principal.HasPermission("finance.bill.read") {

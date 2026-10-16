@@ -24,7 +24,6 @@ import (
 	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
-	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/shopspring/decimal"
 )
 
@@ -524,7 +523,6 @@ func (f *workbenchIntegrationFixture) grantWorkbenchPermission(employeeID uuid.U
 		SetOrganizationID(f.organizationID).
 		SetCode("wb_reviewer_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:10]).
 		SetName("工作台费用审核资格-" + f.suffix).
-		SetDataScope(roleent.DataScopeOrganization).
 		AddPermissions(permissionItem).
 		Save(ctx)
 	if err != nil {

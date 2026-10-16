@@ -176,6 +176,8 @@ style={{ top: 'calc(var(--roncin-header-height) + var(--roncin-tags-height))' }}
 - 按钮级权限复用路由级 `access` 的同一判断结果（如
   `access.financeCommissionExport`），不在页面里硬编码第二套规则。
 
+- 角色「数据访问范围」配置已退役，新增/编辑不提供范围控件或隐藏默认载荷，列表不显示范围列/筛选；工作台仅展示角色名称。有效权限范围由服务端工作台推导，前端继续消费 permissionCapabilities。
+
 ### 权限分类与查找
 
 - 角色配置与权限字典统一消费 `/admin/permissions` 的 `group` 路径，以 `·`

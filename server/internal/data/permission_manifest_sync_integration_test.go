@@ -68,7 +68,6 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 		SetOrganizationID(organization.ID).
 		SetCode("operator").
 		SetName("操作员").
-		SetDataScope(roleent.DataScopeOrganization).
 		AddPermissions(roleUpdate, stale).
 		Save(ctx)
 	if err != nil {
@@ -78,7 +77,6 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 		SetOrganizationID(organization.ID).
 		SetCode("administrator").
 		SetName("系统管理员").
-		SetDataScope(roleent.DataScopeAll).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建管理员角色: %v", err)
@@ -103,7 +101,6 @@ func TestSyncPermissionManifestPostgres(t *testing.T) {
 		SetOrganizationID(company.ID).
 		SetCode("manager").
 		SetName("公司经理").
-		SetDataScope(roleent.DataScopeOrganization).
 		AddPermissions(resetPassword).
 		Save(ctx)
 	if err != nil {

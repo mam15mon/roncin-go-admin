@@ -7868,7 +7868,7 @@ func init() {
 		}
 	}()
 	// roleDescEnabled is the schema descriptor for enabled field.
-	roleDescEnabled := roleFields[4].Descriptor()
+	roleDescEnabled := roleFields[3].Descriptor()
 	// role.DefaultEnabled holds the default value on creation for the enabled field.
 	role.DefaultEnabled = roleDescEnabled.Default.(bool)
 	// roleDescID is the schema descriptor for id field.

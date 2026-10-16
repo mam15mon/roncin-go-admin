@@ -316,26 +316,6 @@ func NameContainsFold(v string) predicate.Role {
 	return predicate.Role(sql.FieldContainsFold(FieldName, v))
 }
 
-// DataScopeEQ applies the EQ predicate on the "data_scope" field.
-func DataScopeEQ(v DataScope) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldDataScope, v))
-}
-
-// DataScopeNEQ applies the NEQ predicate on the "data_scope" field.
-func DataScopeNEQ(v DataScope) predicate.Role {
-	return predicate.Role(sql.FieldNEQ(FieldDataScope, v))
-}
-
-// DataScopeIn applies the In predicate on the "data_scope" field.
-func DataScopeIn(vs ...DataScope) predicate.Role {
-	return predicate.Role(sql.FieldIn(FieldDataScope, vs...))
-}
-
-// DataScopeNotIn applies the NotIn predicate on the "data_scope" field.
-func DataScopeNotIn(vs ...DataScope) predicate.Role {
-	return predicate.Role(sql.FieldNotIn(FieldDataScope, vs...))
-}
-
 // EnabledEQ applies the EQ predicate on the "enabled" field.
 func EnabledEQ(v bool) predicate.Role {
 	return predicate.Role(sql.FieldEQ(FieldEnabled, v))

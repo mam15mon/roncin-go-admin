@@ -48,7 +48,7 @@ export default function Admin() {
         label: '角色权限',
         icon: <SafetyCertificateOutlined />,
         visible: access.canReadRoles,
-        tooltip: '配置角色功能权限树、数据范围权限及角色成员绑定',
+        tooltip: '配置角色功能权限及角色成员绑定',
         children: <RolesPanel />,
       },
       {

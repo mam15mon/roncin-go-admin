@@ -1204,9 +1204,8 @@ func (x *PermissionCapability) GetDataScope() string {
 }
 
 type RoleScope struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	RoleCode  string                 `protobuf:"bytes,1,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
-	DataScope string                 `protobuf:"bytes,2,opt,name=data_scope,json=dataScope,proto3" json:"data_scope,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	RoleCode string                 `protobuf:"bytes,1,opt,name=role_code,json=roleCode,proto3" json:"role_code,omitempty"`
 	// 角色显示名，按授权角色解析；合成授权无对应角色时为空。
 	RoleName      string `protobuf:"bytes,3,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1246,13 +1245,6 @@ func (*RoleScope) Descriptor() ([]byte, []int) {
 func (x *RoleScope) GetRoleCode() string {
 	if x != nil {
 		return x.RoleCode
-	}
-	return ""
-}
-
-func (x *RoleScope) GetDataScope() string {
-	if x != nil {
-		return x.DataScope
 	}
 	return ""
 }
@@ -1470,12 +1462,11 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x14PermissionCapability\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1d\n" +
 	"\n" +
-	"data_scope\x18\x02 \x01(\tR\tdataScope\"d\n" +
+	"data_scope\x18\x02 \x01(\tR\tdataScope\"W\n" +
 	"\tRoleScope\x12\x1b\n" +
-	"\trole_code\x18\x01 \x01(\tR\broleCode\x12\x1d\n" +
-	"\n" +
-	"data_scope\x18\x02 \x01(\tR\tdataScope\x12\x1b\n" +
-	"\trole_name\x18\x03 \x01(\tR\broleName\"\x1f\n" +
+	"\trole_code\x18\x01 \x01(\tR\broleCode\x12\x1b\n" +
+	"\trole_name\x18\x03 \x01(\tR\broleNameJ\x04\b\x02\x10\x03R\n" +
+	"data_scope\"\x1f\n" +
 	"\x1dGetDingTalkLoginConfigRequest\"\x0f\n" +
 	"\rLogoutRequest\"\v\n" +
 	"\tMeRequest*\xe2\x01\n" +

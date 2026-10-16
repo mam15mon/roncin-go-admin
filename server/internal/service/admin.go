@@ -318,7 +318,7 @@ func (s *AdminService) CreateRole(ctx context.Context, request *v1.CreateRoleReq
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.CreateRole(ctx, principal.Organization.ID, principal.UserID, &biz.AdminRole{Code: request.GetCode(), Name: request.GetName(), DataScope: dataScopeFromAPI(request.GetDataScope()), Enabled: true}, request.GetPermissionKeys())
+	created, err := s.usecase.CreateRole(ctx, principal.Organization.ID, principal.UserID, &biz.AdminRole{Code: request.GetCode(), Name: request.GetName(), Enabled: true}, request.GetPermissionKeys())
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ func (s *AdminService) UpdateRole(ctx context.Context, request *v1.UpdateRoleReq
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	updated, err := s.usecase.UpdateRole(ctx, principal.Organization.ID, principal.UserID, roleID, &biz.AdminRole{ID: roleID, Name: request.GetName(), DataScope: dataScopeFromAPI(request.GetDataScope()), Enabled: request.GetEnabled()}, request.GetPermissionKeys())
+	updated, err := s.usecase.UpdateRole(ctx, principal.Organization.ID, principal.UserID, roleID, &biz.AdminRole{ID: roleID, Name: request.GetName(), Enabled: request.GetEnabled()}, request.GetPermissionKeys())
 	if err != nil {
 		return nil, err
 	}
@@ -433,36 +433,6 @@ func parseAuditTime(value string) (*time.Time, error) {
 	return &parsed, nil
 }
 
-func dataScopeFromAPI(value v1.DataScope) biz.DataScope {
-	switch value {
-	case v1.DataScope_DATA_SCOPE_ALL:
-		return biz.DataScopeAll
-	case v1.DataScope_DATA_SCOPE_ORGANIZATION:
-		return biz.DataScopeOrganization
-	case v1.DataScope_DATA_SCOPE_ORGANIZATION_TREE:
-		return biz.DataScopeOrganizationTree
-	case v1.DataScope_DATA_SCOPE_SELF:
-		return biz.DataScopeSelf
-	default:
-		return ""
-	}
-}
-
-func dataScopeToAPI(value biz.DataScope) v1.DataScope {
-	switch value {
-	case biz.DataScopeAll:
-		return v1.DataScope_DATA_SCOPE_ALL
-	case biz.DataScopeOrganization:
-		return v1.DataScope_DATA_SCOPE_ORGANIZATION
-	case biz.DataScopeOrganizationTree:
-		return v1.DataScope_DATA_SCOPE_ORGANIZATION_TREE
-	case biz.DataScopeSelf:
-		return v1.DataScope_DATA_SCOPE_SELF
-	default:
-		return v1.DataScope_DATA_SCOPE_UNSPECIFIED
-	}
-}
-
 func organizationToAPI(value *biz.AdminOrganization) *v1.AdminOrganization {
 	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, Kind: organizationKindToAPI(value.Kind), ParentId: uuidStringPtr(value.ParentID), Enabled: value.Enabled, BaseCurrency: value.BaseCurrency}
 }
@@ -555,7 +525,7 @@ func userMembershipToAPI(value *biz.AdminUserMembership) *v1.AdminUserMembership
 }
 
 func roleToAPI(value *biz.AdminRole) *v1.AdminRole {
-	return &v1.AdminRole{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, DataScope: dataScopeToAPI(value.DataScope), Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, AssignmentsCount: int32(value.AssignmentsCount), CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
+	return &v1.AdminRole{Id: value.ID.String(), OrganizationId: value.OrganizationID.String(), Code: value.Code, Name: value.Name, Enabled: value.Enabled, PermissionKeys: value.PermissionKeys, AssignmentsCount: int32(value.AssignmentsCount), CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 
 func auditLogToAPI(value *biz.AuditLog) *v1.AdminAuditLog {

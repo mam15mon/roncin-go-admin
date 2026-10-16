@@ -23,11 +23,7 @@ import {
   toggleResourceRead,
   toggleResourceWrite,
 } from './permissionMatrix';
-import {
-  dataScopeOptions,
-  type PermissionTreeNode,
-  type RoleFormValues,
-} from './roleConstants';
+import type { PermissionTreeNode, RoleFormValues } from './roleConstants';
 
 interface RoleFormModalProps {
   open: boolean;
@@ -289,7 +285,7 @@ export default function RoleFormModal({
       initialValues={
         editing
           ? { ...editing, permissionKeys: editing.permissionKeys }
-          : { dataScope: 2, enabled: true }
+          : { enabled: true }
       }
       modalProps={{
         destroyOnHidden: true,
@@ -298,12 +294,6 @@ export default function RoleFormModal({
       }}
       onOpenChange={onOpenChange}
       onFinish={async (values) => {
-        if (
-          !dataScopeOptions.some((option) => option.value === values.dataScope)
-        ) {
-          message.error('请选择有效的数据范围；仅本人范围已停用');
-          return false;
-        }
         try {
           if (editing?.id) {
             await adminServiceUpdateRole(
@@ -311,7 +301,6 @@ export default function RoleFormModal({
               {
                 id: editing.id,
                 name: values.name?.trim() ?? '',
-                dataScope: values.dataScope ?? 2,
                 enabled: values.enabled ?? true,
                 permissionKeys: selectedPermissionKeys,
               },
@@ -321,7 +310,6 @@ export default function RoleFormModal({
             await adminServiceCreateRole({
               code: '',
               name: values.name?.trim() ?? '',
-              dataScope: values.dataScope ?? 2,
               permissionKeys: selectedPermissionKeys,
             });
             message.success('角色已成功创建');

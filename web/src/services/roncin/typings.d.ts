@@ -148,7 +148,6 @@ declare namespace API {
     organizationId?: string;
     code?: string;
     name?: string;
-    dataScope?: number;
     enabled?: boolean;
     permissionKeys?: string[];
     createdAt?: string;
@@ -1764,7 +1763,6 @@ declare namespace API {
     /** 角色编码可选；留空时由服务端自动生成机器标识，组织内唯一性由数据库唯一索引兜底。 */
     code?: string;
     name: string;
-    dataScope: number;
     permissionKeys?: string[];
   };
 
@@ -6804,7 +6802,6 @@ declare namespace API {
 
   type RoleScope = {
     roleCode?: string;
-    dataScope?: string;
     /** 角色显示名，按授权角色解析；合成授权无对应角色时为空。 */
     roleName?: string;
   };
@@ -8960,7 +8957,6 @@ declare namespace API {
   type UpdateRoleRequest = {
     id: string;
     name: string;
-    dataScope: number;
     enabled?: boolean;
     permissionKeys?: string[];
   };

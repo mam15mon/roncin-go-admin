@@ -6,8 +6,6 @@ import {
   TableOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
-import { history } from '@/router/history';
-import { useAccess } from '@/app/access';
 import {
   Button,
   Descriptions,
@@ -18,6 +16,8 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
+import { useAccess } from '@/app/access';
+import { history } from '@/router/history';
 import { formatDate } from '@/utils/format';
 import { orderFlowStatusText, orderTerminationStatusText } from './display';
 
@@ -185,23 +185,22 @@ export function AccountBoundaryCard({ user }: { user?: API.CurrentUser }) {
             {orgCode}
           </Text>
         </Descriptions.Item>
-        <Descriptions.Item label="数据授权范围" span={2}>
+        <Descriptions.Item label="已分配角色" span={2}>
           {user?.roleScopes && user.roleScopes.length > 0 ? (
             <Space wrap size={[6, 6]}>
               {user.roleScopes.map((scope) => (
                 <Tag
-                  key={`${scope.roleCode}:${scope.dataScope}`}
+                  key={scope.roleCode}
                   color="cyan"
                   variant="filled"
                   style={{ padding: '2px 8px', fontSize: 12 }}
                 >
-                  {scope.roleName || scope.roleCode} · 数据范围:{' '}
-                  {scope.dataScope}
+                  {scope.roleName || scope.roleCode}
                 </Tag>
               ))}
             </Space>
           ) : (
-            <Text type="secondary">按系统默认规则隔离</Text>
+            <Text type="secondary">暂无已分配角色</Text>
           )}
         </Descriptions.Item>
         <Descriptions.Item label="功能权限授权数" span={2}>

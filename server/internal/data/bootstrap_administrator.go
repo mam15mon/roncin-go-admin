@@ -91,8 +91,6 @@ func prepareAdministratorPlans(ctx context.Context, client *ent.Client, account 
 			plan.skipReason = "公司已停用，请人工恢复后重跑"
 		case plan.adminRole != nil && !plan.adminRole.Enabled:
 			plan.skipReason = "管理员角色已停用，请人工恢复后重跑"
-		case plan.adminRole != nil && plan.adminRole.DataScope == role.DataScopeSelf:
-			plan.skipReason = "管理员角色数据范围已失效，请人工恢复后重跑"
 		case plan.member != nil && !plan.member.Enabled:
 			plan.skipReason = "管理员成员关系已停用，请人工恢复后重跑"
 		}
@@ -122,7 +120,7 @@ func provisionAdministratorPlan(ctx context.Context, client *ent.Client, account
 			}
 			plan.adminRole, err = client.Role.Query().Where(role.OrganizationIDEQ(plan.organization.ID), role.CodeEQ("administrator")).Only(ctx)
 		} else {
-			plan.adminRole, err = client.Role.Create().SetOrganizationID(plan.organization.ID).SetCode("administrator").SetName("系统管理员").SetDataScope(role.DataScopeAll).AddPermissionIDs(permissionIDs...).Save(ctx)
+			plan.adminRole, err = client.Role.Create().SetOrganizationID(plan.organization.ID).SetCode("administrator").SetName("系统管理员").AddPermissionIDs(permissionIDs...).Save(ctx)
 		}
 		if err != nil {
 			return mapEntError(err, nil, biz.ErrAdminRoleCodeExists)

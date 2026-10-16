@@ -8,26 +8,24 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 )
 
 func TestResolvePrincipalBuildsRoleGrantOnlyForEnabledRoles(t *testing.T) {
 	roleID := uuid.New()
 	role := &ent.Role{
-		ID:        roleID,
-		Code:      "operator",
-		DataScope: roleent.DataScopeOrganizationTree,
-		Enabled:   true,
+		ID:      roleID,
+		Code:    "operator",
+		Enabled: true,
 		Edges: ent.RoleEdges{
 			Permissions: []*ent.Permission{{Key: "business.order.se.read"}},
 		},
 	}
 
-	grant, enabled := roleGrantFromEntRole(role)
+	grant, enabled := roleGrantFromEntRole(role, biz.DataScopeOrganization)
 	if !enabled {
 		t.Fatal("启用角色应进入 ResolvePrincipal 的 RoleGrants")
 	}
-	if grant.RoleID != roleID || grant.RoleCode != "operator" || grant.DataScope != biz.DataScopeOrganizationTree {
+	if grant.RoleID != roleID || grant.RoleCode != "operator" || grant.DataScope != biz.DataScopeOrganization {
 		t.Fatalf("角色来源信息 = %#v", grant)
 	}
 	if _, ok := grant.Permissions["business.order.se.read"]; !ok {
@@ -35,7 +33,7 @@ func TestResolvePrincipalBuildsRoleGrantOnlyForEnabledRoles(t *testing.T) {
 	}
 
 	role.Enabled = false
-	if _, enabled := roleGrantFromEntRole(role); enabled {
+	if _, enabled := roleGrantFromEntRole(role, biz.DataScopeOrganization); enabled {
 		t.Fatal("停用角色不应进入 ResolvePrincipal 的 RoleGrants")
 	}
 }
@@ -309,7 +307,6 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 		SetOrganizationID(systemWorkspace.ID).
 		SetCode("hq_role_" + suffix).
 		SetName("系统管理角色-" + suffix).
-		SetDataScope(roleent.DataScopeOrganization).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建系统管理角色失败: %v", err)
@@ -318,7 +315,6 @@ func newAuthCompanyGranularityFixture(t *testing.T) *authCompanyGranularityFixtu
 		SetOrganizationID(company.ID).
 		SetCode("dept_role_" + suffix).
 		SetName("部门角色-" + suffix).
-		SetDataScope(roleent.DataScopeOrganization).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建部门角色失败: %v", err)

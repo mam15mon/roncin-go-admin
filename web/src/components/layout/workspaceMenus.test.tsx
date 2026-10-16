@@ -15,7 +15,7 @@ function menusFor(permissions: string[], isPlatform = false) {
           key,
           dataScope: 'all',
         })),
-        roleScopes: [{ roleCode: 'tester', dataScope: 'all' }],
+        roleScopes: [{ roleCode: 'tester' }],
         currentOrganization: { id: 'org', kind: isPlatform ? 1 : 2 },
       },
     }),

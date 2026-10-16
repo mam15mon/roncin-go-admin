@@ -37,7 +37,7 @@ func feeReviewGrants(ctx context.Context, client *ent.Client, organizationID uui
 	if err != nil || !enabled {
 		return nil, err
 	}
-	ancestors, err := organizationLockGrantAncestorIDs(ctx, client, organizationID)
+	ancestors, err := companyGrantMembershipIDs(ctx, client, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func hasRealtimeFeePermission(ctx context.Context, client *ent.Client, organizat
 			return false, err
 		}
 	}
-	ancestors, err := organizationLockGrantAncestorIDs(ctx, client, organizationID)
+	ancestors, err := companyGrantMembershipIDs(ctx, client, organizationID)
 	if err != nil {
 		return false, err
 	}
@@ -462,7 +462,7 @@ func appendFeeReviewEvent(ctx context.Context, client *ent.Client, o *ent.Order,
 			if grant.Edges.Membership.UserID == actorID {
 				authorization["role_id"] = grant.RoleID.String()
 				authorization["membership_id"] = grant.MembershipID.String()
-				authorization["data_scope"] = string(grant.Edges.Role.DataScope)
+				authorization["data_scope"] = string(biz.DataScopeOrganization)
 				break
 			}
 		}

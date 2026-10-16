@@ -28,6 +28,7 @@
 | [User Membership Batch](./user-membership-batch.md) | 单用户多组织加入、逐组织选填角色、锁内授权与整批事务 | ✅ |
 | [Company Admin Provisioning](./company-admin-provisioning.md) | 新公司初始管理员加入、bootstrap 幂等补齐及停用保留 | ✅ |
 | [WeCom Retirement](./wecom-retirement.md) | 企业微信下线：已删除端点、用户字段、环境配置、正式迁移和相邻认证验证 | ✅ |
+| [Role Data Scope Retirement](./retire-role-data-scope.md) | 角色范围配置/字段退役、工作台推导、迁移停用与候选隔离 | ✅ |
 | [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属系统管理/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
 | [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 系统管理仅管理公共资料与授权、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
 | [DingTalk Directory Provisioning](./dingtalk-registration-approval.md) | 钉钉通讯录同步、待分配、逐人事务开通、租约与资料只读 | ✅ |

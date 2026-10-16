@@ -354,7 +354,6 @@
 | ADMIN_ROLE_IN_USE | 409 Conflict | 该角色仍被其他数据引用，无法删除 | admin_role.go | — |
 | ADMIN_ROLE_NOT_FOUND | 404 Not Found | 角色不存在 | admin_role.go | — |
 | ADMIN_ROLE_PROTECTED | 403 Forbidden | 系统管理员角色不允许删除 | admin_role.go | — |
-| ADMIN_ROLE_SCOPE_DISABLED | 400 Bad Request | 仅本人数据范围已停用，请明确选择其他数据范围 | admin_role.go | — |
 | ADMIN_USERNAME_EXISTS | 409 Conflict | 用户名已存在 | admin_user.go | — |
 | ADMIN_USER_AUTHORIZATION_REQUIRED | 400 Bad Request | 外部身份账号必须通过身份授权流程启用 | admin_user.go | — |
 | ADMIN_USER_LAST_MEMBERSHIP | 400 Bad Request | 在职用户必须保留至少一个有效组织；请先加入新组织或办理离职 | admin_user.go | — |

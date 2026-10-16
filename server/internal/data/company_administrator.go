@@ -19,7 +19,7 @@ func initializeCompanyAdministrator(ctx context.Context, client *ent.Client, org
 	if err != nil {
 		return err
 	}
-	_, err = client.Role.Create().SetOrganizationID(organizationID).SetCode("administrator").SetName("公司管理员").SetDataScope(role.DataScopeOrganization).AddPermissionIDs(ids...).Save(ctx)
+	_, err = client.Role.Create().SetOrganizationID(organizationID).SetCode("administrator").SetName("公司管理员").AddPermissionIDs(ids...).Save(ctx)
 	return err
 }
 

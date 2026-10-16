@@ -166,7 +166,7 @@ func (s *adminRepoStub) GetRole(_ context.Context, organizationID, id uuid.UUID)
 	if s.currentRole != nil {
 		return s.currentRole, nil
 	}
-	return &AdminRole{ID: id, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization}, nil
+	return &AdminRole{ID: id, OrganizationID: organizationID, Code: "operator"}, nil
 }
 
 func (s *adminRepoStub) CreateRole(_ context.Context, organizationID uuid.UUID, input *AdminRole, keys []string, audit *AuditEvent) (*AdminRole, error) {
@@ -387,7 +387,7 @@ func TestAdminUsecaseCreateRoleNormalizesPermissionKeysAndAudits(t *testing.T) {
 		context.Background(),
 		organizationID,
 		actorID,
-		&AdminRole{Code: "  OPERATIONS ", Name: "  操作员 ", DataScope: DataScopeOrganization},
+		&AdminRole{Code: "  OPERATIONS ", Name: "  操作员 "},
 		[]string{" system.user.manage ", "", "system.user.manage", "system.role.manage"},
 	)
 	if err != nil {
@@ -418,7 +418,7 @@ func TestAdminUsecaseCreateRoleExpandsPermissionDependencies(t *testing.T) {
 		context.Background(),
 		uuid.New(),
 		uuid.New(),
-		&AdminRole{Code: "operations", Name: "操作员", DataScope: DataScopeOrganization},
+		&AdminRole{Code: "operations", Name: "操作员"},
 		[]string{"business.partner.update"},
 	); err != nil {
 		t.Fatalf("CreateRole() error = %v", err)
@@ -437,7 +437,7 @@ func TestAdminUsecaseUpdateRoleExpandsPermissionDependencies(t *testing.T) {
 		uuid.New(),
 		uuid.New(),
 		uuid.New(),
-		&AdminRole{Code: "operations", Name: "操作员", DataScope: DataScopeOrganization},
+		&AdminRole{Code: "operations", Name: "操作员"},
 		[]string{"system.master_data.item.create"},
 	); err != nil {
 		t.Fatalf("UpdateRole() error = %v", err)
@@ -459,7 +459,7 @@ func TestAdminUsecaseCreateRoleDependencyExpansionRespectsActorPrivilege(t *test
 		context.Background(),
 		uuid.New(),
 		uuid.New(),
-		&AdminRole{Code: "operations", Name: "操作员", DataScope: DataScopeOrganization},
+		&AdminRole{Code: "operations", Name: "操作员"},
 		[]string{"business.partner.update"},
 	); err != ErrAdminPrivilegeEscalation {
 		t.Fatalf("missing dependency privilege error = %v, want ErrAdminPrivilegeEscalation", err)
@@ -477,7 +477,7 @@ func TestAdminUsecaseCreateRoleGeneratesCodeWhenMissing(t *testing.T) {
 		context.Background(),
 		uuid.New(),
 		uuid.New(),
-		&AdminRole{Name: "操作员", DataScope: DataScopeOrganization},
+		&AdminRole{Name: "操作员"},
 		nil,
 	)
 	if err != nil {
@@ -490,7 +490,7 @@ func TestAdminUsecaseCreateRoleGeneratesCodeWhenMissing(t *testing.T) {
 		context.Background(),
 		uuid.New(),
 		uuid.New(),
-		&AdminRole{Name: "财务专员", DataScope: DataScopeOrganization},
+		&AdminRole{Name: "财务专员"},
 		nil,
 	)
 	if err != nil {
@@ -622,15 +622,15 @@ func TestAdminUsecaseUpdateRoleRejectsAdministratorAndScopeEscalation(t *testing
 	roleID := uuid.New()
 	repo := &adminRepoStub{
 		actorRoleProfiles: []*AdminRoleProfile{{Code: "role_manager", DataScope: DataScopeOrganization, PermissionKeys: []string{"system.role.update"}}},
-		currentRole:       &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator", DataScope: DataScopeAll},
+		currentRole:       &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator"},
 	}
 	usecase := NewAdminUsecase(repo, inlineTransactor{})
-	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "系统管理员", DataScope: DataScopeOrganization, Enabled: true}, []string{"system.role.update"}); err != ErrAdminPrivilegeEscalation {
+	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "系统管理员", Enabled: true}, []string{"system.role.update"}); err != ErrAdminPrivilegeEscalation {
 		t.Fatalf("UpdateRole() administrator error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
 
-	repo.currentRole = &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization}
-	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "操作员", DataScope: DataScopeAll, Enabled: true}, []string{"system.role.update"}); err != ErrAdminPrivilegeEscalation {
+	repo.currentRole = &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator"}
+	if _, err := usecase.UpdateRole(context.Background(), organizationID, actorID, roleID, &AdminRole{ID: roleID, Name: "操作员", Enabled: true}, []string{"system.role.delete"}); err != ErrAdminPrivilegeEscalation {
 		t.Fatalf("UpdateRole() scope error = %v, want ErrAdminPrivilegeEscalation", err)
 	}
 }
@@ -660,9 +660,9 @@ func TestAdminUsecaseTerminateUserRejectsSelfAndAudits(t *testing.T) {
 	}
 }
 
-func TestNormalizeRoleRejectsUnspecifiedDataScope(t *testing.T) {
-	if _, err := normalizeRole(&AdminRole{Code: "viewer", Name: "查看者"}); err != ErrAdminInvalidArgument {
-		t.Fatalf("normalizeRole() error = %v, want ErrAdminInvalidArgument", err)
+func TestNormalizeRoleRequiresNoDataScope(t *testing.T) {
+	if _, err := normalizeRole(&AdminRole{Code: "viewer", Name: "查看者"}); err != nil {
+		t.Fatalf("角色无需数据范围即可保存: %v", err)
 	}
 }
 
@@ -825,7 +825,7 @@ func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
 
 	// 系统内置 administrator 角色不允许删除，且不得触达仓储。
 	repo := &adminRepoStub{
-		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator", DataScope: DataScopeAll},
+		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "administrator"},
 	}
 	usecase := NewAdminUsecase(repo, inlineTransactor{})
 	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != ErrAdminRoleProtected {
@@ -837,7 +837,7 @@ func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
 
 	// 已分配成员的角色必须先移除分配，不得触达仓储。
 	repo = &adminRepoStub{
-		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization, AssignmentsCount: 2},
+		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", AssignmentsCount: 2},
 	}
 	usecase = NewAdminUsecase(repo, inlineTransactor{})
 	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != ErrAdminRoleAssigned {
@@ -849,7 +849,7 @@ func TestAdminUsecaseDeleteRoleRules(t *testing.T) {
 
 	// 未分配成员的普通角色删除成功并携带审计事件。
 	repo = &adminRepoStub{
-		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator", DataScope: DataScopeOrganization},
+		currentRole: &AdminRole{ID: roleID, OrganizationID: organizationID, Code: "operator"},
 	}
 	usecase = NewAdminUsecase(repo, inlineTransactor{})
 	if err := usecase.DeleteRole(context.Background(), organizationID, actorID, roleID); err != nil {
@@ -909,17 +909,6 @@ func TestAdminUsecaseUpdateOrganizationBaseCurrencyImmutable(t *testing.T) {
 	}
 	if updated.BaseCurrency != "USD" {
 		t.Fatalf("updated org baseCurrency = %q, want USD", updated.BaseCurrency)
-	}
-}
-
-func TestCreateAndUpdateRoleRejectDisabledSelf(t *testing.T) {
-	uc := NewAdminUsecase(&adminRepoStub{}, inlineTransactor{})
-	input := &AdminRole{Name: "历史角色", DataScope: DataScopeSelf}
-	if _, err := uc.CreateRole(context.Background(), uuid.New(), uuid.New(), input, nil); err != ErrAdminRoleScopeDisabled {
-		t.Fatalf("新建 self 角色错误 = %v", err)
-	}
-	if _, err := uc.UpdateRole(context.Background(), uuid.New(), uuid.New(), uuid.New(), input, nil); err != ErrAdminRoleScopeDisabled {
-		t.Fatalf("保存 self 角色错误 = %v", err)
 	}
 }
 

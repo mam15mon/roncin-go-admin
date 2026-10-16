@@ -53,7 +53,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 - `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 和去除空白后非空的 `idempotency_key`。
 - `RequestOrderUnlockRequest` 使用相同并发与幂等字段；`reason` 可选，管理员紧急解锁不得伪造默认原因。
-- 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色数据范围覆盖目标订单组织——`ORGANIZATION` 要求 membership 组织即目标组织，`ORGANIZATION_TREE` 要求 membership 组织是目标组织或其祖先（沿 parent 链计算，带环保护），`ALL` 覆盖任意组织；锁权限只依赖同类型 read/update，不得跨类型授权。
+- 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色归属目标公司，membership 位于该公司启用子树（部门/团队可参与，到其他公司截止）；不再按已退役的角色范围配置判断，系统或其他公司角色不得进入候选；锁权限只依赖同类型 read/update，不得跨类型授权。
 - bootstrap admin 显式具备锁单资格（`GetOrderLockState`/`LockOrder` 直接视为可锁），但不得进入普通审批候选池，回调也不得绕过候选快照。
 - 解锁固定分流：bootstrap admin → `ADMIN_EMERGENCY`；持有效 lock grant 的用户（含真实持锁权限的 `administrator` 角色）→ `ROLE_DIRECT`；普通订单编辑人 → `DINGTALK_APPROVAL`。
 - 审批候选人快照保存实际 `membership_id`、`role_id` 与 DingTalk UserID；同一用户有多个合格 grant 时按 RoleAssignment ID 升序取首个可追溯 grant；钉钉回调先校验审批人存在于快照，再以同一资格口径实时复核，权限或成员关系被撤销后旧候选回调稳定标记 `APPROVER_NOT_QUALIFIED`。

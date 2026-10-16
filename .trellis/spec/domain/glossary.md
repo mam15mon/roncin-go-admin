@@ -54,7 +54,7 @@
 | --- | --- | --- |
 | 订单 | `Order` | 状态机：草稿→确认→…→退关(Termination)/关账(Closure)；`version` 乐观锁；写路径范本 `data/order_write_draft.go` |
 | 订单锁定 | `OrderLockRecord` / `OrderUnlockRequest` | 业务锁定后禁止编辑；解锁走申请审批；自动锁由结算触发；全程幂等 | `data/order_lock_*.go` |
-| 组织/数据范围 | `Organization` / `Membership` / `Role` / `RoleAssignment` / `Permission` | 多组织 + 角色授权；权限带 DataScope（本组织/组织树）；权限清单唯一真相源 `internal/access/manifest.go` | `biz/auth.go` |
+| 组织/数据范围 | `Organization` / `Membership` / `Role` / `RoleAssignment` / `Permission` | 多组织 + 角色授权；角色范围配置已退役，有效边界由工作台推导（公司本公司、系统治理）；权限清单唯一真相源 `internal/access/manifest.go` | `biz/auth.go` |
 | 审计 | `AuditLog` | 业务审计事件（action 非空约束），独立于运行日志 | `audit_log.go` |
 | 编号规则 | `NumberRule` / `NumberSequence` | 业务单号生成（如提单号、申请号） | `number_rule.go` |
 | 汇率 | `ExchangeRateSetting` / `...ImportBatch` | 币种汇率设置与批量导入；提成/账单 CNY 折算依赖 | `exchange_rate*.go` |

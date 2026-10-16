@@ -23,12 +23,18 @@ const formModalProps = vi.hoisted(() => ({
   value: {} as Record<string, unknown>,
 }));
 
+const listProps = vi.hoisted(() => ({
+  columns: [] as Array<Record<string, unknown>>,
+  filters: [] as Array<Record<string, unknown>>,
+}));
+
 vi.mock('@/app/access', () => ({
   useAccess: () => accessState.value,
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
   ProTable: ({ columns }: { columns: Array<Record<string, unknown>> }) => {
+    listProps.columns = columns;
     const operation = columns.find((column) => column.title === '操作');
     return (
       <div>
@@ -44,9 +50,16 @@ vi.mock('@ant-design/pro-components', () => ({
 
 vi.mock('@/components/ui', async () => ({
   ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
-  SearchFilterTemplate: ({ extraRight }: { extraRight: React.ReactNode }) => (
-    <div>{extraRight}</div>
-  ),
+  SearchFilterTemplate: ({
+    extraRight,
+    quickFilters = [],
+  }: {
+    extraRight: React.ReactNode;
+    quickFilters?: Array<Record<string, unknown>>;
+  }) => {
+    listProps.filters = quickFilters;
+    return <div>{extraRight}</div>;
+  },
 }));
 
 vi.mock('antd', async (importOriginal) => {
@@ -97,6 +110,16 @@ vi.mock('./components/roles/RoleFormModal', () => ({
 import RolesPanel from './roles';
 
 describe('RolesPanel 角色配置权限', () => {
+  it('列表与筛选不再提供角色数据范围', () => {
+    render(<RolesPanel />);
+    expect(listProps.columns.map((column) => column.dataIndex)).not.toContain(
+      'dataScope',
+    );
+    expect(listProps.filters.map((filter) => filter.name)).not.toContain(
+      'dataScope',
+    );
+  });
+
   it('缺少角色和字典读取权限时不暴露新增或编辑入口', () => {
     render(<RolesPanel />);
 

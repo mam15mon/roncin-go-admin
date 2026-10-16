@@ -312,11 +312,11 @@ func TestOrderFeeReviewGrantScopePostgres(t *testing.T) {
 	if _, err := u.Act(f.ctx, p, "APPROVE", reviewAction(pending, "scope-wrong")); err != biz.ErrFeeReviewForbidden {
 		t.Fatalf("同组织grant失效必须拒绝: %v", err)
 	}
-	if err := f.data.db.Role.UpdateOneID(f.lockRoleID).SetDataScope("all").Exec(f.ctx); err != nil {
+	if err := f.data.db.Membership.UpdateOne(membership).SetOrganizationID(f.organizationID).Exec(f.ctx); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := u.Act(f.ctx, p, "APPROVE", reviewAction(pending, "scope-all")); err != nil {
-		t.Fatal("all grant跨组织应覆盖", err)
+	if _, err := u.Act(f.ctx, p, "APPROVE", reviewAction(pending, "scope-restored")); err != nil {
+		t.Fatal("恢复本公司成员关系后应可审核", err)
 	}
 	if err := f.data.db.User.UpdateOneID(p.UserID).SetEnabled(false).Exec(f.ctx); err != nil {
 		t.Fatal(err)

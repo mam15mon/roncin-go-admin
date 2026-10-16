@@ -23,61 +23,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type DataScope int32
-
-const (
-	DataScope_DATA_SCOPE_UNSPECIFIED       DataScope = 0
-	DataScope_DATA_SCOPE_ALL               DataScope = 1
-	DataScope_DATA_SCOPE_ORGANIZATION      DataScope = 2
-	DataScope_DATA_SCOPE_ORGANIZATION_TREE DataScope = 3
-	DataScope_DATA_SCOPE_SELF              DataScope = 4
-)
-
-// Enum value maps for DataScope.
-var (
-	DataScope_name = map[int32]string{
-		0: "DATA_SCOPE_UNSPECIFIED",
-		1: "DATA_SCOPE_ALL",
-		2: "DATA_SCOPE_ORGANIZATION",
-		3: "DATA_SCOPE_ORGANIZATION_TREE",
-		4: "DATA_SCOPE_SELF",
-	}
-	DataScope_value = map[string]int32{
-		"DATA_SCOPE_UNSPECIFIED":       0,
-		"DATA_SCOPE_ALL":               1,
-		"DATA_SCOPE_ORGANIZATION":      2,
-		"DATA_SCOPE_ORGANIZATION_TREE": 3,
-		"DATA_SCOPE_SELF":              4,
-	}
-)
-
-func (x DataScope) Enum() *DataScope {
-	p := new(DataScope)
-	*p = x
-	return p
-}
-
-func (x DataScope) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (DataScope) Descriptor() protoreflect.EnumDescriptor {
-	return file_admin_v1_admin_proto_enumTypes[0].Descriptor()
-}
-
-func (DataScope) Type() protoreflect.EnumType {
-	return &file_admin_v1_admin_proto_enumTypes[0]
-}
-
-func (x DataScope) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use DataScope.Descriptor instead.
-func (DataScope) EnumDescriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{0}
-}
-
 type OrganizationKind int32
 
 const (
@@ -117,11 +62,11 @@ func (x OrganizationKind) String() string {
 }
 
 func (OrganizationKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_admin_v1_admin_proto_enumTypes[1].Descriptor()
+	return file_admin_v1_admin_proto_enumTypes[0].Descriptor()
 }
 
 func (OrganizationKind) Type() protoreflect.EnumType {
-	return &file_admin_v1_admin_proto_enumTypes[1]
+	return &file_admin_v1_admin_proto_enumTypes[0]
 }
 
 func (x OrganizationKind) Number() protoreflect.EnumNumber {
@@ -130,7 +75,7 @@ func (x OrganizationKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use OrganizationKind.Descriptor instead.
 func (OrganizationKind) EnumDescriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{1}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{0}
 }
 
 type AdminUserStatus int32
@@ -178,11 +123,11 @@ func (x AdminUserStatus) String() string {
 }
 
 func (AdminUserStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_admin_v1_admin_proto_enumTypes[2].Descriptor()
+	return file_admin_v1_admin_proto_enumTypes[1].Descriptor()
 }
 
 func (AdminUserStatus) Type() protoreflect.EnumType {
-	return &file_admin_v1_admin_proto_enumTypes[2]
+	return &file_admin_v1_admin_proto_enumTypes[1]
 }
 
 func (x AdminUserStatus) Number() protoreflect.EnumNumber {
@@ -191,7 +136,7 @@ func (x AdminUserStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AdminUserStatus.Descriptor instead.
 func (AdminUserStatus) EnumDescriptor() ([]byte, []int) {
-	return file_admin_v1_admin_proto_rawDescGZIP(), []int{2}
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{1}
 }
 
 type ListOrganizationsRequest struct {
@@ -2588,10 +2533,9 @@ func (*ListRolesRequest) Descriptor() ([]byte, []int) {
 type CreateRoleRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// 角色编码可选；留空时由服务端自动生成机器标识，组织内唯一性由数据库唯一索引兜底。
-	Code           string    `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Name           string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	DataScope      DataScope `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
-	PermissionKeys []string  `protobuf:"bytes,4,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
+	Code           string   `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name           string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	PermissionKeys []string `protobuf:"bytes,4,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -2640,13 +2584,6 @@ func (x *CreateRoleRequest) GetName() string {
 	return ""
 }
 
-func (x *CreateRoleRequest) GetDataScope() DataScope {
-	if x != nil {
-		return x.DataScope
-	}
-	return DataScope_DATA_SCOPE_UNSPECIFIED
-}
-
 func (x *CreateRoleRequest) GetPermissionKeys() []string {
 	if x != nil {
 		return x.PermissionKeys
@@ -2658,7 +2595,6 @@ type UpdateRoleRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	DataScope      DataScope              `protobuf:"varint,3,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
 	Enabled        bool                   `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	PermissionKeys []string               `protobuf:"bytes,5,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -2709,13 +2645,6 @@ func (x *UpdateRoleRequest) GetName() string {
 	return ""
 }
 
-func (x *UpdateRoleRequest) GetDataScope() DataScope {
-	if x != nil {
-		return x.DataScope
-	}
-	return DataScope_DATA_SCOPE_UNSPECIFIED
-}
-
 func (x *UpdateRoleRequest) GetEnabled() bool {
 	if x != nil {
 		return x.Enabled
@@ -2736,7 +2665,6 @@ type AdminRole struct {
 	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	Code           string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	Name           string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	DataScope      DataScope              `protobuf:"varint,5,opt,name=data_scope,json=dataScope,proto3,enum=admin.v1.DataScope" json:"data_scope,omitempty"`
 	Enabled        bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	PermissionKeys []string               `protobuf:"bytes,7,rep,name=permission_keys,json=permissionKeys,proto3" json:"permission_keys,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
@@ -2803,13 +2731,6 @@ func (x *AdminRole) GetName() string {
 		return x.Name
 	}
 	return ""
-}
-
-func (x *AdminRole) GetDataScope() DataScope {
-	if x != nil {
-		return x.DataScope
-	}
-	return DataScope_DATA_SCOPE_UNSPECIFIED
 }
 
 func (x *AdminRole) GetEnabled() bool {
@@ -4901,27 +4822,23 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12'\n" +
 	"\x04data\x18\x04 \x01(\v2\x13.admin.v1.AdminUserR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x12\n" +
-	"\x10ListRolesRequest\"\xa2\x01\n" +
+	"\x10ListRolesRequest\"{\n" +
 	"\x11CreateRoleRequest\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x127\n" +
-	"\n" +
-	"data_scope\x18\x03 \x01(\x0e2\x13.admin.v1.DataScopeB\x03\xe0A\x02R\tdataScope\x12'\n" +
-	"\x0fpermission_keys\x18\x04 \x03(\tR\x0epermissionKeys\"\xbd\x01\n" +
+	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12'\n" +
+	"\x0fpermission_keys\x18\x04 \x03(\tR\x0epermissionKeysJ\x04\b\x03\x10\x04R\n" +
+	"data_scope\"\x96\x01\n" +
 	"\x11UpdateRoleRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x127\n" +
-	"\n" +
-	"data_scope\x18\x03 \x01(\x0e2\x13.admin.v1.DataScopeB\x03\xe0A\x02R\tdataScope\x12\x18\n" +
+	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12\x18\n" +
 	"\aenabled\x18\x04 \x01(\bR\aenabled\x12'\n" +
-	"\x0fpermission_keys\x18\x05 \x03(\tR\x0epermissionKeys\"\xce\x02\n" +
+	"\x0fpermission_keys\x18\x05 \x03(\tR\x0epermissionKeysJ\x04\b\x03\x10\x04R\n" +
+	"data_scope\"\xac\x02\n" +
 	"\tAdminRole\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12\x12\n" +
-	"\x04name\x18\x04 \x01(\tR\x04name\x122\n" +
-	"\n" +
-	"data_scope\x18\x05 \x01(\x0e2\x13.admin.v1.DataScopeR\tdataScope\x12\x18\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x18\n" +
 	"\aenabled\x18\x06 \x01(\bR\aenabled\x12'\n" +
 	"\x0fpermission_keys\x18\a \x03(\tR\x0epermissionKeys\x12\x1d\n" +
 	"\n" +
@@ -4929,7 +4846,8 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\t \x01(\tR\tupdatedAt\x12+\n" +
 	"\x11assignments_count\x18\n" +
-	" \x01(\x05R\x10assignmentsCount\"\x9f\x01\n" +
+	" \x01(\x05R\x10assignmentsCountJ\x04\b\x05\x10\x06R\n" +
+	"data_scope\"\x9f\x01\n" +
 	"\x11ListRolesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -5100,13 +5018,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x128\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.admin.v1.DingTalkDirectorySyncH\x00R\x04data\x88\x01\x01\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceIdB\a\n" +
-	"\x05_data*\x8f\x01\n" +
-	"\tDataScope\x12\x1a\n" +
-	"\x16DATA_SCOPE_UNSPECIFIED\x10\x00\x12\x12\n" +
-	"\x0eDATA_SCOPE_ALL\x10\x01\x12\x1b\n" +
-	"\x17DATA_SCOPE_ORGANIZATION\x10\x02\x12 \n" +
-	"\x1cDATA_SCOPE_ORGANIZATION_TREE\x10\x03\x12\x13\n" +
-	"\x0fDATA_SCOPE_SELF\x10\x04*\xb0\x01\n" +
+	"\x05_data*\xb0\x01\n" +
 	"\x10OrganizationKind\x12!\n" +
 	"\x1dORGANIZATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18ORGANIZATION_KIND_SYSTEM\x10\x01\x12\x1d\n" +
@@ -5164,163 +5076,159 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
 var file_admin_v1_admin_proto_goTypes = []any{
-	(DataScope)(0),                                 // 0: admin.v1.DataScope
-	(OrganizationKind)(0),                          // 1: admin.v1.OrganizationKind
-	(AdminUserStatus)(0),                           // 2: admin.v1.AdminUserStatus
-	(*ListOrganizationsRequest)(nil),               // 3: admin.v1.ListOrganizationsRequest
-	(*CreateOrganizationRequest)(nil),              // 4: admin.v1.CreateOrganizationRequest
-	(*UpdateOrganizationRequest)(nil),              // 5: admin.v1.UpdateOrganizationRequest
-	(*AdminOrganization)(nil),                      // 6: admin.v1.AdminOrganization
-	(*ListOrganizationsResponse)(nil),              // 7: admin.v1.ListOrganizationsResponse
-	(*ResetUserPasswordResponse)(nil),              // 8: admin.v1.ResetUserPasswordResponse
-	(*CreateOrganizationResponse)(nil),             // 9: admin.v1.CreateOrganizationResponse
-	(*UpdateOrganizationResponse)(nil),             // 10: admin.v1.UpdateOrganizationResponse
-	(*ListUsersRequest)(nil),                       // 11: admin.v1.ListUsersRequest
-	(*CreateUserRequest)(nil),                      // 12: admin.v1.CreateUserRequest
-	(*UpdateUserRequest)(nil),                      // 13: admin.v1.UpdateUserRequest
-	(*ListUserMembershipsRequest)(nil),             // 14: admin.v1.ListUserMembershipsRequest
-	(*UserMembershipCreation)(nil),                 // 15: admin.v1.UserMembershipCreation
-	(*CreateUserMembershipsRequest)(nil),           // 16: admin.v1.CreateUserMembershipsRequest
-	(*UpdateUserMembershipRequest)(nil),            // 17: admin.v1.UpdateUserMembershipRequest
-	(*DeleteUserMembershipRequest)(nil),            // 18: admin.v1.DeleteUserMembershipRequest
-	(*TerminateUserRequest)(nil),                   // 19: admin.v1.TerminateUserRequest
-	(*AuthorizeDingTalkUserRequest)(nil),           // 20: admin.v1.AuthorizeDingTalkUserRequest
-	(*ResetUserPasswordRequest)(nil),               // 21: admin.v1.ResetUserPasswordRequest
-	(*ListOrganizationRolesRequest)(nil),           // 22: admin.v1.ListOrganizationRolesRequest
-	(*AdminUser)(nil),                              // 23: admin.v1.AdminUser
-	(*AdminUserOrganizationSummary)(nil),           // 24: admin.v1.AdminUserOrganizationSummary
-	(*AdminUserMembership)(nil),                    // 25: admin.v1.AdminUserMembership
-	(*ListUsersResponse)(nil),                      // 26: admin.v1.ListUsersResponse
-	(*CreateUserResponse)(nil),                     // 27: admin.v1.CreateUserResponse
-	(*UpdateUserResponse)(nil),                     // 28: admin.v1.UpdateUserResponse
-	(*ListUserMembershipsResponse)(nil),            // 29: admin.v1.ListUserMembershipsResponse
-	(*CreateUserMembershipsResponse)(nil),          // 30: admin.v1.CreateUserMembershipsResponse
-	(*UpdateUserMembershipResponse)(nil),           // 31: admin.v1.UpdateUserMembershipResponse
-	(*DeleteUserMembershipResponse)(nil),           // 32: admin.v1.DeleteUserMembershipResponse
-	(*TerminateUserResponse)(nil),                  // 33: admin.v1.TerminateUserResponse
-	(*AuthorizeDingTalkUserResponse)(nil),          // 34: admin.v1.AuthorizeDingTalkUserResponse
-	(*ListRolesRequest)(nil),                       // 35: admin.v1.ListRolesRequest
-	(*CreateRoleRequest)(nil),                      // 36: admin.v1.CreateRoleRequest
-	(*UpdateRoleRequest)(nil),                      // 37: admin.v1.UpdateRoleRequest
-	(*AdminRole)(nil),                              // 38: admin.v1.AdminRole
-	(*ListRolesResponse)(nil),                      // 39: admin.v1.ListRolesResponse
-	(*ListOrganizationRolesResponse)(nil),          // 40: admin.v1.ListOrganizationRolesResponse
-	(*CreateRoleResponse)(nil),                     // 41: admin.v1.CreateRoleResponse
-	(*UpdateRoleResponse)(nil),                     // 42: admin.v1.UpdateRoleResponse
-	(*DeleteRoleRequest)(nil),                      // 43: admin.v1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil),                     // 44: admin.v1.DeleteRoleResponse
-	(*ListPermissionsRequest)(nil),                 // 45: admin.v1.ListPermissionsRequest
-	(*AdminPermission)(nil),                        // 46: admin.v1.AdminPermission
-	(*ListPermissionsResponse)(nil),                // 47: admin.v1.ListPermissionsResponse
-	(*ListAuditLogsRequest)(nil),                   // 48: admin.v1.ListAuditLogsRequest
-	(*AdminAuditLog)(nil),                          // 49: admin.v1.AdminAuditLog
-	(*ListAuditLogsResponse)(nil),                  // 50: admin.v1.ListAuditLogsResponse
-	(*DingTalkDepartment)(nil),                     // 51: admin.v1.DingTalkDepartment
-	(*BatchAuthorizeDingTalkUsersRequest)(nil),     // 52: admin.v1.BatchAuthorizeDingTalkUsersRequest
-	(*DingTalkAssignmentResult)(nil),               // 53: admin.v1.DingTalkAssignmentResult
-	(*BatchAuthorizeDingTalkUsersResponse)(nil),    // 54: admin.v1.BatchAuthorizeDingTalkUsersResponse
-	(*StartDingTalkDirectorySyncRequest)(nil),      // 55: admin.v1.StartDingTalkDirectorySyncRequest
-	(*GetLatestDingTalkDirectorySyncRequest)(nil),  // 56: admin.v1.GetLatestDingTalkDirectorySyncRequest
-	(*GetDingTalkDirectorySyncRequest)(nil),        // 57: admin.v1.GetDingTalkDirectorySyncRequest
-	(*DingTalkDirectorySyncFailure)(nil),           // 58: admin.v1.DingTalkDirectorySyncFailure
-	(*DingTalkDirectorySync)(nil),                  // 59: admin.v1.DingTalkDirectorySync
-	(*StartDingTalkDirectorySyncResponse)(nil),     // 60: admin.v1.StartDingTalkDirectorySyncResponse
-	(*GetLatestDingTalkDirectorySyncResponse)(nil), // 61: admin.v1.GetLatestDingTalkDirectorySyncResponse
-	(*GetDingTalkDirectorySyncResponse)(nil),       // 62: admin.v1.GetDingTalkDirectorySyncResponse
-	nil,                                            // 63: admin.v1.AdminAuditLog.DetailsEntry
+	(OrganizationKind)(0),                          // 0: admin.v1.OrganizationKind
+	(AdminUserStatus)(0),                           // 1: admin.v1.AdminUserStatus
+	(*ListOrganizationsRequest)(nil),               // 2: admin.v1.ListOrganizationsRequest
+	(*CreateOrganizationRequest)(nil),              // 3: admin.v1.CreateOrganizationRequest
+	(*UpdateOrganizationRequest)(nil),              // 4: admin.v1.UpdateOrganizationRequest
+	(*AdminOrganization)(nil),                      // 5: admin.v1.AdminOrganization
+	(*ListOrganizationsResponse)(nil),              // 6: admin.v1.ListOrganizationsResponse
+	(*ResetUserPasswordResponse)(nil),              // 7: admin.v1.ResetUserPasswordResponse
+	(*CreateOrganizationResponse)(nil),             // 8: admin.v1.CreateOrganizationResponse
+	(*UpdateOrganizationResponse)(nil),             // 9: admin.v1.UpdateOrganizationResponse
+	(*ListUsersRequest)(nil),                       // 10: admin.v1.ListUsersRequest
+	(*CreateUserRequest)(nil),                      // 11: admin.v1.CreateUserRequest
+	(*UpdateUserRequest)(nil),                      // 12: admin.v1.UpdateUserRequest
+	(*ListUserMembershipsRequest)(nil),             // 13: admin.v1.ListUserMembershipsRequest
+	(*UserMembershipCreation)(nil),                 // 14: admin.v1.UserMembershipCreation
+	(*CreateUserMembershipsRequest)(nil),           // 15: admin.v1.CreateUserMembershipsRequest
+	(*UpdateUserMembershipRequest)(nil),            // 16: admin.v1.UpdateUserMembershipRequest
+	(*DeleteUserMembershipRequest)(nil),            // 17: admin.v1.DeleteUserMembershipRequest
+	(*TerminateUserRequest)(nil),                   // 18: admin.v1.TerminateUserRequest
+	(*AuthorizeDingTalkUserRequest)(nil),           // 19: admin.v1.AuthorizeDingTalkUserRequest
+	(*ResetUserPasswordRequest)(nil),               // 20: admin.v1.ResetUserPasswordRequest
+	(*ListOrganizationRolesRequest)(nil),           // 21: admin.v1.ListOrganizationRolesRequest
+	(*AdminUser)(nil),                              // 22: admin.v1.AdminUser
+	(*AdminUserOrganizationSummary)(nil),           // 23: admin.v1.AdminUserOrganizationSummary
+	(*AdminUserMembership)(nil),                    // 24: admin.v1.AdminUserMembership
+	(*ListUsersResponse)(nil),                      // 25: admin.v1.ListUsersResponse
+	(*CreateUserResponse)(nil),                     // 26: admin.v1.CreateUserResponse
+	(*UpdateUserResponse)(nil),                     // 27: admin.v1.UpdateUserResponse
+	(*ListUserMembershipsResponse)(nil),            // 28: admin.v1.ListUserMembershipsResponse
+	(*CreateUserMembershipsResponse)(nil),          // 29: admin.v1.CreateUserMembershipsResponse
+	(*UpdateUserMembershipResponse)(nil),           // 30: admin.v1.UpdateUserMembershipResponse
+	(*DeleteUserMembershipResponse)(nil),           // 31: admin.v1.DeleteUserMembershipResponse
+	(*TerminateUserResponse)(nil),                  // 32: admin.v1.TerminateUserResponse
+	(*AuthorizeDingTalkUserResponse)(nil),          // 33: admin.v1.AuthorizeDingTalkUserResponse
+	(*ListRolesRequest)(nil),                       // 34: admin.v1.ListRolesRequest
+	(*CreateRoleRequest)(nil),                      // 35: admin.v1.CreateRoleRequest
+	(*UpdateRoleRequest)(nil),                      // 36: admin.v1.UpdateRoleRequest
+	(*AdminRole)(nil),                              // 37: admin.v1.AdminRole
+	(*ListRolesResponse)(nil),                      // 38: admin.v1.ListRolesResponse
+	(*ListOrganizationRolesResponse)(nil),          // 39: admin.v1.ListOrganizationRolesResponse
+	(*CreateRoleResponse)(nil),                     // 40: admin.v1.CreateRoleResponse
+	(*UpdateRoleResponse)(nil),                     // 41: admin.v1.UpdateRoleResponse
+	(*DeleteRoleRequest)(nil),                      // 42: admin.v1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),                     // 43: admin.v1.DeleteRoleResponse
+	(*ListPermissionsRequest)(nil),                 // 44: admin.v1.ListPermissionsRequest
+	(*AdminPermission)(nil),                        // 45: admin.v1.AdminPermission
+	(*ListPermissionsResponse)(nil),                // 46: admin.v1.ListPermissionsResponse
+	(*ListAuditLogsRequest)(nil),                   // 47: admin.v1.ListAuditLogsRequest
+	(*AdminAuditLog)(nil),                          // 48: admin.v1.AdminAuditLog
+	(*ListAuditLogsResponse)(nil),                  // 49: admin.v1.ListAuditLogsResponse
+	(*DingTalkDepartment)(nil),                     // 50: admin.v1.DingTalkDepartment
+	(*BatchAuthorizeDingTalkUsersRequest)(nil),     // 51: admin.v1.BatchAuthorizeDingTalkUsersRequest
+	(*DingTalkAssignmentResult)(nil),               // 52: admin.v1.DingTalkAssignmentResult
+	(*BatchAuthorizeDingTalkUsersResponse)(nil),    // 53: admin.v1.BatchAuthorizeDingTalkUsersResponse
+	(*StartDingTalkDirectorySyncRequest)(nil),      // 54: admin.v1.StartDingTalkDirectorySyncRequest
+	(*GetLatestDingTalkDirectorySyncRequest)(nil),  // 55: admin.v1.GetLatestDingTalkDirectorySyncRequest
+	(*GetDingTalkDirectorySyncRequest)(nil),        // 56: admin.v1.GetDingTalkDirectorySyncRequest
+	(*DingTalkDirectorySyncFailure)(nil),           // 57: admin.v1.DingTalkDirectorySyncFailure
+	(*DingTalkDirectorySync)(nil),                  // 58: admin.v1.DingTalkDirectorySync
+	(*StartDingTalkDirectorySyncResponse)(nil),     // 59: admin.v1.StartDingTalkDirectorySyncResponse
+	(*GetLatestDingTalkDirectorySyncResponse)(nil), // 60: admin.v1.GetLatestDingTalkDirectorySyncResponse
+	(*GetDingTalkDirectorySyncResponse)(nil),       // 61: admin.v1.GetDingTalkDirectorySyncResponse
+	nil,                                            // 62: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
-	1,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
-	1,  // 1: admin.v1.AdminOrganization.kind:type_name -> admin.v1.OrganizationKind
-	6,  // 2: admin.v1.ListOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
-	6,  // 3: admin.v1.CreateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
-	6,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
-	2,  // 5: admin.v1.ListUsersRequest.status:type_name -> admin.v1.AdminUserStatus
-	15, // 6: admin.v1.CreateUserMembershipsRequest.items:type_name -> admin.v1.UserMembershipCreation
-	15, // 7: admin.v1.AuthorizeDingTalkUserRequest.items:type_name -> admin.v1.UserMembershipCreation
-	2,  // 8: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
-	24, // 9: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
-	51, // 10: admin.v1.AdminUser.dingtalk_departments:type_name -> admin.v1.DingTalkDepartment
-	1,  // 11: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
-	23, // 12: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
-	23, // 13: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
-	23, // 14: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
-	25, // 15: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
-	25, // 16: admin.v1.CreateUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
-	25, // 17: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
-	23, // 18: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
-	0,  // 19: admin.v1.CreateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 20: admin.v1.UpdateRoleRequest.data_scope:type_name -> admin.v1.DataScope
-	0,  // 21: admin.v1.AdminRole.data_scope:type_name -> admin.v1.DataScope
-	38, // 22: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
-	38, // 23: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
-	38, // 24: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
-	38, // 25: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
-	46, // 26: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	63, // 27: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
-	49, // 28: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
-	15, // 29: admin.v1.BatchAuthorizeDingTalkUsersRequest.items:type_name -> admin.v1.UserMembershipCreation
-	53, // 30: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
-	58, // 31: admin.v1.DingTalkDirectorySync.failures:type_name -> admin.v1.DingTalkDirectorySyncFailure
-	59, // 32: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	59, // 33: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	59, // 34: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	3,  // 35: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	4,  // 36: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	5,  // 37: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	11, // 38: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	12, // 39: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	13, // 40: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	14, // 41: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
-	16, // 42: admin.v1.AdminService.CreateUserMemberships:input_type -> admin.v1.CreateUserMembershipsRequest
-	17, // 43: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
-	18, // 44: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
-	19, // 45: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
-	20, // 46: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	21, // 47: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	35, // 48: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	22, // 49: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	36, // 50: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	37, // 51: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	43, // 52: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
-	45, // 53: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	48, // 54: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	52, // 55: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
-	55, // 56: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
-	56, // 57: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
-	57, // 58: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
-	7,  // 59: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	9,  // 60: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	10, // 61: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	26, // 62: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	27, // 63: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	28, // 64: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	29, // 65: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
-	30, // 66: admin.v1.AdminService.CreateUserMemberships:output_type -> admin.v1.CreateUserMembershipsResponse
-	31, // 67: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
-	32, // 68: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
-	33, // 69: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
-	34, // 70: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	8,  // 71: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	39, // 72: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	40, // 73: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	41, // 74: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	42, // 75: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	44, // 76: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
-	47, // 77: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	50, // 78: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	54, // 79: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
-	60, // 80: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
-	61, // 81: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
-	62, // 82: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
-	59, // [59:83] is the sub-list for method output_type
-	35, // [35:59] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+	0,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
+	0,  // 1: admin.v1.AdminOrganization.kind:type_name -> admin.v1.OrganizationKind
+	5,  // 2: admin.v1.ListOrganizationsResponse.data:type_name -> admin.v1.AdminOrganization
+	5,  // 3: admin.v1.CreateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
+	5,  // 4: admin.v1.UpdateOrganizationResponse.data:type_name -> admin.v1.AdminOrganization
+	1,  // 5: admin.v1.ListUsersRequest.status:type_name -> admin.v1.AdminUserStatus
+	14, // 6: admin.v1.CreateUserMembershipsRequest.items:type_name -> admin.v1.UserMembershipCreation
+	14, // 7: admin.v1.AuthorizeDingTalkUserRequest.items:type_name -> admin.v1.UserMembershipCreation
+	1,  // 8: admin.v1.AdminUser.status:type_name -> admin.v1.AdminUserStatus
+	23, // 9: admin.v1.AdminUser.organizations:type_name -> admin.v1.AdminUserOrganizationSummary
+	50, // 10: admin.v1.AdminUser.dingtalk_departments:type_name -> admin.v1.DingTalkDepartment
+	0,  // 11: admin.v1.AdminUserMembership.organization_kind:type_name -> admin.v1.OrganizationKind
+	22, // 12: admin.v1.ListUsersResponse.data:type_name -> admin.v1.AdminUser
+	22, // 13: admin.v1.CreateUserResponse.data:type_name -> admin.v1.AdminUser
+	22, // 14: admin.v1.UpdateUserResponse.data:type_name -> admin.v1.AdminUser
+	24, // 15: admin.v1.ListUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	24, // 16: admin.v1.CreateUserMembershipsResponse.data:type_name -> admin.v1.AdminUserMembership
+	24, // 17: admin.v1.UpdateUserMembershipResponse.data:type_name -> admin.v1.AdminUserMembership
+	22, // 18: admin.v1.AuthorizeDingTalkUserResponse.data:type_name -> admin.v1.AdminUser
+	37, // 19: admin.v1.ListRolesResponse.data:type_name -> admin.v1.AdminRole
+	37, // 20: admin.v1.ListOrganizationRolesResponse.data:type_name -> admin.v1.AdminRole
+	37, // 21: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
+	37, // 22: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
+	45, // 23: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
+	62, // 24: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	48, // 25: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
+	14, // 26: admin.v1.BatchAuthorizeDingTalkUsersRequest.items:type_name -> admin.v1.UserMembershipCreation
+	52, // 27: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
+	57, // 28: admin.v1.DingTalkDirectorySync.failures:type_name -> admin.v1.DingTalkDirectorySyncFailure
+	58, // 29: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	58, // 30: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	58, // 31: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
+	2,  // 32: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	3,  // 33: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	4,  // 34: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	10, // 35: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	11, // 36: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	12, // 37: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	13, // 38: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	15, // 39: admin.v1.AdminService.CreateUserMemberships:input_type -> admin.v1.CreateUserMembershipsRequest
+	16, // 40: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	17, // 41: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	18, // 42: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
+	19, // 43: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	20, // 44: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	34, // 45: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	21, // 46: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	35, // 47: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	36, // 48: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	42, // 49: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
+	44, // 50: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	47, // 51: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	51, // 52: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
+	54, // 53: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
+	55, // 54: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
+	56, // 55: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
+	6,  // 56: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	8,  // 57: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	9,  // 58: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	25, // 59: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	26, // 60: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	27, // 61: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	28, // 62: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	29, // 63: admin.v1.AdminService.CreateUserMemberships:output_type -> admin.v1.CreateUserMembershipsResponse
+	30, // 64: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	31, // 65: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	32, // 66: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
+	33, // 67: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	7,  // 68: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	38, // 69: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	39, // 70: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	40, // 71: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	41, // 72: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	43, // 73: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
+	46, // 74: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	49, // 75: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	53, // 76: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
+	59, // 77: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
+	60, // 78: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
+	61, // 79: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
+	56, // [56:80] is the sub-list for method output_type
+	32, // [32:56] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -5346,7 +5254,7 @@ func file_admin_v1_admin_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
-			NumEnums:      3,
+			NumEnums:      2,
 			NumMessages:   61,
 			NumExtensions: 0,
 			NumServices:   1,

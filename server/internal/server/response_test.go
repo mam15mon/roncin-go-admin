@@ -18,7 +18,7 @@ func TestEncodeResponseUsesProtoJSONFieldNames(t *testing.T) {
 		Success: true,
 		Data: &authv1.CurrentUser{
 			CurrentOrganization: &authv1.Organization{Code: "HQ"},
-			RoleScopes:          []*authv1.RoleScope{{RoleCode: "administrator", DataScope: "all"}},
+			RoleScopes:          []*authv1.RoleScope{{RoleCode: "administrator"}},
 		},
 	}
 
@@ -26,12 +26,12 @@ func TestEncodeResponseUsesProtoJSONFieldNames(t *testing.T) {
 		t.Fatalf("编码响应失败: %v", err)
 	}
 	body := writer.Body.String()
-	for _, field := range []string{`"currentOrganization"`, `"roleScopes"`, `"roleCode"`, `"dataScope"`} {
+	for _, field := range []string{`"currentOrganization"`, `"roleScopes"`, `"roleCode"`} {
 		if !strings.Contains(body, field) {
 			t.Fatalf("响应缺少 ProtoJSON 字段 %s: %s", field, body)
 		}
 	}
-	for _, field := range []string{`"current_organization"`, `"role_scopes"`, `"role_code"`, `"data_scope"`} {
+	for _, field := range []string{`"dataScope"`, `"data_scope"`, `"current_organization"`, `"role_scopes"`, `"role_code"`} {
 		if strings.Contains(body, field) {
 			t.Fatalf("响应包含 snake_case 字段 %s: %s", field, body)
 		}

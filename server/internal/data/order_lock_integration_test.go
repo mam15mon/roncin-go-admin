@@ -23,7 +23,6 @@ import (
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
-	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
@@ -80,7 +79,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetCode("se_locker_"+suffix).
 		SetName("海运出口锁定专员-"+suffix).
-		SetDataScope(roleent.DataScopeOrganization).
 		AddPermissions(lockPerm, updatePerm).
 		Save(ctx)
 	if err != nil {
@@ -92,7 +90,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		SetOrganizationID(org.ID).
 		SetCode("se_operator_" + suffix).
 		SetName("普通海运操作员-" + suffix).
-		SetDataScope(roleent.DataScopeOrganization).
 		AddPermissions(updatePerm).
 		Save(ctx)
 	if err != nil {
@@ -515,7 +512,6 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 					SetOrganizationID(org.ID).
 					SetCode(strings.ToLower(string(businessType)) + "_locker_" + suffix).
 					SetName(string(businessType) + "锁定专员-" + suffix).
-					SetDataScope(roleent.DataScopeOrganization).
 					AddPermissions(permissions...).
 					Save(ctx)
 				if err != nil {

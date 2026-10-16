@@ -44,11 +44,11 @@ func TestDingTalkMultiOrganizationAssignmentPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	roleA, err := data.db.Role.Create().SetOrganizationID(first.ID).SetCode("staff").SetName("员工").SetDataScope(role.DataScopeOrganization).Save(ctx)
+	roleA, err := data.db.Role.Create().SetOrganizationID(first.ID).SetCode("staff").SetName("员工").Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	roleB, err := data.db.Role.Create().SetOrganizationID(second.ID).SetCode("staff").SetName("员工").SetDataScope(role.DataScopeOrganization).Save(ctx)
+	roleB, err := data.db.Role.Create().SetOrganizationID(second.ID).SetCode("staff").SetName("员工").Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

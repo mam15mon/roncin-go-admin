@@ -1,5 +1,5 @@
 /**
- * 本地离线开发免密体验用户（具备全量超管权限与全数据范围）
+ * 本地离线开发免密体验用户（具备全量超管功能权限）
  */
 const mockUser: API.CurrentUser = {
   id: 'dev-admin-user-001',
@@ -14,7 +14,6 @@ const mockUser: API.CurrentUser = {
   roleScopes: [
     {
       roleCode: 'super_admin',
-      dataScope: 'all',
       roleName: '超级管理员',
     },
   ],

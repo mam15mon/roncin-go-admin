@@ -29,7 +29,7 @@ func TestRequiredFieldsValidatorAllowsEmptyOptionalRoleCode(t *testing.T) {
 		return nil, nil
 	})
 
-	request := &adminv1.CreateRoleRequest{Name: "财务", DataScope: adminv1.DataScope_DATA_SCOPE_ORGANIZATION}
+	request := &adminv1.CreateRoleRequest{Name: "财务"}
 	if _, err := handler(t.Context(), request); err != nil {
 		t.Fatalf("空编码的创建角色请求被必填校验拦截: %v", err)
 	}

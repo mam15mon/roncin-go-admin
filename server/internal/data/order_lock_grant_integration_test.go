@@ -18,11 +18,10 @@ import (
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
-	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 )
 
 // TestOrderLockGrantScopes_PostgresFlows 覆盖 ACC-01 的订单锁资格矩阵：
-// 组织内角色、上级组织树角色、ALL 范围 administrator、bootstrap admin、
+// 公司内功能角色、公司 administrator、系统与其他公司角色、bootstrap admin、
 // 无权限用户与权限撤销后的旧候选回调。资格口径必须与候选快照、直接解锁、
 // 锁单命令和钉钉回调复核完全一致。
 func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
@@ -36,7 +35,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 	parent, err := data.db.Organization.Create().
 		SetCode("GRANT-P-" + suffix).
 		SetName("锁资格上级组织-" + suffix).
-		SetKind("company").
+		SetKind("system").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -45,8 +44,8 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 	child, err := data.db.Organization.Create().
 		SetCode("GRANT-C-" + suffix).
 		SetName("锁资格目标组织-" + suffix).
-		SetKind("department").
-		SetParentID(parent.ID).
+		SetKind("company").
+		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建目标组织失败: %v", err)
@@ -54,8 +53,8 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 	sibling, err := data.db.Organization.Create().
 		SetCode("GRANT-S-" + suffix).
 		SetName("锁资格兄弟组织-" + suffix).
-		SetKind("department").
-		SetParentID(parent.ID).
+		SetKind("company").
+		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建兄弟组织失败: %v", err)
@@ -102,12 +101,11 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		}
 		return m
 	}
-	newRole := func(org *ent.Organization, code string, scope roleent.DataScope, permissions ...*ent.Permission) *ent.Role {
+	newRole := func(org *ent.Organization, code string, permissions ...*ent.Permission) *ent.Role {
 		r, roleErr := data.db.Role.Create().
 			SetOrganizationID(org.ID).
 			SetCode(code).
 			SetName(code + "-" + suffix).
-			SetDataScope(scope).
 			AddPermissions(permissions...).
 			Save(ctx)
 		if roleErr != nil {
@@ -124,45 +122,45 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 	// 组织内业务角色：目标组织 ORG 范围，持 lock+update。
 	orgUser := newUser("org", false)
 	orgMembership := newMembership(orgUser, child)
-	orgRole := newRole(child, "si_locker_"+suffix, roleent.DataScopeOrganization, lockPerm, updatePerm)
+	orgRole := newRole(child, "si_locker_"+suffix, lockPerm, updatePerm)
 	assign(orgMembership, orgRole)
 
 	// 上级组织树角色：membership 在 parent，TREE 范围覆盖 child。
 	treeUser := newUser("tree", false)
-	treeMembership := newMembership(treeUser, parent)
-	treeRole := newRole(parent, "si_supervisor_"+suffix, roleent.DataScopeOrganizationTree, lockPerm)
+	treeMembership := newMembership(treeUser, child)
+	treeRole := newRole(child, "si_supervisor_"+suffix, lockPerm)
 	assign(treeMembership, treeRole)
 
 	// ALL 范围 administrator：角色代码恰为 administrator，membership 在 parent。
 	// 旧口径按角色代码排除 administrator，新口径只看权限与范围。
 	allAdminUser := newUser("alladmin", false)
-	allAdminMembership := newMembership(allAdminUser, parent)
-	allAdminRole := newRole(parent, "administrator", roleent.DataScopeAll, lockPerm)
+	allAdminMembership := newMembership(allAdminUser, child)
+	allAdminRole := newRole(child, "administrator", lockPerm)
 	assign(allAdminMembership, allAdminRole)
 
 	// 无锁权限的 ALL administrator：角色代码同样恰为 administrator，证明资格
 	// 来自真实持有的权限与范围，而不是角色代码。
 	adminNoPermUser := newUser("adminnoperm", false)
 	adminNoPermMembership := newMembership(adminNoPermUser, sibling)
-	noPermAdminRole := newRole(sibling, "administrator", roleent.DataScopeAll)
+	noPermAdminRole := newRole(sibling, "administrator")
 	assign(adminNoPermMembership, noPermAdminRole)
 
 	// 普通编辑人：目标组织 ORG 范围，仅 update，用于发起审批并验证无锁资格。
 	normalUser := newUser("normal", false)
 	normalMembership := newMembership(normalUser, child)
-	normalRole := newRole(child, "si_operator_"+suffix, roleent.DataScopeOrganization, updatePerm)
+	normalRole := newRole(child, "si_operator_"+suffix, updatePerm)
 	assign(normalMembership, normalRole)
 
 	// 上级组织 ORG 范围：只覆盖 parent 自身，不得覆盖 child。
 	parentOrgScopeUser := newUser("parentorg", false)
 	parentOrgScopeMembership := newMembership(parentOrgScopeUser, parent)
-	parentOrgScopeRole := newRole(parent, "si_parent_only_"+suffix, roleent.DataScopeOrganization, lockPerm)
+	parentOrgScopeRole := newRole(parent, "si_parent_only_"+suffix, lockPerm)
 	assign(parentOrgScopeMembership, parentOrgScopeRole)
 
 	// 兄弟组织 TREE 范围：只覆盖 sibling 子树，不得覆盖 child。
 	siblingTreeUser := newUser("siblingtree", false)
 	siblingTreeMembership := newMembership(siblingTreeUser, sibling)
-	siblingTreeRole := newRole(sibling, "si_sibling_tree_"+suffix, roleent.DataScopeOrganizationTree, lockPerm)
+	siblingTreeRole := newRole(sibling, "si_sibling_tree_"+suffix, lockPerm)
 	assign(siblingTreeMembership, siblingTreeRole)
 
 	bootstrapUser := newUser("bootstrap", true)
@@ -236,9 +234,9 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 			IsBootstrapAdmin: u.IsBootstrapAdmin,
 			Organization:     biz.Organization{Kind: biz.OrganizationKindCompany, ID: child.ID},
 			OrganizationNodes: []biz.OrganizationScopeNode{
-				{Kind: biz.OrganizationKindCompany, ID: parent.ID},
-				{Kind: biz.OrganizationKindCompany, ID: child.ID, ParentID: &parent.ID},
-				{Kind: biz.OrganizationKindCompany, ID: sibling.ID, ParentID: &parent.ID},
+				{Kind: biz.OrganizationKindSystem, ID: parent.ID},
+				{Kind: biz.OrganizationKindCompany, ID: child.ID},
+				{Kind: biz.OrganizationKindCompany, ID: sibling.ID},
 			},
 			RoleGrants: grants,
 		}
@@ -251,7 +249,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		return biz.RoleGrant{
 			RoleID:      r.ID,
 			RoleCode:    r.Code,
-			DataScope:   biz.DataScope(r.DataScope),
+			DataScope:   biz.DataScopeOrganization,
 			Permissions: permissionSet,
 		}
 	}
@@ -285,7 +283,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		}
 	})
 
-	t.Run("上级组织树角色覆盖下级订单并按真实membership快照", func(t *testing.T) {
+	t.Run("同公司其他角色按真实成员关系快照", func(t *testing.T) {
 		order := createSIOrder()
 		state, err := orderLockRepo.GetOrderLockState(ctx, child.ID, order.ID, treePrincipal)
 		if err != nil || !state.CanLock {
@@ -300,7 +298,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		}
 	})
 
-	t.Run("ALL范围administrator不再被角色代码排除且无权限administrator仍拒绝", func(t *testing.T) {
+	t.Run("同公司administrator按显式功能权限办理", func(t *testing.T) {
 		order := createSIOrder()
 		if _, err := orderLockRepo.LockOrder(ctx, allAdminPrincipal, order.ID, 1, "grant-alladmin-lock-"+suffix, nil); err != nil {
 			t.Fatalf("ALL 范围 administrator 持锁权限仍被拒绝: %v", err)
@@ -349,7 +347,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		}
 	})
 
-	t.Run("ORG范围只覆盖本组织且树范围不覆盖兄弟组织", func(t *testing.T) {
+	t.Run("系统角色和其他公司角色不得办理目标公司业务", func(t *testing.T) {
 		parentOrgOrder := createSIOrder()
 		parentOrgPrincipal := principalFor(parentOrgScopeUser, grantFor(parentOrgScopeRole, "business.order.si.lock"))
 		_, err := orderLockRepo.LockOrder(ctx, parentOrgPrincipal, parentOrgOrder.ID, 1, "grant-parentorg-lock-"+suffix, nil)

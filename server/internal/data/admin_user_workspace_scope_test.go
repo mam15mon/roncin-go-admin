@@ -168,22 +168,22 @@ func TestAdminUserWorkspaceScopePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("创建公司B: %v", err)
 	}
-	roleHQ, err := data.db.Role.Create().SetOrganizationID(systemWorkspace.ID).SetCode("hq_operator").SetName("系统管理操作员").SetDataScope("organization").Save(ctx)
+	roleHQ, err := data.db.Role.Create().SetOrganizationID(systemWorkspace.ID).SetCode("hq_operator").SetName("系统管理操作员").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建系统管理角色: %v", err)
 	}
-	roleA, err := data.db.Role.Create().SetOrganizationID(companyA.ID).SetCode("a_operator").SetName("A公司操作员").SetDataScope("organization").Save(ctx)
+	roleA, err := data.db.Role.Create().SetOrganizationID(companyA.ID).SetCode("a_operator").SetName("A公司操作员").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建公司A角色: %v", err)
 	}
 	// 部门/团队不持有角色库，公用所属公司（工作台）的角色；夹具遵守该数据不变量
 	// （生产数据由 cmd/migrate 的 BackfillRoleWorkspaceAnchors 归一并自检，不存在
 	// 部门锚定角色），避免让业务校验命中夹具自身违反不变量的脏数据。
-	roleDept, err := data.db.Role.Create().SetOrganizationID(companyA.ID).SetCode("dept_operator").SetName("部门操作员").SetDataScope("organization").Save(ctx)
+	roleDept, err := data.db.Role.Create().SetOrganizationID(companyA.ID).SetCode("dept_operator").SetName("部门操作员").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建部门角色: %v", err)
 	}
-	roleB, err := data.db.Role.Create().SetOrganizationID(companyB.ID).SetCode("b_operator").SetName("B公司操作员").SetDataScope("organization").Save(ctx)
+	roleB, err := data.db.Role.Create().SetOrganizationID(companyB.ID).SetCode("b_operator").SetName("B公司操作员").Save(ctx)
 	if err != nil {
 		t.Fatalf("创建公司B角色: %v", err)
 	}

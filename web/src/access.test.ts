@@ -13,7 +13,7 @@ function currentUser(permissions: string[]) {
         key,
         dataScope: 'organization',
       })),
-      roleScopes: [{ dataScope: 'organization' }],
+      roleScopes: [{ roleCode: 'role' }],
     } as API.CurrentUser,
   };
 }
@@ -29,7 +29,7 @@ function currentUserWithSelfScope(permissions: string[]) {
         key,
         dataScope: 'self',
       })),
-      roleScopes: [{ dataScope: 'self' }],
+      roleScopes: [{ roleCode: 'role' }],
     } as API.CurrentUser,
   };
 }
@@ -45,7 +45,7 @@ function currentUserWithAllScope(permissions: string[]) {
         key,
         dataScope: 'all',
       })),
-      roleScopes: [{ dataScope: 'all' }],
+      roleScopes: [{ roleCode: 'role' }],
     } as API.CurrentUser,
   };
 }
@@ -61,7 +61,7 @@ function currentUserWithOrganizationKind(
         key,
         dataScope: 'organization',
       })),
-      roleScopes: [{ dataScope: 'organization' }],
+      roleScopes: [{ roleCode: 'role' }],
       currentOrganization: { kind },
     } as API.CurrentUser,
   };
@@ -231,7 +231,7 @@ describe('权限范围来源一致性', () => {
     const result = access({
       currentUser: {
         permissions: ['system.user.create'],
-        roleScopes: [{ dataScope: 'all' }],
+        roleScopes: [{ roleCode: 'role' }],
       },
     });
     expect(result.canCreateUsers).toBe(false);
@@ -243,7 +243,7 @@ describe('权限范围来源一致性', () => {
           { key: 'system.user.update', dataScope: 'organization' },
           { key: 'system.role.read', dataScope: 'all' },
         ],
-        roleScopes: [{ dataScope: 'all' }],
+        roleScopes: [{ roleCode: 'role' }],
       },
     });
     expect(result.canUpdateUsers).toBe(false);

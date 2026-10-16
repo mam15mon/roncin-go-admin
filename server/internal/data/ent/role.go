@@ -29,8 +29,6 @@ type Role struct {
 	Code string `json:"code,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// DataScope holds the value of the "data_scope" field.
-	DataScope role.DataScope `json:"data_scope,omitempty"`
 	// Enabled holds the value of the "enabled" field.
 	Enabled bool `json:"enabled,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -110,7 +108,7 @@ func (*Role) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case role.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case role.FieldCode, role.FieldName, role.FieldDataScope:
+		case role.FieldCode, role.FieldName:
 			values[i] = new(sql.NullString)
 		case role.FieldCreatedAt, role.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -166,12 +164,6 @@ func (_m *Role) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
-			}
-		case role.FieldDataScope:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field data_scope", values[i])
-			} else if value.Valid {
-				_m.DataScope = role.DataScope(value.String)
 			}
 		case role.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -254,9 +246,6 @@ func (_m *Role) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
-	builder.WriteString(", ")
-	builder.WriteString("data_scope=")
-	builder.WriteString(fmt.Sprintf("%v", _m.DataScope))
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))

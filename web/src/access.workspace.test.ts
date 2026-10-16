@@ -11,7 +11,7 @@ function workspace(kind: number, id: string, permissions: string[]) {
         key,
         dataScope: 'all',
       })),
-      roleScopes: [{ dataScope: 'all' }],
+      roleScopes: [{ roleCode: 'role' }],
     },
   });
 }

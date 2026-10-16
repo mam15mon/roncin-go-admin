@@ -8,7 +8,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkdirectorysync"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"sync"
 	"testing"
@@ -34,7 +33,7 @@ func directoryAdministrator(t *testing.T, data *Data, sys uuid.UUID) (context.Co
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := data.db.Role.Create().SetOrganizationID(sys).SetCode("administrator").SetName("系统管理员").SetDataScope(role.DataScopeAll).AddPermissionIDs(permission.ID, syncPermission.ID).Save(ctx)
+	r, err := data.db.Role.Create().SetOrganizationID(sys).SetCode("administrator").SetName("系统管理员").AddPermissionIDs(permission.ID, syncPermission.ID).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +155,7 @@ func TestDingTalkDirectoryAssignmentPostgresConcurrencyAndPartialSuccess(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := data.db.Role.Create().SetOrganizationID(company.ID).SetCode("staff").SetName("员工").SetDataScope(role.DataScopeOrganization).Save(ctx)
+	r, err := data.db.Role.Create().SetOrganizationID(company.ID).SetCode("staff").SetName("员工").Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

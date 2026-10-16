@@ -8499,9 +8499,6 @@ components:
                     type: string
                 name:
                     type: string
-                dataScope:
-                    type: integer
-                    format: enum
                 enabled:
                     type: boolean
                 permissionKeys:
@@ -8710,7 +8707,6 @@ components:
         admin.v1.CreateRoleRequest:
             required:
                 - name
-                - dataScope
             type: object
             properties:
                 code:
@@ -8718,9 +8714,6 @@ components:
                     description: 角色编码可选；留空时由服务端自动生成机器标识，组织内唯一性由数据库唯一索引兜底。
                 name:
                     type: string
-                dataScope:
-                    type: integer
-                    format: enum
                 permissionKeys:
                     type: array
                     items:
@@ -9158,16 +9151,12 @@ components:
             required:
                 - id
                 - name
-                - dataScope
             type: object
             properties:
                 id:
                     type: string
                 name:
                     type: string
-                dataScope:
-                    type: integer
-                    format: enum
                 enabled:
                     type: boolean
                 permissionKeys:
@@ -9453,8 +9442,6 @@ components:
             type: object
             properties:
                 roleCode:
-                    type: string
-                dataScope:
                     type: string
                 roleName:
                     type: string

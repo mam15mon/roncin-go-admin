@@ -28,7 +28,6 @@ import (
 	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
-	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 )
 
 // feeSupplementPostgresFixture 锁后费用补录集成测试夹具：CNY 总部组织 + SI 订单
@@ -156,7 +155,6 @@ func newFeeSupplementFixture(t *testing.T) *feeSupplementPostgresFixture {
 		SetOrganizationID(org.ID).
 		SetCode("fsup_locker_" + suffix).
 		SetName("补录锁资格-" + suffix).
-		SetDataScope(roleent.DataScopeOrganization).
 		AddPermissions(lockPerm).
 		Save(ctx)
 	if roleErr != nil {

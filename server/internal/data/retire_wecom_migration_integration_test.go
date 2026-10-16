@@ -32,7 +32,7 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	role, err := data.db.Role.Create().SetOrganizationID(org.ID).SetCode("retirement-reader").SetName("保留角色").SetDataScope("all").AddPermissions(keptPermission, retiredPermission).Save(ctx)
+	role, err := data.db.Role.Create().SetOrganizationID(org.ID).SetCode("retirement-reader").SetName("保留角色").AddPermissions(keptPermission, retiredPermission).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

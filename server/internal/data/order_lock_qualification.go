@@ -2,7 +2,6 @@ package data
 
 import (
 	"context"
-	"slices"
 	"sort"
 
 	"github.com/google/uuid"
@@ -65,73 +64,19 @@ func ensureSharedMBLNotLocked(ctx context.Context, tx *ent.Tx, masterBillID uuid
 	return nil
 }
 
-// organizationLockGrantAncestorIDs 沿 parent 链返回目标组织的全部祖先组织 ID
-// （不含目标组织自身）。带环保护；组织行缺失时视为链终止，由调用方的成员关系
-// 条件自然 fail-closed。
-func organizationLockGrantAncestorIDs(ctx context.Context, client *ent.Client, organizationID uuid.UUID) ([]uuid.UUID, error) {
-	ancestors := make([]uuid.UUID, 0, 4)
-	seen := map[uuid.UUID]struct{}{organizationID: {}}
-	current := organizationID
-	for {
-		org, err := client.Organization.Get(ctx, current)
-		if err != nil {
-			if ent.IsNotFound(err) {
-				return ancestors, nil
-			}
-			return nil, err
-		}
-		if org.ParentID == nil {
-			return ancestors, nil
-		}
-		parent := *org.ParentID
-		if _, visited := seen[parent]; visited {
-			return ancestors, nil
-		}
-		seen[parent] = struct{}{}
-		ancestors = append(ancestors, parent)
-		current = parent
-	}
+// companyGrantMembershipIDs 返回当前启用公司及其启用部门/团队，遇到其他公司即截止。
+func companyGrantMembershipIDs(ctx context.Context, client *ent.Client, companyID uuid.UUID) ([]uuid.UUID, error) {
+	return companyPersonnelOrganizationIDs(ctx, client, companyID)
 }
 
-// qualifiedBusinessLockGrantPredicate 构造「有效 lock grant」的统一资格谓词，
-// 单用户判断（isUserQualifiedBusinessLockRole）与候选查询
-// （queryQualifiedBusinessLockCandidates）必须复用同一口径：
-//   - 用户 enabled、非 bootstrap（bootstrap 由调用方显式分流）；
-//   - membership enabled；
-//   - 角色 enabled 且真实持有目标业务类型 lock 权限（不按角色代码排除
-//     administrator 等任何角色）；
-//   - 角色数据范围覆盖目标订单组织：ORGANIZATION 要求 membership 组织即目标
-//     组织；ORGANIZATION_TREE 要求 membership 组织是目标组织或其祖先；
-//     ALL 覆盖任意组织。
-//
-// membershipPredicates 由调用方追加用户过滤等条件。
-func qualifiedBusinessLockGrantPredicate(permissionKey string, targetOrganizationID uuid.UUID, ancestorIDs []uuid.UUID, membershipPredicates ...predicate.Membership) predicate.RoleAssignment {
-	baseMembership := make([]predicate.Membership, 0, len(membershipPredicates)+2)
-	baseMembership = append(baseMembership, membershipent.EnabledEQ(true))
+// qualifiedBusinessLockGrantPredicate 要求同公司角色、同公司启用成员资格及显式权限。
+// 系统角色和其他公司的成员不得借由权限配置进入经营审批候选池。
+func qualifiedBusinessLockGrantPredicate(permissionKey string, targetOrganizationID uuid.UUID, membershipIDs []uuid.UUID, membershipPredicates ...predicate.Membership) predicate.RoleAssignment {
+	baseMembership := []predicate.Membership{membershipent.EnabledEQ(true), membershipent.OrganizationIDIn(membershipIDs...)}
 	baseMembership = append(baseMembership, membershipPredicates...)
-	roleQualifies := func(scope roleent.DataScope) []predicate.Role {
-		return []predicate.Role{
-			roleent.EnabledEQ(true),
-			roleent.HasPermissionsWith(permissionent.KeyEQ(permissionKey)),
-			roleent.DataScopeEQ(scope),
-		}
-	}
-	treeOrganizationIDs := make([]uuid.UUID, 0, len(ancestorIDs)+1)
-	treeOrganizationIDs = append(treeOrganizationIDs, targetOrganizationID)
-	treeOrganizationIDs = append(treeOrganizationIDs, ancestorIDs...)
-	return roleassignmentent.Or(
-		roleassignmentent.And(
-			roleassignmentent.HasMembershipWith(baseMembership...),
-			roleassignmentent.HasRoleWith(roleQualifies(roleent.DataScopeAll)...),
-		),
-		roleassignmentent.And(
-			roleassignmentent.HasMembershipWith(append(slices.Clone(baseMembership), membershipent.OrganizationIDEQ(targetOrganizationID))...),
-			roleassignmentent.HasRoleWith(roleQualifies(roleent.DataScopeOrganization)...),
-		),
-		roleassignmentent.And(
-			roleassignmentent.HasMembershipWith(append(slices.Clone(baseMembership), membershipent.OrganizationIDIn(treeOrganizationIDs...))...),
-			roleassignmentent.HasRoleWith(roleQualifies(roleent.DataScopeOrganizationTree)...),
-		),
+	return roleassignmentent.And(
+		roleassignmentent.HasMembershipWith(baseMembership...),
+		roleassignmentent.HasRoleWith(roleent.EnabledEQ(true), roleent.OrganizationIDEQ(targetOrganizationID), roleent.HasPermissionsWith(permissionent.KeyEQ(permissionKey))),
 	)
 }
 
@@ -142,7 +87,7 @@ func isUserQualifiedBusinessLockRole(ctx context.Context, client *ent.Client, or
 	if permissionKey == "" {
 		return false, biz.ErrOrderBusinessUnsupported
 	}
-	ancestorIDs, err := organizationLockGrantAncestorIDs(ctx, client, organizationID)
+	ancestorIDs, err := companyGrantMembershipIDs(ctx, client, organizationID)
 	if err != nil {
 		return false, err
 	}
@@ -182,7 +127,7 @@ func queryQualifiedBusinessLockCandidates(ctx context.Context, client *ent.Clien
 	if permissionKey == "" {
 		return nil, biz.ErrOrderBusinessUnsupported
 	}
-	ancestorIDs, err := organizationLockGrantAncestorIDs(ctx, client, organizationID)
+	ancestorIDs, err := companyGrantMembershipIDs(ctx, client, organizationID)
 	if err != nil {
 		return nil, err
 	}

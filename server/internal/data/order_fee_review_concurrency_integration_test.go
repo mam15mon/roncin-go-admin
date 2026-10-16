@@ -8,7 +8,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 )
 
 // 提交与普通编辑共用订单锁，不能得到待审核但费用已经被删的费用包。
@@ -66,7 +65,7 @@ func TestOrderFeeReviewDisabledOrganizationPostgres(t *testing.T) {
 		t.Fatal(err)
 	}
 	// all 范围也不能绕过停用组织；候选和实际决策必须一致。
-	if err := f.data.db.Role.UpdateOneID(f.lockRoleID).SetDataScope(roleent.DataScopeAll).Exec(f.ctx); err != nil {
+	if err := f.data.db.Role.UpdateOneID(f.lockRoleID).Exec(f.ctx); err != nil {
 		t.Fatal(err)
 	}
 	if err := f.data.db.Organization.UpdateOneID(f.organizationID).SetEnabled(false).Exec(f.ctx); err != nil {

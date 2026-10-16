@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Role groups permissions for one organization and defines its data scope.
+// Role 保存工作台内的功能权限与启停状态。
 type Role struct{ ent.Schema }
 
 func (Role) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -18,7 +18,6 @@ func (Role) Fields() []ent.Field {
 		field.UUID("organization_id", uuid.Nil),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(100),
-		field.Enum("data_scope").Values("all", "organization", "organization_tree", "self").Default("organization"),
 		field.Bool("enabled").Default(true),
 	}
 }

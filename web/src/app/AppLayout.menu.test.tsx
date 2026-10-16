@@ -40,7 +40,7 @@ vi.mock('./access', () => ({
           key,
           dataScope: 'all',
         })),
-        roleScopes: [{ roleCode: 'r', dataScope: 'all' }],
+        roleScopes: [{ roleCode: 'r' }],
       },
     }),
 }));

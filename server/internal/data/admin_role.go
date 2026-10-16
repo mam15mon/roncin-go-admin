@@ -222,14 +222,14 @@ func actorRolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organi
 	for _, m := range actorMemberships {
 		for _, assignment := range m.Edges.RoleAssignments {
 			assignedRole := assignment.Edges.Role
-			if assignedRole == nil {
+			if assignedRole == nil || assignedRole.OrganizationID != workspaceID {
 				continue
 			}
 			if _, ok := seenRoles[assignedRole.ID]; ok {
 				continue
 			}
 			seenRoles[assignedRole.ID] = struct{}{}
-			profiles = append(profiles, roleProfileToBiz(assignedRole))
+			profiles = append(profiles, roleProfileToBiz(assignedRole, workspaceDataScope(nodeMap, workspaceID)))
 		}
 	}
 	return profiles, nil
@@ -240,9 +240,14 @@ func rolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizatio
 	if len(roleIDs) == 0 {
 		return nil, nil
 	}
-	roleOrgID, err := resolveRoleOrganizationID(ctx, client, organizationID)
+	nodes, err := loadOrganizationTree(ctx, client)
 	if err != nil {
 		return nil, err
+	}
+	nodeMap := authOrganizationNodes(nodes)
+	roleOrgID := workspaceAncestorID(nodeMap, organizationID)
+	if roleOrgID == uuid.Nil {
+		return nil, biz.ErrAdminOrganizationNotFound
 	}
 	items, err := client.Role.Query().
 		Where(role.OrganizationIDEQ(roleOrgID), role.IDIn(roleIDs...), role.EnabledEQ(true)).
@@ -256,7 +261,7 @@ func rolesPrivilegeProfiles(ctx context.Context, client *ent.Client, organizatio
 	}
 	profiles := make([]*biz.AdminRoleProfile, 0, len(items))
 	for _, item := range items {
-		profiles = append(profiles, roleProfileToBiz(item))
+		profiles = append(profiles, roleProfileToBiz(item, workspaceDataScope(nodeMap, roleOrgID)))
 	}
 	return profiles, nil
 }
@@ -286,7 +291,7 @@ func (r *adminRepo) CreateRole(ctx context.Context, organizationID uuid.UUID, in
 			}
 		}
 		var saveErr error
-		created, saveErr = tx.Role.Create().SetOrganizationID(roleOrgID).SetCode(input.Code).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
+		created, saveErr = tx.Role.Create().SetOrganizationID(roleOrgID).SetCode(input.Code).SetName(input.Name).SetEnabled(input.Enabled).AddPermissions(permissions...).Save(ctx)
 		if saveErr != nil {
 			return mapEntError(saveErr, nil, biz.ErrAdminRoleCodeExists)
 		}
@@ -333,7 +338,7 @@ func (r *adminRepo) UpdateRole(ctx context.Context, organizationID, id uuid.UUID
 			}
 		}
 		var saveErr error
-		updated, saveErr = tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(roleOrgID)).SetName(input.Name).SetDataScope(role.DataScope(input.DataScope)).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
+		updated, saveErr = tx.Role.UpdateOneID(id).Where(role.OrganizationIDEQ(roleOrgID)).SetName(input.Name).SetEnabled(input.Enabled).ClearPermissions().AddPermissions(permissions...).Save(ctx)
 		if saveErr != nil {
 			return mapEntError(saveErr, biz.ErrAdminRoleNotFound, nil)
 		}
@@ -456,7 +461,7 @@ func uniqueUUIDs(values []uuid.UUID) []uuid.UUID {
 	return result
 }
 func roleToBiz(item *ent.Role) *biz.AdminRole {
-	result := &biz.AdminRole{ID: item.ID, OrganizationID: item.OrganizationID, Code: item.Code, Name: item.Name, DataScope: biz.DataScope(item.DataScope), Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	result := &biz.AdminRole{ID: item.ID, OrganizationID: item.OrganizationID, Code: item.Code, Name: item.Name, Enabled: item.Enabled, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 	for _, permissionItem := range item.Edges.Permissions {
 		result.PermissionKeys = append(result.PermissionKeys, permissionItem.Key)
 	}
@@ -464,8 +469,8 @@ func roleToBiz(item *ent.Role) *biz.AdminRole {
 	return result
 }
 
-func roleProfileToBiz(item *ent.Role) *biz.AdminRoleProfile {
-	result := &biz.AdminRoleProfile{ID: item.ID, Code: item.Code, DataScope: biz.DataScope(item.DataScope)}
+func roleProfileToBiz(item *ent.Role, scope biz.DataScope) *biz.AdminRoleProfile {
+	result := &biz.AdminRoleProfile{ID: item.ID, Code: item.Code, DataScope: scope}
 	for _, permissionItem := range item.Edges.Permissions {
 		result.PermissionKeys = append(result.PermissionKeys, permissionItem.Key)
 	}

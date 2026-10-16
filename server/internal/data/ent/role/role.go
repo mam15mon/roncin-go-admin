@@ -3,7 +3,6 @@
 package role
 
 import (
-	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -26,8 +25,6 @@ const (
 	FieldCode = "code"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// FieldDataScope holds the string denoting the data_scope field in the database.
-	FieldDataScope = "data_scope"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
@@ -85,7 +82,6 @@ var Columns = []string{
 	FieldOrganizationID,
 	FieldCode,
 	FieldName,
-	FieldDataScope,
 	FieldEnabled,
 }
 
@@ -122,34 +118,6 @@ var (
 	DefaultID func() uuid.UUID
 )
 
-// DataScope defines the type for the "data_scope" enum field.
-type DataScope string
-
-// DataScopeOrganization is the default value of the DataScope enum.
-const DefaultDataScope = DataScopeOrganization
-
-// DataScope values.
-const (
-	DataScopeAll              DataScope = "all"
-	DataScopeOrganization     DataScope = "organization"
-	DataScopeOrganizationTree DataScope = "organization_tree"
-	DataScopeSelf             DataScope = "self"
-)
-
-func (ds DataScope) String() string {
-	return string(ds)
-}
-
-// DataScopeValidator is a validator for the "data_scope" field enum values. It is called by the builders before save.
-func DataScopeValidator(ds DataScope) error {
-	switch ds {
-	case DataScopeAll, DataScopeOrganization, DataScopeOrganizationTree, DataScopeSelf:
-		return nil
-	default:
-		return fmt.Errorf("role: invalid enum value for data_scope field: %q", ds)
-	}
-}
-
 // OrderOption defines the ordering options for the Role queries.
 type OrderOption func(*sql.Selector)
 
@@ -181,11 +149,6 @@ func ByCode(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
-}
-
-// ByDataScope orders the results by the data_scope field.
-func ByDataScope(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDataScope, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.

@@ -182,7 +182,7 @@ func organizationSubtreeIDs(nodes map[uuid.UUID]authOrgNode, rootID uuid.UUID) [
 
 // workspaceMembershipScopeIDs 返回工作台的角色收集与成员资格复核节点范围：
 // 系统管理工作台只含系统管理节点本身（不跨公司聚合，保持公司间隔离），
-// 公司工作台含公司节点及其整个子树（部门角色在公司工作区生效）。
+// 公司工作台含公司及其部门/团队，遇到其他工作台截止；启用态由成员查询过滤。
 func workspaceMembershipScopeIDs(nodes map[uuid.UUID]authOrgNode, workspaceID uuid.UUID) []uuid.UUID {
 	node, ok := nodes[workspaceID]
 	if !ok || !isWorkspaceKind(node.Kind) {
@@ -191,7 +191,14 @@ func workspaceMembershipScopeIDs(nodes map[uuid.UUID]authOrgNode, workspaceID uu
 	if node.Kind == string(organization.KindSystem) {
 		return []uuid.UUID{workspaceID}
 	}
-	return organizationSubtreeIDs(nodes, workspaceID)
+	result := []uuid.UUID{workspaceID}
+	for _, id := range organizationSubtreeIDs(nodes, workspaceID) {
+		child := nodes[id]
+		if (child.Kind == string(organization.KindDepartment) || child.Kind == string(organization.KindTeam)) && workspaceAncestorID(nodes, id) == workspaceID {
+			result = append(result, id)
+		}
+	}
+	return result
 }
 
 // membershipRef 是工作台映射所需的成员关系最小投影。
@@ -250,8 +257,8 @@ func collectWorkspaceRoleGrants(memberships []*ent.Membership, nodes map[uuid.UU
 			if roleErr != nil {
 				continue
 			}
-			grant, enabled := roleGrantFromEntRole(role)
-			if !enabled {
+			grant, enabled := roleGrantFromEntRole(role, workspaceDataScope(nodes, workspaceID))
+			if !enabled || role.OrganizationID != workspaceID {
 				continue
 			}
 			if _, duplicated := seenRoles[grant.RoleID]; duplicated {
@@ -423,7 +430,7 @@ func resolvePrincipalOrganizationBaseCurrency(item *ent.Organization, organizati
 	return "", biz.ErrAdminOrganizationCurrency
 }
 
-func roleGrantFromEntRole(role *ent.Role) (biz.RoleGrant, bool) {
+func roleGrantFromEntRole(role *ent.Role, scope biz.DataScope) (biz.RoleGrant, bool) {
 	if role == nil || !role.Enabled {
 		return biz.RoleGrant{}, false
 	}
@@ -431,7 +438,7 @@ func roleGrantFromEntRole(role *ent.Role) (biz.RoleGrant, bool) {
 		RoleID:      role.ID,
 		RoleCode:    role.Code,
 		RoleName:    role.Name,
-		DataScope:   biz.DataScope(role.DataScope),
+		DataScope:   scope,
 		Permissions: make(map[string]struct{}, len(role.Edges.Permissions)),
 	}
 	for _, permission := range role.Edges.Permissions {
@@ -575,4 +582,20 @@ func uuidInValues(values []uuid.UUID, target uuid.UUID) bool {
 		}
 	}
 	return false
+}
+
+// workspaceDataScope 只从工作台类型推导内部授权边界，未知节点不给予有效授权。
+func workspaceDataScope(nodes map[uuid.UUID]authOrgNode, workspaceID uuid.UUID) biz.DataScope {
+	node, ok := nodes[workspaceID]
+	if !ok {
+		return ""
+	}
+	switch node.Kind {
+	case "system":
+		return biz.DataScopeAll
+	case "company":
+		return biz.DataScopeOrganization
+	default:
+		return ""
+	}
 }

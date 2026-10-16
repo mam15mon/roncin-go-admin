@@ -13955,10 +13955,6 @@
           "name": {
             "type": "string"
           },
-          "dataScope": {
-            "type": "integer",
-            "format": "enum"
-          },
           "enabled": {
             "type": "boolean"
           },
@@ -14268,8 +14264,7 @@
       },
       "admin.v1.CreateRoleRequest": {
         "required": [
-          "name",
-          "dataScope"
+          "name"
         ],
         "type": "object",
         "properties": {
@@ -14279,10 +14274,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "dataScope": {
-            "type": "integer",
-            "format": "enum"
           },
           "permissionKeys": {
             "type": "array",
@@ -14932,8 +14923,7 @@
       "admin.v1.UpdateRoleRequest": {
         "required": [
           "id",
-          "name",
-          "dataScope"
+          "name"
         ],
         "type": "object",
         "properties": {
@@ -14942,10 +14932,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "dataScope": {
-            "type": "integer",
-            "format": "enum"
           },
           "enabled": {
             "type": "boolean"
@@ -15372,9 +15358,6 @@
         "type": "object",
         "properties": {
           "roleCode": {
-            "type": "string"
-          },
-          "dataScope": {
             "type": "string"
           },
           "roleName": {

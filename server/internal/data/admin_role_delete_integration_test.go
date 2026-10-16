@@ -46,7 +46,6 @@ func TestAdminRoleDeletePostgres(t *testing.T) {
 		SetOrganizationID(systemWorkspace.ID).
 		SetCode("assigned_" + suffix).
 		SetName("已分配角色-" + suffix).
-		SetDataScope("organization").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建已分配角色: %v", err)
@@ -55,7 +54,6 @@ func TestAdminRoleDeletePostgres(t *testing.T) {
 		SetOrganizationID(systemWorkspace.ID).
 		SetCode("free_" + suffix).
 		SetName("空闲角色-" + suffix).
-		SetDataScope("organization").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建空闲角色: %v", err)
@@ -64,7 +62,6 @@ func TestAdminRoleDeletePostgres(t *testing.T) {
 		SetOrganizationID(otherOrg.ID).
 		SetCode("foreign_" + suffix).
 		SetName("跨组织角色-" + suffix).
-		SetDataScope("organization").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建跨组织角色: %v", err)

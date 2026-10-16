@@ -16,12 +16,14 @@ vi.mock('@ant-design/pro-components', () => ({
     modalState.props = props;
     return <div>{props.children as React.ReactNode}</div>;
   },
-  ProFormSwitch: () => null,
-  ProFormText: () => null,
+  ProFormSwitch: ({ label }: { label: string }) => <span>{label}</span>,
+  ProFormText: ({ label }: { label: string }) => <span>{label}</span>,
 }));
 
 vi.mock('@/components/ui', () => ({
-  ProFormSearchableSelect: () => null,
+  ProFormSearchableSelect: ({ label }: { label: string }) => (
+    <span>{label}</span>
+  ),
 }));
 
 vi.mock('antd', () => ({
@@ -94,11 +96,19 @@ function requiredOnFinish() {
   return onFinish as (values: Record<string, unknown>) => Promise<boolean>;
 }
 
-function RoleFormHarness({ editing }: { editing?: API.AdminRole }) {
+function RoleFormHarness({
+  editing,
+  onOpenChange = vi.fn(),
+  onSuccess = vi.fn(),
+}: {
+  editing?: API.AdminRole;
+  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
+}) {
   return (
     <RoleFormModal
       open
-      onOpenChange={vi.fn()}
+      onOpenChange={onOpenChange}
       editing={editing}
       formRef={{ current: undefined }}
       allLeafKeys={[]}
@@ -114,7 +124,7 @@ function RoleFormHarness({ editing }: { editing?: API.AdminRole }) {
       setAutoExpandParent={vi.fn()}
       permissionKeyword=""
       setPermissionKeyword={vi.fn()}
-      onSuccess={vi.fn()}
+      onSuccess={onSuccess}
     />
   );
 }
@@ -128,37 +138,36 @@ describe('RoleFormModal 角色提交载荷', () => {
     serviceMocks.updateRole.mockResolvedValue({});
   });
 
-  it('历史仅本人角色保留原值但不能保存或静默升权', async () => {
-    render(<RoleFormHarness editing={{ id: 'old-role', dataScope: 4 }} />);
-    expect(modalState.props?.initialValues).toMatchObject({ dataScope: 4 });
-    await act(async () => {
-      expect(await requiredOnFinish()({ name: '旧角色', dataScope: 4 })).toBe(
-        false,
-      );
-    });
-    expect(serviceMocks.updateRole).not.toHaveBeenCalled();
-    expect(serviceMocks.createRole).not.toHaveBeenCalled();
+  it('新增角色只有启用默认值，不显示或预填数据范围', () => {
+    render(<RoleFormHarness />);
+    expect(modalState.props?.initialValues).toEqual({ enabled: true });
+    expect(screen.getByText('角色名称')).toBeInTheDocument();
+    expect(screen.queryByText('数据访问范围')).not.toBeInTheDocument();
   });
 
-  it('创建载荷只携带名称、数据范围与权限集', async () => {
-    render(<RoleFormHarness />);
+  it('创建成功时只提交名称与权限集，并关闭刷新', async () => {
+    const onOpenChange = vi.fn();
+    const onSuccess = vi.fn();
+    render(
+      <RoleFormHarness onOpenChange={onOpenChange} onSuccess={onSuccess} />,
+    );
 
     await act(async () => {
       await requiredOnFinish()({
         name: '订单主管',
-        dataScope: 2,
       });
     });
     expect(serviceMocks.createRole).toHaveBeenCalledTimes(1);
     expect(serviceMocks.createRole.mock.calls[0][0]).toEqual({
       code: '',
       name: '订单主管',
-      dataScope: 2,
       permissionKeys: ['business.order.read'],
     });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(onSuccess).toHaveBeenCalledOnce();
   });
 
-  it('更新载荷只携带名称、数据范围、启用状态与权限集', async () => {
+  it('更新停用角色时只提交名称、启用状态与权限集', async () => {
     render(
       <RoleFormHarness
         editing={{
@@ -173,7 +182,6 @@ describe('RoleFormModal 角色提交载荷', () => {
     await act(async () => {
       await requiredOnFinish()({
         name: '订单编辑员',
-        dataScope: 2,
         enabled: false,
       });
     });
@@ -182,11 +190,45 @@ describe('RoleFormModal 角色提交载荷', () => {
     expect(serviceMocks.updateRole.mock.calls[0][1]).toEqual({
       id: 'role-2',
       name: '订单编辑员',
-      dataScope: 2,
       enabled: false,
       permissionKeys: ['business.order.read'],
     });
   });
+
+  it.each(['create', 'update'] as const)(
+    '%s 保存失败时保留弹窗和已选权限',
+    async (operation) => {
+      const onOpenChange = vi.fn();
+      const onSuccess = vi.fn();
+      const service =
+        operation === 'create'
+          ? serviceMocks.createRole
+          : serviceMocks.updateRole;
+      service.mockRejectedValueOnce(new Error('请求失败'));
+      render(
+        <RoleFormHarness
+          editing={
+            operation === 'update'
+              ? { id: 'role-2', enabled: false }
+              : undefined
+          }
+          onOpenChange={onOpenChange}
+          onSuccess={onSuccess}
+        />,
+      );
+
+      await act(async () => {
+        expect(
+          await requiredOnFinish()({ name: '操作员', enabled: false }),
+        ).toBe(false);
+      });
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(onSuccess).not.toHaveBeenCalled();
+      const payload = service.mock.calls[0][operation === 'create' ? 0 : 1];
+      expect(payload.permissionKeys).toEqual(['business.order.read']);
+      expect(payload).not.toHaveProperty('dataScope');
+    },
+  );
 
   it('点击全选只读时仅选中只读类权限', () => {
     const setSelectedPermissionKeys = vi.fn();
@@ -319,7 +361,7 @@ describe('RoleFormModal 角色提交载荷', () => {
     fireEvent.click(screen.getByRole('button', { name: /展开操作/ }));
     expect(screen.getByRole('checkbox', { name: '查看用户' })).toBeChecked();
     await act(async () => {
-      await requiredOnFinish()({ name: '业务员', dataScope: 2 });
+      await requiredOnFinish()({ name: '业务员' });
     });
     expect(serviceMocks.createRole.mock.calls[0][0].permissionKeys).toEqual(
       expect.arrayContaining(['user.read', 'bill.read', 'bill.create']),

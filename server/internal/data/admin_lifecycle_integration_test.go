@@ -11,6 +11,7 @@ import (
 	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	notificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	sessionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/session"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -47,7 +48,6 @@ func TestAdminEmployeeLifecyclePostgres(t *testing.T) {
 		SetOrganizationID(systemWorkspace.ID).
 		SetCode("operator").
 		SetName("操作员").
-		SetDataScope("organization").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建角色: %v", err)
@@ -229,7 +229,6 @@ func TestAdminDepartmentInheritsCompanyRolesPostgres(t *testing.T) {
 		SetOrganizationID(company.ID).
 		SetCode("finance_" + suffix).
 		SetName("财务角色-" + suffix).
-		SetDataScope("organization").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建财务角色: %v", err)
@@ -286,7 +285,7 @@ func TestAdminDepartmentInheritsCompanyRolesPostgres(t *testing.T) {
 	}
 
 	// 批量入口复核真实操作者权限，原部门角色夹具增加明确的用户管理授权。
-	permission, err := data.db.Permission.Create().SetKey(access.UserUpdate).SetName("管理组织成员").SetGroup("system").Save(ctx)
+	permission, err := data.db.Permission.Query().Where(permissionent.KeyEQ(access.UserUpdate)).Only(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

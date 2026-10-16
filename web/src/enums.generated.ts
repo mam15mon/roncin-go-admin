@@ -10,7 +10,7 @@ export const AccessMode = {
 
 export type AccessMode = (typeof AccessMode)[keyof typeof AccessMode];
 
-export const AccessDataScope = {
+export const DataScope = {
   DATA_SCOPE_UNSPECIFIED: 0,
   DATA_SCOPE_ALL: 1,
   DATA_SCOPE_ORGANIZATION: 2,
@@ -18,17 +18,7 @@ export const AccessDataScope = {
   DATA_SCOPE_SELF: 4,
 } as const;
 
-export type AccessDataScope = (typeof AccessDataScope)[keyof typeof AccessDataScope];
-
-export const AdminDataScope = {
-  DATA_SCOPE_UNSPECIFIED: 0,
-  DATA_SCOPE_ALL: 1,
-  DATA_SCOPE_ORGANIZATION: 2,
-  DATA_SCOPE_ORGANIZATION_TREE: 3,
-  DATA_SCOPE_SELF: 4,
-} as const;
-
-export type AdminDataScope = (typeof AdminDataScope)[keyof typeof AdminDataScope];
+export type DataScope = (typeof DataScope)[keyof typeof DataScope];
 
 export const AdminOrganizationKind = {
   ORGANIZATION_KIND_UNSPECIFIED: 0,

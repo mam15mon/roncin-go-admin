@@ -72,7 +72,7 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 
 	// A2：部门锚定创建角色显式拒绝，且不落库。
 	if _, err := repo.CreateRole(ctx, department.ID, &biz.AdminRole{
-		Code: "dept_" + suffix, Name: "部门角色-" + suffix, DataScope: biz.DataScopeOrganization, Enabled: true,
+		Code: "dept_" + suffix, Name: "部门角色-" + suffix, Enabled: true,
 	}, nil, audit(department.ID)); err != biz.ErrAdminRoleAnchorInvalid {
 		t.Fatalf("部门锚定创建角色错误 = %v, want ErrAdminRoleAnchorInvalid", err)
 	}
@@ -89,7 +89,6 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 		SetOrganizationID(department.ID).
 		SetCode("legacy_dept_" + suffix).
 		SetName("存量部门角色-" + suffix).
-		SetDataScope("organization").
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -99,14 +98,13 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 		SetOrganizationID(team.ID).
 		SetCode("legacy_team_" + suffix).
 		SetName("存量组角色-" + suffix).
-		SetDataScope("organization").
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建存量组角色: %v", err)
 	}
 	if _, err := repo.UpdateRole(ctx, department.ID, legacyDepartmentRole.ID, &biz.AdminRole{
-		Name: "改名后-" + suffix, DataScope: biz.DataScopeAll, Enabled: false,
+		Name: "改名后-" + suffix, Enabled: false,
 	}, nil, audit(department.ID)); err != biz.ErrAdminRoleAnchorInvalid {
 		t.Fatalf("部门锚定更新角色错误 = %v, want ErrAdminRoleAnchorInvalid", err)
 	}
@@ -120,7 +118,7 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("读取存量部门角色失败: %v", err)
 	}
-	if reloadedLegacy.Name != "存量部门角色-"+suffix || !reloadedLegacy.Enabled || reloadedLegacy.DataScope != role.DataScopeOrganization {
+	if reloadedLegacy.Name != "存量部门角色-"+suffix || !reloadedLegacy.Enabled {
 		t.Fatalf("部门锚定写入被拒绝后数据仍应保持原样: %#v", reloadedLegacy)
 	}
 
@@ -135,7 +133,7 @@ func TestAdminRoleAnchorPostgres(t *testing.T) {
 
 	// 对照：公司（工作台）可以正常创建角色，部门上下文共享读取该角色。
 	createdRole, err := repo.CreateRole(ctx, company.ID, &biz.AdminRole{
-		Code: "company_" + suffix, Name: "公司角色-" + suffix, DataScope: biz.DataScopeOrganization, Enabled: true,
+		Code: "company_" + suffix, Name: "公司角色-" + suffix, Enabled: true,
 	}, nil, audit(company.ID))
 	if err != nil {
 		t.Fatalf("公司锚定创建角色失败: %v", err)
@@ -202,7 +200,6 @@ func TestRoleWorkspaceAnchorBackfillPostgres(t *testing.T) {
 		SetOrganizationID(department.ID).
 		SetCode("backfill_dept_" + suffix).
 		SetName("存量部门角色-" + suffix).
-		SetDataScope("organization").
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -212,7 +209,6 @@ func TestRoleWorkspaceAnchorBackfillPostgres(t *testing.T) {
 		SetOrganizationID(team.ID).
 		SetCode("backfill_team_" + suffix).
 		SetName("存量组角色-" + suffix).
-		SetDataScope("organization").
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -263,7 +259,6 @@ func TestRoleWorkspaceAnchorBackfillPostgres(t *testing.T) {
 		SetOrganizationID(orphan.ID).
 		SetCode("backfill_orphan_" + suffix).
 		SetName("断链部门角色-" + suffix).
-		SetDataScope("organization").
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -284,7 +279,6 @@ func TestRoleWorkspaceAnchorBackfillPostgres(t *testing.T) {
 		SetOrganizationID(company.ID).
 		SetCode("backfill_conflict_" + suffix).
 		SetName("公司同编码角色-" + suffix).
-		SetDataScope("organization").
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {
@@ -294,7 +288,6 @@ func TestRoleWorkspaceAnchorBackfillPostgres(t *testing.T) {
 		SetOrganizationID(department.ID).
 		SetCode("backfill_conflict_" + suffix).
 		SetName("部门同编码角色-" + suffix).
-		SetDataScope("organization").
 		SetEnabled(true).
 		Save(ctx)
 	if err != nil {

@@ -33,11 +33,11 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 	}
 	repo := NewAdminRepo(f.data)
 	audit := &biz.AuditEvent{OrganizationID: &f.branch, UserID: &f.bootstrapUserID, Action: "admin.role.create", Result: "success", Details: map[string]string{}}
-	if _, err := repo.CreateRole(ctx, f.branch, &biz.AdminRole{Code: "bad", Name: "越权", DataScope: biz.DataScopeAll, Enabled: true}, []string{access.MasterDataPortUpdate}, audit); err != biz.ErrAdminPrivilegeEscalation {
+	if _, err := repo.CreateRole(ctx, f.branch, &biz.AdminRole{Code: "bad", Name: "越权", Enabled: true}, []string{access.MasterDataPortUpdate}, audit); err != biz.ErrAdminPrivilegeEscalation {
 		t.Fatalf("公司角色不得授系统权限: %v", err)
 	}
 	principal := &biz.Principal{UserID: f.bootstrapUserID, Organization: biz.Organization{ID: f.systemWorkspace, Kind: biz.OrganizationKindSystem}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: f.systemWorkspace, Kind: biz.OrganizationKindSystem}, {ID: f.branch, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{{RoleCode: "administrator", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.UserCreate: {}, access.UserUpdate: {}}}}}
-	systemRole, err := f.data.db.Role.Create().SetOrganizationID(f.systemWorkspace).SetCode("administrator").SetName("系统管理员").SetDataScope(role.DataScopeAll).Save(ctx)
+	systemRole, err := f.data.db.Role.Create().SetOrganizationID(f.systemWorkspace).SetCode("administrator").SetName("系统管理员").Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestSystemCompanyAdministratorAuthorizationBoundaries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	managerRole, err := f.data.db.Role.Create().SetOrganizationID(f.systemWorkspace).SetCode("user-manager").SetName("成员管理员").SetDataScope(role.DataScopeOrganization).AddPermissionIDs(userUpdate.ID).Save(ctx)
+	managerRole, err := f.data.db.Role.Create().SetOrganizationID(f.systemWorkspace).SetCode("user-manager").SetName("成员管理员").AddPermissionIDs(userUpdate.ID).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

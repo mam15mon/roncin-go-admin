@@ -29,16 +29,11 @@ import {
   filterPermissionTree,
 } from './components/roles/permissionTree';
 import RoleFormModal from './components/roles/RoleFormModal';
-import {
-  dataScopeMap,
-  dataScopeOptions,
-  ROLE_BASE_PERMISSION_KEY,
-} from './components/roles/roleConstants';
+import { ROLE_BASE_PERMISSION_KEY } from './components/roles/roleConstants';
 
 /** 快捷搜索栏提交并暂存于页面状态的角色查询参数 */
 type RoleSearchParams = {
   keyword?: string;
-  dataScope?: number;
 };
 
 export default function RolesPanel() {
@@ -126,21 +121,6 @@ export default function RolesPanel() {
           )}
         </Space>
       ),
-    },
-    {
-      title: '数据访问范围',
-      dataIndex: 'dataScope',
-      width: 140,
-      render: (_, r) => {
-        const item = dataScopeMap.get(r.dataScope ?? 2);
-        return (
-          <Tooltip title={item?.description}>
-            <Tag color={item?.color} variant="filled">
-              {item?.label || `范围 ${r.dataScope}`}
-            </Tag>
-          </Tooltip>
-        );
-      },
     },
     {
       title: '功能权限集',
@@ -286,17 +266,6 @@ export default function RolesPanel() {
       <SearchFilterTemplate<RoleSearchParams>
         layout="bar"
         keywordPlaceholder="搜索角色名称或角色编码..."
-        quickFilters={[
-          {
-            name: 'dataScope',
-            placeholder: '全部数据范围',
-            width: 140,
-            options: dataScopeOptions.map((opt) => ({
-              label: opt.label,
-              value: opt.value,
-            })),
-          },
-        ]}
         onSearch={(values) => {
           setSearchParams(values);
           actionRef.current?.reload();
@@ -351,9 +320,6 @@ export default function RolesPanel() {
                 r.name?.toLowerCase().includes(kw) ||
                 r.code?.toLowerCase().includes(kw),
             );
-          }
-          if (searchParams.dataScope !== undefined) {
-            list = list.filter((r) => r.dataScope === searchParams.dataScope);
           }
           return toTableRequest({ ...response, data: list });
         }}

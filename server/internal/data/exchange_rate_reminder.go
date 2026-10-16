@@ -75,6 +75,10 @@ func (r *exchangeRateReminderRepo) ListFinanceReminderRecipients(ctx context.Con
 	if err != nil {
 		return nil, err
 	}
+	membershipIDs, err := companyGrantMembershipIDs(ctx, client, organizationID)
+	if err != nil {
+		return nil, err
+	}
 	users, err := client.User.Query().
 		Where(
 			userent.EnabledEQ(true),
@@ -82,11 +86,11 @@ func (r *exchangeRateReminderRepo) ListFinanceReminderRecipients(ctx context.Con
 			userent.DingtalkUseridNotNil(),
 			userent.HasMembershipsWith(
 				membershipent.EnabledEQ(true),
-				membershipent.OrganizationIDEQ(organizationID),
+				membershipent.OrganizationIDIn(membershipIDs...),
 				membershipent.HasRoleAssignmentsWith(
 					roleassignmentent.HasRoleWith(
 						roleent.EnabledEQ(true),
-						roleent.DataScopeIn(roleent.DataScopeOrganization, roleent.DataScopeOrganizationTree, roleent.DataScopeAll),
+						roleent.OrganizationIDEQ(organizationID),
 						roleent.HasPermissionsWith(
 							permissionent.KeyIn(access.FinanceExchangeRateCreate, access.FinanceExchangeRateUpdate),
 						),

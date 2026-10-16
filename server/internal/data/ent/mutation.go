@@ -135393,7 +135393,6 @@ type RoleMutation struct {
 	updated_at                              *time.Time
 	code                                    *string
 	name                                    *string
-	data_scope                              *role.DataScope
 	enabled                                 *bool
 	clearedFields                           map[string]struct{}
 	organization                            *uuid.UUID
@@ -135697,42 +135696,6 @@ func (m *RoleMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *RoleMutation) ResetName() {
 	m.name = nil
-}
-
-// SetDataScope sets the "data_scope" field.
-func (m *RoleMutation) SetDataScope(rs role.DataScope) {
-	m.data_scope = &rs
-}
-
-// DataScope returns the value of the "data_scope" field in the mutation.
-func (m *RoleMutation) DataScope() (r role.DataScope, exists bool) {
-	v := m.data_scope
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDataScope returns the old "data_scope" field's value of the Role entity.
-// If the Role object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleMutation) OldDataScope(ctx context.Context) (v role.DataScope, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDataScope is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDataScope requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDataScope: %w", err)
-	}
-	return oldValue.DataScope, nil
-}
-
-// ResetDataScope resets all changes to the "data_scope" field.
-func (m *RoleMutation) ResetDataScope() {
-	m.data_scope = nil
 }
 
 // SetEnabled sets the "enabled" field.
@@ -136048,7 +136011,7 @@ func (m *RoleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoleMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, role.FieldCreatedAt)
 	}
@@ -136063,9 +136026,6 @@ func (m *RoleMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, role.FieldName)
-	}
-	if m.data_scope != nil {
-		fields = append(fields, role.FieldDataScope)
 	}
 	if m.enabled != nil {
 		fields = append(fields, role.FieldEnabled)
@@ -136088,8 +136048,6 @@ func (m *RoleMutation) Field(name string) (ent.Value, bool) {
 		return m.Code()
 	case role.FieldName:
 		return m.Name()
-	case role.FieldDataScope:
-		return m.DataScope()
 	case role.FieldEnabled:
 		return m.Enabled()
 	}
@@ -136111,8 +136069,6 @@ func (m *RoleMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCode(ctx)
 	case role.FieldName:
 		return m.OldName(ctx)
-	case role.FieldDataScope:
-		return m.OldDataScope(ctx)
 	case role.FieldEnabled:
 		return m.OldEnabled(ctx)
 	}
@@ -136158,13 +136114,6 @@ func (m *RoleMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
-		return nil
-	case role.FieldDataScope:
-		v, ok := value.(role.DataScope)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDataScope(v)
 		return nil
 	case role.FieldEnabled:
 		v, ok := value.(bool)
@@ -136236,9 +136185,6 @@ func (m *RoleMutation) ResetField(name string) error {
 		return nil
 	case role.FieldName:
 		m.ResetName()
-		return nil
-	case role.FieldDataScope:
-		m.ResetDataScope()
 		return nil
 	case role.FieldEnabled:
 		m.ResetEnabled()

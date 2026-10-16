@@ -50,7 +50,7 @@ describe('adaptRoutes 路由适配', () => {
             'system.platform.access',
             'business.order.se.read',
           ].map((key) => ({ key, dataScope: 'all' })),
-          roleScopes: [{ roleCode: 'r', dataScope: 'all' }],
+          roleScopes: [{ roleCode: 'r' }],
         } as unknown as API.CurrentUser,
       }),
     );

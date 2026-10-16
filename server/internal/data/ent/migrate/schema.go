@@ -5761,7 +5761,6 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString, Size: 64},
 		{Name: "name", Type: field.TypeString, Size: 100},
-		{Name: "data_scope", Type: field.TypeEnum, Enums: []string{"all", "organization", "organization_tree", "self"}, Default: "organization"},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 	}
@@ -5773,7 +5772,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "roles_organizations_roles",
-				Columns:    []*schema.Column{RolesColumns[7]},
+				Columns:    []*schema.Column{RolesColumns[6]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5787,12 +5786,12 @@ var (
 			{
 				Name:    "role_organization_id_code",
 				Unique:  true,
-				Columns: []*schema.Column{RolesColumns[7], RolesColumns[3]},
+				Columns: []*schema.Column{RolesColumns[6], RolesColumns[3]},
 			},
 			{
 				Name:    "role_organization_id_enabled",
 				Unique:  false,
-				Columns: []*schema.Column{RolesColumns[7], RolesColumns[6]},
+				Columns: []*schema.Column{RolesColumns[6], RolesColumns[5]},
 			},
 		},
 	}

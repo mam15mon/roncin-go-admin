@@ -89,7 +89,7 @@ func seedFeeReviewEvent(ctx context.Context, sc *seedContext, o *ent.Order, snap
 	}
 	return sc.tx.OrderFeeReviewEvent.Create().SetOrganizationID(o.OrganizationID).SetOrderID(o.ID).
 		SetAction(action).SetActorID(actor.ID).SetActorName(actor.DisplayName).
-		SetAuthorizationSnapshot(map[string]string{"permission": permission, "role_id": grant.RoleID.String(), "membership_id": grant.MembershipID.String(), "data_scope": string(grant.Edges.Role.DataScope), "source": "sync-dev-explicit-fixture"}).
+		SetAuthorizationSnapshot(map[string]string{"permission": permission, "role_id": grant.RoleID.String(), "membership_id": grant.MembershipID.String(), "data_scope": "organization", "source": "sync-dev-explicit-fixture"}).
 		SetComment(comment).SetContentVersion(o.FeeContentVersion).SetContentFingerprint(fingerprint).
 		SetSnapshot(payload).SetIdempotencyKey(key).SetRequestFingerprint(biz.FeeReviewHash([]byte(key + "|" + fingerprint))).
 		SetNillableSubmissionID(submissionID).SetNillableSupplementRequestID(supplementID).Save(ctx)

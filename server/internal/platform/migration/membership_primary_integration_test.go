@@ -69,7 +69,7 @@ func TestPostgresRemoveMembershipPrimaryPreservesAuthorization(t *testing.T) {
 		if err := db.QueryRowContext(ctx, `SELECT jsonb_build_object(
 			'memberships', (SELECT jsonb_agg(to_jsonb(m) - 'primary' ORDER BY id) FROM memberships m),
 			'assignments', (SELECT jsonb_agg(to_jsonb(a) ORDER BY id) FROM role_assignments a),
-			'roles', (SELECT jsonb_agg(to_jsonb(r) ORDER BY id) FROM roles r),
+			'roles', (SELECT jsonb_agg(to_jsonb(r) - 'data_scope' ORDER BY id) FROM roles r),
 			'users', (SELECT jsonb_agg(to_jsonb(u) ORDER BY id) FROM users u))::text`).Scan(&value); err != nil {
 			t.Fatal(err)
 		}
