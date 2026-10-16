@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 136
+- **Total Sessions**: 137
 - **Last Active**: 2026-10-16
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1584 | Active |
+| `journal-2.md` | ~1619 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 137 | 2026-10-16 | 退役角色数据访问范围并完成主线交付 | `dd5fa842`, `0e36e9e6` | `main` |
 | 136 | 2026-10-16 | 权限分类与查找体验优化 | `08712d7b` | `codex/permission-discovery` |
 | 135 | 2026-10-15 | 登录页参照钉钉优化卡片与顶部切换 | `298db52a` | `codex/dingtalk-html-frame` |
 | 134 | 2026-10-15 | 登录方式切换即时恢复有效钉钉二维码 | `54b2955a` | `codex/dingtalk-html-frame` |

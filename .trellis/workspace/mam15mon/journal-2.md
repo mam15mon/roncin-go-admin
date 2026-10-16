@@ -1582,3 +1582,38 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 137: 退役角色数据访问范围并完成主线交付
+<!-- trellis-session: v=2 fp=d59afe4e7e34549f -->
+
+**Date**: 2026-10-16
+**Task**: 退役角色数据访问范围并完成主线交付
+**Branch**: `main`
+
+### Summary
+
+移除角色数据范围配置、契约和存储，按工作台推导有效授权；完成门禁、真实 PostgreSQL 迁移与边界验证，快进合入 main，安全删除本任务及前一权限查找分支，归档任务。
+
+### Main Changes
+
+- 角色表单、列表与工作台摘要移除范围；Proto、Ent、OpenAPI 及前端客户端同步生成
+- 公司隔离、功能权限、防提权和审批候选边界保留；旧 self 角色迁移先停用
+- 修正未应用通知迁移编号，开发库已顺序迁移，无数据重置
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dd5fa842` | fix: 调整未应用通知迁移编号以恢复顺序执行 |
+| `0e36e9e6` | refactor: 退役角色数据访问范围并统一工作台授权边界 |
+
+### Testing
+
+- [OK] check:fast 通过；前端 235 个文件、1303 条测试通过，现有跳过单独记录
+- [OK] 真实 PostgreSQL 冷启动、增量迁移、公司授权、审批与提醒候选及后台通知升级验证通过，无 SKIP
+- [OK] 重新生成文件指纹无变化；git diff --check 通过
+
+### Status
+
+[OK] **Completed**
