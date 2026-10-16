@@ -1560,3 +1560,25 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 136: 权限分类与查找体验优化
+<!-- trellis-session: v=2 fp=30f9917c59e8e9d1 -->
+
+**Date**: 2026-10-16
+**Task**: 权限分类与查找体验优化
+**Branch**: `codex/permission-discovery`
+
+### Summary
+
+完成权限字典模块与关键词组合筛选、角色配置完整归属路径和业务中文文案；补充选择保留、依赖联动与请求失败恢复验证。完整前端门禁通过，独立审查后定向验证及类型检查通过，任务已归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `08712d7b` | feat: 优化权限分类筛选与授权查找体验 |
+
+### Status
+
+[OK] **Completed**
