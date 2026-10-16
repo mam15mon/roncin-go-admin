@@ -11,24 +11,24 @@ import (
 )
 
 const (
-	dingTalkApprovalInitialPollInterval = 2 * time.Second
-	dingTalkApprovalLeaseDuration       = 45 * time.Second
-	dingTalkApprovalCallTimeout         = 20 * time.Second
+	dingTalkApprovalLeaseDuration = 45 * time.Second
+	dingTalkApprovalCallTimeout   = 20 * time.Second
 )
 
 // DingTalkApprovalWorker 通过 Kratos Server 生命周期可靠派发原生 OA 审批。
 type DingTalkApprovalWorker struct {
-	usecase *biz.DingTalkApprovalUsecase
-	logger  *slog.Logger
-	ctx     context.Context
-	cancel  context.CancelFunc
-	done    chan struct{}
-	once    sync.Once
+	usecase   *biz.DingTalkApprovalUsecase
+	logger    *slog.Logger
+	scheduler biz.BackgroundTaskScheduler
+	ctx       context.Context
+	cancel    context.CancelFunc
+	done      chan struct{}
+	once      sync.Once
 }
 
-func NewDingTalkApprovalWorker(usecase *biz.DingTalkApprovalUsecase, logger *slog.Logger) *DingTalkApprovalWorker {
+func NewDingTalkApprovalWorker(usecase *biz.DingTalkApprovalUsecase, logger *slog.Logger, scheduler biz.BackgroundTaskScheduler) *DingTalkApprovalWorker {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &DingTalkApprovalWorker{usecase: usecase, logger: logger, ctx: ctx, cancel: cancel, done: make(chan struct{})}
+	return &DingTalkApprovalWorker{usecase: usecase, logger: logger, scheduler: scheduler, ctx: ctx, cancel: cancel, done: make(chan struct{})}
 }
 
 func (w *DingTalkApprovalWorker) Start(context.Context) error {
@@ -40,7 +40,8 @@ func (w *DingTalkApprovalWorker) Start(context.Context) error {
 	}
 	callbackEnabled := w.usecase.CallbackEnabled()
 	w.logger.Info("dingtalk approval worker started", slog.Bool("callback_enabled", callbackEnabled))
-	backoff := newWorkerPollBackoff(dingTalkApprovalInitialPollInterval, backgroundWorkerMaxPollInterval)
+	waiter := newWorkerScheduleWait(w.scheduler, biz.TaskConsumerDingTalkApproval, callbackEnabled, w.logger)
+	defer waiter.close()
 	for {
 		select {
 		case <-w.ctx.Done():
@@ -48,16 +49,16 @@ func (w *DingTalkApprovalWorker) Start(context.Context) error {
 		default:
 		}
 
+		waiter.drain()
 		dispatchErr := w.processDispatch()
 		var inboxErr error = biz.ErrBackgroundTaskNoTask
 		if callbackEnabled {
 			inboxErr = w.processInbox()
 		}
 		if dispatchErr == nil || inboxErr == nil {
-			backoff.Reset()
 			continue
 		}
-		if !waitForWorkerPoll(w.ctx, backoff.Next()) {
+		if !waiter.wait(w.ctx, !stderrors.Is(dispatchErr, biz.ErrBackgroundTaskNoTask) || !stderrors.Is(inboxErr, biz.ErrBackgroundTaskNoTask)) {
 			return nil
 		}
 	}

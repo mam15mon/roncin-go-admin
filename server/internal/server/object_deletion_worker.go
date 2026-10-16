@@ -11,24 +11,24 @@ import (
 )
 
 const (
-	objectDeletionInitialPollInterval = 5 * time.Second
-	objectDeletionLeaseDuration       = 60 * time.Second
-	objectDeletionSendTimeout         = 30 * time.Second
+	objectDeletionLeaseDuration = 60 * time.Second
+	objectDeletionSendTimeout   = 30 * time.Second
 )
 
 // ObjectDeletionWorker 通过 Kratos Server 生命周期消费对象存储删除任务。
 type ObjectDeletionWorker struct {
-	usecase *biz.ObjectDeletionUsecase
-	logger  *slog.Logger
-	ctx     context.Context
-	cancel  context.CancelFunc
-	done    chan struct{}
-	once    sync.Once
+	usecase   *biz.ObjectDeletionUsecase
+	logger    *slog.Logger
+	scheduler biz.BackgroundTaskScheduler
+	ctx       context.Context
+	cancel    context.CancelFunc
+	done      chan struct{}
+	once      sync.Once
 }
 
-func NewObjectDeletionWorker(usecase *biz.ObjectDeletionUsecase, logger *slog.Logger) *ObjectDeletionWorker {
+func NewObjectDeletionWorker(usecase *biz.ObjectDeletionUsecase, logger *slog.Logger, scheduler biz.BackgroundTaskScheduler) *ObjectDeletionWorker {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &ObjectDeletionWorker{usecase: usecase, logger: logger, ctx: ctx, cancel: cancel, done: make(chan struct{})}
+	return &ObjectDeletionWorker{usecase: usecase, logger: logger, scheduler: scheduler, ctx: ctx, cancel: cancel, done: make(chan struct{})}
 }
 
 func (w *ObjectDeletionWorker) Start(context.Context) error {
@@ -39,13 +39,15 @@ func (w *ObjectDeletionWorker) Start(context.Context) error {
 		return nil
 	}
 	w.logger.Info("object deletion worker started", slog.String("storage", "OBJECT_STORAGE"))
-	backoff := newWorkerPollBackoff(objectDeletionInitialPollInterval, backgroundWorkerMaxPollInterval)
+	waiter := newWorkerScheduleWait(w.scheduler, biz.TaskConsumerObjectDeletion, false, w.logger)
+	defer waiter.close()
 	for {
 		select {
 		case <-w.ctx.Done():
 			return nil
 		default:
 		}
+		waiter.drain()
 		processCtx, cancel := context.WithTimeout(w.ctx, objectDeletionSendTimeout)
 		err := w.usecase.ProcessNext(processCtx, objectDeletionLeaseDuration)
 		cancel()
@@ -53,10 +55,9 @@ func (w *ObjectDeletionWorker) Start(context.Context) error {
 			w.logger.Error("process object deletion", slog.String("storage", "OBJECT_STORAGE"), slog.Any("error", err))
 		}
 		if err == nil {
-			backoff.Reset()
 			continue
 		}
-		if !waitForWorkerPoll(w.ctx, backoff.Next()) {
+		if !waiter.wait(w.ctx, !stderrors.Is(err, biz.ErrBackgroundTaskNoTask)) {
 			return nil
 		}
 	}

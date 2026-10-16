@@ -3,7 +3,7 @@
   "name": "background-task-notify",
   "title": "后台任务通知唤醒与轮询优化",
   "description": "接入 PostgreSQL LISTEN/NOTIFY 唤醒现有后台任务消费者，减少空闲查库并保留延迟重试和租约恢复",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "backend",
   "scope": "server",
   "package": null,
@@ -11,8 +11,8 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-10-13",
-  "completedAt": null,
-  "branch": null,
+  "completedAt": "2026-10-13",
+  "branch": "codex/background-task-notify",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -31,6 +31,6 @@
     "server/migrations",
     "server/cmd/server"
   ],
-  "notes": "已获任务创建授权；规划已收敛，等待用户审阅最终方案后明确批准实施。",
+  "notes": "用户已于 2026-10-13 明确批准实施；在 codex/background-task-notify 执行通知调度、独立审查和临时 PostgreSQL 验收，不重置开发数据。",
   "meta": {}
 }

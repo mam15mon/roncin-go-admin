@@ -25,29 +25,30 @@ type enabledDirectoryGateway struct{ biz.DingTalkDirectoryGateway }
 
 func (enabledDirectoryGateway) Enabled() bool { return true }
 
-func TestDingTalkDirectoryWorkerKeepsPollingAndStops(t *testing.T) {
+func TestDingTalkDirectoryWorkerWaitsForNotificationAndRecovery(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		repo := &idleDirectoryTaskRepo{polls: make(chan time.Time, 1)}
 		tasks := biz.NewBackgroundTaskUsecase(repo)
 		usecase := biz.NewDingTalkDirectoryUsecase(nil, enabledDirectoryGateway{}, tasks)
-		worker := NewDingTalkDirectoryWorker(usecase, slog.New(slog.NewTextHandler(io.Discard, nil)))
+		scheduler := &fakeTaskScheduler{wake: make(chan struct{}, 1)}
+		worker := NewDingTalkDirectoryWorker(usecase, slog.New(slog.NewTextHandler(io.Discard, nil)), scheduler)
 		result := make(chan error, 1)
 		go func() { result <- worker.Start(context.Background()) }()
 		synctest.Wait()
-		previous := <-repo.polls
-		for index := 0; index < 8; index++ {
-			time.Sleep(2 * time.Second)
-			synctest.Wait()
-			select {
-			case current := <-repo.polls:
-				if interval := current.Sub(previous); interval != 2*time.Second {
-					t.Fatalf("空闲轮询间隔 = %s，期望固定 2 秒", interval)
-				}
-				previous = current
-			default:
-				t.Fatal("空闲 2 秒后未检查新任务")
-			}
+		<-repo.polls
+		time.Sleep(59 * time.Second)
+		synctest.Wait()
+		select {
+		case <-repo.polls:
+			t.Fatal("完全空闲期间发生高频查询")
+		default:
 		}
+		time.Sleep(time.Second)
+		synctest.Wait()
+		<-repo.polls
+		scheduler.wake <- struct{}{}
+		synctest.Wait()
+		<-repo.polls
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		if err := worker.Stop(ctx); err != nil {

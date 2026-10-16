@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1533 | Active |
+| `journal-2.md` | ~1562 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -36,6 +36,7 @@
 | 132 | 2026-10-14 | 待分配多组织开通修复与安全合并 | `96b75125` | `main` |
 | 131 | 2026-10-13 | 修复组织登录审查问题 | `614e1966`, `ec71a78b` | `codex/dingtalk-login-memberships` |
 | 130 | 2026-10-13 | 钉钉扫码与组织成员管理实施 | `46b2da23`, `58dd5c0c`, `61a74a60`, `61056509` | `codex/dingtalk-login-memberships` |
+| 129 | 2026-10-13 | 后台任务通知唤醒与轮询优化 | `d8f503b6` | `codex/background-task-notify` |
 | 128 | 2026-10-13 | 完成费用更正与账务提成闭环并验收归档 | `b16d23a3`, `8e1107ca` | `codex/fee-exception-phase-one` |
 | 127 | 2026-10-13 | 费用更正与提成联动设计研究 | `bebb3d0a` | `codex/fee-exception-phase-one` |
 | 126 | 2026-10-13 | 费用异常第一阶段修复验收 | `61ff8675`, `45bd3731` | `codex/fee-exception-phase-one` |

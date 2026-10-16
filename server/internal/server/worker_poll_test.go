@@ -40,7 +40,10 @@ func TestWorkerPollBackoffIncreasesAndResets(t *testing.T) {
 func TestWaitForWorkerPollStopsOnCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	if waitForWorkerPoll(ctx, time.Hour) {
+	scheduler := &fakeTaskScheduler{wake: make(chan struct{}, 1)}
+	waiter := newWorkerScheduleWait(scheduler, biz.TaskConsumerNotification, false, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	defer waiter.close()
+	if waiter.wait(ctx, false) {
 		t.Fatal("上下文取消后不应继续轮询")
 	}
 }
@@ -48,7 +51,7 @@ func TestWaitForWorkerPollStopsOnCancellation(t *testing.T) {
 func TestDingTalkApprovalWorkerDoesNotPollWhenDisabled(t *testing.T) {
 	usecase := biz.NewDingTalkApprovalUsecase(nil, nil, disabledApprovalGateway{}, nil)
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	worker := NewDingTalkApprovalWorker(usecase, logger)
+	worker := NewDingTalkApprovalWorker(usecase, logger, nil)
 	started := make(chan error, 1)
 	go func() {
 		started <- worker.Start(context.Background())

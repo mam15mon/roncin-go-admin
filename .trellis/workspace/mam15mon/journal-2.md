@@ -1531,3 +1531,32 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 129: 后台任务通知唤醒与轮询优化
+<!-- trellis-session: v=2 fp=26539b769bb39f74 -->
+
+**Date**: 2026-10-13
+**Task**: 后台任务通知唤醒与轮询优化
+**Branch**: `codex/background-task-notify`
+
+### Summary
+
+四类消费者接入 PostgreSQL LISTEN/NOTIFY，空闲恢复检查降至60秒；独立审查修复错误通知绕过退避。真实PG五组与冷启动零SKIP通过，65秒仅一次检查，唤醒1.54ms；最终后端门禁通过，任务归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d8f503b6` | feat: 通过 PostgreSQL 通知唤醒后台任务 |
+
+### Testing
+
+- [OK] pnpm run check:server 通过
+- [OK] 临时 PostgreSQL 18.6 scheduler五组与全链迁移通过，零SKIP，数据库已销毁
+- [OK] 真实空闲65.005秒：Claim=1/NextRun=1；真实通知唤醒1.536916ms
+- [OK] race因缺少C编译器未执行；现有CI真实PG未配置，限制已记录
+
+### Status
+
+[OK] **Completed**
