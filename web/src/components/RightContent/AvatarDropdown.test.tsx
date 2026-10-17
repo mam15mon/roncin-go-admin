@@ -29,7 +29,7 @@ vi.mock('@/app/AppProvider', () => ({
 }));
 
 vi.mock('@/services/roncin/authService', () => ({
-  authServiceLogout: vi.fn().mockResolvedValue({}),
+  authServiceLogout: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 vi.mock('@/features/orders/options', () => ({
@@ -109,7 +109,7 @@ describe('AvatarDropdown Component', () => {
   });
 
   it('退出登录成功时调用 clearOrderMasterDataCache() 全量清理订单会话缓存并跳转登录页', async () => {
-    mockLogout.mockResolvedValueOnce({});
+    mockLogout.mockResolvedValueOnce({ success: true });
     mockCurrentUser = {
       username: 'testadmin',
       displayName: '测试管理员',

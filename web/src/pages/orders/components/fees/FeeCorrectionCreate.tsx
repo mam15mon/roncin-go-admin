@@ -8,6 +8,7 @@ import { App, Button } from 'antd';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { orderFeeServiceCreateOrderFeeCorrection } from '@/services/roncin/orderFeeService';
+import { isWriteResponse } from '@/utils/api';
 import { normalizeDecimalInput } from '@/utils/decimal';
 import { formatAmount } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -82,6 +83,7 @@ export default function FeeCorrectionCreate({
           : undefined,
       },
     );
+    if (!isWriteResponse(response, true)) return false;
     if (!response?.success) return false;
     message.success('费用更正已提交审批');
     setSession(undefined);

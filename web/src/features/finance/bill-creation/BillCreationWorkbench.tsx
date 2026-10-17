@@ -19,7 +19,7 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
@@ -437,7 +437,7 @@ export default function BillCreationWorkbench({
     }
   };
 
-  const createBatch = async () => {
+  const createBatch = async (): Promise<false | undefined> => {
     if (!organizationId) {
       message.warning('请先选择可建账所属公司');
       return;
@@ -521,6 +521,7 @@ export default function BillCreationWorkbench({
         },
         { ...longRequestOptions, skipErrorHandler: true },
       );
+      if (!isWriteResponse(response, true)) return false;
       if (!response.data) throw new Error('服务端未返回建单结果');
       setResult(response.data);
       setCurrent(3);
@@ -540,9 +541,11 @@ export default function BillCreationWorkbench({
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
-  const confirmBatch = async () => {
+  const confirmBatch = async (): Promise<false | undefined> => {
     if (!result?.id || !result.bills?.length) return;
     setConfirming(true);
     try {
@@ -557,6 +560,7 @@ export default function BillCreationWorkbench({
         },
         longRequestOptions,
       );
+      if (!isWriteResponse(response, true)) return false;
       if (response.data) setResult(response.data);
       message.success('本批账单已全部确认，可以进入开票、收付款和核销流程');
       onCreated?.(response.data || result);
@@ -565,6 +569,8 @@ export default function BillCreationWorkbench({
     } finally {
       setConfirming(false);
     }
+
+    return undefined;
   };
 
   // 预览快照落地后的草稿归位：新叶子补默认值、已编辑叶子按 groupKey 原样

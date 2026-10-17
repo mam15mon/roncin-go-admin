@@ -6,6 +6,7 @@ import {
   adminServiceCreateRole,
   adminServiceUpdateRole,
 } from '@/services/roncin/adminService';
+import { isWriteResponse } from '@/utils/api';
 import MatrixContentHeader from './components/MatrixContentHeader';
 import ModuleNavPanel from './components/ModuleNavPanel';
 import PermissionMatrixHeader from './components/PermissionMatrixHeader';
@@ -296,7 +297,7 @@ export default function RoleFormModal({
       onFinish={async (values) => {
         try {
           if (editing?.id) {
-            await adminServiceUpdateRole(
+            const writeResponse1 = await adminServiceUpdateRole(
               { id: editing.id },
               {
                 id: editing.id,
@@ -305,13 +306,15 @@ export default function RoleFormModal({
                 permissionKeys: selectedPermissionKeys,
               },
             );
+            if (!isWriteResponse(writeResponse1, true)) return false;
             message.success('角色已成功更新');
           } else {
-            await adminServiceCreateRole({
+            const writeResponse2 = await adminServiceCreateRole({
               code: '',
               name: values.name?.trim() ?? '',
               permissionKeys: selectedPermissionKeys,
             });
+            if (!isWriteResponse(writeResponse2, true)) return false;
             message.success('角色已成功创建');
           }
           onOpenChange(false);

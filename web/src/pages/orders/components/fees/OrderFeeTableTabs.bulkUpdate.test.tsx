@@ -23,7 +23,7 @@ describe('OrderFeeTableTabs 批量修改单位与时间', () => {
   beforeEach(resetBulkActionMocks);
 
   it('批量改结算单位：提交版本快照 targets 与目标单位，成功后清空选择并刷新（A2/A3）', async () => {
-    bulkUpdate.mockResolvedValueOnce({ updatedCount: 2 } as any);
+    bulkUpdate.mockResolvedValueOnce({ success: true, updatedCount: 2 } as any);
     listFees.mockResolvedValue({
       data: [unbilledFeeA, unbilledFeeB],
     } as any);

@@ -42,7 +42,7 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceMarkCommissionAdjustmentPaid,
 } from '@/services/roncin/settlementService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
@@ -220,15 +220,19 @@ export default function FinanceCommissionsPage() {
         try {
           const body = { id: adjustmentID, expectedVersion: adjustmentVersion };
           if (target === 'CONFIRMED') {
-            await settlementServiceConfirmCommissionAdjustment(
-              { id: adjustmentID },
-              body,
-            );
+            const writeResponse1 =
+              await settlementServiceConfirmCommissionAdjustment(
+                { id: adjustmentID },
+                body,
+              );
+            if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
           } else {
-            await settlementServiceMarkCommissionAdjustmentPaid(
-              { id: adjustmentID },
-              body,
-            );
+            const writeResponse2 =
+              await settlementServiceMarkCommissionAdjustmentPaid(
+                { id: adjustmentID },
+                body,
+              );
+            if (!isWriteResponse(writeResponse2, true)) return Promise.reject();
           }
           message.success(`${action}成功`);
           await refreshDetail();
@@ -241,7 +245,7 @@ export default function FinanceCommissionsPage() {
               title: '冲减金额超限',
               content: '冲减后的有效提成不能小于零，请检查调整金额。',
             });
-            return;
+            throw error;
           }
           if (
             reason ===
@@ -249,29 +253,38 @@ export default function FinanceCommissionsPage() {
           ) {
             message.warning('调整状态已变化，已刷新详情');
             await refreshDetail();
-            return;
+            throw error;
           }
           message.error(getErrorMessage(error, `${action}失败`));
+          throw error;
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   const cancelAdjustment = (record: API.FinanceCommissionAdjustment) => {
     adjustmentActions.confirm(
       record,
       `取消 ${record.organizationName || '所属公司未标识'} 的调整 ${record.adjustmentNo}？`,
-      async ({ id, expectedVersion }, reason) => {
+      async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         try {
-          await settlementServiceCancelCommissionAdjustment(
-            { id },
-            { id, expectedVersion, reason },
-          );
+          const writeResponse3 =
+            await settlementServiceCancelCommissionAdjustment(
+              { id },
+              { id, expectedVersion, reason },
+            );
+          if (!isWriteResponse(writeResponse3, true)) return false;
           message.success('调整已取消');
           await refreshDetail();
         } catch (error) {
           message.error(getErrorMessage(error, '取消调整失败'));
+          return false;
         }
+
+        return undefined;
       },
       {
         placeholder: '请输入取消原因（必填）',
@@ -301,7 +314,11 @@ export default function FinanceCommissionsPage() {
       onOk: async () => {
         try {
           const body = { id, expectedVersion: version };
-          await settlementServiceConfirmCommission({ id }, body);
+          const writeResponse4 = await settlementServiceConfirmCommission(
+            { id },
+            body,
+          );
+          if (!isWriteResponse(writeResponse4, true)) return Promise.reject();
           message.success(`${action}成功`);
           reload();
           if (detail?.id === id) {
@@ -317,7 +334,7 @@ export default function FinanceCommissionsPage() {
               content:
                 '请取消当前草稿，然后根据最新来源单、费用和人员归属重新生成。',
             });
-            return;
+            throw error;
           }
           if (
             reason === financeErrorReasons.FINANCE_COMMISSION_UNCONFIRMED_FEES
@@ -326,30 +343,35 @@ export default function FinanceCommissionsPage() {
               title: '关联订单存在未建账费用',
               content: '请先建账或删除未建账费用，再确认提成。',
             });
-            return;
+            throw error;
           }
           if (reason === financeErrorReasons.FINANCE_COMMISSION_TRANSITION) {
             message.warning('提成状态已变化，页面已刷新');
             reload();
             if (detail?.id === id) await refreshDetail();
-            return;
+            throw error;
           }
           message.error(getErrorMessage(error, `${action}失败`));
+          throw error;
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   const cancel = (record: API.FinanceCommission) => {
     commissionActions.confirm(
       record,
       `取消 ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
-      async ({ id, expectedVersion }, reason) => {
+      async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         try {
-          await settlementServiceCancelCommission(
+          const writeResponse5 = await settlementServiceCancelCommission(
             { id },
             { id, expectedVersion, reason },
           );
+          if (!isWriteResponse(writeResponse5, true)) return false;
           message.success('提成已取消');
           reload();
           if (detail?.id === id) {
@@ -357,7 +379,10 @@ export default function FinanceCommissionsPage() {
           }
         } catch (error) {
           message.error(getErrorMessage(error, '取消提成失败'));
+          return false;
         }
+
+        return undefined;
       },
       {
         placeholder: '请输入取消原因（必填）',

@@ -14,7 +14,7 @@ describe('getFinanceBillColumns', () => {
     },
     onOpenDetail: () => {},
     onOpenEdit: () => {},
-    onConfirmBill: () => {},
+    onConfirmBill: async () => {},
     onCancelBill: () => {},
   });
 

@@ -38,6 +38,29 @@ function createHookWrapper() {
 }
 
 describe('useMasterDataCrud', () => {
+  it('写入消费失败、失败信封或缺ID时返回失败且不失效列表，完整实体才刷新', async () => {
+    const fetchList = vi.fn(async () => ({ data: [item1], total: 1 }));
+    const createItem = vi.fn();
+    const updateItem = vi.fn();
+    const { queryClient, wrapper } = createHookWrapper();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useMasterDataCrud<Item, Item>({ entityName: '港口', fetchList, createItem, updateItem, mapItem: (item) => item }), { wrapper });
+    await waitFor(() => expect(result.current.data).toEqual([item1]));
+    for (const response of [undefined, { success: false, data: item1 }, { success: true, data: {} }]) {
+      createItem.mockResolvedValueOnce(response);
+      updateItem.mockResolvedValueOnce(response);
+      await act(async () => {
+        expect(await result.current.handleCreate({})).toBe(false);
+        expect(await result.current.handleUpdate('item-1', {})).toBe(false);
+      });
+      expect(invalidate).not.toHaveBeenCalled();
+      expect(result.current.data).toEqual([item1]);
+    }
+    createItem.mockResolvedValueOnce({ success: true, data: item2 });
+    await act(async () => expect(await result.current.handleCreate({})).toBe(true));
+    expect(invalidate).toHaveBeenCalledOnce();
+  });
+
   it('按服务端分页加载数据并读取启停统计', async () => {
     const fetchList = vi.fn(
       async (query: { page: number; pageSize: number; enabled?: boolean }) => {

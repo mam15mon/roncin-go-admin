@@ -134,8 +134,8 @@ describe('RoleFormModal 角色提交载荷', () => {
     modalState.props = undefined;
     serviceMocks.createRole.mockReset();
     serviceMocks.updateRole.mockReset();
-    serviceMocks.createRole.mockResolvedValue({});
-    serviceMocks.updateRole.mockResolvedValue({});
+    serviceMocks.createRole.mockResolvedValue({ data: { id: 'role-new' } });
+    serviceMocks.updateRole.mockResolvedValue({ data: { id: 'role-2' } });
   });
 
   it('新增角色只有启用默认值，不显示或预填数据范围', () => {
@@ -227,6 +227,43 @@ describe('RoleFormModal 角色提交载荷', () => {
       const payload = service.mock.calls[0][operation === 'create' ? 0 : 1];
       expect(payload.permissionKeys).toEqual(['business.order.read']);
       expect(payload).not.toHaveProperty('dataScope');
+    },
+  );
+
+  it.each(['create', 'update'] as const)(
+    '%s 消费错误、失败信封及缺实体均不能关闭或刷新',
+    async (operation) => {
+      const onOpenChange = vi.fn();
+      const onSuccess = vi.fn();
+      const service =
+        operation === 'create'
+          ? serviceMocks.createRole
+          : serviceMocks.updateRole;
+      render(
+        <RoleFormHarness
+          editing={operation === 'update' ? { id: 'role-2' } : undefined}
+          onOpenChange={onOpenChange}
+          onSuccess={onSuccess}
+        />,
+      );
+      for (const response of [
+        undefined,
+        { success: false, data: { id: 'role-2' } },
+        { success: true, data: {} },
+      ]) {
+        service.mockResolvedValueOnce(response);
+        await act(async () =>
+          expect(await requiredOnFinish()({ name: '重试名称' })).toBe(false),
+        );
+        expect(onOpenChange).not.toHaveBeenCalled();
+        expect(onSuccess).not.toHaveBeenCalled();
+        expect(
+          service.mock.calls.at(-1)?.[operation === 'create' ? 0 : 1],
+        ).toMatchObject({
+          name: '重试名称',
+          permissionKeys: ['business.order.read'],
+        });
+      }
     },
   );
 

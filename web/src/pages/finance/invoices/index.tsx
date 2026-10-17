@@ -29,7 +29,7 @@ import {
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapPage } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -48,6 +48,8 @@ import {
   invoiceVoidSuccessText,
   isReceivableInvoice,
 } from './components/invoiceConstants';
+
+import { invoiceExportColumns } from './ledgerExport';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
 type InvoiceLedgerFilterParams = {
@@ -150,7 +152,7 @@ export default function FinanceInvoicesPage() {
     }
   };
 
-  const createInvoice = async () => {
+  const createInvoice = async (): Promise<false | undefined> => {
     const values = await createForm.validateFields();
     if (!selectedIDs.length) {
       message.warning('请至少选择一张已确认账单');
@@ -158,13 +160,14 @@ export default function FinanceInvoicesPage() {
     }
     setSubmitting(true);
     try {
-      await settlementServiceCreateInvoice({
+      const writeResponse1 = await settlementServiceCreateInvoice({
         billIds: selectedIDs.map(String),
         invoiceProfileId: values.invoiceProfileId,
         invoiceType: values.invoiceType,
         note: values.note,
         idempotencyKey: generateUUID(),
       });
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('开票记录已创建，账单已占用');
       setCreateOpen(false);
       reload();
@@ -178,14 +181,16 @@ export default function FinanceInvoicesPage() {
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
-  const issueInvoice = async () => {
+  const issueInvoice = async (): Promise<false | undefined> => {
     if (!issueTarget?.id || !issueTarget.version) return;
     const values = await issueForm.validateFields();
     setSubmitting(true);
     try {
-      await settlementServiceIssueInvoice(
+      const writeResponse2 = await settlementServiceIssueInvoice(
         { id: issueTarget.id },
         {
           id: issueTarget.id,
@@ -194,6 +199,7 @@ export default function FinanceInvoicesPage() {
           invoiceDate: values.invoiceDate.format('YYYY-MM-DD'),
         },
       );
+      if (!isWriteResponse(writeResponse2, true)) return false;
       message.success(
         isReceivableInvoice(issueTarget.direction)
           ? '发票已确认开具'
@@ -213,9 +219,11 @@ export default function FinanceInvoicesPage() {
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
-  const cancelInvoice = async () => {
+  const cancelInvoice = async (): Promise<false | undefined> => {
     if (!cancelTarget?.id || !cancelTarget.version) return;
     const issued =
       cancelTarget.status ===
@@ -223,7 +231,7 @@ export default function FinanceInvoicesPage() {
     const values = await cancelForm.validateFields();
     setSubmitting(true);
     try {
-      await settlementServiceCancelInvoice(
+      const writeResponse3 = await settlementServiceCancelInvoice(
         { id: cancelTarget.id },
         {
           id: cancelTarget.id,
@@ -231,6 +239,7 @@ export default function FinanceInvoicesPage() {
           reason: values.reason,
         },
       );
+      if (!isWriteResponse(writeResponse3, true)) return false;
       message.success(
         issued
           ? invoiceVoidSuccessText(cancelTarget.direction)
@@ -245,14 +254,16 @@ export default function FinanceInvoicesPage() {
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
-  const redFlushInvoice = async () => {
+  const redFlushInvoice = async (): Promise<false | undefined> => {
     if (!redFlushTarget?.id || !redFlushTarget.version) return;
     const values = await redFlushForm.validateFields();
     setSubmitting(true);
     try {
-      await settlementServiceRedFlushInvoice(
+      const writeResponse4 = await settlementServiceRedFlushInvoice(
         { id: redFlushTarget.id },
         {
           id: redFlushTarget.id,
@@ -262,6 +273,7 @@ export default function FinanceInvoicesPage() {
           reason: values.reason,
         },
       );
+      if (!isWriteResponse(writeResponse4, true)) return false;
       message.success('发票已红冲，原账单开票占用已释放');
       setRedFlushTarget(undefined);
       reload();
@@ -270,6 +282,8 @@ export default function FinanceInvoicesPage() {
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   const columns: ProColumns<API.FinanceInvoice>[] = [
@@ -545,6 +559,7 @@ export default function FinanceInvoicesPage() {
         }
         headerTitle="发票明细列表"
         actionRef={actionRef}
+        exportColumns={invoiceExportColumns}
         columns={columns}
         columnSettingsKey="finance:invoices"
         metricCards={metricCards}

@@ -1,16 +1,12 @@
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
+import { type CsvColumn, csvAmount, serializeCsv } from '@/utils/csv';
+import { formatDate } from '@/utils/format';
 import {
   calculationBasisText,
   commissionStatusMeta,
   personnelRoleText,
 } from './types';
-
-/** CSV 金额单元格：不带千分位的固定两位小数，保证表格软件按数值解析。 */
-const csvAmount = (value?: string) =>
-  value === undefined || value === null || value === ''
-    ? ''
-    : Number(value).toFixed(2);
 
 export type CommissionMonthRange = [Dayjs | null, Dayjs | null] | null;
 
@@ -49,15 +45,7 @@ export function normalizeCommissionFilters(
   };
 }
 
-type CsvCellKind = 'text' | 'controlled';
-
-type CsvColumn = {
-  header: string;
-  kind: CsvCellKind;
-  value: (item: API.CommissionExportItem) => string;
-};
-
-const csvColumns: CsvColumn[] = [
+const csvColumns: CsvColumn<API.CommissionExportItem>[] = [
   {
     header: '所属公司',
     kind: 'text',
@@ -83,7 +71,7 @@ const csvColumns: CsvColumn[] = [
   },
   {
     header: '归属日期',
-    kind: 'controlled',
+    kind: 'text',
     value: (item) => item.commissionDate ?? '',
   },
   {
@@ -104,7 +92,7 @@ const csvColumns: CsvColumn[] = [
   },
   {
     header: '比例(%)',
-    kind: 'controlled',
+    kind: 'number',
     value: (item) => item.ratePercent ?? '',
   },
   {
@@ -114,65 +102,45 @@ const csvColumns: CsvColumn[] = [
   },
   {
     header: '生成时间',
-    kind: 'controlled',
-    value: (item) => item.createdAt ?? '',
+    kind: 'text',
+    value: (item) => (item.createdAt ? formatDate(item.createdAt) : ''),
   },
   {
     header: '原始提成(本位币)',
-    kind: 'controlled',
+    kind: 'number',
     value: (item) => csvAmount(item.commissionAmount),
   },
   {
     header: '原始提成(CNY)',
-    kind: 'controlled',
+    kind: 'number',
     value: (item) => csvAmount(item.cnyCommissionAmount),
   },
   {
     header: '调整金额(本位币)',
-    kind: 'controlled',
+    kind: 'number',
     value: (item) => csvAmount(item.adjustmentAmount),
   },
   {
     header: '调整金额(CNY)',
-    kind: 'controlled',
+    kind: 'number',
     value: (item) => csvAmount(item.cnyAdjustmentAmount),
   },
   {
     header: '有效提成(本位币)',
-    kind: 'controlled',
+    kind: 'number',
     value: (item) => csvAmount(item.effectiveCommissionAmount),
   },
   {
     header: '有效提成(CNY)',
-    kind: 'controlled',
+    kind: 'number',
     value: (item) => csvAmount(item.cnyEffectiveCommissionAmount),
   },
 ];
 
-function protectFormula(value: string): string {
-  return /^[\t\r\n ]*[=+\-@]/.test(value) ? `'${value}` : value;
-}
-
-function escapeCsvCell(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-}
-
 export function serializeCommissionCsv(
   items: API.CommissionExportItem[],
 ): string | null {
-  if (items.length === 0) return null;
-
-  const header = csvColumns.map((column) => escapeCsvCell(column.header));
-  const rows = items.map((item) =>
-    csvColumns.map((column) => {
-      const value = column.value(item);
-      return escapeCsvCell(
-        column.kind === 'text' ? protectFormula(value) : value,
-      );
-    }),
-  );
-
-  return `\uFEFF${[header, ...rows].map((row) => row.join(',')).join('\r\n')}`;
+  return serializeCsv(items, csvColumns);
 }
 
 export function buildCommissionExportFileName(

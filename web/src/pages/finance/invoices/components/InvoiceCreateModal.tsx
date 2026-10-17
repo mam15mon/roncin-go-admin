@@ -34,7 +34,7 @@ interface InvoiceCreateModalProps {
   selectedIDs: React.Key[];
   setSelectedIDs: (keys: React.Key[]) => void;
   setSelectedBills: (bills: API.FinanceBill[]) => void;
-  onOk: () => Promise<void>;
+  onOk: () => Promise<unknown>;
 }
 
 /** 服务端状态域前缀：开票创建弹窗查询的统一 key 前缀。 */

@@ -27,9 +27,13 @@ import {
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapPage } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
 import { formatAmount, formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
+import {
+  verificationExportColumns,
+  verificationStatusText,
+} from './ledgerExport';
 import VerificationWorkbench from './VerificationWorkbench';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
@@ -76,15 +80,18 @@ export default function FinanceVerificationsPage() {
     verificationActions.confirm(
       r,
       `反核销 ${r.organizationName || '所属公司未标识'} 的该批分配？`,
-      async ({ id, expectedVersion }, reason) => {
-        await settlementServiceReverseVerification(
+      async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
+        const writeResponse1 = await settlementServiceReverseVerification(
           { id },
           { id, expectedVersion, reason },
         );
+        if (!isWriteResponse(writeResponse1, true)) return false;
         message.success(
           '反核销成功；相关未支付提成已自动取消，资金与账单余额已释放',
         );
         reload();
+
+        return undefined;
       },
       {
         placeholder: '请输入反核销原因（必填）',
@@ -159,10 +166,7 @@ export default function FinanceVerificationsPage() {
           }
           style={{ margin: 0 }}
         >
-          {r.status ===
-          FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE
-            ? '有效'
-            : '已反核销'}
+          {verificationStatusText(r.status)}
         </Tag>
       ),
     },
@@ -380,6 +384,7 @@ export default function FinanceVerificationsPage() {
         }
         headerTitle="核销记录列表"
         actionRef={actionRef}
+        exportColumns={verificationExportColumns}
         columns={columns}
         columnSettingsKey="finance:verifications"
         metricCards={metricCards}

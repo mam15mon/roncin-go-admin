@@ -19,7 +19,7 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import {
@@ -193,7 +193,7 @@ export default function CommissionRulesDrawer({
     };
     try {
       if (editingRule?.id && editingRule.version) {
-        await settlementServiceUpdateCommissionRule(
+        const writeResponse1 = await settlementServiceUpdateCommissionRule(
           { id: editingRule.id },
           {
             id: editingRule.id,
@@ -201,6 +201,7 @@ export default function CommissionRulesDrawer({
             rule,
           },
         );
+        if (!isWriteResponse(writeResponse1, true)) return false;
         message.success('提成方案已更新');
       } else {
         const formOrganizationId = ruleFormRef.current?.getFieldValue(
@@ -214,10 +215,11 @@ export default function CommissionRulesDrawer({
           message.error('启用方案前必须至少分配一名员工');
           return false;
         }
-        await settlementServiceCreateCommissionRule({
+        const writeResponse2 = await settlementServiceCreateCommissionRule({
           organizationId: formOrganizationId,
           rule: { ...rule, employeeIds: values.employeeIds ?? [] },
         });
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('提成方案已创建');
       }
       setRuleFormOpen(false);
@@ -243,7 +245,7 @@ export default function CommissionRulesDrawer({
       return false;
     }
     try {
-      await settlementServiceCopyCommissionRule(
+      const writeResponse3 = await settlementServiceCopyCommissionRule(
         { id: copySourceRule.id },
         {
           id: copySourceRule.id,
@@ -259,6 +261,7 @@ export default function CommissionRulesDrawer({
           note: values.note,
         },
       );
+      if (!isWriteResponse(writeResponse3, true)) return false;
       message.success('已复制为新方案，原方案终止日已自动衔接');
       setCopySourceRule(undefined);
       ruleActionRef.current?.reload();

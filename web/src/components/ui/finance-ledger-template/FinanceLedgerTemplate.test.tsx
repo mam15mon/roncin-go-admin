@@ -18,6 +18,7 @@ describe('FinanceLedgerTemplate', () => {
           pageTitle="测试账单管理"
           pageSubTitle="测试副标题描述"
           topBar={<div>所属公司筛选器</div>}
+          exportColumns={[]}
           columns={[]}
           request={async () => ({ data: [], total: 0 })}
         />
@@ -39,6 +40,7 @@ describe('FinanceLedgerTemplate', () => {
       <App>
         <FinanceLedgerTemplate
           pageTitle="费用台账"
+          exportColumns={[]}
           columns={[
             {
               key: 'feeName',

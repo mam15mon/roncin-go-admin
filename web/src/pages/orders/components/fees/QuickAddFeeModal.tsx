@@ -5,6 +5,7 @@ import { QuickCreateModal } from '@/components/ui/quick-create-modal';
 import { MASTER_DATA_KINDS } from '@/pages/orders/common';
 import { feeCatalogServiceCreateFeeSetting } from '@/services/roncin/feeCatalogService';
 import { masterDataServiceListItems } from '@/services/roncin/masterDataService';
+import { isWriteResponse } from '@/utils/api';
 
 type QuickAddFeeModalProps = {
   open: boolean;
@@ -62,6 +63,7 @@ export default function QuickAddFeeModal({
       onSuccess={onSuccess}
       onSubmit={async (values) => {
         const res = await feeCatalogServiceCreateFeeSetting(values);
+        if (!isWriteResponse(res, true)) return undefined;
         return res.data;
       }}
     >

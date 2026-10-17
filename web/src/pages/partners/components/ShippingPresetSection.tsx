@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   ContainerOutlined,
   DeleteOutlined,
@@ -24,7 +25,6 @@ import {
   Dropdown,
   Empty,
   Form,
-  Popconfirm,
   Row,
   Space,
   Spin,
@@ -39,7 +39,7 @@ import {
   partnerServiceListPartnerShippingPresets,
   partnerServiceUpdatePartnerShippingPreset,
 } from '@/services/roncin/partnerService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 
 const { Text, Paragraph } = Typography;
@@ -201,10 +201,12 @@ export default function ShippingPresetSection({
     setModalOpen(true);
   };
 
-  const handleDelete = async (preset: API.PartnerShippingPreset) => {
-    if (!partnerId || !preset.id) return;
+  const handleDelete = async (
+    preset: API.PartnerShippingPreset,
+  ): Promise<false | undefined> => {
+    if (!partnerId || !preset.id) return false;
     try {
-      await partnerServiceUpdatePartnerShippingPreset(
+      const writeResponse1 = await partnerServiceUpdatePartnerShippingPreset(
         { partnerId, id: preset.id },
         {
           partnerId,
@@ -221,11 +223,15 @@ export default function ShippingPresetSection({
           },
         },
       );
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('预设信息已停用并移出列表');
       fetchPresets();
     } catch {
       message.error('操作失败');
+      return false;
     }
+
+    return undefined;
   };
 
   const handleSave = async (values: ShippingPresetFormValues) => {
@@ -259,7 +265,7 @@ export default function ShippingPresetSection({
       }
 
       if (editingPreset?.id) {
-        await partnerServiceUpdatePartnerShippingPreset(
+        const writeResponse2 = await partnerServiceUpdatePartnerShippingPreset(
           { partnerId, id: editingPreset.id },
           {
             partnerId,
@@ -267,15 +273,17 @@ export default function ShippingPresetSection({
             preset: payload,
           },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('常用单证预设已更新');
       } else {
-        await partnerServiceCreatePartnerShippingPreset(
+        const writeResponse3 = await partnerServiceCreatePartnerShippingPreset(
           { partnerId },
           {
             partnerId,
             preset: payload,
           },
         );
+        if (!isWriteResponse(writeResponse3, true)) return false;
         message.success('常用单证预设已添加');
       }
       setModalOpen(false);
@@ -427,7 +435,7 @@ export default function ShippingPresetSection({
                             onClick={() => handleOpenEdit(preset)}
                             style={{ padding: '0 4px', height: 22 }}
                           />
-                          <Popconfirm
+                          <AsyncPopconfirm
                             title="确定要停用此预设吗？"
                             onConfirm={() => handleDelete(preset)}
                             okText="确定"
@@ -441,7 +449,7 @@ export default function ShippingPresetSection({
                               }
                               style={{ padding: '0 4px', height: 22 }}
                             />
-                          </Popconfirm>
+                          </AsyncPopconfirm>
                         </Space>
                       )}
                     </div>

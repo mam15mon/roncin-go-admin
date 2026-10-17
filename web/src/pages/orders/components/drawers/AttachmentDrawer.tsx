@@ -1,6 +1,7 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProFormDigit, ProFormText } from '@ant-design/pro-components';
-import { Alert, Button, Popconfirm, Tag, Typography } from 'antd';
+import { Alert, Button, Tag, Typography } from 'antd';
 import React, { forwardRef } from 'react';
 import {
   type SubEntityDrawerRef,
@@ -11,6 +12,7 @@ import {
   orderAttachmentServiceRegisterAttachment,
   orderAttachmentServiceRemoveAttachmentReference,
 } from '@/services/roncin/orderAttachmentService';
+import { isWriteResponse } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -93,23 +95,27 @@ const buildColumns = (
     fixed: 'right',
     render: (_, record, __, action) =>
       canRegister ? (
-        <Popconfirm
+        <AsyncPopconfirm
           title="解除附件引用"
           description="仅解除当前订单关联，不删除物理文件。确定继续？"
           okText="确定解除"
           cancelText="取消"
-          onConfirm={async () => {
-            await orderAttachmentServiceRemoveAttachmentReference({
-              orderId: record.orderId as string,
-              id: record.id as string,
-            });
+          onConfirm={async (): Promise<false | undefined> => {
+            const writeResponse1 =
+              await orderAttachmentServiceRemoveAttachmentReference({
+                orderId: record.orderId as string,
+                id: record.id as string,
+              });
+            if (!isWriteResponse(writeResponse1)) return false;
             action?.reload();
+
+            return undefined;
           }}
         >
           <Button type="link" danger size="small">
             解除引用
           </Button>
-        </Popconfirm>
+        </AsyncPopconfirm>
       ) : null,
   },
 ];

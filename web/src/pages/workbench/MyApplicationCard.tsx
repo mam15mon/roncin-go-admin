@@ -10,6 +10,7 @@ import { useAccess } from '@/app/access';
 import { SectionCard } from '@/components/ui';
 import { WorkbenchCommissionApplicationStatus } from '@/enums.generated';
 import { workbenchServiceSubmitMyCommissionApplication } from '@/services/roncin/workbenchService';
+import { isWriteResponse } from '@/utils/api';
 import { applicationAmount, sumBaseAmounts } from './applicationDisplay';
 import { amountFont, workbenchAmount } from './display';
 import MyApplicationCandidatesDrawer from './MyApplicationCandidatesDrawer';
@@ -117,17 +118,23 @@ export default function MyApplicationCard({
       onOk: async () => {
         setSubmitting(true);
         try {
-          await workbenchServiceSubmitMyCommissionApplication({});
+          const writeResponse1 =
+            await workbenchServiceSubmitMyCommissionApplication({});
+          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
           message.success('申请已提交，等待财务审批');
           // 等待 Overview 刷新完成再解除 loading，避免旧摘要误导重复提交。
           await onOverviewRefresh();
         } catch (error: unknown) {
           message.error((error as Error).message || '提交申请失败');
+          throw error;
         } finally {
           setSubmitting(false);
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   const stepsItems: Array<{ title: string; content: React.ReactNode }> = [

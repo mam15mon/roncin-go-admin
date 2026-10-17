@@ -51,7 +51,9 @@ export function OrganizationPicker({
   const { message } = App.useApp();
   const [switchingOrgId, setSwitchingOrgId] = useState<string>();
 
-  const handleSelect = async (option: LoginOrganizationOption) => {
+  const handleSelect = async (
+    option: LoginOrganizationOption,
+  ): Promise<false | undefined> => {
     if (switchingOrgId) return;
     if (option.organizationId === currentOrganizationId) {
       onEnter();
@@ -63,7 +65,8 @@ export function OrganizationPicker({
         { organizationId: option.organizationId },
         { skipErrorHandler: true },
       );
-      if (!response.data) {
+      if (!response || response.success === false) return;
+      if (!response.data?.id) {
         message.error('进入所选组织失败，请稍后重试');
         return;
       }
@@ -75,6 +78,8 @@ export function OrganizationPicker({
     } finally {
       setSwitchingOrgId(undefined);
     }
+
+    return undefined;
   };
 
   return (

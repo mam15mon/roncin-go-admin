@@ -21,7 +21,12 @@ import {
   adminServiceListUsers,
   adminServiceTerminateUser,
 } from '@/services/roncin/adminService';
-import { ensureListResponse, toTableRequest, unwrapList } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapList,
+} from '@/utils/api';
 import DingTalkAssignmentModal from './components/users/DingTalkAssignmentModal';
 import DingTalkDirectorySyncPanel from './components/users/DingTalkDirectorySyncPanel';
 import ResetPasswordModal from './components/users/ResetPasswordModal';
@@ -89,15 +94,17 @@ export default function UsersPanel() {
     },
     onAssign: (user) => setAssigning([user]),
     onResetPassword: setResetting,
-    onTerminate: async (record) => {
-      if (!record.id) return;
+    onTerminate: async (record): Promise<false | undefined> => {
+      if (!record.id) return false;
       const response = await adminServiceTerminateUser(
         { id: record.id },
         { id: record.id },
       );
+      if (!isWriteResponse(response)) return false;
       if (!response) return;
       message.success('离职办理完成，账号和历史记录已保留');
       actionRef.current?.reload();
+      return undefined;
     },
   });
   const columnSettings = useColumnSettings<ProColumns<API.AdminUser>>({

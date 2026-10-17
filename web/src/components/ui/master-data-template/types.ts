@@ -104,7 +104,7 @@ export interface MasterDataTemplateProps<
   // Actions Callbacks
   onCreate?: (values: TFormValues) => Promise<unknown>;
   onUpdate?: (id: string, values: TFormValues) => Promise<unknown>;
-  onToggleActive?: (record: T) => Promise<void> | void;
+  onToggleActive?: (record: T) => Promise<unknown> | void;
   onSync?: () => Promise<void> | void;
   onExport?: () => void;
 

@@ -16,7 +16,7 @@ import {
   settlementServiceListCommissionEmployees,
   settlementServiceRejectCommissionApplication,
 } from '@/services/roncin/settlementService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import { formatDate } from '@/utils/format';
 import { decimalText } from '../types';
@@ -116,18 +116,24 @@ export default function CommissionApplicationsPanel() {
       okText: '整单批准',
       onOk: async () => {
         try {
-          await settlementServiceApproveCommissionApplication(
-            { id },
-            { id, expectedVersion: version },
-          );
+          const writeResponse1 =
+            await settlementServiceApproveCommissionApplication(
+              { id },
+              { id, expectedVersion: version },
+            );
+          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
           message.success('申请已整单批准');
           reload();
           setDetailId(undefined);
         } catch (error: unknown) {
           handleDecisionError(error, '批准失败');
+          throw error;
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   const reject = (record: Application) => {
@@ -137,18 +143,23 @@ export default function CommissionApplicationsPanel() {
     confirmWithReason(
       { modal, message },
       `驳回 ${record.employeeName || '员工'} ${record.applicationMonth || ''} 月度申请？`,
-      async (reason) => {
+      async (reason): Promise<false | undefined> => {
         try {
-          await settlementServiceRejectCommissionApplication(
-            { id },
-            { id, expectedVersion: version, reason },
-          );
+          const writeResponse2 =
+            await settlementServiceRejectCommissionApplication(
+              { id },
+              { id, expectedVersion: version, reason },
+            );
+          if (!isWriteResponse(writeResponse2, true)) return false;
           message.success('申请已整单驳回，员工可在原申请上重新提交');
           reload();
           setDetailId(undefined);
         } catch (error: unknown) {
           handleDecisionError(error, '驳回失败');
+          return false;
         }
+
+        return undefined;
       },
       {
         danger: true,

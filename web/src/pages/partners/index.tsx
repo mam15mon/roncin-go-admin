@@ -49,7 +49,7 @@ import {
   partnerServiceListPartners,
   partnerServiceSetPartnerRoleBlacklist,
 } from '@/services/roncin/partnerService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import PartnerExcelImportModal from './components/PartnerExcelImportModal';
 import RoleSwitchModal from './components/RoleSwitchModal';
@@ -677,7 +677,7 @@ function PartnersContent() {
         onFinish={async (values) => {
           if (!blacklistPartner?.id) return false;
           if (!values.roleType) return false;
-          await partnerServiceSetPartnerRoleBlacklist(
+          const writeResponse1 = await partnerServiceSetPartnerRoleBlacklist(
             { id: blacklistPartner.id },
             {
               id: blacklistPartner.id,
@@ -686,6 +686,7 @@ function PartnersContent() {
               reason: values.reason?.trim() ?? '',
             },
           );
+          if (!isWriteResponse(writeResponse1, true)) return false;
           message.success(
             values.blacklisted
               ? `已将${roleLabels[values.roleType]}角色加入黑名单`

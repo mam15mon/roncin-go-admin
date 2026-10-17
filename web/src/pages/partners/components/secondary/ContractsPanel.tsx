@@ -27,7 +27,7 @@ import {
   partnerServiceListPartnerContracts,
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
@@ -223,7 +223,7 @@ export default function ContractsPanel({
             otherNotes: values.otherNotes,
           };
           if (editingContract?.id) {
-            await partnerServiceUpdatePartnerContract(
+            const writeResponse1 = await partnerServiceUpdatePartnerContract(
               { partnerId: partner.id, id: editingContract.id },
               {
                 partnerId: partner.id,
@@ -231,16 +231,18 @@ export default function ContractsPanel({
                 contract: common,
               },
             );
+            if (!isWriteResponse(writeResponse1, true)) return false;
             message.success('合同已成功更新');
           } else {
             if (!values.contractNo) return false;
-            await partnerServiceCreatePartnerContract(
+            const writeResponse2 = await partnerServiceCreatePartnerContract(
               { partnerId: partner.id },
               {
                 partnerId: partner.id,
                 contract: { ...common, contractNo: values.contractNo.trim() },
               },
             );
+            if (!isWriteResponse(writeResponse2, true)) return false;
             message.success('合同已成功创建');
           }
           setModalOpen(false);

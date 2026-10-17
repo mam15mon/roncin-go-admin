@@ -29,7 +29,7 @@ interface BillEditModalProps {
   form: FormInstance<BillFormValues>;
   submitting: boolean;
   onCancel: () => void;
-  onOk: () => Promise<void>;
+  onOk: () => Promise<unknown>;
 }
 
 export default function BillEditModal({

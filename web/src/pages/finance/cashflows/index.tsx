@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   CheckOutlined,
   CloseCircleOutlined,
@@ -12,7 +13,7 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { App, Form, Popconfirm, Select, Space, Tag } from 'antd';
+import { App, Form, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
@@ -40,11 +41,17 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceListFinanceSettlementPartyOptions,
 } from '@/services/roncin/settlementService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
+
+import {
+  cashflowExportColumns,
+  cashflowStates as states,
+  paymentMethodOptions,
+} from './ledgerExport';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
 type CashflowLedgerFilterParams = {
@@ -66,20 +73,6 @@ type Values = {
   paymentMethod: string;
   bankReferenceNo?: string;
   note?: string;
-};
-const states: Record<number, { text: string; color: string }> = {
-  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT]: {
-    text: '草稿',
-    color: 'default',
-  },
-  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CONFIRMED]: {
-    text: '已确认',
-    color: 'blue',
-  },
-  [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_CANCELLED]: {
-    text: '已取消',
-    color: 'red',
-  },
 };
 const decimalRule = {
   pattern: /^(0|[1-9][0-9]{0,19})(\.[0-9]{1,8})?$/,
@@ -184,26 +177,39 @@ export default function FinanceCashflowsPage() {
     message,
   });
   const confirm = (r: API.FinanceCashflow) =>
-    cashflowActions.run(r, async ({ id, expectedVersion }) => {
-      try {
-        await settlementServiceConfirmCashflow({ id }, { id, expectedVersion });
-        message.success('资金流水已确认，可进入核销');
-        reload();
-      } catch (e) {
-        message.error(getErrorMessage(e, '确认失败'));
-      }
-    });
+    cashflowActions.run(
+      r,
+      async ({ id, expectedVersion }): Promise<false | undefined> => {
+        try {
+          const writeResponse1 = await settlementServiceConfirmCashflow(
+            { id },
+            { id, expectedVersion },
+          );
+          if (!isWriteResponse(writeResponse1, true)) return false;
+          message.success('资金流水已确认，可进入核销');
+          reload();
+        } catch (e) {
+          message.error(getErrorMessage(e, '确认失败'));
+          return false;
+        }
+
+        return undefined;
+      },
+    );
   const cancel = (r: API.FinanceCashflow) => {
     cashflowActions.confirm(
       r,
       `取消 ${r.organizationName || '所属公司未标识'} 的资金流水？`,
-      async ({ id, expectedVersion }, reason) => {
-        await settlementServiceCancelCashflow(
+      async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
+        const writeResponse2 = await settlementServiceCancelCashflow(
           { id },
           { id, expectedVersion, reason },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('资金流水已取消');
         reload();
+
+        return undefined;
       },
       {
         danger: true,
@@ -419,15 +425,15 @@ export default function FinanceCashflowsPage() {
         access.canUpdateFinanceCashflows &&
         access.canOperateOrganization(r.organizationId) &&
         r.status === FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT ? (
-          <Popconfirm
+          <AsyncPopconfirm
             key="confirm"
             title={`确认 ${r.organizationName || '所属公司未标识'} 的真实资金流水？`}
-            onConfirm={() => void confirm(r)}
+            onConfirm={() => confirm(r)}
           >
             <a>
               <CheckOutlined /> 确认
             </a>
-          </Popconfirm>
+          </AsyncPopconfirm>
         ) : null,
         access.canUpdateFinanceCashflows &&
         access.canOperateOrganization(r.organizationId) &&
@@ -508,6 +514,7 @@ export default function FinanceCashflowsPage() {
         }
         headerTitle="资金流水列表"
         actionRef={actionRef}
+        exportColumns={cashflowExportColumns}
         columns={columns}
         columnSettingsKey="finance:cashflows"
         metricCards={metricCards}
@@ -723,12 +730,7 @@ export default function FinanceCashflowsPage() {
           name="paymentMethod"
           label="支付方式"
           rules={[{ required: true }]}
-          options={[
-            { label: '银行转账', value: 'BANK_TRANSFER' },
-            { label: '支票', value: 'CHECK' },
-            { label: '现金', value: 'CASH' },
-            { label: '第三方支付', value: 'THIRD_PARTY' },
-          ]}
+          options={paymentMethodOptions}
         />
         <ProFormText name="bankReferenceNo" label="银行水单号" />
         <ProFormTextArea

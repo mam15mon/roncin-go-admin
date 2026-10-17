@@ -57,6 +57,7 @@ export default function QuickAddPartnerModal({
           roles: [{ type: values.role, enabled: true }],
           isCasual: values.isCasual ?? true,
         });
+        if (!res || res.success === false) return undefined;
         // 请求层已提示的失败返回 undefined，保留表单以便重试。
         if (!res) return undefined;
         if (res.data?.id) {

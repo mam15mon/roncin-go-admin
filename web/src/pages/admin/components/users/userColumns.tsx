@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   BankOutlined,
   DeleteOutlined,
@@ -7,7 +8,7 @@ import {
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
-import { Avatar, Button, Popconfirm, Space, Tag, Typography } from 'antd';
+import { Avatar, Button, Space, Tag, Typography } from 'antd';
 import { adminUserStatusMeta, statusTag } from '@/constants/statusMeta';
 import { AdminUserStatus } from '@/enums.generated';
 import { formatDate } from '@/utils/format';
@@ -30,7 +31,7 @@ interface UserColumnsDeps {
   currentUserId?: string;
   onEdit: (user: API.AdminUser) => void;
   onResetPassword: (user: API.AdminUser) => void;
-  onTerminate: (user: API.AdminUser) => Promise<void>;
+  onTerminate: (user: API.AdminUser) => Promise<unknown>;
 }
 
 export function buildUserColumns({
@@ -339,7 +340,7 @@ export function buildUserColumns({
                   record.status === AdminUserStatus.ADMIN_USER_STATUS_ACTIVE &&
                   record.currentMembershipEnabled &&
                   record.id !== currentUserId && (
-                    <Popconfirm
+                    <AsyncPopconfirm
                       title={`确定为“${record.displayName || record.username}”办理离职？`}
                       description="将停用账号和全部组织权限、撤销所有在线会话；历史业务记录与钉钉绑定会保留，返聘时由管理员重新分配组织和角色。"
                       okText="确认离职"
@@ -356,7 +357,7 @@ export function buildUserColumns({
                       >
                         办理离职
                       </Button>
-                    </Popconfirm>
+                    </AsyncPopconfirm>
                   )}
               </Space>
             ),

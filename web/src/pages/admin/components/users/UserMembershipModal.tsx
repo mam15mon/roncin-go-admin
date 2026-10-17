@@ -11,6 +11,7 @@ import {
   adminServiceCreateUserMemberships,
   adminServiceUpdateUserMembership,
 } from '@/services/roncin/adminService';
+import { isWriteResponse } from '@/utils/api';
 import OrganizationRolesField from './OrganizationRolesField';
 import {
   formatOrganizationHierarchyName,
@@ -82,6 +83,7 @@ export default function UserMembershipModal({
               enabled: values.enabled ?? true,
             },
           );
+          if (!isWriteResponse(response, true)) return false;
           if (!response?.success || !response.data?.id) return false;
           message.success('组织成员关系已更新');
         } else {
@@ -96,6 +98,7 @@ export default function UserMembershipModal({
             { userId },
             { userId, items },
           );
+          if (!isWriteResponse(response)) return false;
           if (
             !response?.success ||
             response.data?.length !== items.length ||

@@ -37,6 +37,7 @@ import {
   settlementServiceListVerificationCreationCandidates,
 } from '@/services/roncin/settlementService';
 import type { SelectOption } from '@/types/select-option';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -291,7 +292,7 @@ export default function VerificationWorkbench({
     return undefined;
   }, [allocations, billById, cashflowById]);
 
-  const submit = async () => {
+  const submit = async (): Promise<false | undefined> => {
     if (
       !scope.organizationId ||
       !scope.settlementPartyId ||
@@ -302,12 +303,13 @@ export default function VerificationWorkbench({
     }
     setSubmitting(true);
     try {
-      await settlementServiceCreateVerification({
+      const writeResponse1 = await settlementServiceCreateVerification({
         allocations,
         verificationDate: scope.verificationDate.format('YYYY-MM-DD'),
         note: scope.note,
         idempotencyKey: generateUUID(),
       });
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('核销成功，资金与账单余额已同步更新');
       onCreated();
       onClose();
@@ -316,6 +318,8 @@ export default function VerificationWorkbench({
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   const cashflowColumns: ColumnsType<API.FinanceCashflow> = [

@@ -17,6 +17,7 @@ import {
   exchangeRateServiceConfirmExchangeRateImport,
   exchangeRateServicePreviewExchangeRateImport,
 } from '@/services/roncin/exchangeRateService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
@@ -114,20 +115,21 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
     }
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (): Promise<false | undefined> => {
     if (!previewToken) {
       message.error('缺少预检令牌，请重新上传文件');
       return;
     }
     setConfirming(true);
     try {
-      await exchangeRateServiceConfirmExchangeRateImport(
+      const writeResponse1 = await exchangeRateServiceConfirmExchangeRateImport(
         {
           previewToken,
           idempotencyKey: generateUUID(),
         },
         longRequestOptions,
       );
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('汇率批量导入成功');
       onSuccess();
       handleClose();
@@ -140,6 +142,8 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
     } finally {
       setConfirming(false);
     }
+
+    return undefined;
   };
 
   const previewColumns: TableColumnsType<API.ExchangeRateImportRow> = [

@@ -29,7 +29,7 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapPage } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
@@ -37,6 +37,8 @@ import BillDetailDrawer from './components/BillDetailDrawer';
 import BillEditModal from './components/BillEditModal';
 import { getFinanceBillColumns } from './components/billColumns';
 import type { BillFormValues } from './components/billConstants';
+
+import { billExportColumns } from './ledgerExport';
 
 /** 搜索筛选表单提交并暂存于页面状态的账单查询参数 */
 type BillSearchParams = {
@@ -272,7 +274,7 @@ export default function FinanceBillsPage() {
     }
   };
 
-  const submitBill = async () => {
+  const submitBill = async (): Promise<false | undefined> => {
     if (!editing?.id || !editing.version) return;
     const values = await form.validateFields();
     setSubmitting(true);
@@ -303,30 +305,45 @@ export default function FinanceBillsPage() {
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   const confirmBill = (bill: API.FinanceBill) =>
-    billActions.run(bill, async ({ id, expectedVersion }) => {
-      try {
-        await settlementServiceConfirmBill({ id }, { id, expectedVersion });
-        message.success('账单已确认，进入待开票/待核销流');
-        reload();
-      } catch (error) {
-        message.error(getErrorMessage(error, '确认账单失败'));
-      }
-    });
+    billActions.run(
+      bill,
+      async ({ id, expectedVersion }): Promise<false | undefined> => {
+        try {
+          const writeResponse1 = await settlementServiceConfirmBill(
+            { id },
+            { id, expectedVersion },
+          );
+          if (!isWriteResponse(writeResponse1, true)) return false;
+          message.success('账单已确认，进入待开票/待核销流');
+          reload();
+        } catch (error) {
+          message.error(getErrorMessage(error, '确认账单失败'));
+          return false;
+        }
+
+        return undefined;
+      },
+    );
 
   const cancelBill = (bill: API.FinanceBill) => {
     billActions.confirm(
       bill,
       `取消 ${bill.organizationName || '所属公司未标识'} 的账单并释放关联费用？`,
-      async ({ id, expectedVersion }, reason) => {
-        await settlementServiceCancelBill(
+      async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
+        const writeResponse2 = await settlementServiceCancelBill(
           { id },
           { id, expectedVersion, reason },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('账单已取消，关联明细费用已释放并可重新建单');
         reload();
+
+        return undefined;
       },
       {
         danger: true,
@@ -462,6 +479,7 @@ export default function FinanceBillsPage() {
         }
         headerTitle="账单列表"
         actionRef={actionRef}
+        exportColumns={billExportColumns}
         columns={columns}
         columnSettingsKey="finance:bills"
         metricCards={metricCards}
@@ -623,19 +641,25 @@ export default function FinanceBillsPage() {
             organizationId,
           });
         }}
-        onSubmit={async (mode, tagIds) => {
+        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
           if (mode === 'assign') {
-            await settlementServiceBatchAssignFinanceBillTags({
-              billIds: tagBillIds,
-              tagIds,
-            });
+            const writeResponse3 =
+              await settlementServiceBatchAssignFinanceBillTags({
+                billIds: tagBillIds,
+                tagIds,
+              });
+            if (!isWriteResponse(writeResponse3, 'count')) return false;
           } else {
-            await settlementServiceBatchRemoveFinanceBillTags({
-              billIds: tagBillIds,
-              tagIds,
-            });
+            const writeResponse4 =
+              await settlementServiceBatchRemoveFinanceBillTags({
+                billIds: tagBillIds,
+                tagIds,
+              });
+            if (!isWriteResponse(writeResponse4, 'count')) return false;
           }
           actionRef.current?.reload();
+
+          return undefined;
         }}
         onCancel={() => setTagModalOpen(false)}
       />

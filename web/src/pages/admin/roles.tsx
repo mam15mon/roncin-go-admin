@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -10,7 +11,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { App, Button, Popconfirm, Space, Tag, Tooltip } from 'antd';
+import { App, Button, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import {
@@ -23,7 +24,7 @@ import {
   adminServiceListPermissions,
   adminServiceListRoles,
 } from '@/services/roncin/adminService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
 import {
   buildPermissionTree,
   filterPermissionTree,
@@ -95,11 +96,16 @@ export default function RolesPanel() {
 
   // 删除失败时由全局错误处理器展示后端中文原因（如角色已分配成员），
   // 这里只处理成功分支并刷新列表。
-  const handleDeleteRole = async (role: API.AdminRole) => {
-    if (!role.id) return;
-    await adminServiceDeleteRole({ id: role.id });
+  const handleDeleteRole = async (
+    role: API.AdminRole,
+  ): Promise<false | undefined> => {
+    if (!role.id) return false;
+    const writeResponse1 = await adminServiceDeleteRole({ id: role.id });
+    if (!isWriteResponse(writeResponse1)) return false;
     message.success(`角色「${role.name || role.code}」已删除`);
     actionRef.current?.reload();
+
+    return undefined;
   };
 
   const columns: ProColumns<API.AdminRole>[] = [
@@ -216,7 +222,7 @@ export default function RolesPanel() {
             </Button>
           ) : null,
           canDelete ? (
-            <Popconfirm
+            <AsyncPopconfirm
               key="delete"
               title="删除角色"
               description={`确认删除角色「${role.name || role.code}」？删除后不可恢复。`}
@@ -249,7 +255,7 @@ export default function RolesPanel() {
                   删除
                 </Button>
               )}
-            </Popconfirm>
+            </AsyncPopconfirm>
           ) : null,
         ];
       },

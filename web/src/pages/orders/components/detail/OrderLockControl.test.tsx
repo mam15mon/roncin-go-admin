@@ -60,7 +60,7 @@ describe('OrderLockControl', () => {
   });
 
   it('动作完全使用服务端 can 字段，并以锁状态版本发起锁定', async () => {
-    lockOrder.mockResolvedValue({ success: true } as Awaited<
+    lockOrder.mockResolvedValue({ success: true, data: { state: { orderId: 'order-ai' } } } as Awaited<
       ReturnType<typeof lockOrder>
     >);
     const onSynchronize = vi.fn().mockResolvedValue(undefined);

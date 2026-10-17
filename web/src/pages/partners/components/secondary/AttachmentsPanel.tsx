@@ -17,7 +17,7 @@ import {
   partnerServiceListPartnerAttachments,
   partnerServiceRegisterPartnerAttachment,
 } from '@/services/roncin/partnerService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -158,7 +158,7 @@ export default function AttachmentsPanel({
           ) {
             return false;
           }
-          await partnerServiceRegisterPartnerAttachment(
+          const writeResponse1 = await partnerServiceRegisterPartnerAttachment(
             { partnerId: partner.id },
             {
               partnerId: partner.id,
@@ -170,6 +170,7 @@ export default function AttachmentsPanel({
               idempotencyKey: values.idempotencyKey.trim(),
             },
           );
+          if (!isWriteResponse(writeResponse1, true)) return false;
           message.success('证照附件登记成功');
           setModalOpen(false);
           actionRef.current?.reload();

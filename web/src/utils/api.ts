@@ -10,6 +10,23 @@ export type ApiTableResponse<T> = ApiPageResponse<T> & {
   success?: boolean;
 };
 
+/**
+ * 写接口必须收到成功报文；实体接口另外验证返回的实体标识。
+ * 标签批量接口只有计数，无 success 字段；零计数会被 protojson 省略为 {}。
+ */
+export function isWriteResponse(
+  response: unknown,
+  requireEntityId: boolean | 'count' = false,
+): boolean {
+  if (!response || typeof response !== 'object') return false;
+  const envelope = response as { success?: boolean; data?: { id?: string } };
+  if (envelope.success === false) return false;
+  if (requireEntityId === 'count') return true;
+  return requireEntityId
+    ? Boolean(envelope.data?.id)
+    : envelope.success === true;
+}
+
 export function unwrapList<T>(response: ApiListResponse<T>): T[] {
   return response.data ?? [];
 }

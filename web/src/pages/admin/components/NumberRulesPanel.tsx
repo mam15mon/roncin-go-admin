@@ -32,7 +32,7 @@ import {
   masterDataServiceListNumberRules,
   masterDataServiceUpdateNumberRule,
 } from '@/services/roncin/masterDataService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import NumberRuleCard from './number-rules/NumberRuleCard';
 import NumberRuleEditModal from './number-rules/NumberRuleEditModal';
 import {
@@ -122,12 +122,12 @@ export function NumberRulesPanel() {
   const handleToggleRuleActive = async (
     rule: API.NumberRule,
     checked: boolean,
-  ) => {
+  ): Promise<false | undefined> => {
     if (!rule.id) return;
     try {
       const dateMeta = getDateFormatMeta(rule.dateFormat);
       const resetMeta = getResetPolicyMeta(rule.resetPolicy);
-      await masterDataServiceUpdateNumberRule(
+      const writeResponse1 = await masterDataServiceUpdateNumberRule(
         { id: rule.id },
         {
           id: rule.id,
@@ -138,6 +138,7 @@ export function NumberRulesPanel() {
           enabled: checked,
         },
       );
+      if (!isWriteResponse(writeResponse1, true)) return false;
       setData((prev) =>
         prev.map((r) => (r.id === rule.id ? { ...r, enabled: checked } : r)),
       );
@@ -148,13 +149,15 @@ export function NumberRulesPanel() {
     } catch {
       message.error('状态更新失败');
     }
+
+    return undefined;
   };
 
   // Submit Create / Edit
   const handleFormFinish = async (values: NumberRuleFormValues) => {
     try {
       if (editingItem?.id) {
-        await masterDataServiceUpdateNumberRule(
+        const writeResponse2 = await masterDataServiceUpdateNumberRule(
           { id: editingItem.id },
           {
             id: editingItem.id,
@@ -165,15 +168,17 @@ export function NumberRulesPanel() {
             enabled: values.enabled,
           },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('单号规则已更新');
       } else {
-        await masterDataServiceCreateNumberRule({
+        const writeResponse3 = await masterDataServiceCreateNumberRule({
           documentType: values.documentType,
           prefix: values.prefix?.trim(),
           dateFormat: values.dateFormat,
           sequenceLength: values.sequenceLength,
           resetPolicy: values.resetPolicy,
         });
+        if (!isWriteResponse(writeResponse3, true)) return false;
         message.success('单号规则创建成功');
       }
       setModalOpen(false);

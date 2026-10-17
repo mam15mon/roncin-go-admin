@@ -11,6 +11,7 @@ import {
   orderLockServiceLockOrder,
   orderLockServiceRequestOrderUnlock,
 } from '@/services/roncin/orderLockService';
+import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { getOrderBusinessTypeLabel } from '../../use-order-lock-state';
 import UnlockRequestHistoryDrawer from './UnlockRequestHistoryDrawer';
@@ -214,6 +215,7 @@ export default function OrderLockControl({
               idempotencyKey: generateIdempotencyKey(),
             },
           );
+          if (!isWriteResponse(response) || response.data?.state?.orderId !== orderId) return Promise.reject();
           if (response?.success) {
             message.success('订单已成功锁定');
             await onSynchronize();
@@ -229,7 +231,10 @@ export default function OrderLockControl({
           setLocking(false);
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   const openUnlockModal = (route: UnlockRoute) => {
@@ -242,7 +247,9 @@ export default function OrderLockControl({
     setUnlockModalVisible(true);
   };
 
-  const handleUnlockSubmit = async (values: { reason?: string }) => {
+  const handleUnlockSubmit = async (values: {
+    reason?: string;
+  }): Promise<false | undefined> => {
     if (!state?.isLocked || !state.orderVersion) {
       message.warning('订单锁状态或版本已变化，请刷新后重试');
       setUnlockModalVisible(false);
@@ -259,6 +266,7 @@ export default function OrderLockControl({
           reason: values.reason?.trim() || undefined,
         },
       );
+      if (!isWriteResponse(response) || !response.data?.request?.id) return false;
       if (response?.success) {
         const actualRoute = response.data?.request?.route;
         const actualStatus = response.data?.request?.status;
@@ -296,6 +304,8 @@ export default function OrderLockControl({
     } finally {
       setUnlocking(false);
     }
+
+    return undefined;
   };
 
   const lockBlockedTip = versionMissing

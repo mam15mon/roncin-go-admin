@@ -27,6 +27,7 @@ import {
   exchangeRateServiceFetchExchangeRates,
   exchangeRateServiceSyncExchangeRates,
 } from '@/services/roncin/exchangeRateService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 
@@ -332,11 +333,11 @@ export function ExchangeRateSyncModal({
     message.info('已还原为中行原始抓取牌价');
   };
 
-  const handlePublish = async () => {
+  const handlePublish = async (): Promise<false | undefined> => {
     if (draftRows.length === 0) return;
     setPublishing(true);
     try {
-      await exchangeRateServiceSyncExchangeRates({
+      const writeResponse1 = await exchangeRateServiceSyncExchangeRates({
         target:
           target === 'NEXT_WEEK'
             ? ExchangeRateSyncTarget.EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK
@@ -348,6 +349,7 @@ export function ExchangeRateSyncModal({
           rate: row.rate,
         })),
       });
+      if (!isWriteResponse(writeResponse1)) return false;
 
       // 自动保存本次的微调加点量（对比 rawRows 计算差值），方便下次一键继承
       const currentMarkups: ExchangeRateMarkupMap = {};
@@ -382,6 +384,8 @@ export function ExchangeRateSyncModal({
     } finally {
       setPublishing(false);
     }
+
+    return undefined;
   };
 
   const weekRange = formatWeekRange(

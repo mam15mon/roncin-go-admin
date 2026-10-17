@@ -23,6 +23,7 @@ import {
   adminServiceGetLatestDingTalkDirectorySync,
   adminServiceStartDingTalkDirectorySync,
 } from '@/services/roncin/adminService';
+import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 
 const fieldNames: Record<string, string> = {
@@ -82,10 +83,12 @@ export default function DingTalkDirectorySyncPanel({
   const startSync = useMutation({
     mutationFn: async () => {
       const response = await adminServiceStartDingTalkDirectorySync({});
+      if (!isWriteResponse(response)) return undefined;
       if (!response?.data?.taskId) throw new Error('同步任务未返回有效结果');
       return response.data;
     },
     onSuccess: (sync) => {
+      if (!sync) return;
       setTaskId(sync.taskId);
       setPage(1);
       queryClient.setQueryData(

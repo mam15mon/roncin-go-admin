@@ -24,6 +24,7 @@ import {
   settlementServiceUpdateBilledFeeEditPolicy,
   settlementServiceUpdateCreditLimitControlPolicy,
 } from '@/services/roncin/settlementService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 
@@ -107,7 +108,9 @@ export function CustomSettingsPanel() {
   }, [loadBilledFeePolicy, loadCreditPolicy]);
 
   // 1. 保存账单费用修改总开关
-  const handleToggleBilledFeePolicy = async (checked: boolean) => {
+  const handleToggleBilledFeePolicy = async (
+    checked: boolean,
+  ): Promise<false | undefined> => {
     setSavingPolicy(true);
     try {
       const response = await settlementServiceUpdateBilledFeeEditPolicy({
@@ -115,6 +118,7 @@ export function CustomSettingsPanel() {
         editableFields: billedFeePolicy?.editableFields ?? [],
         expectedVersion: billedFeePolicy?.version ?? '0',
       });
+      if (!isWriteResponse(response) || !response.data?.organizationId || !response.data.version) return false;
       setBilledFeePolicy(response.data);
       message.success(
         checked
@@ -127,10 +131,14 @@ export function CustomSettingsPanel() {
     } finally {
       setSavingPolicy(false);
     }
+
+    return undefined;
   };
 
   // 2. 保存可修改字段选择
-  const handleChangeEditableFields = async (checkedFields: number[]) => {
+  const handleChangeEditableFields = async (
+    checkedFields: number[],
+  ): Promise<false | undefined> => {
     setSavingPolicy(true);
     try {
       const response = await settlementServiceUpdateBilledFeeEditPolicy({
@@ -138,6 +146,7 @@ export function CustomSettingsPanel() {
         editableFields: checkedFields,
         expectedVersion: billedFeePolicy?.version ?? '0',
       });
+      if (!isWriteResponse(response) || !response.data?.organizationId || !response.data.version) return false;
       setBilledFeePolicy(response.data);
       message.success('已更新允许修改的费用字段');
     } catch (e) {
@@ -146,16 +155,21 @@ export function CustomSettingsPanel() {
     } finally {
       setSavingPolicy(false);
     }
+
+    return undefined;
   };
 
   // 3. 保存信用额度管控开关（true 仅提醒；false 直接干预拦截）
-  const handleToggleCreditPolicy = async (checked: boolean) => {
+  const handleToggleCreditPolicy = async (
+    checked: boolean,
+  ): Promise<false | undefined> => {
     setSavingCreditPolicy(true);
     try {
       const response = await settlementServiceUpdateCreditLimitControlPolicy({
         allowSelectionWhenCreditExceeded: checked,
         expectedVersion: creditPolicy?.version ?? '0',
       });
+      if (!isWriteResponse(response) || !response.data?.organizationId || !response.data.version) return false;
       setCreditPolicy(response.data);
       message.success(
         checked
@@ -168,6 +182,8 @@ export function CustomSettingsPanel() {
     } finally {
       setSavingCreditPolicy(false);
     }
+
+    return undefined;
   };
 
   return (

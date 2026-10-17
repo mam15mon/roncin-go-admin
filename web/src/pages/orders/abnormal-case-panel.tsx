@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import { PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import type {
   ActionType,
@@ -5,7 +6,7 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ModalForm } from '@ant-design/pro-components';
-import { App, Button, Drawer, Popconfirm, Space, Typography } from 'antd';
+import { App, Button, Drawer, Space, Typography } from 'antd';
 import {
   forwardRef,
   useEffect,
@@ -30,7 +31,7 @@ import {
   orderAbnormalCaseServiceRemoveAbnormalCase,
   orderAbnormalCaseServiceResolveAbnormalCase,
 } from '@/services/roncin/orderAbnormalCaseService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
@@ -179,39 +180,47 @@ const AbnormalCasePanel = forwardRef<
           <Space size={6}>
             {record.status ===
               OrderAbnormalCaseStatus.ORDER_ABNORMAL_CASE_STATUS_ACTIVE && (
-              <Popconfirm
+              <AsyncPopconfirm
                 title="确定解决该异常？"
-                onConfirm={async () => {
-                  if (!ensureCanManage() || !order?.id || !record.id) return;
-                  await orderAbnormalCaseServiceResolveAbnormalCase(
-                    { orderId: order.id, id: record.id },
-                    { orderId: order.id, id: record.id },
-                  );
+                onConfirm={async (): Promise<false | undefined> => {
+                  if (!ensureCanManage() || !order?.id || !record.id) return false;
+                  const writeResponse1 =
+                    await orderAbnormalCaseServiceResolveAbnormalCase(
+                      { orderId: order.id, id: record.id },
+                      { orderId: order.id, id: record.id },
+                    );
+                  if (!isWriteResponse(writeResponse1, true)) return false;
                   message.success('解决异常成功');
                   actionRef.current?.reload();
+
+                  return undefined;
                 }}
               >
                 <Button type="link" size="small" style={{ padding: 0 }}>
                   解决
                 </Button>
-              </Popconfirm>
+              </AsyncPopconfirm>
             )}
-            <Popconfirm
+            <AsyncPopconfirm
               title="确定移除该异常？"
-              onConfirm={async () => {
-                if (!ensureCanManage() || !order?.id || !record.id) return;
-                await orderAbnormalCaseServiceRemoveAbnormalCase({
-                  orderId: order.id,
-                  id: record.id,
-                });
+              onConfirm={async (): Promise<false | undefined> => {
+                if (!ensureCanManage() || !order?.id || !record.id) return false;
+                const writeResponse2 =
+                  await orderAbnormalCaseServiceRemoveAbnormalCase({
+                    orderId: order.id,
+                    id: record.id,
+                  });
+                if (!isWriteResponse(writeResponse2)) return false;
                 message.success('移除异常成功');
                 actionRef.current?.reload();
+
+                return undefined;
               }}
             >
               <Button type="link" danger size="small" style={{ padding: 0 }}>
                 移除
               </Button>
-            </Popconfirm>
+            </AsyncPopconfirm>
           </Space>
         );
       },
@@ -290,10 +299,11 @@ const AbnormalCasePanel = forwardRef<
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
           if (!ensureCanManage() || !order?.id) return false;
-          await orderAbnormalCaseServiceMarkAbnormalCase(
+          const writeResponse3 = await orderAbnormalCaseServiceMarkAbnormalCase(
             { orderId: order.id },
             { orderId: order.id, abnormalCaseId: values.abnormalCaseId },
           );
+          if (!isWriteResponse(writeResponse3, true)) return false;
           message.success('标记异常成功');
           setModalOpen(false);
           actionRef.current?.reload();

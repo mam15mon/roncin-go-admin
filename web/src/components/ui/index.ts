@@ -1,3 +1,4 @@
+export * from './async-popconfirm';
 export * from './column-settings';
 export * from './currency-amount-input';
 export * from './date-presets';

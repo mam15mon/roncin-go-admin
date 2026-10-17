@@ -20,6 +20,7 @@ import {
   seaOrderChangeServiceExecuteSeaTransportExecutionUpdate,
   seaOrderChangeServicePreviewSeaTransportExecutionUpdate,
 } from '@/services/roncin/seaOrderChangeService';
+import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import SeaExternalConfirmationFields, {
   buildSeaExternalConfirmation,
@@ -147,7 +148,7 @@ export default function SeaTransportExecutionUpdateModal({
     }
   };
 
-  const handleExecute = async () => {
+  const handleExecute = async (): Promise<false | undefined> => {
     if (
       !order.id ||
       !expectedVersion ||
@@ -159,17 +160,19 @@ export default function SeaTransportExecutionUpdateModal({
     try {
       const values = await form.validateFields();
       setExecuting(true);
-      await seaOrderChangeServiceExecuteSeaTransportExecutionUpdate(
-        { orderId: order.id },
-        {
-          orderId: order.id,
-          expectedTransportExecutionVersion: expectedVersion,
-          input: previewInput,
-          reason: values.reason.trim(),
-          confirmation: buildSeaExternalConfirmation(values),
-          idempotencyKey,
-        },
-      );
+      const writeResponse1 =
+        await seaOrderChangeServiceExecuteSeaTransportExecutionUpdate(
+          { orderId: order.id },
+          {
+            orderId: order.id,
+            expectedTransportExecutionVersion: expectedVersion,
+            input: previewInput,
+            reason: values.reason.trim(),
+            confirmation: buildSeaExternalConfirmation(values),
+            idempotencyKey,
+          },
+        );
+      if (!isWriteResponse(writeResponse1) || !writeResponse1.transportExecution?.id || !writeResponse1.versionId) return false;
       await onSuccess();
       onClose();
     } catch (error: unknown) {
@@ -181,6 +184,8 @@ export default function SeaTransportExecutionUpdateModal({
     } finally {
       setExecuting(false);
     }
+
+    return undefined;
   };
 
   const locationSelect = (

@@ -23,8 +23,8 @@ describe('makeVersionActions', () => {
     const submit = vi.fn().mockResolvedValue(undefined);
     const actions = makeVersionActions<{ id?: string; version?: number }>(app);
 
-    await actions.run({ version: 1 }, submit);
-    await actions.run({ id: 'record-1' }, submit);
+    expect(await actions.run({ version: 1 }, submit)).toBe(false);
+    expect(await actions.run({ id: 'record-1' }, submit)).toBe(false);
 
     expect(submit).not.toHaveBeenCalled();
   });

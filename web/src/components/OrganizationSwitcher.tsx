@@ -25,11 +25,12 @@ export default function OrganizationSwitcher() {
   const switchOrganization = async (
     organizationId: string,
     organizationName: string,
-  ) => {
+  ): Promise<void> => {
     setSwitchingOrgName(organizationName);
     try {
       const response = await authServiceSwitchOrganization({ organizationId });
-      if (!response.data) {
+      if (!response || response.success === false) return;
+      if (!response.data?.id) {
         message.error('组织切换失败，请稍后重试');
         return;
       }

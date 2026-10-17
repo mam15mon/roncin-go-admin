@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
-import { unwrapPage } from '@/utils/api';
+import { isWriteResponse, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import type { BaseMasterDataItem, MasterDataListQuery } from './types';
 
@@ -26,13 +26,15 @@ export interface UseMasterDataCrudOptions<
     query: MasterDataListQuery,
   ) => Promise<{ data?: TApiItem[]; total?: number }>;
   mapItem: (apiItem: TApiItem) => TItem;
-  createItem: (values: TFormValues) => Promise<{ data?: TApiItem }>;
+  createItem: (
+    values: TFormValues,
+  ) => Promise<{ data?: TApiItem; success?: boolean } | undefined>;
   updateItem: (
     id: string,
     values: TFormValues,
     enabled: boolean,
     currentRecord: TItem,
-  ) => Promise<{ data?: TApiItem }>;
+  ) => Promise<{ data?: TApiItem; success?: boolean } | undefined>;
 }
 
 /** 列表 query 缓存载荷：items 已映射为领域对象，total 为服务端分页总数。 */
@@ -146,7 +148,8 @@ export function useMasterDataCrud<
   const createMutation = useMutation({
     mutationFn: async (values: TFormValues) => {
       const response = await createItem(values);
-      if (!response.data) {
+      if (!isWriteResponse(response, true)) return false;
+      if (!response?.data) {
         throw new Error(`${entityName}响应缺少数据`);
       }
       mapItem(response.data);
@@ -164,7 +167,8 @@ export function useMasterDataCrud<
       record,
     }: UpdateMutationVariables<TItem, TFormValues>) => {
       const response = await updateItem(id, values, enabled, record);
-      if (!response.data) {
+      if (!isWriteResponse(response, true)) return false;
+      if (!response?.data) {
         throw new Error(`${entityName}响应缺少数据`);
       }
       mapItem(response.data);
@@ -199,7 +203,7 @@ export function useMasterDataCrud<
 
   const handleCreate = useCallback(
     async (values: TFormValues) => {
-      await createMutation.mutateAsync(values);
+      return (await createMutation.mutateAsync(values)) !== false;
     },
     [createMutation],
   );
@@ -210,24 +214,26 @@ export function useMasterDataCrud<
       if (!record) {
         throw new Error(`待更新${entityName}不存在`);
       }
-      await updateMutation.mutateAsync({
-        id,
-        values,
-        enabled: record.enabled,
-        record,
-      });
+      return (
+        (await updateMutation.mutateAsync({
+          id,
+          values,
+          enabled: record.enabled,
+          record,
+        })) !== false
+      );
     },
     [data, entityName, updateMutation],
   );
 
   const handleToggleActive = useCallback(
     async (target: TItem) => {
-      await updateMutation.mutateAsync({
+      return (await updateMutation.mutateAsync({
         id: target.id,
         values: target,
         enabled: !target.enabled,
         record: target,
-      });
+      })) !== false;
     },
     [updateMutation],
   );

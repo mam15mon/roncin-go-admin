@@ -21,6 +21,7 @@ import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerImportMode, PartnerRoleType } from '@/enums.generated';
 import { partnerServiceImportPartners } from '@/services/roncin/partnerService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { longRequestOptions } from '@/utils/requestTimeout';
 
@@ -245,7 +246,7 @@ export default function PartnerExcelImportModal({
     }
   };
 
-  const handleImport = async () => {
+  const handleImport = async (): Promise<false | undefined> => {
     if (parsedItems.length === 0) {
       message.warning('当前没有可导入的有效数据');
       return;
@@ -269,6 +270,7 @@ export default function PartnerExcelImportModal({
         },
         longRequestOptions,
       );
+      if (!isWriteResponse(res)) return false;
 
       message.success(
         `导入完成: 新增 ${res.createdCount ?? 0} 条，更新 ${res.updatedCount ?? 0} 条`,
@@ -280,6 +282,8 @@ export default function PartnerExcelImportModal({
     } finally {
       setImporting(false);
     }
+
+    return undefined;
   };
 
   const previewColumns = [

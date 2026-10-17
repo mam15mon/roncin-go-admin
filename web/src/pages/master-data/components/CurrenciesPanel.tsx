@@ -13,7 +13,7 @@ import {
   masterDataServiceListCurrencies,
   masterDataServiceSetCurrencyEnabled,
 } from '@/services/roncin/masterDataService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 
 export interface CurrencyItem extends BaseMasterDataItem {
@@ -56,16 +56,17 @@ export default function CurrenciesPanel() {
     fetchCurrencies();
   }, [fetchCurrencies]);
 
-  const handleToggleActive = async (record: CurrencyItem) => {
+  const handleToggleActive = async (record: CurrencyItem): Promise<void> => {
     if (record.isBaseCurrency && record.enabled) {
       message.warning('本位币不可停用');
       return;
     }
     try {
-      await masterDataServiceSetCurrencyEnabled(
+      const writeResponse1 = await masterDataServiceSetCurrencyEnabled(
         { code: record.code },
         { code: record.code, enabled: !record.enabled },
       );
+      if (!isWriteResponse(writeResponse1, true)) return;
       message.success(
         `已${record.enabled ? '停用' : '启用'}货币【${record.code}】`,
       );

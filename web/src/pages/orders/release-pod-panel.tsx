@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
@@ -14,7 +15,6 @@ import {
   App,
   Button,
   Drawer,
-  Popconfirm,
   Space,
   Typography,
 } from 'antd';
@@ -46,7 +46,7 @@ import {
 } from '@/services/roncin/orderReleasePodService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { notifyReleasePodsChanged } from './release-pod-events';
 
@@ -314,52 +314,60 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
                 编辑
               </Button>
               {transition && (
-                <Popconfirm
+                <AsyncPopconfirm
                   title={`确定将放货凭证状态从「${transition.currentText}」流转为「${transition.nextText}」？`}
-                  onConfirm={async () => {
+                  onConfirm={async (): Promise<false | undefined> => {
                     if (
                       !ensureCanManage() ||
                       !order?.id ||
                       !record.id ||
                       !record.status
                     )
-                      return;
-                    await orderReleasePodServiceTransitionReleasePodStatus(
-                      { orderId: order.id, id: record.id },
-                      {
-                        orderId: order.id,
-                        id: record.id,
-                        expectedStatus: record.status,
-                        toStatus: transition.toStatus,
-                      },
-                    );
+                      return false;
+                    const writeResponse1 =
+                      await orderReleasePodServiceTransitionReleasePodStatus(
+                        { orderId: order.id, id: record.id },
+                        {
+                          orderId: order.id,
+                          id: record.id,
+                          expectedStatus: record.status,
+                          toStatus: transition.toStatus,
+                        },
+                      );
+                    if (!isWriteResponse(writeResponse1, true)) return false;
                     message.success('流转放货凭证状态成功');
                     actionRef.current?.reload();
                     notifyReleasePodsChanged(order.id);
+
+                    return undefined;
                   }}
                 >
                   <Button type="link" size="small">
                     流转
                   </Button>
-                </Popconfirm>
+                </AsyncPopconfirm>
               )}
-              <Popconfirm
+              <AsyncPopconfirm
                 title="确定移除该放货凭证？"
-                onConfirm={async () => {
-                  if (!ensureCanManage() || !order?.id || !record.id) return;
-                  await orderReleasePodServiceRemoveReleasePod({
-                    orderId: order.id,
-                    id: record.id,
-                  });
+                onConfirm={async (): Promise<false | undefined> => {
+                  if (!ensureCanManage() || !order?.id || !record.id) return false;
+                  const writeResponse2 =
+                    await orderReleasePodServiceRemoveReleasePod({
+                      orderId: order.id,
+                      id: record.id,
+                    });
+                  if (!isWriteResponse(writeResponse2)) return false;
                   message.success('移除放货凭证成功');
                   actionRef.current?.reload();
                   notifyReleasePodsChanged(order.id);
+
+                  return undefined;
                 }}
               >
                 <Button type="link" danger size="small">
                   删除
                 </Button>
-              </Popconfirm>
+              </AsyncPopconfirm>
             </Space>
           );
         },
@@ -473,16 +481,19 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
                 }
               : {};
             if (editingRecord?.id) {
-              await orderReleasePodServiceUpdateReleasePod(
-                { orderId: order.id, id: editingRecord.id },
-                { ...input, ...documentInput, id: editingRecord.id },
-              );
+              const writeResponse3 =
+                await orderReleasePodServiceUpdateReleasePod(
+                  { orderId: order.id, id: editingRecord.id },
+                  { ...input, ...documentInput, id: editingRecord.id },
+                );
+              if (!isWriteResponse(writeResponse3, true)) return false;
               message.success('更新放货凭证成功');
             } else {
-              await orderReleasePodServiceAddReleasePod(
+              const writeResponse4 = await orderReleasePodServiceAddReleasePod(
                 { orderId: order.id },
                 { ...input, ...documentInput },
               );
+              if (!isWriteResponse(writeResponse4, true)) return false;
               message.success('添加放货凭证成功');
             }
             setModalOpen(false);

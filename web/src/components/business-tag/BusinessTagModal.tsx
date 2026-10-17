@@ -15,7 +15,7 @@ import {
   enterpriseResourceServiceListEnterpriseTagGroups,
 } from '@/services/roncin/enterpriseResourceService';
 import { orderTagServiceListOrderTagOptions } from '@/services/roncin/orderTagService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 
 export type BusinessTagModalMode = 'assign' | 'remove';
 
@@ -42,7 +42,7 @@ interface BusinessTagModalProps {
     | API.ListFinanceBillTagAssignmentOptionsResponse
   >;
   /** 提交选中标签 ID，由调用方执行对应领域的批量接口 */
-  onSubmit: (mode: BusinessTagModalMode, tagIds: string[]) => Promise<void>;
+  onSubmit: (mode: BusinessTagModalMode, tagIds: string[]) => Promise<unknown>;
   onCancel: () => void;
 }
 
@@ -123,14 +123,14 @@ export function BusinessTagModal({
     }
     setSubmitting(true);
     try {
-      await onSubmit(mode, selectedTagIds);
+      if ((await onSubmit(mode, selectedTagIds)) === false) return;
       onCancel();
     } finally {
       setSubmitting(false);
     }
   };
 
-  const submitQuickCreate = async () => {
+  const submitQuickCreate = async (): Promise<unknown> => {
     const values = await quickForm.validateFields();
     const response = await enterpriseResourceServiceCreateEnterpriseResource({
       resource: {
@@ -141,6 +141,7 @@ export function BusinessTagModal({
         tag: { groupId: values.groupId },
       },
     });
+    if (!isWriteResponse(response, true)) return false;
     message.success('标签已创建');
     setQuickCreateOpen(false);
     quickForm.resetFields();
@@ -163,6 +164,8 @@ export function BusinessTagModal({
       ]);
       setSelectedTagIds([createdID]);
     }
+
+    return undefined;
   };
 
   return (

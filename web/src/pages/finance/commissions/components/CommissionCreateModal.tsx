@@ -33,7 +33,7 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -341,7 +341,7 @@ export default function CommissionCreateModal({
           return false;
         }
         try {
-          await settlementServiceCreateCommission({
+          const writeResponse1 = await settlementServiceCreateCommission({
             ...(values.verificationId
               ? { verificationId: values.verificationId }
               : { nettingId: values.nettingId }),
@@ -351,6 +351,7 @@ export default function CommissionCreateModal({
             idempotencyKey: createIdempotencyKey,
             organizationId: organizationId ?? '',
           });
+          if (!isWriteResponse(writeResponse1, true)) return false;
           message.success('提成草稿已生成，列表已按创建结果刷新');
           onOpenChange(false);
           setSourceType('verification');

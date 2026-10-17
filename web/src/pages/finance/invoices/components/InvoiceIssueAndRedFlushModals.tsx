@@ -11,7 +11,7 @@ interface InvoiceIssueModalProps {
   issueForm: FormInstance;
   issueTarget?: API.FinanceInvoice;
   onCancel: () => void;
-  onOk: () => Promise<void>;
+  onOk: () => Promise<unknown>;
 }
 
 export function InvoiceIssueModal({
@@ -57,7 +57,7 @@ interface InvoiceRedFlushModalProps {
   redFlushTarget?: API.FinanceInvoice;
   redFlushForm: FormInstance;
   onCancel: () => void;
-  onOk: () => Promise<void>;
+  onOk: () => Promise<unknown>;
 }
 
 export function InvoiceRedFlushModal({

@@ -26,7 +26,7 @@ import {
   orderFeeServiceRemoveFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import { normalizeDecimalInput } from '@/utils/decimal';
 import { generateUUID } from '@/utils/uuid';
@@ -258,19 +258,22 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
       confirmWithReason(
         { modal, message },
         '确认删除该笔费用？',
-        async (reason) => {
-          if (!ensureFeeWriteAllowed()) return;
-          await orderFeeServiceRemoveFee({
+        async (reason): Promise<false | undefined> => {
+          if (!ensureFeeWriteAllowed()) return false;
+          const writeResponse1 = await orderFeeServiceRemoveFee({
             orderId,
             id: feeId,
             expectedVersion: version,
             reason: reason || undefined,
           });
+          if (!isWriteResponse(writeResponse1)) return false;
           message.success('费用已删除');
           actionRef.current?.reload();
           void queryClient.invalidateQueries({
             queryKey: ['order-fee-review'],
           });
+
+          return undefined;
         },
         { optional: true },
       );
@@ -313,7 +316,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
       try {
         if (editingFee?.id) {
-          await orderFeeServiceUpdateFee(
+          const writeResponse2 = await orderFeeServiceUpdateFee(
             { orderId: order.id, id: editingFee.id },
             {
               orderId: order.id,
@@ -331,9 +334,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               exchangeRateOverride,
             },
           );
+          if (!isWriteResponse(writeResponse2, true)) return false;
           message.success('费用更新成功');
         } else {
-          await orderFeeServiceAddFee(
+          const writeResponse3 = await orderFeeServiceAddFee(
             { orderId: order.id },
             {
               orderId: order.id,
@@ -355,6 +359,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               },
             },
           );
+          if (!isWriteResponse(writeResponse3, true)) return false;
           message.success('费用录入成功');
         }
         setModalOpen(false);
@@ -485,7 +490,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           targetCount={selectedFeeIds.length}
           existingTags={selectedFees.flatMap((fee) => fee.tags ?? [])}
           canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
-          onSubmit={async (mode, tagIds) => {
+          onSubmit={async (mode, tagIds): Promise<false | undefined> => {
             if (
               !ensureFeeWriteAllowed() ||
               !order?.id ||
@@ -494,15 +499,19 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               return;
             const feeIds = selectedFeeIds.map(String);
             if (mode === 'assign') {
-              await orderFeeServiceBatchAssignOrderFeeTags(
-                { orderId: order.id as string },
-                { orderId: order.id as string, feeIds, tagIds },
-              );
+              const writeResponse4 =
+                await orderFeeServiceBatchAssignOrderFeeTags(
+                  { orderId: order.id as string },
+                  { orderId: order.id as string, feeIds, tagIds },
+                );
+              if (!isWriteResponse(writeResponse4, 'count')) return false;
             } else {
-              await orderFeeServiceBatchRemoveOrderFeeTags(
-                { orderId: order.id as string },
-                { orderId: order.id as string, feeIds, tagIds },
-              );
+              const writeResponse5 =
+                await orderFeeServiceBatchRemoveOrderFeeTags(
+                  { orderId: order.id as string },
+                  { orderId: order.id as string, feeIds, tagIds },
+                );
+              if (!isWriteResponse(writeResponse5, 'count')) return false;
             }
             setSelectedFeeIds([]);
             setSelectedFees([]);
@@ -510,6 +519,8 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             void queryClient.invalidateQueries({
               queryKey: ['order-fee-review'],
             });
+
+            return undefined;
           }}
           onCancel={() => setTagModalOpen(false)}
         />

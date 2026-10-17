@@ -17,6 +17,7 @@ import {
   seaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft,
   seaSharedContainerServiceWithdrawSeaSharedContainer,
 } from '@/services/roncin/seaSharedContainerService';
+import { isWriteResponse } from '@/utils/api';
 import SeaSharedContainerAllocationTable from './SeaSharedContainerAllocationTable';
 import SeaSharedContainerCardList from './SeaSharedContainerCardList';
 import SeaSharedContainerCreateModal, {
@@ -336,22 +337,24 @@ export default function SeaSharedContainerDrawer({
   ]);
 
   // 保存草稿
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (): Promise<false | undefined> => {
     const target = ensureSubmitContext();
     if (!target) return;
     const { container, containerId } = target;
     const anchorOrderId = orderId ?? '';
     setSubmitting(true);
     try {
-      await seaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft(
-        { id: containerId },
-        {
-          id: containerId,
-          orderId: anchorOrderId,
-          expectedVersion: String(container.version || 1),
-          allocations: buildAllocationInputs(drafts),
-        },
-      );
+      const writeResponse1 =
+        await seaSharedContainerServiceSaveSeaSharedContainerAllocationsDraft(
+          { id: containerId },
+          {
+            id: containerId,
+            orderId: anchorOrderId,
+            expectedVersion: String(container.version || 1),
+            allocations: buildAllocationInputs(drafts),
+          },
+        );
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('共享箱分配草稿已保存');
       reloadCurrentContext();
     } catch (err: unknown) {
@@ -360,10 +363,12 @@ export default function SeaSharedContainerDrawer({
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   // 确认分配：携带全部草稿输入，在服务端单事务内保存并严格确认，杜绝部分成功
-  const handleConfirm = async () => {
+  const handleConfirm = async (): Promise<false | undefined> => {
     const target = ensureSubmitContext();
     if (!target) return;
     const { container, containerId } = target;
@@ -374,15 +379,17 @@ export default function SeaSharedContainerDrawer({
     }
     setSubmitting(true);
     try {
-      await seaSharedContainerServiceConfirmSeaSharedContainer(
-        { id: containerId },
-        {
-          id: containerId,
-          orderId: anchorOrderId,
-          expectedVersion: String(container.version || 1),
-          allocations: buildAllocationInputs(drafts),
-        },
-      );
+      const writeResponse2 =
+        await seaSharedContainerServiceConfirmSeaSharedContainer(
+          { id: containerId },
+          {
+            id: containerId,
+            orderId: anchorOrderId,
+            expectedVersion: String(container.version || 1),
+            allocations: buildAllocationInputs(drafts),
+          },
+        );
+      if (!isWriteResponse(writeResponse2, true)) return false;
       message.success('共享箱分配已确认生效');
       reloadCurrentContext();
     } catch (err: unknown) {
@@ -391,24 +398,28 @@ export default function SeaSharedContainerDrawer({
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   // 撤回确认
-  const handleWithdraw = async () => {
+  const handleWithdraw = async (): Promise<false | undefined> => {
     const target = ensureSubmitContext();
     if (!target) return;
     const { container, containerId } = target;
     const anchorOrderId = orderId ?? '';
     setSubmitting(true);
     try {
-      await seaSharedContainerServiceWithdrawSeaSharedContainer(
-        { id: containerId },
-        {
-          id: containerId,
-          orderId: anchorOrderId,
-          expectedVersion: String(container.version || 1),
-        },
-      );
+      const writeResponse3 =
+        await seaSharedContainerServiceWithdrawSeaSharedContainer(
+          { id: containerId },
+          {
+            id: containerId,
+            orderId: anchorOrderId,
+            expectedVersion: String(container.version || 1),
+          },
+        );
+      if (!isWriteResponse(writeResponse3, true)) return false;
       message.success('已撤回至草稿状态');
       reloadCurrentContext();
     } catch (err: unknown) {
@@ -417,21 +428,25 @@ export default function SeaSharedContainerDrawer({
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   // 删除共享箱
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<false | undefined> => {
     const target = ensureSubmitContext();
-    if (!target) return;
+    if (!target) return false;
     const { container, containerId } = target;
     const anchorOrderId = orderId ?? '';
     setSubmitting(true);
     try {
-      await seaSharedContainerServiceDeleteSeaSharedContainer({
-        id: containerId,
-        orderId: anchorOrderId,
-        expectedVersion: String(container.version || 1),
-      });
+      const writeResponse4 =
+        await seaSharedContainerServiceDeleteSeaSharedContainer({
+          id: containerId,
+          orderId: anchorOrderId,
+          expectedVersion: String(container.version || 1),
+        });
+      if (!isWriteResponse(writeResponse4)) return false;
       message.success('共享物理箱已删除');
       setSelectedContainerId(null);
       if (contextKey) {
@@ -442,29 +457,36 @@ export default function SeaSharedContainerDrawer({
       if (contextKey) {
         void loadContainers(contextKey);
       }
+      return false;
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   // 新建共享箱提交
-  const handleCreateSubmit = async (values: SeaSharedContainerFormValues) => {
+  const handleCreateSubmit = async (
+    values: SeaSharedContainerFormValues,
+  ): Promise<false | undefined> => {
     if (!transportExecutionId || !orderId) return;
     setSubmitting(true);
     try {
-      await seaSharedContainerServiceCreateSeaSharedContainer({
-        input: {
-          transportExecutionId,
-          containerNo: values.containerNo.trim().toUpperCase(),
-          containerSpecId: values.containerSpecId,
-          sealNo: values.sealNo?.trim() || undefined,
-          packageCount: Number(values.packageCount || 0),
-          grossWeightKg: String(values.grossWeightKg || '0.000'),
-          volumeCbm: String(values.volumeCbm || '0.000000'),
-          note: values.note?.trim() || undefined,
-        },
-        orderId,
-      });
+      const writeResponse5 =
+        await seaSharedContainerServiceCreateSeaSharedContainer({
+          input: {
+            transportExecutionId,
+            containerNo: values.containerNo.trim().toUpperCase(),
+            containerSpecId: values.containerSpecId,
+            sealNo: values.sealNo?.trim() || undefined,
+            packageCount: Number(values.packageCount || 0),
+            grossWeightKg: String(values.grossWeightKg || '0.000'),
+            volumeCbm: String(values.volumeCbm || '0.000000'),
+            note: values.note?.trim() || undefined,
+          },
+          orderId,
+        });
+      if (!isWriteResponse(writeResponse5, true)) return false;
       message.success('共享物理箱已创建');
       setCreateModalOpen(false);
       createForm.resetFields();
@@ -476,6 +498,8 @@ export default function SeaSharedContainerDrawer({
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   const isConfirmed = selectedContainer?.status === STATUS_CONFIRMED;

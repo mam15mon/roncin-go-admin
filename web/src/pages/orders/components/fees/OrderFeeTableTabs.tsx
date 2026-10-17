@@ -43,7 +43,7 @@ import {
   orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import {
   calculateExactFeeTotal,
   normalizeDecimalInput,
@@ -866,17 +866,18 @@ export default function OrderFeeTableTabs({
 
     try {
       if (isNew) {
-        await orderFeeServiceAddFee(
+        const writeResponse1 = await orderFeeServiceAddFee(
           { orderId },
           { ...body, orderId, idempotencyKey: generateUUID() },
         );
+        if (!isWriteResponse(writeResponse1, true)) return false;
         message.success('费用录入成功');
       } else {
         if (!originRow.version) {
           message.error('费用版本信息缺失，请刷新后重试');
           return false;
         }
-        await orderFeeServiceUpdateFee(
+        const writeResponse2 = await orderFeeServiceUpdateFee(
           { orderId, id: String(singleKey) },
           {
             ...body,
@@ -885,6 +886,7 @@ export default function OrderFeeTableTabs({
             expectedVersion: originRow.version,
           },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('费用更新成功');
       }
       receivableActionRef.current?.reload();
@@ -1685,29 +1687,35 @@ export default function OrderFeeTableTabs({
         loadOptions={(params) =>
           orderFeeServiceListOrderFeeTagOptions({ orderId, ...params })
         }
-        onSubmit={async (mode, tagIds) => {
+        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
           const direction = tagModalContext?.direction ?? RECEIVABLE;
           const rows = getSelectedRows(direction);
           const feeIds = rows.map((row) => String(row.id));
           if (feeIds.length === 0 || tagIds.length === 0) return;
           try {
             if (mode === 'assign') {
-              await orderFeeServiceBatchAssignOrderFeeTags(
-                { orderId },
-                { orderId, feeIds, tagIds },
-              );
+              const writeResponse3 =
+                await orderFeeServiceBatchAssignOrderFeeTags(
+                  { orderId },
+                  { orderId, feeIds, tagIds },
+                );
+              if (!isWriteResponse(writeResponse3, 'count')) return false;
               message.success(`已为 ${feeIds.length} 笔费用添加标签`);
             } else {
-              await orderFeeServiceBatchRemoveOrderFeeTags(
-                { orderId },
-                { orderId, feeIds, tagIds },
-              );
+              const writeResponse4 =
+                await orderFeeServiceBatchRemoveOrderFeeTags(
+                  { orderId },
+                  { orderId, feeIds, tagIds },
+                );
+              if (!isWriteResponse(writeResponse4, 'count')) return false;
               message.success(`已从 ${feeIds.length} 笔费用移除标签`);
             }
             handleBulkDone(direction);
           } catch (error) {
             message.error(getErrorMessage(error, '维护费用标签失败'));
           }
+
+          return undefined;
         }}
         onCancel={() => setTagModalContext(undefined)}
       />
@@ -1745,6 +1753,7 @@ export default function OrderFeeTableTabs({
                 settlementPartyId: values.settlementPartyId,
               },
             );
+            if (!isWriteResponse(response)) return false;
             message.success(
               `已修改 ${response.updatedCount ?? rows.length} 笔费用的结算单位`,
             );
@@ -1805,6 +1814,7 @@ export default function OrderFeeTableTabs({
                 ),
               },
             );
+            if (!isWriteResponse(response)) return false;
             message.success(
               `已修改 ${response.updatedCount ?? rows.length} 笔费用的费用时间`,
             );
@@ -1864,6 +1874,7 @@ export default function OrderFeeTableTabs({
                 reason: values.reason?.trim() || undefined,
               },
             );
+            if (!isWriteResponse(response)) return false;
             message.success(
               `已删除 ${response.removedCount ?? rows.length} 笔费用`,
             );

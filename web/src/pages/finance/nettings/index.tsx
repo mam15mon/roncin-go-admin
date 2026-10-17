@@ -30,9 +30,11 @@ import {
   settlementServiceListNettings,
   settlementServiceReverseNetting,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapPage } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
 import { formatAmount, formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
+
+import { nettingExportColumns, nettingStatusText } from './ledgerExport';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
 type NettingLedgerFilterParams = {
@@ -52,21 +54,6 @@ function nettingStatusTag(status?: number) {
       return <Tag color="volcano">已反转</Tag>;
     default:
       return <Tag color="default">未知</Tag>;
-  }
-}
-
-function nettingStatusText(status?: number) {
-  switch (status) {
-    case FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT:
-      return '草稿';
-    case FinanceNettingStatus.FINANCE_NETTING_STATUS_CONFIRMED:
-      return '已确认';
-    case FinanceNettingStatus.FINANCE_NETTING_STATUS_CANCELLED:
-      return '已取消';
-    case FinanceNettingStatus.FINANCE_NETTING_STATUS_REVERSED:
-      return '已反转';
-    default:
-      return '未知';
   }
 }
 
@@ -100,24 +87,36 @@ export default function FinanceNettingsPage() {
   });
 
   const confirmNetting = (record: API.FinanceNetting) => {
-    nettingActions.run(record, async ({ id, expectedVersion }) => {
-      await settlementServiceConfirmNetting({ id }, { id, expectedVersion });
-      message.success('对冲单已确认；双方账单未结余额已按抵销额扣减');
-      reload();
-    });
+    nettingActions.run(
+      record,
+      async ({ id, expectedVersion }): Promise<false | undefined> => {
+        const writeResponse1 = await settlementServiceConfirmNetting(
+          { id },
+          { id, expectedVersion },
+        );
+        if (!isWriteResponse(writeResponse1, true)) return false;
+        message.success('对冲单已确认；双方账单未结余额已按抵销额扣减');
+        reload();
+
+        return undefined;
+      },
+    );
   };
 
   const cancelNetting = (record: API.FinanceNetting) => {
     nettingActions.confirm(
       record,
       `取消 ${record.organizationName || '所属公司未标识'} 的草稿对冲单 ${record.nettingNo || ''}？`,
-      async ({ id, expectedVersion }, reason) => {
-        await settlementServiceCancelNetting(
+      async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
+        const writeResponse2 = await settlementServiceCancelNetting(
           { id },
           { id, expectedVersion, reason },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('对冲单已取消；草稿未占用账单余额');
         reload();
+
+        return undefined;
       },
       {
         placeholder: '请输入取消原因（必填）',
@@ -130,13 +129,16 @@ export default function FinanceNettingsPage() {
     nettingActions.confirm(
       record,
       `反转 ${record.organizationName || '所属公司未标识'} 的已确认对冲单 ${record.nettingNo || ''}？双方账单未结余额将恢复，已开发票与账单折算快照不受影响。`,
-      async ({ id, expectedVersion }, reason) => {
-        await settlementServiceReverseNetting(
+      async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
+        const writeResponse3 = await settlementServiceReverseNetting(
           { id },
           { id, expectedVersion, reason },
         );
+        if (!isWriteResponse(writeResponse3, true)) return false;
         message.success('对冲单已反转；双方账单未结余额已精确恢复');
         reload();
+
+        return undefined;
       },
       {
         placeholder: '请输入反转原因（必填）',
@@ -450,6 +452,7 @@ export default function FinanceNettingsPage() {
         pageSubTitle="往来单位双向费用对冲结算台账"
         headerTitle="对冲结算单列表"
         actionRef={actionRef}
+        exportColumns={nettingExportColumns}
         columns={columns}
         columnSettingsKey="finance:nettings"
         metricCards={metricCards}

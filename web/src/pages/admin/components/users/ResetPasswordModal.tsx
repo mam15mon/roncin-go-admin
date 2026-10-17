@@ -2,6 +2,7 @@ import { ModalForm, ProFormText } from '@ant-design/pro-components';
 import { Alert, App, Typography } from 'antd';
 import React from 'react';
 import { adminServiceResetUserPassword } from '@/services/roncin/adminService';
+import { isWriteResponse } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -37,7 +38,7 @@ export default function ResetPasswordModal({
       }}
       onFinish={async (values) => {
         if (!user?.id) return false;
-        await adminServiceResetUserPassword(
+        const writeResponse1 = await adminServiceResetUserPassword(
           { id: user.id },
           {
             id: user.id,
@@ -45,6 +46,7 @@ export default function ResetPasswordModal({
             username: values.username?.trim() || undefined,
           },
         );
+        if (!isWriteResponse(writeResponse1)) return false;
         message.success(
           user.hasPassword
             ? '密码已重置，该用户现有在线会话已全部失效'

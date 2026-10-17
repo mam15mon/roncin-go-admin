@@ -16,6 +16,7 @@ import {
   orderServiceCheckOrderReference,
   orderServiceCreateOrder,
 } from '@/services/roncin/orderService';
+import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import OrderPageHeader from './components/OrderPageHeader';
@@ -229,6 +230,7 @@ export default function NewOrderPage() {
         ...definition.form.buildCreatePayload(values),
         idempotencyKey: createIdempotencyKeyRef.current,
       });
+      if (!isWriteResponse(response, true)) return false;
       // 创建结果必须以服务端返回的订单 ID 为准；空响应或缺失 ID 时
       // 不提示成功、不跳转、不轮换幂等键，保留表单供同键重试确认，
       // 避免响应丢失时重复建单。

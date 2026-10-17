@@ -21,7 +21,7 @@ import {
   partnerServiceListPartnerAccounts,
   partnerServiceUpdatePartnerAccount,
 } from '@/services/roncin/partnerService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -230,16 +230,18 @@ export default function AccountsPanel({
           };
           try {
             if (editingAccount?.id) {
-              await partnerServiceUpdatePartnerAccount(
+              const writeResponse1 = await partnerServiceUpdatePartnerAccount(
                 { partnerId: partner.id, id: editingAccount.id },
                 { partnerId: partner.id, id: editingAccount.id, account },
               );
+              if (!isWriteResponse(writeResponse1, true)) return false;
               message.success('结算账户已成功更新');
             } else {
-              await partnerServiceCreatePartnerAccount(
+              const writeResponse2 = await partnerServiceCreatePartnerAccount(
                 { partnerId: partner.id },
                 { partnerId: partner.id, account },
               );
+              if (!isWriteResponse(writeResponse2, true)) return false;
               message.success('结算账户已成功创建');
             }
             setModalOpen(false);

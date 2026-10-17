@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FinanceCommissionStatus } from '@/enums.generated';
 import {
   buildCommissionExportFileName,
@@ -57,7 +57,17 @@ describe('提成月份筛选', () => {
   });
 });
 
+afterEach(() => vi.unstubAllEnvs());
+
 describe('提成 CSV', () => {
+  it('生成时间输出本地可读时间', () => {
+    vi.stubEnv('TZ', 'Asia/Shanghai');
+    const content = serializeCommissionCsv([
+      { createdAt: '2026-08-31T09:30:00Z' },
+    ]);
+    expect(content).toContain('2026-08-31 17:30:00');
+    expect(content).not.toContain('T09:30:00Z');
+  });
   it('空结果不生成 CSV', () => {
     expect(serializeCommissionCsv([])).toBeNull();
   });

@@ -8,9 +8,11 @@
   请求链，也禁止使用已废弃的 Umi `useRequest`（底层为 2021 年
   `@ahooksjs/use-request` v2，vitest 不可用、无卸载保护，选型记录见任务
   `09-20-data-layer-direction`）。
-- 单例在 `src/utils/queryClient.ts`，Provider 挂 `app.tsx` childrenRender。
-  默认策略：`retry: false`、`refetchOnWindowFocus: false`、
-  `refetchOnReconnect: false`；不得在调用点覆盖 retry。
+- `src/utils/queryClient.ts` 的 `createQueryClient()` 统一策略；`main.tsx` 的公开入口
+  `queryClient` 仅用于登录配置预热和公开路由。全部认证业务由 `OrganizationWorkspace`
+  内按用户 ID + 工作台 ID keyed 的 Provider 创建独立实例，业务用 `useQueryClient()`
+  消费当前实例，禁止直接导入公开单例。默认 `retry: false`、
+  `refetchOnWindowFocus: false`、`refetchOnReconnect: false`，不得在调用点覆盖 retry。
 - QueryKey 规范：`[域前缀, 实体, 参数对象]`（如
   `['workbench', 'my-receivables', { page, pageSize }]`）；域前缀常量就近收敛，
   写操作后按前缀 `invalidateQueries` 刷新。
@@ -54,13 +56,79 @@
   文案直达用户（案例：2026-09-21 总部用户新建订单）。
 - 命令式写入必须验证实际成功报文才显示成功、关闭表单、导航、刷新或清 dirty/草稿。
   默认统一错误处理消费失败后返回 `undefined` 时立即返回失败，不追加重复错误提示；
-  携带实体的写接口还应验证必要 `data.id` 且 `success !== false`。各接口按真实契约判定，
+  用 `isWriteResponse(response, requireEntityId?)` 做最薄统一守卫，携带实体的写接口
+  应验证必要 `data.id` 且 `success !== false`；`useMutation.onSuccess` 也必须守卫，
+  因为请求 resolve `undefined` 仍会进入 React Query 的成功回调。各接口按真实契约判定，
   禁止 `await api()` 后无条件执行成功逻辑。`ModalForm.onFinish` 失败返回 `false`；
   订单已成功落库后的后台刷新继续 best-effort，不把刷新失败改判为保存失败。
+- 异步写确认使用 `@/components/ui` 的 `AsyncPopconfirm`；官方 Popconfirm 在 Promise
+  resolve 后会关闭，`return false` 本身不能保留弹层。共享组件沿用官方 loading，
+  在回调返回 `false` 或 reject 时保留弹层且不产生未处理拒绝；回调负责已有错误提示。
+  调用方必须把无效写响应转换为 `false`，本地 `catch` 也须返回 `false`，禁止吞掉
+  拒绝后以 `undefined` 被当作完成。仅本地同步确认继续使用原生 Popconfirm。
+- `App.useApp().modal.confirm` 中通过拒绝 `onOk` Promise 保留输入时，必须消费该
+  hook 确认结果，例如 `const confirmation = modal.confirm(...);` 后调用
+  `void confirmation.then(() => {}, () => {});`，或显式 `await`。这会启用 Ant Design
+  的 await/isSilent 模式；仅创建确认框会让 ActionButton 再次拒绝且无人接收，产生
+  未处理拒绝。消费确认结果不会吞掉业务错误反馈，`onOk` 本地 catch 仍须保持失败，
+  不能提示错误后 resolve 并关闭输入。静态 `Modal.confirm` 不具备同一 hook 契约，
+  不得按此写法强制转换类型。
 - 费用工作台已有详情时，后台失效重查不能切换为整页加载占位并卸载子表单；首次加载占位须同时满足无详情数据。撤回重提等会失效订单缓存的动作，须验证真实父页面刷新中及完成后保留预填和新输入。
 - 审核/发放失败回归须覆盖全局消费后的 `undefined`，并断言弹窗、输入和幂等键保留；补录创建、驳回、撤回及批准成功均使费用审核查询失效，避免建账能力停留在旧状态。
 - 开发期走 Vite 代理，生产同域（Go 服务同时提供 `/api/*` 与静态资源）；
   修改打包或路由时两种路径都要验证。
+
+## 场景：认证工作区查询与在途响应隔离
+
+### 1. 适用范围
+
+所有业务 React Query 查询、命令式写入和身份切换，包括换公司、换用户、退出再登录与 A→B→A。
+
+### 2. 签名
+
+- `createQueryClient(): QueryClient`：策略工厂，缓存按实例独立。
+- `OrganizationWorkspace`：身份完整时挂 keyed `WorkspaceQueryProvider`；缺用户或工作台 ID 返回空。
+- `activateWorkspaceRequestScope(): () => void`：layout setup 激活业务响应作用域，cleanup 失效。
+
+### 3. 契约
+
+- 身份变化的首个渲染就使用空缓存，不能靠普通 effect 在已展示旧数据后清理。
+- 工作区 layout cleanup 调用 `client.clear()` 清理旧缓存，忽略 AbortSignal 的迟到查询也不能回写新实例。
+- 普通旧业务响应（成功或全局消费的错误）返回 `undefined`，禁止影响新身份的通知、导航和草稿。
+  `skipErrorHandler: true` 的错误仍原样抛出，由当前消费方负责实例生命周期。
+- 登录、钉钉配置和换码不参与业务工作区清理；不取消这些传输，不改变 Cookie 响应顺序。
+- 同身份重渲染与页签返回复用当前客户端；A→B→A 与退出后重进均是新实例。
+
+### 4. 校验与错误矩阵
+
+| 场景 | 必须结果 |
+| --- | --- |
+| 缺少身份 | 不挂业务子树、不借公开缓存 |
+| 切换用户或工作台 | 首帧无旧缓存，旧客户端清空 |
+| 旧请求延迟成功、失败或 401 | 不回写新缓存，不提示或导航新身份 |
+| 当前请求成功或失败 | 保持既有请求契约 |
+| 公开钉钉预热跨工作区变化 | 返回结果并复用公开缓存 |
+
+### 5. 正常、基准与错误场景
+
+正常：A 抽屉加载后换 B，B 响应到达前为空；基准：同公司翻页保留旧内容。
+错误：所有身份共用一个单例，或切换后的普通 effect 才执行清理。
+
+### 6. 必需测试
+
+真实 Provider 验证首帧、用户/公司变化、A→B→A、匿名、StrictMode、同身份缓存及旧在途结果；
+真实请求层验证旧成功/401/失败和当前成功/失败，回归公开登录预热与换码。浏览器复核真实提成抽屉。
+
+### 7. 错误与正确示例
+
+```tsx
+// 错误：业务缓存跨所有身份保留。
+import { queryClient } from '@/utils/queryClient';
+// 正确：消费当前工作区实例，写入结果先验证再刷新。
+const queryClient = useQueryClient();
+if (!isWriteResponse(response, true)) return false;
+queryClient.invalidateQueries({ queryKey: ['orders'] });
+```
 
 ## 本地状态
 
@@ -294,12 +362,18 @@ actionRef.current?.reload(true);
 
 ### 1. 使用范围
 
-- 适用于同一页面中的服务端分页列表与全量导出共用搜索条件的场景。
-- 导出接口必须使用 OpenAPI 生成客户端；页面只负责筛选规范化、CSV 序列化与
-  浏览器下载，不得自行拼接后端地址或重新推导业务金额。
+- 独立全量导出接口适用于列表与导出共用搜索条件的场景；接口必须使用 OpenAPI
+  生成客户端，不得自行拼接地址或重新推导业务金额。
+- 六类财务台账 `FinanceLedgerTemplate` 仅导出当前页或选中行；按钮和成功提示明确范围，
+  不循环翻页获取全量。导出快照只能来自 ProTable 采纳的数据，禁止在请求 await 后
+  无条件保存迟到或失败响应，导致屏幕与导出不一致。
 
 ### 2. 数据签名
 
+- `CsvColumn<T>`（`header`、`kind?: 'text' | 'number'`、`value(item)`）由各领域
+  `ledgerExport.ts` 定义；模板 `exportColumns` 必传，与界面列显隐/顺序独立。
+  `serializeCsv(items, columns): string | null` 与 `downloadCsv(content, fileName)`
+  位于 `utils/csv.ts`，页面不再从 ProTable `dataIndex` 推断导出。
 - 搜索表单值与请求筛选对象必须使用不同类型；日期控件值只能停留在表单类型中。
 - 提交搜索时，通过单一纯函数把表单值转换为后端请求字段，例如月份开始值转为
   当月首日、月份结束值转为当月末日，单边月份允许另一端缺省。
@@ -312,6 +386,9 @@ actionRef.current?.reload(true);
 - 导出按钮读取已提交筛选，不读取尚未提交的表单编辑值；因此屏幕列表与导出数据
   始终对应同一组查询条件。
 - CSV 列必须与导出 DTO 显式逐列映射并固定顺序；空结果不创建 Blob 或下载链接。
+- 金额使用 `csvAmount` 两位无千分位，汇率/单价/数量/比例用 `csvDecimal` 保留有效精度；
+  原币和本位币分别导出币种。时间用 `formatDate` 本地格式，状态复用现有领域中文映射，
+  标签及关联明细显式展开，禁止 `[object Object]` 或原始业务枚举。
 - CSV 使用 UTF-8 BOM 与 CRLF 行分隔，包含逗号、双引号、回车或换行的单元格按
   RFC 4180 形式加引号并把双引号写成两个双引号。
 
@@ -323,7 +400,8 @@ actionRef.current?.reload(true);
 | 仅选择开始月份 | 只发送开始月首日 |
 | 仅选择结束月份 | 只发送结束月末日 |
 | 文本字段以 `= + - @` 开头，或前导空白后出现这些字符 | 在原值前加单引号，阻止表格软件执行公式 |
-| 后端控制的日期、时间、decimal 字段 | 保持后端字符串原值，不做公式保护，避免改写合法负数 |
+| 受控数值字段 | `kind: 'number'` 且值为合法十进制数时保留负数；其他值仍做公式防护 |
+| 台账金额与时间 | 按两位金额/本地时间契约格式化；纯日期保持日期值 |
 | 导出结果为空 | 提示用户无可导出数据，不创建下载对象 |
 | 导出请求失败 | 由统一请求错误处理呈现失败，不生成部分文件 |
 | 导出成功 | 点击临时下载链接后立即移除链接并回收 Blob URL |
@@ -361,8 +439,8 @@ exportCommissions(committedFiltersRef.current);
 // 错误：对所有单元格做公式保护，会把受控 decimal 的合法负数改成文本。
 escapeCsvCell(protectFormula(value));
 
-// 正确：仅自由文本字段保护公式；受控日期和 decimal 保持后端原值。
-escapeCsvCell(column.kind === 'text' ? protectFormula(value) : value);
+// 正确：显式声明受控金额列，公共序列化验证数字后保留合法负号。
+{ header: '金额', kind: 'number', value: (row) => csvAmount(row.totalAmount) }
 ```
 
 ## 异步业务核对与表单校验同步

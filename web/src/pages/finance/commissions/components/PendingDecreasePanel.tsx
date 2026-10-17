@@ -13,7 +13,7 @@ import {
   settlementServiceListCommissionAdjustments,
   settlementServiceMarkCommissionAdjustmentPaid,
 } from '@/services/roncin/settlementService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import {
   commissionDecreaseStatusMeta,
@@ -95,10 +95,12 @@ export default function PendingDecreasePanel({
       okText: `标记已${action}`,
       onOk: async () => {
         try {
-          await settlementServiceMarkCommissionAdjustmentPaid(
-            { id },
-            { id, expectedVersion: version },
-          );
+          const writeResponse1 =
+            await settlementServiceMarkCommissionAdjustmentPaid(
+              { id },
+              { id, expectedVersion: version },
+            );
+          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
           message.success(`调整已标记为已${action}`);
           reload();
         } catch (error: unknown) {
@@ -109,12 +111,16 @@ export default function PendingDecreasePanel({
           ) {
             message.warning('建议状态已变化，列表已刷新');
             reload();
-            return;
+            throw error;
           }
           message.error((error as Error).message || '标记执行失败');
+          throw error;
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   const columns: ProColumns<Adjustment>[] = [

@@ -240,7 +240,7 @@ describe('Partners 列表页', () => {
       total: 1,
     } as never);
     vi.mocked(partnerServiceSetPartnerRoleBlacklist).mockResolvedValue({
-      success: true,
+      success: true, data: { id: 'p-blacklist' },
     });
 
     render(

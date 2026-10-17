@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '../async-popconfirm';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -28,7 +29,6 @@ import {
   Col,
   Form,
   Input,
-  Popconfirm,
   Select,
   Space,
   Statistic,
@@ -246,10 +246,10 @@ export function MasterDataTemplate<
   const handleFormFinish = async (values: TFormValues) => {
     try {
       if (editingItem && onUpdate) {
-        await onUpdate(editingItem.id, values);
+        if ((await onUpdate(editingItem.id, values)) === false) return false;
         message.success('更新成功');
       } else if (onCreate) {
-        await onCreate(values);
+        if ((await onCreate(values)) === false) return false;
         message.success('创建成功');
       }
       setModalOpen(false);
@@ -257,8 +257,10 @@ export function MasterDataTemplate<
         actionRef.current?.reload();
       }
       if (onRefresh) await onRefresh();
+      return true;
     } catch (err) {
       message.error((err as { message?: string }).message || '操作失败');
+      return false;
     }
   };
 
@@ -297,15 +299,17 @@ export function MasterDataTemplate<
   };
 
   const handleToggleActive = async (record: T) => {
-    if (!onToggleActive) return;
+    if (!onToggleActive) return false;
     try {
-      await onToggleActive(record);
+      if ((await onToggleActive(record)) === false) return false;
       if (isRequestMode) {
         actionRef.current?.reload();
       }
     } catch (err) {
       message.error((err as { message?: string })?.message || '状态切换失败');
+      return false;
     }
+    return true;
   };
 
   // Build Columns
@@ -432,7 +436,7 @@ export function MasterDataTemplate<
                 </Button>
               )}
               {onToggleActive && canEditRow && (
-                <Popconfirm
+                <AsyncPopconfirm
                   title={`确定要${record.enabled ? '停用' : '启用'}【${record.name || record.code}】吗？`}
                   onConfirm={() => handleToggleActive(record)}
                   okText="确定"
@@ -446,7 +450,7 @@ export function MasterDataTemplate<
                   >
                     {record.enabled ? '停用' : '启用'}
                   </Button>
-                </Popconfirm>
+                </AsyncPopconfirm>
               )}
             </Space>
           );

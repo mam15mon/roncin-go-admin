@@ -179,7 +179,7 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
 
   it('整单批准携带 expectedVersion 且确认内容只承诺确认计算结果', async () => {
     approveApplication.mockResolvedValue({
-      success: true,
+      success: true, data: { id: 'app-1' },
     } as Awaited<ReturnType<typeof approveApplication>>);
     listApplications.mockResolvedValue({
       data: [applicationRow()],
@@ -230,7 +230,7 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
 
   it('整单驳回原因必填：空原因不调用接口', async () => {
     rejectApplication.mockResolvedValue({
-      success: true,
+      success: true, data: { id: 'app-1' },
     } as Awaited<ReturnType<typeof rejectApplication>>);
     listApplications.mockResolvedValue({
       data: [applicationRow()],

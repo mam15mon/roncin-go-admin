@@ -34,7 +34,7 @@ import {
   settlementServiceListFinanceFeeTagOptions,
   settlementServiceListFinanceOrganizationOptions,
 } from '@/services/roncin/settlementService';
-import { toTableRequest, unwrapPage } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
 import {
   type FeeLedgerFilterParams,
   FeeLedgerSearchFilter,
@@ -48,6 +48,8 @@ import {
   loadFeeLedgerRowColors,
   saveFeeLedgerRowColors,
 } from './feeLedgerViewPreference';
+
+import { feeExportColumns } from './ledgerExport';
 
 export function resolveSingleBillCreationOrganization(
   rows: API.FeeLedgerItem[],
@@ -399,6 +401,7 @@ export default function FinanceFeeLedgerPage() {
         }
         headerTitle="费用明细台账"
         actionRef={actionRef}
+        exportColumns={feeExportColumns}
         columns={baseColumns}
         metricCards={metricCards}
         customSearch={
@@ -615,25 +618,31 @@ export default function FinanceFeeLedgerPage() {
             organizationId,
           });
         }}
-        onSubmit={async (mode, tagIds) => {
+        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
           if (!organizationId) {
             message.warning('请先选择所属公司后再维护费用标签');
             return;
           }
           if (mode === 'assign') {
-            await settlementServiceBatchAssignFinanceFeeTags({
-              feeIds: tagFeeIds,
-              tagIds,
-              organizationId,
-            });
+            const writeResponse1 =
+              await settlementServiceBatchAssignFinanceFeeTags({
+                feeIds: tagFeeIds,
+                tagIds,
+                organizationId,
+              });
+            if (!isWriteResponse(writeResponse1, 'count')) return false;
           } else {
-            await settlementServiceBatchRemoveFinanceFeeTags({
-              feeIds: tagFeeIds,
-              tagIds,
-              organizationId,
-            });
+            const writeResponse2 =
+              await settlementServiceBatchRemoveFinanceFeeTags({
+                feeIds: tagFeeIds,
+                tagIds,
+                organizationId,
+              });
+            if (!isWriteResponse(writeResponse2, 'count')) return false;
           }
           actionRef.current?.reload();
+
+          return undefined;
         }}
         onCancel={() => setTagModalOpen(false)}
       />

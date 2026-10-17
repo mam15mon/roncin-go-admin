@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -10,7 +11,6 @@ import {
   Card,
   Descriptions,
   Divider,
-  Popconfirm,
   Space,
   Tag,
   Typography,
@@ -30,7 +30,7 @@ type SeaSharedContainerDetailCardProps = {
   onSaveDraft: () => void;
   onConfirm: () => void;
   onWithdraw: () => void;
-  onDelete: () => void;
+  onDelete: () => Promise<unknown>;
 };
 
 /** 选定共享箱详情与守恒监控卡 */
@@ -116,7 +116,7 @@ export default function SeaSharedContainerDetailCard({
               </Button>
             )}
             {!isConfirmed && canDelete && (
-              <Popconfirm
+              <AsyncPopconfirm
                 title="确定删除此共享物理箱？"
                 description="删除后相关草稿分配将一并清理。"
                 onConfirm={onDelete}
@@ -126,7 +126,7 @@ export default function SeaSharedContainerDetailCard({
                 <Button danger icon={<DeleteOutlined />}>
                   删除
                 </Button>
-              </Popconfirm>
+              </AsyncPopconfirm>
             )}
           </Space>
         }

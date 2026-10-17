@@ -11,6 +11,7 @@ import {
   masterDataServiceListItems,
   masterDataServiceUpdateItem,
 } from '@/services/roncin/masterDataService';
+import { isWriteResponse } from '@/utils/api';
 import {
   mapPersistedMasterDataItem,
   type PersistedMasterDataItem,
@@ -69,6 +70,7 @@ export default function CountriesPanel() {
           currencyCode: values.currencyCode.toUpperCase().trim(),
         },
       });
+      if (!isWriteResponse(res, true)) return undefined;
       return { data: requireMasterDataResponse(res) };
     },
     updateItem: async (id, values, enabled, record) => {
@@ -88,6 +90,7 @@ export default function CountriesPanel() {
           },
         },
       );
+      if (!isWriteResponse(res, true)) return undefined;
       return { data: requireMasterDataResponse(res) };
     },
   });

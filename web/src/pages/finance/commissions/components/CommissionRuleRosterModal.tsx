@@ -16,6 +16,7 @@ import {
   settlementServiceAssignCommissionRuleEmployees,
   settlementServiceRemoveCommissionRuleEmployees,
 } from '@/services/roncin/settlementService';
+import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import type { EmployeeOption } from './commissionRuleShared';
 
@@ -172,7 +173,7 @@ function RosterChangeForms({
   const submit = async (
     values: RosterChangeValues,
     action: 'assign' | 'remove',
-  ) => {
+  ): Promise<false | undefined> => {
     if (!values.employeeIds?.length) {
       message.warning(
         action === 'assign' ? '请选择要加入的员工' : '请选择要移除的员工',
@@ -186,16 +187,20 @@ function RosterChangeForms({
     };
     try {
       if (action === 'assign') {
-        await settlementServiceAssignCommissionRuleEmployees(
-          { id: rosterRule.id ?? '' },
-          { id: rosterRule.id ?? '', change },
-        );
+        const writeResponse1 =
+          await settlementServiceAssignCommissionRuleEmployees(
+            { id: rosterRule.id ?? '' },
+            { id: rosterRule.id ?? '', change },
+          );
+        if (!isWriteResponse(writeResponse1, true)) return false;
         message.success('员工已加入方案名单');
       } else {
-        await settlementServiceRemoveCommissionRuleEmployees(
-          { id: rosterRule.id ?? '' },
-          { id: rosterRule.id ?? '', change },
-        );
+        const writeResponse2 =
+          await settlementServiceRemoveCommissionRuleEmployees(
+            { id: rosterRule.id ?? '' },
+            { id: rosterRule.id ?? '', change },
+          );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('员工已按变更生效日退出方案名单');
       }
       if (action === 'assign') {
@@ -207,6 +212,8 @@ function RosterChangeForms({
     } catch (error) {
       onError(error, action === 'assign' ? '加入名单失败' : '移除名单失败');
     }
+
+    return undefined;
   };
 
   return (

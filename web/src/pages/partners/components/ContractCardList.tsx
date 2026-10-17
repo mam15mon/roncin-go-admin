@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   CalendarOutlined,
   DeleteOutlined,
@@ -18,7 +19,6 @@ import {
   Col,
   Empty,
   Form,
-  Popconfirm,
   Row,
   Space,
   Spin,
@@ -34,7 +34,7 @@ import {
   partnerServiceListPartnerContracts,
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 
@@ -126,10 +126,12 @@ export default function ContractCardList({
     setModalOpen(true);
   };
 
-  const handleTerminate = async (item: API.PartnerContract) => {
-    if (!partnerId || !item.id) return;
+  const handleTerminate = async (
+    item: API.PartnerContract,
+  ): Promise<false | undefined> => {
+    if (!partnerId || !item.id) return false;
     try {
-      await partnerServiceUpdatePartnerContract(
+      const writeResponse1 = await partnerServiceUpdatePartnerContract(
         { partnerId, id: item.id },
         {
           partnerId,
@@ -145,11 +147,15 @@ export default function ContractCardList({
           },
         },
       );
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('合同已终止');
       fetchContracts();
     } catch {
       message.error('操作失败');
+      return false;
     }
+
+    return undefined;
   };
 
   const handleSave = async (values: ContractFormValues) => {
@@ -160,7 +166,7 @@ export default function ContractCardList({
       const endDate = dateRange[1].format('YYYY-MM-DD');
 
       if (editingContract?.id) {
-        await partnerServiceUpdatePartnerContract(
+        const writeResponse2 = await partnerServiceUpdatePartnerContract(
           { partnerId, id: editingContract.id },
           {
             partnerId,
@@ -176,9 +182,10 @@ export default function ContractCardList({
             },
           },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('合同信息已更新');
       } else {
-        await partnerServiceCreatePartnerContract(
+        const writeResponse3 = await partnerServiceCreatePartnerContract(
           { partnerId },
           {
             partnerId,
@@ -194,6 +201,7 @@ export default function ContractCardList({
             },
           },
         );
+        if (!isWriteResponse(writeResponse3, true)) return false;
         message.success('合同已添加');
       }
       setModalOpen(false);
@@ -286,7 +294,7 @@ export default function ContractCardList({
                         />
                         {item.status !==
                           PartnerContractStatus.PARTNER_CONTRACT_STATUS_TERMINATED && (
-                          <Popconfirm
+                          <AsyncPopconfirm
                             title="确定要终止此合同吗？"
                             onConfirm={() => handleTerminate(item)}
                             okText="终止"
@@ -300,7 +308,7 @@ export default function ContractCardList({
                               }
                               style={{ padding: '0 4px', height: 22 }}
                             />
-                          </Popconfirm>
+                          </AsyncPopconfirm>
                         )}
                       </Space>
                     )}

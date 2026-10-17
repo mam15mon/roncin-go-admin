@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import { ReloadOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
@@ -6,7 +7,6 @@ import {
   App,
   Button,
   Form,
-  Popconfirm,
   Result,
   Space,
   Spin,
@@ -26,6 +26,7 @@ import {
   seaOrderChangeServiceGetSeaOrderSplitContext,
   seaOrderChangeServicePreviewSeaOrderSplit,
 } from '@/services/roncin/seaOrderChangeService';
+import { isWriteResponse } from '@/utils/api';
 import { computeCanonicalSha256 } from '@/utils/hash';
 import OrderPageHeader from './components/OrderPageHeader';
 import SplitAllocationSection from './components/split/SplitAllocationSection';
@@ -749,13 +750,13 @@ export default function SeaOrderSplitPage() {
   };
 
   // 执行拆票提交
-  const handleExecuteSplit = async () => {
-    if (!ensureSplitEditable()) return;
+  const handleExecuteSplit = async (): Promise<false | undefined> => {
+    if (!ensureSplitEditable()) return false;
     if (!previewData?.isValid || !previewData?.conservationPassed) {
       message.error(
         previewError || '拆票数据未满足守恒校验或存在门禁错误，请检查！',
       );
-      return;
+      return false;
     }
     // 任一结果换入其他母单（含新建）即产生内嵌改配，必须携带外部确认
     let confirmation: API.SeaExternalConfirmationInput | undefined;
@@ -766,7 +767,7 @@ export default function SeaOrderSplitPage() {
         );
       } catch {
         message.error('请完整填写承运方外部确认信息后再执行拆票');
-        return;
+        return false;
       }
     }
     setSubmitting(true);
@@ -783,7 +784,7 @@ export default function SeaOrderSplitPage() {
       const expectedVersions = buildExpectedVersions(results);
       if (!expectedVersions) {
         message.error('未获取到有效拆票版本信息，请刷新重试！');
-        return;
+        return false;
       }
 
       // 稳定指纹与幂等键：同参数输入生成稳定 SHA-256 哈希，参数变化生成新 key
@@ -812,15 +813,19 @@ export default function SeaOrderSplitPage() {
           confirmation,
         },
       );
+      if (!isWriteResponse(resp) || !resp.data?.splitEventId || resp.data.originalOrder?.orderId !== orderId) return false;
 
       const createdCount = resp?.data?.createdOrders?.length || 0;
       message.success(`拆票成功！原票已更新，成功生成 ${createdCount} 张新票`);
       history.push(`/orders/sea-export/${orderId}`);
     } catch (error: unknown) {
       message.error(getErrorMessage(error, '执行拆票失败'));
+      return false;
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   if (!canSplit) {
@@ -972,7 +977,7 @@ export default function SeaOrderSplitPage() {
           <Button onClick={() => history.push(`/orders/sea-export/${orderId}`)}>
             取消返回
           </Button>
-          <Popconfirm
+          <AsyncPopconfirm
             title="确认提交拆票"
             description="拆票将原子锁定订单、分批移转货物、分单与费用并创建新订单。确定提交执行？"
             okText="确认执行"
@@ -995,7 +1000,7 @@ export default function SeaOrderSplitPage() {
             >
               确认执行拆票
             </Button>
-          </Popconfirm>
+          </AsyncPopconfirm>
         </StickyFooterBar>
       </Spin>
     </PageContainer>

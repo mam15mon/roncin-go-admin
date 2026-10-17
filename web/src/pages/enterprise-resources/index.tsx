@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -9,7 +10,7 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import type { UploadFile } from 'antd';
-import { App, Button, Form, Popconfirm, Tabs, Tag } from 'antd';
+import { App, Button, Form, Tabs, Tag } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -43,7 +44,7 @@ import {
   enterpriseResourceServiceUpdateEnterpriseResource,
   enterpriseResourceServiceUpdateEnterpriseTagGroup,
 } from '@/services/roncin/enterpriseResourceService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import BatchAddressTypeModal from './components/BatchAddressTypeModal';
 import BatchAssigneeModal from './components/BatchAssigneeModal';
@@ -288,26 +289,33 @@ const EnterpriseResourcesPage: React.FC = () => {
     return input;
   };
 
-  const saveResource = async () => {
+  const saveResource = async (): Promise<false | undefined> => {
     const values = await form.validateFields();
     setSaving(true);
     try {
       const input = toInput(values);
-      if (editing?.id)
-        await enterpriseResourceServiceUpdateEnterpriseResource(
-          { id: editing.id },
-          { id: editing.id, resource: input },
-        );
-      else
-        await enterpriseResourceServiceCreateEnterpriseResource({
-          resource: input,
-        });
+      if (editing?.id) {
+        const writeResponse1 =
+          await enterpriseResourceServiceUpdateEnterpriseResource(
+            { id: editing.id },
+            { id: editing.id, resource: input },
+          );
+        if (!isWriteResponse(writeResponse1, true)) return false;
+      } else {
+        const writeResponse2 =
+          await enterpriseResourceServiceCreateEnterpriseResource({
+            resource: input,
+          });
+        if (!isWriteResponse(writeResponse2, true)) return false;
+      }
       message.success(editing ? '资源已更新' : '资源已创建');
       setEditorOpen(false);
       actionRef.current?.reload();
     } finally {
       setSaving(false);
     }
+
+    return undefined;
   };
 
   const columns = useMemo<ProColumns<API.EnterpriseResource>[]>(() => {
@@ -495,22 +503,26 @@ const EnterpriseResourcesPage: React.FC = () => {
             </Button>
           ),
           access.canDeleteEnterpriseResources && (
-            <Popconfirm
+            <AsyncPopconfirm
               key="delete"
               title="确认删除此资源？"
-              onConfirm={async () => {
-                if (!record.id) return;
-                await enterpriseResourceServiceDeleteEnterpriseResource({
-                  id: record.id,
-                });
+              onConfirm={async (): Promise<false | undefined> => {
+                if (!record.id) return false;
+                const writeResponse3 =
+                  await enterpriseResourceServiceDeleteEnterpriseResource({
+                    id: record.id,
+                  });
+                if (!isWriteResponse(writeResponse3)) return false;
                 message.success('资源已删除');
                 actionRef.current?.reload();
+
+                return undefined;
               }}
             >
               <Button type="link" danger size="small" icon={<DeleteOutlined />}>
                 删除
               </Button>
-            </Popconfirm>
+            </AsyncPopconfirm>
           ),
         ],
       },
@@ -532,76 +544,99 @@ const EnterpriseResourcesPage: React.FC = () => {
     columns,
   });
 
-  const submitAssociation = async () => {
+  const submitAssociation = async (): Promise<false | undefined> => {
     if (!selectedKeys.length || !associationPartners.length) return;
     const body = {
       resourceIds: selectedKeys.map(String),
       partnerIds: associationPartners,
     };
-    if (associationMode === 'link')
-      await enterpriseResourceServiceBatchCreateAssociations(body);
-    else await enterpriseResourceServiceBatchDeleteAssociations(body);
+    const response =
+      associationMode === 'link'
+        ? await enterpriseResourceServiceBatchCreateAssociations(body)
+        : await enterpriseResourceServiceBatchDeleteAssociations(body);
+    if (!isWriteResponse(response)) return false;
     message.success(associationMode === 'link' ? '已关联企业' : '已解除关联');
     setAssociationOpen(false);
     setSelectedKeys([]);
     actionRef.current?.reload();
+
+    return undefined;
   };
 
-  const submitAddressTypes = async () => {
+  const submitAddressTypes = async (): Promise<false | undefined> => {
     if (!selectedKeys.length || !batchAddressTypes.length) return;
     const body = {
       resourceIds: selectedKeys.map(String),
       addressTypes: batchAddressTypes,
     };
-    if (addressTypeMode === 'assign')
-      await enterpriseResourceServiceBatchAssignAddressTypes(body);
-    else await enterpriseResourceServiceBatchRemoveAddressTypes(body);
+    const response =
+      addressTypeMode === 'assign'
+        ? await enterpriseResourceServiceBatchAssignAddressTypes(body)
+        : await enterpriseResourceServiceBatchRemoveAddressTypes(body);
+    if (!isWriteResponse(response)) return false;
     message.success(
       addressTypeMode === 'assign' ? '已分配地址类型' : '已移除地址类型',
     );
     setAddressTypeOpen(false);
     setSelectedKeys([]);
     actionRef.current?.reload();
+
+    return undefined;
   };
 
-  const submitAssignees = async () => {
+  const submitAssignees = async (): Promise<false | undefined> => {
     if (!selectedKeys.length || !batchAssignees.length) return;
     const body = {
       resourceIds: selectedKeys.map(String),
       assigneeIds: batchAssignees,
     };
-    if (assigneeMode === 'assign')
-      await enterpriseResourceServiceBatchAssignAssignees(body);
-    else await enterpriseResourceServiceBatchRemoveAssignees(body);
+    const response =
+      assigneeMode === 'assign'
+        ? await enterpriseResourceServiceBatchAssignAssignees(body)
+        : await enterpriseResourceServiceBatchRemoveAssignees(body);
+    if (!isWriteResponse(response)) return false;
     message.success(
       assigneeMode === 'assign' ? '已关联人员' : '已移除关联人员',
     );
     setAssigneeOpen(false);
     setSelectedKeys([]);
     actionRef.current?.reload();
+
+    return undefined;
   };
 
-  const saveGroup = async () => {
+  const saveGroup = async (): Promise<false | undefined> => {
     const values = await groupForm.validateFields();
     const color =
       typeof values.color === 'string'
         ? values.color
         : values.color?.toHexString();
-    if (editingGroup?.id)
-      await enterpriseResourceServiceUpdateEnterpriseTagGroup(
-        { id: editingGroup.id },
-        {
-          id: editingGroup.id,
+    if (editingGroup?.id) {
+      const writeResponse10 =
+        await enterpriseResourceServiceUpdateEnterpriseTagGroup(
+          { id: editingGroup.id },
+          {
+            id: editingGroup.id,
+            group: {
+              name: values.name,
+              color,
+              sortOrder: values.sortOrder ?? 0,
+            },
+          },
+        );
+      if (!isWriteResponse(writeResponse10, true)) return false;
+    } else {
+      const writeResponse11 =
+        await enterpriseResourceServiceCreateEnterpriseTagGroup({
           group: { name: values.name, color, sortOrder: values.sortOrder ?? 0 },
-        },
-      );
-    else
-      await enterpriseResourceServiceCreateEnterpriseTagGroup({
-        group: { name: values.name, color, sortOrder: values.sortOrder ?? 0 },
-      });
+        });
+      if (!isWriteResponse(writeResponse11, true)) return false;
+    }
     message.success('标签组已保存');
     setGroupOpen(false);
     await loadTagGroups();
+
+    return undefined;
   };
 
   const previewImport = async () => {
@@ -618,7 +653,7 @@ const EnterpriseResourcesPage: React.FC = () => {
     }
   };
 
-  const commitImport = async () => {
+  const commitImport = async (): Promise<false | undefined> => {
     setImportLoading(true);
     try {
       const response =
@@ -630,6 +665,7 @@ const EnterpriseResourcesPage: React.FC = () => {
           },
           longRequestOptions,
         );
+      if (!isWriteResponse(response)) return false;
       message.success(
         `已新增 ${response.createdCount ?? 0} 条，更新 ${response.updatedCount ?? 0} 条资源`,
       );
@@ -641,6 +677,8 @@ const EnterpriseResourcesPage: React.FC = () => {
     } finally {
       setImportLoading(false);
     }
+
+    return undefined;
   };
 
   const downloadImportTemplate = () => {

@@ -6,6 +6,7 @@ import type {
 import type { TableProps } from 'antd';
 import type React from 'react';
 import type { ReactNode } from 'react';
+import type { CsvColumn } from '@/utils/csv';
 import type { RowColorsConfig } from './RowColorSettings';
 
 /** ProTable 注入到 request 参数中的分页与关键字字段（与筛选表单字段合并） */
@@ -95,7 +96,8 @@ export interface FinanceLedgerTemplateProps<
 
   // 导出/导入
   exportFileName?: string;
-  onExport?: (selectedRows: T[], allRows: T[]) => void;
+  /** 固定业务导出字段，不随界面列偏好丢失币种或金额语义。 */
+  exportColumns: readonly CsvColumn<T>[];
   onImport?: () => void;
 
   // 自定义额外工具栏插槽

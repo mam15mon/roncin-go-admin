@@ -8,6 +8,7 @@
 
 | 场景 | 入口 | 职责 | 不可放入内容 |
 |------|------|------|--------------|
+| 异步写确认气泡 | [`web/src/components/ui/async-popconfirm/index.ts`](../../../../web/src/components/ui/async-popconfirm/index.ts) | `AsyncPopconfirm`：沿用官方 Promise loading；回调 `false` 或 reject 保留弹层，成功关闭；调用方验证报文并负责已有错误反馈 | 领域请求、响应契约猜测、重复通知；本地同步确认仍用原生 Popconfirm |
 | 全站共享布局尺寸与层级 | [`web/config/layout.ts`](../../../../web/config/layout.ts) | 组件数值、CSS变量及顶部栈/导航避让派生尺寸；main首次渲染前安装到html | 普通控件主题、表格列宽、页面专属图形尺寸与媒体查询条件 |
 | 页面骨架、分节表单/详情、CRUD 列表 | [`web/src/components/ui/index.ts`](../../../../web/src/components/ui/index.ts) | `PageHeaderShell`/`SectionCard`/`StickyFooterBar`、`OrderFormTemplate`、`MasterDataTemplate`、`FinanceLedgerTemplate`、`OrderListTemplate`、`SearchFilterTemplate`（grid/bar/custom 三模式列表搜索区，内置已提交条件 chips 回显与单个删除/清除全部，消费方零改动生效）等视觉与结构模板 | 领域请求、领域状态映射；模板内不发起新领域请求 |
 | 表格窄屏展示与横向滚动 | [`web/src/components/ui/responsive-table/index.ts`](../../../../web/src/components/ui/responsive-table/index.ts) | `ResponsiveTable` / `ResponsiveProTable` / `ResponsiveEditableProTable`：实际可见列宽、统一拖拽调宽/双击展开还原、窄容器固定区、官方吸附滚动条与弹层滚动归属 | 业务请求、编辑状态、列偏好；页面复制滚动适配；以整页裁切掩盖溢出 |
@@ -31,6 +32,8 @@
 | 船公司候选 | [`features/master-data/shipping-lines`](../../../../web/src/features/master-data/shipping-lines/index.ts) | `searchShippingLineOptions` 服务端关键字搜索 | 循环翻页拼接全量 |
 | 通用候选类型 | [`types/select-option.ts`](../../../../web/src/types/select-option.ts) | `SelectOption` 基础字段，业务类型按领域组合 | 散客、信用超额等业务字段 |
 | 权限判定 | [`web/src/app/access.tsx`](../../../../web/src/app/access.tsx) | `useAccess` 唯一权限消费入口（键名来自生成物） | 页面硬编码第二套权限规则 |
+| CSV 序列化与下载 | [`web/src/utils/csv.ts`](../../../../web/src/utils/csv.ts) | `CsvColumn`/`serializeCsv`/`downloadCsv`：BOM、CRLF、文本公式防护、数值精度与下载清理；财务字段映射留各页 `ledgerExport.ts` | 从界面 `dataIndex` 推断业务导出、循环翻页获取全量、重新计算业务金额 |
+| 认证业务查询缓存 | [`web/src/components/layout/OrganizationWorkspace.tsx`](../../../../web/src/components/layout/OrganizationWorkspace.tsx) | 用户+工作台独立 QueryClient Provider，身份缺失不挂业务，卸载清理缓存与迟到反馈；组件通过 `useQueryClient` 消费 | 业务直接导入公开登录预热单例、只在普通 effect 清缓存 |
 | 后端请求 | [`web/src/services/roncin/`](../../../../web/src/services/roncin/) | OpenAPI 生成客户端（禁手改） | 页面自拼后端主机地址 |
 
 ## 何时提取新能力（单一路径）

@@ -49,6 +49,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', async () => ({
+  AsyncPopconfirm: (await import('@/components/ui/async-popconfirm'))
+    .AsyncPopconfirm,
   ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   SearchFilterTemplate: ({
     extraRight,

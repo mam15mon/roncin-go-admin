@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import type { FormInstance } from 'antd';
 import {
   Button,
@@ -6,12 +7,12 @@ import {
   Input,
   InputNumber,
   Modal,
-  Popconfirm,
   Space,
   Tag,
 } from 'antd';
 import type { Dispatch, SetStateAction } from 'react';
 import { enterpriseResourceServiceDeleteEnterpriseTagGroup } from '@/services/roncin/enterpriseResourceService';
+import { isWriteResponse } from '@/utils/api';
 
 type TagGroupModalProps = {
   open: boolean;
@@ -73,20 +74,24 @@ export default function TagGroupModal({
                 >
                   编辑
                 </Button>
-                <Popconfirm
+                <AsyncPopconfirm
                   title="仅空标签组可删除，确认删除？"
-                  onConfirm={async () => {
-                    if (!group.id) return;
-                    await enterpriseResourceServiceDeleteEnterpriseTagGroup({
-                      id: group.id,
-                    });
+                  onConfirm={async (): Promise<false | undefined> => {
+                    if (!group.id) return false;
+                    const writeResponse1 =
+                      await enterpriseResourceServiceDeleteEnterpriseTagGroup({
+                        id: group.id,
+                      });
+                    if (!isWriteResponse(writeResponse1)) return false;
                     await loadTagGroups();
+
+                    return undefined;
                   }}
                 >
                   <Button type="link" danger size="small">
                     删除
                   </Button>
-                </Popconfirm>
+                </AsyncPopconfirm>
               </Space>
             </Space>
           ))}

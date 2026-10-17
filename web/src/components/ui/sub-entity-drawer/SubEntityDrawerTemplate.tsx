@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '../async-popconfirm';
 import { PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
@@ -5,7 +6,7 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ModalForm } from '@ant-design/pro-components';
-import { App, Button, Drawer, Popconfirm, Space } from 'antd';
+import { App, Button, Drawer, Space } from 'antd';
 import React, {
   forwardRef,
   type ReactNode,
@@ -13,7 +14,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
 
@@ -158,20 +159,21 @@ export function SubEntityDrawerTemplateInner<
             </Button>
           )}
           {canRemove && removeItem && (
-            <Popconfirm
+            <AsyncPopconfirm
               title={`确定移除该${entityName}？`}
               onConfirm={async () => {
-                if (!parentRecord) return;
+                if (!parentRecord) return false;
                 const removed = await removeItem(record, parentRecord);
-                if (removed === false) return;
+                if (!isWriteResponse(removed)) return false;
                 message.success(`移除${entityName}成功`);
                 actionRef.current?.reload();
+                return true;
               }}
             >
               <Button type="link" danger size="small">
                 删除
               </Button>
-            </Popconfirm>
+            </AsyncPopconfirm>
           )}
         </Space>
       ),
@@ -274,10 +276,16 @@ export function SubEntityDrawerTemplateInner<
         onFinish={async (values) => {
           if (!parentRecord) return false;
           if (editingItem && updateItemProp) {
-            await updateItemProp(editingItem, values, parentRecord);
+            const response = await updateItemProp(
+              editingItem,
+              values,
+              parentRecord,
+            );
+            if (!isWriteResponse(response, true)) return false;
             message.success(`更新${entityName}成功`);
           } else if (createItem) {
-            await createItem(values, parentRecord);
+            const response = await createItem(values, parentRecord);
+            if (!isWriteResponse(response, true)) return false;
             message.success(`添加${entityName}成功`);
           }
           setModalOpen(false);

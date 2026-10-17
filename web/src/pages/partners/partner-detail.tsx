@@ -491,7 +491,7 @@ export default function PartnerDetailPage() {
   };
 
   // Submit Handler (Atomic Save)
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<false | undefined> => {
     const submittedGeneration = identityGenerationRef.current;
     if (!canSave) {
       message.error(isCreate ? '暂无创建权限' : '暂无编辑权限');
@@ -689,6 +689,8 @@ export default function PartnerDetailPage() {
       if (submittedGeneration === identityGenerationRef.current)
         setSaving(false);
     }
+
+    return undefined;
   };
 
   const displayTitle = partner?.legalName

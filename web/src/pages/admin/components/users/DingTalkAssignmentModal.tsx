@@ -6,6 +6,7 @@ import { ProFormSearchableSelect } from '@/components/ui';
 import { AdminOrganizationKind } from '@/enums.generated';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { adminServiceBatchAuthorizeDingTalkUsers } from '@/services/roncin/adminService';
+import { isWriteResponse } from '@/utils/api';
 import OrganizationRolesField from './OrganizationRolesField';
 import { formatOrganizationHierarchyName } from './userConstants';
 
@@ -94,6 +95,7 @@ export default function DingTalkAssignmentModal({
             },
             { skipErrorHandler: true },
           );
+          if (!isWriteResponse(response)) return false;
           if (
             !response?.success ||
             !Array.isArray(response.data) ||

@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   CheckOutlined,
   CloseCircleOutlined,
@@ -5,7 +6,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
-import { Popconfirm, Space, Tag } from 'antd';
+import { Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import { makeValueEnum, statusTag } from '@/constants/statusMeta';
@@ -21,7 +22,7 @@ interface GetFinanceBillColumnsParams {
   };
   onOpenDetail: (bill: API.FinanceBill) => void;
   onOpenEdit: (bill: API.FinanceBill) => void;
-  onConfirmBill: (bill: API.FinanceBill) => void;
+  onConfirmBill: (bill: API.FinanceBill) => Promise<unknown>;
   onCancelBill: (bill: API.FinanceBill) => void;
 }
 
@@ -269,15 +270,15 @@ export function getFinanceBillColumns({
         access.canConfirmFinanceBills &&
         access.canOperateOrganization(row.organizationId) &&
         row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
-          <Popconfirm
+          <AsyncPopconfirm
             key="confirm"
             title={`确认 ${row.organizationName || '所属公司未标识'} 的该账单？确认后将锁定对账金额并进入开票与核销`}
-            onConfirm={() => void onConfirmBill(row)}
+            onConfirm={() => onConfirmBill(row)}
           >
             <a>
               <CheckOutlined /> 确认
             </a>
-          </Popconfirm>
+          </AsyncPopconfirm>
         ) : null,
         access.canUpdateFinanceBills &&
         access.canOperateOrganization(row.organizationId) &&

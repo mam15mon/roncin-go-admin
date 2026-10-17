@@ -34,6 +34,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', async () => ({
+  AsyncPopconfirm: (await import('@/components/ui/async-popconfirm'))
+    .AsyncPopconfirm,
   ResponsiveTable: (await import('antd')).Table,
   ProFormSearchableSelect: (props: Record<string, unknown>) => {
     searchableSelectState.set(String(props.name), props);
@@ -200,7 +202,7 @@ beforeEach(() => {
   formState.setFieldValue.mockReset();
   for (const mock of Object.values(serviceMocks)) {
     mock.mockReset();
-    mock.mockResolvedValue({ data: [] });
+    mock.mockResolvedValue({ success: true, data: [] });
   }
 });
 

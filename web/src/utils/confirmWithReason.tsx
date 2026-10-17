@@ -11,10 +11,10 @@ export type ConfirmWithReasonOptions = {
 };
 
 /** 弹出操作原因确认框；默认必填，optional 模式下原因选填。 */
-export function confirmWithReason(
+export async function confirmWithReason(
   app: Pick<AppInstance, 'modal' | 'message'>,
   title: string,
-  onSubmit: (reason: string) => Promise<void>,
+  onSubmit: (reason: string) => Promise<unknown>,
   options: ConfirmWithReasonOptions = {},
 ) {
   let reason = '';
@@ -45,7 +45,9 @@ export function confirmWithReason(
         app.message.warning(requiredMessage);
         return;
       }
-      return onSubmit(reason);
+      return onSubmit(reason).then((result) => {
+        if (result === false) throw new Error('操作未成功');
+      });
     },
   });
 }

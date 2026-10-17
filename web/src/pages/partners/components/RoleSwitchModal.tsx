@@ -13,6 +13,7 @@ import {
 import React, { useEffect } from 'react';
 import { PartnerRoleType } from '@/enums.generated';
 import { partnerServiceUpdatePartner } from '@/services/roncin/partnerService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 
 const { Text } = Typography;
@@ -61,7 +62,7 @@ export default function RoleSwitchModal({
     form.setFieldsValue({ roleTypes: [type] });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<false | undefined> => {
     if (!partner?.id) return;
     try {
       const values = await form.validateFields();
@@ -79,7 +80,7 @@ export default function RoleSwitchModal({
         enabled: true,
       }));
 
-      await partnerServiceUpdatePartner(
+      const writeResponse1 = await partnerServiceUpdatePartner(
         { id: partner.id },
         {
           id: partner.id,
@@ -91,6 +92,7 @@ export default function RoleSwitchModal({
           roles: roleInputs,
         },
       );
+      if (!isWriteResponse(writeResponse1, true)) return false;
 
       message.success('业务角色转换成功');
       onSuccess();
@@ -100,6 +102,8 @@ export default function RoleSwitchModal({
     } finally {
       setSubmitting(false);
     }
+
+    return undefined;
   };
 
   const activeRoleNames = (partner?.roles ?? [])

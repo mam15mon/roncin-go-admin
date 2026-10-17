@@ -31,10 +31,10 @@ export function makeVersionActions<T extends VersionedRecord>(
   return {
     run(
       record: T,
-      onSubmit: (params: VersionParams<T>, record: T) => Promise<void>,
+      onSubmit: (params: VersionParams<T>, record: T) => Promise<unknown>,
     ) {
       const params = paramsOf(record);
-      if (!params) return Promise.resolve();
+      if (!params) return Promise.resolve(false);
       return onSubmit(params, record);
     },
     confirm(
@@ -44,7 +44,7 @@ export function makeVersionActions<T extends VersionedRecord>(
         params: VersionParams<T>,
         reason: string,
         record: T,
-      ) => Promise<void>,
+      ) => Promise<unknown>,
       options?: ConfirmWithReasonOptions,
     ) {
       const params = paramsOf(record);

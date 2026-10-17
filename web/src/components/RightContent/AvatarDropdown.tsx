@@ -5,6 +5,7 @@ import { useInitialState } from '@/app/AppProvider';
 import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { history } from '@/router/history';
 import { authServiceLogout } from '@/services/roncin/authService';
+import { isWriteResponse } from '@/utils/api';
 import HeaderDropdown from '../HeaderDropdown';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -24,9 +25,10 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
 
   if (!initialState?.currentUser) return <Spin size="small" />;
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     try {
-      await authServiceLogout({});
+      const writeResponse1 = await authServiceLogout({});
+      if (!isWriteResponse(writeResponse1)) return;
       clearOrderMasterDataCache();
       startTransition(() => {
         setInitialState((state) => ({ ...state, currentUser: undefined }));

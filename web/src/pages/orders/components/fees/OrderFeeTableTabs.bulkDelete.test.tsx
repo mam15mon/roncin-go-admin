@@ -21,7 +21,7 @@ describe('OrderFeeTableTabs 批量删除', () => {
   beforeEach(resetBulkActionMocks);
 
   it('批量删除：二次确认展示笔数，删除原因随请求传递', async () => {
-    bulkRemove.mockResolvedValueOnce({ removedCount: 1 } as any);
+    bulkRemove.mockResolvedValueOnce({ success: true, removedCount: 1 } as any);
     listFees.mockResolvedValue({ data: [unbilledFeeA] } as any);
     const { props } = makeProps('order-1');
     props.selectedReceivableFeeIds = ['fee-a'];

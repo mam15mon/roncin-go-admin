@@ -8,6 +8,7 @@ import { Alert, App } from 'antd';
 import React, { useRef } from 'react';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceCreateOrganization } from '@/services/roncin/adminService';
+import { isWriteResponse } from '@/utils/api';
 import {
   type CreateFormValues,
   getChildOrganizationKind,
@@ -61,6 +62,7 @@ export default function OrgCreateModal({
                 ? values.baseCurrency?.trim().toUpperCase()
                 : undefined,
           });
+          if (!isWriteResponse(response, true)) return false;
           message.success(`${childKindMeta?.label}已成功创建`);
           onOpenChange(false);
           await onSuccess(response.data?.id);

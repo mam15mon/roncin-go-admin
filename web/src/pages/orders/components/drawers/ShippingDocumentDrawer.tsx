@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import { PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
@@ -9,7 +10,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Alert, App, Button, Drawer, Popconfirm, Space, Tag } from 'antd';
+import { Alert, App, Button, Drawer, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   DRAWER_SIZE,
@@ -26,7 +27,7 @@ import {
   orderShippingDocumentServiceTransitionShippingDocumentStatus,
   orderShippingDocumentServiceUpdateShippingDocument,
 } from '@/services/roncin/orderShippingDocumentService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import {
   isUnimplementedTransportMode,
   shippingDocumentStatusValueEnum,
@@ -189,72 +190,84 @@ const ShippingDocumentDrawer = forwardRef<
               </a>
             )}
             {isDraft && (
-              <Popconfirm
+              <AsyncPopconfirm
                 title="确认提单"
                 description="确认后提单将进入已确认状态，确定继续？"
-                onConfirm={async () => {
-                  await orderShippingDocumentServiceTransitionShippingDocumentStatus(
-                    {
-                      orderId: order.id as string,
-                      id: record.id as string,
-                    },
-                    {
-                      orderId: order.id as string,
-                      id: record.id as string,
-                      expectedStatus:
-                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT,
-                      toStatus:
-                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED,
-                    },
-                  );
+                onConfirm={async (): Promise<false | undefined> => {
+                  const writeResponse1 =
+                    await orderShippingDocumentServiceTransitionShippingDocumentStatus(
+                      {
+                        orderId: order.id as string,
+                        id: record.id as string,
+                      },
+                      {
+                        orderId: order.id as string,
+                        id: record.id as string,
+                        expectedStatus:
+                          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_DRAFT,
+                        toStatus:
+                          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED,
+                      },
+                    );
+                  if (!isWriteResponse(writeResponse1, true)) return false;
                   message.success('提单已确认');
                   actionRef.current?.reload();
+
+                  return undefined;
                 }}
               >
                 <a style={{ color: '#1677ff' }}>确认</a>
-              </Popconfirm>
+              </AsyncPopconfirm>
             )}
             {isConfirmed && (
-              <Popconfirm
+              <AsyncPopconfirm
                 title="放行提单"
                 description="放行后提单将无法再次编辑或删除，确定继续？"
-                onConfirm={async () => {
-                  await orderShippingDocumentServiceTransitionShippingDocumentStatus(
-                    {
-                      orderId: order.id as string,
-                      id: record.id as string,
-                    },
-                    {
-                      orderId: order.id as string,
-                      id: record.id as string,
-                      expectedStatus:
-                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED,
-                      toStatus:
-                        OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED,
-                    },
-                  );
+                onConfirm={async (): Promise<false | undefined> => {
+                  const writeResponse2 =
+                    await orderShippingDocumentServiceTransitionShippingDocumentStatus(
+                      {
+                        orderId: order.id as string,
+                        id: record.id as string,
+                      },
+                      {
+                        orderId: order.id as string,
+                        id: record.id as string,
+                        expectedStatus:
+                          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_CONFIRMED,
+                        toStatus:
+                          OrderShippingDocumentStatus.ORDER_SHIPPING_DOCUMENT_STATUS_RELEASED,
+                      },
+                    );
+                  if (!isWriteResponse(writeResponse2, true)) return false;
                   message.success('提单已放行');
                   actionRef.current?.reload();
+
+                  return undefined;
                 }}
               >
                 <a style={{ color: '#52c41a' }}>放行</a>
-              </Popconfirm>
+              </AsyncPopconfirm>
             )}
             {!isReleased && (
-              <Popconfirm
+              <AsyncPopconfirm
                 title="删除提单"
                 description="确定要删除该分单吗？"
-                onConfirm={async () => {
-                  await orderShippingDocumentServiceRemoveShippingDocument({
-                    orderId: order.id as string,
-                    id: record.id as string,
-                  });
+                onConfirm={async (): Promise<false | undefined> => {
+                  const writeResponse3 =
+                    await orderShippingDocumentServiceRemoveShippingDocument({
+                      orderId: order.id as string,
+                      id: record.id as string,
+                    });
+                  if (!isWriteResponse(writeResponse3)) return false;
                   message.success('删除提单成功');
                   actionRef.current?.reload();
+
+                  return undefined;
                 }}
               >
                 <a style={{ color: '#ff4d4f' }}>删除</a>
-              </Popconfirm>
+              </AsyncPopconfirm>
             )}
           </Space>
         );
@@ -355,32 +368,36 @@ const ShippingDocumentDrawer = forwardRef<
         onFinish={async (values) => {
           if (!order?.id) return false;
           if (editingShippingDocument?.id) {
-            await orderShippingDocumentServiceUpdateShippingDocument(
-              {
-                orderId: order.id,
-                id: editingShippingDocument.id,
-              },
-              {
-                orderId: order.id,
-                id: editingShippingDocument.id,
-                houseNo: values.houseNo.trim(),
-                releaseType: values.releaseType?.trim() || undefined,
-                note: values.note?.trim() || undefined,
-              },
-            );
+            const writeResponse4 =
+              await orderShippingDocumentServiceUpdateShippingDocument(
+                {
+                  orderId: order.id,
+                  id: editingShippingDocument.id,
+                },
+                {
+                  orderId: order.id,
+                  id: editingShippingDocument.id,
+                  houseNo: values.houseNo.trim(),
+                  releaseType: values.releaseType?.trim() || undefined,
+                  note: values.note?.trim() || undefined,
+                },
+              );
+            if (!isWriteResponse(writeResponse4, true)) return false;
             message.success('更新分单成功');
           } else {
-            await orderShippingDocumentServiceAddShippingDocument(
-              {
-                orderId: order.id,
-              },
-              {
-                orderId: order.id,
-                houseNo: values.houseNo.trim(),
-                releaseType: values.releaseType?.trim() || undefined,
-                note: values.note?.trim() || undefined,
-              },
-            );
+            const writeResponse5 =
+              await orderShippingDocumentServiceAddShippingDocument(
+                {
+                  orderId: order.id,
+                },
+                {
+                  orderId: order.id,
+                  houseNo: values.houseNo.trim(),
+                  releaseType: values.releaseType?.trim() || undefined,
+                  note: values.note?.trim() || undefined,
+                },
+              );
+            if (!isWriteResponse(writeResponse5, true)) return false;
             message.success('添加分单成功');
           }
           setModalOpen(false);

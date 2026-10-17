@@ -209,7 +209,7 @@ describe('核销创建工作台组织候选', () => {
         bills: [{ id: 'bill-a', billNo: 'BILL-A', unverifiedAmount: '10' }],
       },
     });
-    serviceMocks.createVerification.mockResolvedValue({ data: {} });
+    serviceMocks.createVerification.mockResolvedValue({ data: { id: 'verification-new' } });
   });
 
   const selectOrganizationAndParty = async (organizationName: string) => {

@@ -26,6 +26,7 @@ import {
   seaOrderChangeServiceExecuteSeaOrderReassignment,
   seaOrderChangeServicePreviewSeaOrderReassignment,
 } from '@/services/roncin/seaOrderChangeService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { computeCanonicalSha256 } from '@/utils/hash';
 import SeaExternalConfirmationFields, {
@@ -405,40 +406,47 @@ export const SeaOrderReassignmentModal: React.FC<
             const fingerprint = `reassign-fp:${hash}`;
             const idempotencyKey = `reassign:${orderId}:${hash}`;
 
-            await seaOrderChangeServiceExecuteSeaOrderReassignment(
-              { orderId },
-              {
-                orderId,
-                idempotencyKey,
-                requestFingerprint: fingerprint,
-                target: targetInput,
-                reason: values.reason.trim(),
-                responsibilityType: values.responsibilityType,
-                responsiblePartnerId: values.responsiblePartnerId || undefined,
-                confirmation,
-                expectedOrderVersion: orderVersion,
-                expectedLinkVersion: linkVersion,
-                expectedCandidateMblVersion:
-                  targetType === 'candidate'
-                    ? String(candidateMatched?.version)
-                    : undefined,
-                expectedCandidateTeVersion:
-                  targetType === 'candidate'
-                    ? String(candidateTe?.version)
-                    : undefined,
-              },
-            );
+            const writeResponse1 =
+              await seaOrderChangeServiceExecuteSeaOrderReassignment(
+                { orderId },
+                {
+                  orderId,
+                  idempotencyKey,
+                  requestFingerprint: fingerprint,
+                  target: targetInput,
+                  reason: values.reason.trim(),
+                  responsibilityType: values.responsibilityType,
+                  responsiblePartnerId:
+                    values.responsiblePartnerId || undefined,
+                  confirmation,
+                  expectedOrderVersion: orderVersion,
+                  expectedLinkVersion: linkVersion,
+                  expectedCandidateMblVersion:
+                    targetType === 'candidate'
+                      ? String(candidateMatched?.version)
+                      : undefined,
+                  expectedCandidateTeVersion:
+                    targetType === 'candidate'
+                      ? String(candidateTe?.version)
+                      : undefined,
+                },
+              );
+            if (!isWriteResponse(writeResponse1) || !writeResponse1.data?.reassignmentEventId || writeResponse1.data.orderId !== orderId) return Promise.reject();
 
             message.success('整票改配成功！航程与母单已更新');
             onSuccess();
             onClose();
           } catch (error: unknown) {
             message.error(getErrorMessage(error, '执行改配失败'));
+            throw error;
           } finally {
             setSubmitting(false);
           }
         },
-      });
+      }).then(
+      () => {},
+      () => {},
+    );
     } catch (_error: unknown) {
       // 表单校验未通过
     }

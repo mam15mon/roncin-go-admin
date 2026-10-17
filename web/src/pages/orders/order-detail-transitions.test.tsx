@@ -42,7 +42,7 @@ function createApp() {
       modal: {
         confirm: vi.fn((nextConfig) => {
           config = nextConfig;
-          return {};
+          return Promise.resolve(false);
         }),
       },
       message: {

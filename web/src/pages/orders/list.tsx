@@ -18,6 +18,7 @@ import {
   orderTagServiceBatchRemoveOrderTags,
   orderTagServiceListOrderTagOptions,
 } from '@/services/roncin/orderTagService';
+import { isWriteResponse } from '@/utils/api';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
@@ -347,7 +348,7 @@ export default function OrderListPage() {
           (row) => row.rawRecord?.tags ?? row.tags ?? [],
         )}
         canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
-        onSubmit={async (mode, tagIds) => {
+        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
           if (
             !tagRows.length ||
             tagRows.some(
@@ -358,21 +359,25 @@ export default function OrderListPage() {
             return;
           const orderIds = tagRows.map((row) => row.id);
           if (mode === 'assign') {
-            await orderTagServiceBatchAssignOrderTags({
+            const writeResponse1 = await orderTagServiceBatchAssignOrderTags({
               businessType: definition.businessType as number,
               orderIds,
               tagIds,
             });
+            if (!isWriteResponse(writeResponse1, 'count')) return false;
             message.success(`已为 ${orderIds.length} 个订单添加标签`);
           } else {
-            await orderTagServiceBatchRemoveOrderTags({
+            const writeResponse2 = await orderTagServiceBatchRemoveOrderTags({
               businessType: definition.businessType as number,
               orderIds,
               tagIds,
             });
+            if (!isWriteResponse(writeResponse2, 'count')) return false;
             message.success(`已从 ${orderIds.length} 个订单移除标签`);
           }
           actionRef.current?.reload();
+
+          return undefined;
         }}
         onCancel={() => setTagModalOpen(false)}
       />

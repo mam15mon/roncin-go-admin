@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import { ApartmentOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ModalForm, ProFormText } from '@ant-design/pro-components';
@@ -6,7 +7,6 @@ import {
   Alert,
   App,
   Button,
-  Popconfirm,
   Segmented,
   Space,
   Tag,
@@ -25,7 +25,7 @@ import {
   adminServiceListUserMemberships,
   adminServiceUpdateUser,
 } from '@/services/roncin/adminService';
-import { ensureListResponse, unwrapList } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapList } from '@/utils/api';
 import UserMembershipModal from './UserMembershipModal';
 import {
   formatOrganizationHierarchyName,
@@ -172,23 +172,26 @@ export default function UserFormModal({
               编辑
             </Button>
             {membership.enabled && (
-              <Popconfirm
+              <AsyncPopconfirm
                 title={`确定从“${membership.organizationName || '该组织'}”移除？`}
                 description="移出后会停用并保留该组织关系、清除该组织角色并撤销在线会话，其他组织不受影响。在职用户不能移出最后一个有效组织。"
                 okText="移除"
                 cancelText="取消"
                 okButtonProps={{ danger: true }}
                 disabled={editing?.id === currentUserId}
-                onConfirm={async () => {
-                  if (!editing?.id || !membership.id) return;
+                onConfirm={async (): Promise<false | undefined> => {
+                  if (!editing?.id || !membership.id) return false;
                   const response = await adminServiceDeleteUserMembership({
                     userId: editing.id,
                     id: membership.id,
                   });
+                  if (!isWriteResponse(response)) return false;
                   if (!response) return;
                   message.success('已从组织移除该用户');
                   await loadMemberships(editing.id);
                   onReload();
+
+                  return undefined;
                 }}
               >
                 <Button
@@ -199,7 +202,7 @@ export default function UserFormModal({
                 >
                   移除
                 </Button>
-              </Popconfirm>
+              </AsyncPopconfirm>
             )}
           </Space>
         ) : null,
@@ -256,6 +259,7 @@ export default function UserFormModal({
               enabled: true,
             },
           );
+          if (!isWriteResponse(response, true)) return false;
           if (!response) return false;
           message.success('用户已成功更新');
         } else {
@@ -266,6 +270,7 @@ export default function UserFormModal({
             email: values.email?.trim() || undefined,
             roleIds: values.roleIds ?? [],
           });
+          if (!isWriteResponse(response, true)) return false;
           if (!response) return false;
           message.success('用户已成功创建');
         }

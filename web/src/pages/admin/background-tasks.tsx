@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   ClockCircleOutlined,
   RedoOutlined,
@@ -12,7 +13,6 @@ import {
   App,
   Button,
   Descriptions,
-  Popconfirm,
   Space,
   Tabs,
   Tag,
@@ -37,7 +37,7 @@ import {
   backgroundTaskServiceListBackgroundTasks,
   backgroundTaskServiceRequeueBackgroundTask,
 } from '@/services/roncin/backgroundTaskService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 import {
@@ -237,27 +237,32 @@ export default function BackgroundTasksPanel() {
         )
           return null;
         return (
-          <Popconfirm
+          <AsyncPopconfirm
             title="确定重新执行此任务？"
             description="任务将恢复为待执行状态，并由后台服务重新处理"
-            onConfirm={async () => {
-              if (!record.id) return;
+            onConfirm={async (): Promise<false | undefined> => {
+              if (!record.id) return false;
               try {
-                await backgroundTaskServiceRequeueBackgroundTask(
-                  { id: record.id },
-                  { id: record.id },
-                );
+                const writeResponse1 =
+                  await backgroundTaskServiceRequeueBackgroundTask(
+                    { id: record.id },
+                    { id: record.id },
+                  );
+                if (!isWriteResponse(writeResponse1, true)) return false;
                 message.success('任务已加入重新执行队列');
                 actionRef.current?.reload();
               } catch (err) {
                 message.error(getErrorMessage(err, '重新执行任务失败'));
+                return false;
               }
+
+              return undefined;
             }}
           >
             <Button type="link" size="small" icon={<RedoOutlined />}>
               重新执行
             </Button>
-          </Popconfirm>
+          </AsyncPopconfirm>
         );
       },
     },

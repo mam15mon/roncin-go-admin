@@ -38,7 +38,7 @@ describe('SeaTransportExecutionUpdateModal', () => {
     });
     vi.mocked(
       seaOrderChangeServiceExecuteSeaTransportExecutionUpdate,
-    ).mockResolvedValue({ success: true });
+    ).mockResolvedValue({ success: true, transportExecution: { id: 'te-1' }, versionId: 'version-2' });
     const onSuccess = vi.fn();
 
     render(

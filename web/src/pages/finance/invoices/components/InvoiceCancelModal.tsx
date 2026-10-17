@@ -16,7 +16,7 @@ interface InvoiceCancelModalProps {
   cancelForm: FormInstance<CancelValues>;
   cancelTarget?: API.FinanceInvoice;
   onCancel: () => void;
-  onOk: () => Promise<void>;
+  onOk: () => Promise<unknown>;
 }
 
 /** 草稿显示「取消」，已开票显示带线下税务条件危险提示的「作废」确认。 */

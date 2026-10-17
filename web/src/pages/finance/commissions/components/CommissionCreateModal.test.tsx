@@ -211,7 +211,7 @@ describe('提成预览 CNY 快照', () => {
   it('核销来源创建请求体携带员工与身份而不携带 nettingId 与规则', async () => {
     const onSuccess = vi.fn();
     serviceMocks.createCommission.mockResolvedValue({
-      data: { cnyCommissionAmount: '401.00000000' },
+      data: { id: 'commission-new', cnyCommissionAmount: '401.00000000' },
     });
     renderWithClient(
       <App>
@@ -372,7 +372,7 @@ describe('提成预览 CNY 快照', () => {
         lines: [],
       },
     });
-    serviceMocks.createCommission.mockResolvedValue({ data: {} });
+    serviceMocks.createCommission.mockResolvedValue({ data: { id: 'commission-new' } });
     renderWithClient(
       <App>
         <CommissionCreateModal

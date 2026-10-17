@@ -26,7 +26,7 @@ import {
   partnerServiceListPartnerSettlementRules,
   partnerServiceUpdatePartnerSettlementRule,
 } from '@/services/roncin/partnerService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 
 const roleOptions = [
   {
@@ -396,32 +396,36 @@ export default function SettlementRulesPanel({
                 : undefined,
           };
           if (editingRule?.id) {
-            await partnerServiceUpdatePartnerSettlementRule(
-              {
-                partnerId: partner.id,
-                roleType: values.roleType,
-                id: editingRule.id,
-              },
-              {
-                partnerId: partner.id,
-                roleType: values.roleType,
-                id: editingRule.id,
-                rule,
-              },
-            );
+            const writeResponse1 =
+              await partnerServiceUpdatePartnerSettlementRule(
+                {
+                  partnerId: partner.id,
+                  roleType: values.roleType,
+                  id: editingRule.id,
+                },
+                {
+                  partnerId: partner.id,
+                  roleType: values.roleType,
+                  id: editingRule.id,
+                  rule,
+                },
+              );
+            if (!isWriteResponse(writeResponse1, true)) return false;
             message.success('结算规则已成功更新');
           } else {
-            await partnerServiceCreatePartnerSettlementRule(
-              {
-                partnerId: partner.id,
-                roleType: values.roleType,
-              },
-              {
-                partnerId: partner.id,
-                roleType: values.roleType,
-                rule,
-              },
-            );
+            const writeResponse2 =
+              await partnerServiceCreatePartnerSettlementRule(
+                {
+                  partnerId: partner.id,
+                  roleType: values.roleType,
+                },
+                {
+                  partnerId: partner.id,
+                  roleType: values.roleType,
+                  rule,
+                },
+              );
+            if (!isWriteResponse(writeResponse2, true)) return false;
             message.success('结算规则已成功创建');
           }
           setModalOpen(false);

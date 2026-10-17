@@ -22,6 +22,7 @@ import {
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { toTableRequest, unwrapPage } from '@/utils/api';
+import { downloadCsv, serializeCsv } from '@/utils/csv';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
@@ -60,7 +61,7 @@ export function FinanceLedgerTemplate<
   rowSelection,
   batchActions = [],
   exportFileName = `财务明细导出_${dayjs().format('YYYY-MM-DD')}.csv`,
-  onExport,
+  exportColumns,
   onImport,
   extraToolBarActions = [],
   request,
@@ -85,6 +86,9 @@ export function FinanceLedgerTemplate<
   const [selectedRows, setSelectedRows] = useState<T[]>([]);
   const [globalSummary, setGlobalSummary] =
     useState<FinanceLedgerGlobalSummary>();
+  const loadedSnapshots = useRef(
+    new WeakMap<T[], { total: number; summary?: FinanceLedgerGlobalSummary }>(),
+  );
   const [densitySize, setDensitySize] = useState<DensitySize>('small');
   // 统一列设置：表格标识由调用方按业务视图传入，不使用实体 ID。
   const enableColumnSettings = Boolean(columnSettingsKey);
@@ -105,41 +109,12 @@ export function FinanceLedgerTemplate<
       message.warning('当前无数据可导出');
       return;
     }
-    if (onExport) {
-      onExport(selectedRows, currentData);
-      return;
-    }
-    // 通用 CSV 导出逻辑（与列设置后的生效列保持一致）
-    const exportableCols = ledgerColumns.filter(
-      (col) =>
-        col.dataIndex &&
-        !col.hideInTable &&
-        col.valueType !== 'option' &&
-        col.valueType !== 'index',
+    const content = serializeCsv(list, exportColumns);
+    if (!content) return;
+    downloadCsv(content, exportFileName);
+    message.success(
+      `已导出${selectedRows.length > 0 ? '选中' : '当前页'} ${list.length} 条数据`,
     );
-    const headers = exportableCols.map((col) =>
-      String(col.title || col.dataIndex),
-    );
-    const rows = list.map((item) =>
-      exportableCols.map((col) => {
-        const key = String(col.dataIndex);
-        const val = (item as Record<string, unknown>)[key];
-        return `"${String(val ?? '').replace(/"/g, '""')}"`;
-      }),
-    );
-    const csvContent =
-      '\uFEFF' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', exportFileName);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    message.success(`已导出 ${list.length} 条数据`);
   };
 
   return (
@@ -327,10 +302,13 @@ export function FinanceLedgerTemplate<
               ),
               <Button
                 key="export"
+                title="按固定业务字段导出选中行；未选择时仅导出当前页"
                 icon={<DownloadOutlined />}
                 onClick={handleDefaultExport}
               >
-                导出清单
+                {selectedRows.length > 0
+                  ? `导出选中 (${selectedRows.length})`
+                  : '导出当前页'}
               </Button>,
               onImport && (
                 <Tooltip
@@ -390,12 +368,23 @@ export function FinanceLedgerTemplate<
               params as TFilter & FinanceLedgerRequestParams,
             );
             const page = unwrapPage(res);
-            setCurrentData(page.data);
-            setTotalCount(page.total);
-            if (res.summary) {
-              setGlobalSummary(res.summary);
+            loadedSnapshots.current.set(page.data, {
+              total: page.total,
+              summary: res.summary,
+            });
+            return {
+              ...toTableRequest(res),
+              data: page.data,
+            };
+          }}
+          onLoad={(data) => {
+            // 官方 request 引擎采纳数据后再同步快照，迟到或失败请求不影响导出。
+            const snapshot = loadedSnapshots.current.get(data);
+            setCurrentData(data);
+            if (snapshot) {
+              setTotalCount(snapshot.total);
+              setGlobalSummary(snapshot.summary);
             }
-            return toTableRequest(res);
           }}
         />
 

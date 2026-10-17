@@ -9,6 +9,7 @@ import { App, Typography } from 'antd';
 import React, { useRef } from 'react';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceUpdateOrganization } from '@/services/roncin/adminService';
+import { isWriteResponse } from '@/utils/api';
 import type { EditFormValues } from './types';
 
 const { Text } = Typography;
@@ -48,7 +49,7 @@ export default function OrgEditModal({
       onFinish={async (values) => {
         if (!editingOrg?.id) return false;
         try {
-          await adminServiceUpdateOrganization(
+          const writeResponse1 = await adminServiceUpdateOrganization(
             { id: editingOrg.id },
             {
               id: editingOrg.id,
@@ -60,6 +61,7 @@ export default function OrgEditModal({
                   : undefined,
             },
           );
+          if (!isWriteResponse(writeResponse1, true)) return false;
           message.success('组织已成功更新');
           onOpenChange(false);
           await onSuccess(editingOrg.id);

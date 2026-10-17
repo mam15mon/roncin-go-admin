@@ -27,7 +27,7 @@ describe('RoleSwitchModal 业务角色转换弹窗', () => {
     const onClose = vi.fn();
 
     vi.mocked(partnerServiceUpdatePartner).mockResolvedValue({
-      id: 'p-switch-1',
+      data: { id: 'p-switch-1' },
       success: true,
     } as never);
 

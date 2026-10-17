@@ -17,7 +17,7 @@ import {
   orderFeeServiceRejectOrderFeeCorrection,
   orderFeeServiceWithdrawOrderFeeCorrection,
 } from '@/services/roncin/orderFeeService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 
@@ -247,10 +247,15 @@ export function FeeCorrectionSection({
                           expectedVersion: row.version,
                         },
                       );
+                    if (!isWriteResponse(response, true))
+                      return Promise.reject();
                     if (!response?.success) throw new Error('撤回未成功');
                     refresh();
                   },
-                })
+                }).then(
+      () => {},
+      () => {},
+    )
               }
             >
               撤回
@@ -262,20 +267,27 @@ export function FeeCorrectionSection({
               size="small"
               danger
               onClick={() =>
-                confirmWithReason(app, '驳回费用更正', async (reason) => {
-                  const response =
-                    await orderFeeServiceRejectOrderFeeCorrection(
-                      { orderId, id: row.id || '' },
-                      {
-                        orderId,
-                        id: row.id || '',
-                        expectedVersion: row.version,
-                        reason,
-                      },
-                    );
-                  if (!response?.success) throw new Error('驳回未成功');
-                  refresh();
-                })
+                confirmWithReason(
+                  app,
+                  '驳回费用更正',
+                  async (reason): Promise<false | undefined> => {
+                    const response =
+                      await orderFeeServiceRejectOrderFeeCorrection(
+                        { orderId, id: row.id || '' },
+                        {
+                          orderId,
+                          id: row.id || '',
+                          expectedVersion: row.version,
+                          reason,
+                        },
+                      );
+                    if (!isWriteResponse(response, true)) return false;
+                    if (!response?.success) throw new Error('驳回未成功');
+                    refresh();
+
+                    return undefined;
+                  },
+                )
               }
             >
               驳回
@@ -357,7 +369,7 @@ export function FeeCorrectionSection({
                 comment,
               },
             );
-            if (!response?.success) {
+            if (!isWriteResponse(response, true)) {
               void preview.refetch();
               return false;
             }

@@ -35,6 +35,7 @@ import {
   seaDocumentServicePreviewSeaDocumentAmendment,
   seaDocumentServicePreviewSeaDocumentVoid,
 } from '@/services/roncin/seaDocumentService';
+import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import SeaExternalConfirmationFields, {
@@ -415,24 +416,26 @@ export default function SeaDocumentHistoryActions({
     }
   };
 
-  const handleExecute = async () => {
+  const handleExecute = async (): Promise<false | undefined> => {
     if (!mode || !preview?.executable || !previewPayload || disabled) return;
     const { values, amendmentInput } = previewPayload;
     setExecuting(true);
     try {
       if (mode === 'amendment') {
         if (!amendmentInput) return;
-        await seaDocumentServiceExecuteSeaDocumentAmendment(
-          { orderId },
-          {
-            ...buildCommon(values.reason),
-            idempotencyKey,
-            input: amendmentInput,
-            confirmation: buildSeaExternalConfirmation(values),
-          },
-        );
+        const writeResponse1 =
+          await seaDocumentServiceExecuteSeaDocumentAmendment(
+            { orderId },
+            {
+              ...buildCommon(values.reason),
+              idempotencyKey,
+              input: amendmentInput,
+              confirmation: buildSeaExternalConfirmation(values),
+            },
+          );
+        if (!isWriteResponse(writeResponse1, true)) return false;
       } else {
-        await seaDocumentServiceExecuteSeaDocumentVoid(
+        const writeResponse2 = await seaDocumentServiceExecuteSeaDocumentVoid(
           { orderId },
           {
             ...buildCommon(values.reason),
@@ -440,6 +443,7 @@ export default function SeaDocumentHistoryActions({
             confirmation: buildSeaExternalConfirmation(values),
           },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
       }
       message.success(mode === 'amendment' ? '改单版本已发布' : '单证已作废');
       setMode(null);
@@ -452,6 +456,8 @@ export default function SeaDocumentHistoryActions({
     } finally {
       setExecuting(false);
     }
+
+    return undefined;
   };
 
   const modeTitle =

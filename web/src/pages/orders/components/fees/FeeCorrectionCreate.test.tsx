@@ -55,7 +55,7 @@ const props = {
 };
 beforeEach(() => {
   vi.clearAllMocks();
-  api.create.mockResolvedValue({ success: true });
+  api.create.mockResolvedValue({ success: true, data: { id: 'correction-new' } });
 });
 describe('费用更正申请入口', () => {
   it('替代申请绑定原费用版本并保留原费名税率', async () => {

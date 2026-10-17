@@ -20,7 +20,7 @@ import {
   partnerServiceListPartnerInvoiceProfiles,
   partnerServiceUpdatePartnerInvoiceProfile,
 } from '@/services/roncin/partnerService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 
 const { Text } = Typography;
 
@@ -194,21 +194,25 @@ export default function InvoiceProfilesPanel({
             isDefault: Boolean(values.isDefault),
           };
           if (editingProfile?.id) {
-            await partnerServiceUpdatePartnerInvoiceProfile(
-              { partnerId: partner.id, id: editingProfile.id },
-              {
-                ...common,
-                id: editingProfile.id,
-                enabled: Boolean(values.enabled),
-                expectedVersion: editingProfile.version || '0',
-              },
-            );
+            const writeResponse1 =
+              await partnerServiceUpdatePartnerInvoiceProfile(
+                { partnerId: partner.id, id: editingProfile.id },
+                {
+                  ...common,
+                  id: editingProfile.id,
+                  enabled: Boolean(values.enabled),
+                  expectedVersion: editingProfile.version || '0',
+                },
+              );
+            if (!isWriteResponse(writeResponse1, true)) return false;
             message.success('开票抬头已更新，历史发票快照不受影响');
           } else {
-            await partnerServiceCreatePartnerInvoiceProfile(
-              { partnerId: partner.id },
-              common,
-            );
+            const writeResponse2 =
+              await partnerServiceCreatePartnerInvoiceProfile(
+                { partnerId: partner.id },
+                common,
+              );
+            if (!isWriteResponse(writeResponse2, true)) return false;
             message.success('开票抬头已新增');
           }
           setModalOpen(false);

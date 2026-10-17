@@ -17,7 +17,6 @@ import {
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-
 import {
   OrderBusinessType,
   OrderReleasePodStatus,
@@ -33,6 +32,7 @@ import {
   seaDocumentServiceUpdateSeaHouseBill,
   seaDocumentServiceUpdateSeaMasterBillContent,
 } from '@/services/roncin/seaDocumentService';
+import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
 import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
@@ -359,7 +359,7 @@ export function SeaDocumentSectionComponent({
     );
   };
 
-  const handleSaveHouseBill = async () => {
+  const handleSaveHouseBill = async (): Promise<false | undefined> => {
     if (!orderId || !isDetail || !houseBill?.id) return;
     try {
       await form.validateFields([
@@ -373,7 +373,7 @@ export function SeaDocumentSectionComponent({
           | undefined,
       );
       if (!input) return;
-      await seaDocumentServiceUpdateSeaHouseBill(
+      const writeResponse1 = await seaDocumentServiceUpdateSeaHouseBill(
         { orderId, id: houseBill.id },
         {
           orderId,
@@ -383,20 +383,23 @@ export function SeaDocumentSectionComponent({
           houseBill: input,
         },
       );
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('分单更新成功');
       await loadOrderDocuments();
     } catch (error: unknown) {
       if (error instanceof Error)
         message.error(error.message || '保存分单失败');
     }
+
+    return undefined;
   };
 
-  const handleSaveMblContent = async () => {
+  const handleSaveMblContent = async (): Promise<false | undefined> => {
     if (!orderId || !isDetail || !mblDetail?.id) return;
     try {
       const content = (form.getFieldValue('seaMasterBillContent') ??
         {}) as API.SeaBillContent;
-      await seaDocumentServiceUpdateSeaMasterBillContent(
+      const writeResponse2 = await seaDocumentServiceUpdateSeaMasterBillContent(
         { orderId },
         {
           orderId,
@@ -404,6 +407,7 @@ export function SeaDocumentSectionComponent({
           content,
         },
       );
+      if (!isWriteResponse(writeResponse2, true)) return false;
       message.success('主单内容保存成功');
       await loadOrderDocuments();
     } catch (error: unknown) {
@@ -411,6 +415,8 @@ export function SeaDocumentSectionComponent({
         error instanceof Error ? error.message : '保存主单内容失败',
       );
     }
+
+    return undefined;
   };
 
   const openModeChange = () => {
@@ -459,7 +465,7 @@ export function SeaDocumentSectionComponent({
     }
   };
 
-  const executeModeChange = async () => {
+  const executeModeChange = async (): Promise<false | undefined> => {
     if (!orderId || !modeTarget || !modePreview?.executable) return;
     setModeExecuting(true);
     try {
@@ -472,27 +478,29 @@ export function SeaDocumentSectionComponent({
       ) {
         throw new Error('当前分单版本缺失，请刷新后重试');
       }
-      await seaDocumentServiceExecuteChangeSeaDocumentMode(
-        { orderId },
-        {
-          orderId,
-          expectedOrderVersion: String(orderVersion),
-          expectedLinkVersion: linkVersion,
-          expectedHouseBillVersion:
-            docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-              ? String(houseBill?.version ?? '')
-              : undefined,
-          expectedCurrentVersionId:
-            docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-              ? houseBill?.currentVersionId
-              : undefined,
-          targetMode: modeTarget,
-          newHouseBill: buildModeChangeHouseBill(values),
-          reason: values.reason?.trim() ?? '',
-          confirmation: buildSeaExternalConfirmation(values),
-          idempotencyKey: modeIdempotencyKey,
-        },
-      );
+      const writeResponse3 =
+        await seaDocumentServiceExecuteChangeSeaDocumentMode(
+          { orderId },
+          {
+            orderId,
+            expectedOrderVersion: String(orderVersion),
+            expectedLinkVersion: linkVersion,
+            expectedHouseBillVersion:
+              docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+                ? String(houseBill?.version ?? '')
+                : undefined,
+            expectedCurrentVersionId:
+              docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+                ? houseBill?.currentVersionId
+                : undefined,
+            targetMode: modeTarget,
+            newHouseBill: buildModeChangeHouseBill(values),
+            reason: values.reason?.trim() ?? '',
+            confirmation: buildSeaExternalConfirmation(values),
+            idempotencyKey: modeIdempotencyKey,
+          },
+        );
+      if (!isWriteResponse(writeResponse3) || writeResponse3.data?.orderId !== orderId) return false;
       message.success(
         modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
           ? '已切换为有货代分单（HOUSE） 并建立当前 HBL'
@@ -508,6 +516,8 @@ export function SeaDocumentSectionComponent({
     } finally {
       setModeExecuting(false);
     }
+
+    return undefined;
   };
 
   const masterBillTab = {

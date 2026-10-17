@@ -8,6 +8,7 @@ import { Alert, App } from 'antd';
 import React, { useRef, useState } from 'react';
 import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
 import { settlementServiceCreateCommissionAdjustment } from '@/services/roncin/settlementService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { generateUUID } from '@/utils/uuid';
 import { type AdjustmentValues, decimalText } from '../types';
@@ -43,18 +44,20 @@ export default function CommissionAdjustmentModal({
       onFinish={async (values) => {
         if (!detail?.id) return false;
         try {
-          await settlementServiceCreateCommissionAdjustment(
-            { commissionId: detail.id },
-            {
-              commissionId: detail.id,
-              orderId: values.orderId,
-              direction: values.direction,
-              amount: String(values.amount),
-              reason: values.reason,
-              note: values.note,
-              idempotencyKey: adjustmentIdempotencyKey,
-            },
-          );
+          const writeResponse1 =
+            await settlementServiceCreateCommissionAdjustment(
+              { commissionId: detail.id },
+              {
+                commissionId: detail.id,
+                orderId: values.orderId,
+                direction: values.direction,
+                amount: String(values.amount),
+                reason: values.reason,
+                note: values.note,
+                idempotencyKey: adjustmentIdempotencyKey,
+              },
+            );
+          if (!isWriteResponse(writeResponse1, true)) return false;
           message.success('提成调整草稿已创建');
           onOpenChange(false);
           onSuccess();

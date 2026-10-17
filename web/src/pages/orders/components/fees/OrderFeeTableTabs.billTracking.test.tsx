@@ -253,7 +253,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
   it('行内保存成功后通知页面刷新关联投影（A4）', async () => {
     const today = '2026-09-21';
     const onFeeSaved = vi.fn();
-    updateFee.mockResolvedValue({} as any);
+    updateFee.mockResolvedValue({ data: { id: 'fee-edit-1' } } as any);
     listFees.mockResolvedValue({
       data: [
         {

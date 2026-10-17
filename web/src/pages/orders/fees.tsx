@@ -27,7 +27,7 @@ import {
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
-import { unwrapList } from '@/utils/api';
+import { isWriteResponse, unwrapList } from '@/utils/api';
 import { normalizeDecimalInput } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
@@ -444,7 +444,7 @@ export default function OrderFeesPage() {
       if (editingFee?.id) {
         if (!editingFee.version)
           throw new Error('费用版本信息缺失，请刷新后重试');
-        await orderFeeServiceUpdateFee(
+        const writeResponse1 = await orderFeeServiceUpdateFee(
           { orderId, id: editingFee.id },
           {
             ...body,
@@ -453,12 +453,14 @@ export default function OrderFeesPage() {
             expectedVersion: editingFee.version,
           },
         );
+        if (!isWriteResponse(writeResponse1, true)) return false;
         message.success('费用更新成功');
       } else {
-        await orderFeeServiceAddFee(
+        const writeResponse2 = await orderFeeServiceAddFee(
           { orderId },
           { ...body, orderId, idempotencyKey: createIdempotencyKeyRef.current },
         );
+        if (!isWriteResponse(writeResponse2, true)) return false;
         createIdempotencyKeyRef.current = generateUUID();
         message.success('费用录入成功');
       }
@@ -492,20 +494,25 @@ export default function OrderFeesPage() {
       okButtonProps: { danger: true },
       cancelText: '取消',
       onOk: async () => {
-        if (!ensureFeeWriteAllowed()) return;
+        if (!ensureFeeWriteAllowed()) return Promise.reject();
         try {
-          await orderFeeServiceRemoveFee({
+          const writeResponse3 = await orderFeeServiceRemoveFee({
             orderId,
             id: feeId,
             expectedVersion: version,
           });
+          if (!isWriteResponse(writeResponse3)) return Promise.reject();
           message.success('费用已删除');
           reloadFeeTables();
         } catch (error) {
           message.error(getErrorMessage(error, '删除费用失败'));
+          throw error;
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   if (!definition) {

@@ -24,6 +24,7 @@ import {
   workbenchServiceListMyCommissionApplications,
   workbenchServiceResubmitMyCommissionApplication,
 } from '@/services/roncin/workbenchService';
+import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { applicationStatusTag } from './applicationDisplay';
 import {
@@ -169,10 +170,12 @@ export default function MyApplicationHistoryDrawer({
       onOk: async () => {
         setResubmitting(true);
         try {
-          await workbenchServiceResubmitMyCommissionApplication({
-            applicationId,
-            expectedVersion,
-          });
+          const writeResponse1 =
+            await workbenchServiceResubmitMyCommissionApplication({
+              applicationId,
+              expectedVersion,
+            });
+          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
           message.success('申请已重新提交，等待财务审批');
           backToList();
           // 重提成功后失效申请历史域（列表与详情快照按原翻页/过滤参数重查）；
@@ -183,11 +186,15 @@ export default function MyApplicationHistoryDrawer({
           await onResubmitted?.();
         } catch (error: unknown) {
           message.error((error as Error).message || '重新提交失败');
+          throw error;
         } finally {
           setResubmitting(false);
         }
       },
-    });
+    }).then(
+      () => {},
+      () => {},
+    );
   };
 
   const currency = baseCurrency || undefined;

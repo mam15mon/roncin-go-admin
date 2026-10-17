@@ -6,6 +6,7 @@ import type {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
+import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { appInitialStateContext } from '@/app/initialStateContext';
 import { OrganizationWorkspace } from '@/components/layout/OrganizationWorkspace';
@@ -75,6 +76,47 @@ afterEach(() => {
 });
 
 describe('认证工作区统一请求提示隔离', () => {
+  it('StrictMode模拟卸载后的真实请求可完成，旧传输迟到失败不干扰重挂载', async () => {
+    const oldRead = pendingRequest();
+    const currentRead = pendingRequest();
+    function BusinessQuery() {
+      const { data } = useQuery({
+        queryKey: ['strict-workspace-request'],
+        queryFn: () => request<{ data: string }>('/api/v1/strict-workspace'),
+        meta: { silent: true },
+      });
+      return <output>{data?.data ?? '正在加载'}</output>;
+    }
+    render(
+      <StrictMode>
+        <appInitialStateContext.Provider
+          value={{
+            initialState: {
+              currentUser: {
+                id: 'user-a',
+                currentOrganization: { id: 'company-a' },
+              },
+            },
+            setInitialState: vi.fn(),
+            refresh: vi.fn(),
+            loading: false,
+          }}
+        >
+          <OrganizationWorkspace>
+            <BusinessQuery />
+          </OrganizationWorkspace>
+        </appInitialStateContext.Provider>
+      </StrictMode>,
+    );
+    await vi.waitFor(() => expect(transport).toHaveBeenCalledTimes(2));
+    await act(async () => currentRead.success({ data: '重挂载工作区数据' }));
+    expect(await screen.findByText('重挂载工作区数据')).toBeVisible();
+    await act(async () => oldRead.fail({ response: { status: 401 } }));
+    expect(screen.getByText('重挂载工作区数据')).toBeVisible();
+    expect(replace).not.toHaveBeenCalled();
+    expect(showErrorNotification).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['401', { response: { status: 401 } }],
     ['500', { response: { status: 500, data: { message: '旧工作区失败' } } }],

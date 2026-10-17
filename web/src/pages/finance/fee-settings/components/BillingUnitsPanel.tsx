@@ -15,6 +15,7 @@ import {
   feeCatalogServiceListBillingUnits,
   feeCatalogServiceUpdateBillingUnit,
 } from '@/services/roncin/feeCatalogService';
+import { isWriteResponse } from '@/utils/api';
 
 const codePattern = /^[A-Z0-9_]{2,32}$/;
 
@@ -119,7 +120,7 @@ export function BillingUnitsPanel() {
           selectedRowKeys,
           onChange: (keys) => setSelectedRowKeys(keys),
         }}
-        createItem={async (values) => {
+        createItem={async (values): Promise<false | undefined> => {
           const response = await feeCatalogServiceCreateBillingUnit({
             code: values.code.trim().toUpperCase(),
             name: values.name.trim(),
@@ -127,10 +128,13 @@ export function BillingUnitsPanel() {
             quantityMustBeInteger: values.quantityMustBeInteger,
             sortOrder: values.sortOrder ?? 100,
           });
+          if (!isWriteResponse(response, true)) return false;
           if (!response) throw new Error('创建计费单位失败');
           await queryClient.invalidateQueries({
             queryKey: ['orders', 'fee-options'],
           });
+
+          return undefined;
         }}
         updateItem={async (record, values) => {
           if (!record.id) return Promise.resolve();
@@ -146,6 +150,7 @@ export function BillingUnitsPanel() {
               enabled: values.enabled,
             },
           );
+          if (!isWriteResponse(response, true)) return false;
           if (!response) throw new Error('更新计费单位失败');
           await queryClient.invalidateQueries({
             queryKey: ['orders', 'fee-options'],

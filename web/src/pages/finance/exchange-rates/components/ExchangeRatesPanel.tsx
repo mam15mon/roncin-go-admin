@@ -1,3 +1,4 @@
+import { AsyncPopconfirm } from '@/components/ui';
 import {
   CloudSyncOutlined,
   DownloadOutlined,
@@ -13,7 +14,7 @@ import {
   ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
-import { App, Button, Card, Form, Popconfirm, Space, Tag, Tooltip } from 'antd';
+import { App, Button, Card, Form, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
@@ -26,7 +27,7 @@ import {
   exchangeRateServiceListExchangeRateSettings,
   exchangeRateServiceUpdateExchangeRateSetting,
 } from '@/services/roncin/exchangeRateService';
-import { toTableRequest } from '@/utils/api';
+import { isWriteResponse, toTableRequest } from '@/utils/api';
 import { isPositiveExactDecimal } from '@/utils/decimal';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
@@ -193,22 +194,26 @@ export function ExchangeRatesPanel() {
               </Button>
             )}
             {canDisable && (
-              <Popconfirm
+              <AsyncPopconfirm
                 title="确定停用该汇率设置？"
-                onConfirm={async () => {
-                  if (!record.id) return;
-                  await exchangeRateServiceDisableExchangeRateSetting(
-                    { id: record.id },
-                    { id: record.id },
-                  );
+                onConfirm={async (): Promise<false | undefined> => {
+                  if (!record.id) return false;
+                  const writeResponse1 =
+                    await exchangeRateServiceDisableExchangeRateSetting(
+                      { id: record.id },
+                      { id: record.id },
+                    );
+                  if (!isWriteResponse(writeResponse1)) return false;
                   message.success('汇率已停用');
                   actionRef.current?.reload();
+
+                  return undefined;
                 }}
               >
                 <Button type="link" danger size="small" icon={<StopOutlined />}>
                   停用
                 </Button>
-              </Popconfirm>
+              </AsyncPopconfirm>
             )}
           </Space>
         );
@@ -385,13 +390,17 @@ export function ExchangeRatesPanel() {
             rate: values.rate,
           };
           if (editing?.id) {
-            await exchangeRateServiceUpdateExchangeRateSetting(
-              { id: editing.id },
-              { id: editing.id, ...input },
-            );
+            const writeResponse2 =
+              await exchangeRateServiceUpdateExchangeRateSetting(
+                { id: editing.id },
+                { id: editing.id, ...input },
+              );
+            if (!isWriteResponse(writeResponse2, true)) return false;
             message.success('汇率更新成功');
           } else {
-            await exchangeRateServiceCreateExchangeRateSetting(input);
+            const writeResponse3 =
+              await exchangeRateServiceCreateExchangeRateSetting(input);
+            if (!isWriteResponse(writeResponse3, true)) return false;
             message.success('汇率创建成功');
           }
           setModalOpen(false);

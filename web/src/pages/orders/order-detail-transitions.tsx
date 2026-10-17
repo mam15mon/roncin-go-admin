@@ -6,6 +6,7 @@ import {
   orderServiceTransitionOrderStatus,
   orderServiceTransitionOrderTermination,
 } from '@/services/roncin/orderService';
+import { isWriteResponse } from '@/utils/api';
 
 type AppInstance = ReturnType<typeof App.useApp>;
 
@@ -68,7 +69,7 @@ export function confirmOrderFlow(
         />
       </Space>
     ),
-    async onOk() {
+    async onOk(): Promise<false | undefined> {
       if (options.canSubmit?.() === false) return Promise.reject();
       const response = await orderServiceTransitionOrderStatus(
         { id: orderID },
@@ -79,11 +80,17 @@ export function confirmOrderFlow(
           reason: reason.trim() || undefined,
         },
       );
+      if (!isWriteResponse(response, true)) return Promise.reject();
       if (!response?.data) return Promise.reject();
       app.message.success(`状态已流转至${targetStatusLabel}`);
       await onCompleted();
+
+      return undefined;
     },
-  });
+  }).then(
+      () => {},
+      () => {},
+    );
   return true;
 }
 
@@ -147,7 +154,7 @@ export function confirmOrderTermination(
         />
       </Space>
     ),
-    async onOk() {
+    async onOk(): Promise<false | undefined> {
       if (options.canSubmit?.() === false) return Promise.reject();
       if (!reason.trim()) {
         app.message.error('请输入原因');
@@ -167,6 +174,7 @@ export function confirmOrderTermination(
           reason: reason.trim(),
         },
       );
+      if (!isWriteResponse(response, true)) return Promise.reject();
       if (!response?.data) return Promise.reject();
       app.message.success(
         isRestore
@@ -177,8 +185,13 @@ export function confirmOrderTermination(
             : '更新退关状态成功',
       );
       await onCompleted();
+
+      return undefined;
     },
-  });
+  }).then(
+      () => {},
+      () => {},
+    );
   return true;
 }
 
@@ -216,7 +229,7 @@ export function confirmOrderClosure(
         />
       </Space>
     ),
-    async onOk() {
+    async onOk(): Promise<false | undefined> {
       if (options.canSubmit?.() === false) return Promise.reject();
       if (!reason.trim()) {
         app.message.error(isReopen ? '请输入反结案原因' : '请输入完结原因');
@@ -231,10 +244,16 @@ export function confirmOrderClosure(
           reason: reason.trim(),
         },
       );
+      if (!isWriteResponse(response, true)) return Promise.reject();
       if (!response?.data) return Promise.reject();
       app.message.success(isReopen ? '反结案成功' : '完结订单成功');
       await onCompleted();
+
+      return undefined;
     },
-  });
+  }).then(
+      () => {},
+      () => {},
+    );
   return true;
 }
