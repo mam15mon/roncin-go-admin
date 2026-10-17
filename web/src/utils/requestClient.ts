@@ -35,6 +35,18 @@ export interface RequestError extends Error {
   data?: ResponseEnvelope;
 }
 
+// 只标记认证工作区请求的展示生命周期，不中止传输或改变 Cookie 响应顺序。
+let workspaceRequestScope: { active: boolean } | undefined;
+
+export function activateWorkspaceRequestScope(): () => void {
+  const scope = { active: true };
+  workspaceRequestScope = scope;
+  return () => {
+    scope.active = false;
+    if (workspaceRequestScope === scope) workspaceRequestScope = undefined;
+  };
+}
+
 const instance = axios.create({
   baseURL: '',
   timeout: DEFAULT_REQUEST_TIMEOUT,
@@ -69,6 +81,13 @@ export async function request<T>(
   url: string,
   options: RequestOptions = {},
 ): Promise<T> {
+  // 登录配置/换码属于公开会话协议，不参与业务工作区清理。
+  const requestScope =
+    url === '/api/v1/auth/dingtalk/login-config' ||
+    url === '/api/v1/auth/dingtalk/login' ||
+    url === '/api/v1/auth/login'
+      ? undefined
+      : workspaceRequestScope;
   const {
     method = 'GET',
     params,
@@ -89,6 +108,8 @@ export async function request<T>(
       signal,
       responseType,
     });
+    // 已退出的工作区结果按消费失败处理，阻止旧保存回调导航、提示或清草稿。
+    if (requestScope && !requestScope.active) return undefined as T;
     const body = response.data as T & ResponseEnvelope;
     // 仅对携带 success 字段的 JSON 报文做业务校验；blob / 数组等形态跳过。
     if (body && typeof body === 'object' && 'success' in body) {
@@ -97,6 +118,8 @@ export async function request<T>(
     return body;
   } catch (rawError) {
     if (options.skipErrorHandler) throw rawError;
+    // 旧工作区的 401、超时等迟到失败不能导航或通知新身份。
+    if (requestScope && !requestScope.active) return undefined as T;
     const errorHandler = errorConfig.errorConfig?.errorHandler as
       | ((error: unknown, options?: { skipErrorHandler?: boolean }) => void)
       | undefined;
