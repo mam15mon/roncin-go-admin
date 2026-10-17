@@ -11,7 +11,7 @@
 - [x] 浏览器失败反馈、身份切换和 CSV 样本复核。
 - [x] 最终 check:fast 与完整 PostgreSQL data/migration 验证。
 - [x] 逐项完成验收、提交和任务归档。
-- [ ] 记录本次交付 journal。
+- [x] 记录本次交付 journal。
 - [x] 干净状态切 main 快进合并，核对祖先关系，git branch -d 安全删除本次分支。
 - [x] 复核修复提交已进入 main、分支消失与合并后工作树干净；归档和 journal 记录提交后再次复核。
 
