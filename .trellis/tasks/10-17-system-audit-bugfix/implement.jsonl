@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "写入结果与身份缓存契约"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "财务金额时间与公用模板"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实数据库验证与迁移隔离"}
+{"file": ".trellis/tasks/10-17-system-audit-bugfix/research/audit-evidence.md", "reason": "体检复现证据"}

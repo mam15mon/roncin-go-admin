@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "核查失败保留与身份隔离"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向回归与最终门禁"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实 PostgreSQL 与 SKIP 核查"}
+{"file": ".trellis/tasks/10-17-system-audit-bugfix/research/audit-evidence.md", "reason": "原始缺陷回归证据"}
