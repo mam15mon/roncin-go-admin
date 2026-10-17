@@ -2,16 +2,12 @@ package data
 
 import (
 	"context"
-	"io"
-	"log/slog"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/roncin/roncin-go-admin/server/internal/conf"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	backgroundtaskent "github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	resourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
@@ -64,21 +60,8 @@ func (s *deletionIntegrationStorage) Delete(_ context.Context, organizationID uu
 }
 
 func TestEnterpriseImageDeleteRegistersDeletionTaskPostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
-	data, cleanup, err := NewData(&conf.Data{Database: &conf.Data_Database{
-		Driver:             "postgres",
-		Source:             source,
-		AutoMigrate:        true,
-		MaxOpenConnections: 8,
-		MaxIdleConnections: 8,
-	}}, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	if err != nil {
-		t.Fatalf("初始化集成测试数据库: %v", err)
-	}
-	defer cleanup()
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
 
 	t.Run("删除图片资源同事务登记删除任务并提交后执行", func(t *testing.T) {
 		fixture := newEnterpriseImageDeletionFixture(t, data)

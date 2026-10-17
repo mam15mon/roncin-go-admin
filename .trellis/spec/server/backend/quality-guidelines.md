@@ -213,12 +213,19 @@ make -C server api
 # 错误：只看退出码，把 SKIP 误报为真实数据库测试通过。
 go -C server test ./...
 
-# 正确：为质量门显式注入一次性 PostgreSQL，并在 -v 日志中确认目标用例为 PASS。
-RONCIN_INTEGRATION_DATABASE_SOURCE="postgres://..." \
-  go -C server test -v ./internal/data -run 'Postgres$' -count=1
+# 正确：三个变量必须显式指向同一个专用测试库，完整执行包并检查 JSON 中无 FAIL/SKIP。
+RONCIN_INTEGRATION_DATABASE_SOURCE="$TEST_DATABASE_SOURCE" \
+DATABASE_SOURCE="$TEST_DATABASE_SOURCE" RONCIN_POSTGRES_MIGRATION_TEST=1 \
+  go -C server test -p 32 -json -count=1 ./... > /tmp/server-tests.jsonl
 ```
 
 - CI 中承担合并门禁的 PostgreSQL Job 必须显式提供专用连接串，禁止回退到开发库。
+  `.github/workflows/ci.yml` 完整执行 `./...` 并统计 PASS/FAIL/SKIP；任一 SKIP 使门禁失败。
+- 多包并发前在该一次性库的 `public` 安装 `pg_trgm`；各用例使用正式 SQL 迁移与随机
+  Schema。禁止 `Schema.Create` / `AutoMigrate: true` 污染 Ent 包级迁移对象。
+- fixture 的 `t.Cleanup` 依赖连接时，把连接关闭也注册为更早的 `t.Cleanup`（LIFO），
+  不能用 `defer cleanup()` 抢先关库。断言索引定义时先限定目标 Schema 的 OID 再反解析，
+  避免表达式提前求值访问其他并发测试正在删除的关系。
 - 验收记录必须区分 `PASS`、`SKIP` 和“测试文件存在”；不得只记录命令最终退出码。
 - 测试使用随机业务键或一次性数据库隔离，结束后检查夹具、临时数据库和角色无残留。
 - 新增关键事务/锁测试时，同步确认它进入真实 PostgreSQL Job，而不只是进入普通

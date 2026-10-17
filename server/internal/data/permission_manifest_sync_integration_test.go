@@ -2,39 +2,22 @@ package data
 
 import (
 	"context"
-	"database/sql"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"entgo.io/ent/dialect"
-	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	roleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func TestSyncPermissionManifestPostgres(t *testing.T) {
-	source := os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE")
-	if source == "" {
-		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
-	}
+	data, cleanup := getIntegrationData(t)
+	t.Cleanup(cleanup)
 	ctx := context.Background()
-	db, err := sql.Open("pgx", source)
-	if err != nil {
-		t.Fatalf("打开集成测试数据库: %v", err)
-	}
-	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
-	// 关库注册为最早的 t.Cleanup（LIFO 中最后执行），保证数据清理先于连接关闭。
-	t.Cleanup(func() { _ = client.Close() })
-	if err := client.Schema.Create(ctx); err != nil {
-		t.Fatalf("初始化集成测试 Schema: %v", err)
-	}
+	client, db := data.db, data.sqlDB
 	if _, err := SyncPermissionManifest(ctx, db); err != nil {
 		t.Fatalf("初始化权限清单: %v", err)
 	}

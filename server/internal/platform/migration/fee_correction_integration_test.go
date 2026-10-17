@@ -61,11 +61,19 @@ func TestPostgresFeeCorrectionReplacesEntIndex(t *testing.T) {
 		}
 	}
 	var fullIndexes, partialIndexes int
-	if err := db.QueryRowContext(ctx, `SELECT
+	// 先物化目标 Schema 的索引 OID，再反解析定义，避免 pg_indexes 的表达式
+	// 被优化器提前执行而访问其他测试正在删除的关系。
+	if err := db.QueryRowContext(ctx, `WITH target_indexes AS MATERIALIZED (
+		SELECT idx.indexrelid FROM pg_index idx
+		JOIN pg_class tbl ON tbl.oid = idx.indrelid
+		JOIN pg_namespace ns ON ns.oid = tbl.relnamespace
+		WHERE ns.nspname = $1 AND tbl.relname = 'finance_commission_adjustments'
+	), definitions AS (
+		SELECT pg_get_indexdef(indexrelid) AS indexdef FROM target_indexes
+	) SELECT
 		count(*) FILTER (WHERE indexdef NOT LIKE '%WHERE%'),
 		count(*) FILTER (WHERE indexdef LIKE '%WHERE%ECONOMIC_REALLOCATION%')
-		FROM pg_indexes WHERE schemaname = $1 AND tablename = 'finance_commission_adjustments'
-		AND indexdef LIKE '%(commission_id, order_id, source_type, source_verification_id)%'`,
+		FROM definitions WHERE indexdef LIKE '%(commission_id, order_id, source_type, source_verification_id)%'`,
 		schemaName).Scan(&fullIndexes, &partialIndexes); err != nil {
 		t.Fatalf("检查提成调整索引失败: %v", err)
 	}

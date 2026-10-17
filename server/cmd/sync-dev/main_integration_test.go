@@ -15,6 +15,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
+	"github.com/roncin/roncin-go-admin/server/internal/security/password"
 )
 
 // 正式迁移在随机Schema内运行，完整迁移先建表，public仅解析已安装的pg_trgm扩展。
@@ -54,6 +55,16 @@ func TestDevelopmentSeedPostgres(t *testing.T) {
 	}
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
 	defer client.Close()
+	// 开发数据依赖已完成的系统初始化；通过真实 bootstrap 契约构造前态。
+	if err = data.WithClientTx(ctx, client, func(tx *ent.Tx) error {
+		_, err := data.BootstrapAdministrator(ctx, tx, data.BootstrapAdministratorInput{
+			Username: "initial.admin", DisplayName: "系统管理员", PlainPassword: "test-password-only-12345",
+			OrganizationCode: "SYSTEM", OrganizationName: "系统管理", HashPassword: password.Hash,
+		})
+		return err
+	}); err != nil {
+		t.Fatalf("初始化系统工作台: %v", err)
+	}
 	first, err := runSeed(ctx, client)
 	if err != nil {
 		t.Fatal(err)
@@ -78,7 +89,7 @@ func TestDevelopmentSeedPostgres(t *testing.T) {
 	}
 	checks := map[string]string{
 		"不补建上海重庆":  `SELECT count(*) FROM organizations WHERE code IN ('SH','CQ')`,
-		"员工无系统身份":  `SELECT count(*) FROM memberships m JOIN organizations o ON o.id=m.organization_id WHERE o.kind='system'`,
+		"员工无系统身份":  `SELECT count(*) FROM memberships m JOIN organizations o ON o.id=m.organization_id JOIN users u ON u.id=m.user_id WHERE o.kind='system' AND NOT u.is_bootstrap_admin`,
 		"角色公司一致":   `SELECT count(*) FROM role_assignments a JOIN memberships m ON m.id=a.membership_id JOIN roles r ON r.id=a.role_id WHERE m.organization_id<>r.organization_id`,
 		"公司必须为独立根": `SELECT count(*) FROM organizations WHERE kind='company' AND parent_id IS NOT NULL`,
 		"系统无经营资料":  `SELECT (SELECT count(*) FROM orders o JOIN organizations g ON g.id=o.organization_id WHERE g.kind='system')+(SELECT count(*) FROM partners p JOIN organizations g ON g.id=p.organization_id WHERE g.kind='system')+(SELECT count(*) FROM fee_settings f JOIN organizations g ON g.id=f.organization_id WHERE g.kind='system')`,

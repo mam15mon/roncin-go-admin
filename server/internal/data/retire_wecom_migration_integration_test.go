@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -93,7 +94,25 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 		}
 		before[name] = snapshot
 	}
-	dir := filepath.Join("..", "..", "migrations")
+	// 本用例只断言企业微信下线时点；后续角色范围退役会合法移除 data_scope。
+	fullDir := filepath.Join("..", "..", "migrations")
+	dir := t.TempDir()
+	files, err := filepath.Glob(filepath.Join(fullDir, "*.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range files {
+		if filepath.Base(file) > "20261009130000_retire_wecom.sql" {
+			continue
+		}
+		content, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, filepath.Base(file)), content, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
 	if err := migration.Apply(ctx, data.sqlDB, dir); err != nil {
 		t.Fatal(err)
 	}
@@ -132,6 +151,10 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 		t.Fatal(err)
 	}
 	if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
+		t.Fatal(err)
+	}
+	// 当前认证仓储按最新契约运行；历史快照断言完成后再升级并验证现有账号可用。
+	if err := migration.Apply(ctx, data.sqlDB, fullDir); err != nil {
 		t.Fatal(err)
 	}
 	repo := NewAuthRepo(data)
