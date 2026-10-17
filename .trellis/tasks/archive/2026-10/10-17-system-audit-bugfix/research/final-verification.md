@@ -41,3 +41,14 @@
 - 真实 Modal、AsyncPopconfirm、请求层和业务组件分别验证失败及成功重试；全量测试中保留相邻测试输出的 localhost:3000 连接控制台信息，没有将该输出藏匿或将其误记为 Vitest 未处理拒绝。
 - 完整生产构建已通过（前端 Vite 与服务端二进制），日志 `/tmp/roncin-audit-final-build.log`；本地没有配置 Sentry 上传令牌，按既有构建流程跳过 SourceMap 上传。
 - `git diff --check` 通过；生成客户端、Protobuf 及权限生成文件没有手工修改。
+
+### 主线交付
+
+- 工作提交依次为 `30bad387`（工作区隔离）、`10a4f76f`（真实库门禁与迁移前态）、
+  `844be35e`（提成清偿夹具与实时验收）、`81b5dabb`（写反馈及台账导出）、
+  `6df676dd`（完整验收记录）；均已由任务分支快进合并到本地 `main`。
+- 切换前工作树干净，`git merge --ff-only codex/system-audit-bugfix` 成功；
+  `git merge-base --is-ancestor codex/system-audit-bugfix main` 通过后，
+  `git branch -d codex/system-audit-bugfix` 成功删除本次分支。随后复核分支不存在，
+  `6df676dd` 为 `main` 祖先，工作树干净。
+- 本任务按 Trellis 归档至当前目录；其他在办任务不属于本次归档范围。
