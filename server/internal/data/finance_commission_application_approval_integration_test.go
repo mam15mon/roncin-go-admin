@@ -46,8 +46,8 @@ func TestCommissionApplicationFinanceReadPostgres(t *testing.T) {
 	ctx := context.Background()
 	usecase := fixture.usecase()
 
-	// 先补齐两名员工与两张核销单再提交：两张核销都分摊同一账单、命中同一订单
-	// 归属，因此每名员工的可申请候选都是 2 笔（每人每来源各 60 元）。
+	// 先补齐两名员工与两张独立订单的核销单再提交：两票均归属两名员工，
+	// 因此每名员工的可申请候选都是 2 笔（每人每来源各 60 元）。
 	employeeA := fixture.newEmployee("fina")
 	fixture.addAttribution(employeeA, "SALES")
 	fixture.addSalesScheme(employeeA)

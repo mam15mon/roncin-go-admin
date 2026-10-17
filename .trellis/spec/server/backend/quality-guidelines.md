@@ -213,14 +213,16 @@ make -C server api
 # 错误：只看退出码，把 SKIP 误报为真实数据库测试通过。
 go -C server test ./...
 
-# 正确：三个变量必须显式指向同一个专用测试库，完整执行包并检查 JSON 中无 FAIL/SKIP。
+# 正确：连接显式指向同一个专用测试库，开启迁移与实时验收，检查测试事件无 FAIL/SKIP。
 RONCIN_INTEGRATION_DATABASE_SOURCE="$TEST_DATABASE_SOURCE" \
 DATABASE_SOURCE="$TEST_DATABASE_SOURCE" RONCIN_POSTGRES_MIGRATION_TEST=1 \
+RONCIN_TASK_REALTIME_ACCEPTANCE=1 \
   go -C server test -p 32 -json -count=1 ./... > /tmp/server-tests.jsonl
 ```
 
 - CI 中承担合并门禁的 PostgreSQL Job 必须显式提供专用连接串，禁止回退到开发库。
-  `.github/workflows/ci.yml` 完整执行 `./...` 并统计 PASS/FAIL/SKIP；任一 SKIP 使门禁失败。
+  `.github/workflows/ci.yml` 完整执行 `./...` 并统计 PASS/FAIL/SKIP；任一带 `Test` 的
+  SKIP 使门禁失败。没有测试文件的生成包不属于跳过用例。
 - 多包并发前在该一次性库的 `public` 安装 `pg_trgm`；各用例使用正式 SQL 迁移与随机
   Schema。禁止 `Schema.Create` / `AutoMigrate: true` 污染 Ent 包级迁移对象。
 - fixture 的 `t.Cleanup` 依赖连接时，把连接关闭也注册为更早的 `t.Cleanup`（LIFO），
@@ -234,6 +236,10 @@ DATABASE_SOURCE="$TEST_DATABASE_SOURCE" RONCIN_POSTGRES_MIGRATION_TEST=1 \
   `RONCIN_POSTGRES_MIGRATION_TEST=1`；只提供集成连接串仍会跳过七个历史升级／冷启动
   用例。迁移测试若启动子进程，`DATABASE_SOURCE` 也必须绑定同一隔离连接，避免从
   本地配置继承日常开发库。完整验收不得把这些 SKIP 计为通过。
+- `internal/server/TestWorkerScheduleRealTimeAcceptance` 需要
+  `RONCIN_TASK_REALTIME_ACCEPTANCE=1`；库名必须以 `roncin_notify_verify_` 开头。
+  该用例会在专用库 `public` 应用正式迁移，不能指向开发库，也不能仅以随机 Schema
+  代替独立数据库。CI 与本地完整 `./...` 验收均须显式开启并核对实际 PASS。
 
 ## 场景：迁移前态、被测时点与种子集合
 

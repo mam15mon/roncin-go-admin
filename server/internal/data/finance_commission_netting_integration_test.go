@@ -55,7 +55,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 	org, err := data.db.Organization.Create().
 		SetCode("COMM-NT-" + suffix).
 		SetName("对冲提成测试组织-" + suffix).
-		SetKind("system").
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -100,10 +100,11 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 		t.Fatalf("创建测试操作员成员资格: %v", err)
 	}
 
-	// 两张订单：O1 应收 300/应付 100，O2 应收 500/应付 200。
-	orderPayables := [2]string{"100.00000000", "200.00000000"}
-	payableFeeIDs := make([]uuid.UUID, 0, len(commissionNettingBillAmounts))
-	for index, receivable := range commissionNettingBillAmounts {
+	// 两张计提订单：O1 应收300/应付100，O2 应收500/应付200。
+	// O3 只有应付500且无提成归属，补齐合并应付账单800，不改变前两票利润。
+	orderPayables := []string{"100.00000000", "200.00000000", "500.00000000"}
+	payableFeeIDs := make([]uuid.UUID, 0, len(orderPayables))
+	for index := range orderPayables {
 		orderNo := "NT-SE" + suffix + "-" + strconv.Itoa(index)
 		order, orderErr := data.db.Order.Create().
 			SetIdempotencyKey(uuid.NewString()).
@@ -120,22 +121,31 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 			t.Fatalf("创建测试订单 %d: %v", index, orderErr)
 		}
 		fixture.orderIDs = append(fixture.orderIDs, order.ID)
-		if _, attrErr := data.db.OrderCommissionAttribution.Create().
-			SetOrganizationID(org.ID).
-			SetOrderID(order.ID).
-			SetCustomerID(customer.ID).
-			SetSourceAssignmentID(uuid.New()).
-			SetEmployeeID(employee.ID).
-			SetEmployeeName(employee.DisplayName).
-			SetPersonnelRole(attribution.PersonnelRoleSALES).
-			SetAttributedAt(time.Now()).
-			Save(ctx); attrErr != nil {
-			t.Fatalf("创建测试提成归属 %d: %v", index, attrErr)
+		if index < len(commissionNettingBillAmounts) {
+			if _, attrErr := data.db.OrderCommissionAttribution.Create().
+				SetOrganizationID(org.ID).
+				SetOrderID(order.ID).
+				SetCustomerID(customer.ID).
+				SetSourceAssignmentID(uuid.New()).
+				SetEmployeeID(employee.ID).
+				SetEmployeeName(employee.DisplayName).
+				SetPersonnelRole(attribution.PersonnelRoleSALES).
+				SetAttributedAt(time.Now()).
+				Save(ctx); attrErr != nil {
+				t.Fatalf("创建测试提成归属 %d: %v", index, attrErr)
+			}
 		}
-		for _, feeSpec := range []struct {
+		feeSpecs := []struct {
 			direction fee.Direction
 			amount    string
-		}{{fee.DirectionRECEIVABLE, receivable}, {fee.DirectionPAYABLE, orderPayables[index]}} {
+		}{{fee.DirectionPAYABLE, orderPayables[index]}}
+		if index < len(commissionNettingBillAmounts) {
+			feeSpecs = append(feeSpecs, struct {
+				direction fee.Direction
+				amount    string
+			}{fee.DirectionRECEIVABLE, commissionNettingBillAmounts[index]})
+		}
+		for _, feeSpec := range feeSpecs {
 			createdFee, feeErr := data.db.OrderFee.Create().
 				SetOrderID(order.ID).
 				SetIdempotencyKey("nt-fee-" + suffix + "-" + strconv.Itoa(index) + "-" + string(feeSpec.direction)).
@@ -234,7 +244,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 		SetNetAmount("800.00000000").
 		SetTaxAmount("0.00000000").
 		SetBaseCurrencyAmount("800.00000000").
-		SetFeeCount(1).
+		SetFeeCount(len(orderPayables)).
 		SetBillDate(financeCommissionIntegrationDate).
 		SetVersion(1)
 	payableBill, err := withTestFinanceBillSettlementAccountSnapshot(payableCreate, uuid.New(), "CNY").Save(ctx)
@@ -549,14 +559,24 @@ func TestCommissionNettingSourcePostgres(t *testing.T) {
 			t.Fatalf("冲减调整数 = %d，期望 2（逐订单冲减）", len(reloaded.Adjustments))
 		}
 		totalDecrease := decimal.Zero
+		decreasesByOrder := make(map[uuid.UUID]string)
+		adjustmentKeys := make(map[string]bool)
 		for _, item := range reloaded.Adjustments {
 			if item.SourceType != biz.CommissionAdjustmentSourceNettingReversal || item.Direction != biz.CommissionAdjustmentDecrease || item.Status != biz.CommissionConfirmed {
 				t.Fatalf("冲减调整来源或状态不符: %#v", item)
 			}
-			if !strings.HasPrefix(item.IdempotencyKey, "nt:"+fixture.nettingID.String()) {
-				t.Fatalf("冲减调整幂等键前缀不符: %s", item.IdempotencyKey)
+			if item.SourceNettingID == nil || *item.SourceNettingID != fixture.nettingID {
+				t.Fatalf("冲减调整必须指向本次反转对冲单: %v", item.SourceNettingID)
 			}
+			if item.IdempotencyKey == "" || adjustmentKeys[item.IdempotencyKey] {
+				t.Fatalf("逐订单冲减调整必须有独立非空幂等键: %s", item.IdempotencyKey)
+			}
+			adjustmentKeys[item.IdempotencyKey] = true
+			decreasesByOrder[item.OrderID] = item.Amount.StringFixed(8)
 			totalDecrease = totalDecrease.Add(item.Amount)
+		}
+		if decreasesByOrder[fixture.orderIDs[0]] != "20.00000000" || decreasesByOrder[fixture.orderIDs[1]] != "30.00000000" {
+			t.Fatalf("冲减须逐订单追回实际已付金额20/30: %v", decreasesByOrder)
 		}
 		if totalDecrease.StringFixed(8) != "50.00000000" || reloaded.AdjustmentAmount.StringFixed(8) != "-50.00000000" ||
 			reloaded.EffectiveCommissionAmount.StringFixed(8) != "0.00000000" {

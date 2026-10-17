@@ -29,9 +29,9 @@ import (
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 )
 
-// 月度申请集成夹具：单一订单（应收 1000 / 应付 400）+ 一张账单；每张核销单
-// 按指定归属日期对整张账单分摊，通过「员工 × 身份归属」与「方案 × 员工分配」
-// 组合验证候选解析、提交事务、并发唯一与驳回重提。金额口径：利润 600 × 10% = 60。
+// 月度申请集成夹具：每个核销来源独立订单（应收 1000 / 应付 400）及账单，
+// 不重复核销同一账单。员工归属覆盖本夹具所有来源订单，每来源利润 600 × 10% = 60。
+// 验证候选解析、提交事务、并发唯一与驳回重提，迟到来源不改写既有订单快照。
 type commissionApplicationFixture struct {
 	t               *testing.T
 	data            *Data
@@ -46,6 +46,13 @@ type commissionApplicationFixture struct {
 	schemeSeq       int
 	historicalDate  string
 	currentDate     string
+	sourceOrderIDs  []uuid.UUID
+	attributions    []commissionApplicationAttribution
+}
+
+type commissionApplicationAttribution struct {
+	employeeID uuid.UUID
+	role       string
 }
 
 func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture {
@@ -70,7 +77,7 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 	org, err := data.db.Organization.Create().
 		SetCode("FCA-" + suffix).
 		SetName("月度申请测试组织-" + suffix).
-		SetKind("system").
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -96,27 +103,51 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 	if err != nil {
 		t.Fatalf("创建测试客户: %v", err)
 	}
-	order, err := data.db.Order.Create().
-		SetIdempotencyKey(uuid.NewString()).
+	if _, err = data.db.NumberRule.Create().
 		SetOrganizationID(org.ID).
+		SetDocumentType(numberruleent.DocumentTypeCommission).
+		SetPrefix("FCA-TC-").
+		SetDateFormat(numberruleent.DateFormatNone).
+		SetSequenceLength(4).
+		SetResetPolicy(numberruleent.ResetPolicyNever).
+		SetEnabled(true).
+		Save(ctx); err != nil {
+		t.Fatalf("创建测试提成编号规则: %v", err)
+	}
+	fixture := &commissionApplicationFixture{
+		t: t, data: data, organizationID: org.ID, customerID: customer.ID, actorID: actor.ID,
+		suffix: suffix, historicalDate: historicalDate, currentDate: today,
+	}
+	fixture.orderID, fixture.receivableFeeID, fixture.billID = fixture.newSourceOrder(0)
+	return fixture
+}
+
+// newSourceOrder 为单个真实收款来源创建独立订单及两方向账单。
+func (f *commissionApplicationFixture) newSourceOrder(index int) (uuid.UUID, uuid.UUID, uuid.UUID) {
+	f.t.Helper()
+	ctx := context.Background()
+	suffix := fmt.Sprintf("%s-%02d", f.suffix, index)
+	order, err := f.data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
+		SetOrganizationID(f.organizationID).
 		SetOrderNo("FCA-SE" + suffix).
-		SetCustomerID(customer.ID).
+		SetCustomerID(f.customerID).
 		SetBusinessType(orderent.BusinessTypeSE).
 		SetTradeDirection(orderent.TradeDirectionExport).
 		SetTradeTerm(orderent.TradeTermFOB).
 		SetPaymentTerm(orderent.PaymentTermPREPAID).
-		SetOrderDate(historicalDate).
+		SetOrderDate(f.historicalDate).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建测试订单: %v", err)
+		f.t.Fatalf("创建测试订单: %v", err)
 	}
-	receivableFee, err := data.db.OrderFee.Create().
+	receivableFee, err := f.data.db.OrderFee.Create().
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fca-fee-rec-" + suffix).
 		SetDirection(fee.DirectionRECEIVABLE).
 		SetFeeCode("OCEAN_FREIGHT").
 		SetFeeName("海运费").
-		SetSettlementPartyID(customer.ID).
+		SetSettlementPartyID(f.customerID).
 		SetBillingUnit("票").
 		SetQuantity("1.0000").
 		SetUnitPrice("1000.0000").
@@ -126,22 +157,22 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
 		SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).
-		SetExchangeRateDate(historicalDate).
+		SetExchangeRateDate(f.historicalDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("1000.00000000").
-		SetExpenseDate(historicalDate).
+		SetExpenseDate(f.historicalDate).
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建测试应收费用: %v", err)
+		f.t.Fatalf("创建测试应收费用: %v", err)
 	}
-	feePayable, err := data.db.OrderFee.Create().
+	feePayable, err := f.data.db.OrderFee.Create().
 		SetOrderID(order.ID).
 		SetIdempotencyKey("fca-fee-pay-" + suffix).
 		SetDirection(fee.DirectionPAYABLE).
 		SetFeeCode("COST").
 		SetFeeName("成本费").
-		SetSettlementPartyID(customer.ID).
+		SetSettlementPartyID(f.customerID).
 		SetBillingUnit("票").
 		SetQuantity("1.0000").
 		SetUnitPrice("400.0000").
@@ -151,42 +182,42 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetCurrency("CNY").
 		SetExchangeRate("1.00000000").
 		SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).
-		SetExchangeRateDate(historicalDate).
+		SetExchangeRateDate(f.historicalDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("400.00000000").
-		SetExpenseDate(historicalDate).
+		SetExpenseDate(f.historicalDate).
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
-		t.Fatalf("创建测试应付费用: %v", err)
+		f.t.Fatalf("创建测试应付费用: %v", err)
 	}
 
 	// 应付费用同样以真实账单关联表达建账事实（活动账单行且账单未取消）。
-	payableBillCreate := data.db.FinanceBill.Create().
-		SetOrganizationID(org.ID).
+	payableBillCreate := f.data.db.FinanceBill.Create().
+		SetOrganizationID(f.organizationID).
 		SetBillNo("FCA-BILL-P-" + suffix).
 		SetIdempotencyKey("fca-bill-pay-" + suffix).
 		SetDirection(financebillent.DirectionPAYABLE).
 		SetStatus(financebillent.StatusCONFIRMED).
-		SetSettlementPartyID(customer.ID).
-		SetSettlementPartyName(customer.LegalName).
+		SetSettlementPartyID(f.customerID).
+		SetSettlementPartyName("月度申请客户-" + f.suffix).
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
 		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
-		SetExchangeRateDate(historicalDate).
+		SetExchangeRateDate(f.historicalDate).
 		SetTotalAmount("400.00000000").
 		SetNetAmount("400.00000000").
 		SetTaxAmount("0.00000000").
 		SetBaseCurrencyAmount("400.00000000").
 		SetFeeCount(1).
-		SetBillDate(historicalDate).
+		SetBillDate(f.historicalDate).
 		SetVersion(1)
 	payableBill, err := withTestFinanceBillSettlementAccountSnapshot(payableBillCreate, uuid.New(), "CNY").Save(ctx)
 	if err != nil {
-		t.Fatalf("创建测试应付账单: %v", err)
+		f.t.Fatalf("创建测试应付账单: %v", err)
 	}
-	if _, err = data.db.FinanceBillLine.Create().
+	if _, err = f.data.db.FinanceBillLine.Create().
 		SetBillID(payableBill.ID).
 		SetOrderID(order.ID).
 		SetOrderFeeID(feePayable.ID).
@@ -204,33 +235,33 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetBaseCurrency("CNY").
 		SetActive(true).
 		Save(ctx); err != nil {
-		t.Fatalf("创建测试应付账单明细: %v", err)
+		f.t.Fatalf("创建测试应付账单明细: %v", err)
 	}
-	billCreate := data.db.FinanceBill.Create().
-		SetOrganizationID(org.ID).
+	billCreate := f.data.db.FinanceBill.Create().
+		SetOrganizationID(f.organizationID).
 		SetBillNo("FCA-BILL-" + suffix).
 		SetIdempotencyKey("fca-bill-" + suffix).
 		SetDirection(financebillent.DirectionRECEIVABLE).
 		SetStatus(financebillent.StatusCONFIRMED).
-		SetSettlementPartyID(customer.ID).
-		SetSettlementPartyName(customer.LegalName).
+		SetSettlementPartyID(f.customerID).
+		SetSettlementPartyName("月度申请客户-" + f.suffix).
 		SetCurrency("CNY").
 		SetBaseCurrency("CNY").
 		SetExchangeRate("1.00000000").
 		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
-		SetExchangeRateDate(historicalDate).
+		SetExchangeRateDate(f.historicalDate).
 		SetTotalAmount("1000.00000000").
 		SetNetAmount("1000.00000000").
 		SetTaxAmount("0.00000000").
 		SetBaseCurrencyAmount("1000.00000000").
 		SetFeeCount(1).
-		SetBillDate(historicalDate).
+		SetBillDate(f.historicalDate).
 		SetVersion(1)
 	billItem, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, uuid.New(), "CNY").Save(ctx)
 	if err != nil {
-		t.Fatalf("创建测试账单: %v", err)
+		f.t.Fatalf("创建测试账单: %v", err)
 	}
-	if _, err = data.db.FinanceBillLine.Create().
+	if _, err = f.data.db.FinanceBillLine.Create().
 		SetBillID(billItem.ID).
 		SetOrderID(order.ID).
 		SetOrderFeeID(receivableFee.ID).
@@ -248,26 +279,14 @@ func newCommissionApplicationFixture(t *testing.T) *commissionApplicationFixture
 		SetBaseCurrency("CNY").
 		SetActive(true).
 		Save(ctx); err != nil {
-		t.Fatalf("创建测试账单明细: %v", err)
+		f.t.Fatalf("创建测试账单明细: %v", err)
 	}
-	if _, err = data.db.NumberRule.Create().
-		SetOrganizationID(org.ID).
-		SetDocumentType(numberruleent.DocumentTypeCommission).
-		SetPrefix("FCA-TC-").
-		SetDateFormat(numberruleent.DateFormatNone).
-		SetSequenceLength(4).
-		SetResetPolicy(numberruleent.ResetPolicyNever).
-		SetEnabled(true).
-		Save(ctx); err != nil {
-		t.Fatalf("创建测试提成编号规则: %v", err)
+	f.sourceOrderIDs = append(f.sourceOrderIDs, order.ID)
+	for _, item := range f.attributions {
+		f.addAttributionToOrder(order.ID, item.employeeID, item.role)
 	}
-	fixture := &commissionApplicationFixture{
-		t: t, data: data, organizationID: org.ID, customerID: customer.ID, actorID: actor.ID,
-		orderID: order.ID, receivableFeeID: receivableFee.ID, billID: billItem.ID,
-		suffix: suffix, historicalDate: historicalDate, currentDate: today,
-	}
-	seedApprovedFeeSnapshotForTest(t, data, fixture.orderID, fixture.actorID)
-	return fixture
+	seedApprovedFeeSnapshotForTest(f.t, f.data, order.ID, f.actorID)
+	return order.ID, receivableFee.ID, billItem.ID
 }
 
 func (f *commissionApplicationFixture) newEmployee(label string) uuid.UUID {
@@ -289,9 +308,17 @@ func (f *commissionApplicationFixture) newEmployee(label string) uuid.UUID {
 
 func (f *commissionApplicationFixture) addAttribution(employeeID uuid.UUID, role string) {
 	f.t.Helper()
+	f.attributions = append(f.attributions, commissionApplicationAttribution{employeeID: employeeID, role: role})
+	for _, orderID := range f.sourceOrderIDs {
+		f.addAttributionToOrder(orderID, employeeID, role)
+	}
+}
+
+func (f *commissionApplicationFixture) addAttributionToOrder(orderID, employeeID uuid.UUID, role string) {
+	f.t.Helper()
 	if _, err := f.data.db.OrderCommissionAttribution.Create().
 		SetOrganizationID(f.organizationID).
-		SetOrderID(f.orderID).
+		SetOrderID(orderID).
 		SetCustomerID(f.customerID).
 		SetSourceAssignmentID(uuid.New()).
 		SetEmployeeID(employeeID).
@@ -334,13 +361,20 @@ func (f *commissionApplicationFixture) addSalesScheme(employeeID uuid.UUID) uuid
 	return ruleItem.ID
 }
 
-// addVerification 追加一张对整张账单全额分摊的 ACTIVE 应收核销单，归属日期
-// 由调用方指定（历史月或当前月）。
+// addVerification 对独立来源账单全额核销，归属日期由调用方指定（历史月或当前月）。
 func (f *commissionApplicationFixture) addVerification(verificationDate string) uuid.UUID {
 	f.t.Helper()
 	ctx := context.Background()
 	f.sourceSeq++
 	seqLabel := fmt.Sprintf("%02d", f.sourceSeq)
+	billID := f.billID
+	if f.sourceSeq > 1 {
+		_, _, billID = f.newSourceOrder(f.sourceSeq - 1)
+	}
+	billItem, err := f.data.db.FinanceBill.Get(ctx, billID)
+	if err != nil {
+		f.t.Fatalf("读取核销来源账单: %v", err)
+	}
 	cashflow, err := f.data.db.FinanceCashflow.Create().
 		SetOrganizationID(f.organizationID).
 		SetFlowNo("FCA-FLOW-" + f.suffix + "-" + seqLabel).
@@ -388,9 +422,9 @@ func (f *commissionApplicationFixture) addVerification(verificationDate string) 
 	if _, err = f.data.db.FinanceVerificationAllocation.Create().
 		SetVerificationID(verificationItem.ID).
 		SetCashflowID(cashflow.ID).
-		SetBillID(f.billID).
+		SetBillID(billItem.ID).
 		SetCashflowNo(cashflow.FlowNo).
-		SetBillNo("FCA-BILL-" + f.suffix).
+		SetBillNo(billItem.BillNo).
 		SetAmount("1000.00000000").
 		SetBillBaseAmount("1000.00000000").
 		SetCashflowBaseAmount("1000.00000000").

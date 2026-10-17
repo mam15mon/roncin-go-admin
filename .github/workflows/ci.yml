@@ -43,11 +43,11 @@ jobs:
         env:
           POSTGRES_USER: roncin
           POSTGRES_PASSWORD: roncin_local_dev
-          POSTGRES_DB: roncin_go_admin_integration
+          POSTGRES_DB: roncin_notify_verify_ci
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U roncin -d roncin_go_admin_integration"
+          --health-cmd "pg_isready -U roncin -d roncin_notify_verify_ci"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -70,12 +70,13 @@ jobs:
       - name: 初始化 PostgreSQL 测试扩展
         env:
           PGPASSWORD: roncin_local_dev
-        run: psql -h 127.0.0.1 -U roncin -d roncin_go_admin_integration -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public'
+        run: psql -h 127.0.0.1 -U roncin -d roncin_notify_verify_ci -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public'
       - name: 执行服务端及真实 PostgreSQL 测试
         env:
-          RONCIN_INTEGRATION_DATABASE_SOURCE: postgres://roncin:roncin_local_dev@127.0.0.1:5432/roncin_go_admin_integration?sslmode=disable
-          DATABASE_SOURCE: postgres://roncin:roncin_local_dev@127.0.0.1:5432/roncin_go_admin_integration?sslmode=disable
+          RONCIN_INTEGRATION_DATABASE_SOURCE: postgres://roncin:roncin_local_dev@127.0.0.1:5432/roncin_notify_verify_ci?sslmode=disable
+          DATABASE_SOURCE: postgres://roncin:roncin_local_dev@127.0.0.1:5432/roncin_notify_verify_ci?sslmode=disable
           RONCIN_POSTGRES_MIGRATION_TEST: '1'
+          RONCIN_TASK_REALTIME_ACCEPTANCE: '1'
         run: |
           set -o pipefail
           go -C server test -p 32 -timeout 25m -count=1 -json ./... | tee /tmp/server-tests.jsonl

@@ -223,6 +223,8 @@ func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 	t.Run("MANUAL 来源取消行为保持不变", func(t *testing.T) {
 		f.setT(t)
 		order := f.createOrder("SE-CG-MAN-" + f.suffix)
+		// 人工调整仍需依附真实提成来源：先准备费用及批准事实，再建立核销来源父单。
+		f.approveInitialFees(order)
 		parent := f.insertCommission(order, "60.00000000", "40.00000000", "1000.00000000", nil, nil, biz.CommissionBasisRealizedProfit)
 		confirmed := insertAdjustmentRow(f, order, parent, commissionadjustmentent.DirectionDECREASE, commissionadjustmentent.StatusCONFIRMED, "5.00000000", "cancel-gate-man-conf"+f.suffix, "人工已确认")
 		if _, err := uc.CancelAdjustment(context.Background(), f.organizationID, actor, confirmed.ID, 1, "人工调整取消"); err != nil {
