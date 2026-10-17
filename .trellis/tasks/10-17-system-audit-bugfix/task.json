@@ -3,7 +3,7 @@
   "name": "system-audit-bugfix",
   "title": "修复系统体检发现的失败反馈、缓存隔离与财务导出问题",
   "description": "修复体检确认的三类缺陷，补齐真实 PostgreSQL 验收并在验证后合回 main、安全删除任务分支",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -22,5 +22,7 @@
   "parent": null,
   "relatedFiles": [],
   "notes": "",
-  "meta": {}
+  "meta": {
+    "implementation_approval": "用户在最终方案后明确要求继续推进同一目标（创建任务、修复全部 bug、回归 main、安全删除分支）"
+  }
 }

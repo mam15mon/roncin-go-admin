@@ -3,13 +3,13 @@
 - [x] 用户授权创建任务、修复体检 bug、回归 main 和安全删分支。
 - [x] 干净 main 基线核查，创建 codex/system-audit-bugfix。
 - [x] PRD、设计、执行计划收敛，准备子代理上下文清单。
-- [ ] 呈现最终方案，取得后续实施确认，再 task.py start。
-- [ ] Trellis 实现代理分别负责写入反馈、缓存隔离、财务导出；主会话负责 CI/真实库。
-- [ ] 实现后补回归，写调用审计和数据库 PASS/FAIL/SKIP 记录。
-- [ ] 各批次定向测试、Biome、类型检查及 diff 检查后提交。
-- [ ] Trellis 检查代理独立复核，修复发现，更新规范。
-- [ ] 浏览器失败反馈、身份切换和 CSV 样本复核。
-- [ ] 最终 check:fast 与完整 PostgreSQL data/migration 验证。
+- [x] 呈现最终方案，取得后续实施确认，再 task.py start。
+- [x] Trellis 实现代理分别负责写入反馈、缓存隔离、财务导出；主会话负责 CI/真实库。
+- [x] 实现后补回归，写调用审计和数据库 PASS/FAIL/SKIP 记录。
+- [x] 各批次定向测试、Biome、类型检查及 diff 检查后提交。
+- [x] Trellis 检查代理独立复核，修复发现，更新规范。
+- [x] 浏览器失败反馈、身份切换和 CSV 样本复核。
+- [x] 最终 check:fast 与完整 PostgreSQL data/migration 验证。
 - [ ] 逐项完成验收、提交、任务归档和 journal。
 - [ ] 干净状态切 main 快进合并，核对祖先关系，git branch -d 安全删除本次分支。
 - [ ] 复核 main 最新提交、分支消失、工作树干净，完成目标。
