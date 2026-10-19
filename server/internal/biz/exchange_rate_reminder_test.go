@@ -79,9 +79,12 @@ func TestRenderExchangeRateWeeklyReminder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("渲染督办通知失败: %v", err)
 	}
-	for _, fragment := range []string{"深圳分公司", "CNY 2026\\-09\\-14\\~2026\\-09\\-20", "请先在「财务 · 汇率」页维护汇率"} {
+	for _, fragment := range []string{"### 周汇率待维护\n🟠 待处理", "深圳分公司", "CNY 2026\\-09\\-14\\~2026\\-09\\-20", "本周汇率尚未同步，缺少配置将阻止业务折算。"} {
 		if !strings.Contains(content.Text, fragment) {
 			t.Fatalf("督办通知缺少内容 %q: %s", fragment, content.Text)
 		}
+	}
+	if content.ActionTitle != "维护汇率" || content.ActionPath != "/finance/exchange-rates" || content.ActionURL != "" {
+		t.Fatalf("督办通知未提供受控汇率维护动作: %#v", content)
 	}
 }
