@@ -26,6 +26,9 @@ type ProRoute = Omit<MenuDataItem, 'routes'> & { routes?: ProRoute[] };
 const pageModules = import.meta.glob([
   '../pages/**/*.tsx',
   '!../pages/**/*.test.tsx',
+  '!../pages/**/*.test-utils.tsx',
+  '!../pages/**/*.fixtures.tsx',
+  '!../pages/**/*TestSupport.tsx',
 ]) as Record<string, PageLoader>;
 
 // 组件路径两段式解析：先 `pages/<path>.tsx`，未命中回退 `pages/<path>/index.tsx`
