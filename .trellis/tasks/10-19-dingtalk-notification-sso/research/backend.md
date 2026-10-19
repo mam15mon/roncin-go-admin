@@ -142,3 +142,7 @@ message DingTalkEmbeddedLoginRequest {
 - 用户看到的“点击免登”最终还依赖应用网页能力、可信域名、可见范围、可访问部署域名和真实客户端；这些不能由单元测试或代码读取得出已通过。
 - 不混用新的 `dd.requestAuthCode`、旧的 `runtime.permission.requestAuthCode` 和 OAuth 扫码码；本期只支持主代理选定的旧版 H5 → v2 getuserinfo 路径，不加猜测性 fallback。
 - 本研究中的新接口与方法名称是建议，最终以任务 design.md 和主代理裁定为准。
+
+### 实施修订：独立响应消息
+
+buf 强制每 RPC 使用独立且按 RPC 命名的响应。`DingTalkEmbeddedLogin` 实际返回 `DingTalkEmbeddedLoginResponse`，信封同构、data 共享 `DingTalkLoginResult`；此前建议直接复用响应消息不符合此规则。HTTP JSON 字段不变，原生成器更新绑定和客户端，不关闭 lint。

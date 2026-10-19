@@ -13,7 +13,7 @@ GET /api/v1/auth/dingtalk/embedded-config   PUBLIC
 信封 data: {enabled: boolean, corpId?: string, state?: string, expiresAt?: string}
 POST /api/v1/auth/dingtalk/embedded-login   PUBLIC
 请求: {authCode: string, state: string}
-响应: 复用 DingTalkLoginResponse（status/message/displayName?/currentUser?）
+响应: DingTalkEmbeddedLoginResponse，data 共享 DingTalkLoginResult（status/message/displayName?/currentUser?）
 
 SDK: dingtalk-jsapi/entry/union + api/runtime/permission/requestAuthCode
 调用: runtime.permission.requestAuthCode({corpId}) -> Promise<{code}>
@@ -44,6 +44,7 @@ JSON: {"code":"<客户端临时免登码>"}
   app token/clientSecret 仅服务端，不返回原始敏感上游错误正文。
 - Go 生产 HTML、Vite 开发 HTML 及前端渲染前预热在钉钉 UA 下全部跳过扫码配置与 iframe，
   登录 HTML 仍 no-store。普通浏览器保留原扫码预热，不能只在 React 中隐藏 iframe。
+- Proto 以独立 `DingTalkEmbeddedLoginResponse` 满足 buf 的响应唯一性和标准命名；信封与扫码同构，data 共用 `DingTalkLoginResult`。
 - 本期无 Schema、权限码和配置字段变更；原生成流程同步 Proto、Go、OpenAPI、前端客户端。
 
 ## 4. 校验与错误矩阵
