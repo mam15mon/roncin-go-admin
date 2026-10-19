@@ -1089,6 +1089,18 @@ func (f PartnerSettlementRuleFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartnerSettlementRuleMutation", m)
 }
 
+// The PasswordResetChallengeFunc type is an adapter to allow the use of ordinary
+// function as PasswordResetChallenge mutator.
+type PasswordResetChallengeFunc func(context.Context, *ent.PasswordResetChallengeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PasswordResetChallengeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PasswordResetChallengeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PasswordResetChallengeMutation", m)
+}
+
 // The PermissionFunc type is an adapter to allow the use of ordinary
 // function as Permission mutator.
 type PermissionFunc func(context.Context, *ent.PermissionMutation) (ent.Value, error)

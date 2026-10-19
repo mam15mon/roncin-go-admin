@@ -102,6 +102,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passwordresetchallenge"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -275,6 +276,7 @@ func checkColumn(t, c string) error {
 			partnerprofile.Table:                   partnerprofile.ValidColumn,
 			partnerrole.Table:                      partnerrole.ValidColumn,
 			partnersettlementrule.Table:            partnersettlementrule.ValidColumn,
+			passwordresetchallenge.Table:           passwordresetchallenge.ValidColumn,
 			permission.Table:                       permission.ValidColumn,
 			port.Table:                             port.ValidColumn,
 			role.Table:                             role.ValidColumn,

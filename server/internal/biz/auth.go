@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	ErrInvalidCredentials           = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "用户名或密码错误")
+	ErrInvalidCredentials           = errors.Unauthorized("AUTH_INVALID_CREDENTIALS", "账号或密码错误")
 	ErrLoginRateLimited             = errors.New(429, "AUTH_LOGIN_RATE_LIMITED", "登录尝试过于频繁，请稍后再试")
 	ErrSessionRequired              = errors.Unauthorized("AUTH_SESSION_REQUIRED", "请先登录")
 	ErrSessionExpired               = errors.Unauthorized("AUTH_SESSION_EXPIRED", "登录已过期")
@@ -99,6 +99,7 @@ type PermissionOrganizationScope struct {
 }
 
 type Credential struct {
+	LoginAccount      string
 	PendingAssignment bool
 	UserID            uuid.UUID
 	Username          string
@@ -398,11 +399,14 @@ func (s DataScope) rank() int {
 }
 
 type Session struct {
-	TokenHash      string
-	UserID         uuid.UUID
-	OrganizationID uuid.UUID
-	ExpiresAt      time.Time
-	UserAgent      string
+	// 仅密码登录携带已验证凭据快照，事务内建会话前再次核对。
+	LoginAccount         string
+	VerifiedPasswordHash *string
+	TokenHash            string
+	UserID               uuid.UUID
+	OrganizationID       uuid.UUID
+	ExpiresAt            time.Time
+	UserAgent            string
 }
 
 // AuthSessionResult 是登录与切换组织同构的会话建立结果：新令牌、随组织重算的主体与候选组织列表。
@@ -508,7 +512,11 @@ const (
 func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string, requestedOrganizationID uuid.UUID, userAgent, ipAddress string) (*AuthSessionResult, error) {
 	normalizedUsername := strings.ToLower(strings.TrimSpace(username))
 	now := time.Now().UTC()
-	accountKeyHash, keyHashes := loginRateLimitKeys(normalizedUsername, ipAddress)
+	limitAccount := normalizedUsername
+	if mobile := NormalizeDingTalkMobile(normalizedUsername); ValidDingTalkMobile(mobile) {
+		limitAccount = mobile
+	}
+	accountKeyHash, keyHashes := loginRateLimitKeys(limitAccount, ipAddress)
 	exceeded, err := uc.repo.LoginRateLimitExceeded(ctx, keyHashes, now, loginRateLimitWindow, loginRateLimitMaxFailures)
 	if err != nil {
 		return nil, err
@@ -519,21 +527,20 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string
 	credential, err := uc.repo.FindCredential(ctx, normalizedUsername)
 	if err != nil {
 		if stderrors.Is(err, ErrInvalidCredentials) {
-			return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
+			return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{Action: "auth.login", Result: "failure", Details: map[string]string{"account_hash": accountKeyHash}})
 		}
 		return nil, err
 	}
-	// 列为 NOT NULL，历史数据以空串表示未设密码；与 nil 同样按无效凭证处理，
-	// 避免「invalid password hash format」进入 Verify 变成内部错误。
-	if credential.PasswordHash == nil || *credential.PasswordHash == "" {
-		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
+	// 无密码、停用与待分配账号按无效凭据处理，防止空哈希进入 Verify。
+	if !credential.Enabled || credential.PendingAssignment || credential.PasswordHash == nil || *credential.PasswordHash == "" {
+		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"account_hash": accountKeyHash}})
 	}
 	matched, err := password.Verify(plainPassword, *credential.PasswordHash)
 	if err != nil {
 		return nil, fmt.Errorf("verify password hash: %w", err)
 	}
 	if !matched {
-		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"username": normalizedUsername}})
+		return nil, uc.recordLoginFailure(ctx, keyHashes, now, &AuditEvent{UserID: &credential.UserID, Action: "auth.login", Result: "failure", Details: map[string]string{"account_hash": accountKeyHash}})
 	}
 	choices, err := uc.listOrganizationChoices(ctx, credential.UserID)
 	if err != nil {
@@ -549,6 +556,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, username, plainPassword string
 		}
 		organizationID = requestedOrganizationID
 	}
+	credential.LoginAccount = normalizedUsername
 	return uc.createSession(ctx, credential, organizationID, choices, userAgent, "auth.login", accountKeyHash)
 }
 
@@ -643,7 +651,12 @@ func (uc *AuthUsecase) createSession(ctx context.Context, credential *Credential
 		return nil, err
 	}
 	expiresAt := time.Now().UTC().Add(uc.policy.TTL)
-	if err := uc.repo.CreateSession(ctx, &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: organizationID, ExpiresAt: expiresAt, UserAgent: userAgent}, clearLoginFailureKey, &AuditEvent{OrganizationID: &organizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
+	session := &Session{TokenHash: tokenHash, UserID: credential.UserID, OrganizationID: organizationID, ExpiresAt: expiresAt, UserAgent: userAgent}
+	if auditAction == "auth.login" {
+		session.LoginAccount = credential.LoginAccount
+		session.VerifiedPasswordHash = credential.PasswordHash
+	}
+	if err := uc.repo.CreateSession(ctx, session, clearLoginFailureKey, &AuditEvent{OrganizationID: &organizationID, UserID: &credential.UserID, Action: auditAction, Result: "success"}); err != nil {
 		return nil, err
 	}
 	principal.SessionTokenHash = tokenHash

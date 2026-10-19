@@ -96,6 +96,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passwordresetchallenge"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -7628,6 +7629,101 @@ func init() {
 	partnersettlementruleDescID := partnersettlementruleMixinFields0[0].Descriptor()
 	// partnersettlementrule.DefaultID holds the default value on creation for the id field.
 	partnersettlementrule.DefaultID = partnersettlementruleDescID.Default.(func() uuid.UUID)
+	passwordresetchallengeMixin := schema.PasswordResetChallenge{}.Mixin()
+	passwordresetchallengeMixinFields0 := passwordresetchallengeMixin[0].Fields()
+	_ = passwordresetchallengeMixinFields0
+	passwordresetchallengeMixinFields1 := passwordresetchallengeMixin[1].Fields()
+	_ = passwordresetchallengeMixinFields1
+	passwordresetchallengeFields := schema.PasswordResetChallenge{}.Fields()
+	_ = passwordresetchallengeFields
+	// passwordresetchallengeDescCreatedAt is the schema descriptor for created_at field.
+	passwordresetchallengeDescCreatedAt := passwordresetchallengeMixinFields1[0].Descriptor()
+	// passwordresetchallenge.DefaultCreatedAt holds the default value on creation for the created_at field.
+	passwordresetchallenge.DefaultCreatedAt = passwordresetchallengeDescCreatedAt.Default.(func() time.Time)
+	// passwordresetchallengeDescUpdatedAt is the schema descriptor for updated_at field.
+	passwordresetchallengeDescUpdatedAt := passwordresetchallengeMixinFields1[1].Descriptor()
+	// passwordresetchallenge.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	passwordresetchallenge.DefaultUpdatedAt = passwordresetchallengeDescUpdatedAt.Default.(func() time.Time)
+	// passwordresetchallenge.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	passwordresetchallenge.UpdateDefaultUpdatedAt = passwordresetchallengeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// passwordresetchallengeDescMobileKeyHash is the schema descriptor for mobile_key_hash field.
+	passwordresetchallengeDescMobileKeyHash := passwordresetchallengeFields[0].Descriptor()
+	// passwordresetchallenge.MobileKeyHashValidator is a validator for the "mobile_key_hash" field. It is called by the builders before save.
+	passwordresetchallenge.MobileKeyHashValidator = func() func(string) error {
+		validators := passwordresetchallengeDescMobileKeyHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(mobile_key_hash string) error {
+			for _, fn := range fns {
+				if err := fn(mobile_key_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// passwordresetchallengeDescTokenHash is the schema descriptor for token_hash field.
+	passwordresetchallengeDescTokenHash := passwordresetchallengeFields[1].Descriptor()
+	// passwordresetchallenge.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	passwordresetchallenge.TokenHashValidator = func() func(string) error {
+		validators := passwordresetchallengeDescTokenHash.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(token_hash string) error {
+			for _, fn := range fns {
+				if err := fn(token_hash); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// passwordresetchallengeDescCodeHash is the schema descriptor for code_hash field.
+	passwordresetchallengeDescCodeHash := passwordresetchallengeFields[2].Descriptor()
+	// passwordresetchallenge.DefaultCodeHash holds the default value on creation for the code_hash field.
+	passwordresetchallenge.DefaultCodeHash = passwordresetchallengeDescCodeHash.Default.(string)
+	// passwordresetchallenge.CodeHashValidator is a validator for the "code_hash" field. It is called by the builders before save.
+	passwordresetchallenge.CodeHashValidator = passwordresetchallengeDescCodeHash.Validators[0].(func(string) error)
+	// passwordresetchallengeDescDingtalkUserid is the schema descriptor for dingtalk_userid field.
+	passwordresetchallengeDescDingtalkUserid := passwordresetchallengeFields[4].Descriptor()
+	// passwordresetchallenge.DefaultDingtalkUserid holds the default value on creation for the dingtalk_userid field.
+	passwordresetchallenge.DefaultDingtalkUserid = passwordresetchallengeDescDingtalkUserid.Default.(string)
+	// passwordresetchallenge.DingtalkUseridValidator is a validator for the "dingtalk_userid" field. It is called by the builders before save.
+	passwordresetchallenge.DingtalkUseridValidator = passwordresetchallengeDescDingtalkUserid.Validators[0].(func(string) error)
+	// passwordresetchallengeDescDingtalkUnionid is the schema descriptor for dingtalk_unionid field.
+	passwordresetchallengeDescDingtalkUnionid := passwordresetchallengeFields[5].Descriptor()
+	// passwordresetchallenge.DefaultDingtalkUnionid holds the default value on creation for the dingtalk_unionid field.
+	passwordresetchallenge.DefaultDingtalkUnionid = passwordresetchallengeDescDingtalkUnionid.Default.(string)
+	// passwordresetchallenge.DingtalkUnionidValidator is a validator for the "dingtalk_unionid" field. It is called by the builders before save.
+	passwordresetchallenge.DingtalkUnionidValidator = passwordresetchallengeDescDingtalkUnionid.Validators[0].(func(string) error)
+	// passwordresetchallengeDescFailedAttempts is the schema descriptor for failed_attempts field.
+	passwordresetchallengeDescFailedAttempts := passwordresetchallengeFields[9].Descriptor()
+	// passwordresetchallenge.DefaultFailedAttempts holds the default value on creation for the failed_attempts field.
+	passwordresetchallenge.DefaultFailedAttempts = passwordresetchallengeDescFailedAttempts.Default.(int)
+	// passwordresetchallenge.FailedAttemptsValidator is a validator for the "failed_attempts" field. It is called by the builders before save.
+	passwordresetchallenge.FailedAttemptsValidator = func() func(int) error {
+		validators := passwordresetchallengeDescFailedAttempts.Validators
+		fns := [...]func(int) error{
+			validators[0].(func(int) error),
+			validators[1].(func(int) error),
+		}
+		return func(failed_attempts int) error {
+			for _, fn := range fns {
+				if err := fn(failed_attempts); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// passwordresetchallengeDescID is the schema descriptor for id field.
+	passwordresetchallengeDescID := passwordresetchallengeMixinFields0[0].Descriptor()
+	// passwordresetchallenge.DefaultID holds the default value on creation for the id field.
+	passwordresetchallenge.DefaultID = passwordresetchallengeDescID.Default.(func() uuid.UUID)
 	permissionMixin := schema.Permission{}.Mixin()
 	permissionMixinFields0 := permissionMixin[0].Fields()
 	_ = permissionMixinFields0
@@ -9419,8 +9515,12 @@ func init() {
 	userDescDingtalkMobile := userFields[13].Descriptor()
 	// user.DingtalkMobileValidator is a validator for the "dingtalk_mobile" field. It is called by the builders before save.
 	user.DingtalkMobileValidator = userDescDingtalkMobile.Validators[0].(func(string) error)
+	// userDescDingtalkMobileNormalized is the schema descriptor for dingtalk_mobile_normalized field.
+	userDescDingtalkMobileNormalized := userFields[14].Descriptor()
+	// user.DingtalkMobileNormalizedValidator is a validator for the "dingtalk_mobile_normalized" field. It is called by the builders before save.
+	user.DingtalkMobileNormalizedValidator = userDescDingtalkMobileNormalized.Validators[0].(func(string) error)
 	// userDescSearchKeywords is the schema descriptor for search_keywords field.
-	userDescSearchKeywords := userFields[16].Descriptor()
+	userDescSearchKeywords := userFields[17].Descriptor()
 	// user.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	user.DefaultSearchKeywords = userDescSearchKeywords.Default.(string)
 	// userDescID is the schema descriptor for id field.

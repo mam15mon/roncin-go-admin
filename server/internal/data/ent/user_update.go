@@ -318,6 +318,26 @@ func (_u *UserUpdate) ClearDingtalkMobile() *UserUpdate {
 	return _u
 }
 
+// SetDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field.
+func (_u *UserUpdate) SetDingtalkMobileNormalized(v string) *UserUpdate {
+	_u.mutation.SetDingtalkMobileNormalized(v)
+	return _u
+}
+
+// SetNillableDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableDingtalkMobileNormalized(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetDingtalkMobileNormalized(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkMobileNormalized clears the value of the "dingtalk_mobile_normalized" field.
+func (_u *UserUpdate) ClearDingtalkMobileNormalized() *UserUpdate {
+	_u.mutation.ClearDingtalkMobileNormalized()
+	return _u
+}
+
 // SetDingtalkDepartments sets the "dingtalk_departments" field.
 func (_u *UserUpdate) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpdate {
 	_u.mutation.SetDingtalkDepartments(v)
@@ -2707,6 +2727,11 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "dingtalk_mobile", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkMobileNormalized(); ok {
+		if err := user.DingtalkMobileNormalizedValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_mobile_normalized", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile_normalized": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -2787,6 +2812,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.DingtalkMobileCleared() {
 		_spec.ClearField(user.FieldDingtalkMobile, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkMobileNormalized(); ok {
+		_spec.SetField(user.FieldDingtalkMobileNormalized, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkMobileNormalizedCleared() {
+		_spec.ClearField(user.FieldDingtalkMobileNormalized, field.TypeString)
 	}
 	if value, ok := _u.mutation.DingtalkDepartments(); ok {
 		_spec.SetField(user.FieldDingtalkDepartments, field.TypeJSON, value)
@@ -5895,6 +5926,26 @@ func (_u *UserUpdateOne) ClearDingtalkMobile() *UserUpdateOne {
 	return _u
 }
 
+// SetDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field.
+func (_u *UserUpdateOne) SetDingtalkMobileNormalized(v string) *UserUpdateOne {
+	_u.mutation.SetDingtalkMobileNormalized(v)
+	return _u
+}
+
+// SetNillableDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableDingtalkMobileNormalized(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetDingtalkMobileNormalized(*v)
+	}
+	return _u
+}
+
+// ClearDingtalkMobileNormalized clears the value of the "dingtalk_mobile_normalized" field.
+func (_u *UserUpdateOne) ClearDingtalkMobileNormalized() *UserUpdateOne {
+	_u.mutation.ClearDingtalkMobileNormalized()
+	return _u
+}
+
 // SetDingtalkDepartments sets the "dingtalk_departments" field.
 func (_u *UserUpdateOne) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpdateOne {
 	_u.mutation.SetDingtalkDepartments(v)
@@ -8297,6 +8348,11 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "dingtalk_mobile", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DingtalkMobileNormalized(); ok {
+		if err := user.DingtalkMobileNormalizedValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_mobile_normalized", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile_normalized": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -8394,6 +8450,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if _u.mutation.DingtalkMobileCleared() {
 		_spec.ClearField(user.FieldDingtalkMobile, field.TypeString)
+	}
+	if value, ok := _u.mutation.DingtalkMobileNormalized(); ok {
+		_spec.SetField(user.FieldDingtalkMobileNormalized, field.TypeString, value)
+	}
+	if _u.mutation.DingtalkMobileNormalizedCleared() {
+		_spec.ClearField(user.FieldDingtalkMobileNormalized, field.TypeString)
 	}
 	if value, ok := _u.mutation.DingtalkDepartments(); ok {
 		_spec.SetField(user.FieldDingtalkDepartments, field.TypeJSON, value)

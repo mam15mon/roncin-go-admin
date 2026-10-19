@@ -103,6 +103,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passwordresetchallenge"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -229,6 +230,7 @@ const (
 	TypePartnerProfile                   = "PartnerProfile"
 	TypePartnerRole                      = "PartnerRole"
 	TypePartnerSettlementRule            = "PartnerSettlementRule"
+	TypePasswordResetChallenge           = "PasswordResetChallenge"
 	TypePermission                       = "Permission"
 	TypePort                             = "Port"
 	TypeRole                             = "Role"
@@ -133574,6 +133576,990 @@ func (m *PartnerSettlementRuleMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown PartnerSettlementRule edge %s", name)
 }
 
+// PasswordResetChallengeMutation represents an operation that mutates the PasswordResetChallenge nodes in the graph.
+type PasswordResetChallengeMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	mobile_key_hash     *string
+	token_hash          *string
+	code_hash           *string
+	user_id             *uuid.UUID
+	dingtalk_userid     *string
+	dingtalk_unionid    *string
+	status              *passwordresetchallenge.Status
+	expires_at          *time.Time
+	resend_available_at *time.Time
+	failed_attempts     *int
+	addfailed_attempts  *int
+	clearedFields       map[string]struct{}
+	done                bool
+	oldValue            func(context.Context) (*PasswordResetChallenge, error)
+	predicates          []predicate.PasswordResetChallenge
+}
+
+var _ ent.Mutation = (*PasswordResetChallengeMutation)(nil)
+
+// passwordresetchallengeOption allows management of the mutation configuration using functional options.
+type passwordresetchallengeOption func(*PasswordResetChallengeMutation)
+
+// newPasswordResetChallengeMutation creates new mutation for the PasswordResetChallenge entity.
+func newPasswordResetChallengeMutation(c config, op Op, opts ...passwordresetchallengeOption) *PasswordResetChallengeMutation {
+	m := &PasswordResetChallengeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePasswordResetChallenge,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPasswordResetChallengeID sets the ID field of the mutation.
+func withPasswordResetChallengeID(id uuid.UUID) passwordresetchallengeOption {
+	return func(m *PasswordResetChallengeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PasswordResetChallenge
+		)
+		m.oldValue = func(ctx context.Context) (*PasswordResetChallenge, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PasswordResetChallenge.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPasswordResetChallenge sets the old PasswordResetChallenge of the mutation.
+func withPasswordResetChallenge(node *PasswordResetChallenge) passwordresetchallengeOption {
+	return func(m *PasswordResetChallengeMutation) {
+		m.oldValue = func(context.Context) (*PasswordResetChallenge, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PasswordResetChallengeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PasswordResetChallengeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PasswordResetChallenge entities.
+func (m *PasswordResetChallengeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PasswordResetChallengeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PasswordResetChallengeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PasswordResetChallenge.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PasswordResetChallengeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PasswordResetChallengeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PasswordResetChallengeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PasswordResetChallengeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PasswordResetChallengeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PasswordResetChallengeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetMobileKeyHash sets the "mobile_key_hash" field.
+func (m *PasswordResetChallengeMutation) SetMobileKeyHash(s string) {
+	m.mobile_key_hash = &s
+}
+
+// MobileKeyHash returns the value of the "mobile_key_hash" field in the mutation.
+func (m *PasswordResetChallengeMutation) MobileKeyHash() (r string, exists bool) {
+	v := m.mobile_key_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMobileKeyHash returns the old "mobile_key_hash" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldMobileKeyHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMobileKeyHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMobileKeyHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMobileKeyHash: %w", err)
+	}
+	return oldValue.MobileKeyHash, nil
+}
+
+// ResetMobileKeyHash resets all changes to the "mobile_key_hash" field.
+func (m *PasswordResetChallengeMutation) ResetMobileKeyHash() {
+	m.mobile_key_hash = nil
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (m *PasswordResetChallengeMutation) SetTokenHash(s string) {
+	m.token_hash = &s
+}
+
+// TokenHash returns the value of the "token_hash" field in the mutation.
+func (m *PasswordResetChallengeMutation) TokenHash() (r string, exists bool) {
+	v := m.token_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTokenHash returns the old "token_hash" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldTokenHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTokenHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTokenHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTokenHash: %w", err)
+	}
+	return oldValue.TokenHash, nil
+}
+
+// ResetTokenHash resets all changes to the "token_hash" field.
+func (m *PasswordResetChallengeMutation) ResetTokenHash() {
+	m.token_hash = nil
+}
+
+// SetCodeHash sets the "code_hash" field.
+func (m *PasswordResetChallengeMutation) SetCodeHash(s string) {
+	m.code_hash = &s
+}
+
+// CodeHash returns the value of the "code_hash" field in the mutation.
+func (m *PasswordResetChallengeMutation) CodeHash() (r string, exists bool) {
+	v := m.code_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCodeHash returns the old "code_hash" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldCodeHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCodeHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCodeHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCodeHash: %w", err)
+	}
+	return oldValue.CodeHash, nil
+}
+
+// ResetCodeHash resets all changes to the "code_hash" field.
+func (m *PasswordResetChallengeMutation) ResetCodeHash() {
+	m.code_hash = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *PasswordResetChallengeMutation) SetUserID(u uuid.UUID) {
+	m.user_id = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *PasswordResetChallengeMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldUserID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ClearUserID clears the value of the "user_id" field.
+func (m *PasswordResetChallengeMutation) ClearUserID() {
+	m.user_id = nil
+	m.clearedFields[passwordresetchallenge.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "user_id" field was cleared in this mutation.
+func (m *PasswordResetChallengeMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[passwordresetchallenge.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *PasswordResetChallengeMutation) ResetUserID() {
+	m.user_id = nil
+	delete(m.clearedFields, passwordresetchallenge.FieldUserID)
+}
+
+// SetDingtalkUserid sets the "dingtalk_userid" field.
+func (m *PasswordResetChallengeMutation) SetDingtalkUserid(s string) {
+	m.dingtalk_userid = &s
+}
+
+// DingtalkUserid returns the value of the "dingtalk_userid" field in the mutation.
+func (m *PasswordResetChallengeMutation) DingtalkUserid() (r string, exists bool) {
+	v := m.dingtalk_userid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkUserid returns the old "dingtalk_userid" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldDingtalkUserid(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkUserid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkUserid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkUserid: %w", err)
+	}
+	return oldValue.DingtalkUserid, nil
+}
+
+// ResetDingtalkUserid resets all changes to the "dingtalk_userid" field.
+func (m *PasswordResetChallengeMutation) ResetDingtalkUserid() {
+	m.dingtalk_userid = nil
+}
+
+// SetDingtalkUnionid sets the "dingtalk_unionid" field.
+func (m *PasswordResetChallengeMutation) SetDingtalkUnionid(s string) {
+	m.dingtalk_unionid = &s
+}
+
+// DingtalkUnionid returns the value of the "dingtalk_unionid" field in the mutation.
+func (m *PasswordResetChallengeMutation) DingtalkUnionid() (r string, exists bool) {
+	v := m.dingtalk_unionid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkUnionid returns the old "dingtalk_unionid" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldDingtalkUnionid(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkUnionid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkUnionid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkUnionid: %w", err)
+	}
+	return oldValue.DingtalkUnionid, nil
+}
+
+// ResetDingtalkUnionid resets all changes to the "dingtalk_unionid" field.
+func (m *PasswordResetChallengeMutation) ResetDingtalkUnionid() {
+	m.dingtalk_unionid = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *PasswordResetChallengeMutation) SetStatus(pa passwordresetchallenge.Status) {
+	m.status = &pa
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *PasswordResetChallengeMutation) Status() (r passwordresetchallenge.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldStatus(ctx context.Context) (v passwordresetchallenge.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *PasswordResetChallengeMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *PasswordResetChallengeMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *PasswordResetChallengeMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *PasswordResetChallengeMutation) ResetExpiresAt() {
+	m.expires_at = nil
+}
+
+// SetResendAvailableAt sets the "resend_available_at" field.
+func (m *PasswordResetChallengeMutation) SetResendAvailableAt(t time.Time) {
+	m.resend_available_at = &t
+}
+
+// ResendAvailableAt returns the value of the "resend_available_at" field in the mutation.
+func (m *PasswordResetChallengeMutation) ResendAvailableAt() (r time.Time, exists bool) {
+	v := m.resend_available_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResendAvailableAt returns the old "resend_available_at" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldResendAvailableAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResendAvailableAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResendAvailableAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResendAvailableAt: %w", err)
+	}
+	return oldValue.ResendAvailableAt, nil
+}
+
+// ResetResendAvailableAt resets all changes to the "resend_available_at" field.
+func (m *PasswordResetChallengeMutation) ResetResendAvailableAt() {
+	m.resend_available_at = nil
+}
+
+// SetFailedAttempts sets the "failed_attempts" field.
+func (m *PasswordResetChallengeMutation) SetFailedAttempts(i int) {
+	m.failed_attempts = &i
+	m.addfailed_attempts = nil
+}
+
+// FailedAttempts returns the value of the "failed_attempts" field in the mutation.
+func (m *PasswordResetChallengeMutation) FailedAttempts() (r int, exists bool) {
+	v := m.failed_attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailedAttempts returns the old "failed_attempts" field's value of the PasswordResetChallenge entity.
+// If the PasswordResetChallenge object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PasswordResetChallengeMutation) OldFailedAttempts(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFailedAttempts is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFailedAttempts requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailedAttempts: %w", err)
+	}
+	return oldValue.FailedAttempts, nil
+}
+
+// AddFailedAttempts adds i to the "failed_attempts" field.
+func (m *PasswordResetChallengeMutation) AddFailedAttempts(i int) {
+	if m.addfailed_attempts != nil {
+		*m.addfailed_attempts += i
+	} else {
+		m.addfailed_attempts = &i
+	}
+}
+
+// AddedFailedAttempts returns the value that was added to the "failed_attempts" field in this mutation.
+func (m *PasswordResetChallengeMutation) AddedFailedAttempts() (r int, exists bool) {
+	v := m.addfailed_attempts
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFailedAttempts resets all changes to the "failed_attempts" field.
+func (m *PasswordResetChallengeMutation) ResetFailedAttempts() {
+	m.failed_attempts = nil
+	m.addfailed_attempts = nil
+}
+
+// Where appends a list predicates to the PasswordResetChallengeMutation builder.
+func (m *PasswordResetChallengeMutation) Where(ps ...predicate.PasswordResetChallenge) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PasswordResetChallengeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PasswordResetChallengeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PasswordResetChallenge, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PasswordResetChallengeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PasswordResetChallengeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PasswordResetChallenge).
+func (m *PasswordResetChallengeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PasswordResetChallengeMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, passwordresetchallenge.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, passwordresetchallenge.FieldUpdatedAt)
+	}
+	if m.mobile_key_hash != nil {
+		fields = append(fields, passwordresetchallenge.FieldMobileKeyHash)
+	}
+	if m.token_hash != nil {
+		fields = append(fields, passwordresetchallenge.FieldTokenHash)
+	}
+	if m.code_hash != nil {
+		fields = append(fields, passwordresetchallenge.FieldCodeHash)
+	}
+	if m.user_id != nil {
+		fields = append(fields, passwordresetchallenge.FieldUserID)
+	}
+	if m.dingtalk_userid != nil {
+		fields = append(fields, passwordresetchallenge.FieldDingtalkUserid)
+	}
+	if m.dingtalk_unionid != nil {
+		fields = append(fields, passwordresetchallenge.FieldDingtalkUnionid)
+	}
+	if m.status != nil {
+		fields = append(fields, passwordresetchallenge.FieldStatus)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, passwordresetchallenge.FieldExpiresAt)
+	}
+	if m.resend_available_at != nil {
+		fields = append(fields, passwordresetchallenge.FieldResendAvailableAt)
+	}
+	if m.failed_attempts != nil {
+		fields = append(fields, passwordresetchallenge.FieldFailedAttempts)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PasswordResetChallengeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case passwordresetchallenge.FieldCreatedAt:
+		return m.CreatedAt()
+	case passwordresetchallenge.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case passwordresetchallenge.FieldMobileKeyHash:
+		return m.MobileKeyHash()
+	case passwordresetchallenge.FieldTokenHash:
+		return m.TokenHash()
+	case passwordresetchallenge.FieldCodeHash:
+		return m.CodeHash()
+	case passwordresetchallenge.FieldUserID:
+		return m.UserID()
+	case passwordresetchallenge.FieldDingtalkUserid:
+		return m.DingtalkUserid()
+	case passwordresetchallenge.FieldDingtalkUnionid:
+		return m.DingtalkUnionid()
+	case passwordresetchallenge.FieldStatus:
+		return m.Status()
+	case passwordresetchallenge.FieldExpiresAt:
+		return m.ExpiresAt()
+	case passwordresetchallenge.FieldResendAvailableAt:
+		return m.ResendAvailableAt()
+	case passwordresetchallenge.FieldFailedAttempts:
+		return m.FailedAttempts()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PasswordResetChallengeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case passwordresetchallenge.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case passwordresetchallenge.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case passwordresetchallenge.FieldMobileKeyHash:
+		return m.OldMobileKeyHash(ctx)
+	case passwordresetchallenge.FieldTokenHash:
+		return m.OldTokenHash(ctx)
+	case passwordresetchallenge.FieldCodeHash:
+		return m.OldCodeHash(ctx)
+	case passwordresetchallenge.FieldUserID:
+		return m.OldUserID(ctx)
+	case passwordresetchallenge.FieldDingtalkUserid:
+		return m.OldDingtalkUserid(ctx)
+	case passwordresetchallenge.FieldDingtalkUnionid:
+		return m.OldDingtalkUnionid(ctx)
+	case passwordresetchallenge.FieldStatus:
+		return m.OldStatus(ctx)
+	case passwordresetchallenge.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case passwordresetchallenge.FieldResendAvailableAt:
+		return m.OldResendAvailableAt(ctx)
+	case passwordresetchallenge.FieldFailedAttempts:
+		return m.OldFailedAttempts(ctx)
+	}
+	return nil, fmt.Errorf("unknown PasswordResetChallenge field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PasswordResetChallengeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case passwordresetchallenge.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case passwordresetchallenge.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case passwordresetchallenge.FieldMobileKeyHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMobileKeyHash(v)
+		return nil
+	case passwordresetchallenge.FieldTokenHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTokenHash(v)
+		return nil
+	case passwordresetchallenge.FieldCodeHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCodeHash(v)
+		return nil
+	case passwordresetchallenge.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case passwordresetchallenge.FieldDingtalkUserid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkUserid(v)
+		return nil
+	case passwordresetchallenge.FieldDingtalkUnionid:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkUnionid(v)
+		return nil
+	case passwordresetchallenge.FieldStatus:
+		v, ok := value.(passwordresetchallenge.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case passwordresetchallenge.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case passwordresetchallenge.FieldResendAvailableAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResendAvailableAt(v)
+		return nil
+	case passwordresetchallenge.FieldFailedAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailedAttempts(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PasswordResetChallenge field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PasswordResetChallengeMutation) AddedFields() []string {
+	var fields []string
+	if m.addfailed_attempts != nil {
+		fields = append(fields, passwordresetchallenge.FieldFailedAttempts)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PasswordResetChallengeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case passwordresetchallenge.FieldFailedAttempts:
+		return m.AddedFailedAttempts()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PasswordResetChallengeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case passwordresetchallenge.FieldFailedAttempts:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFailedAttempts(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PasswordResetChallenge numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PasswordResetChallengeMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(passwordresetchallenge.FieldUserID) {
+		fields = append(fields, passwordresetchallenge.FieldUserID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PasswordResetChallengeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PasswordResetChallengeMutation) ClearField(name string) error {
+	switch name {
+	case passwordresetchallenge.FieldUserID:
+		m.ClearUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown PasswordResetChallenge nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PasswordResetChallengeMutation) ResetField(name string) error {
+	switch name {
+	case passwordresetchallenge.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case passwordresetchallenge.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case passwordresetchallenge.FieldMobileKeyHash:
+		m.ResetMobileKeyHash()
+		return nil
+	case passwordresetchallenge.FieldTokenHash:
+		m.ResetTokenHash()
+		return nil
+	case passwordresetchallenge.FieldCodeHash:
+		m.ResetCodeHash()
+		return nil
+	case passwordresetchallenge.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case passwordresetchallenge.FieldDingtalkUserid:
+		m.ResetDingtalkUserid()
+		return nil
+	case passwordresetchallenge.FieldDingtalkUnionid:
+		m.ResetDingtalkUnionid()
+		return nil
+	case passwordresetchallenge.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case passwordresetchallenge.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case passwordresetchallenge.FieldResendAvailableAt:
+		m.ResetResendAvailableAt()
+		return nil
+	case passwordresetchallenge.FieldFailedAttempts:
+		m.ResetFailedAttempts()
+		return nil
+	}
+	return fmt.Errorf("unknown PasswordResetChallenge field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PasswordResetChallengeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PasswordResetChallengeMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PasswordResetChallengeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PasswordResetChallengeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PasswordResetChallengeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PasswordResetChallengeMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PasswordResetChallengeMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PasswordResetChallenge unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PasswordResetChallengeMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PasswordResetChallenge edge %s", name)
+}
+
 // PermissionMutation represents an operation that mutates the Permission nodes in the graph.
 type PermissionMutation struct {
 	config
@@ -171257,6 +172243,7 @@ type UserMutation struct {
 	pending_assignment                                    *bool
 	dingtalk_job_number                                   *string
 	dingtalk_mobile                                       *string
+	dingtalk_mobile_normalized                            *string
 	dingtalk_departments                                  *[]schema.DirectoryDepartment
 	appenddingtalk_departments                            []schema.DirectoryDepartment
 	dingtalk_last_synced_at                               *time.Time
@@ -172263,6 +173250,55 @@ func (m *UserMutation) DingtalkMobileCleared() bool {
 func (m *UserMutation) ResetDingtalkMobile() {
 	m.dingtalk_mobile = nil
 	delete(m.clearedFields, user.FieldDingtalkMobile)
+}
+
+// SetDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field.
+func (m *UserMutation) SetDingtalkMobileNormalized(s string) {
+	m.dingtalk_mobile_normalized = &s
+}
+
+// DingtalkMobileNormalized returns the value of the "dingtalk_mobile_normalized" field in the mutation.
+func (m *UserMutation) DingtalkMobileNormalized() (r string, exists bool) {
+	v := m.dingtalk_mobile_normalized
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDingtalkMobileNormalized returns the old "dingtalk_mobile_normalized" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldDingtalkMobileNormalized(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDingtalkMobileNormalized is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDingtalkMobileNormalized requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDingtalkMobileNormalized: %w", err)
+	}
+	return oldValue.DingtalkMobileNormalized, nil
+}
+
+// ClearDingtalkMobileNormalized clears the value of the "dingtalk_mobile_normalized" field.
+func (m *UserMutation) ClearDingtalkMobileNormalized() {
+	m.dingtalk_mobile_normalized = nil
+	m.clearedFields[user.FieldDingtalkMobileNormalized] = struct{}{}
+}
+
+// DingtalkMobileNormalizedCleared returns if the "dingtalk_mobile_normalized" field was cleared in this mutation.
+func (m *UserMutation) DingtalkMobileNormalizedCleared() bool {
+	_, ok := m.clearedFields[user.FieldDingtalkMobileNormalized]
+	return ok
+}
+
+// ResetDingtalkMobileNormalized resets all changes to the "dingtalk_mobile_normalized" field.
+func (m *UserMutation) ResetDingtalkMobileNormalized() {
+	m.dingtalk_mobile_normalized = nil
+	delete(m.clearedFields, user.FieldDingtalkMobileNormalized)
 }
 
 // SetDingtalkDepartments sets the "dingtalk_departments" field.
@@ -175824,7 +176860,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 19)
+	fields := make([]string, 0, 20)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -175872,6 +176908,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.dingtalk_mobile != nil {
 		fields = append(fields, user.FieldDingtalkMobile)
+	}
+	if m.dingtalk_mobile_normalized != nil {
+		fields = append(fields, user.FieldDingtalkMobileNormalized)
 	}
 	if m.dingtalk_departments != nil {
 		fields = append(fields, user.FieldDingtalkDepartments)
@@ -175922,6 +176961,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.DingtalkJobNumber()
 	case user.FieldDingtalkMobile:
 		return m.DingtalkMobile()
+	case user.FieldDingtalkMobileNormalized:
+		return m.DingtalkMobileNormalized()
 	case user.FieldDingtalkDepartments:
 		return m.DingtalkDepartments()
 	case user.FieldDingtalkLastSyncedAt:
@@ -175969,6 +177010,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDingtalkJobNumber(ctx)
 	case user.FieldDingtalkMobile:
 		return m.OldDingtalkMobile(ctx)
+	case user.FieldDingtalkMobileNormalized:
+		return m.OldDingtalkMobileNormalized(ctx)
 	case user.FieldDingtalkDepartments:
 		return m.OldDingtalkDepartments(ctx)
 	case user.FieldDingtalkLastSyncedAt:
@@ -176096,6 +177139,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDingtalkMobile(v)
 		return nil
+	case user.FieldDingtalkMobileNormalized:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDingtalkMobileNormalized(v)
+		return nil
 	case user.FieldDingtalkDepartments:
 		v, ok := value.([]schema.DirectoryDepartment)
 		if !ok {
@@ -176177,6 +177227,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldDingtalkMobile) {
 		fields = append(fields, user.FieldDingtalkMobile)
 	}
+	if m.FieldCleared(user.FieldDingtalkMobileNormalized) {
+		fields = append(fields, user.FieldDingtalkMobileNormalized)
+	}
 	if m.FieldCleared(user.FieldDingtalkDepartments) {
 		fields = append(fields, user.FieldDingtalkDepartments)
 	}
@@ -176226,6 +177279,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldDingtalkMobile:
 		m.ClearDingtalkMobile()
+		return nil
+	case user.FieldDingtalkMobileNormalized:
+		m.ClearDingtalkMobileNormalized()
 		return nil
 	case user.FieldDingtalkDepartments:
 		m.ClearDingtalkDepartments()
@@ -176288,6 +177344,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldDingtalkMobile:
 		m.ResetDingtalkMobile()
+		return nil
+	case user.FieldDingtalkMobileNormalized:
+		m.ResetDingtalkMobileNormalized()
 		return nil
 	case user.FieldDingtalkDepartments:
 		m.ResetDingtalkDepartments()

@@ -78,7 +78,7 @@ func (*authServiceRepoStub) RevokeSession(context.Context, string, time.Time, *b
 
 func newAuthServiceForTest(repo *authServiceRepoStub) *AuthService {
 	policy := &biz.SessionPolicy{TTL: time.Hour}
-	return NewAuthService(biz.NewAuthUsecase(repo, policy, nil, nil), policy)
+	return NewAuthService(biz.NewAuthUsecase(repo, policy, nil, nil), policy, nil)
 }
 
 func authServicePasswordHash(t *testing.T) *string {

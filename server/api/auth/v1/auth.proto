@@ -18,6 +18,16 @@ service AuthService {
     };
   }
 
+  rpc RequestPasswordResetCode(RequestPasswordResetCodeRequest) returns (RequestPasswordResetCodeResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {post: "/api/v1/auth/password-reset/code" body: "*"};
+  }
+
+  rpc ConfirmPasswordReset(ConfirmPasswordResetRequest) returns (ConfirmPasswordResetResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {post: "/api/v1/auth/password-reset/confirm" body: "*"};
+  }
+
   rpc GetDingTalkLoginConfig(GetDingTalkLoginConfigRequest) returns (GetDingTalkLoginConfigResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
     option (google.api.http) = {get: "/api/v1/auth/dingtalk/login-config"};
@@ -54,6 +64,7 @@ service AuthService {
 }
 
 message LoginRequest {
+  // 账号：钉钉手机号或本地用户名。
   string username = 1 [(google.api.field_behavior) = REQUIRED];
   string password = 2 [(google.api.field_behavior) = REQUIRED];
   // 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。
@@ -204,3 +215,31 @@ message GetDingTalkLoginConfigRequest {}
 message LogoutRequest {}
 
 message MeRequest {}
+
+message RequestPasswordResetCodeRequest {
+  string mobile = 1 [(google.api.field_behavior) = REQUIRED];
+}
+message RequestPasswordResetCodeResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PasswordResetChallenge data = 4;
+  string trace_id = 5;
+}
+message PasswordResetChallenge {
+  string challenge_token = 1;
+  string expires_at = 2;
+  string resend_available_at = 3;
+  string server_time = 4;
+}
+message ConfirmPasswordResetRequest {
+  string challenge_token = 1 [(google.api.field_behavior) = REQUIRED];
+  string code = 2 [(google.api.field_behavior) = REQUIRED];
+  string new_password = 3 [(google.api.field_behavior) = REQUIRED];
+}
+message ConfirmPasswordResetResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 4;
+}

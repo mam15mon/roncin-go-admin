@@ -5686,6 +5686,50 @@ var (
 			},
 		},
 	}
+	// PasswordResetChallengesColumns holds the columns for the "password_reset_challenges" table.
+	PasswordResetChallengesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "mobile_key_hash", Type: field.TypeString, Size: 64},
+		{Name: "token_hash", Type: field.TypeString, Size: 64},
+		{Name: "code_hash", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "user_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "dingtalk_userid", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "dingtalk_unionid", Type: field.TypeString, Size: 128, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "READY", "FAILED", "CONSUMED"}},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "resend_available_at", Type: field.TypeTime},
+		{Name: "failed_attempts", Type: field.TypeInt, Default: 0},
+	}
+	// PasswordResetChallengesTable holds the schema information for the "password_reset_challenges" table.
+	PasswordResetChallengesTable = &schema.Table{
+		Name:       "password_reset_challenges",
+		Columns:    PasswordResetChallengesColumns,
+		PrimaryKey: []*schema.Column{PasswordResetChallengesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passwordresetchallenge_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PasswordResetChallengesColumns[2]},
+			},
+			{
+				Name:    "passwordresetchallenge_mobile_key_hash",
+				Unique:  true,
+				Columns: []*schema.Column{PasswordResetChallengesColumns[3]},
+			},
+			{
+				Name:    "passwordresetchallenge_token_hash",
+				Unique:  true,
+				Columns: []*schema.Column{PasswordResetChallengesColumns[4]},
+			},
+			{
+				Name:    "passwordresetchallenge_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{PasswordResetChallengesColumns[6]},
+			},
+		},
+	}
 	// PermissionsColumns holds the columns for the "permissions" table.
 	PermissionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -7255,6 +7299,7 @@ var (
 		{Name: "pending_assignment", Type: field.TypeBool, Default: false},
 		{Name: "dingtalk_job_number", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "dingtalk_mobile", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "dingtalk_mobile_normalized", Type: field.TypeString, Nullable: true, Size: 11},
 		{Name: "dingtalk_departments", Type: field.TypeJSON, Nullable: true},
 		{Name: "dingtalk_last_synced_at", Type: field.TypeTime, Nullable: true},
 		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
@@ -7268,7 +7313,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_organizations_dingtalk_registration_requests",
-				Columns:    []*schema.Column{UsersColumns[19]},
+				Columns:    []*schema.Column{UsersColumns[20]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -7293,6 +7338,11 @@ var (
 				Columns: []*schema.Column{UsersColumns[5]},
 			},
 			{
+				Name:    "user_dingtalk_mobile_normalized",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[16]},
+			},
+			{
 				Name:    "user_dingtalk_unionid",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[8]},
@@ -7305,7 +7355,7 @@ var (
 			{
 				Name:    "user_dingtalk_requested_organization_id",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[19]},
+				Columns: []*schema.Column{UsersColumns[20]},
 			},
 		},
 	}
@@ -7426,6 +7476,7 @@ var (
 		PartnerProfilesTable,
 		PartnerRolesTable,
 		PartnerSettlementRulesTable,
+		PasswordResetChallengesTable,
 		PermissionsTable,
 		PortsTable,
 		RolesTable,
@@ -7794,6 +7845,11 @@ func init() {
 		"partner_roles_role_type_check": "role_type IN ('customer', 'supplier', 'foreign_agent')",
 	}
 	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable
+	PasswordResetChallengesTable.Annotation = &entsql.Annotation{}
+	PasswordResetChallengesTable.Annotation.Checks = map[string]string{
+		"password_reset_challenges_failed_attempts_check": "failed_attempts BETWEEN 0 AND 5",
+		"password_reset_challenges_status_check":          "status IN ('PENDING', 'READY', 'FAILED', 'CONSUMED')",
+	}
 	RolesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	RoleAssignmentsTable.ForeignKeys[0].RefTable = MembershipsTable
 	RoleAssignmentsTable.ForeignKeys[1].RefTable = RolesTable

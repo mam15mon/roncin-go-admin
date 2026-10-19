@@ -29,11 +29,35 @@ func (r *authRepo) FindCredential(ctx context.Context, username string) (*biz.Cr
 	if err != nil {
 		return nil, err
 	}
-	account, err := client.User.Query().Where(user.UsernameEQ(username), user.EnabledEQ(true)).Only(ctx)
+	accounts, err := loginAccountQuery(client, username).All(ctx)
 	if err != nil {
-		return nil, mapEntError(err, biz.ErrInvalidCredentials, nil)
+		return nil, err
 	}
-	return credentialFromAccount(account), nil
+	if len(accounts) > 1 {
+		return nil, biz.ErrAuthAccountConflict
+	}
+	if len(accounts) == 0 || !loginAccountMatches(accounts[0], username) {
+		return nil, biz.ErrInvalidCredentials
+	}
+	return credentialFromAccount(accounts[0]), nil
+}
+
+// loginAccountQuery 在密码校验前联合解析所有身份，启停状态不参与消歧。
+func loginAccountQuery(client *ent.Client, account string) *ent.UserQuery {
+	normalized := biz.NormalizeDingTalkMobile(account)
+	if biz.ValidDingTalkMobile(normalized) {
+		return client.User.Query().Where(user.Or(user.UsernameEQ(account), user.UsernameEQ(normalized), user.DingtalkMobileNormalizedEQ(normalized)))
+	}
+	return client.User.Query().Where(user.UsernameEQ(account))
+}
+
+// 规范手机号形式仅作为冲突候选，本地用户名本身仍要求精确匹配。
+func loginAccountMatches(account *ent.User, input string) bool {
+	if account.Username == input {
+		return true
+	}
+	mobile := biz.NormalizeDingTalkMobile(input)
+	return biz.ValidDingTalkMobile(mobile) && account.DingtalkMobileNormalized != nil && *account.DingtalkMobileNormalized == mobile
 }
 
 func (r *authRepo) LoginRateLimitExceeded(ctx context.Context, keyHashes []string, now time.Time, window time.Duration, maxAttempts int) (bool, error) {
@@ -449,6 +473,31 @@ func roleGrantFromEntRole(role *ent.Role, scope biz.DataScope) (biz.RoleGrant, b
 
 func (r *authRepo) CreateSession(ctx context.Context, input *biz.Session, clearLoginFailureKey string, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		account, err := tx.User.Query().Where(user.IDEQ(input.UserID)).ForShare().Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrInvalidCredentials, nil)
+		}
+		if !account.Enabled || account.PendingAssignment {
+			return biz.ErrInvalidCredentials
+		}
+		if input.VerifiedPasswordHash != nil {
+			if account.PasswordHash == nil || *account.PasswordHash != *input.VerifiedPasswordHash {
+				return biz.ErrInvalidCredentials
+			}
+			accounts, err := loginAccountQuery(tx.Client(), input.LoginAccount).All(ctx)
+			if err != nil {
+				return err
+			}
+			if len(accounts) > 1 {
+				return biz.ErrAuthAccountConflict
+			}
+			if len(accounts) != 1 || accounts[0].ID != input.UserID || !loginAccountMatches(accounts[0], input.LoginAccount) {
+				return biz.ErrInvalidCredentials
+			}
+		}
+		if err := validateSessionWorkspace(ctx, tx, input.UserID, input.OrganizationID); err != nil {
+			return err
+		}
 		if clearLoginFailureKey != "" {
 			if _, deleteErr := tx.LoginRateLimitBucket.Delete().Where(loginratelimitbucket.KeyHashEQ(clearLoginFailureKey)).Exec(ctx); deleteErr != nil {
 				return deleteErr
@@ -598,4 +647,22 @@ func workspaceDataScope(nodes map[uuid.UUID]authOrgNode, workspaceID uuid.UUID) 
 	default:
 		return ""
 	}
+}
+
+// validateSessionWorkspace 在用户锁后复核工作台和成员资格，供建立新会话使用。
+func validateSessionWorkspace(ctx context.Context, tx *ent.Tx, userID, organizationID uuid.UUID) error {
+	nodes, err := tx.Organization.Query().Order(ent.Asc(organization.FieldID)).ForShare().All(ctx)
+	if err != nil {
+		return err
+	}
+	members, err := tx.Membership.Query().Where(membership.UserIDEQ(userID), membership.EnabledEQ(true), membership.HasOrganizationWith(organization.EnabledEQ(true))).Order(ent.Asc(membership.FieldID)).ForShare().All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, id := range resolveMembershipWorkspaces(membershipRefsFromEnt(members), authOrganizationNodes(nodes)) {
+		if id == organizationID {
+			return nil
+		}
+	}
+	return biz.ErrAuthOrganizationForbidden
 }

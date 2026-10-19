@@ -1017,6 +1017,66 @@
         }
       }
     },
+    "/api/v1/auth/password-reset/code": {
+      "post": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_RequestPasswordResetCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.RequestPasswordResetCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.RequestPasswordResetCodeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-reset/confirm": {
+      "post": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_ConfirmPasswordReset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.ConfirmPasswordResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.ConfirmPasswordResetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/switch-organization": {
       "post": {
         "tags": [
@@ -15068,6 +15128,43 @@
           }
         }
       },
+      "auth.v1.ConfirmPasswordResetRequest": {
+        "required": [
+          "challengeToken",
+          "code",
+          "newPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.ConfirmPasswordResetResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "auth.v1.CurrentUser": {
         "type": "object",
         "properties": {
@@ -15214,7 +15311,8 @@
         "type": "object",
         "properties": {
           "username": {
-            "type": "string"
+            "type": "string",
+            "description": "账号：钉钉手机号或本地用户名。"
           },
           "password": {
             "type": "string"
@@ -15343,6 +15441,23 @@
         },
         "description": "OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。"
       },
+      "auth.v1.PasswordResetChallenge": {
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "resendAvailableAt": {
+            "type": "string"
+          },
+          "serverTime": {
+            "type": "string"
+          }
+        }
+      },
       "auth.v1.PermissionCapability": {
         "type": "object",
         "properties": {
@@ -15350,6 +15465,38 @@
             "type": "string"
           },
           "dataScope": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.RequestPasswordResetCodeRequest": {
+        "required": [
+          "mobile"
+        ],
+        "type": "object",
+        "properties": {
+          "mobile": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.RequestPasswordResetCodeResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.PasswordResetChallenge"
+          },
+          "traceId": {
             "type": "string"
           }
         }

@@ -46,6 +46,7 @@ func (User) Fields() []ent.Field {
 		field.Bool("pending_assignment").Default(false),
 		field.String("dingtalk_job_number").MaxLen(100).Optional().Nillable(),
 		field.String("dingtalk_mobile").MaxLen(64).Optional().Nillable().Sensitive(),
+		field.String("dingtalk_mobile_normalized").MaxLen(11).Optional().Nillable().Sensitive(),
 		field.JSON("dingtalk_departments", []DirectoryDepartment{}).Optional(),
 		field.Time("dingtalk_last_synced_at").Optional().Nillable(),
 		searchKeywordsField(),
@@ -136,6 +137,7 @@ func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("username").Unique().Annotations(entsql.IndexWhere("username IS NOT NULL AND username <> ''")),
 		index.Fields("email"),
+		index.Fields("dingtalk_mobile_normalized"),
 		index.Fields("dingtalk_unionid").Unique(),
 		index.Fields("dingtalk_userid").Unique(),
 		index.Fields("dingtalk_requested_organization_id"),

@@ -48,6 +48,8 @@ const (
 	FieldDingtalkJobNumber = "dingtalk_job_number"
 	// FieldDingtalkMobile holds the string denoting the dingtalk_mobile field in the database.
 	FieldDingtalkMobile = "dingtalk_mobile"
+	// FieldDingtalkMobileNormalized holds the string denoting the dingtalk_mobile_normalized field in the database.
+	FieldDingtalkMobileNormalized = "dingtalk_mobile_normalized"
 	// FieldDingtalkDepartments holds the string denoting the dingtalk_departments field in the database.
 	FieldDingtalkDepartments = "dingtalk_departments"
 	// FieldDingtalkLastSyncedAt holds the string denoting the dingtalk_last_synced_at field in the database.
@@ -644,6 +646,7 @@ var Columns = []string{
 	FieldPendingAssignment,
 	FieldDingtalkJobNumber,
 	FieldDingtalkMobile,
+	FieldDingtalkMobileNormalized,
 	FieldDingtalkDepartments,
 	FieldDingtalkLastSyncedAt,
 	FieldSearchKeywords,
@@ -696,6 +699,8 @@ var (
 	DingtalkJobNumberValidator func(string) error
 	// DingtalkMobileValidator is a validator for the "dingtalk_mobile" field. It is called by the builders before save.
 	DingtalkMobileValidator func(string) error
+	// DingtalkMobileNormalizedValidator is a validator for the "dingtalk_mobile_normalized" field. It is called by the builders before save.
+	DingtalkMobileNormalizedValidator func(string) error
 	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
 	DefaultSearchKeywords string
 	// DefaultID holds the default value on creation for the "id" field.
@@ -788,6 +793,11 @@ func ByDingtalkJobNumber(opts ...sql.OrderTermOption) OrderOption {
 // ByDingtalkMobile orders the results by the dingtalk_mobile field.
 func ByDingtalkMobile(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDingtalkMobile, opts...).ToFunc()
+}
+
+// ByDingtalkMobileNormalized orders the results by the dingtalk_mobile_normalized field.
+func ByDingtalkMobileNormalized(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDingtalkMobileNormalized, opts...).ToFunc()
 }
 
 // ByDingtalkLastSyncedAt orders the results by the dingtalk_last_synced_at field.

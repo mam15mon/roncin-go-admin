@@ -280,6 +280,20 @@ func (_c *UserCreate) SetNillableDingtalkMobile(v *string) *UserCreate {
 	return _c
 }
 
+// SetDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field.
+func (_c *UserCreate) SetDingtalkMobileNormalized(v string) *UserCreate {
+	_c.mutation.SetDingtalkMobileNormalized(v)
+	return _c
+}
+
+// SetNillableDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field if the given value is not nil.
+func (_c *UserCreate) SetNillableDingtalkMobileNormalized(v *string) *UserCreate {
+	if v != nil {
+		_c.SetDingtalkMobileNormalized(*v)
+	}
+	return _c
+}
+
 // SetDingtalkDepartments sets the "dingtalk_departments" field.
 func (_c *UserCreate) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserCreate {
 	_c.mutation.SetDingtalkDepartments(v)
@@ -1405,6 +1419,11 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "dingtalk_mobile", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.DingtalkMobileNormalized(); ok {
+		if err := user.DingtalkMobileNormalizedValidator(v); err != nil {
+			return &ValidationError{Name: "dingtalk_mobile_normalized", err: fmt.Errorf(`ent: validator failed for field "User.dingtalk_mobile_normalized": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.SearchKeywords(); !ok {
 		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "User.search_keywords"`)}
 	}
@@ -1503,6 +1522,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DingtalkMobile(); ok {
 		_spec.SetField(user.FieldDingtalkMobile, field.TypeString, value)
 		_node.DingtalkMobile = &value
+	}
+	if value, ok := _c.mutation.DingtalkMobileNormalized(); ok {
+		_spec.SetField(user.FieldDingtalkMobileNormalized, field.TypeString, value)
+		_node.DingtalkMobileNormalized = &value
 	}
 	if value, ok := _c.mutation.DingtalkDepartments(); ok {
 		_spec.SetField(user.FieldDingtalkDepartments, field.TypeJSON, value)
@@ -2805,6 +2828,24 @@ func (u *UserUpsert) ClearDingtalkMobile() *UserUpsert {
 	return u
 }
 
+// SetDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field.
+func (u *UserUpsert) SetDingtalkMobileNormalized(v string) *UserUpsert {
+	u.Set(user.FieldDingtalkMobileNormalized, v)
+	return u
+}
+
+// UpdateDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDingtalkMobileNormalized() *UserUpsert {
+	u.SetExcluded(user.FieldDingtalkMobileNormalized)
+	return u
+}
+
+// ClearDingtalkMobileNormalized clears the value of the "dingtalk_mobile_normalized" field.
+func (u *UserUpsert) ClearDingtalkMobileNormalized() *UserUpsert {
+	u.SetNull(user.FieldDingtalkMobileNormalized)
+	return u
+}
+
 // SetDingtalkDepartments sets the "dingtalk_departments" field.
 func (u *UserUpsert) SetDingtalkDepartments(v []schema.DirectoryDepartment) *UserUpsert {
 	u.Set(user.FieldDingtalkDepartments, v)
@@ -3170,6 +3211,27 @@ func (u *UserUpsertOne) UpdateDingtalkMobile() *UserUpsertOne {
 func (u *UserUpsertOne) ClearDingtalkMobile() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearDingtalkMobile()
+	})
+}
+
+// SetDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field.
+func (u *UserUpsertOne) SetDingtalkMobileNormalized(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkMobileNormalized(v)
+	})
+}
+
+// UpdateDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDingtalkMobileNormalized() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkMobileNormalized()
+	})
+}
+
+// ClearDingtalkMobileNormalized clears the value of the "dingtalk_mobile_normalized" field.
+func (u *UserUpsertOne) ClearDingtalkMobileNormalized() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkMobileNormalized()
 	})
 }
 
@@ -3713,6 +3775,27 @@ func (u *UserUpsertBulk) UpdateDingtalkMobile() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearDingtalkMobile() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearDingtalkMobile()
+	})
+}
+
+// SetDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field.
+func (u *UserUpsertBulk) SetDingtalkMobileNormalized(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDingtalkMobileNormalized(v)
+	})
+}
+
+// UpdateDingtalkMobileNormalized sets the "dingtalk_mobile_normalized" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDingtalkMobileNormalized() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDingtalkMobileNormalized()
+	})
+}
+
+// ClearDingtalkMobileNormalized clears the value of the "dingtalk_mobile_normalized" field.
+func (u *UserUpsertBulk) ClearDingtalkMobileNormalized() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDingtalkMobileNormalized()
 	})
 }
 

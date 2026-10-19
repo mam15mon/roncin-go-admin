@@ -48,7 +48,9 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 		return nil, nil, err
 	}
 	authUsecase := biz.NewAuthUsecase(authRepo, sessionPolicy, dingTalkIdentityProvider, logger)
-	authService := service.NewAuthService(authUsecase, sessionPolicy)
+	passwordResetRepo := data.NewPasswordResetRepo(dataData)
+	passwordResetUsecase := biz.NewPasswordResetUsecase(passwordResetRepo, dingTalkIdentityProvider)
+	authService := service.NewAuthService(authUsecase, sessionPolicy, passwordResetUsecase)
 	partnerRepo := data.NewPartnerRepo(dataData)
 	partnerUsecase := biz.NewPartnerUsecase(partnerRepo)
 	partnerAccountRepo := data.NewPartnerAccountRepo(dataData)

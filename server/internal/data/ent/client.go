@@ -106,6 +106,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passwordresetchallenge"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
@@ -316,6 +317,8 @@ type Client struct {
 	PartnerRole *PartnerRoleClient
 	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
 	PartnerSettlementRule *PartnerSettlementRuleClient
+	// PasswordResetChallenge is the client for interacting with the PasswordResetChallenge builders.
+	PasswordResetChallenge *PasswordResetChallengeClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
 	// Port is the client for interacting with the Port builders.
@@ -463,6 +466,7 @@ func (c *Client) init() {
 	c.PartnerProfile = NewPartnerProfileClient(c.config)
 	c.PartnerRole = NewPartnerRoleClient(c.config)
 	c.PartnerSettlementRule = NewPartnerSettlementRuleClient(c.config)
+	c.PasswordResetChallenge = NewPasswordResetChallengeClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.Port = NewPortClient(c.config)
 	c.Role = NewRoleClient(c.config)
@@ -668,6 +672,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PartnerProfile:                   NewPartnerProfileClient(cfg),
 		PartnerRole:                      NewPartnerRoleClient(cfg),
 		PartnerSettlementRule:            NewPartnerSettlementRuleClient(cfg),
+		PasswordResetChallenge:           NewPasswordResetChallengeClient(cfg),
 		Permission:                       NewPermissionClient(cfg),
 		Port:                             NewPortClient(cfg),
 		Role:                             NewRoleClient(cfg),
@@ -800,6 +805,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PartnerProfile:                   NewPartnerProfileClient(cfg),
 		PartnerRole:                      NewPartnerRoleClient(cfg),
 		PartnerSettlementRule:            NewPartnerSettlementRuleClient(cfg),
+		PasswordResetChallenge:           NewPasswordResetChallengeClient(cfg),
 		Permission:                       NewPermissionClient(cfg),
 		Port:                             NewPortClient(cfg),
 		Role:                             NewRoleClient(cfg),
@@ -882,13 +888,14 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
 		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
 		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent, c.SeaHouseBill,
-		c.SeaHouseBillVersion, c.SeaMasterBill, c.SeaMasterBillOrderLink,
-		c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent, c.SeaOrderSplitEvent,
-		c.SeaOrderSplitResult, c.SeaSharedContainer, c.SeaSharedContainerAllocation,
-		c.SeaTransportExecution, c.SeaTransportExecutionVersion, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.PartnerSettlementRule, c.PasswordResetChallenge, c.Permission, c.Port,
+		c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
+		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
+		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
+		c.SeaTransportExecutionVersion, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -928,13 +935,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Organization, c.Partner, c.PartnerAccount, c.PartnerAlias,
 		c.PartnerAssignment, c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
 		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.Permission, c.Port, c.Role, c.RoleAssignment,
-		c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent, c.SeaHouseBill,
-		c.SeaHouseBillVersion, c.SeaMasterBill, c.SeaMasterBillOrderLink,
-		c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent, c.SeaOrderSplitEvent,
-		c.SeaOrderSplitResult, c.SeaSharedContainer, c.SeaSharedContainerAllocation,
-		c.SeaTransportExecution, c.SeaTransportExecutionVersion, c.Session,
-		c.ShippingLine, c.ShippingLineContainerPrefix, c.TaxableService, c.User,
+		c.PartnerSettlementRule, c.PasswordResetChallenge, c.Permission, c.Port,
+		c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
+		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
+		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
+		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
+		c.SeaTransportExecutionVersion, c.Session, c.ShippingLine,
+		c.ShippingLineContainerPrefix, c.TaxableService, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -1123,6 +1131,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerRole.mutate(ctx, m)
 	case *PartnerSettlementRuleMutation:
 		return c.PartnerSettlementRule.mutate(ctx, m)
+	case *PasswordResetChallengeMutation:
+		return c.PasswordResetChallenge.mutate(ctx, m)
 	case *PermissionMutation:
 		return c.Permission.mutate(ctx, m)
 	case *PortMutation:
@@ -19589,6 +19599,139 @@ func (c *PartnerSettlementRuleClient) mutate(ctx context.Context, m *PartnerSett
 	}
 }
 
+// PasswordResetChallengeClient is a client for the PasswordResetChallenge schema.
+type PasswordResetChallengeClient struct {
+	config
+}
+
+// NewPasswordResetChallengeClient returns a client for the PasswordResetChallenge from the given config.
+func NewPasswordResetChallengeClient(c config) *PasswordResetChallengeClient {
+	return &PasswordResetChallengeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passwordresetchallenge.Hooks(f(g(h())))`.
+func (c *PasswordResetChallengeClient) Use(hooks ...Hook) {
+	c.hooks.PasswordResetChallenge = append(c.hooks.PasswordResetChallenge, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passwordresetchallenge.Intercept(f(g(h())))`.
+func (c *PasswordResetChallengeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PasswordResetChallenge = append(c.inters.PasswordResetChallenge, interceptors...)
+}
+
+// Create returns a builder for creating a PasswordResetChallenge entity.
+func (c *PasswordResetChallengeClient) Create() *PasswordResetChallengeCreate {
+	mutation := newPasswordResetChallengeMutation(c.config, OpCreate)
+	return &PasswordResetChallengeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PasswordResetChallenge entities.
+func (c *PasswordResetChallengeClient) CreateBulk(builders ...*PasswordResetChallengeCreate) *PasswordResetChallengeCreateBulk {
+	return &PasswordResetChallengeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PasswordResetChallengeClient) MapCreateBulk(slice any, setFunc func(*PasswordResetChallengeCreate, int)) *PasswordResetChallengeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PasswordResetChallengeCreateBulk{err: fmt.Errorf("calling to PasswordResetChallengeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PasswordResetChallengeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PasswordResetChallengeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PasswordResetChallenge.
+func (c *PasswordResetChallengeClient) Update() *PasswordResetChallengeUpdate {
+	mutation := newPasswordResetChallengeMutation(c.config, OpUpdate)
+	return &PasswordResetChallengeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PasswordResetChallengeClient) UpdateOne(_m *PasswordResetChallenge) *PasswordResetChallengeUpdateOne {
+	mutation := newPasswordResetChallengeMutation(c.config, OpUpdateOne, withPasswordResetChallenge(_m))
+	return &PasswordResetChallengeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PasswordResetChallengeClient) UpdateOneID(id uuid.UUID) *PasswordResetChallengeUpdateOne {
+	mutation := newPasswordResetChallengeMutation(c.config, OpUpdateOne, withPasswordResetChallengeID(id))
+	return &PasswordResetChallengeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PasswordResetChallenge.
+func (c *PasswordResetChallengeClient) Delete() *PasswordResetChallengeDelete {
+	mutation := newPasswordResetChallengeMutation(c.config, OpDelete)
+	return &PasswordResetChallengeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PasswordResetChallengeClient) DeleteOne(_m *PasswordResetChallenge) *PasswordResetChallengeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PasswordResetChallengeClient) DeleteOneID(id uuid.UUID) *PasswordResetChallengeDeleteOne {
+	builder := c.Delete().Where(passwordresetchallenge.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PasswordResetChallengeDeleteOne{builder}
+}
+
+// Query returns a query builder for PasswordResetChallenge.
+func (c *PasswordResetChallengeClient) Query() *PasswordResetChallengeQuery {
+	return &PasswordResetChallengeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePasswordResetChallenge},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PasswordResetChallenge entity by its id.
+func (c *PasswordResetChallengeClient) Get(ctx context.Context, id uuid.UUID) (*PasswordResetChallenge, error) {
+	return c.Query().Where(passwordresetchallenge.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PasswordResetChallengeClient) GetX(ctx context.Context, id uuid.UUID) *PasswordResetChallenge {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PasswordResetChallengeClient) Hooks() []Hook {
+	return c.hooks.PasswordResetChallenge
+}
+
+// Interceptors returns the client interceptors.
+func (c *PasswordResetChallengeClient) Interceptors() []Interceptor {
+	return c.inters.PasswordResetChallenge
+}
+
+func (c *PasswordResetChallengeClient) mutate(ctx context.Context, m *PasswordResetChallengeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PasswordResetChallengeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PasswordResetChallengeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PasswordResetChallengeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PasswordResetChallengeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PasswordResetChallenge mutation op: %q", m.Op())
+	}
+}
+
 // PermissionClient is a client for the Permission schema.
 type PermissionClient struct {
 	config
@@ -25785,9 +25928,9 @@ type (
 		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
 		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
 		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
-		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		PartnerRole, PartnerSettlementRule, PasswordResetChallenge, Permission, Port,
+		Role, RoleAssignment, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
+		SeaHouseBill, SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
 		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
 		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
 		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
@@ -25820,9 +25963,9 @@ type (
 		OrderUnlockApproverCandidate, OrderUnlockRequest, Organization, Partner,
 		PartnerAccount, PartnerAlias, PartnerAssignment, PartnerAttachment,
 		PartnerContact, PartnerContract, PartnerInvoiceProfile, PartnerProfile,
-		PartnerRole, PartnerSettlementRule, Permission, Port, Role, RoleAssignment,
-		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
-		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		PartnerRole, PartnerSettlementRule, PasswordResetChallenge, Permission, Port,
+		Role, RoleAssignment, SeaDocumentModeChangeEvent, SeaDocumentVoidEvent,
+		SeaHouseBill, SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
 		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
 		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
 		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,

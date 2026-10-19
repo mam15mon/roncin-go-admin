@@ -53,6 +53,8 @@ type User struct {
 	DingtalkJobNumber *string `json:"dingtalk_job_number,omitempty"`
 	// DingtalkMobile holds the value of the "dingtalk_mobile" field.
 	DingtalkMobile *string `json:"-"`
+	// DingtalkMobileNormalized holds the value of the "dingtalk_mobile_normalized" field.
+	DingtalkMobileNormalized *string `json:"-"`
 	// DingtalkDepartments holds the value of the "dingtalk_departments" field.
 	DingtalkDepartments []schema.DirectoryDepartment `json:"dingtalk_departments,omitempty"`
 	// DingtalkLastSyncedAt holds the value of the "dingtalk_last_synced_at" field.
@@ -778,7 +780,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case user.FieldIsBootstrapAdmin, user.FieldEnabled, user.FieldPendingAssignment:
 			values[i] = new(sql.NullBool)
-		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldDingtalkJobNumber, user.FieldDingtalkMobile, user.FieldSearchKeywords:
+		case user.FieldUsername, user.FieldDisplayName, user.FieldEmail, user.FieldAvatarURL, user.FieldPasswordHash, user.FieldDingtalkUnionid, user.FieldDingtalkUserid, user.FieldDingtalkName, user.FieldDingtalkJobNumber, user.FieldDingtalkMobile, user.FieldDingtalkMobileNormalized, user.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDingtalkLastSyncedAt:
 			values[i] = new(sql.NullTime)
@@ -909,6 +911,13 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.DingtalkMobile = new(string)
 				*_m.DingtalkMobile = value.String
+			}
+		case user.FieldDingtalkMobileNormalized:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field dingtalk_mobile_normalized", values[i])
+			} else if value.Valid {
+				_m.DingtalkMobileNormalized = new(string)
+				*_m.DingtalkMobileNormalized = value.String
 			}
 		case user.FieldDingtalkDepartments:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -1341,6 +1350,8 @@ func (_m *User) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("dingtalk_mobile=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("dingtalk_mobile_normalized=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("dingtalk_departments=")
 	builder.WriteString(fmt.Sprintf("%v", _m.DingtalkDepartments))

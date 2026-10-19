@@ -118,8 +118,15 @@ func (r *dingTalkDirectoryRepo) ApplyPerson(ctx context.Context, task *biz.Backg
 		if !allowed["avatar_url"] || avatar != nil && *avatar == "" {
 			avatar = nil
 		}
+		var normalizedMobile *string
+		if mobile != nil {
+			value := biz.NormalizeDingTalkMobile(*mobile)
+			if biz.ValidDingTalkMobile(value) {
+				normalizedMobile = &value
+			}
+		}
 		if len(accounts) == 0 {
-			_, err := tx.User.Create().SetDisplayName(p.Name).SetDingtalkName(p.Name).SetDingtalkUnionid(p.UnionID).SetDingtalkUserid(p.UserID).SetEnabled(false).SetPendingAssignment(true).SetDingtalkDepartments(depts).SetDingtalkLastSyncedAt(time.Now().UTC()).SetNillableEmail(email).SetNillableDingtalkMobile(mobile).SetNillableAvatarURL(avatar).Save(ctx)
+			_, err := tx.User.Create().SetDisplayName(p.Name).SetDingtalkName(p.Name).SetDingtalkUnionid(p.UnionID).SetDingtalkUserid(p.UserID).SetEnabled(false).SetPendingAssignment(true).SetDingtalkDepartments(depts).SetDingtalkLastSyncedAt(time.Now().UTC()).SetNillableEmail(email).SetNillableDingtalkMobile(mobile).SetNillableDingtalkMobileNormalized(normalizedMobile).SetNillableAvatarURL(avatar).Save(ctx)
 			outcome = "created"
 			return mapEntError(err, nil, biz.ErrDingTalkIdentityConflict)
 		}
@@ -130,11 +137,21 @@ func (r *dingTalkDirectoryRepo) ApplyPerson(ctx context.Context, task *biz.Backg
 		if a.DisplayName != p.Name || a.DingtalkName == nil || *a.DingtalkName != p.Name || !reflect.DeepEqual(a.DingtalkDepartments, depts) || !reflect.DeepEqual(a.Email, email) || !reflect.DeepEqual(a.DingtalkMobile, mobile) || !reflect.DeepEqual(a.AvatarURL, avatar) {
 			outcome = "updated"
 		}
+		if !reflect.DeepEqual(a.DingtalkMobileNormalized, normalizedMobile) {
+			if err := invalidatePasswordResetChallenges(ctx, tx, a.ID); err != nil {
+				return err
+			}
+		}
 		update := tx.User.UpdateOne(a).SetDisplayName(p.Name).SetDingtalkName(p.Name).SetDingtalkUnionid(p.UnionID).SetDingtalkUserid(p.UserID).SetDingtalkDepartments(depts).SetDingtalkLastSyncedAt(time.Now().UTC())
 		if email == nil {
 			update.ClearEmail()
 		} else {
 			update.SetEmail(*email)
+		}
+		if normalizedMobile == nil {
+			update.ClearDingtalkMobileNormalized()
+		} else {
+			update.SetDingtalkMobileNormalized(*normalizedMobile)
 		}
 		if mobile == nil {
 			update.ClearDingtalkMobile()

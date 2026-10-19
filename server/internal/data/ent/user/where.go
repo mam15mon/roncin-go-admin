@@ -136,6 +136,11 @@ func DingtalkMobile(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDingtalkMobile, v))
 }
 
+// DingtalkMobileNormalized applies equality check predicate on the "dingtalk_mobile_normalized" field. It's identical to DingtalkMobileNormalizedEQ.
+func DingtalkMobileNormalized(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkMobileNormalized, v))
+}
+
 // DingtalkLastSyncedAt applies equality check predicate on the "dingtalk_last_synced_at" field. It's identical to DingtalkLastSyncedAtEQ.
 func DingtalkLastSyncedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDingtalkLastSyncedAt, v))
@@ -1024,6 +1029,81 @@ func DingtalkMobileEqualFold(v string) predicate.User {
 // DingtalkMobileContainsFold applies the ContainsFold predicate on the "dingtalk_mobile" field.
 func DingtalkMobileContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldDingtalkMobile, v))
+}
+
+// DingtalkMobileNormalizedEQ applies the EQ predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedNEQ applies the NEQ predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedIn applies the In predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldDingtalkMobileNormalized, vs...))
+}
+
+// DingtalkMobileNormalizedNotIn applies the NotIn predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldDingtalkMobileNormalized, vs...))
+}
+
+// DingtalkMobileNormalizedGT applies the GT predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedGTE applies the GTE predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedLT applies the LT predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedLTE applies the LTE predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedContains applies the Contains predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedHasPrefix applies the HasPrefix predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedHasSuffix applies the HasSuffix predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedIsNil applies the IsNil predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldDingtalkMobileNormalized))
+}
+
+// DingtalkMobileNormalizedNotNil applies the NotNil predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldDingtalkMobileNormalized))
+}
+
+// DingtalkMobileNormalizedEqualFold applies the EqualFold predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldDingtalkMobileNormalized, v))
+}
+
+// DingtalkMobileNormalizedContainsFold applies the ContainsFold predicate on the "dingtalk_mobile_normalized" field.
+func DingtalkMobileNormalizedContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldDingtalkMobileNormalized, v))
 }
 
 // DingtalkDepartmentsIsNil applies the IsNil predicate on the "dingtalk_departments" field.

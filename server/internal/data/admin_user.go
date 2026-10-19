@@ -504,6 +504,9 @@ func (r *adminRepo) ResetUserPassword(ctx context.Context, organizationID, id uu
 		if _, updateErr := userUpdate.Save(ctx); updateErr != nil {
 			return mapEntError(updateErr, biz.ErrAdminUserNotFound, biz.ErrAdminUsernameExists)
 		}
+		if err := invalidatePasswordResetChallenges(ctx, tx, id); err != nil {
+			return err
+		}
 		if _, updateErr := tx.Session.Update().Where(sessionent.UserIDEQ(id), sessionent.RevokedAtIsNil()).SetRevokedAt(time.Now().UTC()).Save(ctx); updateErr != nil {
 			return updateErr
 		}

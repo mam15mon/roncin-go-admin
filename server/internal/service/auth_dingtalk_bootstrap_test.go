@@ -35,7 +35,7 @@ func (*bootstrapDingTalkProvider) ResolveIdentity(context.Context, string) (*biz
 
 func newBootstrapAuthService(provider *bootstrapDingTalkProvider, sameSite string) *AuthService {
 	policy := &biz.SessionPolicy{CookieName: "roncin_session", TTL: time.Hour, Secure: true, SameSite: sameSite}
-	return NewAuthService(biz.NewAuthUsecase(nil, policy, provider, nil), policy)
+	return NewAuthService(biz.NewAuthUsecase(nil, policy, provider, nil), policy, nil)
 }
 
 func assertBootstrapStateCookie(t *testing.T, payload []byte, cookie *http.Cookie, sameSite http.SameSite) string {

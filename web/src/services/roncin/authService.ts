@@ -68,6 +68,42 @@ export async function authServiceMe(options?: { [key: string]: any }) {
   });
 }
 
+/** 此处后端没有提供注释 POST /api/v1/auth/password-reset/code */
+export async function authServiceRequestPasswordResetCode(
+  body: API.RequestPasswordResetCodeRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.RequestPasswordResetCodeResponse>(
+    "/api/v1/auth/password-reset/code",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/auth/password-reset/confirm */
+export async function authServiceConfirmPasswordReset(
+  body: API.ConfirmPasswordResetRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.ConfirmPasswordResetResponse>(
+    "/api/v1/auth/password-reset/confirm",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/auth/switch-organization */
 export async function authServiceSwitchOrganization(
   body: API.SwitchOrganizationRequest,

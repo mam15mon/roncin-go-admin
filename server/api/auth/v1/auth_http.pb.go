@@ -17,25 +17,31 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationAuthServiceConfirmPasswordReset = "/auth.v1.AuthService/ConfirmPasswordReset"
 const OperationAuthServiceDingTalkLogin = "/auth.v1.AuthService/DingTalkLogin"
 const OperationAuthServiceGetDingTalkLoginConfig = "/auth.v1.AuthService/GetDingTalkLoginConfig"
 const OperationAuthServiceLogin = "/auth.v1.AuthService/Login"
 const OperationAuthServiceLogout = "/auth.v1.AuthService/Logout"
 const OperationAuthServiceMe = "/auth.v1.AuthService/Me"
+const OperationAuthServiceRequestPasswordResetCode = "/auth.v1.AuthService/RequestPasswordResetCode"
 const OperationAuthServiceSwitchOrganization = "/auth.v1.AuthService/SwitchOrganization"
 
 type AuthServiceHTTPServer interface {
+	ConfirmPasswordReset(context.Context, *ConfirmPasswordResetRequest) (*ConfirmPasswordResetResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	Me(context.Context, *MeRequest) (*MeResponse, error)
+	RequestPasswordResetCode(context.Context, *RequestPasswordResetCodeRequest) (*RequestPasswordResetCodeResponse, error)
 	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
 }
 
 func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("POST", "/api/v1/auth/login", _AuthService_Login0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/auth/password-reset/code", _AuthService_RequestPasswordResetCode0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/auth/password-reset/confirm", _AuthService_ConfirmPasswordReset0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/dingtalk/login-config", _AuthService_GetDingTalkLoginConfig0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/login", _AuthService_DingTalkLogin0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/logout", _AuthService_Logout0_HTTP_Handler(srv))
@@ -58,6 +64,44 @@ func _AuthService_Login0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.C
 			return err
 		}
 		reply := out.(*LoginResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_RequestPasswordResetCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RequestPasswordResetCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceRequestPasswordResetCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RequestPasswordResetCode(ctx, req.(*RequestPasswordResetCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RequestPasswordResetCodeResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_ConfirmPasswordReset0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ConfirmPasswordResetRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceConfirmPasswordReset)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ConfirmPasswordReset(ctx, req.(*ConfirmPasswordResetRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ConfirmPasswordResetResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -158,11 +202,13 @@ func _AuthService_SwitchOrganization0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 }
 
 type AuthServiceHTTPClient interface {
+	ConfirmPasswordReset(ctx context.Context, req *ConfirmPasswordResetRequest, opts ...http.CallOption) (rsp *ConfirmPasswordResetResponse, err error)
 	DingTalkLogin(ctx context.Context, req *DingTalkLoginRequest, opts ...http.CallOption) (rsp *DingTalkLoginResponse, err error)
 	GetDingTalkLoginConfig(ctx context.Context, req *GetDingTalkLoginConfigRequest, opts ...http.CallOption) (rsp *GetDingTalkLoginConfigResponse, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
 	Me(ctx context.Context, req *MeRequest, opts ...http.CallOption) (rsp *MeResponse, err error)
+	RequestPasswordResetCode(ctx context.Context, req *RequestPasswordResetCodeRequest, opts ...http.CallOption) (rsp *RequestPasswordResetCodeResponse, err error)
 	SwitchOrganization(ctx context.Context, req *SwitchOrganizationRequest, opts ...http.CallOption) (rsp *SwitchOrganizationResponse, err error)
 }
 
@@ -172,6 +218,23 @@ type AuthServiceHTTPClientImpl struct {
 
 func NewAuthServiceHTTPClient(client *http.Client) AuthServiceHTTPClient {
 	return &AuthServiceHTTPClientImpl{client}
+}
+
+func (c *AuthServiceHTTPClientImpl) ConfirmPasswordReset(ctx context.Context, in *ConfirmPasswordResetRequest, opts ...http.CallOption) (*ConfirmPasswordResetResponse, error) {
+	var out ConfirmPasswordResetResponse
+	pattern := "/api/v1/auth/password-reset/confirm"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceConfirmPasswordReset),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 func (c *AuthServiceHTTPClientImpl) DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...http.CallOption) (*DingTalkLoginResponse, error) {
@@ -251,6 +314,23 @@ func (c *AuthServiceHTTPClientImpl) Me(ctx context.Context, in *MeRequest, opts 
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AuthServiceHTTPClientImpl) RequestPasswordResetCode(ctx context.Context, in *RequestPasswordResetCodeRequest, opts ...http.CallOption) (*RequestPasswordResetCodeResponse, error) {
+	var out RequestPasswordResetCodeResponse
+	pattern := "/api/v1/auth/password-reset/code"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceRequestPasswordResetCode),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

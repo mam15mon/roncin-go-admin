@@ -1144,6 +1144,19 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ConfirmPasswordResetRequest = {
+    challengeToken: string;
+    code: string;
+    newPassword: string;
+  };
+
+  type ConfirmPasswordResetResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type ConfirmSeaSharedContainerRequest = {
     id: string;
     expectedVersion: string;
@@ -4420,6 +4433,7 @@ declare namespace API {
   };
 
   type LoginRequest = {
+    /** 账号：钉钉手机号或本地用户名。 */
     username: string;
     password: string;
     /** 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。 */
@@ -6207,6 +6221,13 @@ declare namespace API {
     code?: string;
   };
 
+  type PasswordResetChallenge = {
+    challengeToken?: string;
+    expiresAt?: string;
+    resendAvailableAt?: string;
+    serverTime?: string;
+  };
+
   type PermissionCapability = {
     key?: string;
     dataScope?: string;
@@ -6688,6 +6709,18 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderUnlockResultData;
+    traceId?: string;
+  };
+
+  type RequestPasswordResetCodeRequest = {
+    mobile: string;
+  };
+
+  type RequestPasswordResetCodeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PasswordResetChallenge;
     traceId?: string;
   };
 

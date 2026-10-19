@@ -11,6 +11,7 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
+	reset "github.com/roncin/roncin-go-admin/server/internal/data/ent/passwordresetchallenge"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 )
 
@@ -45,7 +46,11 @@ func TestDingTalkDirectoryOptionalProfileAndFailureNamesPostgres(t *testing.T) {
 		{"无字段授权", directoryTestString("current@example.test"), directoryTestString("13800000000"), directoryTestString("https://example.test/avatar"), true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			account, err := data.db.User.Create().SetDisplayName("旧姓名").SetEmail("old@example.test").SetDingtalkMobile("13900000000").SetAvatarURL("https://example.test/old-avatar").SetDingtalkUserid(tc.name).SetDingtalkUnionid("union-" + tc.name).SetEnabled(false).SetPendingAssignment(true).Save(ctx)
+			account, err := data.db.User.Create().SetDisplayName("旧姓名").SetEmail("old@example.test").SetDingtalkMobile("13900000000").SetDingtalkMobileNormalized("13900000000").SetAvatarURL("https://example.test/old-avatar").SetDingtalkUserid(tc.name).SetDingtalkUnionid("union-" + tc.name).SetEnabled(false).SetPendingAssignment(true).Save(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			challenge, err := data.db.PasswordResetChallenge.Create().SetMobileKeyHash("mobile-" + tc.name).SetTokenHash("token-" + tc.name).SetCodeHash("sensitive-code-hash").SetUserID(account.ID).SetStatus(reset.StatusREADY).SetExpiresAt(time.Now().Add(5 * time.Minute)).SetResendAvailableAt(time.Now().Add(time.Minute)).Save(ctx)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -76,6 +81,20 @@ func TestDingTalkDirectoryOptionalProfileAndFailureNamesPostgres(t *testing.T) {
 				if !reflect.DeepEqual(field.got, want) {
 					t.Fatalf("%s 未按来源更新或清空", field.name)
 				}
+			}
+			var expectedNormalized *string
+			if !tc.withoutAuthorization && tc.mobile != nil {
+				normalized := biz.NormalizeDingTalkMobile(*tc.mobile)
+				if biz.ValidDingTalkMobile(normalized) {
+					expectedNormalized = &normalized
+				}
+			}
+			if !reflect.DeepEqual(reloaded.DingtalkMobileNormalized, expectedNormalized) {
+				t.Fatal("手机号检索投影未随来源更新或清空")
+			}
+			reloadedChallenge := data.db.PasswordResetChallenge.GetX(ctx, challenge.ID)
+			if reloadedChallenge.Status != reset.StatusFAILED || reloadedChallenge.CodeHash != "" {
+				t.Fatal("号码变化未废弃旧找回挑战")
 			}
 			if reloaded.DisplayName != "新姓名" || !reflect.DeepEqual(reloaded.DingtalkDepartments, []schema.DirectoryDepartment{{ID: 10, Name: "新部门"}}) {
 				t.Fatal("可选资料空值阻断了姓名和部门更新")

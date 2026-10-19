@@ -10,22 +10,31 @@ import (
 )
 
 type errorEnvelope struct {
-	Success bool   `json:"success"`
-	Code    int32  `json:"code"`
-	Message string `json:"message"`
-	Reason  string `json:"reason"`
-	TraceID string `json:"traceId,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
+	Success  bool              `json:"success"`
+	Code     int32             `json:"code"`
+	Message  string            `json:"message"`
+	Reason   string            `json:"reason"`
+	TraceID  string            `json:"traceId,omitempty"`
 }
 
 const internalErrorMessage = "服务器内部错误"
 
 func encodeError(writer nethttp.ResponseWriter, request *nethttp.Request, err error) {
+	if request.URL.Path == "/api/v1/auth/password-reset/code" || request.URL.Path == "/api/v1/auth/password-reset/confirm" {
+		writer.Header().Set("Cache-Control", "no-store")
+		writer.Header().Set("Pragma", "no-cache")
+	}
 	serviceError := errors.FromError(err)
 	message := serviceError.Message
 	if serviceError.Code >= nethttp.StatusInternalServerError && serviceError.Reason == errors.UnknownReason {
 		message = internalErrorMessage
 	}
+	var metadata map[string]string
+	if serviceError.Reason == "AUTH_PASSWORD_RESET_COOLDOWN" {
+		metadata = map[string]string{"serverTime": serviceError.Metadata["serverTime"], "resendAvailableAt": serviceError.Metadata["resendAvailableAt"]}
+	}
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writer.WriteHeader(int(serviceError.Code))
-	_ = json.NewEncoder(writer).Encode(errorEnvelope{Success: false, Code: serviceError.Code, Message: message, Reason: serviceError.Reason, TraceID: requestmeta.TraceID(request.Context())})
+	_ = json.NewEncoder(writer).Encode(errorEnvelope{Metadata: metadata, Success: false, Code: serviceError.Code, Message: message, Reason: serviceError.Reason, TraceID: requestmeta.TraceID(request.Context())})
 }

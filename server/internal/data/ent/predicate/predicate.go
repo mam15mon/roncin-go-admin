@@ -276,6 +276,9 @@ type PartnerRole func(*sql.Selector)
 // PartnerSettlementRule is the predicate function for partnersettlementrule builders.
 type PartnerSettlementRule func(*sql.Selector)
 
+// PasswordResetChallenge is the predicate function for passwordresetchallenge builders.
+type PasswordResetChallenge func(*sql.Selector)
+
 // Permission is the predicate function for permission builders.
 type Permission func(*sql.Selector)
 

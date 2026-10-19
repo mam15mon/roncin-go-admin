@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName                  = "/auth.v1.AuthService/Login"
-	AuthService_GetDingTalkLoginConfig_FullMethodName = "/auth.v1.AuthService/GetDingTalkLoginConfig"
-	AuthService_DingTalkLogin_FullMethodName          = "/auth.v1.AuthService/DingTalkLogin"
-	AuthService_Logout_FullMethodName                 = "/auth.v1.AuthService/Logout"
-	AuthService_Me_FullMethodName                     = "/auth.v1.AuthService/Me"
-	AuthService_SwitchOrganization_FullMethodName     = "/auth.v1.AuthService/SwitchOrganization"
+	AuthService_Login_FullMethodName                    = "/auth.v1.AuthService/Login"
+	AuthService_RequestPasswordResetCode_FullMethodName = "/auth.v1.AuthService/RequestPasswordResetCode"
+	AuthService_ConfirmPasswordReset_FullMethodName     = "/auth.v1.AuthService/ConfirmPasswordReset"
+	AuthService_GetDingTalkLoginConfig_FullMethodName   = "/auth.v1.AuthService/GetDingTalkLoginConfig"
+	AuthService_DingTalkLogin_FullMethodName            = "/auth.v1.AuthService/DingTalkLogin"
+	AuthService_Logout_FullMethodName                   = "/auth.v1.AuthService/Logout"
+	AuthService_Me_FullMethodName                       = "/auth.v1.AuthService/Me"
+	AuthService_SwitchOrganization_FullMethodName       = "/auth.v1.AuthService/SwitchOrganization"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -34,6 +36,8 @@ const (
 // AuthService owns the browser session boundary for the management console.
 type AuthServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	RequestPasswordResetCode(ctx context.Context, in *RequestPasswordResetCodeRequest, opts ...grpc.CallOption) (*RequestPasswordResetCodeResponse, error)
+	ConfirmPasswordReset(ctx context.Context, in *ConfirmPasswordResetRequest, opts ...grpc.CallOption) (*ConfirmPasswordResetResponse, error)
 	GetDingTalkLoginConfig(ctx context.Context, in *GetDingTalkLoginConfigRequest, opts ...grpc.CallOption) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...grpc.CallOption) (*DingTalkLoginResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
@@ -53,6 +57,26 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LoginResponse)
 	err := c.cc.Invoke(ctx, AuthService_Login_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RequestPasswordResetCode(ctx context.Context, in *RequestPasswordResetCodeRequest, opts ...grpc.CallOption) (*RequestPasswordResetCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RequestPasswordResetCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_RequestPasswordResetCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ConfirmPasswordReset(ctx context.Context, in *ConfirmPasswordResetRequest, opts ...grpc.CallOption) (*ConfirmPasswordResetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmPasswordResetResponse)
+	err := c.cc.Invoke(ctx, AuthService_ConfirmPasswordReset_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -116,6 +140,8 @@ func (c *authServiceClient) SwitchOrganization(ctx context.Context, in *SwitchOr
 // AuthService owns the browser session boundary for the management console.
 type AuthServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	RequestPasswordResetCode(context.Context, *RequestPasswordResetCodeRequest) (*RequestPasswordResetCodeResponse, error)
+	ConfirmPasswordReset(context.Context, *ConfirmPasswordResetRequest) (*ConfirmPasswordResetResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
@@ -133,6 +159,12 @@ type UnimplementedAuthServiceServer struct{}
 
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedAuthServiceServer) RequestPasswordResetCode(context.Context, *RequestPasswordResetCodeRequest) (*RequestPasswordResetCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RequestPasswordResetCode not implemented")
+}
+func (UnimplementedAuthServiceServer) ConfirmPasswordReset(context.Context, *ConfirmPasswordResetRequest) (*ConfirmPasswordResetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmPasswordReset not implemented")
 }
 func (UnimplementedAuthServiceServer) GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDingTalkLoginConfig not implemented")
@@ -184,6 +216,42 @@ func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).Login(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_RequestPasswordResetCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestPasswordResetCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RequestPasswordResetCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RequestPasswordResetCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RequestPasswordResetCode(ctx, req.(*RequestPasswordResetCodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ConfirmPasswordReset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfirmPasswordResetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ConfirmPasswordReset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ConfirmPasswordReset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ConfirmPasswordReset(ctx, req.(*ConfirmPasswordResetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -288,6 +356,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
+		},
+		{
+			MethodName: "RequestPasswordResetCode",
+			Handler:    _AuthService_RequestPasswordResetCode_Handler,
+		},
+		{
+			MethodName: "ConfirmPasswordReset",
+			Handler:    _AuthService_ConfirmPasswordReset_Handler,
 		},
 		{
 			MethodName: "GetDingTalkLoginConfig",

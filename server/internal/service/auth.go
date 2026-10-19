@@ -18,15 +18,17 @@ import (
 
 type AuthService struct {
 	v1.UnimplementedAuthServiceServer
-	usecase *biz.AuthUsecase
-	policy  *biz.SessionPolicy
+	usecase       *biz.AuthUsecase
+	policy        *biz.SessionPolicy
+	passwordReset *biz.PasswordResetUsecase
 }
 
-func NewAuthService(usecase *biz.AuthUsecase, policy *biz.SessionPolicy) *AuthService {
-	return &AuthService{usecase: usecase, policy: policy}
+func NewAuthService(usecase *biz.AuthUsecase, policy *biz.SessionPolicy, passwordReset *biz.PasswordResetUsecase) *AuthService {
+	return &AuthService{usecase: usecase, policy: policy, passwordReset: passwordReset}
 }
 
 func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.LoginResponse, error) {
+	authNoStore(ctx)
 	userAgent := ""
 	if tr, ok := transport.FromServerContext(ctx); ok {
 		userAgent = tr.RequestHeader().Get("User-Agent")
@@ -247,4 +249,27 @@ func authOrganizationKindToAPI(kind biz.OrganizationKind) v1.OrganizationKind {
 	default:
 		return v1.OrganizationKind_ORGANIZATION_KIND_UNSPECIFIED
 	}
+}
+
+func authNoStore(ctx context.Context) {
+	if tr, ok := transport.FromServerContext(ctx); ok {
+		tr.ReplyHeader().Set("Cache-Control", "no-store")
+		tr.ReplyHeader().Set("Pragma", "no-cache")
+	}
+}
+func (s *AuthService) RequestPasswordResetCode(ctx context.Context, request *v1.RequestPasswordResetCodeRequest) (*v1.RequestPasswordResetCodeResponse, error) {
+	authNoStore(ctx)
+	result, err := s.passwordReset.RequestCode(ctx, request.GetMobile(), requestmeta.IPAddress(ctx))
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.RequestPasswordResetCodeResponse{Message: "若该手机号对应已开通的钉钉账号，验证码将发送到本人钉钉。", Data: &v1.PasswordResetChallenge{ChallengeToken: result.ChallengeToken, ExpiresAt: result.ExpiresAt.Format(time.RFC3339Nano), ResendAvailableAt: result.ResendAvailableAt.Format(time.RFC3339Nano), ServerTime: result.ServerTime.Format(time.RFC3339Nano)}}), nil
+}
+func (s *AuthService) ConfirmPasswordReset(ctx context.Context, request *v1.ConfirmPasswordResetRequest) (*v1.ConfirmPasswordResetResponse, error) {
+	authNoStore(ctx)
+	if err := s.passwordReset.Confirm(ctx, request.GetChallengeToken(), request.GetCode(), request.GetNewPassword()); err != nil {
+		return nil, err
+	}
+	s.setCookie(ctx, "", time.Unix(1, 0), -1)
+	return ok(ctx, &v1.ConfirmPasswordResetResponse{}), nil
 }

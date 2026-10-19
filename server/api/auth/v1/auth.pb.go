@@ -136,9 +136,10 @@ func (OrganizationKind) EnumDescriptor() ([]byte, []int) {
 }
 
 type LoginRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	Username string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	Password string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 账号：钉钉手机号或本地用户名。
+	Username string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	// 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。
 	OrganizationId *string `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -1364,6 +1365,322 @@ func (*MeRequest) Descriptor() ([]byte, []int) {
 	return file_auth_v1_auth_proto_rawDescGZIP(), []int{18}
 }
 
+type RequestPasswordResetCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Mobile        string                 `protobuf:"bytes,1,opt,name=mobile,proto3" json:"mobile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestPasswordResetCodeRequest) Reset() {
+	*x = RequestPasswordResetCodeRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestPasswordResetCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestPasswordResetCodeRequest) ProtoMessage() {}
+
+func (x *RequestPasswordResetCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestPasswordResetCodeRequest.ProtoReflect.Descriptor instead.
+func (*RequestPasswordResetCodeRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *RequestPasswordResetCodeRequest) GetMobile() string {
+	if x != nil {
+		return x.Mobile
+	}
+	return ""
+}
+
+type RequestPasswordResetCodeResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Success       bool                    `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                   `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                  `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *PasswordResetChallenge `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                  `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestPasswordResetCodeResponse) Reset() {
+	*x = RequestPasswordResetCodeResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestPasswordResetCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestPasswordResetCodeResponse) ProtoMessage() {}
+
+func (x *RequestPasswordResetCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestPasswordResetCodeResponse.ProtoReflect.Descriptor instead.
+func (*RequestPasswordResetCodeResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *RequestPasswordResetCodeResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RequestPasswordResetCodeResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RequestPasswordResetCodeResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *RequestPasswordResetCodeResponse) GetData() *PasswordResetChallenge {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *RequestPasswordResetCodeResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PasswordResetChallenge struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	ChallengeToken    string                 `protobuf:"bytes,1,opt,name=challenge_token,json=challengeToken,proto3" json:"challenge_token,omitempty"`
+	ExpiresAt         string                 `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	ResendAvailableAt string                 `protobuf:"bytes,3,opt,name=resend_available_at,json=resendAvailableAt,proto3" json:"resend_available_at,omitempty"`
+	ServerTime        string                 `protobuf:"bytes,4,opt,name=server_time,json=serverTime,proto3" json:"server_time,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *PasswordResetChallenge) Reset() {
+	*x = PasswordResetChallenge{}
+	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PasswordResetChallenge) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PasswordResetChallenge) ProtoMessage() {}
+
+func (x *PasswordResetChallenge) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PasswordResetChallenge.ProtoReflect.Descriptor instead.
+func (*PasswordResetChallenge) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *PasswordResetChallenge) GetChallengeToken() string {
+	if x != nil {
+		return x.ChallengeToken
+	}
+	return ""
+}
+
+func (x *PasswordResetChallenge) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+func (x *PasswordResetChallenge) GetResendAvailableAt() string {
+	if x != nil {
+		return x.ResendAvailableAt
+	}
+	return ""
+}
+
+func (x *PasswordResetChallenge) GetServerTime() string {
+	if x != nil {
+		return x.ServerTime
+	}
+	return ""
+}
+
+type ConfirmPasswordResetRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ChallengeToken string                 `protobuf:"bytes,1,opt,name=challenge_token,json=challengeToken,proto3" json:"challenge_token,omitempty"`
+	Code           string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	NewPassword    string                 `protobuf:"bytes,3,opt,name=new_password,json=newPassword,proto3" json:"new_password,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ConfirmPasswordResetRequest) Reset() {
+	*x = ConfirmPasswordResetRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmPasswordResetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmPasswordResetRequest) ProtoMessage() {}
+
+func (x *ConfirmPasswordResetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmPasswordResetRequest.ProtoReflect.Descriptor instead.
+func (*ConfirmPasswordResetRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ConfirmPasswordResetRequest) GetChallengeToken() string {
+	if x != nil {
+		return x.ChallengeToken
+	}
+	return ""
+}
+
+func (x *ConfirmPasswordResetRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *ConfirmPasswordResetRequest) GetNewPassword() string {
+	if x != nil {
+		return x.NewPassword
+	}
+	return ""
+}
+
+type ConfirmPasswordResetResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ConfirmPasswordResetResponse) Reset() {
+	*x = ConfirmPasswordResetResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmPasswordResetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmPasswordResetResponse) ProtoMessage() {}
+
+func (x *ConfirmPasswordResetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ConfirmPasswordResetResponse.ProtoReflect.Descriptor instead.
+func (*ConfirmPasswordResetResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ConfirmPasswordResetResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ConfirmPasswordResetResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ConfirmPasswordResetResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ConfirmPasswordResetResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
@@ -1469,7 +1786,31 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"data_scope\"\x1f\n" +
 	"\x1dGetDingTalkLoginConfigRequest\"\x0f\n" +
 	"\rLogoutRequest\"\v\n" +
-	"\tMeRequest*\xe2\x01\n" +
+	"\tMeRequest\">\n" +
+	"\x1fRequestPasswordResetCodeRequest\x12\x1b\n" +
+	"\x06mobile\x18\x01 \x01(\tB\x03\xe0A\x02R\x06mobile\"\xba\x01\n" +
+	" RequestPasswordResetCodeResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x123\n" +
+	"\x04data\x18\x04 \x01(\v2\x1f.auth.v1.PasswordResetChallengeR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb1\x01\n" +
+	"\x16PasswordResetChallenge\x12'\n" +
+	"\x0fchallenge_token\x18\x01 \x01(\tR\x0echallengeToken\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\tR\texpiresAt\x12.\n" +
+	"\x13resend_available_at\x18\x03 \x01(\tR\x11resendAvailableAt\x12\x1f\n" +
+	"\vserver_time\x18\x04 \x01(\tR\n" +
+	"serverTime\"\x8c\x01\n" +
+	"\x1bConfirmPasswordResetRequest\x12,\n" +
+	"\x0fchallenge_token\x18\x01 \x01(\tB\x03\xe0A\x02R\x0echallengeToken\x12\x17\n" +
+	"\x04code\x18\x02 \x01(\tB\x03\xe0A\x02R\x04code\x12&\n" +
+	"\fnew_password\x18\x03 \x01(\tB\x03\xe0A\x02R\vnewPassword\"\x81\x01\n" +
+	"\x1cConfirmPasswordResetResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId*\xe2\x01\n" +
 	"\x13DingTalkLoginStatus\x12&\n" +
 	"\"DING_TALK_LOGIN_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
 	"$DING_TALK_LOGIN_STATUS_AUTHENTICATED\x10\x01\x12%\n" +
@@ -1481,9 +1822,11 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x18ORGANIZATION_KIND_SYSTEM\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
-	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xc8\x05\n" +
+	"\x16ORGANIZATION_KIND_TEAM\x10\x042\x89\b\n" +
 	"\vAuthService\x12[\n" +
-	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\"#\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1/auth/login\x12\x9b\x01\n" +
+	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\"#\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1/auth/login\x12\xa2\x01\n" +
+	"\x18RequestPasswordResetCode\x12(.auth.v1.RequestPasswordResetCodeRequest\x1a).auth.v1.RequestPasswordResetCodeResponse\"1\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/auth/password-reset/code\x12\x99\x01\n" +
+	"\x14ConfirmPasswordReset\x12$.auth.v1.ConfirmPasswordResetRequest\x1a%.auth.v1.ConfirmPasswordResetResponse\"4\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/auth/password-reset/confirm\x12\x9b\x01\n" +
 	"\x16GetDingTalkLoginConfig\x12&.auth.v1.GetDingTalkLoginConfigRequest\x1a'.auth.v1.GetDingTalkLoginConfigResponse\"0\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02$\x12\"/api/v1/auth/dingtalk/login-config\x12|\n" +
 	"\rDingTalkLogin\x12\x1d.auth.v1.DingTalkLoginRequest\x1a\x1e.auth.v1.DingTalkLoginResponse\",\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/auth/dingtalk/login\x12_\n" +
 	"\x06Logout\x12\x16.auth.v1.LogoutRequest\x1a\x17.auth.v1.LogoutResponse\"$\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/auth/logout\x12L\n" +
@@ -1503,29 +1846,34 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_auth_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_auth_v1_auth_proto_goTypes = []any{
-	(DingTalkLoginStatus)(0),               // 0: auth.v1.DingTalkLoginStatus
-	(OrganizationKind)(0),                  // 1: auth.v1.OrganizationKind
-	(*LoginRequest)(nil),                   // 2: auth.v1.LoginRequest
-	(*DingTalkLoginRequest)(nil),           // 3: auth.v1.DingTalkLoginRequest
-	(*GetDingTalkLoginConfigResponse)(nil), // 4: auth.v1.GetDingTalkLoginConfigResponse
-	(*DingTalkLoginConfig)(nil),            // 5: auth.v1.DingTalkLoginConfig
-	(*SwitchOrganizationRequest)(nil),      // 6: auth.v1.SwitchOrganizationRequest
-	(*LoginResponse)(nil),                  // 7: auth.v1.LoginResponse
-	(*DingTalkLoginResponse)(nil),          // 8: auth.v1.DingTalkLoginResponse
-	(*DingTalkLoginResult)(nil),            // 9: auth.v1.DingTalkLoginResult
-	(*MeResponse)(nil),                     // 10: auth.v1.MeResponse
-	(*SwitchOrganizationResponse)(nil),     // 11: auth.v1.SwitchOrganizationResponse
-	(*OrganizationChoice)(nil),             // 12: auth.v1.OrganizationChoice
-	(*LogoutResponse)(nil),                 // 13: auth.v1.LogoutResponse
-	(*CurrentUser)(nil),                    // 14: auth.v1.CurrentUser
-	(*Organization)(nil),                   // 15: auth.v1.Organization
-	(*PermissionCapability)(nil),           // 16: auth.v1.PermissionCapability
-	(*RoleScope)(nil),                      // 17: auth.v1.RoleScope
-	(*GetDingTalkLoginConfigRequest)(nil),  // 18: auth.v1.GetDingTalkLoginConfigRequest
-	(*LogoutRequest)(nil),                  // 19: auth.v1.LogoutRequest
-	(*MeRequest)(nil),                      // 20: auth.v1.MeRequest
+	(DingTalkLoginStatus)(0),                 // 0: auth.v1.DingTalkLoginStatus
+	(OrganizationKind)(0),                    // 1: auth.v1.OrganizationKind
+	(*LoginRequest)(nil),                     // 2: auth.v1.LoginRequest
+	(*DingTalkLoginRequest)(nil),             // 3: auth.v1.DingTalkLoginRequest
+	(*GetDingTalkLoginConfigResponse)(nil),   // 4: auth.v1.GetDingTalkLoginConfigResponse
+	(*DingTalkLoginConfig)(nil),              // 5: auth.v1.DingTalkLoginConfig
+	(*SwitchOrganizationRequest)(nil),        // 6: auth.v1.SwitchOrganizationRequest
+	(*LoginResponse)(nil),                    // 7: auth.v1.LoginResponse
+	(*DingTalkLoginResponse)(nil),            // 8: auth.v1.DingTalkLoginResponse
+	(*DingTalkLoginResult)(nil),              // 9: auth.v1.DingTalkLoginResult
+	(*MeResponse)(nil),                       // 10: auth.v1.MeResponse
+	(*SwitchOrganizationResponse)(nil),       // 11: auth.v1.SwitchOrganizationResponse
+	(*OrganizationChoice)(nil),               // 12: auth.v1.OrganizationChoice
+	(*LogoutResponse)(nil),                   // 13: auth.v1.LogoutResponse
+	(*CurrentUser)(nil),                      // 14: auth.v1.CurrentUser
+	(*Organization)(nil),                     // 15: auth.v1.Organization
+	(*PermissionCapability)(nil),             // 16: auth.v1.PermissionCapability
+	(*RoleScope)(nil),                        // 17: auth.v1.RoleScope
+	(*GetDingTalkLoginConfigRequest)(nil),    // 18: auth.v1.GetDingTalkLoginConfigRequest
+	(*LogoutRequest)(nil),                    // 19: auth.v1.LogoutRequest
+	(*MeRequest)(nil),                        // 20: auth.v1.MeRequest
+	(*RequestPasswordResetCodeRequest)(nil),  // 21: auth.v1.RequestPasswordResetCodeRequest
+	(*RequestPasswordResetCodeResponse)(nil), // 22: auth.v1.RequestPasswordResetCodeResponse
+	(*PasswordResetChallenge)(nil),           // 23: auth.v1.PasswordResetChallenge
+	(*ConfirmPasswordResetRequest)(nil),      // 24: auth.v1.ConfirmPasswordResetRequest
+	(*ConfirmPasswordResetResponse)(nil),     // 25: auth.v1.ConfirmPasswordResetResponse
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	5,  // 0: auth.v1.GetDingTalkLoginConfigResponse.data:type_name -> auth.v1.DingTalkLoginConfig
@@ -1543,23 +1891,28 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	17, // 12: auth.v1.CurrentUser.role_scopes:type_name -> auth.v1.RoleScope
 	16, // 13: auth.v1.CurrentUser.permission_capabilities:type_name -> auth.v1.PermissionCapability
 	1,  // 14: auth.v1.Organization.kind:type_name -> auth.v1.OrganizationKind
-	2,  // 15: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	18, // 16: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
-	3,  // 17: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
-	19, // 18: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
-	20, // 19: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
-	6,  // 20: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
-	7,  // 21: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	4,  // 22: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
-	8,  // 23: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
-	13, // 24: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
-	10, // 25: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
-	11, // 26: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
-	21, // [21:27] is the sub-list for method output_type
-	15, // [15:21] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	23, // 15: auth.v1.RequestPasswordResetCodeResponse.data:type_name -> auth.v1.PasswordResetChallenge
+	2,  // 16: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	21, // 17: auth.v1.AuthService.RequestPasswordResetCode:input_type -> auth.v1.RequestPasswordResetCodeRequest
+	24, // 18: auth.v1.AuthService.ConfirmPasswordReset:input_type -> auth.v1.ConfirmPasswordResetRequest
+	18, // 19: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
+	3,  // 20: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
+	19, // 21: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
+	20, // 22: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
+	6,  // 23: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
+	7,  // 24: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	22, // 25: auth.v1.AuthService.RequestPasswordResetCode:output_type -> auth.v1.RequestPasswordResetCodeResponse
+	25, // 26: auth.v1.AuthService.ConfirmPasswordReset:output_type -> auth.v1.ConfirmPasswordResetResponse
+	4,  // 27: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
+	8,  // 28: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
+	13, // 29: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
+	10, // 30: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
+	11, // 31: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
+	24, // [24:32] is the sub-list for method output_type
+	16, // [16:24] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -1577,7 +1930,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   19,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
