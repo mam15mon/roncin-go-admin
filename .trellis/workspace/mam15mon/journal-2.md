@@ -1805,3 +1805,27 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 144: 通知测试限制为系统管理员专属
+<!-- trellis-session: v=2 fp=a827c1290d128a4c -->
+
+**Date**: 2026-10-19
+**Task**: 通知测试限制为系统管理员专属
+**Branch**: `codex/notification-system-admin-only`
+
+### Summary
+
+按用户纠正，通知测试仅允许系统工作台有效administrator角色且具备动作权限；auth/me、HTTP、业务与前端入口统一有效权限。Manifest移除公司角色两权限，开发同步与只读核对通过。独立review无发现，最终check:fast前端1451用例通过、后端门禁通过，未发送真实通知。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b654e25f` | fix: 限制通知测试仅供系统管理员使用 |
+| `38f5e753` | docs: 明确通知测试仅限系统管理员角色 |
+| `86e2e83d` | docs: 记录系统管理员通知测试权限验收 |
+
+### Status
+
+[OK] **Completed**
