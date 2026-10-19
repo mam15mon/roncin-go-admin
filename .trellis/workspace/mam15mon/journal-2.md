@@ -1727,3 +1727,25 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Next Steps
 
 - 用户重试本人钉钉验证码收件
+
+
+## Session 141: 全部钉钉通知统一 Markdown 排版
+<!-- trellis-session: v=2 fp=992f5fa188954b32 -->
+
+**Date**: 2026-10-19
+**Task**: 全部钉钉通知统一 Markdown 排版
+**Branch**: `codex/dingtalk-notification-markdown`
+
+### Summary
+
+完成7类业务通知与即时密码验证码的Markdown模板及sampleMarkdown发送载荷，保留费用审核现有入口、任务重试和验证码敏感边界。同步规范与测试，独立检查及check:server通过；真实数据库用例未启用，未发送真实消息，当前开发服务健康检查通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c94f1d1e` | feat: 统一全部钉钉通知为 Markdown 排版 |
+
+### Status
+
+[OK] **Completed**
