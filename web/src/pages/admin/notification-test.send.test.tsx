@@ -2,7 +2,6 @@ import {
   catalog,
   chooseType,
   deferred,
-  orderId,
   renderNotificationPage,
   requestFailure,
   setupNotificationMocks,
@@ -31,7 +30,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('本人钉钉测试发送', () => {
-  it('只显式点击才发，连续点击仅一次；在途禁止换类型、选订单和重复发送', async () => {
+  it('只显式点击才发，连续点击仅一次；在途禁止换类型和重复发送', async () => {
     const send = deferred<API.SendNotificationTestResponse>();
     vi.mocked(adminServiceSendNotificationTest).mockReturnValueOnce(
       send.promise,
@@ -40,16 +39,6 @@ describe('本人钉钉测试发送', () => {
     await screen.findByText('[测试] ORDER_PERSONNEL_ASSIGNED');
     await chooseType('费用待审核');
     await screen.findByText('[测试] FEE_REVIEW_PENDING');
-    const orderInput = screen.getByRole('combobox', {
-      name: '真实订单（选填）',
-    });
-    fireEvent.mouseDown(orderInput);
-    fireEvent.click(
-      await screen.findByText('SE-TEST-001', {
-        selector: '.ant-select-item-option-content',
-      }),
-    );
-    await screen.findByRole('link', { name: '查看订单费用' });
     const button = screen.getByRole('button', { name: '发送给我测试' });
     expect(adminServiceSendNotificationTest).not.toHaveBeenCalled();
     act(() => {
@@ -60,12 +49,11 @@ describe('本人钉钉测试发送', () => {
       expect(adminServiceSendNotificationTest).toHaveBeenCalledTimes(1),
     );
     expect(adminServiceSendNotificationTest).toHaveBeenCalledWith(
-      { notificationType: 'FEE_REVIEW_PENDING', orderId },
+      { notificationType: 'FEE_REVIEW_PENDING', orderId: undefined },
       { skipErrorHandler: true },
     );
     expect(button).toBeDisabled();
     expect(screen.getByRole('combobox', { name: '通知类型' })).toBeDisabled();
-    expect(orderInput).toBeDisabled();
     await act(async () =>
       send.resolve({ success: true, data: { accepted: true } }),
     );
@@ -110,10 +98,10 @@ describe('本人钉钉测试发送', () => {
     expect(screen.getByRole('button', { name: '发送给我测试' })).toBeDisabled();
     first.unmount();
     vi.mocked(adminServicePreviewNotificationTest).mockRejectedValueOnce(
-      requestFailure('订单已经不可读'),
+      requestFailure('预览暂不可用'),
     );
     renderNotificationPage();
-    await screen.findByText('订单已经不可读');
+    await screen.findByText('预览暂不可用');
     expect(screen.getByRole('button', { name: '发送给我测试' })).toBeDisabled();
     expect(adminServiceSendNotificationTest).not.toHaveBeenCalled();
   });

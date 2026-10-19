@@ -189,8 +189,8 @@ const (
 
 var manifest = append([]Permission{
 	{Key: PlatformAccess, Name: "访问工作台", Group: "系统管理 · 工作台", Description: "登录并进入工作台，是使用系统的基础权限"},
-	{Key: NotificationPreview, Name: "预览通知测试", Group: "Admin · 通知测试", Description: "查看示例通知内容和本人接收状态", Requires: []string{PlatformAccess}},
-	{Key: NotificationTestSend, Name: "发送本人测试通知", Group: "Admin · 通知测试", Description: "向当前登录人的钉钉账号发送示例通知", Requires: []string{NotificationPreview}},
+	{Key: NotificationPreview, Name: "预览通知测试", Group: "系统管理 · 通知测试", Description: "查看示例通知内容和本人接收状态", Requires: []string{PlatformAccess}},
+	{Key: NotificationTestSend, Name: "发送本人测试通知", Group: "系统管理 · 通知测试", Description: "向当前登录人的钉钉账号发送示例通知", Requires: []string{NotificationPreview}},
 	{Key: OrganizationRead, Name: "查看组织", Group: "系统管理 · 组织", Description: "查看公司、部门和组的组织架构"},
 	{Key: OrganizationCreate, Name: "新建组织", Group: "系统管理 · 组织", Description: "新建公司、部门或组", Requires: []string{OrganizationRead}},
 	{Key: OrganizationUpdate, Name: "编辑组织", Group: "系统管理 · 组织", Description: "修改组织名称和启停状态", Requires: []string{OrganizationRead}},
@@ -472,10 +472,10 @@ func IsCompanyBusinessPermission(key string) bool {
 	return strings.HasPrefix(key, "system.master_data.number_rule.")
 }
 
-// IsSystemManagementPermission 公共字典写权限仅由系统管理工作台持有。
+// IsSystemManagementPermission 系统专属治理权限与公共字典写权限仅由系统管理工作台持有。
 // 用户、角色及组织管理可用于公司内部管理，不因 system 前缀被归为系统专属。
 func IsSystemManagementPermission(key string) bool {
-	if key == UserResetPassword || key == UserTerminate || key == UserAuthorizeDingTalk || key == UserDingTalkDirectorySync {
+	if key == UserResetPassword || key == UserTerminate || key == UserAuthorizeDingTalk || key == UserDingTalkDirectorySync || key == NotificationPreview || key == NotificationTestSend {
 		return true
 	}
 	return strings.HasPrefix(key, "system.master_data.") && !strings.HasPrefix(key, "system.master_data.number_rule.") && !strings.HasSuffix(key, ".read")

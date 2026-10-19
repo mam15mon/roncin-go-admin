@@ -100,7 +100,7 @@ func (uc *NotificationTestUsecase) Catalog(ctx context.Context, principal *Princ
 	}
 	c.CanSelectOrder = len(notificationTestOrderScopes(principal)) > 0
 	if !c.CanSelectOrder {
-		c.OrderSelectionUnavailableReason = "当前工作台无可读的海运出口订单及费用权限，可继续使用示例预览"
+		c.OrderSelectionUnavailableReason = "系统管理工作台无经营数据读取权限，本页仅使用示例测试"
 	}
 	if !principal.HasPermission(access.NotificationTestSend) {
 		c.CanSend = false

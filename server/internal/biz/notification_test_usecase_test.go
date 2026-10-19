@@ -73,14 +73,14 @@ func newNotificationPreviewFixture() (*NotificationTestUsecase, *notificationPre
 	for _, k := range []string{access.PlatformAccess, access.NotificationPreview, access.NotificationTestSend, access.OrderPermission(access.OrderBusinessSE, access.OrderRead), access.OrderPermission(access.OrderBusinessSE, access.OrderFeeRead)} {
 		permissions[k] = struct{}{}
 	}
-	p := &Principal{UserID: user, Organization: Organization{ID: org, Kind: OrganizationKindCompany}, OrganizationNodes: []OrganizationScopeNode{{ID: org, Kind: OrganizationKindCompany}}, RoleGrants: []RoleGrant{{DataScope: DataScopeOrganization, Permissions: permissions}}}
+	p := &Principal{UserID: user, Organization: Organization{ID: org, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: org, Kind: OrganizationKindSystem}}, RoleGrants: []RoleGrant{{RoleCode: "administrator", DataScope: DataScopeOrganization, Permissions: permissions}}}
 	return NewNotificationTestUsecase(repo, NewOrderUsecase(orders, nil, nil, nil, nil, nil), sender, sender), repo, sender, p, orders
 }
 func TestNotificationTestAllTypesPreviewAndSelfSend(t *testing.T) {
 	uc, repo, sender, p, _ := newNotificationPreviewFixture()
 	ctx := context.Background()
 	catalog, err := uc.Catalog(ctx, p)
-	if err != nil || len(catalog.Types) != 8 || !catalog.CanSend || !catalog.CanSelectOrder {
+	if err != nil || len(catalog.Types) != 8 || !catalog.CanSend || catalog.CanSelectOrder {
 		t.Fatalf("目录:%+v %v", catalog, err)
 	}
 	for _, typ := range catalog.Types {
@@ -111,40 +111,56 @@ func TestNotificationTestAllTypesPreviewAndSelfSend(t *testing.T) {
 		}
 	}
 }
-func TestNotificationTestOptionalOrderAuthorization(t *testing.T) {
+func TestNotificationTestRejectsRealOrderInSystemWorkspace(t *testing.T) {
 	uc, _, sender, p, orders := newNotificationPreviewFixture()
-	ctx := context.Background()
 	id := orders.order.ID
 	for _, typ := range []string{"FEE_REVIEW_PENDING", "FEE_REVIEW_RESULT"} {
-		preview, err := uc.Preview(ctx, p, typ, &id)
-		if err != nil || !strings.Contains(preview.Markdown, "SE\\-\\[001\\]") || !strings.HasSuffix(preview.OrderURL, "/"+id.String()+"/fees") {
-			t.Fatalf("真实订单投影:%+v %v", preview, err)
+		if _, err := uc.Preview(t.Context(), p, typ, &id); err != ErrPermissionDenied {
+			t.Fatalf("系统管理员预览真实订单:%v", err)
 		}
-		if err := uc.Send(ctx, p, typ, &id); err != nil {
-			t.Fatal(err)
-		}
-		sent := sender.messages[len(sender.messages)-1]
-		if sent.Text != preview.Markdown || sent.OrderEntryPath != "" {
-			t.Fatal("最终链接不一致或重复准备")
+		if err := uc.Send(t.Context(), p, typ, &id); err != ErrPermissionDenied {
+			t.Fatalf("系统管理员发送真实订单:%v", err)
 		}
 	}
-	if _, err := uc.Preview(ctx, p, "USER_AUTHORIZED", &id); err != ErrAdminInvalidArgument {
+	if len(orders.requested) != 0 || len(sender.messages) != 0 {
+		t.Fatal("拒绝后仍读取订单或发送消息")
+	}
+	if _, err := uc.Preview(t.Context(), p, "USER_AUTHORIZED", &id); err != ErrAdminInvalidArgument {
 		t.Fatalf("非费用类型接受订单:%v", err)
 	}
-	other := uuid.New()
-	orders.order.OrganizationID = other
-	if _, err := uc.Preview(ctx, p, "FEE_REVIEW_PENDING", &id); err != ErrOrderNotFound {
-		t.Fatalf("跨组织订单:%v", err)
-	}
-	delete(p.RoleGrants[0].Permissions, access.OrderPermission(access.OrderBusinessSE, access.OrderFeeRead))
-	if _, err := uc.Preview(ctx, p, "FEE_REVIEW_PENDING", &id); err != ErrPermissionDenied {
-		t.Fatalf("缺费用权限:%v", err)
-	}
-	c, _ := uc.Catalog(ctx, p)
-	if c.CanSelectOrder || c.OrderSelectionUnavailableReason == "" {
-		t.Fatal("目录遗漏权限说明")
+	c, err := uc.Catalog(t.Context(), p)
+	if err != nil || c.CanSelectOrder || c.OrderSelectionUnavailableReason == "" {
+		t.Fatalf("目录遗漏订单不可用说明:%+v %v", c, err)
 	}
 }
+
+func TestNotificationTestOrderScopesKeepCompanyReadBoundary(t *testing.T) {
+	uc, _, _, p, orders := newNotificationPreviewFixture()
+	p.Organization.Kind = OrganizationKindCompany
+	p.OrganizationNodes[0].Kind = OrganizationKindCompany
+	p.RoleGrants[0].DataScope = DataScopeAll
+	scopes := notificationTestOrderScopes(p)
+	if len(scopes) == 0 {
+		t.Fatal("公司订单读取范围丢失")
+	}
+	if _, err := uc.order.FindAuthorized(t.Context(), orders.order.ID, scopes); err != nil {
+		t.Fatal(err)
+	}
+	orders.order.OrganizationID = uuid.New()
+	if _, err := uc.order.FindAuthorized(t.Context(), orders.order.ID, scopes); err != ErrOrderNotFound {
+		t.Fatalf("跨公司读取:%v", err)
+	}
+	for _, key := range []string{access.OrderPermission(access.OrderBusinessSE, access.OrderRead), access.OrderPermission(access.OrderBusinessSE, access.OrderFeeRead)} {
+		t.Run(key, func(t *testing.T) {
+			delete(p.RoleGrants[0].Permissions, key)
+			if len(notificationTestOrderScopes(p)) != 0 {
+				t.Fatal("缺少读取权限仍产生范围")
+			}
+			p.RoleGrants[0].Permissions[key] = struct{}{}
+		})
+	}
+}
+
 func TestNotificationTestRejectionsAndDisabledPreview(t *testing.T) {
 	ctx := context.Background()
 	uc, repo, sender, p, _ := newNotificationPreviewFixture()

@@ -1,9 +1,6 @@
 import {
-  catalog,
   chooseType,
   deferred,
-  orderId,
-  orderUrl,
   renderNotificationPage,
   requestFailure,
   setupNotificationMocks,
@@ -14,7 +11,6 @@ import {
   cleanup,
   fireEvent,
   screen,
-  waitFor,
   within,
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -57,61 +53,33 @@ describe('独立 Admin 通知预览', () => {
     expect(adminServiceSendNotificationTest).not.toHaveBeenCalled();
   });
 
-  it('费用默认没有链接，真实订单按服务端关键字查询并使用最终后端链接', async () => {
+  it('系统管理员仅用示例测试，费用无真实订单候选和链接', async () => {
     renderNotificationPage();
     await screen.findByText('[测试] ORDER_PERSONNEL_ASSIGNED');
-    await chooseType('费用待审核');
-    await screen.findByText('[测试] FEE_REVIEW_PENDING');
-    expect(
-      screen.getByText('未选择真实订单，本次不包含订单链接。'),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('link', { name: '查看订单费用' }),
-    ).not.toBeInTheDocument();
-    const orderInput = screen.getByRole('combobox', {
-      name: '真实订单（选填）',
-    });
-    fireEvent.change(orderInput, { target: { value: 'SE-TEST' } });
-    await waitFor(() =>
-      expect(orderServiceListOrders).toHaveBeenCalledWith(
-        { page: 1, pageSize: 20, businessType: 1, keyword: 'SE-TEST' },
-        { skipErrorHandler: true },
-      ),
-    );
-    fireEvent.mouseDown(orderInput);
-    fireEvent.click(
-      await screen.findByText('SE-TEST-001', {
-        selector: '.ant-select-item-option-content',
-      }),
-    );
-    expect(
-      await screen.findByRole('link', { name: '查看订单费用' }),
-    ).toHaveAttribute('href', orderUrl);
-    expect(adminServicePreviewNotificationTest).toHaveBeenLastCalledWith(
-      { notificationType: 'FEE_REVIEW_PENDING', orderId },
-      { skipErrorHandler: true },
-    );
-    expect(adminServiceSendNotificationTest).not.toHaveBeenCalled();
-  });
-
-  it('无读取资格明确提示且不查询订单，仍可预览示例', async () => {
-    vi.mocked(adminServiceListNotificationTestTypes).mockResolvedValue(
-      catalog({
-        canSelectOrder: false,
-        orderSelectionUnavailableReason: '请切换到有读取权限的公司工作台',
-      }),
-    );
-    renderNotificationPage();
-    await screen.findByText('[测试] ORDER_PERSONNEL_ASSIGNED');
-    await chooseType('费用审核结果');
-    await screen.findByText('[测试] FEE_REVIEW_RESULT');
-    expect(
-      screen.getByText('请切换到有读取权限的公司工作台'),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('combobox', { name: '真实订单（选填）' }),
-    ).not.toBeInTheDocument();
+    for (const label of ['费用待审核', '费用审核结果']) {
+      await chooseType(label);
+      await screen.findByText(
+        label === '费用待审核'
+          ? '[测试] FEE_REVIEW_PENDING'
+          : '[测试] FEE_REVIEW_RESULT',
+      );
+      expect(
+        screen.getByText(
+          '系统管理工作台无经营数据读取权限，本页仅使用示例测试',
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('本次使用示例数据，不包含订单链接。'),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('combobox', { name: '真实订单（选填）' }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('link', { name: '查看订单费用' }),
+      ).not.toBeInTheDocument();
+    }
     expect(orderServiceListOrders).not.toHaveBeenCalled();
+    expect(adminServiceSendNotificationTest).not.toHaveBeenCalled();
   });
 
   it('切换通知隔离迟到结果，并禁止原始HTML、图片及非服务端订单链接', async () => {

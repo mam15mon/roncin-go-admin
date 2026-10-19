@@ -234,10 +234,10 @@ export default function NotificationTestPage() {
                       ) : (
                         <p>
                           {catalog.orderSelectionUnavailableReason ||
-                            '当前工作台没有海运出口订单读取资格，仍可测试示例排版。'}
+                            '系统管理工作台无经营数据读取权限，本页仅使用示例测试'}
                         </p>
                       )}
-                      {!orderId && <p>未选择真实订单，本次不包含订单链接。</p>}
+                      {!orderId && <p>本次使用示例数据，不包含订单链接。</p>}
                     </div>
                   )}
                   <Descriptions

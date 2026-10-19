@@ -259,3 +259,14 @@ func TestResolveDependenciesKeepsUnknownKeysAndIsIdempotent(t *testing.T) {
 		t.Fatalf("ResolveDependencies 不幂等: %v", again)
 	}
 }
+
+func TestNotificationPermissionsBelongToSystemWorkspace(t *testing.T) {
+	for _, key := range []string{NotificationPreview, NotificationTestSend} {
+		if !IsSystemManagementPermission(key) || !PermissionAllowedInWorkspace(key, true) || PermissionAllowedInWorkspace(key, false) {
+			t.Fatalf("通知权限%s没有限制在系统工作台", key)
+		}
+	}
+	if !PermissionAllowedInWorkspace(UserRead, false) || !PermissionAllowedInWorkspace(UserRead, true) {
+		t.Fatal("相邻用户管理权限受到影响")
+	}
+}

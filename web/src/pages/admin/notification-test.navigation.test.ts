@@ -20,7 +20,7 @@ function permissions(keys: string[]) {
         key,
         dataScope: 'organization',
       })),
-      roleScopes: [{ roleCode: 'non-admin' }],
+      roleScopes: [{ roleCode: 'administrator' }],
     },
   });
 }
@@ -40,7 +40,7 @@ describe('通知测试独立 Admin 入口', () => {
     );
     expect(resolveTabKey('/admin')).toBe('/admin');
   });
-  it('入口精准消费权限，桌面和移动可发现并高亮，不靠角色名', () => {
+  it('入口消费后端有效权限，桌面和移动可发现并高亮', () => {
     const preview = permissions(['system.notification.preview']);
     expect(preview.canPreviewNotifications).toBe(true);
     expect(preview.canSendNotificationTests).toBe(false);

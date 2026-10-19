@@ -830,6 +830,17 @@ func (p *Principal) permissionAvailableInWorkspace(permission string) bool {
 	if p == nil {
 		return false
 	}
+	if permission == access.NotificationPreview || permission == access.NotificationTestSend {
+		if !principalIsSystemWorkspace(p) {
+			return false
+		}
+		for _, grant := range p.RoleGrants {
+			if grant.RoleCode == "administrator" && grant.DataScope.active() {
+				return true
+			}
+		}
+		return false
+	}
 	if access.IsCompanyBusinessPermission(permission) {
 		return p.CanOperateBusiness()
 	}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
+	authv1 "github.com/roncin/roncin-go-admin/server/api/auth/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/service"
@@ -48,10 +49,11 @@ func newNotificationHTTPFixture() (*kratoshttp.Server, *biz.Principal, *notifica
 	ding := "current-user-ding"
 	repo := &notificationHTTPAdminRepo{user: &biz.AdminUser{ID: user, Enabled: true, DisplayName: "管理员", DingTalkUserID: &ding}}
 	sender := &notificationHTTPSender{enabled: true}
-	p := &biz.Principal{UserID: user, Organization: biz.Organization{ID: org, Kind: biz.OrganizationKindCompany}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: org, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{serverRoleGrant("notification-test", biz.DataScopeOrganization, []string{access.PlatformAccess, access.NotificationPreview, access.NotificationTestSend})}}
+	p := &biz.Principal{UserID: user, Organization: biz.Organization{ID: org, Kind: biz.OrganizationKindSystem}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: org, Kind: biz.OrganizationKindSystem}}, RoleGrants: []biz.RoleGrant{serverRoleGrant("administrator", biz.DataScopeOrganization, []string{access.PlatformAccess, access.NotificationPreview, access.NotificationTestSend})}}
 	policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
 	authUC := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{UserID: user, OrganizationID: org, ExpiresAt: time.Now().Add(time.Hour)}, principal: p}, policy, nil, nil)
 	srv := kratoshttp.NewServer(kratoshttp.ResponseEncoder(encodeResponse), kratoshttp.ErrorEncoder(encodeError), kratoshttp.Middleware(Authorization(authUC, policy, nil, nil), RequiredFieldsValidator()))
+	authv1.RegisterAuthServiceHTTPServer(srv, service.NewAuthService(authUC, policy, nil))
 	adminv1.RegisterAdminServiceHTTPServer(srv, service.NewAdminService(nil, nil, biz.NewNotificationTestUsecase(repo, nil, sender, sender)))
 	return srv, p, repo, sender
 }
@@ -59,7 +61,7 @@ func TestNotificationTestHTTPActualRoutes(t *testing.T) {
 	srv, p, repo, sender := newNotificationHTTPFixture()
 	const cookie = "sid=test-session"
 	res := embeddedRequest(srv, http.MethodGet, "/api/v1/admin/notification-tests/types", "", cookie)
-	if res.Code != 200 || !strings.Contains(res.Body.String(), `"recipientName":"管理员"`) || !strings.Contains(res.Body.String(), `"notificationType":"FEE_REVIEW_PENDING"`) {
+	if res.Code != 200 || !strings.Contains(res.Body.String(), `"recipientName":"管理员"`) || !strings.Contains(res.Body.String(), `"notificationType":"FEE_REVIEW_PENDING"`) || strings.Contains(res.Body.String(), `"canSelectOrder":true`) {
 		t.Fatalf("目录camelCase:%d %s", res.Code, res.Body.String())
 	}
 	res = embeddedRequest(srv, http.MethodGet, "/api/v1/admin/notification-tests/preview?notificationType=FEE_REVIEW_PENDING", "", cookie)
@@ -134,5 +136,78 @@ func TestNotificationTestHTTPValidationAndPermissions(t *testing.T) {
 		if res.Code != 403 {
 			t.Fatalf("预览权限未校验:%d %s", res.Code, res.Body.String())
 		}
+	}
+}
+
+func TestNotificationTestHTTPAdministratorBoundaryAndMe(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		change  func(*biz.Principal)
+		allowed bool
+	}{
+		{"系统管理员", func(*biz.Principal) {}, true},
+		{"系统普通角色即使持有通知权限", func(p *biz.Principal) { p.RoleGrants[0].RoleCode = "operator" }, false},
+		{"公司administrator", func(p *biz.Principal) {
+			p.Organization.Kind = biz.OrganizationKindCompany
+			p.OrganizationNodes[0].Kind = biz.OrganizationKindCompany
+		}, false},
+		{"仅中文系统管理员", func(p *biz.Principal) {
+			p.RoleGrants[0].RoleCode = "custom"
+			p.RoleGrants[0].RoleName = "系统管理员"
+		}, false},
+		{"仅初始化管理员标记", func(p *biz.Principal) { p.RoleGrants[0].RoleCode = "custom"; p.IsBootstrapAdmin = true }, false},
+		{"无效administrator授权", func(p *biz.Principal) {
+			p.RoleGrants[0].RoleCode = "operator"
+			p.RoleGrants = append(p.RoleGrants, biz.RoleGrant{RoleCode: "administrator", DataScope: biz.DataScopeSelf})
+		}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv, p, repo, sender := newNotificationHTTPFixture()
+			tc.change(p)
+			me := embeddedRequest(srv, "GET", "/api/v1/auth/me", "", "sid=test")
+			if me.Code != 200 {
+				t.Fatalf("auth/me:%d %s", me.Code, me.Body.String())
+			}
+			var result struct {
+				Data struct {
+					Permissions  []string `json:"permissions"`
+					Capabilities []struct {
+						Key string `json:"key"`
+					} `json:"permissionCapabilities"`
+				} `json:"data"`
+			}
+			if err := json.Unmarshal(me.Body.Bytes(), &result); err != nil {
+				t.Fatal(err)
+			}
+			for _, key := range []string{access.NotificationPreview, access.NotificationTestSend} {
+				found, capabilityFound := false, false
+				for _, permission := range result.Data.Permissions {
+					found = found || permission == key
+				}
+				for _, capability := range result.Data.Capabilities {
+					capabilityFound = capabilityFound || capability.Key == key
+				}
+				if found != tc.allowed || capabilityFound != tc.allowed {
+					t.Fatalf("auth/me泄露或遗漏权限%s:%s", key, me.Body.String())
+				}
+			}
+			for _, req := range []struct{ method, path, body string }{
+				{"GET", "/api/v1/admin/notification-tests/types", ""},
+				{"GET", "/api/v1/admin/notification-tests/preview?notificationType=USER_AUTHORIZED", ""},
+				{"POST", "/api/v1/admin/notification-tests/send", `{"notificationType":"USER_AUTHORIZED"}`},
+			} {
+				res := embeddedRequest(srv, req.method, req.path, req.body, "sid=test")
+				status := 403
+				if tc.allowed {
+					status = 200
+				}
+				if res.Code != status {
+					t.Fatalf("%s:%d %s", req.path, res.Code, res.Body.String())
+				}
+			}
+			if !tc.allowed && (len(sender.recipients) != 0 || repo.requested != uuid.Nil) {
+				t.Fatal("越权调用产生发送或绑定读取")
+			}
+		})
 	}
 }

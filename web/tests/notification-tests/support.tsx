@@ -45,7 +45,9 @@ export function catalog(overrides: Partial<API.NotificationTestCatalog> = {}) {
       recipientBound: true,
       integrationEnabled: true,
       canSend: true,
-      canSelectOrder: true,
+      canSelectOrder: false,
+      orderSelectionUnavailableReason:
+        '系统管理工作台无经营数据读取权限，本页仅使用示例测试',
       ...overrides,
     },
   };
@@ -90,7 +92,7 @@ export function renderNotificationPage(
         key,
         dataScope: 'organization',
       })),
-      roleScopes: [{ roleCode: 'arbitrary-role' }],
+      roleScopes: [{ roleCode: 'administrator' }],
     },
     routerProps: { initialEntries: ['/admin/notification-test'] },
   });
