@@ -28,7 +28,7 @@ userIds: [绑定的企业员工ID]
 - 合法动作仅限/welcome、/orders、/finance/exchange-rates、/orders/sea-export/{UUID}/fees、/commission-adjustments/{UUID}/my-supplement-source。订单分配和补录去明确标注的列表；补录ResourceID是RequestID，不能当订单ID。提成去本人最小来源页，不换成组织级财务入口。
 - 费用入口继续严格匹配Parameter末尾由当前ResourceID构成的固定费用路径；缺合法目标则无动作，不猜测或纠错。姓名和摘要不能提供URL。
 - 准备只做离线内容/本站URL解析，不申请token或发送；预览和发送复用。动作字段成对、目标限定本站路径，不能放任意外链。最终准备幂等，无正文重复追加链接。
-- 根据是否有合法动作显式选型；请求失败时不发送第二条Markdown作为回退。返回processQueryKey只代表接口受理，不代表客户端实际收到或视觉一致。
+- 根据是否有合法动作显式选型；请求失败时不发送第二条Markdown作为回退。响应必须有processQueryKey且目标不在invalidStaffIdList/flowControlledStaffIdList，否则视为未受理；processQueryKey只代表接口受理，不代表客户端实际收到或视觉一致。
 - 普通通知保留后台领取、租约、退避和完成语义；验证码继续挑战事务提交后即时发送，激活/冷却规则不变，不进入通用通知表或后台重试。
 - 审核通过/退回状态按生产端固定结果后缀判定，不可对动态姓名全文contains搜索；费用更正等其他合法结果按准确定义的信息态处理。
 
@@ -41,7 +41,7 @@ userIds: [绑定的企业员工ID]
 | 动作标题/目标不成对、URL或路径不在范围 | 明确失败，不伪造按钮或静默纠错 |
 | 无动作的验证码 | sampleMarkdown，无占位按钮 |
 | 动态内容含Markdown或换行 | 按普通单行内容展示，不生成结构 |
-| 上游失败/缺processQueryKey | 保持发送失败语义，无协议降级重发 |
+| 上游失败/缺processQueryKey/目标无效或被限流 | 保持发送失败语义，无协议降级重发 |
 | 密码验证码发送失败 | 原挑战不能激活，保持冷却，不后台重试 |
 
 ## 5. 正常、基准与错误场景
