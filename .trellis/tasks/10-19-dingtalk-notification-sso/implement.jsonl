@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/auth-session-org-switch.md", "reason": "共享认证和工作台准入"}
+{"file": ".trellis/spec/web/frontend/dingtalk-qr-login.md", "reason": "扫码相邻生命周期"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "生成与验证要求"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "异步生命周期与查询"}
+{"file": ".trellis/tasks/10-19-dingtalk-notification-sso/research/backend.md", "reason": "后端协议研究"}
+{"file": ".trellis/tasks/10-19-dingtalk-notification-sso/research/frontend.md", "reason": "前端接入研究"}
