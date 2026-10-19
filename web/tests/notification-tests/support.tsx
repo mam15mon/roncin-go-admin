@@ -10,7 +10,7 @@ import { orderServiceListOrders } from '@/services/roncin/orderService';
 import { renderWithApp } from '../renderWithApp';
 
 export const orderId = '12345678-1234-4234-8234-123456789abc';
-export const orderUrl = `https://configured.example.test/orders/sea-export/${orderId}/fees`;
+export const homepageUrl = 'https://configured.example.test/welcome';
 
 export function requestFailure(message: string) {
   return Object.assign(new Error('Request failed with status code 503'), {
@@ -61,8 +61,16 @@ export function setupNotificationMocks() {
       data: {
         notificationType: params.notificationType,
         title: `[测试] ${params.notificationType}`,
-        markdown: `### 测试通知 ${params.notificationType}\n\n**示例内容**${params.orderId ? `\n\n[查看订单费用](${orderUrl})` : ''}`,
-        orderUrl: params.orderId ? orderUrl : '',
+        markdown:
+          params.notificationType === 'PASSWORD_RESET_CODE'
+            ? '### 🔐 测试通知 PASSWORD_RESET_CODE\n\n**012345**\n\n5分钟内有效，请勿向他人提供。\n\n> 示例验证码无效，不可用于重置密码。'
+            : `### 🔵 测试通知 ${params.notificationType}\n\n**示例内容**\n\n> 示例测试，不指向真实订单；按钮仅打开系统首页。`,
+        actionTitle:
+          params.notificationType === 'PASSWORD_RESET_CODE'
+            ? ''
+            : '打开系统首页',
+        actionUrl:
+          params.notificationType === 'PASSWORD_RESET_CODE' ? '' : homepageUrl,
       },
     }),
   );

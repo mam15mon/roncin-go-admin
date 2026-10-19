@@ -1,7 +1,16 @@
 import { SendOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Descriptions, Select, Space, Spin, Tag } from 'antd';
+import {
+  Alert,
+  Button,
+  Descriptions,
+  Select,
+  Space,
+  Spin,
+  Tag,
+  theme,
+} from 'antd';
 import { useState } from 'react';
 import Markdown from 'react-markdown';
 import { useAccess } from '@/app/access';
@@ -14,6 +23,7 @@ import {
 } from '@/services/roncin/adminService';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
 import { ensureListResponse, unwrapPage } from '@/utils/api';
+import { notificationActionUrl } from './notification-test-action';
 
 const queryPrefix = 'notification-tests';
 const sendUnconfirmedMessage =
@@ -23,26 +33,9 @@ function failureMessage(error: unknown, fallback: string) {
   return getRequestErrorMessage(error, fallback);
 }
 
-/** 只允许当前预览中由服务端返回的本站费用入口；不开放其他 Markdown 链接或图片。 */
-function allowedOrderLink(href: string, orderUrl?: string) {
-  if (!orderUrl || href !== orderUrl) return '';
-  try {
-    const url = new URL(href);
-    return /^https?:$/.test(url.protocol) &&
-      /^\/orders\/sea-export\/[0-9a-f-]+\/fees$/.test(url.pathname) &&
-      !url.search &&
-      !url.hash &&
-      !url.username &&
-      !url.password
-      ? href
-      : '';
-  } catch {
-    return '';
-  }
-}
-
 export default function NotificationTestPage() {
   const access = useAccess();
+  const { token } = theme.useToken();
   const queryClient = useQueryClient();
   const [selectedType, setSelectedType] = useState<string>();
   const [selectedOrder, setSelectedOrder] = useState<{
@@ -118,12 +111,20 @@ export default function NotificationTestPage() {
   });
   const pending = sendMutation.isPending;
   const preview = previewQuery.data;
+  const actionUrl = notificationActionUrl(
+    preview?.actionTitle,
+    preview?.actionUrl,
+  );
+  const invalidAction = Boolean(
+    (preview?.actionTitle || preview?.actionUrl) && !actionUrl,
+  );
   const canSend = Boolean(
     access.canSendNotificationTests &&
       catalog?.canSend &&
       catalog.recipientBound &&
       catalog.integrationEnabled &&
       preview &&
+      !invalidAction &&
       !previewQuery.isFetching &&
       !previewQuery.isError &&
       !pending,
@@ -237,7 +238,11 @@ export default function NotificationTestPage() {
                             '系统管理工作台无经营数据读取权限，本页仅使用示例测试'}
                         </p>
                       )}
-                      {!orderId && <p>本次使用示例数据，不包含订单链接。</p>}
+                      {!orderId && (
+                        <p>
+                          本次使用示例数据，按钮仅演示打开系统首页，不指向真实订单。
+                        </p>
+                      )}
                     </div>
                   )}
                   <Descriptions
@@ -298,62 +303,168 @@ export default function NotificationTestPage() {
               />
             ) : preview ? (
               <>
-                <p>
-                  <strong>消息标题：</strong>
-                  {preview.title}
+                <p
+                  style={{
+                    margin: '0 0 12px',
+                    color: token.colorTextSecondary,
+                  }}
+                >
+                  网页为样式示意，以钉钉实际显示为准。有按钮的消息使用
+                  ActionCard；验证码仅展示正文。
                 </p>
                 <section
-                  aria-label="Markdown预览"
-                  style={{ overflowWrap: 'anywhere' }}
+                  aria-label="消息卡片预览"
+                  style={{
+                    width: '100%',
+                    maxWidth: 420,
+                    overflowWrap: 'anywhere',
+                    border: `1px solid ${token.colorBorderSecondary}`,
+                    borderRadius: token.borderRadiusLG,
+                    background: token.colorBgContainer,
+                    marginBottom: 16,
+                  }}
                 >
-                  <Markdown
-                    skipHtml
-                    disallowedElements={['img']}
-                    urlTransform={(url) =>
-                      allowedOrderLink(url, preview.orderUrl)
-                    }
-                    components={{
-                      h3: ({ children }) => (
-                        <h3
-                          style={{
-                            fontSize: 17,
-                            fontWeight: 600,
-                            margin: '0 0 16px',
-                          }}
-                        >
-                          {children}
-                        </h3>
-                      ),
-                      p: ({ children }) => (
-                        <p style={{ lineHeight: 1.8, margin: '0 0 12px' }}>
-                          {children}
-                        </p>
-                      ),
-                      strong: ({ children }) => (
-                        <strong style={{ fontWeight: 600 }}>{children}</strong>
-                      ),
-                      a: ({ href, children }) =>
-                        href ? (
-                          <a
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {children}
-                          </a>
-                        ) : (
-                          <span>{children}</span>
-                        ),
-                    }}
-                  >
-                    {preview.markdown}
-                  </Markdown>
+                  <div style={{ padding: '14px 16px 6px' }}>
+                    <div style={{ marginBottom: 10 }}>
+                      <Tag color="blue">测试通知</Tag>
+                    </div>
+                    <section aria-label="Markdown预览">
+                      <Markdown
+                        skipHtml
+                        disallowedElements={['img', 'a']}
+                        unwrapDisallowed
+                        urlTransform={() => ''}
+                        components={{
+                          h1: ({ children }) => (
+                            <h1
+                              style={{
+                                fontSize: 16,
+                                margin: '0 0 10px',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2
+                              style={{
+                                fontSize: 16,
+                                margin: '0 0 10px',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {children}
+                            </h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3
+                              style={{
+                                fontSize: 16,
+                                margin: '0 0 10px',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {children}
+                            </h3>
+                          ),
+                          p: ({ children }) => (
+                            <p
+                              style={{
+                                fontSize: 14,
+                                lineHeight: 1.65,
+                                margin: '0 0 10px',
+                              }}
+                            >
+                              {children}
+                            </p>
+                          ),
+                          strong: ({ children }) => (
+                            <strong style={{ fontWeight: 600 }}>
+                              {children}
+                            </strong>
+                          ),
+                          blockquote: ({ children }) => (
+                            <blockquote
+                              style={{
+                                margin: '0 0 10px',
+                                paddingLeft: 10,
+                                borderLeft: `2px solid ${token.colorBorderSecondary}`,
+                                color: token.colorTextSecondary,
+                              }}
+                            >
+                              {children}
+                            </blockquote>
+                          ),
+                        }}
+                      >
+                        {preview.markdown}
+                      </Markdown>
+                    </section>
+                  </div>
+                  {actionUrl && (
+                    <div
+                      style={{
+                        borderTop: `1px solid ${token.colorBorderSecondary}`,
+                        padding: '10px 16px',
+                      }}
+                    >
+                      <Button
+                        type="primary"
+                        block
+                        href={actionUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {preview.actionTitle}
+                      </Button>
+                    </div>
+                  )}
                 </section>
-                <SectionCard
-                  title="查看 Markdown 源码"
-                  collapsible
-                  defaultCollapsed
-                >
+                {actionUrl && !orderId && (
+                  <p style={{ color: token.colorTextSecondary }}>
+                    示例按钮仅打开系统首页，不指向真实订单。
+                  </p>
+                )}
+                {invalidAction && (
+                  <Alert
+                    type="error"
+                    title="通知按钮目标无效，无法发送测试，请重新加载预览"
+                    action={
+                      <Button onClick={() => void previewQuery.refetch()}>
+                        重新加载预览
+                      </Button>
+                    }
+                    showIcon
+                  />
+                )}
+                <SectionCard title="查看消息内容" collapsible defaultCollapsed>
+                  <Descriptions
+                    size="small"
+                    column={1}
+                    items={[
+                      {
+                        key: 'title',
+                        label: '会话列表标题',
+                        children: preview.title,
+                      },
+                      {
+                        key: 'action-title',
+                        label: '按钮文案',
+                        children: preview.actionTitle || '无按钮',
+                      },
+                      {
+                        key: 'action-url',
+                        label: '按钮目标',
+                        children: (
+                          <span style={{ overflowWrap: 'anywhere' }}>
+                            {preview.actionUrl || '无跳转'}
+                          </span>
+                        ),
+                      },
+                    ]}
+                  />
+                  <p style={{ margin: '12px 0 6px' }}>Markdown 正文</p>
                   <pre
                     style={{
                       whiteSpace: 'pre-wrap',
@@ -396,6 +507,7 @@ export default function NotificationTestPage() {
                     sendMutation.error,
                     sendUnconfirmedMessage,
                   )}
+                  description="发送结果尚未确认，请先在钉钉客户端核对，再决定是否重试。"
                 />
               )}
               {sendMutation.isSuccess && (

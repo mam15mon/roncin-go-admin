@@ -115,6 +115,11 @@ describe('本人钉钉测试发送', () => {
     fireEvent.click(screen.getByRole('button', { name: '发送给我测试' }));
     await screen.findByText('钉钉暂时不可用');
     expect(
+      screen.getByText(
+        '发送结果尚未确认，请先在钉钉客户端核对，再决定是否重试。',
+      ),
+    ).toBeInTheDocument();
+    expect(
       screen.queryByText('钉钉已受理，请在客户端确认'),
     ).not.toBeInTheDocument();
     expect(adminServiceSendNotificationTest).toHaveBeenCalledTimes(1);
