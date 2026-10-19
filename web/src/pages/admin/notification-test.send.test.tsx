@@ -147,7 +147,9 @@ describe('本人钉钉测试发送', () => {
     const first = renderNotificationPage();
     await screen.findByText('[测试] ORDER_PERSONNEL_ASSIGNED');
     fireEvent.click(screen.getByRole('button', { name: '发送给我测试' }));
-    await screen.findByText('发送测试失败，请重试');
+    await screen.findByText(
+      '未确认钉钉受理测试通知，请先在客户端确认，再决定是否重试',
+    );
     const late = deferred<API.SendNotificationTestResponse>();
     vi.mocked(adminServiceSendNotificationTest).mockReturnValueOnce(
       late.promise,
@@ -165,5 +167,28 @@ describe('本人钉钉测试发送', () => {
     expect(
       screen.queryByText('钉钉已受理，请在客户端确认'),
     ).not.toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      '网络超时',
+      () =>
+        Promise.reject(
+          Object.assign(new Error('timeout'), { code: 'ECONNABORTED' }),
+        ),
+    ],
+    ['缺少受理标识', () => Promise.resolve({ success: true, data: {} })],
+  ])('%s时提示先确认客户端，不断言未发送或自动重试', async (_name, result) => {
+    vi.mocked(adminServiceSendNotificationTest).mockImplementationOnce(result);
+    renderNotificationPage();
+    await screen.findByText('[测试] ORDER_PERSONNEL_ASSIGNED');
+    fireEvent.click(screen.getByRole('button', { name: '发送给我测试' }));
+    await screen.findByText(
+      '未确认钉钉受理测试通知，请先在客户端确认，再决定是否重试',
+    );
+    expect(
+      screen.queryByText('钉钉已受理，请在客户端确认'),
+    ).not.toBeInTheDocument();
+    expect(adminServiceSendNotificationTest).toHaveBeenCalledTimes(1);
   });
 });

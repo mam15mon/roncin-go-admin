@@ -16,6 +16,8 @@ import { orderServiceListOrders } from '@/services/roncin/orderService';
 import { ensureListResponse, unwrapPage } from '@/utils/api';
 
 const queryPrefix = 'notification-tests';
+const sendUnconfirmedMessage =
+  '未确认钉钉受理测试通知，请先在客户端确认，再决定是否重试';
 
 function failureMessage(error: unknown, fallback: string) {
   return getRequestErrorMessage(error, fallback);
@@ -108,7 +110,7 @@ export default function NotificationTestPage() {
         skipErrorHandler: true,
       });
       if (!response?.success || !response.data?.accepted) {
-        throw new Error('钉钉未受理本次测试，请重试');
+        throw new Error(sendUnconfirmedMessage);
       }
       return response.data;
     },
@@ -392,7 +394,7 @@ export default function NotificationTestPage() {
                   showIcon
                   title={failureMessage(
                     sendMutation.error,
-                    '发送测试失败，请重试',
+                    sendUnconfirmedMessage,
                   )}
                 />
               )}
