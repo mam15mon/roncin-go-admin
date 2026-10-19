@@ -78,8 +78,10 @@ func TestPostgresRetireRoleDataScopePreservesAuthorization(t *testing.T) {
 		return value
 	}
 	before := snapshot()
+	// 范围退役只比较其自身升级，后续资料投影新增由对应迁移测试验证。
+	afterDir := postgresMigrationDirThrough(t, dir, "20261016100000_retire_role_data_scope.sql")
 	for attempt := 0; attempt < 2; attempt++ {
-		if err := Apply(ctx, db, dir); err != nil {
+		if err := Apply(ctx, db, afterDir); err != nil {
 			t.Fatal(err)
 		}
 		if after := snapshot(); after != before {

@@ -19,8 +19,11 @@ type passwordResetRepoStub struct {
 	consumeCalls     int
 }
 
-func (s *passwordResetRepoStub) ReservePasswordReset(_ context.Context, _ string, r *PasswordResetRecord, _ time.Time) error {
+func (s *passwordResetRepoStub) ReservePasswordReset(_ context.Context, _ string, r *PasswordResetRecord) error {
 	s.record = r
+	now := time.Now().UTC()
+	r.ExpiresAt = now.Add(PasswordResetTTL)
+	r.ResendAvailableAt = now.Add(PasswordResetResendInterval)
 	if s.eligible {
 		id := uuid.New()
 		r.UserID = &id
@@ -28,11 +31,11 @@ func (s *passwordResetRepoStub) ReservePasswordReset(_ context.Context, _ string
 	}
 	return nil
 }
-func (s *passwordResetRepoStub) CompletePasswordResetSend(_ context.Context, _ *PasswordResetRecord, accepted bool, _ time.Time) (bool, error) {
+func (s *passwordResetRepoStub) CompletePasswordResetSend(_ context.Context, _ *PasswordResetRecord, accepted bool) (bool, error) {
 	s.completeAccepted = accepted
 	return accepted, nil
 }
-func (s *passwordResetRepoStub) ConsumePasswordReset(_ context.Context, tokenHash, codeHash string, hash func() (string, error), _ time.Time) (bool, error) {
+func (s *passwordResetRepoStub) ConsumePasswordReset(_ context.Context, tokenHash, codeHash string, hash func() (string, error)) (bool, error) {
 	s.consumeCalls++
 	if s.invalid {
 		return false, nil

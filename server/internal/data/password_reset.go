@@ -34,7 +34,7 @@ func resetEligible(ctx context.Context, tx *ent.Tx, account *ent.User) (bool, er
 	}
 	return len(resolveMembershipWorkspaces(membershipRefsFromEnt(members), authOrganizationNodes(nodes))) > 0, nil
 }
-func (r *passwordResetRepo) ReservePasswordReset(ctx context.Context, mobile string, input *biz.PasswordResetRecord, now time.Time) error {
+func (r *passwordResetRepo) ReservePasswordReset(ctx context.Context, mobile string, input *biz.PasswordResetRecord) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		// 不按启停筛选，重复来源资料和本地账号冲突均不得猜测身份。
 		accounts, err := loginAccountQuery(tx.Client(), mobile).Order(ent.Asc(user.FieldID)).ForUpdate().All(ctx)
@@ -54,6 +54,7 @@ func (r *passwordResetRepo) ReservePasswordReset(ctx context.Context, mobile str
 			input.DingTalkUserID = *account.DingtalkUserid
 			input.DingTalkUnionID = *account.DingtalkUnionid
 		}
+		now := time.Now().UTC()
 		// 唯一键串行首次创建；冲突时原值更新并返回既有行，再锁当前行，不在约束错误后的已中止事务继续。
 		err = tx.PasswordResetChallenge.Create().SetMobileKeyHash(input.MobileKeyHash).SetTokenHash(input.TokenHash).SetCodeHash("").SetStatus(reset.StatusFAILED).SetExpiresAt(now).SetResendAvailableAt(now).OnConflictColumns(reset.FieldMobileKeyHash).Ignore().Exec(ctx)
 		if err != nil {
@@ -63,9 +64,13 @@ func (r *passwordResetRepo) ReservePasswordReset(ctx context.Context, mobile str
 		if err != nil {
 			return err
 		}
+		// 用户/组织/挑战锁可能等待很久，冷却和有效期必须从真正取得当前代时计算。
+		now = time.Now().UTC()
 		if current.ResendAvailableAt.After(now) {
 			return biz.PasswordResetCooldown(now, current.ResendAvailableAt)
 		}
+		input.ExpiresAt = now.Add(biz.PasswordResetTTL)
+		input.ResendAvailableAt = now.Add(biz.PasswordResetResendInterval)
 		update := current.Update().SetTokenHash(input.TokenHash).SetCodeHash(input.CodeHash).SetStatus(reset.StatusPENDING).SetExpiresAt(input.ExpiresAt).SetResendAvailableAt(input.ResendAvailableAt).SetFailedAttempts(0).SetDingtalkUserid(input.DingTalkUserID).SetDingtalkUnionid(input.DingTalkUnionID)
 		if input.UserID == nil {
 			update.ClearUserID().SetStatus(reset.StatusFAILED).SetCodeHash("")
@@ -105,7 +110,7 @@ func (r *passwordResetRepo) lockResetTarget(ctx context.Context, tx *ent.Tx, sna
 	eligible, err := resetEligible(ctx, tx, account)
 	return account, eligible, err
 }
-func (r *passwordResetRepo) CompletePasswordResetSend(ctx context.Context, input *biz.PasswordResetRecord, accepted bool, now time.Time) (bool, error) {
+func (r *passwordResetRepo) CompletePasswordResetSend(ctx context.Context, input *biz.PasswordResetRecord, accepted bool) (bool, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return false, err
@@ -133,6 +138,7 @@ func (r *passwordResetRepo) CompletePasswordResetSend(ctx context.Context, input
 		if current.Status != reset.StatusPENDING {
 			return nil
 		}
+		now := time.Now().UTC()
 		ready = accepted && eligible && current.ExpiresAt.After(now)
 		update := current.Update().SetStatus(reset.StatusFAILED).SetCodeHash("")
 		if ready {
@@ -142,7 +148,7 @@ func (r *passwordResetRepo) CompletePasswordResetSend(ctx context.Context, input
 	})
 	return ready, err
 }
-func (r *passwordResetRepo) ConsumePasswordReset(ctx context.Context, tokenHash, codeHash string, hashPassword func() (string, error), now time.Time) (bool, error) {
+func (r *passwordResetRepo) ConsumePasswordReset(ctx context.Context, tokenHash, codeHash string, hashPassword func() (string, error)) (bool, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return false, err
@@ -167,6 +173,7 @@ func (r *passwordResetRepo) ConsumePasswordReset(ctx context.Context, tokenHash,
 		if err != nil {
 			return err
 		}
+		now := time.Now().UTC()
 		if !eligible || !resetBindingMatches(account, current) || current.Status != reset.StatusREADY || !current.ExpiresAt.After(now) || current.FailedAttempts >= 5 {
 			return nil
 		}

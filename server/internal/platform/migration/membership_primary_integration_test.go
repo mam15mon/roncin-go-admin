@@ -76,8 +76,10 @@ func TestPostgresRemoveMembershipPrimaryPreservesAuthorization(t *testing.T) {
 		return value
 	}
 	before := snapshot()
+	// 快照只比较本次迁移；后续合法新增用户字段不属于取消主要组织的变更。
+	afterDir := postgresMigrationDirThrough(t, dir, "20261014100000_remove_membership_primary.sql")
 	for attempt := 1; attempt <= 2; attempt++ {
-		if err := Apply(ctx, db, dir); err != nil {
+		if err := Apply(ctx, db, afterDir); err != nil {
 			t.Fatalf("第 %d 次取消主要组织迁移失败: %v", attempt, err)
 		}
 		if after := snapshot(); after != before {

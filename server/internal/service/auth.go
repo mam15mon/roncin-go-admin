@@ -263,7 +263,9 @@ func (s *AuthService) RequestPasswordResetCode(ctx context.Context, request *v1.
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.RequestPasswordResetCodeResponse{Message: "若该手机号对应已开通的钉钉账号，验证码将发送到本人钉钉。", Data: &v1.PasswordResetChallenge{ChallengeToken: result.ChallengeToken, ExpiresAt: result.ExpiresAt.Format(time.RFC3339Nano), ResendAvailableAt: result.ResendAvailableAt.Format(time.RFC3339Nano), ServerTime: result.ServerTime.Format(time.RFC3339Nano)}}), nil
+	response := ok(ctx, &v1.RequestPasswordResetCodeResponse{Data: &v1.PasswordResetChallenge{ChallengeToken: result.ChallengeToken, ExpiresAt: result.ExpiresAt.Format(time.RFC3339Nano), ResendAvailableAt: result.ResendAvailableAt.Format(time.RFC3339Nano), ServerTime: result.ServerTime.Format(time.RFC3339Nano)}})
+	response.Message = "若该手机号对应已开通的钉钉账号，验证码将发送到本人钉钉。"
+	return response, nil
 }
 func (s *AuthService) ConfirmPasswordReset(ctx context.Context, request *v1.ConfirmPasswordResetRequest) (*v1.ConfirmPasswordResetResponse, error) {
 	authNoStore(ctx)

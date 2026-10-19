@@ -35,15 +35,15 @@ func setupPasswordReset(t *testing.T) (*authOrganizationSwitchFixture, *password
 	}
 	return f, NewPasswordResetRepo(f.data).(*passwordResetRepo)
 }
-func reserveReset(t *testing.T, r *passwordResetRepo, now time.Time) (*biz.PasswordResetRecord, string) {
+func reserveReset(t *testing.T, r *passwordResetRepo) (*biz.PasswordResetRecord, string) {
 	t.Helper()
 	token := strings.ReplaceAll(uuid.NewString()+uuid.NewString(), "-", "")
-	input := &biz.PasswordResetRecord{MobileKeyHash: biz.PasswordResetMobileKey("13800138000"), TokenHash: resetTokenHash(token), CodeHash: biz.PasswordResetCodeHash(token, "012345"), ExpiresAt: now.Add(5 * time.Minute), ResendAvailableAt: now.Add(time.Minute)}
-	if err := r.ReservePasswordReset(context.Background(), "13800138000", input, now); err != nil {
+	input := &biz.PasswordResetRecord{MobileKeyHash: biz.PasswordResetMobileKey("13800138000"), TokenHash: resetTokenHash(token), CodeHash: biz.PasswordResetCodeHash(token, "012345")}
+	if err := r.ReservePasswordReset(context.Background(), "13800138000", input); err != nil {
 		t.Fatal(err)
 	}
 	if input.UserID != nil {
-		if ready, err := r.CompletePasswordResetSend(context.Background(), input, true, now); err != nil || !ready {
+		if ready, err := r.CompletePasswordResetSend(context.Background(), input, true); err != nil || !ready {
 			t.Fatalf("激活失败 %v %v", ready, err)
 		}
 	}
@@ -52,7 +52,6 @@ func reserveReset(t *testing.T, r *passwordResetRepo, now time.Time) (*biz.Passw
 func TestPasswordResetCooldownConcurrencyAndRestart(t *testing.T) {
 	f, r := setupPasswordReset(t)
 	ctx := context.Background()
-	now := time.Now().UTC().Truncate(time.Microsecond)
 	var success atomic.Int32
 	start := make(chan struct{})
 	var wg sync.WaitGroup
@@ -62,7 +61,7 @@ func TestPasswordResetCooldownConcurrencyAndRestart(t *testing.T) {
 			defer wg.Done()
 			<-start
 			token := uuid.NewString()
-			err := r.ReservePasswordReset(ctx, "13800138000", &biz.PasswordResetRecord{MobileKeyHash: biz.PasswordResetMobileKey("13800138000"), TokenHash: resetTokenHash(token), CodeHash: "hash", ExpiresAt: now.Add(5 * time.Minute), ResendAvailableAt: now.Add(time.Minute)}, now)
+			err := r.ReservePasswordReset(ctx, "13800138000", &biz.PasswordResetRecord{MobileKeyHash: biz.PasswordResetMobileKey("13800138000"), TokenHash: resetTokenHash(token), CodeHash: "hash"})
 			if err == nil {
 				success.Add(1)
 			} else if !strings.Contains(err.Error(), "AUTH_PASSWORD_RESET_COOLDOWN") {
@@ -77,21 +76,26 @@ func TestPasswordResetCooldownConcurrencyAndRestart(t *testing.T) {
 	}
 	// 新建仓储模拟进程重建，冷却仍由数据库维持。
 	r = NewPasswordResetRepo(f.data).(*passwordResetRepo)
-	input := &biz.PasswordResetRecord{MobileKeyHash: biz.PasswordResetMobileKey("13800138000"), TokenHash: resetTokenHash("new"), ExpiresAt: now.Add(6 * time.Minute), ResendAvailableAt: now.Add(2 * time.Minute)}
-	if err := r.ReservePasswordReset(ctx, "13800138000", input, now.Add(time.Minute-time.Nanosecond)); err == nil {
+	current := f.data.db.PasswordResetChallenge.Query().OnlyX(ctx)
+	if current.ExpiresAt.Sub(current.ResendAvailableAt) != biz.PasswordResetTTL-biz.PasswordResetResendInterval || time.Until(current.ResendAvailableAt) <= 0 || time.Until(current.ResendAvailableAt) > biz.PasswordResetResendInterval {
+		t.Fatal("锁内未建立完整冷却与有效期")
+	}
+	input := &biz.PasswordResetRecord{MobileKeyHash: biz.PasswordResetMobileKey("13800138000"), TokenHash: resetTokenHash("new")}
+	if err := r.ReservePasswordReset(ctx, "13800138000", input); err == nil {
 		t.Fatal("60 秒前允许重发")
 	}
-	if err := r.ReservePasswordReset(ctx, "13800138000", input, now.Add(time.Minute)); err != nil {
+	// 将持久化冷却置于当前边界，无需等待一分钟或向仓储注入假时钟。
+	f.data.db.PasswordResetChallenge.UpdateOneID(current.ID).SetResendAvailableAt(time.Now().UTC()).ExecX(ctx)
+	if err := r.ReservePasswordReset(ctx, "13800138000", input); err != nil {
 		t.Fatal(err)
 	}
 }
 func TestPasswordResetWrongCodePersistsAndFifthInvalidates(t *testing.T) {
 	f, r := setupPasswordReset(t)
 	ctx := context.Background()
-	now := time.Now().UTC().Truncate(time.Microsecond)
-	input, _ := reserveReset(t, r, now)
+	input, _ := reserveReset(t, r)
 	for i := 1; i <= 5; i++ {
-		ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, "wrong", func() (string, error) { t.Error("错误码不应计算密码哈希"); return "new-hash", nil }, now)
+		ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, "wrong", func() (string, error) { t.Error("错误码不应计算密码哈希"); return "new-hash", nil })
 		if err != nil || ok {
 			t.Fatalf("错误码结果 %v %v", ok, err)
 		}
@@ -100,7 +104,7 @@ func TestPasswordResetWrongCodePersistsAndFifthInvalidates(t *testing.T) {
 			t.Fatalf("次数 %d", stored.FailedAttempts)
 		}
 	}
-	if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }, now); err != nil || ok {
+	if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }); err != nil || ok {
 		t.Fatal("第五次后正确码仍可用")
 	}
 	current := f.data.db.PasswordResetChallenge.Query().Where(reset.TokenHashEQ(input.TokenHash)).OnlyX(ctx)
@@ -115,14 +119,14 @@ func TestPasswordResetConsumeOnceRevokesAllAndRejectsOldCredential(t *testing.T)
 	f.data.db.User.UpdateOneID(f.userID).SetPasswordHash("old-hash").ExecX(ctx)
 	f.createSession(ctx, "old-device-one", f.systemWorkspace)
 	f.createSession(ctx, "old-device-two", f.branch)
-	input, _ := reserveReset(t, r, now)
+	input, _ := reserveReset(t, r)
 	var wg sync.WaitGroup
 	var successes atomic.Int32
 	for i := 0; i < 6; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }, now)
+			ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil })
 			if err != nil {
 				t.Errorf("消费 %v", err)
 			}
@@ -155,14 +159,13 @@ func TestPasswordResetExpiryResendAndBindingChanges(t *testing.T) {
 		t.Run(scenario, func(t *testing.T) {
 			f, r := setupPasswordReset(t)
 			ctx := context.Background()
-			now := time.Now().UTC().Truncate(time.Microsecond)
-			input, _ := reserveReset(t, r, now)
-			at := now
+			input, _ := reserveReset(t, r)
 			switch scenario {
 			case "过期":
-				at = now.Add(5 * time.Minute)
+				f.data.db.PasswordResetChallenge.Update().SetExpiresAt(time.Now().UTC()).ExecX(ctx)
 			case "重发":
-				reserveReset(t, r, now.Add(time.Minute))
+				f.data.db.PasswordResetChallenge.Update().SetResendAvailableAt(time.Now().UTC()).ExecX(ctx)
+				reserveReset(t, r)
 			case "手机变更":
 				f.data.db.User.UpdateOneID(f.userID).SetDingtalkMobileNormalized("13900139000").ExecX(ctx)
 			case "钉钉变更":
@@ -178,7 +181,7 @@ func TestPasswordResetExpiryResendAndBindingChanges(t *testing.T) {
 			case "无成员":
 				f.data.db.Membership.Update().SetEnabled(false).ExecX(ctx)
 			}
-			if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }, at); err != nil || ok {
+			if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }); err != nil || ok {
 				t.Fatalf("不应消费 %v %v", ok, err)
 			}
 		})
@@ -187,16 +190,15 @@ func TestPasswordResetExpiryResendAndBindingChanges(t *testing.T) {
 func TestPasswordResetAuditFailureRollsBackAll(t *testing.T) {
 	f, r := setupPasswordReset(t)
 	ctx := context.Background()
-	now := time.Now().UTC().Truncate(time.Microsecond)
 	f.data.db.User.UpdateOneID(f.userID).SetPasswordHash("old-hash").ExecX(ctx)
 	f.createSession(ctx, "old-device", f.branch)
-	input, _ := reserveReset(t, r, now)
+	input, _ := reserveReset(t, r)
 	f.data.db.AuditLog.Use(func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
 			return nil, fmt.Errorf("模拟审计失败")
 		})
 	})
-	if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }, now); err == nil || ok {
+	if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }); err == nil || ok {
 		t.Fatal("审计失败应回滚")
 	}
 	if hash := f.data.db.User.GetX(ctx, f.userID).PasswordHash; hash == nil || *hash != "old-hash" {
@@ -228,11 +230,11 @@ func TestPasswordResetUnknownAndUnqualifiedTargetsUseUnusableChallenge(t *testin
 			case "无成员":
 				f.data.db.Membership.Update().SetEnabled(false).ExecX(ctx)
 			}
-			input, _ := reserveReset(t, r, time.Now().UTC().Truncate(time.Microsecond))
+			input, _ := reserveReset(t, r)
 			if input.UserID != nil {
 				t.Fatal("不合格目标获得发送资格")
 			}
-			if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }, time.Now().UTC().Truncate(time.Microsecond)); err != nil || ok {
+			if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }); err != nil || ok {
 				t.Fatal("不合格挑战可消费")
 			}
 		})
@@ -243,12 +245,11 @@ func TestPasswordResetFailedPendingAndAdminResetInvalidation(t *testing.T) {
 		t.Run(scenario, func(t *testing.T) {
 			f, r := setupPasswordReset(t)
 			ctx := context.Background()
-			now := time.Now().UTC().Truncate(time.Microsecond)
-			input, _ := reserveReset(t, r, now)
+			input, _ := reserveReset(t, r)
 			switch scenario {
 			case "失败":
 				f.data.db.PasswordResetChallenge.Update().SetStatus(reset.StatusPENDING).ExecX(ctx)
-				if ready, err := r.CompletePasswordResetSend(ctx, input, false, now); err != nil || ready {
+				if ready, err := r.CompletePasswordResetSend(ctx, input, false); err != nil || ready {
 					t.Fatal("失败发送被激活")
 				}
 			case "未激活":
@@ -258,7 +259,7 @@ func TestPasswordResetFailedPendingAndAdminResetInvalidation(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }, now); err != nil || ok {
+			if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { return "new-hash", nil }); err != nil || ok {
 				t.Fatal("失效码可消费")
 			}
 		})
@@ -391,13 +392,14 @@ func TestPasswordResetSendOnceOutsideTransactionAndFirstPassword(t *testing.T) {
 	}
 }
 func TestPasswordResetInvalidChallengeNeverHashes(t *testing.T) {
-	_, r := setupPasswordReset(t)
+	f, r := setupPasswordReset(t)
 	ctx := context.Background()
-	if ok, err := r.ConsumePasswordReset(ctx, resetTokenHash("unknown"), "wrong", func() (string, error) { t.Error("未知码不得哈希"); return "", nil }, time.Now().UTC()); err != nil || ok {
+	if ok, err := r.ConsumePasswordReset(ctx, resetTokenHash("unknown"), "wrong", func() (string, error) { t.Error("未知码不得哈希"); return "", nil }); err != nil || ok {
 		t.Fatalf("未知令牌 %v %v", ok, err)
 	}
-	input, _ := reserveReset(t, r, time.Now().UTC())
-	if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { t.Error("过期码不得哈希"); return "", nil }, input.ExpiresAt); err != nil || ok {
+	input, _ := reserveReset(t, r)
+	f.data.db.PasswordResetChallenge.Update().SetExpiresAt(time.Now().UTC()).ExecX(ctx)
+	if ok, err := r.ConsumePasswordReset(ctx, input.TokenHash, input.CodeHash, func() (string, error) { t.Error("过期码不得哈希"); return "", nil }); err != nil || ok {
 		t.Fatalf("过期令牌 %v %v", ok, err)
 	}
 }

@@ -18,13 +18,13 @@ import (
 
 type passwordResetServiceRepo struct{}
 
-func (passwordResetServiceRepo) ReservePasswordReset(context.Context, string, *biz.PasswordResetRecord, time.Time) error {
+func (passwordResetServiceRepo) ReservePasswordReset(context.Context, string, *biz.PasswordResetRecord) error {
 	return nil
 }
-func (passwordResetServiceRepo) CompletePasswordResetSend(context.Context, *biz.PasswordResetRecord, bool, time.Time) (bool, error) {
+func (passwordResetServiceRepo) CompletePasswordResetSend(context.Context, *biz.PasswordResetRecord, bool) (bool, error) {
 	return true, nil
 }
-func (passwordResetServiceRepo) ConsumePasswordReset(context.Context, string, string, func() (string, error), time.Time) (bool, error) {
+func (passwordResetServiceRepo) ConsumePasswordReset(context.Context, string, string, func() (string, error)) (bool, error) {
 	return true, nil
 }
 func (passwordResetServiceRepo) RecordPasswordResetSendIP(context.Context, string, time.Time) (bool, error) {
@@ -49,6 +49,9 @@ func TestPasswordResetServiceNoStoreAndClearsCookie(t *testing.T) {
 	var reply v1.RequestPasswordResetCodeResponse
 	if err := protojson.Unmarshal(response.Body.Bytes(), &reply); err != nil || !reply.Success || reply.Data.ChallengeToken == "" {
 		t.Fatalf("发送边界 %v", err)
+	}
+	if reply.Message != "若该手机号对应已开通的钉钉账号，验证码将发送到本人钉钉。" {
+		t.Fatal("成功信封缺少统一的中文发送提示")
 	}
 	if response.Header().Get("Cache-Control") != "no-store" {
 		t.Fatal("未禁用缓存")

@@ -24,6 +24,11 @@ var (
 	ErrPasswordResetPassword = errors.BadRequest("AUTH_PASSWORD_RESET_PASSWORD", "密码去除首尾空白后至少需要 12 位")
 )
 
+const (
+	PasswordResetTTL            = 5 * time.Minute
+	PasswordResetResendInterval = time.Minute
+)
+
 // PasswordResetRecord 是本次找回的最小状态，不包含原始手机号、验证码或令牌。
 type PasswordResetRecord struct {
 	MobileKeyHash, TokenHash, CodeHash string
@@ -36,9 +41,9 @@ type PasswordResetCodeResult struct {
 	ExpiresAt, ResendAvailableAt, ServerTime time.Time
 }
 type PasswordResetRepo interface {
-	ReservePasswordReset(context.Context, string, *PasswordResetRecord, time.Time) error
-	CompletePasswordResetSend(context.Context, *PasswordResetRecord, bool, time.Time) (bool, error)
-	ConsumePasswordReset(context.Context, string, string, func() (string, error), time.Time) (bool, error)
+	ReservePasswordReset(context.Context, string, *PasswordResetRecord) error
+	CompletePasswordResetSend(context.Context, *PasswordResetRecord, bool) (bool, error)
+	ConsumePasswordReset(context.Context, string, string, func() (string, error)) (bool, error)
 	RecordPasswordResetSendIP(context.Context, string, time.Time) (bool, error)
 }
 type PasswordResetUsecase struct {
@@ -89,8 +94,8 @@ func (uc *PasswordResetUsecase) RequestCode(ctx context.Context, rawMobile, ip s
 		return nil, err
 	}
 	code := fmt.Sprintf("%06d", number.Int64())
-	record := &PasswordResetRecord{MobileKeyHash: PasswordResetMobileKey(mobile), TokenHash: tokenHash, CodeHash: PasswordResetCodeHash(token, code), ExpiresAt: now.Add(5 * time.Minute), ResendAvailableAt: now.Add(time.Minute)}
-	if err = uc.repo.ReservePasswordReset(ctx, mobile, record, now); err != nil {
+	record := &PasswordResetRecord{MobileKeyHash: PasswordResetMobileKey(mobile), TokenHash: tokenHash, CodeHash: PasswordResetCodeHash(token, code)}
+	if err = uc.repo.ReservePasswordReset(ctx, mobile, record); err != nil {
 		return nil, err
 	}
 	if record.UserID != nil {
@@ -99,7 +104,7 @@ func (uc *PasswordResetUsecase) RequestCode(ctx context.Context, rawMobile, ip s
 		cancel()
 		// 即使浏览器断开，也在有界独立上下文关闭本代状态；失败保持冷却，禁止激活未知发送。
 		finishCtx, finishCancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
-		ready, finishErr := uc.repo.CompletePasswordResetSend(finishCtx, record, sendErr == nil, time.Now().UTC())
+		ready, finishErr := uc.repo.CompletePasswordResetSend(finishCtx, record, sendErr == nil)
 		finishCancel()
 		if finishErr != nil {
 			return nil, ErrPasswordResetSend
@@ -122,7 +127,7 @@ func (uc *PasswordResetUsecase) Confirm(ctx context.Context, token, code, newPas
 			return ErrPasswordResetInvalid
 		}
 	}
-	matched, err := uc.repo.ConsumePasswordReset(ctx, hashSessionToken(token), PasswordResetCodeHash(token, code), func() (string, error) { return password.Hash(newPassword) }, time.Now().UTC())
+	matched, err := uc.repo.ConsumePasswordReset(ctx, hashSessionToken(token), PasswordResetCodeHash(token, code), func() (string, error) { return password.Hash(newPassword) })
 	if err != nil {
 		return err
 	}
