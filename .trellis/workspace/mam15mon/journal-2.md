@@ -1778,3 +1778,30 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 143: 独立 Admin 通知预览与本人发送测试
+<!-- trellis-session: v=2 fp=902950a28ec01431 -->
+
+**Date**: 2026-10-19
+**Task**: 独立 Admin 通知预览与本人发送测试
+**Branch**: `codex/dingtalk-notification-preview`
+
+### Summary
+
+用户明确要求独立Admin页面，完成/admin/notification-test路由和设置中心独立入口，不放系统管理页签。复用8类正式Markdown模板与最终链接准备，预览/源码一致，显式仅发送本人数据库绑定；费用真实订单验证订单及费用读取权限交集；示例验证码不创建挑战，无业务写入。独立review修复受理结果未知时的提示，保持客户端核对后手动决定重试；同步路由35模块完整性断言。定向测试后最终check:fast全通过（前端1448通过12既有跳过），build通过，316 SourceMap无测试运行时/辅助源，Chromium8项协议模拟PASS且pageerror0。开发健康200、匿名通知接口401，新权限按dev:permit同步2项及管理员授权6项；没有真实消息发送、Schema或业务数据变更。任务归档，按授权继续快进main/安全删分支/push远端核验。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9ea7f9e6` | feat: 新增独立 Admin 通知预览与本人测试页面 |
+| `cc30bc47` | feat: 增加钉钉通知预览与本人测试接口 |
+| `ae5bf273` | chore: 整理通知测试代码的 Go 导入分组 |
+| `fca4008d` | fix: 明确通知测试发送结果未知时先核对收件 |
+| `fccc70d2` | test: 同步独立通知测试页的路由完整性断言 |
+| `7e2d9c95` | docs: 记录独立 Admin 通知测试契约与验收 |
+
+### Status
+
+[OK] **Completed**
