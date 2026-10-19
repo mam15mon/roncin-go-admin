@@ -191,35 +191,37 @@ func (p *dingTalkIdentityProvider) enterpriseAccessToken(ctx context.Context) (s
 	return accessToken, nil
 }
 
-func (p *dingTalkIdentityProvider) SendText(ctx context.Context, userID, content string) error {
+func (p *dingTalkIdentityProvider) SendMarkdown(ctx context.Context, userID string, message biz.DingTalkMarkdownMessage) error {
 	if !p.enabled {
 		return biz.ErrDingTalkDisabled
 	}
 	userID = strings.TrimSpace(userID)
-	content = strings.TrimSpace(content)
-	// 机器人业务链接与已验证的钉钉登录回调使用同一站点，避免新增主机配置。
-	if strings.Contains(content, "订单入口：/orders/") {
-		origin, parseErr := url.Parse(p.redirectURI)
-		if parseErr != nil {
+	title := strings.TrimSpace(message.Title)
+	text := strings.TrimSpace(message.Text)
+	if userID == "" || title == "" || text == "" {
+		return fmt.Errorf("钉钉通知收件人、标题或正文为空")
+	}
+	if message.OrderEntryPath != "" {
+		// 订单入口沿用已验证登录回调的站点，不接受动态摘要指定外部主机。
+		origin, err := url.Parse(p.redirectURI)
+		if err != nil || origin.Scheme == "" || origin.Host == "" {
 			return fmt.Errorf("钉钉通知站点配置不合法")
 		}
-		content = strings.ReplaceAll(content, "订单入口：/orders/", "订单入口："+origin.Scheme+"://"+origin.Host+"/orders/")
-	}
-	if userID == "" || content == "" {
-		return fmt.Errorf("钉钉通知收件人或内容为空")
+		entryURL := &url.URL{Scheme: origin.Scheme, Host: origin.Host, Path: message.OrderEntryPath}
+		text += "\n\n[查看订单费用](" + entryURL.String() + ")"
 	}
 	accessToken, err := p.enterpriseAccessToken(ctx)
 	if err != nil {
 		return fmt.Errorf("获取钉钉企业访问令牌: %w", err)
 	}
-	messageParameter, err := json.Marshal(map[string]string{"content": content})
+	messageParameter, err := json.Marshal(map[string]string{"title": title, "text": text})
 	if err != nil {
 		return err
 	}
 	payload := map[string]any{
 		"robotCode": p.clientID,
 		"userIds":   []string{userID},
-		"msgKey":    "sampleText",
+		"msgKey":    "sampleMarkdown",
 		"msgParam":  string(messageParameter),
 	}
 	var response dingTalkRobotResponse

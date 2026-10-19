@@ -52,9 +52,15 @@ type NotificationRepo interface {
 	FindByTaskID(context.Context, uuid.UUID) (*NotificationDelivery, error)
 }
 
+// DingTalkMarkdownMessage 是领域层渲染的消息；订单入口仅来自已验证的业务路径。
+type DingTalkMarkdownMessage struct {
+	Title, Text    string
+	OrderEntryPath string
+}
+
 type DingTalkNotificationSender interface {
 	Enabled() bool
-	SendText(context.Context, string, string) error
+	SendMarkdown(context.Context, string, DingTalkMarkdownMessage) error
 }
 
 type NotificationUsecase struct {
@@ -104,11 +110,11 @@ func (uc *NotificationUsecase) ProcessNext(ctx context.Context, leaseDuration ti
 		return uc.fail(ctx, task, fmt.Sprintf("读取通知明细失败: %v", err))
 	}
 	delivery.Task = task
-	content, err := renderNotification(delivery)
+	message, err := renderNotification(delivery)
 	if err != nil {
 		return uc.fail(ctx, task, err.Error())
 	}
-	if err := uc.sender.SendText(ctx, delivery.DingTalkUserID, content); err != nil {
+	if err := uc.sender.SendMarkdown(ctx, delivery.DingTalkUserID, message); err != nil {
 		return uc.fail(ctx, task, fmt.Sprintf("发送钉钉通知失败: %v", err))
 	}
 	_, err = uc.tasks.Complete(ctx, task.OrganizationID, task.ID, *task.LeaseToken)
@@ -130,63 +136,104 @@ func (uc *NotificationUsecase) fail(ctx context.Context, task *BackgroundTask, m
 	return fmt.Errorf("%s", message)
 }
 
-func renderNotification(delivery *NotificationDelivery) (string, error) {
+func renderNotification(delivery *NotificationDelivery) (DingTalkMarkdownMessage, error) {
 	if delivery == nil || strings.TrimSpace(delivery.DingTalkUserID) == "" || delivery.ResourceID == uuid.Nil {
-		return "", fmt.Errorf("通知明细不完整")
+		return DingTalkMarkdownMessage{}, fmt.Errorf("通知明细不完整")
 	}
 	if delivery.Channel != NotificationChannelDingTalk {
-		return "", fmt.Errorf("通知渠道或模板不受支持")
+		return DingTalkMarkdownMessage{}, fmt.Errorf("通知渠道或模板不受支持")
 	}
 	switch delivery.Template {
 	case NotificationTemplateOrderPersonnelAssign:
 		if delivery.ResourceType != "ORDER" {
-			return "", fmt.Errorf("通知渠道或模板不受支持")
+			return DingTalkMarkdownMessage{}, fmt.Errorf("通知渠道或模板不受支持")
 		}
 		if strings.TrimSpace(delivery.ReferenceCode) == "" {
-			return "", fmt.Errorf("通知明细不完整")
+			return DingTalkMarkdownMessage{}, fmt.Errorf("通知明细不完整")
 		}
 		roleLabel, ok := orderPersonnelRoleLabel(OrderPersonnelRole(delivery.Parameter))
 		if !ok {
-			return "", fmt.Errorf("订单人员角色不受支持")
+			return DingTalkMarkdownMessage{}, fmt.Errorf("订单人员角色不受支持")
 		}
-		return fmt.Sprintf("【海运出口订单协作提醒】\n订单：%s\n您已被分配为：%s\n请登录 Roncin 系统查看并处理。", delivery.ReferenceCode, roleLabel), nil
+		return newDingTalkMarkdownMessage("海运出口订单协作提醒", fmt.Sprintf("**订单：** %s\n\n**您已被分配为：** %s\n\n请登录 Roncin 系统查看并处理。", escapeNotificationMarkdown(delivery.ReferenceCode), roleLabel)), nil
 	case NotificationTemplateUserAuthorized:
 		displayName := strings.TrimSpace(delivery.RecipientDisplayName)
 		if delivery.ResourceType != "USER" || displayName == "" {
-			return "", fmt.Errorf("通知明细不完整")
+			return DingTalkMarkdownMessage{}, fmt.Errorf("通知明细不完整")
 		}
-		return fmt.Sprintf("【Roncin 账号授权完成】\n%s，您的所属组织和角色已完成授权。\n现在可以使用钉钉扫码登录 Roncin 系统。", displayName), nil
+		return newDingTalkMarkdownMessage("Roncin 账号授权完成", fmt.Sprintf("**%s**，您的所属组织和角色已完成授权。\n\n现在可以使用**钉钉扫码登录** Roncin 系统。", escapeNotificationMarkdown(displayName))), nil
 	case NotificationTemplateExchangeRateWeeklyReminder:
 		organizationName := strings.TrimSpace(delivery.ReferenceCode)
 		// Parameter 携带「本币 目标周起~目标周止」，如「CNY 2026-09-14~2026-09-20」。
 		weekScope := strings.TrimSpace(delivery.Parameter)
 		if delivery.ResourceType != "ORGANIZATION" || organizationName == "" || weekScope == "" {
-			return "", fmt.Errorf("通知明细不完整")
+			return DingTalkMarkdownMessage{}, fmt.Errorf("通知明细不完整")
 		}
-		return fmt.Sprintf("【周汇率同步督办】\n组织：%s\n本周汇率尚未同步（%s），缺少本周配置的业务折算将被阻止。\n请先在「财务 · 汇率」页维护汇率。", organizationName, weekScope), nil
+		return newDingTalkMarkdownMessage("周汇率同步督办", fmt.Sprintf("**组织：** %s\n\n**本币与目标周：** %s\n\n本周汇率尚未同步，缺少本周配置的业务折算将被阻止。\n\n请先在「财务 · 汇率」页维护汇率。", escapeNotificationMarkdown(organizationName), escapeNotificationMarkdown(weekScope))), nil
 	case "FEE_REVIEW_PENDING":
-		return fmt.Sprintf("【订单费用待审核】\n订单号：%s\n提交人：%s\n整票费用已完成录入并提交审核，请进入 Roncin 查看费用及利润后处理。", delivery.ReferenceCode, delivery.Parameter), nil
+		return renderFeeReviewMarkdown(delivery, "订单费用待审核", "提交人", "整票费用已完成录入并提交审核，请进入 Roncin 查看费用及利润后处理。"), nil
 	case "FEE_REVIEW_RESULT":
-		return fmt.Sprintf("【订单费用审核结果】\n订单号：%s\n处理结果：%s\n请进入 Roncin 查看审批意见。", delivery.ReferenceCode, delivery.Parameter), nil
+		return renderFeeReviewMarkdown(delivery, "订单费用审核结果", "处理结果", "请进入 Roncin 查看审批意见。"), nil
 	case NotificationTemplateFeeSupplementApprovalPending:
 		// 只链接目标申请的审批最小详情；Parameter 携带经长度限制的订单号与金额摘要。
 		orderNo := strings.TrimSpace(delivery.ReferenceCode)
 		summary := strings.TrimSpace(delivery.Parameter)
 		if delivery.ResourceType != "FEE_SUPPLEMENT_REQUEST" || orderNo == "" || summary == "" {
-			return "", fmt.Errorf("通知明细不完整")
+			return DingTalkMarkdownMessage{}, fmt.Errorf("通知明细不完整")
 		}
-		return fmt.Sprintf("【费用补录待审批】\n订单：%s\n补录摘要：%s\n您具备该订单的费用审核权限，请登录 Roncin 系统在订单费用页处理补录申请。", orderNo, summary), nil
+		return newDingTalkMarkdownMessage("费用补录待审批", fmt.Sprintf("**订单：** %s\n\n**补录摘要：** %s\n\n您具备该订单的费用审核权限，请登录 Roncin 系统在订单费用页处理补录申请。", escapeNotificationMarkdown(orderNo), escapeNotificationMarkdown(summary))), nil
 	case NotificationTemplateCommissionDecreaseSuggested:
 		// 只链接员工本人专属冲减来源详情；Parameter 携带经长度限制的金额摘要。
 		orderNo := strings.TrimSpace(delivery.ReferenceCode)
 		summary := strings.TrimSpace(delivery.Parameter)
 		if delivery.ResourceType != "COMMISSION_ADJUSTMENT" || orderNo == "" || summary == "" {
-			return "", fmt.Errorf("通知明细不完整")
+			return DingTalkMarkdownMessage{}, fmt.Errorf("通知明细不完整")
 		}
-		return fmt.Sprintf("【提成冲减通知】\n订单：%s\n系统已为您的提成生成已确认的冲减（%s）。\n本消息供您知情，实际少发或扣回由财务登记；请登录 Roncin 系统查看本人专属详情。", orderNo, summary), nil
+		return newDingTalkMarkdownMessage("提成冲减通知", fmt.Sprintf("**订单：** %s\n\n**冲减摘要：** %s\n\n系统已为您的提成生成已确认的冲减。\n\n本消息供您知情，实际少发或扣回由财务登记；请登录 Roncin 系统查看本人专属详情。", escapeNotificationMarkdown(orderNo), escapeNotificationMarkdown(summary))), nil
 	default:
-		return "", fmt.Errorf("通知渠道或模板不受支持")
+		return DingTalkMarkdownMessage{}, fmt.Errorf("通知渠道或模板不受支持")
 	}
+}
+
+func newDingTalkMarkdownMessage(title, body string) DingTalkMarkdownMessage {
+	return DingTalkMarkdownMessage{Title: title, Text: "### " + title + "\n\n" + body}
+}
+
+// 动态值只占一行，避免姓名或摘要中的换行与 Markdown/HTML 控制符改变布局。
+func escapeNotificationMarkdown(value string) string {
+	value = strings.Join(strings.Fields(value), " ")
+	var escaped strings.Builder
+	for _, r := range value {
+		switch r {
+		case '&':
+			escaped.WriteString("&amp;")
+		case '<':
+			escaped.WriteString("&lt;")
+		case '>':
+			escaped.WriteString("&gt;")
+		default:
+			if strings.ContainsRune("\\`*_{}[]()#+-.!|~", r) {
+				escaped.WriteByte('\\')
+			}
+			escaped.WriteRune(r)
+		}
+	}
+	return escaped.String()
+}
+
+func renderFeeReviewMarkdown(delivery *NotificationDelivery, title, label, instruction string) DingTalkMarkdownMessage {
+	parameter := delivery.Parameter
+	path := "/orders/sea-export/" + delivery.ResourceID.String() + "/fees"
+	entrySuffix := "\n订单入口：" + path
+	orderEntryPath := ""
+	// 入队路径由订单 UUID 生成；仅将与当前资源完全匹配的入口作为链接。
+	if delivery.ResourceType == "ORDER" && strings.HasSuffix(parameter, entrySuffix) {
+		parameter = strings.TrimSuffix(parameter, entrySuffix)
+		orderEntryPath = path
+	}
+	message := newDingTalkMarkdownMessage(title, fmt.Sprintf("**订单号：** %s\n\n**%s：** %s\n\n%s", escapeNotificationMarkdown(delivery.ReferenceCode), label, escapeNotificationMarkdown(parameter), instruction))
+	message.OrderEntryPath = orderEntryPath
+	return message
 }
 
 func orderPersonnelRoleLabel(role OrderPersonnelRole) (string, bool) {

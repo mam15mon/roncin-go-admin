@@ -57,7 +57,7 @@ func TestPasswordResetUsecaseBoundMessageAndRandomChallenge(t *testing.T) {
 	if len(result.ChallengeToken) != 64 || result.ChallengeToken == repo.record.TokenHash || sender.userID != "bound-user" {
 		t.Fatal("令牌/绑定错误")
 	}
-	code := regexp.MustCompile(`验证码：(\d{6})`).FindStringSubmatch(sender.content)
+	code := regexp.MustCompile(`\*\*(\d{6})\*\*`).FindStringSubmatch(sender.content)
 	if len(code) != 2 || repo.record.CodeHash != PasswordResetCodeHash(result.ChallengeToken, code[1]) {
 		t.Fatal("验证码格式或摘要错误")
 	}
@@ -111,5 +111,20 @@ func TestPasswordResetUsecaseBoundary(t *testing.T) {
 	}
 	if err := uc.Confirm(context.Background(), strings.Repeat("a", 64), "012345", "long-enough-password"); !errors.Is(err, ErrPasswordResetInvalid) {
 		t.Fatal(err)
+	}
+}
+
+func TestPasswordResetMarkdownPreservesLeadingZero(t *testing.T) {
+	message := renderPasswordResetCode("012345")
+	if message.Title != "Roncin 密码验证码" || strings.Contains(message.Title, "012345") {
+		t.Fatalf("消息预览标题错误: %q", message.Title)
+	}
+	for _, fragment := range []string{"### Roncin 密码验证码\n\n", "您的设置 / 重置密码验证码：\n\n**012345**", "有效期：**5 分钟**。", "请勿向他人透露。如非本人操作，请忽略本消息。"} {
+		if !strings.Contains(message.Text, fragment) {
+			t.Fatalf("消息缺少 %q: %s", fragment, message.Text)
+		}
+	}
+	if message.OrderEntryPath != "" {
+		t.Fatal("验证码消息不应带业务链接")
 	}
 }

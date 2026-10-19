@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端分层与规范索引"}
+{"file": ".trellis/spec/server/backend/mobile-login-password-reset.md", "reason": "验证码即时发送、敏感边界与时效契约"}
+{"file": ".trellis/spec/server/backend/background-task-notify.md", "reason": "保留通知任务调度、租约与重试行为"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "生成物与分层、风险匹配验证约束"}
+{"file": ".trellis/spec/server/backend/dingtalk-notification-markdown.md", "reason": "本期统一Markdown消息协议与链接、验证码边界"}

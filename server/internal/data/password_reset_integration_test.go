@@ -333,7 +333,7 @@ type resetIntegrationSender struct {
 }
 
 func (s *resetIntegrationSender) Enabled() bool { return true }
-func (s *resetIntegrationSender) SendText(ctx context.Context, userID, content string) error {
+func (s *resetIntegrationSender) SendMarkdown(ctx context.Context, userID string, message biz.DingTalkMarkdownMessage) error {
 	s.calls.Add(1)
 	if userID != "ding-reset" {
 		return fmt.Errorf("收件人不是绑定用户")
@@ -346,7 +346,7 @@ func (s *resetIntegrationSender) SendText(ctx context.Context, userID, content s
 		return fmt.Errorf("外部调用前状态未提交")
 	}
 	s.mu.Lock()
-	s.content = content
+	s.content = message.Text
 	s.mu.Unlock()
 	return nil
 }
@@ -379,7 +379,7 @@ func TestPasswordResetSendOnceOutsideTransactionAndFirstPassword(t *testing.T) {
 	if success.Load() != 1 || sender.calls.Load() != 1 {
 		t.Fatalf("申请成功 %d，实际发送 %d", success.Load(), sender.calls.Load())
 	}
-	code := regexp.MustCompile(`验证码：(\d{6})`).FindStringSubmatch(sender.content)
+	code := regexp.MustCompile(`\*\*(\d{6})\*\*`).FindStringSubmatch(sender.content)
 	if len(code) != 2 {
 		t.Fatal("验证码格式错误")
 	}

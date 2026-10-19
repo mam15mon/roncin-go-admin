@@ -45,7 +45,7 @@ DB: users.dingtalk_mobile_normalized、password_reset_challenges
 - 每规范化手机号至少间隔 60 秒，数据库取得挑战锁后以当前 UTC 时刻执行门禁并建立新一代冷却/有效期，不能用请求进入仓储前的旧时刻；来源 IP 独立发送计数每 10 分钟最多 20 次，使用 LoginRateLimitBucket 独立域前缀，不污染登录失败计数。
 - 未知、重复、停用、待分配、未绑定钉钉、无有效工作台目标返回同形状不可用挑战，并执行相同冷却；不公开目标状态或收件人。合法目标只发送到已绑定企业 UserID，调用方不能传收件人 ID。
 - challengeToken 使用至少 32 字节密码学随机值，只在发起页面内存保留，库中仅 token_hash。6 位数字验证码保留前导零，5 分钟有效；code_hash 使用域分隔 SHA-256(token + code)，不能仅使用库中盐加 6 位码。
-- 每手机号只保留一条当前代，重发覆盖旧代。PENDING 事务提交后在事务外调用既有企业机器人 SendText；受理且绑定仍有效才条件转为 READY。失败、超时或崩溃遗留的 PENDING 不能重置，冷却仍保留；无后台自动重发。
+- 每手机号只保留一条当前代，重发覆盖旧代。PENDING 事务提交后在事务外调用既有企业机器人 SendMarkdown；验证码仅进入即时消息正文，标题不含验证码。受理且绑定仍有效才条件转为 READY。失败、超时或崩溃遗留的 PENDING 不能重置，冷却仍保留；无后台自动重发。消息格式见 [钉钉通知 Markdown 契约](./dingtalk-notification-markdown.md)。
 - 机器人返回受理键仅表示受理，不表示本人已收到；真实企业收件验证与 mock 必须分别记录。
 - AUTH_PASSWORD_RESET_COOLDOWN 的错误信封仅允许输出 metadata.serverTime/resendAvailableAt；不能通用透传全部领域错误 metadata，避免泄漏内部值。
 

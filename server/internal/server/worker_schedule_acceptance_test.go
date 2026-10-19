@@ -51,8 +51,10 @@ func (s *acceptanceScheduler) NextRun(ctx context.Context, consumer biz.TaskCons
 
 type acceptanceNotificationSender struct{}
 
-func (acceptanceNotificationSender) Enabled() bool                                  { return true }
-func (acceptanceNotificationSender) SendText(context.Context, string, string) error { return nil }
+func (acceptanceNotificationSender) Enabled() bool { return true }
+func (acceptanceNotificationSender) SendMarkdown(context.Context, string, biz.DingTalkMarkdownMessage) error {
+	return nil
+}
 
 type acceptanceListenerLog struct {
 	slog.Handler

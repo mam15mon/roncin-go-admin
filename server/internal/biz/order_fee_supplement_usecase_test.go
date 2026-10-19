@@ -248,8 +248,8 @@ func TestFeeSupplementNotificationRendering(t *testing.T) {
 		DingTalkUserID: "dt-1",
 	}
 	content, err := renderNotification(approval)
-	if err != nil || !strings.Contains(content, "费用补录待审批") || !strings.Contains(content, "SO-100") {
-		t.Fatalf("待审批通知渲染不符: %q %v", content, err)
+	if err != nil || !strings.Contains(content.Text, "费用补录待审批") || !strings.Contains(content.Text, `SO\-100`) {
+		t.Fatalf("待审批通知渲染不符: %+v %v", content, err)
 	}
 	wrongResource := *approval
 	wrongResource.ResourceType = "ORDER"
@@ -266,8 +266,8 @@ func TestFeeSupplementNotificationRendering(t *testing.T) {
 		DingTalkUserID: "dt-2",
 	}
 	content, err = renderNotification(decrease)
-	if err != nil || !strings.Contains(content, "冲减建议") || !strings.Contains(content, "SO-100") {
-		t.Fatalf("冲减知情通知渲染不符: %q %v", content, err)
+	if err != nil || !strings.Contains(content.Text, "冲减建议") || !strings.Contains(content.Text, `SO\-100`) {
+		t.Fatalf("冲减知情通知渲染不符: %+v %v", content, err)
 	}
 	wrongResource = *decrease
 	wrongResource.ResourceType = "FEE_SUPPLEMENT_REQUEST"

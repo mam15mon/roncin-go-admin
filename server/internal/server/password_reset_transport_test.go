@@ -33,8 +33,10 @@ func (passwordResetServiceRepo) RecordPasswordResetSendIP(context.Context, strin
 
 type passwordResetServiceSender struct{}
 
-func (passwordResetServiceSender) Enabled() bool                                  { return true }
-func (passwordResetServiceSender) SendText(context.Context, string, string) error { return nil }
+func (passwordResetServiceSender) Enabled() bool { return true }
+func (passwordResetServiceSender) SendMarkdown(context.Context, string, biz.DingTalkMarkdownMessage) error {
+	return nil
+}
 
 // 真实公开路由、camelCase DTO、响应头与 Cookie 边界。
 func TestPasswordResetServiceNoStoreAndClearsCookie(t *testing.T) {

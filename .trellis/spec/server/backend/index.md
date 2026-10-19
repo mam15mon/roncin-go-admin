@@ -11,6 +11,7 @@
 | [Directory Structure](./directory-structure.md) | 分层职责与依赖方向（import 边界由 `pnpm run check:layers:go` 自动强制） | ✅ |
 | [Database Guidelines](./database-guidelines.md) | Ent、事务封装、并发锁、分页 | ✅ |
 | [Background Task Notify](./background-task-notify.md) | 四类消费者的事务通知、共享监听、到期与恢复检查 | ✅ |
+| [DingTalk Notification Markdown](./dingtalk-notification-markdown.md) | 全部机器人通知的Markdown载荷、模板与验证码敏感边界 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
 | [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、Switch、财务门禁与不可变历史 | ✅ |
