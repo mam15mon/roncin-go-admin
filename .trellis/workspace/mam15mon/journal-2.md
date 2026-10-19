@@ -1693,3 +1693,37 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 140: 修复开发环境验证码申请内部错误
+<!-- trellis-session: v=2 fp=cd5fac06c7278303 -->
+
+**Date**: 2026-10-19
+**Task**: 修复开发环境验证码申请内部错误
+**Branch**: `codex/fix-password-reset-dev-migration`
+
+### Summary
+
+定位Air热更新未应用新迁移，执行两次正式migrate:dev并验证数据保留和未知号码HTTP200，独立检查通过
+
+### Main Changes
+
+- 补齐当前开发库手机号投影与密码挑战表，不修改产品代码或密码
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0e5a7d92` | fix: 补齐开发环境验证码迁移并记录恢复验证 |
+
+### Testing
+
+- [OK] 正式迁移两次exit0；身份密码组织摘要一致；实际HTTP200且无真实发送；独立revision/checksum核验通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 用户重试本人钉钉验证码收件
