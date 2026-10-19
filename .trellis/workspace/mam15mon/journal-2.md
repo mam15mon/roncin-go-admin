@@ -1829,3 +1829,29 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 145: 钉钉通知 ActionCard 改版交付
+<!-- trellis-session: v=2 fp=3d0b5c711b88150f -->
+
+**Date**: 2026-10-19
+**Task**: 钉钉通知 ActionCard 改版交付
+**Branch**: `codex/dingtalk-notification-cards`
+
+### Summary
+
+按用户选择接入现有机器人内置单按钮ActionCard，精简8类正文、状态图标与受控本站动作；系统管理员测试页同步紧凑预览与真实首页演示按钮，验证码无按钮且无效示例。独立review修复站点规范化边界及周汇率相邻断言，最终check:fast前端1493用例通过/12既有跳过，后端检查通过，Chromium8项PASS。生成113文件幂等，未主动发送真实通知。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `84df33d1` | feat: 更新钉钉通知紧凑卡片预览与受控入口 |
+| `957425ec` | feat: 采用钉钉单按钮卡片并统一通知动作契约 |
+| `8eb809c7` | test: 同步周汇率提醒卡片正文与维护入口断言 |
+| `6e6d3a27` | fix: 接受通知按钮站点的等价域名和默认端口 |
+| `3e6ddc6a` | docs: 记录通知卡片独立审查与最终验收 |
+
+### Status
+
+[OK] **Completed**
