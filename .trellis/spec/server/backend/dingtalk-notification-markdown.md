@@ -57,6 +57,8 @@ msgParam: JSON字符串，内容为 {"title":"固定业务标题","text":"Markdo
 - HTTP替身解码实际请求，断言 `sampleMarkdown`、字符串类型 `msgParam`、`title/text`、收件人及令牌；覆盖禁用、空值和失败相邻路径。
 - 回归Worker完成/失败重试与验证码发送激活/失败流程。mock通过与真实钉钉渲染必须分别记录。
 
+管理员预览和发送给自己测试的接口、无效验证码及独立Admin页面边界见[通知测试契约](./dingtalk-notification-test.md)。
+
 ## 7. 错误与正确示例
 
 ```text

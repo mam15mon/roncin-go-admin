@@ -8,3 +8,7 @@
 - web/src/access.ts:canAccessPlatform消费权限；新增按钮权限仍从auth/me消费。Manifest新增需同步permissions.generated.ts。
 - web当前无Markdown渲染器。react-markdown官方README（2026-10-19读取）：https://github.com/remarkjs/react-markdown ，标准Markdown渲染为React元素，默认不使用dangerouslySetInnerHTML。仅使用基础能力、skipHtml，不启用raw HTML/plugins；实现时按安装版本类型核验。
 - 前任务验收记录位于.trellis/tasks/archive/2026-10/10-19-dingtalk-notification-markdown/verification.md，未实际发消息。当前对话与归档已包含决策，无需重复历史检索。
+
+## 实施接口约定
+
+目录：types及recipientName/recipientBound/integrationEnabled/canSend/sendUnavailableReason/canSelectOrder/orderSelectionUnavailableReason；预览请求notificationType及可选orderId，返回notificationType/title/markdown/orderUrl；发送相同受控字段，返回accepted并仅声明钉钉已受理。费用可读资格同时核对海运出口订单及费用读取权限，不扩大组织范围。

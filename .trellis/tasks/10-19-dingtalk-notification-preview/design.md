@@ -2,11 +2,11 @@
 
 ## 入口与权限
 
-在web/src/pages/admin/notification-test.tsx实现独立Admin页面，集中式路由新增/admin/notification-test；不嵌入admin/index.tsx多页签中心。提供有权限者可发现的独立Admin入口，沿用PageContainer、PageHeaderShell、SectionCard等公共组件。新权限建议system.notification.preview和system.notification.test_send；预览依赖PlatformAccess，发送依赖预览。Manifest唯一真相，Proto标记并重新生成权限键/access规则；默认administrator通过正式权限同步取得。按权限开放系统管理入口，不通过角色名称硬编码。
+在web/src/pages/admin/notification-test.tsx实现独立Admin页面，集中式路由新增/admin/notification-test；不嵌入admin/index.tsx多页签中心。提供有权限者可发现的独立Admin入口，沿用PageContainer、PageHeaderShell、SectionCard等公共组件。新权限system.notification.preview和system.notification.test_send；预览依赖PlatformAccess，发送依赖预览。Manifest唯一真相，Proto标记并重新生成权限键/access规则；默认administrator通过正式权限同步取得。按权限开放系统管理入口，不通过角色名称硬编码。
 
 ## 分层与数据流
 
-Admin Proto新增通知类型目录、预览、测试发送RPC，响应遵循独立类型与统一信封。仅接受受控类型及可选order_id，不接受正文、标题、验证码、收件人、任意URL或目标组织。
+Admin Proto新增ListNotificationTestTypes（GET /api/v1/admin/notification-tests/types）、PreviewNotificationTest（GET /api/v1/admin/notification-tests/preview）、SendNotificationTest（POST /api/v1/admin/notification-tests/send），响应遵循独立类型与统一信封。仅接受受控类型及可选order_id，不接受正文、标题、验证码、收件人、任意URL或目标组织。
 
 service只解析DTO并调用独立biz通知测试用例；用例构造示例NotificationDelivery复用renderNotification，以及固定无效验证码复用renderPasswordResetCode，最后统一加测试标识。用户绑定从现有认证/用户仓储读取，不能相信请求中的接收人。必要时新增最薄只读投影，Ent留data。
 
