@@ -201,13 +201,15 @@ func TestDingTalkEmbeddedHTTPRejectsInvalidStateAndDisabled(t *testing.T) {
 		{"Cookie不匹配", `{"authCode":"temporary-code","state":"s"}`, "roncin_session_dingtalk_embedded_state=x", true, 401},
 		{"扫码Cookie不可替代", `{"authCode":"temporary-code","state":"s"}`, "roncin_session_dingtalk_state=s", true, 401},
 		{"缺授权码", `{"state":"s"}`, "roncin_session_dingtalk_embedded_state=s", true, 400},
+		{"缺state", `{"authCode":"temporary-code"}`, "roncin_session_dingtalk_embedded_state=s", true, 400},
+		{"畸形JSON", `{"authCode":`, "roncin_session_dingtalk_embedded_state=s", true, 400},
 		{"禁用", `{"authCode":"temporary-code","state":"s"}`, "roncin_session_dingtalk_embedded_state=s", false, 503},
 	} {
 		t.Run(item.name, func(t *testing.T) {
 			provider := &embeddedProvider{enabled: item.enabled}
 			server := embeddedHTTPServer(&embeddedAuthRepo{}, provider)
 			response := embeddedRequest(server, "POST", "/api/v1/auth/dingtalk/embedded-login", item.body, item.cookie)
-			if response.Code != item.status || provider.calls != 0 {
+			if response.Code != item.status || provider.calls != 0 || response.Header().Get("Cache-Control") != "no-store" || response.Header().Get("Pragma") != "no-cache" {
 				t.Fatalf("未在换码前拒绝: %d %s calls=%d", response.Code, response.Body.String(), provider.calls)
 			}
 		})

@@ -21,7 +21,9 @@ type errorEnvelope struct {
 const internalErrorMessage = "服务器内部错误"
 
 func encodeError(writer nethttp.ResponseWriter, request *nethttp.Request, err error) {
-	if request.URL.Path == "/api/v1/auth/password-reset/code" || request.URL.Path == "/api/v1/auth/password-reset/confirm" {
+	switch request.URL.Path {
+	case "/api/v1/auth/password-reset/code", "/api/v1/auth/password-reset/confirm",
+		"/api/v1/auth/dingtalk/embedded-config", "/api/v1/auth/dingtalk/embedded-login":
 		writer.Header().Set("Cache-Control", "no-store")
 		writer.Header().Set("Pragma", "no-cache")
 	}
