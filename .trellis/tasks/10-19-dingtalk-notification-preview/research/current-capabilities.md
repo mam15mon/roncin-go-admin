@@ -1,6 +1,6 @@
 # 代码证据与选择
 
-- 管理入口web/src/pages/admin/index.tsx使用MultiTabCenterTemplate；不存在钉钉配置页，新增通知测试页签最薄。
+- 管理入口web/src/pages/admin/index.tsx使用MultiTabCenterTemplate；不存在钉钉配置页，用户明确要求独立Admin页：使用/admin/notification-test，不嵌入现有多页签。
 - server/internal/biz/notification.go：7类业务模板、Markdown转义、费用路径匹配；password_reset.go:renderPasswordResetCode为第8类即时模板。
 - data/dingtalk.go:SendMarkdown最终追加绝对费用链接、申请企业token并发送sampleMarkdown；预览须共用无网络内容准备，不能只展示少了链接的biz.Text。
 - biz.AdminRepo.GetUser已有钉钉身份字段；读取当前UserID，不信任客户端收件人。

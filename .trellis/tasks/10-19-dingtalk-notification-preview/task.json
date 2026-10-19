@@ -3,7 +3,7 @@
   "name": "dingtalk-notification-preview",
   "title": "钉钉通知预览与测试",
   "description": "管理员预览8类现有Markdown通知并显式发送给自己验证钉钉显示及费用链接免登，不引入模板编辑。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": "notification",
   "package": null,

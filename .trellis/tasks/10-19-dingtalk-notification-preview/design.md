@@ -2,7 +2,7 @@
 
 ## 入口与权限
 
-复用web/src/pages/admin/index.tsx多页签中心，新增页面私有通知测试面板，沿用SectionCard等公共组件。新权限建议system.notification.preview和system.notification.test_send；预览依赖PlatformAccess，发送依赖预览。Manifest唯一真相，Proto标记并重新生成权限键/access规则；默认administrator通过正式权限同步取得。按权限开放系统管理入口，不通过角色名称硬编码。
+在web/src/pages/admin/notification-test.tsx实现独立Admin页面，集中式路由新增/admin/notification-test；不嵌入admin/index.tsx多页签中心。提供有权限者可发现的独立Admin入口，沿用PageContainer、PageHeaderShell、SectionCard等公共组件。新权限建议system.notification.preview和system.notification.test_send；预览依赖PlatformAccess，发送依赖预览。Manifest唯一真相，Proto标记并重新生成权限键/access规则；默认administrator通过正式权限同步取得。按权限开放系统管理入口，不通过角色名称硬编码。
 
 ## 分层与数据流
 
