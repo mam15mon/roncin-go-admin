@@ -6,6 +6,7 @@ import {
   FormOutlined,
   GlobalOutlined,
   HistoryOutlined,
+  NotificationOutlined,
   NumberOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
@@ -25,6 +26,14 @@ export type WorkspaceMenus = {
 /** 桌面快捷菜单和移动Drawer共用同一权限过滤，不改变业务详情hideInMenu。 */
 export function buildWorkspaceMenus(access: AccessState): WorkspaceMenus {
   const settingsItems: WorkspaceMenuItem[] = [];
+
+  if (access?.canPreviewNotifications) {
+    settingsItems.push({
+      key: '/admin/notification-test',
+      icon: <NotificationOutlined />,
+      label: '通知测试',
+    });
+  }
 
   if (access?.canManageOrganizations || access?.canAccessPlatform) {
     settingsItems.push({

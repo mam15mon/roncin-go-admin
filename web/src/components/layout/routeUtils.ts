@@ -24,6 +24,7 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/finance/verifications': '核销管理',
   '/finance/commissions': '提成管理',
   '/admin': '系统管理',
+  '/admin/notification-test': '通知测试',
 };
 
 export const DYNAMIC_ROUTE_PATTERNS: Array<{

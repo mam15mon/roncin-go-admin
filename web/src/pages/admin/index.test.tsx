@@ -105,6 +105,7 @@ describe('AdminPage (系统管理中心多Tab模板)', () => {
     expect(screen.getByText('审计日志')).toBeInTheDocument();
     expect(screen.getByText('后台任务')).toBeInTheDocument();
     expect(screen.getByText('权限字典')).toBeInTheDocument();
+    expect(screen.queryByText('通知测试')).not.toBeInTheDocument();
 
     // 旧邀请与注册审批入口已撤除。
     expect(screen.queryByText('钉钉邀请')).not.toBeInTheDocument();

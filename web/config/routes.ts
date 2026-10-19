@@ -243,6 +243,13 @@ const routes: UmiRoute[] = [
     component: './master-data',
   },
   {
+    path: '/admin/notification-test',
+    name: '通知测试',
+    access: 'canPreviewNotifications',
+    hideInMenu: true,
+    component: './admin/notification-test',
+  },
+  {
     path: '/admin',
     name: '系统管理',
     icon: 'setting',

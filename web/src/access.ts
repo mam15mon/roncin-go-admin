@@ -8,6 +8,8 @@ import type {
 // 键名会在 `pnpm --dir web tsc` 时直接报错，避免按钮权限静默失效。
 const permissions = {
   platformAccess: 'system.platform.access',
+  notificationPreview: 'system.notification.preview',
+  notificationTestSend: 'system.notification.test_send',
   organizationRead: 'system.organization.read',
   organizationCreate: 'system.organization.create',
   organizationUpdate: 'system.organization.update',
@@ -178,6 +180,8 @@ export default function access(
     canOperateBusiness,
     canOperateOrganization,
     canAccessPlatform: has(permissions.platformAccess),
+    canPreviewNotifications: has(permissions.notificationPreview),
+    canSendNotificationTests: has(permissions.notificationTestSend),
     canReadOrganizations: has(permissions.organizationRead),
     canCreateOrganizations: has(permissions.organizationCreate),
     canUpdateOrganizations: has(permissions.organizationUpdate),
