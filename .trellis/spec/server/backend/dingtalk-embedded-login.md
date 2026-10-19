@@ -31,7 +31,7 @@ JSON: {"code":"<客户端临时免登码>"}
 - 新配置成功时生成随机 state，返回 state 和五分钟到期时间，同时写独立
   `<session_cookie_name>_dingtalk_embedded_state` Cookie；HttpOnly、Path=/、Secure/SameSite
   复用现有会话策略。扫码 Cookie `<session_cookie_name>_dingtalk_state` 不受影响。
-- 配置和换码均 `Cache-Control: no-store`、`Pragma: no-cache`。禁用配置不返回标识/state，
+- 配置和换码均 `Cache-Control: no-store`、`Pragma: no-cache`，包含 JSON 解码及 RequiredFieldsValidator 在 Service 前拒绝的错误响应，由 encodeError 精确路径兜底。禁用配置不返回标识/state，
   不发新 Cookie；禁用换码明确拒绝。缺失、不相同 state 在上游换码前拒绝，常量时间比较。
 - 换码时清除本通道 state Cookie；这是浏览器 Cookie 比对和上游临时码校验机制，
   不宣称是持久化服务端单次挑战，也不新增挑战表或权限平台。
@@ -40,6 +40,9 @@ JSON: {"code":"<客户端临时免登码>"}
   禁止按手机号、姓名猜测绑定，禁止自动建人或授权。
 - 单工作台直达，多工作台明确选择；后端稳定排序建立初始会话不代表默认工作台。
   选择其他组织仍走正常会话轮转。订单链接不参与身份核验，也不决定会话组织。
+- 免登 POST 开始到 settle 期间必须锁定组件账号入口和父级登录方式选择；SDK 等待时仍可切换。
+  认证成功后的多工作台选择阶段不开放另一登录方式，防止旧认证/轮转 Set-Cookie 覆盖新账号。
+  单纯忽略迟到 UI 或取消请求不能阻止浏览器处理 Cookie；真实卸载仍需要结果隔离。
 - 授权码/state 仅在当前尝试内存中使用，不写 URL、storage、日志或持久化。
   app token/clientSecret 仅服务端，不返回原始敏感上游错误正文。
 - Go 生产 HTML、Vite 开发 HTML 及前端渲染前预热在钉钉 UA 下全部跳过扫码配置与 iframe，
@@ -77,6 +80,7 @@ JSON: {"code":"<客户端临时免登码>"}
 - 真实 Kratos HTTP 路由无会话可访问、camelCase DTO、no-store、独立 Cookie 属性/清除、成功才发会话。
 - Go/Vite/main 三层钉钉UA零扫码预热、普通浏览器相邻协议及HEAD/业务路径不预热。
 - web StrictMode 单次认证、显式重试新尝试、SDK/HTTP迟到和账号切换、单多工作台完整回跳、
+  换码和工作台选择期间禁止交叠登录、失败 settle 后恢复、SDK 加载超时后迟到不取码、
   恶意/循环目标拒绝、公开请求scope豁免。构建核对 SDK 按需拆包。
 - 真实钉钉免登单独记录。程序替身/浏览器模拟不能替代可信域名、应用可见范围和客户端真机验收。
 
