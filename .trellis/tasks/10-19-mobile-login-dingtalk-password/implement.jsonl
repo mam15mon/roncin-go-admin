@@ -1,0 +1,12 @@
+{"file":".trellis/spec/domain/architecture-map.md","reason":"同一用户、成员关系、权限及前后端分层边界"}
+{"file":".trellis/spec/server/backend/directory-structure.md","reason":"契约、service、biz、data 和平台能力职责"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"Ent、正式迁移、事务封装、行锁和索引一致性"}
+{"file":".trellis/spec/server/backend/auth-session-org-switch.md","reason":"工作台准入、用户优先锁序、会话轮转和组织选择"}
+{"file":".trellis/spec/server/backend/dingtalk-registration-approval.md","reason":"手机号来源、资料清空、人员开通和禁止自动合并"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"验证码、密码、令牌和完整手机号不能进入日志或审计"}
+{"file":".trellis/spec/server/backend/error-handling.md","reason":"中文领域错误、约束冲突和统一错误信封"}
+{"file":".trellis/spec/web/frontend/dingtalk-qr-login.md","reason":"保持扫码生命周期、配置和组织选择相邻路径"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"ModalForm 的异步提交及现有登录页面组件约定"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"生成客户端、请求状态和用户缓存清理"}
+{"file":".trellis/spec/web/frontend/hook-guidelines.md","reason":"倒计时清理、回调稳定性和异步响应隔离"}
+{"file":".trellis/tasks/10-19-mobile-login-dingtalk-password/research/current-state.md","reason":"已核验代码、官方文档限制、验证码摘要和身份冲突设计依据"}

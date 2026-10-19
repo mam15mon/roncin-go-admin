@@ -32,3 +32,13 @@
 ## 补充核验
 
 `server/internal/security/password/password.go:25` 要求原始密码长度至少 12 字节；`server/internal/biz/admin_user.go:191` 在管理员重置入口进一步检查去首尾空白后的长度至少 12。新接口沿用当前校验规则与 Argon2id 工具，无须新增密码策略系统。手机号登录审计需单独处理当前 username 审计路径，不能把手机号直接写入 `auth.login` 的 details。
+
+## 规划收敛记录
+
+- 用户先回复“好的啊”，确认员工手机号和本地用户名共用账号登录入口；后回复“好的”，确认首次设置与找回共用入口、6 位数字码、5 分钟有效、5 次错误作废、重发使旧码失效以及成功后退出所有设备。
+- 已检查 `server/internal/data/dingtalk_directory.go` 的生产写入方：创建时 SetNillableDingtalkMobile，更新时 Set/ClearDingtalkMobile。规范化投影应在该路径同步，来源快照不能丢失；实施前仍需搜索其他实际种子与写入方。
+- `LoginRateLimitBucket` 已有敏感 key_hash、窗口和计数及唯一索引，可给发送 IP 使用独立域前缀，不能混用 auth.login 失败次数或把未知号码作为失败登录审计。
+- 使用单条当前挑战状态即可满足重发失效与频率门禁；新增实体属于原子状态流转，以行锁、唯一键和当前令牌条件更新，不是多人编辑业务表单，无须暴露 expectedVersion。
+- 验证码摘要不能仅 SHA-256(6位码+库中盐)，否则数据库泄漏后可离线穷举；方案使用只在浏览器持有、数据库只存摘要的高熵 challenge_token 参与 code_hash，禁止将其原文记录到日志、URL 或持久通知。
+- `make -C server api` 会运行 HTTP 访问规则生成；新增 PUBLIC RPC 必须通过生成流程更新相应元数据，不能只在手写路由放行。生成顺序与实际脚本见 implement.md。
+- 规划产物 ready gate 为：prd/design/implement 完整、两个 jsonl 引用真实规范/研究文件、用户对最新完整方案另行批准。本轮只完成审阅稿，不提前启动任务或实际发送消息。

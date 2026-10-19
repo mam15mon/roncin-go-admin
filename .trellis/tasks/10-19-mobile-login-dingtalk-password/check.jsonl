@@ -1,0 +1,10 @@
+{"file":".trellis/spec/domain/architecture-map.md","reason":"核查用户身份、组织权限与跨层数据流"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"核查正式迁移、Ent 元数据、一次性消费与事务原子性"}
+{"file":".trellis/spec/server/backend/auth-session-org-switch.md","reason":"核查工作台准入、锁序和密码重置后会话语义"}
+{"file":".trellis/spec/server/backend/dingtalk-registration-approval.md","reason":"核查目录同步、可选手机号和禁止越过开通规则"}
+{"file":".trellis/spec/server/backend/logging-guidelines.md","reason":"核查验证码不落通用通知、敏感信息不外泄"}
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"生成物、真实 PostgreSQL PASS/SKIP 与分层门禁"}
+{"file":".trellis/spec/web/frontend/dingtalk-qr-login.md","reason":"核查切换模式、迟到扫码消息与多工作台回归"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"pnpm 定向测试、类型校验、组件测试长尾约束"}
+{"file":".trellis/spec/web/frontend/hook-guidelines.md","reason":"核查手机号变化与迟到异步响应、倒计时清理"}
+{"file":".trellis/tasks/10-19-mobile-login-dingtalk-password/research/current-state.md","reason":"代码事实、未验证的真实消息送达与历史范围依据"}
