@@ -18,7 +18,7 @@
 3. 单工作台认证后直接回到原目标路径（保留query/hash）；多工作台沿用明确选择，再回到原目标，不从URL猜测组织或更改数据范围。
 4. 钉钉内不显示或预加载扫码iframe。免登失败/超时/配置不可用时给出明确状态及重试、账号登录操作，不自动回退或无限重试。普通浏览器保留既有扫码与密码流程。
 5. 校验state/Cookie与站内返回目标，授权码与凭据不进入URL、日志或持久化；服务端秘密不暴露给客户端。
-6. 同步Proto、后端、OpenAPI、前端客户端、测试与规范；完成定向验证、全栈验收、独立review、本地合并和远程push。
+6. Proto 的免登响应使用独立 DingTalkEmbeddedLoginResponse（data 共享既有 DingTalkLoginResult）满足 buf 唯一响应规则；同步Proto、后端、OpenAPI、前端客户端、测试与规范；完成定向验证、全栈验收、独立review、本地合并和远程push。
 
 ## 验收标准
 

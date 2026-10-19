@@ -168,3 +168,14 @@ antd 6 下会静默失效，测试表现为「元素找不到」或「回调未�
   /`hooks`/`utils`/`constants` 反向依赖 pages/features（`check:architecture`
   自动拦截）。
 - 不为通过检查而关闭 lint 规则、跳过类型错误或提交临时产物。
+
+## 页面扫描与测试辅助模块
+
+`src/router/adaptRoutes.tsx` 的页面加载表扫描 `src/pages/**/*.tsx`，排除
+`**/*.test.tsx`、`**/*.test-utils.tsx`、`**/*.fixtures.tsx` 和 `**/*TestSupport.tsx`。共享 JSX 测试辅助模块放 `web/tests/`，不能在 pages 下命名
+`*.test-support.tsx` 等未被排除的文件，否则会将 Vitest/Vite 开发依赖打入生产包。
+既有测试辅助文件遵循实际排除命名；普通产品组件不得套用这些测试专用命名。
+
+例如免登测试使用 `@root/tests/login-embedded-support`；产品页面不导入 tests。
+修改此类文件后，定向测试/tsc 之外还要检查生产构建不生成对应辅助模块、
+Vitest 或 `vite/dist/node/module-runner` 依赖。新增测试辅助优先进入 tests，不按单个文件名建立豁免。

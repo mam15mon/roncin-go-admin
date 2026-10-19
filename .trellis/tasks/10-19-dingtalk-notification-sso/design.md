@@ -38,3 +38,12 @@
 ## 验证与交付
 
 功能完成后补边界测试（禁止 TDD），定向 Go/Vitest、Biome/tsc 后独立 trellis-check。跨层认证契约与入口/依赖变化需要 `pnpm run check:fast` 及 `pnpm run build`。浏览器模拟验证钉钉内无扫码请求、单多组织回跳、显式失败/重试/账号切换。真实 SDK+真实用户免登未实测时明确标注限制。功能与生成物分组提交；main 快进包含前任务 Markdown，安全删除本次和已合并 Markdown 分支，push origin main，核对远端一致性。
+
+## 构建验收发现与最小范围修订
+
+生产构建证明 pages/**/*.tsx 扫描不仅收入新增免登 test-support，也收入4个既有
+测试辅助 JSX（密码重置 test-utils、海运可见性 fixtures、费用补录 TestSupport、
+批量费用 fixtures），使 Vitest/Vite module-runner 进入静态产物。新增 helper 迁至
+web/tests；根部 adaptRoutes 只增加仓库实际已有三类辅助命名的负 glob，保留既有
+页面查找和懒加载算法。此修复由构建产物证据触发，是本期生产入口验证所需，
+不迁移其他辅助文件、不整理无关路由。已有路由测试/类型检查和最终产物扫描验证。
