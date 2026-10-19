@@ -18,3 +18,10 @@ Go定向覆盖新用例、Admin HTTP实际路由/权限及data消息准备/发�
 ## 最终门禁依据
 
 新增管理端公开契约、权限及消息副作用入口，需pnpm run check:fast；新增Markdown依赖和懒加载入口，需SENTRY_AUTH_TOKEN= pnpm run build并核对产物无测试辅助。真实钉钉仍以用户手动点击验证，不把mock和默认Skip当作真机/真实数据库通过。
+
+## 权限纠正执行清单（2026-10-19）
+
+- [ ] 后端统一限制两通知权限为系统工作台有效administrator角色，Manifest同步公司可用权限边界。
+- [ ] 功能后补系统管理员允许、普通角色/公司管理员/仅中文同名/仅bootstrap拒绝及HTTP零发送回归，前端入口消费有效权限验证。
+- [ ] 独立review、定向检查、完整check:fast；标准dev:permit同步公司权限移除。
+- [ ] 更新规范与验收，提交、重新归档、合并main、删除已合并分支并push核对。

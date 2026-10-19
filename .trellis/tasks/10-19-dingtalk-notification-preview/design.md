@@ -2,7 +2,7 @@
 
 ## 入口与权限
 
-在web/src/pages/admin/notification-test.tsx实现独立Admin页面，集中式路由新增/admin/notification-test；不嵌入admin/index.tsx多页签中心。提供有权限者可发现的独立Admin入口，沿用PageContainer、PageHeaderShell、SectionCard等公共组件。新权限system.notification.preview和system.notification.test_send；预览依赖PlatformAccess，发送依赖预览。Manifest唯一真相，Proto标记并重新生成权限键/access规则；默认administrator通过正式权限同步取得。按权限开放系统管理入口，不通过角色名称硬编码。
+在web/src/pages/admin/notification-test.tsx实现独立Admin页面，集中式路由新增/admin/notification-test；不嵌入admin/index.tsx多页签中心。提供有权限者可发现的独立Admin入口，沿用PageContainer、PageHeaderShell、SectionCard等公共组件。新权限system.notification.preview和system.notification.test_send；预览依赖PlatformAccess，发送依赖预览。Manifest唯一真相，Proto标记并重新生成权限键/access规则；仅系统管理工作台有效administrator角色可通过后端有效权限取得入口，公司管理员与普通角色即使获授相同权限也不可用，不按中文显示名称匹配。
 
 ## 分层与数据流
 
@@ -27,3 +27,7 @@ service只解析DTO并调用独立biz通知测试用例；用例构造示例Noti
 ## 风险与验证
 
 重点验证收件人强制绑定、越权订单、无业务写入、无效验证码、预览与实际载荷一致及前端在途操作。HTTP替身用于受理/失败验证；实际钉钉排版与免登由用户手动发给自己验收。自动化阶段不发真实消息。
+
+## 权限纠正方案（2026-10-19）
+
+这是已交付任务的用户纠正，沿用原实施、review、合并、推送授权恢复任务。角色真相为当前系统工作台（kind=system）的有效RoleGrants中RoleCode=administrator，不使用可变中文名称或bootstrap标记。最小缺口在Principal有效权限计算：两条通知权限增加系统管理员条件，覆盖auth/me投影、HTTP鉴权和biz调用；前端继续消费后端有效权限集。Manifest将两权限归系统管理，使标准同步移除公司管理员挂载。修改范围为auth/manifest及对应定向用例、前端权限入口验证，主会话维护任务/规范。无需Schema、事务、公开契约或依赖变化。保留订单读取边界，系统管理员不能因此跨公司读订单；不增加通用角色策略框架。
