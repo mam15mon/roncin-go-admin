@@ -11,7 +11,7 @@
 | [Directory Structure](./directory-structure.md) | 分层职责与依赖方向（import 边界由 `pnpm run check:layers:go` 自动强制） | ✅ |
 | [Database Guidelines](./database-guidelines.md) | Ent、事务封装、并发锁、分页 | ✅ |
 | [Background Task Notify](./background-task-notify.md) | 四类消费者的事务通知、共享监听、到期与恢复检查 | ✅ |
-| [DingTalk Notification Markdown](./dingtalk-notification-markdown.md) | 全部机器人通知的Markdown载荷、模板与验证码敏感边界 | ✅ |
+| [DingTalk Notification Messages](./dingtalk-notification-markdown.md) | 机器人Markdown/单按钮ActionCard、紧凑模板与验证码敏感边界 | ✅ |
 | [DingTalk Notification Test](./dingtalk-notification-test.md) | 独立Admin预览、本人测试发送、无效验证码与受控费用链接 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
