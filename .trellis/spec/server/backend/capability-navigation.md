@@ -30,7 +30,7 @@
 | 往来单位档案 | `partner.go` | 档案、散客契约、角色黑名单 | 散客标识写多处 |
 | 往来单位财务配置 | `partner_account.go`、`partner_contract.go`、`partner_credit.go`、`partner_settlement_rule.go`、`partner_shipping_preset.go`、`partner_attachment.go` | 账户、合同、信用、结算规则、运输预设、附件 | 信用口径与账单不一致 |
 | 组织与权限 | `admin_organization.go`、`admin_role.go`、`admin_user.go`、`admin_user_membership.go`、`access/`（manifest） | 组织、角色库、用户、成员资格、权限清单 | 前端复制权限真相 |
-| 登录与会话 | `auth.go` | 登录、组织切换、会话轮转 | 切换不走单事务轮转 |
+| 登录与会话 | `auth.go`、`password_reset.go` | 手机号/本地账号登录、钉钉验证码设置/找回、组织切换、会话轮转 | 手机号猜测身份、验证码进入通用通知存储、切换不走单事务轮转 |
 | 审计 | `admin_audit.go`、`biz.go`（审计上下文） | 业务审计独立存储 | 审计写运行日志 |
 | 业务标签 | `business_tag.go`、`enterprise_resource.go` | 标签分组、企业资源配置 | 每页自建标签查询 |
 | 钉钉集成 | `dingtalk_directory.go`、`admin_user.go`、`dingtalk_approval.go` | 通讯录同步、组织角色开通、业务审批 | 手机号/令牌入日志 |

@@ -25,6 +25,7 @@
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Partner Role Blacklist](./partner-role-blacklist.md) | 客户、供应商、国外代理角色级黑名单及订单新增关联门禁 | ✅ |
 | [Auth Session Org Switch](./auth-session-org-switch.md) | 登录组织选择、应用内切换与会话轮转契约：成员资格唯一入场券、单事务轮转、并发语义 | ✅ |
+| [Mobile Login Password Reset](./mobile-login-password-reset.md) | 手机号/本地账号统一登录、钉钉验证码、持久冷却、一次消费与全会话撤销 | ✅ |
 | [User Membership Batch](./user-membership-batch.md) | 单用户多组织加入、逐组织选填角色、锁内授权与整批事务 | ✅ |
 | [Company Admin Provisioning](./company-admin-provisioning.md) | 新公司初始管理员加入、bootstrap 幂等补齐及停用保留 | ✅ |
 | [WeCom Retirement](./wecom-retirement.md) | 企业微信下线：已删除端点、用户字段、环境配置、正式迁移和相邻认证验证 | ✅ |
