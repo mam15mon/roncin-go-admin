@@ -9,10 +9,13 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/conf"
 )
@@ -53,7 +56,9 @@ type dingTalkUserIDResponse struct {
 }
 
 type dingTalkRobotResponse struct {
-	ProcessQueryKey string `json:"processQueryKey"`
+	ProcessQueryKey           string   `json:"processQueryKey"`
+	InvalidStaffIDList        []string `json:"invalidStaffIdList"`
+	FlowControlledStaffIDList []string `json:"flowControlledStaffIdList"`
 }
 
 type dingTalkIdentityProvider struct {
@@ -230,7 +235,7 @@ func (p *dingTalkIdentityProvider) enterpriseAccessToken(ctx context.Context) (s
 	return accessToken, nil
 }
 
-func (p *dingTalkIdentityProvider) SendMarkdown(ctx context.Context, userID string, message biz.DingTalkMarkdownMessage) error {
+func (p *dingTalkIdentityProvider) SendMessage(ctx context.Context, userID string, message biz.DingTalkMessage) error {
 	if !p.enabled {
 		return biz.ErrDingTalkDisabled
 	}
@@ -238,23 +243,28 @@ func (p *dingTalkIdentityProvider) SendMarkdown(ctx context.Context, userID stri
 	if userID == "" {
 		return fmt.Errorf("钉钉通知收件人为空")
 	}
-	prepared, _, err := p.PrepareMarkdown(message)
+	prepared, err := p.PrepareMessage(message)
 	if err != nil {
 		return err
 	}
-	title, text := prepared.Title, prepared.Text
+	parameter := map[string]string{"title": prepared.Title, "text": prepared.Text}
+	messageKey := "sampleMarkdown"
+	if prepared.ActionURL != "" {
+		messageKey = "sampleActionCard"
+		parameter["singleTitle"], parameter["singleURL"] = prepared.ActionTitle, prepared.ActionURL
+	}
 	accessToken, err := p.enterpriseAccessToken(ctx)
 	if err != nil {
 		return fmt.Errorf("获取钉钉企业访问令牌: %w", err)
 	}
-	messageParameter, err := json.Marshal(map[string]string{"title": title, "text": text})
+	messageParameter, err := json.Marshal(parameter)
 	if err != nil {
 		return err
 	}
 	payload := map[string]any{
 		"robotCode": p.clientID,
 		"userIds":   []string{userID},
-		"msgKey":    "sampleMarkdown",
+		"msgKey":    messageKey,
 		"msgParam":  string(messageParameter),
 	}
 	var response dingTalkRobotResponse
@@ -264,27 +274,63 @@ func (p *dingTalkIdentityProvider) SendMarkdown(ctx context.Context, userID stri
 	if strings.TrimSpace(response.ProcessQueryKey) == "" {
 		return fmt.Errorf("钉钉机器人发送响应不完整")
 	}
+	if slices.Contains(response.InvalidStaffIDList, userID) || slices.Contains(response.FlowControlledStaffIDList, userID) {
+		return fmt.Errorf("钉钉机器人未受理目标收件人")
+	}
 	return nil
 }
 
-// PrepareMarkdown 只准备内容；预览和正式发送均复用此路径。
-func (p *dingTalkIdentityProvider) PrepareMarkdown(message biz.DingTalkMarkdownMessage) (biz.DingTalkMarkdownMessage, string, error) {
+// PrepareMessage 只准备内容；预览和正式发送均复用此路径。
+func (p *dingTalkIdentityProvider) PrepareMessage(message biz.DingTalkMessage) (biz.DingTalkMessage, error) {
 	message.Title, message.Text = strings.TrimSpace(message.Title), strings.TrimSpace(message.Text)
 	if message.Title == "" || message.Text == "" {
-		return biz.DingTalkMarkdownMessage{}, "", fmt.Errorf("钉钉通知标题或正文为空")
+		return biz.DingTalkMessage{}, fmt.Errorf("钉钉通知标题或正文为空")
 	}
-	orderURL := ""
-	if message.OrderEntryPath != "" {
-		origin, err := url.Parse(p.redirectURI)
-		if err != nil || (origin.Scheme != "http" && origin.Scheme != "https") || origin.Host == "" {
-			return biz.DingTalkMarkdownMessage{}, "", biz.ErrDingTalkNotificationSiteInvalid
+	if message.ActionTitle == "" && message.ActionPath == "" && message.ActionURL == "" {
+		return message, nil
+	}
+	if strings.TrimSpace(message.ActionTitle) != message.ActionTitle || message.ActionTitle == "" || utf8.RuneCountInString(message.ActionTitle) > 20 || strings.ContainsAny(message.ActionTitle, "\r\n\t") || (message.ActionPath == "") == (message.ActionURL == "") {
+		return biz.DingTalkMessage{}, fmt.Errorf("钉钉通知动作不合法")
+	}
+	origin, err := url.Parse(p.redirectURI)
+	if err != nil || (origin.Scheme != "http" && origin.Scheme != "https") || origin.Hostname() == "" || origin.User != nil || origin.Opaque != "" {
+		return biz.DingTalkMessage{}, biz.ErrDingTalkNotificationSiteInvalid
+	}
+	path := message.ActionPath
+	if message.ActionURL != "" {
+		target, err := url.Parse(message.ActionURL)
+		if err != nil || target.Scheme != origin.Scheme || target.Host != origin.Host || target.User != nil || target.RawQuery != "" || target.Fragment != "" || target.RawPath != "" || target.Opaque != "" {
+			return biz.DingTalkMessage{}, fmt.Errorf("钉钉通知动作不合法")
 		}
-		entryURL := &url.URL{Scheme: origin.Scheme, Host: origin.Host, Path: message.OrderEntryPath}
-		orderURL = entryURL.String()
-		message.Text += "\n\n[查看订单费用](" + orderURL + ")"
-		message.OrderEntryPath = ""
+		path = target.Path
+		if (&url.URL{Scheme: origin.Scheme, Host: origin.Host, Path: path}).String() != message.ActionURL {
+			return biz.DingTalkMessage{}, fmt.Errorf("钉钉通知动作不合法")
+		}
 	}
-	return message, orderURL, nil
+	if !validDingTalkActionPath(path) {
+		return biz.DingTalkMessage{}, fmt.Errorf("钉钉通知动作不合法")
+	}
+	message.ActionURL = (&url.URL{Scheme: origin.Scheme, Host: origin.Host, Path: path}).String()
+	message.ActionPath = ""
+	return message, nil
+}
+
+func validDingTalkActionPath(path string) bool {
+	switch path {
+	case "/welcome", "/orders", "/finance/exchange-rates":
+		return true
+	}
+	for _, route := range []struct{ prefix, suffix string }{
+		{"/orders/sea-export/", "/fees"},
+		{"/commission-adjustments/", "/my-supplement-source"},
+	} {
+		if strings.HasPrefix(path, route.prefix) && strings.HasSuffix(path, route.suffix) {
+			value := strings.TrimSuffix(strings.TrimPrefix(path, route.prefix), route.suffix)
+			id, err := uuid.Parse(value)
+			return err == nil && id != uuid.Nil && id.String() == value
+		}
+	}
+	return false
 }
 
 func (p *dingTalkIdentityProvider) requestJSON(ctx context.Context, method, endpoint string, payload any, bearerToken string, target any) (int, error) {

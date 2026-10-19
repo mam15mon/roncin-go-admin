@@ -119,12 +119,12 @@ func TestPasswordResetMarkdownPreservesLeadingZero(t *testing.T) {
 	if message.Title != "Roncin 密码验证码" || strings.Contains(message.Title, "012345") {
 		t.Fatalf("消息预览标题错误: %q", message.Title)
 	}
-	for _, fragment := range []string{"### Roncin 密码验证码\n\n", "您的设置 / 重置密码验证码：\n\n**012345**", "有效期：**5 分钟**。", "请勿向他人透露。如非本人操作，请忽略本消息。"} {
+	for _, fragment := range []string{"### Roncin 密码验证码\n🔵 身份验证", "**012345**", "用于设置或重置密码，5 分钟内有效。", "请勿向他人透露；非本人操作请忽略。"} {
 		if !strings.Contains(message.Text, fragment) {
 			t.Fatalf("消息缺少 %q: %s", fragment, message.Text)
 		}
 	}
-	if message.OrderEntryPath != "" {
+	if message.ActionPath != "" || message.ActionTitle != "" || message.ActionURL != "" {
 		t.Fatal("验证码消息不应带业务链接")
 	}
 }

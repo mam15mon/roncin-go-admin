@@ -34,7 +34,7 @@ func (passwordResetServiceRepo) RecordPasswordResetSendIP(context.Context, strin
 type passwordResetServiceSender struct{}
 
 func (passwordResetServiceSender) Enabled() bool { return true }
-func (passwordResetServiceSender) SendMarkdown(context.Context, string, biz.DingTalkMarkdownMessage) error {
+func (passwordResetServiceSender) SendMessage(context.Context, string, biz.DingTalkMessage) error {
 	return nil
 }
 

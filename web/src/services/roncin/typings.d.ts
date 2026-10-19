@@ -4723,7 +4723,9 @@ declare namespace API {
     notificationType?: string;
     title?: string;
     markdown?: string;
-    orderUrl?: string;
+    /** 服务端准备的单按钮动作；验证码消息为空。 */
+    actionTitle?: string;
+    actionUrl?: string;
   };
 
   type NotificationTestType = {

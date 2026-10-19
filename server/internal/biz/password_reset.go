@@ -100,7 +100,7 @@ func (uc *PasswordResetUsecase) RequestCode(ctx context.Context, rawMobile, ip s
 	}
 	if record.UserID != nil {
 		sendCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		sendErr := uc.sender.SendMarkdown(sendCtx, record.DingTalkUserID, renderPasswordResetCode(code))
+		sendErr := uc.sender.SendMessage(sendCtx, record.DingTalkUserID, renderPasswordResetCode(code))
 		cancel()
 		// 即使浏览器断开，也在有界独立上下文关闭本代状态；失败保持冷却，禁止激活未知发送。
 		finishCtx, finishCancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
@@ -138,6 +138,6 @@ func (uc *PasswordResetUsecase) Confirm(ctx context.Context, token, code, newPas
 }
 
 // 验证码仅用于即时发送，不进入通用通知存储。
-func renderPasswordResetCode(code string) DingTalkMarkdownMessage {
-	return newDingTalkMarkdownMessage("Roncin 密码验证码", fmt.Sprintf("您的设置 / 重置密码验证码：\n\n**%s**\n\n有效期：**5 分钟**。\n\n请勿向他人透露。如非本人操作，请忽略本消息。", code))
+func renderPasswordResetCode(code string) DingTalkMessage {
+	return newDingTalkMessage("Roncin 密码验证码", "🔵 身份验证", fmt.Sprintf("**%s**\n\n用于设置或重置密码，5 分钟内有效。\n\n请勿向他人透露；非本人操作请忽略。", code), "", "")
 }

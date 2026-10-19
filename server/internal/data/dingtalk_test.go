@@ -81,15 +81,17 @@ func TestDingTalkResolveIdentity(t *testing.T) {
 	}
 }
 
-func TestDingTalkSendMarkdownUsesEnterpriseRobot(t *testing.T) {
+func TestDingTalkSendMessageUsesEnterpriseRobot(t *testing.T) {
 	const orderPath = "/orders/sea-export/019924d6-75a0-7000-8000-000000000001/fees"
 	for _, withLink := range []bool{false, true} {
 		t.Run(fmt.Sprint(withLink), func(t *testing.T) {
-			message := biz.DingTalkMarkdownMessage{Title: "测试通知", Text: "### 测试通知\n\n**订单：** 中文 \"引号\" \\斜杠 & <普通文本>"}
-			wantText := message.Text
+			message := biz.DingTalkMessage{Title: "测试通知", Text: "### 测试通知\n\n**订单：** 中文 \"引号\" \\斜杠 & <普通文本>"}
+			wantParameter := map[string]string{"title": message.Title, "text": message.Text}
+			wantKey := "sampleMarkdown"
 			if withLink {
-				message.OrderEntryPath = orderPath
-				wantText += "\n\n[查看订单费用](https://admin.example.com" + orderPath + ")"
+				message.ActionTitle, message.ActionPath = "查看订单费用", orderPath
+				wantKey = "sampleActionCard"
+				wantParameter["singleTitle"], wantParameter["singleURL"] = "查看订单费用", "https://admin.example.com"+orderPath
 			}
 			calls := 0
 			provider := &dingTalkIdentityProvider{
@@ -113,14 +115,14 @@ func TestDingTalkSendMarkdownUsesEnterpriseRobot(t *testing.T) {
 						if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 							t.Fatalf("机器人请求或 msgParam 字符串类型错误: %v", err)
 						}
-						if payload.RobotCode != "client-id" || !reflect.DeepEqual(payload.UserIDs, []string{"ding-user-id"}) || payload.MsgKey != "sampleMarkdown" {
+						if payload.RobotCode != "client-id" || !reflect.DeepEqual(payload.UserIDs, []string{"ding-user-id"}) || payload.MsgKey != wantKey {
 							t.Fatalf("机器人请求错误: %+v", payload)
 						}
 						var parameter map[string]string
 						if err := json.Unmarshal([]byte(payload.MsgParam), &parameter); err != nil {
 							t.Fatal(err)
 						}
-						if !reflect.DeepEqual(parameter, map[string]string{"title": message.Title, "text": wantText}) {
+						if !reflect.DeepEqual(parameter, wantParameter) {
 							t.Fatalf("标题、正文或入口错误: %+v", parameter)
 						}
 						return jsonResponse(http.StatusOK, `{"processQueryKey":"query-key"}`), nil
@@ -130,8 +132,8 @@ func TestDingTalkSendMarkdownUsesEnterpriseRobot(t *testing.T) {
 					}
 				})},
 			}
-			if err := provider.SendMarkdown(context.Background(), " ding-user-id ", message); err != nil {
-				t.Fatalf("SendMarkdown() error = %v", err)
+			if err := provider.SendMessage(context.Background(), " ding-user-id ", message); err != nil {
+				t.Fatalf("SendMessage() error = %v", err)
 			}
 			if calls != 1 {
 				t.Fatalf("发送次数 = %d", calls)
@@ -140,25 +142,25 @@ func TestDingTalkSendMarkdownUsesEnterpriseRobot(t *testing.T) {
 	}
 }
 
-func TestDingTalkSendMarkdownRejectsInvalidInput(t *testing.T) {
+func TestDingTalkSendMessageRejectsInvalidInput(t *testing.T) {
 	for _, scenario := range []struct {
 		name    string
 		enabled bool
 		userID  string
-		message biz.DingTalkMarkdownMessage
+		message biz.DingTalkMessage
 	}{
-		{name: "禁用", userID: "user", message: biz.DingTalkMarkdownMessage{Title: "标题", Text: "正文"}},
-		{name: "无收件人", enabled: true, userID: " ", message: biz.DingTalkMarkdownMessage{Title: "标题", Text: "正文"}},
-		{name: "无标题", enabled: true, userID: "user", message: biz.DingTalkMarkdownMessage{Title: " ", Text: "正文"}},
-		{name: "无正文", enabled: true, userID: "user", message: biz.DingTalkMarkdownMessage{Title: "标题", Text: " "}},
-		{name: "入口无站点", enabled: true, userID: "user", message: biz.DingTalkMarkdownMessage{Title: "标题", Text: "正文", OrderEntryPath: "/orders/sea-export/order/fees"}},
+		{name: "禁用", userID: "user", message: biz.DingTalkMessage{Title: "标题", Text: "正文"}},
+		{name: "无收件人", enabled: true, userID: " ", message: biz.DingTalkMessage{Title: "标题", Text: "正文"}},
+		{name: "无标题", enabled: true, userID: "user", message: biz.DingTalkMessage{Title: " ", Text: "正文"}},
+		{name: "无正文", enabled: true, userID: "user", message: biz.DingTalkMessage{Title: "标题", Text: " "}},
+		{name: "入口无站点", enabled: true, userID: "user", message: biz.DingTalkMessage{Title: "标题", Text: "正文", ActionTitle: "查看订单费用", ActionPath: "/orders/sea-export/00000000-0000-4000-8000-000000000001/fees"}},
 	} {
 		t.Run(scenario.name, func(t *testing.T) {
 			provider := &dingTalkIdentityProvider{enabled: scenario.enabled, client: &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
 				t.Fatal("无效输入不应请求钉钉")
 				return nil, nil
 			})}}
-			if err := provider.SendMarkdown(context.Background(), scenario.userID, scenario.message); err == nil {
+			if err := provider.SendMessage(context.Background(), scenario.userID, scenario.message); err == nil {
 				t.Fatal("无效输入应拒绝")
 			} else if !scenario.enabled && !errors.Is(err, biz.ErrDingTalkDisabled) {
 				t.Fatalf("禁用错误 = %v", err)
@@ -167,7 +169,7 @@ func TestDingTalkSendMarkdownRejectsInvalidInput(t *testing.T) {
 	}
 }
 
-func TestDingTalkSendMarkdownPropagatesFailures(t *testing.T) {
+func TestDingTalkSendMessagePropagatesFailures(t *testing.T) {
 	for _, scenario := range []struct {
 		name         string
 		status       int
@@ -178,24 +180,32 @@ func TestDingTalkSendMarkdownPropagatesFailures(t *testing.T) {
 		{name: "缺受理键", status: http.StatusOK, body: `{}`},
 		{name: "响应不合法", status: http.StatusOK, body: `invalid`},
 		{name: "超时", transportErr: context.DeadlineExceeded},
+		{name: "有受理键但收件人无效", status: http.StatusOK, body: `{"processQueryKey":"accepted","invalidStaffIdList":["user"]}`},
+		{name: "有受理键但收件人限流", status: http.StatusOK, body: `{"processQueryKey":"accepted","flowControlledStaffIdList":["user"]}`},
 	} {
-		t.Run(scenario.name, func(t *testing.T) {
-			calls := 0
-			provider := &dingTalkIdentityProvider{enabled: true, appToken: "cached-token", appTokenTill: time.Now().Add(time.Minute), client: &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
-				calls++
-				if request.URL.String() != dingTalkRobotURL {
-					t.Fatal("缓存有效期内不应重新取令牌")
+		for _, withAction := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/action=%t", scenario.name, withAction), func(t *testing.T) {
+				calls := 0
+				provider := &dingTalkIdentityProvider{enabled: true, redirectURI: "https://admin.example.com/callback", appToken: "cached-token", appTokenTill: time.Now().Add(time.Minute), client: &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+					calls++
+					if request.URL.String() != dingTalkRobotURL {
+						t.Fatal("缓存有效期内不应重新取令牌")
+					}
+					if scenario.transportErr != nil {
+						return nil, scenario.transportErr
+					}
+					return jsonResponse(scenario.status, scenario.body), nil
+				})}}
+				message := biz.DingTalkMessage{Title: "验证码", Text: "**012345**"}
+				if withAction {
+					message.ActionTitle, message.ActionPath = "打开系统首页", "/welcome"
 				}
-				if scenario.transportErr != nil {
-					return nil, scenario.transportErr
+				err := provider.SendMessage(context.Background(), "user", message)
+				if err == nil || calls != 1 || strings.Contains(err.Error(), "敏感响应") || strings.Contains(err.Error(), "012345") {
+					t.Fatalf("失败处理错误: calls=%d error=%v", calls, err)
 				}
-				return jsonResponse(scenario.status, scenario.body), nil
-			})}}
-			err := provider.SendMarkdown(context.Background(), "user", biz.DingTalkMarkdownMessage{Title: "验证码", Text: "**012345**"})
-			if err == nil || calls != 1 || strings.Contains(err.Error(), "敏感响应") || strings.Contains(err.Error(), "012345") {
-				t.Fatalf("失败处理错误: calls=%d error=%v", calls, err)
-			}
-		})
+			})
+		}
 	}
 }
 

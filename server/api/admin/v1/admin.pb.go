@@ -4933,9 +4933,11 @@ type NotificationTestPreview struct {
 	NotificationType string                 `protobuf:"bytes,1,opt,name=notification_type,json=notificationType,proto3" json:"notification_type,omitempty"`
 	Title            string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Markdown         string                 `protobuf:"bytes,3,opt,name=markdown,proto3" json:"markdown,omitempty"`
-	OrderUrl         string                 `protobuf:"bytes,4,opt,name=order_url,json=orderUrl,proto3" json:"order_url,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// 服务端准备的单按钮动作；验证码消息为空。
+	ActionTitle   string `protobuf:"bytes,5,opt,name=action_title,json=actionTitle,proto3" json:"action_title,omitempty"`
+	ActionUrl     string `protobuf:"bytes,6,opt,name=action_url,json=actionUrl,proto3" json:"action_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *NotificationTestPreview) Reset() {
@@ -4989,9 +4991,16 @@ func (x *NotificationTestPreview) GetMarkdown() string {
 	return ""
 }
 
-func (x *NotificationTestPreview) GetOrderUrl() string {
+func (x *NotificationTestPreview) GetActionTitle() string {
 	if x != nil {
-		return x.OrderUrl
+		return x.ActionTitle
+	}
+	return ""
+}
+
+func (x *NotificationTestPreview) GetActionUrl() string {
+	if x != nil {
+		return x.ActionUrl
 	}
 	return ""
 }
@@ -5683,12 +5692,14 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1ePreviewNotificationTestRequest\x120\n" +
 	"\x11notification_type\x18\x01 \x01(\tB\x03\xe0A\x02R\x10notificationType\x12\x1e\n" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01B\v\n" +
-	"\t_order_id\"\x95\x01\n" +
+	"\t_order_id\"\xcb\x01\n" +
 	"\x17NotificationTestPreview\x12+\n" +
 	"\x11notification_type\x18\x01 \x01(\tR\x10notificationType\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
-	"\bmarkdown\x18\x03 \x01(\tR\bmarkdown\x12\x1b\n" +
-	"\torder_url\x18\x04 \x01(\tR\borderUrl\"\xbb\x01\n" +
+	"\bmarkdown\x18\x03 \x01(\tR\bmarkdown\x12!\n" +
+	"\faction_title\x18\x05 \x01(\tR\vactionTitle\x12\x1d\n" +
+	"\n" +
+	"action_url\x18\x06 \x01(\tR\tactionUrlJ\x04\b\x04\x10\x05R\torder_url\"\xbb\x01\n" +
 	"\x1fPreviewNotificationTestResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

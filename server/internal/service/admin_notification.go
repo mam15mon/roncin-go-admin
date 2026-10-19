@@ -47,7 +47,7 @@ func (s *AdminService) PreviewNotificationTest(ctx context.Context, req *v1.Prev
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.PreviewNotificationTestResponse{Data: &v1.NotificationTestPreview{NotificationType: preview.Type, Title: preview.Title, Markdown: preview.Markdown, OrderUrl: preview.OrderURL}}), nil
+	return ok(ctx, &v1.PreviewNotificationTestResponse{Data: &v1.NotificationTestPreview{NotificationType: preview.Type, Title: preview.Title, Markdown: preview.Markdown, ActionTitle: preview.ActionTitle, ActionUrl: preview.ActionURL}}), nil
 }
 func (s *AdminService) SendNotificationTest(ctx context.Context, req *v1.SendNotificationTestRequest) (*v1.SendNotificationTestResponse, error) {
 	p, err := requirePrincipal(ctx)

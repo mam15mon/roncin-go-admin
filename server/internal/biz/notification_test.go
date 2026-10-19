@@ -22,13 +22,13 @@ type dingTalkNotificationSenderStub struct {
 	enabled bool
 	userID  string
 	content string
-	message DingTalkMarkdownMessage
+	message DingTalkMessage
 	err     error
 }
 
 func (s *dingTalkNotificationSenderStub) Enabled() bool { return s.enabled }
 
-func (s *dingTalkNotificationSenderStub) SendMarkdown(_ context.Context, userID string, message DingTalkMarkdownMessage) error {
+func (s *dingTalkNotificationSenderStub) SendMessage(_ context.Context, userID string, message DingTalkMessage) error {
 	s.userID = userID
 	s.content = message.Text
 	s.message = message
@@ -78,7 +78,7 @@ func TestNotificationProcessNextSendsUserAuthorizedMessage(t *testing.T) {
 	if err := usecase.ProcessNext(context.Background(), 30*time.Second); err != nil {
 		t.Fatalf("ProcessNext() error = %v", err)
 	}
-	if sender.userID != "ding-user-id" || !strings.Contains(sender.content, "张冠楠") || !strings.Contains(sender.content, "账号授权完成") || !strings.Contains(sender.content, "钉钉扫码登录") {
+	if sender.userID != "ding-user-id" || !strings.Contains(sender.content, "张冠楠") || !strings.Contains(sender.content, "账号授权完成") || sender.message.ActionTitle != "进入工作台" || sender.message.ActionPath != "/welcome" {
 		t.Fatalf("发送内容错误: userID=%q content=%q", sender.userID, sender.content)
 	}
 	if taskRepo.completeID != taskID || taskRepo.completeLeaseToken != leaseToken {
@@ -120,7 +120,7 @@ func TestNotificationProcessNextRecordsRetryOnSendFailure(t *testing.T) {
 	if err := usecase.ProcessNext(context.Background(), 30*time.Second); err == nil {
 		t.Fatal("ProcessNext() expected send error")
 	}
-	if taskRepo.failID != taskID || taskRepo.failLeaseToken != leaseToken || !strings.Contains(taskRepo.failErrorMessage, "context deadline exceeded") {
+	if taskRepo.failID != taskID || taskRepo.failLeaseToken != leaseToken || !strings.Contains(taskRepo.failErrorMessage, "context deadline exceeded") || taskRepo.completeID != uuid.Nil {
 		t.Fatalf("任务失败参数错误: %#v", taskRepo)
 	}
 	if want := now.Add(time.Minute); !taskRepo.failNextRunAt.Equal(want) {
@@ -131,35 +131,57 @@ func TestNotificationProcessNextRecordsRetryOnSendFailure(t *testing.T) {
 var _ NotificationRepo = (*notificationRepoStub)(nil)
 var _ DingTalkNotificationSender = (*dingTalkNotificationSenderStub)(nil)
 
-func TestRenderAllBusinessNotificationsAsMarkdown(t *testing.T) {
+func TestRenderAllBusinessNotificationsAsCompactMessages(t *testing.T) {
+	id := uuid.New()
+	feePath := "/orders/sea-export/" + id.String() + "/fees"
 	for _, scenario := range []struct {
-		template, resourceType, reference, parameter, recipient, title string
-		fields                                                         []string
+		template, resourceType, reference, parameter, recipient, title, status, actionTitle, actionPath string
+		fields                                                                                          []string
 	}{
-		{NotificationTemplateOrderPersonnelAssign, "ORDER", "SE202610190001", string(OrderPersonnelRoleDocument), "", "海运出口订单协作提醒", []string{"**订单：** SE202610190001", "**您已被分配为：** 单证人员", "请登录 Roncin 系统查看并处理。"}},
-		{NotificationTemplateUserAuthorized, "USER", "", "", "张三", "Roncin 账号授权完成", []string{"**张三**", "所属组织和角色已完成授权", "**钉钉扫码登录**"}},
-		{NotificationTemplateExchangeRateWeeklyReminder, "ORGANIZATION", "深圳公司", "CNY 2026-10-19~2026-10-25", "", "周汇率同步督办", []string{"**组织：** 深圳公司", `CNY 2026\-10\-19\~2026\-10\-25`, "缺少本周配置的业务折算将被阻止", "请先在「财务 · 汇率」页维护汇率。"}},
-		{"FEE_REVIEW_PENDING", "ORDER", "SE202610190001", "李四", "", "订单费用待审核", []string{"**订单号：** SE202610190001", "**提交人：** 李四", "整票费用已完成录入并提交审核", "查看费用及利润后处理"}},
-		{"FEE_REVIEW_RESULT", "ORDER", "SE202610190001", "王五：已退回", "", "订单费用审核结果", []string{"**订单号：** SE202610190001", "**处理结果：** 王五：已退回", "请进入 Roncin 查看审批意见。"}},
-		{NotificationTemplateFeeSupplementApprovalPending, "FEE_SUPPLEMENT_REQUEST", "SE202610190001", "应付 100.00000000 CNY", "", "费用补录待审批", []string{"**订单：** SE202610190001", `**补录摘要：** 应付 100\.00000000 CNY`, "您具备该订单的费用审核权限", "在订单费用页处理补录申请。"}},
-		{NotificationTemplateCommissionDecreaseSuggested, "COMMISSION_ADJUSTMENT", "SE202610190001", "冲减 10.00000000 CNY", "", "提成冲减通知", []string{"**订单：** SE202610190001", `**冲减摘要：** 冲减 10\.00000000 CNY`, "已确认的冲减", "本消息供您知情，实际少发或扣回由财务登记", "查看本人专属详情。"}},
+		{NotificationTemplateOrderPersonnelAssign, "ORDER", "SE202610190001", string(OrderPersonnelRoleDocument), "", "订单协作提醒", "🔵 新分配", "查看订单列表", "/orders", []string{"**SE202610190001**", "你已被分配为该订单的单证人员。"}},
+		{NotificationTemplateUserAuthorized, "USER", "", "", "张三", "账号授权完成", "🟢 已开通", "进入工作台", "/welcome", []string{"**张三**", "你的组织和角色已完成授权", "进入 Roncin 工作台"}},
+		{NotificationTemplateExchangeRateWeeklyReminder, "ORGANIZATION", "深圳公司", "CNY 2026-10-19~2026-10-25", "", "周汇率待维护", "🟠 待处理", "维护汇率", "/finance/exchange-rates", []string{"**深圳公司**", `CNY 2026\-10\-19\~2026\-10\-25`, "缺少配置将阻止业务折算"}},
+		{"FEE_REVIEW_PENDING", "ORDER", "SE202610190001", "李四\n订单入口：" + feePath, "", "订单费用待审核", "🟠 待审核", "查看订单费用", feePath, []string{"**SE202610190001**", "李四已提交整票费用", "核对费用及利润"}},
+		{"FEE_REVIEW_RESULT", "ORDER", "SE202610190001", "王五：已退回\n订单入口：" + feePath, "", "订单费用审核结果", "🔴 已退回", "查看订单费用", feePath, []string{"**SE202610190001**", "王五：已退回", "请查看审批意见"}},
+		{NotificationTemplateFeeSupplementApprovalPending, "FEE_SUPPLEMENT_REQUEST", "SE202610190001", "应付 100.00000000 CNY", "", "费用补录待审批", "🟠 待审批", "查看订单列表", "/orders", []string{"**SE202610190001**", `应付 100\.00000000 CNY`, "进入费用页审核补录申请"}},
+		{NotificationTemplateCommissionDecreaseSuggested, "COMMISSION_ADJUSTMENT", "SE202610190001", "冲减 10.00000000 CNY", "", "提成冲减通知", "🟠 冲减已确认", "查看本人冲减详情", "/commission-adjustments/" + id.String() + "/my-supplement-source", []string{"**SE202610190001**", `冲减 10\.00000000 CNY`, "本消息供你知情，实际少发或扣回由财务登记"}},
 	} {
 		t.Run(scenario.template, func(t *testing.T) {
-			message, err := renderNotification(&NotificationDelivery{
-				DingTalkUserID: "bound-user", Channel: NotificationChannelDingTalk, Template: scenario.template,
-				ResourceType: scenario.resourceType, ResourceID: uuid.New(), ReferenceCode: scenario.reference,
-				Parameter: scenario.parameter, RecipientDisplayName: scenario.recipient,
-			})
+			message, err := renderNotification(&NotificationDelivery{DingTalkUserID: "bound-user", Channel: NotificationChannelDingTalk, Template: scenario.template, ResourceType: scenario.resourceType, ResourceID: id, ReferenceCode: scenario.reference, Parameter: scenario.parameter, RecipientDisplayName: scenario.recipient})
 			if err != nil {
 				t.Fatal(err)
 			}
-			if message.Title != scenario.title || !strings.HasPrefix(message.Text, "### "+scenario.title+"\n\n") || message.OrderEntryPath != "" {
-				t.Fatalf("消息标题或入口错误: %+v", message)
+			if message.Title != scenario.title || !strings.HasPrefix(message.Text, "### "+scenario.title+"\n"+scenario.status+"\n\n") || message.ActionTitle != scenario.actionTitle || message.ActionPath != scenario.actionPath || message.ActionURL != "" {
+				t.Fatalf("标题、状态或受控动作错误:%+v", message)
 			}
 			for _, field := range scenario.fields {
 				if !strings.Contains(message.Text, field) {
-					t.Fatalf("消息缺少 %q: %s", field, message.Text)
+					t.Fatalf("消息缺少%q: %s", field, message.Text)
 				}
+			}
+			if strings.Count(message.Text, "**") != 2 || strings.Contains(message.Text, "订单入口：") {
+				t.Fatalf("消息过度加粗或保留入口文本:%s", message.Text)
+			}
+		})
+	}
+}
+
+func TestFeeReviewResultUsesOnlyKnownSuffix(t *testing.T) {
+	for _, tc := range []struct{ parameter, status string }{
+		{"张三：已批准", "🟢 已批准"},
+		{"张三：费用补录已批准", "🟢 已批准"},
+		{"张三：已退回", "🔴 已退回"},
+		{"张三：费用补录已退回", "🔴 已退回"},
+		{"张三：费用更正已处理", "🔵 处理结果"},
+		{"姓名含已批准：已退回", "🔴 已退回"},
+		{"姓名含已退回：已批准", "🟢 已批准"},
+		{"已批准同学：未知结果", "🔵 处理结果"},
+		{"张三：已批准但未处理", "🔵 处理结果"},
+	} {
+		t.Run(tc.parameter, func(t *testing.T) {
+			message, err := renderNotification(&NotificationDelivery{DingTalkUserID: "user", Channel: NotificationChannelDingTalk, Template: "FEE_REVIEW_RESULT", ResourceType: "ORDER", ResourceID: uuid.New(), ReferenceCode: "SE100", Parameter: tc.parameter})
+			if err != nil || !strings.HasPrefix(message.Text, "### 订单费用审核结果\n"+tc.status+"\n") {
+				t.Fatalf("状态被动态值误导:%+v %v", message, err)
 			}
 		})
 	}
@@ -182,7 +204,7 @@ func TestNotificationDynamicFieldsRemainPlainText(t *testing.T) {
 	} {
 		t.Run(scenario.template, func(t *testing.T) {
 			message, err := renderNotification(&NotificationDelivery{DingTalkUserID: "user", Channel: NotificationChannelDingTalk, Template: scenario.template, ResourceType: scenario.resourceType, ResourceID: uuid.New(), ReferenceCode: input, Parameter: scenario.parameter, RecipientDisplayName: input})
-			if err != nil || !strings.Contains(message.Text, want) || strings.Count(message.Text, "\n### ") > 0 || strings.Contains(message.Text, "\n# 标题") || strings.Contains(message.Text, "<b>") || message.OrderEntryPath != "" {
+			if err != nil || !strings.Contains(message.Text, want) || strings.Count(message.Text, "\n### ") > 0 || strings.Contains(message.Text, "\n# 标题") || strings.Contains(message.Text, "<b>") || strings.Contains(message.ActionPath, "example.com") || message.ActionURL != "" {
 				t.Fatalf("动态字段改变消息布局: %+v %v", message, err)
 			}
 		})
@@ -204,7 +226,7 @@ func TestFeeReviewMarkdownPreservesTrustedOrderEntry(t *testing.T) {
 			} {
 				t.Run(scenario.name, func(t *testing.T) {
 					message, err := renderNotification(&NotificationDelivery{DingTalkUserID: "user", Channel: NotificationChannelDingTalk, Template: template, ResourceType: "ORDER", ResourceID: id, ReferenceCode: "SE100", Parameter: "张三：已批准" + scenario.suffix})
-					if err != nil || message.OrderEntryPath != scenario.wantPath || !strings.Contains(message.Text, "张三：已批准") {
+					if err != nil || message.ActionPath != scenario.wantPath || (message.ActionTitle != "") != (scenario.wantPath != "") || !strings.Contains(message.Text, "张三：已批准") {
 						t.Fatalf("审核信息或入口丢失: %+v %v", message, err)
 					}
 					if scenario.wantPath != "" && strings.Contains(message.Text, "订单入口") {

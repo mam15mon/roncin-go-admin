@@ -333,7 +333,7 @@ type resetIntegrationSender struct {
 }
 
 func (s *resetIntegrationSender) Enabled() bool { return true }
-func (s *resetIntegrationSender) SendMarkdown(ctx context.Context, userID string, message biz.DingTalkMarkdownMessage) error {
+func (s *resetIntegrationSender) SendMessage(ctx context.Context, userID string, message biz.DingTalkMessage) error {
 	s.calls.Add(1)
 	if userID != "ding-reset" {
 		return fmt.Errorf("收件人不是绑定用户")

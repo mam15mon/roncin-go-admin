@@ -721,7 +721,11 @@ message NotificationTestPreview {
   string notification_type = 1;
   string title = 2;
   string markdown = 3;
-  string order_url = 4;
+  reserved 4;
+  reserved "order_url";
+  // 服务端准备的单按钮动作；验证码消息为空。
+  string action_title = 5;
+  string action_url = 6;
 }
 message PreviewNotificationTestResponse {
   bool success = 1;

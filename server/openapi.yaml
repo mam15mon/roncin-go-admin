@@ -9225,7 +9225,10 @@ components:
                     type: string
                 markdown:
                     type: string
-                orderUrl:
+                actionTitle:
+                    type: string
+                    description: 服务端准备的单按钮动作；验证码消息为空。
+                actionUrl:
                     type: string
         admin.v1.NotificationTestType:
             type: object

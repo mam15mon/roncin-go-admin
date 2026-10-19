@@ -37,12 +37,16 @@ type notificationHTTPSender struct {
 }
 
 func (s *notificationHTTPSender) Enabled() bool { return s.enabled }
-func (s *notificationHTTPSender) SendMarkdown(_ context.Context, to string, _ biz.DingTalkMarkdownMessage) error {
+func (s *notificationHTTPSender) SendMessage(_ context.Context, to string, _ biz.DingTalkMessage) error {
 	s.recipients = append(s.recipients, to)
 	return s.fail
 }
-func (s *notificationHTTPSender) PrepareMarkdown(m biz.DingTalkMarkdownMessage) (biz.DingTalkMarkdownMessage, string, error) {
-	return m, "", nil
+func (s *notificationHTTPSender) PrepareMessage(m biz.DingTalkMessage) (biz.DingTalkMessage, error) {
+	if m.ActionPath != "" {
+		m.ActionURL = "https://roncin.example" + m.ActionPath
+		m.ActionPath = ""
+	}
+	return m, nil
 }
 func newNotificationHTTPFixture() (*kratoshttp.Server, *biz.Principal, *notificationHTTPAdminRepo, *notificationHTTPSender) {
 	org, user := uuid.New(), uuid.New()
@@ -65,8 +69,22 @@ func TestNotificationTestHTTPActualRoutes(t *testing.T) {
 		t.Fatalf("目录camelCase:%d %s", res.Code, res.Body.String())
 	}
 	res = embeddedRequest(srv, http.MethodGet, "/api/v1/admin/notification-tests/preview?notificationType=FEE_REVIEW_PENDING", "", cookie)
-	if res.Code != 200 || !strings.Contains(res.Body.String(), `"markdown":`) || !strings.Contains(res.Body.String(), "测试通知") || len(sender.recipients) != 0 {
+	if res.Code != 200 || !strings.Contains(res.Body.String(), `"markdown":`) || !strings.Contains(res.Body.String(), "测试通知") || !strings.Contains(res.Body.String(), `"actionTitle":"打开系统首页"`) || !strings.Contains(res.Body.String(), `"actionUrl":"https://roncin.example/welcome"`) || strings.Contains(res.Body.String(), `"orderUrl"`) || len(sender.recipients) != 0 {
 		t.Fatalf("GET预览:%d %s", res.Code, res.Body.String())
+	}
+	res = embeddedRequest(srv, http.MethodGet, "/api/v1/admin/notification-tests/preview?notificationType=PASSWORD_RESET_CODE", "", cookie)
+	var codePreview struct {
+		Data struct {
+			Markdown    string `json:"markdown"`
+			ActionTitle string `json:"actionTitle"`
+			ActionURL   string `json:"actionUrl"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(res.Body.Bytes(), &codePreview); err != nil {
+		t.Fatal(err)
+	}
+	if res.Code != 200 || !strings.Contains(codePreview.Data.Markdown, "**012345**") || codePreview.Data.ActionTitle != "" || codePreview.Data.ActionURL != "" || len(sender.recipients) != 0 {
+		t.Fatalf("验证码预览不应携带动作或发送:%d %s", res.Code, res.Body.String())
 	}
 	res = embeddedRequest(srv, http.MethodPost, "/api/v1/admin/notification-tests/send", `{"notificationType":"PASSWORD_RESET_CODE","recipientUserId":"someone-else","dingtalkUserId":"attacker","title":"任意内容"}`, cookie)
 	var accepted struct {

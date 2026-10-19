@@ -25,25 +25,23 @@ func (r *notificationPreviewAdminRepo) GetUser(_ context.Context, _, id uuid.UUI
 
 type notificationPreviewSender struct {
 	enabled    bool
-	messages   []DingTalkMarkdownMessage
+	messages   []DingTalkMessage
 	recipients []string
 	fail       error
 }
 
 func (s *notificationPreviewSender) Enabled() bool { return s.enabled }
-func (s *notificationPreviewSender) SendMarkdown(_ context.Context, recipient string, m DingTalkMarkdownMessage) error {
+func (s *notificationPreviewSender) SendMessage(_ context.Context, recipient string, m DingTalkMessage) error {
 	s.recipients = append(s.recipients, recipient)
 	s.messages = append(s.messages, m)
 	return s.fail
 }
-func (*notificationPreviewSender) PrepareMarkdown(m DingTalkMarkdownMessage) (DingTalkMarkdownMessage, string, error) {
-	u := ""
-	if m.OrderEntryPath != "" {
-		u = "https://roncin.example" + m.OrderEntryPath
-		m.Text += "\n\n[查看订单费用](" + u + ")"
-		m.OrderEntryPath = ""
+func (*notificationPreviewSender) PrepareMessage(m DingTalkMessage) (DingTalkMessage, error) {
+	if m.ActionPath != "" {
+		m.ActionURL = "https://roncin.example" + m.ActionPath
+		m.ActionPath = ""
 	}
-	return m, u, nil
+	return m, nil
 }
 
 type notificationPreviewOrderRepo struct {
@@ -90,17 +88,21 @@ func TestNotificationTestAllTypesPreviewAndSelfSend(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if len(sender.messages) != before || !strings.HasPrefix(preview.Title, "[测试]") || !strings.Contains(preview.Markdown, "[测试通知]") || preview.OrderURL != "" || strings.Contains(preview.Markdown, "https://") {
+			if len(sender.messages) != before || !strings.HasPrefix(preview.Title, "[测试]") || !strings.Contains(preview.Markdown, "[测试通知]") || strings.Contains(preview.Markdown, "https://") {
 				t.Fatalf("预览出现副作用或伪造链接:%+v", preview)
 			}
-			if typ.Type == "PASSWORD_RESET_CODE" && (!strings.Contains(preview.Markdown, "**012345**") || !strings.Contains(preview.Markdown, "不会创建验证码挑战")) {
-				t.Fatal("验证码示例不完整")
+			if typ.Type == "PASSWORD_RESET_CODE" {
+				if !strings.Contains(preview.Markdown, "**012345**") || !strings.Contains(preview.Markdown, "不会创建验证码挑战") || preview.ActionTitle != "" || preview.ActionURL != "" {
+					t.Fatal("验证码示例不完整或包含动作")
+				}
+			} else if preview.ActionTitle != "打开系统首页" || preview.ActionURL != "https://roncin.example/welcome" || !strings.Contains(preview.Markdown, "不指向真实订单") {
+				t.Fatalf("业务示例没有替换为真实首页动作:%+v", preview)
 			}
 			if err := uc.Send(ctx, p, typ.Type, nil); err != nil {
 				t.Fatal(err)
 			}
 			sent := sender.messages[len(sender.messages)-1]
-			if sent.Title != preview.Title || sent.Text != preview.Markdown || sender.recipients[len(sender.recipients)-1] != "self-dingtalk" {
+			if sent.Title != preview.Title || sent.Text != preview.Markdown || sent.ActionTitle != preview.ActionTitle || sent.ActionURL != preview.ActionURL || sent.ActionPath != "" || sender.recipients[len(sender.recipients)-1] != "self-dingtalk" {
 				t.Fatal("预览与自发载荷不同")
 			}
 		})
@@ -216,7 +218,7 @@ func TestNotificationTestSystemWorkspaceDoesNotGainOrderScope(t *testing.T) {
 		t.Fatalf("系统管理扩大经营权限:%+v %v", catalog, err)
 	}
 	preview, err := uc.Preview(context.Background(), p, "FEE_REVIEW_PENDING", nil)
-	if err != nil || preview.OrderURL != "" {
+	if err != nil || preview.ActionURL != "https://roncin.example/welcome" {
 		t.Fatalf("无订单仍应可预览:%+v %v", preview, err)
 	}
 }

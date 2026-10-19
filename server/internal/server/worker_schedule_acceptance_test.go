@@ -52,7 +52,7 @@ func (s *acceptanceScheduler) NextRun(ctx context.Context, consumer biz.TaskCons
 type acceptanceNotificationSender struct{}
 
 func (acceptanceNotificationSender) Enabled() bool { return true }
-func (acceptanceNotificationSender) SendMarkdown(context.Context, string, biz.DingTalkMarkdownMessage) error {
+func (acceptanceNotificationSender) SendMessage(context.Context, string, biz.DingTalkMessage) error {
 	return nil
 }
 

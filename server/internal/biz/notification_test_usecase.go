@@ -15,10 +15,10 @@ type NotificationTestUsecase struct {
 	admin    AdminRepo
 	order    *OrderUsecase
 	sender   DingTalkNotificationSender
-	preparer DingTalkMarkdownPreparer
+	preparer DingTalkMessagePreparer
 }
 
-func NewNotificationTestUsecase(admin AdminRepo, order *OrderUsecase, sender DingTalkNotificationSender, preparer DingTalkMarkdownPreparer) *NotificationTestUsecase {
+func NewNotificationTestUsecase(admin AdminRepo, order *OrderUsecase, sender DingTalkNotificationSender, preparer DingTalkMessagePreparer) *NotificationTestUsecase {
 	return &NotificationTestUsecase{admin: admin, order: order, sender: sender, preparer: preparer}
 }
 
@@ -34,11 +34,11 @@ type NotificationTestCatalog struct {
 	CanSelectOrder                              bool
 	OrderSelectionUnavailableReason             string
 }
-type NotificationTestPreview struct{ Type, Title, Markdown, OrderURL string }
+type NotificationTestPreview struct{ Type, Title, Markdown, ActionTitle, ActionURL string }
 
-// DingTalkMarkdownPreparer 复用实际发送的纯内容准备，不申请令牌或发送消息。
-type DingTalkMarkdownPreparer interface {
-	PrepareMarkdown(DingTalkMarkdownMessage) (DingTalkMarkdownMessage, string, error)
+// DingTalkMessagePreparer 复用实际发送的纯内容准备，不申请令牌或发送消息。
+type DingTalkMessagePreparer interface {
+	PrepareMessage(DingTalkMessage) (DingTalkMessage, error)
 }
 
 func notificationTestOrderScopes(p *Principal) []OrderOrganizationScope {
@@ -128,7 +128,7 @@ func notificationTestDelivery(typ string, orderID *uuid.UUID, orderNo string) (*
 		d.ResourceType, d.ReferenceCode = "ORDER", "TEST-ORDER-001"
 		d.Parameter = "示例提交人"
 		if typ == "FEE_REVIEW_RESULT" {
-			d.Parameter = "已退回（示例，请完善费用后重新提交）"
+			d.Parameter = "示例审批人：已退回"
 		}
 		if orderID != nil {
 			d.ResourceID = *orderID
@@ -149,62 +149,66 @@ func notificationTestDelivery(typ string, orderID *uuid.UUID, orderNo string) (*
 	return d, nil
 }
 
-func addNotificationTestMark(m DingTalkMarkdownMessage) DingTalkMarkdownMessage {
+func addNotificationTestMark(m DingTalkMessage) DingTalkMessage {
 	m.Title = "[测试] " + m.Title
 	m.Text = "[测试通知]\n\n" + m.Text
 	return m
 }
-func (uc *NotificationTestUsecase) build(ctx context.Context, principal *Principal, typ string, orderID *uuid.UUID) (DingTalkMarkdownMessage, *NotificationTestPreview, error) {
+func (uc *NotificationTestUsecase) build(ctx context.Context, principal *Principal, typ string, orderID *uuid.UUID) (DingTalkMessage, *NotificationTestPreview, error) {
 	if principal == nil || !principal.HasPermission(access.NotificationPreview) {
-		return DingTalkMarkdownMessage{}, nil, ErrPermissionDenied
+		return DingTalkMessage{}, nil, ErrPermissionDenied
 	}
 	user, err := uc.admin.GetUser(ctx, principal.Organization.ID, principal.UserID)
 	if err != nil {
-		return DingTalkMarkdownMessage{}, nil, err
+		return DingTalkMessage{}, nil, err
 	}
 	if !user.Enabled {
-		return DingTalkMarkdownMessage{}, nil, ErrPermissionDenied
+		return DingTalkMessage{}, nil, ErrPermissionDenied
 	}
 	orderNo := ""
 	if orderID != nil {
 		if typ != "FEE_REVIEW_PENDING" && typ != "FEE_REVIEW_RESULT" {
-			return DingTalkMarkdownMessage{}, nil, ErrAdminInvalidArgument
+			return DingTalkMessage{}, nil, ErrAdminInvalidArgument
 		}
 		scopes := notificationTestOrderScopes(principal)
 		if len(scopes) == 0 {
-			return DingTalkMarkdownMessage{}, nil, ErrPermissionDenied
+			return DingTalkMessage{}, nil, ErrPermissionDenied
 		}
 		if uc.order == nil {
-			return DingTalkMarkdownMessage{}, nil, ErrOrderNotFound
+			return DingTalkMessage{}, nil, ErrOrderNotFound
 		}
 		order, e := uc.order.FindAuthorized(ctx, *orderID, scopes)
 		if e != nil {
-			return DingTalkMarkdownMessage{}, nil, e
+			return DingTalkMessage{}, nil, e
 		}
 		orderNo = order.OrderNo
 	}
 	d, err := notificationTestDelivery(typ, orderID, orderNo)
 	if err != nil {
-		return DingTalkMarkdownMessage{}, nil, err
+		return DingTalkMessage{}, nil, err
 	}
-	var m DingTalkMarkdownMessage
+	var m DingTalkMessage
 	if typ == "PASSWORD_RESET_CODE" {
 		m = renderPasswordResetCode("012345")
 	} else {
 		m, err = renderNotification(d)
 	}
 	if err != nil {
-		return DingTalkMarkdownMessage{}, nil, err
+		return DingTalkMessage{}, nil, err
 	}
 	m = addNotificationTestMark(m)
 	if typ == "PASSWORD_RESET_CODE" {
-		m.Text += "\n\n**仅为无效示例，不能用于登录或重置密码；本次不会创建验证码挑战。**"
+		m.Text += "\n\n仅为无效示例，不能用于登录或重置密码；本次不会创建验证码挑战。"
+		m.ActionTitle, m.ActionPath, m.ActionURL = "", "", ""
+	} else {
+		m.Text += "\n\n示例测试，不指向真实订单；按钮仅打开系统首页。"
+		m.ActionTitle, m.ActionPath, m.ActionURL = "打开系统首页", "/welcome", ""
 	}
-	m, orderURL, err := uc.preparer.PrepareMarkdown(m)
+	m, err = uc.preparer.PrepareMessage(m)
 	if err != nil {
-		return DingTalkMarkdownMessage{}, nil, err
+		return DingTalkMessage{}, nil, err
 	}
-	return m, &NotificationTestPreview{Type: typ, Title: m.Title, Markdown: m.Text, OrderURL: orderURL}, nil
+	return m, &NotificationTestPreview{Type: typ, Title: m.Title, Markdown: m.Text, ActionTitle: m.ActionTitle, ActionURL: m.ActionURL}, nil
 }
 func (uc *NotificationTestUsecase) Preview(ctx context.Context, principal *Principal, typ string, orderID *uuid.UUID) (*NotificationTestPreview, error) {
 	_, p, err := uc.build(ctx, principal, typ, orderID)
@@ -231,7 +235,7 @@ func (uc *NotificationTestUsecase) Send(ctx context.Context, principal *Principa
 	if user.DingTalkUserID == nil || strings.TrimSpace(*user.DingTalkUserID) == "" {
 		return errors.BadRequest("NOTIFICATION_TEST_RECIPIENT_UNBOUND", "当前账号未绑定钉钉")
 	}
-	if err := uc.sender.SendMarkdown(ctx, strings.TrimSpace(*user.DingTalkUserID), m); err != nil {
+	if err := uc.sender.SendMessage(ctx, strings.TrimSpace(*user.DingTalkUserID), m); err != nil {
 		return errors.New(502, "NOTIFICATION_TEST_SEND_FAILED", "未确认钉钉受理测试通知，请先在客户端确认，再决定是否重试")
 	}
 	return nil
