@@ -91,6 +91,42 @@ func (s *AuthService) prepareDingTalkLoginConfig(ctx context.Context) (*v1.GetDi
 	return ok(ctx, &v1.GetDingTalkLoginConfigResponse{Data: config}), cookie, nil
 }
 
+func (s *AuthService) GetDingTalkEmbeddedConfig(ctx context.Context, _ *v1.GetDingTalkEmbeddedConfigRequest) (*v1.GetDingTalkEmbeddedConfigResponse, error) {
+	authNoStore(ctx)
+	enabled, corpID, state, expiresAt, err := s.usecase.StartDingTalkEmbeddedLogin()
+	if err != nil {
+		return nil, err
+	}
+	config := &v1.DingTalkEmbeddedConfig{Enabled: enabled}
+	if enabled {
+		config.CorpId = &corpID
+		config.State = &state
+		expires := expiresAt.Format(time.RFC3339)
+		config.ExpiresAt = &expires
+		s.setCookieNamed(ctx, s.dingTalkEmbeddedStateCookieName(), state, expiresAt, 300)
+	}
+	return ok(ctx, &v1.GetDingTalkEmbeddedConfigResponse{Data: config}), nil
+}
+
+func (s *AuthService) DingTalkEmbeddedLogin(ctx context.Context, request *v1.DingTalkEmbeddedLoginRequest) (*v1.DingTalkEmbeddedLoginResponse, error) {
+	authNoStore(ctx)
+	userAgent, expectedState := "", ""
+	if tr, ok := transport.FromServerContext(ctx); ok {
+		userAgent = tr.RequestHeader().Get("User-Agent")
+		expectedState = cookieValue(tr.RequestHeader().Get("Cookie"), s.dingTalkEmbeddedStateCookieName())
+	}
+	s.setCookieNamed(ctx, s.dingTalkEmbeddedStateCookieName(), "", time.Unix(1, 0), -1)
+	result, err := s.usecase.LoginDingTalkEmbedded(ctx, request.GetAuthCode(), request.GetState(), expectedState, userAgent)
+	if err != nil {
+		return nil, err
+	}
+	data, err := s.dingTalkLoginData(ctx, result)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.DingTalkEmbeddedLoginResponse{Data: data}), nil
+}
+
 func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLoginRequest) (*v1.DingTalkLoginResponse, error) {
 	userAgent := ""
 	expectedState := ""
@@ -103,6 +139,14 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	if err != nil {
 		return nil, err
 	}
+	data, err := s.dingTalkLoginData(ctx, result)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.DingTalkLoginResponse{Data: data}), nil
+}
+
+func (s *AuthService) dingTalkLoginData(ctx context.Context, result *biz.DingTalkLoginResult) (*v1.DingTalkLoginResult, error) {
 	data := &v1.DingTalkLoginResult{Message: result.Message, DisplayName: optionalString(result.DisplayName, result.DisplayName != "")}
 	switch result.Status {
 	case biz.DingTalkLoginStatusAuthenticated:
@@ -118,7 +162,7 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	default:
 		return nil, biz.ErrDingTalkLoginFailed
 	}
-	return ok(ctx, &v1.DingTalkLoginResponse{Data: data}), nil
+	return data, nil
 }
 
 func (s *AuthService) Logout(ctx context.Context, _ *v1.LogoutRequest) (*v1.LogoutResponse, error) {
@@ -171,6 +215,10 @@ func (s *AuthService) setCookieNamed(ctx context.Context, name, value string, ex
 
 func (s *AuthService) newCookie(name, value string, expires time.Time, maxAge int) *nethttp.Cookie {
 	return &nethttp.Cookie{Name: name, Value: value, Path: "/", Expires: expires, MaxAge: maxAge, HttpOnly: true, Secure: s.policy.Secure, SameSite: parseSameSite(s.policy.SameSite)}
+}
+
+func (s *AuthService) dingTalkEmbeddedStateCookieName() string {
+	return s.policy.CookieName + "_dingtalk_embedded_state"
 }
 
 func (s *AuthService) dingTalkStateCookieName() string {

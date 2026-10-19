@@ -18,7 +18,9 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationAuthServiceConfirmPasswordReset = "/auth.v1.AuthService/ConfirmPasswordReset"
+const OperationAuthServiceDingTalkEmbeddedLogin = "/auth.v1.AuthService/DingTalkEmbeddedLogin"
 const OperationAuthServiceDingTalkLogin = "/auth.v1.AuthService/DingTalkLogin"
+const OperationAuthServiceGetDingTalkEmbeddedConfig = "/auth.v1.AuthService/GetDingTalkEmbeddedConfig"
 const OperationAuthServiceGetDingTalkLoginConfig = "/auth.v1.AuthService/GetDingTalkLoginConfig"
 const OperationAuthServiceLogin = "/auth.v1.AuthService/Login"
 const OperationAuthServiceLogout = "/auth.v1.AuthService/Logout"
@@ -28,7 +30,9 @@ const OperationAuthServiceSwitchOrganization = "/auth.v1.AuthService/SwitchOrgan
 
 type AuthServiceHTTPServer interface {
 	ConfirmPasswordReset(context.Context, *ConfirmPasswordResetRequest) (*ConfirmPasswordResetResponse, error)
+	DingTalkEmbeddedLogin(context.Context, *DingTalkEmbeddedLoginRequest) (*DingTalkEmbeddedLoginResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
+	GetDingTalkEmbeddedConfig(context.Context, *GetDingTalkEmbeddedConfigRequest) (*GetDingTalkEmbeddedConfigResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
@@ -44,6 +48,8 @@ func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r.Handle("POST", "/api/v1/auth/password-reset/confirm", _AuthService_ConfirmPasswordReset0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/dingtalk/login-config", _AuthService_GetDingTalkLoginConfig0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/login", _AuthService_DingTalkLogin0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/auth/dingtalk/embedded-config", _AuthService_GetDingTalkEmbeddedConfig0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/auth/dingtalk/embedded-login", _AuthService_DingTalkEmbeddedLogin0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/logout", _AuthService_Logout0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/me", _AuthService_Me0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/switch-organization", _AuthService_SwitchOrganization0_HTTP_Handler(srv))
@@ -144,6 +150,44 @@ func _AuthService_DingTalkLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ct
 	}
 }
 
+func _AuthService_GetDingTalkEmbeddedConfig0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetDingTalkEmbeddedConfigRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceGetDingTalkEmbeddedConfig)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetDingTalkEmbeddedConfig(ctx, req.(*GetDingTalkEmbeddedConfigRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetDingTalkEmbeddedConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_DingTalkEmbeddedLogin0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DingTalkEmbeddedLoginRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServiceDingTalkEmbeddedLogin)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DingTalkEmbeddedLogin(ctx, req.(*DingTalkEmbeddedLoginRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DingTalkEmbeddedLoginResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _AuthService_Logout0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in LogoutRequest
@@ -203,7 +247,9 @@ func _AuthService_SwitchOrganization0_HTTP_Handler(srv AuthServiceHTTPServer) fu
 
 type AuthServiceHTTPClient interface {
 	ConfirmPasswordReset(ctx context.Context, req *ConfirmPasswordResetRequest, opts ...http.CallOption) (rsp *ConfirmPasswordResetResponse, err error)
+	DingTalkEmbeddedLogin(ctx context.Context, req *DingTalkEmbeddedLoginRequest, opts ...http.CallOption) (rsp *DingTalkEmbeddedLoginResponse, err error)
 	DingTalkLogin(ctx context.Context, req *DingTalkLoginRequest, opts ...http.CallOption) (rsp *DingTalkLoginResponse, err error)
+	GetDingTalkEmbeddedConfig(ctx context.Context, req *GetDingTalkEmbeddedConfigRequest, opts ...http.CallOption) (rsp *GetDingTalkEmbeddedConfigResponse, err error)
 	GetDingTalkLoginConfig(ctx context.Context, req *GetDingTalkLoginConfigRequest, opts ...http.CallOption) (rsp *GetDingTalkLoginConfigResponse, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
@@ -237,6 +283,23 @@ func (c *AuthServiceHTTPClientImpl) ConfirmPasswordReset(ctx context.Context, in
 	return &out, nil
 }
 
+func (c *AuthServiceHTTPClientImpl) DingTalkEmbeddedLogin(ctx context.Context, in *DingTalkEmbeddedLoginRequest, opts ...http.CallOption) (*DingTalkEmbeddedLoginResponse, error) {
+	var out DingTalkEmbeddedLoginResponse
+	pattern := "/api/v1/auth/dingtalk/embedded-login"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServiceDingTalkEmbeddedLogin),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AuthServiceHTTPClientImpl) DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...http.CallOption) (*DingTalkLoginResponse, error) {
 	var out DingTalkLoginResponse
 	pattern := "/api/v1/auth/dingtalk/login"
@@ -248,6 +311,22 @@ func (c *AuthServiceHTTPClientImpl) DingTalkLogin(ctx context.Context, in *DingT
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AuthServiceHTTPClientImpl) GetDingTalkEmbeddedConfig(ctx context.Context, in *GetDingTalkEmbeddedConfigRequest, opts ...http.CallOption) (*GetDingTalkEmbeddedConfigResponse, error) {
+	var out GetDingTalkEmbeddedConfigResponse
+	pattern := "/api/v1/auth/dingtalk/embedded-config"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAuthServiceGetDingTalkEmbeddedConfig),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

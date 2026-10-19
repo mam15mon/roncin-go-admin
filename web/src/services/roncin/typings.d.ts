@@ -1993,6 +1993,27 @@ declare namespace API {
     departmentName?: string;
   };
 
+  type DingTalkEmbeddedConfig = {
+    enabled?: boolean;
+    corpId?: string;
+    state?: string;
+    /** 与本次客户端免登 state Cookie 相同的到期时间（RFC 3339）。 */
+    expiresAt?: string;
+  };
+
+  type DingTalkEmbeddedLoginRequest = {
+    authCode: string;
+    state: string;
+  };
+
+  type DingTalkEmbeddedLoginResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkLoginResult;
+    traceId?: string;
+  };
+
   type DingTalkLoginConfig = {
     enabled?: boolean;
     authorizeUrl?: string;
@@ -3300,6 +3321,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: DingTalkDirectorySync;
+    traceId?: string;
+  };
+
+  type GetDingTalkEmbeddedConfigResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkEmbeddedConfig;
     traceId?: string;
   };
 

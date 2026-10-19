@@ -41,6 +41,16 @@ service AuthService {
     };
   }
 
+  rpc GetDingTalkEmbeddedConfig(GetDingTalkEmbeddedConfigRequest) returns (GetDingTalkEmbeddedConfigResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {get: "/api/v1/auth/dingtalk/embedded-config"};
+  }
+
+  rpc DingTalkEmbeddedLogin(DingTalkEmbeddedLoginRequest) returns (DingTalkEmbeddedLoginResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {post: "/api/v1/auth/dingtalk/embedded-login" body: "*"};
+  }
+
   rpc Logout(LogoutRequest) returns (LogoutResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {
@@ -72,6 +82,37 @@ message LoginRequest {
 }
 
 message DingTalkLoginRequest {
+  string auth_code = 1 [(google.api.field_behavior) = REQUIRED];
+  string state = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetDingTalkEmbeddedConfigRequest {}
+
+message GetDingTalkEmbeddedConfigResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  DingTalkEmbeddedConfig data = 4;
+  string trace_id = 5;
+}
+
+message DingTalkEmbeddedLoginResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  DingTalkLoginResult data = 4;
+  string trace_id = 5;
+}
+
+message DingTalkEmbeddedConfig {
+  bool enabled = 1;
+  optional string corp_id = 2;
+  optional string state = 3;
+  // 与本次客户端免登 state Cookie 相同的到期时间（RFC 3339）。
+  optional string expires_at = 4;
+}
+
+message DingTalkEmbeddedLoginRequest {
   string auth_code = 1 [(google.api.field_behavior) = REQUIRED];
   string state = 2 [(google.api.field_behavior) = REQUIRED];
 }

@@ -887,6 +887,56 @@
         }
       }
     },
+    "/api/v1/auth/dingtalk/embedded-config": {
+      "get": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_GetDingTalkEmbeddedConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.GetDingTalkEmbeddedConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/dingtalk/embedded-login": {
+      "post": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_DingTalkEmbeddedLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.DingTalkEmbeddedLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.DingTalkEmbeddedLoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/dingtalk/login": {
       "post": {
         "tags": [
@@ -15213,6 +15263,60 @@
           }
         }
       },
+      "auth.v1.DingTalkEmbeddedConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "corpId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "与本次客户端免登 state Cookie 相同的到期时间（RFC 3339）。"
+          }
+        }
+      },
+      "auth.v1.DingTalkEmbeddedLoginRequest": {
+        "required": [
+          "authCode",
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "authCode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.DingTalkEmbeddedLoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.DingTalkLoginResult"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "auth.v1.DingTalkLoginConfig": {
         "type": "object",
         "properties": {
@@ -15278,6 +15382,27 @@
             "type": "string"
           },
           "message": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.GetDingTalkEmbeddedConfigResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.DingTalkEmbeddedConfig"
+          },
+          "traceId": {
             "type": "string"
           }
         }

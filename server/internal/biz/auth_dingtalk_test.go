@@ -9,8 +9,16 @@ import (
 )
 
 type dingTalkProviderStub struct {
-	enabled  bool
-	identity *DingTalkIdentity
+	enabled       bool
+	identity      *DingTalkIdentity
+	oauthCalls    int
+	embeddedCalls int
+}
+
+func (s *dingTalkProviderStub) EnterpriseID() string { return "ding-corp" }
+func (s *dingTalkProviderStub) ResolveEmbeddedIdentity(context.Context, string) (*DingTalkIdentity, error) {
+	s.embeddedCalls++
+	return s.identity, nil
 }
 
 func (s *dingTalkProviderStub) Enabled() bool { return s.enabled }
@@ -20,6 +28,7 @@ func (s *dingTalkProviderStub) AuthorizeURL(state string) (string, error) {
 }
 
 func (s *dingTalkProviderStub) ResolveIdentity(context.Context, string) (*DingTalkIdentity, error) {
+	s.oauthCalls++
 	return s.identity, nil
 }
 
@@ -85,3 +94,53 @@ func TestAuthUsecaseDingTalkAuthorizedLoginCreatesSession(t *testing.T) {
 }
 
 var _ DingTalkIdentityProvider = (*dingTalkProviderStub)(nil)
+
+func TestAuthUsecaseDingTalkNotOpenedDoesNotCreateSessionEmbedded(t *testing.T) {
+	cases := []struct {
+		name       string
+		credential *Credential
+		status     DingTalkLoginStatus
+	}{
+		{"未同步", nil, DingTalkLoginStatusNotSynced},
+		{"待分配", &Credential{UserID: uuid.New(), PendingAssignment: true, Enabled: false}, DingTalkLoginStatusPendingAssignment},
+		{"已停用", &Credential{UserID: uuid.New(), Enabled: false}, DingTalkLoginStatusDisabled},
+	}
+	for _, item := range cases {
+		t.Run(item.name, func(t *testing.T) {
+			repo := &authRepoStub{credential: item.credential}
+			provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union", UserID: "user"}}
+			uc := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, nil)
+			result, err := uc.LoginDingTalkEmbedded(context.Background(), "code", "state", "state", "test")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if result.Status != item.status || result.SessionToken != "" || result.Message == "" || repo.createdSession != nil {
+				t.Fatalf("未开通状态误建会话: %+v", result)
+			}
+		})
+	}
+}
+
+func TestAuthUsecaseDingTalkAuthorizedLoginCreatesSessionEmbedded(t *testing.T) {
+	organizationID := uuid.New()
+	userID := uuid.New()
+	repo := &authRepoStub{
+		credential: &Credential{UserID: userID, Enabled: true},
+		choices:    []OrganizationChoice{{OrganizationID: organizationID}},
+	}
+	provider := &dingTalkProviderStub{enabled: true, identity: &DingTalkIdentity{UnionID: "union-id", UserID: "user-id", CorpID: "ding-corp", Name: "张三"}}
+	usecase := NewAuthUsecase(repo, &SessionPolicy{TTL: time.Hour}, provider, nil)
+	result, err := usecase.LoginDingTalkEmbedded(context.Background(), "code", "state", "state", "test")
+	if err != nil {
+		t.Fatalf("LoginDingTalk() error = %v", err)
+	}
+	if result.Status != DingTalkLoginStatusAuthenticated || result.Principal == nil {
+		t.Fatalf("LoginDingTalk() result = %#v", result)
+	}
+	if repo.createdSession == nil || repo.createdSession.UserID != userID || repo.createdSession.OrganizationID != organizationID {
+		t.Fatalf("created session = %#v", repo.createdSession)
+	}
+	if len(repo.auditActions) != 1 || repo.auditActions[0] != "auth.dingtalk.login" {
+		t.Fatalf("audit actions = %v", repo.auditActions)
+	}
+}

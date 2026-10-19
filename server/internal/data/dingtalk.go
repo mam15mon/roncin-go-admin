@@ -18,12 +18,13 @@ import (
 )
 
 const (
-	dingTalkAuthorizeURL = "https://login.dingtalk.com/oauth2/auth"
-	dingTalkTokenURL     = "https://api.dingtalk.com/v1.0/oauth2/userAccessToken"
-	dingTalkProfileURL   = "https://api.dingtalk.com/v1.0/contact/users/me"
-	dingTalkAppTokenURL  = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
-	dingTalkUserIDURL    = "https://oapi.dingtalk.com/topapi/user/getbyunionid"
-	dingTalkRobotURL     = "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
+	dingTalkAuthorizeURL    = "https://login.dingtalk.com/oauth2/auth"
+	dingTalkTokenURL        = "https://api.dingtalk.com/v1.0/oauth2/userAccessToken"
+	dingTalkProfileURL      = "https://api.dingtalk.com/v1.0/contact/users/me"
+	dingTalkAppTokenURL     = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
+	dingTalkEmbeddedUserURL = "https://oapi.dingtalk.com/topapi/v2/user/getuserinfo"
+	dingTalkUserIDURL       = "https://oapi.dingtalk.com/topapi/user/getbyunionid"
+	dingTalkRobotURL        = "https://api.dingtalk.com/v1.0/robot/oToMessages/batchSend"
 )
 
 type dingTalkTokenResponse struct {
@@ -143,6 +144,41 @@ func (p *dingTalkIdentityProvider) ResolveIdentity(ctx context.Context, authCode
 		return nil, err
 	}
 	return &biz.DingTalkIdentity{UnionID: unionID, UserID: userID, CorpID: corpID, Name: name, Email: profile.Email, AvatarURL: profile.AvatarURL}, nil
+}
+
+// ResolveEmbeddedIdentity 使用旧版 runtime.permission.requestAuthCode 对应的企业免登协议。
+func (p *dingTalkIdentityProvider) ResolveEmbeddedIdentity(ctx context.Context, authCode string) (*biz.DingTalkIdentity, error) {
+	if !p.enabled {
+		return nil, biz.ErrDingTalkDisabled
+	}
+	accessToken, err := p.enterpriseAccessToken(ctx)
+	if err != nil {
+		return nil, biz.ErrDingTalkPermissionDenied
+	}
+	var response struct {
+		ErrorCode *int `json:"errcode"`
+		Result    struct {
+			UnionID string `json:"unionid"`
+			UserID  string `json:"userid"`
+			Name    string `json:"name"`
+		} `json:"result"`
+	}
+	endpoint := dingTalkEmbeddedUserURL + "?access_token=" + url.QueryEscape(accessToken)
+	status, err := p.requestJSON(ctx, http.MethodPost, endpoint, map[string]string{"code": authCode}, "", &response)
+	if status == http.StatusForbidden {
+		return nil, biz.ErrDingTalkPermissionDenied
+	}
+	if status == http.StatusBadRequest || status == http.StatusUnauthorized || (response.ErrorCode != nil && *response.ErrorCode == 40029) {
+		return nil, biz.ErrDingTalkCodeInvalid
+	}
+	if err != nil || response.ErrorCode == nil || *response.ErrorCode != 0 {
+		return nil, biz.ErrDingTalkLoginFailed
+	}
+	unionID, userID, name := strings.TrimSpace(response.Result.UnionID), strings.TrimSpace(response.Result.UserID), strings.TrimSpace(response.Result.Name)
+	if unionID == "" || userID == "" || name == "" {
+		return nil, biz.ErrDingTalkLoginFailed
+	}
+	return &biz.DingTalkIdentity{UnionID: unionID, UserID: userID, CorpID: p.corpID, Name: name}, nil
 }
 
 func (p *dingTalkIdentityProvider) resolveEnterpriseUserID(ctx context.Context, unionID string) (string, error) {

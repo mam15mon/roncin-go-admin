@@ -22,6 +22,11 @@ type bootstrapDingTalkProvider struct {
 	failure error
 }
 
+func (*bootstrapDingTalkProvider) EnterpriseID() string { return "ding-corp" }
+func (*bootstrapDingTalkProvider) ResolveEmbeddedIdentity(context.Context, string) (*biz.DingTalkIdentity, error) {
+	return nil, errors.New("本测试不调用客户端身份解析")
+}
+
 func (p *bootstrapDingTalkProvider) Enabled() bool { return p.enabled }
 func (p *bootstrapDingTalkProvider) AuthorizeURL(state string) (string, error) {
 	if p.failure != nil {

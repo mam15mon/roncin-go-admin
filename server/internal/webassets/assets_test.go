@@ -253,3 +253,22 @@ func TestLoginFrameUsesProxyProtocol(t *testing.T) {
 		t.Fatal("HTTPS 代理入口应预载")
 	}
 }
+
+func TestDingTalkLoginEntrySkipsQRBootstrapAndConditionalCache(t *testing.T) {
+	for _, ua := range []string{"DingTalk/7.0", "Mozilla dInGtAlK Desktop"} {
+		t.Run(ua, func(t *testing.T) {
+			h := newTestHandler(func(context.Context) (json.RawMessage, *http.Cookie, error) {
+				t.Fatal("钉钉客户端不得创建扫码配置")
+				return nil, nil, nil
+			})
+			request := httptest.NewRequest(http.MethodGet, "/user/login?redirect=/orders", nil)
+			request.Header.Set("User-Agent", ua)
+			request.Header.Set("If-None-Match", "*")
+			response := httptest.NewRecorder()
+			h.ServeHTTP(response, request)
+			if response.Code != 200 || response.Header().Get("Cache-Control") != "no-store" || response.Header().Get("Pragma") != "no-cache" || len(response.Result().Cookies()) != 0 || strings.Contains(response.Body.String(), "roncin-dingtalk-login") || !strings.Contains(response.Body.String(), `id="root"`) {
+				t.Fatalf("钉钉 HTML 分流错误: %d %s", response.Code, response.Body.String())
+			}
+		})
+	}
+}

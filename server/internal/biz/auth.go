@@ -30,9 +30,9 @@ var (
 	ErrAuthOrganizationForbidden    = errors.Forbidden("AUTH_ORGANIZATION_FORBIDDEN", "无该组织的成员资格或已停用")
 	ErrDingTalkDisabled             = errors.ServiceUnavailable("AUTH_DINGTALK_DISABLED", "钉钉认证未启用")
 	ErrDingTalkLoginFailed          = errors.Unauthorized("AUTH_DINGTALK_LOGIN_FAILED", "钉钉登录失败")
-	ErrDingTalkCodeInvalid          = errors.Unauthorized("AUTH_DINGTALK_CODE_INVALID", "钉钉登录凭证已失效，请重新扫码")
+	ErrDingTalkCodeInvalid          = errors.Unauthorized("AUTH_DINGTALK_CODE_INVALID", "钉钉登录凭证已失效，请重新登录")
 	ErrDingTalkPermissionDenied     = errors.Unauthorized("AUTH_DINGTALK_PERMISSION_DENIED", "钉钉应用无权读取成员信息，请检查应用权限")
-	ErrDingTalkStateInvalid         = errors.Unauthorized("AUTH_DINGTALK_STATE_INVALID", "钉钉验证状态已失效，请重新扫码")
+	ErrDingTalkStateInvalid         = errors.Unauthorized("AUTH_DINGTALK_STATE_INVALID", "钉钉验证状态已失效，请重新登录")
 	ErrDingTalkAuthorizationPending = errors.Forbidden("AUTH_DINGTALK_AUTHORIZATION_PENDING", "账号已登记，请联系管理员分配角色并启用账号")
 	ErrDingTalkOrganizationMismatch = errors.Forbidden("AUTH_DINGTALK_ORGANIZATION_MISMATCH", "当前钉钉账号不属于本企业，无法登录")
 	ErrDingTalkNotRegistered        = errors.Unauthorized("AUTH_DINGTALK_NOT_REGISTERED", "当前人员尚未登记")
@@ -122,6 +122,8 @@ type DingTalkIdentity struct {
 
 type DingTalkIdentityProvider interface {
 	Enabled() bool
+	EnterpriseID() string
+	ResolveEmbeddedIdentity(context.Context, string) (*DingTalkIdentity, error)
 	AuthorizeURL(string) (string, error)
 	ResolveIdentity(context.Context, string) (*DingTalkIdentity, error)
 }
@@ -600,20 +602,55 @@ func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, er
 	return true, authorizeURL, state, time.Now().UTC().Add(5 * time.Minute), nil
 }
 
+// StartDingTalkEmbeddedLogin 只公开客户端取码需要的企业标识与浏览器校验状态。
+func (uc *AuthUsecase) StartDingTalkEmbeddedLogin() (bool, string, string, time.Time, error) {
+	if !uc.dingtalk.Enabled() {
+		return false, "", "", time.Time{}, nil
+	}
+	state, _, err := newSessionToken()
+	if err != nil {
+		return false, "", "", time.Time{}, err
+	}
+	return true, uc.dingtalk.EnterpriseID(), state, time.Now().UTC().Add(5 * time.Minute), nil
+}
+
+func (uc *AuthUsecase) LoginDingTalkEmbedded(ctx context.Context, authCode, state, expectedState, userAgent string) (*DingTalkLoginResult, error) {
+	if !uc.dingtalk.Enabled() {
+		return nil, ErrDingTalkDisabled
+	}
+	authCode = strings.TrimSpace(authCode)
+	if !validDingTalkLoginState(authCode, state, expectedState) {
+		return nil, ErrDingTalkStateInvalid
+	}
+	identity, err := uc.dingtalk.ResolveEmbeddedIdentity(ctx, authCode)
+	if err != nil {
+		return nil, err
+	}
+	return uc.loginDingTalkIdentity(ctx, identity, userAgent)
+}
+
+func validDingTalkLoginState(authCode, state, expectedState string) bool {
+	state = strings.TrimSpace(state)
+	expectedState = strings.TrimSpace(expectedState)
+	return authCode != "" && state != "" && expectedState != "" && subtle.ConstantTimeCompare([]byte(state), []byte(expectedState)) == 1
+}
+
 func (uc *AuthUsecase) LoginDingTalk(ctx context.Context, authCode, state, expectedState, userAgent string) (*DingTalkLoginResult, error) {
 	if !uc.dingtalk.Enabled() {
 		return nil, ErrDingTalkDisabled
 	}
 	authCode = strings.TrimSpace(authCode)
-	state = strings.TrimSpace(state)
-	expectedState = strings.TrimSpace(expectedState)
-	if authCode == "" || state == "" || expectedState == "" || subtle.ConstantTimeCompare([]byte(state), []byte(expectedState)) != 1 {
+	if !validDingTalkLoginState(authCode, state, expectedState) {
 		return nil, ErrDingTalkStateInvalid
 	}
 	identity, err := uc.dingtalk.ResolveIdentity(ctx, authCode)
 	if err != nil {
 		return nil, err
 	}
+	return uc.loginDingTalkIdentity(ctx, identity, userAgent)
+}
+
+func (uc *AuthUsecase) loginDingTalkIdentity(ctx context.Context, identity *DingTalkIdentity, userAgent string) (*DingTalkLoginResult, error) {
 	credential, err := uc.repo.FindDingTalkCredential(ctx, identity)
 	if stderrors.Is(err, ErrDingTalkNotRegistered) {
 		return &DingTalkLoginResult{Status: DingTalkLoginStatusNotSynced, Message: "请联系管理员同步钉钉人员并开通"}, nil

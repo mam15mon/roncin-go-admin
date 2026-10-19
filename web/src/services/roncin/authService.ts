@@ -2,6 +2,37 @@
 /* eslint-disable */
 import { request } from "@/utils/requestClient";
 
+/** 此处后端没有提供注释 GET /api/v1/auth/dingtalk/embedded-config */
+export async function authServiceGetDingTalkEmbeddedConfig(options?: {
+  [key: string]: any;
+}) {
+  return request<API.GetDingTalkEmbeddedConfigResponse>(
+    "/api/v1/auth/dingtalk/embedded-config",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/auth/dingtalk/embedded-login */
+export async function authServiceDingTalkEmbeddedLogin(
+  body: API.DingTalkEmbeddedLoginRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.DingTalkEmbeddedLoginResponse>(
+    "/api/v1/auth/dingtalk/embedded-login",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 POST /api/v1/auth/dingtalk/login */
 export async function authServiceDingTalkLogin(
   body: API.DingTalkLoginRequest,

@@ -77,6 +77,12 @@ func (h *handler) serveLoginEntry(response http.ResponseWriter, request *http.Re
 		http.Error(response, "登录页面加载失败", http.StatusInternalServerError)
 		return
 	}
+	// UA 仅控制入口体验；客户端身份仍由免登换码验证。
+	if strings.Contains(strings.ToLower(request.UserAgent()), "dingtalk") {
+		response.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = response.Write(entry)
+		return
+	}
 	payload, cookie, err := h.loginConfig(request.Context())
 	if err != nil {
 		http.Error(response, "登录配置加载失败", http.StatusInternalServerError)

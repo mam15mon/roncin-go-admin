@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName                    = "/auth.v1.AuthService/Login"
-	AuthService_RequestPasswordResetCode_FullMethodName = "/auth.v1.AuthService/RequestPasswordResetCode"
-	AuthService_ConfirmPasswordReset_FullMethodName     = "/auth.v1.AuthService/ConfirmPasswordReset"
-	AuthService_GetDingTalkLoginConfig_FullMethodName   = "/auth.v1.AuthService/GetDingTalkLoginConfig"
-	AuthService_DingTalkLogin_FullMethodName            = "/auth.v1.AuthService/DingTalkLogin"
-	AuthService_Logout_FullMethodName                   = "/auth.v1.AuthService/Logout"
-	AuthService_Me_FullMethodName                       = "/auth.v1.AuthService/Me"
-	AuthService_SwitchOrganization_FullMethodName       = "/auth.v1.AuthService/SwitchOrganization"
+	AuthService_Login_FullMethodName                     = "/auth.v1.AuthService/Login"
+	AuthService_RequestPasswordResetCode_FullMethodName  = "/auth.v1.AuthService/RequestPasswordResetCode"
+	AuthService_ConfirmPasswordReset_FullMethodName      = "/auth.v1.AuthService/ConfirmPasswordReset"
+	AuthService_GetDingTalkLoginConfig_FullMethodName    = "/auth.v1.AuthService/GetDingTalkLoginConfig"
+	AuthService_DingTalkLogin_FullMethodName             = "/auth.v1.AuthService/DingTalkLogin"
+	AuthService_GetDingTalkEmbeddedConfig_FullMethodName = "/auth.v1.AuthService/GetDingTalkEmbeddedConfig"
+	AuthService_DingTalkEmbeddedLogin_FullMethodName     = "/auth.v1.AuthService/DingTalkEmbeddedLogin"
+	AuthService_Logout_FullMethodName                    = "/auth.v1.AuthService/Logout"
+	AuthService_Me_FullMethodName                        = "/auth.v1.AuthService/Me"
+	AuthService_SwitchOrganization_FullMethodName        = "/auth.v1.AuthService/SwitchOrganization"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -40,6 +42,8 @@ type AuthServiceClient interface {
 	ConfirmPasswordReset(ctx context.Context, in *ConfirmPasswordResetRequest, opts ...grpc.CallOption) (*ConfirmPasswordResetResponse, error)
 	GetDingTalkLoginConfig(ctx context.Context, in *GetDingTalkLoginConfigRequest, opts ...grpc.CallOption) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...grpc.CallOption) (*DingTalkLoginResponse, error)
+	GetDingTalkEmbeddedConfig(ctx context.Context, in *GetDingTalkEmbeddedConfigRequest, opts ...grpc.CallOption) (*GetDingTalkEmbeddedConfigResponse, error)
+	DingTalkEmbeddedLogin(ctx context.Context, in *DingTalkEmbeddedLoginRequest, opts ...grpc.CallOption) (*DingTalkEmbeddedLoginResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	Me(ctx context.Context, in *MeRequest, opts ...grpc.CallOption) (*MeResponse, error)
 	SwitchOrganization(ctx context.Context, in *SwitchOrganizationRequest, opts ...grpc.CallOption) (*SwitchOrganizationResponse, error)
@@ -103,6 +107,26 @@ func (c *authServiceClient) DingTalkLogin(ctx context.Context, in *DingTalkLogin
 	return out, nil
 }
 
+func (c *authServiceClient) GetDingTalkEmbeddedConfig(ctx context.Context, in *GetDingTalkEmbeddedConfigRequest, opts ...grpc.CallOption) (*GetDingTalkEmbeddedConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDingTalkEmbeddedConfigResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetDingTalkEmbeddedConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DingTalkEmbeddedLogin(ctx context.Context, in *DingTalkEmbeddedLoginRequest, opts ...grpc.CallOption) (*DingTalkEmbeddedLoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DingTalkEmbeddedLoginResponse)
+	err := c.cc.Invoke(ctx, AuthService_DingTalkEmbeddedLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LogoutResponse)
@@ -144,6 +168,8 @@ type AuthServiceServer interface {
 	ConfirmPasswordReset(context.Context, *ConfirmPasswordResetRequest) (*ConfirmPasswordResetResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
+	GetDingTalkEmbeddedConfig(context.Context, *GetDingTalkEmbeddedConfigRequest) (*GetDingTalkEmbeddedConfigResponse, error)
+	DingTalkEmbeddedLogin(context.Context, *DingTalkEmbeddedLoginRequest) (*DingTalkEmbeddedLoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	Me(context.Context, *MeRequest) (*MeResponse, error)
 	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
@@ -171,6 +197,12 @@ func (UnimplementedAuthServiceServer) GetDingTalkLoginConfig(context.Context, *G
 }
 func (UnimplementedAuthServiceServer) DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DingTalkLogin not implemented")
+}
+func (UnimplementedAuthServiceServer) GetDingTalkEmbeddedConfig(context.Context, *GetDingTalkEmbeddedConfigRequest) (*GetDingTalkEmbeddedConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDingTalkEmbeddedConfig not implemented")
+}
+func (UnimplementedAuthServiceServer) DingTalkEmbeddedLogin(context.Context, *DingTalkEmbeddedLoginRequest) (*DingTalkEmbeddedLoginResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DingTalkEmbeddedLogin not implemented")
 }
 func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
@@ -292,6 +324,42 @@ func _AuthService_DingTalkLogin_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetDingTalkEmbeddedConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDingTalkEmbeddedConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetDingTalkEmbeddedConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetDingTalkEmbeddedConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetDingTalkEmbeddedConfig(ctx, req.(*GetDingTalkEmbeddedConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DingTalkEmbeddedLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DingTalkEmbeddedLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DingTalkEmbeddedLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DingTalkEmbeddedLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DingTalkEmbeddedLogin(ctx, req.(*DingTalkEmbeddedLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LogoutRequest)
 	if err := dec(in); err != nil {
@@ -372,6 +440,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DingTalkLogin",
 			Handler:    _AuthService_DingTalkLogin_Handler,
+		},
+		{
+			MethodName: "GetDingTalkEmbeddedConfig",
+			Handler:    _AuthService_GetDingTalkEmbeddedConfig_Handler,
+		},
+		{
+			MethodName: "DingTalkEmbeddedLogin",
+			Handler:    _AuthService_DingTalkEmbeddedLogin_Handler,
 		},
 		{
 			MethodName: "Logout",
