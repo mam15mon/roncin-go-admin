@@ -43,6 +43,9 @@ const (
 	AdminService_StartDingTalkDirectorySync_FullMethodName     = "/admin.v1.AdminService/StartDingTalkDirectorySync"
 	AdminService_GetLatestDingTalkDirectorySync_FullMethodName = "/admin.v1.AdminService/GetLatestDingTalkDirectorySync"
 	AdminService_GetDingTalkDirectorySync_FullMethodName       = "/admin.v1.AdminService/GetDingTalkDirectorySync"
+	AdminService_ListNotificationTestTypes_FullMethodName      = "/admin.v1.AdminService/ListNotificationTestTypes"
+	AdminService_PreviewNotificationTest_FullMethodName        = "/admin.v1.AdminService/PreviewNotificationTest"
+	AdminService_SendNotificationTest_FullMethodName           = "/admin.v1.AdminService/SendNotificationTest"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -74,6 +77,9 @@ type AdminServiceClient interface {
 	StartDingTalkDirectorySync(ctx context.Context, in *StartDingTalkDirectorySyncRequest, opts ...grpc.CallOption) (*StartDingTalkDirectorySyncResponse, error)
 	GetLatestDingTalkDirectorySync(ctx context.Context, in *GetLatestDingTalkDirectorySyncRequest, opts ...grpc.CallOption) (*GetLatestDingTalkDirectorySyncResponse, error)
 	GetDingTalkDirectorySync(ctx context.Context, in *GetDingTalkDirectorySyncRequest, opts ...grpc.CallOption) (*GetDingTalkDirectorySyncResponse, error)
+	ListNotificationTestTypes(ctx context.Context, in *ListNotificationTestTypesRequest, opts ...grpc.CallOption) (*ListNotificationTestTypesResponse, error)
+	PreviewNotificationTest(ctx context.Context, in *PreviewNotificationTestRequest, opts ...grpc.CallOption) (*PreviewNotificationTestResponse, error)
+	SendNotificationTest(ctx context.Context, in *SendNotificationTestRequest, opts ...grpc.CallOption) (*SendNotificationTestResponse, error)
 }
 
 type adminServiceClient struct {
@@ -324,6 +330,36 @@ func (c *adminServiceClient) GetDingTalkDirectorySync(ctx context.Context, in *G
 	return out, nil
 }
 
+func (c *adminServiceClient) ListNotificationTestTypes(ctx context.Context, in *ListNotificationTestTypesRequest, opts ...grpc.CallOption) (*ListNotificationTestTypesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNotificationTestTypesResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListNotificationTestTypes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) PreviewNotificationTest(ctx context.Context, in *PreviewNotificationTestRequest, opts ...grpc.CallOption) (*PreviewNotificationTestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewNotificationTestResponse)
+	err := c.cc.Invoke(ctx, AdminService_PreviewNotificationTest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) SendNotificationTest(ctx context.Context, in *SendNotificationTestRequest, opts ...grpc.CallOption) (*SendNotificationTestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendNotificationTestResponse)
+	err := c.cc.Invoke(ctx, AdminService_SendNotificationTest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
@@ -353,6 +389,9 @@ type AdminServiceServer interface {
 	StartDingTalkDirectorySync(context.Context, *StartDingTalkDirectorySyncRequest) (*StartDingTalkDirectorySyncResponse, error)
 	GetLatestDingTalkDirectorySync(context.Context, *GetLatestDingTalkDirectorySyncRequest) (*GetLatestDingTalkDirectorySyncResponse, error)
 	GetDingTalkDirectorySync(context.Context, *GetDingTalkDirectorySyncRequest) (*GetDingTalkDirectorySyncResponse, error)
+	ListNotificationTestTypes(context.Context, *ListNotificationTestTypesRequest) (*ListNotificationTestTypesResponse, error)
+	PreviewNotificationTest(context.Context, *PreviewNotificationTestRequest) (*PreviewNotificationTestResponse, error)
+	SendNotificationTest(context.Context, *SendNotificationTestRequest) (*SendNotificationTestResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -434,6 +473,15 @@ func (UnimplementedAdminServiceServer) GetLatestDingTalkDirectorySync(context.Co
 }
 func (UnimplementedAdminServiceServer) GetDingTalkDirectorySync(context.Context, *GetDingTalkDirectorySyncRequest) (*GetDingTalkDirectorySyncResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDingTalkDirectorySync not implemented")
+}
+func (UnimplementedAdminServiceServer) ListNotificationTestTypes(context.Context, *ListNotificationTestTypesRequest) (*ListNotificationTestTypesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNotificationTestTypes not implemented")
+}
+func (UnimplementedAdminServiceServer) PreviewNotificationTest(context.Context, *PreviewNotificationTestRequest) (*PreviewNotificationTestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewNotificationTest not implemented")
+}
+func (UnimplementedAdminServiceServer) SendNotificationTest(context.Context, *SendNotificationTestRequest) (*SendNotificationTestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendNotificationTest not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 func (UnimplementedAdminServiceServer) testEmbeddedByValue()                      {}
@@ -888,6 +936,60 @@ func _AdminService_GetDingTalkDirectorySync_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ListNotificationTestTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNotificationTestTypesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListNotificationTestTypes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListNotificationTestTypes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListNotificationTestTypes(ctx, req.(*ListNotificationTestTypesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_PreviewNotificationTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewNotificationTestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).PreviewNotificationTest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_PreviewNotificationTest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).PreviewNotificationTest(ctx, req.(*PreviewNotificationTestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_SendNotificationTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendNotificationTestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SendNotificationTest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SendNotificationTest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SendNotificationTest(ctx, req.(*SendNotificationTestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -990,6 +1092,18 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDingTalkDirectorySync",
 			Handler:    _AdminService_GetDingTalkDirectorySync_Handler,
+		},
+		{
+			MethodName: "ListNotificationTestTypes",
+			Handler:    _AdminService_ListNotificationTestTypes_Handler,
+		},
+		{
+			MethodName: "PreviewNotificationTest",
+			Handler:    _AdminService_PreviewNotificationTest_Handler,
+		},
+		{
+			MethodName: "SendNotificationTest",
+			Handler:    _AdminService_SendNotificationTest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

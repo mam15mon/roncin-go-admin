@@ -229,6 +229,92 @@
         }
       }
     },
+    "/api/v1/admin/notification-tests/preview": {
+      "get": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_PreviewNotificationTest",
+        "parameters": [
+          {
+            "name": "notificationType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.PreviewNotificationTestResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/notification-tests/send": {
+      "post": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_SendNotificationTest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/admin.v1.SendNotificationTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.SendNotificationTestResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/notification-tests/types": {
+      "get": {
+        "tags": [
+          "AdminService"
+        ],
+        "operationId": "AdminService_ListNotificationTestTypes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/admin.v1.ListNotificationTestTypesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/organizations": {
       "get": {
         "tags": [
@@ -14742,6 +14828,27 @@
           }
         }
       },
+      "admin.v1.ListNotificationTestTypesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.NotificationTestCatalog"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.ListOrganizationRolesResponse": {
         "type": "object",
         "properties": {
@@ -14898,6 +15005,98 @@
           }
         }
       },
+      "admin.v1.NotificationTestAcceptance": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "admin.v1.NotificationTestCatalog": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/admin.v1.NotificationTestType"
+            }
+          },
+          "recipientName": {
+            "type": "string"
+          },
+          "recipientBound": {
+            "type": "boolean"
+          },
+          "integrationEnabled": {
+            "type": "boolean"
+          },
+          "canSend": {
+            "type": "boolean"
+          },
+          "sendUnavailableReason": {
+            "type": "string"
+          },
+          "canSelectOrder": {
+            "type": "boolean"
+          },
+          "orderSelectionUnavailableReason": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.NotificationTestPreview": {
+        "type": "object",
+        "properties": {
+          "notificationType": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "markdown": {
+            "type": "string"
+          },
+          "orderUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.NotificationTestType": {
+        "type": "object",
+        "properties": {
+          "notificationType": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "supportsOrder": {
+            "type": "boolean"
+          }
+        }
+      },
+      "admin.v1.PreviewNotificationTestResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.NotificationTestPreview"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "admin.v1.ResetUserPasswordRequest": {
         "required": [
           "id",
@@ -14928,6 +15127,41 @@
           },
           "message": {
             "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.SendNotificationTestRequest": {
+        "required": [
+          "notificationType"
+        ],
+        "type": "object",
+        "properties": {
+          "notificationType": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          }
+        }
+      },
+      "admin.v1.SendNotificationTestResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/admin.v1.NotificationTestAcceptance"
           },
           "traceId": {
             "type": "string"

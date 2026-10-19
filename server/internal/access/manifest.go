@@ -16,7 +16,9 @@ type Permission struct {
 }
 
 const (
-	PlatformAccess = "system.platform.access"
+	PlatformAccess       = "system.platform.access"
+	NotificationPreview  = "system.notification.preview"
+	NotificationTestSend = "system.notification.test_send"
 
 	OrganizationRead           = "system.organization.read"
 	OrganizationCreate         = "system.organization.create"
@@ -187,6 +189,8 @@ const (
 
 var manifest = append([]Permission{
 	{Key: PlatformAccess, Name: "访问工作台", Group: "系统管理 · 工作台", Description: "登录并进入工作台，是使用系统的基础权限"},
+	{Key: NotificationPreview, Name: "预览通知测试", Group: "Admin · 通知测试", Description: "查看示例通知内容和本人接收状态", Requires: []string{PlatformAccess}},
+	{Key: NotificationTestSend, Name: "发送本人测试通知", Group: "Admin · 通知测试", Description: "向当前登录人的钉钉账号发送示例通知", Requires: []string{NotificationPreview}},
 	{Key: OrganizationRead, Name: "查看组织", Group: "系统管理 · 组织", Description: "查看公司、部门和组的组织架构"},
 	{Key: OrganizationCreate, Name: "新建组织", Group: "系统管理 · 组织", Description: "新建公司、部门或组", Requires: []string{OrganizationRead}},
 	{Key: OrganizationUpdate, Name: "编辑组织", Group: "系统管理 · 组织", Description: "修改组织名称和启停状态", Requires: []string{OrganizationRead}},

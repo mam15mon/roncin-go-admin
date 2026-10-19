@@ -83,7 +83,7 @@ func TestDingTalkAssignmentRequestsAcceptTwoOrganizationsAnd200Users(t *testing.
 	source := uuid.New()
 	ctx := biz.WithPrincipal(context.Background(), &biz.Principal{UserID: uuid.New(), Organization: biz.Organization{ID: source, Kind: biz.OrganizationKindSystem}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: source, Kind: biz.OrganizationKindSystem}}})
 	repo := &assignmentServiceRepo{}
-	s := NewAdminService(biz.NewAdminUsecase(repo, nil), nil)
+	s := NewAdminService(biz.NewAdminUsecase(repo, nil), nil, nil)
 	first, second, role := uuid.New(), uuid.New(), uuid.New()
 	items := []*v1.UserMembershipCreation{{OrganizationId: first.String(), RoleIds: []string{role.String(), role.String()}}, {OrganizationId: second.String()}}
 	if response, err := s.AuthorizeDingTalkUser(ctx, &v1.AuthorizeDingTalkUserRequest{Id: uuid.NewString(), Items: items}); err != nil || !response.Success || len(repo.items) != 2 || len(repo.items[0].RoleIDs) != 1 || len(repo.items[1].RoleIDs) != 0 {

@@ -163,6 +163,21 @@ service AdminService {
     option (google.api.http) = {get: "/api/v1/admin/dingtalk/directory-syncs/{task_id}"};
   }
 
+  rpc ListNotificationTestTypes(ListNotificationTestTypesRequest) returns (ListNotificationTestTypesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.notification.preview" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/admin/notification-tests/types"};
+  }
+
+  rpc PreviewNotificationTest(PreviewNotificationTestRequest) returns (PreviewNotificationTestResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.notification.preview" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/admin/notification-tests/preview"};
+  }
+
+  rpc SendNotificationTest(SendNotificationTestRequest) returns (SendNotificationTestResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.notification.test_send" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/admin/notification-tests/send" body: "*"};
+  }
+
 }
 
 enum OrganizationKind {
@@ -671,5 +686,61 @@ message GetDingTalkDirectorySyncResponse {
   int32 code = 2;
   string message = 3;
   optional DingTalkDirectorySync data = 4;
+  string trace_id = 5;
+}
+
+// 通知测试只接受模板类型和可选订单，不接受正文、收件人或任意链接。
+message ListNotificationTestTypesRequest {}
+message NotificationTestType {
+  string notification_type = 1;
+  string label = 2;
+  bool supports_order = 3;
+}
+message NotificationTestCatalog {
+  repeated NotificationTestType types = 1;
+  string recipient_name = 2;
+  bool recipient_bound = 3;
+  bool integration_enabled = 4;
+  bool can_send = 5;
+  string send_unavailable_reason = 6;
+  bool can_select_order = 7;
+  string order_selection_unavailable_reason = 8;
+}
+message ListNotificationTestTypesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  NotificationTestCatalog data = 4;
+  string trace_id = 5;
+}
+message PreviewNotificationTestRequest {
+  string notification_type = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string order_id = 2;
+}
+message NotificationTestPreview {
+  string notification_type = 1;
+  string title = 2;
+  string markdown = 3;
+  string order_url = 4;
+}
+message PreviewNotificationTestResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  NotificationTestPreview data = 4;
+  string trace_id = 5;
+}
+message SendNotificationTestRequest {
+  string notification_type = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string order_id = 2;
+}
+message NotificationTestAcceptance {
+  bool accepted = 1;
+}
+message SendNotificationTestResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  NotificationTestAcceptance data = 4;
   string trace_id = 5;
 }

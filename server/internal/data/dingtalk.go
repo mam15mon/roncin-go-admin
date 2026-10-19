@@ -70,6 +70,9 @@ type dingTalkIdentityProvider struct {
 
 func NewDingTalkIdentityProvider(security *conf.Security) (*dingTalkIdentityProvider, error) {
 	provider := &dingTalkIdentityProvider{client: &http.Client{Timeout: 5 * time.Second}}
+	if security != nil && security.Dingtalk != nil {
+		provider.redirectURI = strings.TrimSpace(security.Dingtalk.RedirectUri)
+	}
 	if security == nil || security.Dingtalk == nil || !security.Dingtalk.Enabled {
 		return provider, nil
 	}
@@ -232,20 +235,14 @@ func (p *dingTalkIdentityProvider) SendMarkdown(ctx context.Context, userID stri
 		return biz.ErrDingTalkDisabled
 	}
 	userID = strings.TrimSpace(userID)
-	title := strings.TrimSpace(message.Title)
-	text := strings.TrimSpace(message.Text)
-	if userID == "" || title == "" || text == "" {
-		return fmt.Errorf("钉钉通知收件人、标题或正文为空")
+	if userID == "" {
+		return fmt.Errorf("钉钉通知收件人为空")
 	}
-	if message.OrderEntryPath != "" {
-		// 订单入口沿用已验证登录回调的站点，不接受动态摘要指定外部主机。
-		origin, err := url.Parse(p.redirectURI)
-		if err != nil || origin.Scheme == "" || origin.Host == "" {
-			return fmt.Errorf("钉钉通知站点配置不合法")
-		}
-		entryURL := &url.URL{Scheme: origin.Scheme, Host: origin.Host, Path: message.OrderEntryPath}
-		text += "\n\n[查看订单费用](" + entryURL.String() + ")"
+	prepared, _, err := p.PrepareMarkdown(message)
+	if err != nil {
+		return err
 	}
+	title, text := prepared.Title, prepared.Text
 	accessToken, err := p.enterpriseAccessToken(ctx)
 	if err != nil {
 		return fmt.Errorf("获取钉钉企业访问令牌: %w", err)
@@ -268,6 +265,26 @@ func (p *dingTalkIdentityProvider) SendMarkdown(ctx context.Context, userID stri
 		return fmt.Errorf("钉钉机器人发送响应不完整")
 	}
 	return nil
+}
+
+// PrepareMarkdown 只准备内容；预览和正式发送均复用此路径。
+func (p *dingTalkIdentityProvider) PrepareMarkdown(message biz.DingTalkMarkdownMessage) (biz.DingTalkMarkdownMessage, string, error) {
+	message.Title, message.Text = strings.TrimSpace(message.Title), strings.TrimSpace(message.Text)
+	if message.Title == "" || message.Text == "" {
+		return biz.DingTalkMarkdownMessage{}, "", fmt.Errorf("钉钉通知标题或正文为空")
+	}
+	orderURL := ""
+	if message.OrderEntryPath != "" {
+		origin, err := url.Parse(p.redirectURI)
+		if err != nil || (origin.Scheme != "http" && origin.Scheme != "https") || origin.Host == "" {
+			return biz.DingTalkMarkdownMessage{}, "", biz.ErrDingTalkNotificationSiteInvalid
+		}
+		entryURL := &url.URL{Scheme: origin.Scheme, Host: origin.Host, Path: message.OrderEntryPath}
+		orderURL = entryURL.String()
+		message.Text += "\n\n[查看订单费用](" + orderURL + ")"
+		message.OrderEntryPath = ""
+	}
+	return message, orderURL, nil
 }
 
 func (p *dingTalkIdentityProvider) requestJSON(ctx context.Context, method, endpoint string, payload any, bearerToken string, target any) (int, error) {

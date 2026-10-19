@@ -28,13 +28,16 @@ const OperationAdminServiceDeleteUserMembership = "/admin.v1.AdminService/Delete
 const OperationAdminServiceGetDingTalkDirectorySync = "/admin.v1.AdminService/GetDingTalkDirectorySync"
 const OperationAdminServiceGetLatestDingTalkDirectorySync = "/admin.v1.AdminService/GetLatestDingTalkDirectorySync"
 const OperationAdminServiceListAuditLogs = "/admin.v1.AdminService/ListAuditLogs"
+const OperationAdminServiceListNotificationTestTypes = "/admin.v1.AdminService/ListNotificationTestTypes"
 const OperationAdminServiceListOrganizationRoles = "/admin.v1.AdminService/ListOrganizationRoles"
 const OperationAdminServiceListOrganizations = "/admin.v1.AdminService/ListOrganizations"
 const OperationAdminServiceListPermissions = "/admin.v1.AdminService/ListPermissions"
 const OperationAdminServiceListRoles = "/admin.v1.AdminService/ListRoles"
 const OperationAdminServiceListUserMemberships = "/admin.v1.AdminService/ListUserMemberships"
 const OperationAdminServiceListUsers = "/admin.v1.AdminService/ListUsers"
+const OperationAdminServicePreviewNotificationTest = "/admin.v1.AdminService/PreviewNotificationTest"
 const OperationAdminServiceResetUserPassword = "/admin.v1.AdminService/ResetUserPassword"
+const OperationAdminServiceSendNotificationTest = "/admin.v1.AdminService/SendNotificationTest"
 const OperationAdminServiceStartDingTalkDirectorySync = "/admin.v1.AdminService/StartDingTalkDirectorySync"
 const OperationAdminServiceTerminateUser = "/admin.v1.AdminService/TerminateUser"
 const OperationAdminServiceUpdateOrganization = "/admin.v1.AdminService/UpdateOrganization"
@@ -54,13 +57,16 @@ type AdminServiceHTTPServer interface {
 	GetDingTalkDirectorySync(context.Context, *GetDingTalkDirectorySyncRequest) (*GetDingTalkDirectorySyncResponse, error)
 	GetLatestDingTalkDirectorySync(context.Context, *GetLatestDingTalkDirectorySyncRequest) (*GetLatestDingTalkDirectorySyncResponse, error)
 	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
+	ListNotificationTestTypes(context.Context, *ListNotificationTestTypesRequest) (*ListNotificationTestTypesResponse, error)
 	ListOrganizationRoles(context.Context, *ListOrganizationRolesRequest) (*ListOrganizationRolesResponse, error)
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
 	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	ListUserMemberships(context.Context, *ListUserMembershipsRequest) (*ListUserMembershipsResponse, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+	PreviewNotificationTest(context.Context, *PreviewNotificationTestRequest) (*PreviewNotificationTestResponse, error)
 	ResetUserPassword(context.Context, *ResetUserPasswordRequest) (*ResetUserPasswordResponse, error)
+	SendNotificationTest(context.Context, *SendNotificationTestRequest) (*SendNotificationTestResponse, error)
 	StartDingTalkDirectorySync(context.Context, *StartDingTalkDirectorySyncRequest) (*StartDingTalkDirectorySyncResponse, error)
 	// TerminateUser TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
 	TerminateUser(context.Context, *TerminateUserRequest) (*TerminateUserResponse, error)
@@ -96,6 +102,9 @@ func RegisterAdminServiceHTTPServer(s *http.Server, srv AdminServiceHTTPServer) 
 	r.Handle("POST", "/api/v1/admin/dingtalk/directory-syncs", _AdminService_StartDingTalkDirectorySync0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/dingtalk/directory-syncs/latest", _AdminService_GetLatestDingTalkDirectorySync0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/admin/dingtalk/directory-syncs/{task_id}", _AdminService_GetDingTalkDirectorySync0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/admin/notification-tests/types", _AdminService_ListNotificationTestTypes0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/admin/notification-tests/preview", _AdminService_PreviewNotificationTest0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/admin/notification-tests/send", _AdminService_SendNotificationTest0_HTTP_Handler(srv))
 }
 
 func _AdminService_ListOrganizations0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
@@ -593,6 +602,63 @@ func _AdminService_GetDingTalkDirectorySync0_HTTP_Handler(srv AdminServiceHTTPSe
 	}
 }
 
+func _AdminService_ListNotificationTestTypes0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListNotificationTestTypesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceListNotificationTestTypes)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListNotificationTestTypes(ctx, req.(*ListNotificationTestTypesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListNotificationTestTypesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AdminService_PreviewNotificationTest0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PreviewNotificationTestRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServicePreviewNotificationTest)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PreviewNotificationTest(ctx, req.(*PreviewNotificationTestRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PreviewNotificationTestResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AdminService_SendNotificationTest0_HTTP_Handler(srv AdminServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SendNotificationTestRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAdminServiceSendNotificationTest)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SendNotificationTest(ctx, req.(*SendNotificationTestRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SendNotificationTestResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type AdminServiceHTTPClient interface {
 	AuthorizeDingTalkUser(ctx context.Context, req *AuthorizeDingTalkUserRequest, opts ...http.CallOption) (rsp *AuthorizeDingTalkUserResponse, err error)
 	BatchAuthorizeDingTalkUsers(ctx context.Context, req *BatchAuthorizeDingTalkUsersRequest, opts ...http.CallOption) (rsp *BatchAuthorizeDingTalkUsersResponse, err error)
@@ -605,13 +671,16 @@ type AdminServiceHTTPClient interface {
 	GetDingTalkDirectorySync(ctx context.Context, req *GetDingTalkDirectorySyncRequest, opts ...http.CallOption) (rsp *GetDingTalkDirectorySyncResponse, err error)
 	GetLatestDingTalkDirectorySync(ctx context.Context, req *GetLatestDingTalkDirectorySyncRequest, opts ...http.CallOption) (rsp *GetLatestDingTalkDirectorySyncResponse, err error)
 	ListAuditLogs(ctx context.Context, req *ListAuditLogsRequest, opts ...http.CallOption) (rsp *ListAuditLogsResponse, err error)
+	ListNotificationTestTypes(ctx context.Context, req *ListNotificationTestTypesRequest, opts ...http.CallOption) (rsp *ListNotificationTestTypesResponse, err error)
 	ListOrganizationRoles(ctx context.Context, req *ListOrganizationRolesRequest, opts ...http.CallOption) (rsp *ListOrganizationRolesResponse, err error)
 	ListOrganizations(ctx context.Context, req *ListOrganizationsRequest, opts ...http.CallOption) (rsp *ListOrganizationsResponse, err error)
 	ListPermissions(ctx context.Context, req *ListPermissionsRequest, opts ...http.CallOption) (rsp *ListPermissionsResponse, err error)
 	ListRoles(ctx context.Context, req *ListRolesRequest, opts ...http.CallOption) (rsp *ListRolesResponse, err error)
 	ListUserMemberships(ctx context.Context, req *ListUserMembershipsRequest, opts ...http.CallOption) (rsp *ListUserMembershipsResponse, err error)
 	ListUsers(ctx context.Context, req *ListUsersRequest, opts ...http.CallOption) (rsp *ListUsersResponse, err error)
+	PreviewNotificationTest(ctx context.Context, req *PreviewNotificationTestRequest, opts ...http.CallOption) (rsp *PreviewNotificationTestResponse, err error)
 	ResetUserPassword(ctx context.Context, req *ResetUserPasswordRequest, opts ...http.CallOption) (rsp *ResetUserPasswordResponse, err error)
+	SendNotificationTest(ctx context.Context, req *SendNotificationTestRequest, opts ...http.CallOption) (rsp *SendNotificationTestResponse, err error)
 	StartDingTalkDirectorySync(ctx context.Context, req *StartDingTalkDirectorySyncRequest, opts ...http.CallOption) (rsp *StartDingTalkDirectorySyncResponse, err error)
 	// TerminateUser TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。
 	TerminateUser(ctx context.Context, req *TerminateUserRequest, opts ...http.CallOption) (rsp *TerminateUserResponse, err error)
@@ -811,6 +880,22 @@ func (c *AdminServiceHTTPClientImpl) ListAuditLogs(ctx context.Context, in *List
 	return &out, nil
 }
 
+func (c *AdminServiceHTTPClientImpl) ListNotificationTestTypes(ctx context.Context, in *ListNotificationTestTypesRequest, opts ...http.CallOption) (*ListNotificationTestTypesResponse, error) {
+	var out ListNotificationTestTypesResponse
+	pattern := "/api/v1/admin/notification-tests/types"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAdminServiceListNotificationTestTypes),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AdminServiceHTTPClientImpl) ListOrganizationRoles(ctx context.Context, in *ListOrganizationRolesRequest, opts ...http.CallOption) (*ListOrganizationRolesResponse, error) {
 	var out ListOrganizationRolesResponse
 	pattern := "/api/v1/admin/organizations/{organization_id}/roles"
@@ -907,6 +992,22 @@ func (c *AdminServiceHTTPClientImpl) ListUsers(ctx context.Context, in *ListUser
 	return &out, nil
 }
 
+func (c *AdminServiceHTTPClientImpl) PreviewNotificationTest(ctx context.Context, in *PreviewNotificationTestRequest, opts ...http.CallOption) (*PreviewNotificationTestResponse, error) {
+	var out PreviewNotificationTestResponse
+	pattern := "/api/v1/admin/notification-tests/preview"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationAdminServicePreviewNotificationTest),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *AdminServiceHTTPClientImpl) ResetUserPassword(ctx context.Context, in *ResetUserPasswordRequest, opts ...http.CallOption) (*ResetUserPasswordResponse, error) {
 	var out ResetUserPasswordResponse
 	pattern := "/api/v1/admin/users/{id}/password"
@@ -918,6 +1019,23 @@ func (c *AdminServiceHTTPClientImpl) ResetUserPassword(ctx context.Context, in *
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AdminServiceHTTPClientImpl) SendNotificationTest(ctx context.Context, in *SendNotificationTestRequest, opts ...http.CallOption) (*SendNotificationTestResponse, error) {
+	var out SendNotificationTestResponse
+	pattern := "/api/v1/admin/notification-tests/send"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAdminServiceSendNotificationTest),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

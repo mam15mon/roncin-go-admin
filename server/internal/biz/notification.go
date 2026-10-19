@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var ErrDingTalkNotificationSiteInvalid = errors.BadRequest("DINGTALK_NOTIFICATION_SITE_INVALID", "钉钉通知站点配置不合法，请检查回调地址配置")
+
 var ErrNotificationNotFound = errors.NotFound("NOTIFICATION_NOT_FOUND", "通知明细不存在")
 
 const (

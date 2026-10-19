@@ -212,6 +212,11 @@ declare namespace API {
     status?: number;
   };
 
+  type AdminServicePreviewNotificationTestParams = {
+    notificationType?: string;
+    orderId?: string;
+  };
+
   type AdminServiceResetUserPasswordParams = {
     id: string;
   };
@@ -4075,6 +4080,14 @@ declare namespace API {
     summary?: FinanceNettingSummary;
   };
 
+  type ListNotificationTestTypesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NotificationTestCatalog;
+    traceId?: string;
+  };
+
   type ListNumberRulesResponse = {
     success?: boolean;
     code?: number;
@@ -4689,6 +4702,34 @@ declare namespace API {
   type NettingBillExpectedVersion = {
     billId: string;
     expectedVersion: string;
+  };
+
+  type NotificationTestAcceptance = {
+    accepted?: boolean;
+  };
+
+  type NotificationTestCatalog = {
+    types?: NotificationTestType[];
+    recipientName?: string;
+    recipientBound?: boolean;
+    integrationEnabled?: boolean;
+    canSend?: boolean;
+    sendUnavailableReason?: string;
+    canSelectOrder?: boolean;
+    orderSelectionUnavailableReason?: string;
+  };
+
+  type NotificationTestPreview = {
+    notificationType?: string;
+    title?: string;
+    markdown?: string;
+    orderUrl?: string;
+  };
+
+  type NotificationTestType = {
+    notificationType?: string;
+    label?: string;
+    supportsOrder?: boolean;
   };
 
   type NumberRule = {
@@ -6404,6 +6445,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type PreviewNotificationTestResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NotificationTestPreview;
+    traceId?: string;
+  };
+
   type PreviewOrderFeeCorrectionApprovalRequest = {
     orderId?: string;
     id?: string;
@@ -7846,6 +7895,19 @@ declare namespace API {
     masterValue?: string;
     orderValue?: string;
     message?: string;
+  };
+
+  type SendNotificationTestRequest = {
+    notificationType: string;
+    orderId?: string;
+  };
+
+  type SendNotificationTestResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: NotificationTestAcceptance;
+    traceId?: string;
   };
 
   type SetCurrencyEnabledRequest = {

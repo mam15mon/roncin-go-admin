@@ -90,6 +90,55 @@ export async function adminServiceGetLatestDingTalkDirectorySync(
   );
 }
 
+/** 此处后端没有提供注释 GET /api/v1/admin/notification-tests/preview */
+export async function adminServicePreviewNotificationTest(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.AdminServicePreviewNotificationTestParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.PreviewNotificationTestResponse>(
+    "/api/v1/admin/notification-tests/preview",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/admin/notification-tests/send */
+export async function adminServiceSendNotificationTest(
+  body: API.SendNotificationTestRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.SendNotificationTestResponse>(
+    "/api/v1/admin/notification-tests/send",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/admin/notification-tests/types */
+export async function adminServiceListNotificationTestTypes(options?: {
+  [key: string]: any;
+}) {
+  return request<API.ListNotificationTestTypesResponse>(
+    "/api/v1/admin/notification-tests/types",
+    {
+      method: "GET",
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/admin/organizations */
 export async function adminServiceListOrganizations(options?: {
   [key: string]: any;

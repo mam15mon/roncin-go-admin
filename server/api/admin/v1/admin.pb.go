@@ -4603,6 +4603,647 @@ func (x *GetDingTalkDirectorySyncResponse) GetTraceId() string {
 	return ""
 }
 
+// 通知测试只接受模板类型和可选订单，不接受正文、收件人或任意链接。
+type ListNotificationTestTypesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNotificationTestTypesRequest) Reset() {
+	*x = ListNotificationTestTypesRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNotificationTestTypesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNotificationTestTypesRequest) ProtoMessage() {}
+
+func (x *ListNotificationTestTypesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNotificationTestTypesRequest.ProtoReflect.Descriptor instead.
+func (*ListNotificationTestTypesRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{60}
+}
+
+type NotificationTestType struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	NotificationType string                 `protobuf:"bytes,1,opt,name=notification_type,json=notificationType,proto3" json:"notification_type,omitempty"`
+	Label            string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	SupportsOrder    bool                   `protobuf:"varint,3,opt,name=supports_order,json=supportsOrder,proto3" json:"supports_order,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *NotificationTestType) Reset() {
+	*x = NotificationTestType{}
+	mi := &file_admin_v1_admin_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationTestType) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationTestType) ProtoMessage() {}
+
+func (x *NotificationTestType) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationTestType.ProtoReflect.Descriptor instead.
+func (*NotificationTestType) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *NotificationTestType) GetNotificationType() string {
+	if x != nil {
+		return x.NotificationType
+	}
+	return ""
+}
+
+func (x *NotificationTestType) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *NotificationTestType) GetSupportsOrder() bool {
+	if x != nil {
+		return x.SupportsOrder
+	}
+	return false
+}
+
+type NotificationTestCatalog struct {
+	state                           protoimpl.MessageState  `protogen:"open.v1"`
+	Types                           []*NotificationTestType `protobuf:"bytes,1,rep,name=types,proto3" json:"types,omitempty"`
+	RecipientName                   string                  `protobuf:"bytes,2,opt,name=recipient_name,json=recipientName,proto3" json:"recipient_name,omitempty"`
+	RecipientBound                  bool                    `protobuf:"varint,3,opt,name=recipient_bound,json=recipientBound,proto3" json:"recipient_bound,omitempty"`
+	IntegrationEnabled              bool                    `protobuf:"varint,4,opt,name=integration_enabled,json=integrationEnabled,proto3" json:"integration_enabled,omitempty"`
+	CanSend                         bool                    `protobuf:"varint,5,opt,name=can_send,json=canSend,proto3" json:"can_send,omitempty"`
+	SendUnavailableReason           string                  `protobuf:"bytes,6,opt,name=send_unavailable_reason,json=sendUnavailableReason,proto3" json:"send_unavailable_reason,omitempty"`
+	CanSelectOrder                  bool                    `protobuf:"varint,7,opt,name=can_select_order,json=canSelectOrder,proto3" json:"can_select_order,omitempty"`
+	OrderSelectionUnavailableReason string                  `protobuf:"bytes,8,opt,name=order_selection_unavailable_reason,json=orderSelectionUnavailableReason,proto3" json:"order_selection_unavailable_reason,omitempty"`
+	unknownFields                   protoimpl.UnknownFields
+	sizeCache                       protoimpl.SizeCache
+}
+
+func (x *NotificationTestCatalog) Reset() {
+	*x = NotificationTestCatalog{}
+	mi := &file_admin_v1_admin_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationTestCatalog) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationTestCatalog) ProtoMessage() {}
+
+func (x *NotificationTestCatalog) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationTestCatalog.ProtoReflect.Descriptor instead.
+func (*NotificationTestCatalog) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *NotificationTestCatalog) GetTypes() []*NotificationTestType {
+	if x != nil {
+		return x.Types
+	}
+	return nil
+}
+
+func (x *NotificationTestCatalog) GetRecipientName() string {
+	if x != nil {
+		return x.RecipientName
+	}
+	return ""
+}
+
+func (x *NotificationTestCatalog) GetRecipientBound() bool {
+	if x != nil {
+		return x.RecipientBound
+	}
+	return false
+}
+
+func (x *NotificationTestCatalog) GetIntegrationEnabled() bool {
+	if x != nil {
+		return x.IntegrationEnabled
+	}
+	return false
+}
+
+func (x *NotificationTestCatalog) GetCanSend() bool {
+	if x != nil {
+		return x.CanSend
+	}
+	return false
+}
+
+func (x *NotificationTestCatalog) GetSendUnavailableReason() string {
+	if x != nil {
+		return x.SendUnavailableReason
+	}
+	return ""
+}
+
+func (x *NotificationTestCatalog) GetCanSelectOrder() bool {
+	if x != nil {
+		return x.CanSelectOrder
+	}
+	return false
+}
+
+func (x *NotificationTestCatalog) GetOrderSelectionUnavailableReason() string {
+	if x != nil {
+		return x.OrderSelectionUnavailableReason
+	}
+	return ""
+}
+
+type ListNotificationTestTypesResponse struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Success       bool                     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                    `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                   `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *NotificationTestCatalog `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                   `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNotificationTestTypesResponse) Reset() {
+	*x = ListNotificationTestTypesResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNotificationTestTypesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNotificationTestTypesResponse) ProtoMessage() {}
+
+func (x *ListNotificationTestTypesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNotificationTestTypesResponse.ProtoReflect.Descriptor instead.
+func (*ListNotificationTestTypesResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *ListNotificationTestTypesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListNotificationTestTypesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListNotificationTestTypesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListNotificationTestTypesResponse) GetData() *NotificationTestCatalog {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListNotificationTestTypesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type PreviewNotificationTestRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	NotificationType string                 `protobuf:"bytes,1,opt,name=notification_type,json=notificationType,proto3" json:"notification_type,omitempty"`
+	OrderId          *string                `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3,oneof" json:"order_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *PreviewNotificationTestRequest) Reset() {
+	*x = PreviewNotificationTestRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewNotificationTestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewNotificationTestRequest) ProtoMessage() {}
+
+func (x *PreviewNotificationTestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewNotificationTestRequest.ProtoReflect.Descriptor instead.
+func (*PreviewNotificationTestRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *PreviewNotificationTestRequest) GetNotificationType() string {
+	if x != nil {
+		return x.NotificationType
+	}
+	return ""
+}
+
+func (x *PreviewNotificationTestRequest) GetOrderId() string {
+	if x != nil && x.OrderId != nil {
+		return *x.OrderId
+	}
+	return ""
+}
+
+type NotificationTestPreview struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	NotificationType string                 `protobuf:"bytes,1,opt,name=notification_type,json=notificationType,proto3" json:"notification_type,omitempty"`
+	Title            string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Markdown         string                 `protobuf:"bytes,3,opt,name=markdown,proto3" json:"markdown,omitempty"`
+	OrderUrl         string                 `protobuf:"bytes,4,opt,name=order_url,json=orderUrl,proto3" json:"order_url,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *NotificationTestPreview) Reset() {
+	*x = NotificationTestPreview{}
+	mi := &file_admin_v1_admin_proto_msgTypes[65]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationTestPreview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationTestPreview) ProtoMessage() {}
+
+func (x *NotificationTestPreview) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[65]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationTestPreview.ProtoReflect.Descriptor instead.
+func (*NotificationTestPreview) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{65}
+}
+
+func (x *NotificationTestPreview) GetNotificationType() string {
+	if x != nil {
+		return x.NotificationType
+	}
+	return ""
+}
+
+func (x *NotificationTestPreview) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *NotificationTestPreview) GetMarkdown() string {
+	if x != nil {
+		return x.Markdown
+	}
+	return ""
+}
+
+func (x *NotificationTestPreview) GetOrderUrl() string {
+	if x != nil {
+		return x.OrderUrl
+	}
+	return ""
+}
+
+type PreviewNotificationTestResponse struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Success       bool                     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                    `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                   `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *NotificationTestPreview `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                   `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PreviewNotificationTestResponse) Reset() {
+	*x = PreviewNotificationTestResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[66]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PreviewNotificationTestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PreviewNotificationTestResponse) ProtoMessage() {}
+
+func (x *PreviewNotificationTestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[66]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PreviewNotificationTestResponse.ProtoReflect.Descriptor instead.
+func (*PreviewNotificationTestResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{66}
+}
+
+func (x *PreviewNotificationTestResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PreviewNotificationTestResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PreviewNotificationTestResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PreviewNotificationTestResponse) GetData() *NotificationTestPreview {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PreviewNotificationTestResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type SendNotificationTestRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	NotificationType string                 `protobuf:"bytes,1,opt,name=notification_type,json=notificationType,proto3" json:"notification_type,omitempty"`
+	OrderId          *string                `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3,oneof" json:"order_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SendNotificationTestRequest) Reset() {
+	*x = SendNotificationTestRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendNotificationTestRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendNotificationTestRequest) ProtoMessage() {}
+
+func (x *SendNotificationTestRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendNotificationTestRequest.ProtoReflect.Descriptor instead.
+func (*SendNotificationTestRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *SendNotificationTestRequest) GetNotificationType() string {
+	if x != nil {
+		return x.NotificationType
+	}
+	return ""
+}
+
+func (x *SendNotificationTestRequest) GetOrderId() string {
+	if x != nil && x.OrderId != nil {
+		return *x.OrderId
+	}
+	return ""
+}
+
+type NotificationTestAcceptance struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Accepted      bool                   `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NotificationTestAcceptance) Reset() {
+	*x = NotificationTestAcceptance{}
+	mi := &file_admin_v1_admin_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationTestAcceptance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationTestAcceptance) ProtoMessage() {}
+
+func (x *NotificationTestAcceptance) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationTestAcceptance.ProtoReflect.Descriptor instead.
+func (*NotificationTestAcceptance) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *NotificationTestAcceptance) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
+}
+
+type SendNotificationTestResponse struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Success       bool                        `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                       `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                      `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *NotificationTestAcceptance `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                      `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendNotificationTestResponse) Reset() {
+	*x = SendNotificationTestResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendNotificationTestResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendNotificationTestResponse) ProtoMessage() {}
+
+func (x *SendNotificationTestResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendNotificationTestResponse.ProtoReflect.Descriptor instead.
+func (*SendNotificationTestResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *SendNotificationTestResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SendNotificationTestResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SendNotificationTestResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SendNotificationTestResponse) GetData() *NotificationTestAcceptance {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SendNotificationTestResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
@@ -5018,7 +5659,54 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x128\n" +
 	"\x04data\x18\x04 \x01(\v2\x1f.admin.v1.DingTalkDirectorySyncH\x00R\x04data\x88\x01\x01\x12\x19\n" +
 	"\btrace_id\x18\x05 \x01(\tR\atraceIdB\a\n" +
-	"\x05_data*\xb0\x01\n" +
+	"\x05_data\"\"\n" +
+	" ListNotificationTestTypesRequest\"\x80\x01\n" +
+	"\x14NotificationTestType\x12+\n" +
+	"\x11notification_type\x18\x01 \x01(\tR\x10notificationType\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\x12%\n" +
+	"\x0esupports_order\x18\x03 \x01(\bR\rsupportsOrder\"\x9a\x03\n" +
+	"\x17NotificationTestCatalog\x124\n" +
+	"\x05types\x18\x01 \x03(\v2\x1e.admin.v1.NotificationTestTypeR\x05types\x12%\n" +
+	"\x0erecipient_name\x18\x02 \x01(\tR\rrecipientName\x12'\n" +
+	"\x0frecipient_bound\x18\x03 \x01(\bR\x0erecipientBound\x12/\n" +
+	"\x13integration_enabled\x18\x04 \x01(\bR\x12integrationEnabled\x12\x19\n" +
+	"\bcan_send\x18\x05 \x01(\bR\acanSend\x126\n" +
+	"\x17send_unavailable_reason\x18\x06 \x01(\tR\x15sendUnavailableReason\x12(\n" +
+	"\x10can_select_order\x18\a \x01(\bR\x0ecanSelectOrder\x12K\n" +
+	"\"order_selection_unavailable_reason\x18\b \x01(\tR\x1forderSelectionUnavailableReason\"\xbd\x01\n" +
+	"!ListNotificationTestTypesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x125\n" +
+	"\x04data\x18\x04 \x01(\v2!.admin.v1.NotificationTestCatalogR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x7f\n" +
+	"\x1ePreviewNotificationTestRequest\x120\n" +
+	"\x11notification_type\x18\x01 \x01(\tB\x03\xe0A\x02R\x10notificationType\x12\x1e\n" +
+	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01B\v\n" +
+	"\t_order_id\"\x95\x01\n" +
+	"\x17NotificationTestPreview\x12+\n" +
+	"\x11notification_type\x18\x01 \x01(\tR\x10notificationType\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
+	"\bmarkdown\x18\x03 \x01(\tR\bmarkdown\x12\x1b\n" +
+	"\torder_url\x18\x04 \x01(\tR\borderUrl\"\xbb\x01\n" +
+	"\x1fPreviewNotificationTestResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x125\n" +
+	"\x04data\x18\x04 \x01(\v2!.admin.v1.NotificationTestPreviewR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"|\n" +
+	"\x1bSendNotificationTestRequest\x120\n" +
+	"\x11notification_type\x18\x01 \x01(\tB\x03\xe0A\x02R\x10notificationType\x12\x1e\n" +
+	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01B\v\n" +
+	"\t_order_id\"8\n" +
+	"\x1aNotificationTestAcceptance\x12\x1a\n" +
+	"\baccepted\x18\x01 \x01(\bR\baccepted\"\xbb\x01\n" +
+	"\x1cSendNotificationTestResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x128\n" +
+	"\x04data\x18\x04 \x01(\v2$.admin.v1.NotificationTestAcceptanceR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xb0\x01\n" +
 	"\x10OrganizationKind\x12!\n" +
 	"\x1dORGANIZATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18ORGANIZATION_KIND_SYSTEM\x10\x01\x12\x1d\n" +
@@ -5032,7 +5720,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1cADMIN_USER_STATUS_TERMINATED\x10\x03\x12/\n" +
 	"+ADMIN_USER_STATUS_REMOVED_FROM_ORGANIZATION\x10\x04\x12\x1e\n" +
 	"\x1aADMIN_USER_STATUS_DISABLED\x10\x05\x12(\n" +
-	"$ADMIN_USER_STATUS_PENDING_ASSIGNMENT\x10\x062\xb3 \n" +
+	"$ADMIN_USER_STATUS_PENDING_ASSIGNMENT\x10\x062\x88%\n" +
 	"\fAdminService\x12\xa3\x01\n" +
 	"\x11ListOrganizations\x12\".admin.v1.ListOrganizationsRequest\x1a#.admin.v1.ListOrganizationsResponse\"E\x82\xb5\x18\x1e\b\x03\x12\x18system.organization.read \x02\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/v1/admin/organizations\x12\xab\x01\n" +
 	"\x12CreateOrganization\x12#.admin.v1.CreateOrganizationRequest\x1a$.admin.v1.CreateOrganizationResponse\"J\x82\xb5\x18 \b\x03\x12\x1asystem.organization.create \x02\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/admin/organizations\x12\xb0\x01\n" +
@@ -5062,7 +5750,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x1bBatchAuthorizeDingTalkUsers\x12,.admin.v1.BatchAuthorizeDingTalkUsersRequest\x1a-.admin.v1.BatchAuthorizeDingTalkUsersResponse\"X\x82\xb5\x18$\b\x03\x12\x1esystem.user.authorize_dingtalk \x01\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/admin/dingtalk/authorizations\x12\xd7\x01\n" +
 	"\x1aStartDingTalkDirectorySync\x12+.admin.v1.StartDingTalkDirectorySyncRequest\x1a,.admin.v1.StartDingTalkDirectorySyncResponse\"^\x82\xb5\x18)\b\x03\x12#system.user.dingtalk_directory.sync \x01\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/admin/dingtalk/directory-syncs\x12\xe7\x01\n" +
 	"\x1eGetLatestDingTalkDirectorySync\x12/.admin.v1.GetLatestDingTalkDirectorySyncRequest\x1a0.admin.v1.GetLatestDingTalkDirectorySyncResponse\"b\x82\xb5\x18)\b\x03\x12#system.user.dingtalk_directory.sync \x01\x82\xd3\xe4\x93\x02/\x12-/api/v1/admin/dingtalk/directory-syncs/latest\x12\xd8\x01\n" +
-	"\x18GetDingTalkDirectorySync\x12).admin.v1.GetDingTalkDirectorySyncRequest\x1a*.admin.v1.GetDingTalkDirectorySyncResponse\"e\x82\xb5\x18)\b\x03\x12#system.user.dingtalk_directory.sync \x01\x82\xd3\xe4\x93\x022\x120/api/v1/admin/dingtalk/directory-syncs/{task_id}B:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
+	"\x18GetDingTalkDirectorySync\x12).admin.v1.GetDingTalkDirectorySyncRequest\x1a*.admin.v1.GetDingTalkDirectorySyncResponse\"e\x82\xb5\x18)\b\x03\x12#system.user.dingtalk_directory.sync \x01\x82\xd3\xe4\x93\x022\x120/api/v1/admin/dingtalk/directory-syncs/{task_id}\x12\xc9\x01\n" +
+	"\x19ListNotificationTestTypes\x12*.admin.v1.ListNotificationTestTypesRequest\x1a+.admin.v1.ListNotificationTestTypesResponse\"S\x82\xb5\x18!\b\x03\x12\x1bsystem.notification.preview \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/admin/notification-tests/types\x12\xc5\x01\n" +
+	"\x17PreviewNotificationTest\x12(.admin.v1.PreviewNotificationTestRequest\x1a).admin.v1.PreviewNotificationTestResponse\"U\x82\xb5\x18!\b\x03\x12\x1bsystem.notification.preview \x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/admin/notification-tests/preview\x12\xbe\x01\n" +
+	"\x14SendNotificationTest\x12%.admin.v1.SendNotificationTestRequest\x1a&.admin.v1.SendNotificationTestResponse\"W\x82\xb5\x18#\b\x03\x12\x1dsystem.notification.test_send \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/admin/notification-tests/sendB:Z8github.com/roncin/roncin-go-admin/server/api/admin/v1;v1b\x06proto3"
 
 var (
 	file_admin_v1_admin_proto_rawDescOnce sync.Once
@@ -5077,7 +5768,7 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 }
 
 var file_admin_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 61)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 71)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(OrganizationKind)(0),                          // 0: admin.v1.OrganizationKind
 	(AdminUserStatus)(0),                           // 1: admin.v1.AdminUserStatus
@@ -5141,7 +5832,17 @@ var file_admin_v1_admin_proto_goTypes = []any{
 	(*StartDingTalkDirectorySyncResponse)(nil),     // 59: admin.v1.StartDingTalkDirectorySyncResponse
 	(*GetLatestDingTalkDirectorySyncResponse)(nil), // 60: admin.v1.GetLatestDingTalkDirectorySyncResponse
 	(*GetDingTalkDirectorySyncResponse)(nil),       // 61: admin.v1.GetDingTalkDirectorySyncResponse
-	nil,                                            // 62: admin.v1.AdminAuditLog.DetailsEntry
+	(*ListNotificationTestTypesRequest)(nil),       // 62: admin.v1.ListNotificationTestTypesRequest
+	(*NotificationTestType)(nil),                   // 63: admin.v1.NotificationTestType
+	(*NotificationTestCatalog)(nil),                // 64: admin.v1.NotificationTestCatalog
+	(*ListNotificationTestTypesResponse)(nil),      // 65: admin.v1.ListNotificationTestTypesResponse
+	(*PreviewNotificationTestRequest)(nil),         // 66: admin.v1.PreviewNotificationTestRequest
+	(*NotificationTestPreview)(nil),                // 67: admin.v1.NotificationTestPreview
+	(*PreviewNotificationTestResponse)(nil),        // 68: admin.v1.PreviewNotificationTestResponse
+	(*SendNotificationTestRequest)(nil),            // 69: admin.v1.SendNotificationTestRequest
+	(*NotificationTestAcceptance)(nil),             // 70: admin.v1.NotificationTestAcceptance
+	(*SendNotificationTestResponse)(nil),           // 71: admin.v1.SendNotificationTestResponse
+	nil,                                            // 72: admin.v1.AdminAuditLog.DetailsEntry
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
 	0,  // 0: admin.v1.CreateOrganizationRequest.kind:type_name -> admin.v1.OrganizationKind
@@ -5168,7 +5869,7 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	37, // 21: admin.v1.CreateRoleResponse.data:type_name -> admin.v1.AdminRole
 	37, // 22: admin.v1.UpdateRoleResponse.data:type_name -> admin.v1.AdminRole
 	45, // 23: admin.v1.ListPermissionsResponse.data:type_name -> admin.v1.AdminPermission
-	62, // 24: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
+	72, // 24: admin.v1.AdminAuditLog.details:type_name -> admin.v1.AdminAuditLog.DetailsEntry
 	48, // 25: admin.v1.ListAuditLogsResponse.data:type_name -> admin.v1.AdminAuditLog
 	14, // 26: admin.v1.BatchAuthorizeDingTalkUsersRequest.items:type_name -> admin.v1.UserMembershipCreation
 	52, // 27: admin.v1.BatchAuthorizeDingTalkUsersResponse.data:type_name -> admin.v1.DingTalkAssignmentResult
@@ -5176,59 +5877,69 @@ var file_admin_v1_admin_proto_depIdxs = []int32{
 	58, // 29: admin.v1.StartDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
 	58, // 30: admin.v1.GetLatestDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
 	58, // 31: admin.v1.GetDingTalkDirectorySyncResponse.data:type_name -> admin.v1.DingTalkDirectorySync
-	2,  // 32: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
-	3,  // 33: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
-	4,  // 34: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
-	10, // 35: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
-	11, // 36: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
-	12, // 37: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
-	13, // 38: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
-	15, // 39: admin.v1.AdminService.CreateUserMemberships:input_type -> admin.v1.CreateUserMembershipsRequest
-	16, // 40: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
-	17, // 41: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
-	18, // 42: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
-	19, // 43: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
-	20, // 44: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
-	34, // 45: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
-	21, // 46: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
-	35, // 47: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
-	36, // 48: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
-	42, // 49: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
-	44, // 50: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
-	47, // 51: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
-	51, // 52: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
-	54, // 53: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
-	55, // 54: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
-	56, // 55: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
-	6,  // 56: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
-	8,  // 57: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
-	9,  // 58: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
-	25, // 59: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
-	26, // 60: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
-	27, // 61: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
-	28, // 62: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
-	29, // 63: admin.v1.AdminService.CreateUserMemberships:output_type -> admin.v1.CreateUserMembershipsResponse
-	30, // 64: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
-	31, // 65: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
-	32, // 66: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
-	33, // 67: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
-	7,  // 68: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
-	38, // 69: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
-	39, // 70: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
-	40, // 71: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
-	41, // 72: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
-	43, // 73: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
-	46, // 74: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
-	49, // 75: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
-	53, // 76: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
-	59, // 77: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
-	60, // 78: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
-	61, // 79: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
-	56, // [56:80] is the sub-list for method output_type
-	32, // [32:56] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	63, // 32: admin.v1.NotificationTestCatalog.types:type_name -> admin.v1.NotificationTestType
+	64, // 33: admin.v1.ListNotificationTestTypesResponse.data:type_name -> admin.v1.NotificationTestCatalog
+	67, // 34: admin.v1.PreviewNotificationTestResponse.data:type_name -> admin.v1.NotificationTestPreview
+	70, // 35: admin.v1.SendNotificationTestResponse.data:type_name -> admin.v1.NotificationTestAcceptance
+	2,  // 36: admin.v1.AdminService.ListOrganizations:input_type -> admin.v1.ListOrganizationsRequest
+	3,  // 37: admin.v1.AdminService.CreateOrganization:input_type -> admin.v1.CreateOrganizationRequest
+	4,  // 38: admin.v1.AdminService.UpdateOrganization:input_type -> admin.v1.UpdateOrganizationRequest
+	10, // 39: admin.v1.AdminService.ListUsers:input_type -> admin.v1.ListUsersRequest
+	11, // 40: admin.v1.AdminService.CreateUser:input_type -> admin.v1.CreateUserRequest
+	12, // 41: admin.v1.AdminService.UpdateUser:input_type -> admin.v1.UpdateUserRequest
+	13, // 42: admin.v1.AdminService.ListUserMemberships:input_type -> admin.v1.ListUserMembershipsRequest
+	15, // 43: admin.v1.AdminService.CreateUserMemberships:input_type -> admin.v1.CreateUserMembershipsRequest
+	16, // 44: admin.v1.AdminService.UpdateUserMembership:input_type -> admin.v1.UpdateUserMembershipRequest
+	17, // 45: admin.v1.AdminService.DeleteUserMembership:input_type -> admin.v1.DeleteUserMembershipRequest
+	18, // 46: admin.v1.AdminService.TerminateUser:input_type -> admin.v1.TerminateUserRequest
+	19, // 47: admin.v1.AdminService.AuthorizeDingTalkUser:input_type -> admin.v1.AuthorizeDingTalkUserRequest
+	20, // 48: admin.v1.AdminService.ResetUserPassword:input_type -> admin.v1.ResetUserPasswordRequest
+	34, // 49: admin.v1.AdminService.ListRoles:input_type -> admin.v1.ListRolesRequest
+	21, // 50: admin.v1.AdminService.ListOrganizationRoles:input_type -> admin.v1.ListOrganizationRolesRequest
+	35, // 51: admin.v1.AdminService.CreateRole:input_type -> admin.v1.CreateRoleRequest
+	36, // 52: admin.v1.AdminService.UpdateRole:input_type -> admin.v1.UpdateRoleRequest
+	42, // 53: admin.v1.AdminService.DeleteRole:input_type -> admin.v1.DeleteRoleRequest
+	44, // 54: admin.v1.AdminService.ListPermissions:input_type -> admin.v1.ListPermissionsRequest
+	47, // 55: admin.v1.AdminService.ListAuditLogs:input_type -> admin.v1.ListAuditLogsRequest
+	51, // 56: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:input_type -> admin.v1.BatchAuthorizeDingTalkUsersRequest
+	54, // 57: admin.v1.AdminService.StartDingTalkDirectorySync:input_type -> admin.v1.StartDingTalkDirectorySyncRequest
+	55, // 58: admin.v1.AdminService.GetLatestDingTalkDirectorySync:input_type -> admin.v1.GetLatestDingTalkDirectorySyncRequest
+	56, // 59: admin.v1.AdminService.GetDingTalkDirectorySync:input_type -> admin.v1.GetDingTalkDirectorySyncRequest
+	62, // 60: admin.v1.AdminService.ListNotificationTestTypes:input_type -> admin.v1.ListNotificationTestTypesRequest
+	66, // 61: admin.v1.AdminService.PreviewNotificationTest:input_type -> admin.v1.PreviewNotificationTestRequest
+	69, // 62: admin.v1.AdminService.SendNotificationTest:input_type -> admin.v1.SendNotificationTestRequest
+	6,  // 63: admin.v1.AdminService.ListOrganizations:output_type -> admin.v1.ListOrganizationsResponse
+	8,  // 64: admin.v1.AdminService.CreateOrganization:output_type -> admin.v1.CreateOrganizationResponse
+	9,  // 65: admin.v1.AdminService.UpdateOrganization:output_type -> admin.v1.UpdateOrganizationResponse
+	25, // 66: admin.v1.AdminService.ListUsers:output_type -> admin.v1.ListUsersResponse
+	26, // 67: admin.v1.AdminService.CreateUser:output_type -> admin.v1.CreateUserResponse
+	27, // 68: admin.v1.AdminService.UpdateUser:output_type -> admin.v1.UpdateUserResponse
+	28, // 69: admin.v1.AdminService.ListUserMemberships:output_type -> admin.v1.ListUserMembershipsResponse
+	29, // 70: admin.v1.AdminService.CreateUserMemberships:output_type -> admin.v1.CreateUserMembershipsResponse
+	30, // 71: admin.v1.AdminService.UpdateUserMembership:output_type -> admin.v1.UpdateUserMembershipResponse
+	31, // 72: admin.v1.AdminService.DeleteUserMembership:output_type -> admin.v1.DeleteUserMembershipResponse
+	32, // 73: admin.v1.AdminService.TerminateUser:output_type -> admin.v1.TerminateUserResponse
+	33, // 74: admin.v1.AdminService.AuthorizeDingTalkUser:output_type -> admin.v1.AuthorizeDingTalkUserResponse
+	7,  // 75: admin.v1.AdminService.ResetUserPassword:output_type -> admin.v1.ResetUserPasswordResponse
+	38, // 76: admin.v1.AdminService.ListRoles:output_type -> admin.v1.ListRolesResponse
+	39, // 77: admin.v1.AdminService.ListOrganizationRoles:output_type -> admin.v1.ListOrganizationRolesResponse
+	40, // 78: admin.v1.AdminService.CreateRole:output_type -> admin.v1.CreateRoleResponse
+	41, // 79: admin.v1.AdminService.UpdateRole:output_type -> admin.v1.UpdateRoleResponse
+	43, // 80: admin.v1.AdminService.DeleteRole:output_type -> admin.v1.DeleteRoleResponse
+	46, // 81: admin.v1.AdminService.ListPermissions:output_type -> admin.v1.ListPermissionsResponse
+	49, // 82: admin.v1.AdminService.ListAuditLogs:output_type -> admin.v1.ListAuditLogsResponse
+	53, // 83: admin.v1.AdminService.BatchAuthorizeDingTalkUsers:output_type -> admin.v1.BatchAuthorizeDingTalkUsersResponse
+	59, // 84: admin.v1.AdminService.StartDingTalkDirectorySync:output_type -> admin.v1.StartDingTalkDirectorySyncResponse
+	60, // 85: admin.v1.AdminService.GetLatestDingTalkDirectorySync:output_type -> admin.v1.GetLatestDingTalkDirectorySyncResponse
+	61, // 86: admin.v1.AdminService.GetDingTalkDirectorySync:output_type -> admin.v1.GetDingTalkDirectorySyncResponse
+	65, // 87: admin.v1.AdminService.ListNotificationTestTypes:output_type -> admin.v1.ListNotificationTestTypesResponse
+	68, // 88: admin.v1.AdminService.PreviewNotificationTest:output_type -> admin.v1.PreviewNotificationTestResponse
+	71, // 89: admin.v1.AdminService.SendNotificationTest:output_type -> admin.v1.SendNotificationTestResponse
+	63, // [63:90] is the sub-list for method output_type
+	36, // [36:63] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -5249,13 +5960,15 @@ func file_admin_v1_admin_proto_init() {
 	file_admin_v1_admin_proto_msgTypes[57].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[58].OneofWrappers = []any{}
 	file_admin_v1_admin_proto_msgTypes[59].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[64].OneofWrappers = []any{}
+	file_admin_v1_admin_proto_msgTypes[67].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   61,
+			NumMessages:   71,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

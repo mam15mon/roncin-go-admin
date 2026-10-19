@@ -16,11 +16,12 @@ import (
 type AdminService struct {
 	v1.UnimplementedAdminServiceServer
 	usecase           *biz.AdminUsecase
+	notificationTest  *biz.NotificationTestUsecase
 	dingTalkDirectory *biz.DingTalkDirectoryUsecase
 }
 
-func NewAdminService(usecase *biz.AdminUsecase, dingTalkDirectory *biz.DingTalkDirectoryUsecase) *AdminService {
-	return &AdminService{usecase: usecase, dingTalkDirectory: dingTalkDirectory}
+func NewAdminService(usecase *biz.AdminUsecase, dingTalkDirectory *biz.DingTalkDirectoryUsecase, notificationTest *biz.NotificationTestUsecase) *AdminService {
+	return &AdminService{usecase: usecase, dingTalkDirectory: dingTalkDirectory, notificationTest: notificationTest}
 }
 
 func (s *AdminService) ListOrganizations(ctx context.Context, _ *v1.ListOrganizationsRequest) (*v1.ListOrganizationsResponse, error) {

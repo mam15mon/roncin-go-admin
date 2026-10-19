@@ -28,6 +28,7 @@ var dingTalkProviderSet = wire.NewSet(
 	NewDingTalkDirectoryRepo,
 	wire.Bind(new(biz.DingTalkIdentityProvider), new(*dingTalkIdentityProvider)),
 	wire.Bind(new(biz.DingTalkNotificationSender), new(*dingTalkIdentityProvider)),
+	wire.Bind(new(biz.DingTalkMarkdownPreparer), new(*dingTalkIdentityProvider)),
 	wire.Bind(new(biz.DingTalkDirectoryGateway), new(*dingTalkIdentityProvider)),
 )
 

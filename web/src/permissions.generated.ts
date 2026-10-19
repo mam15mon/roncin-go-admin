@@ -2,6 +2,8 @@
 // 再生成命令：pnpm run generate:permission-keys
 export const manifestPermissionKeys = [
   'system.platform.access',
+  'system.notification.preview',
+  'system.notification.test_send',
   'system.organization.read',
   'system.organization.create',
   'system.organization.update',
