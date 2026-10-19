@@ -1749,3 +1749,32 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 142: 钉钉通知免登、独立审阅与全栈验收
+<!-- trellis-session: v=2 fp=b2a9c62ae39aad74 -->
+
+**Date**: 2026-10-19
+**Task**: 钉钉通知免登、独立审阅与全栈验收
+**Branch**: `codex/dingtalk-notification-sso`
+
+### Summary
+
+完成钉钉内客户端免登：独立state Cookie、固定企业旧版JSAPI/getuserinfo协议、复用人员准入与工作台选择并保留原目标。同步Proto/OpenAPI/客户端和规范；独立review修复校验错误no-store与会话Cookie并行覆盖，补超时迟到回归。构建发现测试辅助误入页面扫描，迁移新增helper并排除既有辅助命名。全栈check:fast、生产构建及7项Chromium协议模拟通过；生成幂等，开发健康与公开配置验证通过。真实钉钉客户端和实际用户收件免登未验证，未发送测试通知、未变更数据库。已归档，按授权继续将Markdown依赖及免登快进合并main、安全删除分支、push并核验远端。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `11aa13c8` | feat: 增加钉钉客户端免登认证通道 |
+| `3fdc5fab` | feat: 支持钉钉客户端免登并安全返回通知目标 |
+| `832cca75` | fix: 保证钉钉免登校验失败响应禁止缓存 |
+| `e77ac978` | fix: 串行处理免登换码与账号登录会话写入 |
+| `98bc83d4` | test: 覆盖钉钉 SDK 加载超时后的迟到结果 |
+| `035bfb03` | fix: 将免登测试辅助模块移出生产页面扫描范围 |
+| `06225ec9` | fix: 从页面生产扫描中排除测试专用组件 |
+| `a7cdfd25` | docs: 记录钉钉免登验收与生产页面扫描约束 |
+
+### Status
+
+[OK] **Completed**
