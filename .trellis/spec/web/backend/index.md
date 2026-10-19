@@ -1,38 +1,14 @@
-# Backend Development Guidelines
+# 后端规范入口
 
-> Best practices for backend development in this project.
+当前包发现配置会列出 `web/backend`，实际 Go 服务端位于 `server/`，完整后端规范维护于
+[Server 后端开发规范](../../server/backend/index.md)。开始后端任务时继续读取该索引及其
+相关专项文档；本目录不维护另一套后端规则。
 
----
+## 开发前阅读
 
-## Overview
+1. [根目录协作约束](../../../../AGENTS.md)：分层、依赖、生成物、验证与提交要求。
+2. [领域地图](../../domain/architecture-map.md)和[领域术语](../../domain/glossary.md)：业务链路与代码定位。
+3. [后端规范索引](../../server/backend/index.md)：按其中的开发前检查清单加载对应规范。
+4. [后端能力导航](../../server/backend/capability-navigation.md)：优先复用现有用例与仓储能力。
 
-This directory contains guidelines for backend development. Fill in each file with your project's specific conventions.
-
----
-
-## Guidelines Index
-
-| Guide | Description | Status |
-|-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
-| [Database Guidelines](./database-guidelines.md) | ORM patterns, queries, migrations | To fill |
-| [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
-| [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
-| [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
-
----
-
-## How to Fill These Guidelines
-
-For each guideline file:
-
-1. Document your project's **actual conventions** (not ideals)
-2. Include **code examples** from your codebase
-3. List **forbidden patterns** and why
-4. Add **common mistakes** your team has made
-
-The goal is to help AI assistants and new team members understand how YOUR project works.
-
----
-
-**Language**: All documentation should be written in **English**.
+文档与面向开发者的注释使用中文；规则冲突时遵循根目录 `AGENTS.md`。

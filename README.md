@@ -1,6 +1,6 @@
 # Roncin 国际货代协同管理平台 (Roncin Go Admin)
 
-企业级国际货运代理协同与财务结算一体化管理平台。基于 **Go (Kratos v3 + Ent) + React 19 (Ant Design Pro + UmiJS Max) + PostgreSQL** 架构，单体仓库（Monorepo），支持前后端独立开发热重载，以及生产环境由 Go 服务单一二进制直接提供 API 与前端静态资源同域交付。
+企业级国际货运代理协同与财务结算一体化管理平台。基于 **Go (Kratos v3 + Ent) + React 19 (Vite + React Router + Ant Design Pro) + PostgreSQL** 架构，单体仓库（Monorepo），支持前后端独立开发热重载，以及生产环境由 Go 服务单一二进制直接提供 API 与前端静态资源同域交付。
 
 ---
 
@@ -17,8 +17,11 @@
 - **行业基础主数据**：
   - 集成 ISO 4217 货币代码、标准箱型 (20GP/40HQ 等)、增值税税目。
   - 支持联合国 UN/LOCODE 全球海运港口、IATA 全球民航机场、民政部全国五级行政区划实时同步。
-- **安全与权限体系**：基于 RBAC 的 200+ 个细粒度业务权限清单、支持本地账密与钉钉扫码登录。
-- **多组织工作区**：顶栏切换当前组织，页签与表单草稿按用户与组织双重身份隔离；角色可按权限追加只读或可写的跨组织访问范围（订单、往来单位与账单已接入），读取与写入范围分别校验。
+- **安全与权限体系**：基于后端统一 Manifest 的细粒度 RBAC 权限，支持本地账密、钉钉扫码与钉钉客户端免登。
+- **多组织工作区**：顶栏切换当前工作台，页签与表单草稿按用户与工作台隔离；进入公司须有有效成员资格，角色不再配置数据访问范围。公司经营数据限定当前公司，系统工作台负责公共资料与授权治理，经营业务须切换公司后按具体权限办理。
+- **订单附件登记**：当前可登记外部对象存储引用及文件元数据、解除订单引用；订单附件入口尚不提供二进制文件上传与下载。
+
+业务入口已开放不代表全部真实场景完成验收。海运出口的当前验收口径、既有脚本限制和运行结果记录要求见[海运出口订单闭环验收](docs/plans/海运出口订单闭环验收.md)。
 
 ---
 
@@ -29,8 +32,8 @@
 | **后端框架** | Go 1.26.9+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
 | **ORM / 数据库** | [entgo.io/ent](https://entgo.io), PostgreSQL 16 (支持 GIN 模糊全文检索) |
 | **依赖注入与安全** | Google Wire, JWT Session, Argon2id 密码哈希, OpenTelemetry 链路追踪 |
-| **前端架构** | React 19, TypeScript 7.x, [@umijs/max](https://umijs.org), [Ant Design](https://ant.design) 6.x, Ant Design ProComponents |
-| **前端工具链** | Vite / Webpack, Biome (高极速 Lint & Format), Vitest |
+| **前端架构** | React 19, TypeScript 7.x, React Router v8, React Query v5, [Ant Design](https://ant.design) 6.x, Ant Design ProComponents |
+| **前端工具链** | Vite 7, Biome (Lint & Format), Vitest；构建与测试配置入口为 `web/vite.config.ts` |
 | **包管理** | pnpm (Workspace Monorepo) |
 
 ---
@@ -54,10 +57,12 @@ roncin-go-admin/
 │   ├── internal/               # 领域业务逻辑 (biz), 数据访问 (data), 传输服务 (service)
 │   └── migrations/             # 数据库 SQL 版本迁移脚本库
 ├── web/                        # 前端 React / Ant Design Pro 应用
-│   ├── config/                 # Umi 路由与构建配置
+│   ├── config/                 # 集中式路由、代理、主题与 OpenAPI 配置
+│   ├── vite.config.ts          # Vite 构建与 Vitest 测试入口
 │   ├── src/
 │   │   ├── components/         # 业务通用模板库 (UI 抽象与 Drawer/Modal 模板)
-│   │   ├── pages/              # 业务页面 (海空运订单、财务结算、主数据管理等)
+│   │   ├── pages/              # 业务页面 (海运出口、财务结算、主数据管理等)
+│   │   ├── features/           # 跨页面共享的领域能力，经 index.ts 公开
 │   │   └── services/           # 自动生成的 OpenAPI 接口请求客户端
 ├── scripts/                    # 自动化与验收测试脚本
 ├── docs/                       # 架构设计与本地开发详细文档
@@ -71,8 +76,8 @@ roncin-go-admin/
 
 ### 1. 环境准备 (Prerequisites)
 
-- **Node.js** >= `24.14.1` 及 **pnpm** >= `10.0`
-- **Go** >= `1.25`
+- **Node.js** >= `24.14.1`，**pnpm** 版本按根 `package.json` 的 `packageManager`（当前为 `10.33.4`）
+- **Go** >= `1.26.9`（以 `server/go.mod` 为准）
 - **PostgreSQL** >= `16`
 
 ### 2. 克隆项目与安装依赖
@@ -154,8 +159,9 @@ pnpm run dev:server
 
 ## 🌐 行业公共主数据同步 (可选)
 
-系统初始化时已预置标准箱型、服务类型、货类与国家等基础字典。机场、港口等全球
-标准字典通过以下官方数据链路按需同步：
+系统初始化时已预置标准箱型、服务类型、货类与国家等基础字典。行业资料可用
+`pnpm run sync:all` 一键同步，也可按需执行以下命令。港口默认读取仓库归档包，机场
+默认从 OurAirports 下载；具体来源与参数以对应 `server/cmd/sync-*` 入口为准。
 
 ```bash
 # 1. 同步民政部全国 12 位五级行政区划 (省市区县街道)
@@ -164,8 +170,11 @@ pnpm run sync:regions
 # 2. 同步 OurAirports 全球机场数据 (仅导入含合法 IATA 代码的记录，直接联网下载)
 pnpm run sync:airports
 
-# 3. 同步 UNECE UN/LOCODE 官方发布包 (仅导入海港；需人工下载 ZIP 后显式指定)
-pnpm run sync:unlocode -- -source /path/to/loc251csv.zip -release 2025-1
+# 3. 同步 UNECE UN/LOCODE 海港数据（默认读取 server/seeds/loc251csv.zip）
+pnpm run sync:unlocode
+
+# 使用其他发布包时，显式指定路径与版本
+pnpm run sync:unlocode -- -source /path/to/loc252csv.zip -release 2025-2
 ```
 
 ---
@@ -186,8 +195,8 @@ pnpm run dev:permit
 ### 代码检查与自动化测试
 
 ```bash
-# 全项目一键质量检查 (前端 Lint/Test + 后端 Test/Vet/Vulncheck)
-pnpm run check
+# 全栈验收优先使用并行门禁（前端与后端并行）
+pnpm run check:fast
 
 # 前端代码静态检查与单元测试 (Biome + Vitest)
 pnpm run check:web
@@ -195,9 +204,19 @@ pnpm run check:web
 # 后端代码检查、单元测试与漏洞扫描
 pnpm run check:server
 
-# 运行财务结算端到端验收测试套件
-pnpm run acceptance:finance
+# 开发过程中按改动范围选择定向测试，完整命令与阶段要求见 AGENTS.md
 ```
+
+既有业务验收脚本与单元测试门禁分开使用。运行前核对当前契约、目标数据库和数据写入范围；
+集成测试的跳过结果不计为真实数据库验证通过。海运出口脚本的已知限制见
+[验收说明](docs/plans/海运出口订单闭环验收.md#既有自动化脚本与限制)。
+
+### 继续开发的规范入口
+
+- [协作约束](AGENTS.md)：变更边界、生成流程、验证和提交要求。
+- [领域地图](.trellis/spec/domain/architecture-map.md)：核心业务链路与代码定位。
+- [服务端规范](.trellis/spec/server/backend/index.md)：分层、事务、权限和领域契约。
+- [前端规范](.trellis/spec/web/frontend/index.md)：页面模板、请求状态和能力复用。
 
 ---
 
