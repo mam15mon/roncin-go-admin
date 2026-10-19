@@ -1,12 +1,12 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
 import {
   authenticated,
   deferred,
   mocks,
   mount,
   replace,
-} from './embedded-login.test-support';
+} from '@root/tests/login-embedded-support';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
 describe('钉钉免登生命周期隔离', () => {
   it('换码前同步通知父级锁定，真实卸载清理父级锁', async () => {

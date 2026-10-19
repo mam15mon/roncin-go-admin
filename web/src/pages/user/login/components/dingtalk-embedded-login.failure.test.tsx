@@ -1,6 +1,6 @@
+import { mocks, mount, replace } from '@root/tests/login-embedded-support';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { mocks, mount, replace } from './embedded-login.test-support';
 
 describe('钉钉免登失败与迟到结果', () => {
   it.each(['disabled', 'missing-config', 'expired', 'config-error'])(

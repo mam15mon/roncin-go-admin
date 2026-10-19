@@ -1,13 +1,13 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { DingTalkLoginStatus } from '@/enums.generated';
 import {
   authenticated,
   deferred,
   mocks,
   mount,
   replace,
-} from './embedded-login.test-support';
+} from '@root/tests/login-embedded-support';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { DingTalkLoginStatus } from '@/enums.generated';
 
 describe('钉钉客户端免登', () => {
   it('StrictMode 及父层重渲染仅取一次码换一次会话，回到完整目标', async () => {

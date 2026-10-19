@@ -4,7 +4,7 @@ import { App } from 'antd';
 import { StrictMode } from 'react';
 import { afterEach, beforeEach, vi } from 'vitest';
 import { DingTalkLoginStatus } from '@/enums.generated';
-import { DingTalkEmbeddedLogin } from './dingtalk-embedded-login';
+import { DingTalkEmbeddedLogin } from '@/pages/user/login/components/dingtalk-embedded-login';
 
 const mockState = vi.hoisted(() => ({
   config: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceDingTalkEmbeddedLogin: mockState.login,
   authServiceSwitchOrganization: mockState.switchOrganization,
 }));
-vi.mock('../dingtalkEmbeddedSdk', () => ({
+vi.mock('@/pages/user/login/dingtalkEmbeddedSdk', () => ({
   requestEmbeddedAuthCode: mockState.code,
 }));
 vi.mock('antd', async (original) => {
