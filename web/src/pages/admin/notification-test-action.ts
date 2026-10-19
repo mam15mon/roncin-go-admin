@@ -5,6 +5,8 @@ export function notificationActionUrl(
 ) {
   if (!actionTitle?.trim() || !actionUrl || /[\s\\?#]/.test(actionUrl))
     return '';
+  const rawUrl = /^https?:\/\/([^/?#]+)(\/[^?#]*)$/i.exec(actionUrl);
+  if (!rawUrl || rawUrl[1].includes('@')) return '';
   try {
     const url = new URL(actionUrl);
     const uuid = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
@@ -24,7 +26,8 @@ export function notificationActionUrl(
       !url.password &&
       !url.search &&
       !url.hash &&
-      url.href === actionUrl
+      // 只比较原始路径；域名大小写及默认端口由 URL 解析器规范化。
+      url.pathname === rawUrl[2]
       ? actionUrl
       : '';
   } catch {

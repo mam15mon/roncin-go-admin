@@ -24,11 +24,22 @@ describe('通知动作目标边界', () => {
   });
 
   it.each([
+    'https://Admin.Example.Com/welcome',
+    'https://configured.example.test:443/welcome',
+    'https://Admin.Example.Com:443/welcome',
+    'http://Admin.Example.Com:80/welcome',
+  ])('接受合法配置站点的大小写和默认端口 %s', (url) => {
+    expect(notificationActionUrl('打开系统首页', url)).toBe(url);
+  });
+
+  it.each([
     'javascript:alert(1)',
     'data:text/html,<b>test</b>',
     '//configured.example.test/welcome',
     '/welcome',
     'https://user:password@configured.example.test/welcome',
+    'https://@configured.example.test/welcome',
+    'https:///configured.example.test/welcome',
     `${origin}/welcome?redirect=https://evil.test`,
     `${origin}/welcome#target`,
     `${origin}/welcome?`,
@@ -36,6 +47,9 @@ describe('通知动作目标边界', () => {
     `${origin}/welcome/`,
     `${origin}/orders/../welcome`,
     `${origin}/orders/%2e%2e/welcome`,
+    'https://Admin.Example.Com:443/orders/../welcome',
+    'https://Admin.Example.Com:443/orders/%2e%2e/welcome',
+    'https://Admin.Example.Com:443/%77elcome',
     `${origin}/%77elcome`,
     `${origin}/orders/sea-export/not-a-uuid/fees`,
     `${origin}/orders/sea-export/${uuid}/fees/extra`,
