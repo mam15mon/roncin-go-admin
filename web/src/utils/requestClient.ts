@@ -85,7 +85,9 @@ export async function request<T>(
   const requestScope =
     url === '/api/v1/auth/dingtalk/login-config' ||
     url === '/api/v1/auth/dingtalk/login' ||
-    url === '/api/v1/auth/login'
+    url === '/api/v1/auth/login' ||
+    url === '/api/v1/auth/password-reset/code' ||
+    url === '/api/v1/auth/password-reset/confirm'
       ? undefined
       : workspaceRequestScope;
   const {

@@ -52,8 +52,9 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
       );
   });
   await page.goto('/user/login');
+  await page.getByRole('radio', { name: '账号登录' }).click();
   await page
-    .getByPlaceholder('用户名 / 邮箱')
+    .getByPlaceholder('钉钉手机号 / 本地账号')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_USERNAME'));
   await page
     .getByPlaceholder('请输入密码')

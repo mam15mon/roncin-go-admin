@@ -247,6 +247,8 @@ describe('认证工作区统一请求提示隔离', () => {
     '/api/v1/auth/dingtalk/login-config',
     '/api/v1/auth/dingtalk/login',
     '/api/v1/auth/login',
+    '/api/v1/auth/password-reset/code',
+    '/api/v1/auth/password-reset/confirm',
   ])('公开协议%s的传输和成功报文不因工作区卸载丢失', async (url) => {
     const release = beginScope();
     const pending = pendingRequest();

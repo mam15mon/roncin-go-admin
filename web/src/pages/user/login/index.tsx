@@ -6,11 +6,13 @@ import {
   LockOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { App, Button, Checkbox, Form, Input, Segmented } from 'antd';
 import React, { startTransition, useCallback, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import { QuarterRing } from '@/components/ui';
+import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import { authServiceLogin } from '@/services/roncin/authService';
@@ -22,6 +24,7 @@ import {
   OrganizationPicker,
   resolveLoginOrganizationOptions,
 } from './components/organization-picker';
+import { PasswordResetModal } from './components/password-reset-modal';
 import styles from './index.module.less';
 
 function safeRedirect(value: string | null): string {
@@ -34,6 +37,8 @@ function safeRedirect(value: string | null): string {
 export default function Login() {
   const { setInitialState } = useInitialState();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [form] = Form.useForm<API.LoginRequest>();
 
   const [loading, setLoading] = useState(false);
@@ -125,6 +130,28 @@ export default function Login() {
         </div>
       </div>
 
+      {resetPasswordOpen && (
+        <PasswordResetModal
+          initialMobile={form.getFieldValue('username')}
+          onClose={() => setResetPasswordOpen(false)}
+          onSuccess={(mobile) => {
+            clearOrderMasterDataCache();
+            queryClient.clear();
+            sessionStorage.removeItem('dingtalk_login_redirect');
+            setInitialState((state) => ({ ...state, currentUser: undefined }));
+            setOrganizationSelection(undefined);
+            setPendingRedirect('/');
+            form.setFieldsValue({ username: mobile, password: '' });
+            setPasswordValue('');
+            setShowPassword(false);
+            setIsTyping(false);
+            setLoginMode('password');
+            setResetPasswordOpen(false);
+            message.success('密码设置成功，所有设备已退出，请重新登录');
+          }}
+        />
+      )}
+
       {/* 认证主体与独立页脚 */}
       <div className={styles.formSection}>
         <div className={styles.mobileLogo}>
@@ -153,7 +180,7 @@ export default function Login() {
                 value={loginMode}
                 options={[
                   { label: '钉钉扫码', value: 'dingtalk' },
-                  { label: '管理员账号', value: 'password' },
+                  { label: '账号登录', value: 'password' },
                 ]}
                 disabled={loading}
                 onChange={(mode) => {
@@ -172,18 +199,20 @@ export default function Login() {
                   )}
                 </div>
                 <h1 className={styles.headerTitle}>
-                  {loginMode === 'dingtalk' ? '钉钉扫码登录' : '管理员账号登录'}
+                  {loginMode === 'dingtalk' ? '钉钉扫码登录' : '账号登录'}
                 </h1>
                 <p className={styles.headerSubtitle}>
                   {loginMode === 'dingtalk'
                     ? '打开手机钉钉「扫一扫」快速登录'
-                    : '请输入管理账号与密码登录系统'}
+                    : '使用钉钉手机号或本地账号与密码登录'}
                 </p>
               </div>
 
               <div className={styles.authContent}>
                 <DingTalkQrLogin
-                  active={loginMode === 'dingtalk' && !loading}
+                  active={
+                    loginMode === 'dingtalk' && !loading && !resetPasswordOpen
+                  }
                   onAuthenticated={handleDingTalkAuthenticated}
                 />
                 {loginMode === 'password' && (
@@ -195,11 +224,7 @@ export default function Login() {
                     initialValues={{ username: '', password: '' }}
                   >
                     {/* 用户名 */}
-                    <Form.Item
-                      name="username"
-                      rules={[{ required: true, message: '请输入用户名' }]}
-                      style={{ marginBottom: 18 }}
-                    >
+                    <Form.Item style={{ marginBottom: 18 }}>
                       <div>
                         <label
                           className={styles.inputLabel}
@@ -207,33 +232,36 @@ export default function Login() {
                         >
                           账号
                         </label>
-                        <Input
-                          id="login_username"
-                          size="large"
-                          placeholder="用户名 / 邮箱"
-                          prefix={
-                            <UserOutlined
-                              style={{
-                                color: '#94a3b8',
-                                fontSize: 16,
-                                marginRight: 6,
-                              }}
-                            />
-                          }
-                          className={styles.cleanInput}
-                          disabled={loading}
-                          onFocus={() => setIsTyping(true)}
-                          onBlur={() => setIsTyping(false)}
-                        />
+                        <Form.Item
+                          name="username"
+                          noStyle
+                          rules={[{ required: true, message: '请输入账号' }]}
+                        >
+                          <Input
+                            id="login_username"
+                            size="large"
+                            placeholder="钉钉手机号 / 本地账号"
+                            autoComplete="username"
+                            prefix={
+                              <UserOutlined
+                                style={{
+                                  color: '#94a3b8',
+                                  fontSize: 16,
+                                  marginRight: 6,
+                                }}
+                              />
+                            }
+                            className={styles.cleanInput}
+                            disabled={loading}
+                            onFocus={() => setIsTyping(true)}
+                            onBlur={() => setIsTyping(false)}
+                          />
+                        </Form.Item>
                       </div>
                     </Form.Item>
 
                     {/* 密码 */}
-                    <Form.Item
-                      name="password"
-                      rules={[{ required: true, message: '请输入密码' }]}
-                      style={{ marginBottom: 18 }}
-                    >
+                    <Form.Item style={{ marginBottom: 18 }}>
                       <div>
                         <label
                           className={styles.inputLabel}
@@ -241,39 +269,46 @@ export default function Login() {
                         >
                           密码
                         </label>
-                        <Input.Password
-                          id="login_password"
-                          size="large"
-                          placeholder="请输入密码"
-                          prefix={
-                            <LockOutlined
-                              style={{
-                                color: '#94a3b8',
-                                fontSize: 16,
-                                marginRight: 6,
-                              }}
-                            />
-                          }
-                          className={styles.cleanInput}
-                          disabled={loading}
-                          iconRender={(visible) =>
-                            visible ? (
-                              <EyeOutlined style={{ color: '#64748b' }} />
-                            ) : (
-                              <EyeInvisibleOutlined
-                                style={{ color: '#94a3b8' }}
+                        <Form.Item
+                          name="password"
+                          noStyle
+                          rules={[{ required: true, message: '请输入密码' }]}
+                        >
+                          <Input.Password
+                            id="login_password"
+                            size="large"
+                            placeholder="请输入密码"
+                            autoComplete="current-password"
+                            prefix={
+                              <LockOutlined
+                                style={{
+                                  color: '#94a3b8',
+                                  fontSize: 16,
+                                  marginRight: 6,
+                                }}
                               />
-                            )
-                          }
-                          visibilityToggle={{
-                            visible: showPassword,
-                            onVisibleChange: (visible) =>
-                              setShowPassword(visible),
-                          }}
-                          onChange={(e) => setPasswordValue(e.target.value)}
-                          onFocus={() => setIsTyping(true)}
-                          onBlur={() => setIsTyping(false)}
-                        />
+                            }
+                            className={styles.cleanInput}
+                            disabled={loading}
+                            iconRender={(visible) =>
+                              visible ? (
+                                <EyeOutlined style={{ color: '#64748b' }} />
+                              ) : (
+                                <EyeInvisibleOutlined
+                                  style={{ color: '#94a3b8' }}
+                                />
+                              )
+                            }
+                            visibilityToggle={{
+                              visible: showPassword,
+                              onVisibleChange: (visible) =>
+                                setShowPassword(visible),
+                            }}
+                            onChange={(e) => setPasswordValue(e.target.value)}
+                            onFocus={() => setIsTyping(true)}
+                            onBlur={() => setIsTyping(false)}
+                          />
+                        </Form.Item>
                       </div>
                     </Form.Item>
 
@@ -293,6 +328,14 @@ export default function Login() {
                       >
                         保持登录状态
                       </Checkbox>
+                      <Button
+                        type="link"
+                        disabled={loading}
+                        onClick={() => setResetPasswordOpen(true)}
+                        style={{ paddingInline: 0 }}
+                      >
+                        设置 / 忘记密码
+                      </Button>
                     </div>
 
                     {/* 登录操作按钮 */}

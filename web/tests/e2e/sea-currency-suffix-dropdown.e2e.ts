@@ -8,8 +8,9 @@ function requiredEnvironment(name: string) {
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/user/login');
+  await page.getByRole('radio', { name: '账号登录' }).click();
   await page
-    .getByPlaceholder('用户名 / 邮箱')
+    .getByPlaceholder('钉钉手机号 / 本地账号')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_USERNAME'));
   await page
     .getByPlaceholder('请输入密码')
@@ -54,7 +55,12 @@ test('货值/保费 suffix 币种下拉在真人点击节奏（按住停顿）�
     await select.scrollIntoViewIfNeeded();
     const box = await select.boundingBox();
     expect(box, `${label} 币种下拉应可见`).toBeTruthy();
-    const { x, y, width, height } = box as { x: number; y: number; width: number; height: number };
+    const { x, y, width, height } = box as {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
 
     // 模拟真人点击：mousedown 后按住约 200ms 再松开。
     // 修复前：mouseup 的 click 冒泡到外层金额输入框触发 triggerFocus，
