@@ -27,6 +27,12 @@ DB: users.dingtalk_mobile_normalized、password_reset_challenges
 
 ## 3. 契约
 
+### 运行环境与正式迁移
+
+- 使用本功能前，当前数据库必须已应用 `20261019100000_mobile_login_password_reset.sql`，包括 `users.dingtalk_mobile_normalized`、`password_reset_challenges` 及其索引/CHECK。隔离测试库迁移成功不能证明正在服务的开发库已迁移。
+- 长期运行的 `pnpm dev` 只在启动阶段执行迁移；`server/.air.toml` 即使监听 `.sql`，后续热更新也只重编译 Go。新增迁移落地后，在当前开发环境执行 `pnpm run migrate:dev`（或重启 `pnpm dev`）；生产执行 `pnpm run migrate:server`，禁止业务入口自动建表或缺表回退。
+- 验收应只读核对当前库的 `schema_migrations.version`、目标表/列，并保留身份、密码和组织授权。未知号码接口烟测必须先确认该号码没有任何本地账号或手机号匹配，避免向真实员工发送验证码。
+
 ### 身份与资料
 
 - username 输入联合解析本地用户名和规范化钉钉手机号；合法手机号同时将规范化号码作为本地用户名候选，避免 +86 或空白格式绕过数字用户名冲突。按用户 ID 去重后再验证密码。不同用户冲突必须拒绝，不以启停过滤猜测目标，不依次验证多人的密码。
@@ -66,6 +72,7 @@ DB: users.dingtalk_mobile_normalized、password_reset_challenges
 | 错误、失效、用过、旧代或绑定不符的验证码 | 400 AUTH_PASSWORD_RESET_INVALID |
 | 新密码不符合现有规则 | 400 AUTH_PASSWORD_RESET_PASSWORD |
 | 持久化或审计失败 | 整体回滚，不返回业务成功 |
+| 当前环境未应用本期迁移 | 停止业务验收；执行对应环境的正式迁移后验证表/列与接口，不以热重载成功代替迁移 |
 
 ## 5. 正常、基准与错误场景
 
@@ -82,10 +89,14 @@ DB: users.dingtalk_mobile_normalized、password_reset_challenges
 - HTTP：公开规则、no-store、Cookie 清理、冷却 metadata 白名单和敏感错误不泄漏。
 - 前端：实际账号/密码载荷、首次/找回、倒计时及 429、手机号变化迟到响应、关闭清理、成功退出与扫码相邻路径。
 - 验收区分真实 PASS/FAIL/SKIP，普通 go test 的 Skip 不能证明真实锁/迁移已经验证。
+- 当前开发环境的迁移 revision、目标表/列/索引/CHECK 和不发送真实消息的 HTTP 烟测；执行迁移前后核对已有身份/密码/组织关系不变。
 
 ## 7. 错误与正确示例
 
 ```text
+错误：新功能已合并且 Air 热重载成功，就认定当前开发数据库已升级。
+正确：执行 pnpm run migrate:dev，核对本期 revision/表/列后再进行接口验收。
+
 错误：按手机号查到第一条启用用户就发码，输入验证码后直接改密码。
 正确：联合匹配并排除歧义，绑定固定 UserID + 钉钉身份；最终事务复核状态和当前手机号。
 
