@@ -22,6 +22,8 @@ RotateSession(ctx, userID, currentTokenHash, targetOrgID, ...)  // 单事务轮�
 
 ## 3. Contracts
 
+- **钉钉双通道**：扫码 OAuth 与客户端临时免登码采用独立换码端点/state Cookie，解析身份后共享已同步账号准入、工作台候选和会话创建；不按通知目标自动切组织，详见 [客户端免登](./dingtalk-embedded-login.md)。
+
 - **手机号与密码找回**：统一账号入口支持钉钉手机号及本地用户名；联合解析用户身份，
   不因手机号登录修改 username 或组织授权。密码找回同事务写密码、一次性消费验证码、
   撤销本人所有会话并审计。最终密码登录建会话必须核对已验证的密码哈希未被重置；

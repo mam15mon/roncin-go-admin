@@ -14,6 +14,7 @@
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
 | [Hook Guidelines](./hook-guidelines.md) | 数据获取与自定义 Hook | ✅ |
+| [DingTalk Embedded Login](../../server/backend/dingtalk-embedded-login.md) | 钉钉内按需SDK免登、单次尝试/迟到隔离、三层预热分流及安全回跳 | ✅ |
 | [DingTalk QR Login](./dingtalk-qr-login.md) | 默认扫码、账号密码/自助设置切换、配置串行和消息校验 | ✅ |
 | [Type Safety](./type-safety.md) | 生成物类型与权限键对齐 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | pnpm、校验命令、禁令 | ✅ |

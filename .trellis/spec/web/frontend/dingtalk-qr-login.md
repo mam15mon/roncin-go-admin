@@ -2,7 +2,8 @@
 
 ## 1. 适用范围
 
-适用于 `/user/login` 的默认扫码、账号密码切换与 `/user/login/dingtalk/callback`。复用钉钉 OAuth2 和人员状态机，不通过扫码创建或开通人员。
+适用于普通浏览器 `/user/login` 的默认扫码、账号密码切换与 `/user/login/dingtalk/callback`。
+钉钉客户端默认免登且三层入口不预加载扫码，见 [客户端免登契约](../../server/backend/dingtalk-embedded-login.md)。复用钉钉 OAuth2 和人员状态机，不通过扫码创建或开通人员。
 
 ## 2. 签名
 
@@ -29,7 +30,7 @@ Query key：['auth', 'dingtalk-login-config']
 
 ## 3. 契约
 
-- 默认展示真实钉钉 OAuth2 iframe，卡片顶部同时提供“钉钉扫码”和“账号登录”分段选择，当前方式明确选中；提交期间禁用切换。保留品牌资源，配置失败不静默改成密码表单。
+- 普通浏览器默认展示真实钉钉 OAuth2 iframe，卡片顶部同时提供“钉钉扫码”和“账号登录”分段选择，当前方式明确选中；提交期间禁用切换。保留品牌资源，配置失败不静默改成密码表单。
 - HTML 入口通过 `preconnect` 和 `dns-prefetch` 提前准备 `https://login.dingtalk.com`
   连接；仅在本次动态登录 HTML 响应中输出带 state 的 iframe，构建产物不含授权 URL。
 - 首次直接打开 `/user/login` 时，Go 服务复用认证 Service 创建本次配置和 Cookie，

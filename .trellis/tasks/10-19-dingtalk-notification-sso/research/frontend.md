@@ -98,7 +98,7 @@
 
 ### 主会话确认的实施合约（2026-10-19 补充）
 
-- SDK 仅选择 `runtime.permission.requestAuthCode`；按需导入 `dingtalk-jsapi/entry/union` 与 `dingtalk-jsapi/api/runtime/permission/requestAuthCode`，参数使用 `corpID`。主会话确认配套后端企业 `getuserinfo`；不能混用新版 `requestAuthCode`（V2）或增加协议回退。
+- SDK 仅选择 `runtime.permission.requestAuthCode`；按需导入 `dingtalk-jsapi/entry/union` 与 `dingtalk-jsapi/api/runtime/permission/requestAuthCode`，参数使用 `corpId`。主会话确认配套后端企业 `getuserinfo`；不能混用新版 `requestAuthCode`（V2）或增加协议回退。
 - 公开配置：`GET /api/v1/auth/dingtalk/embedded-config`，数据 `enabled, corpId, state, expiresAt`。
 - 免登换码：`POST /api/v1/auth/dingtalk/embedded-login`，请求 `{authCode,state}`，复用既有 `DingTalkLoginResponse`。前端依旧只消费生成客户端。
 - 多工作台沿用明确选择，普通浏览器行为保持，钉钉内允许用户明确点击“账号登录”。生产 HTML、Vite HTML 与前端预热一起完成环境分流。

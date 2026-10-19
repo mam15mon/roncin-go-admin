@@ -9,7 +9,7 @@
 1. 有效会话照常打开业务目标；401 保存完整 pathname/search/hash 并进入登录页。
 2. UA 包含 DingTalk（大小写不敏感）时，Go HTML、Vite HTML 和前端预热均跳过扫码配置及 iframe。UA 只决定体验，不是身份依据；登录 HTML 继续 no-store。
 3. 钉钉内默认展示客户端免登面板，一次尝试先通过生成客户端 GET `/api/v1/auth/dingtalk/embedded-config`，数据 `enabled, corpId?, state?, expiresAt?`。禁用只返回 enabled=false。
-4. 按需导入固定版本 dingtalk-jsapi 的 `entry/union` 与 `api/runtime/permission/requestAuthCode`，使用 `corpId`（以已核验 SDK 实际参数 `corpId`/`corpID` 类型为准）调用旧版 runtime.permission.requestAuthCode。只采用这一协议，不混用新版 dd.requestAuthCode 或 OAuth 授权码。
+4. 按需导入固定版本 dingtalk-jsapi 的 `entry/union` 与 `api/runtime/permission/requestAuthCode`，使用 SDK 的精确参数 `corpId` 调用旧版 runtime.permission.requestAuthCode。只采用这一协议，不混用新版 dd.requestAuthCode 或 OAuth 授权码。
 5. POST `/api/v1/auth/dingtalk/embedded-login` 请求 `{authCode,state}`，复用 DingTalkLoginResponse。服务端独立 state Cookie（五分钟、HttpOnly/Secure/SameSite/Path 与既有政策一致），换码时清除此 Cookie；两个接口 no-store。保留扫码 state Cookie 独立。
 6. provider 复用企业 app token，POST `https://oapi.dingtalk.com/topapi/v2/user/getuserinfo?access_token=...`，JSON `{code:...}`。必须得到非空 unionid、userid、name；CorpID 来自固定企业 app token 配置，不信任客户端传身份。错误映射领域错误，不输出上游凭据或原始报文。
 7. 扫码和客户端解析身份后进入共享私有准入函数：严格 unionID/userID 匹配已同步账号，复用未同步/待分配/停用状态、有效组织筛选、会话创建和审计。无自动建人、手机号绑定或授予权限。

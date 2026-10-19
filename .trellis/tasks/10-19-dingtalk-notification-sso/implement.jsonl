@@ -4,3 +4,4 @@
 {"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "异步生命周期与查询"}
 {"file": ".trellis/tasks/10-19-dingtalk-notification-sso/research/backend.md", "reason": "后端协议研究"}
 {"file": ".trellis/tasks/10-19-dingtalk-notification-sso/research/frontend.md", "reason": "前端接入研究"}
+{"file": ".trellis/spec/server/backend/dingtalk-embedded-login.md", "reason": "本次跨层客户端免登执行契约"}
