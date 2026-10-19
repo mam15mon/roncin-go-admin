@@ -5,14 +5,14 @@
 - [x] D1、D2 已由用户分别确认，PRD 已按最终需求整理。
 - [x] 已核对认证、密码工具、手机号同步、机器人消息、会话撤销及相关规范。
 - [x] 需求、设计、执行计划与实现/检查上下文清单形成审阅稿。
-- [ ] 向用户展示最新完整方案，并取得后续消息中的明确实施批准。
-- [ ] 批准后执行 `python3 .trellis/scripts/task.py start .trellis/tasks/10-19-mobile-login-dingtalk-password`。
+- [x] 向用户展示最新完整方案，并取得后续消息中的明确实施批准；用户还要求 review 后合并主分支、安全删除分支并 push。
+- [x] 批准后执行 `python3 .trellis/scripts/task.py start .trellis/tasks/10-19-mobile-login-dingtalk-password`，分支为 `codex/mobile-login-dingtalk-password`。
 
-当前仅完成规划，以上未勾选步骤不得提前执行。
+任务已激活，按下述阶段实施；最终合并、分支删除和推送由主会话在验收后执行。
 
 ## 分工和依赖
 
-本功能是单个联合验收闭环，保留一个任务。实现代理负责下述产品代码及针对性测试，检查代理在实现完成后核查并修正范围内问题；主会话维护任务产物、协调冲突、审阅和提交。实现、检查有先后关系，不让两个代理同时修改 auth 等共享文件。每次代理派发以 `Active task: .trellis/tasks/10-19-mobile-login-dingtalk-password` 开头，明确文件所有权、共享工作区及不得覆盖其他人改动。
+本功能是单个联合验收闭环，保留一个任务。后端实现代理负责 server、迁移和全部生成物（含前端生成客户端）；前端实现代理负责 web 手写组件/样式/测试，两者按确定的 RPC 契约并行。检查代理在实现完成后核查并修正范围内问题；主会话维护任务产物、准备隔离数据库、协调冲突、审阅和交付。实现、检查有先后关系，不让两个代理同时修改 auth 等共享文件。每次代理派发以 `Active task: .trellis/tasks/10-19-mobile-login-dingtalk-password` 开头，明确文件所有权、共享工作区及不得覆盖其他人改动。
 
 ## 阶段一：契约和数据基础
 
