@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { requestCode } = vi.hoisted(() => ({ requestCode: vi.fn() }));
-vi.mock('dingtalk-jsapi/entry/union', () => ({}));
 vi.mock('dingtalk-jsapi/api/runtime/permission/requestAuthCode', () => ({
   default: requestCode,
 }));
 beforeEach(() => {
   vi.resetModules();
+  vi.doMock('dingtalk-jsapi/entry/union', () => ({}));
   requestCode.mockReset();
 });
 afterEach(() => {
@@ -51,6 +51,25 @@ describe('钉钉免登 SDK', () => {
   it('组件离开后 SDK 加载完成不再取码', async () => {
     const { requestEmbeddedAuthCode } = await import('./dingtalkEmbeddedSdk');
     void requestEmbeddedAuthCode('corp-a', () => false);
+    await vi.dynamicImportSettled();
+    expect(requestCode).not.toHaveBeenCalled();
+  });
+  it('SDK 加载超时后迟到的动态导入不再调用原生取码', async () => {
+    vi.useFakeTimers();
+    let finishImport!: () => void;
+    const entry = new Promise<Record<string, never>>((resolve) => {
+      finishImport = () => resolve({});
+    });
+    vi.doMock('dingtalk-jsapi/entry/union', () => entry);
+    const { requestEmbeddedAuthCode } = await import('./dingtalkEmbeddedSdk');
+    const pending = requestEmbeddedAuthCode('corp-a', () => true);
+    const assertion = expect(pending).rejects.toThrow('认证超时');
+    await vi.advanceTimersByTimeAsync(15000);
+    await assertion;
+    expect(requestCode).not.toHaveBeenCalled();
+
+    finishImport();
+    vi.useRealTimers();
     await vi.dynamicImportSettled();
     expect(requestCode).not.toHaveBeenCalled();
   });
