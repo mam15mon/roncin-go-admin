@@ -1,5 +1,6 @@
 import { type QueryClient, queryOptions } from '@tanstack/react-query';
 import { authServiceGetDingTalkLoginConfig } from '@/services/roncin/authService';
+import { isDingTalkClient } from './dingtalkEnvironment';
 import {
   type LoginConfig,
   parseDingTalkLoginResponse,
@@ -72,9 +73,11 @@ export const dingTalkLoginConfigOptions = queryOptions({
 export function preloadDingTalkLoginConfig(
   queryClient: QueryClient,
   pathname: string,
+  userAgent = navigator.userAgent,
 ): Promise<void> {
   // 回调页不能覆盖本次换码的 state Cookie，已登录业务页也不启动配置请求。
-  if (pathname !== '/user/login') return Promise.resolve();
+  if (pathname !== '/user/login' || isDingTalkClient(userAgent))
+    return Promise.resolve();
   return queryClient.prefetchQuery(dingTalkLoginConfigOptions);
 }
 

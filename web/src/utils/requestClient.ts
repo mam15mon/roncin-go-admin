@@ -83,6 +83,8 @@ export async function request<T>(
 ): Promise<T> {
   // 登录配置/换码属于公开会话协议，不参与业务工作区清理。
   const requestScope =
+    url === '/api/v1/auth/dingtalk/embedded-config' ||
+    url === '/api/v1/auth/dingtalk/embedded-login' ||
     url === '/api/v1/auth/dingtalk/login-config' ||
     url === '/api/v1/auth/dingtalk/login' ||
     url === '/api/v1/auth/login' ||

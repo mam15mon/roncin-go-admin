@@ -16,12 +16,12 @@ import {
   resolveLoginOrganizationOptions,
 } from './components/organization-picker';
 import styles from './index.module.less';
+import { safeLoginRedirect } from './redirect';
 
 function storedRedirect(): string {
   const value = sessionStorage.getItem('dingtalk_login_redirect');
   sessionStorage.removeItem('dingtalk_login_redirect');
-  if (!value?.startsWith('/') || value.startsWith('//')) return '/';
-  return value;
+  return safeLoginRedirect(value);
 }
 
 export default function DingTalkCallback() {

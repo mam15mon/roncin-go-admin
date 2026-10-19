@@ -52,9 +52,11 @@ export function AppLayout() {
   // 平移 onPageChange 未登录守卫。
   useEffect(() => {
     if (!currentUser && !PUBLIC_AUTH_PATHS.has(location.pathname)) {
-      history.replace(LOGIN_PATH);
+      history.replace(
+        `${LOGIN_PATH}?redirect=${encodeURIComponent(location.pathname + location.search + location.hash)}`,
+      );
     }
-  }, [currentUser, location.pathname]);
+  }, [currentUser, location.pathname, location.search, location.hash]);
 
   return (
     <ProLayout

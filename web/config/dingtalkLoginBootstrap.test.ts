@@ -55,6 +55,36 @@ afterEach(() => {
 });
 
 describe('开发登录页 HTML 引导', () => {
+  it.each(['DingTalk/7.0', 'Mozilla/5.0 dInGtAlK PC'])(
+    '钉钉 UA %s 不获取扫码配置且登录 HTML 仍禁止缓存',
+    async (userAgent) => {
+      const fetchConfig = vi.fn();
+      vi.stubGlobal('fetch', fetchConfig);
+      const { response, next } = await setup().request(
+        '/user/login?redirect=%2Forders',
+        'GET',
+        {
+          host: 'localhost:8001',
+          'user-agent': userAgent,
+          accept: 'text/html',
+        },
+      );
+      const html = response.end.mock.calls[0][0] as string;
+      expect(fetchConfig).not.toHaveBeenCalled();
+      expect(html).not.toContain('roncin-dingtalk-login-config');
+      expect(html).not.toContain('<iframe');
+      expect(html).toContain('/@vite/client');
+      expect(response.setHeader).toHaveBeenCalledWith(
+        'Cache-Control',
+        'no-store',
+      );
+      expect(response.setHeader).not.toHaveBeenCalledWith(
+        'Set-Cookie',
+        expect.anything(),
+      );
+      expect(next).not.toHaveBeenCalled();
+    },
+  );
   it('同一响应注入配置并原样透传多条Cookie，仍经过Vite转换且禁止缓存', async () => {
     const payload = { success: true, data: { enabled: false } };
     const cookies = [

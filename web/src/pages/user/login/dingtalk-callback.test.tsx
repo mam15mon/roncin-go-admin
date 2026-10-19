@@ -145,6 +145,23 @@ describe('DingTalkCallback', () => {
     expect(switchOrganization).not.toHaveBeenCalled();
   });
 
+  it('扫码存储回跳同样拒绝反斜杠外跳', async () => {
+    sessionStorage.setItem('dingtalk_login_redirect', '/\\evil.example');
+    dingTalkLogin.mockResolvedValueOnce({
+      data: authenticatedUser(
+        [{ id: 'org-1', code: 'TJ', name: '天津公司' }],
+        'org-1',
+      ),
+    });
+    renderWithClient(
+      <App>
+        <DingTalkCallback />
+      </App>,
+    );
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'));
+    expect(sessionStorage.getItem('dingtalk_login_redirect')).toBeNull();
+  });
+
   it.each(['认证请求失败', '人员尚未同步'])(
     '%s后返回扫码重新获取配置，回调期间不覆盖state Cookie',
     async (scenario) => {

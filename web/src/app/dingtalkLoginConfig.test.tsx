@@ -217,3 +217,15 @@ describe('钉钉登录配置预热', () => {
     client.clear();
   });
 });
+
+it('钉钉客户端不预热扫码配置', async () => {
+  const client = createTestQueryClient();
+  getConfig.mockClear();
+  await preloadDingTalkLoginConfig(
+    client,
+    '/user/login',
+    'Mozilla dInGtAlK/7.0',
+  );
+  expect(getConfig).not.toHaveBeenCalled();
+  client.clear();
+});

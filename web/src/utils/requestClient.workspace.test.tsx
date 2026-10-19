@@ -244,6 +244,8 @@ describe('认证工作区统一请求提示隔离', () => {
   });
 
   it.each([
+    '/api/v1/auth/dingtalk/embedded-config',
+    '/api/v1/auth/dingtalk/embedded-login',
     '/api/v1/auth/dingtalk/login-config',
     '/api/v1/auth/dingtalk/login',
     '/api/v1/auth/login',

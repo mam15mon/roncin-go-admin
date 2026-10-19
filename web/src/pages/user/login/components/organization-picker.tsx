@@ -1,6 +1,6 @@
 import { RightOutlined } from '@ant-design/icons';
 import { App, Spin } from 'antd';
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { authServiceSwitchOrganization } from '@/services/roncin/authService';
 import styles from './organization-picker.module.less';
 
@@ -50,6 +50,13 @@ export function OrganizationPicker({
 }: OrganizationPickerProps) {
   const { message } = App.useApp();
   const [switchingOrgId, setSwitchingOrgId] = useState<string>();
+  const live = useRef(false);
+  useLayoutEffect(() => {
+    live.current = true;
+    return () => {
+      live.current = false;
+    };
+  }, []);
 
   const handleSelect = async (
     option: LoginOrganizationOption,
@@ -65,18 +72,19 @@ export function OrganizationPicker({
         { organizationId: option.organizationId },
         { skipErrorHandler: true },
       );
-      if (!response || response.success === false) return;
+      if (!live.current || !response || response.success === false) return;
       if (!response.data?.id) {
         message.error('进入所选组织失败，请稍后重试');
         return;
       }
       onEnter();
     } catch (error) {
+      if (!live.current) return;
       message.error(
         error instanceof Error ? error.message : '进入所选组织失败，请稍后重试',
       );
     } finally {
-      setSwitchingOrgId(undefined);
+      if (live.current) setSwitchingOrgId(undefined);
     }
 
     return undefined;

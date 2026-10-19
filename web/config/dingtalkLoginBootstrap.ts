@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { Plugin } from 'vite';
+import { isDingTalkClient } from '../src/app/dingtalkEnvironment';
 import {
   PRELOADED_FRAME_ID,
   parseDingTalkLoginResponse,
@@ -50,19 +51,22 @@ export function dingTalkLoginBootstrap(): Plugin {
           return;
         }
 
+        const embedded = isDingTalkClient(request.headers['user-agent'] ?? '');
         let payload: unknown = failure;
         let cookies: string[] = [];
         try {
-          const configResponse = await fetch(configURL, {
-            headers:
-              !proxy.changeOrigin && request.headers.host
-                ? { host: request.headers.host }
-                : undefined,
-            signal: AbortSignal.timeout(5000),
-          });
-          if (!configResponse.ok) throw new Error('配置接口请求失败');
-          payload = await configResponse.json();
-          cookies = configResponse.headers.getSetCookie();
+          if (!embedded) {
+            const configResponse = await fetch(configURL, {
+              headers:
+                !proxy.changeOrigin && request.headers.host
+                  ? { host: request.headers.host }
+                  : undefined,
+              signal: AbortSignal.timeout(5000),
+            });
+            if (!configResponse.ok) throw new Error('配置接口请求失败');
+            payload = await configResponse.json();
+            cookies = configResponse.headers.getSetCookie();
+          }
         } catch {
           // 错误也随 HTML 显式传递，浏览器不再发第二次请求覆盖本次校验状态。
           payload = failure;
@@ -81,15 +85,15 @@ export function dingTalkLoginBootstrap(): Plugin {
           );
           const protocol = server.config.server?.https ? 'https' : 'http';
           const origin = `${protocol}://${request.headers.host}`;
-          const frame = preloadedFrame(payload, origin);
+          const frame = embedded ? '' : preloadedFrame(payload, origin);
           const html = await server.transformIndexHtml(
             request.url ?? '/user/login',
             template
               .replace('</body>', () => `${frame}</body>`)
-              .replace(
-                '</head>',
-                () =>
-                  `<script type="application/json" id="roncin-dingtalk-login-config">${serialized}</script></head>`,
+              .replace('</head>', () =>
+                embedded
+                  ? '</head>'
+                  : `<script type="application/json" id="roncin-dingtalk-login-config">${serialized}</script></head>`,
               ),
             request.originalUrl,
           );

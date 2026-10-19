@@ -43,6 +43,7 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.21",
     "decimal.js": "10.6.0",
+    "dingtalk-jsapi": "3.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-helmet-async": "^3.0.0",

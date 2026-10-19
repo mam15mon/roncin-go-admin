@@ -11,6 +11,7 @@ import { App, Button, Checkbox, Form, Input, Segmented } from 'antd';
 import React, { startTransition, useCallback, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
+import { isDingTalkClient } from '@/app/dingtalkEnvironment';
 import { QuarterRing } from '@/components/ui';
 import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
@@ -18,6 +19,7 @@ import { history } from '@/router/history';
 import { authServiceLogin } from '@/services/roncin/authService';
 import Settings from '../../../../config/defaultSettings';
 import { AnimatedCharacters } from './components/animated-characters';
+import { DingTalkEmbeddedLogin } from './components/dingtalk-embedded-login';
 import { DingTalkQrLogin } from './components/dingtalk-qr-login';
 import {
   type LoginOrganizationOption,
@@ -26,16 +28,11 @@ import {
 } from './components/organization-picker';
 import { PasswordResetModal } from './components/password-reset-modal';
 import styles from './index.module.less';
-
-function safeRedirect(value: string | null): string {
-  if (!value?.startsWith('/') || value.startsWith('//')) return '/';
-  const parsed = new URL(value, window.location.origin);
-  if (parsed.origin !== window.location.origin) return '/';
-  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-}
+import { safeLoginRedirect } from './redirect';
 
 export default function Login() {
   const { setInitialState } = useInitialState();
+  const embedded = isDingTalkClient(navigator.userAgent);
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
@@ -70,7 +67,7 @@ export default function Login() {
         response.organizationChoices,
         response.data,
       );
-      const redirect = safeRedirect(
+      const redirect = safeLoginRedirect(
         new URL(window.location.href).searchParams.get('redirect'),
       );
       startTransition(() => {
@@ -97,7 +94,10 @@ export default function Login() {
 
   const handleDingTalkAuthenticated = useCallback((callbackPath: string) => {
     const redirect = new URL(window.location.href).searchParams.get('redirect');
-    sessionStorage.setItem('dingtalk_login_redirect', safeRedirect(redirect));
+    sessionStorage.setItem(
+      'dingtalk_login_redirect',
+      safeLoginRedirect(redirect),
+    );
     history.replace(callbackPath);
   }, []);
 
@@ -179,7 +179,10 @@ export default function Login() {
                 size="large"
                 value={loginMode}
                 options={[
-                  { label: '钉钉扫码', value: 'dingtalk' },
+                  {
+                    label: embedded ? '钉钉免登' : '钉钉扫码',
+                    value: 'dingtalk',
+                  },
                   { label: '账号登录', value: 'password' },
                 ]}
                 disabled={loading}
@@ -199,22 +202,36 @@ export default function Login() {
                   )}
                 </div>
                 <h1 className={styles.headerTitle}>
-                  {loginMode === 'dingtalk' ? '钉钉扫码登录' : '账号登录'}
+                  {loginMode === 'dingtalk'
+                    ? embedded
+                      ? '钉钉客户端登录'
+                      : '钉钉扫码登录'
+                    : '账号登录'}
                 </h1>
                 <p className={styles.headerSubtitle}>
                   {loginMode === 'dingtalk'
-                    ? '打开手机钉钉「扫一扫」快速登录'
+                    ? embedded
+                      ? '使用当前钉钉身份进入工作台'
+                      : '打开手机钉钉「扫一扫」快速登录'
                     : '使用钉钉手机号或本地账号与密码登录'}
                 </p>
               </div>
 
               <div className={styles.authContent}>
-                <DingTalkQrLogin
-                  active={
-                    loginMode === 'dingtalk' && !loading && !resetPasswordOpen
-                  }
-                  onAuthenticated={handleDingTalkAuthenticated}
-                />
+                {embedded ? (
+                  loginMode === 'dingtalk' && (
+                    <DingTalkEmbeddedLogin
+                      onAccountLogin={() => setLoginMode('password')}
+                    />
+                  )
+                ) : (
+                  <DingTalkQrLogin
+                    active={
+                      loginMode === 'dingtalk' && !loading && !resetPasswordOpen
+                    }
+                    onAuthenticated={handleDingTalkAuthenticated}
+                  />
+                )}
                 {loginMode === 'password' && (
                   <Form<API.LoginRequest>
                     form={form}

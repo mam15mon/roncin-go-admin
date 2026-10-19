@@ -4,9 +4,11 @@ import React from 'react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import access from '@/access';
+import { history } from '@/router/history';
 import { AppLayout } from './AppLayout';
 
 const state = vi.hoisted(() => ({
+  loggedIn: true,
   md: false,
   platform: false,
   permissions: [
@@ -26,7 +28,9 @@ vi.mock('./AppProvider', () => ({
   PUBLIC_AUTH_PATHS: new Set(['/user/login']),
   useInitialState: () => ({
     initialState: {
-      currentUser: { id: 'user', currentOrganization: { id: 'org' } },
+      currentUser: state.loggedIn
+        ? { id: 'user', currentOrganization: { id: 'org' } }
+        : undefined,
     },
   }),
 }));
@@ -76,6 +80,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 afterEach(() => {
   cleanup();
+  state.loggedIn = true;
+  vi.mocked(history.replace).mockClear();
   closeDrawer.mockClear();
   state.md = false;
   state.platform = false;
@@ -122,4 +128,16 @@ it('md桌面不追加移动组，无权限移动不输出空组', () => {
     </MemoryRouter>,
   );
   expect(captured.menuDataRender?.([])).toEqual([]);
+});
+
+it('未登录补充守卫保留业务路径、查询和锚点', () => {
+  state.loggedIn = false;
+  render(
+    <MemoryRouter initialEntries={['/orders/sea-export/123?tab=fees#cost']}>
+      <AppLayout />
+    </MemoryRouter>,
+  );
+  expect(history.replace).toHaveBeenCalledWith(
+    '/user/login?redirect=%2Forders%2Fsea-export%2F123%3Ftab%3Dfees%23cost',
+  );
 });
