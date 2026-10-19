@@ -24,6 +24,15 @@
 - `ConfirmPasswordReset`：`challengeToken, code, newPassword` → 标准成功信封，无 data、不新建会话。
 - 429 metadata 提供 resendAvailableAt/serverTime；前端消费统一错误结构。
 
-## 未完成
+## 实施与 review
 
-实现、review、针对性与全量验收、规范同步、归档、合并 main、删除分支、push 与远端一致性检查均待执行。此文件为过程记录，不代表验收通过。
+- 前端实现 `843fb110`、后端及生成物 `73dde042`、review 修复 `91177f35` 已提交。
+- 独立 trellis-check 审阅全任务差异，修复锁后时效、中文成功提示、迁移引用风格与两个历史迁移测试边界，未遗留已确认产品缺陷。
+- `check:web` 和 `check:server` 完整门禁均 PASS；真实库定向与浏览器验证 PASS。完整隔离库运行统计及实际联调限制见 `../acceptance.md`。
+- 真实钉钉本人收件没有联调，未发送实际消息。
+
+## 验收结论
+
+完整隔离库运行 2,206 PASS、3 FAIL、0 SKIP；三项失败均为已识别迁移检查并已定向修复复验，准确记录于 acceptance.md，未将失败轮标记全通过。最终完整默认前后端门禁 PASS，review 无未解决产品缺陷。专用数据库、角色与凭据临时文件已清理，残留资源 0。
+
+主会话按授权完成本任务归档与日志后，执行合并 main、安全删除任务分支、push 和远端一致性检查；交付操作结果以会话最终报告为准。
