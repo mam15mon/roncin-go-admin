@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
-	"github.com/google/uuid"
+
 	v1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+
+	"github.com/google/uuid"
 )
 
 func (s *AdminService) ListNotificationTestTypes(ctx context.Context, _ *v1.ListNotificationTestTypesRequest) (*v1.ListNotificationTestTypesResponse, error) {

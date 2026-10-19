@@ -4,9 +4,10 @@ import (
 	"context"
 	"strings"
 
+	"github.com/roncin/roncin-go-admin/server/internal/access"
+
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
-	"github.com/roncin/roncin-go-admin/server/internal/access"
 )
 
 // NotificationTestUsecase 为 Admin 提供只读预览及向当前登录人发送示例通知。
