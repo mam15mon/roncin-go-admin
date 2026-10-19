@@ -1,6 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { App, Button, Result, Spin } from 'antd';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { DingTalkLoginStatus } from '@/enums.generated';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
@@ -17,10 +23,15 @@ import {
 
 interface Props {
   onAccountLogin: () => void;
+  /** 会写会话 Cookie 时及组织选择期间，禁止开始其他登录。 */
+  onSwitchLockChange?: (locked: boolean) => void;
 }
 
 /** 尝试 Promise 与订阅分开：StrictMode 重订阅，不重复消费一次性授权码。 */
-export function DingTalkEmbeddedLogin({ onAccountLogin }: Props) {
+export function DingTalkEmbeddedLogin({
+  onAccountLogin,
+  onSwitchLockChange,
+}: Props) {
   const { initialState, setInitialState } = useInitialState();
   const existingUser = useRef(initialState?.currentUser);
   const { message } = App.useApp();
@@ -28,6 +39,8 @@ export function DingTalkEmbeddedLogin({ onAccountLogin }: Props) {
   const [result, setResult] = useState<API.DingTalkLoginResult>();
   const [failure, setFailure] = useState<string>();
   const live = useRef(false);
+  const switchLockedRef = useRef(false);
+  const [switchLocked, setSwitchLocked] = useState(false);
   const attempt = useRef<{
     number: number;
     promise: Promise<API.DingTalkLoginResult | undefined>;
@@ -53,13 +66,21 @@ export function DingTalkEmbeddedLogin({ onAccountLogin }: Props) {
       authServiceDingTalkEmbeddedLogin(credentials, { skipErrorHandler: true }),
     meta: { silent: true },
   });
-  const callbacks = useRef({ setInitialState, message });
-  callbacks.current = { setInitialState, message };
+  const callbacks = useRef({ setInitialState, message, onSwitchLockChange });
+  callbacks.current = { setInitialState, message, onSwitchLockChange };
+  const changeSwitchLock = useCallback((locked: boolean) => {
+    // 同步门禁先于 React 提交，堵住请求发出与按钮禁用之间的同 tick 窗口。
+    switchLockedRef.current = locked;
+    callbacks.current.onSwitchLockChange?.(locked);
+    setSwitchLocked(locked);
+  }, []);
 
   useLayoutEffect(() => {
     live.current = true;
     return () => {
       live.current = false;
+      switchLockedRef.current = false;
+      callbacks.current.onSwitchLockChange?.(false);
     };
   }, []);
 
@@ -91,22 +112,32 @@ export function DingTalkEmbeddedLogin({ onAccountLogin }: Props) {
         if (!isActive()) return;
         if (expiresAt <= Date.now())
           throw new Error('钉钉免登配置已过期，请重试');
-        const response = await mutateAsync({ authCode, state: config.state });
-        const data = response?.data;
-        if (
-          !data ||
-          ![
-            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED,
-            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_NOT_SYNCED,
-            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_PENDING_ASSIGNMENT,
-            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_DISABLED,
-          ].some((status) => status === data.status) ||
-          (data.status ===
-            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED &&
-            !data.currentUser?.id)
-        )
-          throw new Error('钉钉认证未返回有效结果，请重试');
-        return data;
+        changeSwitchLock(true);
+        let authenticated = false;
+        try {
+          const response = await mutateAsync({ authCode, state: config.state });
+          const data = response?.data;
+          if (
+            !data ||
+            ![
+              DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED,
+              DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_NOT_SYNCED,
+              DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_PENDING_ASSIGNMENT,
+              DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_DISABLED,
+            ].some((status) => status === data.status) ||
+            (data.status ===
+              DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED &&
+              !data.currentUser?.id)
+          )
+            throw new Error('钉钉认证未返回有效结果，请重试');
+          authenticated =
+            data.status ===
+            DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED;
+          return data;
+        } finally {
+          // 已建立会话继续锁定直到导航或明确选完组织，失败响应落定才恢复切换。
+          if (isActive() && !authenticated) changeSwitchLock(false);
+        }
       })();
       attempt.current = { number: attemptNumber, promise };
     }
@@ -119,6 +150,7 @@ export function DingTalkEmbeddedLogin({ onAccountLogin }: Props) {
             DingTalkLoginStatus.DING_TALK_LOGIN_STATUS_AUTHENTICATED &&
           data.currentUser
         ) {
+          changeSwitchLock(true);
           callbacks.current.setInitialState((current) => ({
             ...current,
             currentUser: data.currentUser,
@@ -148,7 +180,7 @@ export function DingTalkEmbeddedLogin({ onAccountLogin }: Props) {
     return () => {
       subscribed = false;
     };
-  }, [attemptNumber, refetch, mutateAsync]);
+  }, [attemptNumber, refetch, mutateAsync, changeSwitchLock]);
 
   const options = resolveLoginOrganizationOptions(
     undefined,
@@ -214,7 +246,9 @@ export function DingTalkEmbeddedLogin({ onAccountLogin }: Props) {
       )}
       <Button
         block
+        disabled={switchLocked}
         onClick={() => {
+          if (switchLockedRef.current) return;
           live.current = false;
           onAccountLogin();
         }}

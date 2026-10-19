@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { App, Button, Checkbox, Form, Input, Segmented } from 'antd';
-import React, { startTransition, useCallback, useState } from 'react';
+import React, { startTransition, useCallback, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import { isDingTalkClient } from '@/app/dingtalkEnvironment';
@@ -39,6 +39,12 @@ export default function Login() {
   const [form] = Form.useForm<API.LoginRequest>();
 
   const [loading, setLoading] = useState(false);
+  const [embeddedSwitchLocked, setEmbeddedSwitchLocked] = useState(false);
+  const embeddedSwitchLockedRef = useRef(false);
+  const handleEmbeddedSwitchLock = useCallback((locked: boolean) => {
+    embeddedSwitchLockedRef.current = locked;
+    setEmbeddedSwitchLocked(locked);
+  }, []);
   const [isTyping, setIsTyping] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState('');
@@ -185,8 +191,9 @@ export default function Login() {
                   },
                   { label: '账号登录', value: 'password' },
                 ]}
-                disabled={loading}
+                disabled={loading || embeddedSwitchLocked}
                 onChange={(mode) => {
+                  if (embeddedSwitchLockedRef.current) return;
                   setIsTyping(false);
                   setShowPassword(false);
                   setLoginMode(mode);
@@ -221,7 +228,11 @@ export default function Login() {
                 {embedded ? (
                   loginMode === 'dingtalk' && (
                     <DingTalkEmbeddedLogin
-                      onAccountLogin={() => setLoginMode('password')}
+                      onSwitchLockChange={handleEmbeddedSwitchLock}
+                      onAccountLogin={() => {
+                        if (!embeddedSwitchLockedRef.current)
+                          setLoginMode('password');
+                      }}
                     />
                   )
                 ) : (

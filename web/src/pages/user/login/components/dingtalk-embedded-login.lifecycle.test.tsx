@@ -9,6 +9,21 @@ import {
 } from './embedded-login.test-support';
 
 describe('钉钉免登生命周期隔离', () => {
+  it('换码前同步通知父级锁定，真实卸载清理父级锁', async () => {
+    const pending = deferred<{ data: API.DingTalkLoginResult }>();
+    mocks.login.mockImplementationOnce(() => {
+      expect(mocks.switchLock).toHaveBeenLastCalledWith(true);
+      return pending.promise;
+    });
+    const view = mount();
+    await waitFor(() => expect(mocks.login).toHaveBeenCalledOnce());
+    expect(screen.getByRole('button', { name: '使用账号登录' })).toBeDisabled();
+    view.unmount();
+    expect(mocks.switchLock).toHaveBeenLastCalledWith(false);
+    await act(async () => pending.resolve({ data: authenticated() }));
+    expect(replace).not.toHaveBeenCalled();
+    expect(mocks.switchLock).toHaveBeenLastCalledWith(false);
+  });
   it('切账号后迟到 SDK 结果不换码，回调也被同步隔离', async () => {
     const pending = deferred<string>();
     mocks.code.mockReturnValue(pending.promise);

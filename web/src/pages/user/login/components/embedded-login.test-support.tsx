@@ -12,6 +12,7 @@ const mockState = vi.hoisted(() => ({
   code: vi.fn(),
   switchOrganization: vi.fn(),
   setInitialState: vi.fn(),
+  switchLock: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
   initialState: undefined as { currentUser?: API.CurrentUser } | undefined,
@@ -70,7 +71,10 @@ export function mount() {
   const view = renderWithClient(
     <StrictMode>
       <App>
-        <DingTalkEmbeddedLogin onAccountLogin={onAccountLogin} />
+        <DingTalkEmbeddedLogin
+          onAccountLogin={onAccountLogin}
+          onSwitchLockChange={mocks.switchLock}
+        />
       </App>
     </StrictMode>,
   );
