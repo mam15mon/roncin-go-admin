@@ -63,7 +63,7 @@ var (
 	ErrOrderCustomerInvalid           = errors.BadRequest("ORDER_CUSTOMER_INVALID", "订单客户必须是启用的客户角色")
 	ErrOrderStatusInvalid             = errors.BadRequest("ORDER_STATUS_INVALID", "订单状态不合法")
 	ErrOrderStatusConflict            = errors.Conflict("ORDER_STATUS_CONFLICT", "订单状态已被其他操作修改")
-	ErrOrderBusinessUnsupported       = errors.BadRequest("ORDER_BUSINESS_UNSUPPORTED", "当前仅支持海运出口订单")
+	ErrOrderBusinessUnsupported       = errors.BadRequest("ORDER_BUSINESS_UNSUPPORTED", "当前仅支持海运出口和空运出口订单")
 	ErrOrderTerminationInvalid        = errors.BadRequest("ORDER_TERMINATION_INVALID", "订单终止状态流转不合法")
 	ErrOrderClosureInvalid            = errors.BadRequest("ORDER_CLOSURE_INVALID", "订单结案状态流转不合法")
 	ErrOrderClosureBlocked            = errors.Conflict("ORDER_CLOSURE_BLOCKED", "订单尚未满足结案条件")

@@ -104,6 +104,13 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 			SetTransportExecutionID(seaSnapshot.TransportExecutionID).
 			SetTransportExecutionVersionID(seaSnapshot.TransportExecutionVersionID)
 	}
+	if businessType == access.OrderBusinessAE {
+		snapshot, e := airOrderLockDocumentSnapshot(ctx, tx, organizationID, order.ID)
+		if e != nil {
+			return nil, nil, e
+		}
+		recordCreate.SetAirDocumentSnapshot(snapshot)
+	}
 	rec, err := recordCreate.Save(ctx)
 	if err != nil {
 		return nil, nil, err

@@ -42,6 +42,8 @@ const (
 	FieldTriggerResourceID = "trigger_resource_id"
 	// FieldTriggeredBy holds the string denoting the triggered_by field in the database.
 	FieldTriggeredBy = "triggered_by"
+	// FieldAirDocumentSnapshot holds the string denoting the air_document_snapshot field in the database.
+	FieldAirDocumentSnapshot = "air_document_snapshot"
 	// FieldMasterBillID holds the string denoting the master_bill_id field in the database.
 	FieldMasterBillID = "master_bill_id"
 	// FieldMasterBillVersionID holds the string denoting the master_bill_version_id field in the database.
@@ -194,6 +196,7 @@ var Columns = []string{
 	FieldTriggerType,
 	FieldTriggerResourceID,
 	FieldTriggeredBy,
+	FieldAirDocumentSnapshot,
 	FieldMasterBillID,
 	FieldMasterBillVersionID,
 	FieldTransportExecutionID,

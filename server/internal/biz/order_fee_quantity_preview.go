@@ -24,17 +24,24 @@ type FeeQuantitySource struct {
 
 type FeeQuantityInput struct{ Label, Value, Unit string }
 type FeeQuantityPreview struct {
-	Available   bool
-	Quantity    string
-	SourceLabel string
-	Formula     string
-	Inputs      []FeeQuantityInput
-	Reason      string
+	Available      bool
+	Quantity       string
+	SourceLabel    string
+	Formula        string
+	Inputs         []FeeQuantityInput
+	Reason         string
+	QuantitySource *FeeQuantitySelection
 }
 
-func (uc *OrderFeeUsecase) PreviewFeeQuantity(ctx context.Context, organizationID, orderID, billingUnitID uuid.UUID, source string) (*FeeQuantityPreview, error) {
+func (uc *OrderFeeUsecase) PreviewFeeQuantity(ctx context.Context, organizationID, orderID, billingUnitID uuid.UUID, source, basis string) (*FeeQuantityPreview, error) {
 	if organizationID == uuid.Nil || orderID == uuid.Nil || billingUnitID == uuid.Nil || (source != "PLANNED" && source != "ACTUAL") {
 		return nil, ErrOrderFeeInvalidArgument
+	}
+	if basis != "" && basis != "GROSS_WEIGHT" {
+		if basis != "CONFIRMED_CHARGEABLE_WEIGHT" {
+			return nil, ErrOrderFeeInvalidArgument
+		}
+		return uc.repo.ConfirmedQuantityPreview(ctx, organizationID, orderID, billingUnitID, source)
 	}
 	data, err := uc.repo.QuantitySource(ctx, organizationID, orderID, billingUnitID, source)
 	if err != nil {

@@ -159,6 +159,12 @@ func (_c *OrderLockRecordCreate) SetNillableTriggeredBy(v *uuid.UUID) *OrderLock
 	return _c
 }
 
+// SetAirDocumentSnapshot sets the "air_document_snapshot" field.
+func (_c *OrderLockRecordCreate) SetAirDocumentSnapshot(v map[string]string) *OrderLockRecordCreate {
+	_c.mutation.SetAirDocumentSnapshot(v)
+	return _c
+}
+
 // SetMasterBillID sets the "master_bill_id" field.
 func (_c *OrderLockRecordCreate) SetMasterBillID(v uuid.UUID) *OrderLockRecordCreate {
 	_c.mutation.SetMasterBillID(v)
@@ -663,6 +669,10 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 		_spec.SetField(orderlockrecord.FieldTriggerResourceID, field.TypeUUID, value)
 		_node.TriggerResourceID = &value
 	}
+	if value, ok := _c.mutation.AirDocumentSnapshot(); ok {
+		_spec.SetField(orderlockrecord.FieldAirDocumentSnapshot, field.TypeJSON, value)
+		_node.AirDocumentSnapshot = value
+	}
 	if value, ok := _c.mutation.UnlockedAt(); ok {
 		_spec.SetField(orderlockrecord.FieldUnlockedAt, field.TypeTime, value)
 		_node.UnlockedAt = &value
@@ -1111,6 +1121,9 @@ func (u *OrderLockRecordUpsertOne) UpdateNewValues() *OrderLockRecordUpsertOne {
 		if _, exists := u.create.mutation.TriggeredBy(); exists {
 			s.SetIgnore(orderlockrecord.FieldTriggeredBy)
 		}
+		if _, exists := u.create.mutation.AirDocumentSnapshot(); exists {
+			s.SetIgnore(orderlockrecord.FieldAirDocumentSnapshot)
+		}
 		if _, exists := u.create.mutation.MasterBillID(); exists {
 			s.SetIgnore(orderlockrecord.FieldMasterBillID)
 		}
@@ -1514,6 +1527,9 @@ func (u *OrderLockRecordUpsertBulk) UpdateNewValues() *OrderLockRecordUpsertBulk
 			}
 			if _, exists := b.mutation.TriggeredBy(); exists {
 				s.SetIgnore(orderlockrecord.FieldTriggeredBy)
+			}
+			if _, exists := b.mutation.AirDocumentSnapshot(); exists {
+				s.SetIgnore(orderlockrecord.FieldAirDocumentSnapshot)
 			}
 			if _, exists := b.mutation.MasterBillID(); exists {
 				s.SetIgnore(orderlockrecord.FieldMasterBillID)

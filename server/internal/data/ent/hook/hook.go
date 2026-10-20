@@ -21,6 +21,78 @@ func (f AdministrativeRegionFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdministrativeRegionMutation", m)
 }
 
+// The AirHouseWaybillFunc type is an adapter to allow the use of ordinary
+// function as AirHouseWaybill mutator.
+type AirHouseWaybillFunc func(context.Context, *ent.AirHouseWaybillMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirHouseWaybillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirHouseWaybillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirHouseWaybillMutation", m)
+}
+
+// The AirHouseWaybillVersionFunc type is an adapter to allow the use of ordinary
+// function as AirHouseWaybillVersion mutator.
+type AirHouseWaybillVersionFunc func(context.Context, *ent.AirHouseWaybillVersionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirHouseWaybillVersionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirHouseWaybillVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirHouseWaybillVersionMutation", m)
+}
+
+// The AirMasterWaybillFunc type is an adapter to allow the use of ordinary
+// function as AirMasterWaybill mutator.
+type AirMasterWaybillFunc func(context.Context, *ent.AirMasterWaybillMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirMasterWaybillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirMasterWaybillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirMasterWaybillMutation", m)
+}
+
+// The AirMasterWaybillHistoryFunc type is an adapter to allow the use of ordinary
+// function as AirMasterWaybillHistory mutator.
+type AirMasterWaybillHistoryFunc func(context.Context, *ent.AirMasterWaybillHistoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirMasterWaybillHistoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirMasterWaybillHistoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirMasterWaybillHistoryMutation", m)
+}
+
+// The AirMasterWaybillOrderLinkFunc type is an adapter to allow the use of ordinary
+// function as AirMasterWaybillOrderLink mutator.
+type AirMasterWaybillOrderLinkFunc func(context.Context, *ent.AirMasterWaybillOrderLinkMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirMasterWaybillOrderLinkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirMasterWaybillOrderLinkMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirMasterWaybillOrderLinkMutation", m)
+}
+
+// The AirWeightConfirmationFunc type is an adapter to allow the use of ordinary
+// function as AirWeightConfirmation mutator.
+type AirWeightConfirmationFunc func(context.Context, *ent.AirWeightConfirmationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirWeightConfirmationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AirWeightConfirmationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirWeightConfirmationMutation", m)
+}
+
 // The AirlineFunc type is an adapter to allow the use of ordinary
 // function as Airline mutator.
 type AirlineFunc func(context.Context, *ent.AirlineMutation) (ent.Value, error)

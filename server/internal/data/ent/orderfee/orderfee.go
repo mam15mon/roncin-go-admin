@@ -44,6 +44,8 @@ const (
 	FieldTaxRate = "tax_rate"
 	// FieldTaxableServiceName holds the string denoting the taxable_service_name field in the database.
 	FieldTaxableServiceName = "taxable_service_name"
+	// FieldQuantitySource holds the string denoting the quantity_source field in the database.
+	FieldQuantitySource = "quantity_source"
 	// FieldQuantity holds the string denoting the quantity field in the database.
 	FieldQuantity = "quantity"
 	// FieldUnitPrice holds the string denoting the unit_price field in the database.
@@ -220,6 +222,7 @@ var Columns = []string{
 	FieldBillingUnit,
 	FieldTaxRate,
 	FieldTaxableServiceName,
+	FieldQuantitySource,
 	FieldQuantity,
 	FieldUnitPrice,
 	FieldTotalAmount,

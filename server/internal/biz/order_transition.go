@@ -66,7 +66,7 @@ func validSEFlowTransition(from, to OrderFlowStatus) bool {
 
 // AllowedTargetFlowStatuses 返回当前订单可执行的主流程目标状态。
 func (order *Order) AllowedTargetFlowStatuses() []OrderFlowStatus {
-	if order.BusinessType != OrderBusinessSE || order.TerminationStatus != OrderTerminationActive || order.ClosureStatus != OrderClosureOpen {
+	if (order.BusinessType != OrderBusinessSE && order.BusinessType != OrderBusinessAE) || order.TerminationStatus != OrderTerminationActive || order.ClosureStatus != OrderClosureOpen {
 		return nil
 	}
 	return append([]OrderFlowStatus(nil), allowedSEFlowTransitions[order.FlowStatus]...)
@@ -102,7 +102,7 @@ func (uc *OrderUsecase) TransitionStatus(ctx context.Context, organizationID, ac
 	if current.Version != expectedVersion {
 		return nil, ErrOrderStatusConflict
 	}
-	if current.BusinessType != OrderBusinessSE || current.TerminationStatus != OrderTerminationActive || current.ClosureStatus != OrderClosureOpen || !validSEFlowTransition(current.FlowStatus, targetStatus) {
+	if (current.BusinessType != OrderBusinessSE && current.BusinessType != OrderBusinessAE) || current.TerminationStatus != OrderTerminationActive || current.ClosureStatus != OrderClosureOpen || !validSEFlowTransition(current.FlowStatus, targetStatus) {
 		return nil, ErrOrderStatusInvalid
 	}
 	event := &OrderStatusChangedEvent{OrganizationID: organizationID, OrderID: id, ActorID: actorID, FromStatus: current.FlowStatus, ToStatus: targetStatus, OccurredAt: time.Now().UTC()}

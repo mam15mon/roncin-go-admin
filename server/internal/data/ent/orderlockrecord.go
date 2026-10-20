@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -52,6 +53,8 @@ type OrderLockRecord struct {
 	TriggerResourceID *uuid.UUID `json:"trigger_resource_id,omitempty"`
 	// TriggeredBy holds the value of the "triggered_by" field.
 	TriggeredBy *uuid.UUID `json:"triggered_by,omitempty"`
+	// AirDocumentSnapshot holds the value of the "air_document_snapshot" field.
+	AirDocumentSnapshot map[string]string `json:"air_document_snapshot,omitempty"`
 	// MasterBillID holds the value of the "master_bill_id" field.
 	MasterBillID *uuid.UUID `json:"master_bill_id,omitempty"`
 	// MasterBillVersionID holds the value of the "master_bill_version_id" field.
@@ -248,6 +251,8 @@ func (*OrderLockRecord) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case orderlockrecord.FieldLockedBy, orderlockrecord.FieldTriggerResourceID, orderlockrecord.FieldTriggeredBy, orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID, orderlockrecord.FieldTransportExecutionID, orderlockrecord.FieldTransportExecutionVersionID, orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case orderlockrecord.FieldAirDocumentSnapshot:
+			values[i] = new([]byte)
 		case orderlockrecord.FieldGeneration, orderlockrecord.FieldOrderVersionAtLock, orderlockrecord.FieldOrderVersionAtUnlock:
 			values[i] = new(sql.NullInt64)
 		case orderlockrecord.FieldOrderNo, orderlockrecord.FieldBusinessType, orderlockrecord.FieldLockSource, orderlockrecord.FieldTriggerType, orderlockrecord.FieldUnlockReason, orderlockrecord.FieldUnlockMode, orderlockrecord.FieldIdempotencyKey, orderlockrecord.FieldRequestFingerprint:
@@ -358,6 +363,14 @@ func (_m *OrderLockRecord) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TriggeredBy = new(uuid.UUID)
 				*_m.TriggeredBy = *value.S.(*uuid.UUID)
+			}
+		case orderlockrecord.FieldAirDocumentSnapshot:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field air_document_snapshot", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.AirDocumentSnapshot); err != nil {
+					return fmt.Errorf("unmarshal field air_document_snapshot: %w", err)
+				}
 			}
 		case orderlockrecord.FieldMasterBillID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -583,6 +596,9 @@ func (_m *OrderLockRecord) String() string {
 		builder.WriteString("triggered_by=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("air_document_snapshot=")
+	builder.WriteString(fmt.Sprintf("%v", _m.AirDocumentSnapshot))
 	builder.WriteString(", ")
 	if v := _m.MasterBillID; v != nil {
 		builder.WriteString("master_bill_id=")

@@ -27,15 +27,23 @@ func NewWorkbenchService(usecase *biz.WorkbenchUsecase, applications *biz.Financ
 // 处理而不是报错——个人工作台接口对无财务权限的员工仍然可用。
 func workbenchScopeFromPrincipal(p *biz.Principal) biz.WorkbenchScope {
 	now := time.Now()
+	var readableOrderTypes []biz.OrderBusinessType
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE} {
+		permission := access.OrderPermission(access.OrderBusinessType(businessType), access.OrderRead)
+		if p.CanAccessOrganizationForPermission(permission, p.Organization.ID, false) {
+			readableOrderTypes = append(readableOrderTypes, businessType)
+		}
+	}
 	return biz.WorkbenchScope{
-		OrganizationID:       p.Organization.ID,
-		UserID:               p.UserID,
-		Today:                biz.FinanceBusinessDate(now),
-		Now:                  now,
-		CommissionReadable:   p.CanAccessOrganizationForPermission(access.FinanceCommissionRead, p.Organization.ID, false),
-		CommissionManageable: p.CanAccessOrganizationForPermission(access.FinanceCommissionManage, p.Organization.ID, false),
-		IsBootstrapAdmin:     p.IsBootstrapAdmin && p.CanOperateBusiness(),
-		CanOperateBusiness:   p.CanOperateBusiness(),
+		OrganizationID:             p.Organization.ID,
+		UserID:                     p.UserID,
+		Today:                      biz.FinanceBusinessDate(now),
+		Now:                        now,
+		CommissionReadable:         p.CanAccessOrganizationForPermission(access.FinanceCommissionRead, p.Organization.ID, false),
+		CommissionManageable:       p.CanAccessOrganizationForPermission(access.FinanceCommissionManage, p.Organization.ID, false),
+		IsBootstrapAdmin:           p.IsBootstrapAdmin && p.CanOperateBusiness(),
+		CanOperateBusiness:         p.CanOperateBusiness(),
+		ReadableOrderBusinessTypes: readableOrderTypes,
 	}
 }
 
@@ -186,6 +194,7 @@ func workbenchFinanceSummaryToAPI(summary *biz.WorkbenchFinanceSummary) *workben
 			RequestId:       item.RequestID.String(),
 			OrderId:         item.OrderID.String(),
 			OrderNo:         item.OrderNo,
+			BusinessType:    item.BusinessType,
 			FeeCode:         item.FeeCode,
 			FeeName:         item.FeeName,
 			Currency:        item.Currency,

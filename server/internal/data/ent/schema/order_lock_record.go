@@ -45,6 +45,7 @@ func (OrderLockRecord) Fields() []ent.Field {
 		field.Enum("trigger_type").Values("VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED").Optional().Nillable().Immutable(),
 		field.UUID("trigger_resource_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("triggered_by", uuid.Nil).Optional().Nillable().Immutable(),
+		field.JSON("air_document_snapshot", map[string]string{}).Optional().Immutable(),
 		field.UUID("master_bill_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("master_bill_version_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("transport_execution_id", uuid.Nil).Optional().Nillable().Immutable(),

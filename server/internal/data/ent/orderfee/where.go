@@ -906,6 +906,16 @@ func TaxableServiceNameContainsFold(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldContainsFold(FieldTaxableServiceName, v))
 }
 
+// QuantitySourceIsNil applies the IsNil predicate on the "quantity_source" field.
+func QuantitySourceIsNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIsNull(FieldQuantitySource))
+}
+
+// QuantitySourceNotNil applies the NotNil predicate on the "quantity_source" field.
+func QuantitySourceNotNil() predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotNull(FieldQuantitySource))
+}
+
 // QuantityEQ applies the EQ predicate on the "quantity" field.
 func QuantityEQ(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldQuantity, v))

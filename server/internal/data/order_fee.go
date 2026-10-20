@@ -397,6 +397,9 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 		if !unit.Enabled {
 			return biz.ErrOrderFeeBillingUnitInvalid
 		}
+		if err := validateFeeQuantitySelection(ctx, tx.Client(), organizationID, orderID, input, unit); err != nil {
+			return err
+		}
 		if err := biz.ValidateFeeQuantityForUnit(input.Quantity, unit.QuantityMustBeInteger); err != nil {
 			return err
 		}
@@ -427,6 +430,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 			SetBillingUnit(input.BillingUnit).
 			SetNillableTaxRate(decimalPointerToString(input.TaxRate, 2)).
 			SetNillableTaxableServiceName(input.TaxableServiceName).
+			SetQuantitySource(feeQuantitySelectionMap(input.QuantitySource)).
 			SetQuantity(input.Quantity.StringFixed(4)).
 			SetUnitPrice(input.UnitPrice.StringFixed(4)).
 			SetTotalAmount(input.TotalAmount.StringFixed(8)).
@@ -450,6 +454,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
 			return err
 		}
+		attachFeeQuantityAudit(audit, input.QuantitySource)
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -503,18 +508,28 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		if item.Version != input.Version {
 			return biz.ErrOrderFeeVersionConflict
 		}
-		currentQuantity, quantityErr := decimalOf(item.Quantity)
-		if quantityErr != nil {
-			return quantityErr
-		}
 		if input.BillingUnitID == nil {
 			return biz.ErrOrderFeeBillingUnitInvalid
 		}
-		if !currentQuantity.Equal(input.Quantity) || item.BillingUnitID == nil || *item.BillingUnitID != *input.BillingUnitID {
-			unit, unitErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(*input.BillingUnitID)).ForShare().Only(ctx)
-			if unitErr != nil {
-				return mapEntError(unitErr, biz.ErrOrderFeeBillingUnitInvalid, nil)
-			}
+		unit, unitErr := tx.BillingUnit.Query().Where(billingunitent.IDEQ(*input.BillingUnitID)).ForShare().Only(ctx)
+		if unitErr != nil {
+			return mapEntError(unitErr, biz.ErrOrderFeeBillingUnitInvalid, nil)
+		}
+		existingSelection, selectionErr := feeQuantitySelectionFromMap(item.QuantitySource)
+		if selectionErr != nil {
+			return selectionErr
+		}
+		existingQuantity, quantityParseErr := decimalOf(item.Quantity)
+		if quantityParseErr != nil {
+			return quantityParseErr
+		}
+		// 同一费用未重新采用数量时保留历史快照，备注等私有编辑不冒充重新选源。
+		if existingQuantity.Equal(input.Quantity) && item.BillingUnitID != nil && *item.BillingUnitID == *input.BillingUnitID && biz.FeeQuantitySelectionsEqual(existingSelection, input.QuantitySource) {
+			input.QuantitySource = existingSelection
+		} else if err := validateFeeQuantitySelection(ctx, tx.Client(), organizationID, orderID, input, unit); err != nil {
+			return err
+		}
+		if !existingQuantity.Equal(input.Quantity) || item.BillingUnitID == nil || *item.BillingUnitID != *input.BillingUnitID {
 			if err := biz.ValidateFeeQuantityForUnit(input.Quantity, unit.QuantityMustBeInteger); err != nil {
 				return err
 			}
@@ -571,6 +586,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			SetSettlementPartyID(input.SettlementPartyID).
 			SetNillableBillingUnitID(input.BillingUnitID).
 			SetBillingUnit(input.BillingUnit).
+			SetQuantitySource(feeQuantitySelectionMap(input.QuantitySource)).
 			SetQuantity(input.Quantity.StringFixed(4)).
 			SetUnitPrice(input.UnitPrice.StringFixed(4)).
 			SetTotalAmount(input.TotalAmount.StringFixed(8)).
@@ -670,6 +686,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
 			return err
 		}
+		attachFeeQuantityAudit(audit, input.QuantitySource)
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -1013,6 +1030,10 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 	if err != nil {
 		return nil, err
 	}
+	quantitySource, err := feeQuantitySelectionFromMap(item.QuantitySource)
+	if err != nil {
+		return nil, err
+	}
 	result := &biz.OrderFee{
 		ID:                  item.ID,
 		SupplementRequestID: item.SupplementRequestID,
@@ -1030,6 +1051,7 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		BillingUnitID:         item.BillingUnitID,
 		BillingUnit:           item.BillingUnit,
 		TaxableServiceName:    item.TaxableServiceName,
+		QuantitySource:        quantitySource,
 		Quantity:              quantity,
 		UnitPrice:             unitPrice,
 		TotalAmount:           totalAmount,

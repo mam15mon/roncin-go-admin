@@ -80,19 +80,19 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 		query.Where(predicate)
 	}
 	if options.Keyword != "" {
-		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword)))
+		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword), airOrderNumberContainsFold(options.Keyword, false, false), airOrderNumberContainsFold(options.Keyword, true, false)))
 	}
 	if options.NumberKeyword != "" {
 		switch options.NumberType {
 		case biz.OrderNumberFilterOrder:
 			query.Where(orderent.OrderNoContainsFold(options.NumberKeyword))
 		case biz.OrderNumberFilterMaster:
-			query.Where(orderent.HasSeaMasterBillLinksWith(
+			query.Where(orderent.Or(orderent.HasSeaMasterBillLinksWith(
 				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 				seamasterbillorderlink.HasMasterBillWith(seamasterbill.MasterNoContainsFold(options.NumberKeyword)),
-			))
+			), airOrderNumberContainsFold(options.NumberKeyword, false, false)))
 		case biz.OrderNumberFilterConsolidatedMaster:
-			query.Where(orderConsolidatedMasterContainsFold(options.NumberKeyword))
+			query.Where(orderent.Or(orderConsolidatedMasterContainsFold(options.NumberKeyword), airOrderNumberContainsFold(options.NumberKeyword, false, true)))
 		case biz.OrderNumberFilterCustomerReference:
 			query.Where(orderent.CustomerReferenceNoContainsFold(options.NumberKeyword))
 		case biz.OrderNumberFilterBooking:
@@ -202,6 +202,9 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 // attachOrderDisplayNames 为订单投影批量解析地点（港口/机场）与代理（客商）展示名，
 // 每类一次 IN 查询；详情与列表共用，保证用户可见位置不出现原始 ID。
 func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*biz.Order) error {
+	if err := attachAirOrders(ctx, client, orders); err != nil {
+		return err
+	}
 	locationIDs := make([]uuid.UUID, 0, len(orders)*4)
 	seen := make(map[uuid.UUID]struct{}, len(orders)*4)
 	appendID := func(id *uuid.UUID) {
@@ -334,14 +337,12 @@ func applyOrderStringDateRange(query *ent.OrderQuery, fieldName string, dateRang
 		// 未设置的空字符串转为 NULL；有值的字段必须满足写入时的 RFC3339 校验。
 		if dateRange.From != nil {
 			selector.Where(entsql.P(func(builder *entsql.Builder) {
-				builder.WriteString("NULLIF(").Ident(selector.C(fieldName)).
-					WriteString(", '')::timestamptz >= ").Arg(*dateRange.From)
+				writeOrderTransportTimeExpression(builder, selector, fieldName).WriteString(" >= ").Arg(*dateRange.From)
 			}))
 		}
 		if dateRange.ToExclusive != nil {
 			selector.Where(entsql.P(func(builder *entsql.Builder) {
-				builder.WriteString("NULLIF(").Ident(selector.C(fieldName)).
-					WriteString(", '')::timestamptz < ").Arg(*dateRange.ToExclusive)
+				writeOrderTransportTimeExpression(builder, selector, fieldName).WriteString(" < ").Arg(*dateRange.ToExclusive)
 			}))
 		}
 	}))

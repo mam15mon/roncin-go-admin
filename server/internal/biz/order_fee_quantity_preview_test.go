@@ -79,17 +79,17 @@ func TestPreviewFeeQuantityBoundaryAndScope(t *testing.T) {
 	uc := &OrderFeeUsecase{repo: repo}
 	org, order, unit := uuid.New(), uuid.New(), uuid.New()
 	for _, source := range []string{"", "actual", "OTHER"} {
-		if _, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, source); err != ErrOrderFeeInvalidArgument {
+		if _, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, source, "GROSS_WEIGHT"); err != ErrOrderFeeInvalidArgument {
 			t.Fatalf("无效来源=%q：%v", source, err)
 		}
 	}
-	if _, err := uc.PreviewFeeQuantity(context.Background(), uuid.Nil, order, unit, "ACTUAL"); err != ErrOrderFeeInvalidArgument {
+	if _, err := uc.PreviewFeeQuantity(context.Background(), uuid.Nil, order, unit, "ACTUAL", "GROSS_WEIGHT"); err != ErrOrderFeeInvalidArgument {
 		t.Fatal(err)
 	}
 	if repo.calls != 0 {
 		t.Fatal("无效请求不可查询来源")
 	}
-	got, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, "ACTUAL")
+	got, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, "ACTUAL", "GROSS_WEIGHT")
 	if err != nil || !got.Available || repo.org != org || repo.order != order || repo.unit != unit || repo.source != "ACTUAL" {
 		t.Fatalf("组织/订单/单位来源未保留：%+v %v", repo, err)
 	}

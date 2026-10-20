@@ -352,6 +352,9 @@ func (_u *OrderLockRecordUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if _u.mutation.TriggerResourceIDCleared() {
 		_spec.ClearField(orderlockrecord.FieldTriggerResourceID, field.TypeUUID)
 	}
+	if _u.mutation.AirDocumentSnapshotCleared() {
+		_spec.ClearField(orderlockrecord.FieldAirDocumentSnapshot, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.UnlockedAt(); ok {
 		_spec.SetField(orderlockrecord.FieldUnlockedAt, field.TypeTime, value)
 	}
@@ -896,6 +899,9 @@ func (_u *OrderLockRecordUpdateOne) sqlSave(ctx context.Context) (_node *OrderLo
 	}
 	if _u.mutation.TriggerResourceIDCleared() {
 		_spec.ClearField(orderlockrecord.FieldTriggerResourceID, field.TypeUUID)
+	}
+	if _u.mutation.AirDocumentSnapshotCleared() {
+		_spec.ClearField(orderlockrecord.FieldAirDocumentSnapshot, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.UnlockedAt(); ok {
 		_spec.SetField(orderlockrecord.FieldUnlockedAt, field.TypeTime, value)

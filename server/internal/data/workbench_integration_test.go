@@ -538,10 +538,11 @@ func (f *workbenchIntegrationFixture) repo() biz.WorkbenchRepo { return NewWorkb
 func (f *workbenchIntegrationFixture) scope(userID uuid.UUID, mutate func(*biz.WorkbenchScope)) biz.WorkbenchScope {
 	now := time.Now()
 	scope := biz.WorkbenchScope{
-		OrganizationID: f.organizationID,
-		UserID:         userID,
-		Today:          biz.FinanceBusinessDate(now),
-		Now:            now,
+		OrganizationID:             f.organizationID,
+		ReadableOrderBusinessTypes: []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE},
+		UserID:                     userID,
+		Today:                      biz.FinanceBusinessDate(now),
+		Now:                        now,
 	}
 	if mutate != nil {
 		mutate(&scope)

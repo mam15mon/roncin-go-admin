@@ -8,6 +8,7 @@ import "google/api/field_behavior.proto";
 import "order/v1/order_personnel.proto";
 import "order/v1/order_shipping_document.proto";
 import "order/v1/sea_document.proto";
+import "order/v1/air_export.proto";
 
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
@@ -384,6 +385,7 @@ message Order {
   optional SeaDocumentStructure sea_document_structure = 82;
   optional uint64 sea_document_link_version = 83;
   optional SeaOrderDocumentSummary sea_document_summary = 84;
+  optional AirOrderInfo air_export = 102;
   optional string booking_no = 85;
   // commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户
   // 可见范围批量附加；普通员工视图不含他人提成事实。
@@ -639,6 +641,7 @@ message CreateOrderRequest {
   optional string booking_no = 59;
   // idempotency_key 创建幂等键：可选，传入即启用幂等；同键同意图重放返回原单。
   optional string idempotency_key = 60;
+  optional AirOrderInput air_export = 61;
 }
 
 // UpdateOrderRequest 更新订单请求（禁止修改 order_no 和生命周期状态）。
@@ -706,6 +709,7 @@ message UpdateOrderRequest {
   // idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version
   // 的重放返回当前订单，否则走既有乐观锁冲突。
   optional string idempotency_key = 60;
+  optional AirOrderInput air_export = 61;
 }
 
 // TransitionOrderStatusRequest 流转订单状态请求。

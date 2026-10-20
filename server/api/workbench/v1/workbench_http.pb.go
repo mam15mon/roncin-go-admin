@@ -44,7 +44,7 @@ type WorkbenchServiceHTTPServer interface {
 	ListMyCommissions(context.Context, *ListMyCommissionsRequest) (*ListMyCommissionsResponse, error)
 	// ListMyReceivables ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(context.Context, *ListMyReceivablesRequest) (*ListMyReceivablesResponse, error)
-	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
+	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error)
 	// ResubmitMyCommissionApplication ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
 	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
@@ -262,7 +262,7 @@ type WorkbenchServiceHTTPClient interface {
 	ListMyCommissions(ctx context.Context, req *ListMyCommissionsRequest, opts ...http.CallOption) (rsp *ListMyCommissionsResponse, err error)
 	// ListMyReceivables ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(ctx context.Context, req *ListMyReceivablesRequest, opts ...http.CallOption) (rsp *ListMyReceivablesResponse, err error)
-	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
+	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(ctx context.Context, req *ListMyRecentOrdersRequest, opts ...http.CallOption) (rsp *ListMyRecentOrdersResponse, err error)
 	// ResubmitMyCommissionApplication ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
 	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
@@ -390,7 +390,7 @@ func (c *WorkbenchServiceHTTPClientImpl) ListMyReceivables(ctx context.Context, 
 	return &out, nil
 }
 
-// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
+// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 func (c *WorkbenchServiceHTTPClientImpl) ListMyRecentOrders(ctx context.Context, in *ListMyRecentOrdersRequest, opts ...http.CallOption) (*ListMyRecentOrdersResponse, error) {
 	var out ListMyRecentOrdersResponse
 	pattern := "/api/v1/workbench/my-recent-orders"

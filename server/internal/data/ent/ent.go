@@ -13,8 +13,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airhousewaybill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airhousewaybillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybillhistory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airweightconfirmation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
@@ -187,6 +193,12 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			administrativeregion.Table:             administrativeregion.ValidColumn,
+			airhousewaybill.Table:                  airhousewaybill.ValidColumn,
+			airhousewaybillversion.Table:           airhousewaybillversion.ValidColumn,
+			airmasterwaybill.Table:                 airmasterwaybill.ValidColumn,
+			airmasterwaybillhistory.Table:          airmasterwaybillhistory.ValidColumn,
+			airmasterwaybillorderlink.Table:        airmasterwaybillorderlink.ValidColumn,
+			airweightconfirmation.Table:            airweightconfirmation.ValidColumn,
 			airline.Table:                          airline.ValidColumn,
 			airport.Table:                          airport.ValidColumn,
 			auditlog.Table:                         auditlog.ValidColumn,

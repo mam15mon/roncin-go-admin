@@ -1,0 +1,47 @@
+syntax = "proto3";
+package order.v1;
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// AirWeightService 提供空运参考计算、人工确认与不可变历史。
+service AirWeightService {
+ rpc PreviewAirWeight(PreviewAirWeightRequest) returns (PreviewAirWeightResponse) {
+  option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.read" scope: DATA_SCOPE_ORGANIZATION};
+  option (google.api.http) = {post:"/api/v1/air-weights/preview" body:"*"};
+ }
+ rpc ConfirmAirWeight(ConfirmAirWeightRequest) returns (ConfirmAirWeightResponse) {
+  option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.update" scope: DATA_SCOPE_ORGANIZATION};
+  option (google.api.http) = {post:"/api/v1/air-weights/confirm" body:"*"};
+ }
+ rpc ListAirWeightConfirmations(ListAirWeightConfirmationsRequest) returns (ListAirWeightConfirmationsResponse) {
+  option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.read" scope: DATA_SCOPE_ORGANIZATION};
+  option (google.api.http) = {get:"/api/v1/air-weights/history"};
+ }
+}
+message PreviewAirWeightRequest {
+ string scope=1; string target_id=2; string source=3;
+ string volumetric_divisor=4; int32 bubble_share_numerator=5; int32 bubble_share_denominator=6;
+}
+message ConfirmAirWeightRequest {
+ string scope=1; string target_id=2; string source=3;
+ string volumetric_divisor=4; int32 bubble_share_numerator=5; int32 bubble_share_denominator=6;
+ string input_fingerprint=7; uint64 expected_version=8; string confirmed_weight_kg=9; string reason=10;
+}
+message AirWeightConfirmation {
+ string id=1; string scope=2; string target_id=3; string source=4; uint64 version=5;
+ string input_fingerprint=6; string confirmed_weight_kg=7; string reason=8; string confirmed_by=9; string confirmed_at=10;
+ map<string,string> snapshot=11;
+}
+message AirWeightPreview {
+ string scope=1; string target_id=2; string source=3; string input_fingerprint=4;
+ bool available=5; string reason=6; string gross_weight_kg=7; string volume_cbm=8;
+ string volumetric_weight_kg=9; string bubble_difference_kg=10; string shared_bubble_weight_kg=11;
+ string suggested_chargeable_weight_kg=12; string volumetric_divisor=13;
+ int32 bubble_share_numerator=14; int32 bubble_share_denominator=15;
+ AirWeightConfirmation current_confirmation=16; bool confirmation_stale=17;
+}
+message ListAirWeightConfirmationsRequest {string scope=1; string target_id=2; int32 page=3; int32 page_size=4;}
+message PreviewAirWeightResponse {bool success=1; int32 code=2; string message=3; AirWeightPreview data=4; string trace_id=5;}
+message ConfirmAirWeightResponse {bool success=1; int32 code=2; string message=3; AirWeightConfirmation data=4; string trace_id=5;}
+message ListAirWeightConfirmationsResponse {bool success=1; int32 code=2; string message=3; repeated AirWeightConfirmation data=4; int32 total=5; int32 page=6; int32 page_size=7; string trace_id=8;}

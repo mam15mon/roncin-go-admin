@@ -31,7 +31,7 @@ func TestFeeQuantityPreviewPostgres(t *testing.T) {
 	}
 	preview := func(code, source string) *biz.FeeQuantityPreview {
 		t.Helper()
-		got, err := uc.PreviewFeeQuantity(ctx, f.orgID, f.orderID, unit(code, code == "40HQ").ID, source)
+		got, err := uc.PreviewFeeQuantity(ctx, f.orgID, f.orderID, unit(code, code == "40HQ").ID, source, "GROSS_WEIGHT")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -97,12 +97,12 @@ func TestFeeQuantityPreviewPostgres(t *testing.T) {
 	}
 	expect("40HQ", "PLANNED", "3")
 	unknown := unit("UNMAPPED-"+uuid.NewString()[:8], true)
-	got, err := uc.PreviewFeeQuantity(ctx, f.orgID, f.orderID, unknown.ID, "PLANNED")
+	got, err := uc.PreviewFeeQuantity(ctx, f.orgID, f.orderID, unknown.ID, "PLANNED", "GROSS_WEIGHT")
 	if err != nil || got.Available || !strings.Contains(got.Reason, "精确") {
 		t.Fatalf("无箱型映射不得回退：%+v %v", got, err)
 	}
 	client.BillingUnit.UpdateOne(unknown).SetEnabled(false).SaveX(ctx)
-	got, err = uc.PreviewFeeQuantity(ctx, f.orgID, f.orderID, unknown.ID, "ACTUAL")
+	got, err = uc.PreviewFeeQuantity(ctx, f.orgID, f.orderID, unknown.ID, "ACTUAL", "GROSS_WEIGHT")
 	if err != nil || got.Available || !strings.Contains(got.Reason, "停用") {
 		t.Fatalf("停用单位：%+v %v", got, err)
 	}

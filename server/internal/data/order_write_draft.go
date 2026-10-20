@@ -211,6 +211,9 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if syncErr := syncOrderSeaDocumentOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
 			return syncErr
 		}
+		if err := updateAirOrderDocuments(ctx, tx, organizationID, *audit.UserID, existing, input); err != nil {
+			return err
+		}
 		update := existing.Update().
 			SetVersion(existing.Version + 1).
 			SetCustomerID(input.CustomerID).

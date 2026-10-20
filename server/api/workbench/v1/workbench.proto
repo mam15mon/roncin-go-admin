@@ -29,7 +29,7 @@ service WorkbenchService {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/workbench/my-receivables"};
   }
-  // ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
+  // ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
   rpc ListMyRecentOrders(ListMyRecentOrdersRequest) returns (ListMyRecentOrdersResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/workbench/my-recent-orders"};
@@ -234,6 +234,7 @@ message WorkbenchSupplementApprovalItem {
   string reason = 8;
   string requested_by_name = 9;
   string requested_at = 10;
+  string business_type = 11;
 }
 
 message ListMyCommissionsRequest {

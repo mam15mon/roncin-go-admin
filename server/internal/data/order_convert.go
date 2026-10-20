@@ -192,7 +192,7 @@ func orderAllowedActions(order *biz.Order) []biz.OrderAllowedAction {
 		result = append(result, biz.OrderActionStartTermination)
 	} else if order.TerminationStatus == biz.OrderTerminationTerminating {
 		result = append(result, biz.OrderActionCompleteTermination, biz.OrderActionCancelTermination)
-	} else {
+	} else if order.BusinessType != biz.OrderBusinessAE {
 		result = append(result, biz.OrderActionCancelTermination)
 	}
 	if !order.HasActiveException && (order.FlowStatus == biz.OrderFlowDocumentReleased || order.TerminationStatus == biz.OrderTerminationTerminated) {

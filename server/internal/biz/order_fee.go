@@ -70,6 +70,7 @@ type OrderFee struct {
 	TaxRateOverride       *decimal.Decimal
 	FeeNameOverride       *string
 	TaxableServiceName    *string
+	QuantitySource        *FeeQuantitySelection
 	Quantity              decimal.Decimal
 	UnitPrice             decimal.Decimal
 	TotalAmount           decimal.Decimal
@@ -156,6 +157,7 @@ type OrderFeeOptions struct {
 }
 
 type OrderFeeRepo interface {
+	ConfirmedQuantityPreview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) (*FeeQuantityPreview, error)
 	QuantitySource(ctx context.Context, organizationID, orderID, billingUnitID uuid.UUID, source string) (*FeeQuantitySource, error)
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*OrderFeeCatalogSnapshot, error)
@@ -299,6 +301,7 @@ func sameOrderFeeCreateIntent(existing, requested *OrderFee) bool {
 		existing.SettlementPartyID == requested.SettlementPartyID &&
 		uuidPointersEqual(existing.BillingUnitID, requested.BillingUnitID) &&
 		existing.Quantity.Equal(requested.Quantity) &&
+		FeeQuantitySelectionsEqual(existing.QuantitySource, requested.QuantitySource) &&
 		existing.UnitPrice.Equal(requested.UnitPrice) &&
 		existing.Currency == requested.Currency &&
 		existing.ExpenseDate == requested.ExpenseDate &&
@@ -434,7 +437,7 @@ func ValidateBilledFeeUpdate(current, requested *OrderFee, policy *BilledFeeEdit
 	if (!currencyChanged && !current.ExchangeRate.Equal(requested.ExchangeRate) || currencyChanged && requested.ExchangeRateOverride != nil) && !policy.Allows(BilledFeeFieldExchangeRate) {
 		return ErrBilledFeeFieldForbidden
 	}
-	if !current.Quantity.Equal(requested.Quantity) && !policy.Allows(BilledFeeFieldQuantity) {
+	if (!current.Quantity.Equal(requested.Quantity) || !FeeQuantitySelectionsEqual(current.QuantitySource, requested.QuantitySource)) && !policy.Allows(BilledFeeFieldQuantity) {
 		return ErrBilledFeeFieldForbidden
 	}
 	if !current.UnitPrice.Equal(requested.UnitPrice) && !policy.Allows(BilledFeeFieldUnitPrice) {
@@ -888,7 +891,12 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 			note = &value
 		}
 	}
+	source, err := NormalizeFeeQuantitySelection(input.QuantitySource)
+	if err != nil {
+		return nil, err
+	}
 	output := *input
+	output.QuantitySource = source
 	output.IdempotencyKey = idempotencyKey
 	output.TotalAmount = totalAmount
 	output.Currency = currency

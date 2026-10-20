@@ -46,6 +46,8 @@ type WorkbenchScope struct {
 	CanOperateBusiness bool
 	// IsBootstrapAdmin 透传给补录审批实时资格判定。
 	IsBootstrapAdmin bool
+	// ReadableOrderBusinessTypes 是当前公司内具备读取权限的已开放订单品类。
+	ReadableOrderBusinessTypes []OrderBusinessType
 }
 
 func validWorkbenchScope(scope WorkbenchScope) bool {
@@ -164,7 +166,7 @@ type WorkbenchEstimatedOpportunity struct {
 	HasMore          bool
 }
 
-// WorkbenchRecentOrder 是本人真实协作的近期海运出口订单投影。
+// WorkbenchRecentOrder 是本人真实协作且有权读取的近期出口订单投影。
 type WorkbenchRecentOrder struct {
 	OrderID           uuid.UUID
 	OrderNo           string
@@ -201,6 +203,7 @@ type WorkbenchSupplementApprovalItem struct {
 	RequestID       uuid.UUID
 	OrderID         uuid.UUID
 	OrderNo         string
+	BusinessType    string
 	FeeCode         string
 	FeeName         string
 	Currency        string

@@ -97,6 +97,7 @@ type seedContext struct {
 	orders                    map[string]*ent.Order
 	newOrderIDs               map[uuid.UUID]bool
 	orderFees                 map[string]*ent.OrderFee
+	airOrders                 []*ent.Order
 }
 
 func main() {
@@ -193,6 +194,9 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 		if err := seedOrderOperations(ctx, sc); err != nil {
 			return fmt.Errorf("订单运营数据（里程碑/POD/附件/异常）同步失败: %w", err)
 		}
+		if err := seedAirExportOrders(ctx, sc); err != nil {
+			return fmt.Errorf("空运共享主单与双票样例同步失败: %w", err)
+		}
 
 		return nil
 	})
@@ -213,6 +217,7 @@ func printSeedSummary(sc *seedContext) {
 	fmt.Printf("✔ 财务字典: %d 个计费单位 + %d 个费用科目 + 开发基准汇率已生效\n", len(sc.billingUnits), len(sc.feeSettings))
 	fmt.Printf("✔ 往来单位: %d 家客商档案 (包含进出口商、电商、船代、车队、报关行及对公账户/联系人)\n", len(sc.partners))
 	fmt.Printf("✔ 海运订单: %d 票全生命周期订单 (草稿/订舱/配舱/拖车/截单/报关安排/放单/终止/结案，含锁定票、拼舱与主分单)\n", len(sc.orders))
+	fmt.Printf("✔ 空运订单: %d 票共享 MAWB 的独立 HAWB 样例，货量分别为 100kg/1.2m³ 与 300kg/0.6m³\n", len(sc.airOrders))
 	fmt.Printf("✔ 费用审核与账单: 新建演示票录齐应收/应付后显式提交并整票批准，含已核销、部分核销+汇兑损益、美元确认、草稿、应付与批量建账批次\n")
 	fmt.Printf("✔ 订单锁治理: 核销自动锁+钉钉解锁审批(审批中)、人工锁定含单证版本快照、已批准费用的受控成本补录(待审+已批准)\n")
 	fmt.Printf("✔ 提成链路: 经营归属+核销计提台账(销售10%%/操作3%%)+月度申请(待审批/已审批)\n")

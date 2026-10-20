@@ -57,6 +57,308 @@ var (
 			},
 		},
 	}
+	// AirHouseWaybillsColumns holds the columns for the "air_house_waybills" table.
+	AirHouseWaybillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "house_no", Type: field.TypeString, Size: 64},
+		{Name: "status", Type: field.TypeString, Size: 20, Default: "DRAFT"},
+		{Name: "content", Type: field.TypeString, Size: 4000, Default: ""},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "master_waybill_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// AirHouseWaybillsTable holds the schema information for the "air_house_waybills" table.
+	AirHouseWaybillsTable = &schema.Table{
+		Name:       "air_house_waybills",
+		Columns:    AirHouseWaybillsColumns,
+		PrimaryKey: []*schema.Column{AirHouseWaybillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "air_house_waybills_organizations_organization",
+				Columns:    []*schema.Column{AirHouseWaybillsColumns[7]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "air_house_waybills_air_master_waybills_master_waybill",
+				Columns:    []*schema.Column{AirHouseWaybillsColumns[8]},
+				RefColumns: []*schema.Column{AirMasterWaybillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "air_house_waybills_orders_order",
+				Columns:    []*schema.Column{AirHouseWaybillsColumns[9]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airhousewaybill_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirHouseWaybillsColumns[2]},
+			},
+			{
+				Name:    "airhousewaybill_master_waybill_id_house_no",
+				Unique:  true,
+				Columns: []*schema.Column{AirHouseWaybillsColumns[8], AirHouseWaybillsColumns[3]},
+			},
+			{
+				Name:    "airhousewaybill_order_id",
+				Unique:  true,
+				Columns: []*schema.Column{AirHouseWaybillsColumns[9]},
+			},
+		},
+	}
+	// AirHouseWaybillVersionsColumns holds the columns for the "air_house_waybill_versions" table.
+	AirHouseWaybillVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+		{Name: "version", Type: field.TypeUint64},
+		{Name: "house_no", Type: field.TypeString, Size: 64},
+		{Name: "status", Type: field.TypeString, Size: 20},
+		{Name: "content", Type: field.TypeString, Size: 4000},
+		{Name: "actor_id", Type: field.TypeUUID},
+		{Name: "reason", Type: field.TypeString, Size: 500},
+		{Name: "house_waybill_id", Type: field.TypeUUID},
+	}
+	// AirHouseWaybillVersionsTable holds the schema information for the "air_house_waybill_versions" table.
+	AirHouseWaybillVersionsTable = &schema.Table{
+		Name:       "air_house_waybill_versions",
+		Columns:    AirHouseWaybillVersionsColumns,
+		PrimaryKey: []*schema.Column{AirHouseWaybillVersionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "air_house_waybill_versions_air_house_waybills_house_waybill",
+				Columns:    []*schema.Column{AirHouseWaybillVersionsColumns[10]},
+				RefColumns: []*schema.Column{AirHouseWaybillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airhousewaybillversion_house_waybill_id_version",
+				Unique:  true,
+				Columns: []*schema.Column{AirHouseWaybillVersionsColumns[10], AirHouseWaybillVersionsColumns[4]},
+			},
+			{
+				Name:    "airhousewaybillversion_organization_id_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{AirHouseWaybillVersionsColumns[2], AirHouseWaybillVersionsColumns[3]},
+			},
+		},
+	}
+	// AirMasterWaybillsColumns holds the columns for the "air_master_waybills" table.
+	AirMasterWaybillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "master_no", Type: field.TypeString, Size: 11},
+		{Name: "flight_no", Type: field.TypeString, Size: 40, Default: ""},
+		{Name: "etd", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "eta", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "actual_departure_at", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "actual_arrival_at", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "document_cutoff_at", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "customs_cutoff_at", Type: field.TypeString, Size: 64, Default: ""},
+		{Name: "status", Type: field.TypeString, Size: 20, Default: "DRAFT"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "declared_packages", Type: field.TypeInt, Nullable: true},
+		{Name: "declared_gross_weight_kg", Type: field.TypeFloat64, Nullable: true},
+		{Name: "declared_volume_cbm", Type: field.TypeFloat64, Nullable: true},
+		{Name: "notes", Type: field.TypeString, Size: 1000, Default: ""},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "airline_id", Type: field.TypeUUID},
+		{Name: "origin_airport_id", Type: field.TypeUUID},
+		{Name: "destination_airport_id", Type: field.TypeUUID},
+	}
+	// AirMasterWaybillsTable holds the schema information for the "air_master_waybills" table.
+	AirMasterWaybillsTable = &schema.Table{
+		Name:       "air_master_waybills",
+		Columns:    AirMasterWaybillsColumns,
+		PrimaryKey: []*schema.Column{AirMasterWaybillsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "air_master_waybills_organizations_organization",
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[17]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "air_master_waybills_airlines_airline",
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[18]},
+				RefColumns: []*schema.Column{AirlinesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "air_master_waybills_airports_origin_airport",
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[19]},
+				RefColumns: []*schema.Column{AirportsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "air_master_waybills_airports_destination_airport",
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[20]},
+				RefColumns: []*schema.Column{AirportsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airmasterwaybill_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirMasterWaybillsColumns[2]},
+			},
+			{
+				Name:    "airmasterwaybill_organization_id_master_no",
+				Unique:  true,
+				Columns: []*schema.Column{AirMasterWaybillsColumns[17], AirMasterWaybillsColumns[3]},
+			},
+		},
+	}
+	// AirMasterWaybillHistoriesColumns holds the columns for the "air_master_waybill_histories" table.
+	AirMasterWaybillHistoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "version", Type: field.TypeUint64},
+		{Name: "action", Type: field.TypeString, Size: 40},
+		{Name: "reason", Type: field.TypeString, Size: 500},
+		{Name: "actor_id", Type: field.TypeUUID},
+		{Name: "content", Type: field.TypeBytes},
+		{Name: "master_waybill_id", Type: field.TypeUUID},
+	}
+	// AirMasterWaybillHistoriesTable holds the schema information for the "air_master_waybill_histories" table.
+	AirMasterWaybillHistoriesTable = &schema.Table{
+		Name:       "air_master_waybill_histories",
+		Columns:    AirMasterWaybillHistoriesColumns,
+		PrimaryKey: []*schema.Column{AirMasterWaybillHistoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "air_master_waybill_histories_air_master_waybills_master_waybill",
+				Columns:    []*schema.Column{AirMasterWaybillHistoriesColumns[9]},
+				RefColumns: []*schema.Column{AirMasterWaybillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airmasterwaybillhistory_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirMasterWaybillHistoriesColumns[2]},
+			},
+			{
+				Name:    "airmasterwaybillhistory_master_waybill_id_version",
+				Unique:  true,
+				Columns: []*schema.Column{AirMasterWaybillHistoriesColumns[9], AirMasterWaybillHistoriesColumns[4]},
+			},
+		},
+	}
+	// AirMasterWaybillOrderLinksColumns holds the columns for the "air_master_waybill_order_links" table.
+	AirMasterWaybillOrderLinksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeString, Size: 10, Default: "ACTIVE"},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "started_at", Type: field.TypeTime},
+		{Name: "ended_at", Type: field.TypeTime, Nullable: true},
+		{Name: "ended_reason", Type: field.TypeString, Size: 500, Default: ""},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "master_waybill_id", Type: field.TypeUUID},
+		{Name: "order_id", Type: field.TypeUUID},
+	}
+	// AirMasterWaybillOrderLinksTable holds the schema information for the "air_master_waybill_order_links" table.
+	AirMasterWaybillOrderLinksTable = &schema.Table{
+		Name:       "air_master_waybill_order_links",
+		Columns:    AirMasterWaybillOrderLinksColumns,
+		PrimaryKey: []*schema.Column{AirMasterWaybillOrderLinksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "air_master_waybill_order_links_organizations_organization",
+				Columns:    []*schema.Column{AirMasterWaybillOrderLinksColumns[8]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "air_master_waybill_order_links_air_master_waybills_master_waybill",
+				Columns:    []*schema.Column{AirMasterWaybillOrderLinksColumns[9]},
+				RefColumns: []*schema.Column{AirMasterWaybillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "air_master_waybill_order_links_orders_order",
+				Columns:    []*schema.Column{AirMasterWaybillOrderLinksColumns[10]},
+				RefColumns: []*schema.Column{OrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airmasterwaybillorderlink_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirMasterWaybillOrderLinksColumns[2]},
+			},
+			{
+				Name:    "airmasterwaybillorderlink_organization_id_master_waybill_id",
+				Unique:  false,
+				Columns: []*schema.Column{AirMasterWaybillOrderLinksColumns[8], AirMasterWaybillOrderLinksColumns[9]},
+			},
+			{
+				Name:    "idx_air_links_active_order",
+				Unique:  true,
+				Columns: []*schema.Column{AirMasterWaybillOrderLinksColumns[10]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status = 'ACTIVE'",
+				},
+			},
+		},
+	}
+	// AirWeightConfirmationsColumns holds the columns for the "air_weight_confirmations" table.
+	AirWeightConfirmationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "organization_id", Type: field.TypeUUID},
+		{Name: "scope", Type: field.TypeEnum, Enums: []string{"ORDER", "MASTER"}},
+		{Name: "target_id", Type: field.TypeUUID},
+		{Name: "source", Type: field.TypeString, Default: "ACTUAL"},
+		{Name: "version", Type: field.TypeUint64},
+		{Name: "input_fingerprint", Type: field.TypeString, Size: 64},
+		{Name: "snapshot", Type: field.TypeJSON},
+		{Name: "confirmed_weight_kg", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
+		{Name: "reason", Type: field.TypeString, Size: 500, Default: ""},
+		{Name: "confirmed_by", Type: field.TypeUUID},
+	}
+	// AirWeightConfirmationsTable holds the schema information for the "air_weight_confirmations" table.
+	AirWeightConfirmationsTable = &schema.Table{
+		Name:       "air_weight_confirmations",
+		Columns:    AirWeightConfirmationsColumns,
+		PrimaryKey: []*schema.Column{AirWeightConfirmationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "airweightconfirmation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirWeightConfirmationsColumns[2]},
+			},
+			{
+				Name:    "airweightconfirmation_org_scope_target_source_version",
+				Unique:  true,
+				Columns: []*schema.Column{AirWeightConfirmationsColumns[3], AirWeightConfirmationsColumns[4], AirWeightConfirmationsColumns[5], AirWeightConfirmationsColumns[6], AirWeightConfirmationsColumns[7]},
+			},
+			{
+				Name:    "airweightconfirmation_org_scope_target_source_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{AirWeightConfirmationsColumns[3], AirWeightConfirmationsColumns[4], AirWeightConfirmationsColumns[5], AirWeightConfirmationsColumns[6], AirWeightConfirmationsColumns[1]},
+			},
+		},
+	}
 	// AirlinesColumns holds the columns for the "airlines" table.
 	AirlinesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -3994,6 +4296,7 @@ var (
 		{Name: "billing_unit", Type: field.TypeString, Size: 32},
 		{Name: "tax_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
 		{Name: "taxable_service_name", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "quantity_source", Type: field.TypeJSON, Nullable: true},
 		{Name: "quantity", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "unit_price", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(18,4)"}},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -4029,49 +4332,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_fees_billing_units_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[29]},
+				Columns:    []*schema.Column{OrderFeesColumns[30]},
 				RefColumns: []*schema.Column{BillingUnitsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_fee_settings_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[30]},
+				Columns:    []*schema.Column{OrderFeesColumns[31]},
 				RefColumns: []*schema.Column{FeeSettingsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_orders_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[31]},
+				Columns:    []*schema.Column{OrderFeesColumns[32]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_order_fees_derived_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[32]},
+				Columns:    []*schema.Column{OrderFeesColumns[33]},
 				RefColumns: []*schema.Column{OrderFeesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_order_fee_correction_requests_generated_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[33]},
-				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "order_fees_order_fee_correction_requests_superseded_fees",
 				Columns:    []*schema.Column{OrderFeesColumns[34]},
 				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "order_fees_order_fee_supplement_requests_fees",
+				Symbol:     "order_fees_order_fee_correction_requests_superseded_fees",
 				Columns:    []*schema.Column{OrderFeesColumns[35]},
+				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fees_order_fee_supplement_requests_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[36]},
 				RefColumns: []*schema.Column{OrderFeeSupplementRequestsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_partners_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[36]},
+				Columns:    []*schema.Column{OrderFeesColumns[37]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4085,22 +4388,22 @@ var (
 			{
 				Name:    "orderfee_order_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[31], OrderFeesColumns[3]},
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[3]},
 			},
 			{
 				Name:    "orderfee_supplement_request_id",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[35]},
+				Columns: []*schema.Column{OrderFeesColumns[36]},
 			},
 			{
 				Name:    "orderfee_correction_request_id_economic_effect",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[26]},
+				Columns: []*schema.Column{OrderFeesColumns[34], OrderFeesColumns[27]},
 			},
 			{
 				Name:    "orderfee_source_fee_id_economic_effect",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[26]},
+				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[27]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "economic_effect = 'DECREASE'",
 				},
@@ -4108,22 +4411,22 @@ var (
 			{
 				Name:    "orderfee_order_id_direction_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[31], OrderFeesColumns[4], OrderFeesColumns[1]},
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[4], OrderFeesColumns[1]},
 			},
 			{
 				Name:    "orderfee_fee_setting_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[30]},
+				Columns: []*schema.Column{OrderFeesColumns[31]},
 			},
 			{
 				Name:    "orderfee_billing_unit_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[29]},
+				Columns: []*schema.Column{OrderFeesColumns[30]},
 			},
 			{
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[36], OrderFeesColumns[4], OrderFeesColumns[17]},
+				Columns: []*schema.Column{OrderFeesColumns[37], OrderFeesColumns[4], OrderFeesColumns[18]},
 			},
 		},
 	}
@@ -4540,6 +4843,7 @@ var (
 		{Name: "order_version_at_lock", Type: field.TypeUint64},
 		{Name: "trigger_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED"}},
 		{Name: "trigger_resource_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "air_document_snapshot", Type: field.TypeJSON, Nullable: true},
 		{Name: "unlocked_at", Type: field.TypeTime, Nullable: true},
 		{Name: "order_version_at_unlock", Type: field.TypeUint64, Nullable: true},
 		{Name: "unlock_reason", Type: field.TypeString, Nullable: true, Size: 500},
@@ -4565,61 +4869,61 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_lock_records_orders_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[16]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[17]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_order_unlock_requests_applied_unlock_request",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[17]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[18]},
 				RefColumns: []*schema.Column{OrderUnlockRequestsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_lock_records_organizations_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[18]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[19]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_master_bills_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[19]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[20]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_master_bill_versions_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[20]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[21]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_transport_executions_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[21]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[22]},
 				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_transport_execution_versions_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[22]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[23]},
 				RefColumns: []*schema.Column{SeaTransportExecutionVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[23]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[24]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_unlocked_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[24]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_lock_records_users_auto_triggered_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[25]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[26]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4628,22 +4932,22 @@ var (
 			{
 				Name:    "order_lock_record_order_generation",
 				Unique:  true,
-				Columns: []*schema.Column{OrderLockRecordsColumns[16], OrderLockRecordsColumns[4]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[17], OrderLockRecordsColumns[4]},
 			},
 			{
 				Name:    "order_lock_record_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderLockRecordsColumns[18], OrderLockRecordsColumns[14]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[19], OrderLockRecordsColumns[15]},
 			},
 			{
 				Name:    "orderlockrecord_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderLockRecordsColumns[18], OrderLockRecordsColumns[16]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[19], OrderLockRecordsColumns[17]},
 			},
 			{
 				Name:    "orderlockrecord_organization_id_locked_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderLockRecordsColumns[18], OrderLockRecordsColumns[6]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[19], OrderLockRecordsColumns[6]},
 			},
 		},
 	}
@@ -7387,6 +7691,12 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AdministrativeRegionsTable,
+		AirHouseWaybillsTable,
+		AirHouseWaybillVersionsTable,
+		AirMasterWaybillsTable,
+		AirMasterWaybillHistoriesTable,
+		AirMasterWaybillOrderLinksTable,
+		AirWeightConfirmationsTable,
 		AirlinesTable,
 		AirportsTable,
 		AuditLogsTable,
@@ -7505,6 +7815,24 @@ var (
 )
 
 func init() {
+	AirHouseWaybillsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	AirHouseWaybillsTable.ForeignKeys[1].RefTable = AirMasterWaybillsTable
+	AirHouseWaybillsTable.ForeignKeys[2].RefTable = OrdersTable
+	AirHouseWaybillVersionsTable.ForeignKeys[0].RefTable = AirHouseWaybillsTable
+	AirMasterWaybillsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	AirMasterWaybillsTable.ForeignKeys[1].RefTable = AirlinesTable
+	AirMasterWaybillsTable.ForeignKeys[2].RefTable = AirportsTable
+	AirMasterWaybillsTable.ForeignKeys[3].RefTable = AirportsTable
+	AirMasterWaybillHistoriesTable.ForeignKeys[0].RefTable = AirMasterWaybillsTable
+	AirMasterWaybillOrderLinksTable.ForeignKeys[0].RefTable = OrganizationsTable
+	AirMasterWaybillOrderLinksTable.ForeignKeys[1].RefTable = AirMasterWaybillsTable
+	AirMasterWaybillOrderLinksTable.ForeignKeys[2].RefTable = OrdersTable
+	AirWeightConfirmationsTable.Annotation = &entsql.Annotation{}
+	AirWeightConfirmationsTable.Annotation.Checks = map[string]string{
+		"air_weight_confirmation_positive_check": "confirmed_weight_kg > 0 AND version > 0",
+		"air_weight_confirmation_scope_check":    "scope IN ('ORDER','MASTER')",
+		"air_weight_confirmation_source_check":   "source IN ('PLANNED','ACTUAL')",
+	}
 	BackgroundTasksTable.ForeignKeys[0].RefTable = OrganizationsTable
 	BackgroundTasksTable.Annotation = &entsql.Annotation{}
 	BackgroundTasksTable.Annotation.Checks = map[string]string{

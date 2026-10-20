@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -52,6 +53,8 @@ type OrderFee struct {
 	TaxRate *string `json:"tax_rate,omitempty"`
 	// TaxableServiceName holds the value of the "taxable_service_name" field.
 	TaxableServiceName *string `json:"taxable_service_name,omitempty"`
+	// QuantitySource holds the value of the "quantity_source" field.
+	QuantitySource map[string]string `json:"quantity_source,omitempty"`
 	// Quantity holds the value of the "quantity" field.
 	Quantity string `json:"quantity,omitempty"`
 	// UnitPrice holds the value of the "unit_price" field.
@@ -275,6 +278,8 @@ func (*OrderFee) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case orderfee.FieldFeeSettingID, orderfee.FieldBillingUnitID, orderfee.FieldExchangeRateSettingID, orderfee.FieldSupplementRequestID, orderfee.FieldSourceFeeID, orderfee.FieldCorrectionRequestID, orderfee.FieldSupersededByRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case orderfee.FieldQuantitySource:
+			values[i] = new([]byte)
 		case orderfee.FieldTaxInclusive, orderfee.FieldAccountingRequired:
 			values[i] = new(sql.NullBool)
 		case orderfee.FieldVersion:
@@ -394,6 +399,14 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TaxableServiceName = new(string)
 				*_m.TaxableServiceName = value.String
+			}
+		case orderfee.FieldQuantitySource:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field quantity_source", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.QuantitySource); err != nil {
+					return fmt.Errorf("unmarshal field quantity_source: %w", err)
+				}
 			}
 		case orderfee.FieldQuantity:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -684,6 +697,9 @@ func (_m *OrderFee) String() string {
 		builder.WriteString("taxable_service_name=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("quantity_source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.QuantitySource))
 	builder.WriteString(", ")
 	builder.WriteString("quantity=")
 	builder.WriteString(_m.Quantity)

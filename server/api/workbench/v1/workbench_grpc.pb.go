@@ -46,7 +46,7 @@ type WorkbenchServiceClient interface {
 	ListMyCommissions(ctx context.Context, in *ListMyCommissionsRequest, opts ...grpc.CallOption) (*ListMyCommissionsResponse, error)
 	// ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(ctx context.Context, in *ListMyReceivablesRequest, opts ...grpc.CallOption) (*ListMyReceivablesResponse, error)
-	// ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
+	// ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(ctx context.Context, in *ListMyRecentOrdersRequest, opts ...grpc.CallOption) (*ListMyRecentOrdersResponse, error)
 	// ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
 	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
@@ -183,7 +183,7 @@ type WorkbenchServiceServer interface {
 	ListMyCommissions(context.Context, *ListMyCommissionsRequest) (*ListMyCommissionsResponse, error)
 	// ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(context.Context, *ListMyReceivablesRequest) (*ListMyReceivablesResponse, error)
-	// ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。
+	// ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error)
 	// ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
 	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
