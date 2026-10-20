@@ -45,6 +45,7 @@ import {
   getResetPolicyMeta,
   type NumberRuleFormValues,
 } from './number-rules/numberRulesConstants';
+import './number-rules/number-rules.less';
 
 export {
   DATE_FORMATS,
@@ -359,6 +360,7 @@ export function NumberRulesPanel() {
     <div>
       {/* 1. Header Toolbar */}
       <Card
+        className="number-rules-toolbar"
         size="small"
         variant="borderless"
         style={{

@@ -46,6 +46,7 @@ export default function NumberRuleCard({
 
   return (
     <Card
+      className="number-rule-card"
       size="small"
       variant="borderless"
       style={{
