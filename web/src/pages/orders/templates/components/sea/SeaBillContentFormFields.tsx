@@ -28,6 +28,7 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
     .measurement-heading {
       font-size: 12px;
       color: rgba(0, 0, 0, 0.65);
+      padding-inline-start: 12px;
     }
     .measurement-cell {
       display: flex;
@@ -35,10 +36,18 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
       min-width: 0;
       gap: 8px;
       font-size: 13px;
+      line-height: 21px;
+    }
+    output {
+      display: block;
+      margin: 0;
+      padding: 0 12px;
+      line-height: 21px;
     }
     .measurement-row-labels {
       align-items: center;
-      font-size: 12px;
+      font-size: 13px;
+      line-height: 21px;
       color: rgba(0, 0, 0, 0.45);
     }
     .measurement-mobile-label {
@@ -68,7 +77,9 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
         display: inline-block;
         flex: 0 0 40px;
         color: rgba(0, 0, 0, 0.45);
-        font-size: 12px;
+      }
+      .measurement-heading {
+        padding-inline-start: 60px;
       }
     }
   `,

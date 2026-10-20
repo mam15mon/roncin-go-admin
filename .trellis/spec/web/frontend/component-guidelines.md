@@ -331,6 +331,9 @@ if (
   仅显示一次件数及单位、毛重（KGS）、体积（CBM），桌面左侧统一显示「委托／实际」
   行标签，委托值紧邻对应实际输入。窄屏按指标成组，局部显示委托／实际，保持相邻。
   不增加表格横竖线；去掉重复可见字段标签时保留完整可访问名称。
+- 对比矩阵内显式重置 `output` 的 padding/margin，避免已有样式的 15px 顶部内边距
+  推偏数字；标题、只读数字与输入文字采用一致的列内起点，行标签与数值统一行高。
+  验证必须用真实浏览器测文字位置和行中心，不能只检查输入框三列同行。
 - 委托编辑字段只在「货物与商业」注册一次；摘要读取订单级 `totalPackages`、
   `totalPackageUnit`、`totalGrossWeightKg`、`totalVolumeCbm`，使用支持未注册值的
   `Form.useWatch(name, { form, preserve: true })`。数量经 `trimDecimal` 展示，
