@@ -20,7 +20,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	billingunitent "github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
 	exchangeratesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
@@ -397,36 +396,12 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
 	co := sc.company
 
-	// 计费单位
-	units := []struct {
-		code, name  string
-		isContainer bool
-	}{
-		{"CONT", "箱", true},
-		{"BL", "票", false},
-		{"CBM", "立方米", false},
-		{"TON", "吨", false},
-		{"SET", "套", false},
-		{"DOC", "份", false},
+	// 公共目录与正式迁移一致，仅补缺失，不覆盖管理员配置。
+	units, err := data.CreateDefaultBillingUnits(ctx, tx)
+	if err != nil {
+		return err
 	}
-	for idx, u := range units {
-		found, _ := tx.BillingUnit.Query().Where(billingunitent.CodeEQ(u.code)).First(ctx)
-		if found == nil {
-			created, err := tx.BillingUnit.Create().
-				SetCode(u.code).
-				SetName(u.name).
-				SetIsContainerUnit(u.isContainer).
-				SetQuantityMustBeInteger(u.code == "CONT" || u.code == "BL" || u.code == "SET" || u.code == "DOC").
-				SetSortOrder((idx + 1) * 10).
-				SetEnabled(true).
-				Save(ctx)
-			if err != nil {
-				return fmt.Errorf("创建计费单位 %s: %w", u.code, err)
-			}
-			found = created
-		}
-		sc.billingUnits[u.code] = found
-	}
+	sc.billingUnits = units
 
 	// 应税服务
 	services := []struct {
