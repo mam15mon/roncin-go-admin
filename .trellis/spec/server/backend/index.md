@@ -23,6 +23,7 @@
 | [Order Fee Correction](./order-fee-correction.md) | 批准后费用更正、账单行清偿投影、发票覆盖范围、真实回款提成及补付追回 | ✅ |
 | [Commission Scheme Assignment](./commission-scheme-assignment.md) | 提成方案与员工分配：实际区间唯一、Membership 固定锁序、legacy_readonly、工作台资格门禁与订单摘要隐私投影 | ✅ |
 | [Billing Unit Quantity Rule](./billing-unit-quantity-rule.md) | 计费单位整数/小数规则、初始化与费用更新语义 | ✅ |
+| [Order Fee Quantity Preview](./order-fee-quantity-preview.md) | 公共单位补齐、计划/实际数量来源、十进制预览与确认带入 | ✅ |
 | [Organization Shared Masterdata](./organization-shared-masterdata.md) | 公共主数据、系统费用模板与公司独立配置、工作台维护权及迁移约束 | ✅ |
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
 | [Partner Role Blacklist](./partner-role-blacklist.md) | 客户、供应商、国外代理角色级黑名单及订单新增关联门禁 | ✅ |

@@ -14,7 +14,7 @@
 | 海运出口单证 | `sea_document.go`、`sea_master_bill.go`、`sea_cargo_allocation.go` | 操作票、共享 MBL、货物分摊（契约见专项 spec） | 单证版本判断散落调用方 |
 | 海运改单/作废/Switch | `sea_document_change.go`、`order_shipping_document.go` | 改单历史、财务门禁、不可变版本 | 跳过 Preview 直接改单 |
 | 订单业务锁 | `order_lock.go`、`order_auto_lock.go` | 手动/自动锁、解锁审批、固定锁序 | 并发写单证不加锁序 |
-| 订单费用 | `order_fee.go`、`order_fee_supplement*.go` | 费用录入、补充费用、候选选项 | 候选合并丢失订单身份 |
+| 订单费用 | `order_fee.go`、`order_fee_supplement*.go`、`order_fee_quantity_preview.go` | 费用录入、补充费用、候选选项、显式来源数量建议（契约见 order-fee-quantity-preview） | 候选合并丢失订单身份、共享箱/主单货量重复计量 |
 | 整票费用审核 | `order_fee_review.go` | 提交、撤回、批准、退回、撤销、逐票批量结果、经济内容快照 | 使用费用行通用 version 绑定审批；以财务岗位或锁权限代替审核权限 |
 | 提成实付登记 | `finance_commission_payment.go`、`finance_commission_lifecycle.go` | 原额与调整净发预览、实际金额、抵扣关联、独立执行保护 | 用累计权益净额代替历史实付；同一冲减重复少发及扣回 |
 | 账单 | `finance_bill.go`、`finance_bill_batch.go` | 建账、批量建账、固定费用币种边界 | 跨币种人工折算旁路 |

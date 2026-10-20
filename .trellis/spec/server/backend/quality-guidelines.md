@@ -217,10 +217,11 @@ go -C server test ./...
 RONCIN_INTEGRATION_DATABASE_SOURCE="$TEST_DATABASE_SOURCE" \
 DATABASE_SOURCE="$TEST_DATABASE_SOURCE" RONCIN_POSTGRES_MIGRATION_TEST=1 \
 RONCIN_TASK_REALTIME_ACCEPTANCE=1 \
-  go -C server test -p 32 -json -count=1 ./... > /tmp/server-tests.jsonl
+  go -C server test -p 32 -timeout 25m -json -count=1 ./... > /tmp/server-tests.jsonl
 ```
 
 - CI 中承担合并门禁的 PostgreSQL Job 必须显式提供专用连接串，禁止回退到开发库。
+- 真实数据库整包包含多轮正式迁移，Go 默认每包 10 分钟可能在无断言失败时触发总超时；本地 check:server 与 CI 统一使用每包 25 分钟。排查时可把完整测试清单分配到多个独立一次性数据库，记录每组 PASS/FAIL/SKIP 与遗漏情况，不能用缩小测试集或忽略超时代替验收。
   `.github/workflows/ci.yml` 完整执行 `./...` 并统计 PASS/FAIL/SKIP；任一带 `Test` 的
   SKIP 使门禁失败。没有测试文件的生成包不属于跳过用例。
 - 多包并发前在该一次性库的 `public` 安装 `pg_trgm`；各用例使用正式 SQL 迁移与随机
