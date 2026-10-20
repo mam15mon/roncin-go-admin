@@ -24,6 +24,7 @@
   "notes": "",
   "meta": {
     "planning_status": "draft_pending_product_decisions",
-    "evidence_base": "484d6060"
+    "evidence_base": "484d6060",
+    "master_waybill_scope": "shared_multi_order_confirmed"
   }
 }

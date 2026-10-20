@@ -4,3 +4,4 @@
 {"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "业务锁和版本控制"}
 {"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "前端复用入口"}
 {"file": ".trellis/tasks/10-20-air-export-business-loop/research.md", "reason": "项目证据及竞品借鉴限制"}
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "验证空运共享关系与既有海运边界"}
