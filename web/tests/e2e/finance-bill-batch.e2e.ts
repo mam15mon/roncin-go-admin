@@ -6,6 +6,13 @@ import {
 } from '@playwright/test';
 
 const expect = baseExpect.configure({ timeout: 20_000 });
+const orderKind = process.env.RONCIN_ACCEPTANCE_ORDER_KIND || 'sea-export';
+if (orderKind !== 'sea-export' && orderKind !== 'air-export') {
+  throw new Error(
+    'RONCIN_ACCEPTANCE_ORDER_KIND 只允许 sea-export 或 air-export',
+  );
+}
+const isAirExport = orderKind === 'air-export';
 function requiredEnvironment(name: string) {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`缺少环境变量 ${name}`);
@@ -27,7 +34,7 @@ async function selectOption(
 }
 
 // 基础资料经 API 准备；费用、账单、收款、核销与提成均通过真实页面写入。
-test('同一订单完成录费、建账、收款核销与提成生成并刷新重读', async ({
+test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款核销与提成生成并刷新重读`, async ({
   page,
 }, testInfo) => {
   test.setTimeout(240_000);
@@ -52,7 +59,7 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
       );
   });
   await page.goto('/user/login');
-  await page.getByRole('radio', { name: '账号登录' }).click();
+  await page.getByText('账号登录', { exact: true }).click();
   await page
     .getByPlaceholder('钉钉手机号 / 本地账号')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_USERNAME'));
@@ -116,33 +123,85 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
       legalName: `页面验收客户${stamp}`,
       unifiedSocialCreditCode: `91310000ACC${stamp.slice(-7)}`,
       registeredAddress: '隔离验收地址',
-      roles: [{ type: 1, enabled: true }],
+      roles: isAirExport
+        ? [
+            { type: 1, enabled: true },
+            { type: 2, enabled: true },
+          ]
+        : [{ type: 1, enabled: true }],
       contacts: [
         { name: '页面验收联系人', phone: '13800000000', isPrimary: true },
       ],
       profile: {
         nameEn: `UI Acceptance ${stamp}`,
         countryCode: 'CN',
-        businessTypes: [1],
+        businessTypes: [isAirExport ? 3 : 1],
       },
     })
   ).data;
-  await api(`/api/v1/partners/${customer.id}/accounts`, {
-    partnerId: customer.id,
-    account: {
-      name: '页面验收结算账户',
-      accountHolder: customer.legalName,
-      currency: 'CNY',
-      bankName: '验收银行',
-      accountNo: `UI${stamp}`,
-      usage: 1,
-      isDefaultReceivable: true,
-      enabled: true,
-    },
-  });
-  const carrier = (
-    await api('/api/v1/master-data/shipping-lines?page=1&pageSize=10')
-  ).data[0];
+  const settlementAccount = (
+    await api(`/api/v1/partners/${customer.id}/accounts`, {
+      partnerId: customer.id,
+      account: {
+        name: '页面验收结算账户',
+        accountHolder: customer.legalName,
+        currency: 'CNY',
+        bankName: '验收银行',
+        accountNo: `UI${stamp}`,
+        usage: isAirExport ? 3 : 1,
+        isDefaultReceivable: true,
+        isDefaultPayable: isAirExport,
+        enabled: true,
+      },
+    })
+  ).data;
+  let transportInput: Record<string, unknown>;
+  if (isAirExport) {
+    const [airlines, origins, destinations] = await Promise.all([
+      api('/api/v1/master-data/airlines?keyword=MU&page=1&pageSize=20'),
+      api('/api/v1/master-data/airports?keyword=PVG&page=1&pageSize=20'),
+      api('/api/v1/master-data/airports?keyword=LAX&page=1&pageSize=20'),
+    ]);
+    const airline = airlines.data.find(
+      (item: { iataCode: string }) => item.iataCode === 'MU',
+    );
+    const origin = origins.data.find(
+      (item: { iataCode: string }) => item.iataCode === 'PVG',
+    );
+    const destination = destinations.data.find(
+      (item: { iataCode: string }) => item.iataCode === 'LAX',
+    );
+    expect(airline?.awbPrefix).toMatch(/^\d{3}$/);
+    expect(origin?.id).toBeTruthy();
+    expect(destination?.id).toBeTruthy();
+    const serial = stamp.slice(-7);
+    transportInput = {
+      airExport: {
+        master: {
+          masterNo: `${airline.awbPrefix}${serial}${Number(serial) % 7}`,
+          airlineId: airline.id,
+          originAirportId: origin.id,
+          destinationAirportId: destination.id,
+          flightNo: 'MU583',
+          etd: new Date(Date.now() + 86_400_000).toISOString(),
+          eta: new Date(Date.now() + 172_800_000).toISOString(),
+        },
+        houseNo: `UI-AE-${stamp}`,
+      },
+    };
+  } else {
+    const carrier = (
+      await api('/api/v1/master-data/shipping-lines?page=1&pageSize=10')
+    ).data[0];
+    transportInput = {
+      shippingLineId: carrier.id,
+      seaMasterBill: { masterNo: `UIMB${stamp}` },
+      seaDocument: { documentStructure: 2 },
+      shipmentType: 2,
+      etd: new Date(Date.now() + 86_400_000).toISOString(),
+      eta: new Date(Date.now() + 172_800_000).toISOString(),
+    };
+  }
   const chargeCategories = (await api('/api/v1/master-data/options')).data;
   const chargeCategory = chargeCategories.find(
     (item: { kind: number; enabled: boolean }) =>
@@ -153,14 +212,11 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
     await api('/api/v1/orders', {
       serviceTypeIds: [chargeCategory.id],
       customerId: customer.id,
-      shippingLineId: carrier.id,
-      seaMasterBill: { masterNo: `UIMB${stamp}` },
-      seaDocument: { documentStructure: 2 },
-      businessType: 1,
+      ...transportInput,
+      businessType: isAirExport ? 3 : 1,
       tradeDirection: 1,
       tradeTerm: 3,
       paymentTerm: 1,
-      shipmentType: 2,
       shipmentMode: 1,
       goodsDescription: '同订单页面闭环验收',
       totalPackages: 1,
@@ -201,7 +257,7 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
       item.defaultCurrency === 'CNY',
   );
   expect(feeSetting).toBeTruthy();
-  await page.goto(`/orders/sea-export/${order.id}/fees`);
+  await page.goto(`/orders/${orderKind}/${order.id}/fees`);
   await page.getByRole('button', { name: '新增应收费用' }).click();
   const editRow = page.locator('.ant-table-row[data-row-key^="new_"]').first();
   await selectOption(
@@ -487,6 +543,198 @@ test('同一订单完成录费、建账、收款核销与提成生成并刷新�
   expect(persistedCashflow.verifiedAmount).toBe('125.00000000');
   expect(persistedCashflow.unverifiedAmount).toBe('0.00000000');
   expect(persisted.commissionAmount).toBe('12.50000000');
+  if (isAirExport) {
+    // 空运复用同一财务契约：应收已由页面核销并计提，再覆盖发票及应付完整链路。
+    const invoiceProfile = (
+      await api(`/api/v1/partners/${customer.id}/invoice-profiles`, {
+        partnerId: customer.id,
+        invoiceTitle: customer.legalName,
+        taxpayerIdentificationNo: customer.unifiedSocialCreditCode,
+        registeredAddress: customer.registeredAddress,
+        defaultInvoiceType: 'NORMAL',
+        isDefault: true,
+      })
+    ).data;
+    const invoice = (
+      await api('/api/v1/finance/invoices', {
+        billIds: [bill.id],
+        invoiceProfileId: invoiceProfile.id,
+        invoiceType: 'NORMAL',
+        idempotencyKey: `ui-ae-invoice-${stamp}`,
+      })
+    ).data;
+    const issuedInvoice = (
+      await api(`/api/v1/finance/invoices/${invoice.id}/issue`, {
+        id: invoice.id,
+        expectedVersion: invoice.version,
+        taxInvoiceNo: `UI-AE-TAX-${stamp}`,
+        invoiceDate: today,
+      })
+    ).data;
+    expect(issuedInvoice.taxInvoiceNo).toBe(`UI-AE-TAX-${stamp}`);
+    expect(issuedInvoice.lines.length).toBeGreaterThan(0);
+    const master = order.airExport.master;
+    const payableSerial = String(
+      (Number(stamp.slice(-7)) + 1) % 10_000_000,
+    ).padStart(7, '0');
+    const payableOrder = (
+      await api('/api/v1/orders', {
+        serviceTypeIds: [chargeCategory.id],
+        customerId: customer.id,
+        businessType: 3,
+        tradeDirection: 1,
+        tradeTerm: 3,
+        paymentTerm: 1,
+        orderDate: new Date().toISOString(),
+        goodsDescription: '空运应付财务闭环验收',
+        totalPackages: 1,
+        totalGrossWeightKg: 100,
+        totalVolumeCbm: 1,
+        personnelAssignments: [
+          { userId: employee.id, role: 3 },
+          { userId: me.id, role: 2 },
+          { userId: me.id, role: 4 },
+        ],
+        airExport: {
+          master: {
+            ...master.content,
+            masterNo: `${master.content.masterNo.slice(0, 3)}${payableSerial}${Number(payableSerial) % 7}`,
+          },
+          houseNo: `UI-AE-PAY-${stamp}`,
+        },
+      })
+    ).data;
+    const payableFee = (
+      await api(`/api/v1/orders/${payableOrder.id}/fees`, {
+        orderId: payableOrder.id,
+        direction: 2,
+        settlementPartyId: customer.id,
+        quantity: '1',
+        unitPrice: '25',
+        currency: 'CNY',
+        expenseDate: today,
+        feeSettingId: feeSetting.id,
+        billingUnitId: feeSetting.defaultBillingUnitId,
+        taxInclusive: true,
+        idempotencyKey: `ui-ae-pay-fee-${stamp}`,
+      })
+    ).data;
+    const review = (
+      await api(`/api/v1/orders/${payableOrder.id}/fee-review/preview`)
+    ).data;
+    const pending = (
+      await api(`/api/v1/orders/${payableOrder.id}/fee-review/submit`, {
+        orderId: payableOrder.id,
+        expectedContentVersion: review.contentVersion,
+        expectedReviewVersion: review.reviewVersion,
+        previewToken: review.previewToken,
+        completenessConfirmed: true,
+        idempotencyKey: `ui-ae-pay-submit-${stamp}`,
+      })
+    ).data;
+    const approved = (
+      await api(`/api/v1/orders/${payableOrder.id}/fee-review/approve`, {
+        orderId: payableOrder.id,
+        expectedContentVersion: pending.contentVersion,
+        expectedReviewVersion: pending.reviewVersion,
+        submissionId: pending.submissionId,
+        previewToken: pending.previewToken,
+        comment: '隔离验收仅录应付以验证亏损必填意见及空运应付财务链路',
+        idempotencyKey: `ui-ae-pay-approve-${stamp}`,
+      })
+    ).data;
+    expect(approved.status).toBe('APPROVED');
+    const batchInput = {
+      feeIds: [payableFee.id],
+      organizationId,
+      groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
+    };
+    const initial = await api(
+      '/api/v1/finance/bill-batches/preview',
+      batchInput,
+    );
+    expect(initial.data).toHaveLength(1);
+    const group = {
+      groupKey: initial.data[0].groupKey,
+      billDate: today,
+      settlementAccountId: settlementAccount.id,
+    };
+    const preview = await api('/api/v1/finance/bill-batches/preview', {
+      ...batchInput,
+      groupConfigs: [group],
+    });
+    const payableBatch = (
+      await api('/api/v1/finance/bill-batches', {
+        ...batchInput,
+        previewToken: preview.previewToken,
+        idempotencyKey: `ui-ae-pay-batch-${stamp}`,
+        groups: [
+          { ...group, statementTitle: customer.legalName, paymentTermsDays: 0 },
+        ],
+      })
+    ).data;
+    const payableBill = (
+      await api(`/api/v1/finance/bill-batches/${payableBatch.id}/confirm`, {
+        id: payableBatch.id,
+        bills: payableBatch.bills.map(
+          (item: { id: string; version: string }) => ({
+            billId: item.id,
+            expectedVersion: item.version,
+          }),
+        ),
+      })
+    ).data.bills[0];
+    expect(payableBill.direction).toBe('PAYABLE');
+    const payment = (
+      await api('/api/v1/finance/cashflows', {
+        organizationId,
+        direction: 'PAYABLE',
+        settlementPartyId: customer.id,
+        currency: 'CNY',
+        amount: '25',
+        exchangeRate: '1',
+        baseCurrency: 'CNY',
+        transactionDate: today,
+        ourAccount: '隔离验收付款户',
+        counterpartyAccount: settlementAccount.accountNo,
+        paymentMethod: '银行转账',
+        idempotencyKey: `ui-ae-pay-cashflow-${stamp}`,
+      })
+    ).data;
+    const confirmedPayment = (
+      await api(`/api/v1/finance/cashflows/${payment.id}/confirm`, {
+        id: payment.id,
+        expectedVersion: payment.version,
+      })
+    ).data;
+    const payableVerification = (
+      await api('/api/v1/finance/verifications', {
+        allocations: [
+          {
+            cashflowId: confirmedPayment.id,
+            billId: payableBill.id,
+            amount: '25',
+          },
+        ],
+        verificationDate: today,
+        idempotencyKey: `ui-ae-pay-verification-${stamp}`,
+      })
+    ).data;
+    expect(payableVerification.direction).toBe('PAYABLE');
+    const settled = (await api(`/api/v1/finance/bills/${payableBill.id}`)).data;
+    expect(settled.verifiedAmount).toBe('25.00000000');
+    expect(settled.unverifiedAmount).toBe('0.00000000');
+    await testInfo.attach('air-payable-invoice-evidence', {
+      body: JSON.stringify({
+        orderId: payableOrder.id,
+        feeId: payableFee.id,
+        billId: payableBill.id,
+        verificationId: payableVerification.id,
+        invoiceId: issuedInvoice.id,
+      }),
+      contentType: 'application/json',
+    });
+  }
   expect(errors).toEqual([]);
   const evidence = {
     orderId: order.id,
