@@ -23,9 +23,12 @@
   "relatedFiles": [],
   "notes": "",
   "meta": {
-    "planning_status": "draft_pending_product_decisions",
+    "planning_status": "revised_plan_pending_parameter_and_flow_decisions",
     "evidence_base": "484d6060",
     "master_waybill_scope": "shared_multi_order_confirmed",
-    "weight_proposal": "auto_suggestion_manual_confirmation_pending"
+    "weight_proposal": "reference_manual_confirmation_with_bubble_share_and_fee_snapshot",
+    "plan_revision_date": "2026-10-21",
+    "batch_operations_scope": "member_view_continuous_create_explicit_link",
+    "implementation_started": false
   }
 }

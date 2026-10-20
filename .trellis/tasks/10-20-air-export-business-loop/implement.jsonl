@@ -6,3 +6,6 @@
 {"file": ".trellis/tasks/10-20-air-export-business-loop/research.md", "reason": "项目证据及竞品借鉴限制"}
 {"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "参考共享主单及显式关联，不套用海运专属业务规则"}
 {"file": ".trellis/tasks/10-20-air-export-business-loop/weight-model.md", "reason": "重量分层、单位公式、主分单独立计算与竞品证据边界"}
+{"file": ".trellis/tasks/10-20-air-export-business-loop/batch-operations.md", "reason": "主单成员操作、单证后补、号码与聚合权限边界"}
+{"file": ".trellis/tasks/10-20-air-export-business-loop/competitor-findings.md", "reason": "六项核验的证据等级和重量语义修正"}
+{"file": ".trellis/tasks/10-20-air-export-business-loop/design.md", "reason": "空运共享主单、并发和数量来源契约设计"}
