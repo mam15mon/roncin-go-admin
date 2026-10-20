@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/billing-unit-quantity-rule.md", "reason": "沿用公共单位数量规则与管理员配置保留契约"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "公共字典治理与工作台维护权限"}
+{"file": ".trellis/spec/server/backend/order-fee-review.md", "reason": "费用冻结与审核边界"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "正式迁移、组织隔离与数据访问边界"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "预览请求状态与异步结果隔离"}
+{"file": ".trellis/tasks/10-20-billing-unit-quantity-assist/research/current-state.md", "reason": "当前事实及代码定位"}
