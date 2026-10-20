@@ -5,14 +5,19 @@ import {
   ProFormRadio,
   ProFormText,
 } from '@ant-design/pro-components';
-import { Button, Form, Input, Tooltip } from 'antd';
+import { Form, Input, Tooltip } from 'antd';
 import React from 'react';
 import {
   CurrencyAmountInput,
   FormRow,
   ProFormSearchableSelect,
 } from '@/components/ui';
-import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
+import {
+  OrderReferenceType,
+  PartnerAssignmentRole,
+  PartnerRoleType,
+} from '@/enums.generated';
+import { orderServiceCheckOrderReference } from '@/services/roncin/orderService';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   shipmentModeOptions,
@@ -41,6 +46,67 @@ export function TooltipInput(props: React.ComponentProps<typeof Input>) {
         }}
       />
     </Tooltip>
+  );
+}
+
+/** 查重交给表单原生异步校验调度，防抖和过期结果由 Form.Item 管理。 */
+export function SeaOrderReferenceField({
+  name,
+  isDetail = false,
+}: {
+  name: 'customerReferenceNo' | 'internalReferenceNo';
+  isDetail?: boolean;
+}) {
+  const form = Form.useFormInstance();
+  const value = Form.useWatch(name, form);
+  const isCustomer = name === 'customerReferenceNo';
+  const label = isCustomer ? '客户业务编号' : '企业内部编号';
+
+  return (
+    <Form.Item
+      label={label}
+      name={name}
+      dependencies={isCustomer ? ['customerId'] : undefined}
+      validateDebounce={300}
+      hasFeedback={!isDetail && Boolean(String(value ?? '').trim())}
+      rules={
+        isDetail
+          ? undefined
+          : [
+              ({ getFieldValue }) => ({
+                warningOnly: true,
+                async validator(_, rawValue) {
+                  const referenceNo = String(rawValue ?? '').trim();
+                  if (!referenceNo) return;
+                  const selectedCustomerId = getFieldValue('customerId');
+                  if (isCustomer && !selectedCustomerId) {
+                    throw new Error('请先选择委托单位');
+                  }
+                  const response = await orderServiceCheckOrderReference(
+                    {
+                      referenceType: isCustomer
+                        ? OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER
+                        : OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL,
+                      referenceNo,
+                      customerId: isCustomer ? selectedCustomerId : undefined,
+                    },
+                    { skipErrorHandler: true },
+                  );
+                  if (!response?.data || response.success === false) {
+                    throw new Error(`${label}查重失败，请重试`);
+                  }
+                  if (response.data.duplicate) {
+                    throw new Error(
+                      `${label}已用于订单 ${response.data.orderNo || response.data.orderId}`,
+                    );
+                  }
+                },
+              }),
+            ]
+      }
+    >
+      <TooltipInput placeholder="请输入" maxLength={100} suffix={<span />} />
+    </Form.Item>
   );
 }
 
@@ -346,8 +412,6 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     searchForeignAgents,
     searchShippingAgents,
     setCustomerCode,
-    checkCustomerReferenceNo,
-    checkInternalReferenceNo,
   } = props;
   return {
     orderIdentity: (
@@ -416,48 +480,16 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     references: (
       <>
         <div style={{ gridColumn: 'span 2' }}>
-          <Form.Item label="客户业务编号">
-            <Form.Item noStyle name="customerReferenceNo">
-              <TooltipInput
-                placeholder="请输入"
-                maxLength={100}
-                suffix={
-                  <Button
-                    type="link"
-                    size="small"
-                    htmlType="button"
-                    tabIndex={-1}
-                    style={{ fontSize: 12, height: 21, padding: '0 2px' }}
-                    onClick={() => void checkCustomerReferenceNo()}
-                  >
-                    重复校验
-                  </Button>
-                }
-              />
-            </Form.Item>
-          </Form.Item>
+          <SeaOrderReferenceField
+            name="customerReferenceNo"
+            isDetail={props.isDetail}
+          />
         </div>
         <div style={{ gridColumn: 'span 2' }}>
-          <Form.Item label="企业内部编号">
-            <Form.Item noStyle name="internalReferenceNo">
-              <TooltipInput
-                placeholder="请输入"
-                maxLength={100}
-                suffix={
-                  <Button
-                    type="link"
-                    size="small"
-                    htmlType="button"
-                    tabIndex={-1}
-                    style={{ fontSize: 12, height: 21, padding: '0 2px' }}
-                    onClick={() => void checkInternalReferenceNo()}
-                  >
-                    重复校验
-                  </Button>
-                }
-              />
-            </Form.Item>
-          </Form.Item>
+          <SeaOrderReferenceField
+            name="internalReferenceNo"
+            isDetail={props.isDetail}
+          />
         </div>
       </>
     ),

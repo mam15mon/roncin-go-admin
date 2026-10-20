@@ -52,6 +52,9 @@ async function setupPending(isDetail = false) {
     await form.current?.validateFields([field]).catch(() => undefined);
   });
   expect(form.current?.getFieldError(field)).toContain(pendingMessage);
+  expect(screen.queryByText(pendingMessage)).not.toBeInTheDocument();
+  expect(screen.getByLabelText('MBL 主单号核对中')).toBeInTheDocument();
+  expect(screen.queryByLabelText('MBL 主单号核对通过')).not.toBeInTheDocument();
   return { ...deferred, form };
 }
 
@@ -65,13 +68,30 @@ const candidate: API.SeaMasterBillCandidate = {
 afterEach(() => vi.restoreAllMocks());
 
 describe('主单候选核对与字段校验同步', () => {
-  it('核对未命中后无需再次输入就清除等待提示，并允许保存', async () => {
+  it('核对通过后修改主单号会移除旧对勾并重新核对', async () => {
     const { resolve, form } = await setupPending();
     await act(async () => resolve({ matched: false }));
     await waitFor(() => expect(form.current?.getFieldError(field)).toEqual([]));
     await waitFor(() =>
       expect(screen.queryByText(pendingMessage)).not.toBeInTheDocument(),
     );
+    expect(screen.getByLabelText('MBL 主单号核对通过')).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText('请输入主单号'), {
+        target: { value: 'MBL456' },
+      });
+    });
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText('MBL 主单号核对通过'),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('核对未命中后通过验证并显示绿色对勾', async () => {
+    const { resolve, form } = await setupPending();
+    await act(async () => resolve({ matched: false }));
+    await waitFor(() => expect(form.current?.getFieldError(field)).toEqual([]));
     await act(async () => {
       await expect(form.current?.validateFields([field])).resolves.toEqual({
         [field]: 'MBL123',
@@ -85,6 +105,9 @@ describe('主单候选核对与字段校验同步', () => {
     await waitFor(() =>
       expect(form.current?.getFieldError(field)).toEqual(['核对请求失败']),
     );
+    expect(
+      screen.queryByLabelText('MBL 主单号核对通过'),
+    ).not.toBeInTheDocument();
   });
 
   it('命中航程冲突后保留真实阻断错误', async () => {
@@ -112,6 +135,7 @@ describe('主单候选核对与字段校验同步', () => {
       );
       expect(form.current?.getFieldError(field)).toEqual([]);
       expect(screen.getByText('运输执行：')).toBeInTheDocument();
+      expect(screen.getByLabelText('MBL 主单号核对通过')).toBeInTheDocument();
     });
   });
 

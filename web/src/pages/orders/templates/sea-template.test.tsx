@@ -73,6 +73,7 @@ describe.skip('海运订单新增模板', () => {
             masterNo: 'COSCO123456',
             shippingLineId: 'carrier-1',
           }),
+          { skipErrorHandler: true },
         );
       },
       { timeout: 2_000 },
@@ -93,8 +94,6 @@ describe.skip('海运订单新增模板', () => {
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
       setCustomerCode: vi.fn(),
-      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
       personnelOptions: [],
       isDetail: true,
     });
@@ -145,8 +144,6 @@ describe.skip('海运订单新增模板', () => {
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
       setCustomerCode: vi.fn(),
-      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
       personnelOptions: [],
     });
 
@@ -208,8 +205,6 @@ describe.skip('海运订单新增模板', () => {
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
       setCustomerCode: vi.fn(),
-      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
       personnelOptions: [],
     });
 
@@ -267,8 +262,6 @@ describe.skip('海运订单新增模板', () => {
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
       setCustomerCode: vi.fn(),
-      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
       personnelOptions: [],
     });
 
@@ -313,8 +306,6 @@ describe.skip('海运订单新增模板', () => {
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
       setCustomerCode: vi.fn(),
-      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
       personnelOptions: [],
     });
 
@@ -346,8 +337,6 @@ describe.skip('海运订单新增模板', () => {
       searchForeignAgents: vi.fn().mockResolvedValue([]),
       searchShippingAgents: vi.fn().mockResolvedValue([]),
       setCustomerCode: vi.fn(),
-      checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-      checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
       personnelOptions: [],
     });
 

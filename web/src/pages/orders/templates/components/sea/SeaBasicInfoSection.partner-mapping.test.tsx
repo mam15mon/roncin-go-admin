@@ -54,8 +54,6 @@ const baseProps: TemplateProps = {
   searchForeignAgents: vi.fn().mockResolvedValue([]),
   searchShippingAgents: vi.fn().mockResolvedValue([]),
   setCustomerCode: vi.fn(),
-  checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-  checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
   personnelOptions: [],
 };
 

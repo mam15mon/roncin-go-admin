@@ -23,8 +23,6 @@ const baseTemplateProps: TemplateProps = {
   searchForeignAgents: vi.fn().mockResolvedValue([]),
   searchShippingAgents: vi.fn().mockResolvedValue([]),
   setCustomerCode: vi.fn(),
-  checkCustomerReferenceNo: vi.fn().mockResolvedValue(undefined),
-  checkInternalReferenceNo: vi.fn().mockResolvedValue(undefined),
   personnelOptions: [],
 };
 
@@ -73,13 +71,14 @@ describe('订单人员选择', () => {
           <PersonnelAssignmentFields
             label="操作"
             userField="operatorUserId"
+            nameOnly
             options={[
               {
                 userId: 'user-a',
                 displayName: '张三',
                 departmentNames: ['财务部', '核算组'],
               },
-              { userId: 'user-b', displayName: '张三', departmentNames: [] },
+              { userId: 'user-b', displayName: '李四', departmentNames: [] },
             ]}
           />
         </Form>
@@ -89,16 +88,23 @@ describe('订单人员选择', () => {
     render(<Fixture />);
     const comboboxes = screen.getAllByRole('combobox');
     expect(comboboxes).toHaveLength(1);
+    expect(comboboxes[0]).toHaveAttribute('autocomplete', 'off');
+    expect(comboboxes[0]).toHaveAttribute('data-1p-ignore', 'true');
+    expect(comboboxes[0]).toHaveAttribute('data-lpignore', 'true');
+    expect(comboboxes[0]).toHaveAttribute('data-bwignore', 'true');
+    expect(comboboxes[0]).toHaveAttribute('data-form-type', 'other');
     fireEvent.mouseDown(comboboxes[0]);
-    expect(
-      await screen.findByText('张三 · 财务部、核算组'),
-    ).toBeInTheDocument();
-    fireEvent.click(await screen.findByText('张三 · 公司'));
+    expect(await screen.findByText('张三')).toBeInTheDocument();
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByText('李四'));
 
     await waitFor(() => {
       expect(form?.getFieldValue('operatorUserId')).toBe('user-b');
       expect(form?.getFieldValue('operatorOrganizationId')).toBeUndefined();
     });
+    expect(
+      screen.getByRole('combobox').closest('.ant-select'),
+    ).toHaveTextContent('李四');
   });
 });
 

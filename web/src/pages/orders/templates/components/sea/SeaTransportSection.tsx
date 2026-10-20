@@ -1,3 +1,4 @@
+import { CheckCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import { ProFormDateTimePicker, ProFormText } from '@ant-design/pro-components';
 import {
   Alert,
@@ -10,6 +11,7 @@ import {
   Tag,
   Tooltip,
   Typography,
+  theme,
 } from 'antd';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
@@ -55,6 +57,7 @@ export function SeaMasterBillFields({
   isDetail?: boolean;
 }) {
   const form = Form.useFormInstance();
+  const { token } = theme.useToken();
   const masterNo = Form.useWatch('seaMasterBillMasterNo', form);
   // 候选标识由匹配结果写入 store，没有对应 Form.Item，需监听未注册字段。
   const candidateId = Form.useWatch('seaMasterBillCandidateId', {
@@ -85,6 +88,7 @@ export function SeaMasterBillFields({
   const [candidateMatched, setCandidateMatched] = useState(false);
   const [candidateMatching, setCandidateMatching] = useState(false);
   const [candidateMatchError, setCandidateMatchError] = useState<string>();
+  const [candidateChecked, setCandidateChecked] = useState(false);
   // 命中批次含直单成员：全员分单制下禁止加拼，横幅转红色阻断文案。
   const [batchDirectBlocked, setBatchDirectBlocked] = useState(false);
 
@@ -99,6 +103,7 @@ export function SeaMasterBillFields({
       (shippingLineId && shippingLineId !== existingMbl.shippingLineId));
 
   useEffect(() => {
+    setCandidateChecked(false);
     const rawMasterNo = masterNo || '';
     const selectedShippingLineId = shippingLineId;
 
@@ -156,18 +161,23 @@ export function SeaMasterBillFields({
         const etdStr = etd ? dayjs(etd).toISOString() : undefined;
         const etaStr = eta ? dayjs(eta).toISOString() : undefined;
         const { vesselName, voyageNo } = splitSeaVesselVoyage(vesselVoyage);
-        const resp = await orderServiceMatchSeaMasterBillCandidate({
-          masterNo: rawMasterNo,
-          shippingLineId: selectedShippingLineId,
-          originLocationId: originLocationId || undefined,
-          dischargeLocationId: dischargeLocationId || undefined,
-          transitLocationId: transitLocationId || undefined,
-          vesselName,
-          voyageNo,
-          etd: etdStr,
-          eta: etaStr,
-        });
+        const resp = await orderServiceMatchSeaMasterBillCandidate(
+          {
+            masterNo: rawMasterNo,
+            shippingLineId: selectedShippingLineId,
+            originLocationId: originLocationId || undefined,
+            dischargeLocationId: dischargeLocationId || undefined,
+            transitLocationId: transitLocationId || undefined,
+            vesselName,
+            voyageNo,
+            etd: etdStr,
+            eta: etaStr,
+          },
+          { skipErrorHandler: true },
+        );
         if (!isSubscribed) return;
+        if (!resp) throw new Error('主单候选查询失败，请重试后再保存');
+        setCandidateChecked(true);
         setCandidateMatching(false);
         if (resp?.matched && resp.candidate) {
           setCandidate(resp.candidate);
@@ -298,11 +308,11 @@ export function SeaMasterBillFields({
   return (
     <>
       <div style={{ gridColumn: 'span 2' }}>
-        <ProFormText
+        <Form.Item
           name="seaMasterBillMasterNo"
           label="MBL 主单号"
-          placeholder="请输入主单号"
-          disabled={disabled || isMultiMemberLocked}
+          help={candidateMatching ? false : undefined}
+          validateStatus={candidateMatching ? 'validating' : undefined}
           tooltip={
             isMultiMemberLocked
               ? '该主单已关联多票订单，禁止从单票页面修改主单号；如需变更请走共享主单改派流程'
@@ -321,10 +331,33 @@ export function SeaMasterBillFields({
           normalize={(value) =>
             typeof value === 'string' ? value.toUpperCase() : value
           }
-          fieldProps={{
-            style: { textTransform: 'uppercase' },
-          }}
-        />
+        >
+          <Input
+            placeholder="请输入主单号"
+            disabled={disabled || isMultiMemberLocked}
+            style={{ textTransform: 'uppercase' }}
+            suffix={
+              candidateMatching ? (
+                <LoadingOutlined
+                  aria-label="MBL 主单号核对中"
+                  style={{ color: token.colorPrimary }}
+                />
+              ) : candidateChecked &&
+                !candidateMatchError &&
+                conflicts.length === 0 &&
+                !batchDirectBlocked &&
+                !isSingleMemberCorrection &&
+                (!candidateMatched || Boolean(candidateId)) ? (
+                <CheckCircleFilled
+                  aria-label="MBL 主单号核对通过"
+                  style={{ color: token.colorSuccess }}
+                />
+              ) : (
+                <span />
+              )
+            }
+          />
+        </Form.Item>
       </div>
 
       {isSingleMemberCorrection && (

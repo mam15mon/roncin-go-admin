@@ -2,20 +2,16 @@ import { SaveOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { App, Button, Card, Result, Space } from 'antd';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
-import { OrderReferenceType } from '@/enums.generated';
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
 import { history } from '@/router/history';
-import {
-  orderServiceCheckOrderReference,
-  orderServiceCreateOrder,
-} from '@/services/roncin/orderService';
+import { orderServiceCreateOrder } from '@/services/roncin/orderService';
 import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
@@ -57,51 +53,6 @@ export default function NewOrderPage() {
     personnelOptions,
   } = useOrderCreateOptions(definition, canCreate);
 
-  const checkOrderReference = useCallback(
-    async (referenceType: OrderReferenceType) => {
-      const isCustomerReference =
-        referenceType === OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER;
-      const fieldName = isCustomerReference
-        ? 'customerReferenceNo'
-        : 'internalReferenceNo';
-      const fieldLabel = isCustomerReference ? '客户业务编号' : '企业内部编号';
-      const referenceNo = String(
-        formRef.current?.getFieldValue(fieldName) ?? '',
-      ).trim();
-      if (!referenceNo) {
-        message.warning(`请先输入${fieldLabel}`);
-        return;
-      }
-
-      const customerId = String(
-        formRef.current?.getFieldValue('customerId') ?? '',
-      );
-      if (isCustomerReference && !customerId) {
-        message.warning('请先选择委托单位');
-        return;
-      }
-
-      try {
-        const response = await orderServiceCheckOrderReference({
-          referenceType,
-          referenceNo,
-          customerId: isCustomerReference ? customerId : undefined,
-        });
-        if (response.data?.duplicate) {
-          message.warning(
-            `${fieldLabel}已用于订单 ${response.data.orderNo || response.data.orderId}`,
-          );
-          return;
-        }
-        message.success(`${fieldLabel}未发现重复`);
-      } catch (error: unknown) {
-        const err = error as Error;
-        message.error(err.message || `${fieldLabel}查重失败`);
-      }
-    },
-    [message],
-  );
-
   const templateProps = useMemo(
     () => ({
       serviceTypeOptions,
@@ -121,10 +72,6 @@ export default function NewOrderPage() {
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
-      checkCustomerReferenceNo: () =>
-        checkOrderReference(OrderReferenceType.ORDER_REFERENCE_TYPE_CUSTOMER),
-      checkInternalReferenceNo: () =>
-        checkOrderReference(OrderReferenceType.ORDER_REFERENCE_TYPE_INTERNAL),
       personnelOptions,
       creator: initialState?.currentUser?.id
         ? {
@@ -143,7 +90,6 @@ export default function NewOrderPage() {
       searchLocations,
       currencyOptions,
       containerSpecOptions,
-      checkOrderReference,
       personnelOptions,
       initialState,
     ],

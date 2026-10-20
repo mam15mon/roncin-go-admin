@@ -66,8 +66,6 @@ const props: TemplateProps = {
   searchForeignAgents: search,
   searchShippingAgents: search,
   setCustomerCode: () => {},
-  checkCustomerReferenceNo: async () => {},
-  checkInternalReferenceNo: async () => {},
 };
 
 const HOUSE = SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE;
@@ -575,6 +573,7 @@ describe('SE 新建共享主单自动关联与批次排重', () => {
         masterNo: 'COSCOAUTO1',
         shippingLineId: 'carrier-1',
       }),
+      { skipErrorHandler: true },
     );
     // 候选确认参数（候选 ID + 版本 + 唯一航次）自动带入提交载荷。
     expect(form.getFieldValue('seaMasterBillCandidateId')).toBe(

@@ -5,6 +5,24 @@ import { FormRow, SearchableSelect } from '@/components/ui';
 import { formatPersonnelLabel } from '@/features/personnel';
 import type { TemplateProps } from '../../types';
 
+// 标记实际搜索 input，避免密码管理器把人员选择识别为登录凭据输入。
+const PersonnelSearchInput = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>((props, ref) => (
+  <input
+    {...props}
+    ref={ref}
+    autoComplete="off"
+    data-1p-ignore="true"
+    data-lpignore="true"
+    data-bwignore="true"
+    data-form-type="other"
+  />
+));
+
+const personnelSelectComponents = { input: PersonnelSearchInput };
+
 interface PersonnelAssignmentOption {
   userId?: string;
   displayName?: string;
@@ -16,6 +34,7 @@ interface PersonnelAssignmentFieldsProps {
   userField: string;
   options: PersonnelAssignmentOption[];
   disabled?: boolean;
+  nameOnly?: boolean;
   /** 表单校验规则：新建模式下提成相关三岗由调用方传入必填规则。 */
   rules?: Rule[];
 }
@@ -25,6 +44,7 @@ export function PersonnelAssignmentFields({
   userField,
   options,
   disabled = false,
+  nameOnly = false,
   rules,
 }: PersonnelAssignmentFieldsProps) {
   const userOptions = Array.from(
@@ -34,7 +54,9 @@ export function PersonnelAssignmentFields({
         .map((option) => [
           option.userId as string,
           {
-            label: formatPersonnelLabel(option),
+            label: nameOnly
+              ? option.displayName || '未命名人员'
+              : formatPersonnelLabel(option),
             value: option.userId as string,
           },
         ]),
@@ -49,6 +71,7 @@ export function PersonnelAssignmentFields({
       style={{ marginBottom: 0 }}
     >
       <SearchableSelect
+        components={personnelSelectComponents}
         disabled={disabled}
         options={userOptions}
         placeholder="选择人员"
@@ -105,6 +128,7 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
               : []
           }
           disabled
+          nameOnly={!isDetail}
         />
         {fields.map(({ label, userField, rules }) => (
           <PersonnelAssignmentFields
@@ -113,6 +137,7 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
             userField={userField}
             options={personnelOptions}
             rules={rules}
+            nameOnly={!isDetail}
           />
         ))}
       </FormRow>

@@ -338,8 +338,6 @@ export default function OrderDetailPage() {
       ),
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
-      checkCustomerReferenceNo: async () => {},
-      checkInternalReferenceNo: async () => {},
       personnelOptions,
       readonly: effectiveReadonly,
       onOrderDataChanged: loadData,

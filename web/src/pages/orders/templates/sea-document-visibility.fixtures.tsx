@@ -51,8 +51,6 @@ const props: TemplateProps = {
   searchForeignAgents: search,
   searchShippingAgents: search,
   setCustomerCode: () => {},
-  checkCustomerReferenceNo: async () => {},
-  checkInternalReferenceNo: async () => {},
 };
 
 /** 当前前台提单页签正文区域（页签强制渲染，仅激活正文带 active 类）。 */
