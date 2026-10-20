@@ -232,7 +232,11 @@ describe('SeaDocumentSectionComponent', () => {
             SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
           totalPackages: 0,
           totalVolumeCbm: '10.500',
-          seaMasterBillContent: { packageCount: 8, grossWeightKg: 12.125 },
+          seaMasterBillContent: {
+            packageCount: 8,
+            grossWeightKg: 12.125,
+            volumeCbm: 0,
+          },
           seaHouseBill: { content: { packageCount: 3, grossWeightKg: 4.5 } },
         }}
         exposeForm={(form) => {
@@ -245,18 +249,25 @@ describe('SeaDocumentSectionComponent', () => {
     expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(/^0$/);
     expect(panel.getByLabelText('委托毛重（KGS）')).toHaveTextContent(/^-$/);
     expect(panel.getByLabelText('委托体积（CBM）')).toHaveTextContent(/^10.5$/);
-    fireEvent.change(panel.getByLabelText('实际毛重（KGS）'), {
+    expect(panel.getByLabelText('实际体积（CBM）')).toHaveValue('0');
+    const actualWeight = panel.getByLabelText('实际毛重（KGS）');
+    fireEvent.focus(actualWeight);
+    fireEvent.change(actualWeight, {
       target: { value: '15.125' },
     });
+    expect(actualWeight).toHaveValue('15.125');
+    fireEvent.blur(actualWeight);
     await waitFor(() => {
       expect(
         capturedForm.getFieldValue(['seaMasterBillContent', 'grossWeightKg']),
       ).toBe(15.125);
     });
+    expect(actualWeight).toHaveValue('15.125');
 
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     panel = within(screen.getByRole('tabpanel'));
-    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('4.500');
+    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('4.5');
+    expect(panel.getByLabelText('实际体积（CBM）')).toHaveValue('');
     act(() => {
       capturedForm.setFieldsValue({
         totalPackages: 20,
@@ -290,6 +301,8 @@ describe('SeaDocumentSectionComponent', () => {
         volumeCbm: 6.5,
       });
     });
+    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('33.25');
+    expect(panel.getByLabelText('实际体积（CBM）')).toHaveValue('6.5');
     expect(
       capturedForm.getFieldValue(['seaMasterBillContent', 'packageCount']),
     ).toBe(8);

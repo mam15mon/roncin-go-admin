@@ -338,6 +338,8 @@ if (
   `totalPackageUnit`、`totalGrossWeightKg`、`totalVolumeCbm`，使用支持未注册值的
   `Form.useWatch(name, { form, preserve: true })`。数量经 `trimDecimal` 展示，
   空值为 `-`，零保留为 `0`，未填写单位时不补默认单位。
+- 对比区的委托件数和单位分列，单位列宽与下方选择框一致。实际毛重、体积的静态
+  展示也用 `trimDecimal`，输入中保留用户正在键入的小数，仍限制最多三位精度。
 - 实际值沿用 `seaMasterBillContent` / `seaHouseBill.content` 独立路径；委托源变更
   只更新摘要，点击「带入委托件重尺」才复制到当前提单，不能自动覆盖已录实际值。
 - 回归验证覆盖摘要随源变化、零值/空值、带入只影响当前提单、页签及 HOUSE/DIRECT
