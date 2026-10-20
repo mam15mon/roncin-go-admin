@@ -23,96 +23,15 @@ import type {
 const SEA_EXPORT_BUSINESS_TYPE = OrderBusinessType.BUSINESS_TYPE_SE;
 const SEA_EXPORT_TRADE_DIRECTION = TradeDirection.TRADE_DIRECTION_EXPORT;
 
-export type CreateOrderFormValues = {
-  customerId: string;
-  customerReferenceNo?: string;
-  bookingNo?: string;
-  internalReferenceNo?: string;
-  customerCode?: string;
-  tradeTerm?: number;
-  paymentTerm: number;
-  shippingLineId?: string;
-  bookingAgentId?: string;
-  foreignAgentId?: string;
-  shippingAgentId?: string;
-  contractNo?: string;
-  cargoValue?: string;
-  cargoCurrency?: string;
-  insurancePremium?: string;
-  insuranceCurrency?: string;
-  unNumber?: string;
-  hazardClass?: string;
-  factoryName?: string;
-  cargoReadyAt?: string | dayjs.Dayjs;
-  declarationCutoffAt?: string | dayjs.Dayjs;
-  receivedAt?: string | dayjs.Dayjs;
-  shipmentType?: number;
-  containerOwnership?: number;
-  shipmentMode?: number;
-  serviceTypeIds?: string[];
-  cargoCategoryIds?: string[];
-  originLocationId?: string;
-  destinationLocationId?: string;
-  dischargeLocationId?: string;
-  transitLocationId?: string;
-  vesselVoyage?: string;
-  etd?: string | dayjs.Dayjs;
-  eta?: string | dayjs.Dayjs;
-  siCutoff?: string | dayjs.Dayjs;
-  docCutoff?: string | dayjs.Dayjs;
-  customsCutoff?: string | dayjs.Dayjs;
-  vgmCutoff?: string | dayjs.Dayjs;
-  goodsDescription?: string;
-  totalPackages?: number;
-  totalGrossWeightKg?: number;
-  totalVolumeCbm?: number;
-  totalPackageUnit?: string;
-  specialRequirements?: string;
-  orderDate?: string | dayjs.Dayjs;
-  notes?: string;
-  bookingNotes?: string;
-  allocationNotes?: string;
-  operationNotes?: string;
-  shippingDocuments?: API.OrderShippingDocumentInput[];
-  containerRequests?: API.OrderContainerRequestInput[];
-  seaMasterBillMasterNo?: string;
-  seaMasterBillCandidateId?: string;
-  seaMasterBillExpectedCandidateVersion?: number | string;
-  seaMasterBillCandidateTeId?: string;
-  seaMasterBillExpectedCandidateTeVersion?: number | string;
-  seaMasterBillCorrectionReason?: string;
-  seaMasterBill?: API.SeaMasterBillInput;
-  /** 命中共享主单批次时由候选响应写入的分单号清单（含作废），仅用于失焦即时排重提示，不提交。 */
-  seaMasterBillBatchHouseNos?: string[];
-  operatorUserId?: string;
-  salesUserId?: string;
-  customerServiceUserId?: string;
-  associateUserId?: string;
-  documentUserId?: string;
-  commercialUserId?: string;
-  associate2UserId?: string;
-  creatorUserId?: string;
-  seaDocumentStructure?: number;
-  seaMasterBillContent?: API.SeaBillContent;
-  seaHouseBill?: API.SeaHouseBillInput;
-  seaDocument?: API.SeaOrderDocumentInput;
-};
-
-export type OrderDetailFormValues = Omit<
+import type {
   CreateOrderFormValues,
-  'containerRequests' | 'seaMasterBill' | 'shippingDocuments'
-> & {
-  containerRequests?: Array<
-    API.OrderContainerRequest | API.OrderContainerRequestInput
-  >;
-  shippingDocuments?: Array<
-    API.OrderShippingDocument | API.OrderShippingDocumentInput
-  >;
-  orderNo?: string;
-  seaMasterBill?: API.SeaMasterBillInput | API.SeaMasterBillSummary;
-  seaDocumentLinkVersion?: string;
-  seaDocumentSummary?: API.SeaOrderDocumentSummary;
-};
+  OrderDetailFormValues,
+} from '../form-values';
+
+export type {
+  CreateOrderFormValues,
+  OrderDetailFormValues,
+} from '../form-values';
 
 /** 计算海运出口新建默认值：只依赖显式传入的创建人与主数据候选项。 */
 export function buildSeaExportCreateDefaults(

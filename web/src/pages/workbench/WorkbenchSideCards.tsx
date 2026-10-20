@@ -19,14 +19,18 @@ import React from 'react';
 import { useAccess } from '@/app/access';
 import { history } from '@/router/history';
 import { formatDate } from '@/utils/format';
-import { orderFlowStatusText, orderTerminationStatusText } from './display';
+import {
+  orderFlowStatusText,
+  orderTerminationStatusText,
+  workbenchOrderPath,
+} from './display';
 
 const { Text, Paragraph } = Typography;
 
 type RecentOrder = API.WorkbenchRecentOrder;
 type Todos = API.WorkbenchTodoSummary;
 
-/** 我负责的近期订单：仅本人真实协作归属的最近海运出口订单，无数据时不渲染本卡。 */
+/** 我负责的近期订单：仅本人真实协作归属的最近海运及空运出口订单，无数据时不渲染本卡。 */
 export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
   const list = orders ?? [];
   if (list.length === 0) {
@@ -42,7 +46,17 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
         </Space>
       }
       extra={
-        <Button size="small" onClick={() => history.push('/orders/sea-export')}>
+        <Button
+          size="small"
+          onClick={() =>
+            history.push(
+              workbenchOrderPath(
+                list[0]?.businessType,
+                list[0]?.orderId,
+              )?.replace(/\/[^/]+$/, '') || '/welcome',
+            )
+          }
+        >
           订单列表
         </Button>
       }
@@ -69,7 +83,7 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
               </Text>
               <Text type="secondary">{item.customerName || '-'}</Text>
               <Tag color="processing">
-                {orderFlowStatusText(item.flowStatus)}
+                {orderFlowStatusText(item.flowStatus, item.businessType)}
               </Tag>
               {item.terminationStatus && item.terminationStatus !== 'ACTIVE' ? (
                 <Tag color="red">
@@ -84,7 +98,14 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
               key="open"
               type="link"
               size="small"
-              onClick={() => history.push(`/orders/sea-export/${item.orderId}`)}
+              disabled={!workbenchOrderPath(item.businessType, item.orderId)}
+              onClick={() => {
+                const path = workbenchOrderPath(
+                  item.businessType,
+                  item.orderId,
+                );
+                if (path) history.push(path);
+              }}
             >
               订单详情
             </Button>
@@ -223,6 +244,9 @@ export function QuickEntriesCard() {
   const entries: QuickEntry[] = [
     access.canReadSEOrders
       ? { title: '海运出口订单', path: '/orders/sea-export' }
+      : null,
+    access.canReadAEOrders
+      ? { title: '空运出口订单', path: '/orders/air-export' }
       : null,
     access.canReadFinanceFees
       ? { title: '集运费用明细', path: '/finance/fees' }

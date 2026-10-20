@@ -11,10 +11,10 @@ import type {
 import type {
   CreateOrderFormValues,
   OrderDetailFormValues,
-} from './sea-export/form-adapter';
+} from './form-values';
 
 /** 订单类型的稳定路由标识，同时是注册表的唯一 key。 */
-export type OrderKind = 'sea-export';
+export type OrderKind = 'sea-export' | 'air-export';
 
 /** 运输方式只描述主数据装载与地点搜索，不承载订单类型分发。 */
 export type OrderTransportMode = 'sea' | 'air' | 'land' | 'rail';

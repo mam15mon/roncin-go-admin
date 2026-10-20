@@ -221,14 +221,14 @@ export function OrderListTemplate({
         renderText: (val) => val || '-',
       },
       {
-        title: '船名航次',
+        title: options?.transportMode === 'air' ? '航班号' : '船名航次',
         dataIndex: 'vesselVoyage',
         width: 140,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
-        title: '起运港',
+        title: options?.transportMode === 'air' ? '起运机场' : '起运港',
         dataIndex: 'originPortName',
         width: 130,
         ellipsis: true,
@@ -240,7 +240,7 @@ export function OrderListTemplate({
             : record.originPortCode || '-',
       },
       {
-        title: '目的港',
+        title: options?.transportMode === 'air' ? '目的机场' : '目的港',
         dataIndex: 'destinationPortName',
         width: 130,
         ellipsis: true,
@@ -260,6 +260,7 @@ export function OrderListTemplate({
       },
       {
         title: '箱型箱量',
+        hideInTable: options?.transportMode === 'air',
         dataIndex: 'containerSummary',
         width: 130,
         ellipsis: true,
@@ -272,6 +273,7 @@ export function OrderListTemplate({
       },
       {
         title: '箱号',
+        hideInTable: options?.transportMode === 'air',
         dataIndex: 'containerNos',
         width: 140,
         ellipsis: true,
@@ -489,12 +491,16 @@ export function OrderListTemplate({
                     label: documentsActionLabel,
                     onClick: () => onOpenDocuments?.(record),
                   },
-                  {
-                    key: 'containers',
-                    icon: <InboxOutlined />,
-                    label: '集装箱管理',
-                    onClick: () => onOpenContainers?.(record),
-                  },
+                  ...(options?.transportMode !== 'air'
+                    ? [
+                        {
+                          key: 'containers',
+                          icon: <InboxOutlined />,
+                          label: '集装箱管理',
+                          onClick: () => onOpenContainers?.(record),
+                        },
+                      ]
+                    : []),
                   ...(onOpenCargo
                     ? [
                         {
@@ -525,7 +531,7 @@ export function OrderListTemplate({
                         },
                       ]
                     : []),
-                  ...(onOpenConsolidations
+                  ...(onOpenConsolidations && options?.transportMode !== 'air'
                     ? [
                         {
                           key: 'consolidations',
@@ -554,6 +560,7 @@ export function OrderListTemplate({
       ...trailingColumns,
     ],
     [
+      options?.transportMode,
       trailingColumns,
       extraColumns,
       onViewDetail,

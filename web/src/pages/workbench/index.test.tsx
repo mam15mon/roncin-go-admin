@@ -418,6 +418,7 @@ describe('工作台财务卡与组织切换', () => {
           pendingSupplementApprovals: [
             {
               requestId: 'req-1',
+              businessType: 'SE',
               orderId: 'order-1',
               orderNo: 'SE2026090099',
               feeName: '滞箱费',

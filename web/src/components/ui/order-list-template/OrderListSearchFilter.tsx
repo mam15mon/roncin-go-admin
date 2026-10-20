@@ -403,31 +403,52 @@ export function OrderListSearchFilter({
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} lg={4}>
-            <Form.Item name="originLocationId" label="起运港">
+            <Form.Item
+              name="originLocationId"
+              label={options.transportMode === 'air' ? '起运机场' : '起运港'}
+            >
               <RemoteSelect
                 selectedLabel={labelsRef.current.originLocationId}
                 selectedValue={initialValues.originLocationId}
                 onChange={captureLabel('originLocationId')}
-                placeholder="输入港口代码或名称"
+                placeholder={
+                  options.transportMode === 'air'
+                    ? '输入机场代码或名称'
+                    : '输入港口代码或名称'
+                }
                 options={options.ports || options.airports}
                 loadOptions={options.loadPorts}
               />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} lg={4}>
-            <Form.Item name="destinationLocationId" label="目的港">
+            <Form.Item
+              name="destinationLocationId"
+              label={options.transportMode === 'air' ? '目的机场' : '目的港'}
+            >
               <RemoteSelect
                 selectedLabel={labelsRef.current.destinationLocationId}
                 selectedValue={initialValues.destinationLocationId}
                 onChange={captureLabel('destinationLocationId')}
-                placeholder="输入港口代码或名称"
+                placeholder={
+                  options.transportMode === 'air'
+                    ? '输入机场代码或名称'
+                    : '输入港口代码或名称'
+                }
                 options={options.ports || options.airports}
                 loadOptions={options.loadPorts}
               />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} lg={5}>
-            <Form.Item name="etdRange" label="ETD（预计开船时间）">
+            <Form.Item
+              name="etdRange"
+              label={
+                options.transportMode === 'air'
+                  ? 'ETD（计划起飞时间）'
+                  : 'ETD（预计开船时间）'
+              }
+            >
               <RangePicker
                 presets={standardDateRangePresets}
                 style={{ width: '100%' }}
@@ -440,7 +461,12 @@ export function OrderListSearchFilter({
           <Row gutter={[12, 0]}>
             {[
               ['创建时间', 'createdAtRange'],
-              ['ETA（预计到港时间）', 'etaRange'],
+              [
+                options.transportMode === 'air'
+                  ? 'ETA（计划到达时间）'
+                  : 'ETA（预计到港时间）',
+                'etaRange',
+              ],
               ['订单状态时间', 'statusTimeRange'],
               ['订单锁定时间', 'lockedAtRange'],
             ].map(([label, name]) => (
@@ -456,18 +482,20 @@ export function OrderListSearchFilter({
           </Row>
 
           <Row gutter={[12, 0]}>
-            <Col xs={24} sm={12} lg={6}>
-              <Form.Item name="shippingLineId" label="船公司">
-                <RemoteSelect
-                  selectedLabel={labelsRef.current.shippingLineId}
-                  selectedValue={initialValues.shippingLineId}
-                  onChange={captureLabel('shippingLineId')}
-                  placeholder="输入船公司代码或名称"
-                  options={options.shippingLines}
-                  loadOptions={options.loadCarriers}
-                />
-              </Form.Item>
-            </Col>
+            {options.transportMode !== 'air' && (
+              <Col xs={24} sm={12} lg={6}>
+                <Form.Item name="shippingLineId" label="船公司">
+                  <RemoteSelect
+                    selectedLabel={labelsRef.current.shippingLineId}
+                    selectedValue={initialValues.shippingLineId}
+                    onChange={captureLabel('shippingLineId')}
+                    placeholder="输入船公司代码或名称"
+                    options={options.shippingLines}
+                    loadOptions={options.loadCarriers}
+                  />
+                </Form.Item>
+              </Col>
+            )}
             <Col xs={24} sm={12} lg={6}>
               <Form.Item name="shipper" label="发货人简称">
                 <Input placeholder="输入发货人简称" allowClear />

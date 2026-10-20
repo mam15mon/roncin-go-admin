@@ -2,6 +2,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
+import { FeeQuantityValue } from './feeQuantitySource';
 
 type FeeBaseColumnsOptions =
   | { variant: 'workbench'; direction: number }
@@ -70,7 +71,7 @@ export function feeBaseColumns(
     dataIndex: 'quantity',
     width: panel ? 110 : 80,
     align: 'right',
-    render: (_, record) => trimDecimal(record.quantity),
+    render: (_, record) => <FeeQuantityValue fee={record} />,
   };
   const billingUnitColumn: ProColumns<API.OrderFee> = {
     title: '计费单位',

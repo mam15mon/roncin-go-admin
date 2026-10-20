@@ -58,7 +58,8 @@ export function useOrderDetailData(
   // 海运出口单证已迁移到海运单证体系，后端对 SE 订单直接拒绝旧提单接口；
   // 详情聚合不得再拉取旧列表，否则整个页面加载失败。
   const usesLegacyShippingDocuments =
-    businessType !== OrderBusinessType.BUSINESS_TYPE_SE;
+    businessType !== OrderBusinessType.BUSINESS_TYPE_SE &&
+    businessType !== OrderBusinessType.BUSINESS_TYPE_AE;
 
   const detailQuery = useQuery({
     queryKey: [
@@ -76,7 +77,7 @@ export function useOrderDetailData(
         const [masterData, personnelOptions, orderRes, docsRes, personnelRes] =
           await Promise.all([
             fetchOrderMasterData(organizationId, definition.transportMode),
-            transportMode === 'sea'
+            transportMode === 'sea' || transportMode === 'air'
               ? getOrderPersonnelOptions(organizationId, businessType)
               : Promise.resolve([]),
             orderServiceGetOrder({ id: orderId }),

@@ -55,6 +55,29 @@ export const orderFlowStatusMeta: Record<number, StatusMeta> = {
   },
 };
 
+/** 同一流程枚举在空运中表达签单和提货，保持列表、详情与工作台文案一致。 */
+export function getOrderFlowStatusText(
+  value?: number | string,
+  businessType?: number | string,
+): string {
+  const status =
+    typeof value === 'string'
+      ? OrderFlowStatus[
+          `ORDER_FLOW_STATUS_${value}` as keyof typeof OrderFlowStatus
+        ]
+      : value;
+  const isAir =
+    businessType === 'AE' ||
+    businessType === OrderBusinessType.BUSINESS_TYPE_AE;
+  if (isAir && status === OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED)
+    return '已签单';
+  if (isAir && status === OrderFlowStatus.ORDER_FLOW_STATUS_TRUCKING_ARRANGED)
+    return '提货已安排';
+  return status === undefined
+    ? '-'
+    : orderFlowStatusMeta[Number(status)]?.text || '-';
+}
+
 export const adminUserStatusMeta: Record<number, StatusMeta> = {
   [AdminUserStatus.ADMIN_USER_STATUS_PENDING_ASSIGNMENT]: {
     text: '待分配',

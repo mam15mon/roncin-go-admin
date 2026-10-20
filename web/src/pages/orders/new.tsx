@@ -16,8 +16,8 @@ import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import OrderPageHeader from './components/OrderPageHeader';
+import type { CreateOrderFormValues } from './order-kinds/form-values';
 import { getOrderKindDefinition } from './order-kinds/registry';
-import type { CreateOrderFormValues } from './order-kinds/sea-export/form-adapter';
 import { revealSeaFormErrors } from './templates';
 import { useOrderCreateOptions } from './use-order-create-options';
 

@@ -11,7 +11,7 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import { orderFeeServicePreviewFeeQuantity } from '@/services/roncin/orderFeeService';
-import { trimDecimal } from '@/utils/format';
+import { formatDate, trimDecimal } from '@/utils/format';
 
 type BillingUnit = {
   id?: string;
@@ -25,7 +25,8 @@ type FeeQuantityAssistProps = {
   billingUnit?: BillingUnit;
   disabled?: boolean;
   active?: boolean;
-  onConfirm: (quantity: string) => void;
+  allowChargeable?: boolean;
+  onConfirm: (quantity: string, source?: API.FeeQuantitySelection) => void;
 };
 
 /** 显式请求并确认订单数量；来源、公式与精度均由服务端决定。 */
@@ -43,9 +44,13 @@ function QuantityAssistSession({
   orderId,
   billingUnit,
   onConfirm,
+  allowChargeable = true,
 }: FeeQuantityAssistProps) {
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState<'PLANNED' | 'ACTUAL'>('ACTUAL');
+  const [basis, setBasis] = useState<
+    'GROSS_WEIGHT' | 'CONFIRMED_CHARGEABLE_WEIGHT'
+  >('GROSS_WEIGHT');
   const containerUnit =
     billingUnit?.isContainerUnit || billingUnit?.code === 'CONT';
   return (
@@ -57,6 +62,7 @@ function QuantityAssistSession({
         disabled={!orderId || !billingUnit?.id}
         onClick={() => {
           setSource('ACTUAL');
+          setBasis('GROSS_WEIGHT');
           setOpen(true);
         }}
       >
@@ -64,16 +70,20 @@ function QuantityAssistSession({
       </Button>
       {open && billingUnit?.id && (
         <QuantityPreview
-          key={source}
+          key={`${source}:${basis}`}
           orderId={orderId}
           billingUnitId={billingUnit.id}
           unitLabel={billingUnit.name || billingUnit.code || ''}
           source={source}
+          basis={basis}
+          showWeightBasis={allowChargeable && billingUnit.code === 'KG'}
+          onBasisChange={setBasis}
           containerUnit={Boolean(containerUnit)}
           onSourceChange={setSource}
           onCancel={() => setOpen(false)}
-          onConfirm={(quantity) => {
-            onConfirm(quantity);
+          onConfirm={(quantity, selection) => {
+            if (selection) onConfirm(quantity, selection);
+            else onConfirm(quantity);
             setOpen(false);
           }}
         />
@@ -87,6 +97,9 @@ function QuantityPreview({
   billingUnitId,
   unitLabel,
   source,
+  basis,
+  showWeightBasis,
+  onBasisChange,
   containerUnit,
   onSourceChange,
   onCancel,
@@ -96,10 +109,15 @@ function QuantityPreview({
   billingUnitId: string;
   unitLabel: string;
   source: 'PLANNED' | 'ACTUAL';
+  basis: 'GROSS_WEIGHT' | 'CONFIRMED_CHARGEABLE_WEIGHT';
+  showWeightBasis: boolean;
+  onBasisChange: (
+    basis: 'GROSS_WEIGHT' | 'CONFIRMED_CHARGEABLE_WEIGHT',
+  ) => void;
   containerUnit: boolean;
   onSourceChange: (source: 'PLANNED' | 'ACTUAL') => void;
   onCancel: () => void;
-  onConfirm: (quantity: string) => void;
+  onConfirm: (quantity: string, source?: API.FeeQuantitySelection) => void;
 }) {
   const preview = useQuery({
     queryKey: [
@@ -108,10 +126,18 @@ function QuantityPreview({
       orderId,
       billingUnitId,
       source,
+      basis,
     ],
     queryFn: async ({ signal }) => {
       const response = await orderFeeServicePreviewFeeQuantity(
-        { orderId, billingUnitId, source },
+        {
+          orderId,
+          billingUnitId,
+          source,
+          ...(basis === 'CONFIRMED_CHARGEABLE_WEIGHT'
+            ? { quantityBasis: basis }
+            : {}),
+        },
         { signal },
       );
       if (!response?.data) throw new Error('数量建议响应不完整，请重试');
@@ -128,7 +154,13 @@ function QuantityPreview({
       open
       onCancel={onCancel}
       onOk={() => {
-        if (data?.available && data.quantity) onConfirm(data.quantity);
+        if (data?.available && data.quantity)
+          onConfirm(
+            data.quantity,
+            data.quantitySource
+              ? { ...data.quantitySource, referenceQuantity: data.quantity }
+              : undefined,
+          );
       }}
       okText="确认带入"
       cancelText="取消"
@@ -136,14 +168,35 @@ function QuantityPreview({
       width={560}
       destroyOnHidden
     >
-      {containerUnit && (
+      {showWeightBasis && (
         <Radio.Group
-          aria-label="箱量来源"
+          aria-label="重量计费依据"
+          value={basis}
+          onChange={(event) => onBasisChange(event.target.value)}
+          options={[
+            { label: '本票实际毛重', value: 'GROSS_WEIGHT' },
+            {
+              label: '本票当前确认计费重',
+              value: 'CONFIRMED_CHARGEABLE_WEIGHT',
+            },
+          ]}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      {(containerUnit || basis === 'CONFIRMED_CHARGEABLE_WEIGHT') && (
+        <Radio.Group
+          aria-label={containerUnit ? '箱量来源' : '确认计费重货量来源'}
           value={source}
           onChange={(event) => onSourceChange(event.target.value)}
           options={[
-            { label: '实际登记箱量', value: 'ACTUAL' },
-            { label: '订舱计划箱量', value: 'PLANNED' },
+            {
+              label: containerUnit ? '实际登记箱量' : '实际货物明细确认重量',
+              value: 'ACTUAL',
+            },
+            {
+              label: containerUnit ? '订舱计划箱量' : '订单委托货量确认重量',
+              value: 'PLANNED',
+            },
           ]}
           style={{ marginBottom: 16 }}
         />
@@ -170,6 +223,18 @@ function QuantityPreview({
             items={[
               { key: 'unit', label: '计费单位', children: unitLabel },
               { key: 'source', label: '数据来源', children: data.sourceLabel },
+              ...(data.quantitySource?.confirmedAt
+                ? [
+                    {
+                      key: 'confirmed-at',
+                      label: '重量确认时间',
+                      children: formatDate(
+                        data.quantitySource.confirmedAt,
+                        'datetime',
+                      ),
+                    },
+                  ]
+                : []),
               ...(data.inputs ?? []).map((input, index) => ({
                 key: `input-${index}`,
                 label: input.label,
@@ -228,12 +293,14 @@ export function FeeQuantityFormAssist({
   disabled,
   active,
   onValuesChange,
+  allowChargeable,
 }: {
   orderId: string;
   billingUnits: BillingUnit[];
   disabled?: boolean;
   active: boolean;
   onValuesChange: () => void;
+  allowChargeable?: boolean;
 }) {
   return (
     <Form.Item
@@ -245,13 +312,18 @@ export function FeeQuantityFormAssist({
       {(form) => (
         <FeeQuantityAssist
           orderId={orderId}
+          allowChargeable={allowChargeable}
           billingUnit={billingUnits.find(
             (unit) => unit.id === form.getFieldValue('billingUnitId'),
           )}
           disabled={disabled}
           active={active}
-          onConfirm={(quantity) => {
+          onConfirm={(quantity, selection) => {
             form.setFieldValue('quantity', quantity);
+            form.setFieldValue(
+              'quantitySource',
+              selection || { mode: 'MANUAL' },
+            );
             onValuesChange();
             void form.validateFields(['quantity']).catch(() => undefined);
           }}

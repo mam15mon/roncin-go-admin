@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { OrderBusinessType, TradeDirection } from '@/enums.generated';
+import { airExportDefinition } from './air-export/definition';
 import {
   getOrderKindDefinition,
   getOrderKindDefinitionByBusinessType,
@@ -8,8 +9,11 @@ import {
 import { seaExportDefinition } from './sea-export/definition';
 
 describe('订单类型注册表', () => {
-  it('只注册 sea-export，且元数据与生成枚举一致', () => {
-    expect(Object.keys(ORDER_KIND_REGISTRY)).toEqual(['sea-export']);
+  it('注册海运和空运出口，且元数据与生成枚举一致', () => {
+    expect(Object.keys(ORDER_KIND_REGISTRY)).toEqual([
+      'sea-export',
+      'air-export',
+    ]);
     expect(ORDER_KIND_REGISTRY['sea-export']).toBe(seaExportDefinition);
     expect(seaExportDefinition).toMatchObject({
       kind: 'sea-export',
@@ -36,7 +40,6 @@ describe('订单类型注册表', () => {
     ['空字符串', ''],
     ['未知类型', 'unknown-kind'],
     ['未注册的海运进口', 'sea-import'],
-    ['未注册的空运出口', 'air-export'],
     ['未注册的空运进口', 'air-import'],
     ['未注册的陆运', 'land'],
     ['未注册的铁路', 'rail'],
@@ -63,7 +66,7 @@ describe('订单类型注册表', () => {
     ).toBeUndefined();
     expect(
       getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_AE),
-    ).toBeUndefined();
+    ).toBe(airExportDefinition);
     expect(
       getOrderKindDefinitionByBusinessType(OrderBusinessType.BUSINESS_TYPE_AI),
     ).toBeUndefined();
