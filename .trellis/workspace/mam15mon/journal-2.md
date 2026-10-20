@@ -1885,3 +1885,25 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 147: 收尾钉钉与组织管理历史任务
+<!-- trellis-session: v=2 fp=391b40e2433285d9 -->
+
+**Date**: 2026-10-20
+**Task**: 收尾钉钉与组织管理历史任务
+**Branch**: `codex/fix-admin-role-max-permissions`
+
+### Summary
+
+用户明确确认 6 项任务均已完成；同步完成依据并归档 2 个顶层任务及 4 个子任务。保留历史验收记录，本轮不重跑业务测试或操作数据库。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3e0913cf` | docs: 按用户确认收尾钉钉与组织管理任务 |
+
+### Status
+
+[OK] **Completed**
