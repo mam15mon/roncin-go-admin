@@ -14,6 +14,18 @@ type Tx struct {
 	config
 	// AdministrativeRegion is the client for interacting with the AdministrativeRegion builders.
 	AdministrativeRegion *AdministrativeRegionClient
+	// AirHouseWaybill is the client for interacting with the AirHouseWaybill builders.
+	AirHouseWaybill *AirHouseWaybillClient
+	// AirHouseWaybillVersion is the client for interacting with the AirHouseWaybillVersion builders.
+	AirHouseWaybillVersion *AirHouseWaybillVersionClient
+	// AirMasterWaybill is the client for interacting with the AirMasterWaybill builders.
+	AirMasterWaybill *AirMasterWaybillClient
+	// AirMasterWaybillHistory is the client for interacting with the AirMasterWaybillHistory builders.
+	AirMasterWaybillHistory *AirMasterWaybillHistoryClient
+	// AirMasterWaybillOrderLink is the client for interacting with the AirMasterWaybillOrderLink builders.
+	AirMasterWaybillOrderLink *AirMasterWaybillOrderLinkClient
+	// AirWeightConfirmation is the client for interacting with the AirWeightConfirmation builders.
+	AirWeightConfirmation *AirWeightConfirmationClient
 	// Airline is the client for interacting with the Airline builders.
 	Airline *AirlineClient
 	// Airport is the client for interacting with the Airport builders.
@@ -372,6 +384,12 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.AdministrativeRegion = NewAdministrativeRegionClient(tx.config)
+	tx.AirHouseWaybill = NewAirHouseWaybillClient(tx.config)
+	tx.AirHouseWaybillVersion = NewAirHouseWaybillVersionClient(tx.config)
+	tx.AirMasterWaybill = NewAirMasterWaybillClient(tx.config)
+	tx.AirMasterWaybillHistory = NewAirMasterWaybillHistoryClient(tx.config)
+	tx.AirMasterWaybillOrderLink = NewAirMasterWaybillOrderLinkClient(tx.config)
+	tx.AirWeightConfirmation = NewAirWeightConfirmationClient(tx.config)
 	tx.Airline = NewAirlineClient(tx.config)
 	tx.Airport = NewAirportClient(tx.config)
 	tx.AuditLog = NewAuditLogClient(tx.config)

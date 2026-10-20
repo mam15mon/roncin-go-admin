@@ -1,6 +1,7 @@
 import { Card, Col, Descriptions, Row, Space, Statistic, Tag } from 'antd';
 import React from 'react';
 import { SectionCard } from '@/components/ui';
+import { OrderBusinessType } from '@/enums.generated';
 import { formatDate } from '@/utils/format';
 import { tradeTermOptions } from '../../common';
 import type { OrderBusinessWritePolicy } from '../../use-order-lock-state';
@@ -38,6 +39,8 @@ export default function OrderFeeHeader({
   profitCny,
   profitRate,
 }: OrderFeeHeaderProps) {
+  const isAir = order.businessType === OrderBusinessType.BUSINESS_TYPE_AE;
+  const master = order.airExport?.master;
   return (
     <>
       {/* 1. 基础信息卡片 */}
@@ -57,33 +60,43 @@ export default function OrderFeeHeader({
             </span>
           </Descriptions.Item>
           <Descriptions.Item label="委托单位">
-            {customerName || order.customerId || '-'}
+            {customerName || order.customerName || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="业务类型">{configTitle}</Descriptions.Item>
           <Descriptions.Item label="贸易条款">
             {tradeTermOptions.find((o) => o.value === order.tradeTerm)?.label ??
               '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="主单号 (MBL)">
-            {order.seaMasterBill?.masterNo || '-'}
+          <Descriptions.Item label={isAir ? '主运单号 (MAWB)' : '主单号 (MBL)'}>
+            {(isAir
+              ? master?.content?.masterNo
+              : order.seaMasterBill?.masterNo) || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="船名航次">
-            {order.vesselVoyage || '-'}
+          <Descriptions.Item label={isAir ? '航班号' : '船名航次'}>
+            {(isAir ? master?.content?.flightNo : order.vesselVoyage) || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="起运港 (POL)">
-            {order.originLocationId || '-'}
+          <Descriptions.Item label={isAir ? '起运机场' : '起运港 (POL)'}>
+            {(isAir ? master?.originAirportName : order.originLocationName) ||
+              '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="目的港 (POD)">
-            {order.destinationLocationId || '-'}
+          <Descriptions.Item label={isAir ? '目的机场' : '目的港 (POD)'}>
+            {(isAir
+              ? master?.destinationAirportName
+              : order.destinationLocationName) || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="船公司">
-            {order.seaMasterBill?.shippingLineName || '-'}
+          <Descriptions.Item label={isAir ? '航空公司' : '船公司'}>
+            {(isAir
+              ? master?.airlineName
+              : order.seaMasterBill?.shippingLineName) || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="订舱代理">
-            {order.bookingAgentId || '-'}
+            {order.bookingAgentName || '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="ETD">
-            {formatDate(order.etd, 'date')}
+          <Descriptions.Item label={isAir ? '计划起飞' : 'ETD'}>
+            {formatDate(
+              isAir ? master?.content?.etd : order.etd,
+              isAir ? 'minute' : 'date',
+            )}
           </Descriptions.Item>
           <Descriptions.Item label="件重尺">
             {order.totalPackages || '-'} 件 / {order.totalGrossWeightKg || '-'}{' '}

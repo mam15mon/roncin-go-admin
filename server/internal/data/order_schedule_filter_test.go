@@ -3,7 +3,9 @@ package data
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -26,8 +28,12 @@ func TestOrderScheduleFilterUsesTimestampBoundaries(t *testing.T) {
 			}
 			client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
 			t.Cleanup(func() { _ = client.Close() })
-			// 必须比较完整时刻；仅按文本日期比较会漏掉北京时间零点落在 UTC 前一天的记录。
-			mock.ExpectQuery(`WHERE NULLIF\("orders"\."`+field+`", ''\)::timestamptz >= \$1 AND NULLIF\("orders"\."`+field+`", ''\)::timestamptz < \$2`).
+			// AE 必须按真实关联读取最新主单时刻，SE 等类型继续使用订单字段；
+			// 两个分支均转换为完整时刻后比较，保留左闭右开的时间范围。
+			// 仅匹配 WHERE 契约，不约束 Ent 的 SELECT 列或计数实现。
+			timestampExpression := fmt.Sprintf(`NULLIF(CASE WHEN "orders"."business_type" = 'AE' THEN (SELECT "air_date_master"."%[1]s" FROM "air_master_waybill_order_links" AS "air_date_link" JOIN "air_master_waybills" AS "air_date_master" ON "air_date_master"."id" = "air_date_link"."master_waybill_id" WHERE "air_date_link"."order_id" = "orders"."id" ORDER BY "air_date_link"."started_at" DESC LIMIT 1) ELSE "orders"."%[1]s" END, '')::timestamptz`, field)
+			expectedBoundary := "WHERE " + timestampExpression + " >= $1 AND " + timestampExpression + " < $2"
+			mock.ExpectQuery(regexp.QuoteMeta(expectedBoundary)).
 				WithArgs(from, to).
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 			query := client.Order.Query()

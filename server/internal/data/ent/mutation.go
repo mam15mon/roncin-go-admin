@@ -14,8 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airhousewaybill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airhousewaybillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybillhistory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airweightconfirmation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
@@ -141,6 +147,12 @@ const (
 
 	// Node types.
 	TypeAdministrativeRegion             = "AdministrativeRegion"
+	TypeAirHouseWaybill                  = "AirHouseWaybill"
+	TypeAirHouseWaybillVersion           = "AirHouseWaybillVersion"
+	TypeAirMasterWaybill                 = "AirMasterWaybill"
+	TypeAirMasterWaybillHistory          = "AirMasterWaybillHistory"
+	TypeAirMasterWaybillOrderLink        = "AirMasterWaybillOrderLink"
+	TypeAirWeightConfirmation            = "AirWeightConfirmation"
 	TypeAirline                          = "Airline"
 	TypeAirport                          = "Airport"
 	TypeAuditLog                         = "AuditLog"
@@ -1222,6 +1234,6446 @@ func (m *AdministrativeRegionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AdministrativeRegionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AdministrativeRegion edge %s", name)
+}
+
+// AirHouseWaybillMutation represents an operation that mutates the AirHouseWaybill nodes in the graph.
+type AirHouseWaybillMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	house_no              *string
+	status                *string
+	content               *string
+	version               *uint64
+	addversion            *int64
+	clearedFields         map[string]struct{}
+	organization          *uuid.UUID
+	clearedorganization   bool
+	master_waybill        *uuid.UUID
+	clearedmaster_waybill bool
+	_order                *uuid.UUID
+	cleared_order         bool
+	done                  bool
+	oldValue              func(context.Context) (*AirHouseWaybill, error)
+	predicates            []predicate.AirHouseWaybill
+}
+
+var _ ent.Mutation = (*AirHouseWaybillMutation)(nil)
+
+// airhousewaybillOption allows management of the mutation configuration using functional options.
+type airhousewaybillOption func(*AirHouseWaybillMutation)
+
+// newAirHouseWaybillMutation creates new mutation for the AirHouseWaybill entity.
+func newAirHouseWaybillMutation(c config, op Op, opts ...airhousewaybillOption) *AirHouseWaybillMutation {
+	m := &AirHouseWaybillMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirHouseWaybill,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirHouseWaybillID sets the ID field of the mutation.
+func withAirHouseWaybillID(id uuid.UUID) airhousewaybillOption {
+	return func(m *AirHouseWaybillMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AirHouseWaybill
+		)
+		m.oldValue = func(ctx context.Context) (*AirHouseWaybill, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AirHouseWaybill.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirHouseWaybill sets the old AirHouseWaybill of the mutation.
+func withAirHouseWaybill(node *AirHouseWaybill) airhousewaybillOption {
+	return func(m *AirHouseWaybillMutation) {
+		m.oldValue = func(context.Context) (*AirHouseWaybill, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirHouseWaybillMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirHouseWaybillMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AirHouseWaybill entities.
+func (m *AirHouseWaybillMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirHouseWaybillMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirHouseWaybillMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AirHouseWaybill.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirHouseWaybillMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirHouseWaybillMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirHouseWaybillMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AirHouseWaybillMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AirHouseWaybillMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AirHouseWaybillMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirHouseWaybillMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirHouseWaybillMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirHouseWaybillMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetMasterWaybillID sets the "master_waybill_id" field.
+func (m *AirHouseWaybillMutation) SetMasterWaybillID(u uuid.UUID) {
+	m.master_waybill = &u
+}
+
+// MasterWaybillID returns the value of the "master_waybill_id" field in the mutation.
+func (m *AirHouseWaybillMutation) MasterWaybillID() (r uuid.UUID, exists bool) {
+	v := m.master_waybill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMasterWaybillID returns the old "master_waybill_id" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldMasterWaybillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMasterWaybillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMasterWaybillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMasterWaybillID: %w", err)
+	}
+	return oldValue.MasterWaybillID, nil
+}
+
+// ResetMasterWaybillID resets all changes to the "master_waybill_id" field.
+func (m *AirHouseWaybillMutation) ResetMasterWaybillID() {
+	m.master_waybill = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *AirHouseWaybillMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *AirHouseWaybillMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *AirHouseWaybillMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetHouseNo sets the "house_no" field.
+func (m *AirHouseWaybillMutation) SetHouseNo(s string) {
+	m.house_no = &s
+}
+
+// HouseNo returns the value of the "house_no" field in the mutation.
+func (m *AirHouseWaybillMutation) HouseNo() (r string, exists bool) {
+	v := m.house_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHouseNo returns the old "house_no" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldHouseNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHouseNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHouseNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHouseNo: %w", err)
+	}
+	return oldValue.HouseNo, nil
+}
+
+// ResetHouseNo resets all changes to the "house_no" field.
+func (m *AirHouseWaybillMutation) ResetHouseNo() {
+	m.house_no = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AirHouseWaybillMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AirHouseWaybillMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AirHouseWaybillMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetContent sets the "content" field.
+func (m *AirHouseWaybillMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *AirHouseWaybillMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *AirHouseWaybillMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *AirHouseWaybillMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *AirHouseWaybillMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *AirHouseWaybillMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *AirHouseWaybillMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *AirHouseWaybillMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *AirHouseWaybillMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[airhousewaybill.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *AirHouseWaybillMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *AirHouseWaybillMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *AirHouseWaybillMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearMasterWaybill clears the "master_waybill" edge to the AirMasterWaybill entity.
+func (m *AirHouseWaybillMutation) ClearMasterWaybill() {
+	m.clearedmaster_waybill = true
+	m.clearedFields[airhousewaybill.FieldMasterWaybillID] = struct{}{}
+}
+
+// MasterWaybillCleared reports if the "master_waybill" edge to the AirMasterWaybill entity was cleared.
+func (m *AirHouseWaybillMutation) MasterWaybillCleared() bool {
+	return m.clearedmaster_waybill
+}
+
+// MasterWaybillIDs returns the "master_waybill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MasterWaybillID instead. It exists only for internal usage by the builders.
+func (m *AirHouseWaybillMutation) MasterWaybillIDs() (ids []uuid.UUID) {
+	if id := m.master_waybill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMasterWaybill resets all changes to the "master_waybill" edge.
+func (m *AirHouseWaybillMutation) ResetMasterWaybill() {
+	m.master_waybill = nil
+	m.clearedmaster_waybill = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *AirHouseWaybillMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[airhousewaybill.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *AirHouseWaybillMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *AirHouseWaybillMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *AirHouseWaybillMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the AirHouseWaybillMutation builder.
+func (m *AirHouseWaybillMutation) Where(ps ...predicate.AirHouseWaybill) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirHouseWaybillMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirHouseWaybillMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AirHouseWaybill, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirHouseWaybillMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirHouseWaybillMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AirHouseWaybill).
+func (m *AirHouseWaybillMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirHouseWaybillMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, airhousewaybill.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, airhousewaybill.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, airhousewaybill.FieldOrganizationID)
+	}
+	if m.master_waybill != nil {
+		fields = append(fields, airhousewaybill.FieldMasterWaybillID)
+	}
+	if m._order != nil {
+		fields = append(fields, airhousewaybill.FieldOrderID)
+	}
+	if m.house_no != nil {
+		fields = append(fields, airhousewaybill.FieldHouseNo)
+	}
+	if m.status != nil {
+		fields = append(fields, airhousewaybill.FieldStatus)
+	}
+	if m.content != nil {
+		fields = append(fields, airhousewaybill.FieldContent)
+	}
+	if m.version != nil {
+		fields = append(fields, airhousewaybill.FieldVersion)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirHouseWaybillMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airhousewaybill.FieldCreatedAt:
+		return m.CreatedAt()
+	case airhousewaybill.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case airhousewaybill.FieldOrganizationID:
+		return m.OrganizationID()
+	case airhousewaybill.FieldMasterWaybillID:
+		return m.MasterWaybillID()
+	case airhousewaybill.FieldOrderID:
+		return m.OrderID()
+	case airhousewaybill.FieldHouseNo:
+		return m.HouseNo()
+	case airhousewaybill.FieldStatus:
+		return m.Status()
+	case airhousewaybill.FieldContent:
+		return m.Content()
+	case airhousewaybill.FieldVersion:
+		return m.Version()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirHouseWaybillMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airhousewaybill.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airhousewaybill.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case airhousewaybill.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airhousewaybill.FieldMasterWaybillID:
+		return m.OldMasterWaybillID(ctx)
+	case airhousewaybill.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case airhousewaybill.FieldHouseNo:
+		return m.OldHouseNo(ctx)
+	case airhousewaybill.FieldStatus:
+		return m.OldStatus(ctx)
+	case airhousewaybill.FieldContent:
+		return m.OldContent(ctx)
+	case airhousewaybill.FieldVersion:
+		return m.OldVersion(ctx)
+	}
+	return nil, fmt.Errorf("unknown AirHouseWaybill field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirHouseWaybillMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airhousewaybill.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airhousewaybill.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case airhousewaybill.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airhousewaybill.FieldMasterWaybillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMasterWaybillID(v)
+		return nil
+	case airhousewaybill.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case airhousewaybill.FieldHouseNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHouseNo(v)
+		return nil
+	case airhousewaybill.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case airhousewaybill.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case airhousewaybill.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybill field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirHouseWaybillMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, airhousewaybill.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirHouseWaybillMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airhousewaybill.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirHouseWaybillMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airhousewaybill.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybill numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirHouseWaybillMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirHouseWaybillMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirHouseWaybillMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AirHouseWaybill nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirHouseWaybillMutation) ResetField(name string) error {
+	switch name {
+	case airhousewaybill.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airhousewaybill.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case airhousewaybill.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airhousewaybill.FieldMasterWaybillID:
+		m.ResetMasterWaybillID()
+		return nil
+	case airhousewaybill.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case airhousewaybill.FieldHouseNo:
+		m.ResetHouseNo()
+		return nil
+	case airhousewaybill.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case airhousewaybill.FieldContent:
+		m.ResetContent()
+		return nil
+	case airhousewaybill.FieldVersion:
+		m.ResetVersion()
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybill field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirHouseWaybillMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, airhousewaybill.EdgeOrganization)
+	}
+	if m.master_waybill != nil {
+		edges = append(edges, airhousewaybill.EdgeMasterWaybill)
+	}
+	if m._order != nil {
+		edges = append(edges, airhousewaybill.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirHouseWaybillMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case airhousewaybill.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case airhousewaybill.EdgeMasterWaybill:
+		if id := m.master_waybill; id != nil {
+			return []ent.Value{*id}
+		}
+	case airhousewaybill.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirHouseWaybillMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirHouseWaybillMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirHouseWaybillMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, airhousewaybill.EdgeOrganization)
+	}
+	if m.clearedmaster_waybill {
+		edges = append(edges, airhousewaybill.EdgeMasterWaybill)
+	}
+	if m.cleared_order {
+		edges = append(edges, airhousewaybill.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirHouseWaybillMutation) EdgeCleared(name string) bool {
+	switch name {
+	case airhousewaybill.EdgeOrganization:
+		return m.clearedorganization
+	case airhousewaybill.EdgeMasterWaybill:
+		return m.clearedmaster_waybill
+	case airhousewaybill.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirHouseWaybillMutation) ClearEdge(name string) error {
+	switch name {
+	case airhousewaybill.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case airhousewaybill.EdgeMasterWaybill:
+		m.ClearMasterWaybill()
+		return nil
+	case airhousewaybill.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybill unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirHouseWaybillMutation) ResetEdge(name string) error {
+	switch name {
+	case airhousewaybill.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case airhousewaybill.EdgeMasterWaybill:
+		m.ResetMasterWaybill()
+		return nil
+	case airhousewaybill.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybill edge %s", name)
+}
+
+// AirHouseWaybillVersionMutation represents an operation that mutates the AirHouseWaybillVersion nodes in the graph.
+type AirHouseWaybillVersionMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	created_at           *time.Time
+	organization_id      *uuid.UUID
+	order_id             *uuid.UUID
+	version              *uint64
+	addversion           *int64
+	house_no             *string
+	status               *string
+	content              *string
+	actor_id             *uuid.UUID
+	reason               *string
+	clearedFields        map[string]struct{}
+	house_waybill        *uuid.UUID
+	clearedhouse_waybill bool
+	done                 bool
+	oldValue             func(context.Context) (*AirHouseWaybillVersion, error)
+	predicates           []predicate.AirHouseWaybillVersion
+}
+
+var _ ent.Mutation = (*AirHouseWaybillVersionMutation)(nil)
+
+// airhousewaybillversionOption allows management of the mutation configuration using functional options.
+type airhousewaybillversionOption func(*AirHouseWaybillVersionMutation)
+
+// newAirHouseWaybillVersionMutation creates new mutation for the AirHouseWaybillVersion entity.
+func newAirHouseWaybillVersionMutation(c config, op Op, opts ...airhousewaybillversionOption) *AirHouseWaybillVersionMutation {
+	m := &AirHouseWaybillVersionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirHouseWaybillVersion,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirHouseWaybillVersionID sets the ID field of the mutation.
+func withAirHouseWaybillVersionID(id uuid.UUID) airhousewaybillversionOption {
+	return func(m *AirHouseWaybillVersionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AirHouseWaybillVersion
+		)
+		m.oldValue = func(ctx context.Context) (*AirHouseWaybillVersion, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AirHouseWaybillVersion.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirHouseWaybillVersion sets the old AirHouseWaybillVersion of the mutation.
+func withAirHouseWaybillVersion(node *AirHouseWaybillVersion) airhousewaybillversionOption {
+	return func(m *AirHouseWaybillVersionMutation) {
+		m.oldValue = func(context.Context) (*AirHouseWaybillVersion, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirHouseWaybillVersionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirHouseWaybillVersionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AirHouseWaybillVersion entities.
+func (m *AirHouseWaybillVersionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirHouseWaybillVersionMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirHouseWaybillVersionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AirHouseWaybillVersion.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirHouseWaybillVersionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirHouseWaybillVersionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirHouseWaybillVersionMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirHouseWaybillVersionMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *AirHouseWaybillVersionMutation) SetOrderID(u uuid.UUID) {
+	m.order_id = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m.order_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *AirHouseWaybillVersionMutation) ResetOrderID() {
+	m.order_id = nil
+}
+
+// SetHouseWaybillID sets the "house_waybill_id" field.
+func (m *AirHouseWaybillVersionMutation) SetHouseWaybillID(u uuid.UUID) {
+	m.house_waybill = &u
+}
+
+// HouseWaybillID returns the value of the "house_waybill_id" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) HouseWaybillID() (r uuid.UUID, exists bool) {
+	v := m.house_waybill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHouseWaybillID returns the old "house_waybill_id" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldHouseWaybillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHouseWaybillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHouseWaybillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHouseWaybillID: %w", err)
+	}
+	return oldValue.HouseWaybillID, nil
+}
+
+// ResetHouseWaybillID resets all changes to the "house_waybill_id" field.
+func (m *AirHouseWaybillVersionMutation) ResetHouseWaybillID() {
+	m.house_waybill = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *AirHouseWaybillVersionMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *AirHouseWaybillVersionMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *AirHouseWaybillVersionMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *AirHouseWaybillVersionMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetHouseNo sets the "house_no" field.
+func (m *AirHouseWaybillVersionMutation) SetHouseNo(s string) {
+	m.house_no = &s
+}
+
+// HouseNo returns the value of the "house_no" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) HouseNo() (r string, exists bool) {
+	v := m.house_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHouseNo returns the old "house_no" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldHouseNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHouseNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHouseNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHouseNo: %w", err)
+	}
+	return oldValue.HouseNo, nil
+}
+
+// ResetHouseNo resets all changes to the "house_no" field.
+func (m *AirHouseWaybillVersionMutation) ResetHouseNo() {
+	m.house_no = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AirHouseWaybillVersionMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AirHouseWaybillVersionMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetContent sets the "content" field.
+func (m *AirHouseWaybillVersionMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *AirHouseWaybillVersionMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetActorID sets the "actor_id" field.
+func (m *AirHouseWaybillVersionMutation) SetActorID(u uuid.UUID) {
+	m.actor_id = &u
+}
+
+// ActorID returns the value of the "actor_id" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) ActorID() (r uuid.UUID, exists bool) {
+	v := m.actor_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActorID returns the old "actor_id" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldActorID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActorID: %w", err)
+	}
+	return oldValue.ActorID, nil
+}
+
+// ResetActorID resets all changes to the "actor_id" field.
+func (m *AirHouseWaybillVersionMutation) ResetActorID() {
+	m.actor_id = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *AirHouseWaybillVersionMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *AirHouseWaybillVersionMutation) ResetReason() {
+	m.reason = nil
+}
+
+// ClearHouseWaybill clears the "house_waybill" edge to the AirHouseWaybill entity.
+func (m *AirHouseWaybillVersionMutation) ClearHouseWaybill() {
+	m.clearedhouse_waybill = true
+	m.clearedFields[airhousewaybillversion.FieldHouseWaybillID] = struct{}{}
+}
+
+// HouseWaybillCleared reports if the "house_waybill" edge to the AirHouseWaybill entity was cleared.
+func (m *AirHouseWaybillVersionMutation) HouseWaybillCleared() bool {
+	return m.clearedhouse_waybill
+}
+
+// HouseWaybillIDs returns the "house_waybill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// HouseWaybillID instead. It exists only for internal usage by the builders.
+func (m *AirHouseWaybillVersionMutation) HouseWaybillIDs() (ids []uuid.UUID) {
+	if id := m.house_waybill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetHouseWaybill resets all changes to the "house_waybill" edge.
+func (m *AirHouseWaybillVersionMutation) ResetHouseWaybill() {
+	m.house_waybill = nil
+	m.clearedhouse_waybill = false
+}
+
+// Where appends a list predicates to the AirHouseWaybillVersionMutation builder.
+func (m *AirHouseWaybillVersionMutation) Where(ps ...predicate.AirHouseWaybillVersion) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirHouseWaybillVersionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirHouseWaybillVersionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AirHouseWaybillVersion, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirHouseWaybillVersionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirHouseWaybillVersionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AirHouseWaybillVersion).
+func (m *AirHouseWaybillVersionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirHouseWaybillVersionMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, airhousewaybillversion.FieldCreatedAt)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, airhousewaybillversion.FieldOrganizationID)
+	}
+	if m.order_id != nil {
+		fields = append(fields, airhousewaybillversion.FieldOrderID)
+	}
+	if m.house_waybill != nil {
+		fields = append(fields, airhousewaybillversion.FieldHouseWaybillID)
+	}
+	if m.version != nil {
+		fields = append(fields, airhousewaybillversion.FieldVersion)
+	}
+	if m.house_no != nil {
+		fields = append(fields, airhousewaybillversion.FieldHouseNo)
+	}
+	if m.status != nil {
+		fields = append(fields, airhousewaybillversion.FieldStatus)
+	}
+	if m.content != nil {
+		fields = append(fields, airhousewaybillversion.FieldContent)
+	}
+	if m.actor_id != nil {
+		fields = append(fields, airhousewaybillversion.FieldActorID)
+	}
+	if m.reason != nil {
+		fields = append(fields, airhousewaybillversion.FieldReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirHouseWaybillVersionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airhousewaybillversion.FieldCreatedAt:
+		return m.CreatedAt()
+	case airhousewaybillversion.FieldOrganizationID:
+		return m.OrganizationID()
+	case airhousewaybillversion.FieldOrderID:
+		return m.OrderID()
+	case airhousewaybillversion.FieldHouseWaybillID:
+		return m.HouseWaybillID()
+	case airhousewaybillversion.FieldVersion:
+		return m.Version()
+	case airhousewaybillversion.FieldHouseNo:
+		return m.HouseNo()
+	case airhousewaybillversion.FieldStatus:
+		return m.Status()
+	case airhousewaybillversion.FieldContent:
+		return m.Content()
+	case airhousewaybillversion.FieldActorID:
+		return m.ActorID()
+	case airhousewaybillversion.FieldReason:
+		return m.Reason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirHouseWaybillVersionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airhousewaybillversion.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airhousewaybillversion.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airhousewaybillversion.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case airhousewaybillversion.FieldHouseWaybillID:
+		return m.OldHouseWaybillID(ctx)
+	case airhousewaybillversion.FieldVersion:
+		return m.OldVersion(ctx)
+	case airhousewaybillversion.FieldHouseNo:
+		return m.OldHouseNo(ctx)
+	case airhousewaybillversion.FieldStatus:
+		return m.OldStatus(ctx)
+	case airhousewaybillversion.FieldContent:
+		return m.OldContent(ctx)
+	case airhousewaybillversion.FieldActorID:
+		return m.OldActorID(ctx)
+	case airhousewaybillversion.FieldReason:
+		return m.OldReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown AirHouseWaybillVersion field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirHouseWaybillVersionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airhousewaybillversion.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airhousewaybillversion.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airhousewaybillversion.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case airhousewaybillversion.FieldHouseWaybillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHouseWaybillID(v)
+		return nil
+	case airhousewaybillversion.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case airhousewaybillversion.FieldHouseNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHouseNo(v)
+		return nil
+	case airhousewaybillversion.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case airhousewaybillversion.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case airhousewaybillversion.FieldActorID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActorID(v)
+		return nil
+	case airhousewaybillversion.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybillVersion field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirHouseWaybillVersionMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, airhousewaybillversion.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirHouseWaybillVersionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airhousewaybillversion.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirHouseWaybillVersionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airhousewaybillversion.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybillVersion numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirHouseWaybillVersionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirHouseWaybillVersionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirHouseWaybillVersionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AirHouseWaybillVersion nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirHouseWaybillVersionMutation) ResetField(name string) error {
+	switch name {
+	case airhousewaybillversion.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airhousewaybillversion.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airhousewaybillversion.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case airhousewaybillversion.FieldHouseWaybillID:
+		m.ResetHouseWaybillID()
+		return nil
+	case airhousewaybillversion.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case airhousewaybillversion.FieldHouseNo:
+		m.ResetHouseNo()
+		return nil
+	case airhousewaybillversion.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case airhousewaybillversion.FieldContent:
+		m.ResetContent()
+		return nil
+	case airhousewaybillversion.FieldActorID:
+		m.ResetActorID()
+		return nil
+	case airhousewaybillversion.FieldReason:
+		m.ResetReason()
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybillVersion field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirHouseWaybillVersionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.house_waybill != nil {
+		edges = append(edges, airhousewaybillversion.EdgeHouseWaybill)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirHouseWaybillVersionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case airhousewaybillversion.EdgeHouseWaybill:
+		if id := m.house_waybill; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirHouseWaybillVersionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirHouseWaybillVersionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirHouseWaybillVersionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedhouse_waybill {
+		edges = append(edges, airhousewaybillversion.EdgeHouseWaybill)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirHouseWaybillVersionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case airhousewaybillversion.EdgeHouseWaybill:
+		return m.clearedhouse_waybill
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirHouseWaybillVersionMutation) ClearEdge(name string) error {
+	switch name {
+	case airhousewaybillversion.EdgeHouseWaybill:
+		m.ClearHouseWaybill()
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybillVersion unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirHouseWaybillVersionMutation) ResetEdge(name string) error {
+	switch name {
+	case airhousewaybillversion.EdgeHouseWaybill:
+		m.ResetHouseWaybill()
+		return nil
+	}
+	return fmt.Errorf("unknown AirHouseWaybillVersion edge %s", name)
+}
+
+// AirMasterWaybillMutation represents an operation that mutates the AirMasterWaybill nodes in the graph.
+type AirMasterWaybillMutation struct {
+	config
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	master_no                   *string
+	flight_no                   *string
+	etd                         *string
+	eta                         *string
+	actual_departure_at         *string
+	actual_arrival_at           *string
+	document_cutoff_at          *string
+	customs_cutoff_at           *string
+	status                      *string
+	version                     *uint64
+	addversion                  *int64
+	declared_packages           *int
+	adddeclared_packages        *int
+	declared_gross_weight_kg    *float64
+	adddeclared_gross_weight_kg *float64
+	declared_volume_cbm         *float64
+	adddeclared_volume_cbm      *float64
+	notes                       *string
+	clearedFields               map[string]struct{}
+	organization                *uuid.UUID
+	clearedorganization         bool
+	airline                     *uuid.UUID
+	clearedairline              bool
+	origin_airport              *uuid.UUID
+	clearedorigin_airport       bool
+	destination_airport         *uuid.UUID
+	cleareddestination_airport  bool
+	done                        bool
+	oldValue                    func(context.Context) (*AirMasterWaybill, error)
+	predicates                  []predicate.AirMasterWaybill
+}
+
+var _ ent.Mutation = (*AirMasterWaybillMutation)(nil)
+
+// airmasterwaybillOption allows management of the mutation configuration using functional options.
+type airmasterwaybillOption func(*AirMasterWaybillMutation)
+
+// newAirMasterWaybillMutation creates new mutation for the AirMasterWaybill entity.
+func newAirMasterWaybillMutation(c config, op Op, opts ...airmasterwaybillOption) *AirMasterWaybillMutation {
+	m := &AirMasterWaybillMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirMasterWaybill,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirMasterWaybillID sets the ID field of the mutation.
+func withAirMasterWaybillID(id uuid.UUID) airmasterwaybillOption {
+	return func(m *AirMasterWaybillMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AirMasterWaybill
+		)
+		m.oldValue = func(ctx context.Context) (*AirMasterWaybill, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AirMasterWaybill.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirMasterWaybill sets the old AirMasterWaybill of the mutation.
+func withAirMasterWaybill(node *AirMasterWaybill) airmasterwaybillOption {
+	return func(m *AirMasterWaybillMutation) {
+		m.oldValue = func(context.Context) (*AirMasterWaybill, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirMasterWaybillMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirMasterWaybillMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AirMasterWaybill entities.
+func (m *AirMasterWaybillMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirMasterWaybillMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirMasterWaybillMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AirMasterWaybill.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirMasterWaybillMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirMasterWaybillMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirMasterWaybillMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AirMasterWaybillMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AirMasterWaybillMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AirMasterWaybillMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirMasterWaybillMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirMasterWaybillMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirMasterWaybillMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetMasterNo sets the "master_no" field.
+func (m *AirMasterWaybillMutation) SetMasterNo(s string) {
+	m.master_no = &s
+}
+
+// MasterNo returns the value of the "master_no" field in the mutation.
+func (m *AirMasterWaybillMutation) MasterNo() (r string, exists bool) {
+	v := m.master_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMasterNo returns the old "master_no" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldMasterNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMasterNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMasterNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMasterNo: %w", err)
+	}
+	return oldValue.MasterNo, nil
+}
+
+// ResetMasterNo resets all changes to the "master_no" field.
+func (m *AirMasterWaybillMutation) ResetMasterNo() {
+	m.master_no = nil
+}
+
+// SetAirlineID sets the "airline_id" field.
+func (m *AirMasterWaybillMutation) SetAirlineID(u uuid.UUID) {
+	m.airline = &u
+}
+
+// AirlineID returns the value of the "airline_id" field in the mutation.
+func (m *AirMasterWaybillMutation) AirlineID() (r uuid.UUID, exists bool) {
+	v := m.airline
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAirlineID returns the old "airline_id" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldAirlineID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAirlineID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAirlineID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAirlineID: %w", err)
+	}
+	return oldValue.AirlineID, nil
+}
+
+// ResetAirlineID resets all changes to the "airline_id" field.
+func (m *AirMasterWaybillMutation) ResetAirlineID() {
+	m.airline = nil
+}
+
+// SetOriginAirportID sets the "origin_airport_id" field.
+func (m *AirMasterWaybillMutation) SetOriginAirportID(u uuid.UUID) {
+	m.origin_airport = &u
+}
+
+// OriginAirportID returns the value of the "origin_airport_id" field in the mutation.
+func (m *AirMasterWaybillMutation) OriginAirportID() (r uuid.UUID, exists bool) {
+	v := m.origin_airport
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOriginAirportID returns the old "origin_airport_id" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldOriginAirportID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOriginAirportID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOriginAirportID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOriginAirportID: %w", err)
+	}
+	return oldValue.OriginAirportID, nil
+}
+
+// ResetOriginAirportID resets all changes to the "origin_airport_id" field.
+func (m *AirMasterWaybillMutation) ResetOriginAirportID() {
+	m.origin_airport = nil
+}
+
+// SetDestinationAirportID sets the "destination_airport_id" field.
+func (m *AirMasterWaybillMutation) SetDestinationAirportID(u uuid.UUID) {
+	m.destination_airport = &u
+}
+
+// DestinationAirportID returns the value of the "destination_airport_id" field in the mutation.
+func (m *AirMasterWaybillMutation) DestinationAirportID() (r uuid.UUID, exists bool) {
+	v := m.destination_airport
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDestinationAirportID returns the old "destination_airport_id" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldDestinationAirportID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDestinationAirportID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDestinationAirportID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDestinationAirportID: %w", err)
+	}
+	return oldValue.DestinationAirportID, nil
+}
+
+// ResetDestinationAirportID resets all changes to the "destination_airport_id" field.
+func (m *AirMasterWaybillMutation) ResetDestinationAirportID() {
+	m.destination_airport = nil
+}
+
+// SetFlightNo sets the "flight_no" field.
+func (m *AirMasterWaybillMutation) SetFlightNo(s string) {
+	m.flight_no = &s
+}
+
+// FlightNo returns the value of the "flight_no" field in the mutation.
+func (m *AirMasterWaybillMutation) FlightNo() (r string, exists bool) {
+	v := m.flight_no
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlightNo returns the old "flight_no" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldFlightNo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlightNo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlightNo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlightNo: %w", err)
+	}
+	return oldValue.FlightNo, nil
+}
+
+// ResetFlightNo resets all changes to the "flight_no" field.
+func (m *AirMasterWaybillMutation) ResetFlightNo() {
+	m.flight_no = nil
+}
+
+// SetEtd sets the "etd" field.
+func (m *AirMasterWaybillMutation) SetEtd(s string) {
+	m.etd = &s
+}
+
+// Etd returns the value of the "etd" field in the mutation.
+func (m *AirMasterWaybillMutation) Etd() (r string, exists bool) {
+	v := m.etd
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEtd returns the old "etd" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldEtd(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEtd is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEtd requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEtd: %w", err)
+	}
+	return oldValue.Etd, nil
+}
+
+// ResetEtd resets all changes to the "etd" field.
+func (m *AirMasterWaybillMutation) ResetEtd() {
+	m.etd = nil
+}
+
+// SetEta sets the "eta" field.
+func (m *AirMasterWaybillMutation) SetEta(s string) {
+	m.eta = &s
+}
+
+// Eta returns the value of the "eta" field in the mutation.
+func (m *AirMasterWaybillMutation) Eta() (r string, exists bool) {
+	v := m.eta
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEta returns the old "eta" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldEta(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEta is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEta requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEta: %w", err)
+	}
+	return oldValue.Eta, nil
+}
+
+// ResetEta resets all changes to the "eta" field.
+func (m *AirMasterWaybillMutation) ResetEta() {
+	m.eta = nil
+}
+
+// SetActualDepartureAt sets the "actual_departure_at" field.
+func (m *AirMasterWaybillMutation) SetActualDepartureAt(s string) {
+	m.actual_departure_at = &s
+}
+
+// ActualDepartureAt returns the value of the "actual_departure_at" field in the mutation.
+func (m *AirMasterWaybillMutation) ActualDepartureAt() (r string, exists bool) {
+	v := m.actual_departure_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActualDepartureAt returns the old "actual_departure_at" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldActualDepartureAt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActualDepartureAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActualDepartureAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActualDepartureAt: %w", err)
+	}
+	return oldValue.ActualDepartureAt, nil
+}
+
+// ResetActualDepartureAt resets all changes to the "actual_departure_at" field.
+func (m *AirMasterWaybillMutation) ResetActualDepartureAt() {
+	m.actual_departure_at = nil
+}
+
+// SetActualArrivalAt sets the "actual_arrival_at" field.
+func (m *AirMasterWaybillMutation) SetActualArrivalAt(s string) {
+	m.actual_arrival_at = &s
+}
+
+// ActualArrivalAt returns the value of the "actual_arrival_at" field in the mutation.
+func (m *AirMasterWaybillMutation) ActualArrivalAt() (r string, exists bool) {
+	v := m.actual_arrival_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActualArrivalAt returns the old "actual_arrival_at" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldActualArrivalAt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActualArrivalAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActualArrivalAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActualArrivalAt: %w", err)
+	}
+	return oldValue.ActualArrivalAt, nil
+}
+
+// ResetActualArrivalAt resets all changes to the "actual_arrival_at" field.
+func (m *AirMasterWaybillMutation) ResetActualArrivalAt() {
+	m.actual_arrival_at = nil
+}
+
+// SetDocumentCutoffAt sets the "document_cutoff_at" field.
+func (m *AirMasterWaybillMutation) SetDocumentCutoffAt(s string) {
+	m.document_cutoff_at = &s
+}
+
+// DocumentCutoffAt returns the value of the "document_cutoff_at" field in the mutation.
+func (m *AirMasterWaybillMutation) DocumentCutoffAt() (r string, exists bool) {
+	v := m.document_cutoff_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocumentCutoffAt returns the old "document_cutoff_at" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldDocumentCutoffAt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocumentCutoffAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocumentCutoffAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocumentCutoffAt: %w", err)
+	}
+	return oldValue.DocumentCutoffAt, nil
+}
+
+// ResetDocumentCutoffAt resets all changes to the "document_cutoff_at" field.
+func (m *AirMasterWaybillMutation) ResetDocumentCutoffAt() {
+	m.document_cutoff_at = nil
+}
+
+// SetCustomsCutoffAt sets the "customs_cutoff_at" field.
+func (m *AirMasterWaybillMutation) SetCustomsCutoffAt(s string) {
+	m.customs_cutoff_at = &s
+}
+
+// CustomsCutoffAt returns the value of the "customs_cutoff_at" field in the mutation.
+func (m *AirMasterWaybillMutation) CustomsCutoffAt() (r string, exists bool) {
+	v := m.customs_cutoff_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCustomsCutoffAt returns the old "customs_cutoff_at" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldCustomsCutoffAt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCustomsCutoffAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCustomsCutoffAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCustomsCutoffAt: %w", err)
+	}
+	return oldValue.CustomsCutoffAt, nil
+}
+
+// ResetCustomsCutoffAt resets all changes to the "customs_cutoff_at" field.
+func (m *AirMasterWaybillMutation) ResetCustomsCutoffAt() {
+	m.customs_cutoff_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AirMasterWaybillMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AirMasterWaybillMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AirMasterWaybillMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *AirMasterWaybillMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *AirMasterWaybillMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *AirMasterWaybillMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *AirMasterWaybillMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *AirMasterWaybillMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetDeclaredPackages sets the "declared_packages" field.
+func (m *AirMasterWaybillMutation) SetDeclaredPackages(i int) {
+	m.declared_packages = &i
+	m.adddeclared_packages = nil
+}
+
+// DeclaredPackages returns the value of the "declared_packages" field in the mutation.
+func (m *AirMasterWaybillMutation) DeclaredPackages() (r int, exists bool) {
+	v := m.declared_packages
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeclaredPackages returns the old "declared_packages" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldDeclaredPackages(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeclaredPackages is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeclaredPackages requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeclaredPackages: %w", err)
+	}
+	return oldValue.DeclaredPackages, nil
+}
+
+// AddDeclaredPackages adds i to the "declared_packages" field.
+func (m *AirMasterWaybillMutation) AddDeclaredPackages(i int) {
+	if m.adddeclared_packages != nil {
+		*m.adddeclared_packages += i
+	} else {
+		m.adddeclared_packages = &i
+	}
+}
+
+// AddedDeclaredPackages returns the value that was added to the "declared_packages" field in this mutation.
+func (m *AirMasterWaybillMutation) AddedDeclaredPackages() (r int, exists bool) {
+	v := m.adddeclared_packages
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDeclaredPackages clears the value of the "declared_packages" field.
+func (m *AirMasterWaybillMutation) ClearDeclaredPackages() {
+	m.declared_packages = nil
+	m.adddeclared_packages = nil
+	m.clearedFields[airmasterwaybill.FieldDeclaredPackages] = struct{}{}
+}
+
+// DeclaredPackagesCleared returns if the "declared_packages" field was cleared in this mutation.
+func (m *AirMasterWaybillMutation) DeclaredPackagesCleared() bool {
+	_, ok := m.clearedFields[airmasterwaybill.FieldDeclaredPackages]
+	return ok
+}
+
+// ResetDeclaredPackages resets all changes to the "declared_packages" field.
+func (m *AirMasterWaybillMutation) ResetDeclaredPackages() {
+	m.declared_packages = nil
+	m.adddeclared_packages = nil
+	delete(m.clearedFields, airmasterwaybill.FieldDeclaredPackages)
+}
+
+// SetDeclaredGrossWeightKg sets the "declared_gross_weight_kg" field.
+func (m *AirMasterWaybillMutation) SetDeclaredGrossWeightKg(f float64) {
+	m.declared_gross_weight_kg = &f
+	m.adddeclared_gross_weight_kg = nil
+}
+
+// DeclaredGrossWeightKg returns the value of the "declared_gross_weight_kg" field in the mutation.
+func (m *AirMasterWaybillMutation) DeclaredGrossWeightKg() (r float64, exists bool) {
+	v := m.declared_gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeclaredGrossWeightKg returns the old "declared_gross_weight_kg" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldDeclaredGrossWeightKg(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeclaredGrossWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeclaredGrossWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeclaredGrossWeightKg: %w", err)
+	}
+	return oldValue.DeclaredGrossWeightKg, nil
+}
+
+// AddDeclaredGrossWeightKg adds f to the "declared_gross_weight_kg" field.
+func (m *AirMasterWaybillMutation) AddDeclaredGrossWeightKg(f float64) {
+	if m.adddeclared_gross_weight_kg != nil {
+		*m.adddeclared_gross_weight_kg += f
+	} else {
+		m.adddeclared_gross_weight_kg = &f
+	}
+}
+
+// AddedDeclaredGrossWeightKg returns the value that was added to the "declared_gross_weight_kg" field in this mutation.
+func (m *AirMasterWaybillMutation) AddedDeclaredGrossWeightKg() (r float64, exists bool) {
+	v := m.adddeclared_gross_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDeclaredGrossWeightKg clears the value of the "declared_gross_weight_kg" field.
+func (m *AirMasterWaybillMutation) ClearDeclaredGrossWeightKg() {
+	m.declared_gross_weight_kg = nil
+	m.adddeclared_gross_weight_kg = nil
+	m.clearedFields[airmasterwaybill.FieldDeclaredGrossWeightKg] = struct{}{}
+}
+
+// DeclaredGrossWeightKgCleared returns if the "declared_gross_weight_kg" field was cleared in this mutation.
+func (m *AirMasterWaybillMutation) DeclaredGrossWeightKgCleared() bool {
+	_, ok := m.clearedFields[airmasterwaybill.FieldDeclaredGrossWeightKg]
+	return ok
+}
+
+// ResetDeclaredGrossWeightKg resets all changes to the "declared_gross_weight_kg" field.
+func (m *AirMasterWaybillMutation) ResetDeclaredGrossWeightKg() {
+	m.declared_gross_weight_kg = nil
+	m.adddeclared_gross_weight_kg = nil
+	delete(m.clearedFields, airmasterwaybill.FieldDeclaredGrossWeightKg)
+}
+
+// SetDeclaredVolumeCbm sets the "declared_volume_cbm" field.
+func (m *AirMasterWaybillMutation) SetDeclaredVolumeCbm(f float64) {
+	m.declared_volume_cbm = &f
+	m.adddeclared_volume_cbm = nil
+}
+
+// DeclaredVolumeCbm returns the value of the "declared_volume_cbm" field in the mutation.
+func (m *AirMasterWaybillMutation) DeclaredVolumeCbm() (r float64, exists bool) {
+	v := m.declared_volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeclaredVolumeCbm returns the old "declared_volume_cbm" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldDeclaredVolumeCbm(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeclaredVolumeCbm is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeclaredVolumeCbm requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeclaredVolumeCbm: %w", err)
+	}
+	return oldValue.DeclaredVolumeCbm, nil
+}
+
+// AddDeclaredVolumeCbm adds f to the "declared_volume_cbm" field.
+func (m *AirMasterWaybillMutation) AddDeclaredVolumeCbm(f float64) {
+	if m.adddeclared_volume_cbm != nil {
+		*m.adddeclared_volume_cbm += f
+	} else {
+		m.adddeclared_volume_cbm = &f
+	}
+}
+
+// AddedDeclaredVolumeCbm returns the value that was added to the "declared_volume_cbm" field in this mutation.
+func (m *AirMasterWaybillMutation) AddedDeclaredVolumeCbm() (r float64, exists bool) {
+	v := m.adddeclared_volume_cbm
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDeclaredVolumeCbm clears the value of the "declared_volume_cbm" field.
+func (m *AirMasterWaybillMutation) ClearDeclaredVolumeCbm() {
+	m.declared_volume_cbm = nil
+	m.adddeclared_volume_cbm = nil
+	m.clearedFields[airmasterwaybill.FieldDeclaredVolumeCbm] = struct{}{}
+}
+
+// DeclaredVolumeCbmCleared returns if the "declared_volume_cbm" field was cleared in this mutation.
+func (m *AirMasterWaybillMutation) DeclaredVolumeCbmCleared() bool {
+	_, ok := m.clearedFields[airmasterwaybill.FieldDeclaredVolumeCbm]
+	return ok
+}
+
+// ResetDeclaredVolumeCbm resets all changes to the "declared_volume_cbm" field.
+func (m *AirMasterWaybillMutation) ResetDeclaredVolumeCbm() {
+	m.declared_volume_cbm = nil
+	m.adddeclared_volume_cbm = nil
+	delete(m.clearedFields, airmasterwaybill.FieldDeclaredVolumeCbm)
+}
+
+// SetNotes sets the "notes" field.
+func (m *AirMasterWaybillMutation) SetNotes(s string) {
+	m.notes = &s
+}
+
+// Notes returns the value of the "notes" field in the mutation.
+func (m *AirMasterWaybillMutation) Notes() (r string, exists bool) {
+	v := m.notes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotes returns the old "notes" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldNotes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotes: %w", err)
+	}
+	return oldValue.Notes, nil
+}
+
+// ResetNotes resets all changes to the "notes" field.
+func (m *AirMasterWaybillMutation) ResetNotes() {
+	m.notes = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *AirMasterWaybillMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[airmasterwaybill.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *AirMasterWaybillMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *AirMasterWaybillMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearAirline clears the "airline" edge to the Airline entity.
+func (m *AirMasterWaybillMutation) ClearAirline() {
+	m.clearedairline = true
+	m.clearedFields[airmasterwaybill.FieldAirlineID] = struct{}{}
+}
+
+// AirlineCleared reports if the "airline" edge to the Airline entity was cleared.
+func (m *AirMasterWaybillMutation) AirlineCleared() bool {
+	return m.clearedairline
+}
+
+// AirlineIDs returns the "airline" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AirlineID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillMutation) AirlineIDs() (ids []uuid.UUID) {
+	if id := m.airline; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAirline resets all changes to the "airline" edge.
+func (m *AirMasterWaybillMutation) ResetAirline() {
+	m.airline = nil
+	m.clearedairline = false
+}
+
+// ClearOriginAirport clears the "origin_airport" edge to the Airport entity.
+func (m *AirMasterWaybillMutation) ClearOriginAirport() {
+	m.clearedorigin_airport = true
+	m.clearedFields[airmasterwaybill.FieldOriginAirportID] = struct{}{}
+}
+
+// OriginAirportCleared reports if the "origin_airport" edge to the Airport entity was cleared.
+func (m *AirMasterWaybillMutation) OriginAirportCleared() bool {
+	return m.clearedorigin_airport
+}
+
+// OriginAirportIDs returns the "origin_airport" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OriginAirportID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillMutation) OriginAirportIDs() (ids []uuid.UUID) {
+	if id := m.origin_airport; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOriginAirport resets all changes to the "origin_airport" edge.
+func (m *AirMasterWaybillMutation) ResetOriginAirport() {
+	m.origin_airport = nil
+	m.clearedorigin_airport = false
+}
+
+// ClearDestinationAirport clears the "destination_airport" edge to the Airport entity.
+func (m *AirMasterWaybillMutation) ClearDestinationAirport() {
+	m.cleareddestination_airport = true
+	m.clearedFields[airmasterwaybill.FieldDestinationAirportID] = struct{}{}
+}
+
+// DestinationAirportCleared reports if the "destination_airport" edge to the Airport entity was cleared.
+func (m *AirMasterWaybillMutation) DestinationAirportCleared() bool {
+	return m.cleareddestination_airport
+}
+
+// DestinationAirportIDs returns the "destination_airport" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DestinationAirportID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillMutation) DestinationAirportIDs() (ids []uuid.UUID) {
+	if id := m.destination_airport; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDestinationAirport resets all changes to the "destination_airport" edge.
+func (m *AirMasterWaybillMutation) ResetDestinationAirport() {
+	m.destination_airport = nil
+	m.cleareddestination_airport = false
+}
+
+// Where appends a list predicates to the AirMasterWaybillMutation builder.
+func (m *AirMasterWaybillMutation) Where(ps ...predicate.AirMasterWaybill) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirMasterWaybillMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirMasterWaybillMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AirMasterWaybill, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirMasterWaybillMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirMasterWaybillMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AirMasterWaybill).
+func (m *AirMasterWaybillMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirMasterWaybillMutation) Fields() []string {
+	fields := make([]string, 0, 20)
+	if m.created_at != nil {
+		fields = append(fields, airmasterwaybill.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, airmasterwaybill.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, airmasterwaybill.FieldOrganizationID)
+	}
+	if m.master_no != nil {
+		fields = append(fields, airmasterwaybill.FieldMasterNo)
+	}
+	if m.airline != nil {
+		fields = append(fields, airmasterwaybill.FieldAirlineID)
+	}
+	if m.origin_airport != nil {
+		fields = append(fields, airmasterwaybill.FieldOriginAirportID)
+	}
+	if m.destination_airport != nil {
+		fields = append(fields, airmasterwaybill.FieldDestinationAirportID)
+	}
+	if m.flight_no != nil {
+		fields = append(fields, airmasterwaybill.FieldFlightNo)
+	}
+	if m.etd != nil {
+		fields = append(fields, airmasterwaybill.FieldEtd)
+	}
+	if m.eta != nil {
+		fields = append(fields, airmasterwaybill.FieldEta)
+	}
+	if m.actual_departure_at != nil {
+		fields = append(fields, airmasterwaybill.FieldActualDepartureAt)
+	}
+	if m.actual_arrival_at != nil {
+		fields = append(fields, airmasterwaybill.FieldActualArrivalAt)
+	}
+	if m.document_cutoff_at != nil {
+		fields = append(fields, airmasterwaybill.FieldDocumentCutoffAt)
+	}
+	if m.customs_cutoff_at != nil {
+		fields = append(fields, airmasterwaybill.FieldCustomsCutoffAt)
+	}
+	if m.status != nil {
+		fields = append(fields, airmasterwaybill.FieldStatus)
+	}
+	if m.version != nil {
+		fields = append(fields, airmasterwaybill.FieldVersion)
+	}
+	if m.declared_packages != nil {
+		fields = append(fields, airmasterwaybill.FieldDeclaredPackages)
+	}
+	if m.declared_gross_weight_kg != nil {
+		fields = append(fields, airmasterwaybill.FieldDeclaredGrossWeightKg)
+	}
+	if m.declared_volume_cbm != nil {
+		fields = append(fields, airmasterwaybill.FieldDeclaredVolumeCbm)
+	}
+	if m.notes != nil {
+		fields = append(fields, airmasterwaybill.FieldNotes)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirMasterWaybillMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airmasterwaybill.FieldCreatedAt:
+		return m.CreatedAt()
+	case airmasterwaybill.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case airmasterwaybill.FieldOrganizationID:
+		return m.OrganizationID()
+	case airmasterwaybill.FieldMasterNo:
+		return m.MasterNo()
+	case airmasterwaybill.FieldAirlineID:
+		return m.AirlineID()
+	case airmasterwaybill.FieldOriginAirportID:
+		return m.OriginAirportID()
+	case airmasterwaybill.FieldDestinationAirportID:
+		return m.DestinationAirportID()
+	case airmasterwaybill.FieldFlightNo:
+		return m.FlightNo()
+	case airmasterwaybill.FieldEtd:
+		return m.Etd()
+	case airmasterwaybill.FieldEta:
+		return m.Eta()
+	case airmasterwaybill.FieldActualDepartureAt:
+		return m.ActualDepartureAt()
+	case airmasterwaybill.FieldActualArrivalAt:
+		return m.ActualArrivalAt()
+	case airmasterwaybill.FieldDocumentCutoffAt:
+		return m.DocumentCutoffAt()
+	case airmasterwaybill.FieldCustomsCutoffAt:
+		return m.CustomsCutoffAt()
+	case airmasterwaybill.FieldStatus:
+		return m.Status()
+	case airmasterwaybill.FieldVersion:
+		return m.Version()
+	case airmasterwaybill.FieldDeclaredPackages:
+		return m.DeclaredPackages()
+	case airmasterwaybill.FieldDeclaredGrossWeightKg:
+		return m.DeclaredGrossWeightKg()
+	case airmasterwaybill.FieldDeclaredVolumeCbm:
+		return m.DeclaredVolumeCbm()
+	case airmasterwaybill.FieldNotes:
+		return m.Notes()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirMasterWaybillMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airmasterwaybill.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airmasterwaybill.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case airmasterwaybill.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airmasterwaybill.FieldMasterNo:
+		return m.OldMasterNo(ctx)
+	case airmasterwaybill.FieldAirlineID:
+		return m.OldAirlineID(ctx)
+	case airmasterwaybill.FieldOriginAirportID:
+		return m.OldOriginAirportID(ctx)
+	case airmasterwaybill.FieldDestinationAirportID:
+		return m.OldDestinationAirportID(ctx)
+	case airmasterwaybill.FieldFlightNo:
+		return m.OldFlightNo(ctx)
+	case airmasterwaybill.FieldEtd:
+		return m.OldEtd(ctx)
+	case airmasterwaybill.FieldEta:
+		return m.OldEta(ctx)
+	case airmasterwaybill.FieldActualDepartureAt:
+		return m.OldActualDepartureAt(ctx)
+	case airmasterwaybill.FieldActualArrivalAt:
+		return m.OldActualArrivalAt(ctx)
+	case airmasterwaybill.FieldDocumentCutoffAt:
+		return m.OldDocumentCutoffAt(ctx)
+	case airmasterwaybill.FieldCustomsCutoffAt:
+		return m.OldCustomsCutoffAt(ctx)
+	case airmasterwaybill.FieldStatus:
+		return m.OldStatus(ctx)
+	case airmasterwaybill.FieldVersion:
+		return m.OldVersion(ctx)
+	case airmasterwaybill.FieldDeclaredPackages:
+		return m.OldDeclaredPackages(ctx)
+	case airmasterwaybill.FieldDeclaredGrossWeightKg:
+		return m.OldDeclaredGrossWeightKg(ctx)
+	case airmasterwaybill.FieldDeclaredVolumeCbm:
+		return m.OldDeclaredVolumeCbm(ctx)
+	case airmasterwaybill.FieldNotes:
+		return m.OldNotes(ctx)
+	}
+	return nil, fmt.Errorf("unknown AirMasterWaybill field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirMasterWaybillMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airmasterwaybill.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airmasterwaybill.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case airmasterwaybill.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airmasterwaybill.FieldMasterNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMasterNo(v)
+		return nil
+	case airmasterwaybill.FieldAirlineID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAirlineID(v)
+		return nil
+	case airmasterwaybill.FieldOriginAirportID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOriginAirportID(v)
+		return nil
+	case airmasterwaybill.FieldDestinationAirportID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDestinationAirportID(v)
+		return nil
+	case airmasterwaybill.FieldFlightNo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlightNo(v)
+		return nil
+	case airmasterwaybill.FieldEtd:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEtd(v)
+		return nil
+	case airmasterwaybill.FieldEta:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEta(v)
+		return nil
+	case airmasterwaybill.FieldActualDepartureAt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActualDepartureAt(v)
+		return nil
+	case airmasterwaybill.FieldActualArrivalAt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActualArrivalAt(v)
+		return nil
+	case airmasterwaybill.FieldDocumentCutoffAt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocumentCutoffAt(v)
+		return nil
+	case airmasterwaybill.FieldCustomsCutoffAt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCustomsCutoffAt(v)
+		return nil
+	case airmasterwaybill.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case airmasterwaybill.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case airmasterwaybill.FieldDeclaredPackages:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeclaredPackages(v)
+		return nil
+	case airmasterwaybill.FieldDeclaredGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeclaredGrossWeightKg(v)
+		return nil
+	case airmasterwaybill.FieldDeclaredVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeclaredVolumeCbm(v)
+		return nil
+	case airmasterwaybill.FieldNotes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotes(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybill field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirMasterWaybillMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, airmasterwaybill.FieldVersion)
+	}
+	if m.adddeclared_packages != nil {
+		fields = append(fields, airmasterwaybill.FieldDeclaredPackages)
+	}
+	if m.adddeclared_gross_weight_kg != nil {
+		fields = append(fields, airmasterwaybill.FieldDeclaredGrossWeightKg)
+	}
+	if m.adddeclared_volume_cbm != nil {
+		fields = append(fields, airmasterwaybill.FieldDeclaredVolumeCbm)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirMasterWaybillMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airmasterwaybill.FieldVersion:
+		return m.AddedVersion()
+	case airmasterwaybill.FieldDeclaredPackages:
+		return m.AddedDeclaredPackages()
+	case airmasterwaybill.FieldDeclaredGrossWeightKg:
+		return m.AddedDeclaredGrossWeightKg()
+	case airmasterwaybill.FieldDeclaredVolumeCbm:
+		return m.AddedDeclaredVolumeCbm()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirMasterWaybillMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airmasterwaybill.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	case airmasterwaybill.FieldDeclaredPackages:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeclaredPackages(v)
+		return nil
+	case airmasterwaybill.FieldDeclaredGrossWeightKg:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeclaredGrossWeightKg(v)
+		return nil
+	case airmasterwaybill.FieldDeclaredVolumeCbm:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDeclaredVolumeCbm(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybill numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirMasterWaybillMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(airmasterwaybill.FieldDeclaredPackages) {
+		fields = append(fields, airmasterwaybill.FieldDeclaredPackages)
+	}
+	if m.FieldCleared(airmasterwaybill.FieldDeclaredGrossWeightKg) {
+		fields = append(fields, airmasterwaybill.FieldDeclaredGrossWeightKg)
+	}
+	if m.FieldCleared(airmasterwaybill.FieldDeclaredVolumeCbm) {
+		fields = append(fields, airmasterwaybill.FieldDeclaredVolumeCbm)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirMasterWaybillMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirMasterWaybillMutation) ClearField(name string) error {
+	switch name {
+	case airmasterwaybill.FieldDeclaredPackages:
+		m.ClearDeclaredPackages()
+		return nil
+	case airmasterwaybill.FieldDeclaredGrossWeightKg:
+		m.ClearDeclaredGrossWeightKg()
+		return nil
+	case airmasterwaybill.FieldDeclaredVolumeCbm:
+		m.ClearDeclaredVolumeCbm()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybill nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirMasterWaybillMutation) ResetField(name string) error {
+	switch name {
+	case airmasterwaybill.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airmasterwaybill.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case airmasterwaybill.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airmasterwaybill.FieldMasterNo:
+		m.ResetMasterNo()
+		return nil
+	case airmasterwaybill.FieldAirlineID:
+		m.ResetAirlineID()
+		return nil
+	case airmasterwaybill.FieldOriginAirportID:
+		m.ResetOriginAirportID()
+		return nil
+	case airmasterwaybill.FieldDestinationAirportID:
+		m.ResetDestinationAirportID()
+		return nil
+	case airmasterwaybill.FieldFlightNo:
+		m.ResetFlightNo()
+		return nil
+	case airmasterwaybill.FieldEtd:
+		m.ResetEtd()
+		return nil
+	case airmasterwaybill.FieldEta:
+		m.ResetEta()
+		return nil
+	case airmasterwaybill.FieldActualDepartureAt:
+		m.ResetActualDepartureAt()
+		return nil
+	case airmasterwaybill.FieldActualArrivalAt:
+		m.ResetActualArrivalAt()
+		return nil
+	case airmasterwaybill.FieldDocumentCutoffAt:
+		m.ResetDocumentCutoffAt()
+		return nil
+	case airmasterwaybill.FieldCustomsCutoffAt:
+		m.ResetCustomsCutoffAt()
+		return nil
+	case airmasterwaybill.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case airmasterwaybill.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case airmasterwaybill.FieldDeclaredPackages:
+		m.ResetDeclaredPackages()
+		return nil
+	case airmasterwaybill.FieldDeclaredGrossWeightKg:
+		m.ResetDeclaredGrossWeightKg()
+		return nil
+	case airmasterwaybill.FieldDeclaredVolumeCbm:
+		m.ResetDeclaredVolumeCbm()
+		return nil
+	case airmasterwaybill.FieldNotes:
+		m.ResetNotes()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybill field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirMasterWaybillMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.organization != nil {
+		edges = append(edges, airmasterwaybill.EdgeOrganization)
+	}
+	if m.airline != nil {
+		edges = append(edges, airmasterwaybill.EdgeAirline)
+	}
+	if m.origin_airport != nil {
+		edges = append(edges, airmasterwaybill.EdgeOriginAirport)
+	}
+	if m.destination_airport != nil {
+		edges = append(edges, airmasterwaybill.EdgeDestinationAirport)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirMasterWaybillMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case airmasterwaybill.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case airmasterwaybill.EdgeAirline:
+		if id := m.airline; id != nil {
+			return []ent.Value{*id}
+		}
+	case airmasterwaybill.EdgeOriginAirport:
+		if id := m.origin_airport; id != nil {
+			return []ent.Value{*id}
+		}
+	case airmasterwaybill.EdgeDestinationAirport:
+		if id := m.destination_airport; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirMasterWaybillMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirMasterWaybillMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirMasterWaybillMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedorganization {
+		edges = append(edges, airmasterwaybill.EdgeOrganization)
+	}
+	if m.clearedairline {
+		edges = append(edges, airmasterwaybill.EdgeAirline)
+	}
+	if m.clearedorigin_airport {
+		edges = append(edges, airmasterwaybill.EdgeOriginAirport)
+	}
+	if m.cleareddestination_airport {
+		edges = append(edges, airmasterwaybill.EdgeDestinationAirport)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirMasterWaybillMutation) EdgeCleared(name string) bool {
+	switch name {
+	case airmasterwaybill.EdgeOrganization:
+		return m.clearedorganization
+	case airmasterwaybill.EdgeAirline:
+		return m.clearedairline
+	case airmasterwaybill.EdgeOriginAirport:
+		return m.clearedorigin_airport
+	case airmasterwaybill.EdgeDestinationAirport:
+		return m.cleareddestination_airport
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirMasterWaybillMutation) ClearEdge(name string) error {
+	switch name {
+	case airmasterwaybill.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case airmasterwaybill.EdgeAirline:
+		m.ClearAirline()
+		return nil
+	case airmasterwaybill.EdgeOriginAirport:
+		m.ClearOriginAirport()
+		return nil
+	case airmasterwaybill.EdgeDestinationAirport:
+		m.ClearDestinationAirport()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybill unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirMasterWaybillMutation) ResetEdge(name string) error {
+	switch name {
+	case airmasterwaybill.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case airmasterwaybill.EdgeAirline:
+		m.ResetAirline()
+		return nil
+	case airmasterwaybill.EdgeOriginAirport:
+		m.ResetOriginAirport()
+		return nil
+	case airmasterwaybill.EdgeDestinationAirport:
+		m.ResetDestinationAirport()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybill edge %s", name)
+}
+
+// AirMasterWaybillHistoryMutation represents an operation that mutates the AirMasterWaybillHistory nodes in the graph.
+type AirMasterWaybillHistoryMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	organization_id       *uuid.UUID
+	version               *uint64
+	addversion            *int64
+	action                *string
+	reason                *string
+	actor_id              *uuid.UUID
+	content               *[]byte
+	clearedFields         map[string]struct{}
+	master_waybill        *uuid.UUID
+	clearedmaster_waybill bool
+	done                  bool
+	oldValue              func(context.Context) (*AirMasterWaybillHistory, error)
+	predicates            []predicate.AirMasterWaybillHistory
+}
+
+var _ ent.Mutation = (*AirMasterWaybillHistoryMutation)(nil)
+
+// airmasterwaybillhistoryOption allows management of the mutation configuration using functional options.
+type airmasterwaybillhistoryOption func(*AirMasterWaybillHistoryMutation)
+
+// newAirMasterWaybillHistoryMutation creates new mutation for the AirMasterWaybillHistory entity.
+func newAirMasterWaybillHistoryMutation(c config, op Op, opts ...airmasterwaybillhistoryOption) *AirMasterWaybillHistoryMutation {
+	m := &AirMasterWaybillHistoryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirMasterWaybillHistory,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirMasterWaybillHistoryID sets the ID field of the mutation.
+func withAirMasterWaybillHistoryID(id uuid.UUID) airmasterwaybillhistoryOption {
+	return func(m *AirMasterWaybillHistoryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AirMasterWaybillHistory
+		)
+		m.oldValue = func(ctx context.Context) (*AirMasterWaybillHistory, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AirMasterWaybillHistory.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirMasterWaybillHistory sets the old AirMasterWaybillHistory of the mutation.
+func withAirMasterWaybillHistory(node *AirMasterWaybillHistory) airmasterwaybillhistoryOption {
+	return func(m *AirMasterWaybillHistoryMutation) {
+		m.oldValue = func(context.Context) (*AirMasterWaybillHistory, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirMasterWaybillHistoryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirMasterWaybillHistoryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AirMasterWaybillHistory entities.
+func (m *AirMasterWaybillHistoryMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirMasterWaybillHistoryMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirMasterWaybillHistoryMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AirMasterWaybillHistory.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirMasterWaybillHistoryMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirMasterWaybillHistoryMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AirMasterWaybillHistoryMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AirMasterWaybillHistoryMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirMasterWaybillHistoryMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirMasterWaybillHistoryMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetMasterWaybillID sets the "master_waybill_id" field.
+func (m *AirMasterWaybillHistoryMutation) SetMasterWaybillID(u uuid.UUID) {
+	m.master_waybill = &u
+}
+
+// MasterWaybillID returns the value of the "master_waybill_id" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) MasterWaybillID() (r uuid.UUID, exists bool) {
+	v := m.master_waybill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMasterWaybillID returns the old "master_waybill_id" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldMasterWaybillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMasterWaybillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMasterWaybillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMasterWaybillID: %w", err)
+	}
+	return oldValue.MasterWaybillID, nil
+}
+
+// ResetMasterWaybillID resets all changes to the "master_waybill_id" field.
+func (m *AirMasterWaybillHistoryMutation) ResetMasterWaybillID() {
+	m.master_waybill = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *AirMasterWaybillHistoryMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *AirMasterWaybillHistoryMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *AirMasterWaybillHistoryMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *AirMasterWaybillHistoryMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetAction sets the "action" field.
+func (m *AirMasterWaybillHistoryMutation) SetAction(s string) {
+	m.action = &s
+}
+
+// Action returns the value of the "action" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) Action() (r string, exists bool) {
+	v := m.action
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAction returns the old "action" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldAction(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAction is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAction requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAction: %w", err)
+	}
+	return oldValue.Action, nil
+}
+
+// ResetAction resets all changes to the "action" field.
+func (m *AirMasterWaybillHistoryMutation) ResetAction() {
+	m.action = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *AirMasterWaybillHistoryMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *AirMasterWaybillHistoryMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetActorID sets the "actor_id" field.
+func (m *AirMasterWaybillHistoryMutation) SetActorID(u uuid.UUID) {
+	m.actor_id = &u
+}
+
+// ActorID returns the value of the "actor_id" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) ActorID() (r uuid.UUID, exists bool) {
+	v := m.actor_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActorID returns the old "actor_id" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldActorID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActorID: %w", err)
+	}
+	return oldValue.ActorID, nil
+}
+
+// ResetActorID resets all changes to the "actor_id" field.
+func (m *AirMasterWaybillHistoryMutation) ResetActorID() {
+	m.actor_id = nil
+}
+
+// SetContent sets the "content" field.
+func (m *AirMasterWaybillHistoryMutation) SetContent(b []byte) {
+	m.content = &b
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) Content() (r []byte, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldContent(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *AirMasterWaybillHistoryMutation) ResetContent() {
+	m.content = nil
+}
+
+// ClearMasterWaybill clears the "master_waybill" edge to the AirMasterWaybill entity.
+func (m *AirMasterWaybillHistoryMutation) ClearMasterWaybill() {
+	m.clearedmaster_waybill = true
+	m.clearedFields[airmasterwaybillhistory.FieldMasterWaybillID] = struct{}{}
+}
+
+// MasterWaybillCleared reports if the "master_waybill" edge to the AirMasterWaybill entity was cleared.
+func (m *AirMasterWaybillHistoryMutation) MasterWaybillCleared() bool {
+	return m.clearedmaster_waybill
+}
+
+// MasterWaybillIDs returns the "master_waybill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MasterWaybillID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillHistoryMutation) MasterWaybillIDs() (ids []uuid.UUID) {
+	if id := m.master_waybill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMasterWaybill resets all changes to the "master_waybill" edge.
+func (m *AirMasterWaybillHistoryMutation) ResetMasterWaybill() {
+	m.master_waybill = nil
+	m.clearedmaster_waybill = false
+}
+
+// Where appends a list predicates to the AirMasterWaybillHistoryMutation builder.
+func (m *AirMasterWaybillHistoryMutation) Where(ps ...predicate.AirMasterWaybillHistory) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirMasterWaybillHistoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirMasterWaybillHistoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AirMasterWaybillHistory, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirMasterWaybillHistoryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirMasterWaybillHistoryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AirMasterWaybillHistory).
+func (m *AirMasterWaybillHistoryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirMasterWaybillHistoryMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldUpdatedAt)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldOrganizationID)
+	}
+	if m.master_waybill != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldMasterWaybillID)
+	}
+	if m.version != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldVersion)
+	}
+	if m.action != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldAction)
+	}
+	if m.reason != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldReason)
+	}
+	if m.actor_id != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldActorID)
+	}
+	if m.content != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldContent)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirMasterWaybillHistoryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airmasterwaybillhistory.FieldCreatedAt:
+		return m.CreatedAt()
+	case airmasterwaybillhistory.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case airmasterwaybillhistory.FieldOrganizationID:
+		return m.OrganizationID()
+	case airmasterwaybillhistory.FieldMasterWaybillID:
+		return m.MasterWaybillID()
+	case airmasterwaybillhistory.FieldVersion:
+		return m.Version()
+	case airmasterwaybillhistory.FieldAction:
+		return m.Action()
+	case airmasterwaybillhistory.FieldReason:
+		return m.Reason()
+	case airmasterwaybillhistory.FieldActorID:
+		return m.ActorID()
+	case airmasterwaybillhistory.FieldContent:
+		return m.Content()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirMasterWaybillHistoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airmasterwaybillhistory.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airmasterwaybillhistory.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case airmasterwaybillhistory.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airmasterwaybillhistory.FieldMasterWaybillID:
+		return m.OldMasterWaybillID(ctx)
+	case airmasterwaybillhistory.FieldVersion:
+		return m.OldVersion(ctx)
+	case airmasterwaybillhistory.FieldAction:
+		return m.OldAction(ctx)
+	case airmasterwaybillhistory.FieldReason:
+		return m.OldReason(ctx)
+	case airmasterwaybillhistory.FieldActorID:
+		return m.OldActorID(ctx)
+	case airmasterwaybillhistory.FieldContent:
+		return m.OldContent(ctx)
+	}
+	return nil, fmt.Errorf("unknown AirMasterWaybillHistory field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirMasterWaybillHistoryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airmasterwaybillhistory.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airmasterwaybillhistory.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case airmasterwaybillhistory.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airmasterwaybillhistory.FieldMasterWaybillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMasterWaybillID(v)
+		return nil
+	case airmasterwaybillhistory.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case airmasterwaybillhistory.FieldAction:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAction(v)
+		return nil
+	case airmasterwaybillhistory.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case airmasterwaybillhistory.FieldActorID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActorID(v)
+		return nil
+	case airmasterwaybillhistory.FieldContent:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillHistory field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirMasterWaybillHistoryMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirMasterWaybillHistoryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airmasterwaybillhistory.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirMasterWaybillHistoryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airmasterwaybillhistory.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillHistory numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirMasterWaybillHistoryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirMasterWaybillHistoryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirMasterWaybillHistoryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AirMasterWaybillHistory nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirMasterWaybillHistoryMutation) ResetField(name string) error {
+	switch name {
+	case airmasterwaybillhistory.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airmasterwaybillhistory.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case airmasterwaybillhistory.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airmasterwaybillhistory.FieldMasterWaybillID:
+		m.ResetMasterWaybillID()
+		return nil
+	case airmasterwaybillhistory.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case airmasterwaybillhistory.FieldAction:
+		m.ResetAction()
+		return nil
+	case airmasterwaybillhistory.FieldReason:
+		m.ResetReason()
+		return nil
+	case airmasterwaybillhistory.FieldActorID:
+		m.ResetActorID()
+		return nil
+	case airmasterwaybillhistory.FieldContent:
+		m.ResetContent()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillHistory field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirMasterWaybillHistoryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.master_waybill != nil {
+		edges = append(edges, airmasterwaybillhistory.EdgeMasterWaybill)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirMasterWaybillHistoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case airmasterwaybillhistory.EdgeMasterWaybill:
+		if id := m.master_waybill; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirMasterWaybillHistoryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirMasterWaybillHistoryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirMasterWaybillHistoryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedmaster_waybill {
+		edges = append(edges, airmasterwaybillhistory.EdgeMasterWaybill)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirMasterWaybillHistoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case airmasterwaybillhistory.EdgeMasterWaybill:
+		return m.clearedmaster_waybill
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirMasterWaybillHistoryMutation) ClearEdge(name string) error {
+	switch name {
+	case airmasterwaybillhistory.EdgeMasterWaybill:
+		m.ClearMasterWaybill()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillHistory unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirMasterWaybillHistoryMutation) ResetEdge(name string) error {
+	switch name {
+	case airmasterwaybillhistory.EdgeMasterWaybill:
+		m.ResetMasterWaybill()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillHistory edge %s", name)
+}
+
+// AirMasterWaybillOrderLinkMutation represents an operation that mutates the AirMasterWaybillOrderLink nodes in the graph.
+type AirMasterWaybillOrderLinkMutation struct {
+	config
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	created_at            *time.Time
+	updated_at            *time.Time
+	status                *string
+	version               *uint64
+	addversion            *int64
+	started_at            *time.Time
+	ended_at              *time.Time
+	ended_reason          *string
+	clearedFields         map[string]struct{}
+	organization          *uuid.UUID
+	clearedorganization   bool
+	master_waybill        *uuid.UUID
+	clearedmaster_waybill bool
+	_order                *uuid.UUID
+	cleared_order         bool
+	done                  bool
+	oldValue              func(context.Context) (*AirMasterWaybillOrderLink, error)
+	predicates            []predicate.AirMasterWaybillOrderLink
+}
+
+var _ ent.Mutation = (*AirMasterWaybillOrderLinkMutation)(nil)
+
+// airmasterwaybillorderlinkOption allows management of the mutation configuration using functional options.
+type airmasterwaybillorderlinkOption func(*AirMasterWaybillOrderLinkMutation)
+
+// newAirMasterWaybillOrderLinkMutation creates new mutation for the AirMasterWaybillOrderLink entity.
+func newAirMasterWaybillOrderLinkMutation(c config, op Op, opts ...airmasterwaybillorderlinkOption) *AirMasterWaybillOrderLinkMutation {
+	m := &AirMasterWaybillOrderLinkMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirMasterWaybillOrderLink,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirMasterWaybillOrderLinkID sets the ID field of the mutation.
+func withAirMasterWaybillOrderLinkID(id uuid.UUID) airmasterwaybillorderlinkOption {
+	return func(m *AirMasterWaybillOrderLinkMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AirMasterWaybillOrderLink
+		)
+		m.oldValue = func(ctx context.Context) (*AirMasterWaybillOrderLink, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AirMasterWaybillOrderLink.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirMasterWaybillOrderLink sets the old AirMasterWaybillOrderLink of the mutation.
+func withAirMasterWaybillOrderLink(node *AirMasterWaybillOrderLink) airmasterwaybillorderlinkOption {
+	return func(m *AirMasterWaybillOrderLinkMutation) {
+		m.oldValue = func(context.Context) (*AirMasterWaybillOrderLink, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirMasterWaybillOrderLinkMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirMasterWaybillOrderLinkMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AirMasterWaybillOrderLink entities.
+func (m *AirMasterWaybillOrderLinkMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirMasterWaybillOrderLinkMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AirMasterWaybillOrderLink.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetMasterWaybillID sets the "master_waybill_id" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetMasterWaybillID(u uuid.UUID) {
+	m.master_waybill = &u
+}
+
+// MasterWaybillID returns the value of the "master_waybill_id" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) MasterWaybillID() (r uuid.UUID, exists bool) {
+	v := m.master_waybill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMasterWaybillID returns the old "master_waybill_id" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldMasterWaybillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMasterWaybillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMasterWaybillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMasterWaybillID: %w", err)
+	}
+	return oldValue.MasterWaybillID, nil
+}
+
+// ResetMasterWaybillID resets all changes to the "master_waybill_id" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetMasterWaybillID() {
+	m.master_waybill = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetOrderID(u uuid.UUID) {
+	m._order = &u
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) OrderID() (r uuid.UUID, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *AirMasterWaybillOrderLinkMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldStartedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetStartedAt() {
+	m.started_at = nil
+}
+
+// SetEndedAt sets the "ended_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetEndedAt(t time.Time) {
+	m.ended_at = &t
+}
+
+// EndedAt returns the value of the "ended_at" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) EndedAt() (r time.Time, exists bool) {
+	v := m.ended_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndedAt returns the old "ended_at" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldEndedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndedAt: %w", err)
+	}
+	return oldValue.EndedAt, nil
+}
+
+// ClearEndedAt clears the value of the "ended_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) ClearEndedAt() {
+	m.ended_at = nil
+	m.clearedFields[airmasterwaybillorderlink.FieldEndedAt] = struct{}{}
+}
+
+// EndedAtCleared returns if the "ended_at" field was cleared in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) EndedAtCleared() bool {
+	_, ok := m.clearedFields[airmasterwaybillorderlink.FieldEndedAt]
+	return ok
+}
+
+// ResetEndedAt resets all changes to the "ended_at" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetEndedAt() {
+	m.ended_at = nil
+	delete(m.clearedFields, airmasterwaybillorderlink.FieldEndedAt)
+}
+
+// SetEndedReason sets the "ended_reason" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetEndedReason(s string) {
+	m.ended_reason = &s
+}
+
+// EndedReason returns the value of the "ended_reason" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) EndedReason() (r string, exists bool) {
+	v := m.ended_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndedReason returns the old "ended_reason" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldEndedReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndedReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndedReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndedReason: %w", err)
+	}
+	return oldValue.EndedReason, nil
+}
+
+// ResetEndedReason resets all changes to the "ended_reason" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetEndedReason() {
+	m.ended_reason = nil
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *AirMasterWaybillOrderLinkMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[airmasterwaybillorderlink.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *AirMasterWaybillOrderLinkMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillOrderLinkMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *AirMasterWaybillOrderLinkMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// ClearMasterWaybill clears the "master_waybill" edge to the AirMasterWaybill entity.
+func (m *AirMasterWaybillOrderLinkMutation) ClearMasterWaybill() {
+	m.clearedmaster_waybill = true
+	m.clearedFields[airmasterwaybillorderlink.FieldMasterWaybillID] = struct{}{}
+}
+
+// MasterWaybillCleared reports if the "master_waybill" edge to the AirMasterWaybill entity was cleared.
+func (m *AirMasterWaybillOrderLinkMutation) MasterWaybillCleared() bool {
+	return m.clearedmaster_waybill
+}
+
+// MasterWaybillIDs returns the "master_waybill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// MasterWaybillID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillOrderLinkMutation) MasterWaybillIDs() (ids []uuid.UUID) {
+	if id := m.master_waybill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetMasterWaybill resets all changes to the "master_waybill" edge.
+func (m *AirMasterWaybillOrderLinkMutation) ResetMasterWaybill() {
+	m.master_waybill = nil
+	m.clearedmaster_waybill = false
+}
+
+// ClearOrder clears the "order" edge to the Order entity.
+func (m *AirMasterWaybillOrderLinkMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[airmasterwaybillorderlink.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the Order entity was cleared.
+func (m *AirMasterWaybillOrderLinkMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *AirMasterWaybillOrderLinkMutation) OrderIDs() (ids []uuid.UUID) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *AirMasterWaybillOrderLinkMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the AirMasterWaybillOrderLinkMutation builder.
+func (m *AirMasterWaybillOrderLinkMutation) Where(ps ...predicate.AirMasterWaybillOrderLink) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirMasterWaybillOrderLinkMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirMasterWaybillOrderLinkMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AirMasterWaybillOrderLink, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirMasterWaybillOrderLinkMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirMasterWaybillOrderLinkMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AirMasterWaybillOrderLink).
+func (m *AirMasterWaybillOrderLinkMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirMasterWaybillOrderLinkMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldOrganizationID)
+	}
+	if m.master_waybill != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldMasterWaybillID)
+	}
+	if m._order != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldOrderID)
+	}
+	if m.status != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldStatus)
+	}
+	if m.version != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldVersion)
+	}
+	if m.started_at != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldStartedAt)
+	}
+	if m.ended_at != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldEndedAt)
+	}
+	if m.ended_reason != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldEndedReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirMasterWaybillOrderLinkMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airmasterwaybillorderlink.FieldCreatedAt:
+		return m.CreatedAt()
+	case airmasterwaybillorderlink.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case airmasterwaybillorderlink.FieldOrganizationID:
+		return m.OrganizationID()
+	case airmasterwaybillorderlink.FieldMasterWaybillID:
+		return m.MasterWaybillID()
+	case airmasterwaybillorderlink.FieldOrderID:
+		return m.OrderID()
+	case airmasterwaybillorderlink.FieldStatus:
+		return m.Status()
+	case airmasterwaybillorderlink.FieldVersion:
+		return m.Version()
+	case airmasterwaybillorderlink.FieldStartedAt:
+		return m.StartedAt()
+	case airmasterwaybillorderlink.FieldEndedAt:
+		return m.EndedAt()
+	case airmasterwaybillorderlink.FieldEndedReason:
+		return m.EndedReason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirMasterWaybillOrderLinkMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airmasterwaybillorderlink.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airmasterwaybillorderlink.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case airmasterwaybillorderlink.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airmasterwaybillorderlink.FieldMasterWaybillID:
+		return m.OldMasterWaybillID(ctx)
+	case airmasterwaybillorderlink.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case airmasterwaybillorderlink.FieldStatus:
+		return m.OldStatus(ctx)
+	case airmasterwaybillorderlink.FieldVersion:
+		return m.OldVersion(ctx)
+	case airmasterwaybillorderlink.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case airmasterwaybillorderlink.FieldEndedAt:
+		return m.OldEndedAt(ctx)
+	case airmasterwaybillorderlink.FieldEndedReason:
+		return m.OldEndedReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown AirMasterWaybillOrderLink field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirMasterWaybillOrderLinkMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airmasterwaybillorderlink.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airmasterwaybillorderlink.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case airmasterwaybillorderlink.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airmasterwaybillorderlink.FieldMasterWaybillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMasterWaybillID(v)
+		return nil
+	case airmasterwaybillorderlink.FieldOrderID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case airmasterwaybillorderlink.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case airmasterwaybillorderlink.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case airmasterwaybillorderlink.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case airmasterwaybillorderlink.FieldEndedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndedAt(v)
+		return nil
+	case airmasterwaybillorderlink.FieldEndedReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndedReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillOrderLink field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirMasterWaybillOrderLinkMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airmasterwaybillorderlink.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirMasterWaybillOrderLinkMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airmasterwaybillorderlink.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillOrderLink numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirMasterWaybillOrderLinkMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(airmasterwaybillorderlink.FieldEndedAt) {
+		fields = append(fields, airmasterwaybillorderlink.FieldEndedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirMasterWaybillOrderLinkMutation) ClearField(name string) error {
+	switch name {
+	case airmasterwaybillorderlink.FieldEndedAt:
+		m.ClearEndedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillOrderLink nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirMasterWaybillOrderLinkMutation) ResetField(name string) error {
+	switch name {
+	case airmasterwaybillorderlink.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airmasterwaybillorderlink.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case airmasterwaybillorderlink.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airmasterwaybillorderlink.FieldMasterWaybillID:
+		m.ResetMasterWaybillID()
+		return nil
+	case airmasterwaybillorderlink.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case airmasterwaybillorderlink.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case airmasterwaybillorderlink.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case airmasterwaybillorderlink.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case airmasterwaybillorderlink.FieldEndedAt:
+		m.ResetEndedAt()
+		return nil
+	case airmasterwaybillorderlink.FieldEndedReason:
+		m.ResetEndedReason()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillOrderLink field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.organization != nil {
+		edges = append(edges, airmasterwaybillorderlink.EdgeOrganization)
+	}
+	if m.master_waybill != nil {
+		edges = append(edges, airmasterwaybillorderlink.EdgeMasterWaybill)
+	}
+	if m._order != nil {
+		edges = append(edges, airmasterwaybillorderlink.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case airmasterwaybillorderlink.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case airmasterwaybillorderlink.EdgeMasterWaybill:
+		if id := m.master_waybill; id != nil {
+			return []ent.Value{*id}
+		}
+	case airmasterwaybillorderlink.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedorganization {
+		edges = append(edges, airmasterwaybillorderlink.EdgeOrganization)
+	}
+	if m.clearedmaster_waybill {
+		edges = append(edges, airmasterwaybillorderlink.EdgeMasterWaybill)
+	}
+	if m.cleared_order {
+		edges = append(edges, airmasterwaybillorderlink.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirMasterWaybillOrderLinkMutation) EdgeCleared(name string) bool {
+	switch name {
+	case airmasterwaybillorderlink.EdgeOrganization:
+		return m.clearedorganization
+	case airmasterwaybillorderlink.EdgeMasterWaybill:
+		return m.clearedmaster_waybill
+	case airmasterwaybillorderlink.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirMasterWaybillOrderLinkMutation) ClearEdge(name string) error {
+	switch name {
+	case airmasterwaybillorderlink.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	case airmasterwaybillorderlink.EdgeMasterWaybill:
+		m.ClearMasterWaybill()
+		return nil
+	case airmasterwaybillorderlink.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillOrderLink unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirMasterWaybillOrderLinkMutation) ResetEdge(name string) error {
+	switch name {
+	case airmasterwaybillorderlink.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case airmasterwaybillorderlink.EdgeMasterWaybill:
+		m.ResetMasterWaybill()
+		return nil
+	case airmasterwaybillorderlink.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown AirMasterWaybillOrderLink edge %s", name)
+}
+
+// AirWeightConfirmationMutation represents an operation that mutates the AirWeightConfirmation nodes in the graph.
+type AirWeightConfirmationMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	organization_id     *uuid.UUID
+	scope               *airweightconfirmation.Scope
+	target_id           *uuid.UUID
+	source              *string
+	version             *uint64
+	addversion          *int64
+	input_fingerprint   *string
+	snapshot            *map[string]string
+	confirmed_weight_kg *string
+	reason              *string
+	confirmed_by        *uuid.UUID
+	clearedFields       map[string]struct{}
+	done                bool
+	oldValue            func(context.Context) (*AirWeightConfirmation, error)
+	predicates          []predicate.AirWeightConfirmation
+}
+
+var _ ent.Mutation = (*AirWeightConfirmationMutation)(nil)
+
+// airweightconfirmationOption allows management of the mutation configuration using functional options.
+type airweightconfirmationOption func(*AirWeightConfirmationMutation)
+
+// newAirWeightConfirmationMutation creates new mutation for the AirWeightConfirmation entity.
+func newAirWeightConfirmationMutation(c config, op Op, opts ...airweightconfirmationOption) *AirWeightConfirmationMutation {
+	m := &AirWeightConfirmationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAirWeightConfirmation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAirWeightConfirmationID sets the ID field of the mutation.
+func withAirWeightConfirmationID(id uuid.UUID) airweightconfirmationOption {
+	return func(m *AirWeightConfirmationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AirWeightConfirmation
+		)
+		m.oldValue = func(ctx context.Context) (*AirWeightConfirmation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AirWeightConfirmation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAirWeightConfirmation sets the old AirWeightConfirmation of the mutation.
+func withAirWeightConfirmation(node *AirWeightConfirmation) airweightconfirmationOption {
+	return func(m *AirWeightConfirmationMutation) {
+		m.oldValue = func(context.Context) (*AirWeightConfirmation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AirWeightConfirmationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AirWeightConfirmationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AirWeightConfirmation entities.
+func (m *AirWeightConfirmationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AirWeightConfirmationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AirWeightConfirmationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AirWeightConfirmation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AirWeightConfirmationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AirWeightConfirmationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AirWeightConfirmationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AirWeightConfirmationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AirWeightConfirmationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AirWeightConfirmationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *AirWeightConfirmationMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization_id = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *AirWeightConfirmationMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *AirWeightConfirmationMutation) ResetOrganizationID() {
+	m.organization_id = nil
+}
+
+// SetScope sets the "scope" field.
+func (m *AirWeightConfirmationMutation) SetScope(a airweightconfirmation.Scope) {
+	m.scope = &a
+}
+
+// Scope returns the value of the "scope" field in the mutation.
+func (m *AirWeightConfirmationMutation) Scope() (r airweightconfirmation.Scope, exists bool) {
+	v := m.scope
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScope returns the old "scope" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldScope(ctx context.Context) (v airweightconfirmation.Scope, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScope is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScope requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScope: %w", err)
+	}
+	return oldValue.Scope, nil
+}
+
+// ResetScope resets all changes to the "scope" field.
+func (m *AirWeightConfirmationMutation) ResetScope() {
+	m.scope = nil
+}
+
+// SetTargetID sets the "target_id" field.
+func (m *AirWeightConfirmationMutation) SetTargetID(u uuid.UUID) {
+	m.target_id = &u
+}
+
+// TargetID returns the value of the "target_id" field in the mutation.
+func (m *AirWeightConfirmationMutation) TargetID() (r uuid.UUID, exists bool) {
+	v := m.target_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTargetID returns the old "target_id" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldTargetID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTargetID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTargetID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTargetID: %w", err)
+	}
+	return oldValue.TargetID, nil
+}
+
+// ResetTargetID resets all changes to the "target_id" field.
+func (m *AirWeightConfirmationMutation) ResetTargetID() {
+	m.target_id = nil
+}
+
+// SetSource sets the "source" field.
+func (m *AirWeightConfirmationMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *AirWeightConfirmationMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *AirWeightConfirmationMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *AirWeightConfirmationMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *AirWeightConfirmationMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *AirWeightConfirmationMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *AirWeightConfirmationMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *AirWeightConfirmationMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetInputFingerprint sets the "input_fingerprint" field.
+func (m *AirWeightConfirmationMutation) SetInputFingerprint(s string) {
+	m.input_fingerprint = &s
+}
+
+// InputFingerprint returns the value of the "input_fingerprint" field in the mutation.
+func (m *AirWeightConfirmationMutation) InputFingerprint() (r string, exists bool) {
+	v := m.input_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInputFingerprint returns the old "input_fingerprint" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldInputFingerprint(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInputFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInputFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInputFingerprint: %w", err)
+	}
+	return oldValue.InputFingerprint, nil
+}
+
+// ResetInputFingerprint resets all changes to the "input_fingerprint" field.
+func (m *AirWeightConfirmationMutation) ResetInputFingerprint() {
+	m.input_fingerprint = nil
+}
+
+// SetSnapshot sets the "snapshot" field.
+func (m *AirWeightConfirmationMutation) SetSnapshot(value map[string]string) {
+	m.snapshot = &value
+}
+
+// Snapshot returns the value of the "snapshot" field in the mutation.
+func (m *AirWeightConfirmationMutation) Snapshot() (r map[string]string, exists bool) {
+	v := m.snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSnapshot returns the old "snapshot" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldSnapshot(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSnapshot: %w", err)
+	}
+	return oldValue.Snapshot, nil
+}
+
+// ResetSnapshot resets all changes to the "snapshot" field.
+func (m *AirWeightConfirmationMutation) ResetSnapshot() {
+	m.snapshot = nil
+}
+
+// SetConfirmedWeightKg sets the "confirmed_weight_kg" field.
+func (m *AirWeightConfirmationMutation) SetConfirmedWeightKg(s string) {
+	m.confirmed_weight_kg = &s
+}
+
+// ConfirmedWeightKg returns the value of the "confirmed_weight_kg" field in the mutation.
+func (m *AirWeightConfirmationMutation) ConfirmedWeightKg() (r string, exists bool) {
+	v := m.confirmed_weight_kg
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfirmedWeightKg returns the old "confirmed_weight_kg" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldConfirmedWeightKg(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfirmedWeightKg is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfirmedWeightKg requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfirmedWeightKg: %w", err)
+	}
+	return oldValue.ConfirmedWeightKg, nil
+}
+
+// ResetConfirmedWeightKg resets all changes to the "confirmed_weight_kg" field.
+func (m *AirWeightConfirmationMutation) ResetConfirmedWeightKg() {
+	m.confirmed_weight_kg = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *AirWeightConfirmationMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *AirWeightConfirmationMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *AirWeightConfirmationMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetConfirmedBy sets the "confirmed_by" field.
+func (m *AirWeightConfirmationMutation) SetConfirmedBy(u uuid.UUID) {
+	m.confirmed_by = &u
+}
+
+// ConfirmedBy returns the value of the "confirmed_by" field in the mutation.
+func (m *AirWeightConfirmationMutation) ConfirmedBy() (r uuid.UUID, exists bool) {
+	v := m.confirmed_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfirmedBy returns the old "confirmed_by" field's value of the AirWeightConfirmation entity.
+// If the AirWeightConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirWeightConfirmationMutation) OldConfirmedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfirmedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfirmedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfirmedBy: %w", err)
+	}
+	return oldValue.ConfirmedBy, nil
+}
+
+// ResetConfirmedBy resets all changes to the "confirmed_by" field.
+func (m *AirWeightConfirmationMutation) ResetConfirmedBy() {
+	m.confirmed_by = nil
+}
+
+// Where appends a list predicates to the AirWeightConfirmationMutation builder.
+func (m *AirWeightConfirmationMutation) Where(ps ...predicate.AirWeightConfirmation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AirWeightConfirmationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AirWeightConfirmationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AirWeightConfirmation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AirWeightConfirmationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AirWeightConfirmationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AirWeightConfirmation).
+func (m *AirWeightConfirmationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AirWeightConfirmationMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.created_at != nil {
+		fields = append(fields, airweightconfirmation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, airweightconfirmation.FieldUpdatedAt)
+	}
+	if m.organization_id != nil {
+		fields = append(fields, airweightconfirmation.FieldOrganizationID)
+	}
+	if m.scope != nil {
+		fields = append(fields, airweightconfirmation.FieldScope)
+	}
+	if m.target_id != nil {
+		fields = append(fields, airweightconfirmation.FieldTargetID)
+	}
+	if m.source != nil {
+		fields = append(fields, airweightconfirmation.FieldSource)
+	}
+	if m.version != nil {
+		fields = append(fields, airweightconfirmation.FieldVersion)
+	}
+	if m.input_fingerprint != nil {
+		fields = append(fields, airweightconfirmation.FieldInputFingerprint)
+	}
+	if m.snapshot != nil {
+		fields = append(fields, airweightconfirmation.FieldSnapshot)
+	}
+	if m.confirmed_weight_kg != nil {
+		fields = append(fields, airweightconfirmation.FieldConfirmedWeightKg)
+	}
+	if m.reason != nil {
+		fields = append(fields, airweightconfirmation.FieldReason)
+	}
+	if m.confirmed_by != nil {
+		fields = append(fields, airweightconfirmation.FieldConfirmedBy)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AirWeightConfirmationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case airweightconfirmation.FieldCreatedAt:
+		return m.CreatedAt()
+	case airweightconfirmation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case airweightconfirmation.FieldOrganizationID:
+		return m.OrganizationID()
+	case airweightconfirmation.FieldScope:
+		return m.Scope()
+	case airweightconfirmation.FieldTargetID:
+		return m.TargetID()
+	case airweightconfirmation.FieldSource:
+		return m.Source()
+	case airweightconfirmation.FieldVersion:
+		return m.Version()
+	case airweightconfirmation.FieldInputFingerprint:
+		return m.InputFingerprint()
+	case airweightconfirmation.FieldSnapshot:
+		return m.Snapshot()
+	case airweightconfirmation.FieldConfirmedWeightKg:
+		return m.ConfirmedWeightKg()
+	case airweightconfirmation.FieldReason:
+		return m.Reason()
+	case airweightconfirmation.FieldConfirmedBy:
+		return m.ConfirmedBy()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AirWeightConfirmationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case airweightconfirmation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case airweightconfirmation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case airweightconfirmation.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case airweightconfirmation.FieldScope:
+		return m.OldScope(ctx)
+	case airweightconfirmation.FieldTargetID:
+		return m.OldTargetID(ctx)
+	case airweightconfirmation.FieldSource:
+		return m.OldSource(ctx)
+	case airweightconfirmation.FieldVersion:
+		return m.OldVersion(ctx)
+	case airweightconfirmation.FieldInputFingerprint:
+		return m.OldInputFingerprint(ctx)
+	case airweightconfirmation.FieldSnapshot:
+		return m.OldSnapshot(ctx)
+	case airweightconfirmation.FieldConfirmedWeightKg:
+		return m.OldConfirmedWeightKg(ctx)
+	case airweightconfirmation.FieldReason:
+		return m.OldReason(ctx)
+	case airweightconfirmation.FieldConfirmedBy:
+		return m.OldConfirmedBy(ctx)
+	}
+	return nil, fmt.Errorf("unknown AirWeightConfirmation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirWeightConfirmationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case airweightconfirmation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case airweightconfirmation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case airweightconfirmation.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case airweightconfirmation.FieldScope:
+		v, ok := value.(airweightconfirmation.Scope)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScope(v)
+		return nil
+	case airweightconfirmation.FieldTargetID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTargetID(v)
+		return nil
+	case airweightconfirmation.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case airweightconfirmation.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case airweightconfirmation.FieldInputFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInputFingerprint(v)
+		return nil
+	case airweightconfirmation.FieldSnapshot:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSnapshot(v)
+		return nil
+	case airweightconfirmation.FieldConfirmedWeightKg:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfirmedWeightKg(v)
+		return nil
+	case airweightconfirmation.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case airweightconfirmation.FieldConfirmedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfirmedBy(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirWeightConfirmation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AirWeightConfirmationMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, airweightconfirmation.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AirWeightConfirmationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airweightconfirmation.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AirWeightConfirmationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case airweightconfirmation.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AirWeightConfirmation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AirWeightConfirmationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AirWeightConfirmationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AirWeightConfirmationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AirWeightConfirmation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AirWeightConfirmationMutation) ResetField(name string) error {
+	switch name {
+	case airweightconfirmation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case airweightconfirmation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case airweightconfirmation.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case airweightconfirmation.FieldScope:
+		m.ResetScope()
+		return nil
+	case airweightconfirmation.FieldTargetID:
+		m.ResetTargetID()
+		return nil
+	case airweightconfirmation.FieldSource:
+		m.ResetSource()
+		return nil
+	case airweightconfirmation.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case airweightconfirmation.FieldInputFingerprint:
+		m.ResetInputFingerprint()
+		return nil
+	case airweightconfirmation.FieldSnapshot:
+		m.ResetSnapshot()
+		return nil
+	case airweightconfirmation.FieldConfirmedWeightKg:
+		m.ResetConfirmedWeightKg()
+		return nil
+	case airweightconfirmation.FieldReason:
+		m.ResetReason()
+		return nil
+	case airweightconfirmation.FieldConfirmedBy:
+		m.ResetConfirmedBy()
+		return nil
+	}
+	return fmt.Errorf("unknown AirWeightConfirmation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AirWeightConfirmationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AirWeightConfirmationMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AirWeightConfirmationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AirWeightConfirmationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AirWeightConfirmationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AirWeightConfirmationMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AirWeightConfirmationMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AirWeightConfirmation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AirWeightConfirmationMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AirWeightConfirmation edge %s", name)
 }
 
 // AirlineMutation represents an operation that mutates the Airline nodes in the graph.
@@ -90845,6 +97297,7 @@ type OrderFeeMutation struct {
 	billing_unit                          *string
 	tax_rate                              *string
 	taxable_service_name                  *string
+	quantity_source                       *map[string]string
 	quantity                              *string
 	unit_price                            *string
 	total_amount                          *string
@@ -91572,6 +98025,55 @@ func (m *OrderFeeMutation) TaxableServiceNameCleared() bool {
 func (m *OrderFeeMutation) ResetTaxableServiceName() {
 	m.taxable_service_name = nil
 	delete(m.clearedFields, orderfee.FieldTaxableServiceName)
+}
+
+// SetQuantitySource sets the "quantity_source" field.
+func (m *OrderFeeMutation) SetQuantitySource(value map[string]string) {
+	m.quantity_source = &value
+}
+
+// QuantitySource returns the value of the "quantity_source" field in the mutation.
+func (m *OrderFeeMutation) QuantitySource() (r map[string]string, exists bool) {
+	v := m.quantity_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantitySource returns the old "quantity_source" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldQuantitySource(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantitySource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantitySource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantitySource: %w", err)
+	}
+	return oldValue.QuantitySource, nil
+}
+
+// ClearQuantitySource clears the value of the "quantity_source" field.
+func (m *OrderFeeMutation) ClearQuantitySource() {
+	m.quantity_source = nil
+	m.clearedFields[orderfee.FieldQuantitySource] = struct{}{}
+}
+
+// QuantitySourceCleared returns if the "quantity_source" field was cleared in this mutation.
+func (m *OrderFeeMutation) QuantitySourceCleared() bool {
+	_, ok := m.clearedFields[orderfee.FieldQuantitySource]
+	return ok
+}
+
+// ResetQuantitySource resets all changes to the "quantity_source" field.
+func (m *OrderFeeMutation) ResetQuantitySource() {
+	m.quantity_source = nil
+	delete(m.clearedFields, orderfee.FieldQuantitySource)
 }
 
 // SetQuantity sets the "quantity" field.
@@ -92997,7 +99499,7 @@ func (m *OrderFeeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeMutation) Fields() []string {
-	fields := make([]string, 0, 36)
+	fields := make([]string, 0, 37)
 	if m.created_at != nil {
 		fields = append(fields, orderfee.FieldCreatedAt)
 	}
@@ -93039,6 +99541,9 @@ func (m *OrderFeeMutation) Fields() []string {
 	}
 	if m.taxable_service_name != nil {
 		fields = append(fields, orderfee.FieldTaxableServiceName)
+	}
+	if m.quantity_source != nil {
+		fields = append(fields, orderfee.FieldQuantitySource)
 	}
 	if m.quantity != nil {
 		fields = append(fields, orderfee.FieldQuantity)
@@ -93142,6 +99647,8 @@ func (m *OrderFeeMutation) Field(name string) (ent.Value, bool) {
 		return m.TaxRate()
 	case orderfee.FieldTaxableServiceName:
 		return m.TaxableServiceName()
+	case orderfee.FieldQuantitySource:
+		return m.QuantitySource()
 	case orderfee.FieldQuantity:
 		return m.Quantity()
 	case orderfee.FieldUnitPrice:
@@ -93223,6 +99730,8 @@ func (m *OrderFeeMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldTaxRate(ctx)
 	case orderfee.FieldTaxableServiceName:
 		return m.OldTaxableServiceName(ctx)
+	case orderfee.FieldQuantitySource:
+		return m.OldQuantitySource(ctx)
 	case orderfee.FieldQuantity:
 		return m.OldQuantity(ctx)
 	case orderfee.FieldUnitPrice:
@@ -93373,6 +99882,13 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTaxableServiceName(v)
+		return nil
+	case orderfee.FieldQuantitySource:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantitySource(v)
 		return nil
 	case orderfee.FieldQuantity:
 		v, ok := value.(string)
@@ -93588,6 +100104,9 @@ func (m *OrderFeeMutation) ClearedFields() []string {
 	if m.FieldCleared(orderfee.FieldTaxableServiceName) {
 		fields = append(fields, orderfee.FieldTaxableServiceName)
 	}
+	if m.FieldCleared(orderfee.FieldQuantitySource) {
+		fields = append(fields, orderfee.FieldQuantitySource)
+	}
 	if m.FieldCleared(orderfee.FieldExchangeRateSettingID) {
 		fields = append(fields, orderfee.FieldExchangeRateSettingID)
 	}
@@ -93634,6 +100153,9 @@ func (m *OrderFeeMutation) ClearField(name string) error {
 		return nil
 	case orderfee.FieldTaxableServiceName:
 		m.ClearTaxableServiceName()
+		return nil
+	case orderfee.FieldQuantitySource:
+		m.ClearQuantitySource()
 		return nil
 	case orderfee.FieldExchangeRateSettingID:
 		m.ClearExchangeRateSettingID()
@@ -93702,6 +100224,9 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 		return nil
 	case orderfee.FieldTaxableServiceName:
 		m.ResetTaxableServiceName()
+		return nil
+	case orderfee.FieldQuantitySource:
+		m.ResetQuantitySource()
 		return nil
 	case orderfee.FieldQuantity:
 		m.ResetQuantity()
@@ -104117,6 +110642,7 @@ type OrderLockRecordMutation struct {
 	addorder_version_at_lock           *int64
 	trigger_type                       *orderlockrecord.TriggerType
 	trigger_resource_id                *uuid.UUID
+	air_document_snapshot              *map[string]string
 	unlocked_at                        *time.Time
 	order_version_at_unlock            *uint64
 	addorder_version_at_unlock         *int64
@@ -104818,6 +111344,55 @@ func (m *OrderLockRecordMutation) TriggeredByCleared() bool {
 func (m *OrderLockRecordMutation) ResetTriggeredBy() {
 	m.triggered_by_user = nil
 	delete(m.clearedFields, orderlockrecord.FieldTriggeredBy)
+}
+
+// SetAirDocumentSnapshot sets the "air_document_snapshot" field.
+func (m *OrderLockRecordMutation) SetAirDocumentSnapshot(value map[string]string) {
+	m.air_document_snapshot = &value
+}
+
+// AirDocumentSnapshot returns the value of the "air_document_snapshot" field in the mutation.
+func (m *OrderLockRecordMutation) AirDocumentSnapshot() (r map[string]string, exists bool) {
+	v := m.air_document_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAirDocumentSnapshot returns the old "air_document_snapshot" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldAirDocumentSnapshot(ctx context.Context) (v map[string]string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAirDocumentSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAirDocumentSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAirDocumentSnapshot: %w", err)
+	}
+	return oldValue.AirDocumentSnapshot, nil
+}
+
+// ClearAirDocumentSnapshot clears the value of the "air_document_snapshot" field.
+func (m *OrderLockRecordMutation) ClearAirDocumentSnapshot() {
+	m.air_document_snapshot = nil
+	m.clearedFields[orderlockrecord.FieldAirDocumentSnapshot] = struct{}{}
+}
+
+// AirDocumentSnapshotCleared returns if the "air_document_snapshot" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) AirDocumentSnapshotCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldAirDocumentSnapshot]
+	return ok
+}
+
+// ResetAirDocumentSnapshot resets all changes to the "air_document_snapshot" field.
+func (m *OrderLockRecordMutation) ResetAirDocumentSnapshot() {
+	m.air_document_snapshot = nil
+	delete(m.clearedFields, orderlockrecord.FieldAirDocumentSnapshot)
 }
 
 // SetMasterBillID sets the "master_bill_id" field.
@@ -105867,7 +112442,7 @@ func (m *OrderLockRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderLockRecordMutation) Fields() []string {
-	fields := make([]string, 0, 25)
+	fields := make([]string, 0, 26)
 	if m.created_at != nil {
 		fields = append(fields, orderlockrecord.FieldCreatedAt)
 	}
@@ -105906,6 +112481,9 @@ func (m *OrderLockRecordMutation) Fields() []string {
 	}
 	if m.triggered_by_user != nil {
 		fields = append(fields, orderlockrecord.FieldTriggeredBy)
+	}
+	if m.air_document_snapshot != nil {
+		fields = append(fields, orderlockrecord.FieldAirDocumentSnapshot)
 	}
 	if m.master_bill != nil {
 		fields = append(fields, orderlockrecord.FieldMasterBillID)
@@ -105977,6 +112555,8 @@ func (m *OrderLockRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.TriggerResourceID()
 	case orderlockrecord.FieldTriggeredBy:
 		return m.TriggeredBy()
+	case orderlockrecord.FieldAirDocumentSnapshot:
+		return m.AirDocumentSnapshot()
 	case orderlockrecord.FieldMasterBillID:
 		return m.MasterBillID()
 	case orderlockrecord.FieldMasterBillVersionID:
@@ -106036,6 +112616,8 @@ func (m *OrderLockRecordMutation) OldField(ctx context.Context, name string) (en
 		return m.OldTriggerResourceID(ctx)
 	case orderlockrecord.FieldTriggeredBy:
 		return m.OldTriggeredBy(ctx)
+	case orderlockrecord.FieldAirDocumentSnapshot:
+		return m.OldAirDocumentSnapshot(ctx)
 	case orderlockrecord.FieldMasterBillID:
 		return m.OldMasterBillID(ctx)
 	case orderlockrecord.FieldMasterBillVersionID:
@@ -106159,6 +112741,13 @@ func (m *OrderLockRecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTriggeredBy(v)
+		return nil
+	case orderlockrecord.FieldAirDocumentSnapshot:
+		v, ok := value.(map[string]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAirDocumentSnapshot(v)
 		return nil
 	case orderlockrecord.FieldMasterBillID:
 		v, ok := value.(uuid.UUID)
@@ -106325,6 +112914,9 @@ func (m *OrderLockRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(orderlockrecord.FieldTriggeredBy) {
 		fields = append(fields, orderlockrecord.FieldTriggeredBy)
 	}
+	if m.FieldCleared(orderlockrecord.FieldAirDocumentSnapshot) {
+		fields = append(fields, orderlockrecord.FieldAirDocumentSnapshot)
+	}
 	if m.FieldCleared(orderlockrecord.FieldMasterBillID) {
 		fields = append(fields, orderlockrecord.FieldMasterBillID)
 	}
@@ -106380,6 +112972,9 @@ func (m *OrderLockRecordMutation) ClearField(name string) error {
 		return nil
 	case orderlockrecord.FieldTriggeredBy:
 		m.ClearTriggeredBy()
+		return nil
+	case orderlockrecord.FieldAirDocumentSnapshot:
+		m.ClearAirDocumentSnapshot()
 		return nil
 	case orderlockrecord.FieldMasterBillID:
 		m.ClearMasterBillID()
@@ -106457,6 +113052,9 @@ func (m *OrderLockRecordMutation) ResetField(name string) error {
 		return nil
 	case orderlockrecord.FieldTriggeredBy:
 		m.ResetTriggeredBy()
+		return nil
+	case orderlockrecord.FieldAirDocumentSnapshot:
+		m.ResetAirDocumentSnapshot()
 		return nil
 	case orderlockrecord.FieldMasterBillID:
 		m.ResetMasterBillID()

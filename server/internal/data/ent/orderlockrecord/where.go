@@ -606,6 +606,16 @@ func TriggeredByNotNil() predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldNotNull(FieldTriggeredBy))
 }
 
+// AirDocumentSnapshotIsNil applies the IsNil predicate on the "air_document_snapshot" field.
+func AirDocumentSnapshotIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldAirDocumentSnapshot))
+}
+
+// AirDocumentSnapshotNotNil applies the NotNil predicate on the "air_document_snapshot" field.
+func AirDocumentSnapshotNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldAirDocumentSnapshot))
+}
+
 // MasterBillIDEQ applies the EQ predicate on the "master_bill_id" field.
 func MasterBillIDEQ(v uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldMasterBillID, v))

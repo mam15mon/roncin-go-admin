@@ -9,6 +9,24 @@ import (
 // AdministrativeRegion is the predicate function for administrativeregion builders.
 type AdministrativeRegion func(*sql.Selector)
 
+// AirHouseWaybill is the predicate function for airhousewaybill builders.
+type AirHouseWaybill func(*sql.Selector)
+
+// AirHouseWaybillVersion is the predicate function for airhousewaybillversion builders.
+type AirHouseWaybillVersion func(*sql.Selector)
+
+// AirMasterWaybill is the predicate function for airmasterwaybill builders.
+type AirMasterWaybill func(*sql.Selector)
+
+// AirMasterWaybillHistory is the predicate function for airmasterwaybillhistory builders.
+type AirMasterWaybillHistory func(*sql.Selector)
+
+// AirMasterWaybillOrderLink is the predicate function for airmasterwaybillorderlink builders.
+type AirMasterWaybillOrderLink func(*sql.Selector)
+
+// AirWeightConfirmation is the predicate function for airweightconfirmation builders.
+type AirWeightConfirmation func(*sql.Selector)
+
 // Airline is the predicate function for airline builders.
 type Airline func(*sql.Selector)
 

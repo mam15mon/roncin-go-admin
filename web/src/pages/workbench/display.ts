@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { getOrderFlowStatusText } from '@/constants/statusMeta';
 import { WorkbenchCommissionStatus } from '@/enums.generated';
 import { formatAmount } from '@/utils/format';
 
@@ -71,24 +72,18 @@ export const workbenchCalculationBasisText = (value?: string) => {
   return meta[value || ''] || '-';
 };
 
-const ORDER_FLOW_STATUS_TEXT: Record<string, string> = {
-  DRAFT: '草稿',
-  BOOKED: '已订舱',
-  SPACE_ALLOCATED: '已配舱',
-  TRUCKING_ARRANGED: '已安排拖车',
-  DOCUMENT_CUTOFF: '已截单',
-  CUSTOMS_DECLARATION_ARRANGED: '已安排报关',
-  DOCUMENT_RELEASED: '已放单',
-};
-
 const ORDER_TERMINATION_STATUS_TEXT: Record<string, string> = {
   ACTIVE: '进行中',
   TERMINATING: '终止中',
   TERMINATED: '已终止',
 };
 
-export const orderFlowStatusText = (value?: string) =>
-  ORDER_FLOW_STATUS_TEXT[value || ''] || value || '-';
+export const orderFlowStatusText = (value?: string, businessType?: string) => {
+  if (businessType === 'AE') return getOrderFlowStatusText(value, businessType);
+  if (value === 'TRUCKING_ARRANGED') return '已安排拖车';
+  if (value === 'CUSTOMS_DECLARATION_ARRANGED') return '已安排报关';
+  return getOrderFlowStatusText(value, businessType);
+};
 
 export const orderTerminationStatusText = (value?: string) =>
   ORDER_TERMINATION_STATUS_TEXT[value || ''] || value || '-';
@@ -128,3 +123,19 @@ export const statAmountStyle: CSSProperties = {
   fontWeight: 600,
   ...amountFont,
 };
+
+/** 工作台仅生成本期已开放品类的链接，未知类型保持不可跳转。 */
+export function workbenchOrderPath(
+  businessType?: string,
+  orderId?: string,
+  fees = false,
+): string | undefined {
+  const kind =
+    businessType === 'SE'
+      ? 'sea-export'
+      : businessType === 'AE'
+        ? 'air-export'
+        : undefined;
+  if (!kind || !orderId) return undefined;
+  return `/orders/${kind}/${orderId}${fees ? '/fees' : ''}`;
+}

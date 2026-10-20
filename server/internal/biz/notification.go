@@ -226,13 +226,18 @@ func escapeNotificationMarkdown(value string) string {
 
 func renderFeeReviewMessage(delivery *NotificationDelivery, result bool) DingTalkMessage {
 	parameter := delivery.Parameter
-	path := "/orders/sea-export/" + delivery.ResourceID.String() + "/fees"
-	entrySuffix := "\n订单入口：" + path
 	actionPath := ""
 	// 入队路径由订单 UUID 生成；仅将与当前资源完全匹配的入口作为链接。
-	if delivery.ResourceType == "ORDER" && strings.HasSuffix(parameter, entrySuffix) {
-		parameter = strings.TrimSuffix(parameter, entrySuffix)
-		actionPath = path
+	if delivery.ResourceType == "ORDER" {
+		for _, businessType := range []OrderBusinessType{OrderBusinessSE, OrderBusinessAE} {
+			path := OrderFeesPath(businessType, delivery.ResourceID)
+			entrySuffix := "\n订单入口：" + path
+			if strings.HasSuffix(parameter, entrySuffix) {
+				parameter = strings.TrimSuffix(parameter, entrySuffix)
+				actionPath = path
+				break
+			}
+		}
 	}
 	title, status := "订单费用待审核", "🟠 待审核"
 	summary := fmt.Sprintf("%s已提交整票费用，请核对费用及利润后处理。", escapeNotificationMarkdown(parameter))
@@ -245,6 +250,23 @@ func renderFeeReviewMessage(delivery *NotificationDelivery, result bool) DingTal
 		message.ActionTitle = "查看订单费用"
 	}
 	return message
+}
+
+// OrderFeesPath 只为已接通的订单品类生成费用入口。
+func OrderFeesPath(businessType OrderBusinessType, id uuid.UUID) string {
+	if id == uuid.Nil {
+		return ""
+	}
+	var kind string
+	switch businessType {
+	case OrderBusinessSE:
+		kind = "sea-export"
+	case OrderBusinessAE:
+		kind = "air-export"
+	default:
+		return ""
+	}
+	return "/orders/" + kind + "/" + id.String() + "/fees"
 }
 
 // 结果仅识别入队端的固定后缀，姓名中出现状态词不会改变显示状态。

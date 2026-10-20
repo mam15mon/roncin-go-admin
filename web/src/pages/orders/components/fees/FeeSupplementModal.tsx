@@ -295,6 +295,12 @@ export default function FeeSupplementModal({
           ]}
         />
       )}
+      <Alert
+        type="info"
+        showIcon
+        title="本次补录或更正按人工确认数量保存，不继承原费用的自动取数来源"
+        style={{ marginBottom: 12 }}
+      />
       <Row gutter={16}>
         <Col span={12}>
           <ProFormSearchableSelect
@@ -370,6 +376,7 @@ export default function FeeSupplementModal({
             label="数量"
             extra={
               <FeeQuantityFormAssist
+                allowChargeable={false}
                 orderId={orderId}
                 billingUnits={billingUnits}
                 active={open}

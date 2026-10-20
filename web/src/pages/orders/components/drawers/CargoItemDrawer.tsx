@@ -4,19 +4,23 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import React, { forwardRef } from 'react';
 import {
   type SubEntityDrawerRef,
   SubEntityDrawerTemplate,
 } from '@/components/ui/sub-entity-drawer';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   orderCargoItemServiceAddCargoItem,
   orderCargoItemServiceListCargoItems,
   orderCargoItemServiceRemoveCargoItem,
   orderCargoItemServiceUpdateCargoItem,
 } from '@/services/roncin/orderCargoItemService';
+import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
+import AirCargoDimensionsAssist from './AirCargoDimensionsAssist';
 
 export type CargoItemDrawerRef = SubEntityDrawerRef<API.Order>;
 
@@ -87,6 +91,20 @@ const columns: ProColumns<API.OrderCargoItem>[] = [
 const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
   function CargoItemDrawer({ canCreate, canUpdate, canRemove }, ref) {
     const { message } = App.useApp();
+    const queryClient = useQueryClient();
+    const refreshWeightsAfterWrite = async <T,>(
+      order: API.Order,
+      pending: Promise<T>,
+      requireId = true,
+    ): Promise<T> => {
+      const response = await pending;
+      if (
+        order.businessType === OrderBusinessType.BUSINESS_TYPE_AE &&
+        isWriteResponse(response, requireId)
+      )
+        await queryClient.invalidateQueries({ queryKey: ['air-weight'] });
+      return response;
+    };
     return (
       <SubEntityDrawerTemplate<
         API.OrderCargoItem,
@@ -108,42 +126,50 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
           })
         }
         createItem={(values, order) =>
-          orderCargoItemServiceAddCargoItem(
-            { orderId: order.id as string },
-            {
-              orderId: order.id as string,
-              cargoName: values.cargoName.trim(),
-              packageCount: Number(values.packageCount),
-              grossWeightKg: Number(values.grossWeightKg),
-              volumeCbm: Number(values.volumeCbm),
-              netWeightKg:
-                values.netWeightKg !== undefined && values.netWeightKg !== null
-                  ? Number(values.netWeightKg)
-                  : undefined,
-              note: values.note?.trim() || undefined,
-            },
+          refreshWeightsAfterWrite(
+            order,
+            orderCargoItemServiceAddCargoItem(
+              { orderId: order.id as string },
+              {
+                orderId: order.id as string,
+                cargoName: values.cargoName.trim(),
+                packageCount: Number(values.packageCount),
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                netWeightKg:
+                  values.netWeightKg !== undefined &&
+                  values.netWeightKg !== null
+                    ? Number(values.netWeightKg)
+                    : undefined,
+                note: values.note?.trim() || undefined,
+              },
+            ),
           )
         }
         updateItem={(record, values, order) =>
-          orderCargoItemServiceUpdateCargoItem(
-            {
-              orderId: order.id as string,
-              id: record.id as string,
-            },
-            {
-              id: record.id as string,
-              orderId: order.id as string,
-              cargoName: values.cargoName.trim(),
-              packageCount: Number(values.packageCount),
-              grossWeightKg: Number(values.grossWeightKg),
-              volumeCbm: Number(values.volumeCbm),
-              netWeightKg:
-                values.netWeightKg !== undefined && values.netWeightKg !== null
-                  ? Number(values.netWeightKg)
-                  : undefined,
-              note: values.note?.trim() || undefined,
-              expectedVersion: String(record.version ?? '1'),
-            },
+          refreshWeightsAfterWrite(
+            order,
+            orderCargoItemServiceUpdateCargoItem(
+              {
+                orderId: order.id as string,
+                id: record.id as string,
+              },
+              {
+                id: record.id as string,
+                orderId: order.id as string,
+                cargoName: values.cargoName.trim(),
+                packageCount: Number(values.packageCount),
+                grossWeightKg: Number(values.grossWeightKg),
+                volumeCbm: Number(values.volumeCbm),
+                netWeightKg:
+                  values.netWeightKg !== undefined &&
+                  values.netWeightKg !== null
+                    ? Number(values.netWeightKg)
+                    : undefined,
+                note: values.note?.trim() || undefined,
+                expectedVersion: String(record.version ?? '1'),
+              },
+            ),
           )
         }
         removeItem={(record, order) => {
@@ -153,11 +179,15 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
             message.error(error.message);
             return Promise.resolve(false);
           }
-          return orderCargoItemServiceRemoveCargoItem({
-            orderId: order.id as string,
-            id: record.id as string,
-            expectedVersion: String(record.version),
-          });
+          return refreshWeightsAfterWrite(
+            order,
+            orderCargoItemServiceRemoveCargoItem({
+              orderId: order.id as string,
+              id: record.id as string,
+              expectedVersion: String(record.version),
+            }),
+            false,
+          );
         }}
         initialValues={(editing) =>
           editing
@@ -176,7 +206,7 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
                 volumeCbm: 0,
               }
         }
-        renderFormItems={() => (
+        renderFormItems={(_item, _form, order) => (
           <>
             <ProFormText
               name="cargoName"
@@ -206,6 +236,9 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
               placeholder="请输入体积"
               rules={[{ required: true, message: '请输入体积' }]}
             />
+            {order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE && (
+              <AirCargoDimensionsAssist />
+            )}
             <ProFormDigit
               name="netWeightKg"
               label="净重 (KG)"

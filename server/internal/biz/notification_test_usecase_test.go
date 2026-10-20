@@ -163,6 +163,41 @@ func TestNotificationTestOrderScopesKeepCompanyReadBoundary(t *testing.T) {
 	}
 }
 
+func TestNotificationTestAirOrderRequiresBothReadPermissions(t *testing.T) {
+	uc, _, sender, p, orders := newNotificationPreviewFixture()
+	p.Organization.Kind = OrganizationKindCompany
+	p.OrganizationNodes[0].Kind = OrganizationKindCompany
+	p.RoleGrants[0].DataScope = DataScopeAll
+	orders.order.BusinessType = OrderBusinessAE
+	orders.order.OrderNo = "AE-001"
+	read := access.OrderPermission(access.OrderBusinessAE, access.OrderRead)
+	fee := access.OrderPermission(access.OrderBusinessAE, access.OrderFeeRead)
+	p.RoleGrants[0].Permissions[read] = struct{}{}
+	if _, err := uc.order.FindAuthorized(t.Context(), orders.order.ID, notificationTestOrderScopes(p)); err != ErrOrderNotFound {
+		t.Fatalf("缺少 AE 费用读取权限仍读取空运订单: %v", err)
+	}
+	p.RoleGrants[0].Permissions[fee] = struct{}{}
+	selected, err := uc.order.FindAuthorized(t.Context(), orders.order.ID, notificationTestOrderScopes(p))
+	if err != nil {
+		t.Fatalf("有完整读取权限仍无法定位空运订单: %v", err)
+	}
+	delivery, err := notificationTestDelivery("FEE_REVIEW_PENDING", selected)
+	if err != nil {
+		t.Fatal(err)
+	}
+	message, err := renderNotification(delivery)
+	if err != nil || message.ActionPath != "/orders/air-export/"+selected.ID.String()+"/fees" {
+		t.Fatalf("空运订单预览入口错误: %+v %v", message, err)
+	}
+	if len(sender.messages) != 0 {
+		t.Fatal("预览不应发送通知")
+	}
+	orders.order.OrganizationID = uuid.New()
+	if _, err := uc.order.FindAuthorized(t.Context(), orders.order.ID, notificationTestOrderScopes(p)); err != ErrOrderNotFound {
+		t.Fatalf("空运订单跨公司读取未被拒绝: %v", err)
+	}
+}
+
 func TestNotificationTestRejectionsAndDisabledPreview(t *testing.T) {
 	ctx := context.Background()
 	uc, repo, sender, p, _ := newNotificationPreviewFixture()

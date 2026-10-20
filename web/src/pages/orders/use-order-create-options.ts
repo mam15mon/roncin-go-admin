@@ -57,7 +57,8 @@ export function useOrderCreateOptions(
       try {
         const [masterData, personnelResponse] = await Promise.all([
           fetchOrderMasterData(organizationId, definition.transportMode),
-          definition.transportMode === 'sea'
+          definition.transportMode === 'sea' ||
+          definition.transportMode === 'air'
             ? getOrderPersonnelOptions(organizationId, definition.businessType)
             : Promise.resolve([]),
         ]);

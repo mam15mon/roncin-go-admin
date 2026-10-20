@@ -58,9 +58,11 @@ it('散杂货主动清空既有箱量计划也通过订单表单事件保护', a
   expect(getAnyDirtyTabKey()).toBeUndefined();
   fireEvent.click(await screen.findByRole('button', { name: '清空箱量计划' }));
   await waitFor(() => expect(getAnyDirtyTabKey()).toBe('/orders/sea-export'));
-  expect(
-    screen.queryByRole('button', { name: '清空箱量计划' }),
-  ).not.toBeInTheDocument();
+  await waitFor(() => {
+    expect(
+      screen.queryByRole('button', { name: '清空箱量计划' }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 it('计划箱型箱量真实用户编辑进入订单模板草稿与未保存生命周期，初始化和重置不误标脏', async () => {

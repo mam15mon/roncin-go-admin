@@ -58,6 +58,9 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - 解锁固定分流：bootstrap admin → `ADMIN_EMERGENCY`；持有效 lock grant 的用户（含真实持锁权限的 `administrator` 角色）→ `ROLE_DIRECT`；普通订单编辑人 → `DINGTALK_APPROVAL`。
 - 审批候选人快照保存实际 `membership_id`、`role_id` 与 DingTalk UserID；同一用户有多个合格 grant 时按 RoleAssignment ID 升序取首个可追溯 grant；钉钉回调先校验审批人存在于快照，再以同一资格口径实时复核，权限或成员关系被撤销后旧候选回调稳定标记 `APPROVER_NOT_QUALIFIED`。
 - 所有类型的锁定事务原子创建锁定周期记录、更新订单锁状态与审计；SE 同一事务额外创建/复用完整 MBL/HBL 不可变版本与 HBL 快照，任何一步失败必须全部回滚。
+- AE 锁单按 Order → MAWB → Link → HAWB 固定顺序复核共享集合，
+  `OrderLockRecord.air_document_snapshot` 固化航空主单/分单及其版本，不能填写海运快照外键。
+  空运历史通过专属主单及分单版本接口查询；完整边界见 [air-export-contract](./air-export-contract.md)。
 - 六种类型共用一个 `Security.DingTalk.approval_process_code`；OA 实例必须携带业务类型、订单号、申请人、原因和锁代次，不按类型复制模板配置。
 - `Security.DingTalk.approval_process_code/event_token/event_aes_key` 只接受环境注入；仓库配置仅保留空值或占位符。
 - 列表分页必须满足 `page >= 1`、`1 <= page_size <= 200`；缺省值由 service 统一补齐。

@@ -20,6 +20,10 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		if companyErr := ensureOperatingCompany(ctx, tx, organizationID); companyErr != nil {
 			return companyErr
 		}
+		airMaster, airErr := prepareAirOrderCreate(ctx, tx, organizationID, actorID, input)
+		if airErr != nil {
+			return airErr
+		}
 		allocatedAt := time.Now().UTC()
 		rule, sequence, err := allocateNumberInTx(ctx, tx, organizationID, biz.DocumentTypeOrder, allocatedAt)
 		if err != nil {
@@ -106,6 +110,9 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			)
 		}
 		createdID = created.ID
+		if err := createAirOrderDocuments(ctx, tx, organizationID, actorID, created, input, airMaster); err != nil {
+			return err
+		}
 		if err := replaceOrderSelections(ctx, tx, created.ID, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
 			return err
 		}

@@ -11,6 +11,7 @@ export interface OrderPersonnelFilterOption {
 }
 
 export interface OrderListFilterOptions {
+  transportMode?: 'sea' | 'air';
   ports?: OrderSelectOption[];
   airports?: OrderSelectOption[];
   shippingLines?: OrderSelectOption[];

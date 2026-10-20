@@ -227,6 +227,18 @@ func (_u *OrderFeeUpdate) ClearTaxableServiceName() *OrderFeeUpdate {
 	return _u
 }
 
+// SetQuantitySource sets the "quantity_source" field.
+func (_u *OrderFeeUpdate) SetQuantitySource(v map[string]string) *OrderFeeUpdate {
+	_u.mutation.SetQuantitySource(v)
+	return _u
+}
+
+// ClearQuantitySource clears the value of the "quantity_source" field.
+func (_u *OrderFeeUpdate) ClearQuantitySource() *OrderFeeUpdate {
+	_u.mutation.ClearQuantitySource()
+	return _u
+}
+
 // SetQuantity sets the "quantity" field.
 func (_u *OrderFeeUpdate) SetQuantity(v string) *OrderFeeUpdate {
 	_u.mutation.SetQuantity(v)
@@ -910,6 +922,12 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.TaxableServiceNameCleared() {
 		_spec.ClearField(orderfee.FieldTaxableServiceName, field.TypeString)
 	}
+	if value, ok := _u.mutation.QuantitySource(); ok {
+		_spec.SetField(orderfee.FieldQuantitySource, field.TypeJSON, value)
+	}
+	if _u.mutation.QuantitySourceCleared() {
+		_spec.ClearField(orderfee.FieldQuantitySource, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.Quantity(); ok {
 		_spec.SetField(orderfee.FieldQuantity, field.TypeString, value)
 	}
@@ -1547,6 +1565,18 @@ func (_u *OrderFeeUpdateOne) SetNillableTaxableServiceName(v *string) *OrderFeeU
 // ClearTaxableServiceName clears the value of the "taxable_service_name" field.
 func (_u *OrderFeeUpdateOne) ClearTaxableServiceName() *OrderFeeUpdateOne {
 	_u.mutation.ClearTaxableServiceName()
+	return _u
+}
+
+// SetQuantitySource sets the "quantity_source" field.
+func (_u *OrderFeeUpdateOne) SetQuantitySource(v map[string]string) *OrderFeeUpdateOne {
+	_u.mutation.SetQuantitySource(v)
+	return _u
+}
+
+// ClearQuantitySource clears the value of the "quantity_source" field.
+func (_u *OrderFeeUpdateOne) ClearQuantitySource() *OrderFeeUpdateOne {
+	_u.mutation.ClearQuantitySource()
 	return _u
 }
 
@@ -2262,6 +2292,12 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	}
 	if _u.mutation.TaxableServiceNameCleared() {
 		_spec.ClearField(orderfee.FieldTaxableServiceName, field.TypeString)
+	}
+	if value, ok := _u.mutation.QuantitySource(); ok {
+		_spec.SetField(orderfee.FieldQuantitySource, field.TypeJSON, value)
+	}
+	if _u.mutation.QuantitySourceCleared() {
+		_spec.ClearField(orderfee.FieldQuantitySource, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.Quantity(); ok {
 		_spec.SetField(orderfee.FieldQuantity, field.TypeString, value)

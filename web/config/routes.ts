@@ -135,6 +135,21 @@ const routes: UmiRoute[] = [
         component: './orders/list',
       },
       {
+        path: '/orders/air-export',
+        organizationSwitch: { keep: true },
+        name: '空运出口',
+        access: 'canReadAEOrders',
+        component: './orders/list',
+      },
+      {
+        path: '/orders/air-export/masters/:masterId',
+        organizationSwitch: { list: '/orders/air-export' },
+        name: '航空共享主单',
+        access: 'canReadAEOrders',
+        hideInMenu: true,
+        component: './orders/air-master',
+      },
+      {
         path: '/orders/:kind/new',
         organizationSwitch: { list: '/orders/:kind' },
         name: '新建订单',

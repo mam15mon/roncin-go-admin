@@ -19,7 +19,7 @@ import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { PartnerRoleType } from '@/enums.generated';
+import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
 import { useOrderFeeReview } from '@/features/orders/fee-review';
 import {
   orderFeeServiceAddFee,
@@ -40,6 +40,7 @@ import FeeFormModal, {
 } from './components/fees/FeeFormModal';
 import { OrderFeeReviewSection } from './components/fees/fee-review/OrderFeeReview';
 import { feeDirectionCode, RECEIVABLE } from './components/fees/feeConstants';
+import { quantitySelectionForSave } from './components/fees/feeQuantitySource';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import { buildOrderFeePanelColumns } from './order-fee-panel-columns';
@@ -338,6 +339,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               settlementPartyId: values.settlementPartyId,
               billingUnitId: values.billingUnitId,
               quantity: normalizeDecimalInput(String(values.quantity ?? '')),
+              quantitySource: quantitySelectionForSave(
+                values.quantitySource,
+                values.quantity,
+              ),
               unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
               currency: values.currency,
               expenseDate,
@@ -358,6 +363,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               settlementPartyId: values.settlementPartyId,
               billingUnitId: values.billingUnitId,
               quantity: normalizeDecimalInput(String(values.quantity ?? '')),
+              quantitySource: quantitySelectionForSave(
+                values.quantitySource,
+                values.quantity,
+              ),
               unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
               currency: values.currency,
               expenseDate,
@@ -537,6 +546,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         />
 
         <FeeFormModal
+          allowChargeableQuantity={
+            order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE
+          }
           formRef={formRef}
           orderId={order?.id ?? ''}
           quantityAssistDisabled={feeWritesDisabled}

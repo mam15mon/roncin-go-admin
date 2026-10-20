@@ -33,6 +33,7 @@ func (OrderFee) Fields() []ent.Field {
 		field.String("billing_unit").NotEmpty().MaxLen(32),
 		field.String("tax_rate").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(5,2)"}),
 		field.String("taxable_service_name").Optional().Nillable().MaxLen(128),
+		field.JSON("quantity_source", map[string]string{}).Optional(),
 		field.String("quantity").SchemaType(map[string]string{dialect.Postgres: "numeric(18,4)"}),
 		field.String("unit_price").SchemaType(map[string]string{dialect.Postgres: "numeric(18,4)"}),
 		field.String("total_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),

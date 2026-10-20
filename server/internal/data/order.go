@@ -38,6 +38,9 @@ func (r *orderRepo) GetByIdempotencyKey(ctx context.Context, organizationID uuid
 		return nil, err
 	}
 	order := orderToBiz(item)
+	if err := attachAirOrders(ctx, client, []*biz.Order{order}); err != nil {
+		return nil, err
+	}
 	personnelRows, err := client.OrderPersonnel.Query().
 		Where(orderpersonnelent.OrderIDEQ(item.ID)).
 		All(ctx)

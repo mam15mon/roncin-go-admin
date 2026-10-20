@@ -77,6 +77,10 @@ describe('组织切换功能落点', () => {
     ).toEqual({ path: '/welcome', accessDenied: true });
     expect(destination('/orders/air-export/old', companyAccess)).toEqual({
       path: '/welcome',
+      accessDenied: true,
+    });
+    expect(destination('/orders/air-export/old', capabilities(['business.order.ae.read']))).toEqual({
+      path: '/orders/air-export',
       accessDenied: false,
     });
   });

@@ -162,6 +162,7 @@ func (r *orderFeeSupplementRepo) CreateApprovedFee(ctx context.Context, organiza
 			SetFeeName(fee.FeeName).
 			SetSettlementPartyID(fee.SettlementPartyID).
 			SetBillingUnit(fee.BillingUnit).
+			SetQuantitySource(map[string]string{"mode": "MANUAL", "adopted_quantity": fee.Quantity.String(), "unit": fee.BillingUnit, "reason": "受控补录或更正人工确定数量"}).
 			SetQuantity(fee.Quantity.StringFixed(4)).
 			SetUnitPrice(fee.UnitPrice.StringFixed(4)).
 			SetTotalAmount(fee.TotalAmount.StringFixed(8)).

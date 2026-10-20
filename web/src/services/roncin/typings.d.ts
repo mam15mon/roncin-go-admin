@@ -50,6 +50,7 @@ declare namespace API {
     billingUnitId: string;
     idempotencyKey: string;
     taxInclusive?: boolean;
+    quantitySource?: FeeQuantitySelection;
   };
 
   type AddFeeResponse = {
@@ -289,6 +290,54 @@ declare namespace API {
     organizationName?: string;
   };
 
+  type AirExportServiceGetAirMasterWaybillParams = {
+    id: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type AirExportServiceLinkAirMasterWaybillParams = {
+    id: string;
+  };
+
+  type AirExportServiceListAirHouseWaybillVersionsParams = {
+    orderId: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type AirExportServiceListAirLinkCandidatesParams = {
+    id: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type AirExportServiceListAirMasterWaybillsParams = {
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type AirExportServicePreviewAirMasterWaybillUpdateParams = {
+    id: string;
+  };
+
+  type AirExportServiceUpdateAirMasterWaybillParams = {
+    id: string;
+  };
+
+  type AirHouseWaybillVersion = {
+    id?: string;
+    version?: string;
+    houseNo?: string;
+    status?: string;
+    content?: string;
+    actorId?: string;
+    reason?: string;
+    occurredAt?: string;
+  };
+
   type Airline = {
     id?: string;
     iataCode?: string;
@@ -307,6 +356,103 @@ declare namespace API {
     sourceHash?: string;
   };
 
+  type AirMasterHistory = {
+    id?: string;
+    version?: string;
+    action?: string;
+    reason?: string;
+    actorId?: string;
+    occurredAt?: string;
+    content?: AirMasterWaybillInput;
+  };
+
+  type AirMasterMember = {
+    orderId?: string;
+    orderNo?: string;
+    customerName?: string;
+    houseNo?: string;
+    packages?: number;
+    packageUnit?: string;
+    grossWeightKg?: number;
+    volumeCbm?: number;
+    flowStatus?: string;
+    terminationStatus?: string;
+    closureStatus?: string;
+    locked?: boolean;
+    orderVersion?: string;
+    houseStatus?: string;
+    confirmedChargeableWeightKg?: string;
+    confirmationStale?: boolean;
+  };
+
+  type AirMasterTotals = {
+    packagesByUnit?: AirPackageTotal[];
+    grossWeightKg?: number;
+    volumeCbm?: number;
+    complete?: boolean;
+    memberCount?: number;
+  };
+
+  type AirMasterWaybill = {
+    id?: string;
+    organizationId?: string;
+    version?: string;
+    content?: AirMasterWaybillInput;
+    airlineName?: string;
+    originAirportName?: string;
+    destinationAirportName?: string;
+    memberCount?: number;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+
+  type AirMasterWaybillInput = {
+    masterNo?: string;
+    airlineId?: string;
+    originAirportId?: string;
+    destinationAirportId?: string;
+    flightNo?: string;
+    etd?: string;
+    eta?: string;
+    actualDepartureAt?: string;
+    actualArrivalAt?: string;
+    documentCutoffAt?: string;
+    customsCutoffAt?: string;
+    status?: string;
+    declaredPackages?: number;
+    declaredGrossWeightKg?: number;
+    declaredVolumeCbm?: number;
+    notes?: string;
+  };
+
+  type AirOrderInfo = {
+    master?: AirMasterWaybill;
+    houseNo?: string;
+    houseStatus?: string;
+    houseVersion?: string;
+    linkId?: string;
+    linkVersion?: string;
+    houseContent?: string;
+    houseId?: string;
+    active?: boolean;
+  };
+
+  type AirOrderInput = {
+    masterWaybillId?: string;
+    expectedMasterVersion?: string;
+    master?: AirMasterWaybillInput;
+    houseNo?: string;
+    houseContent?: string;
+    houseStatus?: string;
+    changeReason?: string;
+    expectedLinkVersion?: string;
+  };
+
+  type AirPackageTotal = {
+    unit?: string;
+    packages?: number;
+  };
+
   type Airport = {
     id?: string;
     iataCode?: string;
@@ -323,6 +469,47 @@ declare namespace API {
     updatedAt?: string;
     sourceVersion?: string;
     sourceHash?: string;
+  };
+
+  type AirWeightConfirmation = {
+    id?: string;
+    scope?: string;
+    targetId?: string;
+    source?: string;
+    version?: string;
+    inputFingerprint?: string;
+    confirmedWeightKg?: string;
+    reason?: string;
+    confirmedBy?: string;
+    confirmedAt?: string;
+    snapshot?: Record<string, any>;
+  };
+
+  type AirWeightPreview = {
+    scope?: string;
+    targetId?: string;
+    source?: string;
+    inputFingerprint?: string;
+    available?: boolean;
+    reason?: string;
+    grossWeightKg?: string;
+    volumeCbm?: string;
+    volumetricWeightKg?: string;
+    bubbleDifferenceKg?: string;
+    sharedBubbleWeightKg?: string;
+    suggestedChargeableWeightKg?: string;
+    volumetricDivisor?: string;
+    bubbleShareNumerator?: number;
+    bubbleShareDenominator?: number;
+    currentConfirmation?: AirWeightConfirmation;
+    confirmationStale?: boolean;
+  };
+
+  type AirWeightServiceListAirWeightConfirmationsParams = {
+    scope?: string;
+    targetId?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type ApproveCommissionApplicationRequest = {
@@ -1058,6 +1245,27 @@ declare namespace API {
     updatedCount?: number;
   };
 
+  type ConfirmAirWeightRequest = {
+    scope?: string;
+    targetId?: string;
+    source?: string;
+    volumetricDivisor?: string;
+    bubbleShareNumerator?: number;
+    bubbleShareDenominator?: number;
+    inputFingerprint?: string;
+    expectedVersion?: string;
+    confirmedWeightKg?: string;
+    reason?: string;
+  };
+
+  type ConfirmAirWeightResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AirWeightConfirmation;
+    traceId?: string;
+  };
+
   type ConfirmBillBatchRequest = {
     id: string;
     bills: BillExpectedVersion[];
@@ -1628,6 +1836,7 @@ declare namespace API {
     bookingNo?: string;
     /** idempotency_key 创建幂等键：可选，传入即启用幂等；同键同意图重放返回原单。 */
     idempotencyKey?: string;
+    airExport?: AirOrderInput;
   };
 
   type CreateOrderResponse = {
@@ -2637,6 +2846,20 @@ declare namespace API {
     formula?: string;
     inputs?: FeeQuantityInput[];
     reason?: string;
+    quantitySource?: FeeQuantitySelection;
+  };
+
+  type FeeQuantitySelection = {
+    mode?: string;
+    confirmationId?: string;
+    confirmationVersion?: string;
+    reason?: string;
+    adoptedQuantity?: string;
+    unit?: string;
+    referenceQuantity?: string;
+    /** 来源类别只由服务端写入快照：PLANNED / ACTUAL。 */
+    source?: string;
+    confirmedAt?: string;
   };
 
   type FeeSetting = {
@@ -3283,6 +3506,19 @@ declare namespace API {
     amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
+  type GetAirMasterWaybillResponse = {
+    success?: boolean;
+    message?: string;
+    traceId?: string;
+    data?: AirMasterWaybill;
+    members?: AirMasterMember[];
+    total?: number;
+    totals?: AirMasterTotals;
+    history?: AirMasterHistory[];
+    blockedReasons?: string[];
+    historyTotal?: number;
+  };
+
   type GetBackgroundTaskResponse = {
     success?: boolean;
     code?: number;
@@ -3611,6 +3847,28 @@ declare namespace API {
     traceId?: string;
   };
 
+  type LinkAirMasterWaybillRequest = {
+    id?: string;
+    orderId?: string;
+    expectedOrderVersion?: string;
+    expectedMasterVersion?: string;
+    houseNo?: string;
+    reason?: string;
+  };
+
+  type LinkAirMasterWaybillResponse = {
+    success?: boolean;
+    message?: string;
+    traceId?: string;
+    data?: AirMasterWaybill;
+    members?: AirMasterMember[];
+    total?: number;
+    totals?: AirMasterTotals;
+    history?: AirMasterHistory[];
+    blockedReasons?: string[];
+    historyTotal?: number;
+  };
+
   type ListAbnormalCasesResponse = {
     success?: boolean;
     code?: number;
@@ -3630,6 +3888,14 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type ListAirHouseWaybillVersionsResponse = {
+    success?: boolean;
+    message?: string;
+    traceId?: string;
+    data?: AirHouseWaybillVersion[];
+    total?: number;
+  };
+
   type ListAirlinesResponse = {
     success?: boolean;
     code?: number;
@@ -3641,11 +3907,38 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListAirLinkCandidatesResponse = {
+    success?: boolean;
+    message?: string;
+    traceId?: string;
+    data?: AirMasterMember[];
+    total?: number;
+  };
+
+  type ListAirMasterWaybillsResponse = {
+    success?: boolean;
+    message?: string;
+    traceId?: string;
+    data?: AirMasterWaybill[];
+    total?: number;
+  };
+
   type ListAirportsResponse = {
     success?: boolean;
     code?: number;
     message?: string;
     data?: Airport[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
+  type ListAirWeightConfirmationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AirWeightConfirmation[];
     total?: number;
     page?: number;
     pageSize?: number;
@@ -4844,6 +5137,7 @@ declare namespace API {
     seaDocumentStructure?: number;
     seaDocumentLinkVersion?: string;
     seaDocumentSummary?: SeaOrderDocumentSummary;
+    airExport?: AirOrderInfo;
     bookingNo?: string;
     /** commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户
  可见范围批量附加；普通员工视图不含他人提成事实。 */
@@ -5096,6 +5390,7 @@ declare namespace API {
     supersededByRequestId?: string;
     canBill?: boolean;
     canCorrect?: boolean;
+    quantitySource?: FeeQuantitySelection;
   };
 
   type OrderFeeBillingUnitOption = {
@@ -5345,6 +5640,7 @@ declare namespace API {
     orderId: string;
     billingUnitId?: string;
     source?: string;
+    quantityBasis?: string;
   };
 
   type OrderFeeServicePreviewOrderFeeCorrectionApprovalParams = {
@@ -6357,6 +6653,39 @@ declare namespace API {
     objectKey?: string;
     headers?: Record<string, any>;
     expiresAt?: string;
+    traceId?: string;
+  };
+
+  type PreviewAirMasterWaybillUpdateRequest = {
+    id?: string;
+    expectedVersion?: string;
+    input?: AirMasterWaybillInput;
+  };
+
+  type PreviewAirMasterWaybillUpdateResponse = {
+    success?: boolean;
+    message?: string;
+    traceId?: string;
+    inputFingerprint?: string;
+    members?: AirMasterMember[];
+    blockedReasons?: string[];
+    canExecute?: boolean;
+  };
+
+  type PreviewAirWeightRequest = {
+    scope?: string;
+    targetId?: string;
+    source?: string;
+    volumetricDivisor?: string;
+    bubbleShareNumerator?: number;
+    bubbleShareDenominator?: number;
+  };
+
+  type PreviewAirWeightResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AirWeightPreview;
     traceId?: string;
   };
 
@@ -8576,6 +8905,27 @@ declare namespace API {
     traceId?: string;
   };
 
+  type UpdateAirMasterWaybillRequest = {
+    id?: string;
+    expectedVersion?: string;
+    input?: AirMasterWaybillInput;
+    inputFingerprint?: string;
+    reason?: string;
+  };
+
+  type UpdateAirMasterWaybillResponse = {
+    success?: boolean;
+    message?: string;
+    traceId?: string;
+    data?: AirMasterWaybill;
+    members?: AirMasterMember[];
+    total?: number;
+    totals?: AirMasterTotals;
+    history?: AirMasterHistory[];
+    blockedReasons?: string[];
+    historyTotal?: number;
+  };
+
   type UpdateAirportRequest = {
     id: string;
     icaoCode?: string;
@@ -8785,6 +9135,7 @@ declare namespace API {
     taxRate?: string;
     /** fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。 */
     feeName?: string;
+    quantitySource?: FeeQuantitySelection;
   };
 
   type UpdateFeeResponse = {
@@ -8933,6 +9284,7 @@ declare namespace API {
     /** idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version
  的重放返回当前订单，否则走既有乐观锁冲突。 */
     idempotencyKey?: string;
+    airExport?: AirOrderInput;
   };
 
   type UpdateOrderResponse = {
@@ -9555,6 +9907,7 @@ declare namespace API {
     reason?: string;
     requestedByName?: string;
     requestedAt?: string;
+    businessType?: string;
   };
 
   type WorkbenchTodoSummary = {

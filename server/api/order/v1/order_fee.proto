@@ -283,6 +283,7 @@ message OrderFee {
   optional string superseded_by_request_id = 42;
   bool can_bill = 43;
   bool can_correct = 44;
+  FeeQuantitySelection quantity_source = 45;
 }
 
 message ListFeesRequest {
@@ -360,6 +361,7 @@ message AddFeeRequest {
   string billing_unit_id = 15 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 16 [(google.api.field_behavior) = REQUIRED];
   optional bool tax_inclusive = 17;
+  FeeQuantitySelection quantity_source = 18;
 }
 
 message UpdateFeeRequest {
@@ -384,6 +386,7 @@ message UpdateFeeRequest {
   optional string tax_rate = 19;
   // fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。
   optional string fee_name = 20;
+  FeeQuantitySelection quantity_source = 21;
 }
 
 message RemoveFeeRequest {
@@ -978,6 +981,7 @@ message PreviewFeeQuantityRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   string billing_unit_id = 2 [(google.api.field_behavior) = REQUIRED];
   string source = 3 [(google.api.field_behavior) = REQUIRED];
+  string quantity_basis = 4;
 }
 message FeeQuantityInput {
   string label = 1;
@@ -991,6 +995,20 @@ message FeeQuantityPreview {
   string formula = 4;
   repeated FeeQuantityInput inputs = 5;
   string reason = 6;
+  FeeQuantitySelection quantity_source = 7;
+}
+// mode：DIRECT、MANUAL_ADJUSTED 或 MANUAL。来源快照由服务端生成。
+message FeeQuantitySelection {
+  string mode = 1;
+  string confirmation_id = 2;
+  uint64 confirmation_version = 3;
+  string reason = 4;
+  string adopted_quantity = 5;
+  string unit = 6;
+  string reference_quantity = 7;
+  // 来源类别只由服务端写入快照：PLANNED / ACTUAL。
+  string source = 8;
+  string confirmed_at = 9;
 }
 message PreviewFeeQuantityResponse {
   bool success = 1;

@@ -445,6 +445,15 @@ func workbenchHasActiveCommission(ctx context.Context, client *ent.Client, scope
 // 基数误估（估计数行、实际数百行）下退化成十万次量级的 Join Filter 拒绝。
 // 返回 ID 已按协作人员行去重，顺序不稳定，调用方须显式排序。
 func (r *workbenchRepo) workbenchMyOrderIDs(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope) ([]uuid.UUID, error) {
+	if len(scope.ReadableOrderBusinessTypes) == 0 {
+		return []uuid.UUID{}, nil
+	}
+	readableTypes := make([]orderent.BusinessType, 0, len(scope.ReadableOrderBusinessTypes))
+	for _, businessType := range scope.ReadableOrderBusinessTypes {
+		if businessType == biz.OrderBusinessSE || businessType == biz.OrderBusinessAE {
+			readableTypes = append(readableTypes, orderent.BusinessType(businessType))
+		}
+	}
 	var rawIDs []string
 	if err := client.OrderPersonnel.Query().
 		Where(
@@ -472,7 +481,7 @@ func (r *workbenchRepo) workbenchMyOrderIDs(ctx context.Context, client *ent.Cli
 		collaborated = append(collaborated, parsed)
 	}
 	orders, err := client.Order.Query().
-		Where(orderent.IDIn(collaborated...), orderent.OrganizationIDEQ(scope.OrganizationID)).
+		Where(orderent.IDIn(collaborated...), orderent.OrganizationIDEQ(scope.OrganizationID), orderent.BusinessTypeIn(readableTypes...)).
 		Select(orderent.FieldID).
 		All(ctx)
 	if err != nil {
@@ -488,7 +497,7 @@ func (r *workbenchRepo) workbenchMyOrderIDs(ctx context.Context, client *ent.Cli
 	return orderIDs, nil
 }
 
-// workbenchRecentOrders 查询本人真实协作的近期海运出口订单（OrderPersonnel 归属）。
+// workbenchRecentOrders 查询本人真实协作且有权读取的近期出口订单（OrderPersonnel 归属）。
 func (r *workbenchRepo) workbenchRecentOrders(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope, myOrderIDs []uuid.UUID, limit int) ([]*biz.WorkbenchRecentOrder, error) {
 	if len(myOrderIDs) == 0 {
 		return []*biz.WorkbenchRecentOrder{}, nil
@@ -504,13 +513,13 @@ func (r *workbenchRepo) workbenchRecentOrders(ctx context.Context, client *ent.C
 	return result, nil
 }
 
-// workbenchRecentOrderQuery 是本人海运出口订单的基础查询：本人协作订单 ID 集合
-// 内的当前组织 SE 订单；按创建时间倒序稳定排序。
+// workbenchRecentOrderQuery 是本人有权读取出口订单的基础查询：本人协作订单 ID
+// 集合内的当前组织 SE/AE 订单；按创建时间倒序稳定排序。
 func (r *workbenchRepo) workbenchRecentOrderQuery(client *ent.Client, scope biz.WorkbenchScope, myOrderIDs []uuid.UUID) *ent.OrderQuery {
 	return client.Order.Query().Where(
 		orderent.IDIn(myOrderIDs...),
 		orderent.OrganizationIDEQ(scope.OrganizationID),
-		orderent.BusinessTypeEQ(orderent.BusinessTypeSE),
+		orderent.BusinessTypeIn(orderent.BusinessTypeSE, orderent.BusinessTypeAE),
 	).WithCustomer(func(query *ent.PartnerQuery) {
 		query.Select(partnerent.FieldID, partnerent.FieldLegalName)
 	}).Order(orderent.ByCreatedAt(entsql.OrderDesc()), orderent.ByID(entsql.OrderDesc()))
@@ -627,6 +636,7 @@ func (r *workbenchRepo) workbenchFinanceSummary(ctx context.Context, client *ent
 				RequestID:       requestItem.ID,
 				OrderID:         requestItem.OrderID,
 				OrderNo:         requestItem.Edges.Order.OrderNo,
+				BusinessType:    string(requestItem.Edges.Order.BusinessType),
 				FeeCode:         requestItem.FeeCode,
 				FeeName:         requestItem.FeeName,
 				Currency:        requestItem.Currency,
@@ -796,7 +806,7 @@ func (r *workbenchRepo) workbenchMyReceivableToBiz(ctx context.Context, item *en
 	}, nil
 }
 
-// ListMyRecentOrders 返回本人真实协作的近期海运出口订单分页。
+// ListMyRecentOrders 返回本人真实协作且有权读取的近期出口订单分页。
 func (r *workbenchRepo) ListMyRecentOrders(ctx context.Context, scope biz.WorkbenchScope, f biz.WorkbenchOrderFilter) (*biz.PagedList[*biz.WorkbenchRecentOrder], error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -814,7 +824,7 @@ func (r *workbenchRepo) ListMyRecentOrders(ctx context.Context, scope biz.Workbe
 		return client.Order.Query().Where(
 			orderent.IDIn(myOrderIDs...),
 			orderent.OrganizationIDEQ(scope.OrganizationID),
-			orderent.BusinessTypeEQ(orderent.BusinessTypeSE),
+			orderent.BusinessTypeIn(orderent.BusinessTypeSE, orderent.BusinessTypeAE),
 		).Count(ctx)
 	}, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
 		return query.Offset(offset).Limit(limit).All(ctx)

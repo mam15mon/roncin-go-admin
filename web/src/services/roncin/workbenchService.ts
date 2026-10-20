@@ -136,7 +136,7 @@ export async function workbenchServiceListMyReceivables(
   );
 }
 
-/** ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。 GET /api/v1/workbench/my-recent-orders */
+/** ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。 GET /api/v1/workbench/my-recent-orders */
 export async function workbenchServiceListMyRecentOrders(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.WorkbenchServiceListMyRecentOrdersParams,

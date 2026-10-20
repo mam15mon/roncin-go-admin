@@ -1,7 +1,7 @@
 import { type App, Input, Select, Space } from 'antd';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { registerTabCloseGuard } from '@/components/layout/tabCloseGuard';
-import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
+import { getOrderFlowStatusText } from '@/constants/statusMeta';
 import { OrderClosureStatus, OrderTerminationStatus } from '@/enums.generated';
 import { history } from '@/router/history';
 import {
@@ -82,15 +82,13 @@ export function confirmOrderFlow(
     return false;
   }
 
-  const currentStatusLabel = statusText(
-    orderFlowStatusMeta,
+  const currentStatusLabel = getOrderFlowStatusText(
     currentStatus,
-    '未知状态',
+    order.businessType,
   );
-  const targetStatusLabel = statusText(
-    orderFlowStatusMeta,
+  const targetStatusLabel = getOrderFlowStatusText(
     targetStatus,
-    '未知状态',
+    order.businessType,
   );
   let reason = '';
 

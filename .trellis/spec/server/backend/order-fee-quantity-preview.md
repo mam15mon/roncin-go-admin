@@ -7,7 +7,8 @@
 ## 2. 签名
 
 - `OrderFeeService.PreviewFeeQuantity`：`GET /api/v1/orders/{order_id}/fee-quantity-preview`。
-- 查询参数：`billingUnitId`、`source`（`PLANNED` / `ACTUAL`），均必填。
+- 查询参数：`billingUnitId`、`source`（`PLANNED` / `ACTUAL`），均必填；
+  `quantityBasis` 为 `GROSS_WEIGHT`（原数量口径）或 `CONFIRMED_CHARGEABLE_WEIGHT`（本票空运确认计费重）。
 - 响应 `data`：`available`、`quantity`、`sourceLabel`、`formula`、`inputs[{label,value,unit}]`、`reason`。
 - 权限：沿用订单 `fee.read` 及组织范围；按订单 ID 与当前允许组织同时查询。
 
@@ -16,10 +17,16 @@
 - 自然箱 `CONT` 和具体箱型支持计划与实际两个明确来源，不自动回退。具体箱型按计费单位代码与标准箱型代码精确对应，禁止按中文名模糊匹配或将 HC/HQ 静默等价。
 - 本期货量只取本订单实际货物明细：`CBM` 为体积，`KG` 为毛重，`TON = KG / 1000`，`RT = max(CBM, KG / 1000)`。
 - 货量由 PostgreSQL numeric 聚合并转换为 decimal，禁止将 float64 汇总或 MBL 总量用作权威输入；不得同时累加货物明细和箱货。
-- KG 不表示空运计费重；RT 必须显示折算口径并提醒确认是否适用该费用。
+- KG 默认仍为毛重；仅显式选择 `CONFIRMED_CHARGEABLE_WEIGHT` 才取本票所选
+  PLANNED/ACTUAL 来源的当前确认，不能取整主单总重。无确认、确认过期或单位不适用均
+  unavailable，不自动回退毛重。空运完整契约见 [air-export-contract](./air-export-contract.md)。
+  RT 必须显示折算口径并提醒确认是否适用该费用。
 - 共享箱实际箱数无法准确归属时返回不可计算，保留手工录入；不把一只共享箱整箱重复计给每张订单。
 - `available=true` 才提供可带入的正数 quantity；超过四位小数、数量上限或当前整数规则时不给可确认值，并解释原因。
 - 确认只写当前表单，取消不变；程序赋值后必须更新金额预览。订单后续变化不自动改写已保存费用。
+- 从确认计费重带入时，表单保存 `quantitySource` 的 DIRECT 模式及确认 ID/版本；
+  手改数量后转 MANUAL_ADJUSTED 并填写依据，纯手工为 MANUAL。服务端在订单锁内
+  复核当前来源并保存采用数量、单位、参考确认快照，预览不是最终授权。
 - 确认带入同时登记现有未保存修改保护；GuardedModalForm 的 onValuesChange 不会被 setFieldValue 自动触发，普通/补录表单和表格必须显式 markDirty，打开或取消预览不登记修改。
 - 前端使用认证工作区的 QueryClient，按订单、单位、来源隔离查询；切换、关闭或字段禁止编辑时卸载旧预览，迟到结果不能覆盖当前数量。
 - 重查期间及重查失败时均不得确认旧建议；React Query 在失败后可能保留 data，确认资格必须同时检查 isFetching 与 isError。
@@ -32,7 +39,7 @@
 | 缺少/非法 UUID 或 source | 参数错误 |
 | 无 fee.read 或订单不在组织范围 | 按现有订单权限规则拒绝 |
 | 单位不存在/已停用、未支持的单位 | 不可带入，展示原因 |
-| 货量单位请求 PLANNED | 不可带入，说明仅支持实际货物明细 |
+| 原毛重/体积等货量单位请求 PLANNED | 不可带入，说明仅支持实际货物明细；空运确认计费重按自身 PLANNED/ACTUAL 来源查询 |
 | 无货物、无所选箱型数量、箱型映射失败 | 不可带入，不以 1 替代 |
 | ACTUAL 箱量存在共享箱 | 不可带入，说明整箱归属不能确定 |
 | 数量不满足精度/整数/上限 | 不可带入，不自动舍入 |

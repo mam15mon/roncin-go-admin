@@ -8,7 +8,7 @@ import { Button, Listy, Space, Tag, Typography } from 'antd';
 import React from 'react';
 import { history } from '@/router/history';
 import { formatDate } from '@/utils/format';
-import { amountWithCurrency } from './display';
+import { amountWithCurrency, workbenchOrderPath } from './display';
 
 const { Text } = Typography;
 
@@ -92,9 +92,17 @@ export default function FinanceSummaryCard({ finance }: Props) {
                     key="open"
                     type="link"
                     size="small"
-                    onClick={() =>
-                      history.push(`/orders/sea-export/${item.orderId}/fees`)
+                    disabled={
+                      !workbenchOrderPath(item.businessType, item.orderId, true)
                     }
+                    onClick={() => {
+                      const path = workbenchOrderPath(
+                        item.businessType,
+                        item.orderId,
+                        true,
+                      );
+                      if (path) history.push(path);
+                    }}
                   >
                     前往处理
                   </Button>

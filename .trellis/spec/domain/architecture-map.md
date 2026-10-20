@@ -22,6 +22,7 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 | 域 | 后端 | 前端 |
 | --- | --- | --- |
 | 订单/海运单证 | `biz/sea_order_change.go`、`biz/sea_document_change.go`、`biz/sea_master_bill.go`、`data/sea_*` | `pages/orders/**`（品类模板 `pages/orders/templates/components/sea/`，注册表 `pages/orders/order-kinds/`） |
+| 空运出口/共享主单/重量 | `biz/air_export.go`、`biz/air_weight.go`、`data/air_*` | `pages/orders/order-kinds/air-export/`、`templates/components/air/`（复用公共订单和财务） |
 | 订单候选缓存 | `service/order_query.go` | `features/orders/options`（字典/首批港口机场/人员候选，组织切换清理入口） |
 | 订单锁定 | `biz/order_lock.go`、`biz/order_auto_lock.go`、`data/order_lock_*.go` | `pages/orders`（锁状态条） |
 | 费用/审核/补录 | `biz/order_fee_review.go`、`data/order_fee_review*.go`、`data/order_fee_supplement_*.go` | `pages/orders/{list,fees}.tsx`、`features/orders/fee-review`（建账经 `features/finance/bill-creation`） |
@@ -84,6 +85,11 @@ erDiagram
     Order }o--o| SeaMasterBill : "link (active)"
     SeaMasterBill ||--o{ SeaTransportExecution : voyages
     Order ||--o| SeaHouseBill : "HOUSE 结构"
+    Order }o--|| AirMasterWaybill : "活动 Link，终止保留历史"
+    Order ||--|| AirHouseWaybill : "建票必填"
+    AirHouseWaybill ||--o{ AirHouseWaybillVersion : "不可变版本"
+    AirMasterWaybill ||--o{ AirWeightConfirmation : "主单独立确认"
+    Order ||--o{ AirWeightConfirmation : "本票独立确认"
     SeaMasterBill ||--o{ SeaSharedContainer : shared
     OrderFee }o--|| Partner : "settles with"
     OrderFee ||--o{ FinanceBillLine : grouped

@@ -23,7 +23,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, order *service.OrderService, orderLock *service.OrderLockService, orderTag *service.OrderTagService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, workbench *service.WorkbenchService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, approvalUsecase *biz.DingTalkApprovalUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, airExport *service.AirExportService, airWeight *service.AirWeightService, order *service.OrderService, orderLock *service.OrderLockService, orderTag *service.OrderTagService, milestones *service.OrderMilestoneService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, workbench *service.WorkbenchService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, approvalUsecase *biz.DingTalkApprovalUsecase, policy *biz.SessionPolicy, readiness ReadinessChecker, logger *slog.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.ResponseEncoder(encodeResponse),
 		http.Middleware(
@@ -53,6 +53,8 @@ func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 	adminv1.RegisterAdminServiceHTTPServer(srv, admin)
 	masterdatav1.RegisterMasterDataServiceHTTPServer(srv, masterData)
 	orderv1.RegisterOrderServiceHTTPServer(srv, order)
+	orderv1.RegisterAirExportServiceHTTPServer(srv, airExport)
+	orderv1.RegisterAirWeightServiceHTTPServer(srv, airWeight)
 	orderv1.RegisterOrderLockServiceHTTPServer(srv, orderLock)
 	orderv1.RegisterOrderTagServiceHTTPServer(srv, orderTag)
 	orderv1.RegisterOrderMilestoneServiceHTTPServer(srv, milestones)

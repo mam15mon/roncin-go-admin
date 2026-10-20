@@ -128,6 +128,10 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if err != nil {
 		return nil, err
 	}
+	input.QuantitySource, err = feeQuantitySelectionFromAPI(request.GetQuantitySource())
+	if err != nil {
+		return nil, err
+	}
 	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input, principal.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
@@ -145,6 +149,10 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
 	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride, "", request.TaxInclusive)
+	if err != nil {
+		return nil, err
+	}
+	input.QuantitySource, err = feeQuantitySelectionFromAPI(request.GetQuantitySource())
 	if err != nil {
 		return nil, err
 	}
@@ -267,6 +275,7 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		SettlementPartyId:   value.SettlementPartyID.String(),
 		SettlementPartyName: value.SettlementPartyName,
 		BillingUnit:         value.BillingUnit,
+		QuantitySource:      feeQuantitySelectionToAPI(value.QuantitySource),
 		Quantity:            value.Quantity.StringFixed(4),
 		UnitPrice:           value.UnitPrice.StringFixed(4),
 		TotalAmount:         value.TotalAmount.StringFixed(8),
@@ -492,4 +501,29 @@ func orderFeeTagRequest[Req interface {
 		return nil, uuid.Nil, nil, nil, err
 	}
 	return principal, orderID, feeIDs, tagIDs, nil
+}
+
+func feeQuantitySelectionFromAPI(s *v1.FeeQuantitySelection) (*biz.FeeQuantitySelection, error) {
+	if s == nil {
+		return nil, nil
+	}
+	result := &biz.FeeQuantitySelection{Mode: s.GetMode(), ConfirmationVersion: s.GetConfirmationVersion(), Reason: s.GetReason()}
+	if s.GetConfirmationId() != "" {
+		id, err := uuid.Parse(s.GetConfirmationId())
+		if err != nil {
+			return nil, biz.ErrOrderFeeInvalidArgument
+		}
+		result.ConfirmationID = id
+	}
+	return biz.NormalizeFeeQuantitySelection(result)
+}
+func feeQuantitySelectionToAPI(s *biz.FeeQuantitySelection) *v1.FeeQuantitySelection {
+	if s == nil {
+		return &v1.FeeQuantitySelection{Mode: "MANUAL"}
+	}
+	result := &v1.FeeQuantitySelection{Mode: s.Mode, ConfirmationVersion: s.ConfirmationVersion, Reason: s.Reason, AdoptedQuantity: s.AdoptedQuantity, Unit: s.Unit, ReferenceQuantity: s.ReferenceQuantity, Source: s.Source, ConfirmedAt: s.ConfirmedAt}
+	if s.ConfirmationID != uuid.Nil {
+		result.ConfirmationId = s.ConfirmationID.String()
+	}
+	return result
 }

@@ -194,6 +194,7 @@ export default function OrderListPage() {
     containerSpecOptions,
     containerSpecMap,
     searchCustomers,
+    searchLocations,
     searchOrderPorts,
     searchOrderCarriers,
     searchOrderPersonnel,
@@ -227,7 +228,11 @@ export default function OrderListPage() {
         showFeeReview={access.canReviewOrderFees}
         completedSelectionIds={completedReviewIds}
         options={{
-          loadPorts: searchOrderPorts,
+          transportMode: definition.transportMode === 'air' ? 'air' : 'sea',
+          loadPorts:
+            definition.transportMode === 'air'
+              ? searchLocations
+              : searchOrderPorts,
           loadPartners: searchCustomers,
           loadCarriers: searchOrderCarriers,
           loadPersonnel: searchOrderPersonnel,

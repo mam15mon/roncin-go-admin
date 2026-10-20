@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { renderWithApp as render } from '@root/tests/renderWithApp';
 import {
   act,
   fireEvent,
-  render,
   screen,
   waitFor,
 } from '@testing-library/react';

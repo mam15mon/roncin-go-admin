@@ -3,6 +3,8 @@
 // API 更新时间：
 // API 唯一标识：
 import * as adminService from "./adminService";
+import * as airExportService from "./airExportService";
+import * as airWeightService from "./airWeightService";
 import * as authService from "./authService";
 import * as backgroundTaskService from "./backgroundTaskService";
 import * as enterpriseResourceService from "./enterpriseResourceService";
@@ -29,6 +31,8 @@ import * as partnerService from "./partnerService";
 import * as workbenchService from "./workbenchService";
 export default {
   adminService,
+  airExportService,
+  airWeightService,
   authService,
   backgroundTaskService,
   enterpriseResourceService,

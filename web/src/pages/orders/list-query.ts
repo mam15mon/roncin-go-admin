@@ -1,5 +1,5 @@
 import type { OrderListFilterParams, OrderListItem } from '@/components/ui';
-import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
+import { getOrderFlowStatusText } from '@/constants/statusMeta';
 import {
   OrderClosureStatus,
   OrderNumberFilterType,
@@ -94,6 +94,7 @@ export async function queryOrderList(
     );
 
     const originName =
+      order.airExport?.master?.originAirportName ||
       order.originLocationName ||
       originPort?.nameZh ||
       originAirport?.nameZh ||
@@ -103,6 +104,7 @@ export async function queryOrderList(
       ? undefined
       : originPort?.unLocode || originAirport?.iataCode;
     const destName =
+      order.airExport?.master?.destinationAirportName ||
       order.destinationLocationName ||
       destPort?.nameZh ||
       destAirport?.nameZh ||
@@ -139,8 +141,13 @@ export async function queryOrderList(
       customerName:
         order.customerName || ctx.customerMap[order.customerId ?? ''] || '-',
       customerReferenceNo: order.customerReferenceNo,
+      masterBlNo:
+        order.airExport?.master?.content?.masterNo ||
+        order.seaMasterBill?.masterNo,
+      bookingAgentName: order.bookingAgentName,
       createdAt: order.createdAt,
-      vesselVoyage: order.vesselVoyage,
+      vesselVoyage:
+        order.airExport?.master?.content?.flightNo || order.vesselVoyage,
       originPortName: originName,
       originPortCode: originCode,
       destinationPortName: destName,
@@ -167,11 +174,7 @@ export async function queryOrderList(
       isLocked: Boolean(order.lockedAt),
       tags: order.tags,
       notes: order.notes,
-      statusName: statusText(
-        orderFlowStatusMeta,
-        order.flowStatus ?? 0,
-        '未知状态',
-      ),
+      statusName: getOrderFlowStatusText(order.flowStatus, order.businessType),
       abnormalLevel: order.hasActiveException ? 'high' : 'normal',
       rawRecord: order,
     };

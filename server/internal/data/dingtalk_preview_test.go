@@ -60,7 +60,7 @@ func TestDingTalkPrepareMessageIsOfflineAndMatchesSend(t *testing.T) {
 func TestDingTalkPrepareMessageAllowsOnlyControlledSiteActions(t *testing.T) {
 	const orderID = "00000000-0000-4000-8000-000000000001"
 	const origin = "https://admin.example.com"
-	for _, path := range []string{"/welcome", "/orders", "/finance/exchange-rates", "/orders/sea-export/" + orderID + "/fees", "/commission-adjustments/" + orderID + "/my-supplement-source"} {
+	for _, path := range []string{"/welcome", "/orders", "/finance/exchange-rates", "/orders/sea-export/" + orderID + "/fees", "/orders/air-export/" + orderID + "/fees", "/commission-adjustments/" + orderID + "/my-supplement-source"} {
 		t.Run(path, func(t *testing.T) {
 			p := &dingTalkIdentityProvider{redirectURI: origin + "/callback"}
 			m, err := p.PrepareMessage(biz.DingTalkMessage{Title: "标题", Text: "正文", ActionTitle: "查看详情", ActionPath: path})
@@ -83,6 +83,9 @@ func TestDingTalkPrepareMessageAllowsOnlyControlledSiteActions(t *testing.T) {
 		{"未知页面", "查看详情", "/admin/users", ""},
 		{"错误UUID", "查看详情", "/orders/sea-export/not-uuid/fees", ""},
 		{"零UUID", "查看详情", "/orders/sea-export/00000000-0000-0000-0000-000000000000/fees", ""},
+		{"空运错误UUID", "查看详情", "/orders/air-export/not-uuid/fees", ""},
+		{"空运零UUID", "查看详情", "/orders/air-export/00000000-0000-0000-0000-000000000000/fees", ""},
+		{"未知品类", "查看详情", "/orders/air-import/" + orderID + "/fees", ""},
 		{"路径穿越", "查看详情", "/orders/../welcome", ""},
 		{"伪造站点", "查看详情", "", "https://evil.example/welcome"},
 		{"伪造协议", "查看详情", "", "http://admin.example.com/welcome"},

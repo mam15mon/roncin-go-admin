@@ -3,6 +3,7 @@ import { Button, Col, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React from 'react';
 import type { OrderFormTemplateSection } from '@/components/ui';
 import {
+  OrderBusinessType,
   OrderClosureStatus,
   OrderFlowStatus,
   OrderTerminationStatus,
@@ -253,13 +254,25 @@ export function buildOrderStatusSection(
   actions: OrderStatusSectionActions = {},
 ): OrderFormTemplateSection {
   const allowedTargets = new Set(order?.allowedTargetFlowStatuses ?? []);
+  const isAir = order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE;
+  const steps = STEPS.map((step) => ({
+    ...step,
+    label:
+      isAir && step.key === 'released'
+        ? '已签单'
+        : isAir && step.key === 'trucked'
+          ? '提货已安排'
+          : step.label,
+  }));
 
   return {
     key: 'orderStatusSection',
     title: '订单状态',
     extra: (
       <Space size={12} align="center" wrap>
-        <Tag color="blue">海运出口固定流程</Tag>
+        <Tag color="blue">
+          {isAir ? '空运出口作业流程' : '海运出口固定流程'}
+        </Tag>
         {buildTerminationBadge(order, actions)}
         {buildClosureBadge(order, actions)}
       </Space>
@@ -287,7 +300,7 @@ export function buildOrderStatusSection(
             }}
           />
 
-          {STEPS.map((step) => {
+          {steps.map((step) => {
             const isPassed = Number(order?.flowStatus ?? 0) >= step.value;
             const isAllowedTarget = allowedTargets.has(step.value);
             const disabled = actions.flowDisabled || !actions.transitionFlow;

@@ -7,6 +7,7 @@ import {
 } from '@ant-design/pro-components';
 import { App, Col, Row } from 'antd';
 import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import React, { useRef } from 'react';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
@@ -23,6 +24,7 @@ import {
 } from '@/utils/decimal';
 import { FeeQuantityFormAssist } from './FeeQuantityAssist';
 import { feeQuantityRuleError } from './feeQuantityRule';
+import { FeeQuantitySourceFields } from './feeQuantitySource';
 
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
@@ -42,6 +44,7 @@ export type FeeFormValues = {
   currency: string;
   unitPrice: string;
   quantity: string;
+  quantitySource?: API.FeeQuantitySelection;
   billingUnitId: string;
   expenseDate: string | Dayjs;
   exchangeRateOverride?: string;
@@ -51,6 +54,7 @@ export type FeeFormValues = {
 type FeeFormModalProps = {
   orderId: string;
   quantityAssistDisabled?: boolean;
+  allowChargeableQuantity?: boolean;
   formRef?: React.RefObject<ProFormInstance<FeeFormValues> | undefined>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -77,6 +81,7 @@ type FeeFormModalProps = {
 export default function FeeFormModal({
   orderId,
   quantityAssistDisabled = false,
+  allowChargeableQuantity = false,
   formRef,
   open,
   onOpenChange,
@@ -120,13 +125,27 @@ export default function FeeFormModal({
       }
       open={open}
       formRef={activeFormRef}
+      initialValues={
+        editingFee
+          ? {
+              ...editingFee,
+              expenseDate: editingFee.expenseDate
+                ? dayjs(editingFee.expenseDate)
+                : undefined,
+            }
+          : undefined
+      }
       onOpenChange={onOpenChange}
       onFinish={async (values) => {
         const result = await onSubmit(values);
         if (result === true) resetDirty();
         return result;
       }}
-      onValuesChange={() => {
+      onValuesChange={(changed) => {
+        if ('billingUnitId' in changed)
+          activeFormRef.current?.setFieldValue('quantitySource', {
+            mode: 'MANUAL',
+          });
         onValuesChange();
         if (activeFormRef.current?.getFieldValue('quantity')) {
           void activeFormRef.current
@@ -143,6 +162,13 @@ export default function FeeFormModal({
       width={680}
       modalProps={{ destroyOnHidden: true }}
     >
+      <FeeQuantitySourceFields
+        disabled={isFeeBilled || quantityAssistDisabled}
+        onSourceChange={() => {
+          markDirty();
+          onValuesChange();
+        }}
+      />
       <Row gutter={16}>
         <Col span={12}>
           <ProFormSearchableSelect
@@ -186,6 +212,9 @@ export default function FeeFormModal({
                 const setting = feeSettings.find((item) => item.id === val);
                 onFeeSettingSelect(setting);
                 if (setting?.defaultBillingUnitId) {
+                  activeFormRef.current?.setFieldValue('quantitySource', {
+                    mode: 'MANUAL',
+                  });
                   activeFormRef.current?.setFieldValue(
                     'billingUnitId',
                     setting.defaultBillingUnitId,
@@ -281,6 +310,7 @@ export default function FeeFormModal({
             label="数量"
             extra={
               <FeeQuantityFormAssist
+                allowChargeable={allowChargeableQuantity}
                 orderId={orderId}
                 billingUnits={billingUnits}
                 active={open}

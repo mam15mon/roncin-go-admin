@@ -973,6 +973,426 @@
         }
       }
     },
+    "/api/v1/air-export/master-waybills": {
+      "get": {
+        "tags": [
+          "AirExportService"
+        ],
+        "operationId": "AirExportService_ListAirMasterWaybills",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListAirMasterWaybillsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-export/master-waybills/{id}": {
+      "get": {
+        "tags": [
+          "AirExportService"
+        ],
+        "operationId": "AirExportService_GetAirMasterWaybill",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.GetAirMasterWaybillResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "AirExportService"
+        ],
+        "operationId": "AirExportService_UpdateAirMasterWaybill",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.UpdateAirMasterWaybillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.UpdateAirMasterWaybillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-export/master-waybills/{id}/link-candidates": {
+      "get": {
+        "tags": [
+          "AirExportService"
+        ],
+        "operationId": "AirExportService_ListAirLinkCandidates",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListAirLinkCandidatesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-export/master-waybills/{id}/members": {
+      "post": {
+        "tags": [
+          "AirExportService"
+        ],
+        "operationId": "AirExportService_LinkAirMasterWaybill",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.LinkAirMasterWaybillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.LinkAirMasterWaybillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-export/master-waybills/{id}/preview": {
+      "post": {
+        "tags": [
+          "AirExportService"
+        ],
+        "operationId": "AirExportService_PreviewAirMasterWaybillUpdate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewAirMasterWaybillUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewAirMasterWaybillUpdateResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-export/orders/{orderId}/house-versions": {
+      "get": {
+        "tags": [
+          "AirExportService"
+        ],
+        "operationId": "AirExportService_ListAirHouseWaybillVersions",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListAirHouseWaybillVersionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-weights/confirm": {
+      "post": {
+        "tags": [
+          "AirWeightService"
+        ],
+        "operationId": "AirWeightService_ConfirmAirWeight",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.ConfirmAirWeightRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ConfirmAirWeightResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-weights/history": {
+      "get": {
+        "tags": [
+          "AirWeightService"
+        ],
+        "operationId": "AirWeightService_ListAirWeightConfirmations",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.ListAirWeightConfirmationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/air-weights/preview": {
+      "post": {
+        "tags": [
+          "AirWeightService"
+        ],
+        "operationId": "AirWeightService_PreviewAirWeight",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.PreviewAirWeightRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewAirWeightResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/dingtalk/embedded-config": {
       "get": {
         "tags": [
@@ -9680,6 +10100,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "quantityBasis",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -14022,7 +14449,7 @@
         "tags": [
           "WorkbenchService"
         ],
-        "description": "ListMyRecentOrders 返回本人真实协作的近期海运出口订单，服务端分页。",
+        "description": "ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。",
         "operationId": "WorkbenchService_ListMyRecentOrders",
         "parameters": [
           {
@@ -25886,6 +26313,9 @@
           },
           "taxInclusive": {
             "type": "boolean"
+          },
+          "quantitySource": {
+            "$ref": "#/components/schemas/order.v1.FeeQuantitySelection"
           }
         }
       },
@@ -26006,6 +26436,407 @@
           }
         },
         "description": "AddShippingDocumentResponse 单条提单响应。"
+      },
+      "order.v1.AirHouseWaybillVersion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AirMasterHistory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybillInput"
+          }
+        }
+      },
+      "order.v1.AirMasterMember": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "packages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "packageUnit": {
+            "type": "string"
+          },
+          "grossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "volumeCbm": {
+            "type": "number",
+            "format": "double"
+          },
+          "flowStatus": {
+            "type": "string"
+          },
+          "terminationStatus": {
+            "type": "string"
+          },
+          "closureStatus": {
+            "type": "string"
+          },
+          "locked": {
+            "type": "boolean"
+          },
+          "orderVersion": {
+            "type": "string"
+          },
+          "houseStatus": {
+            "type": "string"
+          },
+          "confirmedChargeableWeightKg": {
+            "type": "string"
+          },
+          "confirmationStale": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.AirMasterTotals": {
+        "type": "object",
+        "properties": {
+          "packagesByUnit": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirPackageTotal"
+            }
+          },
+          "grossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "volumeCbm": {
+            "type": "number",
+            "format": "double"
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.AirMasterWaybill": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybillInput"
+          },
+          "airlineName": {
+            "type": "string"
+          },
+          "originAirportName": {
+            "type": "string"
+          },
+          "destinationAirportName": {
+            "type": "string"
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AirMasterWaybillInput": {
+        "type": "object",
+        "properties": {
+          "masterNo": {
+            "type": "string"
+          },
+          "airlineId": {
+            "type": "string"
+          },
+          "originAirportId": {
+            "type": "string"
+          },
+          "destinationAirportId": {
+            "type": "string"
+          },
+          "flightNo": {
+            "type": "string"
+          },
+          "etd": {
+            "type": "string"
+          },
+          "eta": {
+            "type": "string"
+          },
+          "actualDepartureAt": {
+            "type": "string"
+          },
+          "actualArrivalAt": {
+            "type": "string"
+          },
+          "documentCutoffAt": {
+            "type": "string"
+          },
+          "customsCutoffAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "declaredPackages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "declaredGrossWeightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "declaredVolumeCbm": {
+            "type": "number",
+            "format": "double"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AirOrderInfo": {
+        "type": "object",
+        "properties": {
+          "master": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybill"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "houseStatus": {
+            "type": "string"
+          },
+          "houseVersion": {
+            "type": "string"
+          },
+          "linkId": {
+            "type": "string"
+          },
+          "linkVersion": {
+            "type": "string"
+          },
+          "houseContent": {
+            "type": "string"
+          },
+          "houseId": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.AirOrderInput": {
+        "type": "object",
+        "properties": {
+          "masterWaybillId": {
+            "type": "string"
+          },
+          "expectedMasterVersion": {
+            "type": "string"
+          },
+          "master": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybillInput"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "houseContent": {
+            "type": "string"
+          },
+          "houseStatus": {
+            "type": "string"
+          },
+          "changeReason": {
+            "type": "string"
+          },
+          "expectedLinkVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AirPackageTotal": {
+        "type": "object",
+        "properties": {
+          "unit": {
+            "type": "string"
+          },
+          "packages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.AirWeightConfirmation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "inputFingerprint": {
+            "type": "string"
+          },
+          "confirmedWeightKg": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "confirmedBy": {
+            "type": "string"
+          },
+          "confirmedAt": {
+            "type": "string"
+          },
+          "snapshot": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "order.v1.AirWeightPreview": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string"
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "inputFingerprint": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "volumeCbm": {
+            "type": "string"
+          },
+          "volumetricWeightKg": {
+            "type": "string"
+          },
+          "bubbleDifferenceKg": {
+            "type": "string"
+          },
+          "sharedBubbleWeightKg": {
+            "type": "string"
+          },
+          "suggestedChargeableWeightKg": {
+            "type": "string"
+          },
+          "volumetricDivisor": {
+            "type": "string"
+          },
+          "bubbleShareNumerator": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bubbleShareDenominator": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currentConfirmation": {
+            "$ref": "#/components/schemas/order.v1.AirWeightConfirmation"
+          },
+          "confirmationStale": {
+            "type": "boolean"
+          }
+        }
       },
       "order.v1.ApproveOrderFeeCorrectionRequest": {
         "type": "object",
@@ -26574,6 +27405,64 @@
         },
         "description": "CheckOrderReferenceResponse 订单业务编号查重响应。"
       },
+      "order.v1.ConfirmAirWeightRequest": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string"
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "volumetricDivisor": {
+            "type": "string"
+          },
+          "bubbleShareNumerator": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bubbleShareDenominator": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inputFingerprint": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "confirmedWeightKg": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.ConfirmAirWeightResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.AirWeightConfirmation"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.ConfirmSeaSharedContainerRequest": {
         "required": [
           "id",
@@ -26962,6 +27851,9 @@
           "idempotencyKey": {
             "type": "string",
             "description": "idempotency_key 创建幂等键：可选，传入即启用幂等；同键同意图重放返回原单。"
+          },
+          "airExport": {
+            "$ref": "#/components/schemas/order.v1.AirOrderInput"
           }
         },
         "description": "CreateOrderRequest 创建订单请求。"
@@ -27562,8 +28454,45 @@
           },
           "reason": {
             "type": "string"
+          },
+          "quantitySource": {
+            "$ref": "#/components/schemas/order.v1.FeeQuantitySelection"
           }
         }
+      },
+      "order.v1.FeeQuantitySelection": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "confirmationId": {
+            "type": "string"
+          },
+          "confirmationVersion": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "adoptedQuantity": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "referenceQuantity": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "description": "来源类别只由服务端写入快照：PLANNED / ACTUAL。"
+          },
+          "confirmedAt": {
+            "type": "string"
+          }
+        },
+        "description": "mode：DIRECT、MANUAL_ADJUSTED 或 MANUAL。来源快照由服务端生成。"
       },
       "order.v1.FeeSupplementCommissionImpact": {
         "type": "object",
@@ -27603,6 +28532,52 @@
           },
           "adjustmentAmount": {
             "type": "string"
+          }
+        }
+      },
+      "order.v1.GetAirMasterWaybillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybill"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterMember"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/order.v1.AirMasterTotals"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterHistory"
+            }
+          },
+          "blockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "historyTotal": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -27839,6 +28814,75 @@
           }
         }
       },
+      "order.v1.LinkAirMasterWaybillRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "expectedOrderVersion": {
+            "type": "string"
+          },
+          "expectedMasterVersion": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.LinkAirMasterWaybillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybill"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterMember"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/order.v1.AirMasterTotals"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterHistory"
+            }
+          },
+          "blockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "historyTotal": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "order.v1.ListAbnormalCasesResponse": {
         "type": "object",
         "properties": {
@@ -27863,6 +28907,114 @@
           }
         },
         "description": "ListAbnormalCasesResponse 异常标记列表响应。"
+      },
+      "order.v1.ListAirHouseWaybillVersionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirHouseWaybillVersion"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.ListAirLinkCandidatesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterMember"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.ListAirMasterWaybillsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterWaybill"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.ListAirWeightConfirmationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirWeightConfirmation"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.ListAttachmentsResponse": {
         "type": "object",
@@ -28986,6 +30138,9 @@
           "seaDocumentSummary": {
             "$ref": "#/components/schemas/order.v1.SeaOrderDocumentSummary"
           },
+          "airExport": {
+            "$ref": "#/components/schemas/order.v1.AirOrderInfo"
+          },
           "bookingNo": {
             "type": "string"
           },
@@ -29519,6 +30674,9 @@
           },
           "canCorrect": {
             "type": "boolean"
+          },
+          "quantitySource": {
+            "$ref": "#/components/schemas/order.v1.FeeQuantitySelection"
           }
         },
         "description": "OrderFee 是一条订单应收或应付费用。\n 所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。"
@@ -30727,6 +31885,98 @@
           },
           "request": {
             "$ref": "#/components/schemas/order.v1.OrderUnlockRequestData"
+          }
+        }
+      },
+      "order.v1.PreviewAirMasterWaybillUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybillInput"
+          }
+        }
+      },
+      "order.v1.PreviewAirMasterWaybillUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "inputFingerprint": {
+            "type": "string"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterMember"
+            }
+          },
+          "blockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "canExecute": {
+            "type": "boolean"
+          }
+        }
+      },
+      "order.v1.PreviewAirWeightRequest": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string"
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "volumetricDivisor": {
+            "type": "string"
+          },
+          "bubbleShareNumerator": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bubbleShareDenominator": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "order.v1.PreviewAirWeightResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.AirWeightPreview"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -34286,6 +35536,72 @@
           }
         }
       },
+      "order.v1.UpdateAirMasterWaybillRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybillInput"
+          },
+          "inputFingerprint": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.UpdateAirMasterWaybillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.AirMasterWaybill"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterMember"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/order.v1.AirMasterTotals"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirMasterHistory"
+            }
+          },
+          "blockedReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "historyTotal": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "order.v1.UpdateCargoItemRequest": {
         "required": [
           "orderId",
@@ -34489,6 +35805,9 @@
           "feeName": {
             "type": "string",
             "description": "fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。"
+          },
+          "quantitySource": {
+            "$ref": "#/components/schemas/order.v1.FeeQuantitySelection"
           }
         }
       },
@@ -34719,6 +36038,9 @@
           "idempotencyKey": {
             "type": "string",
             "description": "idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version\n 的重放返回当前订单，否则走既有乐观锁冲突。"
+          },
+          "airExport": {
+            "$ref": "#/components/schemas/order.v1.AirOrderInput"
           }
         },
         "description": "UpdateOrderRequest 更新订单请求（禁止修改 order_no 和生命周期状态）。"
@@ -38148,6 +39470,9 @@
           },
           "requestedAt": {
             "type": "string"
+          },
+          "businessType": {
+            "type": "string"
           }
         }
       },
@@ -38171,6 +39496,14 @@
   "tags": [
     {
       "name": "AdminService"
+    },
+    {
+      "name": "AirExportService",
+      "description": "AirExportService 管理空运共享主运单及活动成员。"
+    },
+    {
+      "name": "AirWeightService",
+      "description": "AirWeightService 提供空运参考计算、人工确认与不可变历史。"
     },
     {
       "name": "AuthService",

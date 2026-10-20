@@ -33,13 +33,13 @@ describe('订单列表单证入口', () => {
     expect(openLegacyDocuments).not.toHaveBeenCalled();
   });
 
-  it('非海运出口保持旧分单抽屉行为', () => {
+  it('空运出口进入航空运单详情，禁止旧海运单证抽屉', () => {
     const navigate = vi.fn();
     const openLegacyDocuments = vi.fn();
 
-    expect(
-      getDocumentsActionLabel(OrderBusinessType.BUSINESS_TYPE_AE),
-    ).toBeUndefined();
+    expect(getDocumentsActionLabel(OrderBusinessType.BUSINESS_TYPE_AE)).toBe(
+      '航空运单',
+    );
     openOrderDocuments(
       OrderBusinessType.BUSINESS_TYPE_AE,
       'air-export',
@@ -48,7 +48,7 @@ describe('订单列表单证入口', () => {
       openLegacyDocuments,
     );
 
-    expect(openLegacyDocuments).toHaveBeenCalledWith(item.rawRecord);
-    expect(navigate).not.toHaveBeenCalled();
+    expect(openLegacyDocuments).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith('/orders/air-export/order-1');
   });
 });

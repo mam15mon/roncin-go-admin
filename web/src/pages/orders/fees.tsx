@@ -15,7 +15,11 @@ import { useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
-import { OrderFlowStatus, PartnerRoleType } from '@/enums.generated';
+import {
+  OrderBusinessType,
+  OrderFlowStatus,
+  PartnerRoleType,
+} from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { useOrderFeeReview } from '@/features/orders/fee-review';
@@ -40,6 +44,7 @@ import FeeSupplementSection from './components/fees/FeeSupplementSection';
 import { OrderFeeReviewSection } from './components/fees/fee-review/OrderFeeReview';
 import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import { RECEIVABLE } from './components/fees/feeConstants';
+import { quantitySelectionForSave } from './components/fees/feeQuantitySource';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
 import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
@@ -378,6 +383,7 @@ export default function OrderFeesPage() {
           settlementPartyId: fee.settlementPartyId ?? '',
           billingUnitId: fee.billingUnitId ?? '',
           quantity: fee.quantity ? trimDecimal(fee.quantity) : '',
+          quantitySource: fee.quantitySource,
           unitPrice: fee.unitPrice ? trimDecimal(fee.unitPrice) : '',
           currency: fee.currency ?? '',
           expenseDate: fee.expenseDate ? dayjs(fee.expenseDate) : dayjs(),
@@ -430,6 +436,10 @@ export default function OrderFeesPage() {
       settlementPartyId: values.settlementPartyId,
       billingUnitId: values.billingUnitId,
       quantity: normalizeDecimalInput(String(values.quantity ?? '')),
+      quantitySource: quantitySelectionForSave(
+        values.quantitySource,
+        values.quantity,
+      ),
       unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
       currency: values.currency,
       expenseDate,
@@ -487,32 +497,34 @@ export default function OrderFeesPage() {
     const version = fee.version;
     if (!orderId || !feeId || !version) return;
     // 删除为物理删除且不再采集原因；被未取消账单占用时服务端拒绝并提示先取消账单。
-    modal.confirm({
-      title: '确认删除该笔费用？',
-      content: '删除后费用记录不再保留；已进入账单的费用需先取消对应账单。',
-      okText: '删除',
-      okButtonProps: { danger: true },
-      cancelText: '取消',
-      onOk: async () => {
-        if (!ensureFeeWriteAllowed()) return Promise.reject();
-        try {
-          const writeResponse3 = await orderFeeServiceRemoveFee({
-            orderId,
-            id: feeId,
-            expectedVersion: version,
-          });
-          if (!isWriteResponse(writeResponse3)) return Promise.reject();
-          message.success('费用已删除');
-          reloadFeeTables();
-        } catch (error) {
-          message.error(getErrorMessage(error, '删除费用失败'));
-          throw error;
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+    modal
+      .confirm({
+        title: '确认删除该笔费用？',
+        content: '删除后费用记录不再保留；已进入账单的费用需先取消对应账单。',
+        okText: '删除',
+        okButtonProps: { danger: true },
+        cancelText: '取消',
+        onOk: async () => {
+          if (!ensureFeeWriteAllowed()) return Promise.reject();
+          try {
+            const writeResponse3 = await orderFeeServiceRemoveFee({
+              orderId,
+              id: feeId,
+              expectedVersion: version,
+            });
+            if (!isWriteResponse(writeResponse3)) return Promise.reject();
+            message.success('费用已删除');
+            reloadFeeTables();
+          } catch (error) {
+            message.error(getErrorMessage(error, '删除费用失败'));
+            throw error;
+          }
+        },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   };
 
   if (!definition) {
@@ -839,6 +851,9 @@ export default function OrderFeesPage() {
 
       {/* 4. 费用录入/编辑 ModalForm */}
       <FeeFormModal
+        allowChargeableQuantity={
+          order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE
+        }
         orderId={targetOrderId ?? ''}
         quantityAssistDisabled={feeWritesDisabled}
         formRef={formRef}

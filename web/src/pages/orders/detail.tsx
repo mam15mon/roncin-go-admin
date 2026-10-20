@@ -7,6 +7,7 @@ import {
   PageContainer,
   type ProFormInstance,
 } from '@ant-design/pro-components';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Button,
@@ -57,8 +58,8 @@ import {
   confirmOrderTermination,
 } from './order-detail-transitions';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
+import type { OrderDetailFormValues } from './order-kinds/form-values';
 import { getOrderKindDefinition } from './order-kinds/registry';
-import type { OrderDetailFormValues } from './order-kinds/sea-export/form-adapter';
 import type {
   OrderDetailFeaturesContext,
   OrderDetailFeaturesProps,
@@ -87,6 +88,7 @@ export default function OrderDetailPage() {
   >(undefined);
   const { message, modal } = App.useApp();
   const access = useAccess();
+  const queryClient = useQueryClient();
 
   const kind = params.kind;
   const orderId = params.id;
@@ -391,7 +393,13 @@ export default function OrderDetailPage() {
       // 详情与锁状态刷新是 best-effort 后台任务：不阻塞成功返回，
       // 也不把已落库的保存改判为失败；Hook 已呈现普通请求错误，
       // 这里只兜底意外泄漏的 reject。
-      Promise.all([loadData(), refreshLockState()]).catch(() => {
+      Promise.all([
+        loadData(),
+        refreshLockState(),
+        ...(definition.transportMode === 'air'
+          ? [queryClient.invalidateQueries({ queryKey: ['air-weight'] })]
+          : []),
+      ]).catch(() => {
         message.warning('订单已保存，但最新数据刷新失败，请手动刷新');
       });
       return true;

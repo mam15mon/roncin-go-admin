@@ -17,8 +17,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/administrativeregion"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airhousewaybill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airhousewaybillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybillhistory"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airmasterwaybillorderlink"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airweightconfirmation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/backgroundtask"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/billingunit"
@@ -139,6 +145,18 @@ type Client struct {
 	Schema *migrate.Schema
 	// AdministrativeRegion is the client for interacting with the AdministrativeRegion builders.
 	AdministrativeRegion *AdministrativeRegionClient
+	// AirHouseWaybill is the client for interacting with the AirHouseWaybill builders.
+	AirHouseWaybill *AirHouseWaybillClient
+	// AirHouseWaybillVersion is the client for interacting with the AirHouseWaybillVersion builders.
+	AirHouseWaybillVersion *AirHouseWaybillVersionClient
+	// AirMasterWaybill is the client for interacting with the AirMasterWaybill builders.
+	AirMasterWaybill *AirMasterWaybillClient
+	// AirMasterWaybillHistory is the client for interacting with the AirMasterWaybillHistory builders.
+	AirMasterWaybillHistory *AirMasterWaybillHistoryClient
+	// AirMasterWaybillOrderLink is the client for interacting with the AirMasterWaybillOrderLink builders.
+	AirMasterWaybillOrderLink *AirMasterWaybillOrderLinkClient
+	// AirWeightConfirmation is the client for interacting with the AirWeightConfirmation builders.
+	AirWeightConfirmation *AirWeightConfirmationClient
 	// Airline is the client for interacting with the Airline builders.
 	Airline *AirlineClient
 	// Airport is the client for interacting with the Airport builders.
@@ -377,6 +395,12 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AdministrativeRegion = NewAdministrativeRegionClient(c.config)
+	c.AirHouseWaybill = NewAirHouseWaybillClient(c.config)
+	c.AirHouseWaybillVersion = NewAirHouseWaybillVersionClient(c.config)
+	c.AirMasterWaybill = NewAirMasterWaybillClient(c.config)
+	c.AirMasterWaybillHistory = NewAirMasterWaybillHistoryClient(c.config)
+	c.AirMasterWaybillOrderLink = NewAirMasterWaybillOrderLinkClient(c.config)
+	c.AirWeightConfirmation = NewAirWeightConfirmationClient(c.config)
 	c.Airline = NewAirlineClient(c.config)
 	c.Airport = NewAirportClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
@@ -583,6 +607,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                              ctx,
 		config:                           cfg,
 		AdministrativeRegion:             NewAdministrativeRegionClient(cfg),
+		AirHouseWaybill:                  NewAirHouseWaybillClient(cfg),
+		AirHouseWaybillVersion:           NewAirHouseWaybillVersionClient(cfg),
+		AirMasterWaybill:                 NewAirMasterWaybillClient(cfg),
+		AirMasterWaybillHistory:          NewAirMasterWaybillHistoryClient(cfg),
+		AirMasterWaybillOrderLink:        NewAirMasterWaybillOrderLinkClient(cfg),
+		AirWeightConfirmation:            NewAirWeightConfirmationClient(cfg),
 		Airline:                          NewAirlineClient(cfg),
 		Airport:                          NewAirportClient(cfg),
 		AuditLog:                         NewAuditLogClient(cfg),
@@ -716,6 +746,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                              ctx,
 		config:                           cfg,
 		AdministrativeRegion:             NewAdministrativeRegionClient(cfg),
+		AirHouseWaybill:                  NewAirHouseWaybillClient(cfg),
+		AirHouseWaybillVersion:           NewAirHouseWaybillVersionClient(cfg),
+		AirMasterWaybill:                 NewAirMasterWaybillClient(cfg),
+		AirMasterWaybillHistory:          NewAirMasterWaybillHistoryClient(cfg),
+		AirMasterWaybillOrderLink:        NewAirMasterWaybillOrderLinkClient(cfg),
+		AirWeightConfirmation:            NewAirWeightConfirmationClient(cfg),
 		Airline:                          NewAirlineClient(cfg),
 		Airport:                          NewAirportClient(cfg),
 		AuditLog:                         NewAuditLogClient(cfg),
@@ -858,7 +894,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
+		c.AdministrativeRegion, c.AirHouseWaybill, c.AirHouseWaybillVersion,
+		c.AirMasterWaybill, c.AirMasterWaybillHistory, c.AirMasterWaybillOrderLink,
+		c.AirWeightConfirmation, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
 		c.DingTalkApprovalInboxEvent, c.DingTalkDirectorySync, c.DingTalkInvitation,
 		c.EnterpriseResource, c.EnterpriseResourceAddress,
@@ -905,7 +943,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AdministrativeRegion, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
+		c.AdministrativeRegion, c.AirHouseWaybill, c.AirHouseWaybillVersion,
+		c.AirMasterWaybill, c.AirMasterWaybillHistory, c.AirMasterWaybillOrderLink,
+		c.AirWeightConfirmation, c.Airline, c.Airport, c.AuditLog, c.BackgroundTask,
 		c.BillingUnit, c.Currency, c.DingTalkApprovalDispatch,
 		c.DingTalkApprovalInboxEvent, c.DingTalkDirectorySync, c.DingTalkInvitation,
 		c.EnterpriseResource, c.EnterpriseResourceAddress,
@@ -953,6 +993,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AdministrativeRegionMutation:
 		return c.AdministrativeRegion.mutate(ctx, m)
+	case *AirHouseWaybillMutation:
+		return c.AirHouseWaybill.mutate(ctx, m)
+	case *AirHouseWaybillVersionMutation:
+		return c.AirHouseWaybillVersion.mutate(ctx, m)
+	case *AirMasterWaybillMutation:
+		return c.AirMasterWaybill.mutate(ctx, m)
+	case *AirMasterWaybillHistoryMutation:
+		return c.AirMasterWaybillHistory.mutate(ctx, m)
+	case *AirMasterWaybillOrderLinkMutation:
+		return c.AirMasterWaybillOrderLink.mutate(ctx, m)
+	case *AirWeightConfirmationMutation:
+		return c.AirWeightConfirmation.mutate(ctx, m)
 	case *AirlineMutation:
 		return c.Airline.mutate(ctx, m)
 	case *AirportMutation:
@@ -1315,6 +1367,996 @@ func (c *AdministrativeRegionClient) mutate(ctx context.Context, m *Administrati
 		return (&AdministrativeRegionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AdministrativeRegion mutation op: %q", m.Op())
+	}
+}
+
+// AirHouseWaybillClient is a client for the AirHouseWaybill schema.
+type AirHouseWaybillClient struct {
+	config
+}
+
+// NewAirHouseWaybillClient returns a client for the AirHouseWaybill from the given config.
+func NewAirHouseWaybillClient(c config) *AirHouseWaybillClient {
+	return &AirHouseWaybillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airhousewaybill.Hooks(f(g(h())))`.
+func (c *AirHouseWaybillClient) Use(hooks ...Hook) {
+	c.hooks.AirHouseWaybill = append(c.hooks.AirHouseWaybill, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airhousewaybill.Intercept(f(g(h())))`.
+func (c *AirHouseWaybillClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AirHouseWaybill = append(c.inters.AirHouseWaybill, interceptors...)
+}
+
+// Create returns a builder for creating a AirHouseWaybill entity.
+func (c *AirHouseWaybillClient) Create() *AirHouseWaybillCreate {
+	mutation := newAirHouseWaybillMutation(c.config, OpCreate)
+	return &AirHouseWaybillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AirHouseWaybill entities.
+func (c *AirHouseWaybillClient) CreateBulk(builders ...*AirHouseWaybillCreate) *AirHouseWaybillCreateBulk {
+	return &AirHouseWaybillCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirHouseWaybillClient) MapCreateBulk(slice any, setFunc func(*AirHouseWaybillCreate, int)) *AirHouseWaybillCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirHouseWaybillCreateBulk{err: fmt.Errorf("calling to AirHouseWaybillClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirHouseWaybillCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirHouseWaybillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AirHouseWaybill.
+func (c *AirHouseWaybillClient) Update() *AirHouseWaybillUpdate {
+	mutation := newAirHouseWaybillMutation(c.config, OpUpdate)
+	return &AirHouseWaybillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirHouseWaybillClient) UpdateOne(_m *AirHouseWaybill) *AirHouseWaybillUpdateOne {
+	mutation := newAirHouseWaybillMutation(c.config, OpUpdateOne, withAirHouseWaybill(_m))
+	return &AirHouseWaybillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirHouseWaybillClient) UpdateOneID(id uuid.UUID) *AirHouseWaybillUpdateOne {
+	mutation := newAirHouseWaybillMutation(c.config, OpUpdateOne, withAirHouseWaybillID(id))
+	return &AirHouseWaybillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AirHouseWaybill.
+func (c *AirHouseWaybillClient) Delete() *AirHouseWaybillDelete {
+	mutation := newAirHouseWaybillMutation(c.config, OpDelete)
+	return &AirHouseWaybillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirHouseWaybillClient) DeleteOne(_m *AirHouseWaybill) *AirHouseWaybillDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirHouseWaybillClient) DeleteOneID(id uuid.UUID) *AirHouseWaybillDeleteOne {
+	builder := c.Delete().Where(airhousewaybill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirHouseWaybillDeleteOne{builder}
+}
+
+// Query returns a query builder for AirHouseWaybill.
+func (c *AirHouseWaybillClient) Query() *AirHouseWaybillQuery {
+	return &AirHouseWaybillQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirHouseWaybill},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AirHouseWaybill entity by its id.
+func (c *AirHouseWaybillClient) Get(ctx context.Context, id uuid.UUID) (*AirHouseWaybill, error) {
+	return c.Query().Where(airhousewaybill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirHouseWaybillClient) GetX(ctx context.Context, id uuid.UUID) *AirHouseWaybill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a AirHouseWaybill.
+func (c *AirHouseWaybillClient) QueryOrganization(_m *AirHouseWaybill) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airhousewaybill.Table, airhousewaybill.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airhousewaybill.OrganizationTable, airhousewaybill.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterWaybill queries the master_waybill edge of a AirHouseWaybill.
+func (c *AirHouseWaybillClient) QueryMasterWaybill(_m *AirHouseWaybill) *AirMasterWaybillQuery {
+	query := (&AirMasterWaybillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airhousewaybill.Table, airhousewaybill.FieldID, id),
+			sqlgraph.To(airmasterwaybill.Table, airmasterwaybill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airhousewaybill.MasterWaybillTable, airhousewaybill.MasterWaybillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a AirHouseWaybill.
+func (c *AirHouseWaybillClient) QueryOrder(_m *AirHouseWaybill) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airhousewaybill.Table, airhousewaybill.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airhousewaybill.OrderTable, airhousewaybill.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AirHouseWaybillClient) Hooks() []Hook {
+	return c.hooks.AirHouseWaybill
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirHouseWaybillClient) Interceptors() []Interceptor {
+	return c.inters.AirHouseWaybill
+}
+
+func (c *AirHouseWaybillClient) mutate(ctx context.Context, m *AirHouseWaybillMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirHouseWaybillCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirHouseWaybillUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirHouseWaybillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirHouseWaybillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AirHouseWaybill mutation op: %q", m.Op())
+	}
+}
+
+// AirHouseWaybillVersionClient is a client for the AirHouseWaybillVersion schema.
+type AirHouseWaybillVersionClient struct {
+	config
+}
+
+// NewAirHouseWaybillVersionClient returns a client for the AirHouseWaybillVersion from the given config.
+func NewAirHouseWaybillVersionClient(c config) *AirHouseWaybillVersionClient {
+	return &AirHouseWaybillVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airhousewaybillversion.Hooks(f(g(h())))`.
+func (c *AirHouseWaybillVersionClient) Use(hooks ...Hook) {
+	c.hooks.AirHouseWaybillVersion = append(c.hooks.AirHouseWaybillVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airhousewaybillversion.Intercept(f(g(h())))`.
+func (c *AirHouseWaybillVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AirHouseWaybillVersion = append(c.inters.AirHouseWaybillVersion, interceptors...)
+}
+
+// Create returns a builder for creating a AirHouseWaybillVersion entity.
+func (c *AirHouseWaybillVersionClient) Create() *AirHouseWaybillVersionCreate {
+	mutation := newAirHouseWaybillVersionMutation(c.config, OpCreate)
+	return &AirHouseWaybillVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AirHouseWaybillVersion entities.
+func (c *AirHouseWaybillVersionClient) CreateBulk(builders ...*AirHouseWaybillVersionCreate) *AirHouseWaybillVersionCreateBulk {
+	return &AirHouseWaybillVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirHouseWaybillVersionClient) MapCreateBulk(slice any, setFunc func(*AirHouseWaybillVersionCreate, int)) *AirHouseWaybillVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirHouseWaybillVersionCreateBulk{err: fmt.Errorf("calling to AirHouseWaybillVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirHouseWaybillVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirHouseWaybillVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AirHouseWaybillVersion.
+func (c *AirHouseWaybillVersionClient) Update() *AirHouseWaybillVersionUpdate {
+	mutation := newAirHouseWaybillVersionMutation(c.config, OpUpdate)
+	return &AirHouseWaybillVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirHouseWaybillVersionClient) UpdateOne(_m *AirHouseWaybillVersion) *AirHouseWaybillVersionUpdateOne {
+	mutation := newAirHouseWaybillVersionMutation(c.config, OpUpdateOne, withAirHouseWaybillVersion(_m))
+	return &AirHouseWaybillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirHouseWaybillVersionClient) UpdateOneID(id uuid.UUID) *AirHouseWaybillVersionUpdateOne {
+	mutation := newAirHouseWaybillVersionMutation(c.config, OpUpdateOne, withAirHouseWaybillVersionID(id))
+	return &AirHouseWaybillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AirHouseWaybillVersion.
+func (c *AirHouseWaybillVersionClient) Delete() *AirHouseWaybillVersionDelete {
+	mutation := newAirHouseWaybillVersionMutation(c.config, OpDelete)
+	return &AirHouseWaybillVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirHouseWaybillVersionClient) DeleteOne(_m *AirHouseWaybillVersion) *AirHouseWaybillVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirHouseWaybillVersionClient) DeleteOneID(id uuid.UUID) *AirHouseWaybillVersionDeleteOne {
+	builder := c.Delete().Where(airhousewaybillversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirHouseWaybillVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for AirHouseWaybillVersion.
+func (c *AirHouseWaybillVersionClient) Query() *AirHouseWaybillVersionQuery {
+	return &AirHouseWaybillVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirHouseWaybillVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AirHouseWaybillVersion entity by its id.
+func (c *AirHouseWaybillVersionClient) Get(ctx context.Context, id uuid.UUID) (*AirHouseWaybillVersion, error) {
+	return c.Query().Where(airhousewaybillversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirHouseWaybillVersionClient) GetX(ctx context.Context, id uuid.UUID) *AirHouseWaybillVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryHouseWaybill queries the house_waybill edge of a AirHouseWaybillVersion.
+func (c *AirHouseWaybillVersionClient) QueryHouseWaybill(_m *AirHouseWaybillVersion) *AirHouseWaybillQuery {
+	query := (&AirHouseWaybillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airhousewaybillversion.Table, airhousewaybillversion.FieldID, id),
+			sqlgraph.To(airhousewaybill.Table, airhousewaybill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airhousewaybillversion.HouseWaybillTable, airhousewaybillversion.HouseWaybillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AirHouseWaybillVersionClient) Hooks() []Hook {
+	return c.hooks.AirHouseWaybillVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirHouseWaybillVersionClient) Interceptors() []Interceptor {
+	return c.inters.AirHouseWaybillVersion
+}
+
+func (c *AirHouseWaybillVersionClient) mutate(ctx context.Context, m *AirHouseWaybillVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirHouseWaybillVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirHouseWaybillVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirHouseWaybillVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirHouseWaybillVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AirHouseWaybillVersion mutation op: %q", m.Op())
+	}
+}
+
+// AirMasterWaybillClient is a client for the AirMasterWaybill schema.
+type AirMasterWaybillClient struct {
+	config
+}
+
+// NewAirMasterWaybillClient returns a client for the AirMasterWaybill from the given config.
+func NewAirMasterWaybillClient(c config) *AirMasterWaybillClient {
+	return &AirMasterWaybillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airmasterwaybill.Hooks(f(g(h())))`.
+func (c *AirMasterWaybillClient) Use(hooks ...Hook) {
+	c.hooks.AirMasterWaybill = append(c.hooks.AirMasterWaybill, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airmasterwaybill.Intercept(f(g(h())))`.
+func (c *AirMasterWaybillClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AirMasterWaybill = append(c.inters.AirMasterWaybill, interceptors...)
+}
+
+// Create returns a builder for creating a AirMasterWaybill entity.
+func (c *AirMasterWaybillClient) Create() *AirMasterWaybillCreate {
+	mutation := newAirMasterWaybillMutation(c.config, OpCreate)
+	return &AirMasterWaybillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AirMasterWaybill entities.
+func (c *AirMasterWaybillClient) CreateBulk(builders ...*AirMasterWaybillCreate) *AirMasterWaybillCreateBulk {
+	return &AirMasterWaybillCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirMasterWaybillClient) MapCreateBulk(slice any, setFunc func(*AirMasterWaybillCreate, int)) *AirMasterWaybillCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirMasterWaybillCreateBulk{err: fmt.Errorf("calling to AirMasterWaybillClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirMasterWaybillCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirMasterWaybillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AirMasterWaybill.
+func (c *AirMasterWaybillClient) Update() *AirMasterWaybillUpdate {
+	mutation := newAirMasterWaybillMutation(c.config, OpUpdate)
+	return &AirMasterWaybillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirMasterWaybillClient) UpdateOne(_m *AirMasterWaybill) *AirMasterWaybillUpdateOne {
+	mutation := newAirMasterWaybillMutation(c.config, OpUpdateOne, withAirMasterWaybill(_m))
+	return &AirMasterWaybillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirMasterWaybillClient) UpdateOneID(id uuid.UUID) *AirMasterWaybillUpdateOne {
+	mutation := newAirMasterWaybillMutation(c.config, OpUpdateOne, withAirMasterWaybillID(id))
+	return &AirMasterWaybillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AirMasterWaybill.
+func (c *AirMasterWaybillClient) Delete() *AirMasterWaybillDelete {
+	mutation := newAirMasterWaybillMutation(c.config, OpDelete)
+	return &AirMasterWaybillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirMasterWaybillClient) DeleteOne(_m *AirMasterWaybill) *AirMasterWaybillDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirMasterWaybillClient) DeleteOneID(id uuid.UUID) *AirMasterWaybillDeleteOne {
+	builder := c.Delete().Where(airmasterwaybill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirMasterWaybillDeleteOne{builder}
+}
+
+// Query returns a query builder for AirMasterWaybill.
+func (c *AirMasterWaybillClient) Query() *AirMasterWaybillQuery {
+	return &AirMasterWaybillQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirMasterWaybill},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AirMasterWaybill entity by its id.
+func (c *AirMasterWaybillClient) Get(ctx context.Context, id uuid.UUID) (*AirMasterWaybill, error) {
+	return c.Query().Where(airmasterwaybill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirMasterWaybillClient) GetX(ctx context.Context, id uuid.UUID) *AirMasterWaybill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a AirMasterWaybill.
+func (c *AirMasterWaybillClient) QueryOrganization(_m *AirMasterWaybill) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybill.Table, airmasterwaybill.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybill.OrganizationTable, airmasterwaybill.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAirline queries the airline edge of a AirMasterWaybill.
+func (c *AirMasterWaybillClient) QueryAirline(_m *AirMasterWaybill) *AirlineQuery {
+	query := (&AirlineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybill.Table, airmasterwaybill.FieldID, id),
+			sqlgraph.To(airline.Table, airline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybill.AirlineTable, airmasterwaybill.AirlineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOriginAirport queries the origin_airport edge of a AirMasterWaybill.
+func (c *AirMasterWaybillClient) QueryOriginAirport(_m *AirMasterWaybill) *AirportQuery {
+	query := (&AirportClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybill.Table, airmasterwaybill.FieldID, id),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybill.OriginAirportTable, airmasterwaybill.OriginAirportColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDestinationAirport queries the destination_airport edge of a AirMasterWaybill.
+func (c *AirMasterWaybillClient) QueryDestinationAirport(_m *AirMasterWaybill) *AirportQuery {
+	query := (&AirportClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybill.Table, airmasterwaybill.FieldID, id),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybill.DestinationAirportTable, airmasterwaybill.DestinationAirportColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AirMasterWaybillClient) Hooks() []Hook {
+	return c.hooks.AirMasterWaybill
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirMasterWaybillClient) Interceptors() []Interceptor {
+	return c.inters.AirMasterWaybill
+}
+
+func (c *AirMasterWaybillClient) mutate(ctx context.Context, m *AirMasterWaybillMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirMasterWaybillCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirMasterWaybillUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirMasterWaybillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirMasterWaybillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AirMasterWaybill mutation op: %q", m.Op())
+	}
+}
+
+// AirMasterWaybillHistoryClient is a client for the AirMasterWaybillHistory schema.
+type AirMasterWaybillHistoryClient struct {
+	config
+}
+
+// NewAirMasterWaybillHistoryClient returns a client for the AirMasterWaybillHistory from the given config.
+func NewAirMasterWaybillHistoryClient(c config) *AirMasterWaybillHistoryClient {
+	return &AirMasterWaybillHistoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airmasterwaybillhistory.Hooks(f(g(h())))`.
+func (c *AirMasterWaybillHistoryClient) Use(hooks ...Hook) {
+	c.hooks.AirMasterWaybillHistory = append(c.hooks.AirMasterWaybillHistory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airmasterwaybillhistory.Intercept(f(g(h())))`.
+func (c *AirMasterWaybillHistoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AirMasterWaybillHistory = append(c.inters.AirMasterWaybillHistory, interceptors...)
+}
+
+// Create returns a builder for creating a AirMasterWaybillHistory entity.
+func (c *AirMasterWaybillHistoryClient) Create() *AirMasterWaybillHistoryCreate {
+	mutation := newAirMasterWaybillHistoryMutation(c.config, OpCreate)
+	return &AirMasterWaybillHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AirMasterWaybillHistory entities.
+func (c *AirMasterWaybillHistoryClient) CreateBulk(builders ...*AirMasterWaybillHistoryCreate) *AirMasterWaybillHistoryCreateBulk {
+	return &AirMasterWaybillHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirMasterWaybillHistoryClient) MapCreateBulk(slice any, setFunc func(*AirMasterWaybillHistoryCreate, int)) *AirMasterWaybillHistoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirMasterWaybillHistoryCreateBulk{err: fmt.Errorf("calling to AirMasterWaybillHistoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirMasterWaybillHistoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirMasterWaybillHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AirMasterWaybillHistory.
+func (c *AirMasterWaybillHistoryClient) Update() *AirMasterWaybillHistoryUpdate {
+	mutation := newAirMasterWaybillHistoryMutation(c.config, OpUpdate)
+	return &AirMasterWaybillHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirMasterWaybillHistoryClient) UpdateOne(_m *AirMasterWaybillHistory) *AirMasterWaybillHistoryUpdateOne {
+	mutation := newAirMasterWaybillHistoryMutation(c.config, OpUpdateOne, withAirMasterWaybillHistory(_m))
+	return &AirMasterWaybillHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirMasterWaybillHistoryClient) UpdateOneID(id uuid.UUID) *AirMasterWaybillHistoryUpdateOne {
+	mutation := newAirMasterWaybillHistoryMutation(c.config, OpUpdateOne, withAirMasterWaybillHistoryID(id))
+	return &AirMasterWaybillHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AirMasterWaybillHistory.
+func (c *AirMasterWaybillHistoryClient) Delete() *AirMasterWaybillHistoryDelete {
+	mutation := newAirMasterWaybillHistoryMutation(c.config, OpDelete)
+	return &AirMasterWaybillHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirMasterWaybillHistoryClient) DeleteOne(_m *AirMasterWaybillHistory) *AirMasterWaybillHistoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirMasterWaybillHistoryClient) DeleteOneID(id uuid.UUID) *AirMasterWaybillHistoryDeleteOne {
+	builder := c.Delete().Where(airmasterwaybillhistory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirMasterWaybillHistoryDeleteOne{builder}
+}
+
+// Query returns a query builder for AirMasterWaybillHistory.
+func (c *AirMasterWaybillHistoryClient) Query() *AirMasterWaybillHistoryQuery {
+	return &AirMasterWaybillHistoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirMasterWaybillHistory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AirMasterWaybillHistory entity by its id.
+func (c *AirMasterWaybillHistoryClient) Get(ctx context.Context, id uuid.UUID) (*AirMasterWaybillHistory, error) {
+	return c.Query().Where(airmasterwaybillhistory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirMasterWaybillHistoryClient) GetX(ctx context.Context, id uuid.UUID) *AirMasterWaybillHistory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMasterWaybill queries the master_waybill edge of a AirMasterWaybillHistory.
+func (c *AirMasterWaybillHistoryClient) QueryMasterWaybill(_m *AirMasterWaybillHistory) *AirMasterWaybillQuery {
+	query := (&AirMasterWaybillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybillhistory.Table, airmasterwaybillhistory.FieldID, id),
+			sqlgraph.To(airmasterwaybill.Table, airmasterwaybill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybillhistory.MasterWaybillTable, airmasterwaybillhistory.MasterWaybillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AirMasterWaybillHistoryClient) Hooks() []Hook {
+	return c.hooks.AirMasterWaybillHistory
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirMasterWaybillHistoryClient) Interceptors() []Interceptor {
+	return c.inters.AirMasterWaybillHistory
+}
+
+func (c *AirMasterWaybillHistoryClient) mutate(ctx context.Context, m *AirMasterWaybillHistoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirMasterWaybillHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirMasterWaybillHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirMasterWaybillHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirMasterWaybillHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AirMasterWaybillHistory mutation op: %q", m.Op())
+	}
+}
+
+// AirMasterWaybillOrderLinkClient is a client for the AirMasterWaybillOrderLink schema.
+type AirMasterWaybillOrderLinkClient struct {
+	config
+}
+
+// NewAirMasterWaybillOrderLinkClient returns a client for the AirMasterWaybillOrderLink from the given config.
+func NewAirMasterWaybillOrderLinkClient(c config) *AirMasterWaybillOrderLinkClient {
+	return &AirMasterWaybillOrderLinkClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airmasterwaybillorderlink.Hooks(f(g(h())))`.
+func (c *AirMasterWaybillOrderLinkClient) Use(hooks ...Hook) {
+	c.hooks.AirMasterWaybillOrderLink = append(c.hooks.AirMasterWaybillOrderLink, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airmasterwaybillorderlink.Intercept(f(g(h())))`.
+func (c *AirMasterWaybillOrderLinkClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AirMasterWaybillOrderLink = append(c.inters.AirMasterWaybillOrderLink, interceptors...)
+}
+
+// Create returns a builder for creating a AirMasterWaybillOrderLink entity.
+func (c *AirMasterWaybillOrderLinkClient) Create() *AirMasterWaybillOrderLinkCreate {
+	mutation := newAirMasterWaybillOrderLinkMutation(c.config, OpCreate)
+	return &AirMasterWaybillOrderLinkCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AirMasterWaybillOrderLink entities.
+func (c *AirMasterWaybillOrderLinkClient) CreateBulk(builders ...*AirMasterWaybillOrderLinkCreate) *AirMasterWaybillOrderLinkCreateBulk {
+	return &AirMasterWaybillOrderLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirMasterWaybillOrderLinkClient) MapCreateBulk(slice any, setFunc func(*AirMasterWaybillOrderLinkCreate, int)) *AirMasterWaybillOrderLinkCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirMasterWaybillOrderLinkCreateBulk{err: fmt.Errorf("calling to AirMasterWaybillOrderLinkClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirMasterWaybillOrderLinkCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirMasterWaybillOrderLinkCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AirMasterWaybillOrderLink.
+func (c *AirMasterWaybillOrderLinkClient) Update() *AirMasterWaybillOrderLinkUpdate {
+	mutation := newAirMasterWaybillOrderLinkMutation(c.config, OpUpdate)
+	return &AirMasterWaybillOrderLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirMasterWaybillOrderLinkClient) UpdateOne(_m *AirMasterWaybillOrderLink) *AirMasterWaybillOrderLinkUpdateOne {
+	mutation := newAirMasterWaybillOrderLinkMutation(c.config, OpUpdateOne, withAirMasterWaybillOrderLink(_m))
+	return &AirMasterWaybillOrderLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirMasterWaybillOrderLinkClient) UpdateOneID(id uuid.UUID) *AirMasterWaybillOrderLinkUpdateOne {
+	mutation := newAirMasterWaybillOrderLinkMutation(c.config, OpUpdateOne, withAirMasterWaybillOrderLinkID(id))
+	return &AirMasterWaybillOrderLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AirMasterWaybillOrderLink.
+func (c *AirMasterWaybillOrderLinkClient) Delete() *AirMasterWaybillOrderLinkDelete {
+	mutation := newAirMasterWaybillOrderLinkMutation(c.config, OpDelete)
+	return &AirMasterWaybillOrderLinkDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirMasterWaybillOrderLinkClient) DeleteOne(_m *AirMasterWaybillOrderLink) *AirMasterWaybillOrderLinkDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirMasterWaybillOrderLinkClient) DeleteOneID(id uuid.UUID) *AirMasterWaybillOrderLinkDeleteOne {
+	builder := c.Delete().Where(airmasterwaybillorderlink.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirMasterWaybillOrderLinkDeleteOne{builder}
+}
+
+// Query returns a query builder for AirMasterWaybillOrderLink.
+func (c *AirMasterWaybillOrderLinkClient) Query() *AirMasterWaybillOrderLinkQuery {
+	return &AirMasterWaybillOrderLinkQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirMasterWaybillOrderLink},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AirMasterWaybillOrderLink entity by its id.
+func (c *AirMasterWaybillOrderLinkClient) Get(ctx context.Context, id uuid.UUID) (*AirMasterWaybillOrderLink, error) {
+	return c.Query().Where(airmasterwaybillorderlink.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirMasterWaybillOrderLinkClient) GetX(ctx context.Context, id uuid.UUID) *AirMasterWaybillOrderLink {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a AirMasterWaybillOrderLink.
+func (c *AirMasterWaybillOrderLinkClient) QueryOrganization(_m *AirMasterWaybillOrderLink) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybillorderlink.Table, airmasterwaybillorderlink.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybillorderlink.OrganizationTable, airmasterwaybillorderlink.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMasterWaybill queries the master_waybill edge of a AirMasterWaybillOrderLink.
+func (c *AirMasterWaybillOrderLinkClient) QueryMasterWaybill(_m *AirMasterWaybillOrderLink) *AirMasterWaybillQuery {
+	query := (&AirMasterWaybillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybillorderlink.Table, airmasterwaybillorderlink.FieldID, id),
+			sqlgraph.To(airmasterwaybill.Table, airmasterwaybill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybillorderlink.MasterWaybillTable, airmasterwaybillorderlink.MasterWaybillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrder queries the order edge of a AirMasterWaybillOrderLink.
+func (c *AirMasterWaybillOrderLinkClient) QueryOrder(_m *AirMasterWaybillOrderLink) *OrderQuery {
+	query := (&OrderClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airmasterwaybillorderlink.Table, airmasterwaybillorderlink.FieldID, id),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, airmasterwaybillorderlink.OrderTable, airmasterwaybillorderlink.OrderColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AirMasterWaybillOrderLinkClient) Hooks() []Hook {
+	return c.hooks.AirMasterWaybillOrderLink
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirMasterWaybillOrderLinkClient) Interceptors() []Interceptor {
+	return c.inters.AirMasterWaybillOrderLink
+}
+
+func (c *AirMasterWaybillOrderLinkClient) mutate(ctx context.Context, m *AirMasterWaybillOrderLinkMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirMasterWaybillOrderLinkCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirMasterWaybillOrderLinkUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirMasterWaybillOrderLinkUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirMasterWaybillOrderLinkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AirMasterWaybillOrderLink mutation op: %q", m.Op())
+	}
+}
+
+// AirWeightConfirmationClient is a client for the AirWeightConfirmation schema.
+type AirWeightConfirmationClient struct {
+	config
+}
+
+// NewAirWeightConfirmationClient returns a client for the AirWeightConfirmation from the given config.
+func NewAirWeightConfirmationClient(c config) *AirWeightConfirmationClient {
+	return &AirWeightConfirmationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `airweightconfirmation.Hooks(f(g(h())))`.
+func (c *AirWeightConfirmationClient) Use(hooks ...Hook) {
+	c.hooks.AirWeightConfirmation = append(c.hooks.AirWeightConfirmation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `airweightconfirmation.Intercept(f(g(h())))`.
+func (c *AirWeightConfirmationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AirWeightConfirmation = append(c.inters.AirWeightConfirmation, interceptors...)
+}
+
+// Create returns a builder for creating a AirWeightConfirmation entity.
+func (c *AirWeightConfirmationClient) Create() *AirWeightConfirmationCreate {
+	mutation := newAirWeightConfirmationMutation(c.config, OpCreate)
+	return &AirWeightConfirmationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AirWeightConfirmation entities.
+func (c *AirWeightConfirmationClient) CreateBulk(builders ...*AirWeightConfirmationCreate) *AirWeightConfirmationCreateBulk {
+	return &AirWeightConfirmationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AirWeightConfirmationClient) MapCreateBulk(slice any, setFunc func(*AirWeightConfirmationCreate, int)) *AirWeightConfirmationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AirWeightConfirmationCreateBulk{err: fmt.Errorf("calling to AirWeightConfirmationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AirWeightConfirmationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AirWeightConfirmationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AirWeightConfirmation.
+func (c *AirWeightConfirmationClient) Update() *AirWeightConfirmationUpdate {
+	mutation := newAirWeightConfirmationMutation(c.config, OpUpdate)
+	return &AirWeightConfirmationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AirWeightConfirmationClient) UpdateOne(_m *AirWeightConfirmation) *AirWeightConfirmationUpdateOne {
+	mutation := newAirWeightConfirmationMutation(c.config, OpUpdateOne, withAirWeightConfirmation(_m))
+	return &AirWeightConfirmationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AirWeightConfirmationClient) UpdateOneID(id uuid.UUID) *AirWeightConfirmationUpdateOne {
+	mutation := newAirWeightConfirmationMutation(c.config, OpUpdateOne, withAirWeightConfirmationID(id))
+	return &AirWeightConfirmationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AirWeightConfirmation.
+func (c *AirWeightConfirmationClient) Delete() *AirWeightConfirmationDelete {
+	mutation := newAirWeightConfirmationMutation(c.config, OpDelete)
+	return &AirWeightConfirmationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AirWeightConfirmationClient) DeleteOne(_m *AirWeightConfirmation) *AirWeightConfirmationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AirWeightConfirmationClient) DeleteOneID(id uuid.UUID) *AirWeightConfirmationDeleteOne {
+	builder := c.Delete().Where(airweightconfirmation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AirWeightConfirmationDeleteOne{builder}
+}
+
+// Query returns a query builder for AirWeightConfirmation.
+func (c *AirWeightConfirmationClient) Query() *AirWeightConfirmationQuery {
+	return &AirWeightConfirmationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAirWeightConfirmation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AirWeightConfirmation entity by its id.
+func (c *AirWeightConfirmationClient) Get(ctx context.Context, id uuid.UUID) (*AirWeightConfirmation, error) {
+	return c.Query().Where(airweightconfirmation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AirWeightConfirmationClient) GetX(ctx context.Context, id uuid.UUID) *AirWeightConfirmation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AirWeightConfirmationClient) Hooks() []Hook {
+	return c.hooks.AirWeightConfirmation
+}
+
+// Interceptors returns the client interceptors.
+func (c *AirWeightConfirmationClient) Interceptors() []Interceptor {
+	return c.inters.AirWeightConfirmation
+}
+
+func (c *AirWeightConfirmationClient) mutate(ctx context.Context, m *AirWeightConfirmationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AirWeightConfirmationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AirWeightConfirmationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AirWeightConfirmationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AirWeightConfirmationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AirWeightConfirmation mutation op: %q", m.Op())
 	}
 }
 
@@ -25902,24 +26944,25 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
-		DingTalkDirectorySync, DingTalkInvitation, EnterpriseResource,
-		EnterpriseResourceAddress, EnterpriseResourceAddressType,
-		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
-		EnterpriseResourceParty, EnterpriseResourceRemark,
-		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
-		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FeeSettingTemplate,
-		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
-		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
-		FinanceCommissionApplication, FinanceCommissionApplicationLine,
-		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
-		FinanceCustomSetting, FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine,
-		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		AdministrativeRegion, AirHouseWaybill, AirHouseWaybillVersion, AirMasterWaybill,
+		AirMasterWaybillHistory, AirMasterWaybillOrderLink, AirWeightConfirmation,
+		Airline, Airport, AuditLog, BackgroundTask, BillingUnit, Currency,
+		DingTalkApprovalDispatch, DingTalkApprovalInboxEvent, DingTalkDirectorySync,
+		DingTalkInvitation, EnterpriseResource, EnterpriseResourceAddress,
+		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
+		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
+		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
+		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
+		FeeSettingTemplate, FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag,
+		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionApplication,
+		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeCorrectionRequest, OrderFeeEnterpriseTag,
 		OrderFeeReviewEvent, OrderFeeSupplementRequest, OrderLifecycleEvent,
@@ -25937,24 +26980,25 @@ type (
 		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
-		AdministrativeRegion, Airline, Airport, AuditLog, BackgroundTask, BillingUnit,
-		Currency, DingTalkApprovalDispatch, DingTalkApprovalInboxEvent,
-		DingTalkDirectorySync, DingTalkInvitation, EnterpriseResource,
-		EnterpriseResourceAddress, EnterpriseResourceAddressType,
-		EnterpriseResourceAssignee, EnterpriseResourceImage, EnterpriseResourcePartner,
-		EnterpriseResourceParty, EnterpriseResourceRemark,
-		EnterpriseResourceShippingText, EnterpriseTag, EnterpriseTagGroup,
-		ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting, FeeSettingTemplate,
-		FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag, FinanceBillLine,
-		FinanceCashflow, FinanceCommission, FinanceCommissionAdjustment,
-		FinanceCommissionApplication, FinanceCommissionApplicationLine,
-		FinanceCommissionLine, FinanceCommissionRule, FinanceCommissionRuleAssignment,
-		FinanceCustomSetting, FinanceInvoice, FinanceInvoiceBill, FinanceInvoiceLine,
-		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
-		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
-		Membership, NotificationDelivery, NumberRule, NumberSequence,
-		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
-		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		AdministrativeRegion, AirHouseWaybill, AirHouseWaybillVersion, AirMasterWaybill,
+		AirMasterWaybillHistory, AirMasterWaybillOrderLink, AirWeightConfirmation,
+		Airline, Airport, AuditLog, BackgroundTask, BillingUnit, Currency,
+		DingTalkApprovalDispatch, DingTalkApprovalInboxEvent, DingTalkDirectorySync,
+		DingTalkInvitation, EnterpriseResource, EnterpriseResourceAddress,
+		EnterpriseResourceAddressType, EnterpriseResourceAssignee,
+		EnterpriseResourceImage, EnterpriseResourcePartner, EnterpriseResourceParty,
+		EnterpriseResourceRemark, EnterpriseResourceShippingText, EnterpriseTag,
+		EnterpriseTagGroup, ExchangeRateImportBatch, ExchangeRateSetting, FeeSetting,
+		FeeSettingTemplate, FinanceBill, FinanceBillBatch, FinanceBillEnterpriseTag,
+		FinanceBillLine, FinanceCashflow, FinanceCommission,
+		FinanceCommissionAdjustment, FinanceCommissionApplication,
+		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
+		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
+		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
+		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
+		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
+		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
+		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest,
 		OrderEnterpriseTag, OrderFee, OrderFeeCorrectionRequest, OrderFeeEnterpriseTag,
 		OrderFeeReviewEvent, OrderFeeSupplementRequest, OrderLifecycleEvent,

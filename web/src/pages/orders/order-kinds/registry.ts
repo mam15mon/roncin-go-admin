@@ -1,3 +1,4 @@
+import { airExportDefinition } from './air-export/definition';
 import { seaExportDefinition } from './sea-export/definition';
 import type { OrderKind, OrderKindDefinition } from './types';
 
@@ -7,6 +8,7 @@ import type { OrderKind, OrderKindDefinition } from './types';
  */
 export const ORDER_KIND_REGISTRY = {
   'sea-export': seaExportDefinition,
+  'air-export': airExportDefinition,
 } as const satisfies Record<OrderKind, OrderKindDefinition>;
 
 function lookupRegistryKey(key: string): OrderKindDefinition | undefined {

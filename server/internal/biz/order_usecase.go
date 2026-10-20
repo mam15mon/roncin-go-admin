@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"sort"
@@ -341,10 +342,15 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if input == nil || input.CustomerID == uuid.Nil || !input.BusinessType.Valid() || !input.TradeDirection.Valid() || (input.TradeTerm != "" && !input.TradeTerm.Valid()) || !input.PaymentTerm.Valid() {
 		return nil, ErrOrderInvalidArgument
 	}
-	if input.BusinessType != OrderBusinessSE || input.TradeDirection != OrderTradeExport {
+	if (input.BusinessType != OrderBusinessSE && input.BusinessType != OrderBusinessAE) || input.TradeDirection != OrderTradeExport {
 		return nil, ErrOrderBusinessUnsupported
 	}
 	output := *input
+	if output.BusinessType == OrderBusinessAE {
+		if err := normalizeAirOrder(&output, creating); err != nil {
+			return nil, err
+		}
+	}
 	output.IdempotencyKey = strings.TrimSpace(output.IdempotencyKey)
 	output.CustomerReferenceNo = strings.TrimSpace(output.CustomerReferenceNo)
 	output.InternalReferenceNo = strings.TrimSpace(output.InternalReferenceNo)
@@ -612,6 +618,38 @@ func orderCreateIntentHash(order *Order) string {
 		masterNo = order.SeaMasterBill.MasterNo
 	}
 	part("master-no", masterNo)
+	if order.BusinessType == OrderBusinessAE {
+		house, master := "", ""
+		if order.AirExportInput != nil {
+			house = order.AirExportInput.HouseNo
+			if order.AirExportInput.Master != nil {
+				master = order.AirExportInput.Master.MasterNo
+			}
+		}
+		if order.AirExport != nil {
+			house = order.AirExport.HouseNo
+			if order.AirExport.Master != nil {
+				master = order.AirExport.Master.Content.MasterNo
+			}
+		}
+		part("air-waybills", master, house)
+		var content *AirMasterWaybillInput
+		houseContent, houseStatus := "", ""
+		if order.AirExportInput != nil {
+			content = order.AirExportInput.Master
+			houseContent = order.AirExportInput.HouseContent
+			houseStatus = order.AirExportInput.HouseStatus
+		}
+		if order.AirExport != nil {
+			if order.AirExport.Master != nil {
+				content = &order.AirExport.Master.Content
+			}
+			houseContent = order.AirExport.HouseContent
+			houseStatus = order.AirExport.HouseStatus
+		}
+		payload, _ := json.Marshal(content)
+		part("air-content", string(payload), houseContent, houseStatus)
+	}
 	return financeSHA256(builder.String())
 }
 

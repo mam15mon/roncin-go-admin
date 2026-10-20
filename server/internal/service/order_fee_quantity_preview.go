@@ -21,7 +21,7 @@ func (s *OrderFeeService) PreviewFeeQuantity(ctx context.Context, request *v1.Pr
 	if err != nil {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	preview, err := s.usecase.PreviewFeeQuantity(ctx, principal.Organization.ID, orderID, unitID, request.GetSource())
+	preview, err := s.usecase.PreviewFeeQuantity(ctx, principal.Organization.ID, orderID, unitID, request.GetSource(), request.GetQuantityBasis())
 	if err != nil {
 		return nil, err
 	}
@@ -29,5 +29,5 @@ func (s *OrderFeeService) PreviewFeeQuantity(ctx context.Context, request *v1.Pr
 	for _, input := range preview.Inputs {
 		inputs = append(inputs, &v1.FeeQuantityInput{Label: input.Label, Value: input.Value, Unit: input.Unit})
 	}
-	return ok(ctx, &v1.PreviewFeeQuantityResponse{Data: &v1.FeeQuantityPreview{Available: preview.Available, Quantity: preview.Quantity, SourceLabel: preview.SourceLabel, Formula: preview.Formula, Inputs: inputs, Reason: preview.Reason}}), nil
+	return ok(ctx, &v1.PreviewFeeQuantityResponse{Data: &v1.FeeQuantityPreview{Available: preview.Available, Quantity: preview.Quantity, SourceLabel: preview.SourceLabel, Formula: preview.Formula, Inputs: inputs, Reason: preview.Reason, QuantitySource: feeQuantitySelectionToAPI(preview.QuantitySource)}}), nil
 }

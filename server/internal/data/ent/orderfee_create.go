@@ -173,6 +173,12 @@ func (_c *OrderFeeCreate) SetNillableTaxableServiceName(v *string) *OrderFeeCrea
 	return _c
 }
 
+// SetQuantitySource sets the "quantity_source" field.
+func (_c *OrderFeeCreate) SetQuantitySource(v map[string]string) *OrderFeeCreate {
+	_c.mutation.SetQuantitySource(v)
+	return _c
+}
+
 // SetQuantity sets the "quantity" field.
 func (_c *OrderFeeCreate) SetQuantity(v string) *OrderFeeCreate {
 	_c.mutation.SetQuantity(v)
@@ -822,6 +828,10 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 		_spec.SetField(orderfee.FieldTaxableServiceName, field.TypeString, value)
 		_node.TaxableServiceName = &value
 	}
+	if value, ok := _c.mutation.QuantitySource(); ok {
+		_spec.SetField(orderfee.FieldQuantitySource, field.TypeJSON, value)
+		_node.QuantitySource = value
+	}
 	if value, ok := _c.mutation.Quantity(); ok {
 		_spec.SetField(orderfee.FieldQuantity, field.TypeString, value)
 		_node.Quantity = value
@@ -1336,6 +1346,24 @@ func (u *OrderFeeUpsert) ClearTaxableServiceName() *OrderFeeUpsert {
 	return u
 }
 
+// SetQuantitySource sets the "quantity_source" field.
+func (u *OrderFeeUpsert) SetQuantitySource(v map[string]string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldQuantitySource, v)
+	return u
+}
+
+// UpdateQuantitySource sets the "quantity_source" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateQuantitySource() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldQuantitySource)
+	return u
+}
+
+// ClearQuantitySource clears the value of the "quantity_source" field.
+func (u *OrderFeeUpsert) ClearQuantitySource() *OrderFeeUpsert {
+	u.SetNull(orderfee.FieldQuantitySource)
+	return u
+}
+
 // SetQuantity sets the "quantity" field.
 func (u *OrderFeeUpsert) SetQuantity(v string) *OrderFeeUpsert {
 	u.Set(orderfee.FieldQuantity, v)
@@ -1842,6 +1870,27 @@ func (u *OrderFeeUpsertOne) UpdateTaxableServiceName() *OrderFeeUpsertOne {
 func (u *OrderFeeUpsertOne) ClearTaxableServiceName() *OrderFeeUpsertOne {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.ClearTaxableServiceName()
+	})
+}
+
+// SetQuantitySource sets the "quantity_source" field.
+func (u *OrderFeeUpsertOne) SetQuantitySource(v map[string]string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetQuantitySource(v)
+	})
+}
+
+// UpdateQuantitySource sets the "quantity_source" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateQuantitySource() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateQuantitySource()
+	})
+}
+
+// ClearQuantitySource clears the value of the "quantity_source" field.
+func (u *OrderFeeUpsertOne) ClearQuantitySource() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearQuantitySource()
 	})
 }
 
@@ -2558,6 +2607,27 @@ func (u *OrderFeeUpsertBulk) UpdateTaxableServiceName() *OrderFeeUpsertBulk {
 func (u *OrderFeeUpsertBulk) ClearTaxableServiceName() *OrderFeeUpsertBulk {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.ClearTaxableServiceName()
+	})
+}
+
+// SetQuantitySource sets the "quantity_source" field.
+func (u *OrderFeeUpsertBulk) SetQuantitySource(v map[string]string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetQuantitySource(v)
+	})
+}
+
+// UpdateQuantitySource sets the "quantity_source" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateQuantitySource() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateQuantitySource()
+	})
+}
+
+// ClearQuantitySource clears the value of the "quantity_source" field.
+func (u *OrderFeeUpsertBulk) ClearQuantitySource() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.ClearQuantitySource()
 	})
 }
 

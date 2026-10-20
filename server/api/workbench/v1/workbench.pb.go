@@ -1096,6 +1096,7 @@ type WorkbenchSupplementApprovalItem struct {
 	Reason          string                 `protobuf:"bytes,8,opt,name=reason,proto3" json:"reason,omitempty"`
 	RequestedByName string                 `protobuf:"bytes,9,opt,name=requested_by_name,json=requestedByName,proto3" json:"requested_by_name,omitempty"`
 	RequestedAt     string                 `protobuf:"bytes,10,opt,name=requested_at,json=requestedAt,proto3" json:"requested_at,omitempty"`
+	BusinessType    string                 `protobuf:"bytes,11,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1196,6 +1197,13 @@ func (x *WorkbenchSupplementApprovalItem) GetRequestedByName() string {
 func (x *WorkbenchSupplementApprovalItem) GetRequestedAt() string {
 	if x != nil {
 		return x.RequestedAt
+	}
+	return ""
+}
+
+func (x *WorkbenchSupplementApprovalItem) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
 	}
 	return ""
 }
@@ -3284,7 +3292,7 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\x16pending_decrease_count\x18\x04 \x01(\x05R\x14pendingDecreaseCount\x12I\n" +
 	"!pending_supplement_approval_count\x18\x05 \x01(\x05R\x1ependingSupplementApprovalCount\x12o\n" +
 	"\x1cpending_supplement_approvals\x18\x06 \x03(\v2-.workbench.v1.WorkbenchSupplementApprovalItemR\x1apendingSupplementApprovals\x12D\n" +
-	"\x1esupplement_approvals_truncated\x18\a \x01(\bR\x1csupplementApprovalsTruncated\"\xc7\x02\n" +
+	"\x1esupplement_approvals_truncated\x18\a \x01(\bR\x1csupplementApprovalsTruncated\"\xec\x02\n" +
 	"\x1fWorkbenchSupplementApprovalItem\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12\x19\n" +
@@ -3297,7 +3305,8 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\x06reason\x18\b \x01(\tR\x06reason\x12*\n" +
 	"\x11requested_by_name\x18\t \x01(\tR\x0frequestedByName\x12!\n" +
 	"\frequested_at\x18\n" +
-	" \x01(\tR\vrequestedAt\"\xb6\x02\n" +
+	" \x01(\tR\vrequestedAt\x12#\n" +
+	"\rbusiness_type\x18\v \x01(\tR\fbusinessType\"\xb6\x02\n" +
 	"\x18ListMyCommissionsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12D\n" +

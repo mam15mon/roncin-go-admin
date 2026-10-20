@@ -18,7 +18,7 @@ import (
 
 func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, targetStatus biz.OrderFlowStatus, reason string, actorID uuid.UUID, event *biz.OrderStatusChangedEvent) (*biz.Order, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		existing, _, queryErr := lockAirLifecycleTarget(ctx, tx, organizationID, id)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
@@ -32,6 +32,9 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 		}
 		if existing.LockedAt != nil {
 			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
+		}
+		if e := validateAirFlowData(ctx, tx, existing, targetStatus, reason); e != nil {
+			return e
 		}
 		if _, updateErr := existing.Update().SetFlowStatus(orderent.FlowStatus(targetStatus)).SetVersion(existing.Version + 1).Save(ctx); updateErr != nil {
 			return updateErr
@@ -49,7 +52,7 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 
 func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderTerminationStatus, terminationType *biz.OrderTerminationType, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
+		existing, airLock, queryErr := lockAirLifecycleTarget(ctx, tx, organizationID, id)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
@@ -66,6 +69,9 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 		if existing.TerminationStatus == orderent.TerminationStatusACTIVE &&
 			target == biz.OrderTerminationTerminating && existing.LockedAt != nil {
 			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
+		}
+		if existing.BusinessType == orderent.BusinessTypeAE && existing.TerminationStatus == orderent.TerminationStatusTERMINATED && target == biz.OrderTerminationActive {
+			return biz.NewAirFlowDataError("请从原主单显式关联并恢复订单")
 		}
 		update := existing.Update().SetTerminationStatus(orderent.TerminationStatus(target)).SetVersion(existing.Version + 1)
 		if target == biz.OrderTerminationActive {
@@ -84,6 +90,9 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 		// 最终进入 TERMINATED 时在同一事务结束该订单的活动 SE Link；任何一步
 		// 失败（订单更新、Link 结束、生命周期事件、审计）整体回滚。
 		if target == biz.OrderTerminationTerminated {
+			if e := endAirOrderOnTermination(ctx, tx, existing, airLock, actorID, event.OccurredAt); e != nil {
+				return e
+			}
 			if linkErr := endActiveSeaMasterBillLinksOnTermination(ctx, tx, existing, event.OccurredAt); linkErr != nil {
 				return linkErr
 			}

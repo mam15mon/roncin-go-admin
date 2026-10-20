@@ -1,0 +1,175 @@
+syntax = "proto3";
+package order.v1;
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
+
+// AirExportService 管理空运共享主运单及活动成员。
+service AirExportService {
+  rpc ListAirHouseWaybillVersions(ListAirHouseWaybillVersionsRequest) returns (ListAirHouseWaybillVersionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/air-export/orders/{order_id}/house-versions"};
+  }
+
+  rpc ListAirLinkCandidates(ListAirLinkCandidatesRequest) returns (ListAirLinkCandidatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/air-export/master-waybills/{id}/link-candidates"};
+  }
+  rpc ListAirMasterWaybills(ListAirMasterWaybillsRequest) returns (ListAirMasterWaybillsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/air-export/master-waybills"};
+  }
+  rpc GetAirMasterWaybill(GetAirMasterWaybillRequest) returns (GetAirMasterWaybillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/air-export/master-waybills/{id}"};
+  }
+  rpc PreviewAirMasterWaybillUpdate(PreviewAirMasterWaybillUpdateRequest) returns (PreviewAirMasterWaybillUpdateResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/air-export/master-waybills/{id}/preview" body: "*"};
+  }
+  rpc UpdateAirMasterWaybill(UpdateAirMasterWaybillRequest) returns (UpdateAirMasterWaybillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {put: "/api/v1/air-export/master-waybills/{id}" body: "*"};
+  }
+  rpc LinkAirMasterWaybill(LinkAirMasterWaybillRequest) returns (LinkAirMasterWaybillResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.order.ae.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/air-export/master-waybills/{id}/members" body: "*"};
+  }
+}
+message AirMasterWaybillInput {
+  string master_no = 1;
+  string airline_id = 2;
+  string origin_airport_id = 3;
+  string destination_airport_id = 4;
+  string flight_no = 5;
+  string etd = 6;
+  string eta = 7;
+  string actual_departure_at = 8;
+  string actual_arrival_at = 9;
+  string document_cutoff_at = 10;
+  string customs_cutoff_at = 11;
+  string status = 12;
+  optional int32 declared_packages = 13;
+  optional double declared_gross_weight_kg = 14;
+  optional double declared_volume_cbm = 15;
+  string notes = 16;
+}
+message AirMasterWaybill {
+  string id = 1;
+  string organization_id = 2;
+  uint64 version = 3;
+  AirMasterWaybillInput content = 4;
+  string airline_name = 5;
+  string origin_airport_name = 6;
+  string destination_airport_name = 7;
+  int32 member_count = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+message AirOrderInput {
+  optional string master_waybill_id = 1;
+  uint64 expected_master_version = 2;
+  AirMasterWaybillInput master = 3;
+  string house_no = 4;
+  string house_content = 5;
+  string house_status = 6;
+ string change_reason = 7;
+ uint64 expected_link_version = 8;
+}
+message AirOrderInfo {
+  AirMasterWaybill master = 1;
+  string house_no = 2;
+  string house_status = 3;
+  uint64 house_version = 4;
+  string link_id = 5;
+  uint64 link_version = 6;
+  string house_content = 7;
+  string house_id = 8;
+  bool active = 9;
+}
+message AirMasterMember {
+  string order_id = 1;
+  string order_no = 2;
+  string customer_name = 3;
+  string house_no = 4;
+  optional int32 packages = 5;
+  string package_unit = 6;
+  optional double gross_weight_kg = 7;
+  optional double volume_cbm = 8;
+  string flow_status = 9;
+  string termination_status = 10;
+  string closure_status = 11;
+  bool locked = 12;
+  uint64 order_version = 13;
+  string house_status = 14;
+  string confirmed_chargeable_weight_kg = 15;
+  bool confirmation_stale = 16;
+}
+message AirPackageTotal { string unit = 1; int32 packages = 2; }
+message AirMasterTotals {
+  repeated AirPackageTotal packages_by_unit = 1;
+  double gross_weight_kg = 2;
+  double volume_cbm = 3;
+  bool complete = 4;
+  int32 member_count = 5;
+}
+message AirMasterHistory {
+  string id = 1;
+  uint64 version = 2;
+  string action = 3;
+  string reason = 4;
+  string actor_id = 5;
+  string occurred_at = 6;
+  AirMasterWaybillInput content = 7;
+}
+message ListAirMasterWaybillsRequest { string keyword = 1; int32 page = 2; int32 page_size = 3; }
+message ListAirMasterWaybillsResponse { bool success = 1; string message = 2; string trace_id = 3; repeated AirMasterWaybill data = 4; int32 total = 5; }
+message GetAirMasterWaybillRequest { string id = 1; int32 page = 2; int32 page_size = 3; }
+message GetAirMasterWaybillResponse {
+  bool success = 1; string message = 2; string trace_id = 3;
+  AirMasterWaybill data = 4;
+  repeated AirMasterMember members = 5;
+  int32 total = 6;
+  AirMasterTotals totals = 7;
+  repeated AirMasterHistory history = 8;
+  repeated string blocked_reasons = 9;
+  int32 history_total = 10;
+}
+message PreviewAirMasterWaybillUpdateRequest { string id = 1; uint64 expected_version = 2; AirMasterWaybillInput input = 3; }
+message PreviewAirMasterWaybillUpdateResponse {
+  bool success = 1; string message = 2; string trace_id = 3;
+  string input_fingerprint = 4;
+  repeated AirMasterMember members = 5;
+  repeated string blocked_reasons = 6;
+  bool can_execute = 7;
+}
+message UpdateAirMasterWaybillRequest { string id = 1; uint64 expected_version = 2; AirMasterWaybillInput input = 3; string input_fingerprint = 4; string reason = 5; }
+message LinkAirMasterWaybillRequest { string id = 1; string order_id = 2; uint64 expected_order_version = 3; uint64 expected_master_version = 4; string house_no = 5; string reason = 6; }
+
+message ListAirLinkCandidatesRequest { string id = 1; string keyword = 2; int32 page = 3; int32 page_size = 4; }
+message ListAirLinkCandidatesResponse { bool success = 1; string message = 2; string trace_id = 3; repeated AirMasterMember data = 4; int32 total = 5; }
+
+message AirHouseWaybillVersion { string id=1; uint64 version=2; string house_no=3; string status=4; string content=5; string actor_id=6; string reason=7; string occurred_at=8; }
+message ListAirHouseWaybillVersionsRequest { string order_id=1; int32 page=2; int32 page_size=3; }
+message ListAirHouseWaybillVersionsResponse { bool success=1; string message=2; string trace_id=3; repeated AirHouseWaybillVersion data=4; int32 total=5; }
+
+message UpdateAirMasterWaybillResponse {
+  bool success = 1; string message = 2; string trace_id = 3;
+  AirMasterWaybill data = 4;
+  repeated AirMasterMember members = 5;
+  int32 total = 6;
+  AirMasterTotals totals = 7;
+  repeated AirMasterHistory history = 8;
+  repeated string blocked_reasons = 9;
+  int32 history_total = 10;
+}
+message LinkAirMasterWaybillResponse {
+  bool success = 1; string message = 2; string trace_id = 3;
+  AirMasterWaybill data = 4;
+  repeated AirMasterMember members = 5;
+  int32 total = 6;
+  AirMasterTotals totals = 7;
+  repeated AirMasterHistory history = 8;
+  repeated string blocked_reasons = 9;
+  int32 history_total = 10;
+}

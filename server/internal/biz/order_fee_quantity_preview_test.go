@@ -19,6 +19,7 @@ func TestFeeQuantityPreviewRules(t *testing.T) {
 		{name: "毛重", code: "KG", source: "ACTUAL", weight: "2500", volume: "8", cargo: 1, want: "2500"},
 		{name: "吨", code: "TON", source: "ACTUAL", weight: "2500", volume: "8", cargo: 1, want: "2.5"},
 		{name: "RT体积大", code: "RT", source: "ACTUAL", weight: "2500", volume: "8", cargo: 1, want: "8"},
+		{name: "AC4c_8000KG与25CBM得到25RT", code: "RT", source: "ACTUAL", weight: "8000", volume: "25", cargo: 1, want: "25"},
 		{name: "RT重量大", code: "RT", source: "ACTUAL", weight: "9500", volume: "8", cargo: 1, want: "9.5"},
 		{name: "计划3箱", code: "40HQ", source: "PLANNED", containers: 3, container: true, matched: true, want: "3"},
 		{name: "实际2箱", code: "40HQ", source: "ACTUAL", containers: 2, container: true, matched: true, want: "2"},
@@ -79,17 +80,17 @@ func TestPreviewFeeQuantityBoundaryAndScope(t *testing.T) {
 	uc := &OrderFeeUsecase{repo: repo}
 	org, order, unit := uuid.New(), uuid.New(), uuid.New()
 	for _, source := range []string{"", "actual", "OTHER"} {
-		if _, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, source); err != ErrOrderFeeInvalidArgument {
+		if _, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, source, "GROSS_WEIGHT"); err != ErrOrderFeeInvalidArgument {
 			t.Fatalf("无效来源=%q：%v", source, err)
 		}
 	}
-	if _, err := uc.PreviewFeeQuantity(context.Background(), uuid.Nil, order, unit, "ACTUAL"); err != ErrOrderFeeInvalidArgument {
+	if _, err := uc.PreviewFeeQuantity(context.Background(), uuid.Nil, order, unit, "ACTUAL", "GROSS_WEIGHT"); err != ErrOrderFeeInvalidArgument {
 		t.Fatal(err)
 	}
 	if repo.calls != 0 {
 		t.Fatal("无效请求不可查询来源")
 	}
-	got, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, "ACTUAL")
+	got, err := uc.PreviewFeeQuantity(context.Background(), org, order, unit, "ACTUAL", "GROSS_WEIGHT")
 	if err != nil || !got.Available || repo.org != org || repo.order != order || repo.unit != unit || repo.source != "ACTUAL" {
 		t.Fatalf("组织/订单/单位来源未保留：%+v %v", repo, err)
 	}

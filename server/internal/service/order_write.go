@@ -23,6 +23,9 @@ func (s *OrderService) CreateOrder(ctx context.Context, request *v1.CreateOrderR
 		return nil, err
 	}
 	input.IdempotencyKey = request.GetIdempotencyKey()
+	if input.BusinessType == biz.OrderBusinessAE && input.AirExportInput != nil && input.AirExportInput.MasterWaybillID != nil && !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderUpdate, true) {
+		return nil, biz.ErrPermissionDenied
+	}
 	if !canOperateOrderInCurrentOrganization(principal, input.BusinessType, access.OrderCreate, true) {
 		return nil, biz.ErrPermissionDenied
 	}
@@ -173,7 +176,12 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, err
 	}
+	airInput, err := airOrderInputFromAPI(request.GetAirExport())
+	if err != nil {
+		return nil, err
+	}
 	return &biz.Order{
+		AirExportInput: airInput,
 		CustomerID:     customerID,
 		ShippingLineID: shippingLineID, BookingAgentID: bookingAgentID, ForeignAgentID: foreignAgentID, ShippingAgentID: shippingAgentID,
 		CustomerReferenceNo: request.GetCustomerReferenceNo(), BookingNo: request.GetBookingNo(), InternalReferenceNo: request.GetInternalReferenceNo(), ContractNo: request.GetContractNo(),
@@ -200,6 +208,13 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 
 func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest) (*biz.Order, error) {
 	output := *existing
+	if request.AirExport != nil {
+		var e error
+		output.AirExportInput, e = airOrderInputFromAPI(request.AirExport)
+		if e != nil {
+			return nil, e
+		}
+	}
 	var err error
 	if request.CustomerId != nil {
 		output.CustomerID, err = uuid.Parse(request.GetCustomerId())

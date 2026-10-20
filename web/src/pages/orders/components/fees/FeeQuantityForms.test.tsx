@@ -43,9 +43,11 @@ const options = {
 function OrdinaryForm({
   disabled = false,
   billed = false,
+  directSource = false,
 }: {
   disabled?: boolean;
   billed?: boolean;
+  directSource?: boolean;
 }) {
   const formRef = useRef<ProFormInstance<FeeFormValues>>(undefined);
   const amount = useFeeExchangePreview('order-1', formRef);
@@ -59,6 +61,14 @@ function OrdinaryForm({
             unitPrice: '100',
             billingUnitId: 'unit',
             currency: 'CNY',
+            quantitySource: directSource
+              ? {
+                  mode: 'DIRECT',
+                  confirmationId: 'confirmation',
+                  confirmationVersion: '1',
+                  referenceQuantity: '1',
+                }
+              : undefined,
           })
         }
       >
@@ -173,6 +183,29 @@ describe('费用数量带入表单入口', () => {
       expect(await screen.findByText(/800\.00/)).toBeInTheDocument();
     },
   );
+
+  it('仅将确认重量来源改为纯手工也立即登记未保存保护', async () => {
+    renderWithApp(<OrdinaryForm directSource />);
+    fireEvent.click(screen.getByRole('button', { name: '载入复制费用' }));
+    const changeSource = await screen.findByRole('button', {
+      name: '改为纯手工数量',
+    });
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    fireEvent.click(changeSource);
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(
+      screen.queryByRole('button', { name: '改为纯手工数量' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('已建账费用的来源切换同数量与单位一起禁用', async () => {
+    renderWithApp(<OrdinaryForm directSource billed />);
+    fireEvent.click(screen.getByRole('button', { name: '载入复制费用' }));
+    expect(
+      await screen.findByRole('button', { name: '改为纯手工数量' }),
+    ).toBeDisabled();
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+  });
 
   it.each([{ disabled: true }, { billed: true }])(
     '普通费用冻结/已建账不显示带入入口 %j',

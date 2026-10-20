@@ -37,6 +37,7 @@ import {
   scrollToFirstTableError,
 } from '@/components/ui';
 import { getColumnFreezeTargets } from '@/components/ui/column-settings';
+import { OrderBusinessType } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
 import {
@@ -74,6 +75,11 @@ import {
 } from './feeColumnPreference';
 import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
 import { feeQuantityRuleError } from './feeQuantityRule';
+import {
+  FeeQuantitySourceFields,
+  FeeQuantityValue,
+  quantitySelectionForSave,
+} from './feeQuantitySource';
 import {
   buildOptionalFeeColumns,
   orderColumnsByPreference,
@@ -874,6 +880,10 @@ export default function OrderFeeTableTabs({
       billingUnitId: row.billingUnitId,
       // 提交前去掉小数尾部零，与后端固定位数十进制校验口径对齐。
       quantity: normalizeDecimalInput(String(row.quantity)),
+      quantitySource: quantitySelectionForSave(
+        row.quantitySource,
+        row.quantity,
+      ),
       unitPrice: normalizeDecimalInput(String(row.unitPrice)),
       currency: row.currency,
       expenseDate: dayjs(row.expenseDate).format('YYYY-MM-DD HH:mm'),
@@ -1014,6 +1024,9 @@ export default function OrderFeeTableTabs({
                 const bu = billingUnits?.find(
                   (u) => u.id === option.defaultBillingUnitId,
                 );
+                form?.setFieldValue([rowKey, 'quantitySource'], {
+                  mode: 'MANUAL',
+                });
                 form?.setFieldValue(
                   [rowKey, 'billingUnitId'],
                   option.defaultBillingUnitId,
@@ -1192,50 +1205,79 @@ export default function OrderFeeTableTabs({
           extra: (
             <Form.Item noStyle shouldUpdate>
               {() => (
-                <FeeQuantityAssist
-                  orderId={orderId}
-                  billingUnit={billingUnits?.find(
-                    (unit) =>
-                      unit.id === form.getFieldValue([rowKey, 'billingUnitId']),
-                  )}
-                  disabled={
-                    feeWritesDisabled ||
-                    [
-                      ...(latestReceivableResultRef.current?.items ?? []),
-                      ...(latestPayableResultRef.current?.items ?? []),
-                    ].some(
-                      (fee) =>
-                        fee.id === String(rowKey) && fee.hasActiveBill === true,
-                    )
-                  }
-                  onConfirm={(quantity) => {
-                    if (isReceivable) receivableGuard.markDirty();
-                    else payableGuard.markDirty();
-                    form.setFieldValue([rowKey, 'quantity'], quantity);
-                    refreshAmountPreview(rowKey, form);
-                    const baseline = [
-                      ...(latestReceivableResultRef.current?.items ?? []),
-                      ...(latestPayableResultRef.current?.items ?? []),
-                    ].find((fee) => fee.id === String(rowKey));
-                    const error = feeQuantityRuleError(
-                      quantity,
-                      form.getFieldValue([rowKey, 'billingUnitId']),
-                      billingUnits ?? [],
-                      baseline,
-                    );
-                    form.setFields([
-                      {
-                        name: [rowKey, 'quantity'],
-                        errors: error ? [error] : [],
-                      },
-                    ]);
-                  }}
-                />
+                <>
+                  <FeeQuantitySourceFields
+                    prefix={[rowKey || '']}
+                    disabled={
+                      feeWritesDisabled ||
+                      [
+                        ...(latestReceivableResultRef.current?.items ?? []),
+                        ...(latestPayableResultRef.current?.items ?? []),
+                      ].some(
+                        (fee) =>
+                          fee.id === String(rowKey) &&
+                          fee.hasActiveBill === true,
+                      )
+                    }
+                    onSourceChange={() => {
+                      if (isReceivable) receivableGuard.markDirty();
+                      else payableGuard.markDirty();
+                    }}
+                  />
+                  <FeeQuantityAssist
+                    allowChargeable={
+                      order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE
+                    }
+                    orderId={orderId}
+                    billingUnit={billingUnits?.find(
+                      (unit) =>
+                        unit.id ===
+                        form.getFieldValue([rowKey, 'billingUnitId']),
+                    )}
+                    disabled={
+                      feeWritesDisabled ||
+                      [
+                        ...(latestReceivableResultRef.current?.items ?? []),
+                        ...(latestPayableResultRef.current?.items ?? []),
+                      ].some(
+                        (fee) =>
+                          fee.id === String(rowKey) &&
+                          fee.hasActiveBill === true,
+                      )
+                    }
+                    onConfirm={(quantity, selection) => {
+                      if (isReceivable) receivableGuard.markDirty();
+                      else payableGuard.markDirty();
+                      form.setFieldValue([rowKey, 'quantity'], quantity);
+                      form.setFieldValue(
+                        [rowKey, 'quantitySource'],
+                        selection || { mode: 'MANUAL' },
+                      );
+                      refreshAmountPreview(rowKey, form);
+                      const baseline = [
+                        ...(latestReceivableResultRef.current?.items ?? []),
+                        ...(latestPayableResultRef.current?.items ?? []),
+                      ].find((fee) => fee.id === String(rowKey));
+                      const error = feeQuantityRuleError(
+                        quantity,
+                        form.getFieldValue([rowKey, 'billingUnitId']),
+                        billingUnits ?? [],
+                        baseline,
+                      );
+                      form.setFields([
+                        {
+                          name: [rowKey, 'quantity'],
+                          errors: error ? [error] : [],
+                        },
+                      ]);
+                    }}
+                  />
+                </>
               )}
             </Form.Item>
           ),
         }),
-        render: (_, record) => trimDecimal(record.quantity),
+        render: (_, record) => <FeeQuantityValue fee={record} />,
         fieldProps: (form, { rowKey }) => ({
           placeholder: '1',
           allowClear: false,
@@ -1279,6 +1321,7 @@ export default function OrderFeeTableTabs({
           })),
           onChange: (_: string, option?: { label?: string }) => {
             form?.setFieldValue([rowKey, 'billingUnit'], option?.label);
+            form?.setFieldValue([rowKey, 'quantitySource'], { mode: 'MANUAL' });
             const baseline = [
               ...(latestReceivableResultRef.current?.items ?? []),
               ...(latestPayableResultRef.current?.items ?? []),
