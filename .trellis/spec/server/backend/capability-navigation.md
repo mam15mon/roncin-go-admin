@@ -12,6 +12,7 @@
 | --- | --- | --- | --- |
 | 订单创建/查询/流转 | `order_usecase.go`、`order.go`、`order_transition.go` | 订单档案、状态流转、列表过滤、跨组织范围 | 在 service 写业务规则或绕过 biz 直查 data |
 | 海运出口单证 | `sea_document.go`、`sea_master_bill.go`、`sea_cargo_allocation.go` | 操作票、共享 MBL、货物分摊（契约见专项 spec） | 单证版本判断散落调用方 |
+| 空运出口主分单与重量 | `air_export.go`、`air_weight.go`、`order_fee_quantity_source.go` | 显式共享 MAWB、HAWB 历史、主单成员、独立重量确认和费用来源（见 air-export-contract） | 字符串隐式拼单、重复带入主单总重、覆盖人工确认 |
 | 海运改单/作废/Switch | `sea_document_change.go`、`order_shipping_document.go` | 改单历史、财务门禁、不可变版本 | 跳过 Preview 直接改单 |
 | 订单业务锁 | `order_lock.go`、`order_auto_lock.go` | 手动/自动锁、解锁审批、固定锁序 | 并发写单证不加锁序 |
 | 订单费用 | `order_fee.go`、`order_fee_supplement*.go`、`order_fee_quantity_preview.go` | 费用录入、补充费用、候选选项、显式来源数量建议（契约见 order-fee-quantity-preview） | 候选合并丢失订单身份、共享箱/主单货量重复计量 |
