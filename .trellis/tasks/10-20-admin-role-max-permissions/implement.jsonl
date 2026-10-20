@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "auth/me 有效能力及禁止旧权限回退"}
+{"file": ".trellis/spec/server/backend/role-workspace-ownership.md", "reason": "角色工作台边界"}
+{"file": ".trellis/spec/server/backend/retire-role-data-scope.md", "reason": "角色有效范围由工作台推导"}
+{"file": ".trellis/tasks/10-20-admin-role-max-permissions/research/root-cause.md", "reason": "全选字典与工作台写入边界不一致的根因"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query 与错误处理约定"}

@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { adminServiceListPermissions } from '@/services/roncin/adminService';
@@ -30,6 +31,18 @@ const listProps = vi.hoisted(() => ({
 
 vi.mock('@/app/access', () => ({
   useAccess: () => accessState.value,
+}));
+
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        permissionCapabilities: [
+          { key: 'system.platform.access', dataScope: 'organization' },
+        ],
+      },
+    },
+  }),
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
@@ -198,7 +211,14 @@ describe('RolesPanel 角色配置权限', () => {
       canReadPermissions: true,
       canReadOrganizations: true,
     };
+    vi.mocked(adminServiceListPermissions).mockResolvedValueOnce({
+      data: [{ key: 'system.platform.access' }],
+    });
     render(<RolesPanel />);
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '新增角色' })).toBeEnabled(),
+    );
 
     fireEvent.click(screen.getByRole('button', { name: '新增角色' }));
 

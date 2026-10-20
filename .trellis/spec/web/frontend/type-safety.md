@@ -137,6 +137,8 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 ### 2. 签名
 `CurrentUser.permissionCapabilities: PermissionCapability[]`，每项为
 `{ key: string, dataScope: string }`；由 auth.proto 生成客户端类型。
+`createPermissionCapabilityChecker(currentUser)` 从 `@/access` 导出，返回按具体权限和
+最低范围判断的函数；按钮/路由 access 与角色可授予候选共用该实现。
 
 ### 3. 契约
 - 服务端从启用角色的具体权限与当前工作台推导有效能力：公司 organization、系统 all；角色本身不再存储或接受可配置范围。
@@ -146,6 +148,13 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 - 同权限码可能用于不同范围接口：用户列表要求组织级，全部成员关系要求 all，
   调用点应选择正确阈值，不把同码理解为全部接口可用。
 - auth/me 只控制入口；真实记录所属组织、状态与审批资格由后端请求时校验。
+- 角色表单的可授予候选必须是完整权限字典与当前有效 permissionCapabilities 的交集，
+  复用 access 的能力判定；全选、模块批量和统计都消费该候选，不在前端重写系统/公司
+  权限分类。完整字典浏览页仍可展示全量目录，不能直接将目录当成可授予集合。
+- 编辑角色时若原有 permissionKeys 超出当前可授予候选，保留原权限并明确提示、阻止
+  误提交；禁止加载或保存时静默裁剪。切换工作台后候选随当前身份能力重新计算。
+- 权限字典首次加载或后台重查失败时禁止提交，不把失败解释为空候选；手动重新加载
+  复用 React Query refetch，恢复成功前保留当前角色输入与权限选择。
 
 ### 4. 校验矩阵
 | 输入 | 结果 |
@@ -155,15 +164,21 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 | 权限仅来自旧 self 角色 | 无有效能力，组织资源拒绝 |
 | 同权限另有有效 organization 角色 | 按有效角色范围开放 |
 | Any 路由通过，但当前 kind 未授权 | 页面精确拒绝且不启动查询 |
+| 公司管理员在角色表单全选读写 | 选择该公司的全部有效候选，不混入系统专属权限 |
+| 编辑角色含有操作者不能授予的原权限 | 保留原授权事实，提示并阻止提交，不静默撤权 |
+| 字典首次加载失败或有缓存时后台重查失败 | 禁止新增/保存，手动重试恢复后才允许提交，原选择不丢失 |
 
 ### 5. 正常与错误场景
 - 正常：当前公司操作员按海运出口 create 能力看到对应新增按钮。
 - 基础：总部与公司切换后刷新当前用户，能力随工作台变化。
 - 错误：用所有角色中的最高范围扩大某一个权限。
+- 错误：公司角色表单直接全选系统字典，提交后才收到「不能分配超出自身权限范围的角色」。
 
 ### 6. 必需验证
 覆盖权限来源绑定、同权限多角色、停用角色无能力、缺字段拒绝、工作区切换、
 具体业务类型请求门控；保留 lock 补录审批与本人工作台/提成入口。
+角色配置还须覆盖公司管理员全选创建、系统工作台候选、普通用户和缺能力、编辑原授权
+保留及工作台切换；完整字典页的全量展示不能被候选过滤误伤。
 
 ### 7. 错误与正确
 错误：`permissions.includes(key) && roleScopes.some(scopeMeetsMinimum)`。
