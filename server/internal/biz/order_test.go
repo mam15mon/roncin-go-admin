@@ -168,6 +168,7 @@ func TestOrderCreateBlocksExceededCustomerInInterventionMode(t *testing.T) {
 		CustomerID: exceededCustomerID, BusinessType: OrderBusinessSE,
 		ShippingLineID: &exceededCustomerID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		PersonnelAssignments: []*OrderPersonnel{
 			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
 			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
@@ -207,6 +208,7 @@ func TestOrderCreateAudits(t *testing.T) {
 		CustomerID: customerID, BusinessType: OrderBusinessSE,
 		ShippingLineID: &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		ServiceTypeIDs: []uuid.UUID{uuid.New()}, CargoCategoryIDs: []uuid.UUID{uuid.New()},
 		PersonnelAssignments: []*OrderPersonnel{
 			{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
@@ -244,6 +246,7 @@ func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
 	_, err := usecase.Create(context.Background(), organizationID, actorID, &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		PersonnelAssignments: []*OrderPersonnel{
 			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
 			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
@@ -266,6 +269,7 @@ func TestOrderRejectsNegativeEntrustedCargoMeasurement(t *testing.T) {
 	input := &Order{
 		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		TotalGrossWeightKg: &negative,
 	}
 	if _, err := normalizeOrder(input, false); err != ErrOrderInvalidArgument {
@@ -285,6 +289,7 @@ func TestOrderNormalizesBusinessFieldsAndRequiresCompleteCargoValue(t *testing.T
 		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		CustomerReferenceNo: "  CUST-001  ", InternalReferenceNo: "  INTERNAL-001  ", ContractNo: "  CONTRACT-001  ",
 		CargoValue: "100000.25", CargoCurrency: " usd ", InsurancePremium: "100.50", InsuranceCurrency: " cny ",
 		UNNumber: "1234", HazardClass: "3", FactoryName: "  测试工厂  ", CargoReadyAt: "2026-08-23T12:00:00+08:00", ReceivedAt: "2026-08-23T10:00:00+08:00",
@@ -338,6 +343,7 @@ func TestOrderNormalizesOneMasterWithMultipleHousesAndContainerRequests(t *testi
 		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		ShippingDocuments: []*OrderShippingDocument{
 			{HouseNo: " HBL-001 ", ReleaseType: &releaseType},
 			{HouseNo: " HBL-002 "},
@@ -393,6 +399,7 @@ func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		ShipmentType: &breakBulk,
 	}
 
@@ -423,6 +430,7 @@ func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
 		ShippingLineID:     &shippingLineID,
 		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
 		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 		ShipmentType: &breakBulk,
 	}
 
@@ -728,8 +736,9 @@ func TestNormalizeOrderRequiresSEMasterBill(t *testing.T) {
 		CustomerID:     uuid.New(),
 		BusinessType:   OrderBusinessSE,
 		TradeDirection: OrderTradeExport,
-		TradeTerm:      OrderTradeFOB,
-		PaymentTerm:    OrderPaymentPrepaid,
+		ETD:            "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
+		TradeTerm:   OrderTradeFOB,
+		PaymentTerm: OrderPaymentPrepaid,
 		PersonnelAssignments: []*OrderPersonnel{
 			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
 			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
@@ -820,9 +829,10 @@ func TestNormalizeOrderRequiresCommissionPersonnelOnCreate(t *testing.T) {
 			CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
 			ShippingLineID: &shippingLineID,
 			TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
+			ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
 			PersonnelAssignments: personnel,
-			SeaMasterBillInput:  &SeaMasterBillInput{MasterNo: "COSCO123456"},
-			SeaDocumentInput:   &SeaOrderDocumentInput{DocumentStructure: &directMode},
+			SeaMasterBillInput:   &SeaMasterBillInput{MasterNo: "COSCO123456"},
+			SeaDocumentInput:     &SeaOrderDocumentInput{DocumentStructure: &directMode},
 		}
 	}
 

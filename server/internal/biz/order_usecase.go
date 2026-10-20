@@ -437,7 +437,24 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if (output.InsurancePremium == "") != (output.InsuranceCurrency == "") || output.InsurancePremium != "" && (!cargoValuePattern.MatchString(output.InsurancePremium) || len(output.InsuranceCurrency) != 3) || output.UNNumber != "" && !unNumberPattern.MatchString(output.UNNumber) {
 		return nil, ErrOrderInvalidArgument
 	}
-	for _, value := range []string{output.ETD, output.ETA, output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.DeclarationCutoffAt, output.ReceivedAt, output.OrderDate} {
+	if output.ETD == "" {
+		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "请填写 ETD（预计离港时间）")
+	}
+	if output.ETA == "" {
+		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "请填写 ETA（预计到港时间）")
+	}
+	etd, err := time.Parse(time.RFC3339, output.ETD)
+	if err != nil {
+		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETD（预计离港时间）格式不合法")
+	}
+	eta, err := time.Parse(time.RFC3339, output.ETA)
+	if err != nil {
+		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETA（预计到港时间）格式不合法")
+	}
+	if eta.Before(etd) {
+		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETA（预计到港时间）不能早于 ETD（预计离港时间）")
+	}
+	for _, value := range []string{output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.DeclarationCutoffAt, output.ReceivedAt, output.OrderDate} {
 		if value != "" {
 			if _, err := time.Parse(time.RFC3339, value); err != nil {
 				return nil, ErrOrderInvalidArgument

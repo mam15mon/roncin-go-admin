@@ -791,6 +791,10 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
 	co := sc.company
+	// 与日期选择器提交口径一致：北京时间 9 月 25 日、10 月 10 日零点，转换为 UTC 存储。
+	// 订单与运输执行共用同一时刻，避免按 UTC 日期匹配主单船期时产生跨日冲突。
+	etd := time.Date(2026, time.September, 24, 16, 0, 0, 0, time.UTC)
+	eta := time.Date(2026, time.October, 9, 16, 0, 0, 0, time.UTC)
 
 	type orderSeedDef struct {
 		orderNo       string
@@ -1163,8 +1167,8 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 				SetDestinationLocationID(pod.ID).
 				SetDischargeLocationID(pod.ID).
 				SetVesselVoyage(vesselVoyage).
-				SetEtd("2026-09-25 18:00").
-				SetEta("2026-10-10 08:00").
+				SetEtd(etd.Format(time.RFC3339)).
+				SetEta(eta.Format(time.RFC3339)).
 				SetOrderDate("2026-09-20").
 				SetBookingNo("BKG-" + o.orderNo)
 
@@ -1305,6 +1309,8 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 						SetDischargeLocationID(pod.ID).
 						SetVesselName(o.vessel).
 						SetVoyageNo(o.voyage).
+						SetEtd(etd).
+						SetEta(eta).
 						Save(ctx)
 					if err == nil {
 						exec = createdExec

@@ -198,3 +198,56 @@ func TestSeaTransportExecutionToAPIOmitsUnsetUUIDs(t *testing.T) {
 		t.Fatalf("已设置的运输执行 UUID 转换错误: %#v", output)
 	}
 }
+
+func TestSeaMasterBillCandidateToAPIPreservesScheduleInstants(t *testing.T) {
+	etd := time.Date(2026, time.September, 24, 16, 0, 0, 0, time.UTC)
+	eta := time.Date(2026, time.October, 9, 16, 0, 0, 0, time.UTC)
+	for _, testCase := range []struct {
+		name    string
+		etd     *time.Time
+		eta     *time.Time
+		wantETD string
+		wantETA string
+	}{
+		{"UTC本地零点对应的候选船期保留完整时刻", &etd, &eta, "2026-09-24T16:00:00Z", "2026-10-09T16:00:00Z"},
+		{"ETD缺失时保持未设置", nil, &eta, "", "2026-10-09T16:00:00Z"},
+		{"ETA缺失时保持未设置", &etd, nil, "2026-09-24T16:00:00Z", ""},
+		{"船期均缺失时保持未设置", nil, nil, "", ""},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			candidate := seaMasterBillCandidateToAPI(&biz.SeaMasterBillCandidate{
+				TransportExecutions: []*biz.SeaTransportExecution{{ETD: testCase.etd, ETA: testCase.eta}},
+			})
+			if len(candidate.TransportExecutions) != 1 {
+				t.Fatalf("候选运输执行应完整保留: %v", candidate.TransportExecutions)
+			}
+			execution := candidate.TransportExecutions[0]
+			for _, field := range []struct {
+				name    string
+				value   *string
+				want    string
+				instant *time.Time
+			}{
+				{"ETD", execution.Etd, testCase.wantETD, testCase.etd},
+				{"ETA", execution.Eta, testCase.wantETA, testCase.eta},
+			} {
+				if field.want == "" {
+					if field.value != nil {
+						t.Fatalf("%s 缺失时应省略: %v", field.name, field.value)
+					}
+					continue
+				}
+				if field.value == nil || *field.value != field.want {
+					t.Fatalf("候选 %s = %v，期望完整时刻 %s", field.name, field.value, field.want)
+				}
+				parsed, err := time.Parse(time.RFC3339, *field.value)
+				if err != nil || !parsed.Equal(*field.instant) {
+					t.Fatalf("候选 %s 必须保留原时刻: %q，%v", field.name, *field.value, err)
+				}
+			}
+		})
+	}
+	if seaTransportExecutionToAPI(nil) != nil {
+		t.Fatal("未设置运输执行时应保持空值")
+	}
+}

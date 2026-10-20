@@ -25,7 +25,8 @@ func idempotentCreateInput(organizationID uuid.UUID) *Order {
 		CustomerID:     uuid.Must(uuid.NewV7()), BusinessType: OrderBusinessSE,
 		ShippingLineID: &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
-		ServiceTypeIDs: []uuid.UUID{uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())},
+		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
+		ServiceTypeIDs:   []uuid.UUID{uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())},
 		CargoCategoryIDs: []uuid.UUID{uuid.Must(uuid.NewV7())},
 		PersonnelAssignments: []*OrderPersonnel{
 			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},

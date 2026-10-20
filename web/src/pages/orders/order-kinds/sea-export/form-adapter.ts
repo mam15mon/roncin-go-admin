@@ -308,8 +308,12 @@ export function buildSeaExportCreatePayload(
     dischargeLocationId: values.dischargeLocationId || undefined,
     transitLocationId: values.transitLocationId || undefined,
     vesselVoyage: values.vesselVoyage?.trim() || undefined,
-    etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
-    eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
+    etd: values.etd
+      ? dayjs(values.etd).startOf('day').toISOString()
+      : undefined,
+    eta: values.eta
+      ? dayjs(values.eta).startOf('day').toISOString()
+      : undefined,
     siCutoff: values.siCutoff
       ? dayjs(values.siCutoff).toISOString()
       : undefined,
@@ -535,8 +539,12 @@ export function buildSeaExportUpdatePayload(
     dischargeLocationId: values.dischargeLocationId || undefined,
     transitLocationId: values.transitLocationId || undefined,
     vesselVoyage: values.vesselVoyage?.trim() || undefined,
-    etd: values.etd ? dayjs(values.etd).toISOString() : undefined,
-    eta: values.eta ? dayjs(values.eta).toISOString() : undefined,
+    etd: values.etd
+      ? dayjs(values.etd).startOf('day').toISOString()
+      : undefined,
+    eta: values.eta
+      ? dayjs(values.eta).startOf('day').toISOString()
+      : undefined,
     siCutoff: values.siCutoff
       ? dayjs(values.siCutoff).toISOString()
       : undefined,

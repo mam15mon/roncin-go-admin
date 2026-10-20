@@ -437,7 +437,7 @@ describe('buildSeaExportUpdatePayload', () => {
     ]);
   });
 
-  it('日期字段转换为 ISO 字符串，空值保持 undefined', () => {
+  it('船期按本地日期零点转换为 ISO 字符串，空值保持 undefined', () => {
     const result = buildSeaExportUpdatePayload('order-1', '1', {
       customerId: 'customer-1',
       paymentTerm: 1,
@@ -445,8 +445,35 @@ describe('buildSeaExportUpdatePayload', () => {
       eta: undefined,
     });
 
-    expect(result.etd).toBe('2026-08-29T01:00:00.000Z');
+    expect(result.etd).toBe(dayjs('2026-08-29T00:00:00').toISOString());
     expect(result.eta).toBeUndefined();
+  });
+});
+
+describe('SE 船期日期精度', () => {
+  const values = {
+    customerId: 'customer-1',
+    paymentTerm: 1,
+    etd: dayjs('2026-10-20T23:30:00'),
+    eta: '2026-10-25T01:15:00',
+    siCutoff: dayjs('2026-10-19T14:25:00'),
+  };
+
+  it.each([
+    {
+      name: '创建',
+      build: () => buildSeaExportCreatePayload(values),
+    },
+    {
+      name: '保存草稿',
+      build: () => buildSeaExportUpdatePayload('order-1', '1', values),
+    },
+  ])('$name 时 ETD、ETA 仅提交所选本地日，截关时分保留', ({ build }) => {
+    const result = build();
+
+    expect(result.etd).toBe(dayjs('2026-10-20T00:00:00').toISOString());
+    expect(result.eta).toBe(dayjs('2026-10-25T00:00:00').toISOString());
+    expect(result.siCutoff).toBe(dayjs('2026-10-19T14:25:00').toISOString());
   });
 });
 
@@ -563,8 +590,8 @@ describe('SE 适配器完整固定夹具等价', () => {
       dischargeLocationId: 'loc-discharge',
       transitLocationId: 'loc-transit',
       vesselVoyage: 'COSCO STAR / 024W',
-      etd: '2026-09-01T00:00:00.000Z',
-      eta: '2026-09-15T00:00:00.000Z',
+      etd: dayjs('2026-09-01T00:00:00.000Z').startOf('day').toISOString(),
+      eta: dayjs('2026-09-15T00:00:00.000Z').startOf('day').toISOString(),
       siCutoff: '2026-08-28T04:00:00.000Z',
       docCutoff: '2026-08-29T05:00:00.000Z',
       customsCutoff: '2026-08-30T06:00:00.000Z',
@@ -959,8 +986,8 @@ describe('SE 适配器完整固定夹具等价', () => {
       dischargeLocationId: 'loc-discharge',
       transitLocationId: 'loc-transit',
       vesselVoyage: 'COSCO STAR / 024W',
-      etd: '2026-09-01T00:00:00.000Z',
-      eta: '2026-09-15T00:00:00.000Z',
+      etd: dayjs('2026-09-01T00:00:00.000Z').startOf('day').toISOString(),
+      eta: dayjs('2026-09-15T00:00:00.000Z').startOf('day').toISOString(),
       siCutoff: '2026-08-28T04:00:00.000Z',
       docCutoff: '2026-08-29T05:00:00.000Z',
       customsCutoff: '2026-08-30T06:00:00.000Z',

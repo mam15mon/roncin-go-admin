@@ -10,9 +10,13 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import dayjs from 'dayjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as orderService from '@/services/roncin/orderService';
-import { SeaMasterBillFields } from './SeaTransportSection';
+import {
+  SeaMasterBillFields,
+  SeaScheduleDateFields,
+} from './SeaTransportSection';
 
 const field = 'seaMasterBillMasterNo';
 const pendingMessage = '正在核对已有主单，请稍候';
@@ -68,6 +72,37 @@ const candidate: API.SeaMasterBillCandidate = {
 afterEach(() => vi.restoreAllMocks());
 
 describe('主单候选核对与字段校验同步', () => {
+  it('候选核对的船期使用本地日零点，与保存载荷一致', async () => {
+    const match = vi
+      .spyOn(orderService, 'orderServiceMatchSeaMasterBillCandidate')
+      .mockResolvedValue({ matched: false });
+    render(
+      <ProForm
+        submitter={false}
+        initialValues={{
+          shippingLineId: 'carrier-1',
+          [field]: 'MBL123',
+          etd: dayjs('2026-10-20T23:30:00'),
+          eta: dayjs('2026-10-25T01:15:00'),
+        }}
+      >
+        <ProFormText name="shippingLineId" hidden />
+        <SeaMasterBillFields />
+        <SeaScheduleDateFields />
+      </ProForm>,
+    );
+
+    await waitFor(() =>
+      expect(match).toHaveBeenCalledWith(
+        expect.objectContaining({
+          etd: dayjs('2026-10-20T00:00:00').toISOString(),
+          eta: dayjs('2026-10-25T00:00:00').toISOString(),
+        }),
+        { skipErrorHandler: true },
+      ),
+    );
+  });
+
   it('核对通过后修改主单号会移除旧对勾并重新核对', async () => {
     const { resolve, form } = await setupPending();
     await act(async () => resolve({ matched: false }));

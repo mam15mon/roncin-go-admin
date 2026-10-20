@@ -330,11 +330,19 @@ func applyOrderStringDateRange(query *ent.OrderQuery, fieldName string, dateRang
 		return
 	}
 	query.Where(entpredicate.Order(func(selector *entsql.Selector) {
+		// ETD/ETA 保存 RFC3339 时刻，按真实时刻筛选，避免本地零点在 UTC 前一天时漏单。
+		// 未设置的空字符串转为 NULL；有值的字段必须满足写入时的 RFC3339 校验。
 		if dateRange.From != nil {
-			selector.Where(entsql.GTE(selector.C(fieldName), dateRange.From.Format("2006-01-02")))
+			selector.Where(entsql.P(func(builder *entsql.Builder) {
+				builder.WriteString("NULLIF(").Ident(selector.C(fieldName)).
+					WriteString(", '')::timestamptz >= ").Arg(*dateRange.From)
+			}))
 		}
 		if dateRange.ToExclusive != nil {
-			selector.Where(entsql.LT(selector.C(fieldName), dateRange.ToExclusive.Format("2006-01-02")))
+			selector.Where(entsql.P(func(builder *entsql.Builder) {
+				builder.WriteString("NULLIF(").Ident(selector.C(fieldName)).
+					WriteString(", '')::timestamptz < ").Arg(*dateRange.ToExclusive)
+			}))
 		}
 	}))
 }

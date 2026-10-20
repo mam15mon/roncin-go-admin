@@ -836,8 +836,9 @@ func (f *orderPostgresFixture) validInput() *biz.Order {
 		ShippingLineID: &f.shippingLineID,
 		BusinessType:   biz.OrderBusinessSE,
 		TradeDirection: biz.OrderTradeExport,
-		TradeTerm:      biz.OrderTradeFOB,
-		PaymentTerm:    biz.OrderPaymentPrepaid,
+		ETD:            "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
+		TradeTerm:   biz.OrderTradeFOB,
+		PaymentTerm: biz.OrderPaymentPrepaid,
 		// 提成归属以订单人员为唯一真相：创建输入必须携带销售/操作/客服三岗
 		// （同一成员可兼任多岗），否则被 biz 层缺岗门禁拒绝。
 		PersonnelAssignments: []*biz.OrderPersonnel{

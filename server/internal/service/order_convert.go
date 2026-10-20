@@ -277,10 +277,10 @@ func seaTransportExecutionToAPI(item *biz.SeaTransportExecution) *v1.SeaTranspor
 		Version:               item.Version,
 	}
 	if item.ETD != nil {
-		res.Etd = stringPtrIfNotEmpty(item.ETD.Format("2006-01-02"))
+		res.Etd = stringPtrIfNotEmpty(item.ETD.Format(time.RFC3339))
 	}
 	if item.ETA != nil {
-		res.Eta = stringPtrIfNotEmpty(item.ETA.Format("2006-01-02"))
+		res.Eta = stringPtrIfNotEmpty(item.ETA.Format(time.RFC3339))
 	}
 	return res
 }

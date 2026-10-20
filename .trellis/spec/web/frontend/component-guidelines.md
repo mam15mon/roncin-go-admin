@@ -312,6 +312,17 @@ if (
 - 切到 DIRECT 后分单字段不参与必填校验，提交不携带 HBL；切回 HOUSE 后恢复分单表单与校验。详情模式切换仍遵循原有权限、预览与执行流程。
 - 回归验证覆盖初始 DIRECT、HOUSE → DIRECT → HOUSE、分节导航同步及提交数据；保留三个签发主体合法值，不因文案调整擅自设置默认签发方。
 
+## 海运订单草稿船期
+
+- 共用 `SeaScheduleDateFields` 的 ETD、ETA 在新建与整单草稿保存时均必填，
+  使用 `ProFormDatePicker` 只显示和选择日期，不提供时分秒，不自动补默认日期。
+- ETA 按日比较不得早于 ETD，同一天允许保存；改 ETD 时仅清空日期更早的 ETA。
+- 创建、更新和共享主单候选请求对 ETD/ETA 统一使用所选本地日零点序列化，
+  保留现有 RFC3339 请求格式；截关等其它时间字段不变。
+- 服务端在 Create/UpdateDraft 共用的 `normalizeOrder` 中复核必填、RFC3339
+  格式及真实时刻先后关系；完整矩阵见[海运出口契约](../../server/backend/sea-export-document-contract.md)。
+- 界面字段保留 ETD/ETA 标签，并用中文缺失提示明确预计离港/预计到港口径。
+
 ## 海运提单正文与件重尺对比
 
 - `SeaDocumentSection` 的 MBL/HBL 正文使用普通容器，保留最外层分节卡片与输入框，

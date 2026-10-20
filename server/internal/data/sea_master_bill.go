@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -246,10 +247,10 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 			summary.VesselName = te.VesselName
 			summary.VoyageNo = te.VoyageNo
 			if te.Etd != nil {
-				summary.ETD = te.Etd.Format("2006-01-02")
+				summary.ETD = te.Etd.Format(time.RFC3339)
 			}
 			if te.Eta != nil {
-				summary.ETA = te.Eta.Format("2006-01-02")
+				summary.ETA = te.Eta.Format(time.RFC3339)
 			}
 		}
 		result[link.OrderID] = summary

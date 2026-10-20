@@ -1,10 +1,15 @@
 import { CheckCircleFilled, LoadingOutlined } from '@ant-design/icons';
-import { ProFormDateTimePicker, ProFormText } from '@ant-design/pro-components';
+import {
+  ProFormDatePicker,
+  ProFormDateTimePicker,
+  ProFormText,
+} from '@ant-design/pro-components';
 import {
   Alert,
   Button,
   Card,
   Form,
+  type FormInstance,
   Input,
   Select,
   Space,
@@ -19,6 +24,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
+import { formatDate } from '@/utils/format';
 import { containerOwnershipOptions } from '../../../common';
 import {
   OrderContainerRequestFields,
@@ -158,8 +164,12 @@ export function SeaMasterBillFields({
     let isSubscribed = true;
     const timer = setTimeout(async () => {
       try {
-        const etdStr = etd ? dayjs(etd).toISOString() : undefined;
-        const etaStr = eta ? dayjs(eta).toISOString() : undefined;
+        const etdStr = etd
+          ? dayjs(etd).startOf('day').toISOString()
+          : undefined;
+        const etaStr = eta
+          ? dayjs(eta).startOf('day').toISOString()
+          : undefined;
         const { vesselName, voyageNo } = splitSeaVesselVoyage(vesselVoyage);
         const resp = await orderServiceMatchSeaMasterBillCandidate(
           {
@@ -416,7 +426,7 @@ export function SeaMasterBillFields({
                 disabled={batchDirectBlocked}
                 options={(candidate.transportExecutions ?? []).map((te) => ({
                   value: te.id,
-                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd || '无 ETD'}`,
+                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${formatDate(te.etd, 'date')}`,
                 }))}
                 onChange={(value) => {
                   const te = candidate.transportExecutions?.find(
@@ -443,8 +453,12 @@ export function SeaMasterBillFields({
                   <span>
                     卸货港: {selectedCandidateTe.dischargeLocationName || '-'} |{' '}
                   </span>
-                  <span>ETD: {selectedCandidateTe.etd || '-'} | </span>
-                  <span>ETA: {selectedCandidateTe.eta || '-'}</span>
+                  <span>
+                    ETD: {formatDate(selectedCandidateTe.etd, 'date')} |{' '}
+                  </span>
+                  <span>
+                    ETA: {formatDate(selectedCandidateTe.eta, 'date')}
+                  </span>
                 </div>
               )}
 
@@ -597,15 +611,16 @@ export function SeaScheduleDateFields() {
 
   return (
     <>
-      <ProFormDateTimePicker
+      <ProFormDatePicker
         name="etd"
         label="ETD"
+        rules={[{ required: true, message: '请选择 ETD（预计离港时间）' }]}
         fieldProps={{
           style: { width: '100%' },
-          onChange: (date) => {
+          onChange: (date: dayjs.Dayjs | null) => {
             if (date) {
               const currentEta = form?.getFieldValue('eta');
-              if (currentEta?.isBefore(date)) {
+              if (currentEta?.isBefore(date, 'day')) {
                 form?.setFieldValue('eta', undefined);
               }
             }
@@ -620,20 +635,16 @@ export function SeaScheduleDateFields() {
           style={{ width: '100%' }}
         />
       </Form.Item>
-      <ProFormDateTimePicker
+      <ProFormDatePicker
         name="eta"
         label="ETA"
         dependencies={['etd']}
         rules={[
-          ({ getFieldValue }) => ({
-            validator(_, value) {
+          { required: true, message: '请选择 ETA（预计到港时间）' },
+          ({ getFieldValue }: FormInstance) => ({
+            validator(_: unknown, value?: dayjs.Dayjs) {
               const etdVal = getFieldValue('etd');
-              if (
-                !value ||
-                !etdVal ||
-                value.isAfter(etdVal) ||
-                value.isSame(etdVal)
-              ) {
+              if (!value || !etdVal || !value.isBefore(etdVal, 'day')) {
                 return Promise.resolve();
               }
               return Promise.reject(new Error('ETA 不能早于 ETD'));

@@ -397,3 +397,62 @@ return transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 	return repo.ExecuteSplit(txCtx, organizationID, actorID, input, operationLog)
 })
 ```
+
+## Scenario：海运订单草稿船期必填
+
+### 1. Scope / Trigger
+
+海运出口订单新建与整单草稿保存时，ETD、ETA 均必填；校验落在
+`internal/biz/order_usecase.go` 的 `normalizeOrder`，不等到状态流转才校验。
+
+### 2. Signatures
+
+- `POST /api/v1/orders` → `OrderUsecase.Create`。
+- `PUT /api/v1/orders/{id}` → `OrderUsecase.UpdateDraft`。
+- 前端共用 `SeaScheduleDateFields`，ETD/ETA 使用日期选择器且均配置 required；请求格式不变。
+
+### 3. Contracts
+
+- `etd`、`eta` trim 后均非空，按 RFC3339 解析，比较真实时刻，要求 `eta >= etd`。
+- 界面只选择与显示日期；创建、更新和共享主单候选匹配均按所选本地日零点序列化为 RFC3339，
+  不保留隐藏的时分秒；不得填充默认日期或用当前时间自动补齐。
+- 允许 ETD 与 ETA 为同一天；前端按本地日零点统一后提交，后端允许两个时刻相等。
+- 订单读取、共享主单摘要和候选运输执行 DTO 的 ETD/ETA 均输出 RFC3339，保留真实时刻，
+  由前端转换为本地日期；禁止后端直接截 UTC 日期而导致零点回显前一天。
+- 列表 ETD/ETA 范围筛选将字符串列按时间戳比较服务端既有本地日期边界，禁止把
+  RFC3339 字符串与 `YYYY-MM-DD` 作文本比较；空船期不匹配范围。
+- 日期失败在仓储写入前返回，不更改订单、共享主单、运输执行或审计数据。
+- 本规则只约束新建与整单草稿保存，不把其它日期字段改为必填。
+
+### 4. Validation & Error Matrix
+
+所有失败返回 HTTP 400、原因码 `ORDER_INVALID_ARGUMENT`：
+
+| 条件 | 中文消息 |
+| --- | --- |
+| ETD 为空或仅空白 | 请填写 ETD（预计离港时间） |
+| ETA 为空或仅空白 | 请填写 ETA（预计到港时间） |
+| ETD 格式错误 | ETD（预计离港时间）格式不合法 |
+| ETA 格式错误 | ETA（预计到港时间）格式不合法 |
+| ETA 早于 ETD | ETA（预计到港时间）不能早于 ETD（预计离港时间） |
+
+前端对应必填提示使用「请选择 ETD（预计离港时间）」和「请选择 ETA（预计到港时间）」。
+
+### 5. Good / Base / Bad Cases
+
+- 合法：ETD `2026-11-20T10:00:00+08:00`，ETA `2026-11-21T10:00:00+08:00`。
+- 边界：ETD `2026-11-20T10:00:00+08:00`，ETA `2026-11-20T02:00:00Z`，同一时刻允许。
+- 非法：缺少任一日期、无时区日期字符串、或 ETA 早于 ETD；两者均空先提示 ETD。
+
+### 6. Tests Required
+
+- 前端：分别缺 ETD/ETA、都缺、合法、时间相等、ETA 早于 ETD，以及修改 ETD 后校验。
+- 后端：Create/UpdateDraft 共用校验、非法输入零仓储写入、带时区比较与正常路径。
+- 转换测试覆盖 UTC 中前一日的本地零点仍能往返成相同日期；列表筛选覆盖范围边界与空值。
+- 有效测试夹具和开发数据必须使用明确的合法船期，不得关闭校验或自动补默认值。
+
+### 7. Wrong vs Correct
+
+错误：只给前端加星号，接口仍能保存空日期；或缺少日期时自动填当前时间。
+
+正确：前端字段规则阻止提交，后端共用用例独立检查必填、格式和先后关系。

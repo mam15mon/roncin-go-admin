@@ -2,6 +2,7 @@ package data
 
 import (
 	"github.com/google/uuid"
+	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -150,10 +151,10 @@ func orderToBiz(item *ent.Order) *biz.Order {
 				summary.VesselName = te.VesselName
 				summary.VoyageNo = te.VoyageNo
 				if te.Etd != nil {
-					summary.ETD = te.Etd.Format("2006-01-02")
+					summary.ETD = te.Etd.Format(time.RFC3339)
 				}
 				if te.Eta != nil {
-					summary.ETA = te.Eta.Format("2006-01-02")
+					summary.ETA = te.Eta.Format(time.RFC3339)
 				}
 				if result.BusinessType == biz.OrderBusinessSE {
 					result.ShippingLineID = &te.ShippingLineID
@@ -162,10 +163,10 @@ func orderToBiz(item *ent.Order) *biz.Order {
 					result.TransitLocationID = te.TransitLocationID
 					result.VesselVoyage = biz.CombineVesselVoyage(te.VesselName, te.VoyageNo)
 					if te.Etd != nil {
-						result.ETD = te.Etd.Format("2006-01-02")
+						result.ETD = te.Etd.Format(time.RFC3339)
 					}
 					if te.Eta != nil {
-						result.ETA = te.Eta.Format("2006-01-02")
+						result.ETA = te.Eta.Format(time.RFC3339)
 					}
 				}
 			}
