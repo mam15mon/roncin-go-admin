@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 149
-- **Last Active**: 2026-10-20
+- **Total Sessions**: 150
+- **Last Active**: 2026-10-21
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1961 | Active |
+| `journal-2.md` | ~1991 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 150 | 2026-10-21 | 完成空运出口共享主单、重量确认与财务闭环 | `2c55ca5b`, `63b1b644`, `884f0e20`, `4a8f55f2`, `b9b2ecd0`, `53a88ada`, `4a1ecd78`, `ec88c2b2`, `5301514c` | `codex/air-export-business-loop` |
 | 149 | 2026-10-20 | 公共计费单位补齐与订单数量确认带入 | `d621d229`, `0f04609b`, `7f1da6ac`, `5a405e58` | `codex/billing-unit-quantity-assist` |
 | 148 | 2026-10-20 | 切换组织保留功能位置与未保存编辑保护 | `166282a3` | `codex/retain-page-on-org-switch` |
 | 146 | 2026-10-20 | 修复管理员角色最大权限全选 | `87fcd7b7` | `main` |
