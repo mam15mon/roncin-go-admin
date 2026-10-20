@@ -14,6 +14,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
+import { createStyles } from 'antd-style';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
@@ -70,6 +71,25 @@ export { SeaCreateDocumentModeField } from './SeaCreateDocumentModeField';
 // 迁出后的公共面保持原导入路径稳定。
 export * from './seaDocumentSectionConstants';
 
+const useDocumentTabsStyles = createStyles(({ css }) => ({
+  tabs: css`
+    &.ant-tabs {
+      .ant-tabs-switch-enter-active,
+      .ant-tabs-switch-leave-active {
+        transition-duration: 180ms;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ant-tabs-switch-enter-active,
+        .ant-tabs-switch-leave-active,
+        .ant-tabs-ink-bar-animated {
+          transition: none;
+        }
+      }
+    }
+  `,
+}));
+
 export function SeaDocumentSectionComponent({
   disabled = false,
   isDetail = false,
@@ -81,6 +101,7 @@ export function SeaDocumentSectionComponent({
   organizationId?: string;
   onOrderDataChanged?: () => Promise<void> | void;
 }) {
+  const { styles } = useDocumentTabsStyles();
   const form = Form.useFormInstance();
   const { message } = App.useApp();
   const access = useAccess();
@@ -741,6 +762,8 @@ export function SeaDocumentSectionComponent({
       ) : null}
 
       <Tabs
+        className={styles.tabs}
+        animated={{ inkBar: true, tabPane: true }}
         type="card"
         activeKey={activeTabKey}
         onChange={setActiveTabKey}

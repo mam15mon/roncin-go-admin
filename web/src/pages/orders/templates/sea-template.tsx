@@ -124,8 +124,10 @@ export function getSeaTemplateSections(
       title: '货物与商业',
       content: (
         <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-          {basic.categories}
-          {basic.dangerous}
+          <div>
+            {basic.categories}
+            {basic.dangerous}
+          </div>
           <SeaCargoDescriptionFields />
           <FormRow cols={4}>
             {basic.trade}
