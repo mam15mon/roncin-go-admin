@@ -15,12 +15,12 @@
   "branch": "codex/fix-admin-role-max-permissions",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "87fcd7b7",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "已完成修复、独立审查、真实PostgreSQL及最终main集合前端门禁；通过隔离整合分支排除并行海运提交后合入本地main。",
   "meta": {}
 }
